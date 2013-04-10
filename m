@@ -1,82 +1,62 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fwd: Re: [BUG] Fatal exception in interrupt -
- nf_nat_cleanup_conntrack during IPv6 tests
-Date: Wed, 10 Apr 2013 11:41:13 +0200
-Message-ID: <20130410094113.GA20477@macbook.localnet>
-References: <20130410090436.GG3013@breakpoint.cc>
- <20130410092347.GA15814@macbook.localnet>
- <20130410093204.GA11266@breakpoint.cc>
+Subject: Re: [PATCH] libipt6_mh.man: Correct command to display named mh types
+Date: Wed, 10 Apr 2013 13:24:18 +0200
+Message-ID: <20130410112418.GA21728@macbook.localnet>
+References: <5163BFD9.7060804@chello.at>
+ <20130409084129.GA25238@macbook.localnet>
+ <5163E22A.50509@chello.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	caiqian@redhat.com
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Mart Frauenlob <mart.frauenlob@chello.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50905 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:52276 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935192Ab3DJJlW (ORCPT
+	with ESMTP id S935845Ab3DJLY0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Apr 2013 05:41:22 -0400
+	Wed, 10 Apr 2013 07:24:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20130410093204.GA11266@breakpoint.cc>
+In-Reply-To: <5163E22A.50509@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 10, 2013 at 11:32:04AM +0200, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > On Wed, Apr 10, 2013 at 11:04:36AM +0200, Florian Westphal wrote:
-> > > Subject: Re: [BUG] Fatal exception in interrupt - nf_nat_cleanup_conntrack during IPv6 tests
-> > > CAI Qian <caiqian@redhat.com> wrote:
-> > > > Just hit this very often during IPv6 tests in both the latest stable
-> > > > and mainline kernel.
-> > > > 
-> > > > [ 3597.206166] Modules linked in:
-> > > [..]
-> > > > nf_nat_ipv4(F-)
-> > > [..]
-> > > 
-> > > > [ 3597.804861] RIP: 0010:[<ffffffffa03227f2>]  [<ffffffffa03227f2>] nf_nat_cleanup_conntrack+0x42/0x70 [nf_nat] 
-> > > > [ 3597.855207] RSP: 0018:ffff880202c63d40  EFLAGS: 00010246 
-> > > > [ 3597.881350] RAX: 0000000000000000 RBX: ffff8801ac7bec28 RCX: ffff8801d0eedbe0 
-> > > > [ 3597.917226] RDX: dead000000200200 RSI: 0000000000000011 RDI: ffffffffa03265b8 
-> > > [..]
-> > > 
-> > > > [ 3598.421036]  <IRQ>  
-> > > > [ 3598.430467]  [<ffffffffa0305bb4>] __nf_ct_ext_destroy+0x44/0x60 [nf_conntrack] 
-> > > > [ 3598.499191]  [<ffffffffa02fd3fe>] nf_conntrack_free+0x2e/0x70 [nf_conntrack] 
-> > > > [ 3598.534121]  [<ffffffffa02febed>] destroy_conntrack+0xbd/0x110 [nf_conntrack] 
-> > > > [ 3598.569981]  [<ffffffff81532187>] nf_conntrack_destroy+0x17/0x20 
-> > > > [ 3598.599579]  [<ffffffffa02fe77c>] death_by_timeout+0xdc/0x1b0 [nf_conntrack]
-> > > [..]
-> > > > [ 3599.241868] Code: 83 ec 08 0f b6 58 11 84 db 74 43 48 01 c3 48 83 7b 20 00 74 39 48 c7 c7 b8 65 32 a0 e8 98 fc 2e e1 48 8b 03 48 8b 53 08 48 85 c0 <48> 89 02 74 04 48 89 50 08 48 ba 00 02 20 00 00 00 ad de 48 c7  
-> > > > [ 3599.337037] RIP  [<ffffffffa03227f2>] nf_nat_cleanup_conntrack+0x42/0x70 [nf_nat] 
-> > > 
-> > > Looks like we tried to remove bysource hash twice (rdx is
-> > > LIST_POISON_2).
-> > > 
-> > > I wonder if this would explain it:
-> > > 
-> > > static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
-> > > {
-> > > [..]
-> > >       /* Step 1 - remove from bysource hash */
-> > >       clean.hash = true;
-> > >       for_each_net(net)
-> > >                 nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
-> > > 
-> > > A nfct->timer fires and a conntrack is free'd before step 2 memsets the
-> > > nat extension.  In that case, we would try to delete nat->bysource
-> > > again?
-> > 
-> > Not sure I follow, we only invoke nf_nat_l4proto_clean() through
-> > nf_nat_l4proto_unregister(), right?
+On Tue, Apr 09, 2013 at 11:40:58AM +0200, Mart Frauenlob wrote:
+> On 09.04.2013 10:41, Patrick McHardy wrote:
+> >On Tue, Apr 09, 2013 at 09:14:33AM +0200, Mart Frauenlob wrote:
+> >>ip6tables -p ipv6-mh -h
+> >>
+> >>does not display the named mh types as the man page says.
+> >>ip6tables -m mh -h does.
 > >
-> > Did this happen during module unload?
+> >ip6tables -p mh also does. So please update the manpage to correct
+> >the protocol.
+> >
 > 
-> Looks like it, nf_nat_ipv4 is listed as F- in the oops trace. (afaics,
-> "-" means "module going away").
+> done
 
-Yes, that seems like a real race condition. We probably could extend the
-nf_nat_lock sections to avoid this, but I wonder wether we should just kill
-those conntracks, the connections are not going to work after being
-"de-nated" anymore anyway.
+Applied, thanks.
+
+> >From 39f5a982e40201faa97810d200cbc2d9d848996e Mon Sep 17 00:00:00 2001
+> From: Mart Frauenlob <mart.frauenlob@chello.at>
+> Date: Tue, 9 Apr 2013 11:38:47 +0200
+> Subject: [PATCH] libip6t_mh: Correct command to list named mh types in manpage.
+> 
+> ---
+>  extensions/libip6t_mh.man |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/extensions/libip6t_mh.man b/extensions/libip6t_mh.man
+> index 4559e78..8ec08c6 100644
+> --- a/extensions/libip6t_mh.man
+> +++ b/extensions/libip6t_mh.man
+> @@ -8,5 +8,5 @@ a numeric MH
+>  .IR type
+>  or one of the MH type names shown by the command
+>  .nf
+> - ip6tables \-p ipv6\-mh \-h
+> + ip6tables \-p mh \-h
+>  .fi
+> -- 
+> 1.7.2.5
+> 
+
