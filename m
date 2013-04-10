@@ -1,38 +1,34 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH] src: rule: fix compat XML output
-Date: Tue, 9 Apr 2013 22:34:17 +0200
-Message-ID: <CAOkSjBiy4LGkUJ4dafW_UXfnw8sJOecVnv5OrgWz6D1=1ywuDA@mail.gmail.com>
-References: <20130408083502.9509.95918.stgit@nfdev.cica.es> <20130409194900.GB5544@localhost>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: Netfilter's tree at git.kernel.org
+Date: Wed, 10 Apr 2013 09:44:21 +0900
+Message-ID: <20130410004420.GE2462@verge.net.au>
+References: <20130409195424.GA5654@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:44722 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935910Ab3DIUej convert rfc822-to-8bit (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:57478 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936034Ab3DJAoX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Apr 2013 16:34:39 -0400
-Received: by mail-lb0-f172.google.com with SMTP id u10so7293421lbi.31
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Apr 2013 13:34:37 -0700 (PDT)
-In-Reply-To: <20130409194900.GB5544@localhost>
+	Tue, 9 Apr 2013 20:44:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20130409195424.GA5654@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2013/4/9 Pablo Neira Ayuso <pablo@netfilter.org>:
->
-> Does it clarify?
+On Tue, Apr 09, 2013 at 09:54:24PM +0200, Pablo Neira Ayuso wrote:
+> Hi Simon and Jozsef,
+> 
+> For pull requests, please switch to the trees at kernel.org:
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/pablo/nf.git/
+> https://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/
+> 
+> I'll send a patch to David to update MAINTAINERS to point to the new
+> location asap.
 
-I agree with you.
-
-If you choose to commit this, I will patch (out) all XML extra
-formatting (newlines, tabs...).
-
---
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks, I have updated my git remotes to use those trees.
