@@ -1,49 +1,35 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 1/2] iptables (userspace): add secmark match
-Date: Fri, 12 Apr 2013 14:54:56 +0100
-Message-ID: <51681230.8010208@googlemail.com>
-References: <5135E9AF.6010800@googlemail.com> <20130319233233.GA4172@localhost> <514CA65E.5030106@googlemail.com> <51622C38.60109@googlemail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter fixes for net
+Date: Fri, 12 Apr 2013 14:28:17 -0400 (EDT)
+Message-ID: <20130412.142817.1030983883455796787.davem@davemloft.net>
+References: <1365761599-6990-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Eric Paris <eparis@redhat.com>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Fedora SELinux Users <selinux@lists.fedoraproject.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:37132 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755878Ab3DLNzN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Apr 2013 09:55:13 -0400
-Received: by mail-wg0-f53.google.com with SMTP id c11so2769515wgh.20
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Apr 2013 06:55:12 -0700 (PDT)
-In-Reply-To: <51622C38.60109@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1365761599-6990-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 12 Apr 2013 12:13:15 +0200
 
+> The following patchset contains late netfilter fixes for your net
+> tree, they are:
+> 
+> * Don't drop segmented TCP packets in the SIP helper, we've got reports
+>   from users that this was breaking communications when the SIP phone
+>   messages are larger than the MTU, from Patrick McHardy.
+> 
+> * Fix refcount leak in the ipset list set, from Jozsef Kadlecsik.
+> 
+> * On hash set resizing, the nomatch flag was lost, thus entirely inverting
+>   the logic of the set matching, from Jozsef Kadlecsik.
+> 
+> * Fix crash on NAT modules removal. Timer expiration may race with the
+>   module cleanup exit path while deleting conntracks, from Florian
+>   Westphal.
 
-Mr Dash Four wrote:
->
->
-> Mr Dash Four wrote:
->>
->>
->> Pablo Neira Ayuso wrote:
->>> On Tue, Mar 05, 2013 at 12:48:47PM +0000, Mr Dash Four wrote:
->>>  
->>>> This patch is part of the userspace changes needed for the 
->>>> "secmark" match
->>>> in iptables.
->>>>     
->>>
->>> SELinux already provides the framework to define your network policy
->>> based on the secmark. I don't see why we need this in iptables.
->>>   
->> I am not sure what to make of your response above Pablo. The purpose 
->> of the patch isn't to replace what SELinux already provides, but to 
->> make full use of that security framework. Are you questioning the 
->> purpose or usefulness of the patch in general? Elaborate please.
-> So?
-Pablo, do you intend to address this or not?
+Pulled, thanks Pablo.
