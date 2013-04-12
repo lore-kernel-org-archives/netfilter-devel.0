@@ -1,138 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/4] netfilter: nf_nat: fix race when unloading protocol modules
-Date: Fri, 12 Apr 2013 12:13:19 +0200
-Message-ID: <1365761599-6990-5-git-send-email-pablo@netfilter.org>
-References: <1365761599-6990-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH 1/2] iptables (userspace): add secmark match
+Date: Fri, 12 Apr 2013 14:54:56 +0100
+Message-ID: <51681230.8010208@googlemail.com>
+References: <5135E9AF.6010800@googlemail.com> <20130319233233.GA4172@localhost> <514CA65E.5030106@googlemail.com> <51622C38.60109@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Eric Paris <eparis@redhat.com>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Fedora SELinux Users <selinux@lists.fedoraproject.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45043 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752758Ab3DLKNe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Apr 2013 06:13:34 -0400
-In-Reply-To: <1365761599-6990-1-git-send-email-pablo@netfilter.org>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:37132 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755878Ab3DLNzN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Apr 2013 09:55:13 -0400
+Received: by mail-wg0-f53.google.com with SMTP id c11so2769515wgh.20
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Apr 2013 06:55:12 -0700 (PDT)
+In-Reply-To: <51622C38.60109@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
 
-following oops was reported:
-RIP: 0010:[<ffffffffa03227f2>]  [<ffffffffa03227f2>] nf_nat_cleanup_conntrack+0x42/0x70 [nf_nat]
-RSP: 0018:ffff880202c63d40  EFLAGS: 00010246
-RAX: 0000000000000000 RBX: ffff8801ac7bec28 RCX: ffff8801d0eedbe0
-RDX: dead000000200200 RSI: 0000000000000011 RDI: ffffffffa03265b8
-[..]
-Call Trace:
- [..]
- [<ffffffffa02febed>] destroy_conntrack+0xbd/0x110 [nf_conntrack]
 
-Happens when a conntrack timeout expires right after first part
-of the nat cleanup has completed (bysrc hash removal), but before
-part 2 has completed (re-initialization of nat area).
-
-[ destroy callback tries to delete bysrc again ]
-
-Patrick suggested to just remove the affected conntracks -- the
-connections won't work properly anyway without nat transformation.
-
-So, lets do that.
-
-Reported-by: CAI Qian <caiqian@redhat.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c |   40 +++++++---------------------------------
- 1 file changed, 7 insertions(+), 33 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 8d5769c..ad24be0 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -467,33 +467,22 @@ EXPORT_SYMBOL_GPL(nf_nat_packet);
- struct nf_nat_proto_clean {
- 	u8	l3proto;
- 	u8	l4proto;
--	bool	hash;
- };
- 
--/* Clear NAT section of all conntracks, in case we're loaded again. */
--static int nf_nat_proto_clean(struct nf_conn *i, void *data)
-+/* kill conntracks with affected NAT section */
-+static int nf_nat_proto_remove(struct nf_conn *i, void *data)
- {
- 	const struct nf_nat_proto_clean *clean = data;
- 	struct nf_conn_nat *nat = nfct_nat(i);
- 
- 	if (!nat)
- 		return 0;
--	if (!(i->status & IPS_SRC_NAT_DONE))
--		return 0;
-+
- 	if ((clean->l3proto && nf_ct_l3num(i) != clean->l3proto) ||
- 	    (clean->l4proto && nf_ct_protonum(i) != clean->l4proto))
- 		return 0;
- 
--	if (clean->hash) {
--		spin_lock_bh(&nf_nat_lock);
--		hlist_del_rcu(&nat->bysource);
--		spin_unlock_bh(&nf_nat_lock);
--	} else {
--		memset(nat, 0, sizeof(*nat));
--		i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK |
--			       IPS_SEQ_ADJUST);
--	}
--	return 0;
-+	return i->status & IPS_NAT_MASK ? 1 : 0;
- }
- 
- static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
-@@ -505,16 +494,8 @@ static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
- 	struct net *net;
- 
- 	rtnl_lock();
--	/* Step 1 - remove from bysource hash */
--	clean.hash = true;
- 	for_each_net(net)
--		nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
--	synchronize_rcu();
--
--	/* Step 2 - clean NAT section */
--	clean.hash = false;
--	for_each_net(net)
--		nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
-+		nf_ct_iterate_cleanup(net, nf_nat_proto_remove, &clean);
- 	rtnl_unlock();
- }
- 
-@@ -526,16 +507,9 @@ static void nf_nat_l3proto_clean(u8 l3proto)
- 	struct net *net;
- 
- 	rtnl_lock();
--	/* Step 1 - remove from bysource hash */
--	clean.hash = true;
--	for_each_net(net)
--		nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
--	synchronize_rcu();
- 
--	/* Step 2 - clean NAT section */
--	clean.hash = false;
- 	for_each_net(net)
--		nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
-+		nf_ct_iterate_cleanup(net, nf_nat_proto_remove, &clean);
- 	rtnl_unlock();
- }
- 
-@@ -773,7 +747,7 @@ static void __net_exit nf_nat_net_exit(struct net *net)
- {
- 	struct nf_nat_proto_clean clean = {};
- 
--	nf_ct_iterate_cleanup(net, &nf_nat_proto_clean, &clean);
-+	nf_ct_iterate_cleanup(net, &nf_nat_proto_remove, &clean);
- 	synchronize_rcu();
- 	nf_ct_free_hashtable(net->ct.nat_bysource, net->ct.nat_htable_size);
- }
--- 
-1.7.10.4
-
+Mr Dash Four wrote:
+>
+>
+> Mr Dash Four wrote:
+>>
+>>
+>> Pablo Neira Ayuso wrote:
+>>> On Tue, Mar 05, 2013 at 12:48:47PM +0000, Mr Dash Four wrote:
+>>>  
+>>>> This patch is part of the userspace changes needed for the 
+>>>> "secmark" match
+>>>> in iptables.
+>>>>     
+>>>
+>>> SELinux already provides the framework to define your network policy
+>>> based on the secmark. I don't see why we need this in iptables.
+>>>   
+>> I am not sure what to make of your response above Pablo. The purpose 
+>> of the patch isn't to replace what SELinux already provides, but to 
+>> make full use of that security framework. Are you questioning the 
+>> purpose or usefulness of the patch in general? Elaborate please.
+> So?
+Pablo, do you intend to address this or not?
