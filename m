@@ -1,68 +1,54 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 5/5] netfilter: nfqueue: avoid expensive gso segmentation and checksum fixup
-Date: Tue, 16 Apr 2013 17:32:08 +0200
-Message-ID: <1366126328-25874-6-git-send-email-fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 4/5] netfilter: nfnetlink_queue: add skb info attribute
+Date: Tue, 16 Apr 2013 08:55:22 -0700
+Message-ID: <1366127722.4459.139.camel@edumazet-glaptop>
 References: <1366126328-25874-1-git-send-email-fw@strlen.de>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+	 <1366126328-25874-5-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41728 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757564Ab3DPPaJ (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:56513 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933991Ab3DPPzZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Apr 2013 11:30:09 -0400
-In-Reply-To: <1366126328-25874-1-git-send-email-fw@strlen.de>
+	Tue, 16 Apr 2013 11:55:25 -0400
+Received: by mail-pd0-f175.google.com with SMTP id g10so363670pdj.20
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Apr 2013 08:55:24 -0700 (PDT)
+In-Reply-To: <1366126328-25874-5-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Userspace can now indicate that it can cope with larger-than-mtu sized
-packets and packets that have invalid ipv4/tcp checksums.
+On Tue, 2013-04-16 at 17:32 +0200, Florian Westphal wrote:
+> Once we allow userspace to receive gso/gro packets, userspace
+> needs to be able to determine when checksums appear to be
+> broken, but are not.
+> 
+> NFQA_SKB_CSUMNOTREADY means 'checksums will be fixed in kernel
+> later, pretend they are ok'.
+> 
+> NFQA_SKB_GSO could be used for statistics, or to determine when
+> packet size exceeds mtu.
+> 
+> Cc: Eric Dumazet <eric.dumazet@gmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  
+> +static int nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet)
+> +{
+> +	__u32 flags = 0;
+> +
+> +	if (skb_is_gso(packet))
+> +		flags = NFQA_SKB_GSO;
+ 
+> +	if (packet->ip_summed == CHECKSUM_PARTIAL)
+> +		flags |= NFQA_SKB_CSUMNOTREADY;
+> +
+> +	return nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags));
 
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nfnetlink_queue.h |    3 ++-
- net/netfilter/nfnetlink_queue_core.c           |    5 +++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+Maybe you could avoid sending NFQA_SKB_INFO if flags == 0 ?
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-index 0069da3..a2308ae 100644
---- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-@@ -97,7 +97,8 @@ enum nfqnl_attr_config {
- /* Flags for NFQA_CFG_FLAGS */
- #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
- #define NFQA_CFG_F_CONNTRACK			(1 << 1)
--#define NFQA_CFG_F_MAX				(1 << 2)
-+#define NFQA_CFG_F_GSO				(1 << 2)
-+#define NFQA_CFG_F_MAX				(1 << 3)
- 
- /* flags for NFQA_SKB_INFO */
- /* packet appears to have wrong checksums, but they are ok */
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 839c65b..07ed239 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -330,7 +330,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 		break;
- 
- 	case NFQNL_COPY_PACKET:
--		if (entskb->ip_summed == CHECKSUM_PARTIAL &&
-+		if (!(queue->flags & NFQA_CFG_F_GSO) &&
-+		    entskb->ip_summed == CHECKSUM_PARTIAL &&
- 		    skb_checksum_help(entskb))
- 			return NULL;
- 
-@@ -623,7 +624,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	if (queue->copy_mode == NFQNL_COPY_NONE)
- 		return -EINVAL;
- 
--	if (!skb_is_gso(entry->skb))
-+	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(entry->skb))
- 		return __nfqnl_enqueue_packet(net, queue, entry);
- 
- 	skb = entry->skb;
--- 
-1.7.8.6
+
 
