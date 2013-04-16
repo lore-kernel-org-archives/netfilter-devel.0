@@ -1,41 +1,65 @@
-From: Lawrence Lee <lawrenceqli@gmail.com>
-Subject: If the SYN packets return with NS_STOLEN, TCP cannot successfully
- establish the connection
-Date: Mon, 15 Apr 2013 19:11:11 +0200
-Message-ID: <CAGXkBO9t1rn7Y+pR6mYmY6C2RDJnQ6q3DsXOrm7Nt4M+dtn7Dw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next 0/5] netfilter: nf_queue: avoid expensive gso/checksumming
+Date: Tue, 16 Apr 2013 17:32:03 +0200
+Message-ID: <1366126328-25874-1-git-send-email-fw@strlen.de>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ia0-f170.google.com ([209.85.210.170]:59879 "EHLO
-	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933603Ab3DORLM (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41716 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751841Ab3DPPaB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Apr 2013 13:11:12 -0400
-Received: by mail-ia0-f170.google.com with SMTP id j38so4564619iad.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2013 10:11:11 -0700 (PDT)
+	Tue, 16 Apr 2013 11:30:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi All,
+Hi Pablo,
 
-In NF_IP_LOCAL_OUT, I hooked the TCP SYN packets and directly sent out
-by dev_queue_xmit, and return with NS_STOLEN. The packets can be
-successfully sent out, and the peer replies with SYN+ACK.
-Unfortunately, the local host does not accept the packet but replies
-with ICMP error information, i.e., destination unreachable (host
-administratively prohibited.
+please consider pulling from
 
-Actually, it is the same case if UDP request packets are hooked in the
-NF_IP_LCOAL_OUT hook and are return with NS_STOLEN. The UDP response
-packets will be dropped with an ICMP error packet.
+git://git.breakpoint.cc/fw/nf-next.git nfqueue_gso_avoidance_04
 
-I think the skb will not be freed with NS_STOLEN. I analyze the
-traffic and observe that all address and port information of the
-response packets match what in the request packets. I do not know why
-the response packets cannot match the sock records. I am not sure if I
-misunderstand something. May I know how to fix this issue? Thank you
-very much!
+to retrieve the following changes since commit aaa795ad25e18488b026572c7ba2ca8f99ced0b7:
 
-Best Regards,
-Lawrence
+  netfilter: nat: propagate errors from xfrm_me_harder() (2013-04-08 12:34:01 +0200)
+
+Florian Westphal (5):
+      netfilter: nf_queue: move device refcount bump to extra function
+      netfilter: nfnetlink_queue: avoid peer_portid test
+      netfilter: move skb_gso_segment into nfnetlink_queue module
+      netfilter: nfnetlink_queue: add skb info attribute
+      netfilter: nfqueue: avoid expensive gso segmentation and checksum fixup
+
+With these patches, userspace can now instruct the kernel that it is gso/gro
+aware and can handle "invalid" checksums that appear in packet headers.
+
+For old userspace, nothing is changed: the kernel segments gso skbs
+and adjusts checksums.
+
+To avoid gso/checksum fixup overhead, userspace applications must set the
+new NFQA_CFG_F_GSO config flag via NFQA_CFG_FLAGS attribute AND
+check the new NFQA_SKB_INFO attribute when processing a packet.
+
+This new attribute currently contains two bits:
+
+- NFQA_SKB_CSUMNOTREADY means 'checksums will be fixed in kernel
+later, pretend they are ok'.
+
+- NFQA_SKB_GSO could be used for statistics, or to determine when
+packet size exceeds mtu.
+
+I've done a few tests with old userspace and did not notice any issues.
+
+Feedback welcome.
+
+Update for libnetfilter_queue (including example program/documentation)
+will follow later.
+
+diffstat:
+
+ include/net/netfilter/nf_queue.h               |    6 +
+ include/uapi/linux/netfilter/nfnetlink_queue.h |   10 ++-
+ net/netfilter/nf_queue.c                       |  143 +++++---------------
+ net/netfilter/nfnetlink_queue_core.c           |  169 ++++++++++++++++++++---
+ 4 files changed, 198 insertions(+), 130 deletions(-)
+
