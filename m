@@ -1,56 +1,102 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/5] netfilter: nfnetlink_queue: avoid peer_portid test
-Date: Tue, 16 Apr 2013 17:32:05 +0200
-Message-ID: <1366126328-25874-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 4/5] netfilter: nfnetlink_queue: add skb info attribute
+Date: Tue, 16 Apr 2013 17:32:07 +0200
+Message-ID: <1366126328-25874-5-git-send-email-fw@strlen.de>
 References: <1366126328-25874-1-git-send-email-fw@strlen.de>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41720 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41726 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757381Ab3DPPaG (ORCPT
+	by vger.kernel.org with ESMTP id S1757563Ab3DPPaI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Apr 2013 11:30:06 -0400
+	Tue, 16 Apr 2013 11:30:08 -0400
 In-Reply-To: <1366126328-25874-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The portid is the netlink port id of the skb that created the queue.
+Once we allow userspace to receive gso/gro packets, userspace
+needs to be able to determine when checksums appear to be
+broken, but are not.
 
-Add test to ensure the portid cannot be 0 at create time, and
-the check at enqueue time will always be false.
+NFQA_SKB_CSUMNOTREADY means 'checksums will be fixed in kernel
+later, pretend they are ok'.
 
+NFQA_SKB_GSO could be used for statistics, or to determine when
+packet size exceeds mtu.
+
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_queue_core.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ include/uapi/linux/netfilter/nfnetlink_queue.h |    7 +++++++
+ net/netfilter/nfnetlink_queue_core.c           |   16 ++++++++++++++++
+ 2 files changed, 23 insertions(+), 0 deletions(-)
 
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index 70ec8c2..0069da3 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -45,6 +45,7 @@ enum nfqnl_attr_type {
+ 	NFQA_CT,			/* nf_conntrack_netlink.h */
+ 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
++	NFQA_SKB_INFO,			/* __u32 skb meta information */
+ 
+ 	__NFQA_MAX
+ };
+@@ -98,4 +99,10 @@ enum nfqnl_attr_config {
+ #define NFQA_CFG_F_CONNTRACK			(1 << 1)
+ #define NFQA_CFG_F_MAX				(1 << 2)
+ 
++/* flags for NFQA_SKB_INFO */
++/* packet appears to have wrong checksums, but they are ok */
++#define NFQA_SKB_CSUMNOTREADY (1 << 0)
++/* packet is GSO (i.e., exceeds device mtu) */
++#define NFQA_SKB_GSO (1 << 1)
++
+ #endif /* _NFNETLINK_QUEUE_H */
 diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 5e280b3..94e2e4f 100644
+index 8ccaece..839c65b 100644
 --- a/net/netfilter/nfnetlink_queue_core.c
 +++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -107,6 +107,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num,
- 	unsigned int h;
- 	int err;
+@@ -275,6 +275,18 @@ nfqnl_zcopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
+ 	skb_shinfo(to)->nr_frags = j;
+ }
  
-+	if (portid == 0)
-+		return ERR_PTR(-EINVAL);
++static int nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet)
++{
++	__u32 flags = 0;
 +
- 	spin_lock(&q->instances_lock);
- 	if (instance_lookup(q, queue_num)) {
- 		err = -EEXIST;
-@@ -506,10 +509,6 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	}
- 	spin_lock_bh(&queue->lock);
++	if (skb_is_gso(packet))
++		flags = NFQA_SKB_GSO;
++	if (packet->ip_summed == CHECKSUM_PARTIAL)
++		flags |= NFQA_SKB_CSUMNOTREADY;
++
++	return nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags));
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -304,6 +316,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ #endif
+ 		+ nla_total_size(sizeof(u_int32_t))	/* mark */
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
++		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
+ 		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
  
--	if (!queue->peer_portid) {
--		err = -EINVAL;
--		goto err_out_free_nskb;
--	}
- 	if (queue->queue_total >= queue->queue_maxlen) {
- 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
- 			failopen = 1;
+ 	if (entskb->tstamp.tv64)
+@@ -456,6 +469,9 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
+ 		goto nla_put_failure;
+ 
++	if (nfqnl_put_packet_info(skb, entskb))
++		goto nla_put_failure;
++
+ 	if (data_len) {
+ 		struct nlattr *nla;
+ 
 -- 
 1.7.8.6
 
