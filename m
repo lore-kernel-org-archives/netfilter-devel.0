@@ -1,50 +1,45 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 24/28] proc: Supply an accessor to get the name in a
- proc_dir_entry struct [RFC]
-Date: Wed, 17 Apr 2013 00:20:37 +0200
-Message-ID: <20130416222037.GR5785@prithivi.gnumonks.org>
-References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
- <20130416182725.27773.42175.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, viro@zeniv.linux.org.uk,
-	Jan Engelhardt <jengelh@medozas.de>
-To: David Howells <dhowells@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:39417 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965426Ab3DPWhJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Apr 2013 18:37:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20130416182725.27773.42175.stgit@warthog.procyon.org.uk>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next] IPVS fixes for v3.10
+Date: Wed, 17 Apr 2013 11:18:01 +0900
+Message-ID: <1366165082-11156-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+Hi Pablo,
 
-On Tue, Apr 16, 2013 at 07:27:25PM +0100, David Howells wrote:
-> This is only needed by the xt_hashlimit netfilter module as that appears to
-> use the name in the pde to save a label in the xt_hashlimit_htable struct -
-> which will be a problem if CONFIG_PROC_FS=n.
+The following changes since commit aaa795ad25e18488b026572c7ba2ca8f99ced0b7:
 
-I don't know the larger context of this patch (and am not follwing
-filesystem related work in general), but at least from the xt_hashlimit
-point of view this of course looks fine.  We can always wrap direct
-accesses to structure members behind an API call.
+  netfilter: nat: propagate errors from xfrm_me_harder() (2013-04-08 12:34:01 +0200)
 
-For consistency reasons 'proc_get_name()' might be a better name than
-get_proc_name(), but that's probably a matter of taste.
+are available in the git repository at:
 
-Pleaes note that I'm only the original author but not the active
-maintainer of the xt_hashlimit (formerly ipt_hashlimit) code.
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs3-for-v3.10
 
-Regards,
-	Harald
--- 
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+for you to fetch changes up to 4208bd136ff6d885982c9581e861577785bf3a98:
+
+  ipvs: fix sparse warnings reported by kbuild test robot (2013-04-17 11:01:42 +0900)
+
+----------------------------------------------------------------
+Fix from Julian Anastasov for warnings flagged by sparse.
+Some problems relate to changes introduced since v3.9. Others
+have been around for longer.
+
+----------------------------------------------------------------
+Julian Anastasov (1):
+      ipvs: fix sparse warnings reported by kbuild test robot
+
+ include/net/ip_vs.h              |    8 +++---
+ include/uapi/linux/ip_vs.h       |    4 +--
+ net/netfilter/ipvs/ip_vs_conn.c  |   14 +++++-----
+ net/netfilter/ipvs/ip_vs_core.c  |    3 ++-
+ net/netfilter/ipvs/ip_vs_ctl.c   |   55 +++++++++++++++++++++++---------------
+ net/netfilter/ipvs/ip_vs_lblc.c  |    2 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c |    2 +-
+ net/netfilter/ipvs/ip_vs_sync.c  |    4 +--
+ 8 files changed, 52 insertions(+), 40 deletions(-)
