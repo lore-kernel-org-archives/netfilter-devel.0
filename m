@@ -1,55 +1,43 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: Re: [PATCH 12/14] netlink: add documentation for memory mapped I/O
-Date: Wed, 17 Apr 2013 20:56:41 +0200
-Message-ID: <516EF069.6000706@redhat.com>
-References: <1366217229-22705-1-git-send-email-kaber@trash.net> <1366217229-22705-13-git-send-email-kaber@trash.net> <516EE10D.2080608@redhat.com> <1e17db69-0d5c-40dc-81ac-2904aab008c3@email.android.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 00/14]: netlink: memory mapped I/O
+Date: Wed, 17 Apr 2013 21:40:46 +0200
+Message-ID: <20130417194046.GF1408@breakpoint.cc>
+References: <1366217229-22705-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1e17db69-0d5c-40dc-81ac-2904aab008c3@email.android.com>
+Content-Disposition: inline
+In-Reply-To: <1366217229-22705-1-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 04/17/2013 08:08 PM, Patrick McHardy wrote:
-> Daniel Borkmann <dborkman@redhat.com> schrieb:
->> On 04/17/2013 06:47 PM, Patrick McHardy wrote:
->>> Signed-off-by: Patrick McHardy <kaber@trash.net>
->>> ---
->> [...]
->>> +Ring frames
->>> +------------
->>> +
->>> +Each frames contain a frame header, consisting of a synchronization
->> word and some
->>> +meta-data, and the message itself.
->>> +
->>> +Frame:	[ header message ]
->>> +
->>> +The frame header is defined as follows:
->>> +
->>> +struct nl_mmap_hdr {
->>> +	unsigned int	nm_status;
->>> +	unsigned int	nm_len;
->>> +	__u32		nm_group;
->>> +	/* credentials */
->>> +	__u32		nm_pid;
->>> +	__u32		nm_uid;
->>> +	__u32		nm_gid;
->>> +};
->>
->> Hm, just wondering, maybe it could be a safer path to make 'nm_status'
->> and 'nm_len' also of fixed width as the rest of nl_mmap_hdr, and as in
->> PF_PACKET's tpacket2_hdr and tpacket3_hdr ?
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->> netfilter-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> The size of int is not going to change, but I agree that it is cleaner. I'll send a patch to change this once/if this is merged.
+Patrick McHardy <kaber@trash.net> wrote:
+> The following patches contain an implementation of memory mapped I/O for
+> netlink. The implementation is modelled after AF_PACKET memory mapped I/O
+> with a few differences:
 
-Sounds great, thanks !
+[..]
+
+> Following are some numbers collected by Florian Westphal based on a
+> slightly older version, which included an experimental patch for the
+> nfnetlink_queue ordering issue.
+
+I'd like to see a comparision with Eric Dumazets nfnetlink_queue zerocopy
+patch [ ae08ce0021087a5d812d2714fb2a326ef9f8c450, netfilter:
+nfnetlink_queue: zero copy support ].
+
+The nice thing about that patch is its transparency to userspace, and
+the avoidance of the 'nfnetlink_queue packet reordering' issue.
+
+Sorry :)
+
+Another issue with mmap is the need to preallocate the ring frame size.
+After the gso avoidance change [ no skb_gso_segment calls anymore ],
+we will need to be able to queue GSO/GRO skbs, which makes it necessary to
+cope with 64k payload in the mmap case...
+
+Cheers,
+Florian
