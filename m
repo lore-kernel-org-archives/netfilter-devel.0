@@ -1,68 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: ipset: bitmap:ip,mac: fix listing with
- timeout
-Date: Fri, 19 Apr 2013 00:05:57 +0200
-Message-ID: <20130418220557.GA6401@localhost>
-References: <1365857474-4943-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1365857474-4943-2-git-send-email-kadlec@blackhole.kfki.hu>
- <20130416174441.GA3174@localhost>
- <alpine.DEB.2.00.1304162113270.18447@blackhole.kfki.hu>
+Subject: Re: [PATCH V2 1/2] netfilter: rpfilter: skip locally generated
+ bcast, too
+Date: Fri, 19 Apr 2013 00:11:30 +0200
+Message-ID: <20130418221130.GA6429@localhost>
+References: <1366274725-16286-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Yoann JUET <yoann.juet@univ-nantes.fr>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43828 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44431 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936446Ab3DRWGD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 18:06:03 -0400
+	id S1752689Ab3DRWLj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Apr 2013 18:11:39 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1304162113270.18447@blackhole.kfki.hu>
+In-Reply-To: <1366274725-16286-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+Hi Florian,
 
-On Tue, Apr 16, 2013 at 09:16:18PM +0200, Jozsef Kadlecsik wrote:
-> Hi Pablo,
+On Thu, Apr 18, 2013 at 10:45:24AM +0200, Florian Westphal wrote:
+> Alex Efros reported rpfilter module doesn't match following packets:
+> IN=br.qemu SRC=192.168.2.1 DST=192.168.2.255 [ .. ]
+> (netfilter bugzilla #814).
 > 
-> On Tue, 16 Apr 2013, Pablo Neira Ayuso wrote:
+> Problem is that network stack arranges for the locally generated broadcasts
+> to appear on the interface they were sent out, so the IFF_LOOPBACK check
+> doesn't trigger.
 > 
-> > On Sat, Apr 13, 2013 at 02:51:14PM +0200, Jozsef Kadlecsik wrote:
-> > > The type when timeout support was enabled, could not list all elements,
-> > > just the first ones which could fit into one netlink message: it just
-> > > did not continue listing after the first message.
-> > >
-> > > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > > ---
-> > >  net/netfilter/ipset/ip_set_bitmap_ipmac.c |    6 +++++-
-> > >  1 files changed, 5 insertions(+), 1 deletions(-)
-> > >
-> > > diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-> > > index 0f92dc2..d7df6ac 100644
-> > > --- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-> > > +++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-> > > @@ -339,7 +339,11 @@ bitmap_ipmac_tlist(const struct ip_set *set,
-> > >  nla_put_failure:
-> > >  	nla_nest_cancel(skb, nested);
-> > >  	ipset_nest_end(skb, atd);
-> > 
-> > I think this ipset_nest_end should be after the id == first checking.
-> > It doesn't make sense for the -EMSGSIZE case.
+> As -m rpfilter is restricted to PREROUTING, we can check for existing
+> rtable instead, it catches locally-generated broad/multicast case, too.
 > 
-> Yes, that could be moved there - candidate for the nf-next tree?
-
-Yes. This is not critical, send me a follow up this in a follow up
-patch for nf-next.
-
-> > BTW, in the first message, where `first' is unset, id will never equal
-> > first and you will always return success even if you could not add one
-> > single nested attribute into the message.
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Pablo,
 > 
-> "first" is always initialized: it's either zero (the id of the first 
-> entry) or the id of the next one where listing must be continued.
+>  I did have a look at nf_conntrack_broadcast, but
+>  1. I cannot check skb->sk (TPROXY can set that for incoming packets)
+>  2. I don't want to test conntrack info to avoid dependency on conntrack
+> 
+>  So, this is pretty much the very same patch as V1, except that this
+>  also checks for _LOCAL flag instead of just checking for presence of
+>  skb_dst().
+> 
+>  Is this ok, or did you have something else in mind?
 
-I see, that's OK.
+That's fine. I just wanted a bit further validation to avoid an easy
+breakage in case this assumption is not fulfilled anymore.
 
-I have applied this patch. Thanks.
+I have made a comestic change: renamed is_local to rpfilter_is_local
+just to stick to the corresponding function namespace.
+
+Applied, thanks.
