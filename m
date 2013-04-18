@@ -1,34 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: add my copyright statements
-Date: Fri, 19 Apr 2013 00:14:52 +0200
-Message-ID: <20130418221450.GA10218@localhost>
-References: <1365254669-18964-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH 2/2] netfilter: rpfilter: depend on raw or mangle table
+Date: Fri, 19 Apr 2013 00:17:27 +0200
+Message-ID: <20130418221727.GA13141@localhost>
+References: <1366274725-16286-1-git-send-email-fw@strlen.de>
+ <1366274725-16286-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44811 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752689Ab3DRWRe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Apr 2013 18:17:34 -0400
 Content-Disposition: inline
-In-Reply-To: <1365254669-18964-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1366274725-16286-2-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Apr 06, 2013 at 03:24:29PM +0200, Patrick McHardy wrote:
-> Add copyright statements to all netfilter files which have had significant
-> changes done by myself in the past.
-> 
-> Some notes:
-> 
-> - nf_conntrack_ecache.c was incorrectly attributed to Rusty and Netfilter
->   Core Team when it got split out of nf_conntrack_core.c. The copyrights
->   even state a date which lies six years before it was written. It was
->   written in 2005 by Harald and myself.
-> 
-> - net/ipv{4,6}/netfilter.c, net/netfitler/nf_queue.c were missing copyright
->   statements. I've added the copyright statement from net/netfilter/core.c,
->   where this code originated
-> 
-> - for nf_conntrack_proto_tcp.c I've also added Jozsef, since I didn't want
->   it to give the wrong impression
+On Thu, Apr 18, 2013 at 10:45:25AM +0200, Florian Westphal wrote:
+> rpfilter is only valid in raw/mangle PREROUTING, i.e.
+> RPFILTER=y|m is useless without raw or mangle table support.
 
-Applied, thanks Patrick.
+Applied to nf-next, thanks Florian.
