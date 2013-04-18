@@ -1,68 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH 00/14]: netlink: memory mapped I/O
-Date: Thu, 18 Apr 2013 13:11:02 +0200
-Message-ID: <20130418111102.GB26734@macbook.localnet>
+Date: Thu, 18 Apr 2013 07:57:32 -0700
+Message-ID: <1366297052.3205.49.camel@edumazet-glaptop>
 References: <1366217229-22705-1-git-send-email-kaber@trash.net>
- <20130417194046.GF1408@breakpoint.cc>
- <20130418102738.GA25166@macbook.localnet>
- <20130418110105.GH1408@breakpoint.cc>
+	 <20130417194046.GF1408@breakpoint.cc>
+	 <20130418102738.GA25166@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35663 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756095Ab3DRLLJ (ORCPT
+Received: from mail-da0-f54.google.com ([209.85.210.54]:53450 "EHLO
+	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966221Ab3DRO5f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 07:11:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20130418110105.GH1408@breakpoint.cc>
+	Thu, 18 Apr 2013 10:57:35 -0400
+In-Reply-To: <20130418102738.GA25166@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 18, 2013 at 01:01:05PM +0200, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > So I think while the nfnetlink_queue zero copy patches are a great idea,
-> > there are still enough unhandled use cases for memory mapped netlink.
-> >
-> > > Another issue with mmap is the need to preallocate the ring frame size.
-> > > After the gso avoidance change [ no skb_gso_segment calls anymore ],
-> > > we will need to be able to queue GSO/GRO skbs, which makes it necessary to
-> > > cope with 64k payload in the mmap case...
-> > 
-> > Hmm that might actually also be a problem in the zcopy case for userspace since
-> > the netlink recv buffer sizes are in many cases not that large.
-> 
-> I am not sure I am following here.  Can you elaborate?
-> Maybe I was a bit too vague, so let me try to clarify.
-> 
-> The GSO segmentation avoidance patch requires userspace support, including large
-> recv buffer size (i.e., 64k + a few byte netlink overhead).
-> 
-> It will be off by default, userspace needs to enable it when it binds
-> the nfqueue.
+On Thu, 2013-04-18 at 12:27 +0200, Patrick McHardy wrote:
 
-I see, that makes sense.
+> No need to be sorry :) The use cases only partially overlap, the zero copy
+> (actually single copy, just like mmaped netlink) requires drivers to generate
+> fragmented skbs, while the mmaped netlink code works in all cases.
 
-> What I was pointing out is that for mmap'd netlink you usually need
-> to allocate enough slots so the ring can handle e.g. 1024 packets.
-> 
-> For the 64k packet case, that would be >64 MB mmap-ring.
-> 
-> I'm not saying its a problem, just wanted to point it out.
-> 
-> [ 64k is probably rare enough to have mmap-users fallback to recv,
->   and your patches already support this ].
+In fact all NIC drivers provides suitable skb in their RX path, as
+skb->head is now a fragment too. 
 
-Yes, thats true. An alternative would be to have the ring frames dynamically
-sized. The downside is that it increases overhead on the kernel side for
-socket congestion control, currently its very easy to check whether the ring
-is half empty, with dynamically sized frames we'd need to iterate through
-the ring.
+So the 'zero copy' code should work for all drivers.
 
-A further alternative would be to seperate the control and data areas, so
-we'd have four rings, RX-control, RX-data, TX-control and TX-data. That would
-avoid that problem, but it would only be partially dynamic since the number
-of control frames would be constant.
+It might be possible to do the same in transmit path, if needed.
+
+
