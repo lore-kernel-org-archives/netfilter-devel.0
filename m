@@ -1,204 +1,28 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] bridge: fix IP DNAT handling when packet is sent back
- via same bport
-Date: Thu, 18 Apr 2013 22:07:03 +0200
-Message-ID: <51705267.3070909@pandora.be>
-References: <1366277833-1405-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:53193 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936351Ab3DRUHK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 16:07:10 -0400
-In-Reply-To: <1366277833-1405-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 26/28] proc: Supply a function to remove a proc entry by PDE [RFC]
+Date: Thu, 18 Apr 2013 21:34:02 +0100
+Message-ID: <24028.1366317242@warthog.procyon.org.uk>
+References: <CAErSpo6UrUWZt1zNq=kmkTk4F6g4uAOs8VPKepdfeuKKxb7pXQ@mail.gmail.com> <20130416182550.27773.89310.stgit@warthog.procyon.org.uk> <20130416182734.27773.47452.stgit@warthog.procyon.org.uk>
+Cc: dhowells@redhat.com,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
+	netdev <netdev@vger.kernel.org>, linux-fsdevel@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net
+To: Bjorn Helgaas <bhelgaas@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6UrUWZt1zNq=kmkTk4F6g4uAOs8VPKepdfeuKKxb7pXQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Op 18/04/2013 11:37, Florian Westphal schreef:
-> commit e179e6322ac334e21a3c6d669d95bc967e5d0a80
-> (netfilter: bridge-netfilter: Fix MAC header handling with IP DNAT)
-> breaks DNAT when the destination address sits on the same bridgeport
-> the packet originally arrived on.  Example:
->
-> ( Network1 ) -- [ eth1-Bridge-eth0 ] -- ( Network2 )
->
-> Lets assume bridge has ip 192.168.10.8, and following netfilter rules
-> are active:
->
-> -A PREROUTING  -s 192.168.10.1 -d 192.168.10.8 -p tcp --dport 21 -j DNAT --to-destination 192.168.10.1
-> -A POSTROUTING -s 192.168.10.1 -d 192.168.10.1 -p tcp --dport 21 -j SNAT --to-source 192.168.10.8
+Bjorn Helgaas <bhelgaas@google.com> wrote:
 
-> With kernels before 2.6.35, this makes host 192.168.10.1 connecting to
-> the bridge on port 21 connect-to-self.
+> I assume you'll merge this via something other than my tree.
 
-I don't get why you didn't need the hairpin mode back then.
+Al's vfs tree, I think.
 
->>From 2.6.35 onwards this no longer works since the natted packet travels
-> through the bridge forward logic, where should_deliver() refuses to send
-> the packet because the destination bridge port is the same as the
-> originating port.
->
-> Enabling hairpin mode on eth1 makes it work, but still causes
-> problems because the original client finds its own mac address as the
-> packets source (it used to be the bridge MAC).
->
-> This patch tries to fix this in the following manner:
-> - tag all skbs with dnat-applied with BRDIGED_DNAT flag
-> - modify bridge fwd logic to detect "same-bridgeport-and-dnat'd"
->    condition, permit this, and flag skb accordingly
-> - in bridge postrouting, replace source mac with bridge mac addess
->    if skb is such a dnat-to-same-port.
-
-In my opinion this is just a special kind of MAC SNAT and you can 
-already achieve this with hairpin mode, ebtables and iptables now:
-1. make sure to mark the packets with iptables before you perform the DNAT
-2. in ebtables POSTROUTING, SNAT those marked packets with the MAC 
-address of the bridge.
-3. enable hairpin mode
-Even if it turns out not yet to be fully possible with the current 
-kernel, I think such a feature should be implemented as an ebtables 
-target instead of increasing the complexity of the generic code.
-
-Your patch also introduces potential unexpected behavior in different 
-scenarios. Consider the following rule:
--A PREROUTING -s 192.168.10.1 -d 192.168.10.8 -p tcp --dport 21 -j DNAT 
---to-destination 192.168.10.2
-Note that the DNAT is to a different IP address. Suppose 192.168.10.2 is 
-on a different machine located on the same side of the bridge. Your 
-patch would change the MAC source address here too without any need.
-
-
-Below are some comments on the patch itself.
-
-cheers,
-Bart
-
-> Cc: Bart De Schuymer <bdschuym@pandora.be>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->   Bart,
->
->   it would be great if you could look into this, as I am not very familiar
->   with net/bridge/.
->
->   Especially,
->   1) is it safe to set BRNF_BRIDGED_DNAT unconditionally in br_nf_pre_routing_finish_bridge() ?
->   2) is it ok to memcpy to eth_hdr() in br_nf_post_routing() [ considering there might be encap headers
->      that were removed? ]
->
->   include/linux/netfilter_bridge.h |    2 ++
->   net/bridge/br_forward.c          |   16 +++++++++++++++-
->   net/bridge/br_netfilter.c        |   13 +++++++++++--
->   3 files changed, 28 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-> index dfb4d9e..eacd206 100644
-> --- a/include/linux/netfilter_bridge.h
-> +++ b/include/linux/netfilter_bridge.h
-> @@ -23,6 +23,8 @@ enum nf_br_hook_priorities {
->   #define BRNF_NF_BRIDGE_PREROUTING	0x08
->   #define BRNF_8021Q			0x10
->   #define BRNF_PPPoE			0x20
-> +/* DNAT'd packet is to be sent back on same bridge port: */
-> +#define BRNF_BRIDGED_DNAT_DODGY		0x40
-
-Obviously, a more descriptive name would be nice :)
-
->   /* Only used in br_forward.c */
->   extern int nf_bridge_copy_header(struct sk_buff *skb);
-> diff --git a/net/bridge/br_forward.c b/net/bridge/br_forward.c
-> index 092b20e..a0d3c56 100644
-> --- a/net/bridge/br_forward.c
-> +++ b/net/bridge/br_forward.c
-> @@ -116,10 +116,24 @@ void br_deliver(const struct net_bridge_port *to, struct sk_buff *skb)
->   	kfree_skb(skb);
->   }
->
-> +static int forward_should_deliver(const struct net_bridge_port *to,
-> +				  struct sk_buff *skb)
-> +{
-> +#ifdef CONFIG_BRIDGE_NETFILTER
-> +	if (skb->dev == to->dev &&
-> +	    skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
-> +		skb->nf_bridge->mask |= BRNF_BRIDGED_DNAT_DODGY;
-
-You should unset the BRNF_BRIDGED_DNAT mask here (no longer needed and 
-might confuse other code yet to be executed):
-skb->nf_bridge->mask ^= BRNF_BRIDGED_DNAT;
-
-> +		return to->state == BR_STATE_FORWARDING &&
-> +			br_allowed_egress(to->br, nbp_get_vlan_info(to), skb);
-
-I don't like this change. It's basically a hack to prevent having to 
-enable the hairpin mode. In my opinion you should just return 
-should_deliver() instead.
-
-> +	}
-> +#endif
-> +	return should_deliver(to, skb);
-> +}
-> +
->   /* called with rcu_read_lock */
->   void br_forward(const struct net_bridge_port *to, struct sk_buff *skb, struct sk_buff *skb0)
->   {
-> -	if (should_deliver(to, skb)) {
-> +	if (forward_should_deliver(to, skb)) {
-
-Putting the new code in should_deliver() would have prevented you from 
-having to come up with a new and not very descriptive function name.
-
->   		if (skb0)
->   			deliver_clone(to, skb, __br_forward);
->   		else
-> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-> index fe43bc7..4830c4c 100644
-> --- a/net/bridge/br_netfilter.c
-> +++ b/net/bridge/br_netfilter.c
-> @@ -389,6 +389,10 @@ static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
->   	if (neigh) {
->   		int ret;
->
-> +		/* tell br_dev_xmit to continue with forwarding, make
-> +		 * fwd path handle inport == outport case
-> +		 */
-> +		nf_bridge->mask |= BRNF_BRIDGED_DNAT;
-
-I think you'll be ok here, as long as you unset the mask later (as 
-mentioned above).
-
->   		if (neigh->hh.hh_len) {
->   			neigh_hh_bridge(&neigh->hh, skb);
->   			skb->dev = nf_bridge->physindev;
-> @@ -402,8 +406,6 @@ static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
->   							 -(ETH_HLEN-ETH_ALEN),
->   							 skb->nf_bridge->data,
->   							 ETH_HLEN-ETH_ALEN);
-> -			/* tell br_dev_xmit to continue with forwarding */
-> -			nf_bridge->mask |= BRNF_BRIDGED_DNAT;
->   			ret = neigh->output(neigh, skb);
->   		}
->   		neigh_release(neigh);
-> @@ -906,6 +908,13 @@ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
->   		nf_bridge->mask |= BRNF_PKT_TYPE;
->   	}
->
-> +	/* special case: packet is sent on same bridge port it arrived on
-> +	 * due to DNAT; need to substitute original source mac with bridge mac
-> +	 * so further packets are also sent to the bridge.
-> +	 */
-> +	if (nf_bridge->mask & BRNF_BRIDGED_DNAT_DODGY)
-> +		memcpy(eth_hdr(skb)->h_source, realoutdev->dev_addr, ETH_ALEN);
-
-I think you're safe here from encapsulating headers since eth_hdr gives 
-you a pointer to the Ethernet header.
-
->   	nf_bridge_pull_encap_header(skb);
->   	nf_bridge_save_header(skb);
->   	if (pf == NFPROTO_IPV4)
->
-
+David
