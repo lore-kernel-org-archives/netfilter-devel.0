@@ -1,48 +1,49 @@
-From: Jorge Ventura <jorge.araujo.ventura@gmail.com>
-Subject: xt_CHECKSUM doesn't work as expected
-Date: Thu, 18 Apr 2013 10:48:38 -0500
-Message-ID: <CAJEG_Nc63CdikpWiuJrBrjZ08v8rY5c9PvFwqAKkynDyvfRqPw@mail.gmail.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH 08/14] netlink: implement memory mapped sendmsg()
+Date: Thu, 18 Apr 2013 17:26:26 +0100
+Message-ID: <1366302386.2735.21.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1366217229-22705-1-git-send-email-kaber@trash.net>
+	 <1366217229-22705-9-git-send-email-kaber@trash.net>
+	 <1366239463.2752.3.camel@bwh-desktop.uk.solarflarecom.com>
+	 <20130418103125.GB25166@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: <davem@davemloft.net>, <netfilter-devel@vger.kernel.org>,
+	<netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:56406 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967492Ab3DRPsj (ORCPT
+Received: from webmail.solarflare.com ([12.187.104.25]:31754 "EHLO
+	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753647Ab3DRQ03 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 11:48:39 -0400
-Received: by mail-lb0-f175.google.com with SMTP id o10so2801144lbi.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Apr 2013 08:48:38 -0700 (PDT)
+	Thu, 18 Apr 2013 12:26:29 -0400
+In-Reply-To: <20130418103125.GB25166@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear nf devels,
-I am trying to use the xt_CHECKSUM module to fix an UDP packet that
-it's comming with check sum error. I have an iptables firewall with
-two ethernet cards (eth0 private and eth1 public), all ethernet
-offload parameters are off in both ethernet cards and
-nf_conntrack_checksum = 0.
+On Thu, 2013-04-18 at 12:31 +0200, Patrick McHardy wrote:
+> On Wed, Apr 17, 2013 at 11:57:43PM +0100, Ben Hutchings wrote:
+> > On Wed, 2013-04-17 at 18:47 +0200, Patrick McHardy wrote:
+> > > Add support for mmap'ed sendmsg() to netlink. Since the kernel validates
+> > > received messages before processing them, the code makes sure userspace
+> > > can't modify the message contents after invoking sendmsg(). To do that
+> > > only a single mapping of the TX ring is allowed to exist and the socket
+> > > must not be shared. If either of these two conditions does not hold, it
+> > > falls back to copying.
+> > [...]
+> > 
+> > Is this resistant against copy_to_process()?
+> 
+> I don't know, there's no copy_to_process() function is the tree I'm using.
 
-This is my iptables rule to fix the checksum:
+Sorry, I mean process_vm_writev().  copy_to_process() was the name in an
+earlier version of CMA.
 
-iptables -A POSTROUTING -t mangle -p udp --dport 162 -j CHECKSUM --checksum-fill
+Ben.
 
-The trafic resulting when the single UDP packet is received using tcpdump:
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
-input at eth1 (public):  [src ip].1046 > [eth1 public ip].162: [bad
-udp cksum ff!]
-output at eth0 (private): [src ip].1046 > [eth0 private ip].162: [bad
-udp cksum ff!]
-
-I did use printk inside the module to see what do I have at
-skb->ip_summed and I observed that the value is CHECKSUM_NONE, however
-to have the checksum fixed by the function checksum_tg, this value
-should be CHECKSUM_PARTIAL.
-
-Please let me know if I am miss understanding the way that
---checksum-fill is handled by xt_CHECKSUM module.
-
-Sincerely,
-Ventura
-
--
