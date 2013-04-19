@@ -1,30 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables manpage: Update LOG target
-Date: Fri, 19 Apr 2013 02:57:48 +0200
-Message-ID: <20130419005748.GE4689@localhost>
-References: <5165937E.4060302@chello.at>
- <516597A4.4090606@chello.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH 0/2] netfilter fixes for net
+Date: Fri, 19 Apr 2013 03:16:00 +0200
+Message-ID: <1366334162-4958-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55440 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56897 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967733Ab3DSA5w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 20:57:52 -0400
-Content-Disposition: inline
-In-Reply-To: <516597A4.4090606@chello.at>
+	id S967114Ab3DSBQM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Apr 2013 21:16:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 10, 2013 at 06:47:32PM +0200, Mart Frauenlob wrote:
-> On 10.04.2013 18:30, netfilter-devel-owner@vger.kernel.org wrote:
-> >Hello,
-> >
-> >this patch on the man page unifies the IPv4 and IPv6 entries of the LOG
-> >target.
+Hi David,
 
-The new manpage has no more references about IPv6. It seems you have
-used IPv4 manpage with no mangling to also talk about IPv6. Fix this
-and resubmit. Thanks.
+If time allows, please consider pulling the following patchset contains two
+late Netfilter fixes, they are:
+
+* Skip broadcast/multicast locally generated traffic in the rpfilter,
+  (closes netfilter bugzilla #814), from Florian Westphal.
+
+* Fix missing elements in the listing of ipset bitmap ip,mac set
+  type with timeout support enabled, from Jozsef Kadlecsik.
+
+The following changes since commit c2d421e171868586939c328dfb91bab840fe4c49:
+
+  netfilter: nf_nat: fix race when unloading protocol modules (2013-04-12 11:46:31 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to f83a7ea2075ca896f2dbf07672bac9cf3682ff74:
+
+  netfilter: xt_rpfilter: skip locally generated broadcast/multicast, too (2013-04-19 00:11:59 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: xt_rpfilter: skip locally generated broadcast/multicast, too
+
+Jozsef Kadlecsik (1):
+      netfilter: ipset: bitmap:ip,mac: fix listing with timeout
+
+ net/ipv4/netfilter/ipt_rpfilter.c         |    8 +++++++-
+ net/ipv6/netfilter/ip6t_rpfilter.c        |    8 +++++++-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c |    6 +++++-
+ 3 files changed, 19 insertions(+), 3 deletions(-)
+
