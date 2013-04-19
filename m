@@ -1,28 +1,39 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/14]: netlink: memory mapped I/O
-Date: Fri, 19 Apr 2013 15:51:18 -0400 (EDT)
-Message-ID: <20130419.155118.2286345536933919553.davem@davemloft.net>
-References: <1366217229-22705-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH 0/5] Netfilter updates for net-next
+Date: Fri, 19 Apr 2013 17:56:11 -0400 (EDT)
+Message-ID: <20130419.175611.494085952352187311.davem@davemloft.net>
+References: <1366334638-5113-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:46696 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:48825 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932211Ab3DSTvV (ORCPT
+	with ESMTP id S933977Ab3DSV4O (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Apr 2013 15:51:21 -0400
-In-Reply-To: <1366217229-22705-1-git-send-email-kaber@trash.net>
+	Fri, 19 Apr 2013 17:56:14 -0400
+In-Reply-To: <1366334638-5113-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 17 Apr 2013 18:46:55 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 19 Apr 2013 03:23:52 +0200
 
-> The following patches contain an implementation of memory mapped I/O for
-> netlink. The implementation is modelled after AF_PACKET memory mapped I/O
-> with a few differences:
+> The following patchset contains a small batch of Netfilter
+> updates for your net-next tree, they are:
+> 
+> * Three patches that provide more accurate error reporting to
+>   user-space, instead of -EPERM, in IPv4/IPv6 netfilter re-routing
+>   code and NAT, from Patrick McHardy.
+> 
+> * Update copyright statements in Netfilter filters of
+>   Patrick McHardy, from himself.
+> 
+> * Add Kconfig dependency on the raw/mangle tables to the
+>   rpfilter, from Florian Westphal.
+ ...
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
 
-I like these changes a lot, applied, thanks Patrick!
+Pulled, thanks Pablo.
