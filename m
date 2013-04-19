@@ -1,69 +1,55 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next v2 0/5] netfilter: nf_queue: avoid expensive gso/checksums
-Date: Fri, 19 Apr 2013 16:58:22 +0200
-Message-ID: <1366383507-16633-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 2/5] netfilter: nfnetlink_queue: avoid peer_portid test
+Date: Fri, 19 Apr 2013 16:58:24 +0200
+Message-ID: <1366383507-16633-3-git-send-email-fw@strlen.de>
+References: <1366383507-16633-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56697 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56699 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030705Ab3DSO4V (ORCPT
+	by vger.kernel.org with ESMTP id S1030770Ab3DSO4X (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Apr 2013 10:56:21 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1UTCjb-00022F-Hc
-	for netfilter-devel@vger.kernel.org; Fri, 19 Apr 2013 16:56:19 +0200
+	Fri, 19 Apr 2013 10:56:23 -0400
+In-Reply-To: <1366383507-16633-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+The portid is the netlink port id of the skb that created the queue.
 
-here is V2 of the gso avoidance patchset for nfnetlink_queue.
+Add test to ensure the portid cannot be 0 at create time, and
+the check at enqueue time will always be false.
 
-With these patches, userspace can now instruct the kernel that it is gso/gro
-aware and can handle "invalid" checksums that appear in packet headers.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nfnetlink_queue_core.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-For old userspace, nothing is changed: the kernel segments gso skbs
-and adjusts checksums.
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 5e280b3..94e2e4f 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -107,6 +107,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num,
+ 	unsigned int h;
+ 	int err;
+ 
++	if (portid == 0)
++		return ERR_PTR(-EINVAL);
++
+ 	spin_lock(&q->instances_lock);
+ 	if (instance_lookup(q, queue_num)) {
+ 		err = -EEXIST;
+@@ -506,10 +509,6 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	}
+ 	spin_lock_bh(&queue->lock);
+ 
+-	if (!queue->peer_portid) {
+-		err = -EINVAL;
+-		goto err_out_free_nskb;
+-	}
+ 	if (queue->queue_total >= queue->queue_maxlen) {
+ 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
+ 			failopen = 1;
+-- 
+1.7.8.6
 
-To avoid gso/checksum fixup overhead, userspace applications must set the
-new NFQA_CFG_F_GSO config flag via NFQA_CFG_FLAGS attribute.
-
-Then, for every packet received, userspace needs to check for the presence
-of the new NFQA_SKB_INFO attribute.  If it exists, userspace needs to test
-NFQA_SKB_CSUMNOTREADY bit.  If set, this means that userspace
-must NOT very packet checksums, since they will be fixed later on
-by the kernel.
-
-The other bit is
-NFQA_SKB_GSO, which could be used for statistics, or to determine when
-packet size exceeds mtu.
-
-Feedback welcome.
-
-Update for libnetfilter_queue (including example program/documentation)
-will follow later.
-
-The following changes since commit d37d696804a83479f240b397670a07ccb53a7417:
-
-  netfilter: xt_rpfilter: depend on raw or mangle table (2013-04-19 00:22:55 +0200)
-
-are available in the git repository at:
-  git://git.breakpoint.cc/fw/nf-next.git nfqueue_gso_avoidance_06
-
-Florian Westphal (5):
-      netfilter: nf_queue: move device refcount bump to extra function
-      netfilter: nfnetlink_queue: avoid peer_portid test
-      netfilter: move skb_gso_segment into nfnetlink_queue module
-      netfilter: nfnetlink_queue: add skb info attribute
-      netfilter: nfqueue: avoid expensive gso segmentation and checksum fixup
-
-Changes since V1:
- - fix OOPS if CONFIG_BRIDGE_NETFILTER=y and old non-gso userspace listener is killed
- - only add NFQA_SKB_INFO when skb is gso or CHECKSUM_PARTIAL
-
- include/net/netfilter/nf_queue.h               |    6 +
- include/uapi/linux/netfilter/nfnetlink_queue.h |   10 ++-
- net/netfilter/nf_queue.c                       |  143 +++++--------------
- net/netfilter/nfnetlink_queue_core.c           |  180 +++++++++++++++++++++---
- 4 files changed, 209 insertions(+), 130 deletions(-)
