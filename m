@@ -1,103 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4/5] netfilter: nfnetlink_queue: add skb info attribute
-Date: Fri, 19 Apr 2013 16:58:26 +0200
-Message-ID: <1366383507-16633-5-git-send-email-fw@strlen.de>
-References: <1366383507-16633-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: xtables-addons compile error (DNETMAP)
+Date: Fri, 19 Apr 2013 16:22:21 +0100
+Message-ID: <5171612D.9050506@googlemail.com>
+References: <51707576.5010505@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@inai.de>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56703 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030770Ab3DSO4Z (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60942 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030512Ab3DSPWd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Apr 2013 10:56:25 -0400
-In-Reply-To: <1366383507-16633-1-git-send-email-fw@strlen.de>
+	Fri, 19 Apr 2013 11:22:33 -0400
+Received: by mail-we0-f174.google.com with SMTP id u12so3685507wey.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Apr 2013 08:22:31 -0700 (PDT)
+In-Reply-To: <51707576.5010505@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Once we allow userspace to receive gso/gro packets, userspace
-needs to be able to determine when checksums appear to be
-broken, but are not.
 
-NFQA_SKB_CSUMNOTREADY means 'checksums will be fixed in kernel
-later, pretend they are ok'.
 
-NFQA_SKB_GSO could be used for statistics, or to determine when
-packet size exceeds mtu.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Change since v2:
- add NFQA_SKB_INFO only if value is nonzero.
-
- include/uapi/linux/netfilter/nfnetlink_queue.h |    7 +++++++
- net/netfilter/nfnetlink_queue_core.c           |   16 ++++++++++++++++
- 2 files changed, 23 insertions(+), 0 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-index 70ec8c2..0069da3 100644
---- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-@@ -45,6 +45,7 @@ enum nfqnl_attr_type {
- 	NFQA_CT,			/* nf_conntrack_netlink.h */
- 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
- 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
-+	NFQA_SKB_INFO,			/* __u32 skb meta information */
- 
- 	__NFQA_MAX
- };
-@@ -98,4 +99,10 @@ enum nfqnl_attr_config {
- #define NFQA_CFG_F_CONNTRACK			(1 << 1)
- #define NFQA_CFG_F_MAX				(1 << 2)
- 
-+/* flags for NFQA_SKB_INFO */
-+/* packet appears to have wrong checksums, but they are ok */
-+#define NFQA_SKB_CSUMNOTREADY (1 << 0)
-+/* packet is GSO (i.e., exceeds device mtu) */
-+#define NFQA_SKB_GSO (1 << 1)
-+
- #endif /* _NFNETLINK_QUEUE_H */
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 38c8a7a..c927a7b 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -275,6 +275,18 @@ nfqnl_zcopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
- 	skb_shinfo(to)->nr_frags = j;
- }
- 
-+static int nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet)
-+{
-+	__u32 flags = 0;
-+
-+	if (packet->ip_summed == CHECKSUM_PARTIAL)
-+		flags = NFQA_SKB_CSUMNOTREADY;
-+	if (skb_is_gso(packet))
-+		flags |= NFQA_SKB_GSO;
-+
-+	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) : 0;
-+}
-+
- static struct sk_buff *
- nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 			   struct nf_queue_entry *entry,
-@@ -304,6 +316,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- #endif
- 		+ nla_total_size(sizeof(u_int32_t))	/* mark */
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
-+		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
- 		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
- 
- 	if (entskb->tstamp.tv64)
-@@ -456,6 +469,9 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
- 		goto nla_put_failure;
- 
-+	if (nfqnl_put_packet_info(skb, entskb))
-+		goto nla_put_failure;
-+
- 	if (data_len) {
- 		struct nlattr *nla;
- 
--- 
-1.7.8.6
-
+Dash Four wrote:
+> During build I get the following error:
+>
+> xt_DNETMAP.c: In function 'dnetmap_tg_check':
+> xt_DNETMAP.c:331: error: incompatible types when assigning to type 
+> 'kuid_t' from type 'unsigned int'
+> xt_DNETMAP.c:332: error: incompatible types when assigning to type 
+> 'kgid_t' from type 'unsigned int'
+> xt_DNETMAP.c:344: error: incompatible types when assigning to type 
+> 'kuid_t' from type 'unsigned int'
+> xt_DNETMAP.c:345: error: incompatible types when assigning to type 
+> 'kgid_t' from type 'unsigned int'
+>
+> The target kernel is 3.8.7. Any idea what could cause this?
+The above error (and this is not confined to just DNETMAP) seems to be 
+caused by CONFIG_UIDGID_STRICT_TYPE_CHECKS. When this is set, together 
+with CONFIG_PROC_FS also being enabled in the kernel, the uid and gid 
+fields of proc_dir_entry (proc_fs.h) are no longer "unsigned int", but a 
+struct types, so they should be accessed/set with uid.val and gid.val 
+instead - at least that is how I managed to get it work. I'll attach a 
+patch if there is interest in fixing this bug - just let me know.
