@@ -1,26 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libxt_multiport.man: Update list of valid protocols
-Date: Fri, 19 Apr 2013 02:31:42 +0200
-Message-ID: <20130419003142.GB24272@localhost>
-References: <51646349.9090801@chello.at>
+Subject: Re: [PATCH] iptables manpage: Update DNAT target
+Date: Fri, 19 Apr 2013 02:55:48 +0200
+Message-ID: <20130419005548.GA4689@localhost>
+References: <5165936B.1010609@chello.at>
+ <5165978B.70800@chello.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Mart Frauenlob <mart.frauenlob@chello.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54131 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55316 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967537Ab3DSAbw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Apr 2013 20:31:52 -0400
+	id S967630Ab3DSAzz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Apr 2013 20:55:55 -0400
 Content-Disposition: inline
-In-Reply-To: <51646349.9090801@chello.at>
+In-Reply-To: <5165978B.70800@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 09, 2013 at 08:51:53PM +0200, Mart Frauenlob wrote:
-> Hello,
-> 
-> this patch updates the list of valid protocols in the man page
-> section of the multiport match to: tcp, udp, udplite, dccp and sctp.
+On Wed, Apr 10, 2013 at 06:47:07PM +0200, Mart Frauenlob wrote:
+> On 10.04.2013 18:30, netfilter-devel-owner@vger.kernel.org wrote:
+> >Hello,
+> >
+> >this patch renames libipt_DNAT.man to libxt_DNAT.man thus informing
+> >about the IPv6 version.
+> >Also the list of valid protocols for port mapping is updated to:
+> >tcp, udp, dccp and sctp.
 
-Applied, thanks. Please, add Signed-off-by to your patches next time.
+Applied, added this to the end of the manpage:
+
+IPv6 support available since Linux kernels >= 3.7.
+
+Thanks.
