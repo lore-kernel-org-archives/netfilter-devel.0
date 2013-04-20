@@ -1,68 +1,52 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch] ipvs: off by one in set_sctp_state()
-Date: Sat, 20 Apr 2013 15:25:21 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1304201504510.1593@ja.ssi.bg>
-References: <20130420112455.GA30198@elgon.mountain>
+From: Oliver <olipro@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Git commits possibly suitable for 3.8-stable tree?
+Date: Sat, 20 Apr 2013 20:19:01 +0200
+Message-ID: <20098583.RM2dngnsmy@gentoovm>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20130420112455.GA30198@elgon.mountain>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.uptheinter.net ([77.74.196.236]:48492 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755672Ab3DTSZj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Apr 2013 14:25:39 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id 38B59A3377
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Apr 2013 19:19:38 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id uS8MKGyMeNST for <netfilter-devel@vger.kernel.org>;
+	Sat, 20 Apr 2013 19:19:28 +0100 (BST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-	Hello,
+Would any of the following mainline commits be appropriate for cherry-picking 
+into the 3.8 stable tree?
 
-On Sat, 20 Apr 2013, Dan Carpenter wrote:
+c2d421e netfilter: nf_nat: fix race when unloading protocol modules
+6eb4c7e netfilter: ipset: hash:*net*: nomatch flag not excluded on set resize
+02f815c netfilter: ipset: list:set: fix reference counter update
+3a7b21e netfilter: nf_ct_sip: don't drop packets with offsets pointing outside 
+the packet
+906b1c3 netfilter: ip6t_NPT: Fix translation for non-multiple of 32 prefix 
+lengths
+bae99f7 netfilter: nfnetlink_queue: fix incorrect initialization of copy range 
+field
+dd82088 netfilter: ipset: "Directory not empty" error message
+cf1c4a0 netfilter: ipset: timeout values corrupted on set resize
+442fad9 netfilter: ctnetlink: don't permit ct creation with random tuple
+d9e8565 netfilter ip6table_mangle: Use ipv6_addr_equal() where appropriate.
+29e3b16 netfilter ipset: Use ipv6_addr_equal() where appropriate.
 
-> The sctp_events[] come from sch->type in set_sctp_state().  They are
-> between 0-255 so that means we need 256 elements in the array.
-> 
-> I believe that because of how the code is aligned there is normally a
-> hole after sctp_events[] so this patch doesn't actually change anything.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> This is static checker stuff.  I'm not very familiar with this code.
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index 6e14a7b..8646488 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -208,7 +208,7 @@ enum ipvs_sctp_event_t {
->  	IP_VS_SCTP_EVE_LAST
->  };
->  
-> -static enum ipvs_sctp_event_t sctp_events[255] = {
-> +static enum ipvs_sctp_event_t sctp_events[256] = {
->  	IP_VS_SCTP_EVE_DATA_CLI,
->  	IP_VS_SCTP_EVE_INIT_CLI,
->  	IP_VS_SCTP_EVE_INIT_ACK_CLI,
+Additionally there are these two related commits:
 
-	There are more confusing (still, non-fatal)
-problems in this IPVS-SCTP support, eg.
+124dff0 netfilter: don't reset nf_trace in nf_reset()
+130549f netfilter: reset nf_trace in nf_reset
 
-        if (direction == IP_VS_DIR_OUTPUT)
--               event++;
-+               event *= 2;
+Kind Regards,
 
-	I guess we are running with wrong timeouts.
-
-	Also, I'm not sure we support properly the
-one-way states as done for TCP (IP_VS_DIR_INPUT_ONLY).
-May be this code deserves more serious review, for example,
-net/netfilter/nf_conntrack_proto_sctp.c looks as good
-source for comparison.
-
-	Anyways, this change looks correct to me,
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
+Oliver
