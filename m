@@ -1,46 +1,68 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] ipvs: off by one in set_sctp_state()
-Date: Sat, 20 Apr 2013 14:24:55 +0300
-Message-ID: <20130420112455.GA30198@elgon.mountain>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch] ipvs: off by one in set_sctp_state()
+Date: Sat, 20 Apr 2013 15:25:21 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1304201504510.1593@ja.ssi.bg>
+References: <20130420112455.GA30198@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
 	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: Wensong Zhang <wensong@linux-vs.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:32011 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754991Ab3DTLZb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Apr 2013 07:25:31 -0400
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20130420112455.GA30198@elgon.mountain>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The sctp_events[] come from sch->type in set_sctp_state().  They are
-between 0-255 so that means we need 256 elements in the array.
 
-I believe that because of how the code is aligned there is normally a
-hole after sctp_events[] so this patch doesn't actually change anything.
+	Hello,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-This is static checker stuff.  I'm not very familiar with this code.
+On Sat, 20 Apr 2013, Dan Carpenter wrote:
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 6e14a7b..8646488 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -208,7 +208,7 @@ enum ipvs_sctp_event_t {
- 	IP_VS_SCTP_EVE_LAST
- };
- 
--static enum ipvs_sctp_event_t sctp_events[255] = {
-+static enum ipvs_sctp_event_t sctp_events[256] = {
- 	IP_VS_SCTP_EVE_DATA_CLI,
- 	IP_VS_SCTP_EVE_INIT_CLI,
- 	IP_VS_SCTP_EVE_INIT_ACK_CLI,
+> The sctp_events[] come from sch->type in set_sctp_state().  They are
+> between 0-255 so that means we need 256 elements in the array.
+> 
+> I believe that because of how the code is aligned there is normally a
+> hole after sctp_events[] so this patch doesn't actually change anything.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> This is static checker stuff.  I'm not very familiar with this code.
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> index 6e14a7b..8646488 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> @@ -208,7 +208,7 @@ enum ipvs_sctp_event_t {
+>  	IP_VS_SCTP_EVE_LAST
+>  };
+>  
+> -static enum ipvs_sctp_event_t sctp_events[255] = {
+> +static enum ipvs_sctp_event_t sctp_events[256] = {
+>  	IP_VS_SCTP_EVE_DATA_CLI,
+>  	IP_VS_SCTP_EVE_INIT_CLI,
+>  	IP_VS_SCTP_EVE_INIT_ACK_CLI,
+
+	There are more confusing (still, non-fatal)
+problems in this IPVS-SCTP support, eg.
+
+        if (direction == IP_VS_DIR_OUTPUT)
+-               event++;
++               event *= 2;
+
+	I guess we are running with wrong timeouts.
+
+	Also, I'm not sure we support properly the
+one-way states as done for TCP (IP_VS_DIR_INPUT_ONLY).
+May be this code deserves more serious review, for example,
+net/netfilter/nf_conntrack_proto_sctp.c looks as good
+source for comparison.
+
+	Anyways, this change looks correct to me,
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
