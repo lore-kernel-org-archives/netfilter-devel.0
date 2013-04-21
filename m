@@ -1,130 +1,109 @@
-From: dmitry pervushin <dmitry.pervushin@linaro.org>
-Subject: [PATCH 2/2] netfilter: idletimers, add v1 structures
-Date: Sun, 21 Apr 2013 11:55:48 +0200
-Message-ID: <1366538148-19759-3-git-send-email-dmitry.pervushin@linaro.org>
-References: <1366538148-19759-1-git-send-email-dmitry.pervushin@linaro.org>
-Cc: patches@linaro.org, dmitry pervushin <dmitry.pervushin@linaro.org>,
-	Ashish Sharma <ashishsharma@google.com>,
-	JP Abgrall <jpa@google.com>,
-	John Stultz <john.stultz@linaro.org>,
-	dmitry pervushin <dpervushin@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:33146 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223Ab3DUJ4O (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Apr 2013 05:56:14 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq17so2826489wib.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Apr 2013 02:56:13 -0700 (PDT)
-In-Reply-To: <1366538148-19759-1-git-send-email-dmitry.pervushin@linaro.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 26/28] proc: Supply a function to remove a proc entry by PDE [RFC]
+Date: Mon, 22 Apr 2013 00:01:56 +0200
+Message-ID: <13676870.MCxoVzgcmR@vostro.rjw.lan>
+References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk> <20130416182734.27773.47452.stgit@warthog.procyon.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-pci@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-acpi@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	viro@zeniv.linux.org.uk, netdev@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net
+To: David Howells <dhowells@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130416182734.27773.47452.stgit@warthog.procyon.org.uk>
+Sender: linux-pci-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add command-line options to handle --send-nl-msg
+On Tuesday, April 16, 2013 07:27:34 PM David Howells wrote:
+> Supply a function (proc_remove()) to remove a proc entry (and any subtree
+> rooted there) by proc_dir_entry pointer rather than by name and (optionally)
+> root dir entry pointer.  This allows us to eliminate all remaining pde->name
+> accesses outside of procfs.
+> 
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: linux-acpi@vger.kernel.org
+> cc: openipmi-developer@lists.sourceforge.net
+> cc: devicetree-discuss@lists.ozlabs.org
+> cc: linux-pci@vger.kernel.org
+> cc: netdev@vger.kernel.org
+> cc: netfilter-devel@vger.kernel.org
+> cc: alsa-devel@alsa-project.org
 
-Cc: Ashish Sharma <ashishsharma@google.com>
-Cc: JP Abgrall <jpa@google.com>
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Signed-off-by: dmitry pervushin <dpervushin@gmail.com>
----
- extensions/libxt_IDLETIMER.c |   44 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 41 insertions(+), 3 deletions(-)
+The ACPI changes look good to me.
 
-diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
-index 21004a4..4ef7f36 100644
---- a/extensions/libxt_IDLETIMER.c
-+++ b/extensions/libxt_IDLETIMER.c
-@@ -27,14 +27,17 @@
- enum {
- 	O_TIMEOUT = 0,
- 	O_LABEL,
-+	O_SEND_NLMSG,
- };
- 
--#define s struct idletimer_tg_info
-+#define s struct idletimer_tg_info_v1
- static const struct xt_option_entry idletimer_tg_opts[] = {
- 	{.name = "timeout", .id = O_TIMEOUT, .type = XTTYPE_UINT32,
- 	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, timeout)},
- 	{.name = "label", .id = O_LABEL, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, label)},
-+	{.name = "send_nl_msg", .id = O_SEND_NLMSG, .type = XTTYPE_UINT8,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, send_nl_msg), .min = 0, .max = 1, },
- 	XTOPT_TABLEEND,
- };
- #undef s
-@@ -45,6 +48,7 @@ static void idletimer_tg_help(void)
- "IDLETIMER target options:\n"
- " --timeout time	Timeout until the notification is sent (in seconds)\n"
- " --label string	Unique rule identifier\n"
-+" --send_nl_msg 0|1	Send netlink message when timer expires\n"
- "\n");
- }
- 
-@@ -57,6 +61,11 @@ static void idletimer_tg_print(const void *ip,
- 
- 	printf(" timeout:%u", info->timeout);
- 	printf(" label:%s", info->label);
-+	if (target->u.user.revision > 0) {
-+		struct idletimer_tg_info_v1 *info_v1 =
-+			(struct idletimer_tg_info_v1 *) target->data;
-+		printf(" send_nl_msg:%d", info_v1->send_nl_msg ? 1 : 0);
-+	}
- }
- 
- static void idletimer_tg_save(const void *ip,
-@@ -67,9 +76,23 @@ static void idletimer_tg_save(const void *ip,
- 
- 	printf(" --timeout %u", info->timeout);
- 	printf(" --label %s", info->label);
-+	if (target->u.user.revision > 0) {
-+		struct idletimer_tg_info_v1 *info_v1 =
-+			(struct idletimer_tg_info_v1 *) target->data;
-+		printf(" --send_nl_msg %d", info_v1->send_nl_msg ? 1 : 0);
-+	}
- }
- 
--static struct xtables_target idletimer_tg_reg = {
-+static void idletimer_tg_init_v1(struct xt_entry_target *target)
-+{
-+	struct idletimer_tg_info_v1 *info =
-+		(struct idletimer_tg_info_v1 *)target->data;
-+
-+	info->send_nl_msg = 0;
-+}
-+
-+static struct xtables_target idletimer_tg_reg[] = { 
-+{
- 	.family	       = NFPROTO_UNSPEC,
- 	.name	       = "IDLETIMER",
- 	.version       = XTABLES_VERSION,
-@@ -81,9 +104,24 @@ static struct xtables_target idletimer_tg_reg = {
- 	.print	       = idletimer_tg_print,
- 	.save	       = idletimer_tg_save,
- 	.x6_options    = idletimer_tg_opts,
-+},
-+{
-+	.family	       = NFPROTO_UNSPEC,
-+	.name	       = "IDLETIMER",
-+	.version       = XTABLES_VERSION,
-+	.revision      = 1,
-+	.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info_v1)),
-+	.userspacesize = offsetof(struct idletimer_tg_info_v1, timer),
-+	.help	       = idletimer_tg_help,
-+	.x6_parse      = xtables_option_parse,
-+	.print	       = idletimer_tg_print,
-+	.save	       = idletimer_tg_save,
-+	.x6_options    = idletimer_tg_opts,
-+	.init	       = idletimer_tg_init_v1,
-+}
- };
- 
- void _init(void)
- {
--	xtables_register_target(&idletimer_tg_reg);
-+	xtables_register_targets(idletimer_tg_reg, ARRAY_SIZE(idletimer_tg_reg));
- }
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+> 
+>  drivers/acpi/sbs.c                  |   21 ++++-----------------
+>  drivers/char/ipmi/ipmi_msghandler.c |    2 +-
+>  drivers/misc/sgi-gru/gruprocfs.c    |    2 +-
+>  drivers/of/base.c                   |   11 +----------
+>  drivers/pci/proc.c                  |   12 +++---------
+>  fs/proc/generic.c                   |    7 +++++++
+>  fs/proc/vmcore.c                    |    2 +-
+>  include/linux/proc_fs.h             |    2 ++
+>  kernel/irq/proc.c                   |    6 +-----
+>  net/8021q/vlanproc.c                |    9 ++-------
+>  net/core/pktgen.c                   |    6 ++----
+>  net/ipv4/netfilter/ipt_CLUSTERIP.c  |    4 ++--
+>  net/ipv6/proc.c                     |    3 +--
+>  net/netfilter/xt_hashlimit.c        |    4 ++--
+>  sound/core/info.c                   |   19 +++++--------------
+>  15 files changed, 35 insertions(+), 75 deletions(-)
+> 
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index a296e08..b6241ee 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -521,19 +521,6 @@ acpi_sbs_add_fs(struct proc_dir_entry **dir,
+>  	return 0;
+>  }
+>  
+> -static void
+> -acpi_sbs_remove_fs(struct proc_dir_entry **dir,
+> -			   struct proc_dir_entry *parent_dir)
+> -{
+> -	if (*dir) {
+> -		remove_proc_entry(ACPI_SBS_FILE_INFO, *dir);
+> -		remove_proc_entry(ACPI_SBS_FILE_STATE, *dir);
+> -		remove_proc_entry(ACPI_SBS_FILE_ALARM, *dir);
+> -		remove_proc_entry((*dir)->name, parent_dir);
+> -		*dir = NULL;
+> -	}
+> -}
+> -
+>  /* Smart Battery Interface */
+>  static struct proc_dir_entry *acpi_battery_dir = NULL;
+>  
+> @@ -836,8 +823,8 @@ static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
+>  		power_supply_unregister(&battery->bat);
+>  	}
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> -	if (battery->proc_entry)
+> -		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
+> +	proc_remove(battery->proc_entry);
+> +	battery->proc_entry = NULL;
+>  #endif
+>  }
+>  
+> @@ -873,8 +860,8 @@ static void acpi_charger_remove(struct acpi_sbs *sbs)
+>  	if (sbs->charger.dev)
+>  		power_supply_unregister(&sbs->charger);
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> -	if (sbs->charger_entry)
+> -		acpi_sbs_remove_fs(&sbs->charger_entry, acpi_ac_dir);
+> +	proc_remove(sbs->charger_entry);
+> +	sbs->charger_entry = NULL;
+>  #endif
+>  }
+>  
+
+
 -- 
-1.7.10.4
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
