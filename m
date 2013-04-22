@@ -1,31 +1,23 @@
-From: Oliver <olipro@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: nftables kernel repo issue
-Date: Mon, 22 Apr 2013 16:53:56 +0200
-Message-ID: <1932838.uAVcz4Bni9@gentoovm>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 12/14] netlink: add documentation for memory mapped I/O
+Date: Mon, 22 Apr 2013 11:28:08 -0700
+Message-ID: <m2r4i2whc7.fsf@firstfloor.org>
+References: <1366217229-22705-1-git-send-email-kaber@trash.net>
+	<1366217229-22705-13-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:52735 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711Ab3DVPBT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Apr 2013 11:01:19 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-man@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1366217229-22705-13-git-send-email-kaber@trash.net> (Patrick
+	McHardy's message of "Wed, 17 Apr 2013 18:47:07 +0200")
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Patrick McHardy <kaber@trash.net> writes:
 
-After pulling the nftables kernel repo from 
-http://1984.lsi.us.es/git/nftables/ - I then proceeded to try and rebase this 
-on top of 3.8 but got an error when rebasing commit 
-1504c7f715af7365bdedaae5c52c130bfa90e851 as the original commit ( 
-d542703bdf5733d108cfa4263aa58253af64de52 ) is not accessible.
+Could you extend the netlink manpage too please? 
 
-Could you make a branch within the nftables repo that d542703b is reachable 
-from so that I may fetch it.
-
-Thanks,
-Oliver
+-- 
+ak@linux.intel.com -- Speaking for myself only
