@@ -1,76 +1,110 @@
 From: Eric Leblond <eric@regit.org>
 Subject: Re: [Nftables RFC] High level library proposal
-Date: Tue, 23 Apr 2013 00:26:33 +0200
-Message-ID: <1366669593.15660.9.camel@tiger2>
+Date: Tue, 23 Apr 2013 01:03:11 +0200
+Message-ID: <1366671791.15660.36.camel@tiger2>
 References: <516EA684.9040209@linux.intel.com>
-	 <20130419100531.GA3481@localhost> <1366661111.26911.361.camel@localhost>
+	 <20130419100531.GA3481@localhost> <517129D8.8000006@linux.intel.com>
+	 <20130419121127.GA29452@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
 	Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>,
 	Patrick McHardy <kaber@trash.net>,
-	Julien Vehent <julien@linuxwall.info>,
-	Fabio Di Nitto <fdinitto@redhat.com>,
-	Jiri Benc <jbenc@redhat.com>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Thomas Graf <tgraf@redhat.com>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+	Julien Vehent <julien@linuxwall.info>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:59422 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:59609 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab3DVW0x (ORCPT
+	with ESMTP id S1754185Ab3DVXDV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Apr 2013 18:26:53 -0400
-In-Reply-To: <1366661111.26911.361.camel@localhost>
+	Mon, 22 Apr 2013 19:03:21 -0400
+In-Reply-To: <20130419121127.GA29452@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-I agree on all points of this mail. Some comments below.
+On Fri, 2013-04-19 at 14:11 +0200, Pablo Neira Ayuso wrote:
+> On Fri, Apr 19, 2013 at 02:26:16PM +0300, Tomasz Bursztyka wrote:
+> > Hi Pablo,
+> > 
+> > >>I am thinking of taking original nft tool's lexer/parser for the statements.
+> > >>It's nice, it works, no need to reinvent the wheel. The change will be on
+> > >>creating libnftables objects instead.
+> >
+> > >We can just export the abstract syntax tree functions to build the
+> > >rules.
+> > 
+> > I am not sure about what you mean. To me, we let the user playing
+> > with the same exact statement they will use through nft tool.
+> 
+> After the parsing, nft generates and abstract syntax tree (see list of
+> statements and struct expr for instance). You can use that do build
+> the rule-set. You can easily build rules using that tree structure.
+> 
+> > >I've also discussing with Patrick that some even higher level API,
+> > >something simple for users, just like "match tcp port 22" would be
+> > >good to have.
+> > 
+> > Wait, you want to introduce another statement format? How is it
+> > going to be simpler than nft tool format? I don't get the point
+> > here.
+> >
+> > >>Flags:
+> > >>NFT_FLAG_NL_SYNC (default): using libmnl (already used by libnftables,
+> > >>so no extra dependancy) event_driver and nl_driver are forgotten.
+> > >>NFT_FLAG_NL_ASYNC: Same as previous but a event_driver is at least
+> > >>mandatory.
+> > >>And a nl_driver can be provided to support libnl, others...
+> >
+> > >Also commented this with Patrick and I don't think we need this driver
+> > >infrastructure.  We get nothing from supporting two different
+> > >libraries as drivers. All your efforts should focus on libnftables.
+> > 
+> > It's a requirement for me to be able to use another way to discuss
+> > on netlink. Let's say it: something else than libmnl or libnl.
+> > And it's not that complicated anyway to handle, as for the event
+> > loop actually. I am definitely keeping that.
+> 
+> I don't get why you may need something different than libmnl or libnl.
 
-On Mon, 2013-04-22 at 22:05 +0200, Jesper Dangaard Brouer wrote:
-> First of all, thanks Tomasz for proposing to write a high level API for
-> nftables.
+I don't think Tomasz need it but future application developers will
+really love to avoid to learn how netlink messages are build. The
+application developers are often doing both the GUI work (with crazy
+things like web framework, QT or GTK) and they will benefit in using a
+simple and consistent API where details of kernel-userspace interaction
+will be transparently handled by the library.
 
-+1
+The current "let's fork an iptables" approach was heavily used because
+it was really simple to implement. The main point was that only the
+command line syntax has to be known. So I think using the nft grammar
+can be a good idea. At least for the basic
+insertion/modification/deletion operations.
 
-> Note to cc'ed people not on the netfilter-devel list can follow the
-> thread here:
-> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/46734
 ...
-
-> Use-case 2
-> -----------
-> Think this was Fabio's use-case during the netfilter workshop.
+> > I am fine with that, providing different levels of abstraction. But
+> > I am pretty sure people will prefer using higher level one: see how
+> > applications uses iptables tool for instance?
 > 
-> An interface to dry run a packet through configured netfilter policy.
-> 
-> This would allow user space to figure out if a specific daemon or
-> use-case can function in the configured environment.
-> 
-> The feature is primarily intended for debugging and troubleshooting
-> purposes but can be extended later on, enabling daemons or daemon
-> management tools to verify if the daemon is permitted to run in the
-> configured specific environment.
-> 
-> I guess, we also would need some kernel changes for supporting this?
+> Don't be so sure about that. People making very simple applications
+> will stick to the simple make-my-life-easy API, yes. But people
+> willing to make more advanced stuff will end up requiring to access
+> details at different levels of the abstraction.
 
-I think this point is really interesting. Being able to know for a given
-packet (IP tuple + ifaces)if it will get dropped or accepted or NAted
-(and with which transformation) could be really interesting.
+We definitely need different level of abstractions. At least a high
+level and a low level. The high level abstraction should be almost
+nftables independent (and netlink independent for sure) and the lower
+level can get into the details.
 
-A more advanced related feature could be to have a TRACE like result .  
+I think Jesper's mail has described some features that would be really
+useful in the high level API. Maybe continuing the discussion on these
+type of features will lead to the list of the thing that would be useful
+for most people.
 
-By the way, I've encountered today a TRACE limitation related to this
-point when debugging a firewall. I was investigating a NAT issue
-relative to a REJECT rule and TRACE was not tracing the sent ICMP
-message. And as for result, the NAT transformation made on the error
-message was not visible. This kind of information would be really useful
-if the test system is implemented.
+<idea type=stupid>Regarding the low level API, I did not yet look a
+libnftables but maybe just keeping it could be ok ?</idea> 
 
 BR,
 -- 
