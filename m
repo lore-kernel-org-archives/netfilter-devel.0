@@ -1,39 +1,54 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [Nftables RFC] High level library proposal
-Date: Tue, 23 Apr 2013 14:55:40 +0300
-Message-ID: <517676BC.3010107@linux.intel.com>
-References: <516EA684.9040209@linux.intel.com> <20130419100531.GA3481@localhost> <517129D8.8000006@linux.intel.com> <20130419121127.GA29452@localhost> <1366671791.15660.36.camel@tiger2> <20130422235012.GA4875@localhost> <51765F2E.9000909@linux.intel.com> <20130423113112.GB3348@localhost>
+From: Christoph Paasch <christoph.paasch@uclouvain.be>
+Subject: Re: [PATCH 11/14] netlink: add RX/TX-ring support to netlink diag
+Date: Tue, 23 Apr 2013 20:28:35 +0200
+Message-ID: <3020335.4HTe7KSVvr@cpaasch-mac>
+References: <1366217229-22705-1-git-send-email-kaber@trash.net> <1366217229-22705-12-git-send-email-kaber@trash.net>
+Reply-To: christoph.paasch@uclouvain.be
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Leblond <eric@regit.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Julien Vehent <julien@linuxwall.info>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9452 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755212Ab3DWLzo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Apr 2013 07:55:44 -0400
-In-Reply-To: <20130423113112.GB3348@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1366217229-22705-12-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hello,
 
->> It's easy to support it.
-> [...]
->
-> Again, you say you need this driver thing, but you will not escape
-> without explaining me why you need this.
+On Wednesday 17 April 2013 18:47:06 Patrick McHardy wrote:
+> +       mutex_lock(&nlk->pg_vec_lock);
+> +       ret =3D sk_diag_put_ring(&nlk->rx_ring, NETLINK_DIAG_RX_RING,=
+ nlskb);
+> +       if (!ret)
+> +               ret =3D sk_diag_put_ring(&nlk->tx_ring, NETLINK_DIAG_=
+TX_RING,
+> +                                      nlskb);
+> +       mutex_unlock(&nlk->pg_vec_lock);
 
-We just don't use libnl/libmnl in connman.
-As well as we currently support glib as the event loop but I know other 
-app devs don't especially, they might use some others.
-Which is why I propose these 2 features.
+this produces a build-error, if CONFIG_NETLINK_MMAP=3Dn:
 
-Br,
+/home/cpaasch/builder/net-next/net/netlink/diag.c: In function=20
+=E2=80=98sk_diag_put_rings_cfg=E2=80=99:
+/home/cpaasch/builder/net-next/net/netlink/diag.c:28: error: =E2=80=98s=
+truct=20
+netlink_sock=E2=80=99 has no member named =E2=80=98pg_vec_lock=E2=80=99
+/home/cpaasch/builder/net-next/net/netlink/diag.c:29: error: =E2=80=98s=
+truct=20
+netlink_sock=E2=80=99 has no member named =E2=80=98rx_ring=E2=80=99
 
-Tomasz
+
+Should the #ifdef CONFIG_NETLINK_MMAP in struct netlink_sock be removed=
+?
+
+
+Cheers,
+Christoph
+
+
+--=20
+IP Networking Lab --- http://inl.info.ucl.ac.be
+MultiPath TCP in the Linux Kernel --- http://multipath-tcp.org
+UCLouvain
+--
