@@ -1,86 +1,54 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [Nftables RFC] High level library proposal
-Date: Wed, 24 Apr 2013 13:23:27 +0200
-Message-ID: <1366802607.26911.489.camel@localhost>
-References: <516EA684.9040209@linux.intel.com>
-	   <20130419100531.GA3481@localhost> <1366661111.26911.361.camel@localhost>
-	  <51765F34.6020402@linux.intel.com> <1366742961.26911.440.camel@localhost>
-	 <51777660.7090802@linux.intel.com>
+From: Nishit Shah <nsshah.82@gmail.com>
+Subject: Re: [PATCH 14/14] nfnetlink: add support for memory mapped netlink
+Date: Wed, 24 Apr 2013 20:14:06 +0530
+Message-ID: <CAED+v=bdjZE=CKMvKfmE_Z=57K-K6xy_EeLMCU8xsokq4Kc6ZA@mail.gmail.com>
+References: <1366217229-22705-1-git-send-email-kaber@trash.net>
+	<1366217229-22705-15-git-send-email-kaber@trash.net>
+	<CAED+v=bCkEa8gOO9pu62hmj_H9WXz4+OBiCeyxBUO10L9EdDkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Leblond <eric@regit.org>,
-	Julien Vehent <julien@linuxwall.info>,
-	Fabio Di Nitto <fdinitto@redhat.com>,
-	Jiri Benc <jbenc@redhat.com>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Thomas Graf <tgraf@redhat.com>,
-	Thomas Woerner <twoerner@redhat.com>
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16291 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932231Ab3DXLYE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Apr 2013 07:24:04 -0400
-In-Reply-To: <51777660.7090802@linux.intel.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:61619 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755906Ab3DXOoH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Apr 2013 10:44:07 -0400
+Received: by mail-ob0-f178.google.com with SMTP id 16so1578516obc.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2013 07:44:06 -0700 (PDT)
+In-Reply-To: <CAED+v=bCkEa8gOO9pu62hmj_H9WXz4+OBiCeyxBUO10L9EdDkA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2013-04-24 at 09:06 +0300, Tomasz Bursztyka wrote:
-> Hi Jesper,
-> 
-> >> >- either via proposing low level functions requesting the cache as you
-> >> >propose (and we probably should)
-> > I'm a little worried about your idea of implementing a cache.
-> > It reminds me of the current libliptc (IPtables Cache) library, which
-> > caused a lot of annoying issues in the past.
-> > I know, you said we can use the notification system to keep the cache
-> > up-to-date, but just have a bad feeling about introducing a cache
-> > layer...
-> 
-> It should be indeed much easier and reliable to maintain a cache with 
-> nftables api.
-> But you are right: not all usage might require this. That's why I 
-> thought about NFT_FLAG_FOLLOW_* flags
-> One could limit the "caching" towards only application 
-> rules/chain/tables (if any), and other one would keep track of everything.
-> 
-> >> >- and/or when using nft_execute_statement() it would check if it already
-> >> >exist - or not, if it's a delete statement -
-> >> >by itself, hiding the details to the dev and raising a success relevantly.
-> > So, your are saying that a nft_execute_statement() that creates a rule
-> > sound return a "false" indication if the rule already exists?
-> > I would really prefer a real "test/query" operation, but I guess we
-> > should extend the kernel API to support this, so we don't need a cache
-> > infrastructure for this.
-> 
-> I don't know if such existence test should be part of kernel API rather 
-> than in user land since when manipulating
-> you need anyway a dump of the rule set.
-> 
-> But about nft_execute_statement(), it's not really a false indication: 
-> you want to inject a rule which already exist, so it's fine.
-> Or we could handle it so it return an error like -EALREADY if it's 
-> preferable.
+Hi,
 
-Hmm, yes, I see the problem.  It is actually allowed/valid to create
-many of the exact same rule...
+On Wed, Apr 17, 2013 at 10:17 PM, Patrick McHardy <kaber@trash.net> wrote:
+>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
+>  include/linux/netfilter/nfnetlink.h  |  2 ++
+>  net/netfilter/nfnetlink.c            |  7 +++++++
+>  net/netfilter/nfnetlink_log.c        | 10 ++++++----
+>  net/netfilter/nfnetlink_queue_core.c |  3 ++-
+>  4 files changed, 17 insertions(+), 5 deletions(-)
+>
+> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+> index 5e280b3..ef3cdb4 100644
+> --- a/net/netfilter/nfnetlink_queue_core.c
+> +++ b/net/netfilter/nfnetlink_queue_core.c
+> @@ -339,7 +339,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+>         if (queue->flags & NFQA_CFG_F_CONNTRACK)
+>                 ct = nfqnl_ct_get(entskb, &size, &ctinfo);
+>
+> -       skb = alloc_skb(size, GFP_ATOMIC);
+> +       skb = nfnetlink_alloc_skb(&init_net, size, queue->peer_portid,
+> +                                 GFP_ATOMIC);
+>         if (!skb)
+>                 return NULL;
+>
 
-We definitely need a "test/query/exists" operation.  And it should be
-fairly simple to implement, as its very similar to a "delete" rule
-operation, which simply don't actually delete the rule, but just returns
-if it was "possible" to delete such a rule.
-(but again a kernel side changes)
+does this mean that we have a true zero copy support with Eric D's
+patch (nfnetlink_queue: zero-copy support) and this patch ?
 
--- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
-
-
+Rgds,
+Nishit Shah.
