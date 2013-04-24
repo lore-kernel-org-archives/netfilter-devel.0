@@ -1,47 +1,68 @@
-From: Christoph Paasch <christoph.paasch@uclouvain.be>
-Subject: Re: [PATCH 11/14] netlink: add RX/TX-ring support to netlink diag
-Date: Tue, 23 Apr 2013 21:43:12 +0200
-Message-ID: <1552844.mLkv3ugxeL@cpaasch-mac>
-References: <1366217229-22705-1-git-send-email-kaber@trash.net> <3020335.4HTe7KSVvr@cpaasch-mac> <20130423.152339.1457379838723241885.davem@davemloft.net>
-Reply-To: christoph.paasch@uclouvain.be
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [Nftables RFC] High level library proposal
+Date: Wed, 24 Apr 2013 09:06:24 +0300
+Message-ID: <51777660.7090802@linux.intel.com>
+References: <516EA684.9040209@linux.intel.com>   <20130419100531.GA3481@localhost> <1366661111.26911.361.camel@localhost>  <51765F34.6020402@linux.intel.com> <1366742961.26911.440.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Eric Leblond <eric@regit.org>,
+	Julien Vehent <julien@linuxwall.info>,
+	Fabio Di Nitto <fdinitto@redhat.com>,
+	Jiri Benc <jbenc@redhat.com>,
+	Daniel Borkmann <dborkman@redhat.com>,
+	Thomas Graf <tgraf@redhat.com>,
+	Thomas Woerner <twoerner@redhat.com>
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:38277 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258Ab3DWTnQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Apr 2013 15:43:16 -0400
-In-Reply-To: <20130423.152339.1457379838723241885.davem@davemloft.net>
+Received: from mga14.intel.com ([143.182.124.37]:19931 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961Ab3DXGGc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Apr 2013 02:06:32 -0400
+In-Reply-To: <1366742961.26911.440.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 23 April 2013 15:23:39 David Miller wrote:
-> > On Wednesday 17 April 2013 18:47:06 Patrick McHardy wrote:
-> >> +       mutex_lock(&nlk->pg_vec_lock);
-> >> +       ret = sk_diag_put_ring(&nlk->rx_ring, NETLINK_DIAG_RX_RING,
-> >> nlskb);
-> >> +       if (!ret)
-> >> +               ret = sk_diag_put_ring(&nlk->tx_ring,
-> >> NETLINK_DIAG_TX_RING,
-> >> +                                      nlskb);
-> >> +       mutex_unlock(&nlk->pg_vec_lock);
-> >
-> > 
-> >
-> > this produces a build-error, if CONFIG_NETLINK_MMAP=n:
-> See:
-> 
->         http://marc.info/?l=linux-netdev&m=136674481328037&w=2
+Hi Jesper,
 
-Ok, I see. He was slightly quicker than me :)
+>> >- either via proposing low level functions requesting the cache as you
+>> >propose (and we probably should)
+> I'm a little worried about your idea of implementing a cache.
+> It reminds me of the current libliptc (IPtables Cache) library, which
+> caused a lot of annoying issues in the past.
+> I know, you said we can use the notification system to keep the cache
+> up-to-date, but just have a bad feeling about introducing a cache
+> layer...
 
--- 
-IP Networking Lab --- http://inl.info.ucl.ac.be
-MultiPath TCP in the Linux Kernel --- http://multipath-tcp.org
-UCLouvain
---
+It should be indeed much easier and reliable to maintain a cache with 
+nftables api.
+But you are right: not all usage might require this. That's why I 
+thought about NFT_FLAG_FOLLOW_* flags
+One could limit the "caching" towards only application 
+rules/chain/tables (if any), and other one would keep track of everything.
+
+>> >- and/or when using nft_execute_statement() it would check if it already
+>> >exist - or not, if it's a delete statement -
+>> >by itself, hiding the details to the dev and raising a success relevantly.
+> So, your are saying that a nft_execute_statement() that creates a rule
+> sound return a "false" indication if the rule already exists?
+> I would really prefer a real "test/query" operation, but I guess we
+> should extend the kernel API to support this, so we don't need a cache
+> infrastructure for this.
+
+I don't know if such existence test should be part of kernel API rather 
+than in user land since when manipulating
+you need anyway a dump of the rule set.
+
+But about nft_execute_statement(), it's not really a false indication: 
+you want to inject a rule which already exist, so it's fine.
+Or we could handle it so it return an error like -EALREADY if it's 
+preferable.
+
+Br,
+
+Tomasz
