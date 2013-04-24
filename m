@@ -1,58 +1,93 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 14/14] nfnetlink: add support for memory mapped netlink
-Date: Wed, 24 Apr 2013 17:15:39 +0200
-Message-ID: <20130424151539.GA32324@breakpoint.cc>
-References: <1366217229-22705-1-git-send-email-kaber@trash.net>
- <1366217229-22705-15-git-send-email-kaber@trash.net>
- <CAED+v=bCkEa8gOO9pu62hmj_H9WXz4+OBiCeyxBUO10L9EdDkA@mail.gmail.com>
- <CAED+v=bdjZE=CKMvKfmE_Z=57K-K6xy_EeLMCU8xsokq4Kc6ZA@mail.gmail.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [Nftables RFC] High level library proposal
+Date: Wed, 24 Apr 2013 08:35:43 -0700
+Message-ID: <20130424083543.5dff2f7b@nehalam.linuxnetplumber.net>
+References: <516EA684.9040209@linux.intel.com>
+	<20130419100531.GA3481@localhost>
+	<1366661111.26911.361.camel@localhost>
+	<51765F34.6020402@linux.intel.com>
+	<1366742961.26911.440.camel@localhost>
+	<51777660.7090802@linux.intel.com>
+	<1366802607.26911.489.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nishit Shah <nsshah.82@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Eric Leblond <eric@regit.org>,
+	Julien Vehent <julien@linuxwall.info>,
+	Fabio Di Nitto <fdinitto@redhat.com>,
+	Jiri Benc <jbenc@redhat.com>,
+	Daniel Borkmann <dborkman@redhat.com>,
+	Thomas Graf <tgraf@redhat.com>,
+	Thomas Woerner <twoerner@redhat.com>
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42455 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756145Ab3DXPPl (ORCPT
+Received: from mail-da0-f44.google.com ([209.85.210.44]:64973 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756109Ab3DXPfs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Apr 2013 11:15:41 -0400
-Content-Disposition: inline
-In-Reply-To: <CAED+v=bdjZE=CKMvKfmE_Z=57K-K6xy_EeLMCU8xsokq4Kc6ZA@mail.gmail.com>
+	Wed, 24 Apr 2013 11:35:48 -0400
+Received: by mail-da0-f44.google.com with SMTP id z20so945877dae.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2013 08:35:48 -0700 (PDT)
+In-Reply-To: <1366802607.26911.489.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nishit Shah <nsshah.82@gmail.com> wrote:
-> On Wed, Apr 17, 2013 at 10:17 PM, Patrick McHardy <kaber@trash.net> wrote:
-> >
-> > Signed-off-by: Patrick McHardy <kaber@trash.net>
-[..]
-> > diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-> > index 5e280b3..ef3cdb4 100644
-> > --- a/net/netfilter/nfnetlink_queue_core.c
-> > +++ b/net/netfilter/nfnetlink_queue_core.c
-> > @@ -339,7 +339,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
-> >         if (queue->flags & NFQA_CFG_F_CONNTRACK)
-> >                 ct = nfqnl_ct_get(entskb, &size, &ctinfo);
-> >
-> > -       skb = alloc_skb(size, GFP_ATOMIC);
-> > +       skb = nfnetlink_alloc_skb(&init_net, size, queue->peer_portid,
-> > +                                 GFP_ATOMIC);
-> >         if (!skb)
-> >                 return NULL;
-> >
+On Wed, 24 Apr 2013 13:23:27 +0200
+Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+
+> On Wed, 2013-04-24 at 09:06 +0300, Tomasz Bursztyka wrote:
+> > Hi Jesper,
+> > 
+> > >> >- either via proposing low level functions requesting the cache as you
+> > >> >propose (and we probably should)
+> > > I'm a little worried about your idea of implementing a cache.
+> > > It reminds me of the current libliptc (IPtables Cache) library, which
+> > > caused a lot of annoying issues in the past.
+> > > I know, you said we can use the notification system to keep the cache
+> > > up-to-date, but just have a bad feeling about introducing a cache
+> > > layer...
+> > 
+> > It should be indeed much easier and reliable to maintain a cache with 
+> > nftables api.
+> > But you are right: not all usage might require this. That's why I 
+> > thought about NFT_FLAG_FOLLOW_* flags
+> > One could limit the "caching" towards only application 
+> > rules/chain/tables (if any), and other one would keep track of everything.
+> > 
+> > >> >- and/or when using nft_execute_statement() it would check if it already
+> > >> >exist - or not, if it's a delete statement -
+> > >> >by itself, hiding the details to the dev and raising a success relevantly.
+> > > So, your are saying that a nft_execute_statement() that creates a rule
+> > > sound return a "false" indication if the rule already exists?
+> > > I would really prefer a real "test/query" operation, but I guess we
+> > > should extend the kernel API to support this, so we don't need a cache
+> > > infrastructure for this.
+> > 
+> > I don't know if such existence test should be part of kernel API rather 
+> > than in user land since when manipulating
+> > you need anyway a dump of the rule set.
+> > 
+> > But about nft_execute_statement(), it's not really a false indication: 
+> > you want to inject a rule which already exist, so it's fine.
+> > Or we could handle it so it return an error like -EALREADY if it's 
+> > preferable.
 > 
-> does this mean that we have a true zero copy support with Eric D's
-> patch (nfnetlink_queue: zero-copy support) and this patch ?
+> Hmm, yes, I see the problem.  It is actually allowed/valid to create
+> many of the exact same rule...
+> 
+> We definitely need a "test/query/exists" operation.  And it should be
+> fairly simple to implement, as its very similar to a "delete" rule
+> operation, which simply don't actually delete the rule, but just returns
+> if it was "possible" to delete such a rule.
+> (but again a kernel side changes)
+> 
 
-No.  In both socket and mmap case there is one copy involved.
+Also caching fails badly for the case of a monitoring application.
+An application that is doing lots of queries ends up getting invalidated
+by underlying changes.
 
-Before Erics patch, there were two:
-first copy: skb_copy_bits() that copies to packet payload into the
-netlink message
-second copy: copy to userspace when recv() is called
-
-Patricks mmap patch removes the second copy; as the netlink
-message is already allocated in userspace memory (the mmap ring).
-
-Erics patch avoids the first copy by only copying fragments'
-addresses instead of the payload.
