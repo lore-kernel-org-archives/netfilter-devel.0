@@ -1,42 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf-next v2] IPVS fixes for v3.10
-Date: Thu, 25 Apr 2013 01:42:06 +0200
-Message-ID: <20130424234206.GA6447@localhost>
-References: <1366686240-23493-1-git-send-email-horms@verge.net.au>
+Subject: Re: [patch -next] netfilter: nf_nat: missing condition in
+ nf_xfrm_me_harder()
+Date: Thu, 25 Apr 2013 01:59:47 +0200
+Message-ID: <20130424235947.GA6528@localhost>
+References: <20130424151151.GA16783@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38880 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932071Ab3DXXmN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Apr 2013 19:42:13 -0400
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1366686240-23493-1-git-send-email-horms@verge.net.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20130424151151.GA16783@elgon.mountain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 23, 2013 at 12:03:51PM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> this is a revision of a previous pull request.
-> The previous pull request contained one fix-all patch.
-> As per your request it has been split into a number of separate patches.
-> This request also includes several new patches that fix
-> yet more problems flagged by static analysis.
-> 
-> Separately, I have also posted the following SCTP patch
-> "[PATCH] sctp: Correct type and usage of sctp_end_cksum()"
-> 
-> With this series and the above patch applied I
-> believe that IPVS is now sparse-clean.
-> 
-> Much thanks to Julian Anastasov for his patience, and
-> Dan Carpenter and Hans Schillstrom for their help.
+On Wed, Apr 24, 2013 at 06:11:51PM +0300, Dan Carpenter wrote:
+> This if statement was accidentally dropped in a merge commit so now it
+> returns unconditionally.
 
-Pulled, thanks Simon!
+Applied, thanks Dan.
