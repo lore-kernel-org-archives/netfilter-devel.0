@@ -1,93 +1,72 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [Nftables RFC] High level library proposal
-Date: Wed, 24 Apr 2013 08:35:43 -0700
-Message-ID: <20130424083543.5dff2f7b@nehalam.linuxnetplumber.net>
-References: <516EA684.9040209@linux.intel.com>
-	<20130419100531.GA3481@localhost>
-	<1366661111.26911.361.camel@localhost>
-	<51765F34.6020402@linux.intel.com>
-	<1366742961.26911.440.camel@localhost>
-	<51777660.7090802@linux.intel.com>
-	<1366802607.26911.489.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Leblond <eric@regit.org>,
-	Julien Vehent <julien@linuxwall.info>,
-	Fabio Di Nitto <fdinitto@redhat.com>,
-	Jiri Benc <jbenc@redhat.com>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Thomas Graf <tgraf@redhat.com>,
-	Thomas Woerner <twoerner@redhat.com>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-da0-f44.google.com ([209.85.210.44]:64973 "EHLO
-	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756109Ab3DXPfs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Apr 2013 11:35:48 -0400
-Received: by mail-da0-f44.google.com with SMTP id z20so945877dae.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2013 08:35:48 -0700 (PDT)
-In-Reply-To: <1366802607.26911.489.camel@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: [PATCH 1/1] ip_vs_sip_fill_param() uninitialized var
+Date: Wed, 24 Apr 2013 17:29:01 +0200
+Message-ID: <1366817341-23837-1-git-send-email-hans@schillstrom.com>
+Cc: Hans Schillstrom <hans@schillstrom.com>
+To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 24 Apr 2013 13:23:27 +0200
-Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+The reason for this patch is crash in kmemdup
+caused by uninitialized param into kmemdup()
 
-> On Wed, 2013-04-24 at 09:06 +0300, Tomasz Bursztyka wrote:
-> > Hi Jesper,
-> > 
-> > >> >- either via proposing low level functions requesting the cache as you
-> > >> >propose (and we probably should)
-> > > I'm a little worried about your idea of implementing a cache.
-> > > It reminds me of the current libliptc (IPtables Cache) library, which
-> > > caused a lot of annoying issues in the past.
-> > > I know, you said we can use the notification system to keep the cache
-> > > up-to-date, but just have a bad feeling about introducing a cache
-> > > layer...
-> > 
-> > It should be indeed much easier and reliable to maintain a cache with 
-> > nftables api.
-> > But you are right: not all usage might require this. That's why I 
-> > thought about NFT_FLAG_FOLLOW_* flags
-> > One could limit the "caching" towards only application 
-> > rules/chain/tables (if any), and other one would keep track of everything.
-> > 
-> > >> >- and/or when using nft_execute_statement() it would check if it already
-> > >> >exist - or not, if it's a delete statement -
-> > >> >by itself, hiding the details to the dev and raising a success relevantly.
-> > > So, your are saying that a nft_execute_statement() that creates a rule
-> > > sound return a "false" indication if the rule already exists?
-> > > I would really prefer a real "test/query" operation, but I guess we
-> > > should extend the kernel API to support this, so we don't need a cache
-> > > infrastructure for this.
-> > 
-> > I don't know if such existence test should be part of kernel API rather 
-> > than in user land since when manipulating
-> > you need anyway a dump of the rule set.
-> > 
-> > But about nft_execute_statement(), it's not really a false indication: 
-> > you want to inject a rule which already exist, so it's fine.
-> > Or we could handle it so it return an error like -EALREADY if it's 
-> > preferable.
-> 
-> Hmm, yes, I see the problem.  It is actually allowed/valid to create
-> many of the exact same rule...
-> 
-> We definitely need a "test/query/exists" operation.  And it should be
-> fairly simple to implement, as its very similar to a "delete" rule
-> operation, which simply don't actually delete the rule, but just returns
-> if it was "possible" to delete such a rule.
-> (but again a kernel side changes)
-> 
+BUG: unable to handle kernel paging request at ffff880457b5763f
+IP: [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+PGD 27f6067 PUD 0
+Oops: 0000 [#1] PREEMPT SMP
+Modules linked in: xt_state xt_helper nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_mangle xt_connmark xt_conntrack ip6_tables nf_conntrack_ftp ip_vs_ftp nf_nat xt_tcpudp iptable_mangle xt_mark ip_tables x_tables ip_vs_rr ip_vs_lblcr ip_vs_pe_sip ip_vs nf_conntrack_sip nf_conntrack bonding igb i2c_algo_bit i2c_core
+CPU 5
+Pid: 0, comm: swapper/5 Not tainted 3.9.0-rc5+ #5                  /S1200KP
+RIP: 0010:[<ffffffff810df7fc>]  [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+RSP: 0018:ffff8803fea03648  EFLAGS: 00010282
+RAX: ffff8803d61063e0 RBX: 0000000000000003 RCX: 0000000000000003
+RDX: 0000000000000003 RSI: ffff880457b5763f RDI: ffff8803d61063e0
+RBP: ffff8803fea03658 R08: 0000000000000008 R09: 0000000000000011
+R10: 0000000000000011 R11: 00ffffffff81a8a3 R12: ffff880457b5763f
+R13: ffff8803d67f786a R14: ffff8803fea03730 R15: ffffffffa0098e90
+FS:  0000000000000000(0000) GS:ffff8803fea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff880457b5763f CR3: 0000000001a0c000 CR4: 00000000001407e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper/5 (pid: 0, threadinfo ffff8803ee18c000, task ffff8803ee18a480)
+Stack:
+ ffff8803d822a080 000000000000001c ffff8803fea036c8 ffffffffa000937a
+ ffffffff81f0d8a0 000000038135fdd5 ffff880300000014 ffff880300110000
+ ffffffff150118ac ffff8803d7e8a000 ffff88031e0118ac 0000000000000000
+Call Trace:
+ <IRQ>
 
-Also caching fails badly for the case of a monitoring application.
-An application that is doing lots of queries ends up getting invalidated
-by underlying changes.
+ [<ffffffffa000937a>] ip_vs_sip_fill_param+0x13a/0x187 [ip_vs_pe_sip]
+ [<ffffffffa007b209>] ip_vs_sched_persist+0x2c6/0x9c3 [ip_vs]
+ [<ffffffff8107dc53>] ? __lock_acquire+0x677/0x1697
+ [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+ [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+ [<ffffffff810649bc>] ? sched_clock_cpu+0x43/0xcf
+ [<ffffffffa007bb1e>] ip_vs_schedule+0x181/0x4ba [ip_vs]
+...
+
+Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+---
+ net/netfilter/ipvs/ip_vs_pe_sip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_pe_sip.c b/net/netfilter/ipvs/ip_vs_pe_sip.c
+index 00cc024..8767514 100644
+--- a/net/netfilter/ipvs/ip_vs_pe_sip.c
++++ b/net/netfilter/ipvs/ip_vs_pe_sip.c
+@@ -70,7 +70,7 @@ ip_vs_sip_fill_param(struct ip_vs_conn_param *p, struct sk_buff *skb)
+ {
+ 	struct sk_buff *reasm = skb_nfct_reasm(skb);
+ 	struct ip_vs_iphdr iph;
+-	unsigned int dataoff, datalen, matchoff, matchlen;
++	unsigned int dataoff, datalen, matchoff = 0, matchlen = 0;
+ 	const char *dptr;
+ 	int retc;
+ 
+-- 
+1.7.11.7
 
