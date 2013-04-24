@@ -1,54 +1,35 @@
-From: Nishit Shah <nsshah.82@gmail.com>
-Subject: Re: [PATCH 14/14] nfnetlink: add support for memory mapped netlink
-Date: Wed, 24 Apr 2013 20:14:06 +0530
-Message-ID: <CAED+v=bdjZE=CKMvKfmE_Z=57K-K6xy_EeLMCU8xsokq4Kc6ZA@mail.gmail.com>
-References: <1366217229-22705-1-git-send-email-kaber@trash.net>
-	<1366217229-22705-15-git-send-email-kaber@trash.net>
-	<CAED+v=bCkEa8gOO9pu62hmj_H9WXz4+OBiCeyxBUO10L9EdDkA@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch -next] netfilter: nf_nat: missing condition in
+ nf_xfrm_me_harder()
+Date: Wed, 24 Apr 2013 18:11:51 +0300
+Message-ID: <20130424151151.GA16783@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:61619 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755906Ab3DXOoH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Apr 2013 10:44:07 -0400
-Received: by mail-ob0-f178.google.com with SMTP id 16so1578516obc.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2013 07:44:06 -0700 (PDT)
-In-Reply-To: <CAED+v=bCkEa8gOO9pu62hmj_H9WXz4+OBiCeyxBUO10L9EdDkA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This if statement was accidentally dropped in a merge commit so now it
+returns unconditionally.
 
-On Wed, Apr 17, 2013 at 10:17 PM, Patrick McHardy <kaber@trash.net> wrote:
->
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-> ---
->  include/linux/netfilter/nfnetlink.h  |  2 ++
->  net/netfilter/nfnetlink.c            |  7 +++++++
->  net/netfilter/nfnetlink_log.c        | 10 ++++++----
->  net/netfilter/nfnetlink_queue_core.c |  3 ++-
->  4 files changed, 17 insertions(+), 5 deletions(-)
->
-> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-> index 5e280b3..ef3cdb4 100644
-> --- a/net/netfilter/nfnetlink_queue_core.c
-> +++ b/net/netfilter/nfnetlink_queue_core.c
-> @@ -339,7 +339,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
->         if (queue->flags & NFQA_CFG_F_CONNTRACK)
->                 ct = nfqnl_ct_get(entskb, &size, &ctinfo);
->
-> -       skb = alloc_skb(size, GFP_ATOMIC);
-> +       skb = nfnetlink_alloc_skb(&init_net, size, queue->peer_portid,
-> +                                 GFP_ATOMIC);
->         if (!skb)
->                 return NULL;
->
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-does this mean that we have a true zero copy support with Eric D's
-patch (nfnetlink_queue: zero-copy support) and this patch ?
-
-Rgds,
-Nishit Shah.
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 2e469ca..d4c9a31 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -90,6 +90,7 @@ int nf_xfrm_me_harder(struct sk_buff *skb, unsigned int family)
+ 	int err;
+ 
+ 	err = xfrm_decode_session(skb, &fl, family);
++	if (err)
+ 		return err;
+ 
+ 	dst = skb_dst(skb);
