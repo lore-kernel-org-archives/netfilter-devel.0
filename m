@@ -1,46 +1,100 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [ANNOUNCE] Netfilter is participating in the Google Summer of
- Code 2013
-Date: Thu, 25 Apr 2013 14:20:43 +0200
-Message-ID: <CAOkSjBjPzBJbMOJGH1kQ0Bg4xbe0D=tV+mmX1-ruEXmuLe39zg@mail.gmail.com>
-References: <20130425111237.GA4441@localhost>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] sctp: Correct type and usage of sctp_end_cksum()
+Date: Thu, 25 Apr 2013 22:12:14 +0900
+Message-ID: <20130425131214.GA5727@verge.net.au>
+References: <1366336498-25917-1-git-send-email-horms@verge.net.au>
+ <20130419131043.GC19017@hmsreliant.think-freely.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Netfilter Users Mailing list <netfilter@vger.kernel.org>,
-	Carol Smith <carols@google.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:40749 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872Ab3DYMVF convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Apr 2013 08:21:05 -0400
-In-Reply-To: <20130425111237.GA4441@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, linux-sctp@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Vlad Yasevich <vyasevich@gmail.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Neil Horman <nhorman@tuxdriver.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130419131043.GC19017@hmsreliant.think-freely.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2013/4/25 Pablo Neira Ayuso <pablo@netfilter.org>:
->
-> If you are a student with background on networking and C programming,
-> and you have public code available somewhere (e.g. github) that you
-> can use as credentials (no need to be Netfilter specific code BTW),
-> then consider sending us your application.
->
-Hi,
+On Fri, Apr 19, 2013 at 09:10:43AM -0400, Neil Horman wrote:
+> On Fri, Apr 19, 2013 at 10:54:58AM +0900, Simon Horman wrote:
+> > Change the type of the crc32 parameter of sctp_end_cksum()
+> > from __be32 to __u32 to reflect that fact that it is passed
+> > to cpu_to_le32().
+> > 
+> > There are five in-tree users of sctp_end_cksum().
+> > The following four had warnings flagged by sparse which are
+> > no longer present with this change.
+> > 
+> > net/netfilter/ipvs/ip_vs_proto_sctp.c:sctp_nat_csum()
+> > net/netfilter/ipvs/ip_vs_proto_sctp.c:sctp_csum_check()
+> > net/sctp/input.c:sctp_rcv_checksum()
+> > net/sctp/output.c:sctp_packet_transmit()
+> > 
+> > The fifth user is net/netfilter/nf_nat_proto_sctp.c:sctp_manip_pkt().
+> > It has been updated to pass a __u32 instead of a __be32,
+> > the value in question was already calculated in cpu byte-order.
+> > 
+> > net/netfilter/nf_nat_proto_sctp.c:sctp_manip_pkt() has also
+> > been updated to assign the return value of sctp_end_cksum()
+> > directly to a variable of type __le32, matching the
+> > type of the return value. Previously the return value
+> > was assigned to a variable of type __be32 and then that variable
+> > was finally assigned to another variable of type __le32.
+> > 
+> > Problems flagged by sparse.
+> > Compile and sparse tested only.
+> > 
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > ---
+> >  include/net/sctp/checksum.h       |    2 +-
+> >  net/netfilter/nf_nat_proto_sctp.c |    5 ++---
+> >  2 files changed, 3 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/include/net/sctp/checksum.h b/include/net/sctp/checksum.h
+> > index befc8d2..5a2110d 100644
+> > --- a/include/net/sctp/checksum.h
+> > +++ b/include/net/sctp/checksum.h
+> > @@ -77,7 +77,7 @@ static inline __u32 sctp_update_cksum(__u8 *buffer, __u16 length, __u32 crc32)
+> >  	return sctp_crc32c(crc32, buffer, length);
+> >  }
+> >  
+> > -static inline __le32 sctp_end_cksum(__be32 crc32)
+> > +static inline __le32 sctp_end_cksum(__u32 crc32)
+> >  {
+> >  	return cpu_to_le32(~crc32);
+> >  }
+> > diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
+> > index e64faa5..396e55d 100644
+> > --- a/net/netfilter/nf_nat_proto_sctp.c
+> > +++ b/net/netfilter/nf_nat_proto_sctp.c
+> > @@ -36,7 +36,7 @@ sctp_manip_pkt(struct sk_buff *skb,
+> >  {
+> >  	struct sk_buff *frag;
+> >  	sctp_sctphdr_t *hdr;
+> > -	__be32 crc32;
+> > +	__u32 crc32;
+> >  
+> >  	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
+> >  		return false;
+> > @@ -55,8 +55,7 @@ sctp_manip_pkt(struct sk_buff *skb,
+> >  	skb_walk_frags(skb, frag)
+> >  		crc32 = sctp_update_cksum((u8 *)frag->data, skb_headlen(frag),
+> >  					  crc32);
+> > -	crc32 = sctp_end_cksum(crc32);
+> > -	hdr->checksum = crc32;
+> > +	hdr->checksum = sctp_end_cksum(crc32);
+> >  
+> >  	return true;
+> >  }
+> > -- 
+> > 1.7.10.4
+> > 
+> > 
+> Acked-by: Neil Horman <nhorman@tuxdriver.com>
 
-as you already know, I will be applying to "Task 4: Rule-set
-synchronization daemon"
-
-I already filled the proposal in the google-melange website.
-
-Regards
---
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pablo, are you interested in taking this through nf-next?
+Or is it more appropriate for net-next. Or should I split
+it into two patches on a per-file basis, yielding one patch for each tree?
