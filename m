@@ -1,59 +1,39 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH ipvs-next] ipvs: Remove rcu_read_unlock();rcu_read_lock();
-Date: Thu, 25 Apr 2013 10:12:33 +0900
-Message-ID: <1366852353-32561-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/10] netfilter fixes for net-next
+Date: Thu, 25 Apr 2013 00:54:18 -0400 (EDT)
+Message-ID: <20130425.005418.2017316083264142873.davem@davemloft.net>
+References: <1366849341-10466-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:47790 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763Ab3DYEyU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Apr 2013 00:54:20 -0400
+In-Reply-To: <1366849341-10466-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It is unclear to me that there is any utility in the following:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 25 Apr 2013 02:22:11 +0200
 
-	 rcu_read_unlock();
-	 rcu_read_lock();
+> The following patchset contains fixes for recently applied
+> Netfilter/IPVS updates to the net-next tree, most relevantly
+> they are:
+> 
+> * Fix sparse warnings introduced in the RCU conversion, from
+>   Julian Anastasov.
+> 
+> * Fix wrong endianness in the size field of IPVS sync messages,
+>   from Simon Horman.
+> 
+> * Fix missing if checking in nf_xfrm_me_harder, from Dan Carpenter.
+> 
+> * Fix off by one access in the IPVS SCTP tracking code, again from
+>   Dan Carpenter.
 
-So this patch removes the two instances of the above from ip_vs_conn.c.
-
-This was introduced in 7cf2eb7bccbe0d7a8ab1d1382c4faa2b3abf817f ("ipvs: fix
-sparse warnings for ip_vs_conn listing") as part of cleaning up warnings
-flagged by sparse.
-
-Compile and sparse tested only.
-
-Cc: Julian Anastasov <ja@ssi.bg>
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_conn.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index a083bda..458dc68 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -975,8 +975,6 @@ static void *ip_vs_conn_array(struct seq_file *seq, loff_t pos)
- 				return cp;
- 			}
- 		}
--		rcu_read_unlock();
--		rcu_read_lock();
- 	}
- 
- 	return NULL;
-@@ -1015,8 +1013,6 @@ static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 			iter->l = &ip_vs_conn_tab[idx];
- 			return cp;
- 		}
--		rcu_read_unlock();
--		rcu_read_lock();
- 	}
- 	iter->l = NULL;
- 	return NULL;
--- 
-1.8.2.1
-
+Pulled, thanks Pablo.
