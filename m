@@ -1,330 +1,106 @@
-From: Vasant Hegde <hegdevasant-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 04/28] proc: Supply PDE attribute setting accessor functions
- [RFC]
-Date: Thu, 25 Apr 2013 20:52:36 +0530
-Message-ID: <51794A3C.3040406@linux.vnet.ibm.com>
-References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk> <20130416182606.27773.55054.stgit@warthog.procyon.org.uk>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 1/1] ip_vs_sip_fill_param() BUG: bad check of return
+ value
+Date: Thu, 25 Apr 2013 22:23:32 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1304252220470.1948@ja.ssi.bg>
+References: <1366881215-9990-1-git-send-email-hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org,
-	linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130416182606.27773.55054.stgit-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Hans Schillstrom <hans@schillstrom.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1366881215-9990-1-git-send-email-hans@schillstrom.com>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 04/16/2013 11:56 PM, David Howells wrote:
-> Supply accessor functions to set attributes in proc_dir_entry structs.
->
-> The following are supplied: proc_set_size() and proc_set_user().
->
-> Signed-off-by: David Howells<dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> cc: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+
+	Hello,
+
+On Thu, 25 Apr 2013, Hans Schillstrom wrote:
+
+> The reason for this patch is crash in kmemdup
+> caused by returning from get_callid with uniialized
+> matchoff and matchlen.
+> 
+> Removing Zero check of matchlen since it's done by ct_sip_get_header()
+> 
+> v2 return -EINVAL on Zero return from ct_sip_get_header()
+>    Thanks Julian.
+> 
+> BUG: unable to handle kernel paging request at ffff880457b5763f
+> IP: [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> PGD 27f6067 PUD 0
+> Oops: 0000 [#1] PREEMPT SMP
+> Modules linked in: xt_state xt_helper nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_mangle xt_connmark xt_conntrack ip6_tables nf_conntrack_ftp ip_vs_ftp nf_nat xt_tcpudp iptable_mangle xt_mark ip_tables x_tables ip_vs_rr ip_vs_lblcr ip_vs_pe_sip ip_vs nf_conntrack_sip nf_conntrack bonding igb i2c_algo_bit i2c_core
+> CPU 5
+> Pid: 0, comm: swapper/5 Not tainted 3.9.0-rc5+ #5                  /S1200KP
+> RIP: 0010:[<ffffffff810df7fc>]  [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> RSP: 0018:ffff8803fea03648  EFLAGS: 00010282
+> RAX: ffff8803d61063e0 RBX: 0000000000000003 RCX: 0000000000000003
+> RDX: 0000000000000003 RSI: ffff880457b5763f RDI: ffff8803d61063e0
+> RBP: ffff8803fea03658 R08: 0000000000000008 R09: 0000000000000011
+> R10: 0000000000000011 R11: 00ffffffff81a8a3 R12: ffff880457b5763f
+> R13: ffff8803d67f786a R14: ffff8803fea03730 R15: ffffffffa0098e90
+> FS:  0000000000000000(0000) GS:ffff8803fea00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: ffff880457b5763f CR3: 0000000001a0c000 CR4: 00000000001407e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process swapper/5 (pid: 0, threadinfo ffff8803ee18c000, task ffff8803ee18a480)
+> Stack:
+>  ffff8803d822a080 000000000000001c ffff8803fea036c8 ffffffffa000937a
+>  ffffffff81f0d8a0 000000038135fdd5 ffff880300000014 ffff880300110000
+>  ffffffff150118ac ffff8803d7e8a000 ffff88031e0118ac 0000000000000000
+> Call Trace:
+>  <IRQ>
+> 
+>  [<ffffffffa000937a>] ip_vs_sip_fill_param+0x13a/0x187 [ip_vs_pe_sip]
+>  [<ffffffffa007b209>] ip_vs_sched_persist+0x2c6/0x9c3 [ip_vs]
+>  [<ffffffff8107dc53>] ? __lock_acquire+0x677/0x1697
+>  [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>  [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>  [<ffffffff810649bc>] ? sched_clock_cpu+0x43/0xcf
+>  [<ffffffffa007bb1e>] ip_vs_schedule+0x181/0x4ba [ip_vs]
+> ...
+> 
+> Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+
+	Change looks good to me,
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+	But who can add "ipvs: " prefix in the subject?
+
 > ---
->
->   arch/powerpc/kernel/proc_powerpc.c        |    2 +-
->   arch/powerpc/platforms/pseries/reconfig.c |    2 +-
-
-arch/powerpc side changes looks good.
-
--Vasant
-
->   drivers/media/pci/ttpci/av7110_ir.c       |    2 +-
->   drivers/net/irda/vlsi_ir.c                |    2 +-
->   drivers/net/wireless/airo.c               |   34 +++++++++--------------------
->   drivers/pci/proc.c                        |    2 +-
->   fs/proc/generic.c                         |   13 +++++++++++
->   include/linux/proc_fs.h                   |    5 ++++
->   kernel/configs.c                          |    2 +-
->   kernel/profile.c                          |    2 +-
->   net/netfilter/xt_recent.c                 |    3 +--
->   sound/core/info.c                         |    2 +-
->   12 files changed, 38 insertions(+), 33 deletions(-)
->
-> diff --git a/arch/powerpc/kernel/proc_powerpc.c b/arch/powerpc/kernel/proc_powerpc.c
-> index 41d8ee9..feb8580 100644
-> --- a/arch/powerpc/kernel/proc_powerpc.c
-> +++ b/arch/powerpc/kernel/proc_powerpc.c
-> @@ -83,7 +83,7 @@ static int __init proc_ppc64_init(void)
->   			&page_map_fops, vdso_data);
->   	if (!pde)
->   		return 1;
-> -	pde->size = PAGE_SIZE;
-> +	proc_set_size(pde, PAGE_SIZE);
->
->   	return 0;
->   }
-> diff --git a/arch/powerpc/platforms/pseries/reconfig.c b/arch/powerpc/platforms/pseries/reconfig.c
-> index d6491bd..f93cdf5 100644
-> --- a/arch/powerpc/platforms/pseries/reconfig.c
-> +++ b/arch/powerpc/platforms/pseries/reconfig.c
-> @@ -452,7 +452,7 @@ static int proc_ppc64_create_ofdt(void)
->
->   	ent = proc_create("powerpc/ofdt", S_IWUSR, NULL,&ofdt_fops);
->   	if (ent)
-> -		ent->size = 0;
-> +		proc_set_size(ent, 0);
->
->   	return 0;
->   }
-> diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-> index eb82286..0e763a7 100644
-> --- a/drivers/media/pci/ttpci/av7110_ir.c
-> +++ b/drivers/media/pci/ttpci/av7110_ir.c
-> @@ -375,7 +375,7 @@ int av7110_ir_init(struct av7110 *av7110)
->   	if (av_cnt == 1) {
->   		e = proc_create("av7110_ir", S_IWUSR, NULL,&av7110_ir_proc_fops);
->   		if (e)
-> -			e->size = 4 + 256 * sizeof(u16);
-> +			proc_set_size(e, 4 + 256 * sizeof(u16));
->   	}
->
->   	tasklet_init(&av7110->ir.ir_tasklet, av7110_emit_key, (unsigned long)&av7110->ir);
-> diff --git a/drivers/net/irda/vlsi_ir.c b/drivers/net/irda/vlsi_ir.c
-> index e22cd4e..5f47584 100644
-> --- a/drivers/net/irda/vlsi_ir.c
-> +++ b/drivers/net/irda/vlsi_ir.c
-> @@ -1678,7 +1678,7 @@ vlsi_irda_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->   			IRDA_WARNING("%s: failed to create proc entry\n",
->   				     __func__);
->   		} else {
-> -			ent->size = 0;
-> +			proc_set_size(ent, 0);
->   		}
->   		idev->proc_entry = ent;
->   	}
-> diff --git a/drivers/net/wireless/airo.c b/drivers/net/wireless/airo.c
-> index 66e398d..21d0233 100644
-> --- a/drivers/net/wireless/airo.c
-> +++ b/drivers/net/wireless/airo.c
-> @@ -4507,73 +4507,63 @@ static int setup_proc_entry( struct net_device *dev,
->   					    airo_entry);
->   	if (!apriv->proc_entry)
->   		goto fail;
-> -	apriv->proc_entry->uid = proc_kuid;
-> -	apriv->proc_entry->gid = proc_kgid;
-> +	proc_set_user(apriv->proc_entry, proc_kuid, proc_kgid);
->
->   	/* Setup the StatsDelta */
->   	entry = proc_create_data("StatsDelta", S_IRUGO&  proc_perm,
->   				 apriv->proc_entry,&proc_statsdelta_ops, dev);
->   	if (!entry)
->   		goto fail_stats_delta;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the Stats */
->   	entry = proc_create_data("Stats", S_IRUGO&  proc_perm,
->   				 apriv->proc_entry,&proc_stats_ops, dev);
->   	if (!entry)
->   		goto fail_stats;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the Status */
->   	entry = proc_create_data("Status", S_IRUGO&  proc_perm,
->   				 apriv->proc_entry,&proc_status_ops, dev);
->   	if (!entry)
->   		goto fail_status;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the Config */
->   	entry = proc_create_data("Config", proc_perm,
->   				 apriv->proc_entry,&proc_config_ops, dev);
->   	if (!entry)
->   		goto fail_config;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the SSID */
->   	entry = proc_create_data("SSID", proc_perm,
->   				 apriv->proc_entry,&proc_SSID_ops, dev);
->   	if (!entry)
->   		goto fail_ssid;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the APList */
->   	entry = proc_create_data("APList", proc_perm,
->   				 apriv->proc_entry,&proc_APList_ops, dev);
->   	if (!entry)
->   		goto fail_aplist;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the BSSList */
->   	entry = proc_create_data("BSSList", proc_perm,
->   				 apriv->proc_entry,&proc_BSSList_ops, dev);
->   	if (!entry)
->   		goto fail_bsslist;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->
->   	/* Setup the WepKey */
->   	entry = proc_create_data("WepKey", proc_perm,
->   				 apriv->proc_entry,&proc_wepkey_ops, dev);
->   	if (!entry)
->   		goto fail_wepkey;
-> -	entry->uid = proc_kuid;
-> -	entry->gid = proc_kgid;
+>  net/netfilter/ipvs/ip_vs_pe_sip.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_pe_sip.c b/net/netfilter/ipvs/ip_vs_pe_sip.c
+> index 00cc024..f2c9d65 100644
+> --- a/net/netfilter/ipvs/ip_vs_pe_sip.c
+> +++ b/net/netfilter/ipvs/ip_vs_pe_sip.c
+> @@ -37,14 +37,10 @@ static int get_callid(const char *dptr, unsigned int dataoff,
+>  		if (ret > 0)
+>  			break;
+>  		if (!ret)
+> -			return 0;
+> +			return -EINVAL;
+>  		dataoff += *matchoff;
+>  	}
+>  
+> -	/* Empty callid is useless */
+> -	if (!*matchlen)
+> -		return -EINVAL;
 > -
-> +	proc_set_user(entry, proc_kuid, proc_kgid);
->   	return 0;
->
->   fail_wepkey:
-> @@ -5695,10 +5685,8 @@ static int __init airo_init_module( void )
->
->   	airo_entry = proc_mkdir_mode("driver/aironet", airo_perm, NULL);
->
-> -	if (airo_entry) {
-> -		airo_entry->uid = proc_kuid;
-> -		airo_entry->gid = proc_kgid;
-> -	}
-> +	if (airo_entry)
-> +		proc_set_user(airo_entry, proc_kuid, proc_kgid);
->
->   	for (i = 0; i<  4&&  io[i]&&  irq[i]; i++) {
->   		airo_print_info("", "Trying to configure ISA adapter at irq=%d "
-> diff --git a/drivers/pci/proc.c b/drivers/pci/proc.c
-> index 12e4fb5..7cde7c1 100644
-> --- a/drivers/pci/proc.c
-> +++ b/drivers/pci/proc.c
-> @@ -419,7 +419,7 @@ int pci_proc_attach_device(struct pci_dev *dev)
->   			&proc_bus_pci_operations, dev);
->   	if (!e)
->   		return -ENOMEM;
-> -	e->size = dev->cfg_size;
-> +	proc_set_size(e, dev->cfg_size);
->   	dev->procent = e;
->
->   	return 0;
-> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-> index 1c07cad..5f6f6c3 100644
-> --- a/fs/proc/generic.c
-> +++ b/fs/proc/generic.c
-> @@ -498,6 +498,19 @@ out:
->   	return NULL;
->   }
->   EXPORT_SYMBOL(proc_create_data);
-> +
-> +void proc_set_size(struct proc_dir_entry *de, loff_t size)
-> +{
-> +	de->size = size;
-> +}
-> +EXPORT_SYMBOL(proc_set_size);
-> +
-> +void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid)
-> +{
-> +	de->uid = uid;
-> +	de->gid = gid;
-> +}
-> +EXPORT_SYMBOL(proc_set_user);
->
->   static void free_proc_entry(struct proc_dir_entry *de)
->   {
-> diff --git a/include/linux/proc_fs.h b/include/linux/proc_fs.h
-> index 805edac..28a4d7e 100644
-> --- a/include/linux/proc_fs.h
-> +++ b/include/linux/proc_fs.h
-> @@ -130,6 +130,9 @@ static inline struct proc_dir_entry *proc_create(const char *name, umode_t mode,
->   extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
->   	struct proc_dir_entry *parent);
->
-> +extern void proc_set_size(struct proc_dir_entry *, loff_t);
-> +extern void proc_set_user(struct proc_dir_entry *, kuid_t, kgid_t);
-> +
->   extern struct file *proc_ns_fget(int fd);
->   extern bool proc_ns_inode(struct inode *inode);
->
-> @@ -158,6 +161,8 @@ static inline struct proc_dir_entry *proc_mkdir(const char *name,
->   	struct proc_dir_entry *parent) {return NULL;}
->   static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
->   	umode_t mode, struct proc_dir_entry *parent) { return NULL; }
-> +static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
-> +static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
->
->   struct tty_driver;
->   static inline void proc_tty_register_driver(struct tty_driver *driver) {};
-> diff --git a/kernel/configs.c b/kernel/configs.c
-> index 42e8fa0..c18b1f1 100644
-> --- a/kernel/configs.c
-> +++ b/kernel/configs.c
-> @@ -79,7 +79,7 @@ static int __init ikconfig_init(void)
->   	if (!entry)
->   		return -ENOMEM;
->
-> -	entry->size = kernel_config_data_size;
-> +	proc_set_size(entry, kernel_config_data_size);
->
->   	return 0;
->   }
-> diff --git a/kernel/profile.c b/kernel/profile.c
-> index 524ce5e..0bf4007 100644
-> --- a/kernel/profile.c
-> +++ b/kernel/profile.c
-> @@ -600,7 +600,7 @@ int __ref create_proc_profile(void) /* false positive from hotcpu_notifier */
->   			    NULL,&proc_profile_operations);
->   	if (!entry)
->   		return 0;
-> -	entry->size = (1+prof_len) * sizeof(atomic_t);
-> +	proc_set_size(entry, (1 + prof_len) * sizeof(atomic_t));
->   	hotcpu_notifier(profile_cpu_callback, 0);
->   	return 0;
->   }
-> diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-> index 3db2d38..1e657cf 100644
-> --- a/net/netfilter/xt_recent.c
-> +++ b/net/netfilter/xt_recent.c
-> @@ -401,8 +401,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
->   		ret = -ENOMEM;
->   		goto out;
->   	}
-> -	pde->uid = uid;
-> -	pde->gid = gid;
-> +	proc_set_user(pde, uid, gid);
->   #endif
->   	spin_lock_bh(&recent_lock);
->   	list_add_tail(&t->list,&recent_net->tables);
-> diff --git a/sound/core/info.c b/sound/core/info.c
-> index 3aa8864..c7f41c3 100644
-> --- a/sound/core/info.c
-> +++ b/sound/core/info.c
-> @@ -970,7 +970,7 @@ int snd_info_register(struct snd_info_entry * entry)
->   			mutex_unlock(&info_mutex);
->   			return -ENOMEM;
->   		}
-> -		p->size = entry->size;
-> +		proc_set_size(p, entry->size);
->   	}
->   	entry->p = p;
->   	if (entry->parent)
->
-> _______________________________________________
-> Linuxppc-dev mailing list
-> Linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> https://lists.ozlabs.org/listinfo/linuxppc-dev
->
+>  	/* Too large is useless */
+>  	if (*matchlen > IP_VS_PEDATA_MAXLEN)
+>  		return -EINVAL;
+> -- 
+> 1.7.11.7
+
+Regards
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
