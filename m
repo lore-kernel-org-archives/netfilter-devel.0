@@ -1,102 +1,99 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/4] examples/nf-queue: handle recv error, use larger buffer
-Date: Thu, 25 Apr 2013 12:43:29 +0200
-Message-ID: <1366886611-21666-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 4/4] examples/nf-queue: receive large gso packets
+Date: Thu, 25 Apr 2013 12:43:31 +0200
+Message-ID: <1366886611-21666-5-git-send-email-fw@strlen.de>
 References: <1366886611-21666-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45148 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45146 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757303Ab3DYKl3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757652Ab3DYKl3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 25 Apr 2013 06:41:29 -0400
 In-Reply-To: <1366886611-21666-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We ask for 0xffff copy size, so we need a buffer that can
-hold 0xffff, plus a few more bytes to allow for netlink attributes.
+also, do not include
+<linux/netfilter/nfnetlink_queue.h>.
 
-Also, turn off/handle ENOBUFS.
+problem is that the include guard in that file means
+that linux_nfnetlink_queue.h (local copy of nfnetlink_queue.h in
+libnetfiler_queue) will be empty, ie. the SKB_INFO/GSO attributes
+added in the previous commit are not exposed.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- examples/nf-queue.c |   38 +++++++++++++++++++++++++-------------
- 1 files changed, 25 insertions(+), 13 deletions(-)
+ examples/nf-queue.c |   31 +++++++++++++++++++++++++++----
+ 1 files changed, 27 insertions(+), 4 deletions(-)
 
 diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-index 7adac21..57ba483 100644
+index 57ba483..67c9be2 100644
 --- a/examples/nf-queue.c
 +++ b/examples/nf-queue.c
-@@ -1,3 +1,4 @@
-+#include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <unistd.h>
-@@ -82,7 +83,8 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
+@@ -11,8 +11,6 @@
+ #include <linux/netfilter/nfnetlink.h>
  
- int main(int argc, char *argv[])
+ #include <linux/types.h>
+-#include <linux/netfilter/nfnetlink_queue.h>
+-
+ #include <libnetfilter_queue/libnetfilter_queue.h>
+ 
+ static struct mnl_socket *nl;
+@@ -51,7 +49,7 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
  {
--	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	char *buf;
-+	size_t sizeof_buf = 0xffff + 2084;
- 	struct nlmsghdr *nlh;
- 	int ret;
- 	unsigned int portid, queue_num;
-@@ -105,6 +107,12 @@ int main(int argc, char *argv[])
- 	}
- 	portid = mnl_socket_get_portid(nl);
+ 	struct nfqnl_msg_packet_hdr *ph = NULL;
+ 	struct nlattr *attr[NFQA_MAX+1] = {};
+-	uint32_t id = 0;
++	uint32_t id = 0, skbinfo;
+ 	struct nfgenmsg *nfg;
+ 	uint16_t plen;
  
-+	buf = malloc(sizeof_buf);
-+	if (!buf) {
-+		perror("allocate receive buffer");
-+		exit(EXIT_FAILURE);
+@@ -72,10 +70,32 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
+ 	plen = mnl_attr_get_payload_len(attr[NFQA_PAYLOAD]);
+ 	/* void *payload = mnl_attr_get_payload(attr[NFQA_PAYLOAD]); */
+ 
++	skbinfo = attr[NFQA_SKB_INFO] ? ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO])) : 0;
++
++	if (attr[NFQA_CAP_LEN]) {
++		uint32_t orig_len = ntohl(mnl_attr_get_u32(attr[NFQA_CAP_LEN]));
++		if (orig_len != plen)
++			printf("truncated ");
 +	}
 +
- 	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
- 	nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_UNBIND);
- 
-@@ -137,23 +145,27 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
--	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	if (ret == -1) {
--		perror("mnl_socket_recvfrom");
--		exit(EXIT_FAILURE);
--	}
--	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
--		if (ret < 0){
--			perror("mnl_cb_run");
--			exit(EXIT_FAILURE);
--		}
-+	/* ENOBUFS is signalled to userspace when packets were lost
-+	 * on kernel side.  In most cases, userspace isn't interested
-+	 * in this information, so turn it off.
-+	 */
-+	ret = 1;
-+	mnl_socket_setsockopt(nl, NETLINK_NO_ENOBUFS, &ret, sizeof(int));
- 
--		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	for (;;) {
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof_buf);
- 		if (ret == -1) {
-+			if (errno == ENOBUFS) /* messages were lost */
-+				continue;
- 			perror("mnl_socket_recvfrom");
- 			exit(EXIT_FAILURE);
- 		}
++	if (skbinfo & NFQA_SKB_GSO)
++		printf("GSO ");
 +
-+		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
-+		if (ret < 0){
-+			perror("mnl_cb_run");
-+			exit(EXIT_FAILURE);
-+		}
- 	}
+ 	id = ntohl(ph->packet_id);
+-	printf("packet received (id=%u hw=0x%04x hook=%u, payload len %u)\n",
++	printf("packet received (id=%u hw=0x%04x hook=%u, payload len %u",
+ 		id, ntohs(ph->hw_protocol), ph->hook, plen);
  
- 	mnl_socket_close(nl);
++	/*
++	 * ip/tcp checksums are not yet valid, e.g. due to GRO/GSO.
++	 * The application should behave as if the checksums are correct.
++	 *
++	 * If these packets are later forwarded/sent out, the checksums will
++	 * be corrected by kernel/hardware.
++	 */
++	if (skbinfo & NFQA_SKB_CSUMNOTREADY)
++		printf(", checksum not ready");
++	puts(")");
++
+ 	nfq_send_verdict(ntohs(nfg->res_id), id);
+ 
+ 	return MNL_CB_OK;
+@@ -140,6 +160,9 @@ int main(int argc, char *argv[])
+ 	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, queue_num);
+ 	nfq_nlmsg_cfg_put_params(nlh, NFQNL_COPY_PACKET, 0xffff);
+ 
++	mnl_attr_put_u32(nlh, NFQA_CFG_FLAGS, htonl(NFQA_CFG_F_GSO));
++	mnl_attr_put_u32(nlh, NFQA_CFG_MASK, htonl(NFQA_CFG_F_GSO));
++
+ 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+ 		perror("mnl_socket_send");
+ 		exit(EXIT_FAILURE);
 -- 
 1.7.8.6
 
