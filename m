@@ -1,25 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch -next] netfilter: nf_nat: missing condition in
- nf_xfrm_me_harder()
-Date: Thu, 25 Apr 2013 01:59:47 +0200
-Message-ID: <20130424235947.GA6528@localhost>
-References: <20130424151151.GA16783@elgon.mountain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130424151151.GA16783@elgon.mountain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH 01/10] ipvs: properly dereference dest_dst in ip_vs_forget_dev
+Date: Thu, 25 Apr 2013 02:22:12 +0200
+Message-ID: <1366849341-10466-2-git-send-email-pablo@netfilter.org>
+References: <1366849341-10466-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41103 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758473Ab3DYAWa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Apr 2013 20:22:30 -0400
+In-Reply-To: <1366849341-10466-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 24, 2013 at 06:11:51PM +0300, Dan Carpenter wrote:
-> This if statement was accidentally dropped in a merge commit so now it
-> returns unconditionally.
+From: Julian Anastasov <ja@ssi.bg>
 
-Applied, thanks Dan.
+Use rcu_dereference_protected to resolve
+sparse warning, found by kbuild test robot:
+
+net/netfilter/ipvs/ip_vs_ctl.c:1464:35: warning: dereference of
+noderef expression
+
+Problem from commit 026ace060dfe29
+("ipvs: optimize dst usage for real server")
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 9e4074c..5a65444 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1460,8 +1460,11 @@ void ip_vs_service_net_cleanup(struct net *net)
+ static inline void
+ ip_vs_forget_dev(struct ip_vs_dest *dest, struct net_device *dev)
+ {
++	struct ip_vs_dest_dst *dest_dst;
++
+ 	spin_lock_bh(&dest->dst_lock);
+-	if (dest->dest_dst && dest->dest_dst->dst_cache->dev == dev) {
++	dest_dst = rcu_dereference_protected(dest->dest_dst, 1);
++	if (dest_dst && dest_dst->dst_cache->dev == dev) {
+ 		IP_VS_DBG_BUF(3, "Reset dev:%s dest %s:%u ,dest->refcnt=%d\n",
+ 			      dev->name,
+ 			      IP_VS_DBG_ADDR(dest->af, &dest->addr),
+-- 
+1.7.10.4
+
