@@ -1,105 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] netfilter: idletimers - fix the case of already
- expired timer
-Date: Fri, 26 Apr 2013 03:24:38 +0200
-Message-ID: <20130426012438.GA4486@localhost>
-References: <1366537994-19511-1-git-send-email-dmitry.pervushin@linaro.org>
- <1366537994-19511-2-git-send-email-dmitry.pervushin@linaro.org>
+Subject: Re: [PATCH 1/4] Revert: add new libnetfilter_queue API for libmnl
+Date: Fri, 26 Apr 2013 03:36:01 +0200
+Message-ID: <20130426013601.GA4510@localhost>
+References: <1366886611-21666-1-git-send-email-fw@strlen.de>
+ <1366886611-21666-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	patches@linaro.org, dmitry pervushin <dpervushin@gmail.com>,
-	Ashish Sharma <ashishsharma@google.com>,
-	JP Abgrall <jpa@google.com>,
-	John Stultz <john.stultz@linaro.org>
-To: dmitry pervushin <dmitry.pervushin@linaro.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33378 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34558 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758898Ab3DZBYn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Apr 2013 21:24:43 -0400
+	id S1759315Ab3DZBgG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Apr 2013 21:36:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1366537994-19511-2-git-send-email-dmitry.pervushin@linaro.org>
+In-Reply-To: <1366886611-21666-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Florian,
 
-Same thing with this patch:
+On Thu, Apr 25, 2013 at 12:43:28PM +0200, Florian Westphal wrote:
+> This is a partial revert of a0c885ae5a79457aa592cb70c27a7dee619762a4
+> 
+> Specifically, it removes the header linux/netfilter/nfnetlink_queue.h
+> added in that commit.
 
-https://patchwork.kernel.org/patch/2333841/
+The idea for caching that file header is to make sure
+libnetfilter_queue compiles out of the box, without external linux
+kernel headers installed in the system. The idea is to make sure the
+libraries compilation does not break in case there's an old library
+header installed in the system.
 
-Regards.
+> 1), there is already a /usr/include/linux/netfilter/nfnetlink_queue.h,
+>     which is part of the linux kernel API
 
-On Sun, Apr 21, 2013 at 11:53:13AM +0200, dmitry pervushin wrote:
-> From: dmitry pervushin <dpervushin@gmail.com>
+As said, that file may not be available or may be stale.
+
+> 2), we already have
+>     include/libnetfilter_queue/linux_nfnetlink_queue.h
+
+That was added initially for the old libnetfilter_queue API, I'd like
+to get rid of it. It's currently being installed and it results in
+(very likely) two duplicated headers in the system (the one from the
+linux kernel headers and this one from libnetfilter_queue).
+
+Once the old API is deprecated (we should do that anytime soon), we
+can get finally rid of linux_nfnetlink_queue.h
+
+> which contains the same definitions/structures/macros, so it makes
+> little sense to have two headers in libnetfilter_queue that share
+> almost their entire content.
 > 
-> Fix the case in which timer has expired and we refresh it without
-> sending the notification
-> 
-> Signed-off-by: Ashish Sharma <ashishsharma@google.com>
-> Signed-off-by: JP Abgrall <jpa@google.com>
-> Signed-off-by: John Stultz <john.stultz@linaro.org>
-> Signed-off-by: dmitry pervushin <dmitry.pervushin@linaro.org>
-> ---
->  net/netfilter/xt_IDLETIMER.c |   18 ++++++++++++++++--
->  1 file changed, 16 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-> index f407ebc1..3540c04 100644
-> --- a/net/netfilter/xt_IDLETIMER.c
-> +++ b/net/netfilter/xt_IDLETIMER.c
-> @@ -168,14 +168,22 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
->  					 const struct xt_action_param *par)
->  {
->  	const struct idletimer_tg_info *info = par->targinfo;
-> +	unsigned long now = jiffies;
->  
->  	pr_debug("resetting timer %s, timeout period %u\n",
->  		 info->label, info->timeout);
->  
->  	BUG_ON(!info->timer);
->  
-> +	if (time_before(info->timer->timer.expires, now)) {
-> +		schedule_work(&info->timer->work);
-> +		pr_debug("Starting timer %s (Expired, Jiffies): %lu, %lu\n",
-> +			 info->label, info->timer->timer.expires, now);
-> +	}
-> +
-> +	/* TODO: Avoid modifying timers on each packet */
->  	mod_timer(&info->timer->timer,
-> -		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-> +		  msecs_to_jiffies(info->timeout * 1000) + now);
->  
->  	return XT_CONTINUE;
->  }
-> @@ -184,6 +192,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
->  {
->  	struct idletimer_tg_info *info = par->targinfo;
->  	int ret;
-> +	unsigned long now = jiffies;
->  
->  	pr_debug("checkentry targinfo%s\n", info->label);
->  
-> @@ -204,8 +213,13 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
->  	info->timer = __idletimer_tg_find_by_label(info->label);
->  	if (info->timer) {
->  		info->timer->refcnt++;
-> +		if (time_before(info->timer->timer.expires, now)) {
-> +			schedule_work(&info->timer->work);
-> +			pr_debug("Starting Checkentry timer (Expired, Jiffies): %lu, %lu\n",
-> +				info->timer->timer.expires, now);
-> +		}
->  		mod_timer(&info->timer->timer,
-> -			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-> +			  msecs_to_jiffies(info->timeout * 1000) + now);
->  
->  		pr_debug("increased refcnt of timer %s to %u\n",
->  			 info->label, info->timer->refcnt);
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [ worse, the nfnetlink_queue.h header reverted here actually is
+> incompatible with mainline kernels, since a few defines have the
+> wrong value ... ]
+
+Then, please refresh it.
