@@ -1,63 +1,76 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/4] Revert: add new libnetfilter_queue API for libmnl
-Date: Fri, 26 Apr 2013 12:30:18 +0200
-Message-ID: <20130426103018.GF32324@breakpoint.cc>
-References: <1366886611-21666-1-git-send-email-fw@strlen.de>
- <1366886611-21666-2-git-send-email-fw@strlen.de>
- <20130426013601.GA4510@localhost>
- <20130426073239.GD32324@breakpoint.cc>
- <20130426093708.GA3757@localhost>
- <20130426100247.GE32324@breakpoint.cc>
- <20130426101212.GA18251@localhost>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH ipvs 1/1] ipvs: ip_vs_sip_fill_param() BUG: bad check
+ of return value
+Date: Fri, 26 Apr 2013 14:48:53 +0400
+Message-ID: <517A5B95.8020605@cogentembedded.com>
+References: <1366941190-12135-1-git-send-email-horms@verge.net.au> <1366941190-12135-2-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48937 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759299Ab3DZKaV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Apr 2013 06:30:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20130426101212.GA18251@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans@schillstrom.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1366941190-12135-2-git-send-email-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Looks good, only missing some explanation in the doxygen documentation
-> on the "csum not ready" thing.
+Hello.
 
-Thanks. I amended it:
+On 26-04-2013 5:53, Simon Horman wrote:
 
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -639,6 +639,23 @@ int nfq_set_mode(struct nfq_q_handle *qh,
-  * - NFQA_CFG_F_CONNTRACK (requires Linux kernel >= 3.6): the kernel will
-  *   include the Connection Tracking system information.
-  *
-+ * - NFQA_CFG_F_GSO (requires Linux kernel >= 3.10): the kernel will
-+ *   not normalize offload packets, i.e. your application will need to
-+ *   be able to handle packets larger than the mtu (up to 64k).
-+ *
-+ *   If your application validates checksums (e.g., tcp checksum),
-+ *   then you must also check if the NFQA_SKB_INFO attribute is present.
-+ *   If it is, you need to test the NFQA_SKB_CSUMNOTREADY bit:
-+ * \verbatim
-+       if (attr[NFQA_SKB_INFO]) {
-+               uint32_t info = ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO]));
-+               if (info & NFQA_SKB_CSUMNOTREADY)
-+                       validate_checksums = false;
-+       }
-+\endverbatim
-+ *  if this bit is set, the layer 3/4 checksums of the packet appear incorrect,
-+ *  but are not (because they will be corrected later by the kernel).
-+ *
-  * Here's a little code snippet to show how to use this API:
-  * \verbatim
+> From: Hans Schillstrom <hans@schillstrom.com>
 
-I'll wait for a couple of more days before pushing the patches to
-give others a chance to review them.
+> The reason for this patch is crash in kmemdup
+> caused by returning from get_callid with uniialized
 
-Cheers,
-Florian
+   s/uniialized/uninitialized/?
+
+> matchoff and matchlen.
+
+> Removing Zero check of matchlen since it's done by ct_sip_get_header()
+
+> BUG: unable to handle kernel paging request at ffff880457b5763f
+> IP: [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> PGD 27f6067 PUD 0
+> Oops: 0000 [#1] PREEMPT SMP
+> Modules linked in: xt_state xt_helper nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_mangle xt_connmark xt_conntrack ip6_tables nf_conntrack_ftp ip_vs_ftp nf_nat xt_tcpudp iptable_mangle xt_mark ip_tables x_tables ip_vs_rr ip_vs_lblcr ip_vs_pe_sip ip_vs nf_conntrack_sip nf_conntrack bonding igb i2c_algo_bit i2c_core
+> CPU 5
+> Pid: 0, comm: swapper/5 Not tainted 3.9.0-rc5+ #5                  /S1200KP
+> RIP: 0010:[<ffffffff810df7fc>]  [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> RSP: 0018:ffff8803fea03648  EFLAGS: 00010282
+> RAX: ffff8803d61063e0 RBX: 0000000000000003 RCX: 0000000000000003
+> RDX: 0000000000000003 RSI: ffff880457b5763f RDI: ffff8803d61063e0
+> RBP: ffff8803fea03658 R08: 0000000000000008 R09: 0000000000000011
+> R10: 0000000000000011 R11: 00ffffffff81a8a3 R12: ffff880457b5763f
+> R13: ffff8803d67f786a R14: ffff8803fea03730 R15: ffffffffa0098e90
+> FS:  0000000000000000(0000) GS:ffff8803fea00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: ffff880457b5763f CR3: 0000000001a0c000 CR4: 00000000001407e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process swapper/5 (pid: 0, threadinfo ffff8803ee18c000, task ffff8803ee18a480)
+> Stack:
+>   ffff8803d822a080 000000000000001c ffff8803fea036c8 ffffffffa000937a
+>   ffffffff81f0d8a0 000000038135fdd5 ffff880300000014 ffff880300110000
+>   ffffffff150118ac ffff8803d7e8a000 ffff88031e0118ac 0000000000000000
+> Call Trace:
+>   <IRQ>
+
+>   [<ffffffffa000937a>] ip_vs_sip_fill_param+0x13a/0x187 [ip_vs_pe_sip]
+>   [<ffffffffa007b209>] ip_vs_sched_persist+0x2c6/0x9c3 [ip_vs]
+>   [<ffffffff8107dc53>] ? __lock_acquire+0x677/0x1697
+>   [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>   [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>   [<ffffffff810649bc>] ? sched_clock_cpu+0x43/0xcf
+>   [<ffffffffa007bb1e>] ip_vs_schedule+0x181/0x4ba [ip_vs]
+> ...
+
+> Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+
+WBR, Sergei
