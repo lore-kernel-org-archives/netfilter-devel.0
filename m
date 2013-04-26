@@ -1,105 +1,72 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/2] ipvs: Use cond_resched_rcu_lock() helper when
- dumping connections
-Date: Fri, 26 Apr 2013 12:04:28 -0700
-Message-ID: <20130426190428.GJ3860@linux.vnet.ibm.com>
-References: <1366940708-10180-1-git-send-email-horms@verge.net.au>
- <1366940708-10180-3-git-send-email-horms@verge.net.au>
- <20130426080313.GC8669@dyad.programming.kicks-ass.net>
- <20130426154547.GC3860@linux.vnet.ibm.com>
- <20130426171948.GA31467@dyad.programming.kicks-ass.net>
- <20130426174815.GI3860@linux.vnet.ibm.com>
- <1367000815.8964.243.camel@edumazet-glaptop>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Jorge Ventura <jorge.araujo.ventura@gmail.com>
+Subject: Re: xt_CHECKSUM doesn't work as expected
+Date: Fri, 26 Apr 2013 14:51:12 -0500
+Message-ID: <CAJEG_NeONSxWwkzXkpYXzi5sdSNseuhm2dsRsYvj1O=DrHN_Ww@mail.gmail.com>
+References: <CAJEG_Nc63CdikpWiuJrBrjZ08v8rY5c9PvFwqAKkynDyvfRqPw@mail.gmail.com>
+	<20130419121816.GE19523@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>, Ingo Molnar <mingo@redhat.com>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Dipankar Sarma <dipankar@in.ibm.com>, dhaval.giani@gmail.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e38.co.us.ibm.com ([32.97.110.159]:39459 "EHLO
-	e38.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757794Ab3DZTFA (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:62522 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289Ab3DZTvO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Apr 2013 15:05:00 -0400
-Received: from /spool/local
-	by e38.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Fri, 26 Apr 2013 13:04:55 -0600
-Content-Disposition: inline
-In-Reply-To: <1367000815.8964.243.camel@edumazet-glaptop>
+	Fri, 26 Apr 2013 15:51:14 -0400
+Received: by mail-lb0-f170.google.com with SMTP id r10so3557327lbi.29
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2013 12:51:12 -0700 (PDT)
+In-Reply-To: <20130419121816.GE19523@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 26, 2013 at 11:26:55AM -0700, Eric Dumazet wrote:
-> On Fri, 2013-04-26 at 10:48 -0700, Paul E. McKenney wrote:
-> 
-> > Don't get me wrong, I am not opposing cond_resched_rcu_lock() because it
-> > will be difficult to validate.  For one thing, until there are a lot of
-> > them, manual inspection is quite possible.  So feel free to apply my
-> > Acked-by to the patch.
-> 
-> One question : If some thread(s) is(are) calling rcu_barrier() and
-> waiting we exit from rcu_read_lock() section, is need_resched() enough
-> for allowing to break the section ?
-> 
-> If not, maybe we should not test need_resched() at all.
-> 
-> rcu_read_unlock();
-> cond_resched();
-> rcu_read_lock();
+I have been doing many tests using xt_CHECKSUM and observed:
 
-A call to rcu_barrier() only blocks on already-queued RCU callbacks, so if
-there are no RCU callbacks queued in the system, it need not block at all.
+When I have the check sum = 0, skb->ip_summed is equal to
+CHECKSUM_COMPLETE and the xt_CHECKSUM does nothing but the packet
+leave the host with correct check sum, what make sense because check
+sum = 0 means "no check sum".
 
-But it might need to wait on some callbacks, and thus might need to
-wait for a grace period.  So, is cond_resched() sufficient?
-Currently, it depends:
+The module should do something only when  skb->ip_summed ==
+CHECKSUM_PARCIAL, that means someone else is taking care of fill out
+the correct check sum. I removed the mangle rule using xt_CHECKSUM and
+obviously the result was the same.
 
-1.	CONFIG_TINY_RCU: Here cond_resched() doesn't do anything unless
-	there is at least one other process that is at and appropriate
-	priority level.  So if the system has absolutely nothing else
-	to do other than run the in-kernel loop containing the
-	cond_resched_rcu_lock(), the grace period will never end.
+I sent one packet with wrong check sum using the mangle rule and the
+check sum was not fixed because skb->ip_summed == CHECKSUM_NONE.
 
-	But as soon as some other process wakes up, there will be a
-	context switch and the grace period will end.  Unless you
-	are running at some high real-time priority, in which case
-	either throttling kicks in after a second or so or you get
-	what you deserve.  ;-)
+The only scenery that xt_CHECKSUM  will do something is "bad checksum"
+and "skb->ip_summed == CHECKSUM_PARCIAL". In real world, what
+situation is that ???
 
-	So for any reasonable workload, cond_resched() will eventually
-	suffice.
-
-2.	CONFIG_TREE_RCU without adaptive ticks (which is not yet in
-	tree):  Same as #1, except that there is a greater chance
-	that the eventual wakeup might happen on some other CPU.
-
-3.	CONFIG_TREE_RCU with adaptive ticks (once it makes it into
-	mainline):  After a new jiffies, RCU will kick the offending
-	CPU, which will turn on the scheduling-clock interrupt.
-	This won't end the grace period, but the kick could do a
-	bit more if needed.
-
-4.	CONFIG_TREE_PREEMPT_RCU:  When the next scheduling-clock
-	interrupt notices that it happened in an RCU read-side
-	critical section and that there is a grace period pending,
-	it will set a flag in the task structure.  The next
-	rcu_read_unlock() will report a quiescent state to the
-	RCU core.
-
-So perhaps RCU should do a bit more in cases #2 and #3.  It used to
-send a resched IPI in this case, but if there is no reason to
-reschedule, the resched IPI does nothing.  In the worst case, I
-can fire up a prio 99 kthread on each CPU and send that kthread a
-wakeup from RCU's rcu_gp_fqs() code.
-
-Other thoughts?
-
-							Thanx, Paul
-
+On Fri, Apr 19, 2013 at 7:18 AM, Patrick McHardy <kaber@trash.net> wrote:
+> On Thu, Apr 18, 2013 at 10:48:38AM -0500, Jorge Ventura wrote:
+>> Dear nf devels,
+>> I am trying to use the xt_CHECKSUM module to fix an UDP packet that
+>> it's comming with check sum error. I have an iptables firewall with
+>> two ethernet cards (eth0 private and eth1 public), all ethernet
+>> offload parameters are off in both ethernet cards and
+>> nf_conntrack_checksum = 0.
+>>
+>> This is my iptables rule to fix the checksum:
+>>
+>> iptables -A POSTROUTING -t mangle -p udp --dport 162 -j CHECKSUM --checksum-fill
+>>
+>> The trafic resulting when the single UDP packet is received using tcpdump:
+>>
+>> input at eth1 (public):  [src ip].1046 > [eth1 public ip].162: [bad
+>> udp cksum ff!]
+>> output at eth0 (private): [src ip].1046 > [eth0 private ip].162: [bad
+>> udp cksum ff!]
+>>
+>> I did use printk inside the module to see what do I have at
+>> skb->ip_summed and I observed that the value is CHECKSUM_NONE, however
+>> to have the checksum fixed by the function checksum_tg, this value
+>> should be CHECKSUM_PARTIAL.
+>>
+>> Please let me know if I am miss understanding the way that
+>> --checksum-fill is handled by xt_CHECKSUM module.
+>
+> The target can only compute proper checksums for packets which have no
+> checksum set. If it is already set, the value will get included in the
+> calculation and the result will be wrong.
