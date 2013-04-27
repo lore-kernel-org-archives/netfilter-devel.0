@@ -1,43 +1,44 @@
-From: Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 00/13] ipset patches for nf-next
-Date: Sat, 27 Apr 2013 13:54:50 +0100
-Message-ID: <517BCA9A.3080602@googlemail.com>
-References: <1367067045-960-1-git-send-email-kadlec@blackhole.kfki.hu>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/2] ipvs: Use cond_resched_rcu_lock() helper when
+ dumping connections
+Date: Sat, 27 Apr 2013 09:17:32 -0700
+Message-ID: <20130427161732.GA3780@linux.vnet.ibm.com>
+References: <1366940708-10180-1-git-send-email-horms@verge.net.au>
+ <1366940708-10180-3-git-send-email-horms@verge.net.au>
+ <20130426080313.GC8669@dyad.programming.kicks-ass.net>
+ <20130426154547.GC3860@linux.vnet.ibm.com>
+ <20130426171948.GA31467@dyad.programming.kicks-ass.net>
+ <20130426174815.GI3860@linux.vnet.ibm.com>
+ <1367000815.8964.243.camel@edumazet-glaptop>
+ <20130426190428.GJ3860@linux.vnet.ibm.com>
+ <20130427071814.GA31700@dyad.programming.kicks-ass.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:57949 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754611Ab3D0MzD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Apr 2013 08:55:03 -0400
-Received: by mail-wi0-f181.google.com with SMTP id c10so1463294wiw.8
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2013 05:55:01 -0700 (PDT)
-Received: from [10.68.68.173] (cpc2-gill1-0-0-cust218.basl.cable.virginmedia.com. [82.34.56.219])
-        by mx.google.com with ESMTPSA id fp2sm9052376wib.7.2013.04.27.05.54.59
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sat, 27 Apr 2013 05:55:00 -0700 (PDT)
-In-Reply-To: <1367067045-960-1-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>, Ingo Molnar <mingo@redhat.com>,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Dipankar Sarma <dipankar@in.ibm.com>, dhaval.giani@gmail.com
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130427071814.GA31700@dyad.programming.kicks-ass.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Apr 27, 2013 at 09:18:15AM +0200, Peter Zijlstra wrote:
+> > In the worst case, I
+> > can fire up a prio 99 kthread on each CPU and send that kthread a
+> > wakeup from RCU's rcu_gp_fqs() code.
+> 
+> You just know that's going to be _so_ popular ;-)
 
+;-) ;-) ;-)
 
-Jozsef Kadlecsik wrote:
-> Hi Pablo,
->
-> Please consider applying the next patches against your nf-next tree.
->
-> The patches introduce the new extensions infrastructure in ipset and
-> add packet/byte counters as a new extension besides timeouts. The set
-> match is extended by the functionality to match the counters too.
->
-> Best regards,
-> Jozsef
->   
-Jozsef, are these features already supported in userspace or are you 
-going to release a separate version?
+I must confess that I would prefer a somewhat less heavy-handed approach.
+
+							Thanx, Paul
 
