@@ -1,64 +1,147 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 2/2] ipvs: Use cond_resched_rcu_lock() helper when dumping
- connections
-Date: Sat, 27 Apr 2013 14:32:48 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1304271342260.1633@ja.ssi.bg>
-References: <1366940708-10180-1-git-send-email-horms@verge.net.au>  <1366940708-10180-3-git-send-email-horms@verge.net.au>  <20130426080313.GC8669@dyad.programming.kicks-ass.net>  <20130426154547.GC3860@linux.vnet.ibm.com>  <20130426171948.GA31467@dyad.programming.kicks-ass.net>
-  <20130426174815.GI3860@linux.vnet.ibm.com> <1367000815.8964.243.camel@edumazet-glaptop>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: paulmck@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
-	Simon Horman <horms@verge.net.au>,
-	Ingo Molnar <mingo@redhat.com>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Dipankar Sarma <dipankar@in.ibm.com>, dhaval.giani@gmail.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 02/13] netfilter: ipset: Move often used IPv6 address masking function to header file
+Date: Sat, 27 Apr 2013 14:50:34 +0200
+Message-ID: <1367067045-960-3-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1367067045-960-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:46932 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752637Ab3D0LdL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Apr 2013 07:33:11 -0400
-In-Reply-To: <1367000815.8964.243.camel@edumazet-glaptop>
+Received: from smtp1.kfki.hu ([148.6.0.26]:52081 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753738Ab3D0Mur (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Apr 2013 08:50:47 -0400
+In-Reply-To: <1367067045-960-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/pfxlen.h      |    9 +++++++++
+ net/netfilter/ipset/ip_set_hash_ip.c        |    9 ---------
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    9 ---------
+ net/netfilter/ipset/ip_set_hash_net.c       |    9 ---------
+ net/netfilter/ipset/ip_set_hash_netiface.c  |    9 ---------
+ net/netfilter/ipset/ip_set_hash_netport.c   |    9 ---------
+ 6 files changed, 9 insertions(+), 45 deletions(-)
 
-	Hello,
+diff --git a/include/linux/netfilter/ipset/pfxlen.h b/include/linux/netfilter/ipset/pfxlen.h
+index 199fd11..1afbb94 100644
+--- a/include/linux/netfilter/ipset/pfxlen.h
++++ b/include/linux/netfilter/ipset/pfxlen.h
+@@ -41,4 +41,13 @@ do {						\
+ 	to = from | ~ip_set_hostmask(cidr);	\
+ } while (0)
+ 
++static inline void
++ip6_netmask(union nf_inet_addr *ip, u8 prefix)
++{
++	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
++	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
++	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
++	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
++}
++
+ #endif /*_PFXLEN_H */
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index b7d4cb4..c486ad2 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -255,15 +255,6 @@ hash_ip6_data_zero_out(struct hash_ip6_elem *elem)
+ 	ipv6_addr_set(&elem->ip.in6, 0, 0, 0, 0);
+ }
+ 
+-static inline void
+-ip6_netmask(union nf_inet_addr *ip, u8 prefix)
+-{
+-	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
+-	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
+-	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
+-	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
+-}
+-
+ static bool
+ hash_ip6_data_list(struct sk_buff *skb, const struct hash_ip6_elem *data)
+ {
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index b4836c8..352f8b4 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -446,15 +446,6 @@ hash_ipportnet6_data_zero_out(struct hash_ipportnet6_elem *elem)
+ }
+ 
+ static inline void
+-ip6_netmask(union nf_inet_addr *ip, u8 prefix)
+-{
+-	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
+-	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
+-	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
+-	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
+-}
+-
+-static inline void
+ hash_ipportnet6_data_netmask(struct hash_ipportnet6_elem *elem, u8 cidr)
+ {
+ 	ip6_netmask(&elem->ip2, cidr);
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 6dbe0af..370947c 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -343,15 +343,6 @@ hash_net6_data_zero_out(struct hash_net6_elem *elem)
+ }
+ 
+ static inline void
+-ip6_netmask(union nf_inet_addr *ip, u8 prefix)
+-{
+-	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
+-	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
+-	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
+-	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
+-}
+-
+-static inline void
+ hash_net6_data_netmask(struct hash_net6_elem *elem, u8 cidr)
+ {
+ 	ip6_netmask(&elem->ip, cidr);
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 2481620..dd9843e 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -529,15 +529,6 @@ hash_netiface6_data_zero_out(struct hash_netiface6_elem *elem)
+ }
+ 
+ static inline void
+-ip6_netmask(union nf_inet_addr *ip, u8 prefix)
+-{
+-	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
+-	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
+-	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
+-	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
+-}
+-
+-static inline void
+ hash_netiface6_data_netmask(struct hash_netiface6_elem *elem, u8 cidr)
+ {
+ 	ip6_netmask(&elem->ip, cidr);
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index 57b0550..cd1d3c1 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -407,15 +407,6 @@ hash_netport6_data_zero_out(struct hash_netport6_elem *elem)
+ }
+ 
+ static inline void
+-ip6_netmask(union nf_inet_addr *ip, u8 prefix)
+-{
+-	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
+-	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
+-	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
+-	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
+-}
+-
+-static inline void
+ hash_netport6_data_netmask(struct hash_netport6_elem *elem, u8 cidr)
+ {
+ 	ip6_netmask(&elem->ip, cidr);
+-- 
+1.7.0.4
 
-On Fri, 26 Apr 2013, Eric Dumazet wrote:
-
-> On Fri, 2013-04-26 at 10:48 -0700, Paul E. McKenney wrote:
-> 
-> > Don't get me wrong, I am not opposing cond_resched_rcu_lock() because it
-> > will be difficult to validate.  For one thing, until there are a lot of
-> > them, manual inspection is quite possible.  So feel free to apply my
-> > Acked-by to the patch.
-> 
-> One question : If some thread(s) is(are) calling rcu_barrier() and
-> waiting we exit from rcu_read_lock() section, is need_resched() enough
-> for allowing to break the section ?
-> 
-> If not, maybe we should not test need_resched() at all.
-> 
-> rcu_read_unlock();
-> cond_resched();
-> rcu_read_lock();
-
-	So, I assume, to help realtime kernels and rcu_barrier
-it is not a good idea to guard rcu_read_unlock with checks.
-I see that rcu_read_unlock will try to reschedule in the 
-!CONFIG_PREEMPT_RCU case (via preempt_enable), can we
-use ifdefs to avoid double TIF_NEED_RESCHED check?:
-
-	rcu_read_unlock();
-#if !defined(CONFIG_PREEMPT) || defined(CONFIG_PREEMPT_RCU)
-	cond_resched();
-#endif
-	rcu_read_lock();
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
