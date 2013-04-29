@@ -1,43 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/18] netfilter updates for net-next (try 2)
-Date: Mon, 29 Apr 2013 15:17:25 -0400 (EDT)
-Message-ID: <20130429.151725.110767875347050549.davem@davemloft.net>
-References: <1367259744-8922-1-git-send-email-pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 00/18] netfilter updates for net-next
+Date: Mon, 29 Apr 2013 22:27:04 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1304292223250.19445@blackhole.kfki.hu>
+References: <1367089103-8394-1-git-send-email-pablo@netfilter.org> <20130429.113720.1954422885523724201.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1367259744-8922-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:34870 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757950Ab3D2U1H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Apr 2013 16:27:07 -0400
+In-Reply-To: <20130429.113720.1954422885523724201.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 29 Apr 2013 20:22:06 +0200
+On Mon, 29 Apr 2013, David Miller wrote:
 
-> This is a second pull request resolving the compilation issue in
-> net/sched/em_ipset.
+> This doesn't compile:
 > 
-> The following patchset contains relevant updates for the Netfilter
-> tree, they are:
-> 
-> * Enhancements for ipset: Add the counter extension for sets, this
->   information can be used from the iptables set match, to change
->   the matching behaviour. Jozsef required to add the extension
->   infrastructure and moved the existing timeout support upon it.
->   This also includes a change in net/sched/em_ipset to adapt it to
->   the new extension structure.
-> 
-> * Enhancements for performance boosting in nfnetlink_queue: Add new
->   configuration flags that allows user-space to receive big packets (GRO)
->   and to disable checksumming calculation. This were proposed by Eric
->   Dumazet during the Netfilter Workshop 2013 in Copenhagen. Florian
->   Westphal was kind enough to find the time to materialize the proposal.
-> 
-> * A sparse fix from Simon, he noticed it in the SCTP NAT helper, the fix
->   required a change in the interface of sctp_end_cksum.
- ...
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+> net/sched/em_ipset.c:86:5: error: ?struct ip_set_adt_opt? has no member named ?timeout?
+> N?????r??y????b?X????v?^?)??{.n?+???z?????u???)????w*jg???
+???????j/???z?????2???????&?)???a????
+???G???h????j:+v???w??????
 
-Pulled, thanks.
+Sorry, that was my fault: I had net sched disabled for faster compilation 
+and thus I missed that em_ipset.c had to be adapted to the changes in the 
+ipset core.
+
+And Pablo was faster than me - thanks for taking care this too.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
