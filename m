@@ -1,39 +1,49 @@
-From: "David Laight" <David.Laight@ACULAB.COM>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: RE: [PATCH 04/18] netfilter: ipset: Unified bitmap type generation
-Date: Tue, 30 Apr 2013 09:49:21 +0100
-Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B720F@saturn3.aculab.com>
-References: <1367259744-8922-1-git-send-email-pablo@netfilter.org> <1367259744-8922-5-git-send-email-pablo@netfilter.org>
+Date: Tue, 30 Apr 2013 11:19:31 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1304301058540.20765@blackhole.kfki.hu>
+References: <1367259744-8922-1-git-send-email-pablo@netfilter.org> <1367259744-8922-5-git-send-email-pablo@netfilter.org> <AE90C24D6B3A694183C094C60CF0A2F6026B720F@saturn3.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <1367259744-8922-5-git-send-email-pablo@netfilter.org>
+In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B720F@saturn3.aculab.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> +++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-> @@ -0,0 +1,265 @@
-...
-> +#define CONCAT(a, b)		a##b
-> +#define TOKEN(a,b)		CONCAT(a, b)
-> +
-> +#define mtype_do_test		TOKEN(MTYPE, _do_test)
-> +#define mtype_gc_test		TOKEN(MTYPE, _gc_test)
-...
-> +#define mtype			MTYPE
+On Tue, 30 Apr 2013, David Laight wrote:
 
-I'm not entirely sure what is being achieved by the above.
-Either there ought to be a comment about what MTYPE might
-be set to, or it is all pointless.
+> > +++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+> > @@ -0,0 +1,265 @@
+> ...
+> > +#define CONCAT(a, b)		a##b
+> > +#define TOKEN(a,b)		CONCAT(a, b)
+> > +
+> > +#define mtype_do_test		TOKEN(MTYPE, _do_test)
+> > +#define mtype_gc_test		TOKEN(MTYPE, _gc_test)
+> ...
+> > +#define mtype			MTYPE
+> 
+> I'm not entirely sure what is being achieved by the above.
+> Either there ought to be a comment about what MTYPE might
+> be set to, or it is all pointless.
 
-In any case names like CONCAT() and TOKEN() are likely
-to be double definitions.
+mtype is defined in order to SHOUT less in the code later.
+ 
+> In any case names like CONCAT() and TOKEN() are likely
+> to be double definitions.
+>
+> A similar namespace issue arises with REVISION_MIN/MAX.
 
-A similar namespace issue arises with REVISION_MIN/MAX.
+I'll send a patch with more speficic names.
 
-	David
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
