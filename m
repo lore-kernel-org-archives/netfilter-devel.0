@@ -1,47 +1,23 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
-Date: Tue, 30 Apr 2013 10:52:38 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1304301051260.1700@ja.ssi.bg>
-References: <1367290378-29224-1-git-send-email-horms@verge.net.au> <1367290378-29224-2-git-send-email-horms@verge.net.au> <alpine.LFD.2.00.1304301011310.1700@ja.ssi.bg> <20130430072944.GA13959@verge.net.au>
+From: David Miller <davem@davemloft.net>
+Subject: Bug fixes only now please.
+Date: Tue, 30 Apr 2013 04:13:51 -0400 (EDT)
+Message-ID: <20130430.041351.1410001571369469211.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Ingo Molnar <mingo@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Dipankar Sarma <dipankar@in.ibm.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20130430072944.GA13959@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-	Hello,
+With the merge window open, I funneled the remaining bug fixes into
+'net', then merged 'net' into 'net-next' in preparation for submission
+into Linus's tree.
 
-On Tue, 30 Apr 2013, Simon Horman wrote:
+Do not send anything other than bug fixes.
 
-> > > +static void inline cond_resched_rcu_lock(void)
-> > > +{
-> > > +	if (need_resched()) {
-> > 
-> > 	Ops, it should be without above need_resched.
-> 
-> Thanks, to clarify, just this:
-> 
-> static void inline cond_resched_rcu_lock(void)
-> {
-> 	rcu_read_unlock();
-> #ifndef CONFIG_PREEMPT_RCU
-> 	cond_resched();
-> #endif
-> 	rcu_read_lock();
-> }
+No cleanups and no new features at this time.
 
-	Yes, thanks!
-
---
-Julian Anastasov <ja@ssi.bg>
+Thanks!
