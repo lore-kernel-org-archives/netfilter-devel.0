@@ -1,7 +1,7 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
-Date: Wed, 1 May 2013 17:59:58 +0200
-Message-ID: <20130501155957.GC7521@dyad.programming.kicks-ass.net>
+Date: Wed, 1 May 2013 09:02:18 -0700
+Message-ID: <20130501160218.GQ3780@linux.vnet.ibm.com>
 References: <1367290378-29224-1-git-send-email-horms@verge.net.au>
  <1367290378-29224-2-git-send-email-horms@verge.net.au>
  <alpine.LFD.2.00.1304301011310.1700@ja.ssi.bg>
@@ -11,9 +11,10 @@ References: <1367290378-29224-1-git-send-email-horms@verge.net.au>
  <20130501124637.GO3780@linux.vnet.ibm.com>
  <20130501151752.GA7521@dyad.programming.kicks-ass.net>
  <1367422195.11020.46.camel@edumazet-glaptop>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+Cc: Peter Zijlstra <peterz@infradead.org>,
 	Julian Anastasov <ja@ssi.bg>,
 	Simon Horman <horms@verge.net.au>,
 	Ingo Molnar <mingo@redhat.com>, lvs-devel@vger.kernel.org,
@@ -23,11 +24,14 @@ Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
 	Dipankar Sarma <dipankar@in.ibm.com>
 To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:36347
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932438Ab3EAQBi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 May 2013 12:01:38 -0400
+Received: from e7.ny.us.ibm.com ([32.97.182.137]:35663 "EHLO e7.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761646Ab3EAQCi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 May 2013 12:02:38 -0400
+Received: from /spool/local
+	by e7.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Wed, 1 May 2013 12:02:36 -0400
 Content-Disposition: inline
 In-Reply-To: <1367422195.11020.46.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -46,5 +50,8 @@ On Wed, May 01, 2013 at 08:29:55AM -0700, Eric Dumazet wrote:
 > BTW, I do not remember why cond_resched() is not an empty macro
 > when CONFIG_PREEMPT=y ?
 
-Good question.. at at least, only the __might_sleep() construct. Ingo, happen
-to remember why this is? Most of this infrastructure is from before my time.
+My guess would be for the case where sched_preempt_enable_no_resched()
+is followed some time later by cond_resched().
+
+							Thanx, Paul
+
