@@ -1,45 +1,85 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
-Date: Wed, 1 May 2013 10:30:35 -0700
-Message-ID: <20130501173035.GT3780@linux.vnet.ibm.com>
-References: <1367290378-29224-2-git-send-email-horms@verge.net.au>
- <alpine.LFD.2.00.1304301011310.1700@ja.ssi.bg>
- <20130430072944.GA13959@verge.net.au>
- <alpine.LFD.2.00.1304301051260.1700@ja.ssi.bg>
- <20130501091012.GB28253@dyad.programming.kicks-ass.net>
- <20130501124637.GO3780@linux.vnet.ibm.com>
- <20130501151752.GA7521@dyad.programming.kicks-ass.net>
- <1367422195.11020.46.camel@edumazet-glaptop>
- <20130501160218.GQ3780@linux.vnet.ibm.com>
- <20130501165748.GD7521@dyad.programming.kicks-ass.net>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: "Anders K. Pedersen | Surftown" <akp@surftown.com>
+Subject: [PATCH V2] netfilter: ipset: support package fragments for IPv4
+ protos without ports
+Date: Wed, 01 May 2013 20:02:35 +0200
+Message-ID: <1367431355.17468.193.camel@homer.cohaesio.com>
+References: <20130428100936.60D0815759E@homer.localdomain>
+	 <alpine.DEB.2.00.1304301017430.20765@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Julian Anastasov <ja@ssi.bg>,
-	Simon Horman <horms@verge.net.au>,
-	Ingo Molnar <mingo@redhat.com>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Dipankar Sarma <dipankar@in.ibm.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130501165748.GD7521@dyad.programming.kicks-ass.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bender.cohaesio.com ([212.97.128.130]:47337 "EHLO
+	mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755701Ab3EASEM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 May 2013 14:04:12 -0400
+In-Reply-To: <alpine.DEB.2.00.1304301017430.20765@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 01, 2013 at 06:57:49PM +0200, Peter Zijlstra wrote:
-> On Wed, May 01, 2013 at 09:02:18AM -0700, Paul E. McKenney wrote:
-> > My guess would be for the case where sched_preempt_enable_no_resched()
-> > is followed some time later by cond_resched().
-> 
-> I might hope not.. preempt_enable_no_resched() is nasty and you're likely to be
-> hit with a frozen fish of sorts by tglx if you try to use it ;-)
+From: Anders K. Pedersen <akp@surftown.com>
 
-I will stick with my guess, though I agree that if I am correct,
-this situation almost certainly predates tglx's Linux-related use of
-frozen fish as projectile weapons.  ;-)
+Enable ipset port set types to match IPv4 package fragments for
+protocols that doesn't have ports (or the port information isn't
+supported by ipset).
 
-							Thanx, Paul
+For example this allows a hash:ip,port ipset containing the entry
+192.168.0.1,gre:0 to match all package fragments for PPTP VPN tunnels
+to/from the host. Without this patch only the first package fragment
+(with fragment offset 0) was matched, while subsequent fragments wasn't.
+
+This is not possible for IPv6, where the protocol is in the fragmented
+part of the package unlike IPv4, where the protocol is in the IP header.
+
+IPPROTO_ICMPV6 is deliberately not included, because it isn't relevant
+for IPv4.
+
+Signed-off-by: Anders K. Pedersen <akp@surftown.com>
+
+---
+
+The patch was implemented and tested on linux-3.8.10 and I have verified
+that it applies cleanly to current linux.git and nf-next.git.
+
+Now implemented directly in ip_set_get_ip4_port() as suggested. I
+originally hadn't done this to avoid duplicating the protocol list from
+get_port(), but this is clearly simpler.
+
+Best regards,
+Anders K. Pedersen
+Surftown A/S
+
+--- linux-3.8.10/net/netfilter/ipset/ip_set_getport.c.orig	2013-02-19 00:58:34.000000000 +0100
++++ linux-3.8.10/net/netfilter/ipset/ip_set_getport.c	2013-04-30 12:41:52.550817989 +0200
+@@ -102,9 +102,25 @@ ip_set_get_ip4_port(const struct sk_buff
+ 	int protocol = iph->protocol;
+ 
+ 	/* See comments at tcp_match in ip_tables.c */
+-	if (protocol <= 0 || (ntohs(iph->frag_off) & IP_OFFSET))
++	if (protocol <= 0)
+ 		return false;
+ 
++	if (ntohs(iph->frag_off) & IP_OFFSET)
++		switch (protocol) {
++		case IPPROTO_TCP:
++		case IPPROTO_SCTP:
++		case IPPROTO_UDP:
++		case IPPROTO_UDPLITE:
++		case IPPROTO_ICMP:
++			/* Port info not available for fragment offset > 0 */
++			return false;
++		default:
++			/* Other protocols doesn't have ports,
++			   so we can match fragments */
++			*proto = protocol;
++			return true;
++		}
++
+ 	return get_port(skb, protocol, protooff, src, port, proto);
+ }
+ EXPORT_SYMBOL_GPL(ip_set_get_ip4_port);
+
+
