@@ -1,69 +1,178 @@
-From: "Anders K. Pedersen | Surftown" <akp@surftown.com>
-Subject: Re: [PATCH V2] netfilter: ipset: support package fragments for
- IPv4 protos without ports
-Date: Thu, 02 May 2013 13:48:31 +0200
-Message-ID: <1367495311.17468.210.camel@homer.cohaesio.com>
-References: <20130428100936.60D0815759E@homer.localdomain>
-	 <alpine.DEB.2.00.1304301017430.20765@blackhole.kfki.hu>
-	 <1367431355.17468.193.camel@homer.cohaesio.com>
-	 <20130501222316.GA4606@localhost>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
+Date: Thu, 2 May 2013 18:54:05 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1305021848450.31548@ja.ssi.bg>
+References: <1367290378-29224-1-git-send-email-horms@verge.net.au> <1367290378-29224-2-git-send-email-horms@verge.net.au> <alpine.LFD.2.00.1304301011310.1700@ja.ssi.bg> <20130430072944.GA13959@verge.net.au> <alpine.LFD.2.00.1304301051260.1700@ja.ssi.bg>
+ <20130501091012.GB28253@dyad.programming.kicks-ass.net> <alpine.LFD.2.00.1305011344320.1603@ja.ssi.bg> <20130501155501.GB7521@dyad.programming.kicks-ass.net> <alpine.LFD.2.00.1305012004360.3397@ja.ssi.bg>
+ <20130502072623.GE7521@dyad.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Simon Horman <horms@verge.net.au>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Ingo Molnar <mingo@redhat.com>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Dipankar Sarma <dipankar@in.ibm.com>
+To: Peter Zijlstra <peterz@infradead.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:34410 "EHLO
-	mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751746Ab3EBLse (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 May 2013 07:48:34 -0400
-In-Reply-To: <20130501222316.GA4606@localhost>
+Received: from ja.ssi.bg ([178.16.129.10]:44353 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759204Ab3EBPxl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 May 2013 11:53:41 -0400
+In-Reply-To: <20130502072623.GE7521@dyad.programming.kicks-ass.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2013-05-02 at 00:23 +0200, Pablo Neira Ayuso wrote:
-> On Wed, May 01, 2013 at 08:02:35PM +0200, Anders K. Pedersen | Surftown wrote:
-> > +	if (ntohs(iph->frag_off) & IP_OFFSET)
-> > +		switch (protocol) {
-> > +		case IPPROTO_TCP:
-> > +		case IPPROTO_SCTP:
-> > +		case IPPROTO_UDP:
-> > +		case IPPROTO_UDPLITE:
-> > +		case IPPROTO_ICMP:
-> > +			/* Port info not available for fragment offset > 0 */
-> > +			return false;
+
+	Hello,
+
+On Thu, 2 May 2013, Peter Zijlstra wrote:
+
+> On Wed, May 01, 2013 at 09:22:08PM +0300, Julian Anastasov wrote:
+> > > +extern int __cond_resched_rcu(void);
+> > > +
+> > > +#define cond_resched_rcu() ({			\
+> > > +	__might_sleep(__FILE__, __LINE__, 0);	\
+> > 
+> > 	I see your goal. But digging into __might_sleep()
+> > I see that rcu_sleep_check() will scream for the non-preempt
+> > case because we are under rcu_read_lock.
 > 
-> You can probably use proto_ports_offset for this?
+> 
+> #ifdef CONFIG_PREEMPT_RCU
+> #define PREEMPT_RCU_OFFSET 0
+> #else
+> #define PREEMPT_RCU_OFFSET 1
+> #endif
+> 
+> #define cond_resched_rcu() ({	\
+> 	__might_sleep(__FILE__, __LINE__, PREEMPT_RCU_OFFSET);	\
+> 	__cond_resched_rcu();	\
+> })
+> 
+> Should work I think..
 
-I'm not sure that is a good idea. The protocols in proto_ports_offset()
-doesn't match what ipset supports:
+	I implemented your idea.
 
-static inline int proto_ports_offset(int proto)
-{
-	switch (proto) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_DCCP:
-	case IPPROTO_ESP:	/* SPI */
-	case IPPROTO_SCTP:
-	case IPPROTO_UDPLITE:
-		return 0;
-	case IPPROTO_AH:	/* SPI */
-		return 4;
-	default:
-		return -EINVAL;
-	}
-}
+	I tested the following patch in 2 variants,
+TINY_RCU and CONFIG_TREE_PREEMPT_RCU. I see the
+error if extra rcu_read_lock is added for testing.
 
-Ports for DCCP, ESP, and AH aren't supported by ipset. I could add that
-support, but I don't think it makes sense for ipset to match on SPI for
-ESP and AH?
+	I'm using the PREEMPT_ACTIVE flag to indicate
+that we are already under lock. It should work because
+__might_sleep is not called with such bit. I also tried to
+add new flag in include/linux/hardirq.h but PREEMPT_ACTIVE
+depends on the arch, so this alternative looked difficult to
+implement.
 
+ include/linux/rcupdate.h |    7 ++++---
+ include/linux/sched.h    |   14 ++++++++++++++
+ kernel/sched/core.c      |   20 ++++++++++++++++++--
+ 3 files changed, 36 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
+index b758ce1..b594759 100644
+--- a/include/linux/rcupdate.h
++++ b/include/linux/rcupdate.h
+@@ -480,9 +480,10 @@ static inline void rcu_preempt_sleep_check(void)
+ }
+ #endif /* #else #ifdef CONFIG_PROVE_RCU */
+ 
+-#define rcu_sleep_check()						\
++#define rcu_sleep_check(locked)						\
+ 	do {								\
+-		rcu_preempt_sleep_check();				\
++		if (!(locked))						\
++			rcu_preempt_sleep_check();			\
+ 		rcu_lockdep_assert(!lock_is_held(&rcu_bh_lock_map),	\
+ 				   "Illegal context switch in RCU-bh"	\
+ 				   " read-side critical section");	\
+@@ -494,7 +495,7 @@ static inline void rcu_preempt_sleep_check(void)
+ #else /* #ifdef CONFIG_PROVE_RCU */
+ 
+ #define rcu_lockdep_assert(c, s) do { } while (0)
+-#define rcu_sleep_check() do { } while (0)
++#define rcu_sleep_check(locked) do { } while (0)
+ 
+ #endif /* #else #ifdef CONFIG_PROVE_RCU */
+ 
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index e692a02..027deea 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -2608,6 +2608,20 @@ extern int __cond_resched_softirq(void);
+ 	__cond_resched_softirq();					\
+ })
+ 
++#ifdef CONFIG_PREEMPT_RCU
++#define PREEMPT_RCU_OFFSET	1
++#else
++#define PREEMPT_RCU_OFFSET	PREEMPT_CHECK_OFFSET
++#endif
++
++extern int __cond_resched_rcu(void);
++
++#define cond_resched_rcu() ({					\
++	__might_sleep(__FILE__, __LINE__, PREEMPT_ACTIVE |	\
++					  PREEMPT_RCU_OFFSET);	\
++	__cond_resched_rcu();					\
++})
++
+ /*
+  * Does a critical section need to be broken due to another
+  * task waiting?: (technically does not depend on CONFIG_PREEMPT,
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 67d0465..2724be7 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -2793,7 +2793,7 @@ static inline void schedule_debug(struct task_struct *prev)
+ 	 */
+ 	if (unlikely(in_atomic_preempt_off() && !prev->exit_state))
+ 		__schedule_bug(prev);
+-	rcu_sleep_check();
++	rcu_sleep_check(0);
+ 
+ 	profile_hit(SCHED_PROFILING, __builtin_return_address(0));
+ 
+@@ -4364,6 +4364,20 @@ int __sched __cond_resched_softirq(void)
+ }
+ EXPORT_SYMBOL(__cond_resched_softirq);
+ 
++int __sched __cond_resched_rcu(void)
++{
++#ifndef CONFIG_PREEMPT_RCU
++	if (should_resched()) {
++		rcu_read_unlock();
++		__cond_resched();
++		rcu_read_lock();
++		return 1;
++	}
++#endif
++	return 0;
++}
++EXPORT_SYMBOL(__cond_resched_rcu);
++
+ /**
+  * yield - yield the current processor to other threads.
+  *
+@@ -7062,7 +7076,9 @@ void __might_sleep(const char *file, int line, int preempt_offset)
+ {
+ 	static unsigned long prev_jiffy;	/* ratelimiting */
+ 
+-	rcu_sleep_check(); /* WARN_ON_ONCE() by default, no rate limit reqd. */
++	/* WARN_ON_ONCE() by default, no rate limit reqd. */
++	rcu_sleep_check(preempt_offset & PREEMPT_ACTIVE);
++	preempt_offset &= ~PREEMPT_ACTIVE;
+ 	if ((preempt_count_equals(preempt_offset) && !irqs_disabled()) ||
+ 	    system_state != SYSTEM_RUNNING || oops_in_progress)
+ 		return;
 -- 
-Venlig hilsen / Best Regards 
+1.7.3.4
 
-Anders K. Pedersen 
-Surftown A/S
 
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
