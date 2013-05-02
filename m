@@ -1,40 +1,80 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/6] netfilter: ipset: Sparse warning about shadowed variable fixed
-Date: Thu,  2 May 2013 11:37:18 +0200
-Message-ID: <1367487442-3571-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/6] netfilter: ipset: Don't call ip_nest_end needlessly in the error path
+Date: Thu,  2 May 2013 11:37:17 +0200
+Message-ID: <1367487442-3571-2-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1367487442-3571-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:39789 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:43346 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756939Ab3EBJhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756927Ab3EBJhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 2 May 2013 05:37:24 -0400
 In-Reply-To: <1367487442-3571-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-net/netfilter/ipset/ip_set_hash_ipportnet.c:275:20:
-warning: symbol 'cidr' shadows an earlier one
-
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/netfilter/ipset/ip_set_bitmap_gen.h |    2 +-
+ net/netfilter/ipset/ip_set_hash_gen.h   |    2 +-
+ net/netfilter/ipset/ip_set_list_set.c   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index c6a5253..fd193d6 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -272,7 +272,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 		if (ip > ip_to)
- 			swap(ip, ip_to);
- 	} else if (tb[IPSET_ATTR_CIDR]) {
--		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+		cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 2524337..f6af97c 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -228,11 +228,11 @@ mtype_list(const struct ip_set *set,
  
- 		if (!cidr || cidr > 32)
- 			return -IPSET_ERR_INVALID_CIDR;
+ nla_put_failure:
+ 	nla_nest_cancel(skb, nested);
+-	ipset_nest_end(skb, adt);
+ 	if (unlikely(id == first)) {
+ 		cb->args[2] = 0;
+ 		return -EMSGSIZE;
+ 	}
++	ipset_nest_end(skb, adt);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 57beb17..d1a50e3 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -905,13 +905,13 @@ mtype_list(const struct ip_set *set,
+ 
+ nla_put_failure:
+ 	nlmsg_trim(skb, incomplete);
+-	ipset_nest_end(skb, atd);
+ 	if (unlikely(first == cb->args[2])) {
+ 		pr_warning("Can't list set %s: one bucket does not fit into "
+ 			   "a message. Please report it!\n", set->name);
+ 		cb->args[2] = 0;
+ 		return -EMSGSIZE;
+ 	}
++	ipset_nest_end(skb, atd);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 979b8c9..68299ee 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -550,11 +550,11 @@ finish:
+ 
+ nla_put_failure:
+ 	nla_nest_cancel(skb, nested);
+-	ipset_nest_end(skb, atd);
+ 	if (unlikely(i == first)) {
+ 		cb->args[2] = 0;
+ 		return -EMSGSIZE;
+ 	}
++	ipset_nest_end(skb, atd);
+ 	return 0;
+ }
+ 
 -- 
 1.7.0.4
 
