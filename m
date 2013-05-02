@@ -1,48 +1,53 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
-Date: Thu, 2 May 2013 09:27:43 +0200
-Message-ID: <20130502072742.GF7521@dyad.programming.kicks-ass.net>
-References: <1367290378-29224-1-git-send-email-horms@verge.net.au>
- <1367290378-29224-2-git-send-email-horms@verge.net.au>
- <alpine.LFD.2.00.1304301011310.1700@ja.ssi.bg>
- <20130430072944.GA13959@verge.net.au>
- <alpine.LFD.2.00.1304301051260.1700@ja.ssi.bg>
- <20130501091012.GB28253@dyad.programming.kicks-ass.net>
- <20130501124637.GO3780@linux.vnet.ibm.com>
- <20130501143258.GA31577@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Ingo Molnar <mingo@redhat.com>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Dipankar Sarma <dipankar@in.ibm.com>
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/6] ipset updates for nf-next
+Date: Thu,  2 May 2013 11:37:16 +0200
+Message-ID: <1367487442-3571-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:43683 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407Ab3EBH3U (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 May 2013 03:29:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20130501143258.GA31577@linux.vnet.ibm.com>
+Received: from smtp1.kfki.hu ([148.6.0.26]:50852 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756918Ab3EBJhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 May 2013 05:37:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 01, 2013 at 07:32:58AM -0700, Paul E. McKenney wrote:
-> Here is how to detect this:
-> 
-> 	static void inline cond_resched_rcu_lock(void)
-> 	{
-> 		rcu_read_unlock();
-> 		WARN_ON_ONCE(rcu_read_lock_held());
-> 	#ifndef CONFIG_PREEMPT_RCU
-> 		cond_resched();
-> 	#endif
-> 		rcu_read_lock();
-> 	}
+Hi Pablo,
 
-The __might_sleep(__FILE__, __LINE__, PREEMPT_RCU_OFFSET) I posted in the other
-email just now should deal with this.
+Here follows the ipset related updates for nf-next: sparse warning fixes,
+cleanups and small corrections. Please consider applying them.
+
+Best regards,
+Jozsef
+
+The following changes since commit eee1d5a14780b9391ec51f3feaf4cffb521ddbb1:
+  Simon Horman (1):
+        sctp: Correct type and usage of sctp_end_cksum()
+
+are available in the git repository at:
+
+  git://blackhole.kfki.hu/nf-next master
+
+Jozsef Kadlecsik (6):
+      netfilter: ipset: Don't call ip_nest_end needlessly in the error path
+      netfilter: ipset: Sparse warning about shadowed variable fixed
+      netfilter: ipset: Fix sparse warnings due to missing rcu annotations
+      netfilter: ipset: Rename simple macro names to avoid namespace issues.
+      netfilter: ipset: Fix "may be used uninitialized" warnings
+      netfilter: ipset: Use fix sized type for timeout in the extension part
+
+ include/linux/netfilter/ipset/ip_set.h      |    5 +-
+ net/netfilter/ipset/ip_set_bitmap_gen.h     |   49 +++---
+ net/netfilter/ipset/ip_set_bitmap_ip.c      |   14 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c   |   14 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c    |   10 +-
+ net/netfilter/ipset/ip_set_hash_gen.h       |  234 +++++++++++++++------------
+ net/netfilter/ipset/ip_set_hash_ip.c        |   12 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c    |   14 +-
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |   14 +-
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |   22 ++--
+ net/netfilter/ipset/ip_set_hash_net.c       |   16 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c  |   16 +-
+ net/netfilter/ipset/ip_set_hash_netport.c   |   18 +-
+ net/netfilter/ipset/ip_set_list_set.c       |   12 +-
+ 14 files changed, 240 insertions(+), 210 deletions(-)
