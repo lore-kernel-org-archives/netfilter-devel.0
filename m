@@ -1,39 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/6] ipset updates for nf-next
-Date: Thu, 2 May 2013 12:29:43 +0200
-Message-ID: <20130502102943.GB4052@localhost>
-References: <1367487442-3571-1-git-send-email-kadlec@blackhole.kfki.hu>
- <20130502100759.GB3432@localhost>
- <alpine.DEB.2.00.1305021213260.3651@blackhole.kfki.hu>
+From: "Anders K. Pedersen | Surftown" <akp@surftown.com>
+Subject: Re: [PATCH V2] netfilter: ipset: support package fragments for
+ IPv4 protos without ports
+Date: Thu, 02 May 2013 13:48:31 +0200
+Message-ID: <1367495311.17468.210.camel@homer.cohaesio.com>
+References: <20130428100936.60D0815759E@homer.localdomain>
+	 <alpine.DEB.2.00.1304301017430.20765@blackhole.kfki.hu>
+	 <1367431355.17468.193.camel@homer.cohaesio.com>
+	 <20130501222316.GA4606@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41717 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753311Ab3EBK3t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 May 2013 06:29:49 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1305021213260.3651@blackhole.kfki.hu>
+Received: from bender.cohaesio.com ([212.97.128.130]:34410 "EHLO
+	mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746Ab3EBLse (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 May 2013 07:48:34 -0400
+In-Reply-To: <20130501222316.GA4606@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 02, 2013 at 12:14:44PM +0200, Jozsef Kadlecsik wrote:
-> On Thu, 2 May 2013, Pablo Neira Ayuso wrote:
+On Thu, 2013-05-02 at 00:23 +0200, Pablo Neira Ayuso wrote:
+> On Wed, May 01, 2013 at 08:02:35PM +0200, Anders K. Pedersen | Surftown wrote:
+> > +	if (ntohs(iph->frag_off) & IP_OFFSET)
+> > +		switch (protocol) {
+> > +		case IPPROTO_TCP:
+> > +		case IPPROTO_SCTP:
+> > +		case IPPROTO_UDP:
+> > +		case IPPROTO_UDPLITE:
+> > +		case IPPROTO_ICMP:
+> > +			/* Port info not available for fragment offset > 0 */
+> > +			return false;
 > 
-> > On Thu, May 02, 2013 at 11:37:16AM +0200, Jozsef Kadlecsik wrote:
-> > > Hi Pablo,
-> > > 
-> > > Here follows the ipset related updates for nf-next: sparse warning fixes,
-> > > cleanups and small corrections. Please consider applying them.
-> > 
-> > Thanks for the patches, but the merge window is now closed.
-> > 
-> > I can only take bugfixes until 3.10-rc1 is released. They will have to
-> > wait until then.
-> 
-> All right - I'll add the warnings to the commit messages and re-send the 
-> patches.
+> You can probably use proto_ports_offset for this?
 
-Thanks Jozsef.
+I'm not sure that is a good idea. The protocols in proto_ports_offset()
+doesn't match what ipset supports:
+
+static inline int proto_ports_offset(int proto)
+{
+	switch (proto) {
+	case IPPROTO_TCP:
+	case IPPROTO_UDP:
+	case IPPROTO_DCCP:
+	case IPPROTO_ESP:	/* SPI */
+	case IPPROTO_SCTP:
+	case IPPROTO_UDPLITE:
+		return 0;
+	case IPPROTO_AH:	/* SPI */
+		return 4;
+	default:
+		return -EINVAL;
+	}
+}
+
+Ports for DCCP, ESP, and AH aren't supported by ipset. I could add that
+support, but I don't think it makes sense for ipset to match on SPI for
+ESP and AH?
+
+-- 
+Venlig hilsen / Best Regards 
+
+Anders K. Pedersen 
+Surftown A/S
+
