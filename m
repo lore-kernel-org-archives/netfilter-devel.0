@@ -1,95 +1,55 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH V2] netfilter: ipset: support package fragments for IPv4
- protos without ports
-Date: Fri, 3 May 2013 23:20:17 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1305032319240.8804@blackhole.kfki.hu>
-References: <20130428100936.60D0815759E@homer.localdomain>  <alpine.DEB.2.00.1304301017430.20765@blackhole.kfki.hu> <1367431355.17468.193.camel@homer.cohaesio.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH v2 1/2] sched: Add cond_resched_rcu_lock() helper
+Date: Sat, 4 May 2013 10:23:31 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1305041018520.1645@ja.ssi.bg>
+References: <20130501155501.GB7521@dyad.programming.kicks-ass.net> <alpine.LFD.2.00.1305012004360.3397@ja.ssi.bg> <20130502072623.GE7521@dyad.programming.kicks-ass.net> <alpine.LFD.2.00.1305021848450.31548@ja.ssi.bg> <20130502173257.GX3780@linux.vnet.ibm.com>
+ <alpine.LFD.2.00.1305022140020.31548@ja.ssi.bg> <20130502193409.GA3780@linux.vnet.ibm.com> <alpine.LFD.2.00.1305022249010.25417@ja.ssi.bg> <20130502223107.GB3780@linux.vnet.ibm.com> <alpine.LFD.2.00.1305031024080.1657@ja.ssi.bg>
+ <20130503163045.GE3780@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Anders K. Pedersen | Surftown" <akp@surftown.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:53617 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753427Ab3ECVUV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 May 2013 17:20:21 -0400
-In-Reply-To: <1367431355.17468.193.camel@homer.cohaesio.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Simon Horman <horms@verge.net.au>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Ingo Molnar <mingo@redhat.com>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Dipankar Sarma <dipankar@in.ibm.com>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20130503163045.GE3780@linux.vnet.ibm.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 1 May 2013, Anders K. Pedersen | Surftown wrote:
 
-> From: Anders K. Pedersen <akp@surftown.com>
-> 
-> Enable ipset port set types to match IPv4 package fragments for
-> protocols that doesn't have ports (or the port information isn't
-> supported by ipset).
-> 
-> For example this allows a hash:ip,port ipset containing the entry
-> 192.168.0.1,gre:0 to match all package fragments for PPTP VPN tunnels
-> to/from the host. Without this patch only the first package fragment
-> (with fragment offset 0) was matched, while subsequent fragments wasn't.
-> 
-> This is not possible for IPv6, where the protocol is in the fragmented
-> part of the package unlike IPv4, where the protocol is in the IP header.
-> 
-> IPPROTO_ICMPV6 is deliberately not included, because it isn't relevant
-> for IPv4.
-> 
-> Signed-off-by: Anders K. Pedersen <akp@surftown.com>
+	Hello,
 
-I applied your patch in the ipset git tree, thanks.
+On Fri, 3 May 2013, Paul E. McKenney wrote:
 
-Best regards,
-Jozsef
- 
-> ---
+> static inline int cond_resched_rcu(void)
+> {
+> #if defined(CONFIG_DEBUG_ATOMIC_SLEEP) || !defined(CONFIG_PREEMPT_RCU)
+> 	rcu_read_unlock();
+> 	cond_resched();
+> 	rcu_read_lock();
+> #endif
+> }
 > 
-> The patch was implemented and tested on linux-3.8.10 and I have verified
-> that it applies cleanly to current linux.git and nf-next.git.
+> This adds absolutely no overhead in non-debug builds of CONFIG_PREEMPT_RCU,
+> does the checking in debug builds, and allows voluntary preemption in
+> !CONFIG_PREEMPT_RCU builds.  CONFIG_PROVE_RCU builds will check for an
+> (illegal) outer rcu_read_lock() in CONFIG_PREEMPT_RCU builds, and you
+> will get "scheduling while atomic" in response to an outer rcu_read_lock()
+> in !CONFIG_PREEMPT_RCU builds.
 > 
-> Now implemented directly in ip_set_get_ip4_port() as suggested. I
-> originally hadn't done this to avoid duplicating the protocol list from
-> get_port(), but this is clearly simpler.
+> It also seems to me a lot simpler.
 > 
-> Best regards,
-> Anders K. Pedersen
-> Surftown A/S
-> 
-> --- linux-3.8.10/net/netfilter/ipset/ip_set_getport.c.orig	2013-02-19 00:58:34.000000000 +0100
-> +++ linux-3.8.10/net/netfilter/ipset/ip_set_getport.c	2013-04-30 12:41:52.550817989 +0200
-> @@ -102,9 +102,25 @@ ip_set_get_ip4_port(const struct sk_buff
->  	int protocol = iph->protocol;
->  
->  	/* See comments at tcp_match in ip_tables.c */
-> -	if (protocol <= 0 || (ntohs(iph->frag_off) & IP_OFFSET))
-> +	if (protocol <= 0)
->  		return false;
->  
-> +	if (ntohs(iph->frag_off) & IP_OFFSET)
-> +		switch (protocol) {
-> +		case IPPROTO_TCP:
-> +		case IPPROTO_SCTP:
-> +		case IPPROTO_UDP:
-> +		case IPPROTO_UDPLITE:
-> +		case IPPROTO_ICMP:
-> +			/* Port info not available for fragment offset > 0 */
-> +			return false;
-> +		default:
-> +			/* Other protocols doesn't have ports,
-> +			   so we can match fragments */
-> +			*proto = protocol;
-> +			return true;
-> +		}
-> +
->  	return get_port(skb, protocol, protooff, src, port, proto);
->  }
->  EXPORT_SYMBOL_GPL(ip_set_get_ip4_port);
-> 
-> 
+> Does this work, or am I still missing something?
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+	Works perfectly. Thanks! Tested CONFIG_PREEMPT_RCU=y/n,
+the errors messages with extra RCU lock.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
