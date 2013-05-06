@@ -1,46 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [-stable-3.8.y 5/9] netfilter: ipset: "Directory not empty" error message
-Date: Tue,  7 May 2013 01:05:24 +0200
-Message-ID: <1367881528-15524-5-git-send-email-pablo@netfilter.org>
+Subject: [-stable-3.8.y 9/9] netfilter: ip6t_NPT: Fix translation for non-multiple of 32 prefix lengths
+Date: Tue,  7 May 2013 01:05:28 +0200
+Message-ID: <1367881528-15524-9-git-send-email-pablo@netfilter.org>
 References: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org, davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52154 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758222Ab3EFXGE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 May 2013 19:06:04 -0400
 In-Reply-To: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Matthias Schiffer <mschiffer@universe-factory.net>
 
-When an entry flagged with "nomatch" was tested by ipset, it
-returned the error message "Kernel error received:
-Directory not empty" instead of "<element> is NOT in set <setname>"
-(reported by John Brendler).
+The bitmask used for the prefix mangling was being calculated
+incorrectly, leading to the wrong part of the address being replaced
+when the prefix length wasn't a multiple of 32.
 
-The internal error code was not properly transformed before returning
-to userspace, fixed.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ git cherry-pick dd82088 ]
+[ git cherry-pick 906b1c3 ]
 ---
- net/netfilter/ipset/ip_set_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/ipv6/netfilter/ip6t_NPT.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 6d6d8f2..38ca630 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1470,7 +1470,8 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
- 	if (ret == -EAGAIN)
- 		ret = 1;
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 83acc14..0ea43c7 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -57,7 +57,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 		if (pfx_len - i >= 32)
+ 			mask = 0;
+ 		else
+-			mask = htonl(~((1 << (pfx_len - i)) - 1));
++			mask = htonl((1 << (i - pfx_len + 32)) - 1);
  
--	return ret < 0 ? ret : ret > 0 ? 0 : -IPSET_ERR_EXIST;
-+	return (ret < 0 && ret != -ENOTEMPTY) ? ret :
-+		ret > 0 ? 0 : -IPSET_ERR_EXIST;
- }
- 
- /* Get headed data of a set */
+ 		idx = i / 32;
+ 		addr->s6_addr32[idx] &= mask;
 -- 
 1.7.10.4
+
