@@ -1,56 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [-stable-3.8.y 6/9] netfilter: nf_ct_helper: don't discard helper if it is actually the same
-Date: Tue,  7 May 2013 01:05:25 +0200
-Message-ID: <1367881528-15524-6-git-send-email-pablo@netfilter.org>
+Subject: [-stable-3.8.y 3/9] netfilter: ipset: list:set: fix reference counter update
+Date: Tue,  7 May 2013 01:05:22 +0200
+Message-ID: <1367881528-15524-3-git-send-email-pablo@netfilter.org>
 References: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org, davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52119 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759784Ab3EFXFw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 May 2013 19:05:52 -0400
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-commit (32f5376 netfilter: nf_ct_helper: disable automatic helper
-re-assignment of different type) broke transparent proxy scenarios.
+The last element can be replaced or pushed off and in both
+cases the reference counter must be updated.
 
-For example, initial helper lookup might yield "ftp" (dport 21),
-while re-lookup after REDIRECT yields "ftp-2121".
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This causes the autoassign code to toss the ftp helper, even
-though these are just different instances of the same helper.
-
-Change the test to check for the helper function address instead
-of the helper address, as suggested by Pablo.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@gnumonks.org>
-
-[ git cherry-pick 6e2f0aa ]
+[ git cherry-pick 02f815c ]
 ---
- net/netfilter/nf_conntrack_helper.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_list_set.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 884f2b3..91527d5 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -236,7 +236,9 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 		/* We only allow helper re-assignment of the same sort since
- 		 * we cannot reallocate the helper extension area.
- 		 */
--		if (help->helper != helper) {
-+		struct nf_conntrack_helper *tmp = rcu_dereference(help->helper);
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 8371c2b..09c744a 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -174,9 +174,13 @@ list_set_add(struct list_set *map, u32 i, ip_set_id_t id,
+ {
+ 	const struct set_elem *e = list_set_elem(map, i);
+ 
+-	if (i == map->size - 1 && e->id != IPSET_INVALID_ID)
+-		/* Last element replaced: e.g. add new,before,last */
+-		ip_set_put_byindex(e->id);
++	if (e->id != IPSET_INVALID_ID) {
++		const struct set_elem *x = list_set_elem(map, map->size - 1);
 +
-+		if (tmp && tmp->help != helper->help) {
- 			RCU_INIT_POINTER(help->helper, NULL);
- 			goto out;
- 		}
++		/* Last element replaced or pushed off */
++		if (x->id != IPSET_INVALID_ID)
++			ip_set_put_byindex(x->id);
++	}
+ 	if (with_timeout(map->timeout))
+ 		list_elem_tadd(map, i, id, ip_set_timeout_set(timeout));
+ 	else
 -- 
 1.7.10.4
-
