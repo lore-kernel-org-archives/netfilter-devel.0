@@ -1,46 +1,88 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [-stable-3.8.y 9/9] netfilter: ip6t_NPT: Fix translation for non-multiple of 32 prefix lengths
-Date: Tue,  7 May 2013 01:05:28 +0200
-Message-ID: <1367881528-15524-9-git-send-email-pablo@netfilter.org>
+Subject: [-stable-3.8.y 8/9] netfilter: xt_rpfilter: skip locally generated broadcast/multicast, too
+Date: Tue,  7 May 2013 01:05:27 +0200
+Message-ID: <1367881528-15524-8-git-send-email-pablo@netfilter.org>
 References: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org, davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52154 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758222Ab3EFXGE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 May 2013 19:06:04 -0400
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Matthias Schiffer <mschiffer@universe-factory.net>
+From: Florian Westphal <fw@strlen.de>
 
-The bitmask used for the prefix mangling was being calculated
-incorrectly, leading to the wrong part of the address being replaced
-when the prefix length wasn't a multiple of 32.
+Alex Efros reported rpfilter module doesn't match following packets:
+IN=br.qemu SRC=192.168.2.1 DST=192.168.2.255 [ .. ]
+(netfilter bugzilla #814).
 
-Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
+Problem is that network stack arranges for the locally generated broadcasts
+to appear on the interface they were sent out, so the IFF_LOOPBACK check
+doesn't trigger.
+
+As -m rpfilter is restricted to PREROUTING, we can check for existing
+rtable instead, it catches locally-generated broad/multicast case, too.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ git cherry-pick 906b1c3 ]
+[ git cherry-pick f83a7ea ]
 ---
- net/ipv6/netfilter/ip6t_NPT.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/netfilter/ipt_rpfilter.c  |    8 +++++++-
+ net/ipv6/netfilter/ip6t_rpfilter.c |    8 +++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 83acc14..0ea43c7 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -57,7 +57,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 		if (pfx_len - i >= 32)
- 			mask = 0;
- 		else
--			mask = htonl(~((1 << (pfx_len - i)) - 1));
-+			mask = htonl((1 << (i - pfx_len + 32)) - 1);
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index c301300..c49dcd0 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -66,6 +66,12 @@ static bool rpfilter_lookup_reverse(struct flowi4 *fl4,
+ 	return dev_match;
+ }
  
- 		idx = i / 32;
- 		addr->s6_addr32[idx] &= mask;
++static bool rpfilter_is_local(const struct sk_buff *skb)
++{
++	const struct rtable *rt = skb_rtable(skb);
++	return rt && (rt->rt_flags & RTCF_LOCAL);
++}
++
+ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_rpfilter_info *info;
+@@ -76,7 +82,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	info = par->matchinfo;
+ 	invert = info->flags & XT_RPFILTER_INVERT;
+ 
+-	if (par->in->flags & IFF_LOOPBACK)
++	if (rpfilter_is_local(skb))
+ 		return true ^ invert;
+ 
+ 	iph = ip_hdr(skb);
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 5060d54..e0983f3 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -71,6 +71,12 @@ static bool rpfilter_lookup_reverse6(const struct sk_buff *skb,
+ 	return ret;
+ }
+ 
++static bool rpfilter_is_local(const struct sk_buff *skb)
++{
++	const struct rt6_info *rt = (const void *) skb_dst(skb);
++	return rt && (rt->rt6i_flags & RTF_LOCAL);
++}
++
+ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_rpfilter_info *info = par->matchinfo;
+@@ -78,7 +84,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	struct ipv6hdr *iph;
+ 	bool invert = info->flags & XT_RPFILTER_INVERT;
+ 
+-	if (par->in->flags & IFF_LOOPBACK)
++	if (rpfilter_is_local(skb))
+ 		return true ^ invert;
+ 
+ 	iph = ipv6_hdr(skb);
 -- 
 1.7.10.4
-
