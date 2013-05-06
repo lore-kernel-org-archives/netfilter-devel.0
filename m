@@ -1,88 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [-stable-3.8.y 8/9] netfilter: xt_rpfilter: skip locally generated broadcast/multicast, too
-Date: Tue,  7 May 2013 01:05:27 +0200
-Message-ID: <1367881528-15524-8-git-send-email-pablo@netfilter.org>
+Subject: [-stable-3.8.y 7/9] netfilter: ctnetlink: don't permit ct creation with random tuple
+Date: Tue,  7 May 2013 01:05:26 +0200
+Message-ID: <1367881528-15524-7-git-send-email-pablo@netfilter.org>
 References: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org, davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52143 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759801Ab3EFXGC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 May 2013 19:06:02 -0400
 In-Reply-To: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Florian Westphal <fw@strlen.de>
 
-Alex Efros reported rpfilter module doesn't match following packets:
-IN=br.qemu SRC=192.168.2.1 DST=192.168.2.255 [ .. ]
-(netfilter bugzilla #814).
+Userspace can cause kernel panic by not specifying orig/reply
+tuple: kernel will create a tuple with random stack values.
 
-Problem is that network stack arranges for the locally generated broadcasts
-to appear on the interface they were sent out, so the IFF_LOOPBACK check
-doesn't trigger.
-
-As -m rpfilter is restricted to PREROUTING, we can check for existing
-rtable instead, it catches locally-generated broad/multicast case, too.
+Problem is that tuple.dst.dir will be random, too, which
+causes nf_ct_tuplehash_to_ctrack() to return garbage.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@gnumonks.org>
 
-[ git cherry-pick f83a7ea ]
+[ git cherry-pick 442fad9 ]
 ---
- net/ipv4/netfilter/ipt_rpfilter.c  |    8 +++++++-
- net/ipv6/netfilter/ip6t_rpfilter.c |    8 +++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index c301300..c49dcd0 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -66,6 +66,12 @@ static bool rpfilter_lookup_reverse(struct flowi4 *fl4,
- 	return dev_match;
- }
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 627b0e5..a081915 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1705,6 +1705,9 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		if (nlh->nlmsg_flags & NLM_F_CREATE) {
+ 			enum ip_conntrack_events events;
  
-+static bool rpfilter_is_local(const struct sk_buff *skb)
-+{
-+	const struct rtable *rt = skb_rtable(skb);
-+	return rt && (rt->rt_flags & RTCF_LOCAL);
-+}
++			if (!cda[CTA_TUPLE_ORIG] || !cda[CTA_TUPLE_REPLY])
++				return -EINVAL;
 +
- static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_rpfilter_info *info;
-@@ -76,7 +82,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	info = par->matchinfo;
- 	invert = info->flags & XT_RPFILTER_INVERT;
- 
--	if (par->in->flags & IFF_LOOPBACK)
-+	if (rpfilter_is_local(skb))
- 		return true ^ invert;
- 
- 	iph = ip_hdr(skb);
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 5060d54..e0983f3 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -71,6 +71,12 @@ static bool rpfilter_lookup_reverse6(const struct sk_buff *skb,
- 	return ret;
- }
- 
-+static bool rpfilter_is_local(const struct sk_buff *skb)
-+{
-+	const struct rt6_info *rt = (const void *) skb_dst(skb);
-+	return rt && (rt->rt6i_flags & RTF_LOCAL);
-+}
-+
- static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_rpfilter_info *info = par->matchinfo;
-@@ -78,7 +84,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	struct ipv6hdr *iph;
- 	bool invert = info->flags & XT_RPFILTER_INVERT;
- 
--	if (par->in->flags & IFF_LOOPBACK)
-+	if (rpfilter_is_local(skb))
- 		return true ^ invert;
- 
- 	iph = ipv6_hdr(skb);
+ 			ct = ctnetlink_create_conntrack(net, zone, cda, &otuple,
+ 							&rtuple, u3);
+ 			if (IS_ERR(ct))
 -- 
 1.7.10.4
+
