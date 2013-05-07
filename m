@@ -1,58 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: xt_addrtype limit-iface-in is broken for ipv6
-Date: Tue, 7 May 2013 02:46:06 +0200
-Message-ID: <20130507004606.GA5088@localhost>
-References: <20130505093610.GA19796@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Boris Figovsky <boris.figovsky@ravellosystems.com>
+Subject: [xtables-addons][PATCH 0/1] xt_DHCPMAC: correct mac setting and comparing
+Date: Tue,  7 May 2013 07:21:54 +0300
+Message-ID: <1367900515-13101-1-git-send-email-boris.figovsky@ravellosystems.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58061 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754130Ab3EGAqM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 May 2013 20:46:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20130505093610.GA19796@breakpoint.cc>
+Received: from na3sys010aog108.obsmtp.com ([74.125.245.84]:46270 "HELO
+	na3sys010aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932998Ab3EGE1X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 May 2013 00:27:23 -0400
+Received: by mail-ea0-f182.google.com with SMTP id z16so50439ead.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 May 2013 21:27:21 -0700 (PDT)
+Received: from borf.ravello.local ([207.232.28.189])
+        by mx.google.com with ESMTPSA id e2sm25689888eem.16.2013.05.06.21.22.01
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Mon, 06 May 2013 21:22:02 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 05, 2013 at 11:36:10AM +0200, Florian Westphal wrote:
-> quoting
-> 
-> https://bugzilla.netfilter.org/show_bug.cgi?id=812
-> 
-> [..]
-> When I tried to use in the nat/PREROUTING it messes up the
-> routing cache even if the rule didn't matched at all.
-> [..]
-> If I remove the --limit-iface-in from the non-working scenario, so just
-> use the -m addrtype --dst-type LOCAL it works!
-> 
-> This happens when LOCAL type matching is requested with
-> --limit-iface-in, and the default route is via the interface the packet
-> we test arrived on.
-> 
-> Because xt_addrtype uses ip6_route_output, the ipv6 routing
-> implementation creates an unwanted cached entry, and the packet
-> won't make it to the real/expected destination.
-> 
-> Silently ignoring --limit-iface-in makes the routing work
-> but it breaks rule matching (--dst-type LOCAL with limit-iface-in
-> is supposed to only match if the dst address is configured on
-> the incoming interface; without --limit-iface-in it will match if
-> the address is reachable via lo).
-> 
-> AFAIU the only solution is to use ipv6_chk_addr() when
-> LOCAL is requested instead of a route lookup.
-> 
-> Since this would create a dependeny on ipv6 its a no-go.
-> So, it boils down to two possible solutions:
-> 
-> a), extend struct nf_afinfo to also register
->     ipv6_chk_addr(), OR
-> b), revert the commit that moved ipt_addrtype to xt_addrtype,
->     and keep the ipv6 code in ip6t_addrtype.
+Hi,
 
-I'd prefer something smaller  so I can pass a fix to -stable. We
-cannot pass patches bigger than 100 lines including context.
+I have tried to use DHCPMAC target and have noticed that it sets the mac to
+00:00:00:00:00:00 - no matter what I --set-mac.
+This patch fixes it.
+
+Regards,
+Boris Figovsky,
+Ravello Systems.
+
+Boris Figovsky (1):
+  xt_DHCPMAC: correct mac setting and comparing
+
+ extensions/xt_DHCPMAC.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+--
+1.7.9.5
+
