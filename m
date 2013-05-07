@@ -1,51 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: xt_addrtype limit-iface-in is broken for ipv6
-Date: Tue, 7 May 2013 11:48:06 +0200
-Message-ID: <20130507094806.GA20003@breakpoint.cc>
-References: <20130505093610.GA19796@breakpoint.cc>
- <20130507004606.GA5088@localhost>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: nfacct version dependency
+Date: Tue, 07 May 2013 15:15:52 +0200
+Message-ID: <3347028.Gq033PXqRA@storm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50348 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755819Ab3EGJsI (ORCPT
+Received: from re04.intra2net.com ([82.165.46.26]:39323 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758336Ab3EGNgF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 May 2013 05:48:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20130507004606.GA5088@localhost>
+	Tue, 7 May 2013 09:36:05 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by re04.intra2net.com (Postfix) with ESMTP id EECAF30128
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 May 2013 15:15:57 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 630372AC5A
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 May 2013 15:15:57 +0200 (CEST)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 955052AC51
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 May 2013 15:15:53 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Because xt_addrtype uses ip6_route_output, the ipv6 routing
-> > implementation creates an unwanted cached entry, and the packet
-> > won't make it to the real/expected destination.
-> > 
-> > Silently ignoring --limit-iface-in makes the routing work
-> > but it breaks rule matching (--dst-type LOCAL with limit-iface-in
-> > is supposed to only match if the dst address is configured on
-> > the incoming interface; without --limit-iface-in it will match if
-> > the address is reachable via lo).
-> > 
-> > AFAIU the only solution is to use ipv6_chk_addr() when
-> > LOCAL is requested instead of a route lookup.
-> > 
-> > Since this would create a dependeny on ipv6 its a no-go.
-> > So, it boils down to two possible solutions:
-> > 
-> > a), extend struct nf_afinfo to also register
-> >     ipv6_chk_addr(), OR
-> > b), revert the commit that moved ipt_addrtype to xt_addrtype,
-> >     and keep the ipv6 code in ip6t_addrtype.
-> 
-> I'd prefer something smaller  so I can pass a fix to -stable. We
-> cannot pass patches bigger than 100 lines including context.
+Hi,
 
-This will be tough.  Extending struct nf_afinfo for
-ipv6_chk_addr MIGHT come in just under 100 lines.  I'll have go at this.
+nfacct currently requires "libnetfilter_acct >= 1.0.2"
+which has not been released yet.
 
-[ i don't like this solution because we add a something for the sake
-  of a single ipv6 special case ].
+Any plans to release a new version of both tools?
+
+We can fix nfacct's configure.ac though
+both git trees contain nice bugfixes.
+
+Cheers,
+Thomas
+
