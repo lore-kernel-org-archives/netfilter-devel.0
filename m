@@ -1,73 +1,51 @@
-From: Boris Figovsky <boris.figovsky@ravellosystems.com>
-Subject: [xtables-addons][PATCH 1/1] xt_DHCPMAC: correct mac setting and comparing
-Date: Tue,  7 May 2013 07:21:55 +0300
-Message-ID: <1367900515-13101-2-git-send-email-boris.figovsky@ravellosystems.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: xt_addrtype limit-iface-in is broken for ipv6
+Date: Tue, 7 May 2013 11:48:06 +0200
+Message-ID: <20130507094806.GA20003@breakpoint.cc>
+References: <20130505093610.GA19796@breakpoint.cc>
+ <20130507004606.GA5088@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from na3sys010aog105.obsmtp.com ([74.125.245.78]:37497 "HELO
-	na3sys010aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932706Ab3EGE2g (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50348 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755819Ab3EGJsI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 May 2013 00:28:36 -0400
-Received: by mail-ea0-f171.google.com with SMTP id b10so51042eae.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 May 2013 21:28:34 -0700 (PDT)
-Received: from borf.ravello.local ([207.232.28.189])
-        by mx.google.com with ESMTPSA id e2sm25689888eem.16.2013.05.06.21.22.03
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Mon, 06 May 2013 21:22:03 -0700 (PDT)
+	Tue, 7 May 2013 05:48:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20130507004606.GA5088@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Boris Figovsky <boris.figovsky@ravellosystems.com>
----
- extensions/xt_DHCPMAC.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Because xt_addrtype uses ip6_route_output, the ipv6 routing
+> > implementation creates an unwanted cached entry, and the packet
+> > won't make it to the real/expected destination.
+> > 
+> > Silently ignoring --limit-iface-in makes the routing work
+> > but it breaks rule matching (--dst-type LOCAL with limit-iface-in
+> > is supposed to only match if the dst address is configured on
+> > the incoming interface; without --limit-iface-in it will match if
+> > the address is reachable via lo).
+> > 
+> > AFAIU the only solution is to use ipv6_chk_addr() when
+> > LOCAL is requested instead of a route lookup.
+> > 
+> > Since this would create a dependeny on ipv6 its a no-go.
+> > So, it boils down to two possible solutions:
+> > 
+> > a), extend struct nf_afinfo to also register
+> >     ipv6_chk_addr(), OR
+> > b), revert the commit that moved ipt_addrtype to xt_addrtype,
+> >     and keep the ipv6 code in ip6t_addrtype.
+> 
+> I'd prefer something smaller  so I can pass a fix to -stable. We
+> cannot pass patches bigger than 100 lines including context.
 
-diff --git a/extensions/xt_DHCPMAC.c b/extensions/xt_DHCPMAC.c
-index 45f1972..bedf75d 100644
---- a/extensions/xt_DHCPMAC.c
-+++ b/extensions/xt_DHCPMAC.c
-@@ -34,9 +34,9 @@ static void ether_set(unsigned char *addr, const unsigned char *op,
- 	unsigned int i;
- 
- 	for (i = 0; i < ETH_ALEN && mask > 0; ++i) {
--		lo_mask = mask % 8;
-+		lo_mask = (mask >= 8) ? 8 : mask;
- 		/* FF << 4 >> 4 = 0F */
--		lo_mask = ~(uint8_t)0U << lo_mask >> lo_mask;
-+		lo_mask = (uint8_t)(~0U << lo_mask) >> lo_mask;
- 		addr[i] &= lo_mask;
- 		addr[i] |= op[i] & ~lo_mask;
- 		if (mask >= 8)
-@@ -55,9 +55,9 @@ static bool ether_cmp(const unsigned char *lh, const unsigned char *rh,
- #define ZMACHEX(s) s[0], s[1], s[2], s[3], s[4], s[5]
- 
- 	for (i = 0; i < ETH_ALEN && mask > 0; ++i) {
--		lo_mask = mask % 8;
-+		lo_mask = (mask >= 8) ? 8 : mask;
- 		/* ~(0xFF << 4 >> 4) = ~0x0F = 0xF0 */
--		lo_mask = ~(~(uint8_t)0U << lo_mask >> lo_mask);
-+		lo_mask = ~((uint8_t)(~0U << lo_mask) >> lo_mask);
- 		if ((lh[i] ^ rh[i]) & lo_mask)
- 			return false;
- 		if (mask >= 8)
-@@ -111,13 +111,12 @@ dhcpmac_tg(struct sk_buff **pskb, const struct xt_action_param *par)
- 		return NF_DROP;
- 
- 	for (i = 0; i < sizeof(dh->chaddr); i += 2)
--		csum_replace2(&udph->check, *(const __be16 *)dh->chaddr, 0);
-+		csum_replace2(&udph->check, *(const __be16 *)(dh->chaddr+i), 0);
- 
--	memset(dh->chaddr, 0, sizeof(dh->chaddr));
- 	ether_set(dh->chaddr, info->addr, info->mask);
- 
- 	for (i = 0; i < sizeof(dh->chaddr); i += 2)
--		csum_replace2(&udph->check, 0, *(const __be16 *)dh->chaddr);
-+		csum_replace2(&udph->check, 0, *(const __be16 *)(dh->chaddr+i));
- 
- 	return XT_CONTINUE;
- }
--- 
-1.7.9.5
+This will be tough.  Extending struct nf_afinfo for
+ipv6_chk_addr MIGHT come in just under 100 lines.  I'll have go at this.
 
+[ i don't like this solution because we add a something for the sake
+  of a single ipv6 special case ].
