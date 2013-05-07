@@ -1,216 +1,217 @@
 From: Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH 05/15] connection tracking helper for SLP
-Date: Tue,  7 May 2013 16:18:13 +0200
-Message-ID: <1367936303-13386-5-git-send-email-jslaby@suse.cz>
+Subject: [PATCH 06/15] netfilter: Implement RFC 1123 for FTP conntrack
+Date: Tue,  7 May 2013 16:18:14 +0200
+Message-ID: <1367936303-13386-6-git-send-email-jslaby@suse.cz>
 References: <1367936303-13386-1-git-send-email-jslaby@suse.cz>
-Cc: linux-kernel@vger.kernel.org, Jiri Bohac <jbohac@suse.cz>,
-	Jiri Slaby <jslaby@suse.cz>, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+Cc: linux-kernel@vger.kernel.org, Jeff Mahoney <jeffm@suse.com>,
+	Jiri Slaby <jslaby@suse.cz>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
 To: jirislaby@gmail.com
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1367936303-13386-1-git-send-email-jslaby@suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jiri Bohac <jbohac@suse.cz>
+From: Jeff Mahoney <jeffm@suse.com>
 
-A simple connection tracking helper for SLP. Marks replies to a
-SLP broadcast query as ESTABLISHED to allow them to pass through the
-firewall.
+ The FTP conntrack code currently only accepts the following format for
+ the 227 response for PASV:
+ 227 Entering Passive Mode (148,100,81,40,31,161).
 
-Signed-off-by: Jiri Bohac <jbohac@suse.cz>
+ It doesn't accept the following format from an obscure server:
+ 227 Data transfer will passively listen to 67,218,99,134,50,144
+
+ From RFC 1123:
+ The format of the 227 reply to a PASV command is not
+ well standardized.  In particular, an FTP client cannot
+ assume that the parentheses shown on page 40 of RFC-959
+ will be present (and in fact, Figure 3 on page 43 omits
+ them).  Therefore, a User-FTP program that interprets
+ the PASV reply must scan the reply for the first digit
+ of the host and port numbers.
+
+ This patch adds support for the RFC 1123 clarification by:
+ - Allowing a search filter to specify NUL as the terminator so that
+   try_number will return successfully if the array of numbers has been
+   filled when an unexpected character is encountered.
+ - Using space as the separator for the 227 reply and then scanning for
+   the first digit of the number sequence. The number sequence is parsed
+   out using the existing try_rfc959 but with a NUL terminator.
+
+References: https://bugzilla.novell.com/show_bug.cgi?id=466279
+References: http://bugzilla.netfilter.org/show_bug.cgi?id=574
+Reported-by: Mark Post <mpost@novell.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: netfilter-devel@vger.kernel.org
 Cc: netfilter@vger.kernel.org
 Cc: coreteam@netfilter.org
 Cc: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/Kconfig            |  15 +++++
- net/netfilter/Makefile           |   1 +
- net/netfilter/nf_conntrack_slp.c | 131 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 147 insertions(+)
- create mode 100644 net/netfilter/nf_conntrack_slp.c
+ net/netfilter/nf_conntrack_ftp.c | 73 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 54 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 56d22ca..ec61b30 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -320,6 +320,21 @@ config NF_CONNTRACK_TFTP
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 6b21707..b8a0924 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -55,10 +55,14 @@ unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
+ 				struct nf_conntrack_expect *exp);
+ EXPORT_SYMBOL_GPL(nf_nat_ftp_hook);
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+-static int try_rfc959(const char *, size_t, struct nf_conntrack_man *, char);
+-static int try_eprt(const char *, size_t, struct nf_conntrack_man *, char);
++static int try_rfc959(const char *, size_t, struct nf_conntrack_man *,
++		      char, unsigned int *);
++static int try_rfc1123(const char *, size_t, struct nf_conntrack_man *,
++		       char, unsigned int *);
++static int try_eprt(const char *, size_t, struct nf_conntrack_man *,
++		    char, unsigned int *);
+ static int try_epsv_response(const char *, size_t, struct nf_conntrack_man *,
+-			     char);
++			     char, unsigned int *);
  
-+config NF_CONNTRACK_SLP
-+	tristate "SLP protocol support"
-+	depends on NF_CONNTRACK
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  SLP queries are sometimes sent as broadcast messages from an
-+	  unprivileged port and responded to with unicast messages to the
-+	  same port. This make them hard to firewall properly because connection
-+	  tracking doesn't deal with broadcasts. This helper tracks locally
-+	  originating broadcast SLP queries and the corresponding
-+	  responses. It relies on correct IP address configuration, specifically
-+	  netmask and broadcast address.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NF_CT_NETLINK
- 	tristate 'Connection tracking netlink interface'
- 	select NETFILTER_NETLINK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index a1abf87..aa7d5f1 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -43,6 +43,7 @@ obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
- obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
- obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
- obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
-+obj-$(CONFIG_NF_CONNTRACK_SLP) += nf_conntrack_slp.o
+ static struct ftp_search {
+ 	const char *pattern;
+@@ -66,7 +70,7 @@ static struct ftp_search {
+ 	char skip;
+ 	char term;
+ 	enum nf_ct_ftp_type ftptype;
+-	int (*getnum)(const char *, size_t, struct nf_conntrack_man *, char);
++	int (*getnum)(const char *, size_t, struct nf_conntrack_man *, char, unsigned int *);
+ } search[IP_CT_DIR_MAX][2] = {
+ 	[IP_CT_DIR_ORIGINAL] = {
+ 		{
+@@ -90,10 +94,8 @@ static struct ftp_search {
+ 		{
+ 			.pattern	= "227 ",
+ 			.plen		= sizeof("227 ") - 1,
+-			.skip		= '(',
+-			.term		= ')',
+ 			.ftptype	= NF_CT_FTP_PASV,
+-			.getnum		= try_rfc959,
++			.getnum		= try_rfc1123,
+ 		},
+ 		{
+ 			.pattern	= "229 ",
+@@ -132,8 +134,9 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
+ 			i++;
+ 		else {
+ 			/* Unexpected character; true if it's the
+-			   terminator and we're finished. */
+-			if (*data == term && i == array_size - 1)
++			   terminator (or we don't care about one)
++			   and we're finished. */
++			if ((*data == term || !term) && i == array_size - 1)
+ 				return len;
  
- nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
- 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
-diff --git a/net/netfilter/nf_conntrack_slp.c b/net/netfilter/nf_conntrack_slp.c
-new file mode 100644
-index 0000000..0174dd0
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_slp.c
-@@ -0,0 +1,131 @@
+ 			pr_debug("Char %u (got %u nums) `%u' unexpected\n",
+@@ -148,7 +151,8 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
+ 
+ /* Returns 0, or length of numbers: 192,168,1,1,5,6 */
+ static int try_rfc959(const char *data, size_t dlen,
+-		      struct nf_conntrack_man *cmd, char term)
++		      struct nf_conntrack_man *cmd, char term,
++		      unsigned int *offset)
+ {
+ 	int length;
+ 	u_int32_t array[6];
+@@ -163,6 +167,33 @@ static int try_rfc959(const char *data, size_t dlen,
+ 	return length;
+ }
+ 
 +/*
-+ *      NetBIOS name service broadcast connection tracking helper
-+ *
-+ *      (c) 2007 Jiri Bohac <jbohac@suse.cz>
-+ *      (c) 2005 Patrick McHardy <kaber@trash.net>
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
++ * From RFC 1123:
++ * The format of the 227 reply to a PASV command is not
++ * well standardized.  In particular, an FTP client cannot
++ * assume that the parentheses shown on page 40 of RFC-959
++ * will be present (and in fact, Figure 3 on page 43 omits
++ * them).  Therefore, a User-FTP program that interprets
++ * the PASV reply must scan the reply for the first digit
++ * of the host and port numbers.
 + */
-+/*
-+ *      This helper tracks locally originating NetBIOS name service
-+ *      requests by issuing permanent expectations (valid until
-+ *      timing out) matching all reply connections from the
-+ *      destination network. The only NetBIOS specific thing is
-+ *      actually the port number.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/skbuff.h>
-+#include <linux/netdevice.h>
-+#include <linux/inetdevice.h>
-+#include <linux/if_addr.h>
-+#include <linux/in.h>
-+#include <linux/ip.h>
-+#include <linux/netfilter.h>
-+#include <net/route.h>
-+
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+
-+#define SLP_PORT	427
-+
-+MODULE_AUTHOR("Jiri Bohac <jbohac@suse.cz>");
-+MODULE_DESCRIPTION("SLP broadcast connection tracking helper");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ip_conntrack_slp");
-+
-+static unsigned int timeout __read_mostly = 3;
-+module_param(timeout, uint, 0400);
-+MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
-+
-+static int help(struct sk_buff *skb, unsigned int protoff,
-+		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++static int try_rfc1123(const char *data, size_t dlen,
++		       struct nf_conntrack_man *cmd, char term,
++		       unsigned int *offset)
 +{
-+	struct nf_conntrack_expect *exp;
-+	struct rtable *rt = skb_rtable(skb);
-+	struct in_device *in_dev;
-+	__be32 mask = 0;
-+	__be32 src = 0;
-+
-+	/* we're only interested in locally generated packets */
-+	if (skb->sk == NULL)
-+		goto out;
-+	if (rt == NULL || !(rt->rt_flags & (RTCF_MULTICAST|RTCF_BROADCAST)))
-+		goto out;
-+	if (CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL)
-+		goto out;
-+
-+	rcu_read_lock();
-+	in_dev = __in_dev_get_rcu(rt->dst.dev);
-+	if (in_dev != NULL) {
-+		for_primary_ifa(in_dev) {
-+			/* this is a hack as slp uses multicast we can't match
-+			 * the destination address to some broadcast address. So
-+			 * just take the first one. Better would be to install
-+			 * expectations for all addresses */
-+			mask = ifa->ifa_mask;
-+			src = ifa->ifa_broadcast;
++	int i;
++	for (i = 0; i < dlen; i++)
++		if (isdigit(data[i]))
 +			break;
-+		} endfor_ifa(in_dev);
++
++	if (i == dlen)
++		return 0;
++
++	*offset += i;
++
++	return try_rfc959(data + i, dlen - i, cmd, 0, offset);
++}
++
+ /* Grab port: number up to delimiter */
+ static int get_port(const char *data, int start, size_t dlen, char delim,
+ 		    __be16 *port)
+@@ -191,7 +222,7 @@ static int get_port(const char *data, int start, size_t dlen, char delim,
+ 
+ /* Returns 0, or length of numbers: |1|132.235.1.2|6275| or |2|3ffe::1|6275| */
+ static int try_eprt(const char *data, size_t dlen, struct nf_conntrack_man *cmd,
+-		    char term)
++		    char term, unsigned int *offset)
+ {
+ 	char delim;
+ 	int length;
+@@ -239,7 +270,8 @@ static int try_eprt(const char *data, size_t dlen, struct nf_conntrack_man *cmd,
+ 
+ /* Returns 0, or length of numbers: |||6446| */
+ static int try_epsv_response(const char *data, size_t dlen,
+-			     struct nf_conntrack_man *cmd, char term)
++			     struct nf_conntrack_man *cmd, char term,
++			     unsigned int *offset)
+ {
+ 	char delim;
+ 
+@@ -261,9 +293,10 @@ static int find_pattern(const char *data, size_t dlen,
+ 			unsigned int *numlen,
+ 			struct nf_conntrack_man *cmd,
+ 			int (*getnum)(const char *, size_t,
+-				      struct nf_conntrack_man *, char))
++				      struct nf_conntrack_man *, char,
++				      unsigned int *))
+ {
+-	size_t i;
++	size_t i = plen;
+ 
+ 	pr_debug("find_pattern `%s': dlen = %Zu\n", pattern, dlen);
+ 	if (dlen == 0)
+@@ -293,16 +326,18 @@ static int find_pattern(const char *data, size_t dlen,
+ 	pr_debug("Pattern matches!\n");
+ 	/* Now we've found the constant string, try to skip
+ 	   to the 'skip' character */
+-	for (i = plen; data[i] != skip; i++)
+-		if (i == dlen - 1) return -1;
++	if (skip) {
++		for (i = plen; data[i] != skip; i++)
++			if (i == dlen - 1) return -1;
+ 
+-	/* Skip over the last character */
+-	i++;
++		/* Skip over the last character */
++		i++;
 +	}
-+	rcu_read_unlock();
-+
-+	if (mask == 0 || src == 0)
-+		goto out;
-+
-+	exp = nf_ct_expect_alloc(ct);
-+	if (exp == NULL)
-+		goto out;
-+
-+	exp->tuple                = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+	exp->tuple.src.u3.ip      = src;
-+	exp->tuple.src.u.udp.port = htons(SLP_PORT);
-+
-+	exp->mask.src.u3.ip       = mask;
-+	exp->mask.src.u.udp.port  = htons(0xFFFF);
-+
-+	exp->expectfn             = NULL;
-+	exp->flags                = NF_CT_EXPECT_PERMANENT;
-+	exp->class		  = NF_CT_EXPECT_CLASS_DEFAULT;
-+	exp->helper               = NULL;
-+
-+	nf_ct_expect_related(exp);
-+	nf_ct_expect_put(exp);
-+
-+	nf_ct_refresh(ct, skb, timeout * HZ);
-+out:
-+	return NF_ACCEPT;
-+}
-+
-+static struct nf_conntrack_expect_policy exp_policy = {
-+	.max_expected	= 1,
-+};
-+
-+static struct nf_conntrack_helper helper __read_mostly = {
-+	.name			= "slp",
-+	.tuple.src.l3num	= AF_INET,
-+	.tuple.src.u.udp.port	= __constant_htons(SLP_PORT),
-+	.tuple.dst.protonum	= IPPROTO_UDP,
-+	.me			= THIS_MODULE,
-+	.help			= help,
-+	.expect_policy		= &exp_policy,
-+};
-+
-+static int __init nf_conntrack_slp_init(void)
-+{
-+	exp_policy.timeout = timeout;
-+	return nf_conntrack_helper_register(&helper);
-+}
-+
-+static void __exit nf_conntrack_slp_fini(void)
-+{
-+	nf_conntrack_helper_unregister(&helper);
-+}
-+
-+module_init(nf_conntrack_slp_init);
-+module_exit(nf_conntrack_slp_fini);
+ 
+ 	pr_debug("Skipped up to `%c'!\n", skip);
+ 
+ 	*numoff = i;
+-	*numlen = getnum(data + i, dlen - i, cmd, term);
++	*numlen = getnum(data + i, dlen - i, cmd, term, numoff);
+ 	if (!*numlen)
+ 		return -1;
+ 
 -- 
 1.8.2.1
