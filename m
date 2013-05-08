@@ -1,31 +1,49 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: iptables upgrade: netmask parsing trouble
-Date: Wed, 08 May 2013 17:01:13 +0200
-Message-ID: <1764925.ueeBFl1d2D@storm>
-References: <1548294.4rj9RFaJ57@storm> <20130508131016.GA3921@localhost>
+From: Dmitry Popov <dp@highloadlab.com>
+Subject: Re: [PATCH] xtables-addons: xt_RAWNAT: skb writable part might not
+ include whole l4 header (ipv4 case).
+Date: Wed, 8 May 2013 19:12:02 +0400
+Message-ID: <20130508191202.4cb5233820bbb96a1e611329@highloadlab.com>
+References: <20130505220504.1a3f2380a1e798b37e628dd1@highloadlab.com>
+	<20130505222433.5c27056103b98340bba773df@highloadlab.com>
+	<alpine.LNX.2.01.1305081322250.29391@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:59181 "EHLO
-	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756236Ab3EHPBQ (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:47064 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753527Ab3EHPMP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 May 2013 11:01:16 -0400
-In-Reply-To: <20130508131016.GA3921@localhost>
+	Wed, 8 May 2013 11:12:15 -0400
+Received: by mail-la0-f52.google.com with SMTP id fm20so1893148lab.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 May 2013 08:12:14 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1305081322250.29391@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, 8. May 2013 15:10:16 you wrote:
-> > Any reason why we don't accept the full format anymore?
+On Wed, 8 May 2013 13:32:57 +0200 (CEST)
+Jan Engelhardt <jengelh@inai.de> wrote:
+
+> >Also, shouldn't xt_RAWNAT depend on nf_defrag_ipv4 module? 
 > 
-> No. Things that used to work have to work indeed. Just sent a patch to
-> fix it.
+> Dunno. Being a module for really "raw" nf_conntrack-less static NAT, I 
+> feel no reason to make it hard-depend on nf_defrag, and instead leave it 
+> up to the user whether or not to load nf_defrag.
+> 
+> I would tend to just ignore the fragment case for now, like many other 
+> modules. Comments against?
+> 
 
-patch seems to work fine (=loads the firewall again).
-Thanks for the quick fix.
+Yes, I think it's a better idea. The only argument against may be a
+security hole if someone relies on xt_RAWNAT and doesn't use nf_defrag.
+Though it's a poor argument imho.
 
-Thomas
+> With nf_nat having gained IPv6 support, I also feel less inclined to 
+> keep xt_RAWNAT around.
+> 
 
+nf_nat depends on conntrack and conntrack brings a huge overhead to 
+such a simple task like NAT. xt_RAWNAT simply solves NAT problem, it
+definitely has to stay.
