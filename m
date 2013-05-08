@@ -1,33 +1,74 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] xtables-addons: xt_RAWNAT: skb writable part might not
- include whole l4 header (ipv4 case).
-Date: Wed, 8 May 2013 23:32:16 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1305082320440.21875@nerf07.vanv.qr>
-References: <20130505220504.1a3f2380a1e798b37e628dd1@highloadlab.com> <20130505222433.5c27056103b98340bba773df@highloadlab.com> <alpine.LNX.2.01.1305081322250.29391@nerf07.vanv.qr> <20130508191202.4cb5233820bbb96a1e611329@highloadlab.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [-stable-3.8.y 1/9] ipvs: ip_vs_sip_fill_param() BUG: bad check
+ of return value
+Date: Wed, 8 May 2013 15:36:42 -0700
+Message-ID: <20130508223642.GA6305@kroah.com>
+References: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Dmitry Popov <dp@highloadlab.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:42078 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756062Ab3EHVcT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 May 2013 17:32:19 -0400
-In-Reply-To: <20130508191202.4cb5233820bbb96a1e611329@highloadlab.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
+	davem@davemloft.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1367881528-15524-1-git-send-email-pablo@netfilter.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, May 07, 2013 at 01:05:20AM +0200, Pablo Neira Ayuso wrote:
+> From: Hans Schillstrom <hans@schillstrom.com>
+> 
+> The reason for this patch is crash in kmemdup
+> caused by returning from get_callid with uniialized
+> matchoff and matchlen.
+> 
+> Removing Zero check of matchlen since it's done by ct_sip_get_header()
+> 
+> BUG: unable to handle kernel paging request at ffff880457b5763f
+> IP: [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> PGD 27f6067 PUD 0
+> Oops: 0000 [#1] PREEMPT SMP
+> Modules linked in: xt_state xt_helper nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_mangle xt_connmark xt_conntrack ip6_tables nf_conntrack_ftp ip_vs_ftp nf_nat xt_tcpudp iptable_mangle xt_mark ip_tables x_tables ip_vs_rr ip_vs_lblcr ip_vs_pe_sip ip_vs nf_conntrack_sip nf_conntrack bonding igb i2c_algo_bit i2c_core
+> CPU 5
+> Pid: 0, comm: swapper/5 Not tainted 3.9.0-rc5+ #5                  /S1200KP
+> RIP: 0010:[<ffffffff810df7fc>]  [<ffffffff810df7fc>] kmemdup+0x2e/0x35
+> RSP: 0018:ffff8803fea03648  EFLAGS: 00010282
+> RAX: ffff8803d61063e0 RBX: 0000000000000003 RCX: 0000000000000003
+> RDX: 0000000000000003 RSI: ffff880457b5763f RDI: ffff8803d61063e0
+> RBP: ffff8803fea03658 R08: 0000000000000008 R09: 0000000000000011
+> R10: 0000000000000011 R11: 00ffffffff81a8a3 R12: ffff880457b5763f
+> R13: ffff8803d67f786a R14: ffff8803fea03730 R15: ffffffffa0098e90
+> FS:  0000000000000000(0000) GS:ffff8803fea00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: ffff880457b5763f CR3: 0000000001a0c000 CR4: 00000000001407e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process swapper/5 (pid: 0, threadinfo ffff8803ee18c000, task ffff8803ee18a480)
+> Stack:
+>  ffff8803d822a080 000000000000001c ffff8803fea036c8 ffffffffa000937a
+>  ffffffff81f0d8a0 000000038135fdd5 ffff880300000014 ffff880300110000
+>  ffffffff150118ac ffff8803d7e8a000 ffff88031e0118ac 0000000000000000
+> Call Trace:
+>  <IRQ>
+> 
+>  [<ffffffffa000937a>] ip_vs_sip_fill_param+0x13a/0x187 [ip_vs_pe_sip]
+>  [<ffffffffa007b209>] ip_vs_sched_persist+0x2c6/0x9c3 [ip_vs]
+>  [<ffffffff8107dc53>] ? __lock_acquire+0x677/0x1697
+>  [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>  [<ffffffff8100972e>] ? native_sched_clock+0x3c/0x7d
+>  [<ffffffff810649bc>] ? sched_clock_cpu+0x43/0xcf
+>  [<ffffffffa007bb1e>] ip_vs_schedule+0x181/0x4ba [ip_vs]
+> ...
+> 
+> [ git cherry-pick f7a1dd6 ]
+> 
+> Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
 
-On Wednesday 2013-05-08 17:12, Dmitry Popov wrote:
->
->> With nf_nat having gained IPv6 support, I also feel less inclined to 
->> keep xt_RAWNAT around.
->
->nf_nat depends on conntrack and conntrack brings a huge overhead to 
->such a simple task like NAT. xt_RAWNAT simply solves NAT problem, it
->definitely has to stay.
+This should also go into other stable kernel releases as well, right?
 
-The only way to solve the NAT problem is to do without it.
-Full NAT is not simple at all, it requires DPI.
-RAWNAT is just a dumb l3addr replacer and does not help
-getting multi-connection sessions (such as 959ish FTP) going.
+thanks,
+
+greg k-h
