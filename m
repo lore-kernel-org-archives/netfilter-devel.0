@@ -1,51 +1,48 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: iptables upgrade: netmask parsing trouble
-Date: Wed, 08 May 2013 10:17:59 +0200
-Message-ID: <1548294.4rj9RFaJ57@storm>
+From: "John P. Goldman" <gliceaga@mendoza-conicet.gob.ar>
+Subject: dringender Vorschlag
+Date: Wed, 8 May 2013 05:46:28 -0300 (ART)
+Message-ID: <351326728.69416.1368002788604.JavaMail.root__20357.5986008675$1368003348$gmane$org@correo.mendoza-conicet.gob.ar>
+Reply-To: "John P. Goldman" <johnp.goldman@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:55200 "EHLO
-	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab3EHISC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 May 2013 04:18:02 -0400
-Received: from intranator.m.i2n (unknown [172.16.1.99])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by re04.intra2net.com (Postfix) with ESMTP id A3EEF300D2
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:18:00 +0200 (CEST)
-Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id 79DBA2AC58
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:18:00 +0200 (CEST)
-Received: from storm.localnet (storm.m.i2n [172.16.1.2])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by intranator.m.i2n (Postfix) with ESMTPS id 51A9F2AC51
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:17:59 +0200 (CEST)
+Received: from mx2.mendoza-conicet.gob.ar ([200.69.149.90]:44488 "EHLO
+	mx2.mendoza-conicet.gob.ar" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753269Ab3EHIzf convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 May 2013 04:55:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-I've just updated from iptables 1.4.8 to 1.4.18 (git HEAD to be precise)
-and now face some trouble with netmask parsing:
-
-This used to work with 1.4.8:
--A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/255.255.255.0 -j RETURN
-
-With git HEAD I get:
-iptables-restore v1.4.18: policy: bad value for option "--tunnel-src", or out of range (0-32)
 
 
-This of course works:
--A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/24 -j RETURN
+Entschuldigungen f=C3=BCr kommen in Ihre Privatsph=C3=A4re! Ich bin Rec=
+htsanwalt
+Werner Erich Zeller; Ich habe einen meiner einflussreichen und
+wohlhabenden Kunden zum Tode; und er hatte eine sehr geheime und privat=
+e
+Investitionen von =E2=82=AC15,000,000.00 bei einer privaten Bank in Gro=
+=C3=9Fbritannien
+hier zu Lebzeiten. Diese Investition wurde ohne einen deklarierten
+n=C3=A4chsten Angeh=C3=B6rigen und beg=C3=BCnstigte. Jetzt brauche ich =
+Sie arbeiten mit
+mir als mein Partner zu erholen und zu je 50 % Aktienfonds. Alle Dokume=
+nte
+werden rechtlich beantragt und beschafft, und in 5 Werktage, wird diese
+Transaktion auftreten. Aber ich brauche einen ernsten, treuen und
+glaubw=C3=BCrdigen Partner.
 
+Bitte senden Sie mir eine vertrauliche Antwort, wenn Sie denken, Sie
+vertraut werden k=C3=B6nnen und sind von den Qualit=C3=A4ten! Ich warte=
+ auf Ihre
+schnelle Antwort.
 
-Any reason why we don't accept the full format anymore?
-
-Cheers,
-Thomas
-
+Werner Erich Zeller (Rechtsanwalt)
+Rufen Sie + 44-702-409-0820 (Office)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
