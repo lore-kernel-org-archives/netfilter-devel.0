@@ -1,40 +1,51 @@
 From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: nfacct version dependency
-Date: Wed, 08 May 2013 09:10:50 +0200
-Message-ID: <1475239.ZWarQo59dL@storm>
-References: <3347028.Gq033PXqRA@storm> <20130507190444.GA16455@localhost>
+Subject: iptables upgrade: netmask parsing trouble
+Date: Wed, 08 May 2013 10:17:59 +0200
+Message-ID: <1548294.4rj9RFaJ57@storm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:37794 "EHLO
+Received: from re04.intra2net.com ([82.165.46.26]:55200 "EHLO
 	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188Ab3EHHK5 (ORCPT
+	with ESMTP id S1751439Ab3EHISC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 May 2013 03:10:57 -0400
-In-Reply-To: <20130507190444.GA16455@localhost>
+	Wed, 8 May 2013 04:18:02 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by re04.intra2net.com (Postfix) with ESMTP id A3EEF300D2
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:18:00 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 79DBA2AC58
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:18:00 +0200 (CEST)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 51A9F2AC51
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 May 2013 10:17:59 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi,
 
-On Tuesday, 7. May 2013 21:04:44 Pablo Neira Ayuso wrote:
-> > nfacct currently requires "libnetfilter_acct >= 1.0.2"
-> > which has not been released yet.
-> 
-> http://www.netfilter.org/projects/libnetfilter_acct/downloads.html
-> http://www.netfilter.org/projects/libnetfilter_acct/files/libnetfilter_acc
-> t-1.0.2.tar.bz2
+I've just updated from iptables 1.4.8 to 1.4.18 (git HEAD to be precise)
+and now face some trouble with netmask parsing:
 
-hmm, that's odd, I'm pretty sure I've updated the git tree yesterday
-and the commits for this weren't there. Anyway, thanks Pablo!
-There was even a release announcement message for this...
+This used to work with 1.4.8:
+-A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/255.255.255.0 -j RETURN
 
-The mailinglist archive linked on the project page seems down:
-http://www.netfilter.org/projects/libnetfilter_acct/mailinglists.html
-In fact it seems unavailable for the other projects, too.
+With git HEAD I get:
+iptables-restore v1.4.18: policy: bad value for option "--tunnel-src", or out of range (0-32)
 
+
+This of course works:
+-A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/24 -j RETURN
+
+
+Any reason why we don't accept the full format anymore?
+
+Cheers,
 Thomas
 
