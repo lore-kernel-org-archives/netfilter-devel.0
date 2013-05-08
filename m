@@ -1,41 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Subject: Re: iptables upgrade: netmask parsing trouble
-Date: Wed, 8 May 2013 15:10:16 +0200
-Message-ID: <20130508131016.GA3921@localhost>
-References: <1548294.4rj9RFaJ57@storm>
+Date: Wed, 08 May 2013 17:01:13 +0200
+Message-ID: <1764925.ueeBFl1d2D@storm>
+References: <1548294.4rj9RFaJ57@storm> <20130508131016.GA3921@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51828 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755012Ab3EHNK3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 May 2013 09:10:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1548294.4rj9RFaJ57@storm>
+Received: from re04.intra2net.com ([82.165.46.26]:59181 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756236Ab3EHPBQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 May 2013 11:01:16 -0400
+In-Reply-To: <20130508131016.GA3921@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 08, 2013 at 10:17:59AM +0200, Thomas Jarosch wrote:
-> Hi,
+On Wednesday, 8. May 2013 15:10:16 you wrote:
+> > Any reason why we don't accept the full format anymore?
 > 
-> I've just updated from iptables 1.4.8 to 1.4.18 (git HEAD to be precise)
-> and now face some trouble with netmask parsing:
-> 
-> This used to work with 1.4.8:
-> -A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/255.255.255.0 -j RETURN
-> 
-> With git HEAD I get:
-> iptables-restore v1.4.18: policy: bad value for option "--tunnel-src", or out of range (0-32)
-> 
-> 
-> This of course works:
-> -A foo -m policy --mode tunnel --dir in --tunnel-src 192.168.123.0/24 -j RETURN
-> 
-> Any reason why we don't accept the full format anymore?
+> No. Things that used to work have to work indeed. Just sent a patch to
+> fix it.
 
-No. Things that used to work have to work indeed. Just sent a patch to
-fix it.
+patch seems to work fine (=loads the firewall again).
+Thanks for the quick fix.
 
-Thanks for the report Thomas.
+Thomas
+
