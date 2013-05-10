@@ -1,77 +1,64 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next] netfilter: xt_CT: optimize XT_CT_NOTRACK
-Date: Thu, 09 May 2013 13:52:31 -0700
-Message-ID: <1368132751.13473.113.camel@edumazet-glaptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH RFC 0/11] ulogd2 db rework
+Date: Fri, 10 May 2013 08:48:47 +0200
+Message-ID: <1368168538-29780-1-git-send-email-eric@regit.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:51446 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824Ab3EJGtS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 May 2013 02:49:18 -0400
+Received: from bayen.regit.org ([81.57.69.189] helo=ice-age.regit.org)
+	by ks28632.kimsufi.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <eric@regit.org>)
+	id 1Uah8j-0007YZ-FC
+	for netfilter-devel@vger.kernel.org; Fri, 10 May 2013 08:49:15 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
 
-The percpu untracked ct are not currently used for XT_CT_NOTRACK.
+Hello,
 
-xt_ct_tg_check()/xt_ct_target() provides a single ct.
+Here's a patchset for ulogd which is aiming at improving the way
+databases are handled. It features two different parts:
+ - a backlog system (patch 06) which allow queries to be store in
+ memory when the database is not available. Data loss is prevented
+ in this case (in the limit of the defined memcap)
+ - a multithreaded ulogd db output (patch 09) with one thread getting
+ messages from kernel and an other one dedicated to the SQL queries
+ execution.
 
-Thats not optimal as the ct->ct_general.use cache line will bounce among
-cpus.
+The backlog system prevent data loss and only cost memory when the
+database is down. The multithreaded db output uses a ring buffer
+(which cost memory) for communication between the two threads.
 
-Use the intended [1] thing : xt_ct_target() should select the percpu
-object.
+The idea behind the multithreaded db output is to almost fix the time
+needed to read a kernel message. Doing this, ulogd should be more
+resistant to burst of kernel messages as kernel-user buffer will not
+be filled due to the high treatment time needed to execute SQL query.
 
-[1] Refs :
-commit 5bfddbd46a95c97 ("netfilter: nf_conntrack: IPS_UNTRACKED bit")
-commit b3c5163fe0193a7 ("netfilter: nf_conntrack: per_cpu untracking")
+Both features are modifying the generic db system inside ulogd. So the
+modification is available in pgsql, mysql and dbi output. It has for
+now only been tested on pgsql.
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- net/netfilter/xt_CT.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Comments, feedbacks and test results are more than welcome on both
+these features.
 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index a60261c..da35ac0 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -26,6 +26,9 @@ static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
- 	if (skb->nfct != NULL)
- 		return XT_CONTINUE;
- 
-+	/* special case the untracked ct : we want the percpu object */
-+	if (!ct)
-+		ct = nf_ct_untracked_get();
- 	atomic_inc(&ct->ct_general.use);
- 	skb->nfct = &ct->ct_general;
- 	skb->nfctinfo = IP_CT_NEW;
-@@ -186,8 +189,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 	int ret = -EOPNOTSUPP;
- 
- 	if (info->flags & XT_CT_NOTRACK) {
--		ct = nf_ct_untracked_get();
--		atomic_inc(&ct->ct_general.use);
-+		ct = NULL;
- 		goto out;
- 	}
- 
-@@ -311,7 +313,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 	struct nf_conn *ct = info->ct;
- 	struct nf_conn_help *help;
- 
--	if (!nf_ct_is_untracked(ct)) {
-+	if (ct && !nf_ct_is_untracked(ct)) {
- 		help = nfct_help(ct);
- 		if (help)
- 			module_put(help->helper->me);
-@@ -319,8 +321,8 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 		nf_ct_l3proto_module_put(par->family);
- 
- 		xt_ct_destroy_timeout(ct);
-+		nf_ct_put(info->ct);
- 	}
--	nf_ct_put(info->ct);
- }
- 
- static void xt_ct_tg_destroy_v0(const struct xt_tgdtor_param *par)
+Patchset statistics:
+
+ configure.ac                          |   32 ++-
+ include/ulogd/db.h                    |   67 +++++-
+ output/mysql/ulogd_output_MYSQL.c     |    4 +-
+ output/pgsql/ulogd_output_PGSQL.c     |    4 +-
+ output/sqlite3/ulogd_output_SQLITE3.c |    2 +
+ src/Makefile.am                       |    2 +-
+ src/ulogd.c                           |    2 +-
+ ulogd.conf.in                         |   13 ++
+ util/db.c                             |  371 +++++++++++++++++++++++++++------
+ 9 files changed, 417 insertions(+), 80 deletions(-)
+
+BR,
+--
+Eric Leblond <eric@regit.org>
