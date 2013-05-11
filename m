@@ -1,36 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 09/11] db: add ring buffer for DB query
-Date: Sat, 11 May 2013 21:29:22 +0200
-Message-ID: <20130511192922.GA10791@localhost>
-References: <1368168538-29780-1-git-send-email-eric@regit.org>
- <1368168538-29780-10-git-send-email-eric@regit.org>
+From: Chris Boot <bootc@bootc.net>
+Subject: Re: [PATCH 2/2] ulogd: Implement PID file writing
+Date: Sat, 11 May 2013 21:27:31 +0100
+Message-ID: <518EA9B3.8050606@bootc.net>
+References: <1368291713-40132-1-git-send-email-bootc@bootc.net> <1368291713-40132-3-git-send-email-bootc@bootc.net> <20130511192150.GA10646@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58758 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802Ab3EKT33 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 May 2013 15:29:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1368168538-29780-10-git-send-email-eric@regit.org>
+Received: from kamaji.grokhost.net ([87.117.218.43]:47204 "EHLO
+	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754291Ab3EKUfn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 May 2013 16:35:43 -0400
+In-Reply-To: <20130511192150.GA10646@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+On 11/05/2013 20:21, Pablo Neira Ayuso wrote:
+> Hi Chris,
+>
+> On Sat, May 11, 2013 at 06:01:53PM +0100, Chris Boot wrote:
+>> The deamon currently does not have the ability to write a PID file to track its
+>> process ID. This is very useful to an init script and to ensure there is only
+>> one running instance. This patch implements this functionality.
+> This belongs to the scope of the script and it doesn't seem to be
+> useful for the internal operation of ulogd2.
+>
+> You can generate that PID file with something like:
+>
+> ps -ef | grep ulogd$ | awk '{ printf $2 }'
+>
+> And someone may want to have more than one instance of ulogd2, that's
+> perfectly possible. Actually that's a good idea if you need to log
+> both NFLOG and NFCT at the same time and you're running ulogd2 in a
+> multi-core system. That will help to avoid hitting Netlink overrun
+> errors.
 
-On Fri, May 10, 2013 at 08:48:56AM +0200, Eric Leblond wrote:
-> This patch adds an optional ring buffer option which modify
-> the way database queries are made. The main thread is only handling
-> kernel message reading and query formatting. The SQL request is made
-> in a separate dedicated thread.
-> The idea is to try to avoid buffer overrun by minimizing the time
-> requested to treat kernel message. Doing synchronous SQL request, as
-> it was made before was causing a delay which could cause some messages
-> to be lost in case of burst from kernel side.
+Hi Pablo,
 
-Would be feasible to make asynchronous SQL requests instead, so you
-can skip the use of pthread?
+I'd argue exactly the opposite point: that when you want multiple
+instances a PID file can help you work out which is which. My patch adds
+an option that takes a filename argument, so two instances can write to
+two different PID files; grepping ps won't easily tell you which
+instance is the correct one (without resorting to grepping for
+command-line arguments). Additionally, using a PID file is completely
+optional and there is no change in behaviour unless you pass the argument.
 
-Regards.
+Cheers,
+Chris
+
+-- 
+Chris Boot
+bootc@bootc.net
+
