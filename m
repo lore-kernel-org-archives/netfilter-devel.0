@@ -1,57 +1,56 @@
-From: Chris Boot <bootc@bootc.net>
-Subject: Re: [PATCH 2/2] ulogd: Implement PID file writing
-Date: Sat, 11 May 2013 21:27:31 +0100
-Message-ID: <518EA9B3.8050606@bootc.net>
-References: <1368291713-40132-1-git-send-email-bootc@bootc.net> <1368291713-40132-3-git-send-email-bootc@bootc.net> <20130511192150.GA10646@localhost>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] libipset.pc must be installed via 'make install'
+Date: Sat, 11 May 2013 23:00:03 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1305112259090.29805@blackhole.kfki.hu>
+References: <1368217517-19894-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kamaji.grokhost.net ([87.117.218.43]:47204 "EHLO
-	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291Ab3EKUfn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 May 2013 16:35:43 -0400
-In-Reply-To: <20130511192150.GA10646@localhost>
+Received: from smtp0.kfki.hu ([148.6.0.25]:57922 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754272Ab3EKVAG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 May 2013 17:00:06 -0400
+In-Reply-To: <1368217517-19894-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/05/2013 20:21, Pablo Neira Ayuso wrote:
-> Hi Chris,
->
-> On Sat, May 11, 2013 at 06:01:53PM +0100, Chris Boot wrote:
->> The deamon currently does not have the ability to write a PID file to track its
->> process ID. This is very useful to an init script and to ensure there is only
->> one running instance. This patch implements this functionality.
-> This belongs to the scope of the script and it doesn't seem to be
-> useful for the internal operation of ulogd2.
->
-> You can generate that PID file with something like:
->
-> ps -ef | grep ulogd$ | awk '{ printf $2 }'
->
-> And someone may want to have more than one instance of ulogd2, that's
-> perfectly possible. Actually that's a good idea if you need to log
-> both NFLOG and NFCT at the same time and you're running ulogd2 in a
-> multi-core system. That will help to avoid hitting Netlink overrun
-> errors.
+On Fri, 10 May 2013, Eric Leblond wrote:
 
-Hi Pablo,
+> libipset.pc was not installed by classic 'make install'. This
+> patch adds it to the list of installed files.
 
-I'd argue exactly the opposite point: that when you want multiple
-instances a PID file can help you work out which is which. My patch adds
-an option that takes a filename argument, so two instances can write to
-two different PID files; grepping ps won't easily tell you which
-instance is the correct one (without resorting to grepping for
-command-line arguments). Additionally, using a PID file is completely
-optional and there is no change in behaviour unless you pass the argument.
+Thank you Eric, I have applied your patch.
 
-Cheers,
-Chris
+Best regards,
+Jozsef 
 
--- 
-Chris Boot
-bootc@bootc.net
+> Signed-off-by: Eric Leblond <eric@regit.org>
+> ---
+>  lib/Makefile.am |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/lib/Makefile.am b/lib/Makefile.am
+> index 2d22aff..ccc02aa 100644
+> --- a/lib/Makefile.am
+> +++ b/lib/Makefile.am
+> @@ -36,6 +36,9 @@ libipset_la_SOURCES = \
+>  
+>  EXTRA_DIST = $(IPSET_SETTYPE_LIST) libipset.map
+>  
+> +pkgconfigdir = $(libdir)/pkgconfig
+> +pkgconfig_DATA = libipset.pc
+> +
+>  sparse-check: $(libipset_la_SOURCES:.c=.d)
+>  
+>  %.d: %.c
+> -- 
+> 1.7.10.4
+> 
 
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
