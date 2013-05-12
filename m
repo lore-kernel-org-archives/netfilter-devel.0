@@ -1,102 +1,117 @@
-From: Chris Boot <bootc@bootc.net>
-Subject: Re: [PATCH 2/2] ulogd: Implement PID file writing
-Date: Sun, 12 May 2013 11:08:00 +0100
-Message-ID: <518F6A00.2050205@bootc.net>
-References: <1368291713-40132-1-git-send-email-bootc@bootc.net>  <1368291713-40132-3-git-send-email-bootc@bootc.net>  <20130511192150.GA10646@localhost> <518EA9B3.8050606@bootc.net>  <20130512004852.GA11205@localhost> <518F4EC7.1050403@bootc.net>  <20130512093405.GA12095@localhost> <1368352062.22387.15.camel@ice-age.regit.org>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH 09/11] db: add ring buffer for DB query
+Date: Sun, 12 May 2013 12:29:29 +0200
+Message-ID: <1368354569.22387.48.camel@ice-age.regit.org>
+References: <1368168538-29780-1-git-send-email-eric@regit.org>
+	 <1368168538-29780-10-git-send-email-eric@regit.org>
+	 <20130511192922.GA10791@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="----enig2QPTAMFLAQETVHDCMKKVD"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-t7XmpplXQ/xOu2TxJGnV"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kamaji.grokhost.net ([87.117.218.43]:50049 "EHLO
-	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab3ELKIW (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:38742 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753169Ab3ELK3h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 May 2013 06:08:22 -0400
-In-Reply-To: <1368352062.22387.15.camel@ice-age.regit.org>
+	Sun, 12 May 2013 06:29:37 -0400
+In-Reply-To: <20130511192922.GA10791@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
-------enig2QPTAMFLAQETVHDCMKKVD
-Content-Type: text/plain; charset=ISO-8859-15
+
+--=-t7XmpplXQ/xOu2TxJGnV
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: quoted-printable
 
-On 12/05/2013 10:47, Eric Leblond wrote:
-> Hi,
+Hi,
+
+Le samedi 11 mai 2013 =E0 21:29 +0200, Pablo Neira Ayuso a =E9crit :
+> Hi Eric,
 >=20
-> Le dimanche 12 mai 2013 =E0 11:34 +0200, Pablo Neira Ayuso a =E9crit :
->> Hi Chris,
->>
->> On Sun, May 12, 2013 at 09:11:51AM +0100, Chris Boot wrote:
->>> On 12/05/2013 01:48, Pablo Neira Ayuso wrote:
->>>> On Sat, May 11, 2013 at 09:27:31PM +0100, Chris Boot wrote:
->>>> [...]
->>>>> Hi Pablo,
->>>>>
->>>>> I'd argue exactly the opposite point: that when you want multiple
->>>>> instances a PID file can help you work out which is which.
->>>> That new option may break existing setups with multiple instances.
->>>
->>> My patch explicitly doesn't change the behaviour of existing
->>> configurations. If you don't pass '--pidfile /path/to/file.pid', no p=
-id
->>> file is written and there is no change in how ulogd works.
->>
->> Existing setups having already two ulogd2 instances will break, as
->> they won't be passing --pidfile, thus clashing on the same default pid=
-
->> file. One of the instances will not proceed. They will have to add
->> --pidfile to their scripts to get things back working.
+> On Fri, May 10, 2013 at 08:48:56AM +0200, Eric Leblond wrote:
+> > This patch adds an optional ring buffer option which modify
+> > the way database queries are made. The main thread is only handling
+> > kernel message reading and query formatting. The SQL request is made
+> > in a separate dedicated thread.
+> > The idea is to try to avoid buffer overrun by minimizing the time
+> > requested to treat kernel message. Doing synchronous SQL request, as
+> > it was made before was causing a delay which could cause some messages
+> > to be lost in case of burst from kernel side.
 >=20
-> If I read the patch correctly, the pidfile is not created if the option=
+> Would be feasible to make asynchronous SQL requests instead, so you
+> can skip the use of pthread?
 
-> is not given:
+That is an excellent question :)
 
-[snip]
+Here's a list of points. From the small to big one.
 
-> But, as pointed out by Pablo's reading of the code, testing if we need
-> to write the file only inside of write_pidfile() is a bit confusing
-> something like:
->=20
->   if (ulogd_pidfile) write_pidfile(); // add error handling here
->=20
-> would be better.
+=46rom a performance point of view, ulogd will still be slow down by the
+request time due to the network communication with the db . I think the
+effect is really negligible but may have an impact in the case of
+distant db.
 
-Yes, that makes sense, I'll change that and resubmit the patch.
+=46rom a lazy point of view, this would require to update all the database
+backends instead of simply updating the db abstraction layer as it is
+done with the proposed patch.
 
-Chris
+Regarding the use of asynchronous request, I've always stop trying using
+them after reading the doc. So I've got no practical experience here and
+correct someone correct me if I'm wrong. What I've understood is that
+there is no "take my query and just do your work" function. Application
+has to get the result to the query and free them.
 
---=20
-Chris Boot
-bootc@bootc.net
+For example, let's have a look at postgresql case. The doc on
+asynchronous API is here:
+http://www.postgresql.org/docs/6.4/static/libpq-chapter17044.htm
+
+Here's an interesting part of the documentation:
+       =20
+        PQsendQuery: Submit a query to Postgres without waiting for the
+        result(s). TRUE is returned if the query was successfully
+        dispatched, FALSE if not (in which case, use PQerrorMessage to
+        get more information about the failure).
+        After successfully calling PQsendQuery, call PQgetResult one or
+        more times to obtain the query results. PQsendQuery may not be
+        called again (on the same connection) until PQgetResult has
+        returned NULL, indicating that the query is done.
+
+On other interesting point regarding PQgetResult:
+
+        Don't forget to free each result object with PQclear when done
+        with it.
+
+So, the modification would involve doing query with PQsendQuery and
+repeatedly call the PQgetResult function to get the result and be able
+to free it with PQclear.
+
+I think this system does not really fit with ulogd task which consists
+in multiple short queries. It is far more adapted for long queries and
+for GUI using them as ulogd will continuously be calling PQgetResult to
+free result it will not use. So, it is complicated and does not seem
+really adapted.
+
+Here's the points that make me consider using thread instead of
+asynchronous call.
+
+BR,
+--
+Eric
 
 
-------enig2QPTAMFLAQETVHDCMKKVD
+--=-t7XmpplXQ/xOu2TxJGnV
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRj2oRAAoJEHG+dgSahnPilhcQAIgzGlM91x1SP9WLyvt7ypLW
-057TTDnA2mWBVQ5p7/qqxcOqpd5ZIrQYeaU46PwdPTcvAs3ZF3IHfgqznEOqNQgW
-FcH7QQRoj9OSxwBMcjDsKJebEHu53/8LC3BHacyyOFl47KRzBrHFTEvX7ouDdZL0
-q1YDzlqWkiXr+LAoWY4IPAZUVgOt98SM5oIAmCWqCo05UOTAW9YvIyNkMQhYFjfE
-wc+NMg2SVSQw1ykRaS6eLpQYSur6f3aqPiOjZGrlYD+YHBufqPlC9tTP1MoXPoYe
-QQo8yalkCytCmSzbzVW5C/8a6LQ3xxuxCAV4iso1DzK1d9cZ3Cq0Tpp+YNAstOuN
-XRgRiUAfwjwRtyOug4zmISWCRZMhuSoyN2DhztImzPxLrsfv06KOKgXl2dwxsPRf
-GOUIl+oh7eZBEmNmHMLIb9lBt+b8kiFMjpFMp6MeOb+5rlpPdSW8nTV4/flphudR
-8zp+Rd7jnqfHJViGfjrdyZdfu4DxI7B+xBWvWoNZGUqR7hTfys0xOwVV8zeBNjIa
-8sESA5KCKtADpg9vyOZPCSauckW7jD1Equfah6aSTsdB++CXqoz7YCD/RV6iL7p8
-BQC5x7tG+YzajaYP2FuGuneud4M31ZvX/gckZJtV+eTuf0O3jlMjTDngt9kezlGw
-g2F9LzyAkaYPhxvyM/Yo
-=rzMh
+iD8DBQBRj28JnxA7CdMWjzIRAsGWAJ9ZR4uuP/zRAvqRgRILswdI8jXl7QCfUJ2f
+glQY8BZbJqEyUXVz3Vodmao=
+=nYsp
 -----END PGP SIGNATURE-----
 
-------enig2QPTAMFLAQETVHDCMKKVD--
+--=-t7XmpplXQ/xOu2TxJGnV--
+
