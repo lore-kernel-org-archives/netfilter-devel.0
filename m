@@ -1,37 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Some netfilter compile errors when CONFIG_IPV6=m
-Date: Tue, 14 May 2013 05:10:18 +0200
-Message-ID: <20130514031018.GA4964@localhost>
-References: <1368499552.2507.5.camel@cr0>
- <1368499702.2507.7.camel@cr0>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables/libnfables PATCHES] Target translation to nftables
+Date: Tue, 14 May 2013 13:49:26 +0300
+Message-ID: <519216B6.7060701@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
-To: Cong Wang <amwang@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49040 "EHLO mail.us.es"
+Received: from mga02.intel.com ([134.134.136.20]:56945 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755376Ab3ENDKX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 May 2013 23:10:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1368499702.2507.7.camel@cr0>
+	id S1751523Ab3ENKt2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 May 2013 06:49:28 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 14, 2013 at 10:48:22AM +0800, Cong Wang wrote:
-> On Tue, 2013-05-14 at 10:45 +0800, Cong Wang wrote:
-> > net/built-in.o: In function `tproxy_tg_init':
-> > /home/wangcong/linux/net/netfilter/xt_TPROXY.c:415: undefined reference
-> > to `nf_defrag_ipv6_enable'
-> > net/built-in.o: In function `socket_mt_init':
-> > /home/wangcong/linux/net/netfilter/xt_socket.c:366: undefined reference
-> > to `nf_defrag_ipv6_enable'
-> 
-> I don't know why we keep an empty definition for
-> nf_defrag_ipv6_enable(), so I make a patch to remove it, not sure if it
-> makes sense.
+Hi,
 
-It's there to enforce the dependency between nf_conntrack and
-nf_defrag. We cannot run nf_conntrack without it.
+You will find 2 sets of patches, one for libnftables and one 
+foriptables-nftables.
+
+Among some fixes, one feature has been added: DNAT support in 
+iptables-nftables.
+
+Iimplemented quickly only this one to show how to translate targets blob 
+into nftables expression. Other ones can be easily implemented as well.
+But whenit iseasy in that way, it will be a bit trickier in the other way.
+
+Actually, I have not found a proper solution to output the rule in 
+iptables format from the expression list. Nothing clean.
+If someone has anice idea...
+
+
+The 2 sets will follow this mail.
+
+Br,
+
+Tomasz
