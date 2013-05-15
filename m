@@ -1,59 +1,49 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [iptables-nftables PATCH 6/6] xtables: add suport for DNAT rule
- translation to nft extensions
-Date: Wed, 15 May 2013 16:24:04 +0300
-Message-ID: <51938C74.3090905@linux.intel.com>
-References: <519216B6.7060701@linux.intel.com> <1368528727-10127-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1368528727-10127-7-git-send-email-tomasz.bursztyka@linux.intel.com> <20130514223035.GC10082@localhost> <51932FBC.1060904@linux.intel.com> <20130515125155.GB1349@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 7/7] chain: handle attribute is relevant if
+ only there is no name to use
+Date: Wed, 15 May 2013 15:40:10 +0200
+Message-ID: <20130515134010.GA1577@localhost>
+References: <519216B6.7060701@linux.intel.com>
+ <1368528682-10041-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1368528682-10041-8-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <20130514222051.GB10082@localhost>
+ <5193265B.3050605@linux.intel.com>
+ <20130515124330.GA1349@localhost>
+ <51938852.1070705@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46041 "EHLO mga11.intel.com"
+Received: from mail.us.es ([193.147.175.20]:47659 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932650Ab3EONYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 May 2013 09:24:07 -0400
-In-Reply-To: <20130515125155.GB1349@localhost>
+	id S1757296Ab3EONkS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 May 2013 09:40:18 -0400
+Content-Disposition: inline
+In-Reply-To: <51938852.1070705@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
->> Why not, it's a design preference. I liked the idea extension don't
->> mess up with the rule and only provides its expression list.
->> it's less code on libnftables on your idea at least.
-> We have to trust our iptables extensions.
->
-> What extra sanity checking are you going to make anyway if the
-> extension puzzles with this internal expr_list?
+On Wed, May 15, 2013 at 04:06:26PM +0300, Tomasz Bursztyka wrote:
+> Hi Pablo,
+> >But the handle number is built into the netlink message if the client
+> >sets the NFT_CHAIN_ATTR_HANDLE. Looking at iptables-nftables, that
+> >only happens in nft_chain_user_rename.
+> >
+> >This seems to me like the client needs to be fixed not to set both
+> >attributes at the same time (unless it wants a chain rename).
+> >
+> >Where are you hitting this?
+> >
+> 
+> I was actually playing on my own with libnftables.
+> It's easy: dump the chain list, then change the policy on one chain
+> for instance, build the message to apply this change, send it...
+> 
+> We haven't hit the bug yet anywhere, because no code does such
+> settings change after a dump, but we - or whatever app - surely will
+> at some point.
 
-What do you mean?
-
-Return 0/-1 instead of pointer/NULL is same.
-As I said I am fine with your proposal in addition that it requires less 
-code in libnftables.
-
->> Now on the reverse way, we don't know at all to which extension the
->> expression list belongs to, so which translation function to call.
->> Currently the only way I see it is to loop on all extensions until
->> one returns successfully.
-> You need some dispatcher code that interprets the nft_expr and routes
-> it to the right iptables extension. So you will need also one .c file
-> per expression in the kernel, e.g. nft_nat.c, that performs this
-> dispatching / routing to the right extension.
-
-You lost me. Why kernel is involved here?
-
-> Probably checking netlink_delinearize.c in nft can provide your some
-> ideas.
-
-Yes, and I actually use netlink_linearize.c to help for translation.
-
->> We should take care of the position in the expression list as well,
->> and here I see we will need some more functions from libnftables.
-> You have the expression iterator already.
-
-I believe it won't be sufficient. Let's see.
-
-
-Tomasz
+We should document that. I have a patch to add the doxygen doc to
+libnftables. I prefer that user is in control of this, instead of
+adding internal workarounds to avoid tricky situations.
