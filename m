@@ -1,35 +1,71 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [libnftables PATCH 7/7] chain: handle attribute is relevant if
- only there is no name to use
-Date: Wed, 15 May 2013 16:54:46 +0300
-Message-ID: <519393A6.7090301@linux.intel.com>
-References: <519216B6.7060701@linux.intel.com> <1368528682-10041-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1368528682-10041-8-git-send-email-tomasz.bursztyka@linux.intel.com> <20130514222051.GB10082@localhost> <5193265B.3050605@linux.intel.com> <20130515124330.GA1349@localhost> <51938852.1070705@linux.intel.com> <20130515134010.GA1577@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
+ packet boundary
+Date: Wed, 15 May 2013 15:59:35 +0200
+Message-ID: <20130515135935.GA1605@localhost>
+References: <1368619552-30635-1-git-send-email-pablo@netfilter.org>
+ <20130515123336.GE18095@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5628 "EHLO mga01.intel.com"
+Received: from mail.us.es ([193.147.175.20]:50387 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759013Ab3EONy5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 May 2013 09:54:57 -0400
-In-Reply-To: <20130515134010.GA1577@localhost>
+	id S1759202Ab3EON7m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 May 2013 09:59:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20130515123336.GE18095@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
->> I was actually playing on my own with libnftables.
->> >It's easy: dump the chain list, then change the policy on one chain
->> >for instance, build the message to apply this change, send it...
->> >
->> >We haven't hit the bug yet anywhere, because no code does such
->> >settings change after a dump, but we - or whatever app - surely will
->> >at some point.
-> We should document that. I have a patch to add the doxygen doc to
-> libnftables. I prefer that user is in control of this, instead of
-> adding internal workarounds to avoid tricky situations.
+On Wed, May 15, 2013 at 02:33:36PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > This target assumes that tcph->doff is well-formed, that may be well
+> > not the case. Add extra sanity checkings to avoid possible crash due
+> > to read/write out of the real packet boundary.
+> 
+> >  static unsigned int
+> >  tcpoptstrip_mangle_packet(struct sk_buff *skb,
+> > -			  const struct xt_tcpoptstrip_target_info *info,
+> > +			  const struct xt_action_param *par,
+> >  			  unsigned int tcphoff, unsigned int minlen)
+> >  {
+> > +	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+> >  	unsigned int optl, i, j;
+> >  	struct tcphdr *tcph;
+> >  	u_int16_t n, o;
+> >  	u_int8_t *opt;
+> > +	int len;
+> > +
+> [..]
+> > +	len = skb->len - tcphoff;
+> > +	if (len < sizeof(struct tcphdr))
+> 
+> I think this needs a cast 'if (len < (int) sizeof( ...?
 
-As you want, but it will complicate things for the user a bit.
+I'm not hitting any compilation warning.
 
-Tomasz
+> > @@ -51,7 +67,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+> >  	for (i = sizeof(struct tcphdr); i < tcp_hdrlen(skb); i += optl) {
+> >  		optl = optlen(opt, i);
+> >  
+> > -		if (i + optl > tcp_hdrlen(skb))
+> > +		if (i + optl > len)
+> >  			break;
+> 
+> I don't understand this change.  This should stop parsing if the
+> option length points outside of the tcp option size.
+> 
+> But doesn't len include the size of the actual payload?
+
+We already validated a bit above that there's room for the TCP
+options in the packet.
+
+        /* Truncated TCP options, skip */
+        if ((tcp_hdr(skb)->doff - 5) * 4 > len - sizeof(struct tcphdr))
+                return NF_DROP;
+
+So after that point we can trust the tcph->doff field.
+
+Therefore, you're right, I'll remove that change. Thanks.
