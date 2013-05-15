@@ -1,91 +1,92 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: log: netns NULL ptr bug when calling from
- conntrack.
-Date: Wed, 15 May 2013 14:00:13 +0200
-Message-ID: <20130515120013.GA20074@localhost>
-References: <1368617025-17375-1-git-send-email-hans@schillstrom.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gaofeng@cn.fujitsu.com,
-	fw@strlen.de, ronald645@gmail.com
-To: Hans Schillstrom <hans@schillstrom.com>
+Subject: [PATCH] netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond packet boundary
+Date: Wed, 15 May 2013 14:05:52 +0200
+Message-ID: <1368619552-30635-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54692 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56415 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757452Ab3EOMAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 May 2013 08:00:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1368617025-17375-1-git-send-email-hans@schillstrom.com>
+	id S932383Ab3EOMGA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 May 2013 08:06:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Hans,
+This target assumes that tcph->doff is well-formed, that may be well
+not the case. Add extra sanity checkings to avoid possible crash due
+to read/write out of the real packet boundary.
 
-On Wed, May 15, 2013 at 01:23:45PM +0200, Hans Schillstrom wrote:
-> When callling log functions from conntrack both in and out
-> is NULL i.e. there exist no net pointer.
-> 
-> Adding struct net *net in call to nf_logfn() will secure that
-> there always is a vaild net ptr.
-> 
-> Reported as bugzilla bug 818
+Reported-by: Rafal Kupka <rkupka@telemetry.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_TCPOPTSTRIP.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-This approach to fix it looks good. Thanks a lot!
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 25fd1c4..3cdd56f 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -30,17 +30,33 @@ static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
+ 
+ static unsigned int
+ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+-			  const struct xt_tcpoptstrip_target_info *info,
++			  const struct xt_action_param *par,
+ 			  unsigned int tcphoff, unsigned int minlen)
+ {
++	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+ 	unsigned int optl, i, j;
+ 	struct tcphdr *tcph;
+ 	u_int16_t n, o;
+ 	u_int8_t *opt;
++	int len;
++
++	/* This is a fragment, no TCP header is available */
++	if (par->fragoff != 0)
++		return XT_CONTINUE;
+ 
+ 	if (!skb_make_writable(skb, skb->len))
+ 		return NF_DROP;
+ 
++	len = skb->len - tcphoff;
++	if (len < sizeof(struct tcphdr))
++		return NF_DROP;
++
++	len -= sizeof(*tcph);
++
++	/* Truncated TCP options, skip */
++	if ((tcp_hdr(skb)->doff - 5) * 4 > len)
++		return NF_DROP;
++
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+ 	opt  = (u_int8_t *)tcph;
+ 
+@@ -51,7 +67,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 	for (i = sizeof(struct tcphdr); i < tcp_hdrlen(skb); i += optl) {
+ 		optl = optlen(opt, i);
+ 
+-		if (i + optl > tcp_hdrlen(skb))
++		if (i + optl > len)
+ 			break;
+ 
+ 		if (!tcpoptstrip_test_bit(info->strip_bmap, opt[i]))
+@@ -76,7 +92,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ static unsigned int
+ tcpoptstrip_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	return tcpoptstrip_mangle_packet(skb, par->targinfo, ip_hdrlen(skb),
++	return tcpoptstrip_mangle_packet(skb, par, ip_hdrlen(skb),
+ 	       sizeof(struct iphdr) + sizeof(struct tcphdr));
+ }
+ 
+@@ -94,7 +110,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+ 
+-	return tcpoptstrip_mangle_packet(skb, par->targinfo, tcphoff,
++	return tcpoptstrip_mangle_packet(skb, par, tcphoff,
+ 	       sizeof(*ipv6h) + sizeof(struct tcphdr));
+ }
+ #endif
+-- 
+1.7.10.4
 
-Just resolved a minor nitpick:
-
-> Reported-by: Ronald <ronald645@gmail.com>
-> Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
-> ---
->  include/net/netfilter/nf_log.h        |  3 ++-
->  include/net/netfilter/nfnetlink_log.h |  3 ++-
->  net/bridge/netfilter/ebt_log.c        |  5 ++---
->  net/bridge/netfilter/ebt_ulog.c       | 18 +++++++++++-------
->  net/ipv4/netfilter/ipt_ULOG.c         | 13 ++++++++-----
->  net/netfilter/nf_log.c                |  2 +-
->  net/netfilter/nfnetlink_log.c         |  4 ++--
->  net/netfilter/xt_LOG.c                | 13 +++++++------
->  net/netfilter/xt_NFLOG.c              |  3 ++-
->  9 files changed, 37 insertions(+), 27 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-> index 31f1fb9..99eac12 100644
-> --- a/include/net/netfilter/nf_log.h
-> +++ b/include/net/netfilter/nf_log.h
-> @@ -30,7 +30,8 @@ struct nf_loginfo {
->  	} u;
->  };
->  
-> -typedef void nf_logfn(u_int8_t pf,
-> +typedef void nf_logfn(struct net *net,
-> +		      u_int8_t pf,
->  		      unsigned int hooknum,
->  		      const struct sk_buff *skb,
->  		      const struct net_device *in,
-> diff --git a/include/net/netfilter/nfnetlink_log.h b/include/net/netfilter/nfnetlink_log.h
-> index e2dec42..5ca3f14 100644
-> --- a/include/net/netfilter/nfnetlink_log.h
-> +++ b/include/net/netfilter/nfnetlink_log.h
-> @@ -2,7 +2,8 @@
->  #define _KER_NFNETLINK_LOG_H
->  
->  void
-> -nfulnl_log_packet(u_int8_t pf,
-> +nfulnl_log_packet(struct net *net,
-> +		  u_int8_t pf,
->  		  unsigned int hooknum,
->  		  const struct sk_buff *skb,
->  		  const struct net_device *in,
-> diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-> index 9878eb8..837612c 100644
-> --- a/net/bridge/netfilter/ebt_log.c
-> +++ b/net/bridge/netfilter/ebt_log.c
-> @@ -72,13 +72,12 @@ print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
->  }
->  
->  static void
-> -ebt_log_packet(u_int8_t pf, unsigned int hooknum,
-> +ebt_log_packet(struct net *net, int8_t pf, unsigned int hooknum,
-
-pf still has to be u_int8_t so I don't hit a compilation warning. No
-need to resent I fixed it here.
