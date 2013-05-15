@@ -1,63 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: xt_TCPOPTSTRIP: fix possible mangling
- beyond packet boundary
-Date: Wed, 15 May 2013 16:48:24 +0200
-Message-ID: <20130515144824.GG18095@breakpoint.cc>
-References: <1368619552-30635-1-git-send-email-pablo@netfilter.org>
- <20130515123336.GE18095@breakpoint.cc>
- <20130515135935.GA1605@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] xtables-addons: xt_RAWNAT: skb writable part might not
+ include whole l4 header (ipv4 case).
+Date: Wed, 15 May 2013 17:04:45 +0200
+Message-ID: <20130515150445.GA5614@localhost>
+References: <20130505220504.1a3f2380a1e798b37e628dd1@highloadlab.com>
+ <20130505222433.5c27056103b98340bba773df@highloadlab.com>
+ <alpine.LNX.2.01.1305081322250.29391@nerf07.vanv.qr>
+ <20130508191202.4cb5233820bbb96a1e611329@highloadlab.com>
+ <alpine.LNX.2.01.1305082320440.21875@nerf07.vanv.qr>
+ <20130513135020.ea2e50fc6327fb3ffe9cb667@highloadlab.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+To: Dmitry Popov <dp@highloadlab.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48563 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932331Ab3EOOsZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 May 2013 10:48:25 -0400
+Received: from mail.us.es ([193.147.175.20]:34323 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759275Ab3EOPEx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 May 2013 11:04:53 -0400
 Content-Disposition: inline
-In-Reply-To: <20130515135935.GA1605@localhost>
+In-Reply-To: <20130513135020.ea2e50fc6327fb3ffe9cb667@highloadlab.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, May 15, 2013 at 02:33:36PM +0200, Florian Westphal wrote:
-> > > +	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
-> > >  	unsigned int optl, i, j;
-> > >  	struct tcphdr *tcph;
-> > >  	u_int16_t n, o;
-> > >  	u_int8_t *opt;
-> > > +	int len;
-> > > +
-> > [..]
-> > > +	len = skb->len - tcphoff;
-> > > +	if (len < sizeof(struct tcphdr))
-> > 
-> > I think this needs a cast 'if (len < (int) sizeof( ...?
+On Mon, May 13, 2013 at 01:50:20PM +0400, Dmitry Popov wrote:
+> On Wed, 8 May 2013 23:32:16 +0200 (CEST)
+> Jan Engelhardt <jengelh@inai.de> wrote:
 > 
-> I'm not hitting any compilation warning.
+> > The only way to solve the NAT problem is to do without it.
+> > Full NAT is not simple at all, it requires DPI.
+> > RAWNAT is just a dumb l3addr replacer and does not help
+> > getting multi-connection sessions (such as 959ish FTP) going.
+> 
+> Well, in means of full nat - yes. I have no statistics of how people use 
+> nf_nat/xt_RAWNAT, but in my tasks I have a lot of packets that do
+> not need DPI.
 
-len is signed, thats why i asked, and, afair recall sizeof
-is unsigned and thus len is treated as unsigned.
-
-Test program yields:
-
-#include <stdio.h>
-#include <stdlib.h>
-int main (int argc, char *argv[])
-{
-        char foo[20];
-        int len = atoi(argc > 1 ? argv[1] : "0");
-        if (len < sizeof(foo))
-                printf("%d lt %lu\n", len, sizeof(foo));
-        else
-                printf("%d ge %lu\n", len, sizeof(foo));
-        return 0;
-}
-t.c: In function 'main':
-t.c:7:10: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
-./t -42
--42 ge 20
-
-gcc version 4.6.3.
+Not only DPI. You're also leaking your network topology though ICMP
+error messages, as the internal header is not mangled.
