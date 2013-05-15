@@ -1,52 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 7/7] chain: handle attribute is relevant if
- only there is no name to use
-Date: Wed, 15 May 2013 16:28:02 +0200
-Message-ID: <20130515142802.GA3537@localhost>
-References: <519216B6.7060701@linux.intel.com>
- <1368528682-10041-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1368528682-10041-8-git-send-email-tomasz.bursztyka@linux.intel.com>
- <20130514222051.GB10082@localhost>
- <5193265B.3050605@linux.intel.com>
- <20130515124330.GA1349@localhost>
- <51938852.1070705@linux.intel.com>
- <20130515134010.GA1577@localhost>
- <519393A6.7090301@linux.intel.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: xt_TCPOPTSTRIP: fix possible mangling
+ beyond packet boundary
+Date: Wed, 15 May 2013 16:48:24 +0200
+Message-ID: <20130515144824.GG18095@breakpoint.cc>
+References: <1368619552-30635-1-git-send-email-pablo@netfilter.org>
+ <20130515123336.GE18095@breakpoint.cc>
+ <20130515135935.GA1605@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55377 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759167Ab3EOO2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 May 2013 10:28:08 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48563 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932331Ab3EOOsZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 May 2013 10:48:25 -0400
 Content-Disposition: inline
-In-Reply-To: <519393A6.7090301@linux.intel.com>
+In-Reply-To: <20130515135935.GA1605@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 15, 2013 at 04:54:46PM +0300, Tomasz Bursztyka wrote:
-> Hi Pablo,
->
-> >>>I was actually playing on my own with libnftables.
-> >>>It's easy: dump the chain list, then change the policy on one chain
-> >>>for instance, build the message to apply this change, send it...
-> >>>
-> >>>We haven't hit the bug yet anywhere, because no code does such
-> >>>settings change after a dump, but we - or whatever app - surely will
-> >>>at some point.
-> >
-> >We should document that. I have a patch to add the doxygen doc to
-> >libnftables. I prefer that user is in control of this, instead of
-> >adding internal workarounds to avoid tricky situations.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, May 15, 2013 at 02:33:36PM +0200, Florian Westphal wrote:
+> > > +	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+> > >  	unsigned int optl, i, j;
+> > >  	struct tcphdr *tcph;
+> > >  	u_int16_t n, o;
+> > >  	u_int8_t *opt;
+> > > +	int len;
+> > > +
+> > [..]
+> > > +	len = skb->len - tcphoff;
+> > > +	if (len < sizeof(struct tcphdr))
+> > 
+> > I think this needs a cast 'if (len < (int) sizeof( ...?
 > 
-> As you want, but it will complicate things for the user a bit.
+> I'm not hitting any compilation warning.
 
-Going back to the kernel code (line 882):
+len is signed, thats why i asked, and, afair recall sizeof
+is unsigned and thus len is treated as unsigned.
 
-       if (nla[NFTA_CHAIN_HANDLE] && name)
-                nla_strlcpy(chain->name, name, NFT_CHAIN_MAXNAMELEN);
+Test program yields:
 
-We can check in the chain name in the kernel and the name passed are
-the same, in that case we skip nla_strlcpy.
+#include <stdio.h>
+#include <stdlib.h>
+int main (int argc, char *argv[])
+{
+        char foo[20];
+        int len = atoi(argc > 1 ? argv[1] : "0");
+        if (len < sizeof(foo))
+                printf("%d lt %lu\n", len, sizeof(foo));
+        else
+                printf("%d ge %lu\n", len, sizeof(foo));
+        return 0;
+}
+t.c: In function 'main':
+t.c:7:10: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+./t -42
+-42 ge 20
+
+gcc version 4.6.3.
