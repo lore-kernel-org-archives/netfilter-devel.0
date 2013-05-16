@@ -1,83 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/4] netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond packet boundary
-Date: Thu, 16 May 2013 17:55:21 +0200
-Message-ID: <1368719721-7470-5-git-send-email-pablo@netfilter.org>
-References: <1368719721-7470-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: add and use nf_afinfo in xt_addrtype
+Date: Thu, 16 May 2013 18:15:30 +0200
+Message-ID: <20130516161530.GA7533@localhost>
+References: <1368445651-6822-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, arpad@andrews.hu
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51427 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58026 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753487Ab3EPPzd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 May 2013 11:55:33 -0400
-In-Reply-To: <1368719721-7470-1-git-send-email-pablo@netfilter.org>
+	id S1754839Ab3EPQPf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 May 2013 12:15:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1368445651-6822-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This target assumes that tcph->doff is well-formed, that may be well
-not the case. Add extra sanity checkings to avoid possible crash due
-to read/write out of the real packet boundary. After this patch, the
-default action on malformed TCP packets is to drop them. Moreover,
-fragments are skipped.
+Hi Florian,
 
-Reported-by: Rafal Kupka <rkupka@telemetry.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_TCPOPTSTRIP.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+On Mon, May 13, 2013 at 01:47:31PM +0200, Florian Westphal wrote:
+[...]
+> AFAIU there are two possible solutions:
+> 
+> a), extend struct nf_afinfo to also register ipv6_chk_addr(), OR
+> b), revert the commit that moved ipt_addrtype to xt_addrtype,
+>     and keep the ipv6 code in ip6t_addrtype.
+> 
+> IMO, the latter seems to be preferable, but would be more intrusive.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  As explained earlier, I don't like this approach; IMO the proper solution
+>  is to split xt_addrinfo into ipt_addrinfo and ip6t_addrinfo.
+>  The only downside is that it will create a bit of code duplication due
+>  to checkentry() functions, but it avoids adding is_local_addr hook
+>  for the sole purpose of fixing ipv6 xt_addrinfo.
 
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 25fd1c4..1eb1a44 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -30,17 +30,28 @@ static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
- 
- static unsigned int
- tcpoptstrip_mangle_packet(struct sk_buff *skb,
--			  const struct xt_tcpoptstrip_target_info *info,
-+			  const struct xt_action_param *par,
- 			  unsigned int tcphoff, unsigned int minlen)
- {
-+	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
- 	unsigned int optl, i, j;
- 	struct tcphdr *tcph;
- 	u_int16_t n, o;
- 	u_int8_t *opt;
-+	int len;
-+
-+	/* This is a fragment, no TCP header is available */
-+	if (par->fragoff != 0)
-+		return XT_CONTINUE;
- 
- 	if (!skb_make_writable(skb, skb->len))
- 		return NF_DROP;
- 
-+	len = skb->len - tcphoff;
-+	if (len < (int)sizeof(struct tcphdr) ||
-+	    tcp_hdr(skb)->doff * 4 > len)
-+		return NF_DROP;
-+
- 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
- 	opt  = (u_int8_t *)tcph;
- 
-@@ -76,7 +87,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- static unsigned int
- tcpoptstrip_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- {
--	return tcpoptstrip_mangle_packet(skb, par->targinfo, ip_hdrlen(skb),
-+	return tcpoptstrip_mangle_packet(skb, par, ip_hdrlen(skb),
- 	       sizeof(struct iphdr) + sizeof(struct tcphdr));
- }
- 
-@@ -94,7 +105,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 	if (tcphoff < 0)
- 		return NF_DROP;
- 
--	return tcpoptstrip_mangle_packet(skb, par->targinfo, tcphoff,
-+	return tcpoptstrip_mangle_packet(skb, par, tcphoff,
- 	       sizeof(*ipv6h) + sizeof(struct tcphdr));
- }
- #endif
--- 
-1.7.10.4
+ipv6_find_hdr was also moved from ip6tables to ipv6 core code
+recently. Now we got a hard dependency on ipv6 if Hans' HMARK is used
+as well. So we need another hook for it. Again, that function is
+pretty specific of IPv6. So I think that we can add a new struct
+nf_afinfo_ipv6 to keep IPv6-only hooks like this and the one for
+ipv6_find. Cong Wang also reported some similar problems when IPv6
+dependencies that we could also fix by populating that structure with
+more hooks.
 
+I don't like putting this into nf_afinfo either, since it's specific
+of IPv6, but I want a small fix that fulfill the -stable rules. It
+will take some time until people get the fix for xt_addrtype IPv6 if
+we make it the nice way.
+
+Seems like merge ipt and ip6t module is bringing us more problems that
+expected.
+
+[...]
+>  I can pass a patch for this to davem one net-next is open if
+>  you agree with this patch.
+
+I'd like to get this into net asap, it is fixing xt_addrtype for the
+IPv6 case, then pass it to -stable.
+
+Thanks.
