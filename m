@@ -1,134 +1,63 @@
-From: Afschin Hormozdiary <Afschin.Hormozdiary@sophos.com>
-Subject: [PATCH next v2] libnetfilter_conntrack: don't ignore ATTR_CONNLABELS
-Date: Fri, 17 May 2013 09:38:26 +0200
-Message-ID: <2544e4f5-3cdf-4e2a-99f9-722ce7f344f3@de-wie-exch3b.green.sophos>
-References: <1368696643-6731-1-git-send-email-Afschin.Hormozdiary@sophos.com>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: [PATCH] bridge: netfilter: using strlcpy() instead of strncpy()
+Date: Fri, 17 May 2013 16:07:22 +0800
+Message-ID: <5195E53A.4060406@asianux.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Afschin Hormozdiary <Afschin.Hormozdiary@sophos.com>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.sophos.com ([145.253.124.137]:51273 "EHLO mx1.sophos.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752429Ab3EQHrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 May 2013 03:47:47 -0400
-Received: from mx1.sophos.com (localhost.localdomain [127.0.0.1])
-	by localhost (Postfix) with SMTP id 440555B81A9
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 May 2013 08:47:46 +0100 (BST)
-Received: from de-wie-exch3b.green.sophos (de-wie-exch3b.green.sophos [10.60.70.62])
-	by mx1.sophos.com (Postfix) with ESMTPS id 1BBB05B80FA
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 May 2013 08:47:46 +0100 (BST)
-In-Reply-To: <1368696643-6731-1-git-send-email-Afschin.Hormozdiary@sophos.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev <netdev@vger.kernel.org>
+To: bart.de.schuymer@pandora.be, pablo@netfilter.org, kaber@trash.net,
+	stephen@networkplumber.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The libnfnetlink based backend 'build.c' currently ignores
-ATTR_CONNLABELS and ATTR_CONNLABELS_MASK.
 
-The libmnl based backend 'build_mnl.c' instead handles
-both attributes correct.
+'name' has already set all zero when it is defined, so not need let
+strncpy() to pad it again.
 
-Add function to set CTA_LABELS and CTA_LABELS_MASK
-if required.
+'name' is a string, better always let is NUL terminated, so use
+strlcpy() instead of strncpy().
 
-Signed-off-by: Afschin Hormozdiary <Afschin.Hormozdiary@sophos.com>
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 ---
- src/conntrack/build.c | 27 +++++++++++++++++++++++++++
- src/conntrack/parse.c | 25 +++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ net/bridge/netfilter/ebtables.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/src/conntrack/build.c b/src/conntrack/build.c
-index 2900027..4852536 100644
---- a/src/conntrack/build.c
-+++ b/src/conntrack/build.c
-@@ -398,6 +398,30 @@ static void __build_zone(struct nfnlhdr *req,
- 	nfnl_addattr16(&req->nlh, size, CTA_ZONE, htons(ct->zone));
- }
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 3d110c4..ac78024 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1339,7 +1339,7 @@ static inline int ebt_make_matchname(const struct ebt_entry_match *m,
  
-+static void __build_labels(struct nfnlhdr *req,
-+			   size_t size,
-+			   const struct nf_conntrack *ct)
-+{
-+	struct nfct_bitmask *b = ct->connlabels;
-+	unsigned int b_size = b->words * sizeof(b->bits[0]);
-+
-+	nfnl_addattr_l(&req->nlh,
-+		       size,
-+		       CTA_LABELS,
-+		       b->bits,
-+		       b_size);
-+
-+	if (test_bit(ATTR_CONNLABELS_MASK, ct->head.set)) {
-+		b = ct->connlabels_mask;
-+		if (b_size == (b->words * sizeof(b->bits[0])))
-+			nfnl_addattr_l(&req->nlh,
-+				       size,
-+				       CTA_LABELS_MASK,
-+				       b->bits,
-+				       b_size);
-+	}
-+}
-+
- int __build_conntrack(struct nfnl_subsys_handle *ssh,
- 		      struct nfnlhdr *req,
- 		      size_t size,
-@@ -500,5 +524,8 @@ int __build_conntrack(struct nfnl_subsys_handle *ssh,
- 	if (test_bit(ATTR_ZONE, ct->head.set))
- 		__build_zone(req, size, ct);
- 
-+	if (test_bit(ATTR_CONNLABELS, ct->head.set))
-+		__build_labels(req, size, ct);
-+
+ 	/* ebtables expects 32 bytes long names but xt_match names are 29 bytes
+ 	   long. Copy 29 bytes and fill remaining bytes with zeroes. */
+-	strncpy(name, m->u.match->name, sizeof(name));
++	strlcpy(name, m->u.match->name, sizeof(name));
+ 	if (copy_to_user(hlp, name, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
  	return 0;
- }
-diff --git a/src/conntrack/parse.c b/src/conntrack/parse.c
-index 6096e8d..5bbf4bd 100644
---- a/src/conntrack/parse.c
-+++ b/src/conntrack/parse.c
-@@ -8,6 +8,7 @@
-  */
+@@ -1351,7 +1351,7 @@ static inline int ebt_make_watchername(const struct ebt_entry_watcher *w,
+ 	char __user *hlp = ubase + ((char *)w - base);
+ 	char name[EBT_FUNCTION_MAXNAMELEN] = {};
  
- #include "internal/internal.h"
-+#include <limits.h>
- #include <libmnl/libmnl.h>
- 
- static void __parse_ip(const struct nfattr *attr,
-@@ -476,6 +477,26 @@ __parse_timestamp(const struct nfattr *attr, struct nf_conntrack *ct)
- 	}
- }
- 
-+static void
-+__parse_labels(const struct nfattr *attr, struct nf_conntrack *ct)
-+{
-+	struct nfattr *tb[CTA_LABELS];
-+	struct nfct_bitmask *mask;
-+	uint16_t len = NFA_PAYLOAD(tb[CTA_LABELS-1]);
-+
-+	nfnl_parse_nested(tb, CTA_LABELS, attr);
-+	if (tb[CTA_LABELS-1]) {
-+		mask = nfct_bitmask_new((len * CHAR_BIT) - 1);
-+		if (!mask)
-+			return;
-+
-+		if (len)
-+			memcpy(mask->bits, NFA_DATA(tb[CTA_LABELS-1]), len);
-+
-+		set_bit(ATTR_CONNLABELS, ct->head.set);
-+	}
-+}
-+
- void __parse_conntrack(const struct nlmsghdr *nlh,
- 		       struct nfattr *cda[],
- 		       struct nf_conntrack *ct)
-@@ -564,4 +585,8 @@ void __parse_conntrack(const struct nlmsghdr *nlh,
- 
- 	if (cda[CTA_TIMESTAMP-1])
- 		__parse_timestamp(cda[CTA_TIMESTAMP-1], ct);
-+
-+	if (cda[CTA_LABELS-1]) {
-+		__parse_labels(cda[CTA_LABELS-1], ct);
-+	}
- }
+-	strncpy(name, w->u.watcher->name, sizeof(name));
++	strlcpy(name, w->u.watcher->name, sizeof(name));
+ 	if (copy_to_user(hlp , name, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+@@ -1377,7 +1377,7 @@ ebt_make_names(struct ebt_entry *e, const char *base, char __user *ubase)
+ 	ret = EBT_WATCHER_ITERATE(e, ebt_make_watchername, base, ubase);
+ 	if (ret != 0)
+ 		return ret;
+-	strncpy(name, t->u.target->name, sizeof(name));
++	strlcpy(name, t->u.target->name, sizeof(name));
+ 	if (copy_to_user(hlp, name, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
 -- 
-1.8.2.2
-
+1.7.7.6
