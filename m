@@ -1,86 +1,83 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH 1/2] ulogd: Perform nice() before giving up root
-Date: Fri, 17 May 2013 10:28:41 +0200
-Message-ID: <1368779321.4634.0.camel@tiger2>
-References: <1368291713-40132-1-git-send-email-bootc@bootc.net>
-	 <1368291713-40132-2-git-send-email-bootc@bootc.net>
-	 <5195DD75.7040609@bootc.net>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: [PATCH] ipv4: netfilter: always let NUL terminated string ended by
+ '\0'
+Date: Fri, 17 May 2013 16:39:15 +0800
+Message-ID: <5195ECB3.5000006@asianux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Boot <bootc@bootc.net>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
+To: pablo@netfilter.org, kaber@trash.net, kuznet@ms2.inr.ac.ru,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:48942 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345Ab3EQIcX (ORCPT
+Received: from intranet.asianux.com ([58.214.24.6]:49188 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab3EQIkI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 May 2013 04:32:23 -0400
-In-Reply-To: <5195DD75.7040609@bootc.net>
+	Fri, 17 May 2013 04:40:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-On Fri, 2013-05-17 at 08:34 +0100, Chris Boot wrote:
-> On 11/05/13 18:01, Chris Boot wrote:
-> > The daemon code currently tries to nice(-1) just after having given up root
-> > privileges, which fails. This patch moves the nice(-1) call to just before
-> > the code that gives up the required privileges.
-> >
-> > Signed-off-by: Chris Boot <bootc@bootc.net>
-> > ---
-> >  src/ulogd.c |   14 +++++++-------
-> >  1 file changed, 7 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/src/ulogd.c b/src/ulogd.c
-> > index b28d0f8..8a144e3 100644
-> > --- a/src/ulogd.c
-> > +++ b/src/ulogd.c
-> > @@ -1235,6 +1235,13 @@ int main(int argc, char* argv[])
-> >  		warn_and_exit(daemonize);
-> >  	}
-> >  
-> > +	errno = 0;
-> > +	if (nice(-1) == -1) {
-> > +		if (errno != 0)
-> > +			ulogd_log(ULOGD_ERROR, "Could not nice process: %s\n",
-> > +				  strerror(errno));
-> > +	}
-> > +
-> >  	if (change_uid) {
-> >  		ulogd_log(ULOGD_NOTICE, "Changing UID / GID\n");
-> >  		if (setgid(gid)) {
-> > @@ -1261,13 +1268,6 @@ int main(int argc, char* argv[])
-> >  		}
-> >  	}
-> >  
-> > -	errno = 0;
-> > -	if (nice(-1) == -1) {
-> > -		if (errno != 0)
-> > -			ulogd_log(ULOGD_ERROR, "Could not nice process: %s\n",
-> > -				  strerror(errno));
-> > -	}
-> > -
-> >  
-> >  	if (daemonize){
-> >  		if (fork()) {
-> 
-> Hi all,
-> 
-> I have had no comments about this patch since I submitted it; is it
-> likely to get pulled into ulogd?
+For NUL terminated string, better always be sure of ended by '\0'.
 
-Yes, it seems ok. I will give it some tests but it should be applied.
+'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
+(defined in "include/uapi/..."), so can not use strlcpy() instead of.
 
-BR,
 
-> 
-> Cheers,
-> Chris
-> 
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
+---
+ net/ipv4/netfilter/ipt_ULOG.c |   27 ++++++++++++++++-----------
+ 1 files changed, 16 insertions(+), 11 deletions(-)
 
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index f8a222cb..4a93382 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -231,11 +231,13 @@ static void ipt_ulog_packet(unsigned int hooknum,
+ 	put_unaligned(tv.tv_usec, &pm->timestamp_usec);
+ 	put_unaligned(skb->mark, &pm->mark);
+ 	pm->hook = hooknum;
+-	if (prefix != NULL)
+-		strncpy(pm->prefix, prefix, sizeof(pm->prefix));
+-	else if (loginfo->prefix[0] != '\0')
+-		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix));
+-	else
++	if (prefix != NULL) {
++		strncpy(pm->prefix, prefix, sizeof(pm->prefix) - 1);
++		pm->prefix[sizeof(pm->prefix) - 1] = '\0';
++	} else if (loginfo->prefix[0] != '\0') {
++		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix) - 1);
++		pm->prefix[sizeof(pm->prefix) - 1] = '\0';
++	} else
+ 		*(pm->prefix) = '\0';
+ 
+ 	if (in && in->hard_header_len > 0 &&
+@@ -246,14 +248,17 @@ static void ipt_ulog_packet(unsigned int hooknum,
+ 	} else
+ 		pm->mac_len = 0;
+ 
+-	if (in)
+-		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
+-	else
++	if (in) {
++		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name) - 1);
++		pm->indev_name[sizeof(pm->indev_name) - 1] = '\0';
++	} else
+ 		pm->indev_name[0] = '\0';
+ 
+-	if (out)
+-		strncpy(pm->outdev_name, out->name, sizeof(pm->outdev_name));
+-	else
++	if (out) {
++		strncpy(pm->outdev_name, out->name,
++			sizeof(pm->outdev_name) - 1);
++		pm->outdev_name[sizeof(pm->outdev_name) - 1] = '\0';
++	} else
+ 		pm->outdev_name[0] = '\0';
+ 
+ 	/* copy_len <= skb->len, so can't fail. */
 -- 
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
-
+1.7.7.6
