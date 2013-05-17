@@ -1,83 +1,324 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] ipv4: netfilter: always let NUL terminated string ended by
- '\0'
-Date: Fri, 17 May 2013 16:39:15 +0800
-Message-ID: <5195ECB3.5000006@asianux.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: log: netns NULL ptr bug when calling from
+ conntrack.
+Date: Fri, 17 May 2013 17:57:52 +0800
+Message-ID: <5195FF20.6050607@cn.fujitsu.com>
+References: <1368617025-17375-1-git-send-email-hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
-To: pablo@netfilter.org, kaber@trash.net, kuznet@ms2.inr.ac.ru,
-	jmorris@namei.org, yoshfuji@linux-ipv6.org
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:49188 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136Ab3EQIkI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 May 2013 04:40:08 -0400
+Received: from cn.fujitsu.com ([222.73.24.84]:9778 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754159Ab3EQKAh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 May 2013 06:00:37 -0400
+In-Reply-To: <1368617025-17375-1-git-send-email-hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 05/15/2013 07:23 PM, Hans Schillstrom wrote:
+> When callling log functions from conntrack both in and out
+> is NULL i.e. there exist no net pointer.
+> 
+> Adding struct net *net in call to nf_logfn() will secure that
+> there always is a vaild net ptr.
+> 
+> Reported as bugzilla bug 818
+> 
+> Reported-by: Ronald <ronald645@gmail.com>
+> Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+> ---
 
-For NUL terminated string, better always be sure of ended by '\0'.
+Oops, I should double check if the in and out is NULL.
+This fix looks good to me.
 
-'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
-(defined in "include/uapi/..."), so can not use strlcpy() instead of.
+Thanks you all.
 
+>  include/net/netfilter/nf_log.h        |  3 ++-
+>  include/net/netfilter/nfnetlink_log.h |  3 ++-
+>  net/bridge/netfilter/ebt_log.c        |  5 ++---
+>  net/bridge/netfilter/ebt_ulog.c       | 18 +++++++++++-------
+>  net/ipv4/netfilter/ipt_ULOG.c         | 13 ++++++++-----
+>  net/netfilter/nf_log.c                |  2 +-
+>  net/netfilter/nfnetlink_log.c         |  4 ++--
+>  net/netfilter/xt_LOG.c                | 13 +++++++------
+>  net/netfilter/xt_NFLOG.c              |  3 ++-
+>  9 files changed, 37 insertions(+), 27 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+> index 31f1fb9..99eac12 100644
+> --- a/include/net/netfilter/nf_log.h
+> +++ b/include/net/netfilter/nf_log.h
+> @@ -30,7 +30,8 @@ struct nf_loginfo {
+>  	} u;
+>  };
+>  
+> -typedef void nf_logfn(u_int8_t pf,
+> +typedef void nf_logfn(struct net *net,
+> +		      u_int8_t pf,
+>  		      unsigned int hooknum,
+>  		      const struct sk_buff *skb,
+>  		      const struct net_device *in,
+> diff --git a/include/net/netfilter/nfnetlink_log.h b/include/net/netfilter/nfnetlink_log.h
+> index e2dec42..5ca3f14 100644
+> --- a/include/net/netfilter/nfnetlink_log.h
+> +++ b/include/net/netfilter/nfnetlink_log.h
+> @@ -2,7 +2,8 @@
+>  #define _KER_NFNETLINK_LOG_H
+>  
+>  void
+> -nfulnl_log_packet(u_int8_t pf,
+> +nfulnl_log_packet(struct net *net,
+> +		  u_int8_t pf,
+>  		  unsigned int hooknum,
+>  		  const struct sk_buff *skb,
+>  		  const struct net_device *in,
+> diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+> index 9878eb8..837612c 100644
+> --- a/net/bridge/netfilter/ebt_log.c
+> +++ b/net/bridge/netfilter/ebt_log.c
+> @@ -72,13 +72,12 @@ print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
+>  }
+>  
+>  static void
+> -ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+> +ebt_log_packet(struct net *net, int8_t pf, unsigned int hooknum,
+>     const struct sk_buff *skb, const struct net_device *in,
+>     const struct net_device *out, const struct nf_loginfo *loginfo,
+>     const char *prefix)
+>  {
+>  	unsigned int bitmask;
+> -	struct net *net = dev_net(in ? in : out);
+>  
+>  	/* FIXME: Disabled from containers until syslog ns is supported */
+>  	if (!net_eq(net, &init_net))
+> @@ -191,7 +190,7 @@ ebt_log_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  		nf_log_packet(net, NFPROTO_BRIDGE, par->hooknum, skb,
+>  			      par->in, par->out, &li, "%s", info->prefix);
+>  	else
+> -		ebt_log_packet(NFPROTO_BRIDGE, par->hooknum, skb, par->in,
+> +		ebt_log_packet(net, NFPROTO_BRIDGE, par->hooknum, skb, par->in,
+>  			       par->out, &li, info->prefix);
+>  	return EBT_CONTINUE;
+>  }
+> diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+> index fc1905c..df0364a 100644
+> --- a/net/bridge/netfilter/ebt_ulog.c
+> +++ b/net/bridge/netfilter/ebt_ulog.c
+> @@ -131,14 +131,16 @@ static struct sk_buff *ulog_alloc_skb(unsigned int size)
+>  	return skb;
+>  }
+>  
+> -static void ebt_ulog_packet(unsigned int hooknr, const struct sk_buff *skb,
+> -   const struct net_device *in, const struct net_device *out,
+> -   const struct ebt_ulog_info *uloginfo, const char *prefix)
+> +static void ebt_ulog_packet(struct net *net, unsigned int hooknr,
+> +			    const struct sk_buff *skb,
+> +			    const struct net_device *in,
+> +			    const struct net_device *out,
+> +			    const struct ebt_ulog_info *uloginfo,
+> +			    const char *prefix)
+>  {
+>  	ebt_ulog_packet_msg_t *pm;
+>  	size_t size, copy_len;
+>  	struct nlmsghdr *nlh;
+> -	struct net *net = dev_net(in ? in : out);
+>  	struct ebt_ulog_net *ebt = ebt_ulog_pernet(net);
+>  	unsigned int group = uloginfo->nlgroup;
+>  	ebt_ulog_buff_t *ub = &ebt->ulog_buffers[group];
+> @@ -233,7 +235,7 @@ unlock:
+>  }
+>  
+>  /* this function is registered with the netfilter core */
+> -static void ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+> +static void ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
+>     const struct sk_buff *skb, const struct net_device *in,
+>     const struct net_device *out, const struct nf_loginfo *li,
+>     const char *prefix)
+> @@ -252,13 +254,15 @@ static void ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+>  		strlcpy(loginfo.prefix, prefix, sizeof(loginfo.prefix));
+>  	}
+>  
+> -	ebt_ulog_packet(hooknum, skb, in, out, &loginfo, prefix);
+> +	ebt_ulog_packet(net, hooknum, skb, in, out, &loginfo, prefix);
+>  }
+>  
+>  static unsigned int
+>  ebt_ulog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+> -	ebt_ulog_packet(par->hooknum, skb, par->in, par->out,
+> +	struct net *net = dev_net(par->in ? par->in : par->out);
+> +
+> +	ebt_ulog_packet(net, par->hooknum, skb, par->in, par->out,
+>  	                par->targinfo, NULL);
+>  	return EBT_CONTINUE;
+>  }
+> diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+> index f8a222cb..cf08218 100644
+> --- a/net/ipv4/netfilter/ipt_ULOG.c
+> +++ b/net/ipv4/netfilter/ipt_ULOG.c
+> @@ -162,7 +162,8 @@ static struct sk_buff *ulog_alloc_skb(unsigned int size)
+>  	return skb;
+>  }
+>  
+> -static void ipt_ulog_packet(unsigned int hooknum,
+> +static void ipt_ulog_packet(struct net *net,
+> +			    unsigned int hooknum,
+>  			    const struct sk_buff *skb,
+>  			    const struct net_device *in,
+>  			    const struct net_device *out,
+> @@ -174,7 +175,6 @@ static void ipt_ulog_packet(unsigned int hooknum,
+>  	size_t size, copy_len;
+>  	struct nlmsghdr *nlh;
+>  	struct timeval tv;
+> -	struct net *net = dev_net(in ? in : out);
+>  	struct ulog_net *ulog = ulog_pernet(net);
+>  
+>  	/* ffs == find first bit set, necessary because userspace
+> @@ -291,12 +291,15 @@ alloc_failure:
+>  static unsigned int
+>  ulog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+> -	ipt_ulog_packet(par->hooknum, skb, par->in, par->out,
+> +	struct net *net = dev_net(par->in ? par->in : par->out);
+> +
+> +	ipt_ulog_packet(net, par->hooknum, skb, par->in, par->out,
+>  	                par->targinfo, NULL);
+>  	return XT_CONTINUE;
+>  }
+>  
+> -static void ipt_logfn(u_int8_t pf,
+> +static void ipt_logfn(struct net *net,
+> +		      u_int8_t pf,
+>  		      unsigned int hooknum,
+>  		      const struct sk_buff *skb,
+>  		      const struct net_device *in,
+> @@ -318,7 +321,7 @@ static void ipt_logfn(u_int8_t pf,
+>  		strlcpy(loginfo.prefix, prefix, sizeof(loginfo.prefix));
+>  	}
+>  
+> -	ipt_ulog_packet(hooknum, skb, in, out, &loginfo, prefix);
+> +	ipt_ulog_packet(net, hooknum, skb, in, out, &loginfo, prefix);
+>  }
+>  
+>  static int ulog_tg_check(const struct xt_tgchk_param *par)
+> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+> index 388656d..c1aca18 100644
+> --- a/net/netfilter/nf_log.c
+> +++ b/net/netfilter/nf_log.c
+> @@ -148,7 +148,7 @@ void nf_log_packet(struct net *net,
+>  		va_start(args, fmt);
+>  		vsnprintf(prefix, sizeof(prefix), fmt, args);
+>  		va_end(args);
+> -		logger->logfn(pf, hooknum, skb, in, out, loginfo, prefix);
+> +		logger->logfn(net, pf, hooknum, skb, in, out, loginfo, prefix);
+>  	}
+>  	rcu_read_unlock();
+>  }
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index faf1e93..e50aac3 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -602,7 +602,8 @@ static struct nf_loginfo default_loginfo = {
+>  
+>  /* log handler for internal netfilter logging api */
+>  void
+> -nfulnl_log_packet(u_int8_t pf,
+> +nfulnl_log_packet(struct net *net,
+> +		  u_int8_t pf,
+>  		  unsigned int hooknum,
+>  		  const struct sk_buff *skb,
+>  		  const struct net_device *in,
+> @@ -615,7 +616,6 @@ nfulnl_log_packet(u_int8_t pf,
+>  	const struct nf_loginfo *li;
+>  	unsigned int qthreshold;
+>  	unsigned int plen;
+> -	struct net *net = dev_net(in ? in : out);
+>  	struct nfnl_log_net *log = nfnl_log_pernet(net);
+>  
+>  	if (li_user && li_user->type == NF_LOG_TYPE_ULOG)
+> diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+> index fe573f6..491c7d8 100644
+> --- a/net/netfilter/xt_LOG.c
+> +++ b/net/netfilter/xt_LOG.c
+> @@ -466,7 +466,8 @@ log_packet_common(struct sbuff *m,
+>  
+>  
+>  static void
+> -ipt_log_packet(u_int8_t pf,
+> +ipt_log_packet(struct net *net,
+> +	       u_int8_t pf,
+>  	       unsigned int hooknum,
+>  	       const struct sk_buff *skb,
+>  	       const struct net_device *in,
+> @@ -475,7 +476,6 @@ ipt_log_packet(u_int8_t pf,
+>  	       const char *prefix)
+>  {
+>  	struct sbuff *m;
+> -	struct net *net = dev_net(in ? in : out);
+>  
+>  	/* FIXME: Disabled from containers until syslog ns is supported */
+>  	if (!net_eq(net, &init_net))
+> @@ -797,7 +797,8 @@ fallback:
+>  }
+>  
+>  static void
+> -ip6t_log_packet(u_int8_t pf,
+> +ip6t_log_packet(struct net *net,
+> +		u_int8_t pf,
+>  		unsigned int hooknum,
+>  		const struct sk_buff *skb,
+>  		const struct net_device *in,
+> @@ -806,7 +807,6 @@ ip6t_log_packet(u_int8_t pf,
+>  		const char *prefix)
+>  {
+>  	struct sbuff *m;
+> -	struct net *net = dev_net(in ? in : out);
+>  
+>  	/* FIXME: Disabled from containers until syslog ns is supported */
+>  	if (!net_eq(net, &init_net))
+> @@ -833,17 +833,18 @@ log_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>  	const struct xt_log_info *loginfo = par->targinfo;
+>  	struct nf_loginfo li;
+> +	struct net *net = dev_net(par->in ? par->in : par->out);
+>  
+>  	li.type = NF_LOG_TYPE_LOG;
+>  	li.u.log.level = loginfo->level;
+>  	li.u.log.logflags = loginfo->logflags;
+>  
+>  	if (par->family == NFPROTO_IPV4)
+> -		ipt_log_packet(NFPROTO_IPV4, par->hooknum, skb, par->in,
+> +		ipt_log_packet(net, NFPROTO_IPV4, par->hooknum, skb, par->in,
+>  			       par->out, &li, loginfo->prefix);
+>  #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+>  	else if (par->family == NFPROTO_IPV6)
+> -		ip6t_log_packet(NFPROTO_IPV6, par->hooknum, skb, par->in,
+> +		ip6t_log_packet(net, NFPROTO_IPV6, par->hooknum, skb, par->in,
+>  				par->out, &li, loginfo->prefix);
+>  #endif
+>  	else
+> diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
+> index a17dd0f..fb7497c 100644
+> --- a/net/netfilter/xt_NFLOG.c
+> +++ b/net/netfilter/xt_NFLOG.c
+> @@ -26,13 +26,14 @@ nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>  	const struct xt_nflog_info *info = par->targinfo;
+>  	struct nf_loginfo li;
+> +	struct net *net = dev_net(par->in ? par->in : par->out);
+>  
+>  	li.type		     = NF_LOG_TYPE_ULOG;
+>  	li.u.ulog.copy_len   = info->len;
+>  	li.u.ulog.group	     = info->group;
+>  	li.u.ulog.qthreshold = info->threshold;
+>  
+> -	nfulnl_log_packet(par->family, par->hooknum, skb, par->in,
+> +	nfulnl_log_packet(net, par->family, par->hooknum, skb, par->in,
+>  			  par->out, &li, info->prefix);
+>  	return XT_CONTINUE;
+>  }
+> 
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- net/ipv4/netfilter/ipt_ULOG.c |   27 ++++++++++++++++-----------
- 1 files changed, 16 insertions(+), 11 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index f8a222cb..4a93382 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -231,11 +231,13 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 	put_unaligned(tv.tv_usec, &pm->timestamp_usec);
- 	put_unaligned(skb->mark, &pm->mark);
- 	pm->hook = hooknum;
--	if (prefix != NULL)
--		strncpy(pm->prefix, prefix, sizeof(pm->prefix));
--	else if (loginfo->prefix[0] != '\0')
--		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix));
--	else
-+	if (prefix != NULL) {
-+		strncpy(pm->prefix, prefix, sizeof(pm->prefix) - 1);
-+		pm->prefix[sizeof(pm->prefix) - 1] = '\0';
-+	} else if (loginfo->prefix[0] != '\0') {
-+		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix) - 1);
-+		pm->prefix[sizeof(pm->prefix) - 1] = '\0';
-+	} else
- 		*(pm->prefix) = '\0';
- 
- 	if (in && in->hard_header_len > 0 &&
-@@ -246,14 +248,17 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 	} else
- 		pm->mac_len = 0;
- 
--	if (in)
--		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
--	else
-+	if (in) {
-+		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name) - 1);
-+		pm->indev_name[sizeof(pm->indev_name) - 1] = '\0';
-+	} else
- 		pm->indev_name[0] = '\0';
- 
--	if (out)
--		strncpy(pm->outdev_name, out->name, sizeof(pm->outdev_name));
--	else
-+	if (out) {
-+		strncpy(pm->outdev_name, out->name,
-+			sizeof(pm->outdev_name) - 1);
-+		pm->outdev_name[sizeof(pm->outdev_name) - 1] = '\0';
-+	} else
- 		pm->outdev_name[0] = '\0';
- 
- 	/* copy_len <= skb->len, so can't fail. */
--- 
-1.7.7.6
