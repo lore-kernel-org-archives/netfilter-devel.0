@@ -1,61 +1,190 @@
 From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH v2] ulogd: Implement PID file writing
-Date: Sun, 19 May 2013 21:19:38 +0200
-Message-ID: <1368991178.14976.4.camel@ice-age.regit.org>
-References: <518F761E.8050701@bootc.net>
-	 <1368362860-33843-1-git-send-email-bootc@bootc.net>
-	 <5195DD43.50608@bootc.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-KO4UwFzInhFveBupZ3Un"
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Boot <bootc@bootc.net>
+Subject: [Ulogd PATCH] Improve pid file handling.
+Date: Sun, 19 May 2013 21:22:14 +0200
+Message-ID: <1368991334-952-1-git-send-email-eric@regit.org>
+References: <1368991178.14976.4.camel@ice-age.regit.org>
+Cc: Eric Leblond <eric@regit.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:48066 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:48081 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753289Ab3ESTUq (ORCPT
+	with ESMTP id S1753289Ab3ESTW0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 May 2013 15:20:46 -0400
-In-Reply-To: <5195DD43.50608@bootc.net>
+	Sun, 19 May 2013 15:22:26 -0400
+In-Reply-To: <1368991178.14976.4.camel@ice-age.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch improves latest patch by splitting in two part the pid
+file creation. This allows to display a message to stdout when
+ulogd can not be started. Another linked improvement is that the
+plugin initialization is not done if the pid file existence will
+result in a ulogd exit.
 
---=-KO4UwFzInhFveBupZ3Un
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ src/ulogd.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 54 insertions(+), 12 deletions(-)
 
-Hi,
-
-Le vendredi 17 mai 2013 =E0 08:33 +0100, Chris Boot a =E9crit :
-> On 12/05/13 13:47, Chris Boot wrote:
-> > The deamon currently does not have the ability to write a PID file to t=
-rack its
-> > process ID. This is very useful to an init script and to ensure there i=
-s only
-> > one running instance. This patch implements this functionality.
-> >
-> > Signed-off-by: Chris Boot <bootc@bootc.net>
-
-I've applied this patch to my tree and made incremental modification to
-fix some issues as explained in the upcoming patch.
-
-BR,
---
-Eric
-
---=-KO4UwFzInhFveBupZ3Un
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iD8DBQBRmSXKnxA7CdMWjzIRAuldAJ4gpE6KU7ijOfYtPmwpGtjbofUA9wCdHWC2
-Pjx9gKkR0ZAha3URx+Xa6Mw=
-=k+H7
------END PGP SIGNATURE-----
-
---=-KO4UwFzInhFveBupZ3Un--
+diff --git a/src/ulogd.c b/src/ulogd.c
+index 4309201..c1aba77 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -82,6 +82,7 @@ static FILE *logfile = NULL;		/* logfile pointer */
+ static char *ulogd_logfile = NULL;
+ static const char *ulogd_configfile = ULOGD_CONFIGFILE;
+ static const char *ulogd_pidfile = NULL;
++static int ulogd_pidfile_fd = -1;
+ static FILE syslog_dummy;
+ 
+ static int info_mode = 0;
+@@ -1017,7 +1018,7 @@ static int parse_conffile(const char *section, struct config_keyset *ce)
+  * the GPL2+ license with the following copyright statement:
+  * Copyright (C) 1996 Thomas Koenig
+  */
+-static int lock_fd(int fd)
++static int lock_fd(int fd, int wait)
+ {
+ 	struct flock lock;
+ 
+@@ -1026,7 +1027,10 @@ static int lock_fd(int fd)
+ 	lock.l_start = 0;
+ 	lock.l_len = 0;
+ 
+-	return fcntl(fd, F_SETLK, &lock);
++	if (wait)
++		return fcntl(fd, F_SETLKW, &lock);
++	else
++		return fcntl(fd, F_SETLK, &lock);
+ }
+ 
+ /*
+@@ -1036,12 +1040,15 @@ static int lock_fd(int fd)
+  * under the GPL2+ license with the following copyright statement:
+  * Copyright (C) 1996 Thomas Koenig
+  */
+-static int write_pidfile()
++static int create_pidfile()
+ {
+ 	int fd;
+ 	FILE *fp;
+ 	pid_t pid = -1;
+ 
++	if (!ulogd_pidfile)
++		return 0;
++
+ 	fd = open(ulogd_pidfile, O_RDWR | O_CREAT | O_EXCL, 0644);
+ 	if (fd < 0) {
+ 		if (errno != EEXIST) {
+@@ -1061,13 +1068,14 @@ static int write_pidfile()
+ 		if (fp == NULL) {
+ 			ulogd_log(ULOGD_ERROR, "cannot fdopen %s: %d\n",
+ 					ulogd_pidfile, errno);
++			close(fd);
+ 			return -1;
+ 		}
+ 
+ 		if ((fscanf(fp, "%d", &pid) != 1) || (pid == getpid())
+-				|| (lock_fd(fd) == 0)) {
++				|| (lock_fd(fd, 0) == 0)) {
+ 			ulogd_log(ULOGD_NOTICE,
+-				"removing stale pidfile for pid %d\n", pid);
++				  "removing stale pidfile for pid %d\n", pid);
+ 
+ 			if (unlink(ulogd_pidfile) < 0) {
+ 				ulogd_log(ULOGD_ERROR, "cannot unlink %s: %d\n",
+@@ -1078,9 +1086,12 @@ static int write_pidfile()
+ 			ulogd_log(ULOGD_FATAL,
+ 				"another ulogd already running with pid %d\n",
+ 				pid);
++			fclose(fp);
++			close(fd);
+ 			return -1;
+ 		}
+ 
++		close(fd);
+ 		fclose(fp);
+ 		unlink(ulogd_pidfile);
+ 
+@@ -1094,16 +1105,42 @@ static int write_pidfile()
+ 		}
+ 	}
+ 
+-	if (lock_fd(fd) < 0) {
+-		ulogd_log(ULOGD_ERROR, "cannot lock %s: %d\n", ulogd_pidfile,
+-				errno);
++	if (lock_fd(fd, 0) < 0) {
++		ulogd_log(ULOGD_ERROR, "cannot lock %s: %s\n", ulogd_pidfile,
++				strerror(errno));
++		close(fd);
++		return -1;
++	}
++	ulogd_pidfile_fd = fd;
++	return 0;
++}
++
++static int write_pidfile(int daemonize)
++{
++	FILE *fp;
++	if (!ulogd_pidfile)
++		return 0;
++
++	if (ulogd_pidfile_fd == -1) {
++		ulogd_log(ULOGD_ERROR, "unset pid file fd\n");
+ 		return -1;
+ 	}
+ 
+-	fp = fdopen(fd, "w");
++	if (daemonize) {
++		/* relocking as lock is not inherited */
++		if (lock_fd(ulogd_pidfile_fd, 1) < 0) {
++			ulogd_log(ULOGD_ERROR, "cannot lock %s: %d\n", ulogd_pidfile,
++					errno);
++			close(ulogd_pidfile_fd);
++			return -1;
++		}
++	}
++
++	fp = fdopen(ulogd_pidfile_fd, "w");
+ 	if (fp == NULL) {
+ 		ulogd_log(ULOGD_ERROR, "cannot fdopen %s: %d\n", ulogd_pidfile,
+ 				errno);
++		close(ulogd_pidfile_fd);
+ 		return -1;
+ 	}
+ 
+@@ -1118,7 +1155,7 @@ static int write_pidfile()
+ 	 * We do NOT close fd, since we want to keep the lock. However, we don't
+ 	 * want to keep the file descriptor in case of an exec().
+ 	 */
+-	fcntl(fd, F_SETFD, FD_CLOEXEC);
++	fcntl(ulogd_pidfile_fd, F_SETFD, FD_CLOEXEC);
+ 
+ 	created_pidfile = 1;
+ 
+@@ -1350,6 +1387,11 @@ int main(int argc, char* argv[])
+ 		loglevel_ce.u.value = loglevel;
+ 		loglevel_ce.flag |= CONFIG_FLAG_VAL_PROTECTED;
+ 
++	if (ulogd_pidfile) {
++		if (create_pidfile() < 0)
++			warn_and_exit(0);
++	}
++
+ 	if (daemonize && verbose) {
+ 		verbose = 0;
+ 		ulogd_log(ULOGD_ERROR,
+@@ -1421,8 +1463,8 @@ int main(int argc, char* argv[])
+ 	}
+ 
+ 	if (ulogd_pidfile) {
+-		if (write_pidfile() < 0)
+-			warn_and_exit(daemonize);
++		if (write_pidfile(daemonize) < 0)
++			warn_and_exit(0);
+ 	}
+ 
+ 	signal(SIGTERM, &sigterm_handler);
+-- 
+1.7.10.4
 
