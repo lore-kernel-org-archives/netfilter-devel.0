@@ -1,54 +1,29 @@
-From: Michael Roth <mail@mroth.net>
-Subject: [PATCH] doc: mention SNAT in INPUT chain since kernel 2.6.36
-Date: Sun, 19 May 2013 13:22:16 +0200
-Message-ID: <1368962536-28853-1-git-send-email-mail@mroth.net>
-Cc: Michael Roth <mroth@nessie.de>, Michael Roth <mail@mroth.net>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] doc: mention SNAT in INPUT chain since kernel 2.6.36
+Date: Sun, 19 May 2013 14:07:21 +0200
+Message-ID: <20130519120721.GA16004@breakpoint.cc>
+References: <1368962536-28853-1-git-send-email-mail@mroth.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Michael Roth <mroth@nessie.de>
+To: Michael Roth <mail@mroth.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from monster.nessie.de ([84.200.20.120]:37766 "EHLO
-	monster.nessie.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214Ab3ESLkV (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60991 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754191Ab3ESMHZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 May 2013 07:40:21 -0400
+	Sun, 19 May 2013 08:07:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1368962536-28853-1-git-send-email-mail@mroth.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Michael Roth <mroth@nessie.de>
+Michael Roth <mail@mroth.net> wrote:
+> From: Michael Roth <mroth@nessie.de>
+> 
+> SNAT in the INPUT chain was added Jun 2010 to the kernel
+> (commit c68cd6cc21eb329c47ff020ff7412bf58176984e).
+> 
+> Signed-off-by: Michael Roth <mail@mroth.net>
 
-SNAT in the INPUT chain was added Jun 2010 to the kernel
-(commit c68cd6cc21eb329c47ff020ff7412bf58176984e).
-
-Signed-off-by: Michael Roth <mail@mroth.net>
----
- extensions/libipt_SNAT.man |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/extensions/libipt_SNAT.man b/extensions/libipt_SNAT.man
-index 626b592..093b09c 100644
---- a/extensions/libipt_SNAT.man
-+++ b/extensions/libipt_SNAT.man
-@@ -2,7 +2,10 @@ This target is only valid in the
- .B nat
- table, in the
- .B POSTROUTING
--chain.  It specifies that the source address of the packet should be
-+and
-+.B INPUT
-+chains, and user-defined chains which are only called from those
-+chains.  It specifies that the source address of the packet should be
- modified (and all future packets in this connection will also be
- mangled), and rules should cease being examined.  It takes one type
- of option:
-@@ -35,3 +38,9 @@ is used then port mapping will be randomized (kernel >= 2.6.21).
- Gives a client the same source-/destination-address for each connection.
- This supersedes the SAME target. Support for persistent mappings is available
- from 2.6.29-rc2.
-+.PP
-+Kernels prior to 2.6.36-rc1 don't have the ability to
-+.B SNAT
-+in the
-+.B INPUT
-+chain.
--- 
-1.7.10.4
-
+Applied, thanks.
