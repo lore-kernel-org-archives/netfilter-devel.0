@@ -1,32 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH next v2] libnetfilter_conntrack: don't ignore
- ATTR_CONNLABELS
-Date: Mon, 20 May 2013 21:26:48 +0200
-Message-ID: <20130520192648.GB16412@breakpoint.cc>
-References: <1368696643-6731-1-git-send-email-Afschin.Hormozdiary@sophos.com>
- <2544e4f5-3cdf-4e2a-99f9-722ce7f344f3@de-wie-exch3b.green.sophos>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Afschin Hormozdiary <Afschin.Hormozdiary@sophos.com>
+From: Eric Leblond <eric@regit.org>
+Subject: [nftables PATCH] rule: display rule handle as comment
+Date: Tue, 21 May 2013 01:09:00 +0200
+Message-ID: <1369091340-29211-1-git-send-email-eric@regit.org>
+Cc: Eric Leblond <eric@regit.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36064 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757785Ab3ETT0x (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:56985 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757095Ab3ETXJS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 May 2013 15:26:53 -0400
-Content-Disposition: inline
-In-Reply-To: <2544e4f5-3cdf-4e2a-99f9-722ce7f344f3@de-wie-exch3b.green.sophos>
+	Mon, 20 May 2013 19:09:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Afschin Hormozdiary <Afschin.Hormozdiary@sophos.com> wrote:
-> The libnfnetlink based backend 'build.c' currently ignores
-> ATTR_CONNLABELS and ATTR_CONNLABELS_MASK.
+Knowing the rule handle is necessary to be able to delete a single
+rule. It was not displayed till now in the output and it was thus
+impossible to remove a single rule.
+This patch modify the listing output to add a comment containing
+the handle.
 
-Yes, I forgot to add the glue for libnfnetlink backend.
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ src/rule.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-> Add function to set CTA_LABELS and CTA_LABELS_MASK
-> if required.
+diff --git a/src/rule.c b/src/rule.c
+index 9d9eaee..b2d7844 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -13,6 +13,7 @@
+ #include <stdio.h>
+ #include <stdint.h>
+ #include <string.h>
++#include <inttypes.h>
+ 
+ #include <statement.h>
+ #include <rule.h>
+@@ -136,6 +137,7 @@ void rule_print(const struct rule *rule)
+ 		printf(" ");
+ 		stmt->ops->print(stmt);
+ 	}
++	printf(" # handle %" PRIu64, rule->handle.handle);
+ 	printf("\n");
+ }
+ 
+-- 
+1.7.10.4
 
-Applied this to -next branch, thanks.
