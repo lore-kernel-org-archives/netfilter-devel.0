@@ -1,49 +1,63 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCH] rule: display rule handle as comment
-Date: Tue, 21 May 2013 01:09:00 +0200
-Message-ID: <1369091340-29211-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 09/11] db: add ring buffer for DB query
+Date: Tue, 21 May 2013 15:38:02 +0200
+Message-ID: <20130521133802.GA5160@localhost>
+References: <1368168538-29780-1-git-send-email-eric@regit.org>
+ <1368168538-29780-10-git-send-email-eric@regit.org>
+ <20130511192922.GA10791@localhost>
+ <1368354569.22387.48.camel@ice-age.regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:56985 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757095Ab3ETXJS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 May 2013 19:09:18 -0400
+Received: from mail.us.es ([193.147.175.20]:45493 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751673Ab3EUNiM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 May 2013 09:38:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1368354569.22387.48.camel@ice-age.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Knowing the rule handle is necessary to be able to delete a single
-rule. It was not displayed till now in the output and it was thus
-impossible to remove a single rule.
-This patch modify the listing output to add a comment containing
-the handle.
+Hi Eric,
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/rule.c |    2 ++
- 1 file changed, 2 insertions(+)
+On Sun, May 12, 2013 at 12:29:29PM +0200, Eric Leblond wrote:
+> Le samedi 11 mai 2013 =E0 21:29 +0200, Pablo Neira Ayuso a =E9crit :
+> > On Fri, May 10, 2013 at 08:48:56AM +0200, Eric Leblond wrote:
+> > > This patch adds an optional ring buffer option which modify
+> > > the way database queries are made. The main thread is only handli=
+ng
+> > > kernel message reading and query formatting. The SQL request is m=
+ade
+> > > in a separate dedicated thread.
+> > > The idea is to try to avoid buffer overrun by minimizing the time
+> > > requested to treat kernel message. Doing synchronous SQL request,=
+ as
+> > > it was made before was causing a delay which could cause some mes=
+sages
+> > > to be lost in case of burst from kernel side.
+> >=20
+> > Would be feasible to make asynchronous SQL requests instead, so you
+> > can skip the use of pthread?
+[...]
+> From a lazy point of view, this would require to update all the datab=
+ase
+> backends instead of simply updating the db abstraction layer as it is
+> done with the proposed patch.
 
-diff --git a/src/rule.c b/src/rule.c
-index 9d9eaee..b2d7844 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -13,6 +13,7 @@
- #include <stdio.h>
- #include <stdint.h>
- #include <string.h>
-+#include <inttypes.h>
- 
- #include <statement.h>
- #include <rule.h>
-@@ -136,6 +137,7 @@ void rule_print(const struct rule *rule)
- 		printf(" ");
- 		stmt->ops->print(stmt);
- 	}
-+	printf(" # handle %" PRIu64, rule->handle.handle);
- 	printf("\n");
- }
- 
--- 
-1.7.10.4
+=46air enough, it provides a generic way to support this and the main
+thread should be really taking care of netlink messages coming from
+the kernel to avoid the overrun.
 
+If the target is to overcome small bursts, this should help to relief
+those peaks for some time, but at some point the intermediate queue
+(the ring) will also get full if the situation lasts long.
+
+Regards.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
