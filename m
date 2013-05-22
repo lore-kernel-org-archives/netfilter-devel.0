@@ -1,105 +1,88 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net-next] netfilter: xt_socket: use IP early demux
-Date: Wed, 22 May 2013 14:01:06 -0700
-Message-ID: <1369256466.3301.364.camel@edumazet-glaptop>
+Subject: [PATCH resend nf-next] netfilter: xt_CT: optimize XT_CT_NOTRACK
+Date: Wed, 22 May 2013 14:10:57 -0700
+Message-ID: <1369257057.3301.367.camel@edumazet-glaptop>
+References: <1368132751.13473.113.camel@edumazet-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:44533 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab3EVVBJ (ORCPT
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:64793 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab3EVVLA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 May 2013 17:01:09 -0400
+	Wed, 22 May 2013 17:11:00 -0400
+In-Reply-To: <1368132751.13473.113.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Eric Dumazet <edumazet@google.com>
 
-With IP early demux added in linux-3.6, we perform TCP lookup in IP
-layer before iptables hooks.
+The percpu untracked ct are not currently used for XT_CT_NOTRACK.
 
-We can avoid doing a second lookup in xt_socket.
+xt_ct_tg_check()/xt_ct_target() provides a single ct.
+
+Thats not optimal as the ct->ct_general.use cache line will bounce among
+cpus.
+
+Use the intended [1] thing : xt_ct_target() should select the percpu
+object.
+
+[1] Refs :
+commit 5bfddbd46a95c97 ("netfilter: nf_conntrack: IPS_UNTRACKED bit")
+commit b3c5163fe0193a7 ("netfilter: nf_conntrack: per_cpu untracking")
 
 Signed-off-by: Eric Dumazet <edumazet@google.com>
 ---
- net/netfilter/xt_socket.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+Sent Thu, 2013-05-09, this is a resend only, no changes
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 63b2bdb..0270424 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -107,7 +107,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	struct udphdr _hdr, *hp = NULL;
--	struct sock *sk;
-+	struct sock *sk = skb->sk;
- 	__be32 uninitialized_var(daddr), uninitialized_var(saddr);
- 	__be16 uninitialized_var(dport), uninitialized_var(sport);
- 	u8 uninitialized_var(protocol);
-@@ -155,9 +155,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 	}
- #endif
+ net/netfilter/xt_CT.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index a60261c..da35ac0 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -26,6 +26,9 @@ static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
+ 	if (skb->nfct != NULL)
+ 		return XT_CONTINUE;
  
--	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
--				   saddr, daddr, sport, dport, par->in, NFT_LOOKUP_ANY);
--	if (sk != NULL) {
-+	if (!sk)
-+		sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
-+					   saddr, daddr, sport, dport,
-+					   par->in, NFT_LOOKUP_ANY);
-+	if (sk) {
- 		bool wildcard;
- 		bool transparent = true;
++	/* special case the untracked ct : we want the percpu object */
++	if (!ct)
++		ct = nf_ct_untracked_get();
+ 	atomic_inc(&ct->ct_general.use);
+ 	skb->nfct = &ct->ct_general;
+ 	skb->nfctinfo = IP_CT_NEW;
+@@ -186,8 +189,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	int ret = -EOPNOTSUPP;
  
-@@ -173,7 +175,8 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 				       (sk->sk_state == TCP_TIME_WAIT &&
- 					inet_twsk(sk)->tw_transparent));
- 
--		xt_socket_put_sk(sk);
-+		if (sk != skb->sk)
-+			xt_socket_put_sk(sk);
- 
- 		if (wildcard || !transparent)
- 			sk = NULL;
-@@ -260,7 +263,7 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	struct ipv6hdr *iph = ipv6_hdr(skb);
- 	struct udphdr _hdr, *hp = NULL;
--	struct sock *sk;
-+	struct sock *sk = skb->sk;
- 	struct in6_addr *daddr = NULL, *saddr = NULL;
- 	__be16 uninitialized_var(dport), uninitialized_var(sport);
- 	int thoff = 0, uninitialized_var(tproto);
-@@ -291,9 +294,11 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 		return false;
+ 	if (info->flags & XT_CT_NOTRACK) {
+-		ct = nf_ct_untracked_get();
+-		atomic_inc(&ct->ct_general.use);
++		ct = NULL;
+ 		goto out;
  	}
  
--	sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
--				   saddr, daddr, sport, dport, par->in, NFT_LOOKUP_ANY);
--	if (sk != NULL) {
-+	if (!sk)
-+		sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
-+					   saddr, daddr, sport, dport,
-+					   par->in, NFT_LOOKUP_ANY);
-+	if (sk) {
- 		bool wildcard;
- 		bool transparent = true;
+@@ -311,7 +313,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
+ 	struct nf_conn *ct = info->ct;
+ 	struct nf_conn_help *help;
  
-@@ -309,7 +314,8 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 				       (sk->sk_state == TCP_TIME_WAIT &&
- 					inet_twsk(sk)->tw_transparent));
+-	if (!nf_ct_is_untracked(ct)) {
++	if (ct && !nf_ct_is_untracked(ct)) {
+ 		help = nfct_help(ct);
+ 		if (help)
+ 			module_put(help->helper->me);
+@@ -319,8 +321,8 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
+ 		nf_ct_l3proto_module_put(par->family);
  
--		xt_socket_put_sk(sk);
-+		if (sk != skb->sk)
-+			xt_socket_put_sk(sk);
+ 		xt_ct_destroy_timeout(ct);
++		nf_ct_put(info->ct);
+ 	}
+-	nf_ct_put(info->ct);
+ }
  
- 		if (wildcard || !transparent)
- 			sk = NULL;
+ static void xt_ct_tg_destroy_v0(const struct xt_tgdtor_param *par)
 
 
