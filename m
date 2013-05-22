@@ -1,217 +1,40 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH -resend 4/6] netfilter: Implement RFC 1123 for FTP conntrack
-Date: Wed, 22 May 2013 14:59:10 +0200
-Message-ID: <1369227552-11743-4-git-send-email-jslaby@suse.cz>
-References: <1369227552-11743-1-git-send-email-jslaby@suse.cz>
-Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-	Jeff Mahoney <jeffm@suse.com>, Jiri Slaby <jslaby@suse.cz>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: jirislaby@gmail.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369227552-11743-1-git-send-email-jslaby@suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: [nftables PATCH] rule: display rule handle as comment
+Date: Wed, 22 May 2013 15:53:26 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1305221512110.26402@ask.diku.dk>
+References: <1369091340-29211-1-git-send-email-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Jesper Brouer <brouer@redhat.com>
+To: Eric Leblond <eric@regit.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mgw2.diku.dk ([130.225.96.92]:52013 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755417Ab3EVOMz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 May 2013 10:12:55 -0400
+In-Reply-To: <1369091340-29211-1-git-send-email-eric@regit.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jeff Mahoney <jeffm@suse.com>
 
- The FTP conntrack code currently only accepts the following format for
- the 227 response for PASV:
- 227 Entering Passive Mode (148,100,81,40,31,161).
+On Tue, 21 May 2013, Eric Leblond wrote:
 
- It doesn't accept the following format from an obscure server:
- 227 Data transfer will passively listen to 67,218,99,134,50,144
+> Knowing the rule handle is necessary to be able to delete a single
+> rule. It was not displayed till now in the output and it was thus
+> impossible to remove a single rule.
 
- From RFC 1123:
- The format of the 227 reply to a PASV command is not
- well standardized.  In particular, an FTP client cannot
- assume that the parentheses shown on page 40 of RFC-959
- will be present (and in fact, Figure 3 on page 43 omits
- them).  Therefore, a User-FTP program that interprets
- the PASV reply must scan the reply for the first digit
- of the host and port numbers.
+The current iptables system supports deleting a specific rule by simply 
+specifying iptables -D [...] instead of equivilant iptables -A [...]
 
- This patch adds support for the RFC 1123 clarification by:
- - Allowing a search filter to specify NUL as the terminator so that
-   try_number will return successfully if the array of numbers has been
-   filled when an unexpected character is encountered.
- - Using space as the separator for the 227 reply and then scanning for
-   the first digit of the number sequence. The number sequence is parsed
-   out using the existing try_rfc959 but with a NUL terminator.
+Would it be possible to keep this semantics in nftables?
 
-References: https://bugzilla.novell.com/show_bug.cgi?id=466279
-References: http://bugzilla.netfilter.org/show_bug.cgi?id=574
-Reported-by: Mark Post <mpost@novell.com>
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
----
- net/netfilter/nf_conntrack_ftp.c | 73 +++++++++++++++++++++++++++++-----------
- 1 file changed, 54 insertions(+), 19 deletions(-)
+Hilsen
+   Jesper Brouer
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 6b21707..b8a0924 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -55,10 +55,14 @@ unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
- 				struct nf_conntrack_expect *exp);
- EXPORT_SYMBOL_GPL(nf_nat_ftp_hook);
- 
--static int try_rfc959(const char *, size_t, struct nf_conntrack_man *, char);
--static int try_eprt(const char *, size_t, struct nf_conntrack_man *, char);
-+static int try_rfc959(const char *, size_t, struct nf_conntrack_man *,
-+		      char, unsigned int *);
-+static int try_rfc1123(const char *, size_t, struct nf_conntrack_man *,
-+		       char, unsigned int *);
-+static int try_eprt(const char *, size_t, struct nf_conntrack_man *,
-+		    char, unsigned int *);
- static int try_epsv_response(const char *, size_t, struct nf_conntrack_man *,
--			     char);
-+			     char, unsigned int *);
- 
- static struct ftp_search {
- 	const char *pattern;
-@@ -66,7 +70,7 @@ static struct ftp_search {
- 	char skip;
- 	char term;
- 	enum nf_ct_ftp_type ftptype;
--	int (*getnum)(const char *, size_t, struct nf_conntrack_man *, char);
-+	int (*getnum)(const char *, size_t, struct nf_conntrack_man *, char, unsigned int *);
- } search[IP_CT_DIR_MAX][2] = {
- 	[IP_CT_DIR_ORIGINAL] = {
- 		{
-@@ -90,10 +94,8 @@ static struct ftp_search {
- 		{
- 			.pattern	= "227 ",
- 			.plen		= sizeof("227 ") - 1,
--			.skip		= '(',
--			.term		= ')',
- 			.ftptype	= NF_CT_FTP_PASV,
--			.getnum		= try_rfc959,
-+			.getnum		= try_rfc1123,
- 		},
- 		{
- 			.pattern	= "229 ",
-@@ -132,8 +134,9 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
- 			i++;
- 		else {
- 			/* Unexpected character; true if it's the
--			   terminator and we're finished. */
--			if (*data == term && i == array_size - 1)
-+			   terminator (or we don't care about one)
-+			   and we're finished. */
-+			if ((*data == term || !term) && i == array_size - 1)
- 				return len;
- 
- 			pr_debug("Char %u (got %u nums) `%u' unexpected\n",
-@@ -148,7 +151,8 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
- 
- /* Returns 0, or length of numbers: 192,168,1,1,5,6 */
- static int try_rfc959(const char *data, size_t dlen,
--		      struct nf_conntrack_man *cmd, char term)
-+		      struct nf_conntrack_man *cmd, char term,
-+		      unsigned int *offset)
- {
- 	int length;
- 	u_int32_t array[6];
-@@ -163,6 +167,33 @@ static int try_rfc959(const char *data, size_t dlen,
- 	return length;
- }
- 
-+/*
-+ * From RFC 1123:
-+ * The format of the 227 reply to a PASV command is not
-+ * well standardized.  In particular, an FTP client cannot
-+ * assume that the parentheses shown on page 40 of RFC-959
-+ * will be present (and in fact, Figure 3 on page 43 omits
-+ * them).  Therefore, a User-FTP program that interprets
-+ * the PASV reply must scan the reply for the first digit
-+ * of the host and port numbers.
-+ */
-+static int try_rfc1123(const char *data, size_t dlen,
-+		       struct nf_conntrack_man *cmd, char term,
-+		       unsigned int *offset)
-+{
-+	int i;
-+	for (i = 0; i < dlen; i++)
-+		if (isdigit(data[i]))
-+			break;
-+
-+	if (i == dlen)
-+		return 0;
-+
-+	*offset += i;
-+
-+	return try_rfc959(data + i, dlen - i, cmd, 0, offset);
-+}
-+
- /* Grab port: number up to delimiter */
- static int get_port(const char *data, int start, size_t dlen, char delim,
- 		    __be16 *port)
-@@ -191,7 +222,7 @@ static int get_port(const char *data, int start, size_t dlen, char delim,
- 
- /* Returns 0, or length of numbers: |1|132.235.1.2|6275| or |2|3ffe::1|6275| */
- static int try_eprt(const char *data, size_t dlen, struct nf_conntrack_man *cmd,
--		    char term)
-+		    char term, unsigned int *offset)
- {
- 	char delim;
- 	int length;
-@@ -239,7 +270,8 @@ static int try_eprt(const char *data, size_t dlen, struct nf_conntrack_man *cmd,
- 
- /* Returns 0, or length of numbers: |||6446| */
- static int try_epsv_response(const char *data, size_t dlen,
--			     struct nf_conntrack_man *cmd, char term)
-+			     struct nf_conntrack_man *cmd, char term,
-+			     unsigned int *offset)
- {
- 	char delim;
- 
-@@ -261,9 +293,10 @@ static int find_pattern(const char *data, size_t dlen,
- 			unsigned int *numlen,
- 			struct nf_conntrack_man *cmd,
- 			int (*getnum)(const char *, size_t,
--				      struct nf_conntrack_man *, char))
-+				      struct nf_conntrack_man *, char,
-+				      unsigned int *))
- {
--	size_t i;
-+	size_t i = plen;
- 
- 	pr_debug("find_pattern `%s': dlen = %Zu\n", pattern, dlen);
- 	if (dlen == 0)
-@@ -293,16 +326,18 @@ static int find_pattern(const char *data, size_t dlen,
- 	pr_debug("Pattern matches!\n");
- 	/* Now we've found the constant string, try to skip
- 	   to the 'skip' character */
--	for (i = plen; data[i] != skip; i++)
--		if (i == dlen - 1) return -1;
-+	if (skip) {
-+		for (i = plen; data[i] != skip; i++)
-+			if (i == dlen - 1) return -1;
- 
--	/* Skip over the last character */
--	i++;
-+		/* Skip over the last character */
-+		i++;
-+	}
- 
- 	pr_debug("Skipped up to `%c'!\n", skip);
- 
- 	*numoff = i;
--	*numlen = getnum(data + i, dlen - i, cmd, term);
-+	*numlen = getnum(data + i, dlen - i, cmd, term, numoff);
- 	if (!*numlen)
- 		return -1;
- 
--- 
-1.8.2.3
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
