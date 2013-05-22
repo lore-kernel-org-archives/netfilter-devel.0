@@ -1,76 +1,115 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2 nf-next] netfilter: conntrack: remove the central
- spinlock
-Date: Wed, 22 May 2013 14:34:49 -0700
-Message-ID: <1369258489.3301.369.camel@edumazet-glaptop>
-References: <1368068665.13473.81.camel@edumazet-glaptop>
-	 <1369244868.3301.343.camel@edumazet-glaptop>
-	 <1369246816.2143.84.camel@joe-AO722>
-	 <1369250772.3301.349.camel@edumazet-glaptop>
-	 <1369252624.2143.103.camel@joe-AO722>
-	 <1369253761.3301.355.camel@edumazet-glaptop>
-	 <1369255104.2143.108.camel@joe-AO722>
-	 <1369255736.3301.358.camel@edumazet-glaptop>
-	 <1369257171.2143.120.camel@joe-AO722>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH v2] xtables: Add locking to prevent concurrent instances
+Date: Wed, 22 May 2013 18:36:34 -0400
+Message-ID: <20130522223455.GA4665@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-	Tom Herbert <therbert@google.com>,
-	Patrick McHardy <kaber@trash.net>
-To: Joe Perches <joe@perches.com>
+Content-Type: multipart/mixed; boundary="qlTNgmc+xy1dBmNv"
+Cc: pablo@netfilter.org, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:40866 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754087Ab3EVVev (ORCPT
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:62316 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756967Ab3EVWgg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 May 2013 17:34:51 -0400
-In-Reply-To: <1369257171.2143.120.camel@joe-AO722>
+	Wed, 22 May 2013 18:36:36 -0400
+Received: by mail-ob0-f177.google.com with SMTP id wn6so3155998obc.36
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 May 2013 15:36:36 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2013-05-22 at 14:12 -0700, Joe Perches wrote:
-> On Wed, 2013-05-22 at 13:48 -0700, Eric Dumazet wrote:
-> > On Wed, 2013-05-22 at 13:38 -0700, Joe Perches wrote:
-> > 
-> > > u16 for cpu is hardly used at all.
-> > 
-> > Its used in network tree.
-> > 
-> > The day it has to change, don't worry, I think we'll be able to handle
-> > it.
-> > 
-> > For the meantime, I do not want to add 4 more bytes to conntrack
-> > structure, its already bloated enough.
-> 
-> I wrote "nice" already, no worries.
-> 
-> btw: netdevice.h could possibly convert xmit_lock_owner
-> to u16 as well for that same 4 byte savings if the -1
-> test was converted too.
-> ---
->  include/linux/netdevice.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> index 60584b1..c38cd29 100644
-> --- a/include/linux/netdevice.h
-> +++ b/include/linux/netdevice.h
-> @@ -528,7 +528,7 @@ struct netdev_queue {
->   * write mostly part
->   */
->  	spinlock_t		_xmit_lock ____cacheline_aligned_in_smp;
-> -	int			xmit_lock_owner;
-> +	u16			xmit_lock_owner;
->  	/*
 
-Typical machines have less than 10 structures like this one, there is no
-gain trying to save some bytes, and more gain trying to get correct
-alignments ;)
+--qlTNgmc+xy1dBmNv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-While conntracking can easily consume more than 10.000.000 conntracks on
-a machine.
+There have been numerous complaints and bug reports over the years when admins
+attempt to run more than one instance of iptables simultaneously.  Currently
+open bug reports which are related:
 
+325: Parallel execution of the iptables is impossible
+758: Retry iptables command on transient failure
+764: Doing -Z twice in parallel breaks counters
+822: iptables shows negative or other bad packet/byte counts
 
+As Patrick notes in 325:  "Since this has been a problem people keep running
+into, I'd suggest to simply add some locking to iptables to catch the most
+common case."
 
+I started looking into alternatives to add locking, and of course the most
+common/obvious solution is to use a pidfile.  But this has various downsides,
+such as if the application is terminated abnormally and the pidfile isn't
+cleaned up.  And this also requires a writable filesystem.  Using a UNIX domain
+socket file (e.g. in /var/run) has similar issues.
+
+Starting in 2.2, Linux added support for abstract sockets.  These sockets
+require no filesystem, and automatically disappear once the application
+terminates.  This is the locking solution I chose to implement in xtables-multi.
+As an added bonus, since each network namespace has its own socket pool, an
+iptables instance running in one namespace will not lock out an iptables
+instance running in another namespace.  A filesystem approach would have
+to recognize and handle multiple network namespaces.
+
+Changes from v1:
+- Addressed Patrick's comments - locking attempts will be made indefinitely
+  until successful.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+--qlTNgmc+xy1dBmNv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-xtables-lock
+
+diff --git a/iptables/xtables-multi.c b/iptables/xtables-multi.c
+index 8014d5f..5a57375 100644
+--- a/iptables/xtables-multi.c
++++ b/iptables/xtables-multi.c
+@@ -1,8 +1,12 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++#include <unistd.h>
+ #include "xshared.h"
+ 
++#include "xtables.h"
+ #include "xtables-multi.h"
+ 
+ #ifdef ENABLE_IPV4
+@@ -35,7 +39,31 @@ static const struct subcommand multi_subcommands[] = {
+ 	{NULL},
+ };
+ 
++#define XTMSOCKET_NAME "xtables_multi"
++#define XTMSOCKET_LEN 14
++
+ int main(int argc, char **argv)
+ {
++	int i = 0, ret, xtm_socket;
++	struct sockaddr_un xtm_addr;
++
++	memset(&xtm_addr, 0, sizeof(xtm_addr));
++	xtm_addr.sun_family = AF_UNIX;
++	strcpy(xtm_addr.sun_path+1, XTMSOCKET_NAME);
++	xtm_socket = socket(AF_UNIX, SOCK_STREAM, 0);
++	/* If we can't even create a socket, just revert to prior (lockless) behavior */
++	if (xtm_socket < 0)
++		return subcmd_main(argc, argv, multi_subcommands);
++
++	while (1) {
++		ret = bind(xtm_socket, (struct sockaddr*)&xtm_addr,
++			   offsetof(struct sockaddr_un, sun_path)+XTMSOCKET_LEN);
++		if (ret == 0)
++			break;
++		if (++i % 5 == 0)
++			fprintf(stderr, "Waiting for lock, standby...\n");
++		sleep(1);
++	}
++
+ 	return subcmd_main(argc, argv, multi_subcommands);
+ }
+
+--qlTNgmc+xy1dBmNv--
