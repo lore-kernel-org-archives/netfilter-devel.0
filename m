@@ -1,132 +1,37 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 1/3] netfilter: ctnetlink: attach expectations to unconfirmed
- conntracks
-Date: Thu, 23 May 2013 17:34:43 +0800
-Message-ID: <519DE2B3.6030005@cn.fujitsu.com>
-References: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] netfilter: xt_socket: use IP early demux
+Date: Thu, 23 May 2013 12:53:44 +0200
+Message-ID: <20130523105344.GA22507@localhost>
+References: <1369256466.3301.364.camel@edumazet-glaptop>
+ <20130522.142733.458456664835859037.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: eric.dumazet@gmail.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, kaber@trash.net
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50635 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757499Ab3EWJdC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 May 2013 05:33:02 -0400
-In-Reply-To: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:47421 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757905Ab3EWKxs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 06:53:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20130522.142733.458456664835859037.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/23/2013 04:42 PM, Pablo Neira Ayuso wrote:
-> This patch adds the capability to attach expectations to unconfirmed
-> conntrack entries. This patch is required by the DHCPv6 helper in
-> user-space.
+On Wed, May 22, 2013 at 02:27:33PM -0700, David Miller wrote:
+> From: Eric Dumazet <eric.dumazet@gmail.com>
+> Date: Wed, 22 May 2013 14:01:06 -0700
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nf_conntrack.h               |    4 ++++
->  include/uapi/linux/netfilter/nfnetlink_conntrack.h |    1 +
->  net/netfilter/nf_conntrack_core.c                  |   20 ++++++++++++++++++++
->  net/netfilter/nf_conntrack_netlink.c               |   14 ++++++++++++--
->  4 files changed, 37 insertions(+), 2 deletions(-)
+> > From: Eric Dumazet <edumazet@google.com>
+> > 
+> > With IP early demux added in linux-3.6, we perform TCP lookup in IP
+> > layer before iptables hooks.
+> > 
+> > We can avoid doing a second lookup in xt_socket.
+> > 
+> > Signed-off-by: Eric Dumazet <edumazet@google.com>
 > 
-> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-> index 644d9c2..d172fc5 100644
-> --- a/include/net/netfilter/nf_conntrack.h
-> +++ b/include/net/netfilter/nf_conntrack.h
-> @@ -180,6 +180,10 @@ extern struct nf_conntrack_tuple_hash *
->  __nf_conntrack_find(struct net *net, u16 zone,
->  		    const struct nf_conntrack_tuple *tuple);
->  
-> +struct nf_conntrack_tuple_hash *
-> +nf_ct_unconfirmed_find(struct net *net, u16 zone,
-> +		       const struct nf_conntrack_tuple *tuple);
-> +
->  extern int nf_conntrack_hash_check_insert(struct nf_conn *ct);
->  extern void nf_ct_delete_from_lists(struct nf_conn *ct);
->  extern void nf_ct_dying_timeout(struct nf_conn *ct);
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> index 08fabc6..8f7c2fe 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> @@ -187,6 +187,7 @@ enum ctattr_expect {
->  	CTA_EXPECT_CLASS,
->  	CTA_EXPECT_NAT,
->  	CTA_EXPECT_FN,
-> +	CTA_EXPECT_MASTER_STATUS,
->  	__CTA_EXPECT_MAX
->  };
->  #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index ebb81d6..a6e5764 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -401,6 +401,26 @@ nf_conntrack_find_get(struct net *net, u16 zone,
->  }
->  EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
->  
-> +struct nf_conntrack_tuple_hash *
-> +nf_ct_unconfirmed_find(struct net *net, u16 zone,
-> +		       const struct nf_conntrack_tuple *tuple)
-> +{
-> +	struct nf_conntrack_tuple_hash *h, *ret = NULL;
-> +	struct hlist_nulls_node *n;
-> +
-> +	rcu_read_lock();
-> +	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.unconfirmed, hnnode) {
-> +		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
-> +		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
-> +			ret = h;
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-Shouldn't we get reference of nf_ct_tuplehash_to_ctrack(h) here?
-ctnetlink_create_expect will call nf_ct_put to release the reference finally.
-
-or I miss something?
-
-> +			break;
-> +		}
-> +	}
-> +	rcu_read_unlock();
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_find);
-> +
->  static void __nf_conntrack_hash_insert(struct nf_conn *ct,
->  				       unsigned int hash,
->  				       unsigned int repl_hash)
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 6d0f8a1..3596682 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -2742,7 +2742,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
->  	struct nf_conn *ct;
->  	struct nf_conn_help *help;
->  	struct nf_conntrack_helper *helper = NULL;
-> -	u_int32_t class = 0;
-> +	u_int32_t class = 0, master_status;
->  	int err = 0;
->  
->  	/* caller guarantees that those three CTA_EXPECT_* exist */
-> @@ -2756,8 +2756,18 @@ ctnetlink_create_expect(struct net *net, u16 zone,
->  	if (err < 0)
->  		return err;
->  
-> +	if (cda[CTA_EXPECT_MASTER_STATUS]) {
-> +		master_status =
-> +			ntohl(nla_get_be32(cda[CTA_EXPECT_MASTER_STATUS]));
-> +	} else
-> +		master_status = IPS_CONFIRMED;
-> +
->  	/* Look for master conntrack of this expectation */
-> -	h = nf_conntrack_find_get(net, zone, &master_tuple);
-> +	if (master_status & IPS_CONFIRMED)
-> +		h = nf_conntrack_find_get(net, zone, &master_tuple);
-> +	else
-> +		h = nf_ct_unconfirmed_find(net, zone, &master_tuple);
-> +
->  	if (!h)
->  		return -ENOENT;
->  	ct = nf_ct_tuplehash_to_ctrack(h);
-> 
-
+Applied to nf-next, thanks!
