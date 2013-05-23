@@ -1,85 +1,102 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 2/3] netfilter: don't panic on error while walking through
- the init path
-Date: Thu, 23 May 2013 16:50:48 +0800
-Message-ID: <519DD868.1070809@cn.fujitsu.com>
-References: <1369298557-5351-1-git-send-email-pablo@netfilter.org> <1369298557-5351-2-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH 3/3] netfilter: {ipt,ebt}_ULOG: rise warning on deprecation
+Date: Thu, 23 May 2013 16:59:12 +0800
+Message-ID: <519DDA60.9050505@cn.fujitsu.com>
+References: <1369298557-5351-1-git-send-email-pablo@netfilter.org> <1369298557-5351-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:10276 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:33263 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756992Ab3EWItC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 May 2013 04:49:02 -0400
-In-Reply-To: <1369298557-5351-2-git-send-email-pablo@netfilter.org>
+	id S1755024Ab3EWI5Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 04:57:25 -0400
+In-Reply-To: <1369298557-5351-3-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On 05/23/2013 04:42 PM, Pablo Neira Ayuso wrote:
-> Don't panic if we hit an error while adding the nf_log or pernet
-> netfilter support, just bail out.
+> This target has been superseded by NFLOG. Spot a warning
+> so we prepare removal in a couple of years.
 > 
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
+>  include/net/netns/x_tables.h    |    6 ++++++
+>  net/bridge/netfilter/ebt_ulog.c |    6 ++++++
+>  net/ipv4/netfilter/Kconfig      |    2 +-
+>  net/ipv4/netfilter/ipt_ULOG.c   |    6 ++++++
+>  4 files changed, 19 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+> index c24060e..02fe40f 100644
+> --- a/include/net/netns/x_tables.h
+> +++ b/include/net/netns/x_tables.h
+> @@ -15,5 +15,11 @@ struct netns_xt {
+>  	struct ebt_table *frame_filter;
+>  	struct ebt_table *frame_nat;
+>  #endif
+> +#if IS_ENABLED(CONFIG_IP_NF_TARGET_ULOG)
+> +	bool ulog_warn_deprecated;
+> +#endif
+> +#if IS_ENABLED(CONFIG_BRIDGE_EBT_ULOG)
+> +	bool ebt_ulog_warn_deprecated;
+> +#endif
+>  };
+>  #endif
+> diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+> index fc1905c..bfc40c7 100644
+> --- a/net/bridge/netfilter/ebt_ulog.c
+> +++ b/net/bridge/netfilter/ebt_ulog.c
+> @@ -267,6 +267,12 @@ static int ebt_ulog_tg_check(const struct xt_tgchk_param *par)
+>  {
+>  	struct ebt_ulog_info *uloginfo = par->targinfo;
+>  
+> +	if (!par->net->nf.ebt_ulog_warn_deprecated) {
 
+par->net->xt.ebt_ulog_warn_deprecated?
+
+anyway
 Acked-by: Gao feng <gaofeng@cn.fujitsu.com>
 
->  net/netfilter/core.c   |   19 ++++++++++++++-----
->  net/netfilter/nf_log.c |    5 +----
->  2 files changed, 15 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index 07c865a..3905104 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -304,15 +304,24 @@ static struct pernet_operations netfilter_net_ops = {
+> +		pr_info("ebt_ulog is deprecated and it will be removed soon, "
+> +			"use ebt_nflog instead\n");
+> +		par->net->nf.ebt_ulog_warn_deprecated = true;
+> +	}
+> +
+>  	if (uloginfo->nlgroup > 31)
+>  		return -EINVAL;
 >  
->  void __init netfilter_init(void)
+> diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+> index e7916c1..4e90280 100644
+> --- a/net/ipv4/netfilter/Kconfig
+> +++ b/net/ipv4/netfilter/Kconfig
+> @@ -111,7 +111,7 @@ config IP_NF_TARGET_REJECT
+>  	  To compile it as a module, choose M here.  If unsure, say N.
+>  
+>  config IP_NF_TARGET_ULOG
+> -	tristate "ULOG target support"
+> +	tristate "ULOG target support (obsolete)"
+>  	default m if NETFILTER_ADVANCED=n
+>  	---help---
+>  
+> diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+> index f8a222cb..c1953d0 100644
+> --- a/net/ipv4/netfilter/ipt_ULOG.c
+> +++ b/net/ipv4/netfilter/ipt_ULOG.c
+> @@ -325,6 +325,12 @@ static int ulog_tg_check(const struct xt_tgchk_param *par)
 >  {
-> -	int i, h;
-> +	int i, h, ret;
+>  	const struct ipt_ulog_info *loginfo = par->targinfo;
+>  
+> +	if (!par->net->xt.ulog_warn_deprecated) {
+> +		pr_info("ULOG is deprecated and it will be removed soon, "
+> +			"use NFLOG instead\n");
+> +		par->net->xt.ulog_warn_deprecated = true;
+> +	}
 > +
->  	for (i = 0; i < ARRAY_SIZE(nf_hooks); i++) {
->  		for (h = 0; h < NF_MAX_HOOKS; h++)
->  			INIT_LIST_HEAD(&nf_hooks[i][h]);
->  	}
->  
-> -	if (register_pernet_subsys(&netfilter_net_ops) < 0)
-> -		panic("cannot create netfilter proc entry");
-> +	ret = register_pernet_subsys(&netfilter_net_ops);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +	ret = netfilter_log_init();
-> +	if (ret < 0)
-> +		goto err_pernet;
->  
-> -	if (netfilter_log_init() < 0)
-> -		panic("cannot initialize nf_log");
-> +	return 0;
-> +err_pernet:
-> +	unregister_pernet_subsys(&netfilter_net_ops);
-> +err:
-> +	return ret;
->  }
-> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-> index 388656d..bd5474a 100644
-> --- a/net/netfilter/nf_log.c
-> +++ b/net/netfilter/nf_log.c
-> @@ -368,10 +368,7 @@ static int __net_init nf_log_net_init(struct net *net)
->  	return 0;
->  
->  out_sysctl:
-> -	/* For init_net: errors will trigger panic, don't unroll on error. */
-> -	if (!net_eq(net, &init_net))
-> -		remove_proc_entry("nf_log", net->nf.proc_netfilter);
-> -
-> +	remove_proc_entry("nf_log", net->nf.proc_netfilter);
->  	return ret;
->  }
->  
+>  	if (loginfo->prefix[sizeof(loginfo->prefix) - 1] != '\0') {
+>  		pr_debug("prefix not null-terminated\n");
+>  		return -EINVAL;
 > 
 
