@@ -1,64 +1,92 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: {ipt,ebt}_ULOG: rise warning on
- deprecation
-Date: Thu, 23 May 2013 13:09:48 +0200
-Message-ID: <20130523110948.GD22553@localhost>
-References: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
- <1369298557-5351-3-git-send-email-pablo@netfilter.org>
- <519DDA60.9050505@cn.fujitsu.com>
+Subject: Re: [PATCH v2] netfilter: add and use nf_ipv6_ops in xt_addrtype
+Date: Thu, 23 May 2013 13:18:43 +0200
+Message-ID: <20130523111843.GA22664@localhost>
+References: <1368798970-5837-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53084 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55930 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758123Ab3EWLJy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 May 2013 07:09:54 -0400
+	id S1758427Ab3EWLSx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 07:18:53 -0400
 Content-Disposition: inline
-In-Reply-To: <519DDA60.9050505@cn.fujitsu.com>
+In-Reply-To: <1368798970-5837-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 23, 2013 at 04:59:12PM +0800, Gao feng wrote:
-> On 05/23/2013 04:42 PM, Pablo Neira Ayuso wrote:
-> > This target has been superseded by NFLOG. Spot a warning
-> > so we prepare removal in a couple of years.
-> > 
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  include/net/netns/x_tables.h    |    6 ++++++
-> >  net/bridge/netfilter/ebt_ulog.c |    6 ++++++
-> >  net/ipv4/netfilter/Kconfig      |    2 +-
-> >  net/ipv4/netfilter/ipt_ULOG.c   |    6 ++++++
-> >  4 files changed, 19 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-> > index c24060e..02fe40f 100644
-> > --- a/include/net/netns/x_tables.h
-> > +++ b/include/net/netns/x_tables.h
-> > @@ -15,5 +15,11 @@ struct netns_xt {
-> >  	struct ebt_table *frame_filter;
-> >  	struct ebt_table *frame_nat;
-> >  #endif
-> > +#if IS_ENABLED(CONFIG_IP_NF_TARGET_ULOG)
-> > +	bool ulog_warn_deprecated;
-> > +#endif
-> > +#if IS_ENABLED(CONFIG_BRIDGE_EBT_ULOG)
-> > +	bool ebt_ulog_warn_deprecated;
-> > +#endif
-> >  };
-> >  #endif
-> > diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-> > index fc1905c..bfc40c7 100644
-> > --- a/net/bridge/netfilter/ebt_ulog.c
-> > +++ b/net/bridge/netfilter/ebt_ulog.c
-> > @@ -267,6 +267,12 @@ static int ebt_ulog_tg_check(const struct xt_tgchk_param *par)
-> >  {
-> >  	struct ebt_ulog_info *uloginfo = par->targinfo;
-> >  
-> > +	if (!par->net->nf.ebt_ulog_warn_deprecated) {
+On Fri, May 17, 2013 at 03:56:10PM +0200, Florian Westphal wrote:
+> /quote https://bugzilla.netfilter.org/show_bug.cgi?id=812 :
+> [ ip6tables -m addrtype ]
+> When I tried to use in the nat/PREROUTING it messes up the
+> routing cache even if the rule didn't matched at all.
+> [..]
+> If I remove the --limit-iface-in from the non-working scenario, so just
+> use the -m addrtype --dst-type LOCAL it works!
+> /unquote
 > 
-> par->net->xt.ebt_ulog_warn_deprecated?
+> This happens when LOCAL type matching is requested with
+> --limit-iface-in, and the default ipv6 route is via the interface the
+> packet we test arrived on.
+> 
+> Because xt_addrtype uses ip6_route_output, the ipv6 routing implementation
+> creates an unwanted cached entry, and the packet won't make it to the
+> real/expected destination.
+> 
+> Silently ignoring --limit-iface-in makes the routing work but it breaks
+> rule matching (--dst-type LOCAL with limit-iface-in is supposed to only
+> match if the dst address is configured on the incoming interface;
+> without --limit-iface-in it will match if the address is reachable via lo).
+> 
+> The test should call ipv6_chk_addr() instead.  However, this would add
+> a link-time dependency on ipv6.
+> 
+> There are two possible solutions:
+> 
+> 1), revert the commit that moved ipt_addrtype to xt_addrtype,
+>     and put ipv6 specific code into ip6t_addrtype.
+> 2) add new "nf_ipv6_ops" struct to register pointers to ipv6 functions.
+> 
+> While the former might seem preferable, Pablo pointed out that there are more
+> xt modules with link-time dependeny issues regarding ipv6, so lets go for 2).
 
-Fixed and applied, thanks.
+Applied to nf, thanks Florian.
+
+I made some minor glitches (see below).
+
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Pablo,
+> 
+>  as discussed this adds nf_ipv6_ops.
+>  I've decided to add everything in one patch; just adding
+>  empty struct nf_ipv6_ops didn't make much sense to me.
+> 
+>  include/linux/netfilter.h   |   14 ++++++++++++++
+>  include/net/addrconf.h      |    2 +-
+>  net/ipv6/addrconf.c         |    2 +-
+>  net/ipv6/netfilter.c        |    7 +++++++
+>  net/netfilter/core.c        |    2 ++
+>  net/netfilter/xt_addrtype.c |   24 ++++++++++++++----------
+>  6 files changed, 39 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index 0060fde..2ed1ef5 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -230,6 +230,14 @@ struct nf_afinfo {
+>  				   const struct nf_queue_entry *entry);
+>  	int		route_key_size;
+>  };
+> +/*
+> + * Hook functions for ipv6 to allow xt_* modules to be builtin even
+> + * if ipv6 is a module.
+> + */
+> +struct nf_ipv6_ops {
+> +	int (*ipv6_chk_addr)(struct net *net, const struct in6_addr *addr,
+> +			     const struct net_device *dev, int strict);
+
+Renamed this to chk_addr, all functions there will be ipv6 related and
+moved this to include/linux/netfilter_ipv6.h
