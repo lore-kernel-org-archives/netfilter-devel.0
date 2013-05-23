@@ -1,53 +1,92 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH ipvs-next v3 0/2] sched: Add cond_resched_rcu_lock()
- helper
-Date: Thu, 23 May 2013 10:11:37 +0900
-Message-ID: <20130523011137.GB26193@verge.net.au>
-References: <1369201832-17163-1-git-send-email-horms@verge.net.au>
- <20130522075438.GO26912@twins.programming.kicks-ass.net>
- <20130522.013108.58504645261021804.davem@davemloft.net>
- <20130522090051.GA18810@twins.programming.kicks-ass.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
-	ja@ssi.bg, mingo@redhat.com, paulmck@linux.vnet.ibm.com,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pablo@netfilter.org, dipankar@in.ibm.com
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130522090051.GA18810@twins.programming.kicks-ass.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/3] netfilter: {ipt,ebt}_ULOG: rise warning on deprecation
+Date: Thu, 23 May 2013 10:42:37 +0200
+Message-ID: <1369298557-5351-3-git-send-email-pablo@netfilter.org>
+References: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33608 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757143Ab3EWImu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 04:42:50 -0400
+In-Reply-To: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 22, 2013 at 11:00:51AM +0200, Peter Zijlstra wrote:
-> On Wed, May 22, 2013 at 01:31:08AM -0700, David Miller wrote:
-> > From: Peter Zijlstra <peterz@infradead.org>
-> > Date: Wed, 22 May 2013 09:54:38 +0200
-> > 
-> > > On Wed, May 22, 2013 at 02:50:30PM +0900, Simon Horman wrote:
-> > >> Add a helper that for use in loops which read data protected by RCU and
-> > >> may have a large number of iterations.  Such an example is dumping the list
-> > >> of connections known to IPVS: ip_vs_conn_array() and ip_vs_conn_seq_next().
-> > >> 
-> > >> This series also updates IPVS to use the helper.
-> > >> 
-> > >> Simon Horman (2):
-> > >>   sched: add cond_resched_rcu() helper
-> > >>   ipvs: use cond_resched_rcu() helper when walking connections
-> > >> 
-> > >>  include/linux/sched.h           |  9 +++++++++
-> > >>  net/netfilter/ipvs/ip_vs_conn.c | 23 ++++++++---------------
-> > >>  2 files changed, 17 insertions(+), 15 deletions(-)
-> > > 
-> > > Acked-by: Peter Zijlstra <peterz@infradead.org>
-> > > 
-> > > How do you want to go about merging this? Do you want to route it
-> > > through the net tree or through -tip?
-> > 
-> > I think we can have Pablo merge it into his netfilter tree.
-> 
-> Works for me. Thanks!
+This target has been superseded by NFLOG. Spot a warning
+so we prepare removal in a couple of years.
 
-Thanks, I will queue it up in ipvs-next and pass it to Pablo from there.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netns/x_tables.h    |    6 ++++++
+ net/bridge/netfilter/ebt_ulog.c |    6 ++++++
+ net/ipv4/netfilter/Kconfig      |    2 +-
+ net/ipv4/netfilter/ipt_ULOG.c   |    6 ++++++
+ 4 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index c24060e..02fe40f 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -15,5 +15,11 @@ struct netns_xt {
+ 	struct ebt_table *frame_filter;
+ 	struct ebt_table *frame_nat;
+ #endif
++#if IS_ENABLED(CONFIG_IP_NF_TARGET_ULOG)
++	bool ulog_warn_deprecated;
++#endif
++#if IS_ENABLED(CONFIG_BRIDGE_EBT_ULOG)
++	bool ebt_ulog_warn_deprecated;
++#endif
+ };
+ #endif
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index fc1905c..bfc40c7 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -267,6 +267,12 @@ static int ebt_ulog_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	struct ebt_ulog_info *uloginfo = par->targinfo;
+ 
++	if (!par->net->nf.ebt_ulog_warn_deprecated) {
++		pr_info("ebt_ulog is deprecated and it will be removed soon, "
++			"use ebt_nflog instead\n");
++		par->net->nf.ebt_ulog_warn_deprecated = true;
++	}
++
+ 	if (uloginfo->nlgroup > 31)
+ 		return -EINVAL;
+ 
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index e7916c1..4e90280 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -111,7 +111,7 @@ config IP_NF_TARGET_REJECT
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP_NF_TARGET_ULOG
+-	tristate "ULOG target support"
++	tristate "ULOG target support (obsolete)"
+ 	default m if NETFILTER_ADVANCED=n
+ 	---help---
+ 
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index f8a222cb..c1953d0 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -325,6 +325,12 @@ static int ulog_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	const struct ipt_ulog_info *loginfo = par->targinfo;
+ 
++	if (!par->net->xt.ulog_warn_deprecated) {
++		pr_info("ULOG is deprecated and it will be removed soon, "
++			"use NFLOG instead\n");
++		par->net->xt.ulog_warn_deprecated = true;
++	}
++
+ 	if (loginfo->prefix[sizeof(loginfo->prefix) - 1] != '\0') {
+ 		pr_debug("prefix not null-terminated\n");
+ 		return -EINVAL;
+-- 
+1.7.10.4
+
