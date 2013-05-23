@@ -1,9 +1,9 @@
 From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH v2] ipv4: netfilter: always let NUL terminated string ended
+Subject: Re: [PATCH] ipv4: netfilter: always let NUL terminated string ended
  by '\0'
-Date: Thu, 23 May 2013 19:50:46 +0800
-Message-ID: <519E0296.6010601@asianux.com>
-References: <5195ECB3.5000006@asianux.com> <20130523110832.GB22553@localhost>
+Date: Thu, 23 May 2013 19:59:19 +0800
+Message-ID: <519E0497.5000002@asianux.com>
+References: <5195ECB3.5000006@asianux.com> <20130523110832.GB22553@localhost> <519DFFFB.40104@asianux.com> <20130523114950.GA4972@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -12,42 +12,77 @@ Cc: kaber@trash.net, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
 	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130523110832.GB22553@localhost>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from intranet.asianux.com ([58.214.24.6]:32926 "EHLO
+	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753783Ab3EWMAK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 08:00:10 -0400
+In-Reply-To: <20130523114950.GA4972@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+On 05/23/2013 07:49 PM, Pablo Neira Ayuso wrote:
+> On Thu, May 23, 2013 at 07:39:39PM +0800, Chen Gang wrote:
+>> > On 05/23/2013 07:08 PM, Pablo Neira Ayuso wrote:
+>>> > > On Fri, May 17, 2013 at 04:39:15PM +0800, Chen Gang wrote:
+>>>>> > >> >
+>>>>> > >> > For NUL terminated string, better always be sure of ended by '\0'.
+>>>>> > >> >
+>>>>> > >> > 'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
+>>>>> > >> > (defined in "include/uapi/..."), so can not use strlcpy() instead of.
+>>> > > loginfo->prefix is always nul-terminated, as this is validated in
+>>> > > checkentry. I don't think the kernel will take a non nul-terminated
+>>> > > device name either.
+>> >
+>> > Really it is.
+>> >
+>> > And 'prefix' max length is 128 (NF_LOG_PREFIXLEN), and 'pm->prefix' max
+>> > length is 32 (ULOG_PREFIX_LEN), so we still need this patch, but need
+>> > improved.
+> Both are ULOG_PREFIX_LEN long.
+> 
+>>From include/uapi/linux/netfilter_ipv4/ipt_ULOG.h:
+> 
+> /* private data structure for each rule with a ULOG target */
+> struct ipt_ulog_info {
+>         unsigned int nl_group;
+>         size_t copy_range;
+>         size_t qthreshold;
+>         char prefix[ULOG_PREFIX_LEN];
+> };
+> 
+> /* Format of the ULOG packets passed through netlink */
+> typedef struct ulog_packet_msg {
+>         unsigned long mark;
+>         long timestamp_sec;
+>         long timestamp_usec;
+>         unsigned int hook;
+>         char indev_name[IFNAMSIZ];
+>         char outdev_name[IFNAMSIZ];
+>         size_t data_len;
+>         char prefix[ULOG_PREFIX_LEN];
+>         unsigned char mac_len;
+>         unsigned char mac[ULOG_MAC_LEN;
+>         unsigned char payload[0];
+> } ulog_packet_msg_t;
+> 
+> 
+
+Yes, for 'loginfo->prefix', really it is.
+
+But for 'prefix', it is 128. the call work flow is:
+
+  nf_log_packet() ->  "char prefix[NF_LOG_PREFIXLEN];"
+    logger->logfn() -> "prefix as last parameter"
+      ipt_logfn() ->   "prefix as last parameter"
+        ipt_ulog_packet() "prefix as last parameter"
+
+  netfilter/nf_log.c:16:#define NF_LOG_PREFIXLEN		128
 
 
-For NUL terminated string, need always be sure of ended by '\0'.
-
-'prefix' max length is 128 (NF_LOG_PREFIXLEN), and 'pm->prefix' max
-length is 32 (ULOG_PREFIX_LEN), so really need notice it.
-
-'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
-(defined in "include/uapi/..."), so can not use strlcpy() instead of.
-
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- net/ipv4/netfilter/ipt_ULOG.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index cf08218..ff4b781 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -231,8 +231,10 @@ static void ipt_ulog_packet(struct net *net,
- 	put_unaligned(tv.tv_usec, &pm->timestamp_usec);
- 	put_unaligned(skb->mark, &pm->mark);
- 	pm->hook = hooknum;
--	if (prefix != NULL)
--		strncpy(pm->prefix, prefix, sizeof(pm->prefix));
-+	if (prefix != NULL) {
-+		strncpy(pm->prefix, prefix, sizeof(pm->prefix) - 1);
-+		pm->prefix[sizeof(pm->prefix) - 1] = '\0';
-+	}
- 	else if (loginfo->prefix[0] != '\0')
- 		strncpy(pm->prefix, loginfo->prefix, sizeof(pm->prefix));
- 	else
+Thanks.
 -- 
-1.7.7.6
+Chen Gang
+
+Asianux Corporation
