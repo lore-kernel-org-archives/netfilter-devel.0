@@ -1,115 +1,53 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH v2] xtables: Add locking to prevent concurrent instances
-Date: Wed, 22 May 2013 18:36:34 -0400
-Message-ID: <20130522223455.GA4665@gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH ipvs-next v3 0/2] sched: Add cond_resched_rcu_lock()
+ helper
+Date: Thu, 23 May 2013 10:11:37 +0900
+Message-ID: <20130523011137.GB26193@verge.net.au>
+References: <1369201832-17163-1-git-send-email-horms@verge.net.au>
+ <20130522075438.GO26912@twins.programming.kicks-ass.net>
+ <20130522.013108.58504645261021804.davem@davemloft.net>
+ <20130522090051.GA18810@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qlTNgmc+xy1dBmNv"
-Cc: pablo@netfilter.org, kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:62316 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756967Ab3EVWgg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 May 2013 18:36:36 -0400
-Received: by mail-ob0-f177.google.com with SMTP id wn6so3155998obc.36
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 May 2013 15:36:36 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-
---qlTNgmc+xy1dBmNv
 Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
+	ja@ssi.bg, mingo@redhat.com, paulmck@linux.vnet.ibm.com,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pablo@netfilter.org, dipankar@in.ibm.com
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20130522090051.GA18810@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-There have been numerous complaints and bug reports over the years when admins
-attempt to run more than one instance of iptables simultaneously.  Currently
-open bug reports which are related:
+On Wed, May 22, 2013 at 11:00:51AM +0200, Peter Zijlstra wrote:
+> On Wed, May 22, 2013 at 01:31:08AM -0700, David Miller wrote:
+> > From: Peter Zijlstra <peterz@infradead.org>
+> > Date: Wed, 22 May 2013 09:54:38 +0200
+> > 
+> > > On Wed, May 22, 2013 at 02:50:30PM +0900, Simon Horman wrote:
+> > >> Add a helper that for use in loops which read data protected by RCU and
+> > >> may have a large number of iterations.  Such an example is dumping the list
+> > >> of connections known to IPVS: ip_vs_conn_array() and ip_vs_conn_seq_next().
+> > >> 
+> > >> This series also updates IPVS to use the helper.
+> > >> 
+> > >> Simon Horman (2):
+> > >>   sched: add cond_resched_rcu() helper
+> > >>   ipvs: use cond_resched_rcu() helper when walking connections
+> > >> 
+> > >>  include/linux/sched.h           |  9 +++++++++
+> > >>  net/netfilter/ipvs/ip_vs_conn.c | 23 ++++++++---------------
+> > >>  2 files changed, 17 insertions(+), 15 deletions(-)
+> > > 
+> > > Acked-by: Peter Zijlstra <peterz@infradead.org>
+> > > 
+> > > How do you want to go about merging this? Do you want to route it
+> > > through the net tree or through -tip?
+> > 
+> > I think we can have Pablo merge it into his netfilter tree.
+> 
+> Works for me. Thanks!
 
-325: Parallel execution of the iptables is impossible
-758: Retry iptables command on transient failure
-764: Doing -Z twice in parallel breaks counters
-822: iptables shows negative or other bad packet/byte counts
-
-As Patrick notes in 325:  "Since this has been a problem people keep running
-into, I'd suggest to simply add some locking to iptables to catch the most
-common case."
-
-I started looking into alternatives to add locking, and of course the most
-common/obvious solution is to use a pidfile.  But this has various downsides,
-such as if the application is terminated abnormally and the pidfile isn't
-cleaned up.  And this also requires a writable filesystem.  Using a UNIX domain
-socket file (e.g. in /var/run) has similar issues.
-
-Starting in 2.2, Linux added support for abstract sockets.  These sockets
-require no filesystem, and automatically disappear once the application
-terminates.  This is the locking solution I chose to implement in xtables-multi.
-As an added bonus, since each network namespace has its own socket pool, an
-iptables instance running in one namespace will not lock out an iptables
-instance running in another namespace.  A filesystem approach would have
-to recognize and handle multiple network namespaces.
-
-Changes from v1:
-- Addressed Patrick's comments - locking attempts will be made indefinitely
-  until successful.
-
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
---qlTNgmc+xy1dBmNv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-xtables-lock
-
-diff --git a/iptables/xtables-multi.c b/iptables/xtables-multi.c
-index 8014d5f..5a57375 100644
---- a/iptables/xtables-multi.c
-+++ b/iptables/xtables-multi.c
-@@ -1,8 +1,12 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <sys/socket.h>
-+#include <sys/un.h>
-+#include <unistd.h>
- #include "xshared.h"
- 
-+#include "xtables.h"
- #include "xtables-multi.h"
- 
- #ifdef ENABLE_IPV4
-@@ -35,7 +39,31 @@ static const struct subcommand multi_subcommands[] = {
- 	{NULL},
- };
- 
-+#define XTMSOCKET_NAME "xtables_multi"
-+#define XTMSOCKET_LEN 14
-+
- int main(int argc, char **argv)
- {
-+	int i = 0, ret, xtm_socket;
-+	struct sockaddr_un xtm_addr;
-+
-+	memset(&xtm_addr, 0, sizeof(xtm_addr));
-+	xtm_addr.sun_family = AF_UNIX;
-+	strcpy(xtm_addr.sun_path+1, XTMSOCKET_NAME);
-+	xtm_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-+	/* If we can't even create a socket, just revert to prior (lockless) behavior */
-+	if (xtm_socket < 0)
-+		return subcmd_main(argc, argv, multi_subcommands);
-+
-+	while (1) {
-+		ret = bind(xtm_socket, (struct sockaddr*)&xtm_addr,
-+			   offsetof(struct sockaddr_un, sun_path)+XTMSOCKET_LEN);
-+		if (ret == 0)
-+			break;
-+		if (++i % 5 == 0)
-+			fprintf(stderr, "Waiting for lock, standby...\n");
-+		sleep(1);
-+	}
-+
- 	return subcmd_main(argc, argv, multi_subcommands);
- }
-
---qlTNgmc+xy1dBmNv--
+Thanks, I will queue it up in ipvs-next and pass it to Pablo from there.
