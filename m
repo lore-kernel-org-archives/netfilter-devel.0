@@ -1,42 +1,29 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH] bridge: netfilter: using strlcpy() instead of strncpy()
-Date: Thu, 23 May 2013 18:57:05 +0800
-Message-ID: <519DF601.1010400@asianux.com>
-References: <5195E53A.4060406@asianux.com> <20130523105600.GA22553@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] ipv4: netfilter: always let NUL terminated string ended
+ by '\0'
+Date: Thu, 23 May 2013 13:08:32 +0200
+Message-ID: <20130523110832.GB22553@localhost>
+References: <5195ECB3.5000006@asianux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
-	stephen@networkplumber.org, David Miller <davem@davemloft.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
+	yoshfuji@linux-ipv6.org, David Miller <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:45159 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757940Ab3EWK54 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 May 2013 06:57:56 -0400
-In-Reply-To: <20130523105600.GA22553@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
+To: Chen Gang <gang.chen@asianux.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5195ECB3.5000006@asianux.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 05/23/2013 06:56 PM, Pablo Neira Ayuso wrote:
-> On Fri, May 17, 2013 at 04:07:22PM +0800, Chen Gang wrote:
->> > 
->> > 'name' has already set all zero when it is defined, so not need let
->> > strncpy() to pad it again.
->> > 
->> > 'name' is a string, better always let is NUL terminated, so use
->> > strlcpy() instead of strncpy().
-> Applied, thanks.
+On Fri, May 17, 2013 at 04:39:15PM +0800, Chen Gang wrote:
 > 
+> For NUL terminated string, better always be sure of ended by '\0'.
 > 
+> 'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
+> (defined in "include/uapi/..."), so can not use strlcpy() instead of.
 
-Thank you too.
-
--- 
-Chen Gang
-
-Asianux Corporation
+loginfo->prefix is always nul-terminated, as this is validated in
+checkentry. I don't think the kernel will take a non nul-terminated
+device name either.
