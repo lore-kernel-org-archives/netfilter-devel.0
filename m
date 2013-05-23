@@ -1,29 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ipv4: netfilter: always let NUL terminated string ended
- by '\0'
-Date: Thu, 23 May 2013 13:08:32 +0200
-Message-ID: <20130523110832.GB22553@localhost>
-References: <5195ECB3.5000006@asianux.com>
+Subject: Re: [PATCH 2/3] netfilter: don't panic on error while walking
+ through the init path
+Date: Thu, 23 May 2013 13:09:24 +0200
+Message-ID: <20130523110924.GC22553@localhost>
+References: <1369298557-5351-1-git-send-email-pablo@netfilter.org>
+ <1369298557-5351-2-git-send-email-pablo@netfilter.org>
+ <519DD868.1070809@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
-	yoshfuji@linux-ipv6.org, David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
-To: Chen Gang <gang.chen@asianux.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52969 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758082Ab3EWLJe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 May 2013 07:09:34 -0400
 Content-Disposition: inline
-In-Reply-To: <5195ECB3.5000006@asianux.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <519DD868.1070809@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 17, 2013 at 04:39:15PM +0800, Chen Gang wrote:
+On Thu, May 23, 2013 at 04:50:48PM +0800, Gao feng wrote:
+> On 05/23/2013 04:42 PM, Pablo Neira Ayuso wrote:
+> > Don't panic if we hit an error while adding the nf_log or pernet
+> > netfilter support, just bail out.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
 > 
-> For NUL terminated string, better always be sure of ended by '\0'.
-> 
-> 'pm' is 'struct ulog_packet_msg_t' which may be copied to user mode
-> (defined in "include/uapi/..."), so can not use strlcpy() instead of.
+> Acked-by: Gao feng <gaofeng@cn.fujitsu.com>
 
-loginfo->prefix is always nul-terminated, as this is validated in
-checkentry. I don't think the kernel will take a non nul-terminated
-device name either.
+Applied.
