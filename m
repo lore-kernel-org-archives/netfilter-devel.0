@@ -1,212 +1,153 @@
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 2/2] src: xml: add versioning
-Date: Fri, 24 May 2013 13:28:46 +0200
-Message-ID: <20130524112846.13209.99752.stgit@nfdev.cica.es>
-References: <20130524112756.13209.37625.stgit@nfdev.cica.es>
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+Subject: Re: [PATCH v2 nf-next] netfilter: conntrack: remove the central
+ spinlock
+Date: Fri, 24 May 2013 15:16:47 +0200
+Message-ID: <20130524151647.18388e27@redhat.com>
+References: <1368068665.13473.81.camel@edumazet-glaptop>
+	<1369244868.3301.343.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	Tom Herbert <therbert@google.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:58205 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751596Ab3EXL2u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 May 2013 07:28:50 -0400
-In-Reply-To: <20130524112756.13209.37625.stgit@nfdev.cica.es>
+Received: from mx1.redhat.com ([209.132.183.28]:19875 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753446Ab3EXNRA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 May 2013 09:17:00 -0400
+In-Reply-To: <1369244868.3301.343.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-All XML chunks now have a "version" attribute to help in future changes.
+On Wed, 22 May 2013 10:47:48 -0700
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- include/libnftables/chain.h |    2 ++
- include/libnftables/rule.h  |    2 ++
- include/libnftables/table.h |    2 ++
- src/chain.c                 |   18 +++++++++++++++---
- src/rule.c                  |   17 +++++++++++++++--
- src/table.c                 |   18 ++++++++++++++++--
- 6 files changed, 52 insertions(+), 7 deletions(-)
+> nf_conntrack_lock is a monolithic lock and suffers from huge
+> contention on current generation servers (8 or more core/threads).
+> 
+[...]
+> Results on a 32 threads machine, 200 concurrent instances of "netperf
+> -t TCP_CRR" : 
+> 
+> ~390000 tps instead of ~300000 tps.
 
-diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index b12474f..a789e8b 100644
---- a/include/libnftables/chain.h
-+++ b/include/libnftables/chain.h
-@@ -45,6 +45,8 @@ enum {
- 	NFT_CHAIN_O_XML,
- };
- 
-+#define NFT_CHAIN_XML_VERSION 0
-+
- enum nft_chain_parse_type {
- 	NFT_CHAIN_PARSE_NONE	= 0,
- 	NFT_CHAIN_PARSE_XML,
-diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
-index 9c4ab0d..96570ec 100644
---- a/include/libnftables/rule.h
-+++ b/include/libnftables/rule.h
-@@ -43,6 +43,8 @@ enum {
- 	NFT_RULE_O_XML,
- };
- 
-+#define NFT_RULE_XML_VERSION 0
-+
- enum nft_rule_parse_type {
- 	NFT_RULE_PARSE_NONE	= 0,
- 	NFT_RULE_PARSE_XML,
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 658230c..4bf87fe 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -33,6 +33,8 @@ enum {
- 	NFT_TABLE_O_XML,
- };
- 
-+#define NFT_TABLE_XML_VERSION 0
-+
- enum nft_table_parse_type {
- 	NFT_TABLE_PARSE_NONE	= 0,
- 	NFT_TABLE_PARSE_XML,
-diff --git a/src/chain.c b/src/chain.c
-index 4146e6a..95c8807 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -14,6 +14,7 @@
- #include <endian.h>
- #include <stdint.h>
- #include <stdlib.h>
-+#include <limits.h>
- #include <string.h>
- #include <netinet/in.h>
- #include <errno.h>
-@@ -469,6 +470,17 @@ static int nft_chain_xml_parse(struct nft_chain *c, char *xml)
- 	if (tree == NULL)
- 		return -1;
- 
-+	/* Validate version */
-+	if (mxmlElementGetAttr(tree, "version") == NULL) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+	tmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
-+	if (tmp == LLONG_MAX || *endptr || tmp != NFT_CHAIN_XML_VERSION) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+
- 	/* Get and set <chain name="xxx" ... >*/
- 	if (mxmlElementGetAttr(tree, "name") == NULL) {
- 		mxmlDelete(tree);
-@@ -643,7 +655,7 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
- {
- 	return snprintf(buf, size,
- 		"<chain name=\"%s\" handle=\"%lu\""
--			" bytes=\"%lu\" packets=\"%lu\">"
-+			" bytes=\"%lu\" packets=\"%lu\" version=\"%d\" >"
- 			"<properties>"
- 				"<type>%s</type>"
- 				"<table>%s</table>"
-@@ -655,8 +667,8 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
- 			"</properties>"
- 		"</chain>",
- 			c->name, c->handle, c->bytes, c->packets,
--			c->type, c->table, c->prio, c->use, c->hooknum,
--			c->policy, c->family);
-+			NFT_CHAIN_XML_VERSION, c->type, c->table,
-+			c->prio, c->use, c->hooknum, c->policy, c->family);
- }
- 
- static int nft_chain_snprintf_default(char *buf, size_t size, struct nft_chain *c)
-diff --git a/src/rule.c b/src/rule.c
-index 318ae07..9785c24 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -14,6 +14,7 @@
- #include <endian.h>
- #include <stdint.h>
- #include <stdlib.h>
-+#include <limits.h>
- #include <string.h>
- #include <netinet/in.h>
- #include <errno.h>
-@@ -454,6 +455,17 @@ static int nft_rule_xml_parse(struct nft_rule *r, char *xml)
- 	if (tree == NULL)
- 		return -1;
- 
-+	/* validate XML version <rule ... version=X ... > */
-+	if (mxmlElementGetAttr(tree, "version") == NULL) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+	tmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
-+	if (tmp == LLONG_MAX || *endptr || tmp != NFT_RULE_XML_VERSION) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+
- 	/* get and set <rule ... family=X ... > */
- 	if (mxmlElementGetAttr(tree, "family") == NULL) {
- 		mxmlDelete(tree);
-@@ -629,9 +641,10 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 
- 	ret = snprintf(buf, size,
- 		"<rule family=\"%u\" table=\"%s\" "
--			"chain=\"%s\" handle=\"%llu\"> ",
-+			"chain=\"%s\" handle=\"%llu\" version=\"%d\"> ",
- 				r->family, r->table, r->chain,
--				(unsigned long long)r->handle);
-+				(unsigned long long)r->handle,
-+				NFT_RULE_XML_VERSION);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = snprintf(buf+offset, len, "<rule_flags>%u</rule_flags>"
-diff --git a/src/table.c b/src/table.c
-index 70f482d..a868da4 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -203,6 +203,7 @@ static int nft_table_xml_parse(struct nft_table *t, char *xml)
- 	mxml_node_t *node = NULL;
- 	char *endptr = NULL;
- 	uint64_t tmp;
-+	int64_t stmp;
- 
- 	/* NOTE: all XML nodes are mandatory */
- 
-@@ -211,6 +212,18 @@ static int nft_table_xml_parse(struct nft_table *t, char *xml)
- 	if (tree == NULL)
- 		return -1;
- 
-+	/* Check the version of the XML */
-+	if (mxmlElementGetAttr(tree, "version") == NULL) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+
-+	stmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
-+	if (stmp == LLONG_MAX || *endptr || stmp != NFT_TABLE_XML_VERSION) {
-+		mxmlDelete(tree);
-+		return -1;
-+	}
-+
- 	/* Get and set the name of the table */
- 	if (mxmlElementGetAttr(tree, "name") == NULL) {
- 		mxmlDelete(tree);
-@@ -290,13 +303,14 @@ EXPORT_SYMBOL(nft_table_parse);
- static int nft_table_snprintf_xml(char *buf, size_t size, struct nft_table *t)
- {
- 	return snprintf(buf, size,
--			"<table name=\"%s\">"
-+			"<table name=\"%s\" version=\"%d\">"
- 				"<properties>"
- 					"<family>%u</family>"
- 					"<table_flags>%d</table_flags>"
- 				"</properties>"
- 			"</table>" ,
--			t->name, t->family, t->table_flags);
-+			t->name, NFT_TABLE_XML_VERSION,
-+			t->family, t->table_flags);
- }
- 
- static int nft_table_snprintf_default(char *buf, size_t size, struct nft_table *t)
+Tested-by: Jesper Dangaard Brouer <brouer@redhat.com>
 
+I gave the patch a quick run in my testlab, and the results are
+amazing, you are amazing Eric! :-)
+
+Basic testlab setup:
+ I'm generating a 2700 Kpps SYN-flood against port 80 (with trafgen)
+
+Baseline result from a  3.9.0-rc5 kernel:
+- With nf_conntrack my performance is 749 Kpps.
+
+If removing all iptables and nf_contrack modules:
+- the performance hits 1095 Kpps.
+But it looks like we are hitting a new spin_lock in ip_send_reply()
+
+If start a LISTEN process on the port, then we hit the "old" SYN
+scalability issues again, performance drops tp 227 Kpps.
+
+On a patched net-next (close to 3.10.0-rc1) kernel, with Eric's new
+locking scheme patch:
+- I measured an amazing 2431 Kpps.
+
+ 13.45%  [kernel]                [k] fib_table_lookup
+  9.07%  [nf_conntrack]          [k] __nf_conntrack_alloc
+  6.50%  [nf_conntrack]          [k] nf_conntrack_free
+  5.24%  [ip_tables]             [k] ipt_do_table
+  3.66%  [nf_conntrack]          [k] nf_conntrack_in
+  3.54%  [kernel]                [k] inet_getpeer
+  3.52%  [nf_conntrack]          [k] tcp_packet
+  2.44%  [ixgbe]                 [k] ixgbe_poll
+  2.30%  [kernel]                [k] __ip_route_output_key
+  2.04%  [nf_conntrack]          [k] nf_conntrack_tuple_taken
+  1.98%  [kernel]                [k] icmp_send
+
+Then, I realized that I didn't have any iptables rules that accepted
+port 80 on my testlab system, thus this were basically a drop packets
+test with a nf_conntrack lookup.
+
+If I add a rule that accept new connection to that port e.g:
+ iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j
+ACCEPT
+
+New ruleset:
+ -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
+ -A INPUT -p icmp -j ACCEPT 
+ -A INPUT -i lo -j ACCEPT 
+ -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT 
+ -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT 
+ -A INPUT -j REJECT --reject-with icmp-host-prohibited 
+
+Then, performance drops again:
+- to approx 883 Kpps.
+
+Discover that the NAT stuff is to blame:
+
+-  17.71%        swapper  [kernel.kallsyms]       [k] _raw_spin_lock_bh
+   - _raw_spin_lock_bh
+      + 47.17% nf_nat_cleanup_conntrack
+      + 45.81% nf_nat_setup_info
+      + 6.43% nf_nat_get_offset
+
+Removing the nat modules, improves the performance:
+- to 1182 Kpps (not listen on port 80)
+
+ sudo iptables -t nat -F
+ sudo rmmod iptable_nat nf_nat_ipv4
+
+And the perf output looks more like what I would expect:
+
+-  14.85%       swapper  [kernel.kallsyms]        [k] _raw_spin_lock
+   - _raw_spin_lock
+      + 82.86% mod_timer
+      + 11.14% nf_conntrack_double_lock
+      + 2.50% nf_ct_del_from_dying_or_unconfirmed_list
+      + 1.48% nf_conntrack_in
+      + 1.30% nf_ct_delete_from_lists
+-  12.78%       swapper  [kernel.kallsyms]        [k]
+  _raw_spin_lock_irqsave
+   - _raw_spin_lock_irqsave
+      - 99.44% lock_timer_base
+         + 99.07% del_timer
+         + 0.93% mod_timer
++   2.69%       swapper  [ip_tables]              [k] ipt_do_table
++   2.28%   ksoftirqd/0  [kernel.kallsyms]        [k]
+  _raw_spin_lock_irqsave
++   2.18%       swapper  [nf_conntrack]           [k] tcp_packet
++   2.16%       swapper  [kernel.kallsyms]        [k] fib_table_lookup
+
+
+Again if I start a LISTEN process on the port, performance drops to
+169Kpps, due to the LISTEN and SYN-cookie scalability issues.
+
+I'm amazed, this patch will actually make it a viable choice to load
+the conntrack modules on a DDoS based filtering box, and use the
+conntracks to protect against ACK and SYN+ACK attacks.
+
+Simply by not accepting the ACK or SYN+ACK to create a conntrack entry.
+Via the command:
+ sysctl -w net/netfilter/nf_conntrack_tcp_loose=0
+
+A quick test show; now I can run a LISTEN process on the port, and
+handle an SYN+ACK attack of approx 2580Kpps (and the same for ACK
+attacks), while running a LISTEN process on the port.
+
+Thanks for the great work Eric!
+
+ps. also tested resizing the hash tables, both:
+ /proc/sys/net/netfilter/nf_conntrack_max
+and resizing the buckets via:
+ /sys/module/nf_conntrack/parameters/hashsize
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
