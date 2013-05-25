@@ -1,46 +1,38 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next, resend] netfilter: nfnetlink_queue: avoid peer_portid test
-Date: Sat, 25 May 2013 13:46:10 +0200
-Message-ID: <1369482370-9145-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34501 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754244Ab3EYLrW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 May 2013 07:47:22 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] IPVS fixes for v3.10
+Date: Sun, 26 May 2013 08:16:38 +0900
+Message-ID: <1369523799-27082-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The portid is set to NETLINK_CB(skb).portid at create time.
-The run-time check will always be false.
+Hi Pablo,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Pablo,
- This is a re-send of a similar patch:
- ( http://patchwork.ozlabs.org/patch/238013/ )
+The following changes since commit 4f36ea6eed2081340c7a7aa98c73187ecfccebff:
 
- Change since last version:
- - Remove check altogether instead of moving it to
-   instance_create().
+  netfilter: ipt_ULOG: fix non-null terminated string in the nf_log path (2013-05-23 14:25:40 +0200)
 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 2e0e835..cff4449 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -509,10 +509,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	}
- 	spin_lock_bh(&queue->lock);
- 
--	if (!queue->peer_portid) {
--		err = -EINVAL;
--		goto err_out_free_nskb;
--	}
- 	if (queue->queue_total >= queue->queue_maxlen) {
- 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
- 			failopen = 1;
--- 
-1.8.1.5
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.10
+
+for you to fetch changes up to 1fb4f80a593231770eae3192e4a52fa7631bd897:
+
+  ipvs: Fix reuse connection if real server is dead (2013-05-26 08:10:47 +0900)
+
+----------------------------------------------------------------
+IPVS fixes for v3.10
+
+Correct connection reuse for TCP and SCTP
+
+----------------------------------------------------------------
+Grzegorz Lyczba (1):
+      ipvs: Fix reuse connection if real server is dead
+
+ net/netfilter/ipvs/ip_vs_core.c |   35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
