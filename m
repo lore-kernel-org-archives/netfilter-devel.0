@@ -1,98 +1,40 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH] ipvs: change type of netns_ipvs->sysctl_sync_qlen_max
-Date: Sun, 26 May 2013 08:41:17 +0900
-Message-ID: <1369525277-2687-2-git-send-email-horms@verge.net.au>
-References: <1369525277-2687-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Zhang Yanfei <zhangyanfei@cn.fujitsu.com>,
-	David Miller <davem@davemloft.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1369525277-2687-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alex Maltinsky <maltalex@gmail.com>
+Subject: Negative value in /proc/net/netfilter/nfnetlink_queue
+Date: Sun, 26 May 2013 13:28:07 +0300
+Message-ID: <CAAitQhkvPWzjvWE7G80OxrwpKbemxbm9N6bchfygiOdwjDUgjA@mail.gmail.com>
+References: <CAAitQh=ZUM8+8TqO8EFNrT7GL8VThvDje_Vfc4P0e3T60QVpSA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:43066 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038Ab3EZK2i (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 May 2013 06:28:38 -0400
+Received: by mail-ob0-f181.google.com with SMTP id dn14so6927596obc.40
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 May 2013 03:28:38 -0700 (PDT)
+In-Reply-To: <CAAitQh=ZUM8+8TqO8EFNrT7GL8VThvDje_Vfc4P0e3T60QVpSA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Hi
 
-This member of struct netns_ipvs is calculated from nr_free_buffer_pages
-so change its type to unsigned long in case of overflow.  Also, type of
-its related proc var sync_qlen_max and the return type of function
-sysctl_sync_qlen_max() should be changed to unsigned long, too.
+I've stumbled across the issue on a heavily loaded system that uses
+the nfqueue. After a few days, the number of packets wraps around:
 
-Besides, the type of ipvs_master_sync_state->sync_queue_len should be
-changed to unsigned long accordingly.
+root@xxxx ~ # cat /proc/net/netfilter/nfnetlink_queue
+    1   2401  1024 2  4096 247495836     0 -894731272  1
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: David Miller <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- include/net/ip_vs.h            |    8 ++++----
- net/netfilter/ipvs/ip_vs_ctl.c |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+The negative value messes up the application layer statistics.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 4c062cc..4405886 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -905,7 +905,7 @@ struct ip_vs_app {
- struct ipvs_master_sync_state {
- 	struct list_head	sync_queue;
- 	struct ip_vs_sync_buff	*sync_buff;
--	int			sync_queue_len;
-+	unsigned long		sync_queue_len;
- 	unsigned int		sync_queue_delay;
- 	struct task_struct	*master_thread;
- 	struct delayed_work	master_wakeup_work;
-@@ -998,7 +998,7 @@ struct netns_ipvs {
- 	int			sysctl_snat_reroute;
- 	int			sysctl_sync_ver;
- 	int			sysctl_sync_ports;
--	int			sysctl_sync_qlen_max;
-+	unsigned long		sysctl_sync_qlen_max;
- 	int			sysctl_sync_sock_size;
- 	int			sysctl_cache_bypass;
- 	int			sysctl_expire_nodest_conn;
-@@ -1085,7 +1085,7 @@ static inline int sysctl_sync_ports(struct netns_ipvs *ipvs)
- 	return ACCESS_ONCE(ipvs->sysctl_sync_ports);
- }
- 
--static inline int sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
-+static inline unsigned long sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_sync_qlen_max;
- }
-@@ -1138,7 +1138,7 @@ static inline int sysctl_sync_ports(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
--static inline int sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
-+static inline unsigned long sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
- {
- 	return IPVS_SYNC_QLEN_MAX;
- }
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 5b142fb..7014649 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1716,9 +1716,9 @@ static struct ctl_table vs_vars[] = {
- 	},
- 	{
- 		.procname	= "sync_qlen_max",
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(unsigned long),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_doulongvec_minmax,
- 	},
- 	{
- 		.procname	= "sync_sock_size",
--- 
-1.7.10.4
+Is this a new issue or has it been fixed in recent versions?
 
+I couldn't find anything in the changelog so I've decided not to
+update libnfnetlink since it's an otherwise stable production machine
+running a three year old version (0.0.39).
+Second, is there a way of getting the correct value besides keeping
+track of the number of wraparounds and compensating for them?
+
+
+Thanks!
