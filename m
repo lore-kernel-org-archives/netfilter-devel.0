@@ -1,105 +1,128 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: nf_queue: add NFQA_SKB_CSUM_NOTVERIFIED info flag
-Date: Sun, 26 May 2013 22:48:09 +0200
-Message-ID: <1369601289-12743-1-git-send-email-fw@strlen.de>
-References: <20130526204826.GC6578@breakpoint.cc>
-Cc: Florian Westphal <fw@strlen.de>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: Some netfilter compile errors when CONFIG_IPV6=m
+Date: Mon, 27 May 2013 18:56:57 +0800
+Message-ID: <1369652217.8181.6.camel@cr0>
+References: <1368499552.2507.5.camel@cr0>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	=?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36796 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755119Ab3EZUtT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 May 2013 16:49:19 -0400
-In-Reply-To: <20130526204826.GC6578@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:22097 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757545Ab3E0K5P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 May 2013 06:57:15 -0400
+In-Reply-To: <1368499552.2507.5.camel@cr0>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The common case is that TCP/IP checksums have already been
-verified, e.g. by hardware (rx checksum offload), or conntrack.
 
-Userspace can use this flag to determine when the checksum
-has not been validated yet.
+Cc'ing Bj=C3=B8rn who cares IPV6=3Dm compile errors very much. :)
 
-If the flag is set, this doesn't necessarily mean that the packet has
-an invalid checksum, e.g. if NIC doesn't support rx checksum.
+BTW, this is what I found while testing my vxlan patches with IPV6=3Dm.
 
-Userspace that sucessfully enabled NFQA_CFG_F_GSO queue feature flag can
-infer that IP/TCP checksum has already been validated if either the
-SKB_INFO attribute is not present or the NFQA_SKB_CSUM_NOTVERIFIED
-flag is unset.
+On Tue, 2013-05-14 at 10:45 +0800, Cong Wang wrote:
+> Hi, all
+>=20
+> I got the following compile errors when I compile IPv6 as a module an=
+d
+> most of the rest are built into core kernel. David Miller insists we
+> should fix this kind of error and not by adding Kconfig tricks.
+>=20
+> net/built-in.o: In function `nf_tproxy_get_sock_v6':
+> /home/wangcong/linux/include/net/netfilter/nf_tproxy_core.h:177:
+> undefined reference to `udp6_lib_lookup'
+> /home/wangcong/linux/include/net/netfilter/nf_tproxy_core.h:177:
+> undefined reference to `udp6_lib_lookup'
+> net/built-in.o: In function `tproxy_tg_init':
+> /home/wangcong/linux/net/netfilter/xt_TPROXY.c:415: undefined referen=
+ce
+> to `nf_defrag_ipv6_enable'
+> net/built-in.o: In function `socket_mt_init':
+> /home/wangcong/linux/net/netfilter/xt_socket.c:366: undefined referen=
+ce
+> to `nf_defrag_ipv6_enable'
+>=20
+> My .config is:
+>=20
+> CONFIG_NET_IPGRE=3Dm
+> CONFIG_IPV6=3Dm
+> CONFIG_INET6_AH=3Dm
+> CONFIG_INET6_ESP=3Dm
+> CONFIG_INET6_IPCOMP=3Dm
+> CONFIG_IPV6_MIP6=3Dm
+> CONFIG_INET6_XFRM_TUNNEL=3Dm
+> CONFIG_INET6_TUNNEL=3Dm
+> CONFIG_INET6_XFRM_MODE_TRANSPORT=3Dm
+> CONFIG_INET6_XFRM_MODE_TUNNEL=3Dm
+> CONFIG_INET6_XFRM_MODE_BEET=3Dm
+> CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=3Dm
+> CONFIG_IPV6_SIT=3Dm
+> CONFIG_IPV6_TUNNEL=3Dm
+> CONFIG_IPV6_GRE=3Dm
+> CONFIG_NF_CONNTRACK_H323=3Dm
+> CONFIG_NETFILTER_XT_TARGET_TEE=3Dm
+> CONFIG_NETFILTER_XT_TARGET_TCPMSS=3Dm
+> CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=3Dm
+> CONFIG_NETFILTER_XT_MATCH_PHYSDEV=3Dm
+> CONFIG_NF_NAT_H323=3Dm
+> CONFIG_NF_DEFRAG_IPV6=3Dm
+> CONFIG_NF_CONNTRACK_IPV6=3Dm
+> CONFIG_IP6_NF_IPTABLES=3Dm
+> CONFIG_IP6_NF_MATCH_AH=3Dm
+> CONFIG_IP6_NF_MATCH_EUI64=3Dm
+> CONFIG_IP6_NF_MATCH_FRAG=3Dm
+> CONFIG_IP6_NF_MATCH_OPTS=3Dm
+> CONFIG_IP6_NF_MATCH_HL=3Dm
+> CONFIG_IP6_NF_MATCH_IPV6HEADER=3Dm
+> CONFIG_IP6_NF_MATCH_MH=3Dm
+> CONFIG_IP6_NF_MATCH_RT=3Dm
+> CONFIG_IP6_NF_TARGET_HL=3Dm
+> CONFIG_IP6_NF_FILTER=3Dm
+> CONFIG_IP6_NF_TARGET_REJECT=3Dm
+> CONFIG_IP6_NF_MANGLE=3Dm
+> CONFIG_IP6_NF_RAW=3Dm
+> CONFIG_IP6_NF_SECURITY=3Dm
+> CONFIG_NF_NAT_IPV6=3Dm
+> CONFIG_IP6_NF_TARGET_MASQUERADE=3Dm
+> CONFIG_BRIDGE_NF_EBTABLES=3Dm
+> CONFIG_BRIDGE_EBT_BROUTE=3Dm
+> CONFIG_BRIDGE_EBT_T_FILTER=3Dm
+> CONFIG_BRIDGE_EBT_T_NAT=3Dm
+> CONFIG_BRIDGE_EBT_802_3=3Dm
+> CONFIG_BRIDGE_EBT_AMONG=3Dm
+> CONFIG_BRIDGE_EBT_ARP=3Dm
+> CONFIG_BRIDGE_EBT_IP=3Dm
+> CONFIG_BRIDGE_EBT_IP6=3Dm
+> CONFIG_BRIDGE_EBT_LIMIT=3Dm
+> CONFIG_BRIDGE_EBT_MARK=3Dm
+> CONFIG_BRIDGE_EBT_PKTTYPE=3Dm
+> CONFIG_BRIDGE_EBT_STP=3Dm
+> CONFIG_BRIDGE_EBT_VLAN=3Dm
+> CONFIG_BRIDGE_EBT_ARPREPLY=3Dm
+> CONFIG_BRIDGE_EBT_DNAT=3Dm
+> CONFIG_BRIDGE_EBT_MARK_T=3Dm
+> CONFIG_BRIDGE_EBT_REDIRECT=3Dm
+> CONFIG_BRIDGE_EBT_SNAT=3Dm
+> CONFIG_BRIDGE_EBT_LOG=3Dm
+> CONFIG_BRIDGE_EBT_ULOG=3Dm
+> CONFIG_BRIDGE_EBT_NFLOG=3Dm
+> CONFIG_IP_SCTP=3Dm
+> CONFIG_BRIDGE=3Dm
+> CONFIG_BONDING=3Dm
+>=20
+> all the rest are either =3Dy or =3Dn.
+>=20
+>=20
+> Thanks.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nfnetlink_queue.h |  2 ++
- net/netfilter/nfnetlink_queue_core.c           | 16 ++++++++++++++--
- 2 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-index a2308ae..3a9b921 100644
---- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-@@ -105,5 +105,7 @@ enum nfqnl_attr_config {
- #define NFQA_SKB_CSUMNOTREADY (1 << 0)
- /* packet is GSO (i.e., exceeds device mtu) */
- #define NFQA_SKB_GSO (1 << 1)
-+/* csum not validated (incoming device doesn't support hw checksum, etc.) */
-+#define NFQA_SKB_CSUM_NOTVERIFIED (1 << 2)
- 
- #endif /* _NFNETLINK_QUEUE_H */
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 2e0e835..d9bddbf 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -272,12 +272,17 @@ nfqnl_zcopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
- 	skb_shinfo(to)->nr_frags = j;
- }
- 
--static int nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet)
-+static int
-+nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
-+		      bool csum_verify)
- {
- 	__u32 flags = 0;
- 
- 	if (packet->ip_summed == CHECKSUM_PARTIAL)
- 		flags = NFQA_SKB_CSUMNOTREADY;
-+	else if (csum_verify)
-+		flags = NFQA_SKB_CSUM_NOTVERIFIED;
-+
- 	if (skb_is_gso(packet))
- 		flags |= NFQA_SKB_GSO;
- 
-@@ -302,6 +307,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	struct net_device *outdev;
- 	struct nf_conn *ct = NULL;
- 	enum ip_conntrack_info uninitialized_var(ctinfo);
-+	bool csum_verify;
- 
- 	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-@@ -319,6 +325,12 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (entskb->tstamp.tv64)
- 		size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
- 
-+	if (entry->hook <= NF_INET_FORWARD ||
-+	   (entry->hook == NF_INET_POST_ROUTING && entskb->sk == NULL))
-+		csum_verify = !skb_csum_unnecessary(entskb);
-+	else
-+		csum_verify = false;
-+
- 	outdev = entry->outdev;
- 
- 	switch ((enum nfqnl_config_mode)ACCESS_ONCE(queue->copy_mode)) {
-@@ -468,7 +480,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
- 		goto nla_put_failure;
- 
--	if (nfqnl_put_packet_info(skb, entskb))
-+	if (nfqnl_put_packet_info(skb, entskb, csum_verify))
- 		goto nla_put_failure;
- 
- 	if (data_len) {
--- 
-1.8.1.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
