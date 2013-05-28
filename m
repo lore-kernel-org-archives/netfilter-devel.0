@@ -1,57 +1,43 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH ipvs-next v3 0/2] sched: Add cond_resched_rcu_lock()
- helper
-Date: Tue, 28 May 2013 10:51:36 +0200
-Message-ID: <20130528085136.GB30172@gmail.com>
-References: <1369201832-17163-1-git-send-email-horms@verge.net.au>
- <20130522075438.GO26912@twins.programming.kicks-ass.net>
- <20130522.013108.58504645261021804.davem@davemloft.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nftables] handle when adding new chain/rule
+Date: Tue, 28 May 2013 16:59:05 +0200
+Message-ID: <CAOkSjBjqf6y3zbmY67VF6zgfY_pf-9_wGF0v-fFt6BonWnTaig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: peterz@infradead.org, horms@verge.net.au, eric.dumazet@gmail.com,
-	ja@ssi.bg, mingo@redhat.com, paulmck@linux.vnet.ibm.com,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pablo@netfilter.org, dipankar@in.ibm.com
-To: David Miller <davem@davemloft.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130522.013108.58504645261021804.davem@davemloft.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:55626 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934457Ab3E1O71 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 May 2013 10:59:27 -0400
+Received: by mail-la0-f52.google.com with SMTP id fo13so7596735lab.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 May 2013 07:59:25 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Pablo,
 
-* David Miller <davem@davemloft.net> wrote:
+I think the issue we saw when adding new chain with a given handle
+also occurs with rules:
 
-> From: Peter Zijlstra <peterz@infradead.org>
-> Date: Wed, 22 May 2013 09:54:38 +0200
-> 
-> > On Wed, May 22, 2013 at 02:50:30PM +0900, Simon Horman wrote:
-> >> Add a helper that for use in loops which read data protected by RCU and
-> >> may have a large number of iterations.  Such an example is dumping the list
-> >> of connections known to IPVS: ip_vs_conn_array() and ip_vs_conn_seq_next().
-> >> 
-> >> This series also updates IPVS to use the helper.
-> >> 
-> >> Simon Horman (2):
-> >>   sched: add cond_resched_rcu() helper
-> >>   ipvs: use cond_resched_rcu() helper when walking connections
-> >> 
-> >>  include/linux/sched.h           |  9 +++++++++
-> >>  net/netfilter/ipvs/ip_vs_conn.c | 23 ++++++++---------------
-> >>  2 files changed, 17 insertions(+), 15 deletions(-)
-> > 
-> > Acked-by: Peter Zijlstra <peterz@infradead.org>
-> > 
-> > How do you want to go about merging this? Do you want to route it
-> > through the net tree or through -tip?
-> 
-> I think we can have Pablo merge it into his netfilter tree.
+net/netfilter/nf_tables_api.c -- about line 838
+net/netfilter/nf_tables_api.c -- about line 1560
 
-Yeah, that's what we agreed upon earlier during the review of these 
-patches.
+I see that the kernel is intended to allocate a new handle in both
+cases (chain & rule), calling nf_tables_alloc_handle().
 
-Thanks,
+My personal thought is that this may be problematic, dont you? How to f=
+ace this?
 
-	Ingo
-
+Regards.
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
