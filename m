@@ -1,50 +1,33 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/4] ipset: add "inner" flag support
-Date: Wed, 29 May 2013 18:38:14 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1305291833190.20804@blackhole.kfki.hu>
-References: <51A54814.5040405@googlemail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] iptables: use autoconf to process .in man pages
+Date: Wed, 29 May 2013 19:40:44 +0200
+Message-ID: <20130529174044.GA7556@localhost>
+References: <20130520030106.GA15853@pileus.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Andy Spencer <andy753421@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:54654 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:53009 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752209Ab3E2QiQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 May 2013 12:38:16 -0400
-In-Reply-To: <51A54814.5040405@googlemail.com>
+	id S1754614Ab3E2Rky (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 13:40:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20130520030106.GA15853@pileus.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 29 May 2013, Dash Four wrote:
+On Mon, May 20, 2013 at 03:01:06AM +0000, Andy Spencer wrote:
+> This fixes a bug in iptables.8 and ip6tables.8 where @PACKAGE_VERSION@
+> was not processed in the VERSION section. It also simplifies the
+> Makefile by avoiding some sed commands.
 
-> This series of 4 patches implements "inner" flag option in the set
-> iptables match, allowing matching based on the properties
-> (source/destination IP address, protocol, port and so on) of the
-> original (inner) connection in the event of the following
-> ICMP[v4,v6] messages:
-> 
-> ICMPv4 destination-unreachable (code 3);
-> ICMPv4 source-quench (code 4);
-> ICMPv4 time-exceeded (code 11);
-> ICMPv6 destination-unreachable (code 1);
-> ICMPv6 packet-too-big (code 2);
-> ICMPv6 time-exceeded (code 3);
-> 
-> 
-> Dash Four (4):
->   ipset: minor variable-naming corrections
->   ipset: add "inner" flag implementation
->   iptables: add set match "inner" flag support
->   iptables (userspace): add set match "inner" flag support
+Applied, thanks Andy.
 
-I can review your patches in a few days, a quick look is not enough.
+> ---
+> Yea, I don't know how I feel about having a .in.in, but it seems to work
+> well enough.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I renamed the .in.in to .tmpl.in. After the the package version is
+set, we got a template file which is later on populated with the
+extensions. Just comestic change to avoid that.
