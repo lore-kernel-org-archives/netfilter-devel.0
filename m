@@ -1,86 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: nfnetlink_queue: only add CAP_LEN attr when needed
-Date: Wed, 29 May 2013 11:54:49 +0200
-Message-ID: <1369821289-18574-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nfqueue: detect when packet has already been checksummed?
+Date: Wed, 29 May 2013 13:14:23 +0200
+Message-ID: <20130529111423.GA4989@localhost>
+References: <20130526204826.GC6578@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: nf-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44674 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965107Ab3E2Jz7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 May 2013 05:55:59 -0400
+Received: from mail.us.es ([193.147.175.20]:38670 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965590Ab3E2LOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 07:14:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20130526204826.GC6578@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-CAP_LEN contains the size of the network packet we're queueing to
-userspace, i.e. normally it is the same as the NFQA_PAYLOAD attribute length.
+Hi Florian,
 
-Include it only in the unlikely case when NFQA_PAYLOAD is truncated due
-to copy_range limitations.
+On Sun, May 26, 2013 at 10:48:26PM +0200, Florian Westphal wrote:
+> Hi.
+> 
+> When using nfqueue, userspace currently has no way
+> to tell wheter queued packets have a bad checksum, i.e.
+> applications that need data integrity must do full checksum
+> validation in userspace (except maybe when only queueing in OUTPUT).
+> 
+> However, there are several places where incoming packets are already
+> checksummed in kernel, before packet hits nfqueue, e.g. via nic rx
+> csum offload, or in conntrack.
+> 
+> So I think it would be nice to provide a hint that kernel already did
+> checksumming.
+> 
+> The SKB_INFO attribute added in -net for GRO support seems like a
+> candidate.  However, since 'already checksummed' is the common case this
+> would mean adding that attribute most of the time.
+> 
+> Unless we would do the opposite hint, i.e. tell userspace when
+> checksumming has NOT been performed yet.
+> 
+> Such change would however need to go into -net, else userspace can't tell
+> 'checksum ok' from 'kernel too old to provide flag in SKB_INFO attribute'.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nfnetlink_queue_core.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+User-space has no way to know what info flags are available. If we add
+more info flags in the future, we'll have the same problem that we have
+now. I mean, currently an unset info flag from userspace may mean:
 
- Tested with examples/nf-queue.c from libnfqueue, it still
- prints 'truncated packet' on 1st packet sent from tracepath.
+* It's actually unset.
+* It is not available in this kernel.
 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index cff4449..49c149b 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -40,6 +40,7 @@
- #endif
- 
- #define NFQNL_QMAX_DEFAULT 1024
-+#define NFQNL_MAX_COPY_RANGE (0xffff - NLA_HDRLEN)
- 
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
-@@ -122,7 +123,7 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num,
- 	inst->queue_num = queue_num;
- 	inst->peer_portid = portid;
- 	inst->queue_maxlen = NFQNL_QMAX_DEFAULT;
--	inst->copy_range = 0xffff;
-+	inst->copy_range = NFQNL_MAX_COPY_RANGE;
- 	inst->copy_mode = NFQNL_COPY_NONE;
- 	spin_lock_init(&inst->lock);
- 	INIT_LIST_HEAD(&inst->queue_list);
-@@ -333,10 +334,9 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 			return NULL;
- 
- 		data_len = ACCESS_ONCE(queue->copy_range);
--		if (data_len == 0 || data_len > entskb->len)
-+		if (data_len > entskb->len)
- 			data_len = entskb->len;
- 
--
- 		if (!entskb->head_frag ||
- 		    skb_headlen(entskb) < L1_CACHE_BYTES ||
- 		    skb_shinfo(entskb)->nr_frags >= MAX_SKB_FRAGS)
-@@ -465,7 +465,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
- 		goto nla_put_failure;
- 
--	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
-+	if (cap_len > data_len &&
-+	    nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
- 		goto nla_put_failure;
- 
- 	if (nfqnl_put_packet_info(skb, entskb))
-@@ -732,8 +733,8 @@ nfqnl_set_mode(struct nfqnl_instance *queue,
- 		 * length that we support is 65531 bytes. We send truncated
- 		 * packets if the specified length is larger than that.
- 		 */
--		if (range > 0xffff - NLA_HDRLEN)
--			queue->copy_range = 0xffff - NLA_HDRLEN;
-+		if (range == 0 || range > NFQNL_MAX_COPY_RANGE)
-+			queue->copy_range = NFQNL_MAX_COPY_RANGE;
- 		else
- 			queue->copy_range = range;
- 		break;
--- 
-1.8.1.5
+So I think we need to pass a mask of available info flags, so
+user-space knows how to interpret what 'unset' means. The mask would
+also help to tell user-space that some info flag is not available.
 
+Regards.
