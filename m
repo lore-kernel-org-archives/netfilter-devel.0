@@ -1,38 +1,56 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH nf] netfilter: xt_LOG: fix mark logging for IPv6 packets
-Date: Wed, 29 May 2013 10:37:03 +0200
-Message-ID: <20130529084118.6676862C72@unicorn.suse.cz>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netdev@vger.kernel.org, coreteam@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Head up [was Re: [PATCH 0/4] ipset: add "inner" flag support]
+Date: Wed, 29 May 2013 11:28:52 +0200
+Message-ID: <20130529092852.GA4081@localhost>
+References: <51A54814.5040405@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:32909 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965326Ab3E2J25 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 05:28:57 -0400
+Content-Disposition: inline
+In-Reply-To: <51A54814.5040405@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In dump_ipv6_packet(), the "recurse" parameter is zero only if
-dumping contents of a packet embedded into an ICMPv6 error
-message. Therefore we want to log packet mark if recurse is
-non-zero, not when it is zero.
+Hi Jozsef,
 
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
----
- net/netfilter/xt_LOG.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Cc'ing netfilter-core.
 
-diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-index 491c7d8..5ab2484 100644
---- a/net/netfilter/xt_LOG.c
-+++ b/net/netfilter/xt_LOG.c
-@@ -737,7 +737,7 @@ static void dump_ipv6_packet(struct sbuff *m,
- 		dump_sk_uid_gid(m, skb->sk);
- 
- 	/* Max length: 16 "MARK=0xFFFFFFFF " */
--	if (!recurse && skb->mark)
-+	if (recurse && skb->mark)
- 		sb_add(m, "MARK=0x%x ", skb->mark);
- }
- 
--- 
-1.8.1.4
+David has been pushing this guy to get him out of anonimity. According
+to the kernel policy (Developer authenticity certificate), we need
+contributions from a source that we can recognize to avoid legal
+issues.
+
+If the contributions are not worth, like that stupid variable rename
+he made, better just not to risk and skip them.
+
+Regards.
+
+On Wed, May 29, 2013 at 01:13:08AM +0100, Dash Four wrote:
+> This series of 4 patches implements "inner" flag option in the set
+> iptables match, allowing matching based on the properties
+> (source/destination IP address, protocol, port and so on) of the
+> original (inner) connection in the event of the following
+> ICMP[v4,v6] messages:
+> 
+> ICMPv4 destination-unreachable (code 3);
+> ICMPv4 source-quench (code 4);
+> ICMPv4 time-exceeded (code 11);
+> ICMPv6 destination-unreachable (code 1);
+> ICMPv6 packet-too-big (code 2);
+> ICMPv6 time-exceeded (code 3);
+> 
+> 
+> Dash Four (4):
+>   ipset: minor variable-naming corrections
+>   ipset: add "inner" flag implementation
+>   iptables: add set match "inner" flag support
+>   iptables (userspace): add set match "inner" flag support
+> 
+> 
+> 
