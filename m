@@ -1,37 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Head up [was Re: [PATCH 0/4] ipset: add "inner" flag support]
-Date: Wed, 29 May 2013 13:51:33 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1305291350090.18886@blackhole.kfki.hu>
-References: <51A54814.5040405@googlemail.com> <20130529092852.GA4081@localhost> <alpine.DEB.2.00.1305291345530.18886@blackhole.kfki.hu>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf] netfilter: xt_LOG: fix mark logging for IPv6 packets
+Date: Wed, 29 May 2013 13:57:02 +0200
+Message-ID: <20130529115702.GB3853@unicorn.suse.cz>
+References: <20130529084118.6676862C72@unicorn.suse.cz>
+ <20130529111822.GA5162@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netdev@vger.kernel.org, coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:39381 "EHLO smtp2.kfki.hu"
+Received: from cantor2.suse.de ([195.135.220.15]:51790 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965418Ab3E2Lvf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 May 2013 07:51:35 -0400
-In-Reply-To: <alpine.DEB.2.00.1305291345530.18886@blackhole.kfki.hu>
+	id S965487Ab3E2L5E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 07:57:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20130529111822.GA5162@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 29 May 2013, Jozsef Kadlecsik wrote:
+On Wed, May 29, 2013 at 01:18:22PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, May 29, 2013 at 10:37:03AM +0200, Michal Kubecek wrote:
+> > In dump_ipv6_packet(), the "recurse" parameter is zero only if
+> > dumping contents of a packet embedded into an ICMPv6 error
+> > message. Therefore we want to log packet mark if recurse is
+> > non-zero, not when it is zero.
+>=20
+> Applied, thanks Michal.
+>=20
+> The problem seems to be there since the beginning, ie. 2.6.26.
 
-> On Wed, 29 May 2013, Pablo Neira Ayuso wrote:
-> 
-> > David has been pushing this guy to get him out of anonimity. According
-> > to the kernel policy (Developer authenticity certificate), we need
-> > contributions from a source that we can recognize to avoid legal
-> > issues.
-> 
-> I have already discussed the question with it and it is a real name.
-Sorry, confusing mistypeing:               s/it/him/
+Yes, as far as I can say, the IPv6 part actually never worked.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+                                               Michal Kube=E8ek
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
