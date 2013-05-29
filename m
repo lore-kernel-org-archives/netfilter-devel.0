@@ -1,43 +1,27 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: nfqueue: detect when packet has already been checksummed?
-Date: Wed, 29 May 2013 14:03:29 +0200
-Message-ID: <20130529120329.GF6578@breakpoint.cc>
-References: <20130526204826.GC6578@breakpoint.cc>
- <20130529111423.GA4989@localhost>
- <20130529112542.GE6578@breakpoint.cc>
- <20130529115705.GA5315@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH] rule: fix table flag not being set at XML
+ parsing
+Date: Wed, 29 May 2013 14:11:18 +0200
+Message-ID: <20130529121118.GA6099@localhost>
+References: <20130528150608.5236.81847.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	nf-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45071 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965645Ab3E2MDa (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 May 2013 08:03:30 -0400
+Received: from mail.us.es ([193.147.175.20]:33277 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965800Ab3E2ML0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 08:11:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20130529115705.GA5315@localhost>
+In-Reply-To: <20130528150608.5236.81847.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I agree that the current situation is inconsistent. We have no way to
-> know if the kernel validated the checksum or not from user-space, and
-> I think this needs a fix.
+On Tue, May 28, 2013 at 05:06:08PM +0200, Arturo Borrero wrote:
+> This bug was introduced by me at commit:
+> 
+> 	'src: add support for XML parsing'
+> 	51370f0eedb1c8167ab2c340d2a53f0d9f02509c
 
-Good :-)
-
-> We can add a new NFQA_CFG_F_CSUM flag so user-space explicitly ask for
-> assistance regarding checksumming from the kernel. If user-space tries
-> to set that flag and the kernel does not support it, it will hit
-> -EOPNOTSUPP. Thus, we can skip the feature retrieval thing.
-
-Yes, but this looks like abuse of the flag semantics to me.
-Unless you mean that setting this feat flag should prompt the kernel
-to explicitly call a valiation function in case skb_csum_unnecessary()
-returns false?
-
-I think that this is overkill, and, it might not work
-in all cases (e.g. if the layer4 protocol is unknown to us).
+Applied, thanks.
