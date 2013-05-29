@@ -1,83 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.4.19.1 release
-Date: Wed, 29 May 2013 16:18:47 +0200
-Message-ID: <20130529141847.GA18810@localhost>
-References: <20130529133340.GA14566@localhost>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH -next] Revert "netfilter: tproxy: do not assign timewait
+ sockets to skb->sk"
+Date: Wed, 29 May 2013 07:56:51 -0700
+Message-ID: <1369839411.5109.31.camel@edumazet-glaptop>
+References: <1369792719-3945-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37071 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759576Ab3E2OTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20130529133340.GA14566@localhost>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:55449 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966347Ab3E2O4x (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 May 2013 10:56:53 -0400
+Received: by mail-pb0-f42.google.com with SMTP id uo1so9314871pbc.15
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2013 07:56:52 -0700 (PDT)
+In-Reply-To: <1369792719-3945-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+On Wed, 2013-05-29 at 03:58 +0200, Florian Westphal wrote:
+> This reverts commit d503b30bd648b3cb4e5f50b65d27e389960cc6d9.
+> 
+> Nowadays we have early socket demux; all the input code paths
+> should handle "skb->sk points to timewait sock" properly.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/net/netfilter/nf_tproxy_core.h |   12 +++++++++++-
+>  net/netfilter/nf_tproxy_core.c         |   27 +++++++++++++++------------
+>  net/netfilter/xt_TPROXY.c              |   22 ++--------------------
+>  net/netfilter/xt_socket.c              |   13 ++-----------
+>  4 files changed, 30 insertions(+), 44 deletions(-)
 
-I'm releasing 1.4.19.1
+BTW, why xt_socket ignores listener bound on INADDR_ANY ?
 
-Unfortunately, the previous release was missing a couple of patches
-that Florian applied that I didn't have in my tree.
 
-Very sorry for the inconvenience.
-
-On Wed, May 29, 2013 at 03:33:40PM +0200, Pablo Neira Ayuso wrote:
-> Hi!
-> 
-> The Netfilter project proudly presents:
-> 
->         iptables 1.4.19
-> 
-> This release includes support for the new connlabel and bpf matches
-> available in Linux 3.9, several fixes and manpage updates.
-> 
-> See ChangeLog that comes attached to this email for more details.
-> 
-> You can download it from:
-> 
-> http://www.netfilter.org/projects/iptables/downloads.html
-> ftp://ftp.netfilter.org/pub/iptables/
-> 
-> Have fun!
-> 
-
-> Florian Westphal (3):
->       libxt_NFQUEUE: fix bypass option documentation
->       extensions: add connlabel match
->       extensions: add connlabel match
-> 
-> Mart Frauenlob (3):
->       ip[6]tables: show --protocol instead of --proto in usage
->       libxt_recent: Fix missing space in manpage for --mask option
->       extensions: libxt_multiport: Update manpage to list valid protocols
-> 
-> Nicolas Dichtel (1):
->       utils: nfnl_osf: use the right nfnetlink lib
-> 
-> Pablo Neira Ayuso (11):
->       libip6t_NETMAP: Use xtables_ip6mask_to_cidr and get rid of libip6tc dependency
->       Revert "build: resolve link failure for ip6t_NETMAP"
->       libxt_osf: fix missing --ttl and --log in save output
->       libxt_osf: fix bad location for location in --genre
->       libip6t_SNPT: add manpage
->       libip6t_DNPT: add manpage
->       Merge branch 'stable'
->       utils: updates .gitignore to include nfbpf_compile
->       extensions: libxt_bpf: clarify --bytecode argument
->       libxtables: fix parsing of dotted network mask format
->       build: bump version to 1.4.19
-> 
-> Patrick McHardy (1):
->       libxt_conntrack: fix state match alias state parsing
-> 
-> Willem de Bruijn (2):
->       extensions: add libxt_bpf extension
->       utils: nfbpf_compile
-> 
 
