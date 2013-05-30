@@ -1,49 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] netfilter fixes for 3.10-rc3
-Date: Thu, 30 May 2013 16:39:00 -0700 (PDT)
-Message-ID: <20130530.163900.728264038534322099.davem@davemloft.net>
-References: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH] netfilter: Correct calculation using skb->tail and skb-network_header
+Date: Fri, 31 May 2013 08:55:33 +0900
+Message-ID: <1369958133-20576-1-git-send-email-horms@verge.net.au>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Chen Gang <gang.chen@asianux.com>,
+	Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:59230 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130Ab3E3XjE (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46888 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751259Ab3E3Xy4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 May 2013 19:39:04 -0400
-In-Reply-To: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
+	Thu, 30 May 2013 19:54:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 29 May 2013 18:03:08 +0200
+This corrects an regression introduced by "net: Use 16bits for *_headers
+fields of struct skbuff" when NET_SKBUFF_DATA_USES_OFFSET is not set. In
+that case skb->tail will be a pointer whereas skb->network_header
+will be an offset from head. This is corrected by using wrappers that
+ensure that calculations are always made using pointers.
 
-> The following patchset contains Netfilter/IPVS fixes for 3.10-rc3,
-> they are:
-> 
-> * fix xt_addrtype with IPv6, from Florian Westphal. This required
->   a new hook for IPv6 functions in the netfilter core to avoid
->   hard dependencies with the ipv6 subsystem when this match is
->   only used for IPv4.
-> 
-> * fix connection reuse case in IPVS. Currently, if an reused
->   connection are directed to the same server. If that server is
->   down, those connection would fail. Therefore, clear the
->   connection and choose a new server among the available ones.
-> 
-> * fix possible non-nul terminated string sent to user-space if
->   ipt_ULOG is used as the default netfilter logging stub, from
->   Chen Gang.
-> 
-> * fix mark logging of IPv6 packets in xt_LOG, from Michal Kubecek.
->   This bug has been there since 2.6.26.
-> 
-> * Fix breakage ip_vs_sh due to incorrect structure layout for
->   RCU, from Jan Beulich.
- ...
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/nf_nat_helper.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Pulled, thanks Pablo!
+diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
+index 5fea563..fdbdfec 100644
+--- a/net/netfilter/nf_nat_helper.c
++++ b/net/netfilter/nf_nat_helper.c
+@@ -104,7 +104,7 @@ static void mangle_contents(struct sk_buff *skb,
+ 	/* move post-replacement */
+ 	memmove(data + match_offset + rep_len,
+ 		data + match_offset + match_len,
+-		skb->tail - (skb->network_header + dataoff +
++		skb->tail - (skb_network_header(skb) + dataoff +
+ 			     match_offset + match_len));
+ 
+ 	/* insert data from buffer */
+-- 
+1.7.10.4
+
