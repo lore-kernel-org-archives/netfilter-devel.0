@@ -1,32 +1,49 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: iptables-nftables: Invalid argument
-Date: Thu, 30 May 2013 22:39:39 +0200
-Message-ID: <CAFpD06Qpkm2sXQc0UAN1JfBeHX0sP9TH9mgca4q_d2y5pSQSxA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] netfilter fixes for 3.10-rc3
+Date: Thu, 30 May 2013 16:39:00 -0700 (PDT)
+Message-ID: <20130530.163900.728264038534322099.davem@davemloft.net>
+References: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:59617 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757722Ab3E3Ujl (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:59230 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130Ab3E3XjE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 May 2013 16:39:41 -0400
-Received: by mail-ve0-f179.google.com with SMTP id d10so558563vea.38
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2013 13:39:40 -0700 (PDT)
+	Thu, 30 May 2013 19:39:04 -0400
+In-Reply-To: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-I've compiled iptables-nftables on debian 7 vm, with kernel 3.2.0
-If i run the command xtables -L i got these errors:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 29 May 2013 18:03:08 +0200
 
-mnl-talk:nft_table_init_one: Invalid argument
-mnl_talk:nft_chain_builtin_add: Invalid argument
-mnl_talk:nft_chain_builtin_add: Invalid argument
-mnl_talk:nft_chain_builtin_add: Invalid argument
-mnl_talk:nft_chain_list_get: Invalid argument
+> The following patchset contains Netfilter/IPVS fixes for 3.10-rc3,
+> they are:
+> 
+> * fix xt_addrtype with IPv6, from Florian Westphal. This required
+>   a new hook for IPv6 functions in the netfilter core to avoid
+>   hard dependencies with the ipv6 subsystem when this match is
+>   only used for IPv4.
+> 
+> * fix connection reuse case in IPVS. Currently, if an reused
+>   connection are directed to the same server. If that server is
+>   down, those connection would fail. Therefore, clear the
+>   connection and choose a new server among the available ones.
+> 
+> * fix possible non-nul terminated string sent to user-space if
+>   ipt_ULOG is used as the default netfilter logging stub, from
+>   Chen Gang.
+> 
+> * fix mark logging of IPv6 packets in xt_LOG, from Michal Kubecek.
+>   This bug has been there since 2.6.26.
+> 
+> * Fix breakage ip_vs_sh due to incorrect structure layout for
+>   RCU, from Jan Beulich.
+ ...
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-Instead, if i run the command iptables -L works fine.
-What's wrong?
-
-Thanks
+Pulled, thanks Pablo!
