@@ -1,44 +1,41 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH net-next] sctp: Correct byte order of access to skb->{network, transport}_header
-Date: Fri, 31 May 2013 15:36:11 +0900
-Message-ID: <1369982171-22317-1-git-send-email-horms@verge.net.au>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Ben Hutchings <bhutchings@solarflare.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: iptables-nftables: Invalid argument
+Date: Fri, 31 May 2013 09:52:33 +0200
+Message-ID: <CAOkSjBi3ogMOU=gT2gij8gU30_Ptqz_JfFQgv564YGMsKqaiVQ@mail.gmail.com>
+References: <CAFpD06Qpkm2sXQc0UAN1JfBeHX0sP9TH9mgca4q_d2y5pSQSxA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:50734 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161Ab3EaGfn (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:55271 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798Ab3EaHwz convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 May 2013 02:35:43 -0400
+	Fri, 31 May 2013 03:52:55 -0400
+Received: by mail-la0-f46.google.com with SMTP id er20so1071650lab.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2013 00:52:53 -0700 (PDT)
+In-Reply-To: <CAFpD06Qpkm2sXQc0UAN1JfBeHX0sP9TH9mgca4q_d2y5pSQSxA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Corrects an byte order conflict introduced by "sctp: Correct access to
-skb->{network, transport}_header". All the values in question are host
-byte order.
+2013/5/30 Giuseppe Longo <giuseppelng@gmail.com>:
+> Hello,
+> I've compiled iptables-nftables on debian 7 vm, with kernel 3.2.0
 
-Reported-by: Ben Hutchings <bhutchings@solarflare.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/sctp/input.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi there,
 
-diff --git a/net/sctp/input.c b/net/sctp/input.c
-index e328fe8..6533d81 100644
---- a/net/sctp/input.c
-+++ b/net/sctp/input.c
-@@ -589,7 +589,7 @@ void sctp_v4_err(struct sk_buff *skb, __u32 info)
- 	struct sctp_association *asoc = NULL;
- 	struct sctp_transport *transport;
- 	struct inet_sock *inet;
--	__be16 saveip, savesctp;
-+	__u16 saveip, savesctp;
- 	int err;
- 	struct net *net = dev_net(skb->dev);
- 
--- 
-1.7.10.4
+try using a newer kernel.
+I would suggest to compile and run 'nf-next' or 'nftables' from here:
+http://1984.lsi.us.es/git/
 
+Regards.
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
