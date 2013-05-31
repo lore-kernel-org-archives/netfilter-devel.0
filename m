@@ -1,36 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables-nftables: Invalid argument
-Date: Fri, 31 May 2013 12:50:31 +0200
-Message-ID: <20130531105031.GA3950@localhost>
-References: <CAFpD06Qpkm2sXQc0UAN1JfBeHX0sP9TH9mgca4q_d2y5pSQSxA@mail.gmail.com>
- <CAOkSjBi3ogMOU=gT2gij8gU30_Ptqz_JfFQgv564YGMsKqaiVQ@mail.gmail.com>
+Subject: Re: [nftables PATCH] rule: add flag to display rule handle as comment
+Date: Fri, 31 May 2013 13:11:55 +0200
+Message-ID: <20130531111155.GA4260@localhost>
+References: <20130521135328.GA5301@localhost>
+ <1369923766-15549-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Giuseppe Longo <giuseppelng@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50442 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57153 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754343Ab3EaKuh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 May 2013 06:50:37 -0400
+	id S1753058Ab3EaLMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 31 May 2013 07:12:00 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBi3ogMOU=gT2gij8gU30_Ptqz_JfFQgv564YGMsKqaiVQ@mail.gmail.com>
+In-Reply-To: <1369923766-15549-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 31, 2013 at 09:52:33AM +0200, Arturo Borrero Gonzalez wrote:
-> 2013/5/30 Giuseppe Longo <giuseppelng@gmail.com>:
-> > Hello,
-> > I've compiled iptables-nftables on debian 7 vm, with kernel 3.2.0
-> 
-> Hi there,
-> 
-> try using a newer kernel.
-> I would suggest to compile and run 'nf-next' or 'nftables' from here:
-> http://1984.lsi.us.es/git/
+On Thu, May 30, 2013 at 04:22:46PM +0200, Eric Leblond wrote:
+> Knowing the rule handle is necessary to be able to delete a single
+> rule. It was not displayed till now in the output and it was thus
+> impossible to remove a single rule.
+> This patch modify the listing output to add a comment containing
+> the handle when the -a/--handle flag is provided.
 
-To be more precise, you have to use this kernel tree:
-
-http://1984.lsi.us.es/git/nftables/
+Applied, thanks Eric!
