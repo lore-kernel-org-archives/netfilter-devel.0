@@ -1,55 +1,62 @@
-From: Lorenzo Colitti <lorenzo@google.com>
-Subject: Re: [PATCH 1/5] netfilter: add nf_ipv6_ops hook to fix xt_addrtype
- with IPv6
-Date: Fri, 31 May 2013 09:24:35 +0900
-Message-ID: <CAKD1Yr3aauNq0NAi1-RDxcD_D5GDwzO87WxUARhyh=iQe91A5Q@mail.gmail.com>
-References: <1369843394-24251-1-git-send-email-pablo@netfilter.org> <1369843394-24251-2-git-send-email-pablo@netfilter.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2] netfilter: Correct calculation using skb->tail and
+ skb-network_header
+Date: Fri, 31 May 2013 11:37:11 +0900
+Message-ID: <20130531023710.GA32176@verge.net.au>
+References: <1369958746-26318-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Eric Dumazet <edumazet@google.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Chen Gang <gang.chen@asianux.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qe0-f54.google.com ([209.85.128.54]:39869 "EHLO
-	mail-qe0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab3EaAY6 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:41500 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751684Ab3EaCg3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 May 2013 20:24:58 -0400
-Received: by mail-qe0-f54.google.com with SMTP id i11so567957qej.27
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2013 17:24:58 -0700 (PDT)
-In-Reply-To: <1369843394-24251-2-git-send-email-pablo@netfilter.org>
+	Thu, 30 May 2013 22:36:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1369958746-26318-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 30, 2013 at 1:03 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> 2) add new "nf_ipv6_ops" struct to register pointers to ipv6 functions.
->
-> While the former might seem preferable, Pablo pointed out that there
-> are more xt modules with link-time dependeny issues regarding ipv6,
-> so lets go for 2).
+On Fri, May 31, 2013 at 09:05:46AM +0900, Simon Horman wrote:
+> This corrects an regression introduced by "net: Use 16bits for *_headers
+> fields of struct skbuff" when NET_SKBUFF_DATA_USES_OFFSET is not set. In
+> that case skb->tail will be a pointer whereas skb->network_header
+> will be an offset from head. This is corrected by using wrappers that
+> ensure that calculations are always made using pointers.
+> 
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Reported-by: Chen Gang <gang.chen@asianux.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-I had to do this recently for the ping socket as well:
+I forgot to note in the subject that this patch is for net-next.
+I will re-post accordingly.
 
-http://git.kernel.org/cgit/linux/kernel/git/davem/net-next.git/commit/?id=6d0bfe22611602f36617bc7aa2ffa1bbb2f54c67
-
-+/* Compatibility glue so we can support IPv6 when it's compiled as a module */
-+struct pingv6_ops {
-[...]
-+ int (*ipv6_chk_addr)(struct net *net, const struct in6_addr *addr,
-+     struct net_device *dev, int strict);
-+};
-
-Is it a better idea to share these structures and have just one
-structure containing all IPv6 dummy functions? If it was in an include
-file, it would be easily accessible to most of the tree even when
-CONFIG_IPV6={n,m}, and we could have the ipv6 module init (and exit)
-code just set all the function pointers. That way, we wouldn't have to
-reinvent this particular wheel in multiple places of the code.
-
-David?
-
-[Personally, I'd just rather see CONFIG_IPV6=m go away, since it adds
-a lot of complexity like this and doesn't bring much benefit that I
-can see, but I doubt there will be agreement on that :-)]
+> 
+> --
+> v2
+> * Use skb_tail_pointer() to ensure the tail portion of the calculation is
+>   always a pointer - it is not if NET_SKBUFF_DATA_USES_OFFSET is not set.
+> ---
+>  net/netfilter/nf_nat_helper.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
+> index 5fea563..85e20a9 100644
+> --- a/net/netfilter/nf_nat_helper.c
+> +++ b/net/netfilter/nf_nat_helper.c
+> @@ -104,7 +104,7 @@ static void mangle_contents(struct sk_buff *skb,
+>  	/* move post-replacement */
+>  	memmove(data + match_offset + rep_len,
+>  		data + match_offset + match_len,
+> -		skb->tail - (skb->network_header + dataoff +
+> +		skb_tail_pointer(skb) - (skb_network_header(skb) + dataoff +
+>  			     match_offset + match_len));
+>  
+>  	/* insert data from buffer */
+> -- 
+> 1.7.10.4
+> 
