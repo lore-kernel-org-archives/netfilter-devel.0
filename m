@@ -1,72 +1,156 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/3] conntrack, expect: fix _cmp api with STRICT checking
-Date: Sat,  1 Jun 2013 14:59:30 +0200
-Message-ID: <1370091571-23140-2-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/3] expect: consider all expect attributes when comparing
+Date: Sat,  1 Jun 2013 14:59:31 +0200
+Message-ID: <1370091571-23140-3-git-send-email-fw@strlen.de>
 References: <1370091571-23140-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55760 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55761 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756231Ab3FANAv (ORCPT
+	by vger.kernel.org with ESMTP id S1756231Ab3FANAy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 Jun 2013 09:00:51 -0400
+	Sat, 1 Jun 2013 09:00:54 -0400
 In-Reply-To: <1370091571-23140-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Normal comparision succeeds when the _common_ attribute subset
-have same values.
-
-When STRICT matching is specified, the comparision should succeed only when
-both objects have same attribute subset and attribute values match.
-
-However, STRICT comparision often fails as an attribute missing in both
-objects is erronously considered an error.
+The expect cmp function ignored most of the attributes.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/conntrack/compare.c | 6 +++++-
- src/expect/compare.c    | 7 ++++++-
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ src/expect/compare.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 85 insertions(+), 10 deletions(-)
 
-diff --git a/src/conntrack/compare.c b/src/conntrack/compare.c
-index e282a24..97c25cb 100644
---- a/src/conntrack/compare.c
-+++ b/src/conntrack/compare.c
-@@ -17,8 +17,12 @@ static int __cmp(int attr,
- 		 	    const struct nf_conntrack *ct2,
- 			    unsigned int flags))
- {
--	if (test_bit(attr, ct1->head.set) && test_bit(attr, ct2->head.set)) {
-+	int a = test_bit(attr, ct1->head.set);
-+	int b = test_bit(attr, ct2->head.set);
-+	if (a && b) {
- 		return cmp(ct1, ct2, flags);
-+	} else if (!a && !b) {
-+		return 1;
- 	} else if (flags & NFCT_CMP_MASK &&
- 		   test_bit(attr, ct1->head.set)) {
- 		return 0;
 diff --git a/src/expect/compare.c b/src/expect/compare.c
-index a524f4c..484d7b1 100644
+index 484d7b1..6326706 100644
 --- a/src/expect/compare.c
 +++ b/src/expect/compare.c
-@@ -18,8 +18,13 @@ static int exp_cmp(int attr,
- 			      const struct nf_expect *exp2,
- 			      unsigned int flags))
- {
--	if (test_bit(attr, exp1->set) && test_bit(attr, exp2->set)) {
-+	int a = test_bit(attr, exp1->set);
-+	int b = test_bit(attr, exp2->set);
+@@ -35,6 +35,45 @@ static int exp_cmp(int attr,
+ }
+ 
+ static int
++cmp_exp_master(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	       unsigned int flags)
++{
++	return __cmp_orig((struct nf_conntrack *)&exp1->master,
++			  (struct nf_conntrack *)&exp2->master, flags);
++}
 +
-+	if (a && b) {
- 		return cmp(exp1, exp2, flags);
-+	} else if (!a && !b) {
-+		return 1;
- 	} else if (flags & NFCT_CMP_MASK &&
- 		   test_bit(attr, exp1->set)) {
++static int
++cmp_exp_expected(const struct nf_expect *exp1, const struct nf_expect *exp2,
++		 unsigned int flags)
++{
++	return __cmp_orig((struct nf_conntrack *)&exp1->expected,
++			  (struct nf_conntrack *)&exp2->expected, flags);
++}
++
++static int
++cmp_exp_mask(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	     unsigned int flags)
++{
++	return __cmp_orig((struct nf_conntrack *)&exp1->mask,
++			  (struct nf_conntrack *)&exp2->mask, flags);
++
++}
++
++static int
++cmp_exp_timeout(const struct nf_expect *exp1, const struct nf_expect *exp2,
++		unsigned int flags)
++{
++	return exp1->timeout == exp2->timeout;
++}
++
++static int
++cmp_exp_zone(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	     unsigned int flags)
++{
++	return exp1->zone == exp2->zone;
++}
++
++static int
+ cmp_exp_flags(const struct nf_expect *exp1, const struct nf_expect *exp2,
+ 	      unsigned int flags)
+ {
+@@ -42,32 +81,68 @@ cmp_exp_flags(const struct nf_expect *exp1, const struct nf_expect *exp2,
+ }
+ 
+ static int
++cmp_exp_hname(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	      unsigned int flags)
++{
++	return strcmp(exp1->helper_name, exp2->helper_name) == 0;
++}
++
++static int
+ cmp_exp_class(const struct nf_expect *exp1, const struct nf_expect *exp2,
+ 	      unsigned int flags)
+ {
+ 	return (exp1->class == exp2->class);
+ }
+ 
++static int
++cmp_exp_natt(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	     unsigned int flags)
++{
++	return __cmp_orig((struct nf_conntrack *)&exp1->nat,
++			  (struct nf_conntrack *)&exp2->nat, flags);
++
++}
++
++static int
++cmp_exp_natdir(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	       unsigned int flags)
++{
++	return exp1->nat_dir == exp2->nat_dir;
++}
++
++static int
++cmp_exp_expfn(const struct nf_expect *exp1, const struct nf_expect *exp2,
++	      unsigned int flags)
++{
++	return strcmp(exp1->expectfn, exp2->expectfn) == 0;
++}
++
++
+ int __cmp_expect(const struct nf_expect *exp1,
+ 		 const struct nf_expect *exp2,
+ 		 unsigned int flags)
+ {
+-	if (!__cmp_orig((struct nf_conntrack *)&exp1->master,
+-			(struct nf_conntrack *)&exp2->master, flags)) {
++	if (!exp_cmp(ATTR_EXP_MASTER, exp1, exp2, flags, cmp_exp_master))
  		return 0;
+-	}
+-	if (!__cmp_orig((struct nf_conntrack *)&exp1->expected,
+-			(struct nf_conntrack *)&exp2->expected, flags)) {
++	if (!exp_cmp(ATTR_EXP_EXPECTED, exp1, exp2, flags, cmp_exp_expected))
+ 		return 0;
+-	}
+-	if (!__cmp_orig((struct nf_conntrack *)&exp1->mask,
+-			(struct nf_conntrack *)&exp2->mask, flags)) {
++	if (!exp_cmp(ATTR_EXP_MASK, exp1, exp2, flags, cmp_exp_mask))
++		return 0;
++	if (!exp_cmp(ATTR_EXP_TIMEOUT, exp1, exp2, flags, cmp_exp_timeout))
++		return 0;
++	if (!exp_cmp(ATTR_EXP_ZONE, exp1, exp2, flags, cmp_exp_zone))
+ 		return 0;
+-	}
+ 	if (!exp_cmp(ATTR_EXP_FLAGS, exp1, exp2, flags, cmp_exp_flags))
+ 		return 0;
++	if (!exp_cmp(ATTR_EXP_HELPER_NAME, exp1, exp2, flags, cmp_exp_hname))
++		return 0;
+ 	if (!exp_cmp(ATTR_EXP_CLASS, exp1, exp2, flags, cmp_exp_class))
+ 		return 0;
+-
++	if (!exp_cmp(ATTR_EXP_NAT_TUPLE, exp1, exp2, flags, cmp_exp_natt))
++		return 0;
++	if (!exp_cmp(ATTR_EXP_NAT_DIR, exp1, exp2, flags, cmp_exp_natdir))
++		return 0;
++	if (!exp_cmp(ATTR_EXP_FN, exp1, exp2, flags, cmp_exp_expfn))
++		return 0;
+ 	return 1;
+ }
 -- 
 1.8.1.5
 
