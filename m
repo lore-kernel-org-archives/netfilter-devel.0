@@ -1,156 +1,42 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 3/3] expect: consider all expect attributes when comparing
-Date: Sat,  1 Jun 2013 14:59:31 +0200
-Message-ID: <1370091571-23140-3-git-send-email-fw@strlen.de>
-References: <1370091571-23140-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Chris Boot <bootc@bootc.net>
+Subject: ulog: ulogd.conf.5 man page
+Date: Sat, 01 Jun 2013 20:09:33 +0100
+Message-ID: <51AA46ED.5060208@bootc.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55761 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756231Ab3FANAy (ORCPT
+Received: from kamaji.grokhost.net ([87.117.218.43]:50781 "EHLO
+	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753760Ab3FATJi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 Jun 2013 09:00:54 -0400
-In-Reply-To: <1370091571-23140-1-git-send-email-fw@strlen.de>
+	Sat, 1 Jun 2013 15:09:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The expect cmp function ignored most of the attributes.
+Hi,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/expect/compare.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 85 insertions(+), 10 deletions(-)
+As part of my work in packaging ulogd 2.x for Debian, I'd like to write
+a man page for the ulogd.conf configuration file. I started out writing
+this a few days ago and I have progressed quite well:
 
-diff --git a/src/expect/compare.c b/src/expect/compare.c
-index 484d7b1..6326706 100644
---- a/src/expect/compare.c
-+++ b/src/expect/compare.c
-@@ -35,6 +35,45 @@ static int exp_cmp(int attr,
- }
- 
- static int
-+cmp_exp_master(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	       unsigned int flags)
-+{
-+	return __cmp_orig((struct nf_conntrack *)&exp1->master,
-+			  (struct nf_conntrack *)&exp2->master, flags);
-+}
-+
-+static int
-+cmp_exp_expected(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+		 unsigned int flags)
-+{
-+	return __cmp_orig((struct nf_conntrack *)&exp1->expected,
-+			  (struct nf_conntrack *)&exp2->expected, flags);
-+}
-+
-+static int
-+cmp_exp_mask(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	     unsigned int flags)
-+{
-+	return __cmp_orig((struct nf_conntrack *)&exp1->mask,
-+			  (struct nf_conntrack *)&exp2->mask, flags);
-+
-+}
-+
-+static int
-+cmp_exp_timeout(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+		unsigned int flags)
-+{
-+	return exp1->timeout == exp2->timeout;
-+}
-+
-+static int
-+cmp_exp_zone(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	     unsigned int flags)
-+{
-+	return exp1->zone == exp2->zone;
-+}
-+
-+static int
- cmp_exp_flags(const struct nf_expect *exp1, const struct nf_expect *exp2,
- 	      unsigned int flags)
- {
-@@ -42,32 +81,68 @@ cmp_exp_flags(const struct nf_expect *exp1, const struct nf_expect *exp2,
- }
- 
- static int
-+cmp_exp_hname(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	      unsigned int flags)
-+{
-+	return strcmp(exp1->helper_name, exp2->helper_name) == 0;
-+}
-+
-+static int
- cmp_exp_class(const struct nf_expect *exp1, const struct nf_expect *exp2,
- 	      unsigned int flags)
- {
- 	return (exp1->class == exp2->class);
- }
- 
-+static int
-+cmp_exp_natt(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	     unsigned int flags)
-+{
-+	return __cmp_orig((struct nf_conntrack *)&exp1->nat,
-+			  (struct nf_conntrack *)&exp2->nat, flags);
-+
-+}
-+
-+static int
-+cmp_exp_natdir(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	       unsigned int flags)
-+{
-+	return exp1->nat_dir == exp2->nat_dir;
-+}
-+
-+static int
-+cmp_exp_expfn(const struct nf_expect *exp1, const struct nf_expect *exp2,
-+	      unsigned int flags)
-+{
-+	return strcmp(exp1->expectfn, exp2->expectfn) == 0;
-+}
-+
-+
- int __cmp_expect(const struct nf_expect *exp1,
- 		 const struct nf_expect *exp2,
- 		 unsigned int flags)
- {
--	if (!__cmp_orig((struct nf_conntrack *)&exp1->master,
--			(struct nf_conntrack *)&exp2->master, flags)) {
-+	if (!exp_cmp(ATTR_EXP_MASTER, exp1, exp2, flags, cmp_exp_master))
- 		return 0;
--	}
--	if (!__cmp_orig((struct nf_conntrack *)&exp1->expected,
--			(struct nf_conntrack *)&exp2->expected, flags)) {
-+	if (!exp_cmp(ATTR_EXP_EXPECTED, exp1, exp2, flags, cmp_exp_expected))
- 		return 0;
--	}
--	if (!__cmp_orig((struct nf_conntrack *)&exp1->mask,
--			(struct nf_conntrack *)&exp2->mask, flags)) {
-+	if (!exp_cmp(ATTR_EXP_MASK, exp1, exp2, flags, cmp_exp_mask))
-+		return 0;
-+	if (!exp_cmp(ATTR_EXP_TIMEOUT, exp1, exp2, flags, cmp_exp_timeout))
-+		return 0;
-+	if (!exp_cmp(ATTR_EXP_ZONE, exp1, exp2, flags, cmp_exp_zone))
- 		return 0;
--	}
- 	if (!exp_cmp(ATTR_EXP_FLAGS, exp1, exp2, flags, cmp_exp_flags))
- 		return 0;
-+	if (!exp_cmp(ATTR_EXP_HELPER_NAME, exp1, exp2, flags, cmp_exp_hname))
-+		return 0;
- 	if (!exp_cmp(ATTR_EXP_CLASS, exp1, exp2, flags, cmp_exp_class))
- 		return 0;
--
-+	if (!exp_cmp(ATTR_EXP_NAT_TUPLE, exp1, exp2, flags, cmp_exp_natt))
-+		return 0;
-+	if (!exp_cmp(ATTR_EXP_NAT_DIR, exp1, exp2, flags, cmp_exp_natdir))
-+		return 0;
-+	if (!exp_cmp(ATTR_EXP_FN, exp1, exp2, flags, cmp_exp_expfn))
-+		return 0;
- 	return 1;
- }
+https://github.com/bootc/ulogd2/blob/add-ulogd.conf.5-wip/ulogd.conf.5
+
+I'm send this email because as I write, I realise I'm either repeating
+or replacing (by augmentation) quite a bit of the content in the
+ulogd.sgml file. Before I sink quite a few more hours into fleshing out
+the file, I wanted to check whether I'm going in the right direction and
+whether/how I need to change what I'm doing to have the work accepted
+upstream.
+
+I think a man page will be very useful to have - I often find myself
+reaching for them - I just want to know if I'm going about it from
+completely the wrong angle.
+
+Thanks,
+Chris
+
 -- 
-1.8.1.5
-
+Chris Boot
+bootc@bootc.net
