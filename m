@@ -1,45 +1,55 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCH 5/5] cli: reset terminal when CTRL+d is pressed
-Date: Sun,  2 Jun 2013 12:38:32 +0200
-Message-ID: <1370169512-23500-6-git-send-email-eric@regit.org>
-References: <1370169512-23500-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 1/5] netfilter: add nf_ipv6_ops hook to fix xt_addrtype
+ with IPv6
+Date: Mon, 3 Jun 2013 00:06:45 +0200
+Message-ID: <20130602220645.GA14760@breakpoint.cc>
+References: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
+ <1369843394-24251-2-git-send-email-pablo@netfilter.org>
+ <CAKD1Yr3aauNq0NAi1-RDxcD_D5GDwzO87WxUARhyh=iQe91A5Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Eric Dumazet <edumazet@google.com>
+To: Lorenzo Colitti <lorenzo@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:36300 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753781Ab3FBKi7 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57895 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754393Ab3FBWGv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Jun 2013 06:38:59 -0400
-In-Reply-To: <1370169512-23500-1-git-send-email-eric@regit.org>
+	Sun, 2 Jun 2013 18:06:51 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKD1Yr3aauNq0NAi1-RDxcD_D5GDwzO87WxUARhyh=iQe91A5Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The terminal was not correctly resetted when CTRL+d was pressed.
-The result was that reset has to be called from shell after exit.
+Lorenzo Colitti <lorenzo@google.com> wrote:
+> > While the former might seem preferable, Pablo pointed out that there
+> > are more xt modules with link-time dependeny issues regarding ipv6,
+> > so lets go for 2).
+> 
+> I had to do this recently for the ping socket as well:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/davem/net-next.git/commit/?id=6d0bfe22611602f36617bc7aa2ffa1bbb2f54c67
+>
+> +/* Compatibility glue so we can support IPv6 when it's compiled as a module */
+> +struct pingv6_ops {
+> [...]
+> + int (*ipv6_chk_addr)(struct net *net, const struct in6_addr *addr,
+> +     struct net_device *dev, int strict);
+> +};
+>
+> Is it a better idea to share these structures and have just one
+> structure containing all IPv6 dummy functions?
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/cli.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+I think so, yes.
 
-diff --git a/src/cli.c b/src/cli.c
-index 541c26c..8875207 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -90,8 +90,11 @@ static void cli_complete(char *line)
- 	LIST_HEAD(msgs);
- 
- 	line = cli_append_multiline(line);
--	if (line == NULL)
-+	if (line == NULL) {
-+		printf("\n");
-+		cli_exit();
- 		return;
-+	}
- 
- 	for (c = line; *c != '\0'; c++)
- 		if (!isspace(*c))
--- 
-1.7.10.4
+> If it was in an include
+> file, it would be easily accessible to most of the tree even when
+> CONFIG_IPV6={n,m}, and we could have the ipv6 module init (and exit)
+> code just set all the function pointers. That way, we wouldn't have to
+> reinvent this particular wheel in multiple places of the code.
 
+FWIW, I agree.  We should avoid having multiple copies of this.
