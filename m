@@ -1,42 +1,31 @@
-From: Chris Boot <bootc@bootc.net>
-Subject: ulog: ulogd.conf.5 man page
-Date: Sat, 01 Jun 2013 20:09:33 +0100
-Message-ID: <51AA46ED.5060208@bootc.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+From: Eric Leblond <eric@regit.org>
+Subject: [nftables PATCH 0/5] misc fixes
+Date: Sun,  2 Jun 2013 12:38:27 +0200
+Message-ID: <1370169512-23500-1-git-send-email-eric@regit.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kamaji.grokhost.net ([87.117.218.43]:50781 "EHLO
-	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753760Ab3FATJi (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:36287 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753413Ab3FBKiq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 Jun 2013 15:09:38 -0400
+	Sun, 2 Jun 2013 06:38:46 -0400
+Received: from bayen.regit.org ([81.57.69.189] helo=ice-age.regit.org)
+	by ks28632.kimsufi.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <eric@regit.org>)
+	id 1Uj5gS-0001an-MD
+	for netfilter-devel@vger.kernel.org; Sun, 02 Jun 2013 12:38:45 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-As part of my work in packaging ulogd 2.x for Debian, I'd like to write
-a man page for the ulogd.conf configuration file. I started out writing
-this a few days ago and I have progressed quite well:
+Hello,
 
-https://github.com/bootc/ulogd2/blob/add-ulogd.conf.5-wip/ulogd.conf.5
+Here's a small patchset for nftables. It contains miscellaneous fixes
+and improvements. I'm not sure for patch 2 ("expression") because it
+may not be the best way to fix the crash. Patch 3 can also be discussed
+because it suppress something that was done before in the code.
 
-I'm send this email because as I write, I realise I'm either repeating
-or replacing (by augmentation) quite a bit of the content in the
-ulogd.sgml file. Before I sink quite a few more hours into fleshing out
-the file, I wanted to check whether I'm going in the right direction and
-whether/how I need to change what I'm doing to have the work accepted
-upstream.
-
-I think a man page will be very useful to have - I often find myself
-reaching for them - I just want to know if I'm going about it from
-completely the wrong angle.
-
-Thanks,
-Chris
-
--- 
-Chris Boot
-bootc@bootc.net
+BR,
+--
+Eric
