@@ -1,55 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/5] netfilter: add nf_ipv6_ops hook to fix xt_addrtype
- with IPv6
-Date: Mon, 3 Jun 2013 00:06:45 +0200
-Message-ID: <20130602220645.GA14760@breakpoint.cc>
-References: <1369843394-24251-1-git-send-email-pablo@netfilter.org>
- <1369843394-24251-2-git-send-email-pablo@netfilter.org>
- <CAKD1Yr3aauNq0NAi1-RDxcD_D5GDwzO87WxUARhyh=iQe91A5Q@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] ipvs: info leak in __ip_vs_get_dest_entries()
+Date: Mon, 3 Jun 2013 12:00:49 +0300
+Message-ID: <20130603090049.GA16171@debian>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Eric Dumazet <edumazet@google.com>
-To: Lorenzo Colitti <lorenzo@google.com>
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Wensong Zhang <wensong@linux-vs.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57895 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754393Ab3FBWGv (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:45716 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab3FCJBp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Jun 2013 18:06:51 -0400
+	Mon, 3 Jun 2013 05:01:45 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKD1Yr3aauNq0NAi1-RDxcD_D5GDwzO87WxUARhyh=iQe91A5Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Lorenzo Colitti <lorenzo@google.com> wrote:
-> > While the former might seem preferable, Pablo pointed out that there
-> > are more xt modules with link-time dependeny issues regarding ipv6,
-> > so lets go for 2).
-> 
-> I had to do this recently for the ping socket as well:
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/davem/net-next.git/commit/?id=6d0bfe22611602f36617bc7aa2ffa1bbb2f54c67
->
-> +/* Compatibility glue so we can support IPv6 when it's compiled as a module */
-> +struct pingv6_ops {
-> [...]
-> + int (*ipv6_chk_addr)(struct net *net, const struct in6_addr *addr,
-> +     struct net_device *dev, int strict);
-> +};
->
-> Is it a better idea to share these structures and have just one
-> structure containing all IPv6 dummy functions?
+The entry struct has a 2 byte hole after ->port and another 4 byte
+hole after ->stats.outpkts.  You must have CAP_NET_ADMIN in your
+namespace to hit this information leak.
 
-I think so, yes.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-> If it was in an include
-> file, it would be easily accessible to most of the tree even when
-> CONFIG_IPV6={n,m}, and we could have the ipv6 module init (and exit)
-> code just set all the function pointers. That way, we wouldn't have to
-> reinvent this particular wheel in multiple places of the code.
-
-FWIW, I agree.  We should avoid having multiple copies of this.
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index df05c1c..e336535 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2542,6 +2542,7 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
+ 		struct ip_vs_dest *dest;
+ 		struct ip_vs_dest_entry entry;
+ 
++		memset(&entry, 0, sizeof(entry));
+ 		list_for_each_entry(dest, &svc->destinations, n_list) {
+ 			if (count >= get->num_dests)
+ 				break;
