@@ -1,38 +1,52 @@
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] data_reg: delete unreachable code
-Date: Mon, 03 Jun 2013 19:15:20 +0200
-Message-ID: <20130603171520.21980.39483.stgit@nfdev.cica.es>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch] ipvs: info leak in __ip_vs_get_dest_entries()
+Date: Mon, 3 Jun 2013 23:00:46 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1306032258190.1767@ja.ssi.bg>
+References: <20130603090049.GA16171@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:45529 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753288Ab3FCRP3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Jun 2013 13:15:29 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20130603090049.GA16171@debian>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The deleted code is never executed, thus junk. Introduced by me in previous commit.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/expr/data_reg.c |    2 --
- 1 file changed, 2 deletions(-)
+	Hello,
 
-diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index 12adc18..74ebe76 100644
---- a/src/expr/data_reg.c
-+++ b/src/expr/data_reg.c
-@@ -209,8 +209,6 @@ static int nft_data_reg_value_xml_parse(union nft_data_reg *reg, char *xml)
- 
- 	mxmlDelete(tree);
- 	return 0;
--	errno = EOPNOTSUPP;
--	return -1;
- }
- #endif
- 
+On Mon, 3 Jun 2013, Dan Carpenter wrote:
 
+> The entry struct has a 2 byte hole after ->port and another 4 byte
+> hole after ->stats.outpkts.  You must have CAP_NET_ADMIN in your
+> namespace to hit this information leak.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index df05c1c..e336535 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -2542,6 +2542,7 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
+>  		struct ip_vs_dest *dest;
+>  		struct ip_vs_dest_entry entry;
+>  
+> +		memset(&entry, 0, sizeof(entry));
+>  		list_for_each_entry(dest, &svc->destinations, n_list) {
+>  			if (count >= get->num_dests)
+>  				break;
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
