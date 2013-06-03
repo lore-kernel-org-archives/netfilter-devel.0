@@ -1,42 +1,185 @@
-From: Zang MingJie <zealot0630@gmail.com>
-Subject: [PATCH 1/1] netfilter: nf_ct_tcp: extend CLOSE_WAIT timeout
-Date: Mon,  3 Jun 2013 11:42:09 -0400
-Message-ID: <1370274129-15425-1-git-send-email-zealot0630@gmail.com>
-Cc: Zang MingJie <zealot0630@gmail.com>
+From: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH v3] src: xml: add versioning
+Date: Mon, 03 Jun 2013 17:58:38 +0200
+Message-ID: <20130603155815.19094.29178.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:61160 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756694Ab3FCPmx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Jun 2013 11:42:53 -0400
-Received: by mail-pb0-f49.google.com with SMTP id jt11so1755788pbb.36
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Jun 2013 08:42:53 -0700 (PDT)
+Received: from smtp3.cica.es ([150.214.5.190]:44382 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758778Ab3FCP6s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Jun 2013 11:58:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-According to TCP RFC, there is no timer of CLOSING or CLOSE_WAIT
-state, and the half closed connection is still stable, so the
-timeout value of CLOSE_WAIT state should equal to ESTABLISHED state.
+All XML chunks now have a "version" attribute to help in future changes.
 
-Signed-off-by: Zang MingJie <zealot0630@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v2:
+ * Moved NFT_*_XML_VERSION to src/internal.h
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 4d4d8f1..f9dd393 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -71,7 +71,7 @@ static unsigned int tcp_timeouts[TCP_CONNTRACK_TIMEOUT_MAX] __read_mostly = {
- 	[TCP_CONNTRACK_SYN_RECV]	= 60 SECS,
- 	[TCP_CONNTRACK_ESTABLISHED]	= 5 DAYS,
- 	[TCP_CONNTRACK_FIN_WAIT]	= 2 MINS,
--	[TCP_CONNTRACK_CLOSE_WAIT]	= 60 SECS,
-+	[TCP_CONNTRACK_CLOSE_WAIT]	= 5 DAYS,
- 	[TCP_CONNTRACK_LAST_ACK]	= 30 SECS,
- 	[TCP_CONNTRACK_TIME_WAIT]	= 2 MINS,
- 	[TCP_CONNTRACK_CLOSE]		= 10 SECS,
--- 
-1.7.10.4
+Changes in v3:
+ * Deleted space before the character '>'.
+
+
+diff --git a/src/chain.c b/src/chain.c
+index 4146e6a..093e3ea 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -14,6 +14,7 @@
+ #include <endian.h>
+ #include <stdint.h>
+ #include <stdlib.h>
++#include <limits.h>
+ #include <string.h>
+ #include <netinet/in.h>
+ #include <errno.h>
+@@ -469,6 +470,17 @@ static int nft_chain_xml_parse(struct nft_chain *c, char *xml)
+ 	if (tree == NULL)
+ 		return -1;
+ 
++	/* Validate version */
++	if (mxmlElementGetAttr(tree, "version") == NULL) {
++		mxmlDelete(tree);
++		return -1;
++	}
++	tmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
++	if (tmp == LLONG_MAX || *endptr || tmp != NFT_CHAIN_XML_VERSION) {
++		mxmlDelete(tree);
++		return -1;
++	}
++
+ 	/* Get and set <chain name="xxx" ... >*/
+ 	if (mxmlElementGetAttr(tree, "name") == NULL) {
+ 		mxmlDelete(tree);
+@@ -643,7 +655,7 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+ {
+ 	return snprintf(buf, size,
+ 		"<chain name=\"%s\" handle=\"%lu\""
+-			" bytes=\"%lu\" packets=\"%lu\">"
++			" bytes=\"%lu\" packets=\"%lu\" version=\"%d\">"
+ 			"<properties>"
+ 				"<type>%s</type>"
+ 				"<table>%s</table>"
+@@ -655,8 +667,8 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+ 			"</properties>"
+ 		"</chain>",
+ 			c->name, c->handle, c->bytes, c->packets,
+-			c->type, c->table, c->prio, c->use, c->hooknum,
+-			c->policy, c->family);
++			NFT_CHAIN_XML_VERSION, c->type, c->table,
++			c->prio, c->use, c->hooknum, c->policy, c->family);
+ }
+ 
+ static int nft_chain_snprintf_default(char *buf, size_t size, struct nft_chain *c)
+diff --git a/src/internal.h b/src/internal.h
+index b3c3642..3ad5e89 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -17,6 +17,10 @@
+ #include <mxml.h>
+ #endif
+ 
++#define NFT_TABLE_XML_VERSION 0
++#define NFT_CHAIN_XML_VERSION 0
++#define NFT_RULE_XML_VERSION 0
++
+ struct expr_ops;
+ 
+ struct nft_rule_expr {
+diff --git a/src/rule.c b/src/rule.c
+index 4d56d5a..b206be4 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -14,6 +14,7 @@
+ #include <endian.h>
+ #include <stdint.h>
+ #include <stdlib.h>
++#include <limits.h>
+ #include <string.h>
+ #include <netinet/in.h>
+ #include <errno.h>
+@@ -454,6 +455,17 @@ static int nft_rule_xml_parse(struct nft_rule *r, char *xml)
+ 	if (tree == NULL)
+ 		return -1;
+ 
++	/* validate XML version <rule ... version=X ... > */
++	if (mxmlElementGetAttr(tree, "version") == NULL) {
++		mxmlDelete(tree);
++		return -1;
++	}
++	tmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
++	if (tmp == LLONG_MAX || *endptr || tmp != NFT_RULE_XML_VERSION) {
++		mxmlDelete(tree);
++		return -1;
++	}
++
+ 	/* get and set <rule ... family=X ... > */
+ 	if (mxmlElementGetAttr(tree, "family") == NULL) {
+ 		mxmlDelete(tree);
+@@ -630,9 +642,10 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
+ 
+ 	ret = snprintf(buf, size,
+ 		"<rule family=\"%u\" table=\"%s\" "
+-			"chain=\"%s\" handle=\"%llu\"> ",
++			"chain=\"%s\" handle=\"%llu\" version=\"%d\"> ",
+ 				r->family, r->table, r->chain,
+-				(unsigned long long)r->handle);
++				(unsigned long long)r->handle,
++				NFT_RULE_XML_VERSION);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "<rule_flags>%u</rule_flags>"
+diff --git a/src/table.c b/src/table.c
+index 70f482d..a868da4 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -203,6 +203,7 @@ static int nft_table_xml_parse(struct nft_table *t, char *xml)
+ 	mxml_node_t *node = NULL;
+ 	char *endptr = NULL;
+ 	uint64_t tmp;
++	int64_t stmp;
+ 
+ 	/* NOTE: all XML nodes are mandatory */
+ 
+@@ -211,6 +212,18 @@ static int nft_table_xml_parse(struct nft_table *t, char *xml)
+ 	if (tree == NULL)
+ 		return -1;
+ 
++	/* Check the version of the XML */
++	if (mxmlElementGetAttr(tree, "version") == NULL) {
++		mxmlDelete(tree);
++		return -1;
++	}
++
++	stmp = strtoll(mxmlElementGetAttr(tree, "version"), &endptr, 10);
++	if (stmp == LLONG_MAX || *endptr || stmp != NFT_TABLE_XML_VERSION) {
++		mxmlDelete(tree);
++		return -1;
++	}
++
+ 	/* Get and set the name of the table */
+ 	if (mxmlElementGetAttr(tree, "name") == NULL) {
+ 		mxmlDelete(tree);
+@@ -290,13 +303,14 @@ EXPORT_SYMBOL(nft_table_parse);
+ static int nft_table_snprintf_xml(char *buf, size_t size, struct nft_table *t)
+ {
+ 	return snprintf(buf, size,
+-			"<table name=\"%s\">"
++			"<table name=\"%s\" version=\"%d\">"
+ 				"<properties>"
+ 					"<family>%u</family>"
+ 					"<table_flags>%d</table_flags>"
+ 				"</properties>"
+ 			"</table>" ,
+-			t->name, t->family, t->table_flags);
++			t->name, NFT_TABLE_XML_VERSION,
++			t->family, t->table_flags);
+ }
+ 
+ static int nft_table_snprintf_default(char *buf, size_t size, struct nft_table *t)
 
