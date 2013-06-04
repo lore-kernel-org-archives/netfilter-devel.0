@@ -1,43 +1,44 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH 0/3] small fixes
-Date: Tue, 4 Jun 2013 10:16:00 +0200
-Message-ID: <CAOkSjBif2hc5m62bJ83QEqSgdiJkvuDnhP13tZT2SpxN0-M2ag@mail.gmail.com>
-References: <1370333124-11674-1-git-send-email-eric@regit.org>
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+Subject: Re: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
+ flag
+Date: Tue, 4 Jun 2013 11:10:14 +0200
+Message-ID: <20130604111014.73c718f7@redhat.com>
+References: <1370300249.24311.190.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:37141 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab3FDIQW convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Jun 2013 04:16:22 -0400
-Received: by mail-lb0-f176.google.com with SMTP id z5so349782lbh.35
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Jun 2013 01:16:20 -0700 (PDT)
-In-Reply-To: <1370333124-11674-1-git-send-email-eric@regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1370300249.24311.190.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2013/6/4 Eric Leblond <eric@regit.org>:
->
-> Hi,
->
-> Here's three small patches which fix some issue with the examples
-> provided in the code.
->
+On Mon, 03 Jun 2013 15:57:29 -0700
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
 
-Hi Eric,
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> xt_socket module can be a nice replacement to conntrack module
+> in some cases (SYN filtering for example)
+> 
+> But it lacks the ability to match the 3rd packet of TCP
+> handshake (ACK coming from the client).
+> 
+> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
 
-I also saw that issues. Thanks.
+Sorry, but I'm not sure I understand your description.
 
-Regards.
---
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What is the effect of adding the XT_SOCKET_NOWILDCARD flag?
+It almost sound like it adds the ability to match the 3rd packet of TCP
+handshake (ACK coming from the client), is that the case?
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
