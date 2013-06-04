@@ -1,88 +1,52 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD flag
-Date: Mon, 03 Jun 2013 15:57:29 -0700
-Message-ID: <1370300249.24311.190.camel@edumazet-glaptop>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch] ipvs: info leak in __ip_vs_get_dest_entries()
+Date: Tue, 4 Jun 2013 10:03:27 +0900
+Message-ID: <20130604010327.GA23054@verge.net.au>
+References: <20130603090049.GA16171@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:63641 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635Ab3FCW5c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Jun 2013 18:57:32 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130603090049.GA16171@debian>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+On Mon, Jun 03, 2013 at 12:00:49PM +0300, Dan Carpenter wrote:
+> The entry struct has a 2 byte hole after ->port and another 4 byte
+> hole after ->stats.outpkts.  You must have CAP_NET_ADMIN in your
+> namespace to hit this information leak.
 
-xt_socket module can be a nice replacement to conntrack module
-in some cases (SYN filtering for example)
+Hi Dan,
 
-But it lacks the ability to match the 3rd packet of TCP
-handshake (ACK coming from the client).
+can I verify that it is actually possible to hit this and
+thus the patch is a -stable candidate?
 
-Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
-
-iptables -I INPUT -p tcp --syn -j SYN_CHAIN
-iptables -I INPUT -m socket -j ACCEPT
-
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
----
- include/uapi/linux/netfilter/xt_socket.h |    1 +
- net/netfilter/xt_socket.c                |   14 ++++++++++----
- 2 files changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_socket.h b/include/uapi/linux/netfilter/xt_socket.h
-index 26d7217..be1994fb 100644
---- a/include/uapi/linux/netfilter/xt_socket.h
-+++ b/include/uapi/linux/netfilter/xt_socket.h
-@@ -5,6 +5,7 @@
- 
- enum {
- 	XT_SOCKET_TRANSPARENT = 1 << 0,
-+	XT_SOCKET_NOWILDCARD = 1 << 1,
- };
- 
- struct xt_socket_mtinfo1 {
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 0270424..9843314 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -163,8 +163,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 		bool wildcard;
- 		bool transparent = true;
- 
--		/* Ignore sockets listening on INADDR_ANY */
--		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
-+		/* Ignore sockets listening on INADDR_ANY,
-+		 * unless XT_SOCKET_NOWILDCARD is set
-+		 */
-+		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
-+			    sk->sk_state != TCP_TIME_WAIT &&
- 			    inet_sk(sk)->inet_rcv_saddr == 0);
- 
- 		/* Ignore non-transparent sockets,
-@@ -302,8 +305,11 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 		bool wildcard;
- 		bool transparent = true;
- 
--		/* Ignore sockets listening on INADDR_ANY */
--		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
-+		/* Ignore sockets listening on INADDR_ANY
-+		 * unless XT_SOCKET_NOWILDCARD is set
-+		 */
-+		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
-+			    sk->sk_state != TCP_TIME_WAIT &&
- 			    ipv6_addr_any(&inet6_sk(sk)->rcv_saddr));
- 
- 		/* Ignore non-transparent sockets,
-
-
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index df05c1c..e336535 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -2542,6 +2542,7 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
+>  		struct ip_vs_dest *dest;
+>  		struct ip_vs_dest_entry entry;
+>  
+> +		memset(&entry, 0, sizeof(entry));
+>  		list_for_each_entry(dest, &svc->destinations, n_list) {
+>  			if (count >= get->num_dests)
+>  				break;
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
