@@ -1,52 +1,29 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch] ipvs: info leak in __ip_vs_get_dest_entries()
-Date: Tue, 4 Jun 2013 10:03:27 +0900
-Message-ID: <20130604010327.GA23054@verge.net.au>
-References: <20130603090049.GA16171@debian>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130603090049.GA16171@debian>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [libnftables PATCH 0/3] small fixes
+Date: Tue,  4 Jun 2013 10:05:20 +0200
+Message-ID: <1370333124-11674-1-git-send-email-eric@regit.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:50696 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889Ab3FDIFg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Jun 2013 04:05:36 -0400
+Received: from bayen.regit.org ([81.57.69.189] helo=ice-age.regit.org)
+	by ks28632.kimsufi.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <eric@regit.org>)
+	id 1UjmFK-0007ry-8j
+	for netfilter-devel@vger.kernel.org; Tue, 04 Jun 2013 10:05:34 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 03, 2013 at 12:00:49PM +0300, Dan Carpenter wrote:
-> The entry struct has a 2 byte hole after ->port and another 4 byte
-> hole after ->stats.outpkts.  You must have CAP_NET_ADMIN in your
-> namespace to hit this information leak.
 
-Hi Dan,
+Hi,
 
-can I verify that it is actually possible to hit this and
-thus the patch is a -stable candidate?
+Here's three small patches which fix some issue with the examples
+provided in the code.
 
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index df05c1c..e336535 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2542,6 +2542,7 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
->  		struct ip_vs_dest *dest;
->  		struct ip_vs_dest_entry entry;
->  
-> +		memset(&entry, 0, sizeof(entry));
->  		list_for_each_entry(dest, &svc->destinations, n_list) {
->  			if (count >= get->num_dests)
->  				break;
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+BR,
+--
+Eric
