@@ -1,39 +1,43 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [libnftables PATCH 3/3] expr: fix display of dreg expression
-Date: Tue,  4 Jun 2013 10:05:23 +0200
-Message-ID: <1370333124-11674-4-git-send-email-eric@regit.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH 0/3] small fixes
+Date: Tue, 4 Jun 2013 10:16:00 +0200
+Message-ID: <CAOkSjBif2hc5m62bJ83QEqSgdiJkvuDnhP13tZT2SpxN0-M2ag@mail.gmail.com>
 References: <1370333124-11674-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:50703 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889Ab3FDIFn (ORCPT
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:37141 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab3FDIQW convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Jun 2013 04:05:43 -0400
+	Tue, 4 Jun 2013 04:16:22 -0400
+Received: by mail-lb0-f176.google.com with SMTP id z5so349782lbh.35
+        for <netfilter-devel@vger.kernel.org>; Tue, 04 Jun 2013 01:16:20 -0700 (PDT)
 In-Reply-To: <1370333124-11674-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+2013/6/4 Eric Leblond <eric@regit.org>:
+>
+> Hi,
+>
+> Here's three small patches which fix some issue with the examples
+> provided in the code.
+>
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/expr/immediate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Eric,
 
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 7cfb4bf..295054d 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -335,7 +335,7 @@ nft_rule_expr_immediate_snprintf_default(char *buf, size_t len,
- 	int size = len, offset = 0, ret;
- 	struct nft_expr_immediate *imm = (struct nft_expr_immediate *)e->data;
- 
--	ret = snprintf(buf, len, "dreg=%u", imm->dreg);
-+	ret = snprintf(buf, len, "dreg=%u ", imm->dreg);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (e->flags & (1 << NFT_EXPR_IMM_DATA)) {
--- 
-1.7.10.4
+I also saw that issues. Thanks.
 
+Regards.
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
