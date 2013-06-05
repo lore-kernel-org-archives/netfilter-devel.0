@@ -1,46 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] netfilter: nfnetlink_cttimeout: fix incomplete dumping of objects
-Date: Wed,  5 Jun 2013 06:11:04 +0200
-Message-ID: <1370405464-3848-2-git-send-email-pablo@netfilter.org>
-References: <1370405464-3848-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 3/3] expect: consider all expect attributes when
+ comparing
+Date: Wed, 5 Jun 2013 09:35:29 +0200
+Message-ID: <20130605073529.GA15131@breakpoint.cc>
+References: <1370091571-23140-1-git-send-email-fw@strlen.de>
+ <1370091571-23140-3-git-send-email-fw@strlen.de>
+ <20130605025111.GA17004@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34431 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854Ab3FEELP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Jun 2013 00:11:15 -0400
-In-Reply-To: <1370405464-3848-1-git-send-email-pablo@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39211 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751723Ab3FEHfc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Jun 2013 03:35:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20130605025111.GA17004@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix broken incomplete object dumping if the list of objects does not
-fit into one single netlink message.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > +static int
+> > +cmp_exp_timeout(const struct nf_expect *exp1, const struct nf_expect *exp2,
+> > +		unsigned int flags)
+> > +{
+> > +	return exp1->timeout == exp2->timeout;
+> > +}
+> 
+> The timeout comparison needs to implement the __NFCT_CMP_TIMEOUT
+> logic, similar to nfct_cmp. Otherwise nfexp_cmp will break in
+> conntrackd with expect sync mode.
 
-Reported-by: Gabriel Lazar <Gabriel.Lazar@com.utcluj.ro>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_cttimeout.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+You're right of course.  I'll implement this and send a v2 of this
+patch.
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 701c88a..65074df 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -220,9 +220,12 @@ ctnl_timeout_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(cur, &cttimeout_list, head) {
--		if (last && cur != last)
--			continue;
-+		if (last) {
-+			if (cur != last)
-+				continue;
- 
-+			last = NULL;
-+		}
- 		if (ctnl_timeout_fill_info(skb, NETLINK_CB(cb->skb).portid,
- 					   cb->nlh->nlmsg_seq,
- 					   NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
--- 
-1.7.10.4
-
+Thanks for catching this!
