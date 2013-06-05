@@ -1,80 +1,49 @@
-From: Vijay Tandeker <vijayt@india.tejasnetworks.com>
-Subject: Locally transmitted Multicast packets are being looped back, even
- if IP_MULTICAST_LOOP option is set to zero
-Date: Wed, 5 Jun 2013 16:17:08 +0530
-Message-ID: <51AF172C.9090803@india.tejasnetworks.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH v3] src: xml: add versioning
+Date: Wed, 5 Jun 2013 13:06:10 +0200
+Message-ID: <CAOkSjBhqT2Mn2a5CjtKRc3qf2_S4uhO-3q5cucK8kLumT1UBuQ@mail.gmail.com>
+References: <20130603155815.19094.29178.stgit@nfdev.cica.es> <20130605033009.GA24974@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: <netfilter@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:54260 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718Ab3FELGb convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Jun 2013 07:06:31 -0400
+Received: by mail-lb0-f169.google.com with SMTP id d10so1739122lbj.28
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Jun 2013 04:06:30 -0700 (PDT)
+In-Reply-To: <20130605033009.GA24974@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-   I am Vijay Tandeker working in TejasNetworks Bangalore, which works 
-in a telecommunication domain. I have one query regarding 
-IP_MULTICAST_LOOP option.
+2013/6/5 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Mon, Jun 03, 2013 at 05:58:38PM +0200, Arturo Borrero wrote:
+>> All XML chunks now have a "version" attribute to help in future chan=
+ges.
+>
+> Not sure this is the best approach after reading this:
+>
+> http://stackoverflow.com/questions/2014237/what-are-the-best-practice=
+s-for-versioning-xml-schemas
+>
+> Can you give it some read and get back to me with more feedback
+> regarding the XML versioning approaches?
+>
 
-My configuration:
-Kernel version: 2.6.32
-One OSPF routing protocol deamon is running in my system. It has opened 
-one raw socket with
-- IP_HDRINCL option set to 1
-- IP_MULTICAST_LOOP option set to 0
+The version attribute could be add to the top level element (e.g.
+<nftables> in the ruleset dump example I sent).
+A drawback of this is that the version cannot be checked when parsing
+loose/single elements.
 
-IP fragmentation logic is implemented in my application. Means if OSPF 
-tries to send any packet which exceeds MTU of the transmitting 
-interface, it fragments it and gives to the kernel using sendmsg(). In 
-my case, I am getting all my fragmented packets back to the application 
-(which should not happen if IP_MULTICAST_LOOP option is set to zero).
-
-Following are my observations:
-1) In ip_mc_output() function inside "net/ipv4/ip_output.c" file:
-
-
-/*
-  *  Multicasts are looped back for other local users
-  */
-
-     if (rt->rt_flags&RTCF_MULTICAST) {
-         if ((!sk || inet_sk(sk)->mc_loop)
-#ifdef CONFIG_IP_MROUTE
-                 /* Small optimization: do not loopback not local frames,
-                    which returned after forwarding; they will be  dropped
-                    by ip_mr_input in any case.
-                    Note, that local frames are looped back to be delivered
-                    to local recipients.
-
-                    This check is duplicated in ip_mr_input at the moment.
-                  */
-&& ((rt->rt_flags&RTCF_LOCAL) || !(IPCB(skb)->flags&IPSKB_FORWARDED))
-#endif
-            ) {
-              }
-
-  Here sk(or skb->sk) pointer is NULL and "((rt->rt_flags&RTCF_LOCAL) || 
-!(IPCB(skb)->flags&IPSKB_FORWARDED))" condition is True. Because of this 
-I am getting all my fragmented packets looped back to application.
-
-
-
-  2) On further debugging I found that:
-  In nf_ct_ipv4_gather_frags() function inside 
-"ipv4/netfilter/nf_defrag_ipv4.c" file
-  - skb_orphan(skb); is being called, which is setting skb->sk to NULL.
-  - No call to restore skb->sk back to some valid value later on.
-
-My questions:-
-  - Is this done intentionally ?
-  - If No, please suggest the solution to restore skb->sk pointer.
-  - If Yes, please suggest the solution to restore skb->sk pointer.
-
-Kindly let me know in case if the problem is not clear or you need any 
-more data.
-
-  Thanks & Regards,
-  Vijay
-
-
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
