@@ -1,47 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] data_reg: xml: fix invalid veredict
- validation
-Date: Wed, 5 Jun 2013 05:43:27 +0200
-Message-ID: <20130605034327.GA31658@localhost>
-References: <20130529224626.18127.15020.stgit@nfdev.cica.es>
+Subject: Re: [libnftables PATCH 1/3] examples: delete payload code in
+ nft-chain-add
+Date: Wed, 5 Jun 2013 05:52:29 +0200
+Message-ID: <20130605035229.GA1504@localhost>
+References: <1370333124-11674-1-git-send-email-eric@regit.org>
+ <1370333124-11674-2-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero <arturo.borrero.glez@gmail.com>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32837 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33289 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751067Ab3FEDnd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Jun 2013 23:43:33 -0400
+	id S1750905Ab3FEDwe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Jun 2013 23:52:34 -0400
 Content-Disposition: inline
-In-Reply-To: <20130529224626.18127.15020.stgit@nfdev.cica.es>
+In-Reply-To: <1370333124-11674-2-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 30, 2013 at 12:46:26AM +0200, Arturo Borrero wrote:
-> Other kind of validations are used all over the XML parsing code.
-> This validation is not valid anymore, and this patch update it.
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  src/expr/data_reg.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-> index 71b10fe..12adc18 100644
-> --- a/src/expr/data_reg.c
-> +++ b/src/expr/data_reg.c
-> @@ -64,10 +64,8 @@ static int nft_data_reg_verdict_xml_parse(union nft_data_reg *reg, char *xml)
->  		return -1;
->  	}
->  
-> -	errno = 0;
->  	tmp = strtoll(node->child->value.opaque, &endptr, 10);
-> -	if (tmp > INT_MAX || tmp < INT_MIN || errno != 0
-> -						|| strlen(endptr) > 0) {
-> +	if (tmp > INT_MAX || tmp < INT_MIN || *endptr) {
+On Tue, Jun 04, 2013 at 10:05:21AM +0200, Eric Leblond wrote:
+> 'make check' was not working due to the fact that
+> 'libnftables/payload.h' was not present.
 
-I think it's time to add some helper function like nft_stroll. This
-function will take care of this tricky error handling and it will just
-return -1 in case of error. You can put this new function in
-src/utils.c and define it protype in internal.h.
+Oops, that file was dead lying on my filesystem, applied a fix for
+this.
+
+> As the payload related code was commented, the "I've got an axe"
+> solution was to remove all payload related code. This is done in
+> this patch.
+
+I prefered to keep the payload example, so apply a different fix.
+Thanks for the spots anyway.
