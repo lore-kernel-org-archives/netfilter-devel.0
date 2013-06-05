@@ -1,45 +1,32 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next 2/2] netfilter: nfnetlink_queue: only add CAP_LEN attr when needed
-Date: Wed,  5 Jun 2013 10:22:16 +0200
-Message-ID: <1370420536-9626-2-git-send-email-fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next 1/2] netfilter: nf_queue: cleanup copy_range usage
+Date: Wed, 5 Jun 2013 12:42:38 +0200
+Message-ID: <20130605104238.GA5796@localhost>
 References: <1370420536-9626-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39372 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405Ab3FEIWH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Jun 2013 04:22:07 -0400
+Received: from mail.us.es ([193.147.175.20]:52829 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754118Ab3FEKmr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Jun 2013 06:42:47 -0400
+Content-Disposition: inline
 In-Reply-To: <1370420536-9626-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-CAP_LEN contains the size of the network packet we're queueing to
-userspace, i.e. normally it is the same as the NFQA_PAYLOAD attribute len.
+On Wed, Jun 05, 2013 at 10:22:15AM +0200, Florian Westphal wrote:
+> For every packet queued, we check if configured copy_range
+> is 0, and treat that as 'copy entire packet'.
+> 
+> We can move this check to the queue configuration, and can
+> set copy_range appropriately.
+> 
+> Also, convert repetitive '0xffff - NLA_HDRLEN' to a macro.
+> 
+> [ queue initialization still used 0xffff, although its harmless
+>   since the initial setting is overwritten on queue config ]
 
-Include it only in the unlikely case when NFQA_PAYLOAD is truncated due
-to copy_range limitations.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Tested with examples/nf-queue.c from libnfqueue, it still
- prints 'truncated packet' on 1st packet sent from tracepath.
-
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 3c42181..eb2cde8 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -472,7 +472,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
- 		goto nla_put_failure;
- 
--	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
-+	if (cap_len > data_len &&
-+	    nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
- 		goto nla_put_failure;
- 
- 	if (nfqnl_put_packet_info(skb, entskb))
--- 
-1.7.8.6
-
+Applied, thanks Florian.
