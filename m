@@ -1,37 +1,49 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables] nft_*_attr_unset() functions
-Date: Wed, 5 Jun 2013 01:03:37 +0200
-Message-ID: <CAOkSjBjRaVvRxX6e9tVMnz5Q2QAVxfAaVhs8edBrrg42FR4OeA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [iptables PATCH] configure: display summary at end of configure
+Date: Wed, 5 Jun 2013 04:26:35 +0200
+Message-ID: <20130605022635.GA12525@localhost>
+References: <1359154090-11061-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:54811 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100Ab3FDXD7 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Jun 2013 19:03:59 -0400
-Received: by mail-lb0-f182.google.com with SMTP id r11so192373lbv.41
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Jun 2013 16:03:58 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:56876 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752070Ab3FEC0l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Jun 2013 22:26:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1359154090-11061-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Eric,
 
-How do you see having nft_{table|chain|rule}_attr_unset() functions so
-we can unset some object attributes?
+On Fri, Jan 25, 2013 at 11:48:10PM +0100, Eric Leblond wrote:
+> This patch adds a message at the end of configure which displays
+> the different compilation options and system settings.
+> 
+> An example result is the following:
+> 
+> Iptables Configuration:
+>   IPv4 support:				yes
+>   IPv6 support:				yes
+>   Devel support:			yes
+>   IPQ support:				no
+>   Large file support:			yes
+> 
+> Build parameters:
+>   Static build:				no
+>   Shared build:				yes
+>   Installation prefix (--prefix):	/usr/local
+>   Xtables extension directory:		/usr/local/lib/xtables
+>   Pkg-config directory:			/usr/local/lib/pkgconfig
+>   Kernel build directory:		/lib/modules/custom
+>   Host:					x86_64-unknown-linux-gnu
+>   GCC binary:				gcc
 
-I find this useful for chain&rule XML code examples, where kernel is
-returning error due to handle already set.
+I recovered this patch and push it to master. I mangled it to fix a
+conflict with the current tree and added the BPF utils to the display.
+Thanks.
 
 Regards.
---
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
