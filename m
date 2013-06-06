@@ -1,61 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] Netfilter/IPVS updates for net-next
-Date: Thu, 06 Jun 2013 02:03:28 -0700 (PDT)
-Message-ID: <20130606.020328.539086240132260496.davem@davemloft.net>
-References: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 1/2] src: add _unset functions
+Date: Thu, 6 Jun 2013 12:15:08 +0200
+Message-ID: <20130606101508.GA5947@localhost>
+References: <20130605213713.11415.64106.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
+To: Arturo Borrero <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:52351 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932329Ab3FFJDb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Jun 2013 05:03:31 -0400
-In-Reply-To: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:36468 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754034Ab3FFKPT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Jun 2013 06:15:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20130605213713.11415.64106.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed,  5 Jun 2013 22:40:21 +0200
+Hi Arturo,
 
-> The following patchset contains the first batch of
-> Netfilter/IPVS updates for your net-next tree, they are:
+On Wed, Jun 05, 2013 at 11:37:13PM +0200, Arturo Borrero wrote:
+> These functions unset the flag for the given attribute in each object and free data in some cases.
 > 
-> * Three patches with improvements and code refactorization
->   for nfnetlink_queue, from Florian Westphal.
+> About the xor op, other option was:
 > 
-> * FTP helper now parses replies without brackets, as RFC1123
->   recommends, from Jeff Mahoney.
-> 
-> * Rise a warning to tell everyone about ULOG deprecation,
->   NFLOG has been already in the kernel tree for long time
->   and supersedes the old logging over netlink stub, from
->   myself.
-> 
-> * Don't panic if we fail to load netfilter core framework,
->   just bail out instead, from myself.
-> 
-> * Add cond_resched_rcu, used by IPVS to allow rescheduling
->   while walking over big hashtables, from Simon Horman.
-> 
-> * Change type of IPVS sysctl_sync_qlen_max sysctl to avoid
->   possible overflow, from Zhang Yanfei.
-> 
-> * Use strlcpy instead of strncpy to skip zeroing of already
->   initialized area to write the extension names in ebtables,
->   from Chen Gang.
-> 
-> * Use already existing per-cpu notrack object from xt_CT,
->   from Eric Dumazet.
-> 
-> * Save explicit socket lookup in xt_socket now that we have
->   early demux, also from Eric Dumazet.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+> 	if (x->flags & (1 << attr))
+> 		x->flags ^= (1 << attr);
 
-Pulled, thanks!
+To unset, use:
+
+x->flags &= ~(1 << attr)
+
+Regards.
