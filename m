@@ -1,32 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH 0/5] misc fixes
-Date: Thu, 6 Jun 2013 14:02:55 +0200
-Message-ID: <20130606120255.GA10195@localhost>
-References: <1370169512-23500-1-git-send-email-eric@regit.org>
- <20130606114310.GA9849@localhost>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 0/4] Series short description
+Date: Thu, 06 Jun 2013 15:15:28 +0200
+Message-ID: <20130606131506.17910.25285.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: ulien@linuxwall.info
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46004 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933244Ab3FFMDA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Jun 2013 08:03:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20130606114310.GA9849@localhost>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:33156 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587Ab3FFNPk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Jun 2013 09:15:40 -0400
+Received: by mail-wg0-f41.google.com with SMTP id k13so327923wgh.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Jun 2013 06:15:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 06, 2013 at 01:43:10PM +0200, Pablo Neira Ayuso wrote:
-[...]
-> > Patch 3 can also be discussed because it suppress something that was
-> > done before in the code.
-> 
-> Can you point to the patch that changed that line of code, I'm lacking
-> some context.
+Json support for to export tables to JSON format and I add the example for to use the new functions
 
-Oh, I think I get it. You mean that your patch is removing that line.
-A quick tells me it's OK.
+---
 
-Regards.
+Alvaro Neira (4):
+      Add functions for to export tables to JSON format
+      Add implementation for to proof the JSON export function
+      Add JSON Constant for to use the Json export function
+      Add a constant for to put the JSON Version
+
+
+ examples/nft-table-get.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+-- 
+Signature
