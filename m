@@ -1,52 +1,61 @@
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 2/2] examples: unset chain & rule handle
-Date: Wed, 05 Jun 2013 23:37:18 +0200
-Message-ID: <20130605213718.11415.44102.stgit@nfdev.cica.es>
-References: <20130605213713.11415.64106.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] Netfilter/IPVS updates for net-next
+Date: Thu, 06 Jun 2013 02:03:28 -0700 (PDT)
+Message-ID: <20130606.020328.539086240132260496.davem@davemloft.net>
+References: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36835 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933051Ab3FEVhV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Jun 2013 17:37:21 -0400
-In-Reply-To: <20130605213713.11415.64106.stgit@nfdev.cica.es>
+Received: from shards.monkeyblade.net ([149.20.54.216]:52351 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932329Ab3FFJDb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Jun 2013 05:03:31 -0400
+In-Reply-To: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use _unset functions to delete handle so test don't fail.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  5 Jun 2013 22:40:21 +0200
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- examples/nft-chain-xml-add.c |    1 +
- examples/nft-rule-xml-add.c  |    1 +
- 2 files changed, 2 insertions(+)
+> The following patchset contains the first batch of
+> Netfilter/IPVS updates for your net-next tree, they are:
+> 
+> * Three patches with improvements and code refactorization
+>   for nfnetlink_queue, from Florian Westphal.
+> 
+> * FTP helper now parses replies without brackets, as RFC1123
+>   recommends, from Jeff Mahoney.
+> 
+> * Rise a warning to tell everyone about ULOG deprecation,
+>   NFLOG has been already in the kernel tree for long time
+>   and supersedes the old logging over netlink stub, from
+>   myself.
+> 
+> * Don't panic if we fail to load netfilter core framework,
+>   just bail out instead, from myself.
+> 
+> * Add cond_resched_rcu, used by IPVS to allow rescheduling
+>   while walking over big hashtables, from Simon Horman.
+> 
+> * Change type of IPVS sysctl_sync_qlen_max sysctl to avoid
+>   possible overflow, from Zhang Yanfei.
+> 
+> * Use strlcpy instead of strncpy to skip zeroing of already
+>   initialized area to write the extension names in ebtables,
+>   from Chen Gang.
+> 
+> * Use already existing per-cpu notrack object from xt_CT,
+>   from Eric Dumazet.
+> 
+> * Save explicit socket lookup in xt_socket now that we have
+>   early demux, also from Eric Dumazet.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
 
-diff --git a/examples/nft-chain-xml-add.c b/examples/nft-chain-xml-add.c
-index c8b0fdc..80a513d 100644
---- a/examples/nft-chain-xml-add.c
-+++ b/examples/nft-chain-xml-add.c
-@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
- 	nft_chain_snprintf(reprint, sizeof(reprint), c, NFT_CHAIN_O_XML, 0);
- 	printf("Parsed:\n%s\n", reprint);
- 
-+	nft_chain_attr_unset(c, NFT_CHAIN_ATTR_HANDLE);
- 	family = (uint16_t)nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_FAMILY);
- 
- 	seq = time(NULL);
-diff --git a/examples/nft-rule-xml-add.c b/examples/nft-rule-xml-add.c
-index bce3411..7bd44ff 100644
---- a/examples/nft-rule-xml-add.c
-+++ b/examples/nft-rule-xml-add.c
-@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
- 	nft_rule_snprintf(reprint, sizeof(reprint), r, NFT_RULE_O_XML, 0);
- 	printf("Parsed:\n%s\n", reprint);
- 
-+	nft_rule_attr_unset(r, NFT_RULE_ATTR_HANDLE);
- 	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
- 
- 	seq = time(NULL);
-
+Pulled, thanks!
