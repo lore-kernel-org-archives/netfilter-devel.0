@@ -1,62 +1,53 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [PATCH 2/5] include: use C++ headers in C++ mode
-Date: Fri, 07 Jun 2013 10:35:01 +0200
-Message-ID: <1648235.41SkZRnnpI@storm>
-References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-3-git-send-email-jengelh@medozas.de>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 0/2] Series short description
+Date: Fri, 07 Jun 2013 11:14:02 +0200
+Message-ID: <20130607091043.13002.66552.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
-Cc: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:39039 "EHLO
-	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab3FGIfN (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:64206 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987Ab3FGJOM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Jun 2013 04:35:13 -0400
-In-Reply-To: <1289430485-16467-3-git-send-email-jengelh@medozas.de>
+	Fri, 7 Jun 2013 05:14:12 -0400
+Received: by mail-wg0-f43.google.com with SMTP id x12so2843026wgg.34
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Jun 2013 02:14:10 -0700 (PDT)
+Received: from [127.0.1.1] (85.136.70.56.dyn.user.ono.com. [85.136.70.56])
+        by mx.google.com with ESMTPSA id u9sm1855800wif.6.2013.06.07.02.14.09
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Fri, 07 Jun 2013 02:14:10 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+The following series implements...
 
-On Thursday, 11. November 2010 00:08:01 you wrote:
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  include/libmnl/libmnl.h |   13 ++++++++-----
->  1 files changed, 8 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-> index 7094af2..37c502a 100644
-> --- a/include/libmnl/libmnl.h
-> +++ b/include/libmnl/libmnl.h
-> @@ -1,13 +1,16 @@
->  #ifndef _LIBMNL_H_
->  #define _LIBMNL_H_
-> 
-> -#include <stdio.h>
-> -#include <stdint.h>
-> +#ifdef __cplusplus
-> +#	include <cstdio>
-> +#	include <cstdint>
-> +#else
-> +#	include <stdbool.h> /* not in C++ */
-> +#	include <stdio.h>
-> +#	include <stdint.h>
-> +#endif
+I collapsed the patches. Now, you can compile libnftables without error=
+ if you apply the patch.
 
-just a side note regarding this old commit:
+I hope everything is correct.
 
-The header "<cstdint>" is part of the C++11 standard.
-(http://www.cplusplus.com/reference/cstdint/)
+Thanks for all.
 
-g++ forces you to enable C++11 mode if you want to use it.
-Tested with g++ (GCC) 4.4.4.
+---
 
-Do we really need this? It compiles fine without
-the special headers inside the __cplusplus part.
-Pablo asked the same back in 2010 ;)
+Alvaro Neira (2):
+      Add functions for exporting tables to JSON format
+      Add implementation for to proof the JSON export function
 
-Best regards,
-Thomas
 
+ examples/nft-table-get.c    |    4 ++++
+ include/libnftables/table.h |    1 +
+ src/internal.h              |    1 +
+ src/table.c                 |   18 ++++++++++++++++++
+ 4 files changed, 24 insertions(+)
+
+--=20
+=C3=81lvaro Neira Ayuso
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
