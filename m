@@ -1,44 +1,44 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 2/5] include: use C++ headers in C++ mode
-Date: Sat, 8 Jun 2013 15:38:14 +0200 (CEST)
-Message-ID: <alpine.LNX.2.10.1306081534160.19100@nerf07.vanv.qr>
-References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-3-git-send-email-jengelh@medozas.de> <1648235.41SkZRnnpI@storm>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [PATCH] fix leak of iter in nft_rule_list
+Date: Sat, 08 Jun 2013 15:40:04 +0200
+Message-ID: <20130608134004.4582.54427.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:42980 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751658Ab3FHNiP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jun 2013 09:38:15 -0400
-In-Reply-To: <1648235.41SkZRnnpI@storm>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:46054 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab3FHNkT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Jun 2013 09:40:19 -0400
+Received: by mail-wi0-f182.google.com with SMTP id cb5so1922640wib.15
+        for <netfilter-devel@vger.kernel.org>; Sat, 08 Jun 2013 06:40:17 -0700 (PDT)
+Received: from [127.0.0.1] ([46.182.90.145])
+        by mx.google.com with ESMTPSA id r9sm2367553wik.1.2013.06.08.06.40.15
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Sat, 08 Jun 2013 06:40:17 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2013-06-07 10:35, Thomas Jarosch wrote:
+Leak of iter in nft_rule_list function fixed.
 
->> -#include <stdio.h>
->> -#include <stdint.h>
->> +#ifdef __cplusplus
->> +#	include <cstdio>
->> +#	include <cstdint>
->> +#else
->> +#	include <stdbool.h> /* not in C++ */
->> +#	include <stdio.h>
->> +#	include <stdint.h>
->> +#endif
->
->The header "<cstdint>" is part of the C++11 standard.
->(http://www.cplusplus.com/reference/cstdint/)
->
->g++ forces you to enable C++11 mode if you want to use it.
->Tested with g++ (GCC) 4.4.4.
->
->Do we really need this? It compiles fine without
->the special headers inside the __cplusplus part.
->Pablo asked the same back in 2010 ;)
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+---
+ iptables/nft.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Add an extra condition:
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 5a0b814..7223c79 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2520,6 +2520,7 @@ next:
+ 		c = nft_chain_list_iter_next(iter);
+ 	}
+ 
++	nft_chain_list_iter_destroy(iter);
+ 	nft_chain_list_free(list);
+ 
+ 	return 1;
 
-#if defined(__cplusplus) && __cplusplus >= 201100L
