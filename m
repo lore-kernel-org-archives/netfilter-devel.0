@@ -1,52 +1,44 @@
-From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 2/2] Implementation for to test the function for
- exporting chains to JSON format
-Date: Sat, 08 Jun 2013 15:36:12 +0200
-Message-ID: <20130608133612.10197.37919.stgit@Ph0enix>
-References: <20130608133222.10197.21456.stgit@Ph0enix>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/5] include: use C++ headers in C++ mode
+Date: Sat, 8 Jun 2013 15:38:14 +0200 (CEST)
+Message-ID: <alpine.LNX.2.10.1306081534160.19100@nerf07.vanv.qr>
+References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-3-git-send-email-jengelh@medozas.de> <1648235.41SkZRnnpI@storm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:40600 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658Ab3FHNgQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jun 2013 09:36:16 -0400
-Received: by mail-we0-f170.google.com with SMTP id w57so3829756wes.29
-        for <netfilter-devel@vger.kernel.org>; Sat, 08 Jun 2013 06:36:15 -0700 (PDT)
-Received: from [127.0.1.1] (89.153.20.95.dynamic.jazztel.es. [95.20.153.89])
-        by mx.google.com with ESMTPSA id ft10sm2158269wib.7.2013.06.08.06.36.14
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sat, 08 Jun 2013 06:36:14 -0700 (PDT)
-In-Reply-To: <20130608133222.10197.21456.stgit@Ph0enix>
+Received: from ares07.inai.de ([5.9.24.206]:42980 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751658Ab3FHNiP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Jun 2013 09:38:15 -0400
+In-Reply-To: <1648235.41SkZRnnpI@storm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+On Friday 2013-06-07 10:35, Thomas Jarosch wrote:
 
+>> -#include <stdio.h>
+>> -#include <stdint.h>
+>> +#ifdef __cplusplus
+>> +#	include <cstdio>
+>> +#	include <cstdint>
+>> +#else
+>> +#	include <stdbool.h> /* not in C++ */
+>> +#	include <stdio.h>
+>> +#	include <stdint.h>
+>> +#endif
+>
+>The header "<cstdint>" is part of the C++11 standard.
+>(http://www.cplusplus.com/reference/cstdint/)
+>
+>g++ forces you to enable C++11 mode if you want to use it.
+>Tested with g++ (GCC) 4.4.4.
+>
+>Do we really need this? It compiles fine without
+>the special headers inside the __cplusplus part.
+>Pablo asked the same back in 2010 ;)
 
----
- examples/nft-chain-get.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Add an extra condition:
 
-diff --git a/examples/nft-chain-get.c b/examples/nft-chain-get.c
-index b815523..459b79e 100644
---- a/examples/nft-chain-get.c
-+++ b/examples/nft-chain-get.c
-@@ -90,8 +90,11 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
--	if (strcmp(argv[argc-1], "xml") == 0)
-+	if (strcmp(argv[argc-1], "xml") == 0){
- 		type = NFT_CHAIN_O_XML;
-+	}else if (strcmp(argv[argc-1], "json") == 0){
-+		type = NFT_CHAIN_O_JSON;
-+	}
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-
+#if defined(__cplusplus) && __cplusplus >= 201100L
