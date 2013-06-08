@@ -1,44 +1,63 @@
 From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] datatype: concat expression only releases dynamically
- allocated datatype
-Date: Sat, 08 Jun 2013 12:13:41 +0200
-Message-ID: <1370686421.5642.3.camel@ice-age.regit.org>
-References: <1370518645-9812-1-git-send-email-pablo@netfilter.org>
+Subject: Re: ulog: ulogd.conf.5 man page
+Date: Sat, 08 Jun 2013 12:37:02 +0200
+Message-ID: <1370687822.5642.8.camel@ice-age.regit.org>
+References: <51AA46ED.5060208@bootc.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-FMW6T0EkCNHcV0gs5VAz"
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	boundary="=-JIKdR1E7wCvpDJb14oPX"
+Cc: netfilter-devel@vger.kernel.org
+To: Chris Boot <bootc@bootc.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:53040 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:53141 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857Ab3FHKNr (ORCPT
+	with ESMTP id S1751978Ab3FHKhI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jun 2013 06:13:47 -0400
-In-Reply-To: <1370518645-9812-1-git-send-email-pablo@netfilter.org>
+	Sat, 8 Jun 2013 06:37:08 -0400
+In-Reply-To: <51AA46ED.5060208@bootc.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-FMW6T0EkCNHcV0gs5VAz
+--=-JIKdR1E7wCvpDJb14oPX
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hello,
 
-Le jeudi 06 juin 2013 =E0 13:37 +0200, Pablo Neira Ayuso a =E9crit :
-> Eric Leblond reports a crash with the following invalid command:
+Sorry for the late answer.
+
+Le samedi 01 juin 2013 =E0 20:09 +0100, Chris Boot a =E9crit :
+> Hi,
 >=20
->  nft add rule global filter ip daddr . tcp dport { 192.168.0.1 . 22\; 192=
-.168.0.3 . 89 } drop
+> As part of my work in packaging ulogd 2.x for Debian, I'd like to write
+> a man page for the ulogd.conf configuration file. I started out writing
+> this a few days ago and I have progressed quite well:
+>=20
+> https://github.com/bootc/ulogd2/blob/add-ulogd.conf.5-wip/ulogd.conf.5
+>=20
+> I'm send this email because as I write, I realise I'm either repeating
+> or replacing (by augmentation) quite a bit of the content in the
+> ulogd.sgml file.
 
-I confirm this patch fixes the issue.
+It seems this is the case indeed.
+
+>  Before I sink quite a few more hours into fleshing out
+> the file, I wanted to check whether I'm going in the right direction and
+> whether/how I need to change what I'm doing to have the work accepted
+> upstream.
+>=20
+> I think a man page will be very useful to have - I often find myself
+> reaching for them - I just want to know if I'm going about it from
+> completely the wrong angle.
+
+I agree that a man page for configuration can be useful but it should be
+made from the ulogd.sgml file as there is tool similar to docbook2man
+which should be able to do the transformation.
 
 BR,
---
-Eric
 
---=-FMW6T0EkCNHcV0gs5VAz
+--=-JIKdR1E7wCvpDJb14oPX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -46,10 +65,10 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iD8DBQBRswPVnxA7CdMWjzIRAr0eAJ9mqUAeSMB67tjZUSeEsDEupe7u1wCfWLNC
-UAGurwlejj/YMOFIxmFWRms=
-=30Yu
+iD8DBQBRswlOnxA7CdMWjzIRArXWAJsG4ti7Z6BAyoNJtjKsiKClfMjYngCffMul
+ZIs7jHjiAeFZuP8L1wAYE0k=
+=pxSJ
 -----END PGP SIGNATURE-----
 
---=-FMW6T0EkCNHcV0gs5VAz--
+--=-JIKdR1E7wCvpDJb14oPX--
 
