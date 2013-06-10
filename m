@@ -1,42 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/5] netfilter: nfnetlink_acct: fix incomplete dumping of objects
-Date: Mon, 10 Jun 2013 18:07:37 +0200
-Message-ID: <1370880461-4265-2-git-send-email-pablo@netfilter.org>
-References: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Remove redundant TCP header checks from xt_TCPOPTSTRIP
+Date: Sun, 9 Jun 2013 23:59:48 -0400
+Message-ID: <20130610035948.GA2742@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:58712 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436Ab3FJR7M (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Jun 2013 13:59:12 -0400
+Received: by mail-pa0-f49.google.com with SMTP id ld11so1795151pab.8
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2013 10:59:12 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix broken incomplete object dumping if the list of objects does not
-fit into one single netlink message.
 
-Reported-by: Gabriel Lazar <Gabriel.Lazar@com.utcluj.ro>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_acct.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+--nFreZHaLTZJo0R7j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index dc3fd5d..c7b6d46 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -149,9 +149,12 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+In commit bc6bcb59 ("netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
+packet boundary"), a check for short TCP header or malformed packet was added.
+This check is unnecessary, as these packets are already handled in the tcp_error
+function of nf_conntrack_proto_tcp.c (see /* Not whole TCP header or malformed
+packet */).  In addition, there was an error in the check which was added (len
+is being calculated incorrectly).  In my testing, ALL packets are being dropped
+by the TCPOPTSTRIP target at present.  Revert the unnecessary/incorrect checks.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+--nFreZHaLTZJo0R7j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-revert-bc6bcb59d
+
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 1eb1a44..2d43be9f 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -38,7 +38,6 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 	struct tcphdr *tcph;
+ 	u_int16_t n, o;
+ 	u_int8_t *opt;
+-	int len;
  
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(cur, &nfnl_acct_list, head) {
--		if (last && cur != last)
--			continue;
-+		if (last) {
-+			if (cur != last)
-+				continue;
+ 	/* This is a fragment, no TCP header is available */
+ 	if (par->fragoff != 0)
+@@ -47,11 +46,6 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 	if (!skb_make_writable(skb, skb->len))
+ 		return NF_DROP;
  
-+			last = NULL;
-+		}
- 		if (nfnl_acct_fill_info(skb, NETLINK_CB(cb->skb).portid,
- 				       cb->nlh->nlmsg_seq,
- 				       NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
--- 
-1.7.10.4
+-	len = skb->len - tcphoff;
+-	if (len < (int)sizeof(struct tcphdr) ||
+-	    tcp_hdr(skb)->doff * 4 > len)
+-		return NF_DROP;
+-
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+ 	opt  = (u_int8_t *)tcph;
+ 
+
+--nFreZHaLTZJo0R7j--
