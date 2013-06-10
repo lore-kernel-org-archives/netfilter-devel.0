@@ -1,41 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch] ipvs: info leak in __ip_vs_get_dest_entries()
-Date: Mon, 10 Jun 2013 14:58:22 +0200
-Message-ID: <20130610125822.GA4968@localhost>
-References: <20130603090049.GA16171@debian>
- <20130610083849.GD1563@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 4/5] netfilter: nfnetlink_queue: fix missing HW protocol
+Date: Mon, 10 Jun 2013 18:07:40 +0200
+Message-ID: <1370880461-4265-5-git-send-email-pablo@netfilter.org>
+References: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130610083849.GD1563@verge.net.au>
+In-Reply-To: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 10, 2013 at 05:38:50PM +0900, Simon Horman wrote:
-> On Mon, Jun 03, 2013 at 12:00:49PM +0300, Dan Carpenter wrote:
-> > The entry struct has a 2 byte hole after ->port and another 4 byte
-> > hole after ->stats.outpkts.  You must have CAP_NET_ADMIN in your
-> > namespace to hit this information leak.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> 
-> Pablo, could you take this directly into your tree.
+Locally generated IPv4 and IPv6 traffic gets skb->protocol unset,
+thus passing zero.
 
-Applied, thanks Simon.
+ip6tables -I OUTPUT -j NFQUEUE
+libmnl/examples/netfilter# ./nf-queue 0 &
+ping6 ::1
+packet received (id=1 hw=0x0000 hook=3)
+                         ^^^^^^
 
-> If possible for v3.10. It also appears to be relevant for stable.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Sure, will do.
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 4e27fa0..5352b2d 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -637,9 +637,6 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	if (queue->copy_mode == NFQNL_COPY_NONE)
+ 		return -EINVAL;
+ 
+-	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(entry->skb))
+-		return __nfqnl_enqueue_packet(net, queue, entry);
+-
+ 	skb = entry->skb;
+ 
+ 	switch (entry->pf) {
+@@ -651,6 +648,9 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		break;
+ 	}
+ 
++	if ((queue->flags & NFQA_CFG_F_GSO) || !skb_is_gso(skb))
++		return __nfqnl_enqueue_packet(net, queue, entry);
++
+ 	nf_bridge_adjust_skb_data(skb);
+ 	segs = skb_gso_segment(skb, 0);
+ 	/* Does not use PTR_ERR to limit the number of error codes that can be
+-- 
+1.7.10.4
