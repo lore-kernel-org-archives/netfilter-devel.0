@@ -1,48 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
-Date: Tue, 11 Jun 2013 02:13:56 +0200
-Message-ID: <1370909636-3532-1-git-send-email-pablo@netfilter.org>
-Cc: kernel@linuxace.com, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+From: Vijay Tandeker <vijayt@india.tejasnetworks.com>
+Subject: Test mail. Please ignore.<EOM>
+Date: Tue, 11 Jun 2013 07:59:30 +0530
+Message-ID: <20674C50F7E3794CA35FDCAD2B0E4940279356A910@hubmail>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35363 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752172Ab3FKAOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Jun 2013 20:14:06 -0400
+Received: from smtp.india.tejasnetworks.com ([164.164.94.83]:57316 "EHLO
+	smtp.india.tejasnetworks.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751628Ab3FKC30 convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Jun 2013 22:29:26 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-In (bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
-packet boundary), the use of tcp_hdr was introduced. However, we
-cannot assume that skb->transport_header is set for non-local packets.
-
-Cc: Florian Westphal <fw@strlen.de>
-Reported-by: Phil Oester <kernel@linuxace.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 1eb1a44..b68fa19 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -48,11 +48,13 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 		return NF_DROP;
- 
- 	len = skb->len - tcphoff;
--	if (len < (int)sizeof(struct tcphdr) ||
--	    tcp_hdr(skb)->doff * 4 > len)
-+	if (len < (int)sizeof(struct tcphdr))
- 		return NF_DROP;
- 
- 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
-+	if (tcph->doff * 4 > len)
-+		return NF_DROP;
-+
- 	opt  = (u_int8_t *)tcph;
- 
- 	/*
--- 
-1.7.10.4
 
