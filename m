@@ -1,43 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] netfilter fixes for 3.10-rc5
-Date: Mon, 10 Jun 2013 13:32:00 -0700 (PDT)
-Message-ID: <20130610.133200.288719279625686046.davem@davemloft.net>
-References: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
+Date: Tue, 11 Jun 2013 02:13:56 +0200
+Message-ID: <1370909636-3532-1-git-send-email-pablo@netfilter.org>
+Cc: kernel@linuxace.com, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:59377 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812Ab3FJUcD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Jun 2013 16:32:03 -0400
-In-Reply-To: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:35363 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752172Ab3FKAOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Jun 2013 20:14:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 10 Jun 2013 18:07:36 +0200
+In (bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
+packet boundary), the use of tcp_hdr was introduced. However, we
+cannot assume that skb->transport_header is set for non-local packets.
 
-> The following patchset contains four fixes for Netfilter and one fix
-> for IPVS, they are:
-> 
-> * Fix data leak to user-space via getsockopt IP_VS_SO_GET_DESTS, from
->   Dan Carpenter.
-> 
-> * Fix xt_TCPMSS if no TCP MSS is specified in syn packets, to avoid the
->   violation of RFC879, from Phil Oester.
-> 
-> * Fix incomplete dump of objects via nfnetlink_acct and nfnetlink_cttimeout,
->   from myself.
-> 
-> * Fix missing HW protocol in packets passed to user-space via NFQUEUE,
->   from myself.
-> 
-> You can pull these changes from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+Cc: Florian Westphal <fw@strlen.de>
+Reported-by: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Pulled, thanks Pablo!
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 1eb1a44..b68fa19 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -48,11 +48,13 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 		return NF_DROP;
+ 
+ 	len = skb->len - tcphoff;
+-	if (len < (int)sizeof(struct tcphdr) ||
+-	    tcp_hdr(skb)->doff * 4 > len)
++	if (len < (int)sizeof(struct tcphdr))
+ 		return NF_DROP;
+ 
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
++	if (tcph->doff * 4 > len)
++		return NF_DROP;
++
+ 	opt  = (u_int8_t *)tcph;
+ 
+ 	/*
+-- 
+1.7.10.4
+
