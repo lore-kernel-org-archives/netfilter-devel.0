@@ -1,80 +1,53 @@
-From: Jeff Haran <Jeff.Haran@citrix.com>
-Subject: RE: [PATCH 3/5] netfilter: xt_TCPMSS: Fix violation of RFC879 in
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [PATCH 3/5] netfilter: xt_TCPMSS: Fix violation of RFC879 in
  absence of MSS option
-Date: Tue, 11 Jun 2013 18:00:49 +0000
-Message-ID: <4E5779AD88B2F040B8A7E83ECF544D1A016005@SJCPEX01CL02.citrite.net>
-References: <1370880461-4265-1-git-send-email-pablo@netfilter.org>
- <1370880461-4265-4-git-send-email-pablo@netfilter.org>
- <AE90C24D6B3A694183C094C60CF0A2F6026B7282@saturn3.aculab.com>
- <20130610071954.GA13500@gmail.com>
- <AE90C24D6B3A694183C094C60CF0A2F6026B7285@saturn3.aculab.com>
- <20130610082739.GA14277@gmail.com>
- <AE90C24D6B3A694183C094C60CF0A2F6026B7286@saturn3.aculab.com>
- <20130611162525.GA11547@localhost>
+Date: Tue, 11 Jun 2013 11:14:04 -0700
+Message-ID: <51B768EC.4090504@hp.com>
+References: <1370880461-4265-1-git-send-email-pablo@netfilter.org> <1370880461-4265-4-git-send-email-pablo@netfilter.org> <AE90C24D6B3A694183C094C60CF0A2F6026B7282@saturn3.aculab.com> <20130610071954.GA13500@gmail.com> <AE90C24D6B3A694183C094C60CF0A2F6026B7285@saturn3.aculab.com> <20130610082739.GA14277@gmail.com> <AE90C24D6B3A694183C094C60CF0A2F6026B7286@saturn3.aculab.com> <20130611162525.GA11547@localhost> <4E5779AD88B2F040B8A7E83ECF544D1A016005@SJCPEX01CL02.citrite.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: Phil Oester <kernel@linuxace.com>,
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Laight <David.Laight@ACULAB.COM>,
+	Phil Oester <kernel@linuxace.com>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
 	"davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Laight <David.Laight@ACULAB.COM>
+To: Jeff Haran <Jeff.Haran@citrix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:8710 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753792Ab3FKSBP convert rfc822-to-8bit (ORCPT
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:8076 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851Ab3FKSOJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Jun 2013 14:01:15 -0400
-In-Reply-To: <20130611162525.GA11547@localhost>
-Content-Language: en-US
+	Tue, 11 Jun 2013 14:14:09 -0400
+In-Reply-To: <4E5779AD88B2F040B8A7E83ECF544D1A016005@SJCPEX01CL02.citrite.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: netfilter-devel-owner@vger.kernel.org [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo Neira Ayuso
-> Sent: Tuesday, June 11, 2013 9:25 AM
-> To: David Laight
-> Cc: Phil Oester; netfilter-devel@vger.kernel.org; davem@davemloft.net; netdev@vger.kernel.org
-> Subject: Re: [PATCH 3/5] netfilter: xt_TCPMSS: Fix violation of RFC879 in absence of MSS option
-> 
-> On Tue, Jun 11, 2013 at 05:09:11PM +0100, David Laight wrote:
-> > > On Tue, Jun 11, 2013 at 04:00:06PM +0100, David Laight wrote:
-> > > > To quote that bug:
-> > > >
-> > > > I stumbled upon this problem in debian bug #541658[1] ("[iceweasel] cannot open
-> > > > research.microsoft.com" - only worth reading for entertainment purposes) and,
-> > > > after that bug was closed, analysed it in my blog[2] until a friend of mine
-> > > > found out why the page loads when clamping mss to pmtu is disabled or
-> > > > restricted to a range (like with "iptables -A FORWARD -p tcp --tcp-flags
-> > > > SYN,RST SYN -m tcpmss --mss 1400:1536 -j TCPMSS --clamp-mss-to-pmtu") but
-> > > > doesn't load with "simple" clamping. His really great and detailed analysation
-> > > > of the problem may be seen at [3].
-> > > >
-> > > > If I read/understand that correctly, clamping to 1400 worked - there was
-> > > > no need to clamp all the way down to 536.
-> > >
-> > > You are not understanding the issue correctly.  The reason the command worked with
-> > > "-m tcpmss --mss 1400:1536" is because that implies an MSS option was provided.
-> > > The issue occurs only when NO MSS option is sent.  In these cases, we cannot
-> > > ASSUME that it is ok to use some arbitrarily high value (1400 as you propose).
-> > > The RFC is clear on this point.
-> >
-> > My problem is that I don't want TCP connections to drop the mss to
-> > 536 when talking to minimal/old implementations that don't add any
-> > options to SYN packets.
-> 
-> That will not happen if you use:
-> 
-> ... -m tcpmss --mss 1400:1536 ...
-> 
-> as in your example above.
+> There is likely no "right" answer for this issue, but for what it's
+> worth I can report a somewhat related experience I had a few years
+> ago when updating my PC at home with a new Suse distro. The machine
+> had been running previous versions of Suse with my Comcast cable
+> internet service just fine for several years. I downloaded the ISO
+> from opensuse, burned the DVD, did the install but when it came back
+> up again the internet service was quite unreliable. It would work for
+> a few minutes, but then no packets would flow. I happened to run
+> ifconfig eth0 and it showed an MTU of 576. It seems the version of
+> the DHCP client that came with the new distro honored the DHCP MTU
+> option, but Comcast was advertising DHCP offers with an MTU of 576.
 
-There is likely no "right" answer for this issue, but for what it's worth I can report a somewhat related experience I had a few years ago when updating my PC at home with a new Suse distro. The machine had been running previous versions of Suse with my Comcast cable internet service just fine for several years. I downloaded the ISO from opensuse, burned the DVD, did the install but when it came back up again the internet service was quite unreliable. It would work for a few minutes, but then no packets would flow. I happened to run ifconfig eth0 and it showed an MTU of 576. It seems the version of the DHCP client that came with the new distro honored the DHCP MTU option, but Comcast was advertising DHCP offers with an MTU of 576.
+Presumably then, your system rejected any incoming packet which was 
+larger than the 576 byte MTU it got from the Comcast DHCP server..
 
-Problem was, the cable modem that Comcast supplied apparently didn't like that short MTU. I found that if I power cycled the modem, packets would flow again, for a little while. When I modified the configuration of the DHCP client to ignore the MTU option and use a fixed 1500, it started working fine like it did before. I suppose the Windows versions of the time ignored the MTU option by default, so this was not something that impacted most of Comcast's users.
+I can think of two reasons for larger packets to be arriving at your 
+system then:
 
-The moral of the story for me was that despite what the RFC says, the de facto default MTU of the Internet is 1500 and MSS's derived from shorter MTUs are likely to cause interoperability problems.
+1) UDP
 
-Jeff Haran
+2) Broken TCPs ass-u-me-ing a TCP MSS larger than 536 bytes when there 
+wasn't an MSS option in the SYN(s).
 
+Did your SuSE system send actual TCP MSS options based on the 576 byte MTU?
+
+
+rick jones
