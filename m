@@ -1,184 +1,93 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: [PATCH nf-next] netfilter: ct: check return code from nla_parse_tested
-Date: Wed, 12 Jun 2013 17:54:51 +0200
-Message-ID: <1371052491-23863-1-git-send-email-dborkman@redhat.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 06/12] sched: add cond_resched_rcu() helper
+Date: Wed, 12 Jun 2013 08:50:08 -0700
+Message-ID: <20130612155008.GY5146@linux.vnet.ibm.com>
+References: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
+ <1370464832-4216-7-git-send-email-pablo@netfilter.org>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8426 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756562Ab3FLPy5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:54:57 -0400
+Received: from e31.co.us.ibm.com ([32.97.110.149]:59722 "EHLO
+	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574Ab3FLQVE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jun 2013 12:21:04 -0400
+Received: from /spool/local
+	by e31.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Wed, 12 Jun 2013 09:50:31 -0600
+Content-Disposition: inline
+In-Reply-To: <1370464832-4216-7-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These are the only calls under net/ that do not check nla_parse_nested()
-for its error code, but simply continue execution. If parsing of netlink
-attributes fails, we should return with an error instead of continuing.
-In nearly all of these calls we have a policy attached, that is being
-type verified during nla_parse_nested(), which we would miss checking
-for otherwise.
+On Wed, Jun 05, 2013 at 10:40:27PM +0200, Pablo Neira Ayuso wrote:
+> From: Simon Horman <horms@verge.net.au>
+> 
+> This is intended for use in loops which read data protected by RCU and may
+> have a large number of iterations.  Such an example is dumping the list of
+> connections known to IPVS: ip_vs_conn_array() and ip_vs_conn_seq_next().
+> 
+> The benefits are for CONFIG_PREEMPT_RCU=y where we save CPU cycles
+> by moving rcu_read_lock and rcu_read_unlock out of large loops
+> but still allowing the current task to be preempted after every
+> loop iteration for the CONFIG_PREEMPT_RCU=n case.
+> 
+> The call to cond_resched() is not needed when CONFIG_PREEMPT_RCU=y.
+> Thanks to Paul E. McKenney for explaining this and for the
+> final version that checks the context with CONFIG_DEBUG_ATOMIC_SLEEP=y
+> for all possible configurations.
+> 
+> The function can be empty in the CONFIG_PREEMPT_RCU case,
+> rcu_read_lock and rcu_read_unlock are not needed in this case
+> because the task can be preempted on indication from scheduler.
+> Thanks to Peter Zijlstra for catching this and for his help
+> in trying a solution that changes __might_sleep.
+> 
+> Initial cond_resched_rcu_lock() function suggested by Eric Dumazet.
+> 
+> Tested-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> Acked-by: Peter Zijlstra <peterz@infradead.org>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
----
- I'm ok if this goes through nf-next, since it might probably not be
- too critical for the moment. If you think otherwise, feel free to
- apply this to nf tree instead.
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
- net/netfilter/nf_conntrack_netlink.c | 30 +++++++++++++++++++++++-------
- net/netfilter/nfnetlink_cthelper.c   | 16 ++++++++++++----
- net/netfilter/nfnetlink_cttimeout.c  |  6 ++++--
- 3 files changed, 39 insertions(+), 13 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6d0f8a1..f83a522 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -828,7 +828,9 @@ ctnetlink_parse_tuple_ip(struct nlattr *attr, struct nf_conntrack_tuple *tuple)
- 	struct nf_conntrack_l3proto *l3proto;
- 	int ret = 0;
- 
--	nla_parse_nested(tb, CTA_IP_MAX, attr, NULL);
-+	ret = nla_parse_nested(tb, CTA_IP_MAX, attr, NULL);
-+	if (ret < 0)
-+		return ret;
- 
- 	rcu_read_lock();
- 	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
-@@ -895,7 +897,9 @@ ctnetlink_parse_tuple(const struct nlattr * const cda[],
- 
- 	memset(tuple, 0, sizeof(*tuple));
- 
--	nla_parse_nested(tb, CTA_TUPLE_MAX, cda[type], tuple_nla_policy);
-+	err = nla_parse_nested(tb, CTA_TUPLE_MAX, cda[type], tuple_nla_policy);
-+	if (err < 0)
-+		return err;
- 
- 	if (!tb[CTA_TUPLE_IP])
- 		return -EINVAL;
-@@ -946,9 +950,12 @@ static inline int
- ctnetlink_parse_help(const struct nlattr *attr, char **helper_name,
- 		     struct nlattr **helpinfo)
- {
-+	int err;
- 	struct nlattr *tb[CTA_HELP_MAX+1];
- 
--	nla_parse_nested(tb, CTA_HELP_MAX, attr, help_nla_policy);
-+	err = nla_parse_nested(tb, CTA_HELP_MAX, attr, help_nla_policy);
-+	if (err < 0)
-+		return err;
- 
- 	if (!tb[CTA_HELP_NAME])
- 		return -EINVAL;
-@@ -1431,7 +1438,9 @@ ctnetlink_change_protoinfo(struct nf_conn *ct, const struct nlattr * const cda[]
- 	struct nf_conntrack_l4proto *l4proto;
- 	int err = 0;
- 
--	nla_parse_nested(tb, CTA_PROTOINFO_MAX, attr, protoinfo_policy);
-+	err = nla_parse_nested(tb, CTA_PROTOINFO_MAX, attr, protoinfo_policy);
-+	if (err < 0)
-+		return err;
- 
- 	rcu_read_lock();
- 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-@@ -1452,9 +1461,12 @@ static const struct nla_policy nat_seq_policy[CTA_NAT_SEQ_MAX+1] = {
- static inline int
- change_nat_seq_adj(struct nf_nat_seq *natseq, const struct nlattr * const attr)
- {
-+	int err;
- 	struct nlattr *cda[CTA_NAT_SEQ_MAX+1];
- 
--	nla_parse_nested(cda, CTA_NAT_SEQ_MAX, attr, nat_seq_policy);
-+	err = nla_parse_nested(cda, CTA_NAT_SEQ_MAX, attr, nat_seq_policy);
-+	if (err < 0)
-+		return err;
- 
- 	if (!cda[CTA_NAT_SEQ_CORRECTION_POS])
- 		return -EINVAL;
-@@ -2115,7 +2127,9 @@ ctnetlink_nfqueue_parse(const struct nlattr *attr, struct nf_conn *ct)
- 	struct nlattr *cda[CTA_MAX+1];
- 	int ret;
- 
--	nla_parse_nested(cda, CTA_MAX, attr, ct_nla_policy);
-+	ret = nla_parse_nested(cda, CTA_MAX, attr, ct_nla_policy);
-+	if (ret < 0)
-+		return ret;
- 
- 	spin_lock_bh(&nf_conntrack_lock);
- 	ret = ctnetlink_nfqueue_parse_ct((const struct nlattr **)cda, ct);
-@@ -2710,7 +2724,9 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
- 	struct nf_conntrack_tuple nat_tuple = {};
- 	int err;
- 
--	nla_parse_nested(tb, CTA_EXPECT_NAT_MAX, attr, exp_nat_nla_policy);
-+	err = nla_parse_nested(tb, CTA_EXPECT_NAT_MAX, attr, exp_nat_nla_policy);
-+	if (err < 0)
-+		return err;
- 
- 	if (!tb[CTA_EXPECT_NAT_DIR] || !tb[CTA_EXPECT_NAT_TUPLE])
- 		return -EINVAL;
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index a191b6d..9e287cb 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -67,9 +67,12 @@ static int
- nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple *tuple,
- 			  const struct nlattr *attr)
- {
-+	int err;
- 	struct nlattr *tb[NFCTH_TUPLE_MAX+1];
- 
--	nla_parse_nested(tb, NFCTH_TUPLE_MAX, attr, nfnl_cthelper_tuple_pol);
-+	err = nla_parse_nested(tb, NFCTH_TUPLE_MAX, attr, nfnl_cthelper_tuple_pol);
-+	if (err < 0)
-+		return err;
- 
- 	if (!tb[NFCTH_TUPLE_L3PROTONUM] || !tb[NFCTH_TUPLE_L4PROTONUM])
- 		return -EINVAL;
-@@ -121,9 +124,12 @@ static int
- nfnl_cthelper_expect_policy(struct nf_conntrack_expect_policy *expect_policy,
- 			    const struct nlattr *attr)
- {
-+	int err;
- 	struct nlattr *tb[NFCTH_POLICY_MAX+1];
- 
--	nla_parse_nested(tb, NFCTH_POLICY_MAX, attr, nfnl_cthelper_expect_pol);
-+	err = nla_parse_nested(tb, NFCTH_POLICY_MAX, attr, nfnl_cthelper_expect_pol);
-+	if (err < 0)
-+		return err;
- 
- 	if (!tb[NFCTH_POLICY_NAME] ||
- 	    !tb[NFCTH_POLICY_EXPECT_MAX] ||
-@@ -153,8 +159,10 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
- 	struct nf_conntrack_expect_policy *expect_policy;
- 	struct nlattr *tb[NFCTH_POLICY_SET_MAX+1];
- 
--	nla_parse_nested(tb, NFCTH_POLICY_SET_MAX, attr,
--					nfnl_cthelper_expect_policy_set);
-+	ret = nla_parse_nested(tb, NFCTH_POLICY_SET_MAX, attr,
-+			       nfnl_cthelper_expect_policy_set);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (!tb[NFCTH_POLICY_SET_NUM])
- 		return -EINVAL;
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 701c88a..0565fe2 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -59,8 +59,10 @@ ctnl_timeout_parse_policy(struct ctnl_timeout *timeout,
- 	if (likely(l4proto->ctnl_timeout.nlattr_to_obj)) {
- 		struct nlattr *tb[l4proto->ctnl_timeout.nlattr_max+1];
- 
--		nla_parse_nested(tb, l4proto->ctnl_timeout.nlattr_max,
--				 attr, l4proto->ctnl_timeout.nla_policy);
-+		ret = nla_parse_nested(tb, l4proto->ctnl_timeout.nlattr_max,
-+				       attr, l4proto->ctnl_timeout.nla_policy);
-+		if (ret < 0)
-+			return ret;
- 
- 		ret = l4proto->ctnl_timeout.nlattr_to_obj(tb, net,
- 							  &timeout->data);
--- 
-1.7.11.7
+> ---
+>  include/linux/sched.h |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/include/linux/sched.h b/include/linux/sched.h
+> index 178a8d9..4ff8da1 100644
+> --- a/include/linux/sched.h
+> +++ b/include/linux/sched.h
+> @@ -2444,6 +2444,15 @@ extern int __cond_resched_softirq(void);
+>  	__cond_resched_softirq();					\
+>  })
+> 
+> +static inline void cond_resched_rcu(void)
+> +{
+> +#if defined(CONFIG_DEBUG_ATOMIC_SLEEP) || !defined(CONFIG_PREEMPT_RCU)
+> +	rcu_read_unlock();
+> +	cond_resched();
+> +	rcu_read_lock();
+> +#endif
+> +}
+> +
+>  /*
+>   * Does a critical section need to be broken due to another
+>   * task waiting?: (technically does not depend on CONFIG_PREEMPT,
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
