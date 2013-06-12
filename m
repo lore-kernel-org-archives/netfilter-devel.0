@@ -1,39 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: Fix connlabel.conf install location
-Date: Wed, 12 Jun 2013 11:08:15 +0200
-Message-ID: <20130612090815.GA13356@localhost>
-References: <20130610093544.GA31559@gmail.com>
- <20130612075155.GA21252@breakpoint.cc>
- <20130612085037.GA10600@localhost>
+Subject: Re: [nftables PATCH 1/2] rule: display hook info
+Date: Wed, 12 Jun 2013 11:43:11 +0200
+Message-ID: <20130612094311.GA4498@localhost>
+References: <1370732927-23322-1-git-send-email-eric@regit.org>
+ <1370732927-23322-2-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55306 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39562 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756113Ab3FLJIV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jun 2013 05:08:21 -0400
+	id S1751382Ab3FLJnV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jun 2013 05:43:21 -0400
 Content-Disposition: inline
-In-Reply-To: <20130612085037.GA10600@localhost>
+In-Reply-To: <1370732927-23322-2-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 12, 2013 at 10:50:37AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jun 12, 2013 at 09:51:55AM +0200, Florian Westphal wrote:
-> > Phil Oester <kernel@linuxace.com> wrote:
-> > > As reported by Danny Rawlins in bug #828, connlabel.conf is unconditionally
-> > > installed in /etc/xtables instead of using prefix set at configure time.  Fix
-> > > to use sysconfdir variable.
-> > 
-> > It was intentional.
-> > I don't want userspace to start guessing where the config file is.
-> 
-> Sorry Florian, we crossed emails while replying this.
-> 
-> I think this is still useful for people cross-compiling and installing
-> iptables in some custom location.
+On Sun, Jun 09, 2013 at 01:08:46AM +0200, Eric Leblond wrote:
+> It was not possible to restore a ruleset because of missing
+> hook information. This patch adds hooknum output to list
+> operation.
 
-Hm, still, this may confuse people, as xt_connlabel always looks at:
-
-#define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
+I have mangled this patch to use a string array instead. I have pushed
+it to master.
