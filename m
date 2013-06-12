@@ -1,93 +1,168 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 06/12] sched: add cond_resched_rcu() helper
-Date: Wed, 12 Jun 2013 08:50:08 -0700
-Message-ID: <20130612155008.GY5146@linux.vnet.ibm.com>
-References: <1370464832-4216-1-git-send-email-pablo@netfilter.org>
- <1370464832-4216-7-git-send-email-pablo@netfilter.org>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: Re: [ANNOUNCE] Linux Security Summit 2013 - CFP
+Date: Wed, 12 Jun 2013 09:45:53 -0700
+Message-ID: <51B8A5C1.8030108@schaufler-ca.com>
+References: <alpine.LRH.2.02.1305061853410.31937@tundra.namei.org>
+Reply-To: Ubuntu security discussion <ubuntu-hardened@lists.ubuntu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:59722 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab3FLQVE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jun 2013 12:21:04 -0400
-Received: from /spool/local
-	by e31.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Wed, 12 Jun 2013 09:50:31 -0600
-Content-Disposition: inline
-In-Reply-To: <1370464832-4216-7-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: keyrings@linux-nfs.org, gentoo-hardened@gentoo.org,
+ kernel-hardening@lists.openwall.com, "C. Craig Ross" <ccr@linuxfoundation.org>,
+ tomoyo-users-en@lists.sourceforge.jp, tpmdd-devel@lists.sourceforge.net,
+ Audit-ML <linux-audit@redhat.com>, netfilter-devel@vger.kernel.org,
+ linux-crypto@vger.kernel.org, selinux@tycho.nsa.gov, lwn@lwn.net,
+ ubuntu-hardened@lists.ubuntu.com, fedora-selinux-list@redhat.com
+To: Linux Security Summit Program Committee <lss-pc@ext.namei.org>
+Return-path: <ubuntu-hardened-bounces@lists.ubuntu.com>
+In-Reply-To: <alpine.LRH.2.02.1305061853410.31937@tundra.namei.org>
+List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/ubuntu-hardened>,
+ <mailto:ubuntu-hardened-request@lists.ubuntu.com?subject=unsubscribe>
+List-Archive: <https://lists.ubuntu.com/archives/ubuntu-hardened>
+List-Post: <mailto:ubuntu-hardened@lists.ubuntu.com>
+List-Help: <mailto:ubuntu-hardened-request@lists.ubuntu.com?subject=help>
+List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/ubuntu-hardened>,
+ <mailto:ubuntu-hardened-request@lists.ubuntu.com?subject=subscribe>
+Errors-To: ubuntu-hardened-bounces@lists.ubuntu.com
+Sender: ubuntu-hardened-bounces@lists.ubuntu.com
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 05, 2013 at 10:40:27PM +0200, Pablo Neira Ayuso wrote:
-> From: Simon Horman <horms@verge.net.au>
-> 
-> This is intended for use in loops which read data protected by RCU and may
-> have a large number of iterations.  Such an example is dumping the list of
-> connections known to IPVS: ip_vs_conn_array() and ip_vs_conn_seq_next().
-> 
-> The benefits are for CONFIG_PREEMPT_RCU=y where we save CPU cycles
-> by moving rcu_read_lock and rcu_read_unlock out of large loops
-> but still allowing the current task to be preempted after every
-> loop iteration for the CONFIG_PREEMPT_RCU=n case.
-> 
-> The call to cond_resched() is not needed when CONFIG_PREEMPT_RCU=y.
-> Thanks to Paul E. McKenney for explaining this and for the
-> final version that checks the context with CONFIG_DEBUG_ATOMIC_SLEEP=y
-> for all possible configurations.
-> 
-> The function can be empty in the CONFIG_PREEMPT_RCU case,
-> rcu_read_lock and rcu_read_unlock are not needed in this case
-> because the task can be preempted on indication from scheduler.
-> Thanks to Peter Zijlstra for catching this and for his help
-> in trying a solution that changes __might_sleep.
-> 
-> Initial cond_resched_rcu_lock() function suggested by Eric Dumazet.
-> 
-> Tested-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> Acked-by: Peter Zijlstra <peterz@infradead.org>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On 5/6/2013 2:18 AM, James Morris wrote:
+> ==========================================================================
+>                  ANNOUNCEMENT AND CALL FOR PARTICIPATION
+>
+>                        LINUX SECURITY SUMMIT 2013
+>                             19-20 SEPTEMBER
+>                             NEW ORLEANS, USA
+> ==========================================================================
 
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Multiple Concurrent Security Modules? Really?
 
-> ---
->  include/linux/sched.h |    9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/include/linux/sched.h b/include/linux/sched.h
-> index 178a8d9..4ff8da1 100644
-> --- a/include/linux/sched.h
-> +++ b/include/linux/sched.h
-> @@ -2444,6 +2444,15 @@ extern int __cond_resched_softirq(void);
->  	__cond_resched_softirq();					\
->  })
-> 
-> +static inline void cond_resched_rcu(void)
-> +{
-> +#if defined(CONFIG_DEBUG_ATOMIC_SLEEP) || !defined(CONFIG_PREEMPT_RCU)
-> +	rcu_read_unlock();
-> +	cond_resched();
-> +	rcu_read_lock();
-> +#endif
-> +}
-> +
->  /*
->   * Does a critical section need to be broken due to another
->   * task waiting?: (technically does not depend on CONFIG_PREEMPT,
-> -- 
-> 1.7.10.4
-> 
+This talk will cover the ongoing work to update the
+Linux Security Module (LSM) infrastructure to allow
+multiple concurrent security modules.
+
+The talk starts with a statement of the problem being
+solved, that the existing infrastructure allows only
+a single LSM (plus Yama) to be active at a time. The
+rationale for the current scheme will be discussed as
+well as what has changed so that the new scheme is in
+the works.
+
+The talk continues with a description of the externally
+visible changes and the reasons they've been made.
+The peculiar configuration issues with networking will
+be covered in some detail. The additions in /proc/.../attr
+will be noted.
+
+Next the structure of the stacking mechanism is detailed,
+with special attention to the allocation and freeing of
+security blobs. The handling of networking hooks and
+secids will be examined.
+
+Finally, the current project plan and status will be
+described.
+
+>
+>
+> DESCRIPTION
+>
+>   The Linux Security Summit (LSS) is a technical forum for collaboration
+>   between Linux developers, researchers, and end users.  Its primary aim
+>   is to foster community efforts in analyzing and solving Linux security
+>   challenges.
+>
+>   The format of the summit will be:
+>   
+>     * Refereed presentations
+>     * Subsystem reports
+>     * Breakout development sessions 
+>
+>
+> WEB SITE
+>
+>   http://kernsec.org/wiki/index.php/Linux_Security_Summit_2013
+>
+>
+> DATES / LOCATION
+>
+>   The Linux Security Summit for 2013 will be held across 19 and 20 September
+>   in New Orleans, USA.  It will be co-located with LinuxCon, as well
+>   as Linux Plumbers.
+>  
+>   Note that Linux Security Summit attendees and speakers must be registered
+>   to attend LinuxCon.  See the LinuxCon site for details on registration,
+>   travel, and accommodation:
+>   
+>     https://events.linuxfoundation.org/events/linuxcon
+>
+>   The Linux Security Summit CFP is now open, and will close on 14th June.
+>   
+>   Accepted speakers will be notified by 21st of June.
+>
+>
+> WHO SHOULD ATTEND
+>
+>   The event is open to all registered LinuxCon attendees.
+>   
+>   You do not have to be a "security person" to attend -- we're seeking a
+>   diverse range of attendees, and welcome the participation of general
+>   developers, researchers, operations, and end-users.
+>
+>
+> CALL FOR PARTICIPATION
+>
+>   The program committee currently seeks proposals for:
+>
+>   * Refereed Presentations:
+>       45 minutes in length, including at least 10 minutes of discussion.
+>       Papers are encouraged.
+>
+>  
+>   Topic areas include, but are not limited to:
+>   
+>     * System hardening
+>     * Access control
+>     * Cryptography
+>     * Integrity control
+>     * Hardware security
+>     * Networking
+>     * Storage
+>     * Virtualization
+>     * Desktop
+>     * Tools
+>     * Management
+>     * Case studies
+>     * Emerging technologies, threats & techniques 
+>     
+>   Proposals should be submitted in plain text via email to the program
+>   committee at:  lss-pc (_at_) ext.namei.org
+>
+>   Abstracts should be approximately 150 words in total.
+>
+>
+> PROGRAM COMMITTEE
+>
+>   The Linux Security Summit for 2013 is organized by:
+>
+>     * James Morris, Oracle
+>     * Serge Hallyn, Canonical
+>     * Paul Moore, Red Hat
+>     * Stephen Smalley, NSA
+>     * Joshua Brindle, Quark Security
+>     * Herbert Xu, Red Hat
+>     * John Johansen, Canonical
+>     * Kees Cook, Google
+>     * Casey Schaufler, Intel
+>     * Mimi Zohar, IBM
+>
+>   The program committee may be contacted as a group via email:
+>
+>      lss-pc (_at_) ext.namei.org
+>    
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+>
