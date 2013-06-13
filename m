@@ -1,86 +1,67 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH next] netfilter: conntrack: avoid large timeout for
- mid-stream pickup
-Date: Thu, 13 Jun 2013 19:21:26 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1306131909490.24515@blackhole.kfki.hu>
-References: <1371137488-16428-1-git-send-email-fw@strlen.de>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 0/2] Series to add JSON output support for rules
+Date: Thu, 13 Jun 2013 20:50:09 +0200
+Message-ID: <20130613184810.423.11555.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36799 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754860Ab3FMRV2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jun 2013 13:21:28 -0400
-In-Reply-To: <1371137488-16428-1-git-send-email-fw@strlen.de>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60659 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759020Ab3FMSuN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jun 2013 14:50:13 -0400
+Received: by mail-we0-f174.google.com with SMTP id q58so8267908wes.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Jun 2013 11:50:12 -0700 (PDT)
+Received: from [127.0.1.1] (85.136.70.56.dyn.user.ono.com. [85.136.70.56])
+        by mx.google.com with ESMTPSA id fv11sm33340804wic.11.2013.06.13.11.50.10
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 13 Jun 2013 11:50:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 13 Jun 2013, Florian Westphal wrote:
+This is the implementation for exporting the rules to JSON Format and f=
+or testing the new functions
 
-> When loose tracking is enabled (default), non-syn packets cause
-> creation of new conntracks in established state with default timeout for
-> established state (5 days).  This causes the table to fill up with UNREPLIED
-> when the 'new ack' packet happened to be the last-ack of a previous,
-> already timed-out connection.
-> 
-> Consider:
-> 
-> A 192.168.x.52792 > 10.184.y.80: F, 426:426(0) ack 9237 win 255
-> B 10.184.y.80 > 192.168.x.52792: ., ack 427 win 123
-> <61 second pause>
-> C 10.184.y.80 > 192.168.x.52792: F, 9237:9237(0) ack 427 win 123
-> D 192.168.x.52792 > 10.184.y.80: ., ack 9238 win 255
-> 
-> B moves conntrack to CLOSE_WAIT and will kill it after 60 second timeout,
-> C is ignored (FIN set), but last packet (D) causes new ct with 5-days timeout.
-> 
-> Use UNACK timeout (5 minutes) instead to get rid of these entries sooner
-> when in ESTABLISHED state without having seen traffic in both directions.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+---
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+=C3=81lvaro Neira Ayuso (2):
+      Add function for exporting rule to JSON format
+      Add code for testing the new functions for exporting rules to JSO=
+N Format
 
-Best regards,
-Jozsef
 
-> ---
->  Warning; this is a bit different from the initial proposal in
->  that it no longer bothers with old_state (the branch is taken
->  for !SEEN_REPLY only).
+ examples/nft-rule-get.c    |    5 ++++
+ include/libnftables/rule.h |    1 +
+ src/expr/bitwise.c         |   33 ++++++++++++++++++++++++++++++
+ src/expr/byteorder.c       |   21 +++++++++++++++++++
+ src/expr/cmp.c             |   21 +++++++++++++++++++
+ src/expr/counter.c         |    4 ++++
+ src/expr/ct.c              |    5 ++++
+ src/expr/data_reg.c        |   49 ++++++++++++++++++++++++++++++++++++=
+++++++++
+ src/expr/exthdr.c          |    7 ++++++
+ src/expr/immediate.c       |   36 ++++++++++++++++++++++++++++++++
+ src/expr/limit.c           |    4 ++++
+ src/expr/log.c             |    7 ++++++
+ src/expr/lookup.c          |   16 ++++++++++++++
+ src/expr/match.c           |   25 ++++++++++++++++++++++
+ src/expr/meta.c            |    4 ++++
+ src/expr/nat.c             |   44 ++++++++++++++++++++++++++++++++++++=
+++++
+ src/expr/payload.c         |    6 +++++
+ src/expr/target.c          |   26 +++++++++++++++++++++++
+ src/internal.h             |    1 +
+ src/rule.c                 |   44 ++++++++++++++++++++++++++++++++++++=
+++++
+ 20 files changed, 358 insertions(+), 1 deletion(-)
 
-It's all right and one condition is spared :-).
-
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 4d4d8f1..7dcc376 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1043,6 +1043,12 @@ static int tcp_packet(struct nf_conn *ct,
->  			nf_ct_kill_acct(ct, ctinfo, skb);
->  			return NF_ACCEPT;
->  		}
-> +		/* ESTABLISHED without SEEN_REPLY, i.e. mid-connection
-> +		 * pickup with loose=1. Avoid large ESTABLISHED timeout.
-> +		 */
-> +		if (new_state == TCP_CONNTRACK_ESTABLISHED &&
-> +		    timeout > timeouts[TCP_CONNTRACK_UNACK])
-> +			timeout = timeouts[TCP_CONNTRACK_UNACK];
->  	} else if (!test_bit(IPS_ASSURED_BIT, &ct->status)
->  		   && (old_state == TCP_CONNTRACK_SYN_RECV
->  		       || old_state == TCP_CONNTRACK_ESTABLISHED)
-> -- 
-> 1.7.8.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+--=20
+=C3=81lvaro Neira Ayuso
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
