@@ -1,30 +1,27 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Huge timeout with loose=1 pickup tcp connections
-Date: Thu, 13 Jun 2013 14:07:06 +0200
-Message-ID: <20130613120706.GA6743@localhost>
+Date: Thu, 13 Jun 2013 15:49:10 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1306131547210.23451@blackhole.kfki.hu>
 References: <20130613105138.GC21252@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34424 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:47706 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756313Ab3FMMHM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jun 2013 08:07:12 -0400
-Content-Disposition: inline
+	id S1754770Ab3FMNtN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jun 2013 09:49:13 -0400
 In-Reply-To: <20130613105138.GC21252@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 13, 2013 at 12:51:38PM +0200, Florian Westphal wrote:
-> Hi.
-> 
+On Thu, 13 Jun 2013, Florian Westphal wrote:
+
 > With nf_conntrack_tcp_loose = 1, stray packets will create
 > conntrack with 5 days-timeout.  Is this necessary?
 > 
 > I ask, because I've got following tcp trace:
-> 
 > 
 > 192.168.x is initiator/origin, 10.184. is responder/reply, connection is establised by usual 3whs,
 >  data was transmitted in both directions)
@@ -36,7 +33,7 @@ On Thu, Jun 13, 2013 at 12:51:38PM +0200, Florian Westphal wrote:
 > 
 > D is last packet seen for that connection.  Notice 61 second pause between B and C.
 > 
-> From conntrack POV, we have following state transitions:
+> >From conntrack POV, we have following state transitions:
 >    [NEW] tcp   6 60 SYN_RECV ..
 >  [UPDATE] tcp  6 432000 ESTABLISHED ..
 >  [UPDATE] tcp  6 120 FIN_WAIT .. (triggered by packet A)
@@ -77,9 +74,13 @@ On Thu, Jun 13, 2013 at 12:51:38PM +0200, Florian Westphal wrote:
 > 
 > Jozsef, If you aggree I would make a formal submission.
 
-This sounds reasonable to me.
+I agree with it, it's better to set up a shorter timeout for the just 
+picked up connections at the first packet.
 
-conntrackd is adding entries using a small timeout for recovered
-flows, which is a similar approach.
-
-Jozsef?
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
