@@ -1,58 +1,28 @@
-From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 2/2] Add code for testing the new functions for
- exporting rules to JSON Format
-Date: Thu, 13 Jun 2013 20:50:30 +0200
-Message-ID: <20130613185030.423.58859.stgit@Ph0enix>
-References: <20130613184810.423.11555.stgit@Ph0enix>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xt_TCPMSS: Add IPv6 default MSS
+Date: Fri, 14 Jun 2013 18:03:16 +0200
+Message-ID: <20130614160316.GA3592@localhost>
+References: <20130610123038.GA5089@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:43477 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759106Ab3FMSud (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jun 2013 14:50:33 -0400
-Received: by mail-wg0-f43.google.com with SMTP id z11so893913wgg.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Jun 2013 11:50:32 -0700 (PDT)
-Received: from [127.0.1.1] (85.136.70.56.dyn.user.ono.com. [85.136.70.56])
-        by mx.google.com with ESMTPSA id k10sm33305640wia.4.2013.06.13.11.50.31
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Thu, 13 Jun 2013 11:50:31 -0700 (PDT)
-In-Reply-To: <20130613184810.423.11555.stgit@Ph0enix>
+Received: from mail.us.es ([193.147.175.20]:46571 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750944Ab3FNQDV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Jun 2013 12:03:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20130610123038.GA5089@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
+On Mon, Jun 10, 2013 at 08:30:38AM -0400, Phil Oester wrote:
+> As a followup to commit 409b545a ("netfilter: xt_TCPMSS: Fix violation of RFC879
+> in absence of MSS option"), John Heffner points out that IPv6 has a higher MTU
+> than IPv4, and thus a higher minimum MSS.  Update TCPMSS target to account
+> for this, and update RFC comment.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- examples/nft-rule-get.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Applied, thanks.
 
-diff --git a/examples/nft-rule-get.c b/examples/nft-rule-get.c
-index 5bf41f5..2404f27 100644
---- a/examples/nft-rule-get.c
-+++ b/examples/nft-rule-get.c
-@@ -54,8 +54,11 @@ int main(int argc, char *argv[])
- 	struct nft_rule *t =3D NULL;
- 	int ret;
-=20
--	if (argc =3D=3D 2 && strcmp(argv[1], "xml") =3D=3D 0 )
-+	if (argc =3D=3D 2 && strcmp(argv[1], "xml") =3D=3D 0 ){
- 		type =3D NFT_RULE_O_XML;
-+	}else if (argc =3D=3D 2 && strcmp(argv[1], "json") =3D=3D 0 ){
-+		type =3D NFT_RULE_O_JSON;
-+	}
-=20
- 	/* XXX requires table, chain and handle attributes for selective get =
-*/
-=20
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Made some little mangling to pass the xt param.
