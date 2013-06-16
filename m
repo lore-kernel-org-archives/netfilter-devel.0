@@ -1,7 +1,9 @@
 From: Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH v2 0/5]  ipset: add "inner" flag support
-Date: Mon, 17 Jun 2013 00:26:52 +0100
-Message-ID: <51BE49BC.2050903@googlemail.com>
+Subject: [PATCH v2 1/5] iptables: bugfix: prevent wrong syntax being accepted
+ by the set match
+Date: Mon, 17 Jun 2013 00:27:05 +0100
+Message-ID: <51BE49C9.2070007@googlemail.com>
+References: <cover.1371423775.git.mr.dash.four@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -9,44 +11,51 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Netfilter Core Team <netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:56114 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755408Ab3FPX1H (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:58564 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755408Ab3FPX1Q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Jun 2013 19:27:07 -0400
-Received: by mail-wi0-f175.google.com with SMTP id m6so1754696wiv.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 16 Jun 2013 16:27:04 -0700 (PDT)
+	Sun, 16 Jun 2013 19:27:16 -0400
+Received: by mail-wi0-f177.google.com with SMTP id ey16so1665722wid.10
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 Jun 2013 16:27:15 -0700 (PDT)
+In-Reply-To: <cover.1371423775.git.mr.dash.four@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This series of 5 patches implements "inner" flag option in the set
-iptables match, allowing matching based on the properties
-(source/destination IP address, protocol, port and so on) of the
-original (inner) connection in the event of the following
-ICMP[v4,v6] messages:
+This patch corrects a bug, which was allowing wrong src and dst syntax to be
+specified and accepted by the set match.
 
-ICMPv4 destination-unreachable (code 3);
-ICMPv4 source-quench (code 4);
-ICMPv4 time-exceeded (code 11);
-ICMPv6 destination-unreachable (code 1);
-ICMPv6 packet-too-big (code 2);
-ICMPv6 time-exceeded (code 3);
+Signed-off-by: Dash Four <mr.dash.four@googlemail.com>
+---
+  extensions/libxt_set.h |    8 ++++----
+  1 file changed, 4 insertions(+), 4 deletions(-)
 
-Revision history:
-
-v1 * initial revision
-v2 * redundant code removed;
-    * added a new header file (ip_set_icmp.h) with 2 inline functions,
-      allowing access to the internal icmp header properties;
-    * removed ip[46]inneraddr[ptr]functions as they are no longer needed
-    * added new ipv[46]addr[ptr] and ip_set_get*port functions, the old
-      functions are still preserved for backwards compatibility;
-
-Dash Four (5):
-   iptables: bugfix: prevent wrong syntax being accepted by the set match
-   ipset: add "inner" flag implementation
-   ipset: add set match "inner" flag support
-   iptables: add set match "inner" flag support
-   iptables (userspace): add set match "inner" flag support
-
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index 47c3f5b..a352ac3 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -109,9 +109,9 @@ parse_dirs_v0(const char *opt_arg, struct xt_set_info_v0 *info)
+  	
+  	while (i < (IPSET_DIM_MAX - 1) && tmp != NULL) {
+  		ptr = strsep(&tmp, ",");
+-		if (strncmp(ptr, "src", 3) == 0)
++		if (strncmp(ptr, "src", 4) == 0)
+  			info->u.flags[i++] |= IPSET_SRC;
+-		else if (strncmp(ptr, "dst", 3) == 0)
++		else if (strncmp(ptr, "dst", 4) == 0)
+  			info->u.flags[i++] |= IPSET_DST;
+  		else
+  			xtables_error(PARAMETER_PROBLEM,
+@@ -135,9 +135,9 @@ parse_dirs(const char *opt_arg, struct xt_set_info *info)
+  	while (info->dim < IPSET_DIM_MAX && tmp != NULL) {
+  		info->dim++;
+  		ptr = strsep(&tmp, ",");
+-		if (strncmp(ptr, "src", 3) == 0)
++		if (strncmp(ptr, "src", 4) == 0)
+  			info->flags |= (1 << info->dim);
+-		else if (strncmp(ptr, "dst", 3) != 0)
++		else if (strncmp(ptr, "dst", 4) != 0)
+  			xtables_error(PARAMETER_PROBLEM,
+  				"You must spefify (the comma separated list of) 'src' or 'dst'.");
+  	}
 
