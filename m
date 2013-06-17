@@ -1,24 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 3/3] rule: xml: delete trailing space
-Date: Mon, 17 Jun 2013 21:28:37 +0200
-Message-ID: <20130617192837.GD13504@localhost>
-References: <20130615011603.3778.67261.stgit@nfdev.cica.es>
- <20130615011615.3778.76826.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Subject: [PATCH 0/3] netfilter fixes for net
+Date: Mon, 17 Jun 2013 21:34:36 +0200
+Message-ID: <1371497679-14314-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50169 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51610 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751644Ab3FQT2p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Jun 2013 15:28:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20130615011615.3778.76826.stgit@nfdev.cica.es>
+	id S1751588Ab3FQTet (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Jun 2013 15:34:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jun 15, 2013 at 03:16:15AM +0200, Arturo Borrero wrote:
-> This patch fix a trailing space in rule xml_snprintf.
+Hi David,
 
-Applied, thanks.
+The following patchset contains Netfilter fixes. They are targeted to the
+TCP option targets, that have receive some scrinity in the last week. The
+changes are:
+
+* Fix TCPOPTSTRIP, it stopped working in the forward chain as tcp_hdr
+  uses skb->transport_header, and we cannot use that in the forwarding
+  case, from myself.
+
+* Fix default IPv6 MSS in TCPMSS in case of absence of TCP MSS options,
+  from Phil Oester.
+
+* Fix missing fragmentation handling again in TCPMSS, from Phil Oester.
+
+You can pull these changes from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+Thanks!
+
+----------------------------------------------------------------
+The following changes since commit a8241c63517ec0b900695daa9003cddc41c536a1:
+
+  ipvs: info leak in __ip_vs_get_dest_entries() (2013-06-10 14:53:00 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to b396966c4688522863572927cb30aa874b3ec504:
+
+  netfilter: xt_TCPMSS: Fix missing fragmentation handling (2013-06-12 11:06:19 +0200)
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (1):
+      netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
+
+Phil Oester (2):
+      netfilter: xt_TCPMSS: Fix IPv6 default MSS too
+      netfilter: xt_TCPMSS: Fix missing fragmentation handling
+
+ net/netfilter/xt_TCPMSS.c      |   25 ++++++++++++++++++-------
+ net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
+ 2 files changed, 22 insertions(+), 9 deletions(-)
