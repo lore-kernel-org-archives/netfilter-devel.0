@@ -1,19 +1,20 @@
 From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 1/3] netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
-Date: Mon, 17 Jun 2013 23:30:45 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1306172316120.1564@ja.ssi.bg>
-References: <1371497679-14314-1-git-send-email-pablo@netfilter.org> <1371497679-14314-2-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH 3/3] netfilter: xt_TCPMSS: Fix missing fragmentation
+ handling
+Date: Tue, 18 Jun 2013 00:03:00 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1306172349470.1564@ja.ssi.bg>
+References: <1371497679-14314-1-git-send-email-pablo@netfilter.org> <1371497679-14314-4-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:50156 "EHLO ja.ssi.bg"
+Received: from ja.ssi.bg ([178.16.129.10]:50166 "EHLO ja.ssi.bg"
 	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751157Ab3FQUZu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Jun 2013 16:25:50 -0400
-In-Reply-To: <1371497679-14314-2-git-send-email-pablo@netfilter.org>
+	id S1753420Ab3FQU6B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Jun 2013 16:58:01 -0400
+In-Reply-To: <1371497679-14314-4-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -22,48 +23,51 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 On Mon, 17 Jun 2013, Pablo Neira Ayuso wrote:
 
-> In (bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
-> packet boundary), the use of tcp_hdr was introduced. However, we
-> cannot assume that skb->transport_header is set for non-local packets.
-
-	It is hidden also in tcp_hdrlen() which is used here.
-
-> Cc: Florian Westphal <fw@strlen.de>
-> Reported-by: Phil Oester <kernel@linuxace.com>
+> From: Phil Oester <kernel@linuxace.com>
+> 
+> Similar to commit bc6bcb59 ("netfilter: xt_TCPOPTSTRIP: fix
+> possible mangling beyond packet boundary"), add safe fragment
+> handling to xt_TCPMSS.
+> 
+> Signed-off-by: Phil Oester <kernel@linuxace.com>
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
->  net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  net/netfilter/xt_TCPMSS.c |    4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-> index 1eb1a44..b68fa19 100644
-> --- a/net/netfilter/xt_TCPOPTSTRIP.c
-> +++ b/net/netfilter/xt_TCPOPTSTRIP.c
-> @@ -48,11 +48,13 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
->  		return NF_DROP;
+> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+> index 6640a22..7011c71 100644
+> --- a/net/netfilter/xt_TCPMSS.c
+> +++ b/net/netfilter/xt_TCPMSS.c
+> @@ -57,6 +57,10 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+>  	u16 newmss;
+>  	u8 *opt;
 >  
->  	len = skb->len - tcphoff;
-> -	if (len < (int)sizeof(struct tcphdr) ||
-> -	    tcp_hdr(skb)->doff * 4 > len)
-> +	if (len < (int)sizeof(struct tcphdr))
->  		return NF_DROP;
->  
->  	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
-> +	if (tcph->doff * 4 > len)
-
-	We can save tcph->doff * 4 in a var and use it
-instead of tcp_hdrlen.
-
-	BTW, optlen() touches opt[offset+1] unsafely
-when i == tcp_hdrlen(skb) - 1.
-
-> +		return NF_DROP;
+> +	/* This is a fragment, no TCP header is available */
+> +	if (par->fragoff != 0)
+> +		return XT_CONTINUE;
 > +
->  	opt  = (u_int8_t *)tcph;
->  
->  	/*
-> -- 
-> 1.7.10.4
+>  	if (!skb_make_writable(skb, skb->len))
+>  		return -1;
+
+	This function needs the same check:
+
+	...
+
++	if (tcplen < (int)sizeof(struct tcphdr))
++		return -1;
++
+	/* Header cannot be larger than the packet */
+	if (tcplen < tcph->doff*4)
+		return -1;
+
+	but 'tcplen' should be changed to 'int' for
+this to work.
+
+	Here we have the same optlen() problem but
+I guess in both patches we always have something allocated
+after the last byte in header (struct skb_shared_inf),
+so crash is not possible.
 
 Regards
 
