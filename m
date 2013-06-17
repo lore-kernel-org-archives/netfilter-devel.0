@@ -1,38 +1,28 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: Re: [PATCH v3 1/2] iptables-nftables: function nft_chain_zero_counters
- added.
-Date: Mon, 17 Jun 2013 15:17:26 +0200
-Message-ID: <CAFpD06T49mEBTQHey2CungHn5ew-ohgaSOAZyai2EzsSSqJ5CA@mail.gmail.com>
-References: <20130617092600.2814.15883.stgit@localhost>
-	<51BEE134.5010406@linux.intel.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH] expr: bitwise: xml_parse: fix casting
+Date: Mon, 17 Jun 2013 21:20:02 +0200
+Message-ID: <20130617192002.GA13504@localhost>
+References: <20130615003613.27171.26876.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Arturo Borrero <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:56322 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932948Ab3FQNR1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Jun 2013 09:17:27 -0400
-Received: by mail-ve0-f169.google.com with SMTP id m1so2064350ves.14
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2013 06:17:26 -0700 (PDT)
-In-Reply-To: <51BEE134.5010406@linux.intel.com>
+Received: from mail.us.es ([193.147.175.20]:49264 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929Ab3FQTUI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Jun 2013 15:20:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20130615003613.27171.26876.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Tomasz,
+On Sat, Jun 15, 2013 at 02:36:13AM +0200, Arturo Borrero wrote:
+> Not calling e->data when doing the casting causes memory corruption: segfault.
+> 
+> This was introduced at: 51370f0eedb1c8167ab2c340d2a53f0d9f02509c (src: add support for XML parsing)
 
-> I guess you don't want to continue looping after you found your chain. On
-> success, make it break.
+Please, next time use the short commit ID that you can get via
+git log --oneline.
 
-Looking the code, in other functions like nft_chain_user_del,
-i guess that the loop continue after found the chain.
-Am i wrong?
-
-> And on error your function should return the error code.
-
-return ret == 0 ? 1 : 0;
-is it ok this code?
-
-Thanks
+Applied, thanks.
