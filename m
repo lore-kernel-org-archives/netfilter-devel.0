@@ -1,41 +1,24 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] netfilter fixes for net
-Date: Mon, 17 Jun 2013 16:14:27 -0700 (PDT)
-Message-ID: <20130617.161427.1465546621381589932.davem@davemloft.net>
-References: <1371497679-14314-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v3] iptables-nftables: function nft_chain_zero_counters
+ added.
+Date: Tue, 18 Jun 2013 02:54:10 +0200
+Message-ID: <20130618005410.GA6913@localhost>
+References: <20130617220621.3327.73213.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:40262 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299Ab3FQXO2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Jun 2013 19:14:28 -0400
-In-Reply-To: <1371497679-14314-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:49581 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751549Ab3FRAyP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Jun 2013 20:54:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20130617220621.3327.73213.stgit@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 17 Jun 2013 21:34:36 +0200
+On Tue, Jun 18, 2013 at 12:06:21AM +0200, Giuseppe Longo wrote:
+> Return of error code added
 
-> The following patchset contains Netfilter fixes. They are targeted to the
-> TCP option targets, that have receive some scrinity in the last week. The
-> changes are:
-> 
-> * Fix TCPOPTSTRIP, it stopped working in the forward chain as tcp_hdr
->   uses skb->transport_header, and we cannot use that in the forwarding
->   case, from myself.
-> 
-> * Fix default IPv6 MSS in TCPMSS in case of absence of TCP MSS options,
->   from Phil Oester.
-> 
-> * Fix missing fragmentation handling again in TCPMSS, from Phil Oester.
-> 
-> You can pull these changes from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-Pulled, thanks Pablo.
+Applied, thanks.
