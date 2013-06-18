@@ -1,40 +1,47 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH v3 1/2] iptables-nftables: function nft_chain_zero_counters
- added.
-Date: Tue, 18 Jun 2013 07:50:14 +0300
-Message-ID: <51BFE706.6010109@linux.intel.com>
-References: <20130617092600.2814.15883.stgit@localhost> <51BEE134.5010406@linux.intel.com> <CAFpD06T49mEBTQHey2CungHn5ew-ohgaSOAZyai2EzsSSqJ5CA@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] netfilter: prevent harmless integer overflow
+Date: Tue, 18 Jun 2013 10:46:03 +0300
+Message-ID: <20130618074603.GF12329@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51519 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753637Ab3FREug (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jun 2013 00:50:36 -0400
-In-Reply-To: <CAFpD06T49mEBTQHey2CungHn5ew-ohgaSOAZyai2EzsSSqJ5CA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+	bridge@lists.linux-foundation.org, kernel-janitors@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>
+To: Bart De Schuymer <bart.de.schuymer@pandora.be>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Giuseppe,
+This overflow is harmless because a few lines later we check:
 
->> I guess you don't want to continue looping after you found your chain. On
->> success, make it break.
-> Looking the code, in other functions like nft_chain_user_del,
-> i guess that the loop continue after found the chain.
-> Am i wrong?
+	if (num_counters != t->private->nentries) {
 
-Looks like you found an optimization patch to make in that function.
+But it still upsets the static checkers.
 
->> And on error your function should return the error code.
-> return ret == 0 ? 1 : 0;
-> is it ok this code?
->
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Sound fine to me in that particular case.
-
-
-Tomasz
-
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 3d110c4..141350e 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1278,6 +1278,8 @@ static int do_update_counters(struct net *net, const char *name,
+ 
+ 	if (num_counters == 0)
+ 		return -EINVAL;
++	if (num_counters > INT_MAX / sizeof(*tmp))
++		return -ENOMEM;
+ 
+ 	tmp = vmalloc(num_counters * sizeof(*tmp));
+ 	if (!tmp)
