@@ -1,226 +1,742 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2] conntrack: snprintf: add connlabel format specifier
-Date: Tue, 18 Jun 2013 22:54:22 +0200
-Message-ID: <1371588862-3407-2-git-send-email-fw@strlen.de>
-References: <1371588862-3407-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] test: add testbench for XML
+Date: Tue, 18 Jun 2013 22:58:57 +0200
+Message-ID: <20130618205857.1600.52812.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57873 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932235Ab3FRU4C (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jun 2013 16:56:02 -0400
-In-Reply-To: <1371588862-3407-1-git-send-email-fw@strlen.de>
+Received: from smtp3.cica.es ([150.214.5.190]:39255 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754497Ab3FRU7B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jun 2013 16:59:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-by default, nfct_snprintf will not resolve connlabel names, as they're
-system specific. This adds a fmt attribute to resolve names accordingly.
+This patch add a testbench for XML parsing, which may be extended to also test JSON.
 
-output looks like this:
-... mark=0 use=1 labels=eth0-in (0),eth1-in (1)
-or
-<labels>
-<label name="eth0-in" bit="0"/>
-<label name="eth1-in" bit="1"/>
-</labels>
+To use it:
+ $ cd test/
+ $ make nft-parsing-test
+ $ ./nft-parsing-test xmlfiles/
 
-Major stupidity:
-As names can be anything, we need to be careful, especially when
-creating XML output. Only alphanumerical label names are printed at
-this time.
-
-Else you get
-labels=(0), .. or <labels><label name="" bit="0"/> in xml output.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- I am interested in feedback wrt.
+ test/Makefile.am                 |    6 ++
+ test/nft-parsing-test.c          |  125 ++++++++++++++++++++++++++++++++++++++
+ test/xmlfiles/chain1.xml         |   11 +++
+ test/xmlfiles/chain2.xml         |   11 +++
+ test/xmlfiles/chain3.xml         |   11 +++
+ test/xmlfiles/rule_bitwise.xml   |   25 ++++++++
+ test/xmlfiles/rule_byteorder.xml |   13 ++++
+ test/xmlfiles/rule_cmp.xml       |   16 +++++
+ test/xmlfiles/rule_counter.xml   |   10 +++
+ test/xmlfiles/rule_ct.xml        |   11 +++
+ test/xmlfiles/rule_exthdr.xml    |   12 ++++
+ test/xmlfiles/rule_immediate.xml |   31 +++++++++
+ test/xmlfiles/rule_limit.xml     |   10 +++
+ test/xmlfiles/rule_log.xml       |   12 ++++
+ test/xmlfiles/rule_lookup.xml    |   11 +++
+ test/xmlfiles/rule_match.xml     |   10 +++
+ test/xmlfiles/rule_meta.xml      |   10 +++
+ test/xmlfiles/rule_nat.xml       |   22 +++++++
+ test/xmlfiles/rule_payload.xml   |   12 ++++
+ test/xmlfiles/rule_target.xml    |   10 +++
+ test/xmlfiles/table1.xml         |    6 ++
+ test/xmlfiles/table2.xml         |    6 ++
+ 22 files changed, 391 insertions(+)
+ create mode 100644 test/Makefile.am
+ create mode 100644 test/nft-parsing-test.c
+ create mode 100644 test/xmlfiles/chain1.xml
+ create mode 100644 test/xmlfiles/chain2.xml
+ create mode 100644 test/xmlfiles/chain3.xml
+ create mode 100644 test/xmlfiles/rule_bitwise.xml
+ create mode 100644 test/xmlfiles/rule_byteorder.xml
+ create mode 100644 test/xmlfiles/rule_cmp.xml
+ create mode 100644 test/xmlfiles/rule_counter.xml
+ create mode 100644 test/xmlfiles/rule_ct.xml
+ create mode 100644 test/xmlfiles/rule_exthdr.xml
+ create mode 100644 test/xmlfiles/rule_immediate.xml
+ create mode 100644 test/xmlfiles/rule_limit.xml
+ create mode 100644 test/xmlfiles/rule_log.xml
+ create mode 100644 test/xmlfiles/rule_lookup.xml
+ create mode 100644 test/xmlfiles/rule_match.xml
+ create mode 100644 test/xmlfiles/rule_meta.xml
+ create mode 100644 test/xmlfiles/rule_nat.xml
+ create mode 100644 test/xmlfiles/rule_payload.xml
+ create mode 100644 test/xmlfiles/rule_target.xml
+ create mode 100644 test/xmlfiles/table1.xml
+ create mode 100644 test/xmlfiles/table2.xml
 
- a) the chosen xml representation
- b) wheter it makes sense to limit valid charactes in the label
-    names this way (e.g., should we care? should be disallow that
-    in iptables as well, etc).
- c) if this patch makes sense in the first place, e.g, can't use
-     alternate mapping file for labels with nfct_snprintf
-
- include/internal/internal.h                        |  1 +
- include/internal/prototypes.h                      |  1 +
- .../libnetfilter_conntrack.h                       |  3 +
- src/conntrack/snprintf_default.c                   | 84 +++++++++++++++++++++-
- src/conntrack/snprintf_xml.c                       |  8 ++-
- 5 files changed, 93 insertions(+), 4 deletions(-)
-
-diff --git a/include/internal/internal.h b/include/internal/internal.h
-index aaf6bd4..a5c7923 100644
---- a/include/internal/internal.h
-+++ b/include/internal/internal.h
-@@ -6,6 +6,7 @@
- #ifndef __LIBNETFILTER_CONNTRACK_INTERNAL__
- #define __LIBNETFILTER_CONNTRACK_INTERNAL__
+diff --git a/Makefile.am b/Makefile.am
+index 6999f51..e035ea1 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -2,8 +2,8 @@ include $(top_srcdir)/Make_global.am
  
-+#include <stdbool.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <stdarg.h>
-diff --git a/include/internal/prototypes.h b/include/internal/prototypes.h
-index cc8de1d..577270b 100644
---- a/include/internal/prototypes.h
-+++ b/include/internal/prototypes.h
-@@ -16,6 +16,7 @@ int __snprintf_proto(char *buf, unsigned int len, const struct __nfct_tuple *tup
- int __snprintf_conntrack_default(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
- int __snprintf_conntrack_xml(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
- int __snprintf_connlabels(char *buf, unsigned int len, const struct nf_conntrack *ct, const char *prefix, const char *end);
-+int __snprintf_connlabels_names(char *buf, unsigned int len, const struct nf_conntrack *ct, const char *prefix, const char *end, bool xml);
+ ACLOCAL_AMFLAGS = -I m4
  
- enum __nfct_addr {
- 	__ADDR_SRC = 0,
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index 39dc24c..eedf85e 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -389,6 +389,9 @@ enum {
+-SUBDIRS = src include examples
+-DIST_SUBDIRS = src include examples
++SUBDIRS = src include examples test
++DIST_SUBDIRS = src include examples test
  
- 	NFCT_OF_TIMESTAMP_BIT = 3,
- 	NFCT_OF_TIMESTAMP = (1 << NFCT_OF_TIMESTAMP_BIT),
+ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = libnftables.pc
+diff --git a/configure.ac b/configure.ac
+index 0eec5bd..eaf3bb8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -38,5 +38,5 @@ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
+ 	-Wformat=2 -pipe"
+ AC_SUBST([regular_CPPFLAGS])
+ AC_SUBST([regular_CFLAGS])
+-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile include/libnftables/Makefile include/linux/Makefile include/linux/netfilter/Makefile examples/Makefile libnftables.pc doxygen.cfg])
++AC_CONFIG_FILES([Makefile src/Makefile include/Makefile include/libnftables/Makefile include/linux/Makefile include/linux/netfilter/Makefile examples/Makefile test/Makefile libnftables.pc doxygen.cfg])
+ AC_OUTPUT
+diff --git a/examples/chain.xml b/examples/chain.xml
+deleted file mode 100644
+index 01ccb85..0000000
+--- a/examples/chain.xml
++++ /dev/null
+@@ -1,11 +0,0 @@
+-<chain name="test" handle="0" bytes="59" packets="1" version="0">
+-	<properties>
+-		<type>filter</type>
+-		<table>filter</table>
+-		<prio>1</prio>
+-		<use>0</use>
+-		<hooknum>4</hooknum>
+-		<policy>1</policy>
+-		<family>10</family>
+-	</properties>
+-</chain>
+diff --git a/examples/rule.xml b/examples/rule.xml
+deleted file mode 100644
+index b1de25a..0000000
+--- a/examples/rule.xml
++++ /dev/null
+@@ -1,85 +0,0 @@
+-<?xml version="1.0"?>
+-<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
+-  <rule_flags>0</rule_flags>
+-  <flags>127</flags>
+-  <compat_flags>0</compat_flags>
+-  <compat_proto>0</compat_proto>
+-  <expr type="meta">
+-    <dreg>1</dreg>
+-    <key>4</key>
+-  </expr>
+-  <expr type="cmp">
+-    <sreg>1</sreg>
+-    <op>eq</op>
+-    <cmpdata>
+-      <data_reg type="value">
+-        <len>1</len>
+-        <data0>0x04000000</data0>
+-      </data_reg>
+-    </cmpdata>
+-  </expr>
+-  <expr type="payload">
+-    <dreg>1</dreg>
+-    <base>1</base>
+-    <offset>12</offset>
+-    <len>4</len>
+-  </expr>
+-  <expr type="cmp">
+-    <sreg>1</sreg>
+-    <op>eq</op>
+-    <cmpdata>
+-      <data_reg type="value">
+-        <len>1</len>
+-        <data0>0x96d60496</data0>
+-      </data_reg>
+-    </cmpdata>
+-  </expr>
+-  <expr type="payload">
+-    <dreg>1</dreg>
+-    <base>1</base>
+-    <offset>16</offset>
+-    <len>4</len>
+-  </expr>
+-  <expr type="cmp">
+-    <sreg>1</sreg>
+-    <op>eq</op>
+-    <cmpdata>
+-      <data_reg type="value">
+-        <len>1</len>
+-        <data0>0x96d60329</data0>
+-      </data_reg>
+-    </cmpdata>
+-  </expr>
+-  <expr type="payload">
+-    <dreg>1</dreg>
+-    <base>1</base>
+-    <offset>9</offset>
+-    <len>1</len>
+-  </expr>
+-  <expr type="cmp">
+-    <sreg>1</sreg>
+-    <op>eq</op>
+-    <cmpdata>
+-      <data_reg type="value">
+-        <len>1</len>
+-        <data0>0x06000000</data0>
+-      </data_reg>
+-    </cmpdata>
+-  </expr>
+-  <expr type="match">
+-    <name>state</name>
+-    <rev>0</rev>
+-   <info>
+-    </info>
+-  </expr>
+-  <expr type="counter">
+-    <pkts>123123</pkts>
+-    <bytes>321321</bytes>
+-  </expr>
+-  <expr type="target">
+-    <name>LOG</name>
+-    <rev>0</rev>
+-    <info>
+-    </info>
+-  </expr>
+-</rule>
+diff --git a/examples/table.xml b/examples/table.xml
+deleted file mode 100644
+index a397d52..0000000
+--- a/examples/table.xml
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<table name="filter" version="0">
+-	<properties>
+-		<family>2</family>
+-		<table_flags>0</table_flags>
+-	</properties>
+-</table>
+diff --git a/test/Makefile.am b/test/Makefile.am
+new file mode 100644
+index 0000000..6941c3c
+--- /dev/null
++++ b/test/Makefile.am
+@@ -0,0 +1,6 @@
++include $(top_srcdir)/Make_global.am
 +
-+	NFCT_OF_CONNLABELS_BIT = 4,
-+	NFCT_OF_CONNLABELS = (1 << NFCT_OF_CONNLABELS_BIT),
- };
- 
- extern int nfct_snprintf(char *buf, 
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index a1edef4..7befbd7 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -313,9 +313,89 @@ __snprintf_connlabels(char *buf, unsigned int len,
- 	return size;
- }
- 
-+/*
-+ * Labels can have any name, there are no restrictions.
-+ * We will only print alpha numerical ones; else parsers
-+ * could choke when putinng "&>" and friends into output
-+ * (especially when using XML format).  ASCII machines only.
-+ */
-+static bool label_is_sane(const char *label)
++check_PROGRAMS = nft-parsing-test
++
++nft_parsing_test_SOURCES = nft-parsing-test.c
++nft_parsing_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS} ${LIBXML_LIBS}
+diff --git a/test/nft-parsing-test.c b/test/nft-parsing-test.c
+new file mode 100644
+index 0000000..dc0ab85
+--- /dev/null
++++ b/test/nft-parsing-test.c
+@@ -0,0 +1,125 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <dirent.h>
++
++#include <mxml.h>
++
++#include <libmnl/libmnl.h> /*nlmsghdr*/
++#include <libnftables/table.h>
++#include <libnftables/chain.h>
++#include <libnftables/rule.h>
++
++static int test_xml(const char *filename)
 +{
-+	for (;*label; label++) {
-+		if (*label >= 'a' && *label <= 'z')
-+			continue;
-+		if (*label >= 'A' && *label <= 'Z')
-+			continue;
-+		if (*label >= '0' && *label <= '9')
-+			continue;
-+		if (*label == ' ' || *label == '-')
-+			continue;
-+		return false;
-+	}
-+	return true;
-+}
++	int ret = -1;
++	struct nft_table *t = NULL;
++	struct nft_chain *c = NULL;
++	struct nft_rule *r = NULL;
++	FILE *fp;
++	mxml_node_t *tree = NULL;;
++	char *xml = NULL;
 +
-+int
-+__snprintf_connlabels_names(char *buf, unsigned int len,
-+			    const struct nf_conntrack *ct,
-+			    const char *prefix, const char *end, bool xml)
-+{
-+	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
-+	unsigned int i, max;
-+	int ret, size = 0, offset = 0;
-+	struct nfct_labelmap *map;
++	fp = fopen(filename, "r");
++	tree = mxmlLoadFile(NULL, fp, MXML_NO_CALLBACK);
++	fclose(fp);
 +
-+	if (!b)
-+		return 0;
-+	map = nfct_labelmap_new(NULL);
-+	if (!map)
-+		return __snprintf_connlabels(buf, len, ct, prefix, end);
++	xml = mxmlSaveAllocString(tree, MXML_NO_CALLBACK);
++	if (xml == NULL)
++		return -1;
 +
-+	ret = snprintf(buf, len, "%s", prefix);
-+	BUFFER_SIZE(ret, size, len, offset);
-+	max = nfct_bitmask_maxbit(b);
-+	for (i = 0; i <= max && len; i++) {
-+		const char *name;
-+		if (!nfct_bitmask_test_bit(b, i))
-+			continue;
-+		name = nfct_labelmap_get_name(map, i);
-+		if (!name || !label_is_sane(name))
-+			name = "";
++	if (tree == NULL)
++		return -1;
 +
-+		if (xml)
-+			ret = snprintf(buf + offset, len, "<label name=\"%s\" ", name);
-+		else if (strcmp(name, "") != 0)
-+			ret = snprintf(buf + offset, len, "%s ", name);
-+		else
-+			ret = 0;
-+		BUFFER_SIZE(ret, size, len, offset);
++	/* Check what parsing should be done */
++	if (strcmp(tree->value.opaque, "table") == 0) {
++		t = nft_table_alloc();
++		if (t != NULL) {
++			if (nft_table_parse(t, NFT_TABLE_PARSE_XML, xml) == 0)
++				ret = 0;
 +
-+		if (xml)
-+			ret = snprintf(buf + offset, len, "bit=\"%u\"/>", i);
-+		else
-+			ret = snprintf(buf + offset, len, "(%u),", i);
-+		BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	nfct_labelmap_destroy(map);
-+	if (offset && end) {
-+		if (!xml) {
-+			offset--; /* remove last , */
-+			size--;
++			nft_table_free(t);
 +		}
-+		ret = snprintf(buf + offset, len, "%s", end);
-+		BUFFER_SIZE(ret, size, len, offset);
++	} else if (strcmp(tree->value.opaque, "chain") == 0) {
++		c = nft_chain_alloc();
++		if (c != NULL) {
++			if (nft_chain_parse(c, NFT_CHAIN_PARSE_XML, xml) == 0)
++				ret = 0;
++
++			nft_chain_free(c);
++		}
++	} else if (strcmp(tree->value.opaque, "rule") == 0) {
++		r = nft_rule_alloc();
++		if (r != NULL) {
++			if (nft_rule_parse(r, NFT_RULE_PARSE_XML, xml) == 0)
++				ret = 0;
++
++			nft_rule_free(r);
++		}
 +	}
-+	return size;
++
++	return ret;
 +}
 +
- static int
--__snprintf_clabels(char *buf, unsigned int len, const struct nf_conntrack *ct)
-+__snprintf_clabels(char *buf, unsigned int len,
-+		   const struct nf_conntrack *ct, bool names)
- {
-+	if (names)
-+		return  __snprintf_connlabels_names(buf, len, ct,
-+					   "labels=", " ", false);
- 	return __snprintf_connlabels(buf, len, ct, "labels=", " ");
- }
- 
-@@ -458,7 +538,7 @@ int __snprintf_conntrack_default(char *buf,
- 	}
- 
- 	if (test_bit(ATTR_CONNLABELS, ct->head.set)) {
--		ret = __snprintf_clabels(buf+offset, len, ct);
-+		ret = __snprintf_clabels(buf+offset, len, ct, flags & NFCT_OF_CONNLABELS );
- 		BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
-index f373f5b..1c2440a 100644
---- a/src/conntrack/snprintf_xml.c
-+++ b/src/conntrack/snprintf_xml.c
-@@ -349,8 +349,12 @@ static int __snprintf_tuple_xml(char *buf,
- }
- 
- static int
--__snprintf_clabels_xml(char *buf, unsigned int len, const struct nf_conntrack *ct)
-+__snprintf_clabels_xml(char *buf, unsigned int len,
-+		       const struct nf_conntrack *ct, bool names)
- {
-+	if (names)
-+		return __snprintf_connlabels_names(buf, len, ct,
-+				"<labels>", "</labels>", true);
- 	return __snprintf_connlabels(buf, len, ct, "<labels>", "</labels>");
- }
- 
-@@ -440,7 +444,7 @@ int __snprintf_conntrack_xml(char *buf,
- 	}
- 
- 	if (test_bit(ATTR_CONNLABELS, ct->head.set)) {
--		ret = __snprintf_clabels_xml(buf+offset, len, ct);
-+		ret = __snprintf_clabels_xml(buf+offset, len, ct, flags & NFCT_OF_CONNLABELS);
- 		BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--- 
-1.8.1.5
++static int test_json(const char *filename)
++{
++	/* XXX parse file JSON file, in case of failure return -1 */
++	return -1;
++}
++
++int main(int argc, char *argv[])
++{
++	DIR *d;
++	struct dirent *dent;
++
++	if (argc != 2) {
++		fprintf(stderr, "Usage: %s <directory>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	d = opendir(argv[1]);
++	if (d == NULL) {
++		perror("opendir");
++		exit(EXIT_FAILURE);
++	}
++
++	char *path = malloc(sizeof(argv[1]));
++	char *filewpath = malloc(sizeof(path)+4096);
++	strcpy(path, argv[1]);
++
++	if (path[strlen(path)-1] != '/')
++		strcat(path, "/");
++
++
++	while ((dent = readdir(d)) != NULL) {
++		int len = strlen(dent->d_name);
++
++		if (strcmp(dent->d_name, ".") == 0 ||
++		    strcmp(dent->d_name, "..") == 0)
++			continue;
++
++		strcpy(filewpath, path);
++		strcat(filewpath, dent->d_name);
++
++		if (strcmp(&dent->d_name[len-5], ".json") == 0) {
++			printf("parsing json file %s ..\t", filewpath);
++			if (test_json(filewpath) < 0)
++				printf("FAILED\n");
++			else
++				printf("OK\n");
++		}
++
++		if (strcmp(&dent->d_name[len-4], ".xml") == 0) {
++			printf("parsing xml file %s ..\t", filewpath);
++			if (test_xml(filewpath) < 0)
++				printf("FAILED\n");
++			else
++				printf("OK\n");
++		}
++	}
++
++	free(path);
++	free(filewpath);
++	closedir(d);
++	return 0;
++}
+diff --git a/test/xmlfiles/chain1.xml b/test/xmlfiles/chain1.xml
+new file mode 100644
+index 0000000..7b23904
+--- /dev/null
++++ b/test/xmlfiles/chain1.xml
+@@ -0,0 +1,11 @@
++<chain name="test" handle="0" bytes="0" packets="0" version="0">
++	<properties>
++		<type>filter</type>
++		<table>filter</table>
++		<prio>0</prio>
++		<use>0</use>
++		<hooknum>0</hooknum>
++		<policy>0</policy>
++		<family>2</family>
++	</properties>
++</chain>
+diff --git a/test/xmlfiles/chain2.xml b/test/xmlfiles/chain2.xml
+new file mode 100644
+index 0000000..01ccb85
+--- /dev/null
++++ b/test/xmlfiles/chain2.xml
+@@ -0,0 +1,11 @@
++<chain name="test" handle="0" bytes="59" packets="1" version="0">
++	<properties>
++		<type>filter</type>
++		<table>filter</table>
++		<prio>1</prio>
++		<use>0</use>
++		<hooknum>4</hooknum>
++		<policy>1</policy>
++		<family>10</family>
++	</properties>
++</chain>
+diff --git a/test/xmlfiles/chain3.xml b/test/xmlfiles/chain3.xml
+new file mode 100644
+index 0000000..31e7142
+--- /dev/null
++++ b/test/xmlfiles/chain3.xml
+@@ -0,0 +1,11 @@
++<chain name="foo" handle="100" bytes="59264154979" packets="2548796325" version="0">
++	<properties>
++		<type>foo</type>
++		<table>nat</table>
++		<prio>123</prio>
++		<use>321</use>
++		<hooknum>123</hooknum>
++		<policy>123</policy>
++		<family>123</family>
++	</properties>
++</chain>
+diff --git a/test/xmlfiles/rule_bitwise.xml b/test/xmlfiles/rule_bitwise.xml
+new file mode 100644
+index 0000000..0501c6c
+--- /dev/null
++++ b/test/xmlfiles/rule_bitwise.xml
+@@ -0,0 +1,25 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="bitwise">
++    <sreg>1</sreg>
++    <dreg>12</dreg>
++    <mask>
++      <data_reg type="value">
++        <len>1</len>
++        <data0>0x04000000</data0>
++      </data_reg>
++    </mask>
++    <xor>
++      <data_reg type="value">
++        <len>4</len>
++        <data0>0xfaceb00c</data0>
++        <data1>0xc1cac1ca</data1>
++        <data2>0xcafecafe</data2>
++        <data3>0xdeadbeef</data3>
++      </data_reg>
++    </xor>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_byteorder.xml b/test/xmlfiles/rule_byteorder.xml
+new file mode 100644
+index 0000000..3b5d64d
+--- /dev/null
++++ b/test/xmlfiles/rule_byteorder.xml
+@@ -0,0 +1,13 @@
++<rule family="1" table="test" chain="test" handle="1000" version="0">
++  <rule_flags>123</rule_flags>
++  <flags>123</flags>
++  <compat_flags>123</compat_flags>
++  <compat_proto>123</compat_proto>
++  <expr type="byteorder">
++	<sreg>123</sreg>
++	<dreg>321</dreg>
++	<op>111</op>
++	<len>15</len>
++	<size>15</size>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_cmp.xml b/test/xmlfiles/rule_cmp.xml
+new file mode 100644
+index 0000000..582b127
+--- /dev/null
++++ b/test/xmlfiles/rule_cmp.xml
+@@ -0,0 +1,16 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="cmp">
++    <sreg>1</sreg>
++    <op>eq</op>
++    <cmpdata>
++      <data_reg type="value">
++        <len>1</len>
++        <data0>0x04000000</data0>
++      </data_reg>
++    </cmpdata>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_counter.xml b/test/xmlfiles/rule_counter.xml
+new file mode 100644
+index 0000000..bb71013
+--- /dev/null
++++ b/test/xmlfiles/rule_counter.xml
+@@ -0,0 +1,10 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="counter">
++    <pkts>123123</pkts>
++    <bytes>321321</bytes>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_ct.xml b/test/xmlfiles/rule_ct.xml
+new file mode 100644
+index 0000000..c993ae5
+--- /dev/null
++++ b/test/xmlfiles/rule_ct.xml
+@@ -0,0 +1,11 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="ct">
++    <dreg>1555555</dreg>
++    <dir>15</dir>
++    <key>15</key>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_exthdr.xml b/test/xmlfiles/rule_exthdr.xml
+new file mode 100644
+index 0000000..0abeb3c
+--- /dev/null
++++ b/test/xmlfiles/rule_exthdr.xml
+@@ -0,0 +1,12 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="exthdr">
++    <dreg>123</dreg>
++    <type>15</type>
++    <offset>123</offset>
++    <len>321</len>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_immediate.xml b/test/xmlfiles/rule_immediate.xml
+new file mode 100644
+index 0000000..a566ca5
+--- /dev/null
++++ b/test/xmlfiles/rule_immediate.xml
+@@ -0,0 +1,31 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="immediate">
++    <dreg>1</dreg>
++    <immdata>
++      <data_reg type="value">
++        <len>1</len>
++	<data0>0xaabbccdd</data0>
++      </data_reg>
++    </immdata>
++  </expr>
++  <expr type="immediate">
++    <dreg>2</dreg>
++    <immdata>
++      <data_reg type="verdict">
++        <verdict>1</verdict>
++      </data_reg>
++    </immdata>
++  </expr>
++  <expr type="immediate">
++    <dreg>3</dreg>
++    <immdata>
++      <data_reg type="chain">
++        <chain>testchain</chain>
++      </data_reg>
++    </immdata>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_limit.xml b/test/xmlfiles/rule_limit.xml
+new file mode 100644
+index 0000000..926aa0e
+--- /dev/null
++++ b/test/xmlfiles/rule_limit.xml
+@@ -0,0 +1,10 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="limit">
++    <rate>123123</rate>
++    <depth>321321</depth>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_log.xml b/test/xmlfiles/rule_log.xml
+new file mode 100644
+index 0000000..5471fee
+--- /dev/null
++++ b/test/xmlfiles/rule_log.xml
+@@ -0,0 +1,12 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="log">
++    <group>123123121</group>
++    <snaplen>4000000</snaplen>
++    <qthreshold>1222222</qthreshold>
++    <prefix>prefixtest</prefix>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_lookup.xml b/test/xmlfiles/rule_lookup.xml
+new file mode 100644
+index 0000000..ee47068
+--- /dev/null
++++ b/test/xmlfiles/rule_lookup.xml
+@@ -0,0 +1,11 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="lookup">
++    <sreg>123</sreg>
++    <dreg>123</dreg>
++    <set>set_name_test</set>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_match.xml b/test/xmlfiles/rule_match.xml
+new file mode 100644
+index 0000000..fdc28f5
+--- /dev/null
++++ b/test/xmlfiles/rule_match.xml
+@@ -0,0 +1,10 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="match">
++    <name>state</name>
++    <rev>0</rev>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_meta.xml b/test/xmlfiles/rule_meta.xml
+new file mode 100644
+index 0000000..3c14bad
+--- /dev/null
++++ b/test/xmlfiles/rule_meta.xml
+@@ -0,0 +1,10 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="meta">
++    <dreg>1</dreg>
++    <key>4</key>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_nat.xml b/test/xmlfiles/rule_nat.xml
+new file mode 100644
+index 0000000..868be50
+--- /dev/null
++++ b/test/xmlfiles/rule_nat.xml
+@@ -0,0 +1,22 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="nat">
++    <sreg_addr_min>1</sreg_addr_min>
++    <sreg_addr_max>1</sreg_addr_max>
++    <sreg_proto_min>1</sreg_proto_min>
++    <sreg_proto_max>1</sreg_proto_max>
++    <family>AF_INET6</family>
++    <type>NFT_NAT_DNAT</type>
++  </expr>
++  <expr type="nat">
++    <sreg_addr_min>1</sreg_addr_min>
++    <sreg_addr_max>1</sreg_addr_max>
++    <sreg_proto_min>1</sreg_proto_min>
++    <sreg_proto_max>1</sreg_proto_max>
++    <family>AF_INET</family>
++    <type>NFT_NAT_SNAT</type>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_payload.xml b/test/xmlfiles/rule_payload.xml
+new file mode 100644
+index 0000000..bbbc84f
+--- /dev/null
++++ b/test/xmlfiles/rule_payload.xml
+@@ -0,0 +1,12 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="payload">
++    <dreg>1</dreg>
++    <base>1</base>
++    <offset>12</offset>
++    <len>4</len>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/rule_target.xml b/test/xmlfiles/rule_target.xml
+new file mode 100644
+index 0000000..a41d794
+--- /dev/null
++++ b/test/xmlfiles/rule_target.xml
+@@ -0,0 +1,10 @@
++<rule family="2" table="filter" chain="INPUT" handle="100" version="0">
++  <rule_flags>0</rule_flags>
++  <flags>127</flags>
++  <compat_flags>0</compat_flags>
++  <compat_proto>0</compat_proto>
++  <expr type="target">
++    <name>LOG</name>
++    <rev>0</rev>
++  </expr>
++</rule>
+diff --git a/test/xmlfiles/table1.xml b/test/xmlfiles/table1.xml
+new file mode 100644
+index 0000000..a397d52
+--- /dev/null
++++ b/test/xmlfiles/table1.xml
+@@ -0,0 +1,6 @@
++<table name="filter" version="0">
++	<properties>
++		<family>2</family>
++		<table_flags>0</table_flags>
++	</properties>
++</table>
+diff --git a/test/xmlfiles/table2.xml b/test/xmlfiles/table2.xml
+new file mode 100644
+index 0000000..de8e570
+--- /dev/null
++++ b/test/xmlfiles/table2.xml
+@@ -0,0 +1,6 @@
++<table name="nat" version="0">
++	<properties>
++		<family>10</family>
++		<table_flags>123</table_flags>
++	</properties>
++</table>
 
