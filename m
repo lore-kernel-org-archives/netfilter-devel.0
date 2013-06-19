@@ -1,40 +1,31 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] netfilter: nf_conntrack_ipv6: Plug sk_buff leak in fragment
- handling
-Date: Wed, 19 Jun 2013 06:49:51 -0400
-Message-ID: <20130619104950.GA1343@gmail.com>
+Subject: [PATCH] netfilter: remove redundant skb check in
+ nf_conntrack_put_reasm
+Date: Wed, 19 Jun 2013 10:27:35 -0400
+Message-ID: <20130619142735.GA2758@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="J2SCkAp4GZ/dPZZf"
-Cc: pablo@netfilter.org, kaber@trash.net
+Content-Type: multipart/mixed; boundary="82I3+IH0IqGh5yIs"
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34122 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934604Ab3FSXwi (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:63640 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935546Ab3FTDaX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Jun 2013 19:52:38 -0400
-Received: by mail-pa0-f49.google.com with SMTP id ld11so5704288pab.36
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2013 16:52:37 -0700 (PDT)
+	Wed, 19 Jun 2013 23:30:23 -0400
+Received: by mail-pd0-f171.google.com with SMTP id y14so5756542pdi.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2013 20:30:23 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---J2SCkAp4GZ/dPZZf
+--82I3+IH0IqGh5yIs
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-In commit 4cdd3408 ("netfilter: nf_conntrack_ipv6: improve fragmentation
-handling"), an sk_buff leak was introduced when dealing with reassembled
-packets by grabbing a reference to the original skb instead of the
-reassembled skb.  At this point, the leak only impacted conntracks with an
-associated helper.  
-
-In commit 58a317f1 ("netfilter: ipv6: add IPv6 NAT support"), the bug was
-expanded to include all reassembled packets with unconfirmed conntracks.
-
-Fix this by grabbing a reference to the proper reassembled skb.  This closes
-netfilter bugzilla #823.
+kfree_skb already checks for skb existence - remove redundant check from
+nf_conntrack_put_reasm.
 
 Phil
 
@@ -42,22 +33,23 @@ Signed-off-by: Phil Oester <kernel@linuxace.com>
 
 
 
---J2SCkAp4GZ/dPZZf
+--82I3+IH0IqGh5yIs
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipv6_skb_leak
+Content-Disposition: attachment; filename=patch-put_reasm
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 97bcf2b..c9b6a6e 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -204,7 +204,7 @@ static unsigned int __ipv6_conntrack_in(struct net *net,
- 		if (ct != NULL && !nf_ct_is_untracked(ct)) {
- 			help = nfct_help(ct);
- 			if ((help && help->helper) || !nf_ct_is_confirmed(ct)) {
--				nf_conntrack_get_reasm(skb);
-+				nf_conntrack_get_reasm(reasm);
- 				NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, reasm,
- 					       (struct net_device *)in,
- 					       (struct net_device *)out,
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index a7393ad..3da70ba 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -2604,8 +2604,7 @@ static inline void nf_conntrack_get_reasm(struct sk_buff *skb)
+ }
+ static inline void nf_conntrack_put_reasm(struct sk_buff *skb)
+ {
+-	if (skb)
+-		kfree_skb(skb);
++	kfree_skb(skb);
+ }
+ #endif
+ #ifdef CONFIG_BRIDGE_NETFILTER
 
---J2SCkAp4GZ/dPZZf--
+--82I3+IH0IqGh5yIs--
