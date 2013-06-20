@@ -1,60 +1,37 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
-Date: Thu, 20 Jun 2013 13:36:00 +0300
-Message-ID: <51C2DB10.1060607@linux.intel.com>
-References: <1371628997-13548-1-git-send-email-eric@regit.org> <51C17E26.2020608@linux.intel.com> <20130620094243.GA5703@localhost> <51C2D0D8.1020309@linux.intel.com> <20130620101012.GA19679@localhost>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH -next] Revert "netfilter: tproxy: do not assign
+ timewait sockets to skb->sk"
+Date: Thu, 20 Jun 2013 12:36:17 +0200
+Message-ID: <20130620103617.GF2124@breakpoint.cc>
+References: <1369792719-3945-1-git-send-email-fw@strlen.de>
+ <20130620102234.GA19823@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49711 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757724Ab3FTKgC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 06:36:02 -0400
-In-Reply-To: <20130620101012.GA19679@localhost>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36127 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757733Ab3FTKgT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 06:36:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20130620102234.GA19823@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, May 29, 2013 at 03:58:39AM +0200, Florian Westphal wrote:
+> > This reverts commit d503b30bd648b3cb4e5f50b65d27e389960cc6d9.
+> > 
+> > Nowadays we have early socket demux; all the input code paths
+> > should handle "skb->sk points to timewait sock" properly.
+> 
+> I'm fine with this but I think that we should have some nf_sock_put
+> definition somewhere else. Using the tproxy namespace from xt_socket
+> doesn't seem nice to me.
 
->> Hum, how?
->> The handle it will get from the notification is the handle of the
->> newly created rule, not the one used to identify the rule for
->> insertion.
-> That's right. I don't come with any other way to make it rather than
-> adding a new attribute.
+I'll respin this revert to use sock_edemux() in its place instead,
+afaics we should be able to use that as replacement.
 
-Yes, though it breaks the design logic of the current API, somehow.
-
-I mean, attributes are currently reflecting the rule as it is, and are 
-used symmetrically in queries/replies.
-
-Here what we need is a temporary extra attribute, or some sort, only 
-used for the notification.
-
-Either via:
-
-we don't add an element to enum nft_rule_attributes {}, instead we 
-create another enum for attributes only used on notification.
-like enum nft_rule_extras_notifications_attributes {}
-
-
-Or via (maybe better for nla policy way of working?):
-
-Adding a nft_rule_attributes as NFTA_RULE_EXTRAS_NOTIFICATIONS as a 
-nested attribute
-and then enum nft_rule_extras_notifications_attributes {} again, etc etc...
-
-
-It's just a quick proposal, but my point here is to keep the API 
-semantically sane.
-So it won't require extra guesses to understand how it's supposed to work
-(as it is right now: it's a sane API, besides the lonely 
-NFT_RULE_F_COMMIT in its anonymous enum)
-
-Maybe there is a better way, probably. But you get my point.
-
-
-Tomasz
+Thanks.
