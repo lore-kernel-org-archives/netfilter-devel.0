@@ -1,48 +1,52 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
- flag
-Date: Thu, 20 Jun 2013 01:38:35 -0700
-Message-ID: <1371717515.3252.392.camel@edumazet-glaptop>
-References: <1370300249.24311.190.camel@edumazet-glaptop>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: nf_conntrack_ipv6: Plug sk_buff leak in
+ fragment handling
+Date: Thu, 20 Jun 2013 11:20:31 +0200
+Message-ID: <20130620092031.GC2124@breakpoint.cc>
+References: <20130619104950.GA1343@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	kaber@trash.net, davem@davemloft.net, security@kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:58480 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965057Ab3FTIik (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35735 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754182Ab3FTJUg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 04:38:40 -0400
-In-Reply-To: <1370300249.24311.190.camel@edumazet-glaptop>
+	Thu, 20 Jun 2013 05:20:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20130619104950.GA1343@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2013-06-03 at 15:57 -0700, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
-> 
-> xt_socket module can be a nice replacement to conntrack module
-> in some cases (SYN filtering for example)
-> 
-> But it lacks the ability to match the 3rd packet of TCP
-> handshake (ACK coming from the client).
-> 
-> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
-> 
-> iptables -I INPUT -p tcp --syn -j SYN_CHAIN
-> iptables -I INPUT -m socket -j ACCEPT
-> 
-> 
-> Signed-off-by: Eric Dumazet <edumazet@google.com>
-> Cc: Patrick McHardy <kaber@trash.net>
-> Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-> ---
+Phil Oester <kernel@linuxace.com> wrote:
+> In commit 4cdd3408 ("netfilter: nf_conntrack_ipv6: improve fragmentation
+> handling"), an sk_buff leak was introduced when dealing with reassembled
+> packets by grabbing a reference to the original skb instead of the
+> reassembled skb.  At this point, the leak only impacted conntracks with an
+> associated helper.  
 
-Hi Pablo, is there any problem with this patch ?
+David, could you please apply this patch directly in case Pablo doesn't
+apply it first?  This fixes a remote DoS, so it better hit -stable ASAP.
 
-Thanks
+Thanks.
 
+[ archive link: http://patchwork.ozlabs.org/patch/252692/ ]
 
+> diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> index 97bcf2b..c9b6a6e 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> @@ -204,7 +204,7 @@ static unsigned int __ipv6_conntrack_in(struct net *net,
+>  		if (ct != NULL && !nf_ct_is_untracked(ct)) {
+>  			help = nfct_help(ct);
+>  			if ((help && help->helper) || !nf_ct_is_confirmed(ct)) {
+> -				nf_conntrack_get_reasm(skb);
+> +				nf_conntrack_get_reasm(reasm);
+>  				NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, reasm,
+>  					       (struct net_device *)in,
+>  					       (struct net_device *)out,
+
+Thanks for fixing it, but personally I would have preferred a short early
+warning period.
