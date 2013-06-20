@@ -1,37 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
-Date: Thu, 20 Jun 2013 12:10:12 +0200
-Message-ID: <20130620101012.GA19679@localhost>
-References: <1371628997-13548-1-git-send-email-eric@regit.org>
- <51C17E26.2020608@linux.intel.com>
- <20130620094243.GA5703@localhost>
- <51C2D0D8.1020309@linux.intel.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
+ flag
+Date: Thu, 20 Jun 2013 03:19:20 -0700
+Message-ID: <1371723560.3252.399.camel@edumazet-glaptop>
+References: <1370300249.24311.190.camel@edumazet-glaptop>
+	 <1371717515.3252.392.camel@edumazet-glaptop>
+	 <20130620095500.GB698@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40380 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965007Ab3FTKKR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 06:10:17 -0400
-Content-Disposition: inline
-In-Reply-To: <51C2D0D8.1020309@linux.intel.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130620095500.GB698@localhost>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 20, 2013 at 12:52:24PM +0300, Tomasz Bursztyka wrote:
-> Hi Pablo,
+On Thu, 2013-06-20 at 11:55 +0200, Pablo Neira Ayuso wrote:
+
+> user-space part is missing (or at least I didn't manage to find the
+> patch).
+
+OK, I'll send the user-space, I was not sure if you wanted too.
+
+(Stephen always want kernel part being applied before iproute2 changes)
+
 > 
-> >The user-space daemon can keep a cache of the ordered rule-set. Thus,
-> >it can guess the position of the rule-set from the handle.
-> 
-> Hum, how?
-> The handle it will get from the notification is the handle of the
-> newly created rule, not the one used to identify the rule for
-> insertion.
+> We've been adding new revision for such a changes. I know it's a bit
+> too much, but we want to make sure that a user does not set this
+> option from user-space and it's silently ignored by iptables.
 
-That's right. I don't come with any other way to make it rather than
-adding a new attribute.
+No problem, will send a v2.
 
-Eric, would you rework the patch to do so?
+Thanks
