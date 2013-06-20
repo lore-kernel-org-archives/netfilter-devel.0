@@ -1,41 +1,29 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: remove redundant skb check in
- nf_conntrack_put_reasm
-Date: Thu, 20 Jun 2013 11:49:41 +0200
-Message-ID: <20130620094941.GA23325@localhost>
-References: <20130619142735.GA2758@gmail.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
+Date: Thu, 20 Jun 2013 12:52:24 +0300
+Message-ID: <51C2D0D8.1020309@linux.intel.com>
+References: <1371628997-13548-1-git-send-email-eric@regit.org> <51C17E26.2020608@linux.intel.com> <20130620094243.GA5703@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60694 "EHLO mail.us.es"
+Received: from mga14.intel.com ([143.182.124.37]:27169 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757304Ab3FTJtt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 05:49:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20130619142735.GA2758@gmail.com>
+	id S1754243Ab3FTJww (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 05:52:52 -0400
+In-Reply-To: <20130620094243.GA5703@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 19, 2013 at 10:27:35AM -0400, Phil Oester wrote:
-> kfree_skb already checks for skb existence - remove redundant check from
-> nf_conntrack_put_reasm.
+Hi Pablo,
 
-Applied with changes. I have added this chunk to this patch.
+> The user-space daemon can keep a cache of the ordered rule-set. Thus,
+> it can guess the position of the rule-set from the handle.
 
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -154,8 +154,7 @@ static unsigned int nf_hashfn(struct
-inet_frag_queue *q)
- 
- static void nf_skb_free(struct sk_buff *skb)
- {
--       if (NFCT_FRAG6_CB(skb)->orig)
--               kfree_skb(NFCT_FRAG6_CB(skb)->orig);
-+       kfree_skb(NFCT_FRAG6_CB(skb)->orig);
- }
- 
- static void nf_ct_frag6_expire(unsigned long data)
+Hum, how?
+The handle it will get from the notification is the handle of the newly 
+created rule, not the one used to identify the rule for insertion.
 
-Thanks.
+Tomasz
