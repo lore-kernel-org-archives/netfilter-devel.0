@@ -1,23 +1,196 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft: loop optimization
-Date: Thu, 20 Jun 2013 14:37:47 +0200
-Message-ID: <20130620123747.GA7494@localhost>
-References: <20130619111423.7135.60976.stgit@localhost>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH v2 nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
+ flag
+Date: Thu, 20 Jun 2013 05:52:22 -0700
+Message-ID: <1371732742.3252.408.camel@edumazet-glaptop>
+References: <1370300249.24311.190.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34159 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754724Ab3FTMhx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 08:37:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20130619111423.7135.60976.stgit@localhost>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:54085 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757682Ab3FTMw2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 08:52:28 -0400
+In-Reply-To: <1370300249.24311.190.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 19, 2013 at 01:14:23PM +0200, Giuseppe Longo wrote:
-> This patch prevent in some functions to continue looping after the chain is found.
+From: Eric Dumazet <edumazet@google.com>
 
-Applied, thanks Giuseppe!
+xt_socket module can be a nice replacement to conntrack module
+in some cases (SYN filtering for example)
+
+But it lacks the ability to match the 3rd packet of TCP
+handshake (ACK coming from the client).
+
+Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism.
+
+The wildcard is the legacy socket match behavior, that ignores
+LISTEN sockets bound to INADDR_ANY (or ipv6 equivalent)
+
+iptables -I INPUT -p tcp --syn -j SYN_CHAIN
+iptables -I INPUT -m socket --nowildcard -j ACCEPT
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+---
+v2: Add a revision 2 to maintain compatibility
+
+ include/uapi/linux/netfilter/xt_socket.h |    7 ++
+ net/netfilter/xt_socket.c                |   70 ++++++++++++++++++---
+ 2 files changed, 69 insertions(+), 8 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/xt_socket.h b/include/uapi/linux/netfilter/xt_socket.h
+index 26d7217..6315e2a 100644
+--- a/include/uapi/linux/netfilter/xt_socket.h
++++ b/include/uapi/linux/netfilter/xt_socket.h
+@@ -5,10 +5,17 @@
+ 
+ enum {
+ 	XT_SOCKET_TRANSPARENT = 1 << 0,
++	XT_SOCKET_NOWILDCARD = 1 << 1,
+ };
+ 
+ struct xt_socket_mtinfo1 {
+ 	__u8 flags;
+ };
++#define XT_SOCKET_FLAGS_V1 XT_SOCKET_TRANSPARENT
++
++struct xt_socket_mtinfo2 {
++	__u8 flags;
++};
++#define XT_SOCKET_FLAGS_V2 (XT_SOCKET_TRANSPARENT | XT_SOCKET_NOWILDCARD)
+ 
+ #endif /* _XT_SOCKET_H */
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 0270424..f8b7191 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -163,8 +163,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 		bool wildcard;
+ 		bool transparent = true;
+ 
+-		/* Ignore sockets listening on INADDR_ANY */
+-		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
++		/* Ignore sockets listening on INADDR_ANY,
++		 * unless XT_SOCKET_NOWILDCARD is set
++		 */
++		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
++			    sk->sk_state != TCP_TIME_WAIT &&
+ 			    inet_sk(sk)->inet_rcv_saddr == 0);
+ 
+ 		/* Ignore non-transparent sockets,
+@@ -197,7 +200,7 @@ socket_mt4_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ }
+ 
+ static bool
+-socket_mt4_v1(const struct sk_buff *skb, struct xt_action_param *par)
++socket_mt4_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	return socket_match(skb, par, par->matchinfo);
+ }
+@@ -259,7 +262,7 @@ extract_icmp6_fields(const struct sk_buff *skb,
+ }
+ 
+ static bool
+-socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
++socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	struct ipv6hdr *iph = ipv6_hdr(skb);
+ 	struct udphdr _hdr, *hp = NULL;
+@@ -302,8 +305,11 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 		bool wildcard;
+ 		bool transparent = true;
+ 
+-		/* Ignore sockets listening on INADDR_ANY */
+-		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
++		/* Ignore sockets listening on INADDR_ANY
++		 * unless XT_SOCKET_NOWILDCARD is set
++		 */
++		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
++			    sk->sk_state != TCP_TIME_WAIT &&
+ 			    ipv6_addr_any(&inet6_sk(sk)->rcv_saddr));
+ 
+ 		/* Ignore non-transparent sockets,
+@@ -331,6 +337,28 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ }
+ #endif
+ 
++static int socket_mt_v1_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++
++	if (info->flags & ~XT_SOCKET_FLAGS_V1) {
++		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V1);
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int socket_mt_v2_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_socket_mtinfo2 *info = (struct xt_socket_mtinfo2 *) par->matchinfo;
++
++	if (info->flags & ~XT_SOCKET_FLAGS_V2) {
++		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V2);
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "socket",
+@@ -345,7 +373,8 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV4,
+-		.match		= socket_mt4_v1,
++		.match		= socket_mt4_v1_v2,
++		.checkentry	= socket_mt_v1_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+ 				  (1 << NF_INET_LOCAL_IN),
+@@ -356,7 +385,32 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV6,
+-		.match		= socket_mt6_v1,
++		.match		= socket_mt6_v1_v2,
++		.checkentry	= socket_mt_v1_check,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++		.me		= THIS_MODULE,
++	},
++#endif
++	{
++		.name		= "socket",
++		.revision	= 2,
++		.family		= NFPROTO_IPV4,
++		.match		= socket_mt4_v1_v2,
++		.checkentry	= socket_mt_v2_check,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++		.me		= THIS_MODULE,
++	},
++#ifdef XT_SOCKET_HAVE_IPV6
++	{
++		.name		= "socket",
++		.revision	= 2,
++		.family		= NFPROTO_IPV6,
++		.match		= socket_mt6_v1_v2,
++		.checkentry	= socket_mt_v2_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+ 				  (1 << NF_INET_LOCAL_IN),
+
+
