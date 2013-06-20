@@ -1,33 +1,69 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
-Date: Thu, 20 Jun 2013 13:59:35 +0300
-Message-ID: <51C2E097.9090901@linux.intel.com>
-References: <1371628997-13548-1-git-send-email-eric@regit.org> <51C17E26.2020608@linux.intel.com> <20130620094243.GA5703@localhost> <51C2D0D8.1020309@linux.intel.com> <20130620101012.GA19679@localhost> <51C2DB10.1060607@linux.intel.com> <20130620104621.GC31140@macbook.localnet>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch] netfilter: prevent harmless integer overflow
+Date: Thu, 20 Jun 2013 14:09:44 +0300
+Message-ID: <20130620110944.GS5008@mwanda>
+References: <20130618074603.GF12329@elgon.mountain>
+	<20130620102352.GA19813@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:8380 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754893Ab3FTK7j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 06:59:39 -0400
-In-Reply-To: <20130620104621.GC31140@macbook.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+	bridge@lists.linux-foundation.org, kernel-janitors@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Stephen Hemminger <stephen@networkplumber.org>, netfilter@vger.kernel.org,
+	Bart De Schuymer <bart.de.schuymer@pandora.be>,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20130620102352.GA19813@localhost>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
->> >Maybe there is a better way, probably. But you get my point.
-> We could instead of using NLA_RULE_HANDLE for the position add a new
-> attribute NLA_RULE_POSITION and use that both for creating rules and
-> for notifications. It would always be set and contain the handle of
-> the rule preceeding the new rule (for NLM_F_APPEND) or the one
-> following it (for !NLM_F_APPEND).
+On Thu, Jun 20, 2013 at 12:23:52PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jun 18, 2013 at 10:46:03AM +0300, Dan Carpenter wrote:
+> > This overflow is harmless because a few lines later we check:
+> > 
+> > 	if (num_counters != t->private->nentries) {
+> > 
+> > But it still upsets the static checkers.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > 
+> > diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> > index 3d110c4..141350e 100644
+> > --- a/net/bridge/netfilter/ebtables.c
+> > +++ b/net/bridge/netfilter/ebtables.c
+> > @@ -1278,6 +1278,8 @@ static int do_update_counters(struct net *net, const char *name,
+> >  
+> >  	if (num_counters == 0)
+> >  		return -EINVAL;
+> > +	if (num_counters > INT_MAX / sizeof(*tmp))
+> > +		return -ENOMEM;
+> 
+> This is artificially limiting to INT_MAX / sizeof(struct counters).
+> Before this patch, the limit is UINT_MAX / sizeof(struct counters). I
+> think it's very unlikely to hit such a limit though, but as you
+> mentioned we cover the overflow already.  Adding it to calm down a
+> static checker sound a bit too much for me.
 
-I like that, it follows the current API design logic and it's simpler to 
-implement in both sides.
-It's much simpler indeed!
+I think we may be talking about different things?
 
-Tomasz
+"num_counters" comes from the user in update_counters() and we can
+definitely overflow.  I just copied the checks from do_replace() so
+that's why it uses INT_MAX instead of UINT_MAX.
+
+Like I said, the overflow is not harmful because later in the
+function we check "(num_counters != t->private->nentries)" and
+return an error before using "tmp".  So I don't feel strongly about
+this patch either way.
+
+regards,
+dan carpenter
