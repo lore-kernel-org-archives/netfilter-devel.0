@@ -1,34 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack_ipv6: Plug sk_buff leak in
- fragment handling
-Date: Thu, 20 Jun 2013 11:56:54 +0200
-Message-ID: <20130620095654.GC698@localhost>
-References: <20130619104950.GA1343@gmail.com>
- <20130620092031.GC2124@breakpoint.cc>
+Subject: Re: [PATCH] netfilter: remove redundant skb check in
+ nf_conntrack_put_reasm
+Date: Thu, 20 Jun 2013 11:58:46 +0200
+Message-ID: <20130620095846.GA19504@localhost>
+References: <20130619142735.GA2758@gmail.com>
+ <20130620092259.GD2124@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org,
-	kaber@trash.net, davem@davemloft.net, security@kernel.org
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35935 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36494 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754243Ab3FTJ47 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 05:56:59 -0400
+	id S1754243Ab3FTJ6v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 05:58:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20130620092031.GC2124@breakpoint.cc>
+In-Reply-To: <20130620092259.GD2124@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 20, 2013 at 11:20:31AM +0200, Florian Westphal wrote:
+On Thu, Jun 20, 2013 at 11:22:59AM +0200, Florian Westphal wrote:
 > Phil Oester <kernel@linuxace.com> wrote:
-> > In commit 4cdd3408 ("netfilter: nf_conntrack_ipv6: improve fragmentation
-> > handling"), an sk_buff leak was introduced when dealing with reassembled
-> > packets by grabbing a reference to the original skb instead of the
-> > reassembled skb.  At this point, the leak only impacted conntracks with an
-> > associated helper.  
+> > kfree_skb already checks for skb existence - remove redundant check from
+> > nf_conntrack_put_reasm.
 > 
-> David, could you please apply this patch directly in case Pablo doesn't
-> apply it first?  This fixes a remote DoS, so it better hit -stable ASAP.
+> This is called for every free'd skb, in almost all cases
+> the condition will be false.
+> 
+> So I think its ok to keep this check.
 
-I'll take care of it.
+I see, we'll hit branch mispredictions most of the time. I have kept
+this back. Thanks Florian.
