@@ -1,50 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch] netfilter: prevent harmless integer overflow
-Date: Thu, 20 Jun 2013 12:23:52 +0200
-Message-ID: <20130620102352.GA19813@localhost>
-References: <20130618074603.GF12329@elgon.mountain>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
+Date: Thu, 20 Jun 2013 13:36:00 +0300
+Message-ID: <51C2DB10.1060607@linux.intel.com>
+References: <1371628997-13548-1-git-send-email-eric@regit.org> <51C17E26.2020608@linux.intel.com> <20130620094243.GA5703@localhost> <51C2D0D8.1020309@linux.intel.com> <20130620101012.GA19679@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>,
-	Patrick McHardy <kaber@trash.net>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45429 "EHLO mail.us.es"
+Received: from mga11.intel.com ([192.55.52.93]:49711 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756268Ab3FTKX4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 06:23:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20130618074603.GF12329@elgon.mountain>
+	id S1757724Ab3FTKgC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 06:36:02 -0400
+In-Reply-To: <20130620101012.GA19679@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 10:46:03AM +0300, Dan Carpenter wrote:
-> This overflow is harmless because a few lines later we check:
-> 
-> 	if (num_counters != t->private->nentries) {
-> 
-> But it still upsets the static checkers.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 3d110c4..141350e 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1278,6 +1278,8 @@ static int do_update_counters(struct net *net, const char *name,
->  
->  	if (num_counters == 0)
->  		return -EINVAL;
-> +	if (num_counters > INT_MAX / sizeof(*tmp))
-> +		return -ENOMEM;
+Hi Pablo,
 
-This is artificially limiting to INT_MAX / sizeof(struct counters).
-Before this patch, the limit is UINT_MAX / sizeof(struct counters). I
-think it's very unlikely to hit such a limit though, but as you
-mentioned we cover the overflow already. Adding it to calm down a
-static checker sound a bit too much for me.
+>> Hum, how?
+>> The handle it will get from the notification is the handle of the
+>> newly created rule, not the one used to identify the rule for
+>> insertion.
+> That's right. I don't come with any other way to make it rather than
+> adding a new attribute.
+
+Yes, though it breaks the design logic of the current API, somehow.
+
+I mean, attributes are currently reflecting the rule as it is, and are 
+used symmetrically in queries/replies.
+
+Here what we need is a temporary extra attribute, or some sort, only 
+used for the notification.
+
+Either via:
+
+we don't add an element to enum nft_rule_attributes {}, instead we 
+create another enum for attributes only used on notification.
+like enum nft_rule_extras_notifications_attributes {}
+
+
+Or via (maybe better for nla policy way of working?):
+
+Adding a nft_rule_attributes as NFTA_RULE_EXTRAS_NOTIFICATIONS as a 
+nested attribute
+and then enum nft_rule_extras_notifications_attributes {} again, etc etc...
+
+
+It's just a quick proposal, but my point here is to keep the API 
+semantically sane.
+So it won't require extra guesses to understand how it's supposed to work
+(as it is right now: it's a sane API, besides the lonely 
+NFT_RULE_F_COMMIT in its anonymous enum)
+
+Maybe there is a better way, probably. But you get my point.
+
+
+Tomasz
