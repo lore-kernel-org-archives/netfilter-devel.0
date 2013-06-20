@@ -1,29 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: remove redundant skb check in
- nf_conntrack_put_reasm
-Date: Thu, 20 Jun 2013 11:22:59 +0200
-Message-ID: <20130620092259.GD2124@breakpoint.cc>
-References: <20130619142735.GA2758@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
+Date: Thu, 20 Jun 2013 11:42:43 +0200
+Message-ID: <20130620094243.GA5703@localhost>
+References: <1371628997-13548-1-git-send-email-eric@regit.org>
+ <51C17E26.2020608@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Phil Oester <kernel@linuxace.com>
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35770 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755439Ab3FTJXA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 05:23:00 -0400
+Received: from mail.us.es ([193.147.175.20]:58865 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752189Ab3FTJmu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 05:42:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20130619142735.GA2758@gmail.com>
+In-Reply-To: <51C17E26.2020608@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Phil Oester <kernel@linuxace.com> wrote:
-> kfree_skb already checks for skb existence - remove redundant check from
-> nf_conntrack_put_reasm.
+On Wed, Jun 19, 2013 at 12:47:18PM +0300, Tomasz Bursztyka wrote:
+> Hi Eric,
+>
+> >The patch
+> >	netfilter: nf_tables: add insert operation
+> >adds support for inserting a rule after a handle.
+> >
+> >It is followed by the patch
+> >	examples: add insert rule example
+> >which is the libnftables example.
+> >
+> >I choose to reuse the CREATE operation in the kernel code
+> >to avoid to add a new message to netlink. This way we have
+> >a sort of 'create after' syntax. This is almost natural IMHO.
+> 
+> There is an issue however: notification.
+> I don't see how other clients are going to know where to put the
+> rule when updating there own list when they get notified.
+> 
+> They will be notified that a rule as been added successfully, but
+> they will get it as an appended rule.
 
-This is called for every free'd skb, in almost all cases
-the condition will be false.
+This can be implemented in user-space.
 
-So I think its ok to keep this check.
+The user-space daemon can keep a cache of the ordered rule-set. Thus,
+it can guess the position of the rule-set from the handle.
