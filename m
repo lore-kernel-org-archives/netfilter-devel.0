@@ -1,29 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next] Revert "netfilter: tproxy: do not assign timewait
- sockets to skb->sk"
-Date: Thu, 20 Jun 2013 12:22:34 +0200
-Message-ID: <20130620102234.GA19823@localhost>
-References: <1369792719-3945-1-git-send-email-fw@strlen.de>
+Subject: Re: [patch] netfilter: prevent harmless integer overflow
+Date: Thu, 20 Jun 2013 12:23:52 +0200
+Message-ID: <20130620102352.GA19813@localhost>
+References: <20130618074603.GF12329@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>,
+	Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44922 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45429 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755747Ab3FTKWl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 06:22:41 -0400
+	id S1756268Ab3FTKX4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 06:23:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1369792719-3945-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20130618074603.GF12329@elgon.mountain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 29, 2013 at 03:58:39AM +0200, Florian Westphal wrote:
-> This reverts commit d503b30bd648b3cb4e5f50b65d27e389960cc6d9.
+On Tue, Jun 18, 2013 at 10:46:03AM +0300, Dan Carpenter wrote:
+> This overflow is harmless because a few lines later we check:
 > 
-> Nowadays we have early socket demux; all the input code paths
-> should handle "skb->sk points to timewait sock" properly.
+> 	if (num_counters != t->private->nentries) {
+> 
+> But it still upsets the static checkers.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 3d110c4..141350e 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1278,6 +1278,8 @@ static int do_update_counters(struct net *net, const char *name,
+>  
+>  	if (num_counters == 0)
+>  		return -EINVAL;
+> +	if (num_counters > INT_MAX / sizeof(*tmp))
+> +		return -ENOMEM;
 
-I'm fine with this but I think that we should have some nf_sock_put
-definition somewhere else. Using the tproxy namespace from xt_socket
-doesn't seem nice to me.
+This is artificially limiting to INT_MAX / sizeof(struct counters).
+Before this patch, the limit is UINT_MAX / sizeof(struct counters). I
+think it's very unlikely to hit such a limit though, but as you
+mentioned we cover the overflow already. Adding it to calm down a
+static checker sound a bit too much for me.
