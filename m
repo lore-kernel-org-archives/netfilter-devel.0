@@ -1,254 +1,78 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] conntrack: snprintf: add connlabel format specifier
-Date: Thu, 20 Jun 2013 13:50:52 +0200
-Message-ID: <20130620115052.GB7070@localhost>
-References: <1371588862-3407-1-git-send-email-fw@strlen.de>
- <1371588862-3407-2-git-send-email-fw@strlen.de>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [RFC PATCH 0/1] add insert after to nf_tables
+Date: Thu, 20 Jun 2013 14:17:00 +0200
+Message-ID: <1371730620.6038.2.camel@ice-age.regit.org>
+References: <1371628997-13548-1-git-send-email-eric@regit.org>
+	 <51C17E26.2020608@linux.intel.com> <20130620094243.GA5703@localhost>
+	 <51C2D0D8.1020309@linux.intel.com> <20130620101012.GA19679@localhost>
+	 <51C2DB10.1060607@linux.intel.com>
+	 <20130620104621.GC31140@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-N5XI55vXdfB+b7EG5b06"
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47076 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965044Ab3FTLu7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 07:50:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1371588862-3407-2-git-send-email-fw@strlen.de>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:55746 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757310Ab3FTMRI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 08:17:08 -0400
+In-Reply-To: <20130620104621.GC31140@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 10:54:22PM +0200, Florian Westphal wrote:
-> by default, nfct_snprintf will not resolve connlabel names, as they're
-> system specific. This adds a fmt attribute to resolve names accordingly.
-> 
-> output looks like this:
-> ... mark=0 use=1 labels=eth0-in (0),eth1-in (1)
-> or
-> <labels>
-> <label name="eth0-in" bit="0"/>
-> <label name="eth1-in" bit="1"/>
-> </labels>
 
-I think that the bit field is meaningless, so I would just export the
-strings. I'd use:
+--=-N5XI55vXdfB+b7EG5b06
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-<labels>
-<label>eth0-in</label>
-<label>eth1-in</label>
-<labels>
+Hi,
 
-I'd rather use elements, attributes are not easily extensible IMO.
+Le jeudi 20 juin 2013 =E0 12:46 +0200, Patrick McHardy a =E9crit :
+> On Thu, Jun 20, 2013 at 01:36:00PM +0300, Tomasz Bursztyka wrote:
+> > Hi Pablo,
+> >=20
+> > >>Hum, how?
+> > >>The handle it will get from the notification is the handle of the
+> > >>newly created rule, not the one used to identify the rule for
+> > >>insertion.
+...
+> LE_F_COMMIT in its anonymous enum)
+> >=20
+> > Maybe there is a better way, probably. But you get my point.
+>=20
+> We could instead of using NLA_RULE_HANDLE for the position add a new
+> attribute NLA_RULE_POSITION and use that both for creating rules and
+> for notifications.
 
-> Major stupidity:
-> As names can be anything, we need to be careful, especially when
-> creating XML output. Only alphanumerical label names are printed at
-> this time.
+I like that. Reusing NLA_RULE_HANDLE was making feel somehow
+uncomfortable.
 
-Hm, the string is enclosed between commas, isn't that enough to avoid
-troubles?
+>  It would always be set and contain the handle of
+> the rule preceeding the new rule (for NLM_F_APPEND) or the one
+> following it (for !NLM_F_APPEND).
 
-> Else you get
-> labels=(0), .. or <labels><label name="" bit="0"/> in xml output.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  I am interested in feedback wrt.
-> 
->  a) the chosen xml representation
->  b) wheter it makes sense to limit valid charactes in the label
->     names this way (e.g., should we care? should be disallow that
->     in iptables as well, etc).
->  c) if this patch makes sense in the first place, e.g, can't use
->      alternate mapping file for labels with nfct_snprintf
+Nice, reworking my patches in that direction.
 
-Regarding c) I think it makes sense. You can add some
-nfct_set_connlabel_file interface to set where to find it, it's a bit
-cheating but should resolve the issue.
+BR,
+--
+Eric
 
->  include/internal/internal.h                        |  1 +
->  include/internal/prototypes.h                      |  1 +
->  .../libnetfilter_conntrack.h                       |  3 +
->  src/conntrack/snprintf_default.c                   | 84 +++++++++++++++++++++-
->  src/conntrack/snprintf_xml.c                       |  8 ++-
->  5 files changed, 93 insertions(+), 4 deletions(-)
-> 
-> diff --git a/include/internal/internal.h b/include/internal/internal.h
-> index aaf6bd4..a5c7923 100644
-> --- a/include/internal/internal.h
-> +++ b/include/internal/internal.h
-> @@ -6,6 +6,7 @@
->  #ifndef __LIBNETFILTER_CONNTRACK_INTERNAL__
->  #define __LIBNETFILTER_CONNTRACK_INTERNAL__
->  
-> +#include <stdbool.h>
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <stdarg.h>
-> diff --git a/include/internal/prototypes.h b/include/internal/prototypes.h
-> index cc8de1d..577270b 100644
-> --- a/include/internal/prototypes.h
-> +++ b/include/internal/prototypes.h
-> @@ -16,6 +16,7 @@ int __snprintf_proto(char *buf, unsigned int len, const struct __nfct_tuple *tup
->  int __snprintf_conntrack_default(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
->  int __snprintf_conntrack_xml(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
->  int __snprintf_connlabels(char *buf, unsigned int len, const struct nf_conntrack *ct, const char *prefix, const char *end);
-> +int __snprintf_connlabels_names(char *buf, unsigned int len, const struct nf_conntrack *ct, const char *prefix, const char *end, bool xml);
->  
->  enum __nfct_addr {
->  	__ADDR_SRC = 0,
-> diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> index 39dc24c..eedf85e 100644
-> --- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> +++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> @@ -389,6 +389,9 @@ enum {
->  
->  	NFCT_OF_TIMESTAMP_BIT = 3,
->  	NFCT_OF_TIMESTAMP = (1 << NFCT_OF_TIMESTAMP_BIT),
-> +
-> +	NFCT_OF_CONNLABELS_BIT = 4,
-> +	NFCT_OF_CONNLABELS = (1 << NFCT_OF_CONNLABELS_BIT),
->  };
->  
->  extern int nfct_snprintf(char *buf, 
-> diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-> index a1edef4..7befbd7 100644
-> --- a/src/conntrack/snprintf_default.c
-> +++ b/src/conntrack/snprintf_default.c
-> @@ -313,9 +313,89 @@ __snprintf_connlabels(char *buf, unsigned int len,
->  	return size;
->  }
->  
-> +/*
-> + * Labels can have any name, there are no restrictions.
-> + * We will only print alpha numerical ones; else parsers
-> + * could choke when putinng "&>" and friends into output
-> + * (especially when using XML format).  ASCII machines only.
-> + */
-> +static bool label_is_sane(const char *label)
-> +{
-> +	for (;*label; label++) {
-> +		if (*label >= 'a' && *label <= 'z')
-> +			continue;
-> +		if (*label >= 'A' && *label <= 'Z')
-> +			continue;
-> +		if (*label >= '0' && *label <= '9')
-> +			continue;
+--=-N5XI55vXdfB+b7EG5b06
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-is isalnum() instead?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> +		if (*label == ' ' || *label == '-')
-> +			continue;i
-> +		return false;
-> +	}
-> +	return true;
-> +}
-> +
-> +int
-> +__snprintf_connlabels_names(char *buf, unsigned int len,
-> +			    const struct nf_conntrack *ct,
-> +			    const char *prefix, const char *end, bool xml)
-> +{
-> +	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
-> +	unsigned int i, max;
-> +	int ret, size = 0, offset = 0;
-> +	struct nfct_labelmap *map;
-> +
-> +	if (!b)
-> +		return 0;
-> +	map = nfct_labelmap_new(NULL);
-> +	if (!map)
-> +		return __snprintf_connlabels(buf, len, ct, prefix, end);
-> +
-> +	ret = snprintf(buf, len, "%s", prefix);
-> +	BUFFER_SIZE(ret, size, len, offset);
-> +	max = nfct_bitmask_maxbit(b);
-> +	for (i = 0; i <= max && len; i++) {
-> +		const char *name;
-> +		if (!nfct_bitmask_test_bit(b, i))
-> +			continue;
-> +		name = nfct_labelmap_get_name(map, i);
-> +		if (!name || !label_is_sane(name))
-> +			name = "";
-> +
-> +		if (xml)
-> +			ret = snprintf(buf + offset, len, "<label name=\"%s\" ", name);
-> +		else if (strcmp(name, "") != 0)
-> +			ret = snprintf(buf + offset, len, "%s ", name);
-> +		else
-> +			ret = 0;
-> +		BUFFER_SIZE(ret, size, len, offset);
-> +
-> +		if (xml)
-> +			ret = snprintf(buf + offset, len, "bit=\"%u\"/>", i);
-> +		else
-> +			ret = snprintf(buf + offset, len, "(%u),", i);
-> +		BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +
-> +	nfct_labelmap_destroy(map);
-> +	if (offset && end) {
-> +		if (!xml) {
-> +			offset--; /* remove last , */
-> +			size--;
-> +		}
-> +		ret = snprintf(buf + offset, len, "%s", end);
-> +		BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +	return size;
-> +}
-> +
->  static int
-> -__snprintf_clabels(char *buf, unsigned int len, const struct nf_conntrack *ct)
-> +__snprintf_clabels(char *buf, unsigned int len,
-> +		   const struct nf_conntrack *ct, bool names)
->  {
-> +	if (names)
-> +		return  __snprintf_connlabels_names(buf, len, ct,
-> +					   "labels=", " ", false);
->  	return __snprintf_connlabels(buf, len, ct, "labels=", " ");
->  }
->  
-> @@ -458,7 +538,7 @@ int __snprintf_conntrack_default(char *buf,
->  	}
->  
->  	if (test_bit(ATTR_CONNLABELS, ct->head.set)) {
-> -		ret = __snprintf_clabels(buf+offset, len, ct);
-> +		ret = __snprintf_clabels(buf+offset, len, ct, flags & NFCT_OF_CONNLABELS );
->  		BUFFER_SIZE(ret, size, len, offset);
->  	}
->  
-> diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
-> index f373f5b..1c2440a 100644
-> --- a/src/conntrack/snprintf_xml.c
-> +++ b/src/conntrack/snprintf_xml.c
-> @@ -349,8 +349,12 @@ static int __snprintf_tuple_xml(char *buf,
->  }
->  
->  static int
-> -__snprintf_clabels_xml(char *buf, unsigned int len, const struct nf_conntrack *ct)
-> +__snprintf_clabels_xml(char *buf, unsigned int len,
-> +		       const struct nf_conntrack *ct, bool names)
->  {
-> +	if (names)
-> +		return __snprintf_connlabels_names(buf, len, ct,
-> +				"<labels>", "</labels>", true);
->  	return __snprintf_connlabels(buf, len, ct, "<labels>", "</labels>");
->  }
->  
-> @@ -440,7 +444,7 @@ int __snprintf_conntrack_xml(char *buf,
->  	}
->  
->  	if (test_bit(ATTR_CONNLABELS, ct->head.set)) {
-> -		ret = __snprintf_clabels_xml(buf+offset, len, ct);
-> +		ret = __snprintf_clabels_xml(buf+offset, len, ct, flags & NFCT_OF_CONNLABELS);
->  		BUFFER_SIZE(ret, size, len, offset);
->  	}
->  
-> -- 
-> 1.8.1.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iD8DBQBRwvK8nxA7CdMWjzIRAu0nAJ4+uha196M82alt5N9iTHSEn3SsagCdG0BY
+/7RMccFaskgt9aC2iwAh+do=
+=ewrE
+-----END PGP SIGNATURE-----
+
+--=-N5XI55vXdfB+b7EG5b06--
+
