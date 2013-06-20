@@ -1,55 +1,48 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] netfilter: remove redundant skb check in
- nf_conntrack_put_reasm
-Date: Wed, 19 Jun 2013 10:27:35 -0400
-Message-ID: <20130619142735.GA2758@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
+ flag
+Date: Thu, 20 Jun 2013 01:38:35 -0700
+Message-ID: <1371717515.3252.392.camel@edumazet-glaptop>
+References: <1370300249.24311.190.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="82I3+IH0IqGh5yIs"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:63640 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935546Ab3FTDaX (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:58480 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965057Ab3FTIik (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Jun 2013 23:30:23 -0400
-Received: by mail-pd0-f171.google.com with SMTP id y14so5756542pdi.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2013 20:30:23 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 20 Jun 2013 04:38:40 -0400
+In-Reply-To: <1370300249.24311.190.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, 2013-06-03 at 15:57 -0700, Eric Dumazet wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> xt_socket module can be a nice replacement to conntrack module
+> in some cases (SYN filtering for example)
+> 
+> But it lacks the ability to match the 3rd packet of TCP
+> handshake (ACK coming from the client).
+> 
+> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
+> 
+> iptables -I INPUT -p tcp --syn -j SYN_CHAIN
+> iptables -I INPUT -m socket -j ACCEPT
+> 
+> 
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+> ---
 
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Pablo, is there any problem with this patch ?
 
-kfree_skb already checks for skb existence - remove redundant check from
-nf_conntrack_put_reasm.
-
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+Thanks
 
 
-
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-put_reasm
-
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index a7393ad..3da70ba 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -2604,8 +2604,7 @@ static inline void nf_conntrack_get_reasm(struct sk_buff *skb)
- }
- static inline void nf_conntrack_put_reasm(struct sk_buff *skb)
- {
--	if (skb)
--		kfree_skb(skb);
-+	kfree_skb(skb);
- }
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
-
---82I3+IH0IqGh5yIs--
