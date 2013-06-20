@@ -1,61 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: remove redundant skb check in
- nf_conntrack_put_reasm
-Date: Thu, 20 Jun 2013 16:15:37 +0200
-Message-ID: <20130620141537.GH2124@breakpoint.cc>
-References: <20130619142735.GA2758@gmail.com>
- <20130620092259.GD2124@breakpoint.cc>
- <20130620095846.GA19504@localhost>
- <20130620000135.GB819@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC PATCH -next] netfilter: nfqueue: add ability to dump list
+ of supported attributes
+Date: Thu, 20 Jun 2013 20:27:01 +0200
+Message-ID: <20130620182701.GA8769@localhost>
+References: <1370360273-20633-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37007 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030216Ab3FTOPj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jun 2013 10:15:39 -0400
+Received: from mail.us.es ([193.147.175.20]:46950 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757728Ab3FTS1M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jun 2013 14:27:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20130620000135.GB819@gmail.com>
+In-Reply-To: <1370360273-20633-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Phil Oester <kernel@linuxace.com> wrote:
-> On Thu, Jun 20, 2013 at 11:58:46AM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Jun 20, 2013 at 11:22:59AM +0200, Florian Westphal wrote:
-> > > Phil Oester <kernel@linuxace.com> wrote:
-> > > > kfree_skb already checks for skb existence - remove redundant check from
-> > > > nf_conntrack_put_reasm.
-> > > 
-> > > This is called for every free'd skb, in almost all cases
-> > > the condition will be false.
-> > > 
-> > > So I think its ok to keep this check.
-> > 
-> > I see, we'll hit branch mispredictions most of the time. I have kept
-> > this back. Thanks Florian.
+Hi Florian,
+
+On Tue, Jun 04, 2013 at 05:37:53PM +0200, Florian Westphal wrote:
+> Allows userspace to dump the list of known (extended) attributes.
+> For SKB_INFO, we set all the info flag bits supported by the running kernel.
 > 
-> If we're concerned about branch mispredictions, we should change the check to
-> match the one at the top of kfree_skb:
->         if (unlikely(!skb))
->                 return;
+> The latter is required because absence of some bits in the info attribute will
+> either mean "skb did not have the property" OR "this kernel doesn't know about
+> this flag".
+>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Recent discussion of the
+>  "netfilter: nf_queue: add NFQA_SKB_CSUM_NOTVERIFIED info flag" patch
+>  (http://patchwork.ozlabs.org/patch/246460/) shows that we'll need
+>  to tell userspace the supported info bits in the NFAQ_SKB_INFO attribute.
 
-Its the opposite.  For kfree_skb skb is (virtually) never NULL.
+After going back to this issue, I think I prefer to enqueue:
 
-> However nf_conntrack_put_reasm is only used in 3 places in the entire tree.
-> Unclear why we don't just call kfree_skb directly in these 3 places.
+netfilter: nf_queue: add NFQA_SKB_CSUM_NOTVERIFIED info flag
 
-I guess what you could do is s/nf_conntrack_put_reasm/kfree_skb/g and
-also change skb_release_head_state() to use
+to net-next, and ask for -stable submission once this hits net, as it
+will be fixing an inconsistent behaviour. Another reason for that is
+that such patch is fairly small (~16 LOC).
 
-#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
-        if (skb->nfct) /* usually NULL */
-	        kfree_skb(skb->nfct);
-#endif
+Both approaches we discussed that are:
 
-[ or show that there is no performance degradation for workloads where
-  we end up calling kfree_skb(NULL) in hot path ]
+a) adding a new config flags
+
+and
+
+b) adding this infrastructure
+
+look a bit too much to me just to resolve this.
+
+Once this patch hits -stable, we can consistently say that:
+
+NFQA_SKB_CSUMNOTREADY
+NFQA_SKB_GSO
+NFQA_SKB_CSUM_NOTVERIFIED
+
+are obtained via NFQA_CFG_F_GSO.
+
+For user-space application running with different, they can still send
+every configuration incrementally, so you spot a message telling what
+is available and what is not. I planned to use this to add GSO support
+for the user-space helper infrastructure.
+
+Let me know.
