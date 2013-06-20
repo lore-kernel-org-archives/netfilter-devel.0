@@ -1,63 +1,77 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/1] netfilter: ctnetlink: send event when conntrack label was modified
-Date: Fri, 21 Jun 2013 16:51:30 +0200
-Message-ID: <1371826290-302-1-git-send-email-fw@strlen.de>
-References: <y>
-Cc: Florian Westphal <fw@strlen.de>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] iptables: iptables-xml: Fix various parsing bugs
+Date: Thu, 20 Jun 2013 08:53:36 -0400
+Message-ID: <20130620125336.GA15704@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="fUYQa+Pmc3FrFX/N"
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40868 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161419Ab3FUOtp (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:32936 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423052Ab3FUPGk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Jun 2013 10:49:45 -0400
-In-Reply-To: <y>
+	Fri, 21 Jun 2013 11:06:40 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rr13so7870038pbb.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jun 2013 08:06:39 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0ceabd83875b72a29f33db4ab703d6ba40ea4c58
-(netfilter: ctnetlink: deliver labels to userspace) sets the event bit
-when we raced with another packet, instead of raising the event bit
-when the label bit is set for the first time.
 
-commit 9b21f6a90924dfe8e5e686c314ddb441fb06501e
-(netfilter: ctnetlink: allow userspace to modify labels) forgot to update
-the event mask in the "conntrack already exists" case.
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Both issues result in CTA_LABELS attribute not getting included in the
-conntrack event.
+There are two bugs in iptables-xml do_rule_part parsing corrected by this patch:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_labels.c  |    2 +-
- net/netfilter/nf_conntrack_netlink.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
+1) Ignore "-A <chain>" instead of just "-A"
+2) When checking to see if we need a <match> tag, inversion needs to be taken
+   into account
 
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 8fe2e99..355d2ef 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -45,7 +45,7 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- 	if (test_bit(bit, labels->bits))
- 		return 0;
+This closes netfilter bugzilla #679.  
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-xml
+
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 4b12bd4..99d7527 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -367,7 +367,8 @@ static void
+ do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
+ 	     char *argv[], int argvattr[])
+ {
+-	int arg = 1;		// ignore leading -A
++	int i;
++	int arg = 2;		// ignore leading -A <chain>
+ 	char invert_next = 0;
+ 	char *spacer = "";	// space when needed to assemble arguments
+ 	char *level1 = NULL;
+@@ -401,9 +402,14 @@ do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
  
--	if (test_and_set_bit(bit, labels->bits))
-+	if (!test_and_set_bit(bit, labels->bits))
- 		nf_conntrack_event_cache(IPCT_LABEL, ct);
- 
- 	return 0;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6d0f8a1..ecf065f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1825,6 +1825,7 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
- 						      (1 << IPCT_ASSURED) |
- 						      (1 << IPCT_HELPER) |
-+						      (1 << IPCT_LABEL) |
- 						      (1 << IPCT_PROTOINFO) |
- 						      (1 << IPCT_NATSEQADJ) |
- 						      (1 << IPCT_MARK),
--- 
-1.7.8.6
+ 	/* Before we start, if the first arg is -[^-] and not -m or -j or -g 
+ 	   then start a dummy <match> tag for old style built-in matches.  
+-	   We would do this in any case, but no need if it would be empty */
+-	if (arg < argc && argv[arg][0] == '-' && !isTarget(argv[arg])
+-	    && strcmp(argv[arg], "-m") != 0) {
++	   We would do this in any case, but no need if it would be empty 
++	   In the case of negation, we need to look at arg+1 */
++	if (arg < argc && strcmp(argv[arg], "!") == 0)
++		i = arg + 1;
++	else
++		i = arg;
++	if (i < argc && argv[i][0] == '-' && !isTarget(argv[i])
++	    && strcmp(argv[i], "-m") != 0) {
+ 		OPEN_LEVEL(1, "match");
+ 		printf(">\n");
+ 	}
 
+--fUYQa+Pmc3FrFX/N--
