@@ -1,45 +1,41 @@
-From: gapsf <gapsf@yandex.ru>
-Subject: [PATCH ] nftables kernel tree: nf_tables_ipv4.c: typo in struct filter_ipv4 initialization
-Date: Sat, 22 Jun 2013 20:43:50 +0700
-Message-ID: <76071371908630@web29g.yandex.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----==--bound.7608.web29g.yandex.ru"
+From: gapsf@yandex.ru
+Subject: [PATCH] nftables kernel tree: nf_tables_ipv4.c: typo in struct filter_ipv4 initialization
+Date: Sat, 22 Jun 2013 23:40:40 +0700
+Message-ID: <1371919240-2216-1-git-send-email-gapsf@yandex.ru>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward19.mail.yandex.net ([95.108.253.144]:46210 "EHLO
-	forward19.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755671Ab3FVNnx (ORCPT
+Received: from forward4h.mail.yandex.net ([84.201.186.22]:33034 "EHLO
+	forward4h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608Ab3FVQtG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Jun 2013 09:43:53 -0400
-Received: from web29g.yandex.ru (web29g.yandex.ru [95.108.253.238])
-	by forward19.mail.yandex.net (Yandex) with ESMTP id 021ED1120FE5
-	for <netfilter-devel@vger.kernel.org>; Sat, 22 Jun 2013 17:43:50 +0400 (MSK)
+	Sat, 22 Jun 2013 12:49:06 -0400
+Received: from smtp2h.mail.yandex.net (smtp2h.mail.yandex.net [84.201.187.145])
+	by forward4h.mail.yandex.net (Yandex) with ESMTP id 187B51B2C28D
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Jun 2013 20:41:39 +0400 (MSK)
+Received: from smtp2h.mail.yandex.net (localhost [127.0.0.1])
+	by smtp2h.mail.yandex.net (Yandex) with ESMTP id E8FB41700F60
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Jun 2013 20:41:38 +0400 (MSK)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: gapsf <gapsf@yandex.ru>
 
-------==--bound.7608.web29g.yandex.ru
-Content-Disposition: attachment;
-	filename="0001-nf_tables_ipv4.c-typo-in-struct-filter_ipv4-init.patch"
-Content-Transfer-Encoding: base64
-Content-Type: text/x-c;
-	name="0001-nf_tables_ipv4.c-typo-in-struct-filter_ipv4-init.patch"
+---
+ net/ipv4/netfilter/nf_tables_ipv4.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-RnJvbSA4ODk3MWNhMzZjZWM2MWYzOWU4YTI0ZTY0NjBlZjNjZGE1ZGIxNmRiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBnYXBzZiA8Z2Fwc2ZAeWFuZGV4LnJ1PgpEYXRlOiBUaHUsIDIw
-IEp1biAyMDEzIDIzOjI4OjI2ICswNzAwClN1YmplY3Q6IFtQQVRDSF0gbmZfdGFibGVzX2lwdjQu
-YzogdHlwbyBpbiBzdHJ1Y3QgZmlsdGVyX2lwdjQgaW5pdGlhbGl6YXRpb24KCi0tLQogbmV0L2lw
-djQvbmV0ZmlsdGVyL25mX3RhYmxlc19pcHY0LmMgfCAxIC0KIDEgZmlsZSBjaGFuZ2VkLCAxIGRl
-bGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvbmV0L2lwdjQvbmV0ZmlsdGVyL25mX3RhYmxlc19pcHY0
-LmMgYi9uZXQvaXB2NC9uZXRmaWx0ZXIvbmZfdGFibGVzX2lwdjQuYwppbmRleCBhYjZiNDA3Li41
-ZGZiMmFlIDEwMDY0NAotLS0gYS9uZXQvaXB2NC9uZXRmaWx0ZXIvbmZfdGFibGVzX2lwdjQuYwor
-KysgYi9uZXQvaXB2NC9uZXRmaWx0ZXIvbmZfdGFibGVzX2lwdjQuYwpAQCAtMTAwLDcgKzEwMCw2
-IEBAIHN0YXRpYyBzdHJ1Y3QgbmZfY2hhaW5fdHlwZSBmaWx0ZXJfaXB2NCA9IHsKIAkuZm4JCT0g
-ewogCQlbTkZfSU5FVF9MT0NBTF9JTl0JPSBuZnRfZG9fY2hhaW5faXB2NCwKIAkJW05GX0lORVRf
-TE9DQUxfT1VUXQk9IG5mdF9kb19jaGFpbl9pcHY0LAotCQlbTkZfSU5FVF9MT0NBTF9PVVRdCT0g
-bmZ0X2RvX2NoYWluX2lwdjQsCiAJCVtORl9JTkVUX0ZPUldBUkRdCT0gbmZ0X2RvX2NoYWluX2lw
-djQsCiAJCVtORl9JTkVUX1BSRV9ST1VUSU5HXQk9IG5mdF9kb19jaGFpbl9pcHY0LAogCQlbTkZf
-SU5FVF9QT1NUX1JPVVRJTkddCT0gbmZ0X2RvX2NoYWluX2lwdjQsCi0tIAoxLjguMy5tc3lzZ2l0
-LjAKCg==
-------==--bound.7608.web29g.yandex.ru--
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index ab6b407..5dfb2ae 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -100,7 +100,6 @@ static struct nf_chain_type filter_ipv4 = {
+ 	.fn		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+ 		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
+-		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
+ 		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
+-- 
+1.8.3.msysgit.0
+
