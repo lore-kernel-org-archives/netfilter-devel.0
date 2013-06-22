@@ -1,14 +1,14 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [nft] netlink: fix network address prefix
-Date: Sat, 22 Jun 2013 19:19:40 +0200
-Message-ID: <1371921580-10866-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCHv2] nft: netlink: fix network address prefix
+Date: Sat, 22 Jun 2013 19:46:38 +0200
+Message-ID: <1371923198-11811-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41389 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42986 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751807Ab3FVRTt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Jun 2013 13:19:49 -0400
+	id S1751862Ab3FVRqr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Jun 2013 13:46:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -18,14 +18,15 @@ so far, this operation was only possible using sets.
 
 nft add rule filter output ip daddr \{ 192.168.1.0/24 \} counter
 
-This patch requires the previous patch that converts nft to use libnftables.
-
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink.c             |   24 ++++++++++++++++++
- src/netlink_delinearize.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
- src/netlink_linearize.c   |   28 ++++++++++++++++++---
- 3 files changed, 108 insertions(+), 4 deletions(-)
+v1: initial version
+v2: don't break normal comparisons
+
+ src/netlink.c             |   24 +++++++++++++++++++
+ src/netlink_delinearize.c |   57 +++++++++++++++++++++++++++++++++++++++++++++
+ src/netlink_linearize.c   |   28 ++++++++++++++++++----
+ 3 files changed, 105 insertions(+), 4 deletions(-)
 
 diff --git a/src/netlink.c b/src/netlink.c
 index d835281..2a7bdb5 100644
@@ -70,10 +71,10 @@ index d835281..2a7bdb5 100644
  		BUG("invalid data expression type %s\n", expr->ops->name);
  	}
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index c24e105..e150567 100644
+index c24e105..ab7c00d 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -593,6 +593,57 @@ static void meta_match_postprocess(struct payload_ctx *ctx,
+@@ -593,6 +593,54 @@ static void meta_match_postprocess(struct payload_ctx *ctx,
  	}
  }
  
@@ -106,9 +107,6 @@ index c24e105..e150567 100644
 +	return k;
 +}
 +
-+static void expr_postprocess(struct rule_pp_ctx *ctx,
-+			     struct stmt *stmt, struct expr **exprp);
-+
 +static int prefix_postprocess(struct expr *expr)
 +{
 +	struct expr *binop = expr->left, *value = expr->right;
@@ -131,7 +129,7 @@ index c24e105..e150567 100644
  static void expr_postprocess(struct rule_pp_ctx *ctx,
  			     struct stmt *stmt, struct expr **exprp)
  {
-@@ -635,6 +686,15 @@ static void expr_postprocess(struct rule_pp_ctx *ctx,
+@@ -635,6 +683,15 @@ static void expr_postprocess(struct rule_pp_ctx *ctx,
  		case EXPR_PAYLOAD:
  			payload_match_postprocess(ctx, stmt, expr);
  			return;
@@ -148,7 +146,7 @@ index c24e105..e150567 100644
  			expr_postprocess(ctx, stmt, &expr->left);
  			break;
 diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 044815a..326f80f 100644
+index 044815a..059952c 100644
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
 @@ -184,18 +184,38 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
@@ -181,7 +179,7 @@ index 044815a..326f80f 100644
 +		nft_rule_add_expr(ctx->nlr, nle);
 +	} else {
 +		right = expr->right;
-+		op = netlink_gen_cmp_op(right->op);
++		op = netlink_gen_cmp_op(expr->op);
 +	}
 +
  	nle = alloc_nft_expr("cmp");
