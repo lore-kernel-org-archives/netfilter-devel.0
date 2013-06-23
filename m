@@ -1,69 +1,84 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Bridge-nf and iptables SNAT
-Date: Sun, 23 Jun 2013 22:09:38 +0200
-Message-ID: <51C75602.8000507@pandora.be>
-References: <CAAobQ8eDxDYaewZM2AmPK0MnbNnamXOnOmtJjsH=4CD90Hct-A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Tsachi <tsachi.kimel@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH lnf-ct 1/2] conntrack: labels: skip labels with non-alnum characters
+Date: Sun, 23 Jun 2013 23:14:38 +0200
+Message-ID: <1372022079-11719-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from georges.telenet-ops.be ([195.130.137.68]:43230 "EHLO
-	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab3FWUJp (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44875 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751049Ab3FWVQN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Jun 2013 16:09:45 -0400
-In-Reply-To: <CAAobQ8eDxDYaewZM2AmPK0MnbNnamXOnOmtJjsH=4CD90Hct-A@mail.gmail.com>
+	Sun, 23 Jun 2013 17:16:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 18/06/2013 16:11, Tsachi schreef:
-> The problem is that enabling bridge-nf-call-iptables, has an effect on
-> bridge traffic throughput:
-> 96Mb/s when disabled.
-> 70Mb/s when enabled.
->
-> First question:
-> When I check the same without bridge (routing + SNAT) throughput was 86Mb/s.
-> When bridge-nf-call-iptables is enabled, packets are going through L2
-> bridge code as well as L3 netfilter code, but, why it has such an
-> effects on the throughput?
-I think to answer that will require performance profiling of the code, 
-since as far as I know it's never happened.
-Here are some thoughts:
-- W.r.t. ebtables, the performance impact of let's say a FORWARD chain 
-rule is bound to be higher for ebtables compared to iptables because it 
-will be called more for the same traffic. Fragmented IP packets, f.e., 
-will be processed one by one by the FORWARD chain (if 
-bridge-nf-call-iptables is disabled) while an iptables FORWARD rule 
-would only be called once. Flooded packets are seen multiple times by 
-some ebtables chains (once for each output device). In the bridge-nf 
-case, these flooded packets are also seen multiple time by some iptables 
-chains.
-- The function call stack is bigger in the bridge-nf compared to the 
-standard iptables case because we have the combination of NF_HOOKs for 
-NFPROTO_BRIDGE and NFPROTO_IPV4. NF_HOOK_THRESH adds to the equation. 
-Note that due to the design of netfilter, the call stack can grow quite 
-big because the NF_HOOK okfn is executed up the call stack.
+Can always lift this restriction later but for now enforce
+strict label naming.
 
-> Second question:
-> In order to share an IP (with iptables SNAT, without enabling
-> bridge-nf-call-iptables) ,
-> One solution I thought about, is to write a new ebtable module (used
-> in the brouting chain) which looks for the packet in the conntrack.
-> In case it finds it, Drop (routed) the packet, thus going through the
-> iptables code, if not found - Accept it (bridged).
-> This means some skb header work and conntrack searching for every
-> packet, do you think is a good approach?
-What you could also try is making something based on br_netfilter.c that 
-only lets iptables connection tracking and POSTROUTING see the packets.
-If you want full performance also for the traffic originating from the 
-bridge, it's best if you do your magic using brouting: traffic that 
-enters the IP stack through br0 is queued once more in the kernel than 
-traffic that enters the IP stack through one of the bridge ports (by 
-brouting the packet).
+This is mainly  to make sure that e.g. using
+conntrack ... -o xml,connlabels
 
-cheers,
-Bart
+will output the expected format, without nasty surprises.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ I've split this into a separate patch since it has noting
+ to do with the nfct_snprintf change.
+
+ src/conntrack/labels.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/src/conntrack/labels.c b/src/conntrack/labels.c
+index 7393c42..7dfb780 100644
+--- a/src/conntrack/labels.c
++++ b/src/conntrack/labels.c
+@@ -1,3 +1,4 @@
++#include <stdbool.h>
+ #include <stdint.h>
+ 
+ #include "internal/internal.h"
+@@ -184,6 +185,30 @@ static struct nfct_labelmap *map_alloc(void)
+ 	return map;
+ }
+ 
++/*
++ * We will only accept alpha numerical labels; else
++ * parses might choke on output when label named
++ * "foo;<&bar" exists.  ASCII machines only.
++ *
++ * Avoids libc isalnum() etc. to avoid issues with locale
++ * settings.
++ */
++static bool label_is_sane(const char *label)
++{
++	for (;*label; label++) {
++		if (*label >= 'a' && *label <= 'z')
++			continue;
++		if (*label >= 'A' && *label <= 'Z')
++			continue;
++		if (*label >= '0' && *label <= '9')
++			continue;
++		if (*label == ' ' || *label == '-')
++			continue;
++		return false;
++	}
++	return true;
++}
++
+ struct nfct_labelmap *__labelmap_new(const char *name)
+ {
+ 	struct nfct_labelmap *map;
+@@ -219,7 +244,8 @@ struct nfct_labelmap *__labelmap_new(const char *name)
+ 		end = trim_label(end);
+ 		if (!end)
+ 			continue;
+-		if (map_insert(map, end, bit) == 0) {
++
++		if (label_is_sane(end) && map_insert(map, end, bit) == 0) {
+ 			added++;
+ 			if (maxbit < bit)
+ 				maxbit = bit;
+-- 
+1.8.1.5
 
