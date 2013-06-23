@@ -1,221 +1,273 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH V2 lnf-ct 2/2] conntrack: snprintf: add connlabel format specifier
-Date: Sun, 23 Jun 2013 23:14:39 +0200
-Message-ID: <1372022079-11719-2-git-send-email-fw@strlen.de>
-References: <1372022079-11719-1-git-send-email-fw@strlen.de>
+Subject: [PATCH conntrack-tools 1/2] conntrackd: support replication of connlabels
+Date: Sun, 23 Jun 2013 23:23:37 +0200
+Message-ID: <1372022618-12312-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44876 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44884 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751232Ab3FWVQO (ORCPT
+	by vger.kernel.org with ESMTP id S1751242Ab3FWVZK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Jun 2013 17:16:14 -0400
-In-Reply-To: <1372022079-11719-1-git-send-email-fw@strlen.de>
+	Sun, 23 Jun 2013 17:25:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By default, nfct_snprintf will not print connlabels, as they're
-system specific and can easily generate lots of output.
+- check if ct has label attribute, and at least one label
+  (bit) is set
+- serialize bitmap into array-of-u32, in network byte order
+- add code to build new nfct_bitmask object from array-of-u32
 
-This adds a fmt attribute to print connlabel names.
+Current parse functions don't have length information,
+this adds optional parse2() which gets struct netattr pointer.
 
-output looks like this:
-... mark=0 use=1 labels=eth0-in,eth1-in
-or
-<labels>
-<label>eth0-in</label>
-<label>eth1-in</label>
-</labels>
+Attributes that want to use parse2 need to set .maxsize to nonzero
+value.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Pablo, I _think_ this is pretty much what you had in
- mind, if I misunderstood anything please let me know.
+ Tested with patched libnetfilter-conntrack and conntrackd w. UDP loopback.
 
- Change since V1:
- - avoid changing current nfct_snprint default output
- - print only name of a label, needs NFCT_OF_CONNLABELS output format
+ Warning, this makes conntrackd fail to build without current
+ libnetfilter-conntrack HEAD+patches i've posted recently, i.e.
+ this needs additional dependency magic.
 
- include/internal/prototypes.h                      |  1 +
- .../libnetfilter_conntrack.h                       |  3 ++
- src/conntrack/snprintf_default.c                   | 60 ++++++++++++++++++++++
- src/conntrack/snprintf_xml.c                       | 37 +++++++++++++
- 4 files changed, 101 insertions(+)
+ If you want to continue supporting older libnetfilter-conntrack
+ versions please let me know.
 
-diff --git a/include/internal/prototypes.h b/include/internal/prototypes.h
-index 484deea..414d7f8 100644
---- a/include/internal/prototypes.h
-+++ b/include/internal/prototypes.h
-@@ -15,6 +15,7 @@ int __snprintf_protocol(char *buf, unsigned int len, const struct nf_conntrack *
- int __snprintf_proto(char *buf, unsigned int len, const struct __nfct_tuple *tuple);
- int __snprintf_conntrack_default(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
- int __snprintf_conntrack_xml(char *buf, unsigned int len, const struct nf_conntrack *ct, const unsigned int msg_type, const unsigned int flags);
-+int __snprintf_connlabels(char *buf, unsigned int len, struct nfct_labelmap *map, const struct nfct_bitmask *b, const char *fmt);
- 
- enum __nfct_addr {
- 	__ADDR_SRC = 0,
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index 39dc24c..eedf85e 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -389,6 +389,9 @@ enum {
- 
- 	NFCT_OF_TIMESTAMP_BIT = 3,
- 	NFCT_OF_TIMESTAMP = (1 << NFCT_OF_TIMESTAMP_BIT),
-+
-+	NFCT_OF_CONNLABELS_BIT = 4,
-+	NFCT_OF_CONNLABELS = (1 << NFCT_OF_CONNLABELS_BIT),
+ Also changes 'conntrackd -i|e' to print the connlabel names (if any).
+
+ include/network.h |  4 +++
+ src/build.c       | 39 ++++++++++++++++++++++++++++
+ src/cache-ct.c    |  2 +-
+ src/parse.c       | 77 +++++++++++++++++++++++++++++++++++++++++++++++--------
+ 4 files changed, 111 insertions(+), 11 deletions(-)
+
+diff --git a/include/network.h b/include/network.h
+index 79745f3..cc312cb 100644
+--- a/include/network.h
++++ b/include/network.h
+@@ -228,9 +228,13 @@ enum nta_attr {
+ 	NTA_TCP_WSCALE_ORIG,	/* uint8_t */
+ 	NTA_TCP_WSCALE_REPL,	/* uint8_t */
+ 	NTA_HELPER_NAME,	/* string (variable length) */
++	NTA_LABELS,		/* array of uint32_t (variable length) */
+ 	NTA_MAX
  };
  
- extern int nfct_snprintf(char *buf, 
-diff --git a/src/conntrack/snprintf_default.c b/src/conntrack/snprintf_default.c
-index 911faea..2ede0bc 100644
---- a/src/conntrack/snprintf_default.c
-+++ b/src/conntrack/snprintf_default.c
-@@ -288,6 +288,61 @@ __snprintf_helper_name(char *buf, unsigned int len, const struct nf_conntrack *c
- 	return (snprintf(buf, len, "helper=%s ", ct->helper_name));
++/* allow to serialize/replicate up to 4k labels per flow */
++#define NTA_LABELS_MAX_SIZE	(4096/sizeof(uint32_t))
++
+ struct nta_attr_natseqadj {
+ 	uint32_t orig_seq_correction_pos;
+ 	uint32_t orig_seq_offset_before;
+diff --git a/src/build.c b/src/build.c
+index e15eb4f..5799b51 100644
+--- a/src/build.c
++++ b/src/build.c
+@@ -158,6 +158,42 @@ static void build_l4proto_udp(const struct nf_conntrack *ct, struct nethdr *n)
+ 		      sizeof(struct nfct_attr_grp_port));
  }
  
-+int
-+__snprintf_connlabels(char *buf, unsigned int len,
-+		      struct nfct_labelmap *map,
-+		      const struct nfct_bitmask *b, const char *fmt)
++static void ct_build_clabel(const struct nf_conntrack *ct, struct nethdr *n)
 +{
-+	unsigned int i, max;
-+	int ret, size = 0, offset = 0;
++	const struct nfct_bitmask *b;
++	uint32_t *words;
++	unsigned int wordcount, i, maxbit;
 +
-+	max = nfct_bitmask_maxbit(b);
-+	for (i = 0; i <= max && len; i++) {
-+		const char *name;
-+		if (!nfct_bitmask_test_bit(b, i))
-+			continue;
-+		name = nfct_labelmap_get_name(map, i);
-+		if (!name || strcmp(name, "") == 0)
-+			continue;
++	if (!nfct_attr_is_set(ct, ATTR_CONNLABELS))
++		return;
 +
-+		ret = snprintf(buf + offset, len, fmt, name);
-+		BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	return size;
-+}
++	b = nfct_get_attr(ct, ATTR_CONNLABELS);
 +
-+static int
-+__snprintf_clabels(char *buf, unsigned int len,
-+		   const struct nf_conntrack *ct)
-+{
-+	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
-+	struct nfct_labelmap *map;
-+	int ret, size = 0, offset = 0;
-+
-+	if (!b)
-+		return 0;
-+
-+	map = nfct_labelmap_new(NULL);
-+	if (!map)
-+		return 0;
-+
-+	ret = snprintf(buf, len, "labels=");
-+	BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = __snprintf_connlabels(buf + offset, len, map, b, "%s,");
-+
-+	nfct_labelmap_destroy(map);
-+
-+	BUFFER_SIZE(ret, size, len, offset);
-+
-+	offset--; /* remove last , */
-+	size--;
-+	ret = snprintf(buf + offset, len, " ");
-+	BUFFER_SIZE(ret, size, len, offset);
-+
-+	return size;
-+}
-+
- int __snprintf_conntrack_default(char *buf, 
- 				 unsigned int len,
- 				 const struct nf_conntrack *ct,
-@@ -426,6 +481,11 @@ int __snprintf_conntrack_default(char *buf,
- 		BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-+	if ((flags & NFCT_OF_CONNLABELS) && test_bit(ATTR_CONNLABELS, ct->head.set)) {
-+		ret = __snprintf_clabels(buf+offset, len, ct);
-+		BUFFER_SIZE(ret, size, len, offset);
++	maxbit = nfct_bitmask_maxbit(b);
++	for (i=0; i <= maxbit; i++) {
++		if (nfct_bitmask_test_bit(b, i))
++			break;
 +	}
 +
- 	/* Delete the last blank space */
- 	size--;
++	if (i > maxbit)
++		return;
++
++	wordcount = (nfct_bitmask_maxbit(b) / 32) + 1;
++	words = put_header(n, NTA_LABELS, wordcount * sizeof(*words));
++
++	for (i=0; i < wordcount; i++) {
++		int bit = 31;
++		uint32_t tmp = 0;
++
++		do {
++			if (nfct_bitmask_test_bit(b, (32 * i) + bit))
++				tmp |= (1 << bit);
++		} while (--bit >= 0);
++
++		words[i] = htonl(tmp);
++	}
++}
++
+ #ifndef IPPROTO_DCCP
+ #define IPPROTO_DCCP 33
+ #endif
+@@ -233,6 +269,9 @@ void ct2msg(const struct nf_conntrack *ct, struct nethdr *n)
  
-diff --git a/src/conntrack/snprintf_xml.c b/src/conntrack/snprintf_xml.c
-index ad53075..27cda04 100644
---- a/src/conntrack/snprintf_xml.c
-+++ b/src/conntrack/snprintf_xml.c
-@@ -348,6 +348,36 @@ static int __snprintf_tuple_xml(char *buf,
- 	return size;
+ 	if (nfct_attr_is_set(ct, ATTR_HELPER_NAME))
+ 		ct_build_str(ct, ATTR_HELPER_NAME, n, NTA_HELPER_NAME);
++
++	if (nfct_attr_is_set(ct, ATTR_CONNLABELS))
++		ct_build_clabel(ct, n);
  }
  
-+static int
-+__snprintf_clabels_xml(char *buf, unsigned int len,
-+		       const struct nf_conntrack *ct)
+ static void
+diff --git a/src/cache-ct.c b/src/cache-ct.c
+index 0ad8d2a..6a24d5d 100644
+--- a/src/cache-ct.c
++++ b/src/cache-ct.c
+@@ -145,7 +145,7 @@ static int cache_ct_dump_step(void *data1, void *n)
+ 			     obj->ptr,
+ 			     NFCT_T_UNKNOWN, 
+ 			     container->type,
+-			     0);
++			     NFCT_OF_CONNLABELS);
+ 
+ 	for (i = 0; i < obj->cache->num_features; i++) {
+ 		if (obj->cache->features[i]->dump) {
+diff --git a/src/parse.c b/src/parse.c
+index 8ce4495..f3ec6ac 100644
+--- a/src/parse.c
++++ b/src/parse.c
+@@ -29,15 +29,19 @@
+ static void ct_parse_u8(struct nf_conntrack *ct, int attr, void *data);
+ static void ct_parse_u16(struct nf_conntrack *ct, int attr, void *data);
+ static void ct_parse_u32(struct nf_conntrack *ct, int attr, void *data);
+-static void ct_parse_str(struct nf_conntrack *ct, int attr, void *data);
++static void ct_parse_str(struct nf_conntrack *ct,
++			 const struct netattr *, void *data);
+ static void ct_parse_group(struct nf_conntrack *ct, int attr, void *data);
+ static void ct_parse_nat_seq_adj(struct nf_conntrack *ct, int attr, void *data);
++static void ct_parse_clabel(struct nf_conntrack *ct,
++			    const struct netattr *, void *data);
+ 
+ struct ct_parser {
+ 	void 	(*parse)(struct nf_conntrack *ct, int attr, void *data);
+-	int 	attr;
+-	int	size;
+-	int	max_size;
++	void	(*parse2)(struct nf_conntrack *ct, const struct netattr *, void *);
++	uint16_t attr;
++	uint16_t size;
++	uint16_t max_size;
+ };
+ 
+ static struct ct_parser h[NTA_MAX] = {
+@@ -176,10 +180,15 @@ static struct ct_parser h[NTA_MAX] = {
+ 		.size	= NTA_SIZE(sizeof(uint8_t)),
+ 	},
+ 	[NTA_HELPER_NAME] = {
+-		.parse	= ct_parse_str,
++		.parse2	= ct_parse_str,
+ 		.attr	= ATTR_HELPER_NAME,
+ 		.max_size = NFCT_HELPER_NAME_MAX,
+ 	},
++	[NTA_LABELS] = {
++		.parse2 = ct_parse_clabel,
++		.attr	= ATTR_CONNLABELS,
++		.max_size = NTA_SIZE(NTA_LABELS_MAX_SIZE),
++	},
+ };
+ 
+ static void
+@@ -204,9 +213,9 @@ ct_parse_u32(struct nf_conntrack *ct, int attr, void *data)
+ }
+ 
+ static void
+-ct_parse_str(struct nf_conntrack *ct, int attr, void *data)
++ct_parse_str(struct nf_conntrack *ct, const struct netattr *attr, void *data)
+ {
+-	nfct_set_attr(ct, h[attr].attr, data);
++	nfct_set_attr(ct, h[attr->nta_attr].attr, data);
+ }
+ 
+ static void
+@@ -216,6 +225,44 @@ ct_parse_group(struct nf_conntrack *ct, int attr, void *data)
+ }
+ 
+ static void
++ct_parse_clabel(struct nf_conntrack *ct, const struct netattr *attr, void *data)
 +{
-+	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
-+	struct nfct_labelmap *map;
-+	int ret, size = 0, offset = 0;
++	struct nfct_bitmask *bitm;
++	unsigned int i, wordcount;
++	const uint32_t *words;
++	unsigned int len;
 +
-+	if (!b)
-+		return 0;
++	len = attr->nta_len - NTA_LENGTH(0);
++	wordcount =  len / sizeof(*words);
++	if (!wordcount)
++		return;
 +
-+	map = nfct_labelmap_new(NULL);
-+	if (!map)
-+		return 0;
++	if (len & (sizeof(*words) - 1))
++		return;
 +
-+	ret = snprintf(buf, len, "<labels>");
-+	BUFFER_SIZE(ret, size, len, offset);
++	bitm = nfct_bitmask_new((len * 8) - 1);
++	if (!bitm)
++		return;
 +
-+	ret = __snprintf_connlabels(buf + offset, len, map, b, "<label>%s</label>");
++	words = data;
++	for (i=0; i < wordcount; i++) {
++		uint32_t word;
++		int bit;
 +
-+	nfct_labelmap_destroy(map);
++		if (words[i] == 0)
++			continue;
 +
-+	BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = snprintf(buf + offset, len, "</labels>");
-+	BUFFER_SIZE(ret, size, len, offset);
-+
-+	return size;
++		word = htonl(words[i]);
++		bit = 31;
++		do {
++			if (word & (1 << bit))
++				nfct_bitmask_set_bit(bitm, (32 * i) + bit);
++		} while (--bit >= 0);
++	}
++	nfct_set_attr(ct, ATTR_CONNLABELS, bitm);
 +}
 +
- int __snprintf_conntrack_xml(char *buf,
- 			     unsigned int len,
- 			     const struct nf_conntrack *ct,
-@@ -390,6 +420,7 @@ int __snprintf_conntrack_xml(char *buf,
- 	    test_bit(ATTR_USE, ct->head.set) ||
- 	    test_bit(ATTR_STATUS, ct->head.set) ||
- 	    test_bit(ATTR_ID, ct->head.set) ||
-+	    test_bit(ATTR_CONNLABELS, ct->head.set) ||
- 	    test_bit(ATTR_TIMESTAMP_START, ct->head.set) ||
- 	    test_bit(ATTR_TIMESTAMP_STOP, ct->head.set)) {
- 		ret = snprintf(buf+offset, len, 
-@@ -432,6 +463,11 @@ int __snprintf_conntrack_xml(char *buf,
- 		BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-+	if ((flags & NFCT_OF_CONNLABELS) && test_bit(ATTR_CONNLABELS, ct->head.set)) {
-+		ret = __snprintf_clabels_xml(buf+offset, len, ct);
-+		BUFFER_SIZE(ret, size, len, offset);
-+	}
++static void
+ ct_parse_nat_seq_adj(struct nf_conntrack *ct, int attr, void *data)
+ {
+ 	struct nta_attr_natseqadj *this = data;
+@@ -248,14 +295,22 @@ int msg2ct(struct nf_conntrack *ct, struct nethdr *net, size_t remain)
+ 		ATTR_NETWORK2HOST(attr);
+ 		if (attr->nta_len > len)
+ 			return -1;
++		if (attr->nta_len < NTA_LENGTH(0))
++			return -1;
+ 		if (attr->nta_attr > NTA_MAX)
+ 			return -1;
+ 		if (h[attr->nta_attr].size &&
+ 		    attr->nta_len != h[attr->nta_attr].size)
+ 			return -1;
+-		if (h[attr->nta_attr].max_size &&
+-		    attr->nta_len > h[attr->nta_attr].max_size)
+-			return -1;
 +
- 	if (test_bit(ATTR_SECMARK, ct->head.set)) {
- 		ret = snprintf(buf+offset, len, 
- 				"<secmark>%u</secmark>", ct->secmark);
-@@ -510,6 +546,7 @@ int __snprintf_conntrack_xml(char *buf,
- 	    test_bit(ATTR_USE, ct->head.set) ||
- 	    test_bit(ATTR_STATUS, ct->head.set) ||
- 	    test_bit(ATTR_ID, ct->head.set) ||
-+	    test_bit(ATTR_CONNLABELS, ct->head.set) ||
- 	    test_bit(ATTR_TIMESTAMP_START, ct->head.set) ||
- 	    test_bit(ATTR_TIMESTAMP_STOP, ct->head.set)) {
- 	    	ret = snprintf(buf+offset, len, "</meta>");
++		if (h[attr->nta_attr].max_size) {
++			if (attr->nta_len > h[attr->nta_attr].max_size)
++				return -1;
++			h[attr->nta_attr].parse2(ct, attr, NTA_DATA(attr));
++			attr = NTA_NEXT(attr, len);
++			continue;
++		}
++
+ 		if (h[attr->nta_attr].parse == NULL) {
+ 			attr = NTA_NEXT(attr, len);
+ 			continue;
+@@ -457,6 +512,8 @@ int msg2exp(struct nf_expect *exp, struct nethdr *net, size_t remain)
+ 			goto err;
+ 		if (attr->nta_attr > NTA_MAX)
+ 			goto err;
++		if (attr->nta_len < NTA_LENGTH(0))
++			goto err;
+ 		if (exp_h[attr->nta_attr].size &&
+ 		    attr->nta_len != exp_h[attr->nta_attr].size)
+ 			goto err;
 -- 
 1.8.1.5
 
