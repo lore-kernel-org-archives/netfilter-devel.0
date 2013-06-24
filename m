@@ -1,41 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] Netfilter/IPVS fixes for net
-Date: Mon, 24 Jun 2013 12:47:48 -0700 (PDT)
-Message-ID: <20130624.124748.229546123915597217.davem@davemloft.net>
-References: <1372086950-4042-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1372086950-4042-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "George Spelvin" <linux@horizon.com>
+Subject: Re: v3.10-rc7 oops soon after boot
+Date: 24 Jun 2013 18:17:08 -0400
+Message-ID: <20130624221708.15489.qmail@science.horizon.com>
+References: <20130624161305.GC26766@pd.tnic>
+Cc: gaofeng@cn.fujitsu.com, kaber@trash.net,
+	linux-kernel@vger.kernel.org, linux@horizon.com,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: bp@alien8.de, pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from science.horizon.com ([71.41.210.146]:24619 "HELO
+	science.horizon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751076Ab3FXWRL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Jun 2013 18:17:11 -0400
+In-Reply-To: <20130624161305.GC26766@pd.tnic>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 24 Jun 2013 17:15:44 +0200
+>> Reported-by: Borislav Petkov <bp@alien8.de>
 
-> The following patchset contains five fixes for Netfilter/IPVS, they are:
-> 
-> * A skb leak fix in fragmentation handling in case that helpers are in place,
->   it occurs since the IPV6 NAT infrastructure, from Phil Oester.
-> 
-> * Fix SCTP port mangling in ICMP packets for IPVS, from Julian Anastasov.
-> 
-> * Fix event delivery in ctnetlink regarding the new connlabel infrastructure,
->   from Florian Westphal.
-> 
-> * Fix mangling in the SIP NAT helper, from Balazs Peter Odor.
-> 
-> * Fix crash in ipt_ULOG introduced while adding netnamespace support,
->   from Gao Feng.
-> 
-> I'll take care of passing several of these patches to -stable once they hit
-> Linus' tree.
-> 
-> You can pull these changes from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+> This should be:
+>
+> Reported-by: George Spelvin <linux@horizon.com>
+>
+> I only connected the dots...
 
-Pulled, thanks.
+Well, you did a whole lot more than me!  I just lobbed a "d'oh, it
+crashes" into the seething ocean of lkml.  (Admittedly, I had reason
+to act fast: we're very close to release.)
+
+You figured out what subsystem was at fault and got the right people
+involved.  Definitely a valuable contribution.
+
+Me, personally, I don't give a flying f*** about such credit; I had
+an itch and was trolling for someone to scratch it.
+
+So feel free to take Reported-by (you are the one who reported it *to
+someone who could fix it*), Triaged-by, or whatever.
