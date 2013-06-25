@@ -1,40 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables]  xt_socket: add --nowildcard flag
-Date: Tue, 25 Jun 2013 02:58:05 +0200
-Message-ID: <20130625005805.GB3437@localhost>
-References: <1370300249.24311.190.camel@edumazet-glaptop>
- <1371732755.3252.409.camel@edumazet-glaptop>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: v3.10-rc7 oops soon after boot
+Date: Tue, 25 Jun 2013 09:36:39 +0800
+Message-ID: <51C8F427.4010601@cn.fujitsu.com>
+References: <20130624221708.15489.qmail@science.horizon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Patrick McHardy <kaber@trash.net>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: bp@alien8.de, pablo@netfilter.org, kaber@trash.net,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+To: George Spelvin <linux@horizon.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55888 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752437Ab3FYA6J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jun 2013 20:58:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1371732755.3252.409.camel@edumazet-glaptop>
+Received: from cn.fujitsu.com ([222.73.24.84]:9657 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751102Ab3FYCA0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Jun 2013 22:00:26 -0400
+In-Reply-To: <20130624221708.15489.qmail@science.horizon.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 20, 2013 at 05:52:35AM -0700, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
+On 06/25/2013 06:17 AM, George Spelvin wrote:
+>>> Reported-by: Borislav Petkov <bp@alien8.de>
 > 
-> xt_socket module can be a nice replacement to conntrack module
-> in some cases (SYN filtering for example)
+>> This should be:
+>>
+>> Reported-by: George Spelvin <linux@horizon.com>
+>>
+>> I only connected the dots...
 > 
-> But it lacks the ability to match the 3rd packet of TCP
-> handshake (ACK coming from the client).
+> Well, you did a whole lot more than me!  I just lobbed a "d'oh, it
+> crashes" into the seething ocean of lkml.  (Admittedly, I had reason
+> to act fast: we're very close to release.)
 > 
-> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
+> You figured out what subsystem was at fault and got the right people
+> involved.  Definitely a valuable contribution.
 > 
-> The wildcard is the legacy socket match behavior, that ignores
-> LISTEN sockets bound to INADDR_ANY (or ipv6 equivalent)
+> Me, personally, I don't give a flying f*** about such credit; I had
+> an itch and was trolling for someone to scratch it.
 > 
-> iptables -I INPUT -p tcp --syn -j SYN_CHAIN
-> iptables -I INPUT -m socket -j ACCEPT
+> So feel free to take Reported-by (you are the one who reported it *to
+> someone who could fix it*), Triaged-by, or whatever.
 
-I have enqueued this patch to iptables-next, thanks!
+It's my mistake, the reported-by should be you.
+of course we should thank Borislav, I didn't notice this bug report
+mail until he forwarded it.
+
+Thanks all you guys! Sorry for my mistake..
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+
