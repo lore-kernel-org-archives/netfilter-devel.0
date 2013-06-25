@@ -1,47 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: Fix connlabel.conf install location
-Date: Tue, 25 Jun 2013 18:01:41 +0200
-Message-ID: <20130625160141.GA5816@localhost>
-References: <20130610093544.GA31559@gmail.com>
- <20130612075155.GA21252@breakpoint.cc>
- <20130612085037.GA10600@localhost>
- <20130612090815.GA13356@localhost>
- <20130612100605.GB21252@breakpoint.cc>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH V2 lnf-ct 2/2] conntrack: snprintf: add connlabel
+ format specifier
+Date: Tue, 25 Jun 2013 21:43:47 +0200
+Message-ID: <20130625194347.GA28818@breakpoint.cc>
+References: <1372022079-11719-1-git-send-email-fw@strlen.de>
+ <1372022079-11719-2-git-send-email-fw@strlen.de>
+ <20130625153959.GA5883@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55524 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751102Ab3FYQBr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jun 2013 12:01:47 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52713 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751788Ab3FYTnu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Jun 2013 15:43:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20130612100605.GB21252@breakpoint.cc>
+In-Reply-To: <20130625153959.GA5883@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 12, 2013 at 12:06:05PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > I think this is still useful for people cross-compiling and installing
-> > > iptables in some custom location.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sun, Jun 23, 2013 at 11:14:39PM +0200, Florian Westphal wrote:
+> > By default, nfct_snprintf will not print connlabels, as they're
+> > system specific and can easily generate lots of output.
 > > 
-> > Hm, still, this may confuse people, as xt_connlabel always looks at:
-> > 
-> > #define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
+> > This adds a fmt attribute to print connlabel names.
+> > +static int
+> > +__snprintf_clabels(char *buf, unsigned int len,
+> > +		   const struct nf_conntrack *ct)
+> > +{
+> > +	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
+> > +	struct nfct_labelmap *map;
+> > +	int ret, size = 0, offset = 0;
+> > +
+> > +	if (!b)
+> > +		return 0;
+> > +
+> > +	map = nfct_labelmap_new(NULL);
+> > +	if (!map)
+> > +		return 0;
 > 
-> Right; this is easily fixable. However, this is also
-> the default in libnetfilter_conntrack.  But lnf-ct wont be
-> able to know what configure options iptables was built with.
+> This opens and parses the map file for each conntrack, it would be
+> expensive.  I think it's better provide more control to the client
+> regarding the load of the mapping, it's more flexible.
+> 
+> Consider adding:
+> 
+> int nfct_snprintf_connlabel(char *buf, unsigned int len,
+>                             const struct nf_conntrack *ct,
+>                             const struct nfct_labelmap *labelmap);
 
-We can define the default location in libnetfilter_conntrack.h, eg.
+Thats what I'll do.
 
-#define NFCT_CONNLABEL_CFG "/etc/xtables/connlabel.conf"
-
-I think connlabel is not of much use without libnetfilter_conntrack,
-since it provides the translation of the connlabel mapping. So we can
-conditionally compile connlabel support if libnetfilter_conntrack is
-installed. We can make it a soft dependency, ie. no need for
---enable-connlabel.
-
-Regards.
+Thanks!
