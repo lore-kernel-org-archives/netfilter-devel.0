@@ -1,10 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 nf-next] netfilter: xt_socket: add
- XT_SOCKET_NOWILDCARD flag
-Date: Tue, 25 Jun 2013 02:57:43 +0200
-Message-ID: <20130625005743.GA3437@localhost>
+Subject: Re: [PATCH iptables]  xt_socket: add --nowildcard flag
+Date: Tue, 25 Jun 2013 02:58:05 +0200
+Message-ID: <20130625005805.GB3437@localhost>
 References: <1370300249.24311.190.camel@edumazet-glaptop>
- <1371732742.3252.408.camel@edumazet-glaptop>
+ <1371732755.3252.409.camel@edumazet-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
@@ -12,16 +11,16 @@ Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
 	Patrick McHardy <kaber@trash.net>
 To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55867 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55888 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751044Ab3FYA5s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jun 2013 20:57:48 -0400
+	id S1752437Ab3FYA6J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Jun 2013 20:58:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1371732742.3252.408.camel@edumazet-glaptop>
+In-Reply-To: <1371732755.3252.409.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 20, 2013 at 05:52:22AM -0700, Eric Dumazet wrote:
+On Thu, Jun 20, 2013 at 05:52:35AM -0700, Eric Dumazet wrote:
 > From: Eric Dumazet <edumazet@google.com>
 > 
 > xt_socket module can be a nice replacement to conntrack module
@@ -30,12 +29,12 @@ On Thu, Jun 20, 2013 at 05:52:22AM -0700, Eric Dumazet wrote:
 > But it lacks the ability to match the 3rd packet of TCP
 > handshake (ACK coming from the client).
 > 
-> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism.
+> Add a XT_SOCKET_NOWILDCARD flag to disable the wildcard mechanism
 > 
 > The wildcard is the legacy socket match behavior, that ignores
 > LISTEN sockets bound to INADDR_ANY (or ipv6 equivalent)
 > 
 > iptables -I INPUT -p tcp --syn -j SYN_CHAIN
-> iptables -I INPUT -m socket --nowildcard -j ACCEPT
+> iptables -I INPUT -m socket -j ACCEPT
 
-Applied, thanks Eric!
+I have enqueued this patch to iptables-next, thanks!
