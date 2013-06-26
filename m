@@ -1,8 +1,7 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 10/21] ct: xml: use key's name string instead of
-	numbers
-Date: Wed, 26 Jun 2013 13:37:08 +0200
-Message-ID: <20130626113708.23511.54545.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH 07/21] nat: xml: change IP range node names
+Date: Wed, 26 Jun 2013 13:37:04 +0200
+Message-ID: <20130626113704.23511.18557.stgit@nfdev.cica.es>
 References: <20130626113509.23511.14359.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,107 +9,57 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:54683 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:54671 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751941Ab3FZLhQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Jun 2013 07:37:16 -0400
+	id S1751817Ab3FZLhM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Jun 2013 07:37:12 -0400
 In-Reply-To: <20130626113509.23511.14359.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now ct expr will use a string representation instead of a numerical one in the <key> node.
+This patch changes the name of XML nodes from <sreg_addr_min_v4> to <sreg_addr_min>,
+and <sreg_addr_max_v4> to <sreg_addr_max>, as they are protocol-independent.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/expr/ct.c |   51 ++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 44 insertions(+), 7 deletions(-)
+ src/expr/nat.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index 3605ecc..2955353 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -22,6 +22,10 @@
- #include <libnftables/rule.h>
- #include "expr_ops.h"
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index f38011a..7d83154 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -262,8 +262,8 @@ static int nft_rule_expr_nat_xml_parse(struct nft_rule_expr *e, char *xml)
+ 	nat->family = nft_str2family(node->child->value.opaque);
+ 	e->flags |= (1 << NFT_EXPR_NAT_FAMILY);
  
-+#ifndef NFT_CT_MAX
-+#define NFT_CT_MAX (NFT_CT_PROTO_DST + 1)
-+#endif
-+
- struct nft_expr_ct {
- 	enum nft_ct_keys        key;
- 	uint32_t		dreg;	/* enum nft_registers */
-@@ -150,6 +154,40 @@ nft_rule_expr_ct_parse(struct nft_rule_expr *e, struct nlattr *attr)
- 	return 0;
- }
+-	/* Get and set <sreg_addr_min_v4>. Not mandatory */
+-	node = mxmlFindElement(tree, tree, "sreg_addr_min_v4", NULL, NULL,
++	/* Get and set <sreg_addr_min>. Not mandatory */
++	node = mxmlFindElement(tree, tree, "sreg_addr_min", NULL, NULL,
+ 			       MXML_DESCEND);
+ 	if (node != NULL) {
+ 		tmp = strtoull(node->child->value.opaque, &endptr, 10);
+@@ -276,8 +276,8 @@ static int nft_rule_expr_nat_xml_parse(struct nft_rule_expr *e, char *xml)
+ 		e->flags |= (1 << NFT_EXPR_NAT_REG_ADDR_MIN);
+ 	}
  
-+const char *ctkey2str_array[NFT_CT_MAX] = {
-+	[NFT_CT_STATE]		= "state",
-+	[NFT_CT_DIRECTION]	= "direction",
-+	[NFT_CT_STATUS]		= "status",
-+	[NFT_CT_MARK]		= "mark",
-+	[NFT_CT_SECMARK]	= "secmark",
-+	[NFT_CT_EXPIRATION]	= "expiration",
-+	[NFT_CT_HELPER]		= "helper",
-+	[NFT_CT_PROTOCOL]	= "protocol",
-+	[NFT_CT_SRC]		= "src",
-+	[NFT_CT_DST]		= "dst",
-+	[NFT_CT_PROTO_SRC]	= "proto_src",
-+	[NFT_CT_PROTO_DST]	= "proto_dst"
-+};
-+
-+static const char *ctkey2str(uint32_t ctkey)
-+{
-+	if (ctkey > NFT_CT_MAX)
-+		return "unknown";
-+
-+	return ctkey2str_array[ctkey];
-+}
-+
-+static int str2ctkey(char *ctkey)
-+{
-+	int i;
-+
-+	for (i = 0; i < NFT_CT_MAX; i++)
-+		if (strcmp(ctkey2str_array[i], ctkey) == 0)
-+			return i;
-+
-+	return -1;
-+}
-+
- static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, char *xml)
- {
- #ifdef XML_PARSING
-@@ -188,11 +226,10 @@ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, char *xml)
- 	if (node == NULL)
- 		goto err;
+-	/* Get and set <sreg_addr_max_v4>. Not mandatory */
+-	node = mxmlFindElement(tree, tree, "sreg_addr_max_v4", NULL, NULL,
++	/* Get and set <sreg_addr_max>. Not mandatory */
++	node = mxmlFindElement(tree, tree, "sreg_addr_max", NULL, NULL,
+ 			       MXML_DESCEND);
+ 	if (node != NULL) {
+ 		tmp = strtoull(node->child->value.opaque, &endptr, 10);
+@@ -348,8 +348,8 @@ nft_rule_expr_nat_snprintf_xml(char *buf, size_t size,
  
--	tmp = strtoull(node->child->value.opaque, &endptr, 10);
--	if (tmp > UINT8_MAX || tmp < 0 || *endptr)
-+	if (str2ctkey(node->child->value.opaque) < 0)
- 		goto err;
- 
--	ct->key = tmp;
-+	ct->key = str2ctkey(node->child->value.opaque);
- 	e->flags |= (1 << NFT_EXPR_CT_KEY);
- 
- 	node = mxmlFindElement(tree, tree, "dir", NULL, NULL, MXML_DESCEND);
-@@ -229,13 +266,13 @@ nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_DEFAULT:
--		return snprintf(buf, len, "dreg=%u key=%u dir=%u ",
--				ct->dreg, ct->key, ct->dir);
-+		return snprintf(buf, len, "dreg=%u key=%s dir=%u ",
-+				ct->dreg, ctkey2str(ct->key), ct->dir);
- 	case NFT_RULE_O_XML:
- 		return snprintf(buf, len, "<dreg>%u</dreg>"
--					  "<key>%u</key>"
-+					  "<key>%s</key>"
- 					  "<dir>%u</dir>",
--				ct->dreg, ct->key, ct->dir);
-+				ct->dreg, ctkey2str(ct->key), ct->dir);
- 	default:
- 		break;
+ 	if (e->flags & (1 << NFT_EXPR_NAT_REG_ADDR_MIN)) {
+ 		ret = snprintf(buf+offset, len,
+-				"<sreg_addr_min_v4>%u</sreg_addr_min_v4>"
+-				"<sreg_addr_max_v4>%u</sreg_addr_max_v4>",
++				"<sreg_addr_min>%u</sreg_addr_min>"
++				"<sreg_addr_max>%u</sreg_addr_max>",
+ 			       nat->sreg_addr_min, nat->sreg_addr_max);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  	}
 
