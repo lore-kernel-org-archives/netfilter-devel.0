@@ -1,251 +1,153 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 2/8] ipvs: sloppy TCP and SCTP
-Date: Wed, 26 Jun 2013 18:11:24 +0900
-Message-ID: <1372237890-28211-3-git-send-email-horms@verge.net.au>
-References: <1372237890-28211-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Alexander Frolkin <avf@eldamar.org.uk>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1372237890-28211-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH 01/21] chain: add hooknum2str
+Date: Wed, 26 Jun 2013 13:36:57 +0200
+Message-ID: <20130626113656.23511.96919.stgit@nfdev.cica.es>
+References: <20130626113509.23511.14359.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:54643 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751683Ab3FZLhG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Jun 2013 07:37:06 -0400
+In-Reply-To: <20130626113509.23511.14359.stgit@nfdev.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alexander Frolkin <avf@eldamar.org.uk>
+This patch translates the Netfilter hooknumber to a readable string.
 
-This adds support for sloppy TCP and SCTP modes to IPVS.
+Useful for printing and parsing in XML and JSON formats.
 
-When enabled (sysctls net.ipv4.vs.sloppy_tcp and
-net.ipv4.vs.sloppy_sctp), allows IPVS to create connection state on any
-packet, not just a TCP SYN (or SCTP INIT).
-
-This allows connections to fail over from one IPVS director to another
-mid-flight.
-
-Signed-off-by: Alexander Frolkin <avf@eldamar.org.uk>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- include/net/ip_vs.h                   | 24 ++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_ctl.c        | 14 ++++++++++++++
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 18 ++++++++++--------
- net/netfilter/ipvs/ip_vs_proto_tcp.c  | 14 ++++++++------
- 4 files changed, 56 insertions(+), 14 deletions(-)
+ src/chain.c               |   36 +++++++++++++++++++++++++++---------
+ test/nft-chain-xml-add.sh |    6 +++---
+ 2 files changed, 30 insertions(+), 12 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index f5faf85..95860df 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -978,6 +978,8 @@ struct netns_ipvs {
- 	int			sysctl_sync_sock_size;
- 	int			sysctl_cache_bypass;
- 	int			sysctl_expire_nodest_conn;
-+	int			sysctl_sloppy_tcp;
-+	int			sysctl_sloppy_sctp;
- 	int			sysctl_expire_quiescent_template;
- 	int			sysctl_sync_threshold[2];
- 	unsigned int		sysctl_sync_refresh_period;
-@@ -1020,6 +1022,8 @@ struct netns_ipvs {
- #define DEFAULT_SYNC_THRESHOLD	3
- #define DEFAULT_SYNC_PERIOD	50
- #define DEFAULT_SYNC_VER	1
-+#define DEFAULT_SLOPPY_TCP	0
-+#define DEFAULT_SLOPPY_SCTP	0
- #define DEFAULT_SYNC_REFRESH_PERIOD	(0U * HZ)
- #define DEFAULT_SYNC_RETRIES		0
- #define IPVS_SYNC_WAKEUP_RATE	8
-@@ -1056,6 +1060,16 @@ static inline int sysctl_sync_ver(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_sync_ver;
- }
+diff --git a/src/chain.c b/src/chain.c
+index 6673b82..f3ba532 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -22,6 +22,7 @@
+ #include <libmnl/libmnl.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter.h>
  
-+static inline int sysctl_sloppy_tcp(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_sloppy_tcp;
-+}
+ #include <libnftables/chain.h>
+ 
+@@ -42,6 +43,14 @@ struct nft_chain {
+ 	uint32_t	flags;
+ };
+ 
++static const char *hooknum2str_array[NF_INET_NUMHOOKS] = {
++	[NF_INET_PRE_ROUTING] = "NF_INET_PRE_ROUTING",
++	[NF_INET_LOCAL_IN] = "NF_INET_LOCAL_IN",
++	[NF_INET_FORWARD] = "NF_INET_FORWARD",
++	[NF_INET_LOCAL_OUT] = "NF_INET_LOCAL_OUT",
++	[NF_INET_POST_ROUTING] = "NF_INET_POST_ROUTING",
++};
 +
-+static inline int sysctl_sloppy_sctp(struct netns_ipvs *ipvs)
-+{
-+	return ipvs->sysctl_sloppy_sctp;
-+}
-+
- static inline int sysctl_sync_ports(struct netns_ipvs *ipvs)
+ struct nft_chain *nft_chain_alloc(void)
  {
- 	return ACCESS_ONCE(ipvs->sysctl_sync_ports);
-@@ -1109,6 +1123,16 @@ static inline int sysctl_sync_ver(struct netns_ipvs *ipvs)
- 	return DEFAULT_SYNC_VER;
- }
- 
-+static inline int sysctl_sloppy_tcp(struct netns_ipvs *ipvs)
-+{
-+	return DEFAULT_SLOPPY_TCP;
-+}
-+
-+static inline int sysctl_sloppy_sctp(struct netns_ipvs *ipvs)
-+{
-+	return DEFAULT_SLOPPY_SCTP;
-+}
-+
- static inline int sysctl_sync_ports(struct netns_ipvs *ipvs)
- {
- 	return 1;
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 47e5108..da035fc 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1739,6 +1739,18 @@ static struct ctl_table vs_vars[] = {
- 		.proc_handler	= proc_dointvec,
- 	},
- 	{
-+		.procname	= "sloppy_tcp",
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{
-+		.procname	= "sloppy_sctp",
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{
- 		.procname	= "expire_quiescent_template",
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
-@@ -3723,6 +3735,8 @@ static int __net_init ip_vs_control_net_init_sysctl(struct net *net)
- 	tbl[idx++].data = &ipvs->sysctl_sync_sock_size;
- 	tbl[idx++].data = &ipvs->sysctl_cache_bypass;
- 	tbl[idx++].data = &ipvs->sysctl_expire_nodest_conn;
-+	tbl[idx++].data = &ipvs->sysctl_sloppy_tcp;
-+	tbl[idx++].data = &ipvs->sysctl_sloppy_sctp;
- 	tbl[idx++].data = &ipvs->sysctl_expire_quiescent_template;
- 	ipvs->sysctl_sync_threshold[0] = DEFAULT_SYNC_THRESHOLD;
- 	ipvs->sysctl_sync_threshold[1] = DEFAULT_SYNC_PERIOD;
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 8646488..df29d64 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -15,6 +15,7 @@ sctp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- {
- 	struct net *net;
- 	struct ip_vs_service *svc;
-+	struct netns_ipvs *ipvs;
- 	sctp_chunkhdr_t _schunkh, *sch;
- 	sctp_sctphdr_t *sh, _sctph;
- 
-@@ -27,13 +28,14 @@ sctp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 	if (sch == NULL)
- 		return 0;
- 	net = skb_net(skb);
-+	ipvs = net_ipvs(net);
- 	rcu_read_lock();
--	if ((sch->type == SCTP_CID_INIT) &&
-+	if ((sch->type == SCTP_CID_INIT || sysctl_sloppy_sctp(ipvs)) &&
- 	    (svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
- 				      &iph->daddr, sh->dest))) {
- 		int ignored;
- 
--		if (ip_vs_todrop(net_ipvs(net))) {
-+		if (ip_vs_todrop(ipvs)) {
- 			/*
- 			 * It seems that we are very loaded.
- 			 * We have to drop this packet :(
-@@ -232,21 +234,21 @@ static struct ipvs_sctp_nextstate
- 	 * STATE : IP_VS_SCTP_S_NONE
- 	 */
- 	/*next state *//*event */
--	{{IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_DATA_CLI */ },
-+	{{IP_VS_SCTP_S_ESTABLISHED /* IP_VS_SCTP_EVE_DATA_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_DATA_SER */ },
- 	 {IP_VS_SCTP_S_INIT_CLI /* IP_VS_SCTP_EVE_INIT_CLI */ },
- 	 {IP_VS_SCTP_S_INIT_SER /* IP_VS_SCTP_EVE_INIT_SER */ },
--	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_INIT_ACK_CLI */ },
-+	 {IP_VS_SCTP_S_INIT_ACK_CLI /* IP_VS_SCTP_EVE_INIT_ACK_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_INIT_ACK_SER */ },
--	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_COOKIE_ECHO_CLI */ },
-+	 {IP_VS_SCTP_S_ECHO_CLI /* IP_VS_SCTP_EVE_COOKIE_ECHO_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_COOKIE_ECHO_SER */ },
--	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_COOKIE_ACK_CLI */ },
-+	 {IP_VS_SCTP_S_ESTABLISHED /* IP_VS_SCTP_EVE_COOKIE_ACK_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_COOKIE_ACK_SER */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_ABORT_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_ABORT_SER */ },
--	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_CLI */ },
-+	 {IP_VS_SCTP_S_SHUT_CLI /* IP_VS_SCTP_EVE_SHUT_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_SER */ },
--	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_ACK_CLI */ },
-+	 {IP_VS_SCTP_S_SHUT_ACK_CLI /* IP_VS_SCTP_EVE_SHUT_ACK_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_ACK_SER */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_COM_CLI */ },
- 	 {IP_VS_SCTP_S_CLOSED /* IP_VS_SCTP_EVE_SHUT_COM_SER */ },
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 50a1594..e3a6972 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -39,6 +39,7 @@ tcp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 	struct net *net;
- 	struct ip_vs_service *svc;
- 	struct tcphdr _tcph, *th;
-+	struct netns_ipvs *ipvs;
- 
- 	th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
- 	if (th == NULL) {
-@@ -46,14 +47,15 @@ tcp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 		return 0;
+ 	return calloc(1, sizeof(struct nft_chain));
+@@ -629,15 +638,22 @@ static int nft_chain_xml_parse(struct nft_chain *c, char *xml)
+ 		mxmlDelete(tree);
+ 		return -1;
  	}
- 	net = skb_net(skb);
-+	ipvs = net_ipvs(net);
- 	/* No !th->ack check to allow scheduling on SYN+ACK for Active FTP */
- 	rcu_read_lock();
--	if (th->syn &&
-+	if ((th->syn || sysctl_sloppy_tcp(ipvs)) && !th->rst &&
- 	    (svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
- 				      &iph->daddr, th->dest))) {
- 		int ignored;
+-	utmp = strtoull(node->child->value.opaque, &endptr, 10);
+-	if (utmp > UINT32_MAX || utmp < 0 || *endptr) {
++
++	/* iterate the list of hooks until a match is found */
++	for (utmp = 0; utmp < NF_INET_NUMHOOKS; utmp++) {
++		if (strcmp(node->child->value.opaque, hooknum2str_array[utmp]) == 0) {
++			c->hooknum = utmp;
++			c->flags |= (1 << NFT_CHAIN_ATTR_HOOKNUM);
++			break;
++		}
++	}
++
++	/* if no hook was found, error */
++	if (!(c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM))) {
+ 		mxmlDelete(tree);
+ 		return -1;
+ 	}
  
--		if (ip_vs_todrop(net_ipvs(net))) {
-+		if (ip_vs_todrop(ipvs)) {
- 			/*
- 			 * It seems that we are very loaded.
- 			 * We have to drop this packet :(
-@@ -401,7 +403,7 @@ static struct tcp_states_t tcp_states [] = {
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
- /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR }},
- /*fin*/ {{sCL, sCW, sSS, sTW, sTW, sTW, sCL, sCW, sLA, sLI, sTW }},
--/*ack*/ {{sCL, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
-+/*ack*/ {{sES, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
- /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sSR }},
+-	memcpy(&c->hooknum, &utmp, sizeof(c->hooknum));
+-	c->flags |= (1 << NFT_CHAIN_ATTR_HOOKNUM);
+-
+ 	/* Get and set <policy> */
+ 	node = mxmlFindElement(tree, tree, "policy", NULL, NULL, MXML_DESCEND);
+ 	if (node == NULL) {
+@@ -709,7 +725,7 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
+ 				"\"table\" : \"%s\","
+ 				"\"prio\" : %d,"
+ 				"\"use\" : %d,"
+-				"\"hooknum\" : %d,"
++				"\"hooknum\" : %s,"
+ 				"\"policy\" : %d,"
+ 				"\"family\" : %d"
+ 			"}"
+@@ -717,7 +733,8 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
+ 		"}",
+ 			c->name, c->handle, c->bytes, c->packets,
+ 			NFT_CHAIN_JSON_VERSION, c->type, c->table,
+-			c->prio, c->use, c->hooknum, c->policy, c->family);
++			c->prio, c->use, hooknum2str_array[c->hooknum],
++			c->policy, c->family);
+ }
  
- /*	OUTPUT */
-@@ -415,7 +417,7 @@ static struct tcp_states_t tcp_states [] = {
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
- /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR }},
- /*fin*/ {{sCL, sFW, sSS, sTW, sFW, sTW, sCL, sCW, sLA, sLI, sTW }},
--/*ack*/ {{sCL, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
-+/*ack*/ {{sES, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
- /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sCL }},
- };
+ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+@@ -730,14 +747,15 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+ 				"<table>%s</table>"
+ 				"<prio>%d</prio>"
+ 				"<use>%d</use>"
+-				"<hooknum>%d</hooknum>"
++				"<hooknum>%s</hooknum>"
+ 				"<policy>%d</policy>"
+ 				"<family>%d</family>"
+ 			"</properties>"
+ 		"</chain>",
+ 			c->name, c->handle, c->bytes, c->packets,
+ 			NFT_CHAIN_XML_VERSION, c->type, c->table,
+-			c->prio, c->use, c->hooknum, c->policy, c->family);
++			c->prio, c->use, hooknum2str_array[c->hooknum],
++			c->policy, c->family);
+ }
  
-@@ -424,7 +426,7 @@ static struct tcp_states_t tcp_states_dos [] = {
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
- /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSA }},
- /*fin*/ {{sCL, sCW, sSS, sTW, sTW, sTW, sCL, sCW, sLA, sLI, sSA }},
--/*ack*/ {{sCL, sES, sSS, sSR, sFW, sTW, sCL, sCW, sCL, sLI, sSA }},
-+/*ack*/ {{sES, sES, sSS, sSR, sFW, sTW, sCL, sCW, sCL, sLI, sSA }},
- /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sCL }},
- 
- /*	OUTPUT */
-@@ -438,7 +440,7 @@ static struct tcp_states_t tcp_states_dos [] = {
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
- /*syn*/ {{sSA, sES, sES, sSR, sSA, sSA, sSA, sSA, sSA, sSA, sSA }},
- /*fin*/ {{sCL, sFW, sSS, sTW, sFW, sTW, sCL, sCW, sLA, sLI, sTW }},
--/*ack*/ {{sCL, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
-+/*ack*/ {{sES, sES, sSS, sES, sFW, sTW, sCL, sCW, sCL, sLI, sES }},
- /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sCL }},
- };
- 
--- 
-1.8.2.1
+ static int nft_chain_snprintf_default(char *buf, size_t size, struct nft_chain *c)
+diff --git a/test/nft-chain-xml-add.sh b/test/nft-chain-xml-add.sh
+index d1bd839..fda28cb 100755
+--- a/test/nft-chain-xml-add.sh
++++ b/test/nft-chain-xml-add.sh
+@@ -40,7 +40,7 @@ XML="<chain name=\"test1\" handle=\"100\" bytes=\"123\" packets=\"321\" version=
+                 <table>filter</table>
+                 <prio>0</prio>
+                 <use>0</use>
+-                <hooknum>2</hooknum>
++                <hooknum>NF_INET_LOCAL_IN</hooknum>
+                 <policy>1</policy>
+                 <family>2</family>
+         </properties>
+@@ -61,7 +61,7 @@ XML="<chain name=\"test2\" handle=\"101\" bytes=\"59\" packets=\"1\" version=\"0
+ 		<table>filter</table>
+ 		<prio>1</prio>
+ 		<use>0</use>
+-		<hooknum>4</hooknum>
++		<hooknum>NF_INET_POST_ROUTING</hooknum>
+ 		<policy>1</policy>
+ 		<family>10</family>
+ 	</properties>
+@@ -83,7 +83,7 @@ XML="<chain name=\"test3\" handle=\"102\" bytes=\"51231239\" packets=\"112312312
+ 		<table>filter</table>
+ 		<prio>0</prio>
+ 		<use>0</use>
+-		<hooknum>4</hooknum>
++		<hooknum>NF_INET_FORWARD</hooknum>
+ 		<policy>1</policy>
+ 		<family>2</family>
+ 	</properties>
+
