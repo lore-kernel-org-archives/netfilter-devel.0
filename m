@@ -1,61 +1,54 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] iptables: Fix connlabel.conf install location
-Date: Tue, 25 Jun 2013 21:52:00 +0200
-Message-ID: <20130625195200.GB28818@breakpoint.cc>
-References: <20130610093544.GA31559@gmail.com>
- <20130612075155.GA21252@breakpoint.cc>
- <20130612085037.GA10600@localhost>
- <20130612090815.GA13356@localhost>
- <20130612100605.GB21252@breakpoint.cc>
- <20130625160141.GA5816@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Phil Oester <kernel@linuxace.com>,
-	netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 4/8] ipvs: drop SCTP connections depending on state
+Date: Wed, 26 Jun 2013 18:11:26 +0900
+Message-ID: <1372237890-28211-5-git-send-email-horms@verge.net.au>
+References: <1372237890-28211-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52737 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752229Ab3FYTwC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jun 2013 15:52:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20130625160141.GA5816@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1372237890-28211-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Jun 12, 2013 at 12:06:05PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > I think this is still useful for people cross-compiling and installing
-> > > > iptables in some custom location.
-> > > 
-> > > Hm, still, this may confuse people, as xt_connlabel always looks at:
-> > > 
-> > > #define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
-> > 
-> > Right; this is easily fixable. However, this is also
-> > the default in libnetfilter_conntrack.  But lnf-ct wont be
-> > able to know what configure options iptables was built with.
-> 
-> We can define the default location in libnetfilter_conntrack.h, eg.
-> 
-> #define NFCT_CONNLABEL_CFG "/etc/xtables/connlabel.conf"
+From: Julian Anastasov <ja@ssi.bg>
 
-Sure, I can move the definition from conntrack/labels.c
-to a public header.
+Drop SCTP connections under load (dropentry context) depending
+on the protocol state, just like for TCP: INIT conns are
+dropped immediately, established are dropped randomly while
+connections in progress or shutdown are skipped.
 
-> I think connlabel is not of much use without libnetfilter_conntrack,
-> since it provides the translation of the connlabel mapping. So we can
-> conditionally compile connlabel support if libnetfilter_conntrack is
-> installed. We can make it a soft dependency, ie. no need for
-> --enable-connlabel.
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Hrm, the iptables connlabel extension currently parses the labels
-config itself.
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index c8c52a9..4c8e5c0 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1231,6 +1231,18 @@ void ip_vs_random_dropentry(struct net *net)
+ 				default:
+ 					continue;
+ 				}
++			} else if (cp->protocol == IPPROTO_SCTP) {
++				switch (cp->state) {
++				case IP_VS_SCTP_S_INIT1:
++				case IP_VS_SCTP_S_INIT:
++					break;
++				case IP_VS_SCTP_S_ESTABLISHED:
++					if (todrop_entry(cp))
++						break;
++					continue;
++				default:
++					continue;
++				}
+ 			} else {
+ 				if (!todrop_entry(cp))
+ 					continue;
+-- 
+1.8.2.1
 
-What we can do is to add soft dependency in iptables for
-libnetfilter_conntrack, build the connlabel extension
-conditionally and then remove the default file from iptables.
-
-Is that what you have in mind?
