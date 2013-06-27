@@ -1,142 +1,155 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: Sort table names in ip[6]tables-save
-Date: Wed, 26 Jun 2013 19:42:02 -0400
-Message-ID: <20130626234202.GA31099@gmail.com>
+From: Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v2 2/5] ipset: add "inner" flag implementation
+Date: Thu, 27 Jun 2013 23:36:58 +0100
+Message-ID: <51CCBE8A.3080305@googlemail.com>
+References: <cover.1371423775.git.mr.dash.four@googlemail.com> <51BE49D4.1010901@googlemail.com> <alpine.DEB.2.00.1306262149560.17378@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="jRHKVT23PllUwdXP"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:53216 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754219Ab3F0Udr (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50095 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754106Ab3F0WhH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Jun 2013 16:33:47 -0400
-Received: by mail-pb0-f41.google.com with SMTP id rp16so1397698pbb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2013 13:33:46 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 27 Jun 2013 18:37:07 -0400
+Received: by mail-we0-f174.google.com with SMTP id q58so997567wes.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2013 15:37:06 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1306262149560.17378@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Jozsef Kadlecsik wrote:
+> Get rid of the compatibility functions. Or keep the original function 
+> names with the extended arguments: there's no stable API.
+>   
+As you've probably guessed, I kept the old functions and their 
+parameters in order to preserve the existing interface API, since any 
+changes I make to these will break existing code using them. If there is 
+no objection and there is no such requirement, I'll get rid of them in 
+the next release of the patches - just let me know.
 
-Depending upon the load order of rules, the output from ip[6]tables-save
-will vary, as ip[6]_tables_names is sorted LIFO.  As reported by
-Linus van Geuns, this makes comparing output from ip[6]tables-save across
-reboots difficult.  Fix this by sorting table names prior to walking
-the tables, making output consistent.
+>> +#include <linux/netfilter/ipset/ip_set_icmp.h>
+>>     
+>
+> I don't really like the new header file. ip[v]4|6addrptr are generic 
+> functions (from ipset point of view) and getting the inner header is too, 
+> so those deserve to be in the ipset core.
+>   
+That's a fair comment - I'll move them in ip_set_core.c as you suggest 
+below.
 
-This closes bugzilla #580.
+>>  #define _IP_SET_MODULE_DESC(a, b, c)		\
+>>  	MODULE_DESCRIPTION(a " type of IP sets, revisions " b "-" c)
+>> @@ -361,6 +365,25 @@ static inline int nla_put_ipaddr6(struct sk_buff *skb,
+>> int type,
+>>  }
+>>
+>>  /* Get address from skbuff */
+>> +static inline bool
+>> +ipv4addrptr(const struct sk_buff *skb, bool inner, bool src, __be32 *addr)
+>> +{
+>> +	struct iphdr *ih = ip_hdr(skb);
+>> +	unsigned int protooff = ip_hdrlen(skb);
+>> +
+>> +	if (ih == NULL ||
+>>     
+>
+> Why do you have to check the IP header?
+>   
+Simply playing it safe. I am referencing it later on in the code and if 
+that pointer is NULL for whatever reason, it will trigger a null-pointer 
+dereference, hence the check above.
 
-Phil
+>> +	    (inner &&
+>> +	     (ih->protocol != IPPROTO_ICMP ||
+>> +	      !ip_set_get_icmpv4_inner_hdr(skb, &protooff, &ih))))
+>> +			goto err;
+>>     
+>
+> Move the protocol checking into ip_set_get_icmpv4_inner_hdr. Also, I 
+> suggested the name ip_set_get[_ip4]_inner_hdr because I want to extend it 
+> to support IPIP and GRE too. By moving the protocol checking into the 
+> function and using a not so specific name, those make possible the 
+> extension straightforward.
+Noted - will do that in the next version of the patches.
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+>  Also, there's no need for the goto here: 
+> there's no other error path.
+>   
+I disagree. By having "return false" (or "return 0", "return -1" and so 
+on) instead of "goto err" it is not immediately apparent to someone who 
+studies/reviews/uses the code that this is an error condition/path. I 
+have been in that situation many times when I have to go back and look 
+at a particular function call to see what "return false" or "return 0" 
+actually means.
 
+By including "goto err" instead of multiple "return false" statement, 
+that makes it instantly obvious what the purpose of that statement is 
+without having to look elsewhere.
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-sort-tables
+>> +	*addr = src ? ih->saddr : ih->daddr;
+>> +	return true;
+>> +
+>> +err:
+>> +	return false;
+>> +}
+>> +
+>>  static inline __be32
+>>  ip4addr(const struct sk_buff *skb, bool src)
+>>  {
+>> @@ -373,12 +396,55 @@ ip4addrptr(const struct sk_buff *skb, bool src, __be32
+>> *addr)
+>>  	*addr = src ? ip_hdr(skb)->saddr : ip_hdr(skb)->daddr;
+>>  }
+>>
+>> +#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+>> +static inline bool
+>> +ipv6addrptr(const struct sk_buff *skb, bool inner, bool src,
+>> +	    struct in6_addr *addr)
+>> +{
+>> +	struct ipv6hdr *ih = ipv6_hdr(skb);
+>> +
+>> +	if (ih == NULL)
+>> +		goto err;
+>>     
+>
+> The same comment as above.
+>   
+Same answer - it is simply used for code clarity and makes the code 
+easier to understand. The presence of "goto" instead of multiple "return 
+false" (or "return 0") statements is also negligible in terms of 
+performance impact.
 
-diff --git a/include/xtables.h b/include/xtables.h
-index c35a6e6..dc6e566 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -479,6 +479,8 @@ extern void xtables_ip6parse_any(const char *, struct in6_addr **,
- extern void xtables_ip6parse_multiple(const char *, struct in6_addr **,
- 	struct in6_addr **, unsigned int *);
- 
-+extern int stringcmp(const void *, const void *);
-+
- /**
-  * Print the specified value to standard output, quoting dangerous
-  * characters if required.
-diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index d819b30..7ec0f75 100644
---- a/iptables/ip6tables-save.c
-+++ b/iptables/ip6tables-save.c
-@@ -36,8 +36,9 @@ static const struct option options[] = {
- /* Debugging prototype. */
- static int for_each_table(int (*func)(const char *tablename))
- {
--	int ret = 1;
-+	int i, count = 0, ret = 1;
- 	FILE *procfile = NULL;
-+	char **tables = NULL;
- 	char tablename[XT_TABLE_MAXNAMELEN+1];
- 
- 	procfile = fopen("/proc/net/ip6_tables_names", "re");
-@@ -50,10 +51,17 @@ static int for_each_table(int (*func)(const char *tablename))
- 				   "Badly formed tablename `%s'\n",
- 				   tablename);
- 		tablename[strlen(tablename) - 1] = '\0';
--		ret &= func(tablename);
-+		count++;
-+		tables = (char **)realloc(tables, sizeof(char*)*count);
-+		tables[count-1] = strdup(tablename);
- 	}
--
- 	fclose(procfile);
-+
-+	qsort(tables, count, sizeof(char *), stringcmp);
-+	for (i = 0 ; i < count ; i++) {
-+		ret &= func(tables[i]);
-+	}
-+
- 	return ret;
- }
- 
-diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index e599fce..802f94d 100644
---- a/iptables/iptables-save.c
-+++ b/iptables/iptables-save.c
-@@ -34,8 +34,9 @@ static const struct option options[] = {
- /* Debugging prototype. */
- static int for_each_table(int (*func)(const char *tablename))
- {
--	int ret = 1;
-+	int i, count = 0, ret = 1;
- 	FILE *procfile = NULL;
-+	char **tables = NULL;
- 	char tablename[XT_TABLE_MAXNAMELEN+1];
- 
- 	procfile = fopen("/proc/net/ip_tables_names", "re");
-@@ -48,10 +49,17 @@ static int for_each_table(int (*func)(const char *tablename))
- 				   "Badly formed tablename `%s'\n",
- 				   tablename);
- 		tablename[strlen(tablename) - 1] = '\0';
--		ret &= func(tablename);
-+		count++;
-+		tables = (char **)realloc(tables, sizeof(char*)*count);
-+		tables[count-1] = strdup(tablename);
- 	}
--
- 	fclose(procfile);
-+
-+	qsort(tables, count, sizeof(char *), stringcmp);
-+	for (i = 0 ; i < count ; i++) {
-+		ret &= func(tables[i]);
-+	}
-+
- 	return ret;
- }
- 
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index ebc77b6..ca94f4e 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -1957,3 +1957,10 @@ void get_kernel_version(void)
- 	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
- 	kernel_version = LINUX_VERSION(x, y, z);
- }
-+
-+int stringcmp(const void *a, const void *b) 
-+{ 
-+	const char **ia = (const char **)a;
-+	const char **ib = (const char **)b;
-+	return strcmp(*ia, *ib);
-+} 
+>> +	if (inner) {
+>> +		unsigned int protooff;
+>> +		u8 nexthdr = ih->nexthdr;
+>> +		__be16 frag_off;
+>> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0)
+>> +		protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr),
+>> +					    &nexthdr, &frag_off);
+>> +#else
+>> +		protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr),
+>> +					    &nexthdr);
+>> +#endif
+>> +		if (protooff < 0 || nexthdr != IPPROTO_ICMPV6 ||
+>> +		    !ip_set_get_icmpv6_inner_hdr(skb, &protooff, &ih))
+>> +			goto err;
+>> +	}
+>>     
+>
+> Move the whole code in the braces into ip_set_get_ipv6_inner_hdr, for the 
+> same reason as above.
+>   
+Noted, will include this in the next version of the patches.
 
---jRHKVT23PllUwdXP--
+>> +#endif /*_IP_SET_ICMP_H*/
+>>     
+>
+> Move the functions into ip_set_core.c as non-inline ones and export them.
+>   
+Yep, will do that in the next submission.
+
