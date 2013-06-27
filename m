@@ -1,118 +1,190 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [RFC PATCHv2] netfilter: nf_tables: add insert operation
-Date: Fri, 28 Jun 2013 23:05:18 +0200
-Message-ID: <1372453518-4749-1-git-send-email-eric@regit.org>
-References: <1371730620.6038.2.camel@ice-age.regit.org>
-Cc: Eric Leblond <eric@regit.org>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] iptables: allow service names in [DS]NAT targets
+Date: Thu, 27 Jun 2013 11:54:09 -0400
+Message-ID: <20130627155409.GA8638@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="cNdxnHkX5QqsyA0e"
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:60195 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226Ab3F1VFq (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53051 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753428Ab3F2DgH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Jun 2013 17:05:46 -0400
-In-Reply-To: <1371730620.6038.2.camel@ice-age.regit.org>
+	Fri, 28 Jun 2013 23:36:07 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa11so3138999pad.33
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2013 20:36:06 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new rule attribute NFTA_RULE_POSITION which is
-used to store the position of a rule relatively to the others.
-By providing a create command and specifying a position, the rule is
-inserted after the rule with the handle equal to the provided
-position.
-Regarding notification, the position attribute is added to specify
-the handle of the previous rule in append mode and the handle of
-the next rule in the other case.
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c            | 32 +++++++++++++++++++++++++++++---
- 2 files changed, 30 insertions(+), 3 deletions(-)
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index d40a7f9..d9bf8ea 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -143,6 +143,7 @@ enum nft_rule_attributes {
- 	NFTA_RULE_EXPRESSIONS,
- 	NFTA_RULE_FLAGS,
- 	NFTA_RULE_COMPAT,
-+	NFTA_RULE_POSITION,
- 	__NFTA_RULE_MAX
- };
- #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b00aca8..a03aa9f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_FLAGS]	= { .type = NLA_U32 },
- 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
-+	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
- };
+As reported by Alexander Hoogerhuis, the [DS]NAT targets do not allow use of
+service names in the --to argument.  The same problem was fixed in the REDIRECT
+target in commit 84d758b3 ("extensions: REDIRECT: fix --to-ports parser").
+Use a similar fix here.
+
+This closes bugzilla #514.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-514
+
+diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
+index ff18799..e452cfc 100644
+--- a/extensions/libipt_DNAT.c
++++ b/extensions/libipt_DNAT.c
+@@ -67,7 +67,7 @@ static struct xt_entry_target *
+ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ {
+ 	struct nf_nat_ipv4_range range;
+-	char *arg, *colon, *dash, *error;
++	char *arg, *colon, *dash;
+ 	const struct in_addr *ip;
  
- static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
-@@ -1298,6 +1299,17 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
- 		goto nla_put_failure;
+ 	arg = strdup(orig_arg);
+@@ -77,7 +77,8 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ 	colon = strchr(arg, ':');
  
-+	if (event & NLM_F_APPEND && rule->list.prev) {
-+		if (nla_put_be64(skb, NFTA_RULE_POSITION,
-+				 cpu_to_be64(((struct nft_rule *)rule->list.prev)->handle)))
-+			goto nla_put_failure;
-+	} else if (rule->list.next) {
-+		if (nla_put_be64(skb, NFTA_RULE_POSITION,
-+				 cpu_to_be64(((struct nft_rule *)rule->list.next)->handle)))
-+			goto nla_put_failure;
-+	} else
-+		goto nla_put_failure;
+ 	if (colon) {
+-		int port;
++		char *end = "";
++		unsigned int port, maxport;
+ 
+ 		if (!portok)
+ 			xtables_error(PARAMETER_PROBLEM,
+@@ -85,34 +86,29 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ 
+ 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 
+-		port = atoi(colon+1);
+-		if (port <= 0 || port > 65535)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port `%s' not valid\n", colon+1);
+-
+-		error = strchr(colon+1, ':');
+-		if (error)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Invalid port:port syntax - use dash\n");
++		if (!xtables_strtoui(colon + 1, &end, &port, 0, UINT16_MAX) &&
++		    (port = xtables_service_to_port(colon + 1, NULL)) == (unsigned)-1)
++			xtables_param_act(XTF_BAD_VALUE, "DNAT", "--to", arg);
+ 
+-		dash = strchr(colon, '-');
+-		if (!dash) {
++		switch (*end) {
++		case '\0':
+ 			range.min.tcp.port
+ 				= range.max.tcp.port
+ 				= htons(port);
+-		} else {
+-			int maxport;
++			break;
++		case '-':
++			if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX) &&
++			    (maxport = xtables_service_to_port(end + 1, NULL)) == (unsigned)-1)
++				xtables_param_act(XTF_BAD_VALUE, "DNAT", "--to", arg);
+ 
+-			maxport = atoi(dash + 1);
+-			if (maxport <= 0 || maxport > 65535)
+-				xtables_error(PARAMETER_PROBLEM,
+-					   "Port `%s' not valid\n", dash+1);
+ 			if (maxport < port)
+-				/* People are stupid. */
+-				xtables_error(PARAMETER_PROBLEM,
+-					   "Port range `%s' funky\n", colon+1);
++				xtables_param_act(XTF_BAD_VALUE, "DNAT", "--to", arg);
 +
- 	list = nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
- 	if (list == NULL)
- 		goto nla_put_failure;
-@@ -1537,7 +1549,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 	int err, rem;
- 	bool create;
- 	u32 flags = 0;
--	u64 handle;
-+	u64 handle, pos_handle;
- 
- 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
- 
-@@ -1571,6 +1583,16 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 		handle = nf_tables_alloc_handle(table);
- 	}
- 
-+	if (nla[NFTA_RULE_POSITION]) {
-+		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
-+		old_rule = __nf_tables_rule_lookup(chain, pos_handle);
-+		if (IS_ERR(old_rule))
-+			return PTR_ERR(old_rule);
-+
-+		if (! (nlh->nlmsg_flags & NLM_F_CREATE))
-+			return -EOPNOTSUPP;
-+	}
-+
- 	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
- 
- 	n = 0;
-@@ -1626,8 +1648,12 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 			range.min.tcp.port = htons(port);
+ 			range.max.tcp.port = htons(maxport);
++			break;
++		default:
++			xtables_param_act(XTF_BAD_VALUE, "DNAT", "--to", arg);
  		}
- 	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
- 		list_add_tail_rcu(&rule->list, &chain->rules);
--	else
--		list_add_rcu(&rule->list, &chain->rules);
-+	else {
-+		if (old_rule)
-+			list_add_rcu(&rule->list, &old_rule->list);
-+		else
-+			list_add_rcu(&rule->list, &chain->rules);
-+	}
+ 		/* Starts with a colon? No IP info...*/
+ 		if (colon == arg) {
+diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
+index 1a24f3d..01be677 100644
+--- a/extensions/libipt_SNAT.c
++++ b/extensions/libipt_SNAT.c
+@@ -67,7 +67,7 @@ static struct xt_entry_target *
+ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ {
+ 	struct nf_nat_ipv4_range range;
+-	char *arg, *colon, *dash, *error;
++	char *arg, *colon, *dash;
+ 	const struct in_addr *ip;
  
- 	if (flags & NFT_RULE_F_COMMIT)
- 		list_add(&rule->dirty_list, &chain->dirty_rules);
--- 
-1.8.3.1
+ 	arg = strdup(orig_arg);
+@@ -77,7 +77,8 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ 	colon = strchr(arg, ':');
+ 
+ 	if (colon) {
+-		int port;
++		char *end = "";
++		unsigned int port, maxport;
+ 
+ 		if (!portok)
+ 			xtables_error(PARAMETER_PROBLEM,
+@@ -85,34 +86,29 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ 
+ 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 
+-		port = atoi(colon+1);
+-		if (port <= 0 || port > 65535)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port `%s' not valid\n", colon+1);
+-
+-		error = strchr(colon+1, ':');
+-		if (error)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Invalid port:port syntax - use dash\n");
++		if (!xtables_strtoui(colon + 1, &end, &port, 0, UINT16_MAX) &&
++		    (port = xtables_service_to_port(colon + 1, NULL)) == (unsigned)-1)
++			xtables_param_act(XTF_BAD_VALUE, "SNAT", "--to", arg);
+ 
+-		dash = strchr(colon, '-');
+-		if (!dash) {
++		switch (*end) {
++		case '\0':
+ 			range.min.tcp.port
+ 				= range.max.tcp.port
+ 				= htons(port);
+-		} else {
+-			int maxport;
++			break;
++		case '-':
++			if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX) &&
++			    (maxport = xtables_service_to_port(end + 1, NULL)) == (unsigned)-1)
++				xtables_param_act(XTF_BAD_VALUE, "SNAT", "--to", arg);
+ 
+-			maxport = atoi(dash + 1);
+-			if (maxport <= 0 || maxport > 65535)
+-				xtables_error(PARAMETER_PROBLEM,
+-					   "Port `%s' not valid\n", dash+1);
+ 			if (maxport < port)
+-				/* People are stupid. */
+-				xtables_error(PARAMETER_PROBLEM,
+-					   "Port range `%s' funky\n", colon+1);
++				xtables_param_act(XTF_BAD_VALUE, "SNAT", "--to", arg);
++
+ 			range.min.tcp.port = htons(port);
+ 			range.max.tcp.port = htons(maxport);
++			break;
++		default:
++			xtables_param_act(XTF_BAD_VALUE, "SNAT", "--to", arg);
+ 		}
+ 		/* Starts with a colon? No IP info...*/
+ 		if (colon == arg) {
 
+--cNdxnHkX5QqsyA0e--
