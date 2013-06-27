@@ -1,49 +1,95 @@
-From: Jeff Haran <Jeff.Haran@citrix.com>
-Subject: RE: [PATCH v2 2/5] ipset: add "inner" flag implementation
-Date: Thu, 27 Jun 2013 22:45:16 +0000
-Message-ID: <4E5779AD88B2F040B8A7E83ECF544D1A01AD5B@SJCPEX01CL02.citrite.net>
-References: <cover.1371423775.git.mr.dash.four@googlemail.com>
- <51BE49D4.1010901@googlemail.com>
- <alpine.DEB.2.00.1306262149560.17378@blackhole.kfki.hu>
- <51CCBE8A.3080305@googlemail.com>
+From: Vincent Li <vincent.mc.li@gmail.com>
+Subject: xt_ipvs match does not translate source address for ipvs
+Date: Thu, 27 Jun 2013 15:46:36 -0700
+Message-ID: <CAK3+h2ykFzFn3oFbc7Yo3jij_o3xikTmG5QBVZ3qUiOgdwvVMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Dash Four <mr.dash.four@googlemail.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:34349 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754380Ab3F0WpT convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Jun 2013 18:45:19 -0400
-In-Reply-To: <51CCBE8A.3080305@googlemail.com>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Hannes Eder <heder@google.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> -----Original Message-----
-> From: netfilter-devel-owner@vger.kernel.org [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Dash Four
-> Sent: Thursday, June 27, 2013 3:37 PM
-> To: Jozsef Kadlecsik
-> Cc: Pablo Neira Ayuso; Netfilter Core Team
-> Subject: Re: [PATCH v2 2/5] ipset: add "inner" flag implementation
-> 
-...
-> I disagree. By having "return false" (or "return 0", "return -1" and so
-> on) instead of "goto err" it is not immediately apparent to someone who
-> studies/reviews/uses the code that this is an error condition/path. I
-> have been in that situation many times when I have to go back and look
-> at a particular function call to see what "return false" or "return 0"
-> actually means.
-> 
-> By including "goto err" instead of multiple "return false" statement,
-> that makes it instantly obvious what the purpose of that statement is
-> without having to look elsewhere.
+Hi,
 
-I suppose as an alternative you could go way against the usual practice and put some text in a function header comment block indicating what the return code means. I know it doesn't get used much but C has had this /* comment */ thing for a long time. I've never understood why more people don't use it.
+I am running most recent net-next git tree version and compiled the
+xt_ipvs match extension for ipvs, here is the info:
 
-Jeff Haran
+# uname -a
+Linux vincent-hp 3.10.0-rc6-ipvs-with-nat #3 SMP Wed Jun 26 21:19:32
+PDT 2013 i686 GNU/Linux
 
+Module                  Size  Used by
+xt_TRACE                 726  0
+xt_tcpudp               1895  0
+iptable_raw             1162  0
+xt_LOG                 11066  0
+arptable_filter         1122  0
+arp_tables              9012  1 arptable_filter
+iptable_filter          1302  0
+xt_nat                  1746  2
+iptable_nat             2646  1
+nf_conntrack_ipv4      12368  1
+nf_defrag_ipv4          1181  1 nf_conntrack_ipv4
+nf_nat_ipv4             3487  1 iptable_nat
+ip_tables              10235  3 iptable_raw,iptable_filter,iptable_nat
+nf_nat                 14458  3 xt_nat,iptable_nat,nf_nat_ipv4
+xt_ipvs                 1620  2
+x_tables               15304  10
+xt_TRACE,xt_tcpudp,iptable_raw,xt_LOG,arptable_filter,arp_tables,iptable_filter,xt_nat,ip_tables,xt_ipvs
+binfmt_misc             5844  1
+ppdev                   5120  0
+ip_vs_rr                1643  2
+ip_vs                 148089  6 xt_ipvs,ip_vs_rr
+nf_conntrack           77550  5
+iptable_nat,nf_conntrack_ipv4,nf_nat_ipv4,nf_nat,ip_vs
+libcrc32c                855  1 ip_vs
+
+root@vincent-hp:/usr/src/net-next# iptables -t nat -n -L
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
+10.1.72.169 vport 80 to:10.2.72.139
+SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
+10.1.72.169 vport 22 to:10.2.72.139
+
+# ipvsadm -L -n
+
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  10.1.72.169:22 rr
+  -> 10.2.72.99:22                Masq    1      0          0
+TCP  10.1.72.169:80 rr
+  -> 10.2.72.9:80                 Masq    1      0          0
+  -> 10.2.72.99:80                Masq    1      0          0
+
+no any filter, mangle, raw iptable rules.
+
+the ipvs load balance works fine, but running tcpdump on LVS director
+and real server shows the client source address is not translated to
+specified address 10.2.72.139.
+
+I used TRACE target in raw filter to trace the packet, I saw the
+packet went through 'nat' table PREROUTING chain, not POSTROUTING
+chain.
+
+I am using LVS NAT mode. I have seen this issue before with previous
+kernel 3.6.x release, but not bothered to file report, it hasn't
+worked for me so I am wondering if I am missing something or there is
+bug in xt_ipvs match extension, any debugging tips or idea would be
+appreciated.
+
+I can post the tcpdump capture or debugging message with TRACE in raw
+table if needed
+
+Thanks
