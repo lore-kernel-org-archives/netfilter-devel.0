@@ -1,39 +1,52 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: remove the duplicate NF_INET_LOCAL_OUT
-Date: Fri, 28 Jun 2013 03:57:26 -0400
-Message-ID: <1372406246-13739-1-git-send-email-xiaosuo@gmail.com>
-Cc: Changli Gao <xiaosuo@gmail.com>, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: Re: [PATCH 1/5] src: get it sync with current include/linux/netfilter/nf_tables.h
+Date: Fri, 28 Jun 2013 10:03:56 +0200
+Message-ID: <CAFpD06SB7b3f45y=5P4S+GahBG1uiP6Gi8oV2zZRVpRP=g_=GA@mail.gmail.com>
+References: <1371825739-3669-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	Eric Leblond <eric@regit.org>,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:40915 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262Ab3F1H6i (ORCPT
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:62140 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372Ab3F1ID5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Jun 2013 03:58:38 -0400
-Received: by mail-pb0-f48.google.com with SMTP id ma3so1960923pbc.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2013 00:58:38 -0700 (PDT)
+	Fri, 28 Jun 2013 04:03:57 -0400
+Received: by mail-ve0-f170.google.com with SMTP id 14so1570291vea.29
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2013 01:03:56 -0700 (PDT)
+In-Reply-To: <1371825739-3669-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The line for NF_INET_LOCAL_OUT is duplicated by mistake, so just remove it.
+Hi Pablo,
+i've tried to apply this patch, but it failed:
 
----
- net/ipv4/netfilter/nf_tables_ipv4.c |    1 -
- 1 file changed, 1 deletion(-)
+Hunk #1 succeeded at 1 with fuzz 2.
+Hunk #2 FAILED at 48.
+Hunk #3 succeeded at 78 with fuzz 1.
+Hunk #4 FAILED at 94.
+Hunk #5 FAILED at 108.
+Hunk #6 FAILED at 128.
+Hunk #7 succeeded at 321 with fuzz 2.
+Hunk #9 FAILED at 488.
+Hunk #10 FAILED at 606.
+6 out of 10 hunks FAILED -- saving rejects to file
+include/linux/netfilter/nf_tables.h.rej
+patching file src/ct.c
+Hunk #1 FAILED at 111.
+1 out of 1 hunk FAILED -- saving rejects to file src/ct.c.rej
+patching file src/parser.y
+Hunk #1 FAILED at 295.
+Hunk #2 FAILED at 1309.
+2 out of 2 hunks FAILED -- saving rejects to file src/parser.y.rej
+patching file src/scanner.l
+Hunk #1 FAILED at 382.
+1 out of 1 hunk FAILED -- saving rejects to file src/scanner.l.rej
 
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index ab6b407..5dfb2ae 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -100,7 +100,6 @@ static struct nf_chain_type filter_ipv4 = {
- 	.fn		= {
- 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
- 		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
--		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
- 		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
- 		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
- 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
--- 
-1.7.9.5
+I have to apply other patches before this?
 
+Thanks,
+Regards.
