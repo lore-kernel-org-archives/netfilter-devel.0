@@ -1,118 +1,61 @@
-From: Vincent Li <vincent.mc.li@gmail.com>
-Subject: Re: xt_ipvs match does not translate source address for ipvs
-Date: Fri, 28 Jun 2013 12:04:18 -0700
-Message-ID: <CAK3+h2yMTEUVhDbP9qSj-S0HgLtcK+jmX=J50xO-HvD08mz7QQ@mail.gmail.com>
-References: <CAK3+h2ykFzFn3oFbc7Yo3jij_o3xikTmG5QBVZ3qUiOgdwvVMA@mail.gmail.com>
-	<alpine.LFD.2.00.1306280900450.1655@ja.ssi.bg>
+From: Eric Leblond <eric@regit.org>
+Subject: Issue with latest nftables
+Date: Fri, 28 Jun 2013 22:08:40 +0200
+Message-ID: <1372450120.8772.5.camel@tiger2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Hannes Eder <heder@google.com>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1306280900450.1655@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:59907 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752932Ab3F1UJD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Jun 2013 16:09:03 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-ah, yes, I didn't set  the sysctl conntrack to 1, it works now, thanks
-a lot, sorry for the noise
+Hi,
 
-On Thu, Jun 27, 2013 at 11:07 PM, Julian Anastasov <ja@ssi.bg> wrote:
->
->         Hello,
->
-> On Thu, 27 Jun 2013, Vincent Li wrote:
->
->> Hi,
->>
->> I am running most recent net-next git tree version and compiled the
->> xt_ipvs match extension for ipvs, here is the info:
->>
->> # uname -a
->> Linux vincent-hp 3.10.0-rc6-ipvs-with-nat #3 SMP Wed Jun 26 21:19:32
->> PDT 2013 i686 GNU/Linux
->>
->> Module                  Size  Used by
->> xt_TRACE                 726  0
->> xt_tcpudp               1895  0
->> iptable_raw             1162  0
->> xt_LOG                 11066  0
->> arptable_filter         1122  0
->> arp_tables              9012  1 arptable_filter
->> iptable_filter          1302  0
->> xt_nat                  1746  2
->> iptable_nat             2646  1
->> nf_conntrack_ipv4      12368  1
->> nf_defrag_ipv4          1181  1 nf_conntrack_ipv4
->> nf_nat_ipv4             3487  1 iptable_nat
->> ip_tables              10235  3 iptable_raw,iptable_filter,iptable_nat
->> nf_nat                 14458  3 xt_nat,iptable_nat,nf_nat_ipv4
->> xt_ipvs                 1620  2
->> x_tables               15304  10
->> xt_TRACE,xt_tcpudp,iptable_raw,xt_LOG,arptable_filter,arp_tables,iptable_filter,xt_nat,ip_tables,xt_ipvs
->> binfmt_misc             5844  1
->> ppdev                   5120  0
->> ip_vs_rr                1643  2
->> ip_vs                 148089  6 xt_ipvs,ip_vs_rr
->> nf_conntrack           77550  5
->> iptable_nat,nf_conntrack_ipv4,nf_nat_ipv4,nf_nat,ip_vs
->> libcrc32c                855  1 ip_vs
->>
->> root@vincent-hp:/usr/src/net-next# iptables -t nat -n -L
->> Chain PREROUTING (policy ACCEPT)
->> target     prot opt source               destination
->>
->> Chain INPUT (policy ACCEPT)
->> target     prot opt source               destination
->>
->> Chain OUTPUT (policy ACCEPT)
->> target     prot opt source               destination
->>
->> Chain POSTROUTING (policy ACCEPT)
->> target     prot opt source               destination
->> SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
->> 10.1.72.169 vport 80 to:10.2.72.139
->> SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
->> 10.1.72.169 vport 22 to:10.2.72.139
->>
->> # ipvsadm -L -n
->>
->> IP Virtual Server version 1.2.1 (size=4096)
->> Prot LocalAddress:Port Scheduler Flags
->>   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
->> TCP  10.1.72.169:22 rr
->>   -> 10.2.72.99:22                Masq    1      0          0
->> TCP  10.1.72.169:80 rr
->>   -> 10.2.72.9:80                 Masq    1      0          0
->>   -> 10.2.72.99:80                Masq    1      0          0
->>
->> no any filter, mangle, raw iptable rules.
->>
->> the ipvs load balance works fine, but running tcpdump on LVS director
->> and real server shows the client source address is not translated to
->> specified address 10.2.72.139.
->>
->> I used TRACE target in raw filter to trace the packet, I saw the
->> packet went through 'nat' table PREROUTING chain, not POSTROUTING
->> chain.
->>
->> I am using LVS NAT mode. I have seen this issue before with previous
->> kernel 3.6.x release, but not bothered to file report, it hasn't
->> worked for me so I am wondering if I am missing something or there is
->> bug in xt_ipvs match extension, any debugging tips or idea would be
->> appreciated.
->
->         Make sure you have CONFIG_IP_VS_NFCT enabled and
-> sysctl var "conntrack" set to 1. IIRC, it is needed for
-> xt_ipvs in 2.6.37+. Let me know if you still have problems,
-> so that we can track the problem.
->
->> I can post the tcpdump capture or debugging message with TRACE in raw
->> table if needed
->>
->> Thanks
->
-> Regards
->
-> --
-> Julian Anastasov <ja@ssi.bg>
+I've found an issue when using the libnftables based nft.
+
+If you use nft-add-rule from libnftables examples and you try to list
+the rules afterward with nft, there is a problem with the added rules
+which are not displayed correctly.
+
+Here is the output of "nft list table filter -n -a --debug=all":
+
+family=ip table=filter chain=output handle=9 flags=0 match name=iprange rev=1 payload dreg=1 base=1 offset=9 len=1 target name=LOG rev=0 
+table filter {
+        chain input {
+                 hook NF_INET_LOCAL_IN 0;
+        }
+
+        chain forward {
+                 hook NF_INET_FORWARD 0;
+        }
+
+        chain output {
+                 hook NF_INET_LOCAL_OUT 0;
+                 ip daddr 1.2.3.4 drop # handle 4
+                 ip daddr 1.2.3.5 drop # handle 5
+                 ip daddr 1.2.3.6 drop # handle 6
+                 # handle 9
+        }
+}
+netlink: Error: unknown expression type 'match'
+name=iprange rev=1 
+
+
+netlink: Error: unknown expression type 'target'
+name=LOG rev=0 
+
+Should this problem be trivial for someone, I let him do the job. If
+not, I will start to work on it. 
+
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
+
