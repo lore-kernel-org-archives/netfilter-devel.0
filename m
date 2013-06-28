@@ -1,113 +1,39 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: xt_ipvs match does not translate source address for ipvs
-Date: Fri, 28 Jun 2013 09:07:28 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1306280900450.1655@ja.ssi.bg>
-References: <CAK3+h2ykFzFn3oFbc7Yo3jij_o3xikTmG5QBVZ3qUiOgdwvVMA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Hannes Eder <heder@google.com>
-To: Vincent Li <vincent.mc.li@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <CAK3+h2ykFzFn3oFbc7Yo3jij_o3xikTmG5QBVZ3qUiOgdwvVMA@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: remove the duplicate NF_INET_LOCAL_OUT
+Date: Fri, 28 Jun 2013 03:57:26 -0400
+Message-ID: <1372406246-13739-1-git-send-email-xiaosuo@gmail.com>
+Cc: Changli Gao <xiaosuo@gmail.com>, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:40915 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262Ab3F1H6i (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Jun 2013 03:58:38 -0400
+Received: by mail-pb0-f48.google.com with SMTP id ma3so1960923pbc.7
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2013 00:58:38 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+The line for NF_INET_LOCAL_OUT is duplicated by mistake, so just remove it.
 
-	Hello,
+---
+ net/ipv4/netfilter/nf_tables_ipv4.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-On Thu, 27 Jun 2013, Vincent Li wrote:
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index ab6b407..5dfb2ae 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -100,7 +100,6 @@ static struct nf_chain_type filter_ipv4 = {
+ 	.fn		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+ 		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
+-		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
+ 		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
+-- 
+1.7.9.5
 
-> Hi,
-> 
-> I am running most recent net-next git tree version and compiled the
-> xt_ipvs match extension for ipvs, here is the info:
-> 
-> # uname -a
-> Linux vincent-hp 3.10.0-rc6-ipvs-with-nat #3 SMP Wed Jun 26 21:19:32
-> PDT 2013 i686 GNU/Linux
-> 
-> Module                  Size  Used by
-> xt_TRACE                 726  0
-> xt_tcpudp               1895  0
-> iptable_raw             1162  0
-> xt_LOG                 11066  0
-> arptable_filter         1122  0
-> arp_tables              9012  1 arptable_filter
-> iptable_filter          1302  0
-> xt_nat                  1746  2
-> iptable_nat             2646  1
-> nf_conntrack_ipv4      12368  1
-> nf_defrag_ipv4          1181  1 nf_conntrack_ipv4
-> nf_nat_ipv4             3487  1 iptable_nat
-> ip_tables              10235  3 iptable_raw,iptable_filter,iptable_nat
-> nf_nat                 14458  3 xt_nat,iptable_nat,nf_nat_ipv4
-> xt_ipvs                 1620  2
-> x_tables               15304  10
-> xt_TRACE,xt_tcpudp,iptable_raw,xt_LOG,arptable_filter,arp_tables,iptable_filter,xt_nat,ip_tables,xt_ipvs
-> binfmt_misc             5844  1
-> ppdev                   5120  0
-> ip_vs_rr                1643  2
-> ip_vs                 148089  6 xt_ipvs,ip_vs_rr
-> nf_conntrack           77550  5
-> iptable_nat,nf_conntrack_ipv4,nf_nat_ipv4,nf_nat,ip_vs
-> libcrc32c                855  1 ip_vs
-> 
-> root@vincent-hp:/usr/src/net-next# iptables -t nat -n -L
-> Chain PREROUTING (policy ACCEPT)
-> target     prot opt source               destination
-> 
-> Chain INPUT (policy ACCEPT)
-> target     prot opt source               destination
-> 
-> Chain OUTPUT (policy ACCEPT)
-> target     prot opt source               destination
-> 
-> Chain POSTROUTING (policy ACCEPT)
-> target     prot opt source               destination
-> SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
-> 10.1.72.169 vport 80 to:10.2.72.139
-> SNAT       all  --  0.0.0.0/0            0.0.0.0/0            vaddr
-> 10.1.72.169 vport 22 to:10.2.72.139
-> 
-> # ipvsadm -L -n
-> 
-> IP Virtual Server version 1.2.1 (size=4096)
-> Prot LocalAddress:Port Scheduler Flags
->   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
-> TCP  10.1.72.169:22 rr
->   -> 10.2.72.99:22                Masq    1      0          0
-> TCP  10.1.72.169:80 rr
->   -> 10.2.72.9:80                 Masq    1      0          0
->   -> 10.2.72.99:80                Masq    1      0          0
-> 
-> no any filter, mangle, raw iptable rules.
-> 
-> the ipvs load balance works fine, but running tcpdump on LVS director
-> and real server shows the client source address is not translated to
-> specified address 10.2.72.139.
-> 
-> I used TRACE target in raw filter to trace the packet, I saw the
-> packet went through 'nat' table PREROUTING chain, not POSTROUTING
-> chain.
-> 
-> I am using LVS NAT mode. I have seen this issue before with previous
-> kernel 3.6.x release, but not bothered to file report, it hasn't
-> worked for me so I am wondering if I am missing something or there is
-> bug in xt_ipvs match extension, any debugging tips or idea would be
-> appreciated.
-
-	Make sure you have CONFIG_IP_VS_NFCT enabled and
-sysctl var "conntrack" set to 1. IIRC, it is needed for
-xt_ipvs in 2.6.37+. Let me know if you still have problems,
-so that we can track the problem.
-
-> I can post the tcpdump capture or debugging message with TRACE in raw
-> table if needed
-> 
-> Thanks
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
