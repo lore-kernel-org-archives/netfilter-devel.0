@@ -1,51 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: RE: [PATCH v2 2/5] ipset: add "inner" flag implementation
-Date: Sat, 29 Jun 2013 13:10:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1306291307270.25929@blackhole.kfki.hu>
-References: <cover.1371423775.git.mr.dash.four@googlemail.com> <51BE49D4.1010901@googlemail.com> <alpine.DEB.2.00.1306262149560.17378@blackhole.kfki.hu> <51CCBE8A.3080305@googlemail.com> <4E5779AD88B2F040B8A7E83ECF544D1A01AD5B@SJCPEX01CL02.citrite.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_queue: add NFQA_SKB_CSUM_NOTVERIFIED info
+ flag
+Date: Sat, 29 Jun 2013 14:45:19 +0200
+Message-ID: <20130629124519.GA24256@localhost>
+References: <20130526204826.GC6578@breakpoint.cc>
+ <1369601289-12743-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dash Four <mr.dash.four@googlemail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Jeff Haran <Jeff.Haran@citrix.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:59863 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:56484 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518Ab3F2LKL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Jun 2013 07:10:11 -0400
-In-Reply-To: <4E5779AD88B2F040B8A7E83ECF544D1A01AD5B@SJCPEX01CL02.citrite.net>
+	id S1751450Ab3F2Mpa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Jun 2013 08:45:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1369601289-12743-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 27 Jun 2013, Jeff Haran wrote:
+Hi Florian,
 
-> ...
-> > I disagree. By having "return false" (or "return 0", "return -1" and so
-> > on) instead of "goto err" it is not immediately apparent to someone who
-> > studies/reviews/uses the code that this is an error condition/path. I
-> > have been in that situation many times when I have to go back and look
-> > at a particular function call to see what "return false" or "return 0"
-> > actually means.
-> > 
-> > By including "goto err" instead of multiple "return false" statement,
-> > that makes it instantly obvious what the purpose of that statement is
-> > without having to look elsewhere.
+On Sun, May 26, 2013 at 10:48:09PM +0200, Florian Westphal wrote:
+> The common case is that TCP/IP checksums have already been
+> verified, e.g. by hardware (rx checksum offload), or conntrack.
 > 
-> I suppose as an alternative you could go way against the usual practice 
-> and put some text in a function header comment block indicating what the 
-> return code means. I know it doesn't get used much but C has had this /* 
-> comment */ thing for a long time. I've never understood why more people 
-> don't use it.
+> Userspace can use this flag to determine when the checksum
+> has not been validated yet.
+> 
+> If the flag is set, this doesn't necessarily mean that the packet has
+> an invalid checksum, e.g. if NIC doesn't support rx checksum.
+> 
+> Userspace that sucessfully enabled NFQA_CFG_F_GSO queue feature flag can
+> infer that IP/TCP checksum has already been validated if either the
+> SKB_INFO attribute is not present or the NFQA_SKB_CSUM_NOTVERIFIED
+> flag is unset.
 
-In general I'd agree with you, but this is a boolean function. So why 
-should the the meaning of the return value "true" and "false" be 
-explained? (This is also why I regard the goto unnecessary.)
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I have applied this patch to nf-next, thanks.
