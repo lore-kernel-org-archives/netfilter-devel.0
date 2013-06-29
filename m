@@ -1,7 +1,7 @@
 From: Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH v3 2/5] ipset: add "inner" flag implementation
-Date: Sat, 29 Jun 2013 22:32:36 +0100
-Message-ID: <51CF5274.3070700@googlemail.com>
+Subject: [PATCH v3 3/5] ipset: add set match "inner" flag support
+Date: Sat, 29 Jun 2013 22:32:50 +0100
+Message-ID: <51CF5282.8060604@googlemail.com>
 References: <cover.1372540515.git.mr.dash.four@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -10,396 +10,342 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Netfilter Core Team <netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:50033 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab3F2Vcq (ORCPT
+Received: from mail-we0-f178.google.com ([74.125.82.178]:33581 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab3F2Vc6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Jun 2013 17:32:46 -0400
-Received: by mail-wi0-f178.google.com with SMTP id k10so1945489wiv.5
-        for <netfilter-devel@vger.kernel.org>; Sat, 29 Jun 2013 14:32:45 -0700 (PDT)
+	Sat, 29 Jun 2013 17:32:58 -0400
+Received: by mail-we0-f178.google.com with SMTP id u53so2194563wes.23
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Jun 2013 14:32:57 -0700 (PDT)
 In-Reply-To: <cover.1372540515.git.mr.dash.four@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch implements "inner" flag option in set iptables match,
-allowing matching based on the properties (source/destination IP address,
-protocol, port and so on) of the original (inner) connection in the event
-of the following ICMP[v4,v6] messages:
-
-ICMPv4 destination-unreachable (code 3);
-ICMPv4 source-quench (code 4);
-ICMPv4 time-exceeded (code 11);
-ICMPv6 destination-unreachable (code 1);
-ICMPv6 packet-too-big (code 2);
-ICMPv6 time-exceeded (code 3);
+This patch implements "inner" flag support to all registered ipset types.
 
 Revision history:
 
 v1 * initial revision
 v2 * redundant code removed;
-    * added a new header file (ip_set_icmp.h) with 2 inline functions,
-      allowing access to the internal icmp header properties;
-    * removed ip[46]inneraddr[ptr]functions as they are no longer needed
-    * added new ipv[46]addr[ptr] and ip_set_get*port functions, the old
-      functions are still preserved for backwards compatibility
-v3 * rename and move ip_set_get_icmpv[46]_inner_hdr functions to
-      ip_set_core.c and remove ip_set_icmp.h
-    * move icmpv[46] protocol and offset checks inside
-      ip_set_get_ip[46]_inner_hdr functions
-    * eliminate ip[46]addrptr & ip_set_get_ip[46]_port backward-compatible
-      functions and rename the new ones to use the same name
-    * eliminate single-path error gotos in ip_set.h and ip_set_getport.c
+    * use the new ipv[46]addr[ptr] and ip_set_get*port functions;
+v3 * revert to the old ip[46]addrptr and ip_set_get_ip[46]_port
+      function names;
 
 Signed-off-by: Dash Four <mr.dash.four@googlemail.com>
 ---
-  kernel/include/linux/netfilter/ipset/ip_set.h      | 59 ++++++++++++---
-  .../include/linux/netfilter/ipset/ip_set_getport.h | 17 +++--
-  kernel/include/uapi/linux/netfilter/ipset/ip_set.h |  2 +
-  kernel/net/netfilter/ipset/ip_set_core.c           | 85 ++++++++++++++++++++++
-  kernel/net/netfilter/ipset/ip_set_getport.c        | 42 +++++++----
-  5 files changed, 173 insertions(+), 32 deletions(-)
+  kernel/net/netfilter/ipset/ip_set_bitmap_ip.c      |  7 ++++++-
+  kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c   |  7 ++++++-
+  kernel/net/netfilter/ipset/ip_set_bitmap_port.c    |  1 +
+  kernel/net/netfilter/ipset/ip_set_hash_ip.c        | 10 ++++++++--
+  kernel/net/netfilter/ipset/ip_set_hash_ipport.c    | 16 ++++++++++------
+  kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  | 22 ++++++++++++++--------
+  kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c | 22 ++++++++++++++--------
+  kernel/net/netfilter/ipset/ip_set_hash_net.c       |  8 ++++++--
+  kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |  8 ++++++--
+  kernel/net/netfilter/ipset/ip_set_hash_netport.c   | 17 ++++++++++-------
+  10 files changed, 81 insertions(+), 37 deletions(-)
 
-diff --git a/kernel/include/linux/netfilter/ipset/ip_set.h b/kernel/include/linux/netfilter/ipset/ip_set.h
-index 8499e25..212aaa2 100644
---- a/kernel/include/linux/netfilter/ipset/ip_set.h
-+++ b/kernel/include/linux/netfilter/ipset/ip_set.h
-@@ -17,6 +17,9 @@
-  #include <linux/netfilter/x_tables.h>
-  #include <linux/stringify.h>
-  #include <linux/vmalloc.h>
-+#include <net/ip.h>
-+#include <net/ipv6.h>
-+#include <net/icmp.h>
-  #include <net/netlink.h>
-  #include <uapi/linux/netfilter/ipset/ip_set.h>
-  #include <linux/netfilter/ipset/ip_set_compat.h>
-@@ -275,6 +278,13 @@ extern int ip_set_get_ipaddr4(struct nlattr *nla,  __be32 *ipaddr);
-  extern int ip_set_get_ipaddr6(struct nlattr *nla, union nf_inet_addr *ipaddr);
-  extern int ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
-  				 struct ip_set_ext *ext);
-+extern bool ip_set_get_ip4_inner_hdr(const struct sk_buff *skb,
-+				     unsigned int *offset,
-+				     struct iphdr **ih);
-+extern bool ip_set_get_ip6_inner_hdr(const struct sk_buff *skb,
-+				     const u8 protocol,
-+				     unsigned int *offset,
-+				     struct ipv6hdr **ih);
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
+index ce99d26..aba3e81 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -115,8 +115,13 @@ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct bitmap_ip_adt_elem e = { };
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, map);
+  	u32 ip;
++	__be32 _ip;
 
-  static inline int
-  ip_set_get_hostipaddr4(struct nlattr *nla, u32 *ipaddr)
-@@ -361,24 +371,51 @@ static inline int nla_put_ipaddr6(struct sk_buff *skb, int type,
+-	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
++	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &_ip))
++		return -EINVAL;
++
++	ip = ntohl(_ip);
+  	if (ip < map->first_ip || ip > map->last_ip)
+  		return -IPSET_ERR_BITMAP_RANGE;
+
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 6d5bad9..fb396b9 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -218,12 +218,17 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct bitmap_ipmac_adt_elem e = {};
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, map);
+  	u32 ip;
++	__be32 _ip;
+
+  	/* MAC can be src only */
+  	if (!(opt->flags & IPSET_DIM_TWO_SRC))
+  		return 0;
+
+-	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
++	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &_ip))
++		return -EINVAL;
++
++	ip = ntohl(_ip);
+  	if (ip < map->first_ip || ip > map->last_ip)
+  		return -IPSET_ERR_BITMAP_RANGE;
+
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
+index b220489..4cef9a3 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -111,6 +111,7 @@ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	u16 port = 0;
+
+  	if (!ip_set_get_ip_port(skb, opt->family,
++				opt->cmdflags & IPSET_FLAG_INNER,
+  				opt->flags & IPSET_DIM_ONE_SRC, &__port))
+  		return -EINVAL;
+
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ip.c b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
+index 260c9a8..c8b07ed 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -102,7 +102,10 @@ hash_ip4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+  	__be32 ip;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &ip);
++	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &ip))
++		return -EINVAL;
++
+  	ip &= ip_set_netmask(h->netmask);
+  	if (ip == 0)
+  		return -EINVAL;
+@@ -255,7 +258,10 @@ hash_ip6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct hash_ip6_elem e = {};
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
++	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
++		return -EINVAL;
++
+  	hash_ip6_netmask(&e.ip, h->netmask);
+  	if (ipv6_addr_any(&e.ip.in6))
+  		return -EINVAL;
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
+index 64caad3..10501e8 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -121,11 +121,13 @@ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct hash_ipport4_elem e = { };
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+
+-	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
+  		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
   }
 
-  /* Get address from skbuff */
--static inline __be32
--ip4addr(const struct sk_buff *skb, bool src)
-+static inline bool
-+ip4addrptr(const struct sk_buff *skb, bool inner, bool src, __be32 *addr)
-  {
--	return src ? ip_hdr(skb)->saddr : ip_hdr(skb)->daddr;
-+	struct iphdr *ih = ip_hdr(skb);
-+	unsigned int protooff = ip_hdrlen(skb);
-+
-+	if (inner && !ip_set_get_ip4_inner_hdr(skb, &protooff, &ih))
-+		return false;
-+
-+	*addr = src ? ih->saddr : ih->daddr;
-+	return true;
+@@ -311,11 +313,13 @@ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct hash_ipport6_elem e = { };
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+
+-	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
+  		return -EINVAL;
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
   }
 
--static inline void
--ip4addrptr(const struct sk_buff *skb, bool src, __be32 *addr)
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+static inline bool
-+ip6addrptr(const struct sk_buff *skb, bool inner, bool src,
-+	    struct in6_addr *addr)
-  {
--	*addr = src ? ip_hdr(skb)->saddr : ip_hdr(skb)->daddr;
-+	struct ipv6hdr *ih = ipv6_hdr(skb);
-+
-+	if (inner) {
-+		unsigned int protooff;
-+		u8 nexthdr = ih->nexthdr;
-+		__be16 frag_off;
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0)
-+		protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr),
-+					    &nexthdr, &frag_off);
-+#else
-+		protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr),
-+					    &nexthdr);
-+#endif
-+		if (!ip_set_get_ip6_inner_hdr(skb, nexthdr, &protooff, &ih))
-+			return false;
-+	}
-+	memcpy(addr, src ? &ih->saddr : &ih->daddr, sizeof(*addr));
-+	return true;
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 2873bbc..5a0a62d 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -125,12 +125,15 @@ hash_ipportip4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct hash_ipportip4_elem e = { };
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+
+-	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2))
+  		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2);
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
   }
+
+@@ -324,12 +327,15 @@ hash_ipportip6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	struct hash_ipportip6_elem e = { };
+  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+
+-	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6))
+  		return -EINVAL;
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6);
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+  }
+
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index db0e761..eed52ed 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -177,12 +177,15 @@ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK - 1;
+
+-	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2))
+  		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2);
+  	e.ip2 &= ip_set_netmask(e.cidr + 1);
+
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+@@ -461,12 +464,15 @@ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK - 1;
+
+-	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6))
+  		return -EINVAL;
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6);
+  	ip6_netmask(&e.ip2, e.cidr + 1);
+
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_net.c b/kernel/net/netfilter/ipset/ip_set_hash_net.c
+index 846ec80..bc6f724 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_net.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_net.c
+@@ -151,8 +151,10 @@ hash_net4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  		return -EINVAL;
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK;
++	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
++		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+  	e.ip &= ip_set_netmask(e.cidr);
+
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+@@ -346,8 +348,10 @@ hash_net6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  		return -EINVAL;
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK;
++	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
++		return -EINVAL;
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+  	ip6_netmask(&e.ip, e.cidr);
+
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
+index 8f0e496..d046955 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -275,8 +275,10 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  		return -EINVAL;
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK;
++	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
++		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+  	e.ip &= ip_set_netmask(e.cidr);
+
+  #define IFACE(dir)	(par->dir ? par->dir->name : NULL)
+@@ -544,8 +546,10 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+  		return -EINVAL;
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK;
++	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
++		return -EINVAL;
+
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+  	ip6_netmask(&e.ip, e.cidr);
+
+  	if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netport.c b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
+index 021d716..fcba938 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -169,11 +169,13 @@ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK - 1;
+
+-	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
+  		return -EINVAL;
+
+-	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+  	e.ip &= ip_set_netmask(e.cidr + 1);
+
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+@@ -413,12 +415,13 @@ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
+
+  	if (adt == IPSET_TEST)
+  		e.cidr = HOST_MASK - 1;
 -
--static inline void
--ip6addrptr(const struct sk_buff *skb, bool src, struct in6_addr *addr)
-+#else
-+static inline bool
-+ip6addrptr(const struct sk_buff *skb, bool inner, bool src,
-+	    struct in6_addr *addr)
-  {
--	memcpy(addr, src ? &ipv6_hdr(skb)->saddr : &ipv6_hdr(skb)->daddr,
--	       sizeof(*addr));
-+	return false;
-  }
-+#endif
+-	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+-				 &e.port, &e.proto))
++	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
++				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
++				 &e.proto) ||
++	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
++			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
+  		return -EINVAL;
 
-  /* Calculate the bytes required to store the inclusive range of a-b */
-  static inline int
-diff --git a/kernel/include/linux/netfilter/ipset/ip_set_getport.h b/kernel/include/linux/netfilter/ipset/ip_set_getport.h
-index 90d0930..5ec6dc6 100644
---- a/kernel/include/linux/netfilter/ipset/ip_set_getport.h
-+++ b/kernel/include/linux/netfilter/ipset/ip_set_getport.h
-@@ -1,22 +1,23 @@
-  #ifndef _IP_SET_GETPORT_H
-  #define _IP_SET_GETPORT_H
+-	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+  	ip6_netmask(&e.ip, e.cidr + 1);
 
--extern bool ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
--				__be16 *port, u8 *proto);
-+extern bool ip_set_get_ip4_port(const struct sk_buff *skb, bool inner,
-+				bool src, __be16 *port, u8 *proto);
-
-  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
--extern bool ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
--				__be16 *port, u8 *proto);
-+extern bool ip_set_get_ip6_port(const struct sk_buff *skb, bool inner,
-+				bool src, __be16 *port, u8 *proto);
-  #else
--static inline bool ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
--				       __be16 *port, u8 *proto)
-+static inline bool ip_set_get_ip6_port(const struct sk_buff *skb,
-+					bool inner, bool src,
-+					__be16 *port, u8 *proto)
-  {
-  	return false;
-  }
-  #endif
-
--extern bool ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool src,
--				__be16 *port);
-+extern bool ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool inner,
-+				bool src, __be16 *port);
-
-  static inline bool ip_set_proto_with_ports(u8 proto)
-  {
-diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-index 8024cdf..e9e6586 100644
---- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -161,6 +161,8 @@ enum ipset_cmd_flags {
-  		(1 << IPSET_FLAG_BIT_SKIP_SUBCOUNTER_UPDATE),
-  	IPSET_FLAG_BIT_MATCH_COUNTERS = 5,
-  	IPSET_FLAG_MATCH_COUNTERS = (1 << IPSET_FLAG_BIT_MATCH_COUNTERS),
-+	IPSET_FLAG_BIT_INNER = 6,
-+	IPSET_FLAG_INNER = (1 << IPSET_FLAG_BIT_INNER),
-  	IPSET_FLAG_BIT_RETURN_NOMATCH = 7,
-  	IPSET_FLAG_RETURN_NOMATCH = (1 << IPSET_FLAG_BIT_RETURN_NOMATCH),
-  	IPSET_FLAG_CMD_MAX = 15,
-diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
-index 2c646cb..0f2aa97 100644
---- a/kernel/net/netfilter/ipset/ip_set_core.c
-+++ b/kernel/net/netfilter/ipset/ip_set_core.c
-@@ -13,6 +13,8 @@
-  #include <linux/module.h>
-  #include <linux/moduleparam.h>
-  #include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/icmp.h>
-  #include <linux/skbuff.h>
-  #include <linux/spinlock.h>
-  #include <linux/netlink.h>
-@@ -617,6 +619,89 @@ ip_set_nfnl_put(ip_set_id_t index)
-  }
-  EXPORT_SYMBOL_GPL(ip_set_nfnl_put);
-
-+bool ip_set_get_ip4_inner_hdr(const struct sk_buff *skb, unsigned int *offset,
-+			      struct iphdr **ih)
-+{
-+	u8 type;
-+	struct iphdr _iph;
-+	struct icmphdr _icmph;
-+	struct iphdr *iph;
-+	const struct icmphdr *ich;
-+	/* RFC 1122: 3.2.2. req'd len: IP header + 8 bytes of inner header */
-+	static const size_t req_len = sizeof(struct iphdr) + 8;
-+
-+	if (offset == NULL || ih == NULL || *ih == NULL ||
-+	    (*ih)->protocol != IPPROTO_ICMP)
-+		goto err;
-+
-+	ich = skb_header_pointer(skb, *offset, sizeof(_icmph), &_icmph);
-+	if (ich == NULL ||
-+	    (ich->type <= NR_ICMP_TYPES && skb->len - *offset < req_len))
-+		goto err;
-+
-+	type = ich->type;
-+	if (type == ICMP_DEST_UNREACH ||
-+	    type == ICMP_SOURCE_QUENCH ||
-+	    type == ICMP_TIME_EXCEEDED) {
-+		*offset += sizeof(_icmph);
-+		iph = skb_header_pointer(skb, *offset, sizeof(_iph), &_iph);
-+		if (iph == NULL || ntohs(iph->frag_off) & IP_OFFSET)
-+			goto err;
-+
-+		*ih = iph;
-+		return true;
-+	}
-+
-+err:
-+	return false;
-+}
-+EXPORT_SYMBOL_GPL(ip_set_get_ip4_inner_hdr);
-+
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+bool ip_set_get_ip6_inner_hdr(const struct sk_buff *skb, const u8 protocol,
-+			      unsigned int *offset,
-+			      struct ipv6hdr **ih)
-+{
-+	u8 type;
-+	const struct icmp6hdr *ic;
-+	struct icmp6hdr _icmp6h;
-+	struct ipv6hdr _ip6h;
-+	struct ipv6hdr *iph;
-+
-+	if (offset == NULL || *offset < 0 ||
-+	    ih == NULL || protocol != IPPROTO_ICMPV6)
-+		goto err;
-+
-+	ic = skb_header_pointer(skb, *offset, sizeof(_icmp6h), &_icmp6h);
-+	if (ic == NULL)
-+		goto err;
-+
-+	type = ic->icmp6_type;
-+	if (type == ICMPV6_DEST_UNREACH ||
-+	    type == ICMPV6_PKT_TOOBIG ||
-+	    type == ICMPV6_TIME_EXCEED) {
-+		*offset += sizeof(_icmp6h);
-+		iph = skb_header_pointer(skb, *offset, sizeof(_ip6h), &_ip6h);
-+		if (iph == NULL)
-+			goto err;
-+
-+		*ih = iph;
-+		return true;
-+	}
-+
-+err:
-+	return false;
-+}
-+#else
-+bool ip_set_get_ip6_inner_hdr(const struct sk_buff *skb, const u8 protocol,
-+			      unsigned int offset,
-+			      struct ipv6hdr **ih)
-+{
-+	return false;
-+}
-+#endif
-+EXPORT_SYMBOL_GPL(ip_set_get_ip6_inner_hdr);
-+
-  /*
-   * Communication protocol with userspace over netlink.
-   *
-diff --git a/kernel/net/netfilter/ipset/ip_set_getport.c b/kernel/net/netfilter/ipset/ip_set_getport.c
-index a0d96eb..9093581 100644
---- a/kernel/net/netfilter/ipset/ip_set_getport.c
-+++ b/kernel/net/netfilter/ipset/ip_set_getport.c
-@@ -19,7 +19,9 @@
-  #include <linux/netfilter_ipv6/ip6_tables.h>
-  #include <net/ip.h>
-  #include <net/ipv6.h>
-+#include <net/icmp.h>
-
-+#include <linux/netfilter/ipset/ip_set.h>
-  #include <linux/netfilter/ipset/ip_set_getport.h>
-
-  /* We must handle non-linear skbs */
-@@ -97,10 +99,10 @@ get_port(const struct sk_buff *skb, int protocol, unsigned int protooff,
-  }
-
-  bool
--ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
-+ip_set_get_ip4_port(const struct sk_buff *skb, bool inner, bool src,
-  		    __be16 *port, u8 *proto)
-  {
--	const struct iphdr *iph = ip_hdr(skb);
-+	struct iphdr *iph = ip_hdr(skb);
-  	unsigned int protooff = ip_hdrlen(skb);
-  	int protocol = iph->protocol;
-
-@@ -123,47 +125,61 @@ ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
-  			*proto = protocol;
-  			return true;
-  		}
-+	if (inner) {
-+		if (!ip_set_get_ip4_inner_hdr(skb, &protooff, &iph))
-+			return false;
-
-+		protocol = iph->protocol;
-+		protooff += iph->ihl*4;
-+	}
-  	return get_port(skb, protocol, protooff, src, port, proto);
-  }
-  EXPORT_SYMBOL_GPL(ip_set_get_ip4_port);
-
-  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-  bool
--ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
-+ip_set_get_ip6_port(const struct sk_buff *skb, bool inner, bool src,
-  		    __be16 *port, u8 *proto)
-  {
--	int protoff;
--	u8 nexthdr;
-+	unsigned int protooff;
-+	struct ipv6hdr *ih = ipv6_hdr(skb);
-+	u8 nexthdr = ih->nexthdr;
-  	__be16 frag_off = 0;
-
--	nexthdr = ipv6_hdr(skb)->nexthdr;
-  #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0)
--	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
-+	protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
-  				   &frag_off);
-  #else
--	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr);
-+	protooff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr);
-  #endif
--	if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
-+	if (protooff < 0 || (frag_off & htons(~0x7)) != 0)
-  		return false;
-
--	return get_port(skb, nexthdr, protoff, src, port, proto);
-+	if (inner) {
-+		if (!ip_set_get_ip6_inner_hdr(skb, nexthdr, &protooff, &ih))
-+			return false;
-+
-+		nexthdr = ih->nexthdr;
-+		protooff += sizeof(struct ipv6hdr);
-+	}
-+	return get_port(skb, nexthdr, protooff, src, port, proto);
-  }
-  EXPORT_SYMBOL_GPL(ip_set_get_ip6_port);
-  #endif
-
-  bool
--ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool src, __be16 *port)
-+ip_set_get_ip_port(const struct sk_buff *skb, u8 pf, bool inner, bool src,
-+		   __be16 *port)
-  {
-  	bool ret;
-  	u8 proto;
-
-  	switch (pf) {
-  	case NFPROTO_IPV4:
--		ret = ip_set_get_ip4_port(skb, src, port, &proto);
-+		ret = ip_set_get_ip4_port(skb, inner, src, port, &proto);
-  		break;
-  	case NFPROTO_IPV6:
--		ret = ip_set_get_ip6_port(skb, src, port, &proto);
-+		ret = ip_set_get_ip6_port(skb, inner, src, port, &proto);
-  		break;
-  	default:
-  		return false;
+  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
 
