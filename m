@@ -1,209 +1,93 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] fix filenames typo in print_usage and file header
-Date: Sat, 29 Jun 2013 12:30:33 +0200
-Message-ID: <20130629103033.GB5687@localhost>
-References: <1166283489.20130619142210@yandex.ru>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v2 2/5] ipset: add "inner" flag implementation
+Date: Sat, 29 Jun 2013 13:07:21 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1306291247010.25929@blackhole.kfki.hu>
+References: <cover.1371423775.git.mr.dash.four@googlemail.com> <51BE49D4.1010901@googlemail.com> <alpine.DEB.2.00.1306262149560.17378@blackhole.kfki.hu> <51CCBE8A.3080305@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: gapsf <gapsf@yandex.ru>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45608 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:36038 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562Ab3F2Kai (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Jun 2013 06:30:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1166283489.20130619142210@yandex.ru>
+	id S1752984Ab3F2LHX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Jun 2013 07:07:23 -0400
+In-Reply-To: <51CCBE8A.3080305@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 19, 2013 at 02:22:10PM +0700, gapsf wrote:
-> From ccb45b16c88959737670ef79e5aba47c406b2f70 Mon Sep 17 00:00:00 2001
-> From: gapsf <gapsf@yandex.ru>
-> Date: Thu, 13 Jun 2013 22:30:34 +0700
-> Subject: [PATCH] fix filenames typo in print_usage and file header
-> 
-> ---
->  src/nf-table-add.c         | 2 +-
->  src/nf-table-delete.c      | 2 +-
->  src/nl-cls-delete.c        | 2 +-
->  src/nl-link-list.c         | 2 +-
->  src/nl-link-name2ifindex.c | 2 +-
->  src/nl-rule-list.c         | 2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/src/nf-table-add.c b/src/nf-table-add.c
-> index 58ce30f..2989503 100644
-> --- a/src/nf-table-add.c
-> +++ b/src/nf-table-add.c
-> @@ -17,7 +17,7 @@
->  static void print_usage(void)
->  {
->         printf(
-> -       "Usage: nf-ct-add <family> <name>\n"
-> +       "Usage: nf-table-add <family> <name>\n"
->         );
->         exit(1);
->  }
-> diff --git a/src/nf-table-delete.c b/src/nf-table-delete.c
-> index a15e772..7a49a01 100644
-> --- a/src/nf-table-delete.c
-> +++ b/src/nf-table-delete.c
-> @@ -17,7 +17,7 @@
->  static void print_usage(void)
->  {
->         printf(
-> -       "Usage: nf-ct-delete <family> <name>\n"
-> +       "Usage: nf-table-delete <family> <name>\n"
->         );
->         exit(1);
->  }
+On Thu, 27 Jun 2013, Dash Four wrote:
 
-Applied the two chunks above, thanks.
+> Jozsef Kadlecsik wrote:
+> > Get rid of the compatibility functions. Or keep the original function names
+> > with the extended arguments: there's no stable API.
+> >   
+> As you've probably guessed, I kept the old functions and their parameters in
+> order to preserve the existing interface API, since any changes I make to
+> these will break existing code using them. If there is no objection and there
+> is no such requirement, I'll get rid of them in the next release of the
+> patches - just let me know.
 
-The remain ones belong to libnl.
+Yes, there's no such requirement and remove the backward compatibility 
+part.
+ 
+> > >  #define _IP_SET_MODULE_DESC(a, b, c)		\
+> > >  	MODULE_DESCRIPTION(a " type of IP sets, revisions " b "-" c)
+> > > @@ -361,6 +365,25 @@ static inline int nla_put_ipaddr6(struct sk_buff
+> > > *skb,
+> > > int type,
+> > >  }
+> > > 
+> > >  /* Get address from skbuff */
+> > > +static inline bool
+> > > +ipv4addrptr(const struct sk_buff *skb, bool inner, bool src, __be32
+> > > *addr)
+> > > +{
+> > > +	struct iphdr *ih = ip_hdr(skb);
+> > > +	unsigned int protooff = ip_hdrlen(skb);
+> > > +
+> > > +	if (ih == NULL ||
+> > >     
+> > 
+> > Why do you have to check the IP header?
+> >   
+> Simply playing it safe. I am referencing it later on in the code and if that
+> pointer is NULL for whatever reason, it will trigger a null-pointer
+> dereference, hence the check above.
 
-> diff --git a/src/nl-cls-delete.c b/src/nl-cls-delete.c
-> index cfdc170..95abd54 100644
-> --- a/src/nl-cls-delete.c
-> +++ b/src/nl-cls-delete.c
-> @@ -18,7 +18,7 @@ static struct nl_sock *sock;
->  static void print_usage(void)
->  {
->         printf(
-> -       "Usage: nl-cls-list [OPTION]... [CLASSIFIER]\n"
-> +       "Usage: nl-cls-delete [OPTION]... [CLASSIFIER]\n"
->         "\n"
->         "Options\n"
->         " -i, --interactive     Run interactively\n"
-> diff --git a/src/nl-link-list.c b/src/nl-link-list.c
-> index 5e1e3f6..2f30aad 100644
-> --- a/src/nl-link-list.c
-> +++ b/src/nl-link-list.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * src/nl-link-dump.c  Dump link attributes
-> + * src/nl-link-list.c  Dump link attributes
->   *
->   *     This library is free software; you can redistribute it and/or
->   *     modify it under the terms of the GNU Lesser General Public
-> diff --git a/src/nl-link-name2ifindex.c b/src/nl-link-name2ifindex.c
-> index b04af04..6be58e8 100644
-> --- a/src/nl-link-name2ifindex.c
-> +++ b/src/nl-link-name2ifindex.c
-> @@ -14,7 +14,7 @@
->  
->  static void print_usage(void)
->  {
-> -       printf("Usage: nl-link-ifindex2name <ifindex>\n");
-> +       printf("Usage: nl-link-name2ifindex <ifindex>\n");
->         exit(0);
->  }
->  
-> diff --git a/src/nl-rule-list.c b/src/nl-rule-list.c
-> index 8b474fa..d4f1d79 100644
-> --- a/src/nl-rule-list.c
-> +++ b/src/nl-rule-list.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * src/nl-rule-dump.c     Dump rule attributes
-> + * src/nl-rule-list.c     Dump rule attributes
->   *
->   *     This library is free software; you can redistribute it and/or
->   *     modify it under the terms of the GNU Lesser General Public
-> -- 
-> 1.8.3.msysgit.0
->  
-
-> From ccb45b16c88959737670ef79e5aba47c406b2f70 Mon Sep 17 00:00:00 2001
-> From: gapsf <gapsf@yandex.ru>
-> Date: Thu, 13 Jun 2013 22:30:34 +0700
-> Subject: [PATCH] fix filenames typo in print_usage and file header
+The return value of ip[6]_hdr was never checked in ipset code yet, because 
+it doesn't return NULL at the point where these code parts are called. 
+It's an unnecessary checking.
+ 
+> > > +	    (inner &&
+> > > +	     (ih->protocol != IPPROTO_ICMP ||
+> > > +	      !ip_set_get_icmpv4_inner_hdr(skb, &protooff, &ih))))
+> > > +			goto err;
+> > > 
 > 
-> ---
->  src/nf-table-add.c         | 2 +-
->  src/nf-table-delete.c      | 2 +-
->  src/nl-cls-delete.c        | 2 +-
->  src/nl-link-list.c         | 2 +-
->  src/nl-link-name2ifindex.c | 2 +-
->  src/nl-rule-list.c         | 2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
+> >  Also, there's no need for the goto here: there's no other error path.
+> >   
+> I disagree. By having "return false" (or "return 0", "return -1" and so on)
+> instead of "goto err" it is not immediately apparent to someone who
+> studies/reviews/uses the code that this is an error condition/path. I have
+> been in that situation many times when I have to go back and look at a
+> particular function call to see what "return false" or "return 0" actually
+> means.
 > 
-> diff --git a/src/nf-table-add.c b/src/nf-table-add.c
-> index 58ce30f..2989503 100644
-> --- a/src/nf-table-add.c
-> +++ b/src/nf-table-add.c
-> @@ -17,7 +17,7 @@
->  static void print_usage(void)
->  {
->  	printf(
-> -	"Usage: nf-ct-add <family> <name>\n"
-> +	"Usage: nf-table-add <family> <name>\n"
->  	);
->  	exit(1);
->  }
-> diff --git a/src/nf-table-delete.c b/src/nf-table-delete.c
-> index a15e772..7a49a01 100644
-> --- a/src/nf-table-delete.c
-> +++ b/src/nf-table-delete.c
-> @@ -17,7 +17,7 @@
->  static void print_usage(void)
->  {
->  	printf(
-> -	"Usage: nf-ct-delete <family> <name>\n"
-> +	"Usage: nf-table-delete <family> <name>\n"
->  	);
->  	exit(1);
->  }
-> diff --git a/src/nl-cls-delete.c b/src/nl-cls-delete.c
-> index cfdc170..95abd54 100644
-> --- a/src/nl-cls-delete.c
-> +++ b/src/nl-cls-delete.c
-> @@ -18,7 +18,7 @@ static struct nl_sock *sock;
->  static void print_usage(void)
->  {
->  	printf(
-> -	"Usage: nl-cls-list [OPTION]... [CLASSIFIER]\n"
-> +	"Usage: nl-cls-delete [OPTION]... [CLASSIFIER]\n"
->  	"\n"
->  	"Options\n"
->  	" -i, --interactive     Run interactively\n"
-> diff --git a/src/nl-link-list.c b/src/nl-link-list.c
-> index 5e1e3f6..2f30aad 100644
-> --- a/src/nl-link-list.c
-> +++ b/src/nl-link-list.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * src/nl-link-dump.c	Dump link attributes
-> + * src/nl-link-list.c	Dump link attributes
->   *
->   *	This library is free software; you can redistribute it and/or
->   *	modify it under the terms of the GNU Lesser General Public
-> diff --git a/src/nl-link-name2ifindex.c b/src/nl-link-name2ifindex.c
-> index b04af04..6be58e8 100644
-> --- a/src/nl-link-name2ifindex.c
-> +++ b/src/nl-link-name2ifindex.c
-> @@ -14,7 +14,7 @@
->  
->  static void print_usage(void)
->  {
-> -	printf("Usage: nl-link-ifindex2name <ifindex>\n");
-> +	printf("Usage: nl-link-name2ifindex <ifindex>\n");
->  	exit(0);
->  }
->  
-> diff --git a/src/nl-rule-list.c b/src/nl-rule-list.c
-> index 8b474fa..d4f1d79 100644
-> --- a/src/nl-rule-list.c
-> +++ b/src/nl-rule-list.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * src/nl-rule-dump.c     Dump rule attributes
-> + * src/nl-rule-list.c     Dump rule attributes
->   *
->   *	This library is free software; you can redistribute it and/or
->   *	modify it under the terms of the GNU Lesser General Public
-> -- 
-> 1.8.3.msysgit.0
-> 
+> By including "goto err" instead of multiple "return false" statement, that
+> makes it instantly obvious what the purpose of that statement is without
+> having to look elsewhere.
 
+I see the point, to self-document the code, with the price of more lines. 
+It's a little bit overdoing in my opinion: pretty apparent which is the 
+error path and which is not. But this is highly a personal taste, I won't 
+press it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
