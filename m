@@ -1,159 +1,181 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH lnf-ct] conntrack: api: add nfct_snprintf_labels
-Date: Sun, 30 Jun 2013 23:34:33 +0200
-Message-ID: <20130630213433.GA5096@localhost>
-References: <1372626410-19162-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 2/2] conntrack: add connlabel format attribute
+Date: Sun, 30 Jun 2013 23:39:39 +0200
+Message-ID: <20130630213939.GB5096@localhost>
+References: <1372626648-19482-1-git-send-email-fw@strlen.de>
+ <1372626648-19482-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50896 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51136 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121Ab3F3Vei (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Jun 2013 17:34:38 -0400
+	id S1751250Ab3F3Vjo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Jun 2013 17:39:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1372626410-19162-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1372626648-19482-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jun 30, 2013 at 11:06:50PM +0200, Florian Westphal wrote:
-> nfct_snprintf doesn't print connlabels, as they're system specific
-> and can easily generate lots of output.
-> 
-> This adds a new helper function, nfct_snprintf_labels, to print the mapped
-> label names to a buffer.  Input is a bitmask to test, and a map
-> describing the names of the individual bits.
-> 
-> Those names whose bits are contained in the bitset are then
-> written to the buffer.
-> 
-> output looks like this:
-> eth0-in,eth1-in
-> 
+On Sun, Jun 30, 2013 at 11:10:48PM +0200, Florian Westphal wrote:
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  I added an 'output_type' argument, not sure if this is useful.
->  [ I don't see why NFCT_O_XML would be useful here, OTOH
->    adding the output_type argument would allow to add it later ]
+>  Change since v1:
+>  - rename option to '-o labels'
+>  - make it incompatible with xml option (can't
+>    add attributes to existing xml output
+>    buffer without insane hackery ]
 
-That's a good idea. Users can benefit from the well structured XML
-output, with this parameter can be easily added in a follow up patch.
+Ah, now I understand the XML issue.
 
-This looks good.
+You can have something like in libnetfilter_conntrack:
 
->  include/internal/prototypes.h                      |  2 +
->  .../libnetfilter_conntrack.h                       |  4 ++
->  src/conntrack/api.c                                | 16 ++++++++
->  src/conntrack/labels.c                             | 44 ++++++++++++++++++++++
->  4 files changed, 66 insertions(+)
+extern int nfct_snprintf_clabels(char *buf, 
+                                 unsigned int size,
+                                 const struct nf_conntrack *ct,
+                                 const unsigned int msg_type,
+                                 const unsigned int out_type,
+                                 const unsigned int out_flags,
+                                 struct nfct_labelmap *map,
+                                 const struct nfct_bitmask *b);
+
+We have then two interfaces, the normal nfct_snprintf(...) for people
+that don't need clabels, and the one that includes clabels (including
+XML support).
+
+Having two interfaces to print seems fine to me. You could even
+emulate nfct_snprintf by allow last two parameters (labelmap and
+bitmask) to be NULL, that will simply the patch as nfct_snprintf will
+interface call nfct_snprintf_clabels.
+
+You'll have to adapt this patch for the conntrack util though.
+
+Thanks.
+
+>  conntrack.8     |  4 +++-
+>  src/conntrack.c | 39 +++++++++++++++++++++++++++++++++++----
+>  2 files changed, 38 insertions(+), 5 deletions(-)
 > 
-> diff --git a/include/internal/prototypes.h b/include/internal/prototypes.h
-> index 484deea..dded472 100644
-> --- a/include/internal/prototypes.h
-> +++ b/include/internal/prototypes.h
-> @@ -62,5 +62,7 @@ void __labelmap_destroy(struct nfct_labelmap *);
+> diff --git a/conntrack.8 b/conntrack.8
+> index a411fd4..41a59ce 100644
+> --- a/conntrack.8
+> +++ b/conntrack.8
+> @@ -88,11 +88,13 @@ Show the in-kernel connection tracking system statistics.
+>  Atomically zero counters after reading them.  This option is only valid in
+>  combination with the "-L, --dump" command options.
+>  .TP
+> -.BI "-o, --output [extended,xml,timestamp,id,ktimestamp] "
+> +.BI "-o, --output [extended,xml,timestamp,id,ktimestamp,labels] "
+>  Display output in a certain format. With the extended output option, this tool
+>  displays the layer 3 information. With ktimestamp, it displays the in-kernel
+>  timestamp available since 2.6.38 (you can enable it via echo 1 >
+>  /proc/sys/net/netfilter/nf_conntrack_timestamp).
+> +The labels output option tells conntrack to show the names of labels that
+> +might be present, this is currently incompatible with xml output.
+>  .TP
+>  .BI "-e, --event-mask " "[ALL|NEW|UPDATES|DESTROY][,...]"
+>  Set the bitmask of events that are to be generated by the in-kernel ctnetlink
+> diff --git a/src/conntrack.c b/src/conntrack.c
+> index d4e79de..74561ba 100644
+> --- a/src/conntrack.c
+> +++ b/src/conntrack.c
+> @@ -488,6 +488,7 @@ static unsigned int addr_valid_flags[ADDR_VALID_FLAGS_MAX] = {
+>  static LIST_HEAD(proto_list);
 >  
->  int __labelmap_get_bit(struct nfct_labelmap *map, const char *name);
->  const char *__labelmap_get_name(struct nfct_labelmap *map, unsigned int bit);
-> +int __labels_snprintf(char *buf, unsigned int len, struct nfct_labelmap *map,
-> +			const struct nfct_bitmask *b, unsigned int out_type);
+>  static unsigned int options;
+> +static struct nfct_labelmap *label_map;
 >  
->  #endif
-> diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> index 39dc24c..3dafe46 100644
-> --- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> +++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-> @@ -294,6 +294,10 @@ struct nfct_labelmap *nfct_labelmap_new(const char *mapfile);
->  void nfct_labelmap_destroy(struct nfct_labelmap *map);
->  const char *nfct_labelmap_get_name(struct nfct_labelmap *m, unsigned int bit);
->  int nfct_labelmap_get_bit(struct nfct_labelmap *m, const char *name);
-> +int nfct_snprintf_labels(char *buf, unsigned int len,
-> +			 struct nfct_labelmap *labelmap,
-> +			 const struct nfct_bitmask *b,
-> +			 unsigned int out_type);
+>  void register_proto(struct ctproto_handler *h)
+>  {
+> @@ -731,6 +732,7 @@ enum {
+>  	_O_TMS	= (1 << 2),
+>  	_O_ID	= (1 << 3),
+>  	_O_KTMS	= (1 << 4),
+> +	_O_LAB	= (1 << 5),
+>  };
 >  
->  /* setter */
->  extern void nfct_set_attr(struct nf_conntrack *ct,
-> diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-> index b6c453f..0a668ce 100644
-> --- a/src/conntrack/api.c
-> +++ b/src/conntrack/api.c
-> @@ -1523,6 +1523,22 @@ int nfct_labelmap_get_bit(struct nfct_labelmap *m, const char *name)
+>  enum {
+> @@ -749,8 +751,8 @@ static struct parse_parameter {
+>  	  { IPS_ASSURED, IPS_SEEN_REPLY, 0, IPS_FIXED_TIMEOUT, IPS_EXPECTED} },
+>  	{ {"ALL", "NEW", "UPDATES", "DESTROY"}, 4,
+>  	  { CT_EVENT_F_ALL, CT_EVENT_F_NEW, CT_EVENT_F_UPD, CT_EVENT_F_DEL } },
+> -	{ {"xml", "extended", "timestamp", "id", "ktimestamp"}, 5, 
+> -	  { _O_XML, _O_EXT, _O_TMS, _O_ID, _O_KTMS },
+> +	{ {"xml", "extended", "timestamp", "id", "ktimestamp", "labels", }, 6, 
+> +	  { _O_XML, _O_EXT, _O_TMS, _O_ID, _O_KTMS, _O_LAB },
+>  	},
+>  };
+>  
+> @@ -1108,6 +1110,15 @@ exp_event_sighandler(int s)
+>  	exit(0);
 >  }
 >  
->  /**
-> + * nfct_snprintf_labels - print a bitmask object to a buffer
-> + * \param buf buffer used to build the names of the bitmask
-> + * \param len size of the buffer
-> + * \param map nfct_labelmap which maps the bit values to the desired strings
-> + * \param b pointer to a valid bitmask object
-> + * \param output_type print type (NFCT_O_DEFAULT only at this time)
-> + */
-> +int nfct_snprintf_labels(char *buf, unsigned int len,
-> +			 struct nfct_labelmap *map,
-> +			 const struct nfct_bitmask *b,
-> +			 unsigned int out_type)
+> +static void print_labels(const struct nfct_bitmask *b)
 > +{
-> +	return __labels_snprintf(buf, len, map, b, out_type);
+> +	char buf[1024];
+> +	if (!b)
+> +		return;
+> +	nfct_snprintf_labels(buf, sizeof(buf), label_map, b, NFCT_O_DEFAULT);
+> +	printf(" labels=%s", buf);
 > +}
 > +
-> +/**
->   * nfct_labelmap_new - create a new label map
->   *
->   * \param mapfile the file containing the bit <-> name mapping
-> diff --git a/src/conntrack/labels.c b/src/conntrack/labels.c
-> index 7dfb780..4511180 100644
-> --- a/src/conntrack/labels.c
-> +++ b/src/conntrack/labels.c
-> @@ -267,3 +267,47 @@ struct nfct_labelmap *__labelmap_new(const char *name)
->  	__labelmap_destroy(map);
->  	return NULL;
->  }
+>  static int event_cb(enum nf_conntrack_msg_type type,
+>  		    struct nf_conntrack *ct,
+>  		    void *data)
+> @@ -1152,7 +1163,11 @@ static int event_cb(enum nf_conntrack_msg_type type,
+>  
+>  	nfct_snprintf(buf, sizeof(buf), ct, type, op_type, op_flags);
+>  
+> -	printf("%s\n", buf);
+> +	printf("%s", buf);
 > +
-> +static int
-> +__labels_snprintf_fmt(char *buf, unsigned int len,
-> +		      struct nfct_labelmap *map,
-> +		      const struct nfct_bitmask *b,
-> +		      const char *fmt)
-> +{
-> +	unsigned int i, max;
-> +	int ret, size = 0, offset = 0;
-> +
-> +	max = nfct_bitmask_maxbit(b);
-> +	for (i = 0; i <= max && len; i++) {
-> +		const char *name;
-> +		if (!nfct_bitmask_test_bit(b, i))
-> +			continue;
-> +		name = nfct_labelmap_get_name(map, i);
-> +		if (!name || strcmp(name, "") == 0)
-> +			continue;
-> +		ret = snprintf(buf + offset, len, fmt, name);
-> +		BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +	return size;
-> +}
-> +
-> +int
-> +__labels_snprintf(char *buf, unsigned int len,
-> +		  struct nfct_labelmap *map,
-> +		  const struct nfct_bitmask *b, unsigned int out_type)
-> +{
-> +	int size = 0;
-> +
-> +	switch (out_type) {
-> +	case NFCT_O_DEFAULT:
-> +		size = __labels_snprintf_fmt(buf, len, map, b, "%s,");
-> +		if (size && size <= len)
-> +			buf[--size] = 0; /* strip trailing ',' */
-> +		break;
-> +	default:
-> +		errno = ENOENT;
-> +		return -1;
-> +	}
-> +
-> +	return size;
-> +}
+> +	if (output_mask & _O_LAB)
+> +		print_labels(nfct_get_attr(ct, ATTR_CONNLABELS));
+> +	printf("\n");
+>  	fflush(stdout);
+>  
+>  	counter++;
+> @@ -1195,8 +1210,11 @@ static int dump_cb(enum nf_conntrack_msg_type type,
+>  		op_flags |= NFCT_OF_ID;
+>  
+>  	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, op_type, op_flags);
+> -	printf("%s\n", buf);
+> +	printf("%s", buf);
+>  
+> +	if (output_mask & _O_LAB)
+> +		print_labels(nfct_get_attr(ct, ATTR_CONNLABELS));
+> +	printf("\n");
+>  	counter++;
+>  
+>  	return NFCT_CB_CONTINUE;
+> @@ -1879,6 +1897,17 @@ int main(int argc, char *argv[])
+>  		case 'o':
+>  			options |= CT_OPT_OUTPUT;
+>  			parse_parameter(optarg, &output_mask, PARSE_OUTPUT);
+> +			if (output_mask & _O_LAB) {
+> +				if (output_mask & _O_XML) {
+> +					output_mask &= ~_O_LAB;
+> +					break;
+> +				}
+> +				label_map = nfct_labelmap_new(NULL);
+> +				if (!label_map) {
+> +					perror("nfct_labelmap_new");
+> +					output_mask &= ~_O_LAB;
+> +				}
+> +			}
+>  			break;
+>  		case 'z':
+>  			options |= CT_OPT_ZERO;
+> @@ -2372,6 +2401,8 @@ try_proc:
+>  
+>  	free_tmpl_objects();
+>  	free_options();
+> +	if (label_map)
+> +		nfct_labelmap_destroy(label_map);
+>  
+>  	if (command && exit_msg[cmd][0]) {
+>  		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
 > -- 
 > 1.8.1.5
 > 
