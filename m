@@ -1,36 +1,41 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC PATCHv2] netfilter: nf_tables: add insert operation
-Date: Mon, 01 Jul 2013 10:01:14 +0300
-Message-ID: <51D1293A.8020301@linux.intel.com>
-References: <1371730620.6038.2.camel@ice-age.regit.org> <1372453518-4749-1-git-send-email-eric@regit.org>
+Subject: Re: [PATCH nft] src: add xt compat support
+Date: Mon, 01 Jul 2013 10:09:54 +0300
+Message-ID: <51D12B42.40806@linux.intel.com>
+References: <1372608125-28734-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net, eric@regit.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:1326 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:39926 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752420Ab3GAHGQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Jul 2013 03:06:16 -0400
-In-Reply-To: <1372453518-4749-1-git-send-email-eric@regit.org>
+	id S1751008Ab3GAHJ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Jul 2013 03:09:58 -0400
+In-Reply-To: <1372608125-28734-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+Hi Pablo,
 
-There is 2 long lines it seems,
+Are you sure you want this feature?
+iptables-nftables has been planned to provide full compat with iptables, 
+so it hides the nft commands.
 
-> +		if (nla_put_be64(skb, NFTA_RULE_POSITION,
-> +				 cpu_to_be64(((struct nft_rule *)rule->list.prev)->handle)))
+But, little by little, the point is to move on with nft tool only, when 
+people will realize it brings cooler stuff.
+And I am afraid that, with such patch, we are going to maintain legacy 
+stuff also in nft.
 
-Here,
+To me I see iptables-nftables being the only entry point for legacy 
+commands, and nowhere else.
 
-> +			goto nla_put_failure;
-> +	} else if (rule->list.next) {
-> +		if (nla_put_be64(skb, NFTA_RULE_POSITION,
-> +				 cpu_to_be64(((struct nft_rule *)rule->list.next)->handle)))
+Being able to list partially match/target (type and names) would be 
+fine. But manipulating those should be only through iptables-nftables imho.
 
-and there.
+Br,
 
 Tomasz
+
+
