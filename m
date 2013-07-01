@@ -1,50 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/12] ipvs: drop SCTP connections depending on state
-Date: Mon,  1 Jul 2013 01:54:36 +0200
-Message-ID: <1372636481-3705-8-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] netfilter updates for net-next
+Date: Sun, 30 Jun 2013 17:35:41 -0700 (PDT)
+Message-ID: <20130630.173541.1978097663890690952.davem@davemloft.net>
 References: <1372636481-3705-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:33289 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088Ab3GAAfo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Jun 2013 20:35:44 -0400
 In-Reply-To: <1372636481-3705-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  1 Jul 2013 01:54:29 +0200
 
-Drop SCTP connections under load (dropentry context) depending
-on the protocol state, just like for TCP: INIT conns are
-dropped immediately, established are dropped randomly while
-connections in progress or shutdown are skipped.
+> The following batch contains Netfilter/IPVS updates for net-next,
+> they are:
+ ...
+> Please, consider pulling this batch from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_conn.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index c8c52a9..4c8e5c0 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1231,6 +1231,18 @@ void ip_vs_random_dropentry(struct net *net)
- 				default:
- 					continue;
- 				}
-+			} else if (cp->protocol == IPPROTO_SCTP) {
-+				switch (cp->state) {
-+				case IP_VS_SCTP_S_INIT1:
-+				case IP_VS_SCTP_S_INIT:
-+					break;
-+				case IP_VS_SCTP_S_ESTABLISHED:
-+					if (todrop_entry(cp))
-+						break;
-+					continue;
-+				default:
-+					continue;
-+				}
- 			} else {
- 				if (!todrop_entry(cp))
- 					continue;
--- 
-1.7.10.4
+Pulled, thanks Pablo!
