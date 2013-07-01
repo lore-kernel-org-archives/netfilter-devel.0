@@ -1,31 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] netfilter updates for net-next
-Date: Sun, 30 Jun 2013 17:35:41 -0700 (PDT)
-Message-ID: <20130630.173541.1978097663890690952.davem@davemloft.net>
-References: <1372636481-3705-1-git-send-email-pablo@netfilter.org>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: Issue with latest nftables
+Date: Mon, 01 Jul 2013 09:56:45 +0300
+Message-ID: <51D1282D.1050007@linux.intel.com>
+References: <1372450120.8772.5.camel@tiger2> <20130629094503.GA3805@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:33289 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088Ab3GAAfo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Jun 2013 20:35:44 -0400
-In-Reply-To: <1372636481-3705-1-git-send-email-pablo@netfilter.org>
+Received: from mga14.intel.com ([143.182.124.37]:45843 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752472Ab3GAG4s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Jul 2013 02:56:48 -0400
+In-Reply-To: <20130629094503.GA3805@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  1 Jul 2013 01:54:29 +0200
+Hi Pablo,
+>> netlink: Error: unknown expression type 'match'
+>> name=iprange rev=1
+>>
+>>
+>> netlink: Error: unknown expression type 'target'
+>> name=LOG rev=0
+>>
+>> Should this problem be trivial for someone, I let him do the job. If
+>> not, I will start to work on it.
+> We don't have support for compat from nft yet. That should be
+> relatively easy to fix.
+>
 
-> The following batch contains Netfilter/IPVS updates for net-next,
-> they are:
- ...
-> Please, consider pulling this batch from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+Do we want to support those totally, or just when listing the rules? I 
+would rather do the later one, nft is not meant to maintain 
+iptables-nftables rules.
+Where were could only handle then the expression itselsf and the name of 
+the match/target, but nothing more. (No blob parsing etc...)
 
-Pulled, thanks Pablo!
+Tomasz
