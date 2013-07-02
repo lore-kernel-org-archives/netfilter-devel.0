@@ -1,8 +1,11 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.9 04/15] ipvs: Fix reuse connection if real server is dead
-Date: Tue,  2 Jul 2013 16:50:54 +0200
-Message-ID: <1372776665-6795-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-3.9 05/15] netfilter: xt_LOG: fix mark logging for IPv6 packets
+Date: Tue,  2 Jul 2013 16:50:55 +0200
+Message-ID: <1372776665-6795-5-git-send-email-pablo@netfilter.org>
 References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <stable-owner@vger.kernel.org>
@@ -10,75 +13,33 @@ In-Reply-To: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Grzegorz Lyczba <grzegorz.lyczba@gmail.com>
+=46rom: Michal Kube=C4=8Dek <mkubecek@suse.cz>
 
-Expire cached connection for new TCP/SCTP connection if real
-server is down. Otherwise, IPVS uses the dead server for the
-reused connection, instead of a new working one.
+In dump_ipv6_packet(), the "recurse" parameter is zero only if
+dumping contents of a packet embedded into an ICMPv6 error
+message. Therefore we want to log packet mark if recurse is
+non-zero, not when it is zero.
 
-Signed-off-by: Grzegorz Lyczba <grzegorz.lyczba@gmail.com>
-Acked-by: Hans Schillstrom <hans@schillstrom.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Cherry-pick: dc7b3eb900aab02e5cafbca3948d005be13fb4a5
+Cherry-pick: d660164d79b67f879db35a7d61e47d3b99bc714e
 
- net/netfilter/ipvs/ip_vs_core.c |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ net/netfilter/xt_LOG.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 61f49d2..505a09e 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1002,6 +1002,32 @@ static inline int is_tcp_reset(const struct sk_buff *skb, int nh_len)
- 	return th->rst;
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index fa40096..ca402a7 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -730,7 +730,7 @@ static void dump_ipv6_packet(struct sbuff *m,
+ 		dump_sk_uid_gid(m, skb->sk);
+=20
+ 	/* Max length: 16 "MARK=3D0xFFFFFFFF " */
+-	if (!recurse && skb->mark)
++	if (recurse && skb->mark)
+ 		sb_add(m, "MARK=3D0x%x ", skb->mark);
  }
- 
-+static inline bool is_new_conn(const struct sk_buff *skb,
-+			       struct ip_vs_iphdr *iph)
-+{
-+	switch (iph->protocol) {
-+	case IPPROTO_TCP: {
-+		struct tcphdr _tcph, *th;
-+
-+		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
-+		if (th == NULL)
-+			return false;
-+		return th->syn;
-+	}
-+	case IPPROTO_SCTP: {
-+		sctp_chunkhdr_t *sch, schunk;
-+
-+		sch = skb_header_pointer(skb, iph->len + sizeof(sctp_sctphdr_t),
-+					 sizeof(schunk), &schunk);
-+		if (sch == NULL)
-+			return false;
-+		return sch->type == SCTP_CID_INIT;
-+	}
-+	default:
-+		return false;
-+	}
-+}
-+
- /* Handle response packets: rewrite addresses and send away...
-  */
- static unsigned int
-@@ -1626,6 +1652,15 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
- 	 * Check if the packet belongs to an existing connection entry
- 	 */
- 	cp = pp->conn_in_get(af, skb, &iph, 0);
-+
-+	if (unlikely(sysctl_expire_nodest_conn(ipvs)) && cp && cp->dest &&
-+	    unlikely(!atomic_read(&cp->dest->weight)) && !iph.fragoffs &&
-+	    is_new_conn(skb, &iph)) {
-+		ip_vs_conn_expire_now(cp);
-+		__ip_vs_conn_put(cp);
-+		cp = NULL;
-+	}
-+
- 	if (unlikely(!cp) && !iph.fragoffs) {
- 		/* No (second) fragments need to enter here, as nf_defrag_ipv6
- 		 * replayed fragment zero will already have created the cp
--- 
+=20
+--=20
 1.7.10.4
