@@ -1,62 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.9 15/15] netfilter: ctnetlink: send event when conntrack label was modified
-Date: Tue,  2 Jul 2013 16:51:05 +0200
-Message-ID: <1372776665-6795-15-git-send-email-pablo@netfilter.org>
-References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, stable@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH] iptables: Sort table names in ip[6]tables-save
+Date: Tue, 2 Jul 2013 14:08:46 -0700
+Message-ID: <CAHo-Ooy44=oqK_sk1jQZ4SoGiyKnscR-Epbk2ibj3b=EwQTncQ@mail.gmail.com>
+References: <20130626234202.GA31099@gmail.com>
+	<CAHo-Ooy_+zw-BXRxe=nTz4C-69e54ww_GRkMuHRbWjA7247nLA@mail.gmail.com>
+	<20130701140126.GA1957@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Phil Oester <kernel@linuxace.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:32992 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752370Ab3GBVIr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jul 2013 17:08:47 -0400
+Received: by mail-vc0-f171.google.com with SMTP id gd11so3124929vcb.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jul 2013 14:08:46 -0700 (PDT)
+In-Reply-To: <20130701140126.GA1957@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+> Why?  Today the behavior is random.  If you added a NAT table rule
+> before a FORWARD table rule, the NAT rules would be at the bottom
+> of the iptables-save output.  You're suggesting that completely
+> random behavior should be the _default_?  Isn't deterministic
+> behavior a better default?
 
-commit 0ceabd83875b72a29f33db4ab703d6ba40ea4c58
-(netfilter: ctnetlink: deliver labels to userspace) sets the event bit
-when we raced with another packet, instead of raising the event bit
-when the label bit is set for the first time.
-
-commit 9b21f6a90924dfe8e5e686c314ddb441fb06501e
-(netfilter: ctnetlink: allow userspace to modify labels) forgot to update
-the event mask in the "conntrack already exists" case.
-
-Both issues result in CTA_LABELS attribute not getting included in the
-conntrack event.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Cherry-pick: 797a7d66d2048fe8a4ac1ba58c5d4752d64b1ac4
-
- net/netfilter/nf_conntrack_labels.c  |    2 +-
- net/netfilter/nf_conntrack_netlink.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 8fe2e99..355d2ef 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -45,7 +45,7 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- 	if (test_bit(bit, labels->bits))
- 		return 0;
- 
--	if (test_and_set_bit(bit, labels->bits))
-+	if (!test_and_set_bit(bit, labels->bits))
- 		nf_conntrack_event_cache(IPCT_LABEL, ct);
- 
- 	return 0;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9904b15..23af264 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1825,6 +1825,7 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
- 						      (1 << IPCT_ASSURED) |
- 						      (1 << IPCT_HELPER) |
-+						      (1 << IPCT_LABEL) |
- 						      (1 << IPCT_PROTOINFO) |
- 						      (1 << IPCT_NATSEQADJ) |
- 						      (1 << IPCT_MARK),
--- 
-1.7.10.4
+I didn't say it should be the default.
+I said there should be a way to disable the sorting.
+Getting a dump as close as possible to the kernels view of the
+situation is potentially desirable when debugging stuff.
