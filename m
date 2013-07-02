@@ -1,183 +1,102 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: ebtables-restore 2.0.10-4 IPv6 rule loading bug
-Date: Tue, 02 Jul 2013 23:31:54 +0200
-Message-ID: <51D346CA.1090706@pandora.be>
-References: <1501849513.20130701043324@terra.com.br> <51CE1A3F.5070608@uolinc.com> <047B2411FCFD384496E507B08A91DD485F65431B@A4-SALOMAO7.uolcorp.intranet> <20130702012723.D62F440000C68@1xj.tpn.terra.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: ip[6]t_REJECT: tcp-reset using wrong MAC
+ source if bridged
+Date: Wed, 3 Jul 2013 01:41:31 +0200
+Message-ID: <20130702234131.GA8412@localhost>
+References: <20130626211627.GA22947@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: tdthp@terra.com.br
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:50649 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754684Ab3GBVb5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jul 2013 17:31:57 -0400
-In-Reply-To: <20130702012723.D62F440000C68@1xj.tpn.terra.com>
+Received: from mail.us.es ([193.147.175.20]:57860 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755967Ab3GBXlq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jul 2013 19:41:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20130626211627.GA22947@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I think you found a kernel regression bug, introduced by the commit=20
-0898f99a dating back from 2010-03-08: it shouldn't have removed the=20
-check on info->bitmask & EBT_IP6_DEST and info->bitmask & EBT_IP6_SOURC=
-E.
-See:=20
-https://github.com/torvalds/linux/commit/0898f99a267f89a7dc72cc687955f1=
-7613a711b8
-Can you reintroduce those checks in the kernel code (similar to what's=20
-done in the ebt_ip.c code), verify and submit the fix?
-Your userspace patch is fine as a workaround. But I think it's best to=20
-patch the kernel to fix compatibility with the released ebtables=20
-versions. I'll also commit the userspace patch.
+On Wed, Jun 26, 2013 at 05:16:28PM -0400, Phil Oester wrote:
+> As reported by Casper Gripenberg, in a bridged setup, using ip[6]t_REJECT
+> with the tcp-reset option sends out reset packets with the src MAC address
+> of the local bridge interface, instead of the MAC address of the intended
+> destination.  This causes some routers/firewalls to drop the reset packet
+> as it appears to be spoofed.  Fix this by bypassing ip[6]_local_out and
+> setting the MAC of the sender in the tcp reset packet. 
+> 
+> This closes netfilter bugzilla #531.
+> 
+> Phil
+> 
+> Signed-off-by: Phil Oester <kernel@linuxace.com>
 
-No test suite available, sorry...
+> diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+> index 04b18c1..b969131 100644
+> --- a/net/ipv4/netfilter/ipt_REJECT.c
+> +++ b/net/ipv4/netfilter/ipt_REJECT.c
+> @@ -119,7 +119,26 @@ static void send_reset(struct sk_buff *oldskb, int hook)
+>  
+>  	nf_ct_attach(nskb, oldskb);
+>  
+> -	ip_local_out(nskb);
+> +#ifdef CONFIG_BRIDGE_NETFILTER
+> +	/* If we use ip_local_out for bridged traffic, the MAC source on
+> +	 * the RST will be ours, instead of the destination's.  This confuses
+> +	 * some routers/firewalls, and they drop the packet.  So we need to
+> +	 * build the eth header using the original destination's MAC as the
+> +	 * source, and send the RST packet directly.
+> +	 */
+> +	if (oldskb->nf_bridge) {
+> +		struct ethhdr *oeth = eth_hdr(oldskb);
+> +		nskb->dev = oldskb->nf_bridge->physindev;
 
-Thanks for the effort,
+This won't work for locally generated traffic, physindev is null in
+that case.
 
-Bart
+> +		niph->tot_len = htons(nskb->len);
+> +		ip_send_check(niph);
+> +		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+> +				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
+> +			goto free_nskb;
+> +		dev_queue_xmit(nskb);
+> +	} else
+> +#endif
+> +		ip_local_out(nskb);
+> +
+>  	return;
+>  
+>   free_nskb:
+> diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+> index 70f9abc..56eef30 100644
+> --- a/net/ipv6/netfilter/ip6t_REJECT.c
+> +++ b/net/ipv6/netfilter/ip6t_REJECT.c
+> @@ -169,7 +169,25 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
+>  
+>  	nf_ct_attach(nskb, oldskb);
+>  
+> -	ip6_local_out(nskb);
+> +#ifdef CONFIG_BRIDGE_NETFILTER
+> +	/* If we use ip6_local_out for bridged traffic, the MAC source on
+> +	 * the RST will be ours, instead of the destination's.  This confuses
+> +	 * some routers/firewalls, and they drop the packet.  So we need to
+> +	 * build the eth header using the original destination's MAC as the
+> +	 * source, and send the RST packet directly.
+> +	 */
+> +	if (oldskb->nf_bridge) {
+> +		struct ethhdr *oeth = eth_hdr(oldskb);
+> +		nskb->dev = oldskb->nf_bridge->physindev;
+> +		nskb->protocol = htons(ETH_P_IPV6);
+> +		ip6h->payload_len = htons(sizeof(struct tcphdr));
+> +		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+> +				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
+> +			return;
+> +		dev_queue_xmit(nskb);
+> +	} else
+> +#endif
+> +		ip6_local_out(nskb);
+>  }
+>  
+>  static inline void
 
-Op 2/07/2013 3:27, tdthp@terra.com.br schreef:
-> Hi
->
-> So, I worked on this today, and it seems to be really an initializati=
-on problem. Here's my patch for 2.0.10-4. (Is there a better way to sub=
-mit it? I'm new here.)
->
-> Do you have a test suit I could run to make sure I didn't break anyth=
-ing?
->
-> thanks,
-> -- Lu=C3=ADs Fernando
->
->
->
->
->
-> --- extensions/ebt_ip6.c    2011-12-15 18:02:47.000000000 -0200
-> +++ extensions/ebt_ip6_fixed.c    2013-07-01 21:55:56.000000000 -0300
-> @@ -312,6 +312,10 @@
->  =20
->       ipinfo->invflags =3D 0;
->       ipinfo->bitmask =3D 0;
-> +    memset(ipinfo->saddr.s6_addr, 0, sizeof(ipinfo->saddr.s6_addr));
-> +    memset(ipinfo->smsk.s6_addr, 0, sizeof(ipinfo->smsk.s6_addr));
-> +    memset(ipinfo->daddr.s6_addr, 0, sizeof(ipinfo->daddr.s6_addr));
-> +    memset(ipinfo->dmsk.s6_addr, 0, sizeof(ipinfo->dmsk.s6_addr));
->   }
->  =20
->   #define OPT_SOURCE 0x01
->
->
->
->
->
->
->
->
->
-> Em Seg 1/07/13 04:33, Luis Fernando <tdthp@terra.com.br> escreveu:
-> Hello
->
-> I believe I found a bug in ebtables-restore.
-> I have the following set of rules (saved with ebtables-save):
-> # Generated by ebtables-save v1.0 on Tue Jun 25 16:15:00 BRT 2013
-> *filter
-> :INPUT ACCEPT
-> :FORWARD DROP
-> :OUTPUT ACCEPT
-> :INPUT-VLAN29 DROP
-> :OUTPUT-VLAN29 DROP
-> :OUTPUT-VLAN33 DROP
-> :OUTPUT-VLAN34 DROP
-> :OUTPUT-VLAN35 DROP
-> -A FORWARD -p IPv4 --ip-proto udp --ip-sport 67:68 --log-level info -=
--log-prefix "dhcp_spoofing_denied" --log-ip -j DROP
-> -A FORWARD -p IPv6 --ip6-proto udp --ip6-sport 547 --log-level info -=
--log-prefix "dhcp6_spoofing_denied" --log-ip -j DROP
-> -A FORWARD -p IPv6 --ip6-proto ipv6-icmp --ip6-icmp-type router-adver=
-tisement --log-level info --log-prefix "ra6_spoofing_denied" -j DROP
-> -A FORWARD -i eth1.29 -j INPUT-VLAN29
-> -A FORWARD -o eth1.29 -j OUTPUT-VLAN29
-> -A FORWARD -o eth2 -j ACCEPT
-> -A INPUT-VLAN29 -p IPv6 -s 0:50:56:0:0:15 -i eth1.29 --ip6-src ::250:=
-56ff:fe00:15/::ffff:ffff:ffff:ffff -j RETURN
-> -A INPUT-VLAN29 -p IPv4 -s 0:50:56:0:0:15 -i eth1.29 --ip-src 10.133.=
-145.120 -j RETURN
-> -A OUTPUT-VLAN29 -p IPv6 -d 0:50:56:0:0:15 -o eth1.29 --ip6-dst ::250=
-:56ff:fe00:15/::ffff:ffff:ffff:ffff -j ACCEPT
-> -A OUTPUT-VLAN29 -p IPv4 -d 0:50:56:0:0:15 -o eth1.29 --ip-dst 10.133=
-=2E145.120 -j ACCEPT
->
-> When I load them manually (after flushing/deleting/creating the chain=
-s), they work. If I ebtables-restore them and then run the following co=
-mmands, they also work:
-> ebtables -D INPUT-VLAN29 -p IPv6 -s 0:50:56:0:0:15 -i eth1.29 --ip6-s=
-rc ::250:56ff:fe00:15/::ffff:ffff:ffff:ffff -j RETURN
-> ebtables -I INPUT-VLAN29 -p IPv6 -s 0:50:56:0:0:15 -i eth1.29 --ip6-s=
-rc ::250:56ff:fe00:15/::ffff:ffff:ffff:ffff -j RETURN
->
-> I noticed, though, that when I just use ebtables-restore, this rule w=
-as not being matched. After comparing a lot of --atomic-save dumps (wor=
-king vs not-working), and reading a bit about ebtables structs, I found=
- out that when I use restore, this is what is stored in the kernel (I'l=
-l color it to try to make it look easier for you):
-> http://i.imgur.com/E4t6f2o.png
->
-> When I run the commands manually, this is the result:
-> http://i.imgur.com/IJgqwKB.png
->
-> The colors (accordingly to ebt_ip6_info @ include/linux/netfilter_bri=
-dge/ebt_ip6.h ) represents:
->
-> BLUE -> source IPv6 address
-> RED -> dest IPv6 address
-> CYAN -> source IPv6 mask
-> ORANGE -> dest IPv6 mask
->
-> As you can see (bold), however, in the restored version there's trash=
- in the source IPv6 address and mask. I'd put my money on a zeroing pro=
-blem, but I couldn't find it so far.
->
-> There's a workaround for this issue, which is specifying an ip6-dst w=
-ith mask 0:
-> removing -A INPUT-VLAN29 -p IPv6 -s 0:50:56:0:0:15 -i eth1.29 --ip6-s=
-rc ::250:56ff:fe00:15/::ffff:ffff:ffff:ffff -j RETURN
-> adding -A INPUT-VLAN29 -p IPv6 -s 0:50:56:0:0:15 -i eth1.29 --ip6-src=
- ::250:56ff:fe00:15/::ffff:ffff:ffff:ffff --ip6-dst ::/:: -j RETURN
->
-> This probably forces the initialization of the dest ipv6 fields to ze=
-ro.
-> Another interesting fact is that if the INPUT-VLAN29 IPv4 rule is com=
-mented out, this problem doesn't happen (maybe indicating that this rul=
-e is invading the memory of the IPv6 one).
-> I also noticed that if you comment most of the rules in this file, it=
- will work correctly (that's why I had kept the OUTPUT-VLAN33/34/35 for=
- instance).
-> So maybe it's related to the chain creation/replacing.
->
-> Any ideas on promising debugging I could do?
->
-> thanks,
-> -- Lu=C3=ADs Fernando
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the  of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
