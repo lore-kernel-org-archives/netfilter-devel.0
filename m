@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.9 08/15] netfilter: nfnetlink_acct: fix incomplete dumping of objects
-Date: Tue,  2 Jul 2013 16:50:58 +0200
-Message-ID: <1372776665-6795-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-3.9 07/15] netfilter: nfnetlink_cttimeout: fix incomplete dumping of objects
+Date: Tue,  2 Jul 2013 16:50:57 +0200
+Message-ID: <1372776665-6795-7-git-send-email-pablo@netfilter.org>
 References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -16,19 +16,19 @@ fit into one single netlink message.
 Reported-by: Gabriel Lazar <Gabriel.Lazar@com.utcluj.ro>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Cherry-pick: 991a6b735ff47710769545b11e481bb140b2e6f7
+Cherry-pick: 37bc4f8dfa72fb43b84381abca39cfdbbc8ff2df
 
- net/netfilter/nfnetlink_acct.c |    7 +++++--
+ net/netfilter/nfnetlink_cttimeout.c |    7 +++++--
  1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index dc3fd5d..c7b6d46 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -149,9 +149,12 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 701c88a..65074df 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -220,9 +220,12 @@ ctnl_timeout_dump(struct sk_buff *skb, struct netlink_callback *cb)
  
  	rcu_read_lock();
- 	list_for_each_entry_rcu(cur, &nfnl_acct_list, head) {
+ 	list_for_each_entry_rcu(cur, &cttimeout_list, head) {
 -		if (last && cur != last)
 -			continue;
 +		if (last) {
@@ -37,8 +37,8 @@ index dc3fd5d..c7b6d46 100644
  
 +			last = NULL;
 +		}
- 		if (nfnl_acct_fill_info(skb, NETLINK_CB(cb->skb).portid,
- 				       cb->nlh->nlmsg_seq,
- 				       NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+ 		if (ctnl_timeout_fill_info(skb, NETLINK_CB(cb->skb).portid,
+ 					   cb->nlh->nlmsg_seq,
+ 					   NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
 -- 
 1.7.10.4
