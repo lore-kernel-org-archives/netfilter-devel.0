@@ -1,94 +1,78 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH nft] src: add xt compat support
-Date: Tue, 02 Jul 2013 12:04:20 +0300
-Message-ID: <51D29794.9020301@linux.intel.com>
-References: <1372608125-28734-1-git-send-email-pablo@netfilter.org> <51D12B42.40806@linux.intel.com> <20130701222020.GA4082@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net, eric@regit.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36357 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932417Ab3GBJJp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jul 2013 05:09:45 -0400
-In-Reply-To: <20130701222020.GA4082@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH -stable-3.9 01/15] netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond packet boundary
+Date: Tue,  2 Jul 2013 16:50:51 +0200
+Message-ID: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, stable@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+This target assumes that tcph->doff is well-formed, that may be well
+not the case. Add extra sanity checkings to avoid possible crash due
+to read/write out of the real packet boundary. After this patch, the
+default action on malformed TCP packets is to drop them. Moreover,
+fragments are skipped.
 
->> To me I see iptables-nftables being the only entry point for legacy
->> >commands, and nowhere else.
-> We can add native nft interfaces to several of the existing xt
-> matches/targets, no need to reimplement all of them from scratch, we
-> can reuse many of the existing xt extensions by adding nft interfaces.
->
-> If iptables-nftables starts translating existing matches/targets to
-> native nft expressions, users will get their rule-set automatically
-> translated to native nft expressions. Thus, they will get rid of the
-> old rule expressed using the binary xt interface with no work at all.
-> That can happen progressively, as iptables-nftables will provide more
-> and more native replacements.
+Reported-by: Rafal Kupka <rkupka@telemetry.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Cherry-pick: bc6bcb59dd7c184d229f9e86d08aa56059938a4c
 
-Yes that has been the plan and I am committed to it, a patch is coming 
-soon. We will translate, little by little, all xt matches/targets to nft 
-expressions.
-Through iptables-nftables: it will be fully transparent for the user.
+ net/netfilter/xt_TCPOPTSTRIP.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-But your patch is bringing the old iptables-like commands into nft, and 
-I think it's not a good idea.
-Users will have 2 totally different ways to express something in the 
-same tool:
-  - One very flexible, new, based on a small subset of expressions: the 
-nft way.
-  - And one based on the iptables way, which is of course following a 
-different format than nft commands and misleading in case of the xt 
-match/target not using the xt compat expression anymore.
-
-Let's say an xt match M. User uses nft to add a rule using M:
-
-nft add rule ip filter xt M [ <M match options> ] drop
-
-But what's the user does not know, is that the xt match M will generate 
-pure nft expressions, not using the xt compat expression (no memory blob 
-etc...)
-Then: (let's say M matches tcp protocol, port 12345)
-
-nft list table filter
-
-table global {
-     chain filter input {
-         ip protocol 6 tcp dport 12345 drop
-     }
-}
-
-It's misleading. The user is not retrieving his command here. I am 
-pretty sure lots of users will complain about that. (and you know bad 
-habits are tough: users will also argue to keep such iptables-like 
-mixing forever)
-And it's going to happen fast, since I believe a lot of xt extensions 
-can be expressed already as pure nft expressions (tcp, snat/dnat, ...).
-
-Imho, as long as a user wants to use iptables-like matches/targets: he 
-should use only iptables-nftables. He will stay with the old fashioned 
-way of managing chains, rules...
-The day he want to move to nft due to the fact it brings much more 
-features, flexibility and so on... he will use nft, and its command 
-format. No mixing.
-
-We can enforce that in nft: if an xt match/target is found, we print a 
-warning so they should use  iptables-nftables instead for handling those.
-And we print a partial output only: like: ip xt_match <a_match_name> 
-xt_target <a_target_name>, and of course nft -f is not going to handle such.
-
-I understand your point of bringing this feature to the users (for full 
-retro-compat issue), but somehow I feel it's going to be a hassle 
-finally, and it won't help the users to fully move on properly with nft.
-We have to force them ;) "Want iptables way of doing thing: use 
-iptables-nftables. Want the new features and flexibility: use nft".
-
-
-Tomasz
-
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 25fd1c4..1eb1a44 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -30,17 +30,28 @@ static inline unsigned int optlen(const u_int8_t *opt, unsigned int offset)
+ 
+ static unsigned int
+ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+-			  const struct xt_tcpoptstrip_target_info *info,
++			  const struct xt_action_param *par,
+ 			  unsigned int tcphoff, unsigned int minlen)
+ {
++	const struct xt_tcpoptstrip_target_info *info = par->targinfo;
+ 	unsigned int optl, i, j;
+ 	struct tcphdr *tcph;
+ 	u_int16_t n, o;
+ 	u_int8_t *opt;
++	int len;
++
++	/* This is a fragment, no TCP header is available */
++	if (par->fragoff != 0)
++		return XT_CONTINUE;
+ 
+ 	if (!skb_make_writable(skb, skb->len))
+ 		return NF_DROP;
+ 
++	len = skb->len - tcphoff;
++	if (len < (int)sizeof(struct tcphdr) ||
++	    tcp_hdr(skb)->doff * 4 > len)
++		return NF_DROP;
++
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+ 	opt  = (u_int8_t *)tcph;
+ 
+@@ -76,7 +87,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ static unsigned int
+ tcpoptstrip_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	return tcpoptstrip_mangle_packet(skb, par->targinfo, ip_hdrlen(skb),
++	return tcpoptstrip_mangle_packet(skb, par, ip_hdrlen(skb),
+ 	       sizeof(struct iphdr) + sizeof(struct tcphdr));
+ }
+ 
+@@ -94,7 +105,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+ 
+-	return tcpoptstrip_mangle_packet(skb, par->targinfo, tcphoff,
++	return tcpoptstrip_mangle_packet(skb, par, tcphoff,
+ 	       sizeof(*ipv6h) + sizeof(struct tcphdr));
+ }
+ #endif
+-- 
+1.7.10.4
