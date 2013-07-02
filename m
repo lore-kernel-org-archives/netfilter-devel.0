@@ -1,54 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.9 09/15] netfilter: xt_TCPMSS: Fix violation of RFC879 in absence of MSS option
-Date: Tue,  2 Jul 2013 16:50:59 +0200
-Message-ID: <1372776665-6795-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-3.9 10/15] netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
+Date: Tue,  2 Jul 2013 16:51:00 +0200
+Message-ID: <1372776665-6795-10-git-send-email-pablo@netfilter.org>
 References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44023 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44034 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753047Ab3GBOwS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jul 2013 10:52:18 -0400
+	id S1753063Ab3GBOwY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jul 2013 10:52:24 -0400
 In-Reply-To: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Phil Oester <kernel@linuxace.com>
+In (bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
+packet boundary), the use of tcp_hdr was introduced. However, we
+cannot assume that skb->transport_header is set for non-local packets.
 
-The clamp-mss-to-pmtu option of the xt_TCPMSS target can cause issues
-connecting to websites if there was no MSS option present in the
-original SYN packet from the client. In these cases, it may add a
-MSS higher than the default specified in RFC879. Fix this by never
-setting a value > 536 if no MSS option was specified by the client.
-
-This closes netfilter's bugzilla #662.
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+Cc: Florian Westphal <fw@strlen.de>
+Reported-by: Phil Oester <kernel@linuxace.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Cherry-pick: 409b545ac10d9548929557a75ad86540f59a2c83
+Cherry-pick: ed82c437320c48a4032492f4a55a7e2c934158b6
 
- net/netfilter/xt_TCPMSS.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 71a266d..4960b66 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -124,6 +124,12 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 1eb1a44..b68fa19 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -48,11 +48,13 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+ 		return NF_DROP;
  
- 	skb_put(skb, TCPOLEN_MSS);
+ 	len = skb->len - tcphoff;
+-	if (len < (int)sizeof(struct tcphdr) ||
+-	    tcp_hdr(skb)->doff * 4 > len)
++	if (len < (int)sizeof(struct tcphdr))
+ 		return NF_DROP;
  
-+	/* RFC 879 states that the default MSS is 536 without specific
-+	 * knowledge that the destination host is prepared to accept larger.
-+	 * Since no MSS was provided, we MUST NOT set a value > 536.
-+	 */
-+	newmss = min(newmss, (u16)536);
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
++	if (tcph->doff * 4 > len)
++		return NF_DROP;
 +
- 	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
- 	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
+ 	opt  = (u_int8_t *)tcph;
  
+ 	/*
 -- 
 1.7.10.4
 
