@@ -1,52 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.9 10/15] netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
-Date: Tue,  2 Jul 2013 16:51:00 +0200
-Message-ID: <1372776665-6795-10-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-3.9 11/15] netfilter: xt_TCPMSS: Fix missing fragmentation handling
+Date: Tue,  2 Jul 2013 16:51:01 +0200
+Message-ID: <1372776665-6795-11-git-send-email-pablo@netfilter.org>
 References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44034 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44137 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753063Ab3GBOwY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jul 2013 10:52:24 -0400
+	id S1752548Ab3GBOxL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jul 2013 10:53:11 -0400
 In-Reply-To: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In (bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond
-packet boundary), the use of tcp_hdr was introduced. However, we
-cannot assume that skb->transport_header is set for non-local packets.
+From: Phil Oester <kernel@linuxace.com>
 
-Cc: Florian Westphal <fw@strlen.de>
-Reported-by: Phil Oester <kernel@linuxace.com>
+Similar to commit bc6bcb59 ("netfilter: xt_TCPOPTSTRIP: fix
+possible mangling beyond packet boundary"), add safe fragment
+handling to xt_TCPMSS.
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Cherry-pick: ed82c437320c48a4032492f4a55a7e2c934158b6
+Cherry-pick: b396966c4688522863572927cb30aa874b3ec504
 
- net/netfilter/xt_TCPOPTSTRIP.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/xt_TCPMSS.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 1eb1a44..b68fa19 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -48,11 +48,13 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 		return NF_DROP;
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 4960b66..a77d786 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -55,6 +55,10 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	u16 newmss;
+ 	u8 *opt;
  
- 	len = skb->len - tcphoff;
--	if (len < (int)sizeof(struct tcphdr) ||
--	    tcp_hdr(skb)->doff * 4 > len)
-+	if (len < (int)sizeof(struct tcphdr))
- 		return NF_DROP;
- 
- 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
-+	if (tcph->doff * 4 > len)
-+		return NF_DROP;
++	/* This is a fragment, no TCP header is available */
++	if (par->fragoff != 0)
++		return XT_CONTINUE;
 +
- 	opt  = (u_int8_t *)tcph;
+ 	if (!skb_make_writable(skb, skb->len))
+ 		return -1;
  
- 	/*
 -- 
 1.7.10.4
 
