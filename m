@@ -1,102 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ip[6]t_REJECT: tcp-reset using wrong MAC
- source if bridged
-Date: Wed, 3 Jul 2013 01:41:31 +0200
-Message-ID: <20130702234131.GA8412@localhost>
-References: <20130626211627.GA22947@gmail.com>
+Subject: Re: [PATCH] iptables: Fix connlabel.conf install location
+Date: Wed, 3 Jul 2013 02:13:05 +0200
+Message-ID: <20130703001305.GA8652@localhost>
+References: <20130610093544.GA31559@gmail.com>
+ <20130612075155.GA21252@breakpoint.cc>
+ <20130612085037.GA10600@localhost>
+ <20130612090815.GA13356@localhost>
+ <20130612100605.GB21252@breakpoint.cc>
+ <20130625160141.GA5816@localhost>
+ <20130625195200.GB28818@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57860 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59531 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755967Ab3GBXlq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jul 2013 19:41:46 -0400
+	id S1751498Ab3GCANM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jul 2013 20:13:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20130626211627.GA22947@gmail.com>
+In-Reply-To: <20130625195200.GB28818@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 26, 2013 at 05:16:28PM -0400, Phil Oester wrote:
-> As reported by Casper Gripenberg, in a bridged setup, using ip[6]t_REJECT
-> with the tcp-reset option sends out reset packets with the src MAC address
-> of the local bridge interface, instead of the MAC address of the intended
-> destination.  This causes some routers/firewalls to drop the reset packet
-> as it appears to be spoofed.  Fix this by bypassing ip[6]_local_out and
-> setting the MAC of the sender in the tcp reset packet. 
+On Tue, Jun 25, 2013 at 09:52:00PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Wed, Jun 12, 2013 at 12:06:05PM +0200, Florian Westphal wrote:
+> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > > I think this is still useful for people cross-compiling and installing
+> > > > > iptables in some custom location.
+> > > > 
+> > > > Hm, still, this may confuse people, as xt_connlabel always looks at:
+> > > > 
+> > > > #define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
+> > > 
+> > > Right; this is easily fixable. However, this is also
+> > > the default in libnetfilter_conntrack.  But lnf-ct wont be
+> > > able to know what configure options iptables was built with.
+> > 
+> > We can define the default location in libnetfilter_conntrack.h, eg.
+> > 
+> > #define NFCT_CONNLABEL_CFG "/etc/xtables/connlabel.conf"
 > 
-> This closes netfilter bugzilla #531.
+> Sure, I can move the definition from conntrack/labels.c
+> to a public header.
 > 
-> Phil
+> > I think connlabel is not of much use without libnetfilter_conntrack,
+> > since it provides the translation of the connlabel mapping. So we can
+> > conditionally compile connlabel support if libnetfilter_conntrack is
+> > installed. We can make it a soft dependency, ie. no need for
+> > --enable-connlabel.
 > 
-> Signed-off-by: Phil Oester <kernel@linuxace.com>
+> Hrm, the iptables connlabel extension currently parses the labels
+> config itself.
+> 
+> What we can do is to add soft dependency in iptables for
+> libnetfilter_conntrack, build the connlabel extension
+> conditionally and then remove the default file from iptables.
+> 
+> Is that what you have in mind?
 
-> diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-> index 04b18c1..b969131 100644
-> --- a/net/ipv4/netfilter/ipt_REJECT.c
-> +++ b/net/ipv4/netfilter/ipt_REJECT.c
-> @@ -119,7 +119,26 @@ static void send_reset(struct sk_buff *oldskb, int hook)
->  
->  	nf_ct_attach(nskb, oldskb);
->  
-> -	ip_local_out(nskb);
-> +#ifdef CONFIG_BRIDGE_NETFILTER
-> +	/* If we use ip_local_out for bridged traffic, the MAC source on
-> +	 * the RST will be ours, instead of the destination's.  This confuses
-> +	 * some routers/firewalls, and they drop the packet.  So we need to
-> +	 * build the eth header using the original destination's MAC as the
-> +	 * source, and send the RST packet directly.
-> +	 */
-> +	if (oldskb->nf_bridge) {
-> +		struct ethhdr *oeth = eth_hdr(oldskb);
-> +		nskb->dev = oldskb->nf_bridge->physindev;
+Yes. BTW, you could simplify the existing iptables extension by using
+the connlabel API provided by libnetfilter_conntrack.
 
-This won't work for locally generated traffic, physindev is null in
-that case.
+I think you can also add --with-libnfct=PATH for people that want to
+place the library somewhere in the tree, not the standard location.
 
-> +		niph->tot_len = htons(nskb->len);
-> +		ip_send_check(niph);
-> +		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
-> +				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
-> +			goto free_nskb;
-> +		dev_queue_xmit(nskb);
-> +	} else
-> +#endif
-> +		ip_local_out(nskb);
-> +
->  	return;
->  
->   free_nskb:
-> diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-> index 70f9abc..56eef30 100644
-> --- a/net/ipv6/netfilter/ip6t_REJECT.c
-> +++ b/net/ipv6/netfilter/ip6t_REJECT.c
-> @@ -169,7 +169,25 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
->  
->  	nf_ct_attach(nskb, oldskb);
->  
-> -	ip6_local_out(nskb);
-> +#ifdef CONFIG_BRIDGE_NETFILTER
-> +	/* If we use ip6_local_out for bridged traffic, the MAC source on
-> +	 * the RST will be ours, instead of the destination's.  This confuses
-> +	 * some routers/firewalls, and they drop the packet.  So we need to
-> +	 * build the eth header using the original destination's MAC as the
-> +	 * source, and send the RST packet directly.
-> +	 */
-> +	if (oldskb->nf_bridge) {
-> +		struct ethhdr *oeth = eth_hdr(oldskb);
-> +		nskb->dev = oldskb->nf_bridge->physindev;
-> +		nskb->protocol = htons(ETH_P_IPV6);
-> +		ip6h->payload_len = htons(sizeof(struct tcphdr));
-> +		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
-> +				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
-> +			return;
-> +		dev_queue_xmit(nskb);
-> +	} else
-> +#endif
-> +		ip6_local_out(nskb);
->  }
->  
->  static inline void
-
+Thanks.
