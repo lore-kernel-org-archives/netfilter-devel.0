@@ -1,59 +1,40 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: set errno correctly in iptcc_chain_index_alloc
-Date: Wed, 3 Jul 2013 18:16:10 -0700
-Message-ID: <20130704011610.GA9791@linuxace.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="5mCyUwZo2JvN/JJP"
-Cc: pablo@netfilter.org
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: [PATCH 0/2] minor debugging fixes
+Date: Thu, 04 Jul 2013 11:26:16 +0400
+Message-ID: <1372922778-12997-1-git-send-email-a.perevalov@samsung.com>
+Cc: Alexey Perevalov <a.perevalov@samsung.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:40807 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932143Ab3GDBQN (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63503 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755041Ab3GDH0a (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Jul 2013 21:16:13 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb1so777824pad.37
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jul 2013 18:16:13 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 4 Jul 2013 03:26:30 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MPE0083FI00UT00@mailout3.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Thu, 04 Jul 2013 08:26:28 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+I faced with inconvenient behaviour in early version of iptables,
+it runs modprobe unconditionally. I know it is already fixed.
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-As reported by Robert Barnhardt, iptcc_chain_index_alloc does not populate
-errno with the appropriate ENOMEM on allocation failures.  This causes
-incorrect error messages to be passed back to user such as "can't initialize
-iptables table 'X'" even if the issue was caused by OOM condition.  Fix
-this by passing back ENOMEM if allocation failure occurs.
-
-This closes bugzilla #619.
-
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+While debugging I came across to missing debug trace in libxt_dccp and 
+libxt_sctp. Also I think it would be better to clarify DEBUG define usage.
 
 
+Alexey Perevalov (2):
+  Clarify DEBUG usage macro
+  extensions: libxt_dccp/libxt_sctp: enable debug tracing by DEBUG
+    define
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-enomem
+ INSTALL                 |    2 ++
+ extensions/libxt_dccp.c |    4 ++--
+ extensions/libxt_sctp.c |    4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index f0f7815..004b0ec 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -502,7 +502,8 @@ static int iptcc_chain_index_alloc(struct xtc_handle *h)
- 	h->chain_index = malloc(array_mem);
- 	if (h->chain_index == NULL && array_mem > 0) {
- 		h->chain_index_sz = 0;
--		return -ENOMEM;
-+		errno = ENOMEM;
-+		return -1;
- 	}
- 	memset(h->chain_index, 0, array_mem);
- 	h->chain_index_sz = array_elems;
+-- 
+1.7.9.5
 
---5mCyUwZo2JvN/JJP--
