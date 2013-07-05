@@ -1,58 +1,61 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
- ExpectationSync
-Date: Fri, 5 Jul 2013 10:19:10 +0200
-Message-ID: <20130705081910.GA25000@breakpoint.cc>
-References: <20130705020312.25783ccd.billfink@mindspring.com>
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: Re: [PATCH -stable-3.9 01/15] netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond packet boundary
+Date: Fri, 05 Jul 2013 09:36:55 +0100
+Message-ID: <87k3l5qu6w.fsf@canonical.com>
+References: <1372776665-6795-1-git-send-email-pablo@netfilter.org>
+	<87ehbe5q1h.fsf@canonical.com> <20130705050152.GA3925@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Bill Fink <billfink@mindspring.com>
+Content-Type: text/plain
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	stable@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55316 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757171Ab3GEITR (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:55567 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757083Ab3GEIg6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 04:19:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20130705020312.25783ccd.billfink@mindspring.com>
+	Fri, 5 Jul 2013 04:36:58 -0400
+In-Reply-To: <20130705050152.GA3925@localhost> (Pablo Neira Ayuso's message of
+	"Fri, 5 Jul 2013 07:01:52 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bill Fink <billfink@mindspring.com> wrote:
-> 230 Anonymous login ok, restrictions apply.
-> EPSV
-> 229 Entering Extended Passive Mode (|||1584|)
-> 
-> As soon as I enter the EPSV command, I get the following
-> conntrackd segfault:
-> 
-> Jul  5 00:41:06 sen-fw1 kernel: [274422.060695] conntrackd[4821]: segfault at 0 ip 000000000040c660 sp 00007fffebb098a8 error 4 in conntrackd[400000+3d000]
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-#0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at
-../include/jhash.h:99
-99                      a += k[0];
-(gdb) bt f
-#0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at ../include/jhash.h:99
-        a = 2654435769 b = 2654435769 c = 0 len = 4
-#1  0x000000000040f564 in ct_filter_hash6 (data=0x0, table=0x16ef630) at filter.c:57
-#2  0x000000000040ad34 in hashtable_hash (table=0x16ef630, data=0x0) at hash.c:63
-#3  0x000000000040fd19 in __ct_filter_test_ipv6 (f=0x16eeba0, ct=0x1703760) at filter.c:265
-id_src = 51 id_dst = 24051376 src = 0x1703760 dst = 0x0
+> On Thu, Jul 04, 2013 at 03:59:54PM +0100, Luis Henriques wrote:
+>> Hi Pablo,
+>> 
+>> Apparently, most of these patches are also applicable to older kernel
+>> trees.  I did a quick check and the following seem to be applicable to
+>> the 3.5 kernel:
+>> 
+>> bc6bcb5 netfilter: xt_TCPOPTSTRIP: fix possible mangling beyond packet boundary
+>> 4f36ea6 netfilter: ipt_ULOG: fix non-null terminated string in the nf_log path
+>> 2a7851b netfilter: add nf_ipv6_ops hook to fix xt_addrtype with IPv6
+>> d660164 netfilter: xt_LOG: fix mark logging for IPv6 packets
+>> a8241c6 ipvs: info leak in __ip_vs_get_dest_entries()
+>> 37bc4f8 netfilter: nfnetlink_cttimeout: fix incomplete dumping of objects
+>> 991a6b7 netfilter: nfnetlink_acct: fix incomplete dumping of objects
+>> 409b545 netfilter: xt_TCPMSS: Fix violation of RFC879 in absence of MSS option
+>> ed82c43 netfilter: xt_TCPOPTSTRIP: don't use tcp_hdr()
+>> b396966 netfilter: xt_TCPMSS: Fix missing fragmentation handling
+>> 70d19f8 netfilter: xt_TCPMSS: Fix IPv6 default MSS too
+>> 06f3d7f ipvs: SCTP ports should be writable in ICMP packets
+>> 
+>> Only these 3 were left out:
+>> 
+>> dc7b3eb ipvs: Fix reuse connection if real server is dead
+>> 5aed938 netfilter: nf_nat_sip: fix mangling
+>> 797a7d6 netfilter: ctnetlink: send event when conntrack label was modified
+>> 
+>> Do you have any reason for including them on 3.9 kernel only, or
+>> should they be queued for older kernels as well?
+>
+> Those can be queued for old kernels as well.
 
-NULL deref in __ct_filter_test_ipv6.  Doesn't happen for ipv4 because
-nfct_get_attr_u32() return 0, but nfct_get_attr() returns NULL instead.
+Great, thanks for clarifying.  I'll queue the above list for the 3.5
+kernel.
 
-@@ -261,8 +264,8 @@ __ct_filter_test_ipv6(struct ct_filter *f, const
-		struct nf_conntrack *ct)
-        src = nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
-        dst = nfct_get_attr(ct, ATTR_REPL_IPV6_SRC);
-
--       id_src = hashtable_hash(f->h6, src);
--       id_dst = hashtable_hash(f->h6, dst);
-+       id_src = src ? hashtable_hash(f->h6, src) : 0;
-+       id_dst = dst ? hashtable_hash(f->h6, dst) : 0;
-
-
-Not sure if this is enough, there are other callers
-of nfct_get_attr() that don't check for NULL.
+Cheers,
+-- 
+Luis
