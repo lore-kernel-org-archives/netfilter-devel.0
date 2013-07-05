@@ -1,67 +1,41 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v3 0/5]  ipset: add "inner" flag support
-Date: Fri, 5 Jul 2013 22:48:43 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1307052244220.21063@blackhole.kfki.hu>
-References: <51CF5256.3010004@googlemail.com> <alpine.DEB.2.00.1307052001200.20246@blackhole.kfki.hu> <51D72D9B.9040003@googlemail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 1/2] set: add Json Export Support
+Date: Sat, 6 Jul 2013 00:22:57 +0200
+Message-ID: <20130705222018.GA9158@localhost>
+References: <20130705123837.23285.5489.stgit@Ph0enix>
+ <20130705124128.23285.30238.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, eric@regit.org
+To: Alvaro Neira <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:47655 "EHLO smtp2.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:49160 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752162Ab3GEUso (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 16:48:44 -0400
-In-Reply-To: <51D72D9B.9040003@googlemail.com>
+	id S1751067Ab3GEWXF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jul 2013 18:23:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20130705124128.23285.30238.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 5 Jul 2013, Dash Four wrote:
+On Fri, Jul 05, 2013 at 02:41:28PM +0200, Alvaro Neira wrote:
+> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
+>=20
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  examples/nft-set-elem-get.c |   15 ++++++++----
+>  examples/nft-set-get.c      |   15 ++++++++----
+>  include/libnftables/set.h   |    5 ++++
+>  src/set.c                   |   56 +++++++++++++++++++++++++++++++++=
+++++++++--
+>  src/set_elem.c              |   49 +++++++++++++++++++++++++++++++++=
++++--
+>  5 files changed, 126 insertions(+), 14 deletions(-)
 
-> Jozsef Kadlecsik wrote:
-> > I have just noticed one single issue with your patches: the revision bumping
-> > for the set types are missing.
-> >   
-> Interesting. I wasn't aware you've introduced this feature and by 
-> looking at the logs, this has been present since 6.14 - shame on me for 
-> not noticing it.
-> 
-> > So please extend the second patch with the type revisions incremented (have
-> > a look at the hash:net type how the revision comments are kept)
-> > and add a userspace patch with the revisions bumped in userspace too (it's
-> > fine to copy the most recent ones and increase the revisions, adjust the
-> > descriptions).
-> In other words, something like:
-> 
-> kernel/net/netfilter/ip_set_*.c
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> -#define IPSET_TYPE_REV_MAX    3 /* Counters support added */
-> +/*                             3    Counters support added */
-> +#define IPSET_TYPE_REV_MAX    4 /* Inner flag support added */
-> 
-> lib/ipset_*.c
-> ~~~~~~~~~~~~~
-> copy the entire ipset_hash_netX struct, bump the ".revision" and adjust the
-> ".description" fields?
-> 
-> Would that suffice?
-
-Yes, exactly.
- 
-> Also, would you like me to modify my 3rd patch (which is where I've made 
-> the changes to all sets - in patch two I reimplemented the "internal" 
-> functions) and issue a separate one for all lib/ipset_*.c changes or 
-> would you like me to reissue the whole set of patches (1-6)?
-
-I meant the third patch, but wrote "second" above....
-
-You can reissue just the third and send the new sixth for lib/ipset_*.c.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Applied, thanks Alvaro.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
