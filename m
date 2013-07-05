@@ -1,282 +1,76 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] src: consolidate XMl parsing of data_reg via
-	nft_mxml_data_reg_parse
-Date: Fri, 05 Jul 2013 16:28:06 +0200
-Message-ID: <20130705142805.8352.24639.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v3 0/5]  ipset: add "inner" flag support
+Date: Fri, 5 Jul 2013 20:06:08 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1307052001200.20246@blackhole.kfki.hu>
+References: <51CF5256.3010004@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:52132 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752356Ab3GEO2Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 10:28:16 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 8AF7251ECE9
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2013 14:28:13 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id HOyEjZKqVWQP for <netfilter-devel@vger.kernel.org>;
-	Fri,  5 Jul 2013 16:28:07 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id E8A4B51ED32
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2013 16:28:07 +0200 (CEST)
+Received: from smtp0.kfki.hu ([148.6.0.25]:45899 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752212Ab3GESGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jul 2013 14:06:11 -0400
+In-Reply-To: <51CF5256.3010004@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move common code for XML parsing of data_reg to the new nft_mxml_data_reg_parse function.
+Hello,
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/expr/bitwise.c   |   36 ++++++-----------------------------
- src/expr/cmp.c       |   17 +++-------------
- src/expr/immediate.c |   45 ++++++++++++-------------------------------
- src/internal.h       |    2 ++
- src/mxml.c           |   52 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 75 insertions(+), 77 deletions(-)
+On Sat, 29 Jun 2013, Dash Four wrote:
 
-diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index 6b534b4..3836ab4 100644
---- a/src/expr/bitwise.c
-+++ b/src/expr/bitwise.c
-@@ -202,10 +202,7 @@ nft_rule_expr_bitwise_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
- {
- #ifdef XML_PARSING
- 	struct nft_expr_bitwise *bitwise = (struct nft_expr_bitwise *)e->data;
--	mxml_node_t *node = NULL;
--	mxml_node_t *save = NULL;
- 	int32_t reg;
--	union nft_data_reg data_regtmp;
- 
- 	reg = nft_mxml_reg_parse(tree, "sreg", MXML_DESCEND_FIRST);
- 	if (reg < 0)
-@@ -221,39 +218,18 @@ nft_rule_expr_bitwise_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
- 	bitwise->dreg = reg;
- 	e->flags |= (1 << NFT_EXPR_BITWISE_DREG);
- 
--	/* Get and set <mask> */
--	node = mxmlFindElement(tree, tree, "mask", NULL, NULL,
--			       MXML_DESCEND);
--	if (node == NULL)
-+	if (nft_mxml_data_reg_parse(tree, "mask",
-+				    &bitwise->mask) != DATA_VALUE) {
- 		return -1;
-+	}
- 
--	/* hack for mxmSaveAllocString to print just the current node */
--	save = node->next;
--	node->next = NULL;
--	if (nft_data_reg_xml_parse(&data_regtmp,
--			mxmlSaveAllocString(node, MXML_NO_CALLBACK)) < 0)
--		return -1;
--	node->next = save;
--
--	memcpy(&bitwise->mask.val, data_regtmp.val, data_regtmp.len);
--	bitwise->mask.len = data_regtmp.len;
- 	e->flags |= (1 << NFT_EXPR_BITWISE_MASK);
- 
--	/* Get and set <xor> */
--	node = mxmlFindElement(tree, tree, "xor", NULL, NULL,
--			       MXML_DESCEND);
--	if (node == NULL)
--		return -1;
--
--	/* hack for mxmSaveAllocString to print just the current node */
--	save = node->next;
--	node->next = NULL;
--	if (nft_data_reg_xml_parse(&data_regtmp,
--			mxmlSaveAllocString(node, MXML_NO_CALLBACK)) < 0)
-+	if (nft_mxml_data_reg_parse(tree, "xor",
-+				    &bitwise->xor) != DATA_VALUE) {
- 		return -1;
-+	}
- 
--	memcpy(&bitwise->xor.val, data_regtmp.val, data_regtmp.len);
--	bitwise->xor.len = data_regtmp.len;
- 	e->flags |= (1 << NFT_EXPR_BITWISE_XOR);
- 
- 	/* Additional validation: mask and xor must use the same number of
-diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index f3a363a..2e284fe 100644
---- a/src/expr/cmp.c
-+++ b/src/expr/cmp.c
-@@ -173,8 +173,6 @@ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_node_t *tre
- #ifdef XML_PARSING
- 	struct nft_expr_cmp *cmp = (struct nft_expr_cmp *)e->data;
- 	mxml_node_t *node = NULL;
--	mxml_node_t *save = NULL;
--	union nft_data_reg data_regtmp;
- 	int32_t reg;
- 
- 	reg = nft_mxml_reg_parse(tree, "sreg", MXML_DESCEND_FIRST);
-@@ -207,22 +205,13 @@ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_node_t *tre
- 	}
- 
- 	/* Get and set <cmpdata>. Is not mandatory */
--	node = mxmlFindElement(tree, tree, "cmpdata", NULL, NULL,
--			       MXML_DESCEND);
-+	node = mxmlFindElement(tree, tree, "cmpdata", NULL, NULL, MXML_DESCEND);
- 	if (node != NULL) {
--		/* hack for mxmSaveAllocString to print just the current node */
--		save = node->next;
--		node->next = NULL;
--
--		if (nft_data_reg_xml_parse(&data_regtmp,
--			mxmlSaveAllocString(node, MXML_NO_CALLBACK)) < 0) {
-+		if (nft_mxml_data_reg_parse(tree, "cmpdata",
-+					    &cmp->data) != DATA_VALUE) {
- 			return -1;
- 		}
- 
--		node->next = save;
--
--		memcpy(&cmp->data.val, data_regtmp.val, data_regtmp.len);
--		cmp->data.len = data_regtmp.len;
- 		e->flags |= (1 << NFT_EXPR_CMP_DATA);
- 	}
- 
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 8f57649..36fffce 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -200,9 +200,7 @@ nft_rule_expr_immediate_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
- {
- #ifdef XML_PARSING
- 	struct nft_expr_immediate *imm = (struct nft_expr_immediate *)e->data;
--	mxml_node_t *node = NULL;
--	mxml_node_t *save = NULL;
--	union nft_data_reg data_regtmp;
-+	int data_reg_type;
- 	int32_t reg;
- 
- 	reg = nft_mxml_reg_parse(tree, "dreg", MXML_DESCEND_FIRST);
-@@ -213,42 +211,23 @@ nft_rule_expr_immediate_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
- 	e->flags |= (1 << NFT_EXPR_IMM_DREG);
- 
- 	/* Get and set <immdata>. Is mandatory */
--	node = mxmlFindElement(tree, tree, "immdata", NULL, NULL,
--			       MXML_DESCEND);
--	if (node == NULL)
--		return -1;
--
--	/* hack for mxmSaveAllocString to print just the current node */
--	save = node->next;
--	node->next = NULL;
--
--	if (nft_data_reg_xml_parse(&data_regtmp,
--			mxmlSaveAllocString(node, MXML_NO_CALLBACK)) < 0)
--		return -1;
--	node->next = save;
-+	data_reg_type = nft_mxml_data_reg_parse(tree, "immdata", &imm->data);
- 
--	/* data_reg type switch */
--	node = mxmlFindElement(tree, tree, "data_reg", NULL, NULL,
--			       MXML_DESCEND);
--	if (node == NULL)
-+	if (data_reg_type < 0)
- 		return -1;
- 
--	if (mxmlElementGetAttr(node, "type") == NULL)
--		return -1;
--
--	if (strcmp(mxmlElementGetAttr(node, "type"), "value") == 0) {
--		memcpy(&imm->data.val, data_regtmp.val, data_regtmp.len);
--		imm->data.len = data_regtmp.len;
-+	switch (data_reg_type) {
-+	case DATA_VALUE:
- 		e->flags |= (1 << NFT_EXPR_IMM_DATA);
--	} else if (strcmp(mxmlElementGetAttr(node, "type"), "verdict") == 0) {
--		imm->data.verdict = data_regtmp.verdict;
-+		break;
-+	case DATA_VERDICT:
- 		e->flags |= (1 << NFT_EXPR_IMM_VERDICT);
--	} else if (strcmp(mxmlElementGetAttr(node, "type"), "chain") == 0) {
--		if (imm->data.chain)
--			free(imm->data.chain);
--
--		imm->data.chain = strdup(data_regtmp.chain);
-+		break;
-+	case DATA_CHAIN:
- 		e->flags |= (1 << NFT_EXPR_IMM_CHAIN);
-+		break;
-+	default:
-+		return -1;
- 	}
- 
- 	return 0;
-diff --git a/src/internal.h b/src/internal.h
-index ee09661..e2c2882 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -17,6 +17,8 @@
- #include <mxml.h>
- struct nft_rule_expr *nft_mxml_expr_parse(mxml_node_t *node);
- int nft_mxml_reg_parse(mxml_node_t *tree, const char *reg_name, uint32_t flags);
-+union nft_data_reg;
-+int nft_mxml_data_reg_parse(mxml_node_t *tree, const char *node_name, union nft_data_reg *data_reg);
- #endif
- 
- #define NFT_TABLE_XML_VERSION 0
-diff --git a/src/mxml.c b/src/mxml.c
-index 9aef645..b694ad0 100644
---- a/src/mxml.c
-+++ b/src/mxml.c
-@@ -76,4 +76,56 @@ int nft_mxml_reg_parse(mxml_node_t *tree, const char *reg_name, uint32_t flags)
- err:
- 	return -1;
- }
-+
-+int nft_mxml_data_reg_parse(mxml_node_t *tree, const char *node_name,
-+			    union nft_data_reg *data_reg)
-+{
-+	mxml_node_t *node;
-+	const char *type;
-+	char *tmpstr = NULL;
-+	int ret;
-+
-+	node = mxmlFindElement(tree, tree, node_name, NULL, NULL,
-+			       MXML_DESCEND_FIRST);
-+	if (node == NULL || node->child == NULL) {
-+		errno = EINVAL;
-+		goto err;
-+	}
-+
-+	tmpstr = mxmlSaveAllocString(node, MXML_NO_CALLBACK);
-+	if (tmpstr == NULL) {
-+		errno = ENOMEM;
-+		goto err;
-+	}
-+
-+	ret = nft_data_reg_xml_parse(data_reg, tmpstr);
-+	free(tmpstr);
-+
-+	if (ret < 0) {
-+		errno = EINVAL;
-+		goto err;
-+	}
-+
-+	node = mxmlFindElement(node, node, "data_reg", NULL, NULL,
-+			       MXML_DESCEND);
-+	if (node == NULL || node->child == NULL) {
-+		errno = EINVAL;
-+		goto err;
-+	}
-+
-+	if (mxmlElementGetAttr(node, "type") == NULL) {
-+		errno = EINVAL;
-+		goto err;
-+	}
-+
-+	type = mxmlElementGetAttr(node, "type");
-+	if (strcmp(type, "value") == 0)
-+		return DATA_VALUE;
-+	if (strcmp(type, "verdict") == 0)
-+		return DATA_VERDICT;
-+	if (strcmp(type, "chain") == 0)
-+		return DATA_CHAIN;
-+err:
-+	return -1;
-+}
- #endif
+> This series of 5 patches implements "inner" flag option in the set
+> iptables match, allowing matching based on the properties
+> (source/destination IP address, protocol, port and so on) of the
+> original (inner) connection in the event of the following
+> ICMP[v4,v6] messages:
+> 
+> ICMPv4 destination-unreachable (code 3);
+> ICMPv4 source-quench (code 4);
+> ICMPv4 time-exceeded (code 11);
+> ICMPv6 destination-unreachable (code 1);
+> ICMPv6 packet-too-big (code 2);
+> ICMPv6 time-exceeded (code 3);
+> 
+> Revision history:
+> 
+> v1 * initial revision
+> v2 * redundant code removed;
+>    * added a new header file (ip_set_icmp.h) with 2 inline functions,
+>      allowing access to the internal icmp header properties;
+>    * removed ip[46]inneraddr[ptr]functions as they are no longer needed
+>    * added new ipv[46]addr[ptr] and ip_set_get*port functions, the old
+>      functions are still preserved for backwards compatibility
+> v3 * rename and move ip_set_get_icmpv[46]_inner_hdr functions to
+>      ip_set_core.c and remove ip_set_icmp.h
+>    * move icmpv[46] protocol and offset checks inside
+>      ip_set_get_ip[46]_inner_hdr functions
+>    * eliminate ip[46]addrptr & ip_set_get_ip[46]_port backward-compatible
+>      functions and rename the new ones to use the same name
+>    * eliminate single-path error gotos in ip_set.h and ip_set_getport.c
+> 
+> Dash Four (5):
+>   iptables: bugfix: prevent wrong syntax being accepted by the set match
+>   ipset: add "inner" flag implementation
+>   ipset: add set match "inner" flag support
+>   iptables: add set match "inner" flag support
+>   iptables (userspace): add set match "inner" flag support
 
+I have just noticed one single issue with your patches: the revision 
+bumping for the set types are missing.
+
+So please extend the second patch with the type revisions incremented 
+(have a look at the hash:net type how the revision comments are kept)
+and add a userspace patch with the revisions bumped in userspace too (it's 
+fine to copy the most recent ones and increase the revisions, adjust the 
+descriptions). That's all and then the patchset is ready for inclusion.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
