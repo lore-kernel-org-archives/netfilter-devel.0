@@ -1,85 +1,61 @@
-From: Bill Fink <billfink@mindspring.com>
-Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
- ExpectationSync
-Date: Fri, 5 Jul 2013 15:45:27 -0400
-Message-ID: <20130705154527.8f18a181.billfink@mindspring.com>
-References: <20130705020312.25783ccd.billfink@mindspring.com>
+From: Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v3 0/5]  ipset: add "inner" flag support
+Date: Fri, 05 Jul 2013 21:33:32 +0100
+Message-ID: <51D72D9B.9040003@googlemail.com>
+References: <51CF5256.3010004@googlemail.com> <alpine.DEB.2.00.1307052001200.20246@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:41357 "EHLO
-	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751162Ab3GETp2 (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:49604 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751950Ab3GEUdl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 15:45:28 -0400
-In-Reply-To: <20130705020312.25783ccd.billfink@mindspring.com>
+	Fri, 5 Jul 2013 16:33:41 -0400
+Received: by mail-we0-f171.google.com with SMTP id m46so2260128wev.16
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2013 13:33:40 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1307052001200.20246@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Please Cc: me on replies as I am not subscribed]
 
-Florian,
+Jozsef Kadlecsik wrote:
+> I have just noticed one single issue with your patches: the revision 
+> bumping for the set types are missing.
+>   
+Interesting. I wasn't aware you've introduced this feature and by 
+looking at the logs, this has been present since 6.14 - shame on me for 
+not noticing it.
 
-First, many thanks for the quick fix!
+> So please extend the second patch with the type revisions incremented 
+> (have a look at the hash:net type how the revision comments are kept)
+> and add a userspace patch with the revisions bumped in userspace too (it's 
+> fine to copy the most recent ones and increase the revisions, adjust the 
+> descriptions).
+In other words, something like:
 
-On Fri, 5 Jul 2013, Florian Westphal wrote:
+kernel/net/netfilter/ip_set_*.c
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-#define IPSET_TYPE_REV_MAX    3 /* Counters support added */
++/*                             3    Counters support added */
++#define IPSET_TYPE_REV_MAX    4 /* Inner flag support added */
 
-> Bill Fink <billfink@xxxxxxxxxxxxxx> wrote:
-> > 230 Anonymous login ok, restrictions apply.
-> > EPSV
-> > 229 Entering Extended Passive Mode (|||1584|)
-> > 
-> > As soon as I enter the EPSV command, I get the following
-> > conntrackd segfault:
-> > 
-> > Jul  5 00:41:06 sen-fw1 kernel: [274422.060695] conntrackd[4821]: segfault at 0 ip 000000000040c660 sp 00007fffebb098a8 error 4 in conntrackd[400000+3d000]
-> 
-> #0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at
-> ../include/jhash.h:99
-> 99                      a += k[0];
-> (gdb) bt f
-> #0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at ../include/jhash.h:99
->         a = 2654435769 b = 2654435769 c = 0 len = 4
-> #1  0x000000000040f564 in ct_filter_hash6 (data=0x0, table=0x16ef630) at filter.c:57
-> #2  0x000000000040ad34 in hashtable_hash (table=0x16ef630, data=0x0) at hash.c:63
-> #3  0x000000000040fd19 in __ct_filter_test_ipv6 (f=0x16eeba0, ct=0x1703760) at filter.c:265
-> id_src = 51 id_dst = 24051376 src = 0x1703760 dst = 0x0
-> 
-> NULL deref in __ct_filter_test_ipv6.  Doesn't happen for ipv4 because
-> nfct_get_attr_u32() return 0, but nfct_get_attr() returns NULL instead.
-> 
-> @@ -261,8 +264,8 @@ __ct_filter_test_ipv6(struct ct_filter *f, const
-> 		struct nf_conntrack *ct)
->         src = nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
->         dst = nfct_get_attr(ct, ATTR_REPL_IPV6_SRC);
-> 
-> -       id_src = hashtable_hash(f->h6, src);
-> -       id_dst = hashtable_hash(f->h6, dst);
-> +       id_src = src ? hashtable_hash(f->h6, src) : 0;
-> +       id_dst = dst ? hashtable_hash(f->h6, dst) : 0;
-> 
-> 
-> Not sure if this is enough, there are other callers
-> of nfct_get_attr() that don't check for NULL.
+lib/ipset_*.c
+~~~~~~~~~~~~~
+copy the entire ipset_hash_netX struct, bump the ".revision" and adjust 
+the ".description" fields?
 
-This cured my immediate problem.  conntrackd no longer segfaults
-and I now get IPv6 expectations.
+Would that suffice?
 
-[root@sen-fw1 ~]# conntrackd -i expect
-proto=6 src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=0 dport=23046 mask-src=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff mask-dst=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff sport=0 dport=65535 master-src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx master-dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=38142 dport=21 class=0 helper=ftp [active since 44s]
+Also, would you like me to modify my 3rd patch (which is where I've made 
+the changes to all sets - in patch two I reimplemented the "internal" 
+functions) and issue a separate one for all lib/ipset_*.c changes or 
+would you like me to reissue the whole set of patches (1-6)?
 
-I will now continue further testing.
+>  That's all and then the patchset is ready for inclusion.
+>   
+Thanks.
 
-I did need my patch to successfully resync the IPv6 expectations
-from the kernel via "conntrackd -R" after flushing the conntrackd
-cache via "conntrackd -f".
-
-I guess I should submit my patch as an RFC patch to get
-comments on it.
-
-					-Thanks
-
-					-Bill
