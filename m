@@ -1,7 +1,7 @@
 From: Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH v4 1/2] ipset (kernel): add set match "inner" flag support
-Date: Fri, 05 Jul 2013 23:23:57 +0100
-Message-ID: <51D7477D.5090506@googlemail.com>
+Subject: [PATCH v4 2/2] ipset (userspace): add "inner" flag version support
+Date: Fri, 05 Jul 2013 23:24:08 +0100
+Message-ID: <51D74788.1000006@googlemail.com>
 References: <cover.1373061728.git.mr.dash.four@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -10,456 +10,769 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Netfilter Core Team <netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:59756 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab3GEWYI (ORCPT
+Received: from mail-we0-f178.google.com ([74.125.82.178]:35645 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653Ab3GEWYS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 18:24:08 -0400
-Received: by mail-we0-f177.google.com with SMTP id m19so2302273wev.36
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2013 15:24:06 -0700 (PDT)
+	Fri, 5 Jul 2013 18:24:18 -0400
+Received: by mail-we0-f178.google.com with SMTP id u53so2315248wes.37
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2013 15:24:17 -0700 (PDT)
 In-Reply-To: <cover.1373061728.git.mr.dash.four@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch implements "inner" flag support to all registered ipset types.
+This patch adds "inner" flag version support to all registered ipset types.
 
 Revision history:
 
 v1 * initial revision
-v2 * redundant code removed;
-    * use the new ipv[46]addr[ptr] and ip_set_get*port functions;
-v3 * revert to the old ip[46]addrptr and ip_set_get_ip[46]_port
-      function names;
-v4 * add inner flag version support on all ipsets;
 
 Signed-off-by: Dash Four <mr.dash.four@googlemail.com>
 ---
-  kernel/net/netfilter/ipset/ip_set_bitmap_ip.c      | 10 ++++++--
-  kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c   | 10 ++++++--
-  kernel/net/netfilter/ipset/ip_set_bitmap_port.c    |  4 ++-
-  kernel/net/netfilter/ipset/ip_set_hash_ip.c        | 13 +++++++---
-  kernel/net/netfilter/ipset/ip_set_hash_ipport.c    | 19 ++++++++------
-  kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  | 25 ++++++++++++-------
-  kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c | 29 ++++++++++++++--------
-  kernel/net/netfilter/ipset/ip_set_hash_net.c       | 13 +++++++---
-  kernel/net/netfilter/ipset/ip_set_hash_netiface.c  | 13 +++++++---
-  kernel/net/netfilter/ipset/ip_set_hash_netport.c   | 24 ++++++++++--------
-  10 files changed, 107 insertions(+), 53 deletions(-)
+  lib/ipset_bitmap_ip.c      | 45 +++++++++++++++++++++++++
+  lib/ipset_bitmap_ipmac.c   | 51 ++++++++++++++++++++++++++++
+  lib/ipset_bitmap_port.c    | 44 ++++++++++++++++++++++++
+  lib/ipset_hash_ip.c        | 44 ++++++++++++++++++++++++
+  lib/ipset_hash_ipport.c    | 63 ++++++++++++++++++++++++++++++++++
+  lib/ipset_hash_ipportip.c  | 74 ++++++++++++++++++++++++++++++++++++++++
+  lib/ipset_hash_ipportnet.c | 84 ++++++++++++++++++++++++++++++++++++++++++++++
+  lib/ipset_hash_net.c       | 49 +++++++++++++++++++++++++++
+  lib/ipset_hash_netiface.c  | 64 +++++++++++++++++++++++++++++++++++
+  lib/ipset_hash_netport.c   | 69 +++++++++++++++++++++++++++++++++++++
+  10 files changed, 587 insertions(+)
 
-diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
-index ce99d26..0c1b808 100644
---- a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -26,7 +26,8 @@
-  #include <linux/netfilter/ipset/ip_set_bitmap.h>
+diff --git a/lib/ipset_bitmap_ip.c b/lib/ipset_bitmap_ip.c
+index a4726db..1a967cd 100644
+--- a/lib/ipset_bitmap_ip.c
++++ b/lib/ipset_bitmap_ip.c
+@@ -201,9 +201,54 @@ static struct ipset_type ipset_bitmap_ip1 = {
+  	.description = "counters support",
+  };
 
-  #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
-+/*				1	   Counter support added    */
-+#define IPSET_TYPE_REV_MAX	2	/* Inner flag support added */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -115,8 +116,13 @@ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct bitmap_ip_adt_elem e = { };
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, map);
-  	u32 ip;
-+	__be32 _ip;
-
--	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
-+	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &_ip))
-+		return -EINVAL;
++static struct ipset_type ipset_bitmap_ip2 = {
++	.name = "bitmap:ip",
++	.alias = { "ipmap", NULL },
++	.revision = 2,
++	.family = NFPROTO_IPV4,
++	.dimension = IPSET_DIM_ONE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = bitmap_ip_create_args1,
++		[IPSET_ADD] = bitmap_ip_add_args1,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_NETMASK)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
 +
-+	ip = ntohl(_ip);
-  	if (ip < map->first_ip || ip > map->last_ip)
-  		return -IPSET_ERR_BITMAP_RANGE;
-
-diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 6d5bad9..68ee7dd 100644
---- a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -26,7 +26,8 @@
-  #include <linux/netfilter/ipset/ip_set_bitmap.h>
-
-  #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
-+/*				1	   Counter support added    */
-+#define IPSET_TYPE_REV_MAX	2	/* Inner flag support added */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -218,12 +219,17 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct bitmap_ipmac_adt_elem e = {};
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, map);
-  	u32 ip;
-+	__be32 _ip;
-
-  	/* MAC can be src only */
-  	if (!(opt->flags & IPSET_DIM_TWO_SRC))
-  		return 0;
-
--	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
-+	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &_ip))
-+		return -EINVAL;
++	.usage = bitmap_ip_usage1,
++	.description = "inner flag support",
++};
 +
-+	ip = ntohl(_ip);
-  	if (ip < map->first_ip || ip > map->last_ip)
-  		return -IPSET_ERR_BITMAP_RANGE;
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_bitmap_ip0);
+  	ipset_type_add(&ipset_bitmap_ip1);
++	ipset_type_add(&ipset_bitmap_ip2);
+  }
+diff --git a/lib/ipset_bitmap_ipmac.c b/lib/ipset_bitmap_ipmac.c
+index 67217a9..7d64a8e 100644
+--- a/lib/ipset_bitmap_ipmac.c
++++ b/lib/ipset_bitmap_ipmac.c
+@@ -207,9 +207,60 @@ static struct ipset_type ipset_bitmap_ipmac1 = {
+  	.description = "counters support",
+  };
 
-diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
-index b220489..ec1f6eb 100644
---- a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -21,7 +21,8 @@
-  #include <linux/netfilter/ipset/ip_set_getport.h>
-
-  #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
-+/*				1	   Counter support added    */
-+#define IPSET_TYPE_REV_MAX	2	/* Inner flag support added */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -111,6 +112,7 @@ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	u16 port = 0;
-
-  	if (!ip_set_get_ip_port(skb, opt->family,
-+				opt->cmdflags & IPSET_FLAG_INNER,
-  				opt->flags & IPSET_DIM_ONE_SRC, &__port))
-  		return -EINVAL;
-
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ip.c b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-index 260c9a8..84eacf6 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -24,7 +24,8 @@
-  #include <linux/netfilter/ipset/ip_set_hash.h>
-
-  #define IPSET_TYPE_REV_MIN	0
--#define IPSET_TYPE_REV_MAX	1	/* Counters support */
-+/*				1	   Counter support added    */
-+#define IPSET_TYPE_REV_MAX	2	/* Inner flag support added */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -102,7 +103,10 @@ hash_ip4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-  	__be32 ip;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &ip);
-+	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &ip))
-+		return -EINVAL;
++static struct ipset_type ipset_bitmap_ipmac2 = {
++	.name = "bitmap:ip,mac",
++	.alias = { "macipmap", NULL },
++	.revision = 2,
++	.family = NFPROTO_IPV4,
++	.dimension = IPSET_DIM_TWO,
++	.last_elem_optional = true,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_single_ip,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_ether,
++			.print = ipset_print_ether,
++			.opt = IPSET_OPT_ETHER
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = bitmap_ipmac_create_args1,
++		[IPSET_ADD] = bitmap_ipmac_add_args1,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_ETHER)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_ETHER),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_ETHER),
++	},
 +
-  	ip &= ip_set_netmask(h->netmask);
-  	if (ip == 0)
-  		return -EINVAL;
-@@ -255,7 +259,10 @@ hash_ip6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct hash_ip6_elem e = {};
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-+	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
-+		return -EINVAL;
++	.usage = bitmap_ipmac_usage1,
++	.description = "inner flag support",
++};
 +
-  	hash_ip6_netmask(&e.ip, h->netmask);
-  	if (ipv6_addr_any(&e.ip.in6))
-  		return -EINVAL;
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
-index 64caad3..f5fe62a 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -26,7 +26,8 @@
-
-  #define IPSET_TYPE_REV_MIN	0
-  /*				1    SCTP and UDPLITE support added */
--#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
-+/*				2    Counter support added    	    */
-+#define IPSET_TYPE_REV_MAX	3 /* Inner flag support added 	    */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -121,11 +122,13 @@ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct hash_ipport4_elem e = { };
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
-  		return -EINVAL;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_bitmap_ipmac0);
+  	ipset_type_add(&ipset_bitmap_ipmac1);
++	ipset_type_add(&ipset_bitmap_ipmac2);
   }
+diff --git a/lib/ipset_bitmap_port.c b/lib/ipset_bitmap_port.c
+index 6959c3a..5fe11c2 100644
+--- a/lib/ipset_bitmap_port.c
++++ b/lib/ipset_bitmap_port.c
+@@ -181,9 +181,53 @@ static struct ipset_type ipset_bitmap_port1 = {
+  	.description = "counters support",
+  };
 
-@@ -311,11 +314,13 @@ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct hash_ipport6_elem e = { };
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
-  		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
++static struct ipset_type ipset_bitmap_port2 = {
++	.name = "bitmap:port",
++	.alias = { "portmap", NULL },
++	.revision = 2,
++	.family = NFPROTO_UNSPEC,
++	.dimension = IPSET_DIM_ONE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_tcp_port,
++			.print = ipset_print_port,
++			.opt = IPSET_OPT_PORT
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = bitmap_port_create_args1,
++		[IPSET_ADD] = bitmap_port_add_args1,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_PORT),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_PORT),
++	},
++
++	.usage = bitmap_port_usage1,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_bitmap_port0);
+  	ipset_type_add(&ipset_bitmap_port1);
++	ipset_type_add(&ipset_bitmap_port2);
   }
+diff --git a/lib/ipset_hash_ip.c b/lib/ipset_hash_ip.c
+index 19688db..9fa42d6 100644
+--- a/lib/ipset_hash_ip.c
++++ b/lib/ipset_hash_ip.c
+@@ -246,9 +246,53 @@ static struct ipset_type ipset_hash_ip1 = {
+  	.description = "counters support",
+  };
 
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
-index 2873bbc..250376e 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -26,7 +26,8 @@
-
-  #define IPSET_TYPE_REV_MIN	0
-  /*				1    SCTP and UDPLITE support added */
--#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
-+/*				2    Counter support added	    */
-+#define IPSET_TYPE_REV_MAX	3 /* Inner flag support added	    */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -125,12 +126,15 @@ hash_ipportip4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct hash_ipportip4_elem e = { };
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2))
-  		return -EINVAL;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
--	ip4addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2);
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
++static struct ipset_type ipset_hash_ip2 = {
++	.name = "hash:ip",
++	.alias = { "iphash", NULL },
++	.revision = 2,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_ONE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_single6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_ip_create_args1,
++		[IPSET_ADD] = hash_ip_add_args1,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_NETMASK)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
++
++	.usage = hash_ip_usage1,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_hash_ip0);
+  	ipset_type_add(&ipset_hash_ip1);
++	ipset_type_add(&ipset_hash_ip2);
   }
+diff --git a/lib/ipset_hash_ipport.c b/lib/ipset_hash_ipport.c
+index b1c9f72..e6b62f5 100644
+--- a/lib/ipset_hash_ipport.c
++++ b/lib/ipset_hash_ipport.c
+@@ -294,9 +294,72 @@ static struct ipset_type ipset_hash_ipport2 = {
+  	.description = "counters support",
+  };
 
-@@ -324,12 +328,15 @@ hash_ipportip6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	struct hash_ipportip6_elem e = { };
-  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6))
-  		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
--	ip6addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6);
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
++static struct ipset_type ipset_hash_ipport3 = {
++	.name = "hash:ip,port",
++	.alias = { "ipporthash", NULL },
++	.revision = 3,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_TWO,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_single6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_proto_port,
++			.print = ipset_print_proto_port,
++			.opt = IPSET_OPT_PORT
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_ipport_create_args2,
++		[IPSET_ADD] = hash_ipport_add_args2,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO),
++	},
++
++	.usage = hash_ipport_usage2,
++	.usagefn = ipset_port_usage,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_hash_ipport1);
+  	ipset_type_add(&ipset_hash_ipport2);
++	ipset_type_add(&ipset_hash_ipport3);
   }
+diff --git a/lib/ipset_hash_ipportip.c b/lib/ipset_hash_ipportip.c
+index d5cf1d2..c1d17c8 100644
+--- a/lib/ipset_hash_ipportip.c
++++ b/lib/ipset_hash_ipportip.c
+@@ -316,9 +316,83 @@ static struct ipset_type ipset_hash_ipportip2 = {
+  	.description = "counters support",
+  };
 
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index db0e761..43c4ca8 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -25,10 +25,11 @@
-  #include <linux/netfilter/ipset/ip_set_hash.h>
++static struct ipset_type ipset_hash_ipportip3 = {
++	.name = "hash:ip,port,ip",
++	.alias = { "ipportiphash", NULL },
++	.revision = 3,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_THREE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_single6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_proto_port,
++			.print = ipset_print_proto_port,
++			.opt = IPSET_OPT_PORT
++		},
++		[IPSET_DIM_THREE - 1] = {
++			.parse = ipset_parse_single_ip,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP2
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_ipportip_create_args2,
++		[IPSET_ADD] = hash_ipportip_add_args2,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++	},
++
++	.usage = hash_ipportip_usage2,
++	.usagefn = ipset_port_usage,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+  	ipset_type_add(&ipset_hash_ipportip1);
+  	ipset_type_add(&ipset_hash_ipportip2);
++	ipset_type_add(&ipset_hash_ipportip3);
+  }
+diff --git a/lib/ipset_hash_ipportnet.c b/lib/ipset_hash_ipportnet.c
+index 2c2e014..359a532 100644
+--- a/lib/ipset_hash_ipportnet.c
++++ b/lib/ipset_hash_ipportnet.c
+@@ -544,6 +544,89 @@ static struct ipset_type ipset_hash_ipportnet4 = {
+  	.description = "counters support",
+  };
 
-  #define IPSET_TYPE_REV_MIN	0
--/*				1    SCTP and UDPLITE support added */
-+/*				1    SCTP and UDPLITE support added	   */
-  /*				2    Range as input support for IPv4 added */
--/*				3    nomatch flag support added */
--#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
-+/*				3    nomatch flag support added		   */
-+/*				4    Counter support added		   */
-+#define IPSET_TYPE_REV_MAX	5 /* Inner flag support added		   */
++static struct ipset_type ipset_hash_ipportnet5 = {
++	.name = "hash:ip,port,net",
++	.alias = { "ipportnethash", NULL },
++	.revision = 5,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_THREE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_single6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_proto_port,
++			.print = ipset_print_proto_port,
++			.opt = IPSET_OPT_PORT
++		},
++		[IPSET_DIM_THREE - 1] = {
++			.parse = ipset_parse_ip4_net6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP2
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_ipportnet_create_args4,
++		[IPSET_ADD] = hash_ipportnet_add_args4,
++		[IPSET_TEST] = hash_ipportnet_test_args4,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2)
++			| IPSET_FLAG(IPSET_OPT_CIDR2)
++			| IPSET_FLAG(IPSET_OPT_IP2_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2)
++			| IPSET_FLAG(IPSET_OPT_CIDR2)
++			| IPSET_FLAG(IPSET_OPT_IP2_TO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_IP2)
++			| IPSET_FLAG(IPSET_OPT_CIDR2)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH),
++	},
++
++	.usage = hash_ipportnet_usage4,
++	.usagefn = ipset_port_usage,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+@@ -551,4 +634,5 @@ void _init(void)
+  	ipset_type_add(&ipset_hash_ipportnet2);
+  	ipset_type_add(&ipset_hash_ipportnet3);
+  	ipset_type_add(&ipset_hash_ipportnet4);
++	ipset_type_add(&ipset_hash_ipportnet5);
+  }
+diff --git a/lib/ipset_hash_net.c b/lib/ipset_hash_net.c
+index a80d732..33dcd69 100644
+--- a/lib/ipset_hash_net.c
++++ b/lib/ipset_hash_net.c
+@@ -366,6 +366,54 @@ static struct ipset_type ipset_hash_net3 = {
+  	.description = "counters support",
+  };
 
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -177,12 +178,15 @@ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK - 1;
++static struct ipset_type ipset_hash_net4 = {
++	.name = "hash:net",
++	.alias = { "nethash", NULL },
++	.revision = 4,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_ONE,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_net6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_net_create_args3,
++		[IPSET_ADD] = hash_net_add_args3,
++		[IPSET_TEST] = hash_net_test_args3,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH),
++	},
++
++	.usage = hash_net_usage3,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+@@ -373,4 +421,5 @@ void _init(void)
+  	ipset_type_add(&ipset_hash_net1);
+  	ipset_type_add(&ipset_hash_net2);
+  	ipset_type_add(&ipset_hash_net3);
++	ipset_type_add(&ipset_hash_net4);
+  }
+diff --git a/lib/ipset_hash_netiface.c b/lib/ipset_hash_netiface.c
+index d54b05a..7edcea6 100644
+--- a/lib/ipset_hash_netiface.c
++++ b/lib/ipset_hash_netiface.c
+@@ -400,6 +400,69 @@ static struct ipset_type ipset_hash_netiface3 = {
+  	.description = "counters support",
+  };
 
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2))
-  		return -EINVAL;
++static struct ipset_type ipset_hash_netiface4 = {
++	.name = "hash:net,iface",
++	.alias = { "netifacehash", NULL },
++	.revision = 4,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_TWO,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_net6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_iface,
++			.print = ipset_print_iface,
++			.opt = IPSET_OPT_IFACE
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_netiface_create_args3,
++		[IPSET_ADD] = hash_netiface_add_args3,
++		[IPSET_TEST] = hash_netiface_test_args3,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IFACE),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IFACE),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_IFACE),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_IFACE)
++			| IPSET_FLAG(IPSET_OPT_PHYSDEV)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_IFACE)
++			| IPSET_FLAG(IPSET_OPT_PHYSDEV),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_IFACE)
++			| IPSET_FLAG(IPSET_OPT_PHYSDEV)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH),
++	},
++
++	.usage = hash_netiface_usage3,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+@@ -407,4 +470,5 @@ void _init(void)
+  	ipset_type_add(&ipset_hash_netiface1);
+  	ipset_type_add(&ipset_hash_netiface2);
+  	ipset_type_add(&ipset_hash_netiface3);
++	ipset_type_add(&ipset_hash_netiface4);
+  }
+diff --git a/lib/ipset_hash_netport.c b/lib/ipset_hash_netport.c
+index 2b26cf2..3a84f79 100644
+--- a/lib/ipset_hash_netport.c
++++ b/lib/ipset_hash_netport.c
+@@ -437,6 +437,74 @@ static struct ipset_type ipset_hash_netport4 = {
+  	.description = "counters support",
+  };
 
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
--	ip4addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2);
-  	e.ip2 &= ip_set_netmask(e.cidr + 1);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-@@ -461,12 +465,15 @@ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK - 1;
-
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6))
-  		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
--	ip6addrptr(skb, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2.in6);
-  	ip6_netmask(&e.ip2, e.cidr + 1);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_net.c b/kernel/net/netfilter/ipset/ip_set_hash_net.c
-index 846ec80..82a0c76 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_net.c
-@@ -24,8 +24,9 @@
-
-  #define IPSET_TYPE_REV_MIN	0
-  /*				1    Range as input support for IPv4 added */
--/*				2    nomatch flag support added */
--#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
-+/*				2    nomatch flag support added		   */
-+/*				3    Counter support added    		   */
-+#define IPSET_TYPE_REV_MAX	4 /* Inner flag support added 		   */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -151,8 +152,10 @@ hash_net4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  		return -EINVAL;
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK;
-+	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
-+		return -EINVAL;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-  	e.ip &= ip_set_netmask(e.cidr);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-@@ -346,8 +349,10 @@ hash_net6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  		return -EINVAL;
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK;
-+	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
-+		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-  	ip6_netmask(&e.ip, e.cidr);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
-index 8f0e496..a8c1103 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -25,8 +25,9 @@
-
-  #define IPSET_TYPE_REV_MIN	0
-  /*				1    nomatch flag support added */
--/*				2    /0 support added */
--#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
-+/*				2    /0 support added		*/
-+/*				3    Counter support added	*/
-+#define IPSET_TYPE_REV_MAX	4 /* Inner flag support added	*/
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -275,8 +276,10 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  		return -EINVAL;
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK;
-+	if (!ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
-+		return -EINVAL;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-  	e.ip &= ip_set_netmask(e.cidr);
-
-  #define IFACE(dir)	(par->dir ? par->dir->name : NULL)
-@@ -544,8 +547,10 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
-  		return -EINVAL;
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK;
-+	if (!ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
-+		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-  	ip6_netmask(&e.ip, e.cidr);
-
-  	if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netport.c b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
-index 021d716..beb3d2f 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -24,10 +24,11 @@
-  #include <linux/netfilter/ipset/ip_set_hash.h>
-
-  #define IPSET_TYPE_REV_MIN	0
--/*				1    SCTP and UDPLITE support added */
-+/*				1    SCTP and UDPLITE support added	   */
-  /*				2    Range as input support for IPv4 added */
--/*				3    nomatch flag support added */
--#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
-+/*				3    nomatch flag support added		   */
-+/*				4    Counter support added		   */
-+#define IPSET_TYPE_REV_MAX	5 /* Inner flag support added		   */
-
-  MODULE_LICENSE("GPL");
-  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -169,11 +170,13 @@ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK - 1;
-
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip4_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip4addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip))
-  		return -EINVAL;
-
--	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-  	e.ip &= ip_set_netmask(e.cidr + 1);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-@@ -413,12 +416,13 @@ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
-
-  	if (adt == IPSET_TEST)
-  		e.cidr = HOST_MASK - 1;
--
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
--				 &e.port, &e.proto))
-+	if (!ip_set_get_ip6_port(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+				 opt->flags & IPSET_DIM_TWO_SRC, &e.port,
-+				 &e.proto) ||
-+	    !ip6addrptr(skb, opt->cmdflags & IPSET_FLAG_INNER,
-+			opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6))
-  		return -EINVAL;
-
--	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-  	ip6_netmask(&e.ip, e.cidr + 1);
-
-  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
++static struct ipset_type ipset_hash_netport5 = {
++	.name = "hash:net,port",
++	.alias = { "netporthash", NULL },
++	.revision = 5,
++	.family = NFPROTO_IPSET_IPV46,
++	.dimension = IPSET_DIM_TWO,
++	.elem = {
++		[IPSET_DIM_ONE - 1] = {
++			.parse = ipset_parse_ip4_net6,
++			.print = ipset_print_ip,
++			.opt = IPSET_OPT_IP
++		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_proto_port,
++			.print = ipset_print_proto_port,
++			.opt = IPSET_OPT_PORT
++		},
++	},
++	.args = {
++		[IPSET_CREATE] = hash_netport_create_args4,
++		[IPSET_ADD] = hash_netport_add_args4,
++		[IPSET_TEST] = hash_netport_test_args4,
++	},
++	.mandatory = {
++		[IPSET_CREATE] = 0,
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++	},
++	.full = {
++		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
++			| IPSET_FLAG(IPSET_OPT_MAXELEM)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_COUNTERS),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH)
++			| IPSET_FLAG(IPSET_OPT_PACKETS)
++			| IPSET_FLAG(IPSET_OPT_BYTES),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_CIDR)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_NOMATCH),
++	},
++
++	.usage = hash_netport_usage4,
++	.usagefn = ipset_port_usage,
++	.description = "inner flag support",
++};
++
+  void _init(void);
+  void _init(void)
+  {
+@@ -444,4 +512,5 @@ void _init(void)
+  	ipset_type_add(&ipset_hash_netport2);
+  	ipset_type_add(&ipset_hash_netport3);
+  	ipset_type_add(&ipset_hash_netport4);
++	ipset_type_add(&ipset_hash_netport5);
+  }
