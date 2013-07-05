@@ -1,76 +1,85 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v3 0/5]  ipset: add "inner" flag support
-Date: Fri, 5 Jul 2013 20:06:08 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1307052001200.20246@blackhole.kfki.hu>
-References: <51CF5256.3010004@googlemail.com>
+From: Bill Fink <billfink@mindspring.com>
+Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
+ ExpectationSync
+Date: Fri, 5 Jul 2013 15:45:27 -0400
+Message-ID: <20130705154527.8f18a181.billfink@mindspring.com>
+References: <20130705020312.25783ccd.billfink@mindspring.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:45899 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212Ab3GESGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jul 2013 14:06:11 -0400
-In-Reply-To: <51CF5256.3010004@googlemail.com>
+Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:41357 "EHLO
+	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751162Ab3GETp2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jul 2013 15:45:28 -0400
+In-Reply-To: <20130705020312.25783ccd.billfink@mindspring.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+[Please Cc: me on replies as I am not subscribed]
 
-On Sat, 29 Jun 2013, Dash Four wrote:
+Florian,
 
-> This series of 5 patches implements "inner" flag option in the set
-> iptables match, allowing matching based on the properties
-> (source/destination IP address, protocol, port and so on) of the
-> original (inner) connection in the event of the following
-> ICMP[v4,v6] messages:
+First, many thanks for the quick fix!
+
+On Fri, 5 Jul 2013, Florian Westphal wrote:
+
+> Bill Fink <billfink@xxxxxxxxxxxxxx> wrote:
+> > 230 Anonymous login ok, restrictions apply.
+> > EPSV
+> > 229 Entering Extended Passive Mode (|||1584|)
+> > 
+> > As soon as I enter the EPSV command, I get the following
+> > conntrackd segfault:
+> > 
+> > Jul  5 00:41:06 sen-fw1 kernel: [274422.060695] conntrackd[4821]: segfault at 0 ip 000000000040c660 sp 00007fffebb098a8 error 4 in conntrackd[400000+3d000]
 > 
-> ICMPv4 destination-unreachable (code 3);
-> ICMPv4 source-quench (code 4);
-> ICMPv4 time-exceeded (code 11);
-> ICMPv6 destination-unreachable (code 1);
-> ICMPv6 packet-too-big (code 2);
-> ICMPv6 time-exceeded (code 3);
+> #0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at
+> ../include/jhash.h:99
+> 99                      a += k[0];
+> (gdb) bt f
+> #0  0x000000000040f217 in jhash2 (k=0x0, length=4, initval=0) at ../include/jhash.h:99
+>         a = 2654435769 b = 2654435769 c = 0 len = 4
+> #1  0x000000000040f564 in ct_filter_hash6 (data=0x0, table=0x16ef630) at filter.c:57
+> #2  0x000000000040ad34 in hashtable_hash (table=0x16ef630, data=0x0) at hash.c:63
+> #3  0x000000000040fd19 in __ct_filter_test_ipv6 (f=0x16eeba0, ct=0x1703760) at filter.c:265
+> id_src = 51 id_dst = 24051376 src = 0x1703760 dst = 0x0
 > 
-> Revision history:
+> NULL deref in __ct_filter_test_ipv6.  Doesn't happen for ipv4 because
+> nfct_get_attr_u32() return 0, but nfct_get_attr() returns NULL instead.
 > 
-> v1 * initial revision
-> v2 * redundant code removed;
->    * added a new header file (ip_set_icmp.h) with 2 inline functions,
->      allowing access to the internal icmp header properties;
->    * removed ip[46]inneraddr[ptr]functions as they are no longer needed
->    * added new ipv[46]addr[ptr] and ip_set_get*port functions, the old
->      functions are still preserved for backwards compatibility
-> v3 * rename and move ip_set_get_icmpv[46]_inner_hdr functions to
->      ip_set_core.c and remove ip_set_icmp.h
->    * move icmpv[46] protocol and offset checks inside
->      ip_set_get_ip[46]_inner_hdr functions
->    * eliminate ip[46]addrptr & ip_set_get_ip[46]_port backward-compatible
->      functions and rename the new ones to use the same name
->    * eliminate single-path error gotos in ip_set.h and ip_set_getport.c
+> @@ -261,8 +264,8 @@ __ct_filter_test_ipv6(struct ct_filter *f, const
+> 		struct nf_conntrack *ct)
+>         src = nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
+>         dst = nfct_get_attr(ct, ATTR_REPL_IPV6_SRC);
 > 
-> Dash Four (5):
->   iptables: bugfix: prevent wrong syntax being accepted by the set match
->   ipset: add "inner" flag implementation
->   ipset: add set match "inner" flag support
->   iptables: add set match "inner" flag support
->   iptables (userspace): add set match "inner" flag support
+> -       id_src = hashtable_hash(f->h6, src);
+> -       id_dst = hashtable_hash(f->h6, dst);
+> +       id_src = src ? hashtable_hash(f->h6, src) : 0;
+> +       id_dst = dst ? hashtable_hash(f->h6, dst) : 0;
+> 
+> 
+> Not sure if this is enough, there are other callers
+> of nfct_get_attr() that don't check for NULL.
 
-I have just noticed one single issue with your patches: the revision 
-bumping for the set types are missing.
+This cured my immediate problem.  conntrackd no longer segfaults
+and I now get IPv6 expectations.
 
-So please extend the second patch with the type revisions incremented 
-(have a look at the hash:net type how the revision comments are kept)
-and add a userspace patch with the revisions bumped in userspace too (it's 
-fine to copy the most recent ones and increase the revisions, adjust the 
-descriptions). That's all and then the patchset is ready for inclusion.
+[root@sen-fw1 ~]# conntrackd -i expect
+proto=6 src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=0 dport=23046 mask-src=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff mask-dst=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff sport=0 dport=65535 master-src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx master-dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=38142 dport=21 class=0 helper=ftp [active since 44s]
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I will now continue further testing.
+
+I did need my patch to successfully resync the IPv6 expectations
+from the kernel via "conntrackd -R" after flushing the conntrackd
+cache via "conntrackd -f".
+
+I guess I should submit my patch as an RFC patch to get
+comments on it.
+
+					-Thanks
+
+					-Bill
