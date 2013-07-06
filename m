@@ -1,53 +1,86 @@
-From: Scott Baillie <scott.a.baillie@gmail.com>
-Subject: Re: ip6tables-save LOG target output is different to iptables-save
-Date: Sat, 6 Jul 2013 15:07:15 +1000
-Message-ID: <CAC+BxFovBteFJQ=K7LHPX47CxAAbGpBuzCvdTdsU00AvxJ-pag@mail.gmail.com>
-References: <CAC+BxFrOpO8UWdd4xa146AsZN52A2hSOmaTiyvOmQK-qktzVPg@mail.gmail.com>
-	<20130706044121.GA15084@linuxace.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
+ ExpectationSync
+Date: Sat, 6 Jul 2013 15:23:33 +0200
+Message-ID: <20130706132333.GA3279@localhost>
+References: <20130705020312.25783ccd.billfink@mindspring.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qe0-f48.google.com ([209.85.128.48]:61584 "EHLO
-	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab3GFFHQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Jul 2013 01:07:16 -0400
-Received: by mail-qe0-f48.google.com with SMTP id 2so1508926qea.21
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2013 22:07:15 -0700 (PDT)
-In-Reply-To: <20130706044121.GA15084@linuxace.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
+To: Bill Fink <billfink@mindspring.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130705020312.25783ccd.billfink@mindspring.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+Hi,
 
-It is not a huge issue, it is just inconsistent.
+On Fri, Jul 05, 2013 at 02:03:12AM -0400, Bill Fink wrote:
+> [not sure whether to send to netfilter or netfilter-devel,
+> so sending to both, but trim replies as appropriate]
+> 
+> I am trying to use the ftp ExpectationSync capability of conntrackd
+> for both IPv4 and IPv6 for connections through a pair of bridged
+> firewalls (primary / hot backup).  I have the following config
+> snippet in conntrackd.conf:
+> 
+> 	Options {
+> 		ExpectationSync {
+> 			ftp
+> 			sip
+> 			ras	# for H.323
+> 			q.931	# for H.323
+> 			h.245	# for H.323
+> 		}
+> 	}
+> 
+> For IPv4, things work as expected.  But when I try the basic
+> analogous IPv6 test to the suggested IPv4 test from the
+> documentation:
+> 
+> x100ssd2% nc 2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx 21
+> 220 FTP Server ready.
+> USER anonymous
+> 331 Anonymous login ok, send your complete email address as your password
+> PASS bill@
+> 230-
+>                 *** Welcome to this anonymous ftp server! ***
+>  
+>      You are user 1 out of a maximum of 10 authorized anonymous logins.
+>      The current time here is Thu Jul 04 23:40:51 2013.
+>      If you experience any problems here, contact : root@localhost
+>  
+>  
+> 230 Anonymous login ok, restrictions apply.
+> EPSV
+> 229 Entering Extended Passive Mode (|||1584|)
+> 
+> As soon as I enter the EPSV command, I get the following
+> conntrackd segfault:
+> 
+> Jul  5 00:41:06 sen-fw1 kernel: [274422.060695] conntrackd[4821]: segfault at 0 ip 000000000040c660 sp 00007fffebb098a8 error 4 in conntrackd[400000+3d000]
 
-ip6tables-save will always quote the prefix string and iptables-save
-will sometimes quote the prefix string.
+I have pushed this patch to fix this issue.
 
-It just makes it a little bit harder to parse the output , because
-both tools should produce the same output
-wherever possible in my opinion.
+http://git.netfilter.org/conntrack-tools/commit/?id=479a37a549abf197ce59a4ae1666d8cba80fe977
 
-Regards,
+Thanks Florian for diagnosing this, and you for reporting.
 
-Scott.
+> I am using a Fedora 17 3.7.3-101.fc17.x86_64 kernel with
+> conntrack-tools-1.4.0-1.fc17.x86_64.
+> 
+> I had to use the attached patch to get "conntrackd -R" to resync
+> both IPv4 and IPv6 (enabled with a "Family IPv4-IPv6" entry in
+> conntrackd.conf).  It works well for me for the basic ct table,
+> but I'm not sure about the expect table part since I can't really
+> exercise it due to the segfault.  Note the segfault also occurs
+> with the original unpatched conntrackd, so it's not related to
+> my patch.
 
-On Sat, Jul 6, 2013 at 2:41 PM, Phil Oester <kernel@linuxace.com> wrote:
-> On Sat, Jul 06, 2013 at 01:42:00PM +1000, Scott Baillie wrote:
->> Hi All,
->>
->> I am using  ip6tables-save  version  v1.4.14 and have noticed
->> that the output of the LOG target is different to the output from
->> iptables-save  version  v1.4.14.
->
-> Yes, quotes are not included if there is no whitespace, but it is
-> quoted if whitespace is present:
->
-> -A INPUT -s 1.2.3.4/32 -j LOG --log-prefix "foo doo"
-> -A INPUT -s 1.2.3.4/32 -j LOG --log-prefix foo
->
-> Is this an issue?
->
-> Phil
+For this, I have applied the following patch:
+
+http://git.netfilter.org/conntrack-tools/commit/?id=e2c6576e775652c35d336afa0551676339c6a793
+
+Let me know.
