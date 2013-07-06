@@ -1,23 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] set: add xml output
-Date: Sat, 6 Jul 2013 16:58:12 +0200
-Message-ID: <20130706145812.GA3436@localhost>
-References: <20130706003952.14469.97245.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCHv3 nftables insert operation]
+Date: Sat,  6 Jul 2013 17:31:16 +0200
+Message-ID: <1373124677-6626-1-git-send-email-eric@regit.org>
+References: <20130629102418.GA5518@localhost>
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49702 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966Ab3GFO6Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Jul 2013 10:58:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20130706003952.14469.97245.stgit@nfdev.cica.es>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:59737 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750873Ab3GFPbv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Jul 2013 11:31:51 -0400
+In-Reply-To: <20130629102418.GA5518@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 06, 2013 at 02:39:52AM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds XML output for sets.
+Hello,
 
-Applied, thanks Arturo.
+Here's a rework of previous patch. Kernel patch, libnftables
+and nftables patches are to follow.
+
+libnftables patchset statistics:
+ examples/Makefile.am                |   4 +
+ examples/nft-rule-insert.c          | 204 ++++++++++++++++++++++++++++++++++++
+ include/libnftables/rule.h          |   3 +-
+ include/linux/netfilter/nf_tables.h |   1 +
+ src/rule.c                          |  29 ++++-
+ 5 files changed, 237 insertions(+), 4 deletions(-)
+
+nftables patchset statistics:
+ include/rule.h            |  2 ++
+ src/netlink.c             |  2 ++
+ src/netlink_delinearize.c |  2 ++
+ src/parser.y              | 22 ++++++++++++++++++++--
+ src/rule.c                |  2 ++
+ src/scanner.l             |  3 +++
+ 6 files changed, 31 insertions(+), 2 deletions(-)
+
+BR,
+--
+Eric
