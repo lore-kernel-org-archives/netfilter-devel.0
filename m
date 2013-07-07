@@ -1,68 +1,124 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: ip6tables-save LOG target output is different to iptables-save
-Date: Sat, 6 Jul 2013 08:56:01 -0700
-Message-ID: <20130706155601.GA31065@linuxace.com>
-References: <CAC+BxFrOpO8UWdd4xa146AsZN52A2hSOmaTiyvOmQK-qktzVPg@mail.gmail.com>
- <20130706044121.GA15084@linuxace.com>
- <CAC+BxFovBteFJQ=K7LHPX47CxAAbGpBuzCvdTdsU00AvxJ-pag@mail.gmail.com>
+From: Bill Fink <billfink@mindspring.com>
+Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
+ ExpectationSync
+Date: Sun, 7 Jul 2013 03:04:58 -0400
+Message-ID: <20130707030458.fbf22472.billfink@mindspring.com>
+References: <20130705020312.25783ccd.billfink@mindspring.com>
+	<20130706132333.GA3279@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Scott Baillie <scott.a.baillie@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:46000 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab3GFP4B (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Jul 2013 11:56:01 -0400
-Received: by mail-pd0-f169.google.com with SMTP id y10so2818445pdj.28
-        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jul 2013 08:56:01 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAC+BxFovBteFJQ=K7LHPX47CxAAbGpBuzCvdTdsU00AvxJ-pag@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20130706132333.GA3279@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 6 Jul 2013, Pablo Neira Ayuso wrote:
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Fri, Jul 05, 2013 at 02:03:12AM -0400, Bill Fink wrote:
+> > [not sure whether to send to netfilter or netfilter-devel,
+> > so sending to both, but trim replies as appropriate]
+> > 
+> > I am trying to use the ftp ExpectationSync capability of conntrackd
+> > for both IPv4 and IPv6 for connections through a pair of bridged
+> > firewalls (primary / hot backup).  I have the following config
+> > snippet in conntrackd.conf:
+> > 
+> > 	Options {
+> > 		ExpectationSync {
+> > 			ftp
+> > 			sip
+> > 			ras	# for H.323
+> > 			q.931	# for H.323
+> > 			h.245	# for H.323
+> > 		}
+> > 	}
+> > 
+> > For IPv4, things work as expected.  But when I try the basic
+> > analogous IPv6 test to the suggested IPv4 test from the
+> > documentation:
+> > 
+> > x100ssd2% nc 2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx 21
+> > 220 FTP Server ready.
+> > USER anonymous
+> > 331 Anonymous login ok, send your complete email address as your password
+> > PASS bill@
+> > 230-
+> >                 *** Welcome to this anonymous ftp server! ***
+> >  
+> >      You are user 1 out of a maximum of 10 authorized anonymous logins.
+> >      The current time here is Thu Jul 04 23:40:51 2013.
+> >      If you experience any problems here, contact : root@localhost
+> >  
+> >  
+> > 230 Anonymous login ok, restrictions apply.
+> > EPSV
+> > 229 Entering Extended Passive Mode (|||1584|)
+> > 
+> > As soon as I enter the EPSV command, I get the following
+> > conntrackd segfault:
+> > 
+> > Jul  5 00:41:06 sen-fw1 kernel: [274422.060695] conntrackd[4821]: segfault at 0 ip 000000000040c660 sp 00007fffebb098a8 error 4 in conntrackd[400000+3d000]
+> 
+> I have pushed this patch to fix this issue.
+> 
+> http://git.netfilter.org/conntrack-tools/commit/?id=479a37a549abf197ce59a4ae1666d8cba80fe977
+> 
+> Thanks Florian for diagnosing this, and you for reporting.
 
-On Sat, Jul 06, 2013 at 03:07:15PM +1000, Scott Baillie wrote:
-> It just makes it a little bit harder to parse the output , because
-> both tools should produce the same output
-> wherever possible in my opinion.
+Thanks!  I have tested this and it does fix the segfault.
 
-Agreed.  Patch follows which makes the two tools consistent, however
-they will now both not quote the prefix if only one word is present.
+> > I am using a Fedora 17 3.7.3-101.fc17.x86_64 kernel with
+> > conntrack-tools-1.4.0-1.fc17.x86_64.
+> > 
+> > I had to use the attached patch to get "conntrackd -R" to resync
+> > both IPv4 and IPv6 (enabled with a "Family IPv4-IPv6" entry in
+> > conntrackd.conf).  It works well for me for the basic ct table,
+> > but I'm not sure about the expect table part since I can't really
+> > exercise it due to the segfault.  Note the segfault also occurs
+> > with the original unpatched conntrackd, so it's not related to
+> > my patch.
+> 
+> For this, I have applied the following patch:
+> 
+> http://git.netfilter.org/conntrack-tools/commit/?id=e2c6576e775652c35d336afa0551676339c6a793
 
-libipt_LOG is using the xtables_save_string func, which escapes unsafe
-characters as needed.  libip6t_LOG should do the same.
+I also tested this and it fixes the IPv6 kernel resync issue.
 
-Phil
+> Let me know.
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+I still have the remaining problem that the IPv6 expectation
+is not successfully synced from the primary firewall to the
+backup firewall.  I see the following error in conntrackd.log
+on the backup firewall:
 
+[Sun Jul  7 01:56:38 2013] (pid=24763) [ERROR] inject-add2: Invalid argument
+Sun Jul  7 01:56:38 2013	300 proto=6 src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=0 dport=39767 mask-src=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff mask-dst=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff sport=0 dport=65535 master-src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx master-dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=37484 dport=21 class=0 helper=ftp
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ip6ts-log
+This exactly matches the IPv6 expectation on the primary firewall:
 
-diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
-index 2b1ae28..4639268 100644
---- a/extensions/libip6t_LOG.c
-+++ b/extensions/libip6t_LOG.c
-@@ -146,8 +146,10 @@ static void LOG_save(const void *ip, const struct xt_entry_target *target)
- 	const struct ip6t_log_info *loginfo
- 		= (const struct ip6t_log_info *)target->data;
- 
--	if (strcmp(loginfo->prefix, "") != 0)
--		printf(" --log-prefix \"%s\"", loginfo->prefix);
-+	if (strcmp(loginfo->prefix, "") != 0) {
-+		printf(" --log-prefix");
-+		xtables_save_string(loginfo->prefix);
-+	}
- 
- 	if (loginfo->level != LOG_DEFAULT_LEVEL)
- 		printf(" --log-level %d", loginfo->level);
+[root@sen-fw1 ~]# conntrackd -i expect
+proto=6 src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=0 dport=39767 mask-src=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff mask-dst=ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff sport=0 dport=65535 master-src=2001:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx master-dst=2001:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy:yyyy sport=37484 dport=21 class=0 helper=ftp [active since 9s]
 
---Qxx1br4bt0+wmkIi--
+IPv4 expectations are working fine.
+
+I tried to track down the error, and followed the error path:
+
+	external_inject_exp_new() ->
+	  nl_create_expect()->
+	    nfexp_query() ->
+	      nfnl_query() ->
+		nfnl_catch() ->
+		  nfnl_process() ->
+		    nfnl_step() ->
+		      nfnl_is_error() because
+			nlh->nlmsg_type == NLMSG_ERROR
+
+but I wasn't sure how to proceed further.
+
+					-Thanks
+
+					-Bill
