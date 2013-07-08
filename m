@@ -1,42 +1,41 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH v2] iptables: Sort table names in ip[6]tables-save
-Date: Sun, 7 Jul 2013 21:21:46 -0700
-Message-ID: <20130708042146.GB5532@linuxace.com>
-References: <20130703042912.GA12864@gmail.com>
- <20130708023919.GA14122@localhost>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v4 0/2] ipset: add "inner" flag version support
+Date: Mon, 8 Jul 2013 09:50:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1307080940420.27310@blackhole.kfki.hu>
+References: <51D74772.7000906@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, zenczykowski@gmail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46021 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3GHEVp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Jul 2013 00:21:45 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so3854326pbb.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jul 2013 21:21:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130708023919.GA14122@localhost>
+Received: from smtp1.kfki.hu ([148.6.0.26]:48679 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929Ab3GHHuG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Jul 2013 03:50:06 -0400
+In-Reply-To: <51D74772.7000906@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 08, 2013 at 04:39:19AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jul 03, 2013 at 12:29:12AM -0400, Phil Oester wrote:
-> > Depending upon the load order of rules, the output from ip[6]tables-save
-> > will vary, as ip[6]_tables_names is sorted LIFO.  As reported by
-> > Linus van Geuns, this makes comparing output from ip[6]tables-save across
-> > reboots difficult.  Fix this by sorting table names prior to walking
-> > the tables, making output consistent.
+On Fri, 5 Jul 2013, Dash Four wrote:
+
+> This series of 2 patches supplements the previous version (v3) and adds
+> "inner" flag version support to all registered ipset types
+> (kernel + userspace).
 > 
-> Better add an option to explicitly request the sorting, so we stick to
-> the old behaviour by default.
+> Dash Four (2):
+>   ipset: add set match "inner" flag support
+>   ipset (userspace): add "inner" flag version support
 
-The old behavior is random depending upon module load order.  We should
-keep random behavior?  
+All of your patches (including the previous series) are mangled and I'm 
+unable to apply them. It seems there's an extra space at the beginning of 
+every line starting with a whitespace character or something like that. 
+Please check your patches and resubmit the fixed ones.
 
-> But, how can the unsorted table output be useful?
-
-Ask Maciej - he is the one that requested this be provided as an option.
-
-Phil
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
