@@ -1,26 +1,140 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCHv4 nftables insert operation 0/1]
-Date: Tue,  9 Jul 2013 00:56:16 +0200
-Message-ID: <1373324177-4991-1-git-send-email-eric@regit.org>
+Subject: [PATCHv4] netfilter: nf_tables: add insert operation
+Date: Tue,  9 Jul 2013 00:56:17 +0200
+Message-ID: <1373324177-4991-2-git-send-email-eric@regit.org>
 References: <20130707215644.GA31231@localhost>
-Cc: netfilter-devel@vger.kernel.org
+ <1373324177-4991-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:47383 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:47386 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753392Ab3GHW4p (ORCPT
+	with ESMTP id S1753392Ab3GHW4s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Jul 2013 18:56:45 -0400
-In-Reply-To: <20130707215644.GA31231@localhost>
+	Mon, 8 Jul 2013 18:56:48 -0400
+In-Reply-To: <1373324177-4991-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+This patch adds a new rule attribute NFTA_RULE_POSITION which is
+used to store the position of a rule relatively to the others.
+By providing a create command and specifying a position, the rule is
+inserted after the rule with the handle equal to the provided
+position.
+Regarding notification, the position attribute is added to specify
+the handle of the previous rule in append mode and the handle of
+the next rule in the other case.
 
-Thanks for the review, here's an update version of the kernel
-patch. A nftables patch on top of the one I've already provide
-is also mandatory to have the insert operation working correctly.
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c            | 46 +++++++++++++++++++++++++++++---
+ 2 files changed, 43 insertions(+), 4 deletions(-)
 
-BR,
---
-Eric
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index d40a7f9..d9bf8ea 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -143,6 +143,7 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_EXPRESSIONS,
+ 	NFTA_RULE_FLAGS,
+ 	NFTA_RULE_COMPAT,
++	NFTA_RULE_POSITION,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b00aca8..012eb1f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+ 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
+ 	[NFTA_RULE_FLAGS]	= { .type = NLA_U32 },
+ 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
++	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
+ };
+ 
+ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+@@ -1279,6 +1280,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	struct nfgenmsg *nfmsg;
+ 	const struct nft_expr *expr, *next;
+ 	struct nlattr *list;
++	const struct nft_rule *prule;
+ 
+ 	event |= NFNL_SUBSYS_NFTABLES << 8;
+ 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
+@@ -1298,6 +1300,26 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
+ 		goto nla_put_failure;
+ 
++	if (flags & NLM_F_APPEND) {
++		if ((event != NFT_MSG_DELRULE) &&
++		    (rule->list.prev != &chain->rules)) {
++			prule = list_entry(rule->list.prev,
++					   struct nft_rule, list);
++			if (nla_put_be64(skb, NFTA_RULE_POSITION,
++					 cpu_to_be64(prule->handle)))
++				goto nla_put_failure;
++		}
++	} else {
++		if ((event != NFT_MSG_DELRULE) &&
++		    list_is_last(&rule->list, &chain->rules)) {
++			prule = list_entry(rule->list.next,
++					   struct nft_rule, list);
++			if (nla_put_be64(skb, NFTA_RULE_POSITION,
++					 cpu_to_be64(prule->handle)))
++				goto nla_put_failure;
++		}
++	}
++
+ 	list = nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
+ 	if (list == NULL)
+ 		goto nla_put_failure;
+@@ -1537,7 +1559,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 	int err, rem;
+ 	bool create;
+ 	u32 flags = 0;
+-	u64 handle;
++	u64 handle, pos_handle;
+ 
+ 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+ 
+@@ -1571,6 +1593,15 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 		handle = nf_tables_alloc_handle(table);
+ 	}
+ 
++	if (nla[NFTA_RULE_POSITION]) {
++		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
++			return -EOPNOTSUPP;
++		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
++		old_rule = __nf_tables_rule_lookup(chain, pos_handle);
++		if (IS_ERR(old_rule))
++			return PTR_ERR(old_rule);
++	}
++
+ 	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+ 
+ 	n = 0;
+@@ -1625,9 +1656,16 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 			nf_tables_rule_destroy(old_rule);
+ 		}
+ 	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
+-		list_add_tail_rcu(&rule->list, &chain->rules);
+-	else
+-		list_add_rcu(&rule->list, &chain->rules);
++		if (old_rule)
++			list_add_rcu(&rule->list, &old_rule->list);
++		else
++			list_add_tail_rcu(&rule->list, &chain->rules);
++	else {
++		if (old_rule)
++			list_add_tail_rcu(&rule->list, &old_rule->list);
++		else
++			list_add_rcu(&rule->list, &chain->rules);
++	}
+ 
+ 	if (flags & NFT_RULE_F_COMMIT)
+ 		list_add(&rule->dirty_list, &chain->dirty_rules);
+-- 
+1.8.3.2
+
