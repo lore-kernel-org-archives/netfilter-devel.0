@@ -1,41 +1,63 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v4 0/2] ipset: add "inner" flag version support
-Date: Mon, 8 Jul 2013 09:50:02 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1307080940420.27310@blackhole.kfki.hu>
-References: <51D74772.7000906@googlemail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] bitwise: xml: export len node
+Date: Mon, 08 Jul 2013 13:52:31 +0200
+Message-ID: <20130708115231.19363.2980.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:48679 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750929Ab3GHHuG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Jul 2013 03:50:06 -0400
-In-Reply-To: <51D74772.7000906@googlemail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:42447 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751918Ab3GHLwt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Jul 2013 07:52:49 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id BCC1D51ED96
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2013 11:52:38 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 7bWXgBZn5E+S for <netfilter-devel@vger.kernel.org>;
+	Mon,  8 Jul 2013 13:52:33 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 8A2F751ED91
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2013 13:52:33 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 5 Jul 2013, Dash Four wrote:
+The len unsigned int was not being exported in XML.
 
-> This series of 2 patches supplements the previous version (v3) and adds
-> "inner" flag version support to all registered ipset types
-> (kernel + userspace).
-> 
-> Dash Four (2):
->   ipset: add set match "inner" flag support
->   ipset (userspace): add "inner" flag version support
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/expr/bitwise.c                 |    5 +++--
+ tests/xmlfiles/20-rule-bitwise.xml |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-All of your patches (including the previous series) are mangled and I'm 
-unable to apply them. It seems there's an extra space at the beginning of 
-every line starting with a whitespace character or something like that. 
-Please check your patches and resubmit the fixed ones.
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index 67c120f..52fc648 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -280,8 +280,9 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+ 	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "<sreg>%u</sreg>"
+-				"<dreg>%u</dreg>",
+-		       bitwise->sreg, bitwise->dreg);
++				"<dreg>%u</dreg>"
++				"<len>%u</len>",
++		       bitwise->sreg, bitwise->dreg, bitwise->len);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "<mask>");
+diff --git a/tests/xmlfiles/20-rule-bitwise.xml b/tests/xmlfiles/20-rule-bitwise.xml
+index 411e28f..ce2d851 100644
+--- a/tests/xmlfiles/20-rule-bitwise.xml
++++ b/tests/xmlfiles/20-rule-bitwise.xml
+@@ -3,6 +3,7 @@
+   <expr type="bitwise">
+     <sreg>2</sreg>
+     <dreg>2</dreg>
++    <len>16</len>
+     <mask>
+       <data_reg type="value">
+         <len>16</len>
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
