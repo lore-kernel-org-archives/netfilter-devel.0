@@ -1,196 +1,84 @@
 From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: [PATCH v3 nfacct 8/29] add 2 new options: "replace" and "flush"
-Date: Wed, 10 Jul 2013 19:25:06 +0100
-Message-ID: <1373480727-11254-9-git-send-email-michael.zintakis@googlemail.com>
+Subject: [PATCH v3 libnetfilter_acct 9/29] add *_SAVE template allowing save/restore
+Date: Wed, 10 Jul 2013 19:25:07 +0100
+Message-ID: <1373480727-11254-10-git-send-email-michael.zintakis@googlemail.com>
 References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:64004 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907Ab3GJSZz (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:55991 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754908Ab3GJSZ6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jul 2013 14:25:55 -0400
-Received: by mail-lb0-f178.google.com with SMTP id y6so5928739lbh.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:25:54 -0700 (PDT)
+	Wed, 10 Jul 2013 14:25:58 -0400
+Received: by mail-la0-f52.google.com with SMTP id fo12so5942841lab.25
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:25:56 -0700 (PDT)
 In-Reply-To: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-* add "replace" option to the "add" command, allowing nfacct object to be
-replaced even if it is used by the kernel/iptables;
+* add NFACCT_SNPRINTF_F_SAVE plaintext template, allowing printing of
+accounting objects in a format suitable for the 'restore' command.
+All nfacct properties are listed as name=value pairs, properly encoding space
+and other "odd" characters when needed. Example:
 
-* add "replace" and "flush" options to the "restore" command, allowing nfacct
-objects to be replaced even if used by the kernel/iptables and also allow the
-entire nfacct object list to be deleted, when permissable, prior to "restore"
-being executed;
+name="ALL IN net 17" pkts=1234 bytes=3456789
 
 Signed-off-by: Michael Zintakis <michael.zintakis@googlemail.com>
 ---
- src/nfacct.c | 99 +++++++++++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 74 insertions(+), 25 deletions(-)
+ include/libnetfilter_acct/libnetfilter_acct.h |  3 +++
+ src/libnetfilter_acct.c                       | 11 +++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/src/nfacct.c b/src/nfacct.c
-index fbf9aa6..7808ebb 100644
---- a/src/nfacct.c
-+++ b/src/nfacct.c
-@@ -214,29 +214,21 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 	return 0;
+diff --git a/include/libnetfilter_acct/libnetfilter_acct.h b/include/libnetfilter_acct/libnetfilter_acct.h
+index 9f66c39..ecf8280 100644
+--- a/include/libnetfilter_acct/libnetfilter_acct.h
++++ b/include/libnetfilter_acct/libnetfilter_acct.h
+@@ -39,6 +39,9 @@ int nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct
+ #define NFACCT_SNPRINTF_F_FULL		(1 << 0)
+ #define NFACCT_SNPRINTF_F_TIME		(1 << 1)
+ 
++/* print in a format suitable for 'restore' */
++#define NFACCT_SNPRINTF_F_SAVE		(1 << 2)
++
+ #define NFACCT_SNPRINTF_T_PLAIN 0
+ #define NFACCT_SNPRINTF_T_XML 1
+ 
+diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
+index 493be3b..e4fdf84 100644
+--- a/src/libnetfilter_acct.c
++++ b/src/libnetfilter_acct.c
+@@ -228,6 +228,9 @@ uint64_t nfacct_attr_get_u64(struct nfacct *nfacct, enum nfacct_attr_type type)
  }
+ EXPORT_SYMBOL(nfacct_attr_get_u64);
  
--static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
-+static int _nfacct_cmd_add(struct nfacct *nfacct, bool replace)
++#define NFACCT_STR_PLAIN_SAVE_BASE	"name=%s pkts=%"PRIu64 \
++					" bytes=%"PRIu64
++
+ void
+ parse_nfacct_name(char *buf, const char *name)
  {
- 	struct mnl_socket *nl;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
- 	uint32_t portid, seq;
--	struct nfacct *nfacct;
- 	int ret;
- 
--	nfacct = nfacct_alloc();
--	if (nfacct == NULL) {
--		nfacct_perror("OOM");
-+	if (nfacct == NULL)
- 		return -1;
--	}
--
--	nfacct_attr_set(nfacct, NFACCT_ATTR_NAME, name);
--
--	nfacct_attr_set_u64(nfacct, NFACCT_ATTR_PKTS, pkts);
--	nfacct_attr_set_u64(nfacct, NFACCT_ATTR_BYTES, bytes);
- 
- 	seq = time(NULL);
- 	nlh = nfacct_nlmsg_build_hdr(buf, NFNL_MSG_ACCT_NEW,
--				     NLM_F_CREATE | NLM_F_ACK, seq);
-+				     NLM_F_CREATE | NLM_F_ACK |
-+				     (replace ? NLM_F_REPLACE : 0), seq);
- 	nfacct_nlmsg_build_payload(nlh, nfacct);
- 
- 	nfacct_free(nfacct);
-@@ -278,15 +270,41 @@ static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
- 
- static int nfacct_cmd_add(int argc, char *argv[])
- {
-+	int ret = -1;
-+	bool replace = false;
-+	char *name;
-+	struct nfacct *nfacct;
-+
- 	if (argc < 1 || strlen(argv[0]) == 0) {
- 		nfacct_perror("missing object name");
- 		return -1;
--	} else if (argc > 1) {
--		nfacct_perror("too many arguments");
-+	}
-+	name = strdup(argv[0]);
-+	if (!name) {
-+		nfacct_perror("OOM");
- 		return -1;
+@@ -321,12 +324,20 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
+ 	parse_nfacct_name(nfacct_name,
+ 			  nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
+ 	if (flags & NFACCT_SNPRINTF_F_FULL) {
++		/* default: print pkts + bytes + name */
+ 		ret = snprintf(buf, rem,
+ 			"{ pkts = %.20"PRIu64", bytes = %.20"PRIu64" } = %s;",
+ 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
+ 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
+ 			nfacct_name);
++	} else if (flags & NFACCT_SNPRINTF_F_SAVE) {
++		/* save: format useful for 'restore' */
++		ret = snprintf(buf, rem, NFACCT_STR_PLAIN_SAVE_BASE,
++			       nfacct_name,
++			       nfacct_attr_get_u64(nfacct,NFACCT_ATTR_PKTS),
++			       nfacct_attr_get_u64(nfacct,NFACCT_ATTR_BYTES));
+ 	} else {
++		/* print out name only */
+ 		ret = snprintf(buf, rem, "%s\n", nfacct_name);
  	}
-+	NFACCT_NEXT_ARG();
-+	while (argc > 0) {
-+		if (!replace && nfacct_matches(argv[0],"replace")) {
-+			replace = true;
-+		} else {
-+			NFACCT_RET_ARG_ERR();
-+		}
-+		argc--; argv++;
-+	}
  
--	return _nfacct_cmd_add(argv[0], 0, 0);
-+	nfacct = nfacct_alloc();
-+	if (nfacct == NULL) {
-+		NFACCT_RET_ERR("OOM");
-+	}
-+
-+	nfacct_attr_set(nfacct, NFACCT_ATTR_NAME, name);
-+	ret = _nfacct_cmd_add(nfacct, replace);
-+
-+err:
-+	free(name);
-+	return ret;
- }
- 
- static int nfacct_cmd_delete(int argc, char *argv[])
-@@ -509,14 +527,14 @@ static const char help_msg[] =
- 	"infrastructure\n"
- 	"Usage: nfacct command [parameters]...\n\n"
- 	"Commands:\n"
--	"  list [reset]\t\tList the accounting object table (and reset)\n"
--	"  add object-name\tAdd new accounting object to table\n"
--	"  delete object-name\tDelete existing accounting object\n"
--	"  get object-name\tGet existing accounting object\n"
-+	"  list [reset]\t\t\tList the accounting object table (and reset)\n"
-+	"  add object-name [replace]\tAdd new accounting object to table\n"
-+	"  delete object-name\t\tDelete existing accounting object\n"
-+	"  get object-name\t\tGet existing accounting object\n"
- 	"  flush\t\t\tFlush accounting object table\n"
--	"  restore\t\tRestore accounting object table reading 'list' output from stdin\n"
--	"  version\t\tDisplay version and disclaimer\n"
--	"  help\t\t\tDisplay this help message\n";
-+	"  restore [flush] [replace]\tRestore accounting object table reading 'list' output from stdin\n"
-+	"  version\t\t\tDisplay version and disclaimer\n"
-+	"  help\t\t\t\tDisplay this help message\n";
- 
- static int nfacct_cmd_help(int argc, char *argv[])
- {
-@@ -530,11 +548,30 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 	char name[512];
- 	char buffer[512];
- 	int ret;
-+	bool replace = false, flush = false;
-+	struct nfacct *nfacct;
- 
--	if (argc > 0) {
-+	if (argc > 2) {
- 		nfacct_perror("too many arguments");
- 		return -1;
- 	}
-+	while (argc > 0) {
-+		if (!replace && nfacct_matches(argv[0],"replace")) {
-+			replace = true;
-+		} else if (!flush && nfacct_matches(argv[0],"flush")) {
-+			flush = true;
-+		} else {
-+			NFACCT_RET_ARG_ERR();
-+		}
-+		argc--; argv++;
-+	}
-+
-+	if (flush) {
-+		ret = nfacct_cmd_flush(0, NULL);
-+		if (ret == -1) {
-+			NFACCT_RET_ERR("flush not successful");
-+		}
-+	}
- 
- 	while (fgets(buffer, sizeof(buffer), stdin)) {
- 		char *semicolon = strchr(buffer, ';');
-@@ -550,9 +587,21 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 			nfacct_perror("error reading input");
- 			return -1;
- 		}
--		if ((ret = _nfacct_cmd_add(name, pkts, bytes)) != 0)
--			return ret;
-+		nfacct = nfacct_alloc();
-+		if (nfacct == NULL) {
-+			NFACCT_RET_ERR("OOM error");
-+		}
-+		nfacct_attr_set(nfacct, NFACCT_ATTR_NAME, name);
-+		nfacct_attr_set_u64(nfacct, NFACCT_ATTR_PKTS, pkts);
-+		nfacct_attr_set_u64(nfacct, NFACCT_ATTR_BYTES, bytes);
-+		ret = _nfacct_cmd_add(nfacct, replace);
-+		if (ret != 0) {
-+			NFACCT_RET_ERR("error during add");
-+		}
- 
- 	}
- 	return 0;
-+
-+err:
-+	return -1;
- }
 -- 
 1.8.3.1
 
