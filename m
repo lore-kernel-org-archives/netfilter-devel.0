@@ -1,77 +1,110 @@
 From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: [PATCH v3 nfacct 6/29] bugfix: prevent 0-sized nfacct name being accepted
-Date: Wed, 10 Jul 2013 19:25:04 +0100
-Message-ID: <1373480727-11254-7-git-send-email-michael.zintakis@googlemail.com>
+Subject: [PATCH v3 nfacct 5/29] bugfix: prevent 0-sized parameter being accepted
+Date: Wed, 10 Jul 2013 19:25:03 +0100
+Message-ID: <1373480727-11254-6-git-send-email-michael.zintakis@googlemail.com>
 References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:52697 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab3GJSZu (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:61883 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753834Ab3GJSZs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jul 2013 14:25:50 -0400
-Received: by mail-lb0-f177.google.com with SMTP id 10so5942083lbf.36
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:25:49 -0700 (PDT)
+	Wed, 10 Jul 2013 14:25:48 -0400
+Received: by mail-la0-f46.google.com with SMTP id eg20so6086845lab.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:25:47 -0700 (PDT)
 In-Reply-To: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-* add additional checks in nfacct_cmd_add, nfacct_cmd_delete and
-nfacct_cmd_get functions to prevent zero-sized string being accepted as a
-command line parameter for nfacct object name;
-
-* add a separate check for the number of command-line arguments in
-nfacct_cmd_restore, preventing arbitrary parameters being specified;
+* add nfacct_matches function to prevent zero-sized string being accepted
+as a command line parameter;
 
 Signed-off-by: Michael Zintakis <michael.zintakis@googlemail.com>
 ---
- src/nfacct.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ src/nfacct.c | 39 +++++++++++++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 12 deletions(-)
 
 diff --git a/src/nfacct.c b/src/nfacct.c
-index 1324da7..bf50f50 100644
+index 2ef93c3..1324da7 100644
 --- a/src/nfacct.c
 +++ b/src/nfacct.c
-@@ -298,7 +298,7 @@ static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
+@@ -59,6 +59,21 @@ static void nfacct_perror(const char *msg)
+ 	}
+ }
  
- static int nfacct_cmd_add(int argc, char *argv[])
++/* Matches two strings, including partial matches */
++static int nfacct_matches(const char *cmd, const char *pattern)
++{
++	size_t len;
++
++	if (cmd == NULL || pattern == NULL)
++		return 0;
++
++	len = strlen(cmd);
++	if (len == 0 || len > strlen(pattern))
++		return 0;
++
++	return (strncmp(cmd, pattern, len) == 0);
++}
++
+ int main(int argc, char *argv[])
  {
--	if (argc < 3) {
-+	if (argc < 3 || strlen(argv[2]) == 0) {
- 		nfacct_perror("missing object name");
- 		return -1;
- 	} else if (argc > 3) {
-@@ -318,7 +318,7 @@ static int nfacct_cmd_delete(int argc, char *argv[])
- 	struct nfacct *nfacct;
- 	int ret;
+ 	int cmd = NFACCT_CMD_NONE, ret = 0;
+@@ -68,21 +83,21 @@ int main(int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
+ 	}
  
--	if (argc < 3) {
-+	if (argc < 3 || strlen(argv[2]) == 0) {
- 		nfacct_perror("missing object name");
- 		return -1;
- 	} else if (argc > 3) {
-@@ -385,7 +385,7 @@ static int nfacct_cmd_get(int argc, char *argv[])
- 	struct nfacct *nfacct;
+-	if (strncmp(argv[1], "list", strlen(argv[1])) == 0)
++	if (nfacct_matches(argv[1], "list"))
+ 		cmd = NFACCT_CMD_LIST;
+-	else if (strncmp(argv[1], "add", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "add"))
+ 		cmd = NFACCT_CMD_ADD;
+-	else if (strncmp(argv[1], "delete", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "delete"))
+ 		cmd = NFACCT_CMD_DELETE;
+-	else if (strncmp(argv[1], "get", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "get"))
+ 		cmd = NFACCT_CMD_GET;
+-	else if (strncmp(argv[1], "flush", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "flush"))
+ 		cmd = NFACCT_CMD_FLUSH;
+-	else if (strncmp(argv[1], "version", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "version"))
+ 		cmd = NFACCT_CMD_VERSION;
+-	else if (strncmp(argv[1], "help", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "help"))
+ 		cmd = NFACCT_CMD_HELP;
+-	else if (strncmp(argv[1], "restore", strlen(argv[1])) == 0)
++	else if (nfacct_matches(argv[1], "restore"))
+ 		cmd = NFACCT_CMD_RESTORE;
+ 	else {
+ 		fprintf(stderr, "nfacct v%s: Unknown command: %s\n",
+@@ -167,9 +182,9 @@ static int nfacct_cmd_list(int argc, char *argv[])
  	int ret, i;
  
--	if (argc < 3) {
-+	if (argc < 3 || strlen(argv[2]) == 0) {
- 		nfacct_perror("missing object name");
+ 	for (i=2; i<argc; i++) {
+-		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
++		if (nfacct_matches(argv[i], "reset")) {
+ 			zeroctr = true;
+-		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
++		} else if (nfacct_matches(argv[i], "xml")) {
+ 			xml = true;
+ 		} else {
+ 			nfacct_perror("unknown argument");
+@@ -375,9 +390,9 @@ static int nfacct_cmd_get(int argc, char *argv[])
  		return -1;
  	}
-@@ -546,6 +546,11 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 	char buffer[512];
- 	int ret;
- 
-+	if (argc > 2) {
-+		nfacct_perror("too many arguments");
-+		return -1;
-+	}
-+
- 	while (fgets(buffer, sizeof(buffer), stdin)) {
- 		char *semicolon = strchr(buffer, ';');
- 		if (semicolon == NULL) {
+ 	for (i=3; i<argc; i++) {
+-		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
++		if (nfacct_matches(argv[i], "reset")) {
+ 			zeroctr = true;
+-		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
++		} else if (nfacct_matches(argv[i], "xml")) {
+ 			xml = true;
+ 		} else {
+ 			nfacct_perror("unknown argument");
 -- 
 1.8.3.1
 
