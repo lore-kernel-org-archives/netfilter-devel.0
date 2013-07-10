@@ -1,45 +1,39 @@
 From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: [PATCH v3 nfacct 26/29] add setmark and clrmark to "get" and "list" commands
-Date: Wed, 10 Jul 2013 19:25:24 +0100
-Message-ID: <1373480727-11254-27-git-send-email-michael.zintakis@googlemail.com>
+Subject: [PATCH v3 kernel 24/29] add packets and bytes mark capability to nfacct
+Date: Wed, 10 Jul 2013 19:25:22 +0100
+Message-ID: <1373480727-11254-25-git-send-email-michael.zintakis@googlemail.com>
 References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:58121 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755024Ab3GJS0x (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:62524 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754641Ab3GJS0s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jul 2013 14:26:53 -0400
-Received: by mail-la0-f46.google.com with SMTP id eg20so6012652lab.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:26:52 -0700 (PDT)
+	Wed, 10 Jul 2013 14:26:48 -0400
+Received: by mail-lb0-f175.google.com with SMTP id r10so5996676lbi.34
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 11:26:47 -0700 (PDT)
 In-Reply-To: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-* add "setmark" (to set a mark) and "clrmark" (to cleaar existing mark, if
-present) options to the "get" and "list" commands. Setting a mark allows
-short-term traffic to be reported via the pmark and bmark nfacct object
-properties. If *any* traffic has passed through a given accounting object
-since a mark has been placed, that is indicated with a plus (+) sign next to
-the packet counters. The exact value of this traffic (i.e. how much traffic
-has passed through since a "mark" was placed) could be shown using
-"show extended" option.
+* add two variables to each nfacct object - 'pmark' and 'bmark', allowing
+short-term traffic accounting to be implemented by placing a "mark" against
+that object.
 
-* existing "save" and "restore" commands have been modofied to take into
-account the new nfacct object properties and data integrity checks have
-also been implemented.
+This enables counting of traffic (both bytes and packets) since that mark has
+been enabled/set, in addition to the main packet and byte counters.
 
 Signed-off-by: Michael Zintakis <michael.zintakis@googlemail.com>
 ---
- include/linux/netfilter/nfnetlink_acct.h |   8 ++-
- src/nfacct.c                             | 115 ++++++++++++++++++++++++++-----
- 2 files changed, 104 insertions(+), 19 deletions(-)
+ include/uapi/linux/netfilter/nfnetlink_acct.h |  8 +++-
+ net/netfilter/nfnetlink_acct.c                | 56 +++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
-index 5d64afa..ace3428 100644
---- a/include/linux/netfilter/nfnetlink_acct.h
-+++ b/include/linux/netfilter/nfnetlink_acct.h
+diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
+index e972970..87d2615 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_acct.h
++++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
 @@ -10,6 +10,8 @@ enum nfnl_acct_msg_types {
  	NFNL_MSG_ACCT_GET,
  	NFNL_MSG_ACCT_GET_CTRZERO,
@@ -69,240 +63,124 @@ index 5d64afa..ace3428 100644
  	NFACCT_FLAG_MAX		= (1 << NFACCT_FLAG_BIT_MAX),
  };
  
-diff --git a/src/nfacct.c b/src/nfacct.c
-index 4504143..2cb0256 100644
---- a/src/nfacct.c
-+++ b/src/nfacct.c
-@@ -57,7 +57,9 @@ enum nfacct_sort_mode {
- 	NFACCT_SORT_NONE = 0,
- 	NFACCT_SORT_NAME,
- 	NFACCT_SORT_PKTS,
-+	NFACCT_SORT_PMARK,
- 	NFACCT_SORT_BYTES,
-+	NFACCT_SORT_BMARK,
- 	NFACCT_SORT_BTHR,
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 18cd28e..809fa35 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -33,6 +33,8 @@ struct nf_acct {
+ 	atomic64_t		pkts;
+ 	atomic64_t		bytes;
+ 	u64			bthr;
++	u64			pmark;
++	u64			bmark;
+ 	u16			fmt;
+ 	u16			flags;
+ 	struct list_head	head;
+@@ -61,6 +63,10 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 		cmd = be16_to_cpu(nla_get_be16(tb[NFACCT_CMD]));
+ 		flags = be16_to_cpu(nla_get_be16(tb[NFACCT_FLAGS]));
+ 
++		if (!(cmd & NFACCT_FLAG_MARK) &&
++		     (tb[NFACCT_PMARK] || tb[NFACCT_BMARK]))
++			return -EINVAL;
++
+ 		if (cmd & NFACCT_FLAG_BTHR &&
+ 		    ((flags & NFACCT_FLAG_BTHR && !tb[NFACCT_BTHR]) ||
+ 		     (!(flags & NFACCT_FLAG_BTHR) && tb[NFACCT_BTHR])))
+@@ -114,6 +120,25 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 				matching->fmt =
+ 				be16_to_cpu(nla_get_be16(tb[NFACCT_FMT]));
+ 			}
++			/* ...then set the mark flag... */
++			if (cmd & NFACCT_FLAG_MARK) {
++				if (flags & NFACCT_FLAG_MARK) {
++					matching->pmark = tb[NFACCT_PMARK] ?
++					be64_to_cpu(
++					  nla_get_be64(tb[NFACCT_PMARK])) :
++					atomic64_read(&matching->pkts);
++
++					matching->bmark = tb[NFACCT_BMARK] ?
++					be64_to_cpu(
++					  nla_get_be64(tb[NFACCT_BMARK])) :
++					atomic64_read(&matching->bytes);
++					matching->flags |= NFACCT_FLAG_MARK;
++				} else {
++					matching->pmark = 0;
++					matching->bmark = 0;
++					matching->flags &= ~NFACCT_FLAG_MARK;
++				}
++			}
+ 			/* ... and finally set the bytes threshold */
+ 			if (cmd & NFACCT_FLAG_BTHR) {
+ 				if (flags & NFACCT_FLAG_BTHR) {
+@@ -147,6 +172,16 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 	if (tb[NFACCT_FMT]) {
+ 		nfacct->fmt = be16_to_cpu(nla_get_be16(tb[NFACCT_FMT]));
+ 	}
++	if (cmd & NFACCT_FLAG_MARK && flags & NFACCT_FLAG_MARK) {
++		if (tb[NFACCT_PMARK])
++			nfacct->pmark = be64_to_cpu(
++				nla_get_be64(tb[NFACCT_PMARK]));
++		if (tb[NFACCT_BMARK])
++			nfacct->bmark = be64_to_cpu(
++				nla_get_be64(tb[NFACCT_BMARK]));
++
++		nfacct->flags |= NFACCT_FLAG_MARK;
++	}
+ 	if (cmd & NFACCT_FLAG_BTHR && flags & NFACCT_FLAG_BTHR) {
+ 		if (tb[NFACCT_BTHR])
+ 			nfacct->bthr = be64_to_cpu(
+@@ -184,15 +219,28 @@ nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	if (type == NFNL_MSG_ACCT_GET_CTRZERO) {
+ 		pkts = atomic64_xchg(&acct->pkts, 0);
+ 		bytes = atomic64_xchg(&acct->bytes, 0);
++		acct->pmark = 0;
++		acct->bmark = 0;
+ 	} else {
+ 		pkts = atomic64_read(&acct->pkts);
+ 		bytes = atomic64_read(&acct->bytes);
++		if (type == NFNL_MSG_ACCT_GET_SETMARK) {
++			acct->pmark = pkts;
++			acct->bmark = bytes;
++			acct->flags |= NFACCT_FLAG_MARK;
++		} else if (type == NFNL_MSG_ACCT_GET_CLRMARK) {
++			acct->pmark = 0;
++			acct->bmark = 0;
++			acct->flags &= ~NFACCT_FLAG_MARK;
++		}
+ 	}
+ 	if (nla_put_be64(skb, NFACCT_PKTS, cpu_to_be64(pkts)) ||
+ 	    nla_put_be64(skb, NFACCT_BYTES, cpu_to_be64(bytes)) ||
+ 	    nla_put_be64(skb, NFACCT_BTHR, cpu_to_be64(acct->bthr)) ||
+ 	    nla_put_be16(skb, NFACCT_FMT, htons(acct->fmt)) ||
+ 	    nla_put_be16(skb, NFACCT_FLAGS, htons(acct->flags)) ||
++	    nla_put_be64(skb, NFACCT_PMARK, cpu_to_be64(acct->pmark)) ||
++	    nla_put_be64(skb, NFACCT_BMARK, cpu_to_be64(acct->bmark)) ||
+ 	    nla_put_be32(skb, NFACCT_USE, htonl(atomic_read(&acct->refcnt))))
+ 		goto nla_put_failure;
+ 
+@@ -344,6 +392,8 @@ static const struct nla_policy nfnl_acct_policy[NFACCT_MAX+1] = {
+ 	[NFACCT_FMT] = { .type = NLA_U16 },
+ 	[NFACCT_FLAGS] = { .type = NLA_U16 },
+ 	[NFACCT_CMD] = { .type = NLA_U16 },
++	[NFACCT_PMARK] = { .type = NLA_U64 },
++	[NFACCT_BMARK] = { .type = NLA_U64 },
  };
  
-@@ -75,9 +77,15 @@ static int nfacct_cmp(void *priv, struct nfacct_list_head *a, struct nfacct_list
- 	case NFACCT_SORT_PKTS:
- 				attr = NFACCT_ATTR_PKTS;
- 				break;
-+	case NFACCT_SORT_PMARK:
-+				attr = NFACCT_ATTR_PMARK;
-+				break;
- 	case NFACCT_SORT_BYTES:
- 				attr = NFACCT_ATTR_BYTES;
- 				break;
-+	case NFACCT_SORT_BMARK:
-+				attr = NFACCT_ATTR_BMARK;
-+				break;
- 	case NFACCT_SORT_BTHR:
- 				attr = NFACCT_ATTR_BTHR;
- 	case NFACCT_SORT_NAME:
-@@ -108,9 +116,9 @@ static int nfacct_cmp(void *priv, struct nfacct_list_head *a, struct nfacct_list
- /*
-  * maximum total of columns to be shown, except the
-  * "name" column as that is not width-dependent:
-- * "pkts bytes bthr"
-+ * "pkts pmark bytes bmark bthr"
-  */
--#define NFACCT_MAX_COLUMNS 3
-+#define NFACCT_MAX_COLUMNS 5
+ static const struct nfnl_callback nfnl_acct_cb[NFNL_MSG_ACCT_MAX] = {
+@@ -359,6 +409,12 @@ static const struct nfnl_callback nfnl_acct_cb[NFNL_MSG_ACCT_MAX] = {
+ 	[NFNL_MSG_ACCT_DEL]		= { .call = nfnl_acct_del,
+ 					    .attr_count = NFACCT_MAX,
+ 					    .policy = nfnl_acct_policy },
++	[NFNL_MSG_ACCT_GET_SETMARK] 	= { .call = nfnl_acct_get,
++					    .attr_count = NFACCT_MAX,
++					    .policy = nfnl_acct_policy },
++	[NFNL_MSG_ACCT_GET_CLRMARK] 	= { .call = nfnl_acct_get,
++					    .attr_count = NFACCT_MAX,
++					    .policy = nfnl_acct_policy },
+ };
  
- /* stores nfacct options for snprintf_* and nfacct_cb functions */
- static struct nfacct_options *options;
-@@ -209,7 +217,9 @@ static int nfacct_cb(const struct nlmsghdr *nlh, void *data)
- 	bool *ignore_col_width = (bool *)data;
- 	static const enum nfacct_option_type o_num[NFACCT_MAX_COLUMNS] =
- 				{ NFACCT_OPT_PCW,
-+				  NFACCT_OPT_PMCW,
- 				  NFACCT_OPT_BCW,
-+				  NFACCT_OPT_BMCW,
- 				  NFACCT_OPT_BTCW,
- 				};
- 
-@@ -283,6 +293,12 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 		if (!nfnl_msg && nfacct_matches(argv[0],"reset")) {
- 			nfnl_cmd = NFNL_MSG_ACCT_GET_CTRZERO;
- 			nfnl_msg = true;
-+		} else if (!nfnl_msg && nfacct_matches(argv[0],"clrmark")) {
-+			nfnl_cmd = NFNL_MSG_ACCT_GET_CLRMARK;
-+			nfnl_msg = true;
-+		} else if (!nfnl_msg && nfacct_matches(argv[0],"setmark")) {
-+			nfnl_cmd = NFNL_MSG_ACCT_GET_SETMARK;
-+			nfnl_msg = true;
- 		} else if (!xml && nfacct_matches(argv[0],"xml")) {
- 			xml = true;
- 		} else if (!b_sh && nfacct_matches(argv[0],"show")) {
-@@ -302,8 +318,12 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 			} else if (nfacct_matches(argv[0],"packets") ||
- 				   nfacct_matches(argv[0],"pkts")) {
- 				sort_mode = NFACCT_SORT_PKTS;
-+			} else if (nfacct_matches(argv[0],"pmark")) {
-+				sort_mode = NFACCT_SORT_PMARK;
- 			} else if (nfacct_matches(argv[0],"bytes")) {
- 				sort_mode = NFACCT_SORT_BYTES;
-+			} else if (nfacct_matches(argv[0],"bmark")) {
-+				sort_mode = NFACCT_SORT_BMARK;
- 			} else if (nfacct_matches(argv[0],"threshold")) {
- 				sort_mode = NFACCT_SORT_BTHR;
- 			} else if (nfacct_matches(argv[0],"none")) {
-@@ -613,6 +633,12 @@ static int nfacct_cmd_get(int argc, char *argv[])
- 		if (!nfnl_msg && nfacct_matches(argv[0],"reset")) {
- 			nfnl_cmd = NFNL_MSG_ACCT_GET_CTRZERO;
- 			nfnl_msg = true;
-+		} else if (!nfnl_msg && nfacct_matches(argv[0],"clrmark")) {
-+			nfnl_cmd = NFNL_MSG_ACCT_GET_CLRMARK;
-+			nfnl_msg = true;
-+		} else if (!nfnl_msg && nfacct_matches(argv[0],"setmark")) {
-+			nfnl_cmd = NFNL_MSG_ACCT_GET_SETMARK;
-+			nfnl_msg = true;
- 		} else if (!xml && nfacct_matches(argv[0],"xml")) {
- 			xml = true;
- 		} else if (!b_sh && nfacct_matches(argv[0],"show")) {
-@@ -792,15 +818,17 @@ static const char help_msg[] =
- 	"  version\t\tDisplay version and disclaimer\n"
- 	"  help\t\t\tDisplay this help message\n\n"
- 	"Parameters:\n"
--	"  LST_PARAMS := [ reset ] [ show SHOW_SPEC ] [ format FMT_SPEC ]\n"
--			"\t\t[ sort SORT_SPEC ] [ xml ]\n"
-+	"  LST_PARAMS := [ reset | setmark | clrmark ] [ show SHOW_SPEC ]\n"
-+			"\t\t[ format FMT_SPEC ] [ sort SORT_SPEC ] [ xml ]\n"
- 	"  ADD_PARAMS := [ replace ] [ format FMT_SPEC ] "
- 			"[ threshold [NUMBER | '-'] ]\n"
--	"  GET_PARAMS := [ reset ] [ show SHOW_SPEC ] [ format FMT_SPEC ] [ xml ]\n"
-+	"  GET_PARAMS := [ reset | setmark | clrmark ] [ show SHOW_SPEC ]\n"
-+			"\t\t[ format FMT_SPEC ] [ xml ]\n"
- 	"  RST_PARAMS := [ flush ] [ replace ]\n"
- 	"  SHOW_SPEC := { bytes | extended }\n"
- 	"  FMT_SPEC := { [FMT] | [,] | [FMT] ... }\n"
--	"  SORT_SPEC := { none | name | packets | bytes | threshold }"
-+	"  SORT_SPEC := { none | name | packets | pmark | bytes | bmark |"
-+			" threshold }\n"
- 	"  FMT := { def | raw | 3pl | iec | kib | mib | gib | tib | pib |"
- 		  " eib |\n"
- 	"  \t   si | kb | mb | gb | tb | pb | eb }\n";
-@@ -885,10 +913,10 @@ err:
- 
- /*
-  * Maximum number of restore tokens accepted:
-- * name= fmt= pkts= bytes= thr=
-+ * name= fmt= pkts= bytes= pmark= bmark= thr=
-  *
-  */
--#define NFACCT_MAX_TOKENS 5
-+#define NFACCT_MAX_TOKENS 7
- 
- /*
-  * Maximum number of value tokens accepted:
-@@ -919,9 +947,9 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- {
- 	bool replace = false, flush = false;
- 	bool b_name = false, b_fmt = false, b_pkts = false, b_bytes = false;
--	bool b_thr = false;
-+	bool b_pmark = false, b_bmark = false, b_thr = false;
- 	uint16_t cmd = 0, fmt = NFACCT_FMT_DEFAULT;
--	uint64_t pkts = 0, bytes = 0, thr = 0;
-+	uint64_t pkts = 0, pmark = 0, bytes = 0, bmark = 0, thr = 0;
- 	char *tokens[NFACCT_MAX_TOKENS + 1];
- 	char *vtokens[NFACCT_MAX_VTOKENS + 1];
- 	char buf[MAX_TOKEN_SIZE];
-@@ -953,9 +981,11 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 		}
- 	}
- 
--	for (; fgets(buf, ARRAY_SIZE(buf), stdin); fmt = NFACCT_FMT_DEFAULT,
--	     pkts = 0, bytes = 0, thr = 0, b_name = false, b_fmt = false,
--	     b_pkts = false, b_bytes = false, b_thr = false, line++) {
-+	for (; fgets(buf, ARRAY_SIZE(buf), stdin); cmd = 0,
-+	     fmt = NFACCT_FMT_DEFAULT, pkts = 0, pmark = 0, bytes = 0,
-+	     bmark = 0, thr = 0, b_name = false, b_fmt = false,
-+	     b_pkts = false, b_bytes = false, b_pmark = false,
-+	     b_bmark = false, b_thr = false, line++) {
- 		ret = nfacct_parse_tokens(buf, " \n", NFACCT_MAX_TOKENS + 1,
- 					  true, tokens);
- 		if (ret == 0)
-@@ -1022,6 +1052,30 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 				nfacct_attr_set_u64(nfacct,
- 						    NFACCT_ATTR_BYTES, bytes);
- 				b_bytes = true;
-+			} else if (!b_pmark && strncmp(vtokens[0], "pmark",
-+					         strlen("pmark") + 1) == 0) {
-+				if (nfacct_get_uint64_t(&pmark,
-+						 vtokens[1]) != 0) {
-+					NFACCT_PRINT_VERR("error on line %d: "
-+						"invalid 'pmark' token (%s)",
-+						vtokens[1]);
-+				}
-+				cmd |= NFACCT_FLAG_MARK;
-+				nfacct_attr_set_u64(nfacct,
-+						    NFACCT_ATTR_PMARK, pmark);
-+				b_pmark = true;
-+			} else if (!b_bmark && strncmp(vtokens[0], "bmark",
-+					         strlen("bmark") + 1) == 0) {
-+				if (nfacct_get_uint64_t(&bmark,
-+						 vtokens[1]) != 0) {
-+					NFACCT_PRINT_VERR("error on line %d: "
-+						"invalid 'bmark' token (%s)",
-+						vtokens[1]);
-+				}
-+				cmd |= NFACCT_FLAG_MARK;
-+				nfacct_attr_set_u64(nfacct,
-+						    NFACCT_ATTR_BMARK, bmark);
-+				b_bmark = true;
- 			} else if (!b_thr && strncmp(vtokens[0], "thr",
- 					   	strlen("thr") + 1) == 0) {
- 				if (nfacct_get_uint64_t(&thr,
-@@ -1047,19 +1101,44 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- 					"invalid 'name' token (%s)",
- 					"not set");
- 		}
--		if (nfacct_attr_get(nfacct, NFACCT_ATTR_BYTES) &&
--		    !nfacct_attr_get(nfacct, NFACCT_ATTR_PKTS)) {
-+		if ((nfacct_attr_get(nfacct, NFACCT_ATTR_BYTES) &&
-+		     !nfacct_attr_get(nfacct, NFACCT_ATTR_PKTS)) ||
-+		    (cmd & NFACCT_FLAG_MARK &&
-+		     !nfacct_attr_get(nfacct, NFACCT_ATTR_PKTS))) {
- 			NFACCT_PRINT_CERR("error on line %d: "
- 					"invalid 'pkts' token (%s)",
- 					"not set");
- 		}
--		if ((nfacct_attr_get(nfacct, NFACCT_ATTR_PKTS) ||
--		     cmd & NFACCT_FLAG_BTHR) &&
--		    !nfacct_attr_get(nfacct, NFACCT_ATTR_BYTES)) {
-+		if ((nfacct_attr_get(nfacct, NFACCT_ATTR_PKTS) &&
-+		    !nfacct_attr_get(nfacct, NFACCT_ATTR_BYTES)) ||
-+		    ((cmd & NFACCT_FLAG_BTHR || cmd & NFACCT_FLAG_MARK) &&
-+		    !nfacct_attr_get(nfacct, NFACCT_ATTR_BYTES))) {
- 			NFACCT_PRINT_CERR("error on line %d: "
- 					"invalid 'bytes' token (%s)",
- 					"not set");
- 		}
-+		if (cmd & NFACCT_FLAG_MARK) {
-+			if (!nfacct_attr_get(nfacct, NFACCT_ATTR_PMARK)) {
-+				NFACCT_PRINT_CERR("error on line %d: "
-+						"invalid 'pmark' token (%s)",
-+						"not set");
-+			}
-+			if (!nfacct_attr_get(nfacct, NFACCT_ATTR_BMARK)) {
-+				NFACCT_PRINT_CERR("error on line %d: "
-+						"invalid 'bmark' token (%s)",
-+						"not set");
-+			}
-+			if (pmark > pkts) {
-+				NFACCT_PRINT_CERR("error on line %d: "
-+						"invalid 'pmark' token (%s)",
-+						"> 'pkts'");
-+			}
-+			if (bmark > bytes) {
-+				NFACCT_PRINT_CERR("error on line %d: "
-+						"invalid 'bmark' token (%s)",
-+						"> 'bytes'");
-+			}
-+		}
- 		NFACCT_FREE_TOKENS;
- 
- 		if (cmd) {
+ static const struct nfnetlink_subsystem nfnl_acct_subsys = {
 -- 
 1.8.3.1
 
