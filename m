@@ -1,66 +1,85 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] examples: give credits to Pablo Neira Ayuso
-Date: Wed, 10 Jul 2013 12:17:32 +0200
-Message-ID: <20130710101732.29118.89099.stgit@nfdev.cica.es>
+From: Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v4 0/2] ipset: add "inner" flag version support
+Date: Wed, 10 Jul 2013 12:31:59 +0100
+Message-ID: <51DD462F.7050601@googlemail.com>
+References: <51D74772.7000906@googlemail.com> <alpine.DEB.2.00.1307080940420.27310@blackhole.kfki.hu> <alpine.DEB.2.00.1307081843001.28827@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Core Team <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:59438 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751667Ab3GJKRn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jul 2013 06:17:43 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 6B6AF51EDB7
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 10:17:41 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id QqX62Wy5uZt8 for <netfilter-devel@vger.kernel.org>;
-	Wed, 10 Jul 2013 12:17:36 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 3E72151EDBC
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 12:17:34 +0200 (CEST)
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:38639 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754489Ab3GJLcH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Jul 2013 07:32:07 -0400
+Received: by mail-wg0-f53.google.com with SMTP id y10so5930895wgg.32
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2013 04:32:06 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1307081843001.28827@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo wrote the code I copy-pasted, so give credits.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- examples/nft-chain-xml-add.c |    1 +
- examples/nft-rule-xml-add.c  |    1 +
- examples/nft-table-xml-add.c |    1 +
- 3 files changed, 3 insertions(+)
+Jozsef Kadlecsik wrote:
+> On Mon, 8 Jul 2013, Jozsef Kadlecsik wrote:
+>
+>   
+>> On Fri, 5 Jul 2013, Dash Four wrote:
+>>
+>>     
+>>> This series of 2 patches supplements the previous version (v3) and adds
+>>> "inner" flag version support to all registered ipset types
+>>> (kernel + userspace).
+>>>
+>>> Dash Four (2):
+>>>   ipset: add set match "inner" flag support
+>>>   ipset (userspace): add "inner" flag version support
+>>>       
+>> All of your patches (including the previous series) are mangled and I'm 
+>> unable to apply them. It seems there's an extra space at the beginning of 
+>> every line starting with a whitespace character or something like that. 
+>> Please check your patches and resubmit the fixed ones.
+>>     
+>
+> Meanwhile, while looking at your code on how to extend it, I have noticed 
+> two issues:
+>
+> - From ip_set_get_ip4_inner_hdr and ip_set_get_ip6_inner_hdr you pass back
+>   the pointer to a local buffer, which is not good.
+Why? By "local buffer" I take it you mean the ip header pointer, correct?
 
-diff --git a/examples/nft-chain-xml-add.c b/examples/nft-chain-xml-add.c
-index 80a513d..799f901 100644
---- a/examples/nft-chain-xml-add.c
-+++ b/examples/nft-chain-xml-add.c
-@@ -1,4 +1,5 @@
- /*
-+ * 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-  * 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-diff --git a/examples/nft-rule-xml-add.c b/examples/nft-rule-xml-add.c
-index 7bd44ff..604517b 100644
---- a/examples/nft-rule-xml-add.c
-+++ b/examples/nft-rule-xml-add.c
-@@ -1,4 +1,5 @@
- /*
-+ * 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-  * 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-diff --git a/examples/nft-table-xml-add.c b/examples/nft-table-xml-add.c
-index 41df5b4..4486e68 100644
---- a/examples/nft-table-xml-add.c
-+++ b/examples/nft-table-xml-add.c
-@@ -1,4 +1,5 @@
- /*
-+ * 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-  * 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify it
+>  Please move the local
+>   buffer definitions into all of the functions which call *_inner_hdr.
+>
+> - The second is an optimization issue: for two or more dimensional
+>   sets the *_inner_hdr functions are called multiple times instead of 
+>   once. *_inner_hdr functions should pass back the pointer to the IP
+>   header/buffer (and use simple ip[46]addrptr inline functions on that) 
+>   and set protooff for *get_port.
+>
+>   So it should be something like this:
+>
+> hash_ipportip4_kadt(...
+> 	const struct hash_ipportip *h = set->data;
+> 	ipset_adtfn adtfn = set->variant->adt[adt];
+> 	struct hash_ipportip4_elem e = { };
+> 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+> 	struct iphdr _iph, *iph = &_iph;
+> 	unsigned int protooff = ip_hdrlen(skb);
+>
+> 	if (!ip_set_get_ip4_inner_hdr(skb, &protooff, iph,
+> 				opt->cmdflags & IPSET_FLAG_INNER) ||
+> 	    !ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+> 				 &e.port, &e.proto, protooff))
+> 		return -EINVAL
+>
+> 	ip4addrptr(iph, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+> 	ip4addrptr(iph, opt->flags & IPSET_DIM_THREE_SRC, &e.ip2);
+> 	...
+>   
+I'll look into this in the next few days - just in case you find 
+something else you are unhappy with as I have time constraints and 
+cannot afford to be churning out patches on a daily basis.
 
