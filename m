@@ -1,62 +1,86 @@
-From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: Re: [PATCH v3 kernel 24/29] add packets and bytes mark capability
- to nfacct
-Date: Thu, 11 Jul 2013 19:56:59 +0100
-Message-ID: <51DEFFFB.9060903@googlemail.com>
-References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com> <1373480727-11254-25-git-send-email-michael.zintakis@googlemail.com> <20130711011446.GA7065@localhost>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] netfilter: xt_pkttype: IPv6 has no broadcast
+Date: Thu, 11 Jul 2013 12:03:43 -0700
+Message-ID: <20130711190343.GA25293@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="qMm9M+Fa2AknHoGS"
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:49782 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756435Ab3GKS5I (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:52755 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756514Ab3GKTDp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jul 2013 14:57:08 -0400
-Received: by mail-la0-f53.google.com with SMTP id fs12so7118822lab.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jul 2013 11:57:06 -0700 (PDT)
-In-Reply-To: <20130711011446.GA7065@localhost>
+	Thu, 11 Jul 2013 15:03:45 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa11so8167107pad.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jul 2013 12:03:45 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Pablo Neira Ayuso wrote:
-> On Wed, Jul 10, 2013 at 07:25:22PM +0100, Michael Zintakis wrote:
->> * add two variables to each nfacct object - 'pmark' and 'bmark', allowing
->> short-term traffic accounting to be implemented by placing a "mark" against
->> that object.
->>
->> This enables counting of traffic (both bytes and packets) since that mark has
->> been enabled/set, in addition to the main packet and byte counters.
->>
->> Signed-off-by: Michael Zintakis <michael.zintakis@googlemail.com>
->> ---
->>  include/uapi/linux/netfilter/nfnetlink_acct.h |  8 +++-
->>  net/netfilter/nfnetlink_acct.c                | 56 +++++++++++++++++++++++++++
->>  2 files changed, 63 insertions(+), 1 deletion(-)
->>
->> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
->> index 18cd28e..809fa35 100644
->> --- a/net/netfilter/nfnetlink_acct.c
->> +++ b/net/netfilter/nfnetlink_acct.c
->> @@ -33,6 +33,8 @@ struct nf_acct {
->>  	atomic64_t		pkts;
->>  	atomic64_t		bytes;
->>  	u64			bthr;
->> +	u64			pmark;
->> +	u64			bmark;
->>  	u16			fmt;
->>  	u16			flags;
->>  	struct list_head	head;
-> 
-> Oh my...
-> 
-> You insist on your idea of using the kernel as a database to simplify
-> your user-space program. All these fields are set/unset from
-> userspace, they are not altered by packets at all. This does not
-> belong here.
-I don't "insist" on anything Pablo and I am not using the kernel as a database either.
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The way these variables are structured and information is gathered/presented is the most efficient way - both memory and performance-wise, compared to what you were suggesting we do up until now (with separate file access and so on), not to mention the security aspect of it and the fact that protecting this within the kernel is much more secure and less error-prone compared to your suggestion with file access. That, at the end of the day, is what matters here.
+As stated in RFC 4291:
+
+   There are no broadcast addresses in IPv6, their function being
+   superseded by multicast addresses.
+
+As such, the pkttype match should not allow IPv6 rules to be added
+which attempt to match broadcast packets.  The addrtype match already
+rejects such attempts.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ipv6-no-broadcast
+
+diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
+index 5b645cb..4c0b0e1 100644
+--- a/net/netfilter/xt_pkttype.c
++++ b/net/netfilter/xt_pkttype.c
+@@ -42,13 +42,29 @@ pkttype_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return (type == info->pkttype) ^ info->invert;
+ }
+ 
++static int pkttype_mt_checkentry(const struct xt_mtchk_param *par)
++{
++	const struct xt_pkttype_info *info = par->matchinfo;
++
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++	if (par->family == NFPROTO_IPV6) {
++		if (info->pkttype == PACKET_BROADCAST) {
++			pr_err("IPv6 does not support BROADCAST packets\n");
++			return -EINVAL;
++		}
++	}
++#endif
++	return 0;
++}
++
+ static struct xt_match pkttype_mt_reg __read_mostly = {
+-	.name      = "pkttype",
+-	.revision  = 0,
+-	.family    = NFPROTO_UNSPEC,
+-	.match     = pkttype_mt,
+-	.matchsize = sizeof(struct xt_pkttype_info),
+-	.me        = THIS_MODULE,
++	.name		= "pkttype",
++	.revision	= 0,
++	.family		= NFPROTO_UNSPEC,
++	.checkentry	= pkttype_mt_checkentry,
++	.match		= pkttype_mt,
++	.matchsize	= sizeof(struct xt_pkttype_info),
++	.me		= THIS_MODULE,
+ };
+ 
+ static int __init pkttype_mt_init(void)
+
+--qMm9M+Fa2AknHoGS--
