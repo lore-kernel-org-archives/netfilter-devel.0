@@ -1,104 +1,155 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
  ExpectationSync
-Date: Thu, 11 Jul 2013 00:08:20 +0200
-Message-ID: <20130710220820.GA20666@localhost>
+Date: Thu, 11 Jul 2013 02:48:27 +0200
+Message-ID: <20130711004827.GA5500@localhost>
 References: <20130705020312.25783ccd.billfink@mindspring.com>
  <20130706132333.GA3279@localhost>
  <20130707030458.fbf22472.billfink@mindspring.com>
  <20130709013023.2fb1fef1.billfink@mindspring.com>
  <20130709182223.GA6266@localhost>
  <20130710055815.a1bd2c1d.billfink@mindspring.com>
+ <20130710220820.GA20666@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
+Content-Type: multipart/mixed; boundary="tThc/1wpZn/ma/RB"
 Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	fw@strlen.de
 To: Bill Fink <billfink@mindspring.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54019 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755360Ab3GJWJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jul 2013 18:09:20 -0400
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130710055815.a1bd2c1d.billfink@mindspring.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20130710220820.GA20666@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
---bg08WKrSYDhXBjb5
+--tThc/1wpZn/ma/RB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
-> Almost there.  With the above patch, I now successfully get
-> IPv6 expectations on the backup firewall.  Unfortunately they're
-> not quite right.  On the backup firewall, the expectation src-IP
-> is the same as the dst-IP (either IPv4 or IPv6).
+On Thu, Jul 11, 2013 at 12:08:20AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
+> > Almost there.  With the above patch, I now successfully get
+> > IPv6 expectations on the backup firewall.  Unfortunately they're
+> > not quite right.  On the backup firewall, the expectation src-IP
+> > is the same as the dst-IP (either IPv4 or IPv6).
+> > 
+> > Primary firewall:
+> > 
+> > [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
+> > 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
+> > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
+> > 
+> > Backup firewall:
+> > 
+> > [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
+> > 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
+> > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
+> > 
+> > This was an unfortunate side affect of the patch to fix the
+> > conntrackd segfault problem.  If I use Florian's version
+> > of the fix segfault patch rather than Pablo's then all is
+> > good.
 > 
-> Primary firewall:
+> Thanks for the information, however, we still need to get working back
+> the filtering support.
 > 
-> [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
+> Could you give a try to the following patch, please?
 > 
-> Backup firewall:
-> 
-> [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> 
-> This was an unfortunate side affect of the patch to fix the
-> conntrackd segfault problem.  If I use Florian's version
-> of the fix segfault patch rather than Pablo's then all is
-> good.
+> It applies on top of conntrack-tools master branch, thanks.
 
-Thanks for the information, however, we still need to get working back
-the filtering support.
+There are still some downsides in the previous solution, please, give
+a try to this patch instead.
 
-Could you give a try to the following patch, please?
+Thanks.
 
-It applies on top of conntrack-tools master branch, thanks.
-
---bg08WKrSYDhXBjb5
+--tThc/1wpZn/ma/RB
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-conntrackd-add-specific-filtering-for-expectations.patch"
+Content-Disposition: attachment; filename="0001-conntrackd-simplify-expectation-filtering.patch"
 
->From 964b9a11a15f27dc4393d07dd9971f65c9fe998c Mon Sep 17 00:00:00 2001
+>From 586382d9a8389ee553db019fd9be14a8a7c0b8ec Mon Sep 17 00:00:00 2001
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 10 Jul 2013 23:35:22 +0200
-Subject: [PATCH] conntrackd: add specific filtering for expectations
+Date: Thu, 11 Jul 2013 00:43:20 +0200
+Subject: [PATCH] conntrackd: simplify expectation filtering
 
-This patch adds exp_filter_conntrack, that allows us to filter expectations
-based on its master conntrack. Previously, the daemon was relying on the
-existing ct_filter_conntrack, however, we cannot use it since the master
-tuple of the expectation has neither reply tuple nor state.
+This patch simplifies the expectation filtering by looking up for the
+master conntrack. If it does not exists, then we assume that we don't
+want this expectation either.
+
+This simplification also fixes the current broken expectation filtering,
+since the master conntrack from expectations has neither reply tuple
+nor state, however, the filtering code assumes the opposite.
 
 This partially reverts (479a37a conntrackd: fix crash with IPv6 expectation
-in the filtering code) as it was incorrectly setting the reply tuple of the
-master conntrack.
+in the filtering code) since it was incorrectly setting the reply tuple
+of the master conntrack.
 
-Reported-by: Bill Fink <billfink@mindspring.com>
+Thanks to Bill Fink for providing feedback to resolve this issue.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/filter.h |    1 +
- src/ctnl.c       |   37 ++++---------
- src/filter.c     |  154 +++++++++++++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 158 insertions(+), 34 deletions(-)
+ include/filter.h      |    1 +
+ include/internal.h    |    1 +
+ src/cache-ct.c        |   11 +++++++++--
+ src/ctnl.c            |   37 +++++++++----------------------------
+ src/filter.c          |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ src/internal_bypass.c |    6 ++++++
+ src/internal_cache.c  |   11 +++++++++++
+ 7 files changed, 82 insertions(+), 30 deletions(-)
 
 diff --git a/include/filter.h b/include/filter.h
-index 3c7c8cc..e1cf671 100644
+index 3c7c8cc..d0acd96 100644
 --- a/include/filter.h
 +++ b/include/filter.h
 @@ -51,6 +51,7 @@ void ct_filter_set_logic(struct ct_filter *f,
  			 enum ct_filter_type type,
  			 enum ct_filter_logic logic);
  int ct_filter_conntrack(const struct nf_conntrack *ct, int userspace);
-+int exp_filter_conntrack(const struct nf_conntrack *master);
++int ct_filter_master(const struct nf_conntrack *master);
  
  struct exp_filter;
  struct nf_expect;
+diff --git a/include/internal.h b/include/internal.h
+index 2ba9714..1a796a7 100644
+--- a/include/internal.h
++++ b/include/internal.h
+@@ -40,6 +40,7 @@ struct internal_handler {
+ 		void	(*new)(struct nf_expect *exp, int origin_type);
+ 		void	(*upd)(struct nf_expect *exp, int origin_type);
+ 		int	(*del)(struct nf_expect *exp, int origin_type);
++		int	(*find)(const struct nf_conntrack *master);
+ 
+ 		void	(*dump)(int fd, int type);
+ 		void	(*populate)(struct nf_expect *exp);
+diff --git a/src/cache-ct.c b/src/cache-ct.c
+index a538215..f86d143 100644
+--- a/src/cache-ct.c
++++ b/src/cache-ct.c
+@@ -88,14 +88,21 @@ cache_ct_hash(const void *data, const struct hashtable *table)
+ 	return ret;
+ }
+ 
++/* master conntrack of expectations have no ID */
++static inline int
++cache_ct_cmp_id(const struct nf_conntrack *ct1, const struct nf_conntrack *ct2)
++{
++	return nfct_attr_is_set(ct2, ATTR_ID) ?
++	       nfct_get_attr_u32(ct1, ATTR_ID) == nfct_get_attr_u32(ct2, ATTR_ID) : 1;
++}
++
+ static int cache_ct_cmp(const void *data1, const void *data2)
+ {
+ 	const struct cache_object *obj = data1;
+ 	const struct nf_conntrack *ct = data2;
+ 
+ 	return nfct_cmp(obj->ptr, ct, NFCT_CMP_ORIG) &&
+-	       nfct_get_attr_u32(obj->ptr, ATTR_ID) ==
+-	       nfct_get_attr_u32(ct, ATTR_ID);
++	       cache_ct_cmp_id(obj->ptr, ct);
+ }
+ 
+ static void *cache_ct_alloc(void)
 diff --git a/src/ctnl.c b/src/ctnl.c
-index 9e1cfa1..c37c38a 100644
+index 9e1cfa1..10b5f4c 100644
 --- a/src/ctnl.c
 +++ b/src/ctnl.c
 @@ -211,35 +211,14 @@ out:
@@ -144,7 +195,7 @@ index 9e1cfa1..c37c38a 100644
  		goto out;
  	}
 -	if (ct_filter_conntrack(master, 1))
-+	if (exp_filter_conntrack(master))
++	if (ct_filter_master(master))
  		return NFCT_CB_CONTINUE;
  
  	origin_type = origin_find(nlh);
@@ -160,7 +211,7 @@ index 9e1cfa1..c37c38a 100644
  		return NFCT_CB_CONTINUE;
  
 -	if (ct_filter_conntrack(master, 1))
-+	if (exp_filter_conntrack(master))
++	if (ct_filter_master(master))
  		return NFCT_CB_CONTINUE;
  
  	switch(type) {
@@ -176,145 +227,26 @@ index 9e1cfa1..c37c38a 100644
  		return NFCT_CB_CONTINUE;
  
 -	if (ct_filter_conntrack(master, 1))
-+	if (exp_filter_conntrack(master))
++	if (ct_filter_master(master))
  		return NFCT_CB_CONTINUE;
  
  	STATE(get_retval) = 1;
 diff --git a/src/filter.c b/src/filter.c
-index e21cfde..c160c1a 100644
+index e21cfde..8fac71b 100644
 --- a/src/filter.c
 +++ b/src/filter.c
-@@ -279,13 +279,10 @@ __ct_filter_test_mask4(const void *ptr, const void *ct)
- 		(elem->ip & elem->mask) == (dst & elem->mask));
- }
- 
--static int
--__ct_filter_test_mask6(const void *ptr, const void *ct)
-+static inline int
-+vector_elem_cmp_ipv6(const struct ct_filter_netmask_ipv6 *elem,
-+		     const uint32_t *src, const uint32_t *dst)
- {
--	const struct ct_filter_netmask_ipv6 *elem = ptr;
--	const uint32_t *src = nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
--	const uint32_t *dst = nfct_get_attr(ct, ATTR_REPL_IPV6_SRC);
--
- 	return (((elem->ip[0] & elem->mask[0]) == (src[0] & elem->mask[0]) &&
- 		 (elem->ip[1] & elem->mask[1]) == (src[1] & elem->mask[1]) &&
- 		 (elem->ip[2] & elem->mask[2]) == (src[2] & elem->mask[2]) &&
-@@ -297,6 +294,16 @@ __ct_filter_test_mask6(const void *ptr, const void *ct)
- }
- 
- static int
-+__ct_filter_test_mask6(const void *ptr, const void *ct)
-+{
-+	const struct ct_filter_netmask_ipv6 *elem = ptr;
-+	const uint32_t *src = nfct_get_attr(ct, ATTR_ORIG_IPV6_SRC);
-+	const uint32_t *dst = nfct_get_attr(ct, ATTR_REPL_IPV6_SRC);
-+
-+	return vector_elem_cmp_ipv6(elem, src, dst);
-+}
-+
-+static int
- __ct_filter_test_state(struct ct_filter *f, const struct nf_conntrack *ct)
- {
- 	uint16_t val = 0;
-@@ -407,6 +414,141 @@ int ct_filter_conntrack(const struct nf_conntrack *ct, int userspace)
+@@ -407,6 +407,51 @@ int ct_filter_conntrack(const struct nf_conntrack *ct, int userspace)
  	return 0;
  }
  
-+static int exp_filter_ipv4(const void *ptr, const void *master)
-+{
-+	const struct ct_filter_netmask_ipv4 *elem = ptr;
-+	const uint32_t src = nfct_get_attr_u32(master, ATTR_IPV4_SRC);
-+	const uint32_t dst = nfct_get_attr_u32(master, ATTR_IPV4_DST);
-+
-+	return ((elem->ip & elem->mask) == (src & elem->mask) ||
-+		(elem->ip & elem->mask) == (dst & elem->mask));
-+}
-+
-+static int exp_filter_ipv6(const void *ptr, const void *master)
-+{
-+	const struct ct_filter_netmask_ipv6 *elem = ptr;
-+	const uint32_t *src = nfct_get_attr(master, ATTR_IPV6_SRC);
-+	const uint32_t *dst = nfct_get_attr(master, ATTR_IPV6_DST);
-+
-+	return vector_elem_cmp_ipv6(elem, src, dst);
-+}
-+
 +static inline int
-+exp_filter_test_ipv4(struct ct_filter *f, const struct nf_conntrack *ct)
++ct_filter_master_sanity_check(const struct nf_conntrack *master)
 +{
-+	int id_src, id_dst;
-+	uint32_t src, dst;
-+
-+	src = nfct_get_attr_u32(ct, ATTR_IPV4_SRC);
-+	dst = nfct_get_attr_u32(ct, ATTR_IPV4_DST);
-+
-+	id_src = hashtable_hash(f->h, &src);
-+	id_dst = hashtable_hash(f->h, &dst);
-+
-+	return hashtable_find(f->h, &src, id_src) ||
-+	       hashtable_find(f->h, &dst, id_dst);
-+}
-+
-+static inline int
-+exp_filter_test_ipv6(struct ct_filter *f, const struct nf_conntrack *ct)
-+{
-+	int id_src, id_dst;
-+	const uint32_t *src, *dst;
-+
-+	src = nfct_get_attr(ct, ATTR_IPV6_SRC);
-+	dst = nfct_get_attr(ct, ATTR_IPV6_DST);
-+
-+	id_src = hashtable_hash(f->h6, src);
-+	id_dst = hashtable_hash(f->h6, dst);
-+
-+	return hashtable_find(f->h6, src, id_src) ||
-+	       hashtable_find(f->h6, dst, id_dst);
-+}
-+
-+static int exp_filter_check(struct ct_filter *f, const struct nf_conntrack *ct)
-+{
-+	int ret, protonum = nfct_get_attr_u8(ct, ATTR_L4PROTO);
-+
-+	/* no event filtering at all */
-+	if (f == NULL)
-+		return 1;
-+
-+	if (f->logic[CT_FILTER_L4PROTO] != -1) {
-+		ret = test_bit_u32(protonum, f->l4protomap);
-+		if (ret ^ f->logic[CT_FILTER_L4PROTO])
-+			return 0;
++	if (master == NULL) {
++		dlog(LOG_ERR, "no master tuple in expectation");
++		return 0;
 +	}
 +
-+	if (f->logic[CT_FILTER_ADDRESS] != -1) {
-+		switch (nfct_get_attr_u8(ct, ATTR_L3PROTO)) {
-+		case AF_INET:
-+			ret = vector_iterate(f->v, ct, exp_filter_ipv4);
-+			if (ret ^ f->logic[CT_FILTER_ADDRESS])
-+				return 0;
-+			ret = exp_filter_test_ipv4(f, ct);
-+			if (ret ^ f->logic[CT_FILTER_ADDRESS])
-+				return 0;
-+			break;
-+		case AF_INET6:
-+			ret = vector_iterate(f->v6, ct, exp_filter_ipv6);
-+			if (ret ^ f->logic[CT_FILTER_ADDRESS])
-+				return 0;
-+			ret = exp_filter_test_ipv6(f, ct);
-+			if (ret ^ f->logic[CT_FILTER_ADDRESS])
-+				return 0;
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	return 1;
-+}
-+
-+static inline int exp_filter_sanity_check(const struct nf_conntrack *master)
-+{
 +	if (!nfct_attr_is_set(master, ATTR_L3PROTO)) {
 +		dlog(LOG_ERR, "missing layer 3 protocol");
 +		return 0;
@@ -325,8 +257,7 @@ index e21cfde..c160c1a 100644
 +		if (!nfct_attr_is_set(master, ATTR_IPV4_SRC) ||
 +		    !nfct_attr_is_set(master, ATTR_IPV4_DST)) {
 +		    	dlog(LOG_ERR, "missing IPv4 address. "
-+				      "You forgot to load "
-+				      "nf_conntrack_ipv4?");
++			     "You forgot to load nf_conntrack_ipv4?");
 +			return 0;
 +		}
 +		break;
@@ -334,8 +265,7 @@ index e21cfde..c160c1a 100644
 +		if (!nfct_attr_is_set(master, ATTR_IPV6_SRC) ||
 +		    !nfct_attr_is_set(master, ATTR_IPV6_DST)) {
 +		    	dlog(LOG_ERR, "missing IPv6 address. "
-+				      "You forgot to load "
-+				      "nf_conntrack_ipv6?");
++			     "You forgot to load nf_conntrack_ipv6?");
 +			return 0;
 +		}
 +		break;
@@ -343,25 +273,73 @@ index e21cfde..c160c1a 100644
 +	return 1;
 +}
 +
-+int exp_filter_conntrack(const struct nf_conntrack *master)
++int ct_filter_master(const struct nf_conntrack *master)
 +{
-+	if (!exp_filter_sanity_check(master))
++	if (!ct_filter_master_sanity_check(master))
 +		return 1;
 +
-+	/* The master tuple of the expectation has neither reply tuple nor
-+	 * state, use specific filtering function for this case.
++	/* Check if we've got a master conntrack for this expectation in our
++	 * caches. If there is not, we don't want this expectation either.
 +	 */
-+	if (!exp_filter_check(STATE(us_filter), master))
-+		return 1;
-+
-+	return 0;
++	return STATE(mode)->internal->exp.find(master) ? 0 : 1;
 +}
 +
  struct exp_filter {
  	struct list_head 	list;
  };
+diff --git a/src/internal_bypass.c b/src/internal_bypass.c
+index 1194339..ce2ae46 100644
+--- a/src/internal_bypass.c
++++ b/src/internal_bypass.c
+@@ -283,6 +283,11 @@ static int internal_bypass_exp_event_del(struct nf_expect *exp, int origin)
+ 	return 1;
+ }
+ 
++static int internal_bypass_exp_master_find(const struct nf_conntrack *master)
++{
++	return nl_get_conntrack(STATE(get), master) == 0;
++}
++
+ struct internal_handler internal_bypass = {
+ 	.init			= internal_bypass_init,
+ 	.close			= internal_bypass_close,
+@@ -309,5 +314,6 @@ struct internal_handler internal_bypass = {
+ 		.new			= internal_bypass_exp_event_new,
+ 		.upd			= internal_bypass_exp_event_upd,
+ 		.del			= internal_bypass_exp_event_del,
++		.find			= internal_bypass_exp_master_find,
+ 	},
+ };
+diff --git a/src/internal_cache.c b/src/internal_cache.c
+index ba2d74b..bad31f3 100644
+--- a/src/internal_cache.c
++++ b/src/internal_cache.c
+@@ -364,6 +364,16 @@ static int internal_cache_exp_event_del(struct nf_expect *exp, int origin)
+ 	return 1;
+ }
+ 
++static int internal_cache_exp_master_find(const struct nf_conntrack *master)
++{
++	struct cache_object *obj;
++	int id;
++
++	obj = cache_find(STATE(mode)->internal->ct.data,
++			 (struct nf_conntrack *)master, &id);
++	return obj ? 1 : 0;
++}
++
+ struct internal_handler internal_cache = {
+ 	.flags			= INTERNAL_F_POPULATE | INTERNAL_F_RESYNC,
+ 	.init			= internal_cache_init,
+@@ -391,5 +401,6 @@ struct internal_handler internal_cache = {
+ 		.new			= internal_cache_exp_event_new,
+ 		.upd			= internal_cache_exp_event_upd,
+ 		.del			= internal_cache_exp_event_del,
++		.find			= internal_cache_exp_master_find,
+ 	},
+ };
 -- 
 1.7.10.4
 
 
---bg08WKrSYDhXBjb5--
+--tThc/1wpZn/ma/RB--
