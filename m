@@ -1,117 +1,40 @@
-From: Dragos Foianu <dragos.foianu@gmail.com>
-Subject: [PATCH] ipvs: fixed style errors and warnings in ip_vs_conn
-Date: Thu, 11 Jul 2013 22:41:35 +0300
-Message-ID: <1373571695-24933-1-git-send-email-dragos.foianu@gmail.com>
-Cc: horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	Dragos Foianu <dragos.foianu@gmail.com>
-To: wensong@linux-vs.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 kernel 16/29] add permanent byte/packet format
+ capability to nfacct
+Date: Thu, 11 Jul 2013 22:12:22 +0200
+Message-ID: <20130711201222.GG27468@breakpoint.cc>
+References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
+ <1373480727-11254-17-git-send-email-michael.zintakis@googlemail.com>
+ <20130710200024.GB27468@breakpoint.cc>
+ <51DEFFDC.3040502@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44926 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754427Ab3GKUM0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Jul 2013 16:12:26 -0400
+Content-Disposition: inline
+In-Reply-To: <51DEFFDC.3040502@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-found with the help of checkpatch.pl
+Michael Zintakis <michael.zintakis@googlemail.com> wrote:
+> Florian Westphal wrote:
+> > Michael Zintakis <michael.zintakis@googlemail.com> wrote:
+> >> * add a 'fmt' variable to each nfacct object, allowing a permanent packets
+> >> and bytes formatting to be stored. The two packet and byte formats are
+> >> independent of each other.
+> > 
+> > Every other in-kernel byte counter (that I can think of) is a plain u64.
+> > 
+> > It might help if you'd explain why this is necessary.
+> This isn't a counter. This field stores the formatting of byte and packet numbers for each accounting object registered with the kernel (8-bits each = 16 bits in total unsigned). If you look at the man page (section FORMAT OPTIONS) it is all explained there - with examples.
 
-Signed-off-by: Dragos Foianu <dragos.foianu@gmail.com>
----
- net/netfilter/ipvs/ip_vs_conn.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+It makes no sense to me.
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 4c8e5c0..4927a52 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -77,8 +77,7 @@ static unsigned int ip_vs_conn_rnd __read_mostly;
- #define CT_LOCKARRAY_SIZE  (1<<CT_LOCKARRAY_BITS)
- #define CT_LOCKARRAY_MASK  (CT_LOCKARRAY_SIZE-1)
- 
--struct ip_vs_aligned_lock
--{
-+struct ip_vs_aligned_lock {
- 	spinlock_t	l;
- } __attribute__((__aligned__(SMP_CACHE_BYTES)));
- 
-@@ -395,7 +394,7 @@ struct ip_vs_conn *ip_vs_ct_in_get(const struct ip_vs_conn_param *p)
- struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
- {
- 	unsigned int hash;
--	struct ip_vs_conn *cp, *ret=NULL;
-+	struct ip_vs_conn *cp, *ret = NULL;
- 
- 	/*
- 	 *	Check for "full" addressed entries
-@@ -680,11 +679,10 @@ static inline void ip_vs_unbind_dest(struct ip_vs_conn *cp)
- 	if (!(cp->flags & IP_VS_CONN_F_TEMPLATE)) {
- 		/* It is a normal connection, so decrease the inactconns
- 		   or activeconns counter */
--		if (cp->flags & IP_VS_CONN_F_INACTIVE) {
-+		if (cp->flags & IP_VS_CONN_F_INACTIVE)
- 			atomic_dec(&dest->inactconns);
--		} else {
-+		else
- 			atomic_dec(&dest->activeconns);
--		}
- 	} else {
- 		/* It is a persistent connection/template, so decrease
- 		   the persistent connection counter */
-@@ -817,7 +815,7 @@ static void ip_vs_conn_expire(unsigned long data)
- 		return;
- 	}
- 
--  expire_later:
-+expire_later:
- 	IP_VS_DBG(7, "delayed: conn->refcnt=%d conn->n_control=%d\n",
- 		  atomic_read(&cp->refcnt),
- 		  atomic_read(&cp->n_control));
-@@ -988,7 +986,7 @@ static void *ip_vs_conn_seq_start(struct seq_file *seq, loff_t *pos)
- 
- 	iter->l = NULL;
- 	rcu_read_lock();
--	return *pos ? ip_vs_conn_array(seq, *pos - 1) :SEQ_START_TOKEN;
-+	return *pos ? ip_vs_conn_array(seq, *pos - 1) : SEQ_START_TOKEN;
- }
- 
- static void *ip_vs_conn_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-@@ -1189,10 +1187,13 @@ static inline int todrop_entry(struct ip_vs_conn *cp)
- 	/* Don't drop the entry if its number of incoming packets is not
- 	   located in [0, 8] */
- 	i = atomic_read(&cp->in_pkts);
--	if (i > 8 || i < 0) return 0;
-+	if (i > 8 || i < 0)
-+		return 0;
- 
--	if (!todrop_rate[i]) return 0;
--	if (--todrop_counter[i] > 0) return 0;
-+	if (!todrop_rate[i])
-+		return 0;
-+	if (--todrop_counter[i] > 0)
-+		return 0;
- 
- 	todrop_counter[i] = todrop_rate[i];
- 	return 1;
-@@ -1218,7 +1219,7 @@ void ip_vs_random_dropentry(struct net *net)
- 			if (!ip_vs_conn_net_eq(cp, net))
- 				continue;
- 			if (cp->protocol == IPPROTO_TCP) {
--				switch(cp->state) {
-+				switch (cp->state) {
- 				case IP_VS_TCP_S_SYN_RECV:
- 				case IP_VS_TCP_S_SYNACK:
- 					break;
-@@ -1357,9 +1358,8 @@ int __init ip_vs_conn_init(void)
- 	for (idx = 0; idx < ip_vs_conn_tab_size; idx++)
- 		INIT_HLIST_HEAD(&ip_vs_conn_tab[idx]);
- 
--	for (idx = 0; idx < CT_LOCKARRAY_SIZE; idx++)  {
-+	for (idx = 0; idx < CT_LOCKARRAY_SIZE; idx++) 
- 		spin_lock_init(&__ip_vs_conntbl_lock_array[idx].l);
--	}
- 
- 	/* calculate the random value for connection hash */
- 	get_random_bytes(&ip_vs_conn_rnd, sizeof(ip_vs_conn_rnd));
--- 
-1.7.10.4
-
+Why should a 'display/representation property' be part of an operating
+system kernel?  It seems completely out of place.
