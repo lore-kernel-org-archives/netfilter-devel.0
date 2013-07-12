@@ -1,74 +1,92 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: xt_socket: fix broken v0 support
-Date: Thu, 11 Jul 2013 19:22:19 -0700
-Message-ID: <1373595739.4600.123.camel@edumazet-glaptop>
+From: Bill Fink <billfink@mindspring.com>
+Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
+ ExpectationSync
+Date: Fri, 12 Jul 2013 03:01:14 -0400
+Message-ID: <20130712030114.0362fb5a.billfink@mindspring.com>
+References: <20130705020312.25783ccd.billfink@mindspring.com>
+	<20130706132333.GA3279@localhost>
+	<20130707030458.fbf22472.billfink@mindspring.com>
+	<20130709013023.2fb1fef1.billfink@mindspring.com>
+	<20130709182223.GA6266@localhost>
+	<20130710055815.a1bd2c1d.billfink@mindspring.com>
+	<20130710220820.GA20666@localhost>
+	<20130711004827.GA5500@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org,
-	Neal Cardwell <ncardwell@google.com>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:37273 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932512Ab3GLCWV (ORCPT
+Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:47415 "EHLO
+	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753240Ab3GLHBW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jul 2013 22:22:21 -0400
+	Fri, 12 Jul 2013 03:01:22 -0400
+In-Reply-To: <20130711004827.GA5500@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+Pablo,
 
-commit 681f130f39e10 ("netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
-flag") added a potential NULL dereference if an old iptables package
-uses v0 of the match.
+On Thu, 11 Jul 2013, Pablo Neira Ayuso wrote:
 
-Fix this by removing the test on @info in fast path.
+> On Thu, Jul 11, 2013 at 12:08:20AM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
+> > > Almost there.  With the above patch, I now successfully get
+> > > IPv6 expectations on the backup firewall.  Unfortunately they're
+> > > not quite right.  On the backup firewall, the expectation src-IP
+> > > is the same as the dst-IP (either IPv4 or IPv6).
+> > > 
+> > > Primary firewall:
+> > > 
+> > > [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
+> > > 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
+> > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
+> > > 
+> > > Backup firewall:
+> > > 
+> > > [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
+> > > 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
+> > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
+> > > 
+> > > This was an unfortunate side affect of the patch to fix the
+> > > conntrackd segfault problem.  If I use Florian's version
+> > > of the fix segfault patch rather than Pablo's then all is
+> > > good.
+> > 
+> > Thanks for the information, however, we still need to get working back
+> > the filtering support.
+> > 
+> > Could you give a try to the following patch, please?
+> > 
+> > It applies on top of conntrack-tools master branch, thanks.
+> 
+> There are still some downsides in the previous solution, please, give
+> a try to this patch instead.
 
-IPv6 can remove the test as well, as it uses v1 or v2.
+It appears to work pretty well and does fix the src-IP issue!
 
-Reported-by: Neal Cardwell <ncardwell@google.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/xt_socket.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+I did notice a couple of other things but they're not necessarily
+related to these patches.  I noticed that my long lived BGP tcp
+connection was getting some duplicate conntrackd ct entries (both
+IPv4 and IPv6).  The duplicate ct entry occurred 60 seconds after
+the original, and once I saw a second duplicate ct IPv4 entry,
+again with about a 60 second separation.
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index f8b7191..20b1591 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -172,7 +172,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 
- 		/* Ignore non-transparent sockets,
- 		   if XT_SOCKET_TRANSPARENT is used */
--		if (info && info->flags & XT_SOCKET_TRANSPARENT)
-+		if (info->flags & XT_SOCKET_TRANSPARENT)
- 			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
- 					inet_sk(sk)->transparent) ||
- 				       (sk->sk_state == TCP_TIME_WAIT &&
-@@ -196,7 +196,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- static bool
- socket_mt4_v0(const struct sk_buff *skb, struct xt_action_param *par)
- {
--	return socket_match(skb, par, NULL);
-+	static struct xt_socket_mtinfo1 xt_info_v0 = {
-+		.flags = 0,
-+	};
-+
-+	return socket_match(skb, par, &xt_info_v0);
- }
- 
- static bool
-@@ -314,7 +318,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 		/* Ignore non-transparent sockets,
- 		   if XT_SOCKET_TRANSPARENT is used */
--		if (info && info->flags & XT_SOCKET_TRANSPARENT)
-+		if (info->flags & XT_SOCKET_TRANSPARENT)
- 			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
- 					inet_sk(sk)->transparent) ||
- 				       (sk->sk_state == TCP_TIME_WAIT &&
+And on the expectation entries, they seem to have a lifetime
+of 300 seconds.  The IPv6 expectation entries are deleted after
+the 300 seconds as expected, but the IPv4 expectation entries
+actually go away in a minute or less.  I don't know if that
+is expected behavior or not.  Note I was leaving the ftp
+control connection open the entire time.  Also it may have
+just been my imagination, but it seemed if I queried it more
+often with "conntrack -L expect" it would stick around somewhat
+longer (but would go away within the minute).
 
+As I mentioned in my previous e-mail, I will be away for the
+weekend.
 
+					-Thanks
+
+					-Bill
