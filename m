@@ -1,92 +1,67 @@
-From: Bill Fink <billfink@mindspring.com>
-Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
- ExpectationSync
-Date: Fri, 12 Jul 2013 03:01:14 -0400
-Message-ID: <20130712030114.0362fb5a.billfink@mindspring.com>
-References: <20130705020312.25783ccd.billfink@mindspring.com>
-	<20130706132333.GA3279@localhost>
-	<20130707030458.fbf22472.billfink@mindspring.com>
-	<20130709013023.2fb1fef1.billfink@mindspring.com>
-	<20130709182223.GA6266@localhost>
-	<20130710055815.a1bd2c1d.billfink@mindspring.com>
-	<20130710220820.GA20666@localhost>
-	<20130711004827.GA5500@localhost>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables-nftables PATCH v2] src: display rule by number
+Date: Fri, 12 Jul 2013 13:27:33 +0200
+Message-ID: <20130712112649.7295.62611.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:47415 "EHLO
-	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753240Ab3GLHBW (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:43766 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932746Ab3GLL1s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Jul 2013 03:01:22 -0400
-In-Reply-To: <20130711004827.GA5500@localhost>
+	Fri, 12 Jul 2013 07:27:48 -0400
+Received: by mail-wi0-f170.google.com with SMTP id ey16so580927wid.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jul 2013 04:27:47 -0700 (PDT)
+Received: from [127.0.0.1] ([46.182.89.220])
+        by mx.google.com with ESMTPSA id s19sm2747592wik.11.2013.07.12.04.27.45
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Fri, 12 Jul 2013 04:27:46 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo,
+This patch fixes the display of rule by number.
 
-On Thu, 11 Jul 2013, Pablo Neira Ayuso wrote:
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+---
+ iptables/nft.c               |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-> On Thu, Jul 11, 2013 at 12:08:20AM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
-> > > Almost there.  With the above patch, I now successfully get
-> > > IPv6 expectations on the backup firewall.  Unfortunately they're
-> > > not quite right.  On the backup firewall, the expectation src-IP
-> > > is the same as the dst-IP (either IPv4 or IPv6).
-> > > 
-> > > Primary firewall:
-> > > 
-> > > [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > 
-> > > Backup firewall:
-> > > 
-> > > [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > 
-> > > This was an unfortunate side affect of the patch to fix the
-> > > conntrackd segfault problem.  If I use Florian's version
-> > > of the fix segfault patch rather than Pablo's then all is
-> > > good.
-> > 
-> > Thanks for the information, however, we still need to get working back
-> > the filtering support.
-> > 
-> > Could you give a try to the following patch, please?
-> > 
-> > It applies on top of conntrack-tools master branch, thanks.
-> 
-> There are still some downsides in the previous solution, please, give
-> a try to this patch instead.
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 98d602c..7ff9c70 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2450,19 +2450,19 @@ __nft_rule_list(struct nft_handle *h, struct nft_chain *c, const char *table,
+ 		    strcmp(chain, rule_chain) != 0)
+ 			goto next;
+ 
+-		if (rulenum > 0) {
++		if (rulenum > 0 && rule_ctr != rulenum) {
+ 			/* List by rule number case */
+-			if (rule_ctr != rulenum) {
+-				rule_ctr++;
+-				goto next;
+-			}
+-		} else {
+-			struct iptables_command_state cs = {};
+-			/* Show all rules case */
+-			nft_rule_to_iptables_command_state(r, &cs);
+-
+-			cb(&cs, r, rule_ctr, format);
++			goto next;
+ 		}
++		
++		struct iptables_command_state cs = {};
++		/* Show all rules case */
++		nft_rule_to_iptables_command_state(r, &cs);
++
++		cb(&cs, r, rule_ctr, format);
++		if (rulenum > 0 && rule_ctr == rulenum)
++			break; 
++
+ next:
+ 		r = nft_rule_list_iter_next(iter);
+ 	}
 
-It appears to work pretty well and does fix the src-IP issue!
-
-I did notice a couple of other things but they're not necessarily
-related to these patches.  I noticed that my long lived BGP tcp
-connection was getting some duplicate conntrackd ct entries (both
-IPv4 and IPv6).  The duplicate ct entry occurred 60 seconds after
-the original, and once I saw a second duplicate ct IPv4 entry,
-again with about a 60 second separation.
-
-And on the expectation entries, they seem to have a lifetime
-of 300 seconds.  The IPv6 expectation entries are deleted after
-the 300 seconds as expected, but the IPv4 expectation entries
-actually go away in a minute or less.  I don't know if that
-is expected behavior or not.  Note I was leaving the ftp
-control connection open the entire time.  Also it may have
-just been my imagination, but it seemed if I queried it more
-often with "conntrack -L expect" it would stick around somewhat
-longer (but would go away within the minute).
-
-As I mentioned in my previous e-mail, I will be away for the
-weekend.
-
-					-Thanks
-
-					-Bill
