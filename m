@@ -1,51 +1,74 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3 kernel 19/29] add byte threshold capability to nfacct
-Date: Thu, 11 Jul 2013 22:25:47 +0200
-Message-ID: <20130711202547.GH27468@breakpoint.cc>
-References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
- <1373480727-11254-20-git-send-email-michael.zintakis@googlemail.com>
- <20130710200053.GC27468@breakpoint.cc>
- <51DEFFE6.5070907@googlemail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] netfilter: xt_socket: fix broken v0 support
+Date: Thu, 11 Jul 2013 19:22:19 -0700
+Message-ID: <1373595739.4600.123.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org,
+	Neal Cardwell <ncardwell@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44953 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755174Ab3GKUZu (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:37273 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932512Ab3GLCWV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jul 2013 16:25:50 -0400
-Content-Disposition: inline
-In-Reply-To: <51DEFFE6.5070907@googlemail.com>
+	Thu, 11 Jul 2013 22:22:21 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Michael Zintakis <michael.zintakis@googlemail.com> wrote:
-> Florian Westphal wrote:
-> > Michael Zintakis <michael.zintakis@googlemail.com> wrote:
-> >> * add a 'bthr' variable to each nfacct object, allowing a bytes 'threshold'
-> >> to be stored and then reported if/when traffic breaches it.
-> > 
-> > Again, why is this needed?
-> > Why is it useful?
-> This is used for measuring traffic "expectancy", i.e. allows one to be able to register what amount of traffic is "expected" to pass through this accounting object. If that traffic threshold is exceeded, this is properly indicated when the accounting object is listed or any statistics for that object are being collected by the nfacct daemon.
-> 
-> That traffic "expectancy" can be set/reset depending on the nature of the traffic or its source/destination etc, so it is pretty flexible. Again, there is extensive information on this in the (revised) man page if you decide to look at it.
+From: Eric Dumazet <edumazet@google.com>
 
-I still don't understand why this needs to be in the kernel.
-nfacct gives you the counters, how these are interpreted (e.g. 'higher
-than expected' should be entirely up to userspace).
+commit 681f130f39e10 ("netfilter: xt_socket: add XT_SOCKET_NOWILDCARD
+flag") added a potential NULL dereference if an old iptables package
+uses v0 of the match.
 
-In case you need some way of reacting to excess counters, then perhaps
-it makes sense to change nfacct match to allow "greater/less than"
-matching expression instead?
+Fix this by removing the test on @info in fast path.
 
-E.g.:
--A bla -m nfacct --nfacct-name bla --nfacct-packets 1000000: -m limit
---limit 1/hour -j NFLOG --nflog-prefix 'bla packet threshold'
+IPv6 can remove the test as well, as it uses v1 or v2.
 
-or something like that?
+Reported-by: Neal Cardwell <ncardwell@google.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/xt_socket.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-There is something similar for the conntrack accounting (-m connbytes).
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index f8b7191..20b1591 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -172,7 +172,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 
+ 		/* Ignore non-transparent sockets,
+ 		   if XT_SOCKET_TRANSPARENT is used */
+-		if (info && info->flags & XT_SOCKET_TRANSPARENT)
++		if (info->flags & XT_SOCKET_TRANSPARENT)
+ 			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
+ 					inet_sk(sk)->transparent) ||
+ 				       (sk->sk_state == TCP_TIME_WAIT &&
+@@ -196,7 +196,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ static bool
+ socket_mt4_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+-	return socket_match(skb, par, NULL);
++	static struct xt_socket_mtinfo1 xt_info_v0 = {
++		.flags = 0,
++	};
++
++	return socket_match(skb, par, &xt_info_v0);
+ }
+ 
+ static bool
+@@ -314,7 +318,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 		/* Ignore non-transparent sockets,
+ 		   if XT_SOCKET_TRANSPARENT is used */
+-		if (info && info->flags & XT_SOCKET_TRANSPARENT)
++		if (info->flags & XT_SOCKET_TRANSPARENT)
+ 			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
+ 					inet_sk(sk)->transparent) ||
+ 				       (sk->sk_state == TCP_TIME_WAIT &&
+
+
