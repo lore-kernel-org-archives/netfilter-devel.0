@@ -1,82 +1,113 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_pkttype: IPv6 has no broadcast
-Date: Mon, 15 Jul 2013 13:16:34 +0200
-Message-ID: <20130715111634.GA20907@localhost>
-References: <20130711190343.GA25293@linuxace.com>
+Subject: Re: [0/29] nfacct changes and additions
+Date: Mon, 15 Jul 2013 14:36:36 +0200
+Message-ID: <20130715123636.GA20949@localhost>
+References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+To: Michael Zintakis <michael.zintakis@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39551 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33377 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755362Ab3GOLQi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jul 2013 07:16:38 -0400
+	id S1755608Ab3GOMgl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jul 2013 08:36:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20130711190343.GA25293@linuxace.com>
+In-Reply-To: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Phil,
+Hi,
 
-On Thu, Jul 11, 2013 at 12:03:43PM -0700, Phil Oester wrote:
-> As stated in RFC 4291:
-> 
->    There are no broadcast addresses in IPv6, their function being
->    superseded by multicast addresses.
-> 
-> As such, the pkttype match should not allow IPv6 rules to be added
-> which attempt to match broadcast packets.  The addrtype match already
-> rejects such attempts.
-> 
-> Phil
-> 
-> Signed-off-by: Phil Oester <kernel@linuxace.com>
-> 
-> 
-> diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
-> index 5b645cb..4c0b0e1 100644
-> --- a/net/netfilter/xt_pkttype.c
-> +++ b/net/netfilter/xt_pkttype.c
-> @@ -42,13 +42,29 @@ pkttype_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  	return (type == info->pkttype) ^ info->invert;
->  }
->  
-> +static int pkttype_mt_checkentry(const struct xt_mtchk_param *par)
-> +{
-> +	const struct xt_pkttype_info *info = par->matchinfo;
-> +
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +	if (par->family == NFPROTO_IPV6) {
-> +		if (info->pkttype == PACKET_BROADCAST) {
-> +			pr_err("IPv6 does not support BROADCAST packets\n");
-> +			return -EINVAL;
-> +		}
-> +	}
+I'm going to review several of your patches from this email to avoid
+spamming the mailing list. I will reply some of them from the original
+mail as my comments need some context.
 
-pkttype is set from the ethernet layer, so it's still possible to
-forge a packet using the ethernet broadcast address on IPv6 (even if
-it's ilegal), we should allow our users to drop that from ip6tables.
+This big batch contains patches for many different things, which is
+not a good practise. Please, split patchsets into logical pieces, and
+send them progressively.
 
-> +#endif
-> +	return 0;
-> +}
-> +
->  static struct xt_match pkttype_mt_reg __read_mostly = {
-> -	.name      = "pkttype",
-> -	.revision  = 0,
-> -	.family    = NFPROTO_UNSPEC,
-> -	.match     = pkttype_mt,
-> -	.matchsize = sizeof(struct xt_pkttype_info),
-> -	.me        = THIS_MODULE,
-> +	.name		= "pkttype",
-> +	.revision	= 0,
-> +	.family		= NFPROTO_UNSPEC,
-> +	.checkentry	= pkttype_mt_checkentry,
-> +	.match		= pkttype_mt,
-> +	.matchsize	= sizeof(struct xt_pkttype_info),
-> +	.me		= THIS_MODULE,
->  };
->  
->  static int __init pkttype_mt_init(void)
+On Wed, Jul 10, 2013 at 07:24:58PM +0100, Michael Zintakis wrote:
+> The following patch set fixes bugs and introduces a variety of new features
+> to the 3 nfacct components: kernel, libnetfilter_acct and nfacct executable.
+> 
+> All of the patches need to be applied in the order specified in this patch
+> set (1-29) as they are interdependent. The full list of bugfixes and
+> features added for each component are:
 
+[kernel 1/29] bugfix: pkts/bytes need to be specified simultaneously
+
+As Florian mentioned, the kernel validates that we don't crash on
+incorrect configurations. We don't care if what you load does not
+makes sense from the user perspective.
+
+[kernel 2/29] bugfix: restore pkts/bytes counters in NLM_F_REPLACE
+
+We already discussed this. You can atomically dump and reset counters
+via the GET command with the NLM_F_DUMP flag set. Restoring counters
+is allowed, but for unused rules. In case the system just started up,
+you have to make sure that counters are restored via nfacct before
+they are used by the rules.
+
+[libnetfilter_acct 3/29] bugfix: correct xml name parsing
+[libnetfilter_acct 4/29] bugfix: correct (plain) name parsing
+
+Will reply to this in a separated email.
+
+[nfacct 5/29] bugfix: prevent 0-sized parameter being accepted
+
+I don't see what situation you're trying to catch with this patch.
+
+[nfacct 6/29] bugfix: prevent 0-sized nfacct name being accepted
+
+We already have a patch to validate this from the kernel, it returns
+-EINVAL.
+
+[nfacct 7/29] code-refactoring changes to the "command menu"
+
+Will reply in separated email.
+
+[nfacct 8/29] add 2 new options: "replace" and "flush"
+[libnetfilter_acct 9/29] add *_SAVE template allowing save/restore
+
+For 8/29 and 9/29, same reply as for 2/29.
+
+[libnetfilter_acct 10/29] add *_BONLY template to show bytes-only
+[libnetfilter_acct 11/29] add variable width and on-the-fly formatting
+[nfacct 12/29] add variable width and on-the-fly number formatting
+[nfacct 13/29] add new "save" and correct existing "restore" commands
+[nfacct 14/29] add sort option to the "list" command
+[nfacct 15/29] add "show bytes" option to "list" and "get" commands
+
+>From 10/29 to 15/29, I will reply to this in separated emails as I
+need the source code context for my comments.
+
+[kernel 16/29] add permanent byte/packet format capability to nfacct
+
+>From 16/29 to 29/29 this requires kernel changes that cannot get
+into mainstream, the arguments you provided to get this mainstream are
+bogus:
+
+* From the memory side, this is adding new fields that are not used in
+  the packet path, they only have a meaning from user-space.
+
+* You mention that it's more secure to put this in the kernel. That's
+  wrong since that provides a false feeling of security: Anyone could
+  write a netlink socket to mangle those counters with your replace
+  feature.
+
+[libnetfilter_acct 17/29] add *permanent* number formatting support
+[nfacct 18/29] add permanent number formatting to nfacct objects
+[kernel 19/29] add byte threshold capability to nfacct
+[libnetfilter_acct 20/29] add byte threshold capability support
+[nfacct 21/29] add byte threshold capabilities to nfacct objects
+[libnetfilter_acct 22/29] add *_EXTENDED template support
+[nfacct 23/29] add "show extended" option to "list" and "get" commands
+[kernel 24/29] add packets and bytes mark capability to nfacct
+[libnetfilter_acct 25/29] add packets/bytes mark capability support
+[nfacct 26/29] add setmark and clrmark to "get" and "list" commands
+[libnetfilter_acct 27/29] add *_MONLY template support
+[nfacct 28/29] add "show marks" option to "list" and "get" commands
+[nfacct 29/29] change man page to describe all new features
+
+Regards.
