@@ -1,893 +1,161 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4/4] doc: merge ip6table man pages into ipv4 ones
-Date: Mon, 15 Jul 2013 00:30:02 +0200
-Message-ID: <1373841002-19071-4-git-send-email-fw@strlen.de>
-References: <1373841002-19071-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHv4] netfilter: nf_tables: add insert operation
+Date: Mon, 15 Jul 2013 12:48:59 +0200
+Message-ID: <20130715104859.GA14071@localhost>
+References: <20130707215644.GA31231@localhost>
+ <1373324177-4991-1-git-send-email-eric@regit.org>
+ <1373324177-4991-2-git-send-email-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50938 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753322Ab3GNWaT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Jul 2013 18:30:19 -0400
-In-Reply-To: <1373841002-19071-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:59401 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754877Ab3GOKtF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jul 2013 06:49:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1373324177-4991-2-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-a couple of improvements to the iptables man page never made it into
-ip6tables version.
 
-The number of differences between these two files is so small that
-it seems preferable to alias the ipv6 man pages to their ipv4 counterpart
-and change iptables man page to specifically document differences
-(e.g. lack of ip6tables -f, etc).
+Hi Eric,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Originally I started moving all improvements into ip6tables man
- pages but they are so similar that its much simpler to just merge them.
+On Tue, Jul 09, 2013 at 12:56:17AM +0200, Eric Leblond wrote:
+> This patch adds a new rule attribute NFTA_RULE_POSITION which is
+> used to store the position of a rule relatively to the others.
+> By providing a create command and specifying a position, the rule is
+> inserted after the rule with the handle equal to the provided
+> position.
+> Regarding notification, the position attribute is added to specify
+> the handle of the previous rule in append mode and the handle of
+> the next rule in the other case.
+> 
+> Signed-off-by: Eric Leblond <eric@regit.org>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  1 +
+>  net/netfilter/nf_tables_api.c            | 46 +++++++++++++++++++++++++++++---
+>  2 files changed, 43 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index d40a7f9..d9bf8ea 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -143,6 +143,7 @@ enum nft_rule_attributes {
+>  	NFTA_RULE_EXPRESSIONS,
+>  	NFTA_RULE_FLAGS,
+>  	NFTA_RULE_COMPAT,
+> +	NFTA_RULE_POSITION,
+>  	__NFTA_RULE_MAX
+>  };
+>  #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index b00aca8..012eb1f 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+>  	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
+>  	[NFTA_RULE_FLAGS]	= { .type = NLA_U32 },
+>  	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
+> +	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
+>  };
+>  
+>  static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+> @@ -1279,6 +1280,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+>  	struct nfgenmsg *nfmsg;
+>  	const struct nft_expr *expr, *next;
+>  	struct nlattr *list;
+> +	const struct nft_rule *prule;
+>  
+>  	event |= NFNL_SUBSYS_NFTABLES << 8;
+>  	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
+> @@ -1298,6 +1300,26 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+>  	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
+>  		goto nla_put_failure;
+>  
+> +	if (flags & NLM_F_APPEND) {
+> +		if ((event != NFT_MSG_DELRULE) &&
+> +		    (rule->list.prev != &chain->rules)) {
+> +			prule = list_entry(rule->list.prev,
+> +					   struct nft_rule, list);
+> +			if (nla_put_be64(skb, NFTA_RULE_POSITION,
+> +					 cpu_to_be64(prule->handle)))
+> +				goto nla_put_failure;
+> +		}
 
- iptables/.gitignore          |   1 -
- iptables/Makefile.am         |   3 -
- iptables/ip6tables-restore.8 |  69 +------
- iptables/ip6tables-save.8    |  54 +----
- iptables/ip6tables.8         |   1 +
- iptables/ip6tables.8.in      | 456 -------------------------------------------
- iptables/iptables-restore.8  |  22 ++-
- iptables/iptables-save.8     |  15 +-
- iptables/iptables.8.in       |  40 ++--
- 9 files changed, 58 insertions(+), 603 deletions(-)
- create mode 100644 iptables/ip6tables.8
- delete mode 100644 iptables/ip6tables.8.in
+This looks good but I think we can simplify this to always use .prev.
 
-diff --git a/iptables/.gitignore b/iptables/.gitignore
-index 4fc63aa..4c815f5 100644
---- a/iptables/.gitignore
-+++ b/iptables/.gitignore
-@@ -1,5 +1,4 @@
- /ip6tables
--/ip6tables.8
- /ip6tables-save
- /ip6tables-restore
- /ip6tables-static
-diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index 61e78db..77dfd22 100644
---- a/iptables/Makefile.am
-+++ b/iptables/Makefile.am
-@@ -41,9 +41,6 @@ endif
- iptables.8: ${srcdir}/iptables.8.in
- 	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' $< >$@;
- 
--ip6tables.8: ${srcdir}/ip6tables.8.in
--	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' $< >$@;
--
- iptables-extensions.8: ${srcdir}/iptables-extensions.8.in ../extensions/matches.man ../extensions/targets.man
- 	${AM_VERBOSE_GEN} sed -e \
- 		's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' \
-diff --git a/iptables/ip6tables-restore.8 b/iptables/ip6tables-restore.8
-index dbe19da..cf4ea3e 100644
---- a/iptables/ip6tables-restore.8
-+++ b/iptables/ip6tables-restore.8
-@@ -1,68 +1 @@
--.TH IP6TABLES-RESTORE 8 "Jan 30, 2002" "" ""
--.\"
--.\" Man page written by Harald Welte <laforge@gnumonks.org>
--.\" It is based on the iptables man page.
--.\"
--.\"	This program is free software; you can redistribute it and/or modify
--.\"	it under the terms of the GNU General Public License as published by
--.\"	the Free Software Foundation; either version 2 of the License, or
--.\"	(at your option) any later version.
--.\"
--.\"	This program is distributed in the hope that it will be useful,
--.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
--.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--.\"	GNU General Public License for more details.
--.\"
--.\"	You should have received a copy of the GNU General Public License
--.\"	along with this program; if not, write to the Free Software
--.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--.\"
--.\"
--.SH NAME
--ip6tables-restore \(em Restore IPv6 Tables
--.SH SYNOPSIS
--\fBip6tables\-restore\fP [\fB\-chntv\fP] [\fB\-M\fP \fImodprobe\fP]
--[\fB\-T\fP \fIname\fP]
--.SH DESCRIPTION
--.PP
--.B ip6tables-restore
--is used to restore IPv6 Tables from data specified on STDIN. Use 
--I/O redirection provided by your shell to read from a file
--.TP
--\fB\-c\fR, \fB\-\-counters\fR
--restore the values of all packet and byte counters
--.TP
--\fB\-h\fP, \fB\-\-help\fP
--Print a short option summary.
--.TP
--\fB\-n\fR, \fB\-\-noflush\fR 
--don't flush the previous contents of the table. If not specified,
--\fBip6tables-restore\fP flushes (deletes) all previous contents of the
--respective table.
--.TP
--\fB\-t\fP, \fB\-\-test\fP
--Only parse and construct the ruleset, but do not commit it.
--.TP
--\fB\-v\fP, \fB\-\-verbose\fP
--Print additional debug info during ruleset processing.
--.TP
--\fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
--Specify the path to the modprobe program. By default, ip6tables-restore will
--inspect /proc/sys/kernel/modprobe to determine the executable's path.
--.TP
--\fB\-T\fP, \fB\-\-table\fP \fIname\fP
--Restore only the named table even if the input stream contains other ones.
--.B ip6tables-restore
--flushes (deletes) all previous contents of the respective IPv6 Table.
--.SH BUGS
--None known as of iptables-1.2.1 release
--.SH AUTHORS
--Harald Welte <laforge@gnumonks.org>
--.br
--Andras Kis-Szabo <kisza@sch.bme.hu>
--.SH SEE ALSO
--\fBip6tables\-save\fP(8), \fBip6tables\fP(8)
--.PP
--The iptables-HOWTO, which details more iptables usage, the NAT-HOWTO,
--which details NAT, and the netfilter-hacking-HOWTO which details the
--internals.
-+.so man8/iptables-restore.8
-diff --git a/iptables/ip6tables-save.8 b/iptables/ip6tables-save.8
-index 457be82..182f55c 100644
---- a/iptables/ip6tables-save.8
-+++ b/iptables/ip6tables-save.8
-@@ -1,53 +1 @@
--.TH IP6TABLES-SAVE 8 "Jan 30, 2002" "" ""
--.\"
--.\" Man page written by Harald Welte <laforge@gnumonks.org>
--.\" It is based on the iptables man page.
--.\"
--.\"	This program is free software; you can redistribute it and/or modify
--.\"	it under the terms of the GNU General Public License as published by
--.\"	the Free Software Foundation; either version 2 of the License, or
--.\"	(at your option) any later version.
--.\"
--.\"	This program is distributed in the hope that it will be useful,
--.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
--.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--.\"	GNU General Public License for more details.
--.\"
--.\"	You should have received a copy of the GNU General Public License
--.\"	along with this program; if not, write to the Free Software
--.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--.\"
--.\"
--.SH NAME
--ip6tables-save \(em dump iptables rules to stdout
--.SH SYNOPSIS
--\fBip6tables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
--[\fB\-t\fP \fItable\fP
--.SH DESCRIPTION
--.PP
--.B ip6tables-save
--is used to dump the contents of an IPv6 Table in easily parseable format
--to STDOUT. Use I/O-redirection provided by your shell to write to a file.
--.TP
--\fB\-M\fP \fImodprobe_program\fP
--Specify the path to the modprobe program. By default, iptables-save will
--inspect /proc/sys/kernel/modprobe to determine the executable's path.
--.TP
--\fB\-c\fR, \fB\-\-counters\fR
--include the current values of all packet and byte counters in the output
--.TP
--\fB\-t\fR, \fB\-\-table\fR \fItablename\fP
--restrict output to only one table. If not specified, output includes all
--available tables.
--.SH BUGS
--None known as of iptables-1.2.1 release
--.SH AUTHORS
--Harald Welte <laforge@gnumonks.org>
--.br
--Andras Kis-Szabo <kisza@sch.bme.hu>
--.SH SEE ALSO
--\fBip6tables\-restore\fP(8), \fBip6tables\fP(8)
--.PP
--The iptables-HOWTO, which details more iptables usage, the NAT-HOWTO,
--which details NAT, and the netfilter-hacking-HOWTO which details the
--internals.
-+.so man8/iptables-save.8
-diff --git a/iptables/ip6tables.8 b/iptables/ip6tables.8
-new file mode 100644
-index 0000000..0dee41a
---- /dev/null
-+++ b/iptables/ip6tables.8
-@@ -0,0 +1 @@
-+.so man8/iptables.8
-diff --git a/iptables/ip6tables.8.in b/iptables/ip6tables.8.in
-deleted file mode 100644
-index 8634854..0000000
---- a/iptables/ip6tables.8.in
-+++ /dev/null
-@@ -1,456 +0,0 @@
--.TH IP6TABLES 8 "" "@PACKAGE_AND_VERSION@" "@PACKAGE_AND_VERSION@"
--.\"
--.\" Man page written by Andras Kis-Szabo <kisza@sch.bme.hu>
--.\" It is based on iptables man page.
--.\"
--.\" iptables page by Herve Eychenne <rv@wallfire.org>
--.\" It is based on ipchains man page.
--.\"
--.\" ipchains page by Paul ``Rusty'' Russell March 1997
--.\" Based on the original ipfwadm man page by Jos Vos <jos@xos.nl>
--.\"
--.\"	This program is free software; you can redistribute it and/or modify
--.\"	it under the terms of the GNU General Public License as published by
--.\"	the Free Software Foundation; either version 2 of the License, or
--.\"	(at your option) any later version.
--.\"
--.\"	This program is distributed in the hope that it will be useful,
--.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
--.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--.\"	GNU General Public License for more details.
--.\"
--.\"	You should have received a copy of the GNU General Public License
--.\"	along with this program; if not, write to the Free Software
--.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--.\"
--.\"
--.SH NAME
--ip6tables \(em IPv6 packet filter administration
--.SH SYNOPSIS
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP}
--\fIchain rule-specification\fP [\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-I\fP \fIchain\fP [\fIrulenum\fP]
--\fIrule-specification\fP [\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-R\fP \fIchain rulenum
--rule-specification\fP [\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-D\fP \fIchain rulenum\fP
--[\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-S\fP [\fIchain\fP [\fIrulenum\fP]]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] {\fB\-F\fP|\fB\-L\fP|\fB\-Z\fP}
--[\fIchain\fP [\fIrulenum\fP]] [\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-N\fP \fIchain\fP
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-X\fP [\fIchain\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-P\fP \fIchain target\fP
--[\fIoptions...\fP]
--.PP
--\fBip6tables\fP [\fB\-t\fP \fItable\fP] \fB\-E\fP \fIold-chain-name new-chain-name\fP
--.SH DESCRIPTION
--\fBIp6tables\fP is used to set up, maintain, and inspect the
--tables of IPv6 packet
--filter rules in the Linux kernel.  Several different tables
--may be defined.  Each table contains a number of built-in
--chains and may also contain user-defined chains.
--.PP
--Each chain is a list of rules which can match a set of packets.  Each
--rule specifies what to do with a packet that matches.  This is called
--a `target', which may be a jump to a user-defined chain in the same
--table.
--.SH TARGETS
--A firewall rule specifies criteria for a packet and a target.  If the
--packet does not match, the next rule in the chain is the examined; if
--it does match, then the next rule is specified by the value of the
--target, which can be the name of a user-defined chain or one of the
--special values \fBACCEPT\fP, \fBDROP\fP, \fBQUEUE\fP or \fBRETURN\fP.
--.PP
--\fBACCEPT\fP means to let the packet through.
--\fBDROP\fP means to drop the packet on the floor.
--\fBQUEUE\fP means to pass the packet to userspace.
--(How the packet can be received
--by a userspace process differs by the particular queue handler.  2.4.x
--and 2.6.x kernels up to 2.6.13 include the \fBip_queue\fP
--queue handler.  Kernels 2.6.14 and later additionally include the
--\fBnfnetlink_queue\fP queue handler.  Packets with a target of QUEUE will be
--sent to queue number '0' in this case. Please also see the \fBNFQUEUE\fP
--target as described later in this man page.)
--\fBRETURN\fP means stop traversing this chain and resume at the next
--rule in the
--previous (calling) chain.  If the end of a built-in chain is reached
--or a rule in a built-in chain with target \fBRETURN\fP
--is matched, the target specified by the chain policy determines the
--fate of the packet.
--.SH TABLES
--There are currently five independent tables (which tables are present
--at any time depends on the kernel configuration options and which
--modules are present).
--.TP
--\fB\-t\fP, \fB\-\-table\fP \fItable\fP
--This option specifies the packet matching table which the command
--should operate on.  If the kernel is configured with automatic module
--loading, an attempt will be made to load the appropriate module for
--that table if it is not already there.
--
--The tables are as follows:
--.RS
--.TP .4i
--\fBfilter\fP:
--This is the default table (if no \-t option is passed). It contains
--the built-in chains \fBINPUT\fP (for packets destined to local sockets),
--\fBFORWARD\fP (for packets being routed through the box), and
--\fBOUTPUT\fP (for locally-generated packets).
--.TP
--\fBnat\fP:
--This table is consulted when a packet that creates a new
--connection is encountered.  It consists of three built-ins: \fBPREROUTING\fP
--(for altering packets as soon as they come in), \fBOUTPUT\fP
--(for altering locally-generated packets before routing), and \fBPOSTROUTING\fP
--(for altering packets as they are about to go out). Available since kernel 3.7.
--.TP
--\fBmangle\fP:
--This table is used for specialized packet alteration.  Until kernel
--2.4.17 it had two built-in chains: \fBPREROUTING\fP
--(for altering incoming packets before routing) and \fBOUTPUT\fP
--(for altering locally-generated packets before routing).
--Since kernel 2.4.18, three other built-in chains are also supported:
--\fBINPUT\fP (for packets coming into the box itself), \fBFORWARD\fP
--(for altering packets being routed through the box), and \fBPOSTROUTING\fP
--(for altering packets as they are about to go out).
--.TP
--\fBraw\fP:
--This table is used mainly for configuring exemptions from connection
--tracking in combination with the NOTRACK target.  It registers at the netfilter
--hooks with higher priority and is thus called before ip_conntrack, or any other
--IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
--(for packets arriving via any network interface) \fBOUTPUT\fP
--(for packets generated by local processes)
--.TP
--\fBsecurity\fP:
--This table is used for Mandatory Access Control (MAC) networking rules, such
--as those enabled by the \fBSECMARK\fP and \fBCONNSECMARK\fP targets.
--Mandatory Access Control is implemented by Linux Security Modules such as
--SELinux.  The security table is called after the filter table, allowing any
--Discretionary Access Control (DAC) rules in the filter table to take effect
--before MAC rules.  This table provides the following built-in chains:
--\fBINPUT\fP (for packets coming into the box itself),
--\fBOUTPUT\fP (for altering locally-generated packets before routing), and
--\fBFORWARD\fP (for altering packets being routed through the box).
--.RE
--.SH OPTIONS
--The options that are recognized by
--\fBip6tables\fP can be divided into several different groups.
--.SS COMMANDS
--These options specify the specific action to perform.  Only one of them
--can be specified on the command line unless otherwise specified
--below.  For all the long versions of the command and option names, you
--need to use only enough letters to ensure that
--\fBip6tables\fP can differentiate it from all other options.
--.TP
--\fB\-A\fP, \fB\-\-append\fP \fIchain rule-specification\fP
--Append one or more rules to the end of the selected chain.
--When the source and/or destination names resolve to more than one
--address, a rule will be added for each possible address combination.
--.TP
--\fB\-C\fP, \fB\-\-check\fP \fIchain rule-specification\fP
--Check whether a rule matching the specification does exist in the
--selected chain. This command uses the same logic as \fB\-D\fP to
--find a matching entry, but does not alter the existing iptables
--configuration and uses its exit code to indicate success or failure.
--.TP
--\fB\-D\fP, \fB\-\-delete\fP \fIchain rule-specification\fP
--.ns
--.TP
--\fB\-D\fP, \fB\-\-delete\fP \fIchain rulenum\fP
--Delete one or more rules from the selected chain.  There are two
--versions of this command: the rule can be specified as a number in the
--chain (starting at 1 for the first rule) or a rule to match.
--.TP
--\fB\-I\fP, \fB\-\-insert\fP \fIchain\fP [\fIrulenum\fP] \fIrule-specification\fP
--Insert one or more rules in the selected chain as the given rule
--number.  So, if the rule number is 1, the rule or rules are inserted
--at the head of the chain.  This is also the default if no rule number
--is specified.
--.TP
--\fB\-R\fP, \fB\-\-replace\fP \fIchain rulenum rule-specification\fP
--Replace a rule in the selected chain.  If the source and/or
--destination names resolve to multiple addresses, the command will
--fail.  Rules are numbered starting at 1.
--.TP
--\fB\-L\fP, \fB\-\-list\fP [\fIchain\fP]
--List all rules in the selected chain.  If no chain is selected, all
--chains are listed. Like every other ip6tables command, it applies to the
--specified table (filter is the default).
--.IP ""
--Please note that it is often used with the \fB\-n\fP
--option, in order to avoid long reverse DNS lookups.
--It is legal to specify the \fB\-Z\fP
--(zero) option as well, in which case the chain(s) will be atomically
--listed and zeroed.  The exact output is affected by the other
--arguments given. The exact rules are suppressed until you use
--.nf
-- ip6tables \-L \-v
--.fi
--.TP
--\fB\-S\fP, \fB\-\-list\-rules\fP [\fIchain\fP]
--Print all rules in the selected chain.  If no chain is selected, all
--chains are printed like ip6tables-save. Like every other ip6tables command,
--it applies to the specified table (filter is the default).
--.TP
--\fB\-F\fP, \fB\-\-flush\fP [\fIchain\fP]
--Flush the selected chain (all the chains in the table if none is given).
--This is equivalent to deleting all the rules one by one.
--.TP
--\fB\-Z\fP, \fB\-\-zero\fP [\fIchain\fP [\fIrulenum\fP]]
--Zero the packet and byte counters in all chains, or only the given chain,
--or only the given rule in a chain. It is legal to
--specify the
--\fB\-L\fP, \fB\-\-list\fP
--(list) option as well, to see the counters immediately before they are
--cleared. (See above.)
--.TP
--\fB\-N\fP, \fB\-\-new\-chain\fP \fIchain\fP
--Create a new user-defined chain by the given name.  There must be no
--target of that name already.
--.TP
--\fB\-X\fP, \fB\-\-delete\-chain\fP [\fIchain\fP]
--Delete the optional user-defined chain specified.  There must be no references
--to the chain.  If there are, you must delete or replace the referring rules
--before the chain can be deleted.  The chain must be empty, i.e. not contain
--any rules.  If no argument is given, it will attempt to delete every
--non-builtin chain in the table.
--.TP
--\fB\-P\fP, \fB\-\-policy\fP \fIchain target\fP
--Set the policy for the chain to the given target.  See the section \fBTARGETS\fP
--for the legal targets.  Only built-in (non-user-defined) chains can have
--policies, and neither built-in nor user-defined chains can be policy
--targets.
--.TP
--\fB\-E\fP, \fB\-\-rename\-chain\fP \fIold\-chain new\-chain\fP
--Rename the user specified chain to the user supplied name.  This is
--cosmetic, and has no effect on the structure of the table.
--.TP
--\fB\-A\fP, \fB\-\-append\fP \fIchain rule-specification\fP
--Append one or more rules to the end of the selected chain.
--When the source and/or destination names resolve to more than one
--address, a rule will be added for each possible address combination.
--.TP
--\fB\-h\fP
--Help.
--Give a (currently very brief) description of the command syntax.
--.SS PARAMETERS
--The following parameters make up a rule specification (as used in the
--add, delete, insert, replace and append commands).
--.TP
--\fB\-4\fP, \fB\-\-ipv4\fP
--If a rule using the \fB\-4\fP option is inserted with (and only with)
--ip6tables-restore, it will be silently ignored. Any other uses will throw an
--error. This option allows to put both IPv4 and IPv6 rules in a single rule file
--for use with both iptables-restore and ip6tables-restore.
--.TP
--\fB\-6\fP, \fB\-\-ipv6\fP
--This option has no effect in ip6tables and ip6tables-restore.
--.TP
--[\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
--The protocol of the rule or of the packet to check.
--The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
--\fBicmpv6\fP, \fBesp\fP, \fBmh\fP or the special keyword "\fBall\fP",
--or it can be a numeric value, representing one of these protocols or a
--different one. A protocol name from /etc/protocols is also allowed.
--But IPv6 extension headers except \fBesp\fP are not allowed.
--\fBesp\fP and \fBipv6\-nonext\fP
--can be used with Kernel version 2.6.11 or later.
--A "!" argument before the protocol inverts the
--test.  The number zero is equivalent to \fBall\fP, which means that you cannot
--test the protocol field for the value 0 directly. To match on a HBH header,
--even if it were the last, you cannot use \fB\-p 0\fP, but always need
--\fB\-m hbh\fP.
--"\fBall\fP"
--will match with all protocols and is taken as default when this
--option is omitted.
--.TP
--[\fB!\fP] \fB\-s\fP, \fB\-\-source\fP \fIaddress\fP[\fB/\fP\fImask\fP]
--Source specification.
--\fIAddress\fP can be either be a hostname,
--a network IP address (with \fB/\fP\fImask\fP), or a plain IP address.
--Names will be resolved once only, before the rule is submitted to the kernel.
--Please note that specifying any name to be resolved with a remote query such as
--DNS is a really bad idea.
--(Resolving network names is not supported at this time.)
--The \fImask\fP is a plain number,
--specifying the number of 1's at the left side of the network mask.
--A "!" argument before the address specification inverts the sense of
--the address. The flag \fB\-\-src\fP
--is an alias for this option.
--Multiple addresses can be specified, but this will \fBexpand to multiple
--rules\fP (when adding with \-A), or will cause multiple rules to be
--deleted (with \-D).
--.TP
--[\fB!\fP] \fB\-d\fP, \fB\-\-destination\fP \fIaddress\fP[\fB/\fP\fImask\fP]
--Destination specification. 
--See the description of the \fB\-s\fP
--(source) flag for a detailed description of the syntax.  The flag
--\fB\-\-dst\fP is an alias for this option.
--.TP
--\fB\-m\fP, \fB\-\-match\fP \fImatch\fP
--Specifies a match to use, that is, an extension module that tests for a
--specific property. The set of matches make up the condition under which a
--target is invoked. Matches are evaluated first to last as specified on the
--command line and work in short-circuit fashion, i.e. if one extension yields
--false, evaluation will stop.
--.TP
--\fB\-j\fP, \fB\-\-jump\fP \fItarget\fP
--This specifies the target of the rule; i.e., what to do if the packet
--matches it.  The target can be a user-defined chain (other than the
--one this rule is in), one of the special builtin targets which decide
--the fate of the packet immediately, or an extension (see \fBEXTENSIONS\fP
--below).  If this
--option is omitted in a rule (and \fB\-g\fP
--is not used), then matching the rule will have no
--effect on the packet's fate, but the counters on the rule will be
--incremented.
--.TP
--\fB\-g\fP, \fB\-\-goto\fP \fIchain\fP
--This specifies that the processing should continue in a user
--specified chain. Unlike the \-\-jump option return will not continue
--processing in this chain but instead in the chain that called us via
--\-\-jump.
--.TP
--[\fB!\fP] \fB\-i\fP, \fB\-\-in\-interface\fP \fIname\fP
--Name of an interface via which a packet was received (only for
--packets entering the \fBINPUT\fP, \fBFORWARD\fP and \fBPREROUTING\fP
--chains).  When the "!" argument is used before the interface name, the
--sense is inverted.  If the interface name ends in a "+", then any
--interface which begins with this name will match.  If this option is
--omitted, any interface name will match.
--.TP
--[\fB!\fP] \fB\-o\fP, \fB\-\-out\-interface\fP \fIname\fP
--Name of an interface via which a packet is going to be sent (for packets
--entering the \fBFORWARD\fP, \fBOUTPUT\fP and \fBPOSTROUTING\fP
--chains).  When the "!" argument is used before the interface name, the
--sense is inverted.  If the interface name ends in a "+", then any
--interface which begins with this name will match.  If this option is
--omitted, any interface name will match.
--.\" Currently not supported (header-based)
--.\" .TP
--.\" [\fB!\fP] \fB\-f\fP, \fB\-\-fragment\fP
--.\" This means that the rule only refers to second and further fragments
--.\" of fragmented packets.  Since there is no way to tell the source or
--.\" destination ports of such a packet (or ICMP type), such a packet will
--.\" not match any rules which specify them.  When the "!" argument
--.\" precedes the "\-f" flag, the rule will only match head fragments, or
--.\" unfragmented packets.
--.TP
--\fB\-c\fP, \fB\-\-set\-counters\fP \fIpackets bytes\fP
--This enables the administrator to initialize the packet and byte
--counters of a rule (during \fBINSERT\fP, \fBAPPEND\fP, \fBREPLACE\fP
--operations).
--.SS "OTHER OPTIONS"
--The following additional options can be specified:
--.TP
--\fB\-v\fP, \fB\-\-verbose\fP
--Verbose output.  This option makes the list command show the interface
--name, the rule options (if any), and the TOS masks.  The packet and
--byte counters are also listed, with the suffix 'K', 'M' or 'G' for
--1000, 1,000,000 and 1,000,000,000 multipliers respectively (but see
--the \fB\-x\fP flag to change this).
--For appending, insertion, deletion and replacement, this causes
--detailed information on the rule or rules to be printed. \fB\-v\fP may be
--specified multiple times to possibly emit more detailed debug statements.
--.TP
--\fB\-n\fP, \fB\-\-numeric\fP
--Numeric output.
--IP addresses and port numbers will be printed in numeric format.
--By default, the program will try to display them as host names,
--network names, or services (whenever applicable).
--.TP
--\fB\-x\fP, \fB\-\-exact\fP
--Expand numbers.
--Display the exact value of the packet and byte counters,
--instead of only the rounded number in K's (multiples of 1000)
--M's (multiples of 1000K) or G's (multiples of 1000M).  This option is
--only relevant for the \fB\-L\fP command.
--.TP
--\fB\-\-line\-numbers\fP
--When listing rules, add line numbers to the beginning of each rule,
--corresponding to that rule's position in the chain.
--.TP
--\fB\-\-modprobe=\fP\fIcommand\fP
--When adding or inserting rules into a chain, use \fIcommand\fP
--to load any necessary modules (targets, match extensions, etc).
--.SH MATCH EXTENSIONS
--.PP
--iptables can use extended packet matching and target modules.
--A list of these is available in the \fBiptables\-extensions\fP(8) manpage.
--.SH DIAGNOSTICS
--Various error messages are printed to standard error.  The exit code
--is 0 for correct functioning.  Errors which appear to be caused by
--invalid or abused command line parameters cause an exit code of 2, and
--other errors cause an exit code of 1.
--.SH BUGS
--Bugs?  What's this? ;-)
--Well... the counters are not reliable on sparc64.
--.SH COMPATIBILITY WITH IPCHAINS
--This \fBip6tables\fP
--is very similar to ipchains by Rusty Russell.  The main difference is
--that the chains \fBINPUT\fP and \fBOUTPUT\fP
--are only traversed for packets coming into the local host and
--originating from the local host respectively.  Hence every packet only
--passes through one of the three chains (except loopback traffic, which
--involves both INPUT and OUTPUT chains); previously a forwarded packet
--would pass through all three.
--.PP
--The other main difference is that \fB\-i\fP refers to the input interface;
--\fB\-o\fP refers to the output interface, and both are available for packets
--entering the \fBFORWARD\fP chain.
--There are several other changes in ip6tables.
--.SH SEE ALSO
--\fBip6tables\-save\fP(8),
--\fBip6tables\-restore\fP(8),
--\fBiptables\fP(8),
--\fBiptables\-apply\fP(8),
--\fBiptables\-extensions\fP(8),
--\fBiptables\-save\fP(8),
--\fBiptables\-restore\fP(8),
--\fBlibipq\fP(3).
--.PP
--The packet-filtering-HOWTO details iptables usage for
--packet filtering,
--the netfilter-extensions-HOWTO details the extensions that are
--not in the standard distribution,
--and the netfilter-hacking-HOWTO details the netfilter internals.
--.br
--See
--.BR "http://www.netfilter.org/" .
--.SH AUTHORS
--Rusty Russell wrote iptables, in early consultation with Michael
--Neuling.
--.PP
--Marc Boucher made Rusty abandon ipnatctl by lobbying for a generic packet
--selection framework in iptables, then wrote the mangle table, the owner match,
--the mark stuff, and ran around doing cool stuff everywhere.
--.PP
--James Morris wrote the TOS target, and tos match.
--.PP
--Jozsef Kadlecsik wrote the REJECT target.
--.PP
--Harald Welte wrote the ULOG and NFQUEUE target, the new libiptc, as well as TTL match+target and libipulog.
--.PP
--The Netfilter Core Team is: Marc Boucher, Martin Josefsson, Yasuyuki Kozakai,
--Jozsef Kadlecsik, Patrick McHardy, James Morris, Pablo Neira Ayuso,
--Harald Welte and Rusty Russell.
--.PP
--ip6tables man page created by Andras Kis-Szabo, based on
--iptables man page written by Herve Eychenne <rv@wallfire.org>.
--.\" .. and did I mention that we are incredibly cool people?
--.\" .. sexy, too ..
--.\" .. witty, charming, powerful ..
--.\" .. and most of all, modest ..
--.SH VERSION
--.PP
--This manual page applies to ip6tables @PACKAGE_VERSION@.
-diff --git a/iptables/iptables-restore.8 b/iptables/iptables-restore.8
-index 2b1d102..8567147 100644
---- a/iptables/iptables-restore.8
-+++ b/iptables/iptables-restore.8
-@@ -20,13 +20,19 @@
- .\"
- .SH NAME
- iptables-restore \(em Restore IP Tables
-+.P
-+ip6tables-restore \(em Restore IPv6 Tables
- .SH SYNOPSIS
- \fBiptables\-restore\fP [\fB\-chntv\fP] [\fB\-M\fP \fImodprobe\fP]
-+.P
-+\fBip6tables\-restore\fP [\fB\-chntv\fP] [\fB\-M\fP \fImodprobe\fP]
- [\fB\-T\fP \fIname\fP]
- .SH DESCRIPTION
- .PP
- .B iptables-restore
--is used to restore IP Tables from data specified on STDIN. Use 
-+and
-+.B ip6tables-restore
-+are used to restore IP and IPv6 Tables from data specified on STDIN. Use
- I/O redirection provided by your shell to read from a file
- .TP
- \fB\-c\fR, \fB\-\-counters\fR
-@@ -35,10 +41,9 @@ restore the values of all packet and byte counters
- \fB\-h\fP, \fB\-\-help\fP
- Print a short option summary.
- .TP
--\fB\-n\fR, \fB\-\-noflush\fR 
--don't flush the previous contents of the table. If not specified, 
--.B iptables-restore
--flushes (deletes) all previous contents of the respective table.
-+\fB\-n\fR, \fB\-\-noflush\fR
-+don't flush the previous contents of the table. If not specified,
-+both commands flush (delete) all previous contents of the respective table.
- .TP
- \fB\-t\fP, \fB\-\-test\fP
- Only parse and construct the ruleset, but do not commit it.
-@@ -54,8 +59,11 @@ inspect /proc/sys/kernel/modprobe to determine the executable's path.
- Restore only the named table even if the input stream contains other ones.
- .SH BUGS
- None known as of iptables-1.2.1 release
--.SH AUTHOR
--Harald Welte <laforge@gnumonks.org>
-+.SH AUTHORS
-+Harald Welte <laforge@gnumonks.org> wrote iptables-restore based on code
-+from Rusty Russell.
-+.br
-+Andras Kis-Szabo <kisza@sch.bme.hu> contributed ip6tables-restore.
- .SH SEE ALSO
- \fBiptables\-save\fP(8), \fBiptables\fP(8)
- .PP
-diff --git a/iptables/iptables-save.8 b/iptables/iptables-save.8
-index c2e0a94..d796a96 100644
---- a/iptables/iptables-save.8
-+++ b/iptables/iptables-save.8
-@@ -20,13 +20,20 @@
- .\"
- .SH NAME
- iptables-save \(em dump iptables rules to stdout
-+.P
-+ip6tables-save \(em dump iptables rules to stdout
- .SH SYNOPSIS
- \fBiptables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
- [\fB\-t\fP \fItable\fP]
-+.P
-+\fBip6tables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
-+[\fB\-t\fP \fItable\fP
- .SH DESCRIPTION
- .PP
- .B iptables-save
--is used to dump the contents of an IP Table in easily parseable format
-+and
-+.B ip6tables-save
-+are used to dump the contents of IP or IPv6 Table in easily parseable format
- to STDOUT. Use I/O-redirection provided by your shell to write to a file.
- .TP
- \fB\-M\fP \fImodprobe_program\fP
-@@ -41,8 +48,12 @@ restrict output to only one table. If not specified, output includes all
- available tables.
- .SH BUGS
- None known as of iptables-1.2.1 release
--.SH AUTHOR
-+.SH AUTHORS
- Harald Welte <laforge@gnumonks.org>
-+.br
-+Rusty Russell <rusty@rustcorp.com.au>
-+.br
-+Andras Kis-Szabo <kisza@sch.bme.hu> contributed ip6tables-save.
- .SH SEE ALSO
- \fBiptables\-restore\fP(8), \fBiptables\fP(8)
- .PP
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 4279299..6cccca1 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -23,10 +23,13 @@
- .\"
- .\"
- .SH NAME
--iptables \(em administration tool for IPv4 packet filtering and NAT
-+iptables/ip6tables \(em administration tool for IPv4/IPv6 packet filtering and NAT
- .SH SYNOPSIS
- \fBiptables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP}
- \fIchain\fP \fIrule-specification\fP
-+.P
-+\fBip6tables\fP [\fB\-t\fP \fItable\fP] {\fB\-A\fP|\fB\-C\fP|\fB\-D\fP}
-+\fIchain rule-specification\fP
- .PP
- \fBiptables\fP [\fB\-t\fP \fItable\fP] \fB\-I\fP \fIchain\fP [\fIrulenum\fP] \fIrule-specification\fP
- .PP
-@@ -52,8 +55,8 @@ match = \fB\-m\fP \fImatchname\fP [\fIper-match-options\fP]
- .PP
- target = \fB\-j\fP \fItargetname\fP [\fIper\-target\-options\fP]
- .SH DESCRIPTION
--\fBIptables\fP is used to set up, maintain, and inspect the
--tables of IPv4 packet
-+\fBIptables\fP and \fBip6tables\fP are used to set up, maintain, and inspect the
-+tables of IPv4 and IPv6 packet
- filter rules in the Linux kernel.  Several different tables
- may be defined.  Each table contains a number of built-in
- chains and may also contain user-defined chains.
-@@ -104,6 +107,7 @@ connection is encountered.  It consists of three built-ins: \fBPREROUTING\fP
- (for altering packets as soon as they come in), \fBOUTPUT\fP
- (for altering locally-generated packets before routing), and \fBPOSTROUTING\fP
- (for altering packets as they are about to go out).
-+IPv6 NAT support is available since kernel 3.7.
- .TP
- \fBmangle\fP:
- This table is used for specialized packet alteration.  Until kernel
-@@ -136,7 +140,7 @@ before MAC rules.  This table provides the following built-in chains:
- .RE
- .SH OPTIONS
- The options that are recognized by
--\fBiptables\fP can be divided into several different groups.
-+\fBiptables\fP and \fBip6tables\fP can be divided into several different groups.
- .SS COMMANDS
- These options specify the desired action to perform. Only one of them
- can be specified on the command line unless otherwise stated
-@@ -238,23 +242,35 @@ add, delete, insert, replace and append commands).
- .TP
- \fB\-4\fP, \fB\-\-ipv4\fP
- This option has no effect in iptables and iptables-restore.
-+If a rule using the \fB\-4\fP option is inserted with (and only with)
-+ip6tables-restore, it will be silently ignored. Any other uses will throw an
-+error. This option allows to put both IPv4 and IPv6 rules in a single rule file
-+for use with both iptables-restore and ip6tables-restore.
- .TP
- \fB\-6\fP, \fB\-\-ipv6\fP
- If a rule using the \fB\-6\fP option is inserted with (and only with)
- iptables-restore, it will be silently ignored. Any other uses will throw an
- error. This option allows to put both IPv4 and IPv6 rules in a single rule file
- for use with both iptables-restore and ip6tables-restore.
-+This option has no effect in ip6tables and ip6tables-restore.
- .TP
- [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
- The protocol of the rule or of the packet to check.
- The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
--\fBicmp\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP or the special keyword "\fBall\fP",
-+\fBicmp\fP, \fBicmpv6\fP,\fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
- or it can be a numeric value, representing one of these protocols or a
- different one.  A protocol name from /etc/protocols is also allowed.
- A "!" argument before the protocol inverts the
- test.  The number zero is equivalent to \fBall\fP. "\fBall\fP"
- will match with all protocols and is taken as default when this
- option is omitted.
-+Note that, in ip6tables, IPv6 extension headers except \fBesp\fP are not allowed.
-+\fBesp\fP and \fBipv6\-nonext\fP
-+can be used with Kernel version 2.6.11 or later.
-+The number zero is equivalent to \fBall\fP, which means that you cannot
-+test the protocol field for the value 0 directly. To match on a HBH header,
-+even if it were the last, you cannot use \fB\-p 0\fP, but always need
-+\fB\-m hbh\fP.
- .TP
- [\fB!\fP] \fB\-s\fP, \fB\-\-source\fP \fIaddress\fP[\fB/\fP\fImask\fP][\fB,\fP\fI...\fP]
- Source specification. \fIAddress\fP
-@@ -264,9 +280,9 @@ be resolved once only, before the rule is submitted to the kernel.
- Please note that specifying any name to be resolved with a remote query such as
- DNS is a really bad idea.
- The \fImask\fP
--can be either a network mask or a plain number,
-+can be either an ipv4 network mask (for iptables) or a plain number,
- specifying the number of 1's at the left side of the network mask.
--Thus, a mask of \fI24\fP is equivalent to \fI255.255.255.0\fP.
-+Thus, an iptables mask of \fI24\fP is equivalent to \fI255.255.255.0\fP.
- A "!" argument before the address specification inverts the sense of
- the address. The flag \fB\-\-src\fP is an alias for this option.
- Multiple addresses can be specified, but this will \fBexpand to multiple
-@@ -320,12 +336,13 @@ interface which begins with this name will match.  If this option is
- omitted, any interface name will match.
- .TP
- [\fB!\fP] \fB\-f\fP, \fB\-\-fragment\fP
--This means that the rule only refers to second and further fragments
-+This means that the rule only refers to second and further IPv4 fragments
- of fragmented packets.  Since there is no way to tell the source or
- destination ports of such a packet (or ICMP type), such a packet will
- not match any rules which specify them.  When the "!" argument
- precedes the "\-f" flag, the rule will only match head fragments, or
--unfragmented packets.
-+unfragmented packets. This option is IPv4 specific, it is not available
-+in ip6tables.
- .TP
- \fB\-c\fP, \fB\-\-set\-counters\fP \fIpackets bytes\fP
- This enables the administrator to initialize the packet and byte
-@@ -406,9 +423,6 @@ There are several other changes in iptables.
- \fBiptables\-save\fP(8),
- \fBiptables\-restore\fP(8),
- \fBiptables\-extensions\fP(8),
--\fBip6tables\fP(8),
--\fBip6tables\-save\fP(8),
--\fBip6tables\-restore\fP(8).
- .PP
- The packet-filtering-HOWTO details iptables usage for
- packet filtering, the NAT-HOWTO details NAT,
-@@ -443,4 +457,4 @@ Man page originally written by Herve Eychenne <rv@wallfire.org>.
- .\" .. and most of all, modest ..
- .SH VERSION
- .PP
--This manual page applies to iptables @PACKAGE_VERSION@.
-+This manual page applies to iptables/ip6tables @PACKAGE_AND_VERSION@.
--- 
-1.8.1.5
+1) Append: we use .prev. If it's the first rule in the list, skip
+   position attribute.
 
+2) Insert: never dump position attribute as it is always the first
+   rule in the list.
+
+3) At position X: use .prev. If it's the first rule in the list, skip.
+
+That should allows us to remove the else branch below and it should
+simplify the semantics of NFTA_RULE_POSITION as well.
+
+> +	} else {
+> +		if ((event != NFT_MSG_DELRULE) &&
+> +		    list_is_last(&rule->list, &chain->rules)) {
+> +			prule = list_entry(rule->list.next,
+> +					   struct nft_rule, list);
+> +			if (nla_put_be64(skb, NFTA_RULE_POSITION,
+> +					 cpu_to_be64(prule->handle)))
+> +				goto nla_put_failure;
+> +		}
+> +	}
+> +
+>  	list = nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
+>  	if (list == NULL)
+>  		goto nla_put_failure;
+> @@ -1537,7 +1559,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+>  	int err, rem;
+>  	bool create;
+>  	u32 flags = 0;
+> -	u64 handle;
+> +	u64 handle, pos_handle;
+>  
+>  	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+>  
+> @@ -1571,6 +1593,15 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+>  		handle = nf_tables_alloc_handle(table);
+>  	}
+>  
+> +	if (nla[NFTA_RULE_POSITION]) {
+> +		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
+> +			return -EOPNOTSUPP;
+> +		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
+> +		old_rule = __nf_tables_rule_lookup(chain, pos_handle);
+> +		if (IS_ERR(old_rule))
+> +			return PTR_ERR(old_rule);
+> +	}
+> +
+>  	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+>  
+>  	n = 0;
+> @@ -1625,9 +1656,16 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+>  			nf_tables_rule_destroy(old_rule);
+>  		}
+>  	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
+> -		list_add_tail_rcu(&rule->list, &chain->rules);
+> -	else
+> -		list_add_rcu(&rule->list, &chain->rules);
+> +		if (old_rule)
+> +			list_add_rcu(&rule->list, &old_rule->list);
+> +		else
+> +			list_add_tail_rcu(&rule->list, &chain->rules);
+> +	else {
+> +		if (old_rule)
+> +			list_add_tail_rcu(&rule->list, &old_rule->list);
+> +		else
+> +			list_add_rcu(&rule->list, &chain->rules);
+> +	}
+>  
+>  	if (flags & NFT_RULE_F_COMMIT)
+>  		list_add(&rule->dirty_list, &chain->dirty_rules);
+> -- 
+> 1.8.3.2
+> 
