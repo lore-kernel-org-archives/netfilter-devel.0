@@ -1,346 +1,218 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH V2 iptables] extensions: libxt_connlabel: use libnetfilter_conntrack
-Date: Mon, 15 Jul 2013 16:35:08 +0200
-Message-ID: <1373898908-29167-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCHv4] netfilter: nf_tables: add insert operation
+Date: Mon, 15 Jul 2013 19:27:54 +0200
+Message-ID: <1373909274.17537.26.camel@ice-age.regit.org>
+References: <20130707215644.GA31231@localhost>
+	 <1373324177-4991-1-git-send-email-eric@regit.org>
+	 <1373324177-4991-2-git-send-email-eric@regit.org>
+	 <20130715104859.GA14071@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-iRNeWgBuJkzt33ozmvwm"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52782 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755937Ab3GOOdW (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:40214 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab3GOR2H (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jul 2013 10:33:22 -0400
+	Mon, 15 Jul 2013 13:28:07 -0400
+In-Reply-To: <20130715104859.GA14071@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo suggested to make it depend on lnf-conntrack, and get rid of
-the example config file as well.
 
-The problem is that the file must be in a fixed path,
-/etc/xtables/connlabel.conf, else userspace needs to "guess-the-right-file"
-when translating names to their bit values (and vice versa).
+--=-iRNeWgBuJkzt33ozmvwm
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-Originally "make install" did put an example file into /etc/xtables/,
-but distributors complained about iptables ignoring the sysconfdir.
+Hi,
 
-So rather remove the example file, the man-page explains the format,
-and connlabels are inherently system-specific anyway.
+Le lundi 15 juillet 2013 =E0 12:48 +0200, Pablo Neira Ayuso a =E9crit :
+> Hi Eric,
+>=20
+> On Tue, Jul 09, 2013 at 12:56:17AM +0200, Eric Leblond wrote:
+> > This patch adds a new rule attribute NFTA_RULE_POSITION which is
+> > used to store the position of a rule relatively to the others.
+> > By providing a create command and specifying a position, the rule is
+> > inserted after the rule with the handle equal to the provided
+> > position.
+> > Regarding notification, the position attribute is added to specify
+> > the handle of the previous rule in append mode and the handle of
+> > the next rule in the other case.
+> >=20
+> > Signed-off-by: Eric Leblond <eric@regit.org>
+> > ---
+> >  include/uapi/linux/netfilter/nf_tables.h |  1 +
+> >  net/netfilter/nf_tables_api.c            | 46 ++++++++++++++++++++++++=
++++++---
+> >  2 files changed, 43 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/li=
+nux/netfilter/nf_tables.h
+> > index d40a7f9..d9bf8ea 100644
+> > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > @@ -143,6 +143,7 @@ enum nft_rule_attributes {
+> >  	NFTA_RULE_EXPRESSIONS,
+> >  	NFTA_RULE_FLAGS,
+> >  	NFTA_RULE_COMPAT,
+> > +	NFTA_RULE_POSITION,
+> >  	__NFTA_RULE_MAX
+> >  };
+> >  #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
+i.c
+> > index b00aca8..012eb1f 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_policy[NF=
+TA_RULE_MAX + 1] =3D {
+> >  	[NFTA_RULE_EXPRESSIONS]	=3D { .type =3D NLA_NESTED },
+> >  	[NFTA_RULE_FLAGS]	=3D { .type =3D NLA_U32 },
+> >  	[NFTA_RULE_COMPAT]	=3D { .type =3D NLA_NESTED },
+> > +	[NFTA_RULE_POSITION]	=3D { .type =3D NLA_U64 },
+> >  };
+> > =20
+> >  static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u=
+32 seq,
+> > @@ -1279,6 +1280,7 @@ static int nf_tables_fill_rule_info(struct sk_buf=
+f *skb, u32 portid, u32 seq,
+> >  	struct nfgenmsg *nfmsg;
+> >  	const struct nft_expr *expr, *next;
+> >  	struct nlattr *list;
+> > +	const struct nft_rule *prule;
+> > =20
+> >  	event |=3D NFNL_SUBSYS_NFTABLES << 8;
+> >  	nlh =3D nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
+> > @@ -1298,6 +1300,26 @@ static int nf_tables_fill_rule_info(struct sk_bu=
+ff *skb, u32 portid, u32 seq,
+> >  	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
+> >  		goto nla_put_failure;
+> > =20
+> > +	if (flags & NLM_F_APPEND) {
+> > +		if ((event !=3D NFT_MSG_DELRULE) &&
+> > +		    (rule->list.prev !=3D &chain->rules)) {
+> > +			prule =3D list_entry(rule->list.prev,
+> > +					   struct nft_rule, list);
+> > +			if (nla_put_be64(skb, NFTA_RULE_POSITION,
+> > +					 cpu_to_be64(prule->handle)))
+> > +				goto nla_put_failure;
+> > +		}
+>=20
+> This looks good but I think we can simplify this to always use .prev.
+>=20
+> 1) Append: we use .prev. If it's the first rule in the list, skip
+>    position attribute.
+>=20
+> 2) Insert: never dump position attribute as it is always the first
+>    rule in the list.
+>=20
+> 3) At position X: use .prev. If it's the first rule in the list, skip.
+>=20
+> That should allows us to remove the else branch below and it should
+> simplify the semantics of NFTA_RULE_POSITION as well.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes since V1:
-  - show list of blacklisted modules at end of configure run
-  - make -m connlabel depend on (UNRELEASED!) libnetfilter_conntrack 1.0.4
-  - mention version dependency in extensions man page
+This code is not pretty and I understand your point but we have two type
+of operations:
+      * Insert before
+      * Append after
+In both cases, the presence of the NFTA_RULE_POSITION attribute is
+triggering the switch to this mode. And I think this is a convenient way
+to update the API.
 
- Makefile.am                    |    4 -
- configure.ac                   |   12 ++++
- etc/xtables/connlabel.conf     |    8 --
- extensions/GNUmakefile.in      |    5 +-
- extensions/libxt_connlabel.c   |  142 ++++++++--------------------------------
- extensions/libxt_connlabel.man |    1 +
- 6 files changed, 45 insertions(+), 127 deletions(-)
- delete mode 100644 etc/xtables/connlabel.conf
+Furthermore, inside nf_tables_fill_rule_info() we don't have any
+information to decide that we are in "position X". Only solution to
+switch to the method you describe would be to introduce a new operation
+and it seems that was is wanted (it was said in initial discussion).
 
-diff --git a/Makefile.am b/Makefile.am
-index 73f1352..c38d360 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -24,9 +24,5 @@ tarball:
- 	tar -C /tmp -cjf ${PACKAGE_TARNAME}-${PACKAGE_VERSION}.tar.bz2 --owner=root --group=root ${PACKAGE_TARNAME}-${PACKAGE_VERSION}/;
- 	rm -Rf /tmp/${PACKAGE_TARNAME}-${PACKAGE_VERSION};
- 
--install-data-hook:
--	@mkdir -p -m 755 @sysconfdir@/xtables/ || :
--	@test -f @sysconfdir@/xtables/connlabel.conf || $(INSTALL) -m 644 etc/xtables/connlabel.conf @sysconfdir@/xtables/connlabel.conf || :
--
- config.status: extensions/GNUmakefile.in \
- 	include/xtables-version.h.in include/iptables/internal.h.in
-diff --git a/configure.ac b/configure.ac
-index d209494..be216b0 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -82,6 +82,15 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
- 	blacklist_modules="$blacklist_modules ipvs";
- fi;
- 
-+PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
-+	[nfconntrack=1], [nfconntrack=0])
-+AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
-+
-+if test "$nfconntrack" -ne 1; then
-+	blacklist_modules="$blacklist_modules connlabel";
-+	echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
-+fi;
-+
- AC_SUBST([blacklist_modules])
- AC_CHECK_SIZEOF([struct ip6_hdr], [], [#include <netinet/ip6.h>])
- 
-@@ -180,3 +189,6 @@ fi;
- 
- echo "  Host:					${host}
-   GCC binary:				${CC}"
-+
-+test x"$blacklist_modules" = "x" || echo "
-+Iptables modules that will not be built: $blacklist_modules"
-diff --git a/etc/xtables/connlabel.conf b/etc/xtables/connlabel.conf
-deleted file mode 100644
-index 9167029..0000000
---- a/etc/xtables/connlabel.conf
-+++ /dev/null
-@@ -1,8 +0,0 @@
--# example connlabel.conf mapping file.
--# used by the "connlabel" match to translate names to their bit-value.
--0	eth0-in
--1	eth0-out
--2	ppp-in
--3	ppp-out
--4	bulk-traffic
--5	interactive
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 1ae7f74..14e7c57 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -93,7 +93,7 @@ lib%.so: lib%.oo
- 	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $< -L../libxtables/.libs -lxtables ${$*_LIBADD};
- 
- lib%.oo: ${srcdir}/lib%.c
--	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
-+	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} ${$*_CFLAGADD} -o $@ -c $<;
- 
- libxt_NOTRACK.so: libxt_CT.so
- 	ln -fs $< $@
-@@ -103,6 +103,9 @@ libxt_state.so: libxt_conntrack.so
- # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
- xt_RATEEST_LIBADD   = -lm
- xt_statistic_LIBADD = -lm
-+@HAVE_LIBNETFILTER_CONNTRACK_TRUE@xt_connlabel_LIBADD = @libnetfilter_conntrack_LIBS@
-+
-+@HAVE_LIBNETFILTER_CONNTRACK_TRUE@xt_connlabel_CFLAGADD = @libnetfilter_conntrack_CFLAGS@
- 
- #
- #	Static bits
-diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
-index ae52901..c84a167 100644
---- a/extensions/libxt_connlabel.c
-+++ b/extensions/libxt_connlabel.c
-@@ -5,13 +5,14 @@
- #include <stdint.h>
- #include <xtables.h>
- #include <linux/netfilter/xt_connlabel.h>
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
- 
- enum {
- 	O_LABEL = 0,
- 	O_SET = 1,
- };
- 
--#define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
-+static struct nfct_labelmap *map;
- 
- static void connlabel_mt_help(void)
- {
-@@ -28,107 +29,6 @@ static const struct xt_option_entry connlabel_mt_opts[] = {
- 	XTOPT_TABLEEND,
- };
- 
--static int
--xtables_parse_connlabel_numerical(const char *s, char **end)
--{
--	uintmax_t value;
--
--	if (!xtables_strtoul(s, end, &value, 0, XT_CONNLABEL_MAXBIT))
--		return -1;
--	return value;
--}
--
--static bool is_space_posix(int c)
--{
--	return c == ' ' || c == '\f' || c == '\r' || c == '\t' || c == '\v';
--}
--
--static char * trim_label(char *label)
--{
--	char *end;
--
--	while (is_space_posix(*label))
--		label++;
--	end = strchr(label, '\n');
--	if (end)
--		*end = 0;
--	else
--		end = strchr(label, '\0');
--	end--;
--
--	while (is_space_posix(*end) && end > label) {
--		*end = 0;
--		end--;
--	}
--
--	return *label ? label : NULL;
--}
--
--static void
--xtables_get_connlabel(uint16_t bit, char *buf, size_t len)
--{
--	FILE *fp = fopen(CONNLABEL_CFG, "r");
--	char label[1024];
--	char *end;
--
--	if (!fp)
--		goto error;
--
--	while (fgets(label, sizeof(label), fp)) {
--		int tmp;
--
--		if (label[0] == '#')
--			continue;
--		tmp = xtables_parse_connlabel_numerical(label, &end);
--		if (tmp < 0 || tmp < (int) bit)
--			continue;
--		if (tmp > (int) bit)
--			break;
--
--		end = trim_label(end);
--		if (!end)
--			continue;
--		snprintf(buf, len, "%s", end);
--		fclose(fp);
--		return;
--	}
--	fclose(fp);
-- error:
--	snprintf(buf, len, "%u", (unsigned int) bit);
--}
--
--
--static uint16_t xtables_parse_connlabel(const char *s)
--{
--	FILE *fp = fopen(CONNLABEL_CFG, "r");
--	char label[1024];
--	char *end;
--	int bit;
--
--	if (!fp)
--		xtables_error(PARAMETER_PROBLEM, "label '%s': could not open '%s': %s",
--						s, CONNLABEL_CFG, strerror(errno));
--
--	while (fgets(label, sizeof(label), fp)) {
--		if (label[0] == '#' || !strstr(label, s))
--			continue;
--		bit = xtables_parse_connlabel_numerical(label, &end);
--		if (bit < 0)
--			continue;
--
--		end = trim_label(end);
--		if (!end)
--			continue;
--		if (strcmp(end, s) == 0) {
--			fclose(fp);
--			return bit;
--		}
--	}
--	fclose(fp);
--	xtables_error(PARAMETER_PROBLEM, "label '%s' not found in config file %s",
--					s, CONNLABEL_CFG);
--}
--
- static void connlabel_mt_parse(struct xt_option_call *cb)
- {
- 	struct xt_connlabel_mtinfo *info = cb->data;
-@@ -138,9 +38,10 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
- 
- 	switch (cb->entry->id) {
- 	case O_LABEL:
--		tmp = xtables_parse_connlabel_numerical(cb->arg, NULL);
--		info->bit = tmp < 0 ? xtables_parse_connlabel(cb->arg) : tmp;
--
-+		tmp = nfct_labelmap_get_bit(map, cb->arg);
-+		if (tmp < 0)
-+			xtables_error(PARAMETER_PROBLEM, "label '%s' not found", cb->arg);
-+		info->bit = tmp;
- 		if (cb->invert)
- 			info->options |= XT_CONNLABEL_OP_INVERT;
- 		break;
-@@ -151,6 +52,14 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
- 
- }
- 
-+static const char *connlabel_get_name(int b)
-+{
-+	const char *name = nfct_labelmap_get_name(map, b);
-+	if (name && strcmp(name, ""))
-+		return name;
-+	return NULL;
-+}
-+
- static void
- connlabel_mt_print_op(const struct xt_connlabel_mtinfo *info, const char *prefix)
- {
-@@ -162,16 +71,15 @@ static void
- connlabel_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
- {
- 	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
--	char buf[1024];
-+	const char *name = connlabel_get_name(info->bit);
- 
- 	printf(" connlabel");
- 	if (info->options & XT_CONNLABEL_OP_INVERT)
- 		printf(" !");
--	if (numeric) {
-+	if (numeric || name == NULL) {
- 		printf(" %u", info->bit);
- 	} else {
--		xtables_get_connlabel(info->bit, buf, sizeof(buf));
--		printf(" '%s'", buf);
-+		printf(" '%s'", name);
- 	}
- 	connlabel_mt_print_op(info, "");
- }
-@@ -180,14 +88,14 @@ static void
- connlabel_mt_save(const void *ip, const struct xt_entry_match *match)
- {
- 	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
--	char buf[1024];
-+	const char *name = connlabel_get_name(info->bit);
- 
- 	if (info->options & XT_CONNLABEL_OP_INVERT)
- 		printf(" !");
--
--	xtables_get_connlabel(info->bit, buf, sizeof(buf));
--	printf(" --label \"%s\"", buf);
--
-+	if (name)
-+		printf(" --label \"%s\"", name);
-+	else
-+		printf(" --label \"%u\"", info->bit);
- 	connlabel_mt_print_op(info, "--");
- }
- 
-@@ -206,5 +114,11 @@ static struct xtables_match connlabel_mt_reg = {
- 
- void _init(void)
- {
-+	map = nfct_labelmap_new(NULL);
-+	if (!map) {
-+		fprintf(stderr, "cannot open connlabel.conf, not registering '%s' match: %s\n",
-+			connlabel_mt_reg.name, strerror(errno));
-+		return;
-+	}
- 	xtables_register_match(&connlabel_mt_reg);
- }
-diff --git a/extensions/libxt_connlabel.man b/extensions/libxt_connlabel.man
-index 9fd2043..bdaa51e 100644
---- a/extensions/libxt_connlabel.man
-+++ b/extensions/libxt_connlabel.man
-@@ -17,6 +17,7 @@ the time the connection is created.
- In this case, the match will fail (or succeed, in case \fB\-\-label\fP
- option was negated).
- .PP
-+This match depends on libnetfilter_conntrack 1.0.4 or later.
- Label translation is done via the \fB/etc/xtables/connlabel.conf\fP configuration file.
- .PP
- Example:
--- 
-1.7.8.6
+BR,
+
+>=20
+> > +	} else {
+> > +		if ((event !=3D NFT_MSG_DELRULE) &&
+> > +		    list_is_last(&rule->list, &chain->rules)) {
+> > +			prule =3D list_entry(rule->list.next,
+> > +					   struct nft_rule, list);
+> > +			if (nla_put_be64(skb, NFTA_RULE_POSITION,
+> > +					 cpu_to_be64(prule->handle)))
+> > +				goto nla_put_failure;
+> > +		}
+> > +	}
+> > +
+> >  	list =3D nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
+> >  	if (list =3D=3D NULL)
+> >  		goto nla_put_failure;
+> > @@ -1537,7 +1559,7 @@ static int nf_tables_newrule(struct sock *nlsk, s=
+truct sk_buff *skb,
+> >  	int err, rem;
+> >  	bool create;
+> >  	u32 flags =3D 0;
+> > -	u64 handle;
+> > +	u64 handle, pos_handle;
+> > =20
+> >  	create =3D nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+> > =20
+> > @@ -1571,6 +1593,15 @@ static int nf_tables_newrule(struct sock *nlsk, =
+struct sk_buff *skb,
+> >  		handle =3D nf_tables_alloc_handle(table);
+> >  	}
+> > =20
+> > +	if (nla[NFTA_RULE_POSITION]) {
+> > +		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
+> > +			return -EOPNOTSUPP;
+> > +		pos_handle =3D be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
+> > +		old_rule =3D __nf_tables_rule_lookup(chain, pos_handle);
+> > +		if (IS_ERR(old_rule))
+> > +			return PTR_ERR(old_rule);
+> > +	}
+> > +
+> >  	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+> > =20
+> >  	n =3D 0;
+> > @@ -1625,9 +1656,16 @@ static int nf_tables_newrule(struct sock *nlsk, =
+struct sk_buff *skb,
+> >  			nf_tables_rule_destroy(old_rule);
+> >  		}
+> >  	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
+> > -		list_add_tail_rcu(&rule->list, &chain->rules);
+> > -	else
+> > -		list_add_rcu(&rule->list, &chain->rules);
+> > +		if (old_rule)
+> > +			list_add_rcu(&rule->list, &old_rule->list);
+> > +		else
+> > +			list_add_tail_rcu(&rule->list, &chain->rules);
+> > +	else {
+> > +		if (old_rule)
+> > +			list_add_tail_rcu(&rule->list, &old_rule->list);
+> > +		else
+> > +			list_add_rcu(&rule->list, &chain->rules);
+> > +	}
+> > =20
+> >  	if (flags & NFT_RULE_F_COMMIT)
+> >  		list_add(&rule->dirty_list, &chain->dirty_rules);
+> > --=20
+> > 1.8.3.2
+> >=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=-iRNeWgBuJkzt33ozmvwm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iD8DBQBR5DEbnxA7CdMWjzIRAnqPAJ0b624U/vUypaaI6JtAa5qSfS9WVACeKrY2
++FlM0f944Fl9ifDfscmZgPI=
+=EZcw
+-----END PGP SIGNATURE-----
+
+--=-iRNeWgBuJkzt33ozmvwm--
 
