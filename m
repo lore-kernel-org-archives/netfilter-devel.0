@@ -1,97 +1,346 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
- ExpectationSync
-Date: Mon, 15 Jul 2013 14:49:05 +0200
-Message-ID: <20130715124905.GA21260@localhost>
-References: <20130705020312.25783ccd.billfink@mindspring.com>
- <20130706132333.GA3279@localhost>
- <20130707030458.fbf22472.billfink@mindspring.com>
- <20130709013023.2fb1fef1.billfink@mindspring.com>
- <20130709182223.GA6266@localhost>
- <20130710055815.a1bd2c1d.billfink@mindspring.com>
- <20130710220820.GA20666@localhost>
- <20130711004827.GA5500@localhost>
- <20130712030114.0362fb5a.billfink@mindspring.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-To: Bill Fink <billfink@mindspring.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130712030114.0362fb5a.billfink@mindspring.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH V2 iptables] extensions: libxt_connlabel: use libnetfilter_conntrack
+Date: Mon, 15 Jul 2013 16:35:08 +0200
+Message-ID: <1373898908-29167-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52782 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755937Ab3GOOdW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jul 2013 10:33:22 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 12, 2013 at 03:01:14AM -0400, Bill Fink wrote:
-> Pablo,
-> 
-> On Thu, 11 Jul 2013, Pablo Neira Ayuso wrote:
-> 
-> > On Thu, Jul 11, 2013 at 12:08:20AM +0200, Pablo Neira Ayuso wrote:
-> > > On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
-> > > > Almost there.  With the above patch, I now successfully get
-> > > > IPv6 expectations on the backup firewall.  Unfortunately they're
-> > > > not quite right.  On the backup firewall, the expectation src-IP
-> > > > is the same as the dst-IP (either IPv4 or IPv6).
-> > > > 
-> > > > Primary firewall:
-> > > > 
-> > > > [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > > 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > > 
-> > > > Backup firewall:
-> > > > 
-> > > > [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > > 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > > 
-> > > > This was an unfortunate side affect of the patch to fix the
-> > > > conntrackd segfault problem.  If I use Florian's version
-> > > > of the fix segfault patch rather than Pablo's then all is
-> > > > good.
-> > > 
-> > > Thanks for the information, however, we still need to get working back
-> > > the filtering support.
-> > > 
-> > > Could you give a try to the following patch, please?
-> > > 
-> > > It applies on top of conntrack-tools master branch, thanks.
-> > 
-> > There are still some downsides in the previous solution, please, give
-> > a try to this patch instead.
-> 
-> It appears to work pretty well and does fix the src-IP issue!
+Pablo suggested to make it depend on lnf-conntrack, and get rid of
+the example config file as well.
 
-Thanks for testing and reporting back, I have pushed the patch to
-master.
+The problem is that the file must be in a fixed path,
+/etc/xtables/connlabel.conf, else userspace needs to "guess-the-right-file"
+when translating names to their bit values (and vice versa).
 
-> I did notice a couple of other things but they're not necessarily
-> related to these patches.  I noticed that my long lived BGP tcp
-> connection was getting some duplicate conntrackd ct entries (both
-> IPv4 and IPv6).  The duplicate ct entry occurred 60 seconds after
-> the original, and once I saw a second duplicate ct IPv4 entry,
-> again with about a 60 second separation.
+Originally "make install" did put an example file into /etc/xtables/,
+but distributors complained about iptables ignoring the sysconfdir.
 
-That's strange. Please, tell me if this happening in the primary
-and/or the backup. If you are using the cache mode, also dump the
-caches via -i and -e to see the content.
+So rather remove the example file, the man-page explains the format,
+and connlabels are inherently system-specific anyway.
 
-> And on the expectation entries, they seem to have a lifetime
-> of 300 seconds.  The IPv6 expectation entries are deleted after
-> the 300 seconds as expected, but the IPv4 expectation entries
-> actually go away in a minute or less.  I don't know if that
-> is expected behavior or not.  Note I was leaving the ftp
-> control connection open the entire time.  Also it may have
-> just been my imagination, but it seemed if I queried it more
-> often with "conntrack -L expect" it would stick around somewhat
-> longer (but would go away within the minute).
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since V1:
+  - show list of blacklisted modules at end of configure run
+  - make -m connlabel depend on (UNRELEASED!) libnetfilter_conntrack 1.0.4
+  - mention version dependency in extensions man page
 
-Expectations depends on the master conntrack, if the master is
-released, the expectations will be released too. You may be noticing
-that effect.
+ Makefile.am                    |    4 -
+ configure.ac                   |   12 ++++
+ etc/xtables/connlabel.conf     |    8 --
+ extensions/GNUmakefile.in      |    5 +-
+ extensions/libxt_connlabel.c   |  142 ++++++++--------------------------------
+ extensions/libxt_connlabel.man |    1 +
+ 6 files changed, 45 insertions(+), 127 deletions(-)
+ delete mode 100644 etc/xtables/connlabel.conf
 
-You can use `conntrack -E` and `conntrack -E exp` to verify this.
+diff --git a/Makefile.am b/Makefile.am
+index 73f1352..c38d360 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -24,9 +24,5 @@ tarball:
+ 	tar -C /tmp -cjf ${PACKAGE_TARNAME}-${PACKAGE_VERSION}.tar.bz2 --owner=root --group=root ${PACKAGE_TARNAME}-${PACKAGE_VERSION}/;
+ 	rm -Rf /tmp/${PACKAGE_TARNAME}-${PACKAGE_VERSION};
+ 
+-install-data-hook:
+-	@mkdir -p -m 755 @sysconfdir@/xtables/ || :
+-	@test -f @sysconfdir@/xtables/connlabel.conf || $(INSTALL) -m 644 etc/xtables/connlabel.conf @sysconfdir@/xtables/connlabel.conf || :
+-
+ config.status: extensions/GNUmakefile.in \
+ 	include/xtables-version.h.in include/iptables/internal.h.in
+diff --git a/configure.ac b/configure.ac
+index d209494..be216b0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -82,6 +82,15 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
+ 	blacklist_modules="$blacklist_modules ipvs";
+ fi;
+ 
++PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
++	[nfconntrack=1], [nfconntrack=0])
++AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
++
++if test "$nfconntrack" -ne 1; then
++	blacklist_modules="$blacklist_modules connlabel";
++	echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
++fi;
++
+ AC_SUBST([blacklist_modules])
+ AC_CHECK_SIZEOF([struct ip6_hdr], [], [#include <netinet/ip6.h>])
+ 
+@@ -180,3 +189,6 @@ fi;
+ 
+ echo "  Host:					${host}
+   GCC binary:				${CC}"
++
++test x"$blacklist_modules" = "x" || echo "
++Iptables modules that will not be built: $blacklist_modules"
+diff --git a/etc/xtables/connlabel.conf b/etc/xtables/connlabel.conf
+deleted file mode 100644
+index 9167029..0000000
+--- a/etc/xtables/connlabel.conf
++++ /dev/null
+@@ -1,8 +0,0 @@
+-# example connlabel.conf mapping file.
+-# used by the "connlabel" match to translate names to their bit-value.
+-0	eth0-in
+-1	eth0-out
+-2	ppp-in
+-3	ppp-out
+-4	bulk-traffic
+-5	interactive
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 1ae7f74..14e7c57 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -93,7 +93,7 @@ lib%.so: lib%.oo
+ 	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $< -L../libxtables/.libs -lxtables ${$*_LIBADD};
+ 
+ lib%.oo: ${srcdir}/lib%.c
+-	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
++	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} ${$*_CFLAGADD} -o $@ -c $<;
+ 
+ libxt_NOTRACK.so: libxt_CT.so
+ 	ln -fs $< $@
+@@ -103,6 +103,9 @@ libxt_state.so: libxt_conntrack.so
+ # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
+ xt_RATEEST_LIBADD   = -lm
+ xt_statistic_LIBADD = -lm
++@HAVE_LIBNETFILTER_CONNTRACK_TRUE@xt_connlabel_LIBADD = @libnetfilter_conntrack_LIBS@
++
++@HAVE_LIBNETFILTER_CONNTRACK_TRUE@xt_connlabel_CFLAGADD = @libnetfilter_conntrack_CFLAGS@
+ 
+ #
+ #	Static bits
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+index ae52901..c84a167 100644
+--- a/extensions/libxt_connlabel.c
++++ b/extensions/libxt_connlabel.c
+@@ -5,13 +5,14 @@
+ #include <stdint.h>
+ #include <xtables.h>
+ #include <linux/netfilter/xt_connlabel.h>
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+ 
+ enum {
+ 	O_LABEL = 0,
+ 	O_SET = 1,
+ };
+ 
+-#define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
++static struct nfct_labelmap *map;
+ 
+ static void connlabel_mt_help(void)
+ {
+@@ -28,107 +29,6 @@ static const struct xt_option_entry connlabel_mt_opts[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
+-static int
+-xtables_parse_connlabel_numerical(const char *s, char **end)
+-{
+-	uintmax_t value;
+-
+-	if (!xtables_strtoul(s, end, &value, 0, XT_CONNLABEL_MAXBIT))
+-		return -1;
+-	return value;
+-}
+-
+-static bool is_space_posix(int c)
+-{
+-	return c == ' ' || c == '\f' || c == '\r' || c == '\t' || c == '\v';
+-}
+-
+-static char * trim_label(char *label)
+-{
+-	char *end;
+-
+-	while (is_space_posix(*label))
+-		label++;
+-	end = strchr(label, '\n');
+-	if (end)
+-		*end = 0;
+-	else
+-		end = strchr(label, '\0');
+-	end--;
+-
+-	while (is_space_posix(*end) && end > label) {
+-		*end = 0;
+-		end--;
+-	}
+-
+-	return *label ? label : NULL;
+-}
+-
+-static void
+-xtables_get_connlabel(uint16_t bit, char *buf, size_t len)
+-{
+-	FILE *fp = fopen(CONNLABEL_CFG, "r");
+-	char label[1024];
+-	char *end;
+-
+-	if (!fp)
+-		goto error;
+-
+-	while (fgets(label, sizeof(label), fp)) {
+-		int tmp;
+-
+-		if (label[0] == '#')
+-			continue;
+-		tmp = xtables_parse_connlabel_numerical(label, &end);
+-		if (tmp < 0 || tmp < (int) bit)
+-			continue;
+-		if (tmp > (int) bit)
+-			break;
+-
+-		end = trim_label(end);
+-		if (!end)
+-			continue;
+-		snprintf(buf, len, "%s", end);
+-		fclose(fp);
+-		return;
+-	}
+-	fclose(fp);
+- error:
+-	snprintf(buf, len, "%u", (unsigned int) bit);
+-}
+-
+-
+-static uint16_t xtables_parse_connlabel(const char *s)
+-{
+-	FILE *fp = fopen(CONNLABEL_CFG, "r");
+-	char label[1024];
+-	char *end;
+-	int bit;
+-
+-	if (!fp)
+-		xtables_error(PARAMETER_PROBLEM, "label '%s': could not open '%s': %s",
+-						s, CONNLABEL_CFG, strerror(errno));
+-
+-	while (fgets(label, sizeof(label), fp)) {
+-		if (label[0] == '#' || !strstr(label, s))
+-			continue;
+-		bit = xtables_parse_connlabel_numerical(label, &end);
+-		if (bit < 0)
+-			continue;
+-
+-		end = trim_label(end);
+-		if (!end)
+-			continue;
+-		if (strcmp(end, s) == 0) {
+-			fclose(fp);
+-			return bit;
+-		}
+-	}
+-	fclose(fp);
+-	xtables_error(PARAMETER_PROBLEM, "label '%s' not found in config file %s",
+-					s, CONNLABEL_CFG);
+-}
+-
+ static void connlabel_mt_parse(struct xt_option_call *cb)
+ {
+ 	struct xt_connlabel_mtinfo *info = cb->data;
+@@ -138,9 +38,10 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
+ 
+ 	switch (cb->entry->id) {
+ 	case O_LABEL:
+-		tmp = xtables_parse_connlabel_numerical(cb->arg, NULL);
+-		info->bit = tmp < 0 ? xtables_parse_connlabel(cb->arg) : tmp;
+-
++		tmp = nfct_labelmap_get_bit(map, cb->arg);
++		if (tmp < 0)
++			xtables_error(PARAMETER_PROBLEM, "label '%s' not found", cb->arg);
++		info->bit = tmp;
+ 		if (cb->invert)
+ 			info->options |= XT_CONNLABEL_OP_INVERT;
+ 		break;
+@@ -151,6 +52,14 @@ static void connlabel_mt_parse(struct xt_option_call *cb)
+ 
+ }
+ 
++static const char *connlabel_get_name(int b)
++{
++	const char *name = nfct_labelmap_get_name(map, b);
++	if (name && strcmp(name, ""))
++		return name;
++	return NULL;
++}
++
+ static void
+ connlabel_mt_print_op(const struct xt_connlabel_mtinfo *info, const char *prefix)
+ {
+@@ -162,16 +71,15 @@ static void
+ connlabel_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ {
+ 	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
+-	char buf[1024];
++	const char *name = connlabel_get_name(info->bit);
+ 
+ 	printf(" connlabel");
+ 	if (info->options & XT_CONNLABEL_OP_INVERT)
+ 		printf(" !");
+-	if (numeric) {
++	if (numeric || name == NULL) {
+ 		printf(" %u", info->bit);
+ 	} else {
+-		xtables_get_connlabel(info->bit, buf, sizeof(buf));
+-		printf(" '%s'", buf);
++		printf(" '%s'", name);
+ 	}
+ 	connlabel_mt_print_op(info, "");
+ }
+@@ -180,14 +88,14 @@ static void
+ connlabel_mt_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
+-	char buf[1024];
++	const char *name = connlabel_get_name(info->bit);
+ 
+ 	if (info->options & XT_CONNLABEL_OP_INVERT)
+ 		printf(" !");
+-
+-	xtables_get_connlabel(info->bit, buf, sizeof(buf));
+-	printf(" --label \"%s\"", buf);
+-
++	if (name)
++		printf(" --label \"%s\"", name);
++	else
++		printf(" --label \"%u\"", info->bit);
+ 	connlabel_mt_print_op(info, "--");
+ }
+ 
+@@ -206,5 +114,11 @@ static struct xtables_match connlabel_mt_reg = {
+ 
+ void _init(void)
+ {
++	map = nfct_labelmap_new(NULL);
++	if (!map) {
++		fprintf(stderr, "cannot open connlabel.conf, not registering '%s' match: %s\n",
++			connlabel_mt_reg.name, strerror(errno));
++		return;
++	}
+ 	xtables_register_match(&connlabel_mt_reg);
+ }
+diff --git a/extensions/libxt_connlabel.man b/extensions/libxt_connlabel.man
+index 9fd2043..bdaa51e 100644
+--- a/extensions/libxt_connlabel.man
++++ b/extensions/libxt_connlabel.man
+@@ -17,6 +17,7 @@ the time the connection is created.
+ In this case, the match will fail (or succeed, in case \fB\-\-label\fP
+ option was negated).
+ .PP
++This match depends on libnetfilter_conntrack 1.0.4 or later.
+ Label translation is done via the \fB/etc/xtables/connlabel.conf\fP configuration file.
+ .PP
+ Example:
+-- 
+1.7.8.6
 
-Regards.
