@@ -1,126 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3 libnetfilter_acct 10/29] add *_BONLY template to show
- bytes-only
-Date: Tue, 16 Jul 2013 00:42:57 +0200
-Message-ID: <20130715224257.GD5405@localhost>
+Subject: Re: [PATCH v3 libnetfilter_acct 11/29] add variable width and
+ on-the-fly formatting
+Date: Tue, 16 Jul 2013 00:51:28 +0200
+Message-ID: <20130715225128.GE5405@localhost>
 References: <1373480727-11254-1-git-send-email-michael.zintakis@googlemail.com>
- <1373480727-11254-11-git-send-email-michael.zintakis@googlemail.com>
+ <1373480727-11254-12-git-send-email-michael.zintakis@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Michael Zintakis <michael.zintakis@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47397 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48081 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754915Ab3GOWnF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jul 2013 18:43:05 -0400
+	id S1758304Ab3GOWvd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jul 2013 18:51:33 -0400
 Content-Disposition: inline
-In-Reply-To: <1373480727-11254-11-git-send-email-michael.zintakis@googlemail.com>
+In-Reply-To: <1373480727-11254-12-git-send-email-michael.zintakis@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 10, 2013 at 07:25:08PM +0100, Michael Zintakis wrote:
-> * add NFACCT_SNPRINTF_F_BONLY plaintext and xml templates, allowing printing
-> of only the bytes and name columns for each accounting object. Example:
+On Wed, Jul 10, 2013 at 07:25:09PM +0100, Michael Zintakis wrote:
+> * add a separate nfacct_options struct with its get/set functions, allowing
+> userspace programs, like nfacct, to specify the width of the columns which
+> are to be printed, so that they are no longer hard-coded into the printing
+> template itself. This allows column width to be "adjusted", depending on the
+> value of each property;
 > 
-> { bytes = 00000000018921291776 } = "ALL IN net 17"
+> * add a separate NFACCT_SNPRINTF_F_NUMONLY template, which prints the
+> numbers-only properties of the accounting objects (formatted - see below) -
+> useful to the nfnetlink callback function in order to determine the maximum
+> column width, which needs to be used to print each column.
 > 
+> * add a new nfacct_snprintf_with_options function enhancing the existing API
+> to enable "options" to be specified during printing properties of nfacct
+> objects.
+> 
+> * allow on-the-fly formatting, using over 14 different formats when printing
+> accounting objects. This formatting, if specified, applies to *all*
+> accounting objects.
+
+This patch adds many things in one single patch that need to be split
+in many of them.
+
 > Signed-off-by: Michael Zintakis <michael.zintakis@googlemail.com>
 > ---
->  include/libnetfilter_acct/libnetfilter_acct.h |  3 ++
->  src/libnetfilter_acct.c                       | 41 ++++++++++++++++++++-------
->  2 files changed, 34 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/libnetfilter_acct/libnetfilter_acct.h b/include/libnetfilter_acct/libnetfilter_acct.h
-> index ecf8280..aec26d3 100644
-> --- a/include/libnetfilter_acct/libnetfilter_acct.h
-> +++ b/include/libnetfilter_acct/libnetfilter_acct.h
-> @@ -42,6 +42,9 @@ int nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct
->  /* print in a format suitable for 'restore' */
->  #define NFACCT_SNPRINTF_F_SAVE		(1 << 2)
->  
-> +/* print only the bytes and name columns */
-> +#define NFACCT_SNPRINTF_F_BONLY		(1 << 3)
-> +
->  #define NFACCT_SNPRINTF_T_PLAIN 0
->  #define NFACCT_SNPRINTF_T_XML 1
->  
-> diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-> index e4fdf84..23f7616 100644
-> --- a/src/libnetfilter_acct.c
-> +++ b/src/libnetfilter_acct.c
-> @@ -230,6 +230,16 @@ EXPORT_SYMBOL(nfacct_attr_get_u64);
->  
->  #define NFACCT_STR_PLAIN_SAVE_BASE	"name=%s pkts=%"PRIu64 \
->  					" bytes=%"PRIu64
-> +#define NFACCT_STR_PLAIN		"{ pkts = %.20"PRIu64", " \
-> +					"bytes = %.20"PRIu64" } = %s"
-> +#define NFACCT_STR_PLAIN_BONLY		"{ bytes = %.20"PRIu64 " } = %s"
-> +#define NFACCT_XML_NAME			"<name>%s</name>"
-> +#define NFACCT_XML_PKTS			"<pkts>%.20"PRIu64"</pkts>"
-> +#define NFACCT_XML_BYTES		"<bytes>%.20"PRIu64"</bytes>"
-> +#define NFACCT_STR_XML_BONLY		"<obj>"	NFACCT_XML_NAME \
-> +					NFACCT_XML_BYTES
-> +#define NFACCT_STR_XML			"<obj>"	NFACCT_XML_NAME \
-> +					NFACCT_XML_PKTS NFACCT_XML_BYTES
+>  configure.ac                                  |   2 +-
+>  include/libnetfilter_acct/libnetfilter_acct.h |  75 ++++
+>  src/libnetfilter_acct.c                       | 512 ++++++++++++++++++++++++--
+>  src/libnetfilter_acct.map                     |  10 +
+>  4 files changed, 569 insertions(+), 30 deletions(-)
+>
+[...]
+> +void nfacct_option_set(struct nfacct_options *options,
+> +			enum nfacct_option_type type, const void *data);
+> +void nfacct_option_set_u16(struct nfacct_options *options,
+> +			enum nfacct_option_type type, uint16_t value);
+> +void nfacct_option_set_tsize(struct nfacct_options *options,
+> +			enum nfacct_option_type type, size_t value);
+> +void nfacct_option_unset(struct nfacct_options *options,
+> +			enum nfacct_option_type type);
+> +const void *nfacct_option_get(struct nfacct_options *options,
+> +			enum nfacct_option_type type);
+> +uint16_t nfacct_option_get_u16(struct nfacct_options *options,
+> +			enum nfacct_option_type type);
+> +size_t nfacct_option_get_tsize(struct nfacct_options *options,
+> +			enum nfacct_option_type type);
 
-No macros please. They are not reused and you have to scroll up and
-down to see the definition and its use.
-
->  void
->  parse_nfacct_name(char *buf, const char *name)
-> @@ -325,8 +335,7 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
->  			  nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
->  	if (flags & NFACCT_SNPRINTF_F_FULL) {
->  		/* default: print pkts + bytes + name */
-> -		ret = snprintf(buf, rem,
-> -			"{ pkts = %.20"PRIu64", bytes = %.20"PRIu64" } = %s;",
-> +		ret = snprintf(buf, rem, NFACCT_STR_PLAIN,
->  			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
->  			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
->  			nfacct_name);
-> @@ -336,6 +345,11 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
->  			       nfacct_name,
->  			       nfacct_attr_get_u64(nfacct,NFACCT_ATTR_PKTS),
->  			       nfacct_attr_get_u64(nfacct,NFACCT_ATTR_BYTES));
-> +	} else if (flags & NFACCT_SNPRINTF_F_BONLY) {
-> +		/* print bytes + name only */
-> +		ret = snprintf(buf, rem, NFACCT_STR_PLAIN_BONLY,
-> +				nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
-> +				nfacct_name);
->  	} else {
->  		/* print out name only */
->  		ret = snprintf(buf, rem, "%s\n", nfacct_name);
-> @@ -393,14 +407,21 @@ nfacct_snprintf_xml(char *buf, size_t rem, struct nfacct *nfacct,
->  	parse_nfacct_name_xml(nfacct_name,
->  				nfacct_attr_get_str(nfacct,
->  						    NFACCT_ATTR_NAME));
-> -	ret = snprintf(buf, rem,
-> -			"<obj><name>%s</name>"
-> -			"<pkts>%.20"PRIu64"</pkts>"
-> -			"<bytes>%.20"PRIu64"</bytes>",
-> -			nfacct_name,
-> -			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
-> -			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS));
-> -	BUFFER_SIZE(ret, size, rem, offset);
-> +	if (flags & NFACCT_SNPRINTF_F_BONLY) {
-> +		/* print name + bytes only */
-> +		ret = snprintf(buf, rem, NFACCT_STR_XML_BONLY, nfacct_name,
-> +				nfacct_attr_get_u64(nfacct,
-> +						    NFACCT_ATTR_BYTES));
-> +		BUFFER_SIZE(ret, size, rem, offset);
-> +	} else {
-> +		/* default/everything else: print name + pkts + bytes */
-> +		ret = snprintf(buf, rem, NFACCT_STR_XML, nfacct_name,
-> +				nfacct_attr_get_u64(nfacct,
-> +						    NFACCT_ATTR_BYTES),
-> +				nfacct_attr_get_u64(nfacct,
-> +						    NFACCT_ATTR_PKTS));
-> +		BUFFER_SIZE(ret, size, rem, offset);
-> +	}
->  
->  	if (flags & NFACCT_SNPRINTF_F_TIME) {
->  		time_t t;
-> -- 
-> 1.8.3.1
-> 
+You can get rid of all these if you use flags.
