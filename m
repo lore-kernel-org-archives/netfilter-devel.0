@@ -1,107 +1,137 @@
 From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [xtables-arptables PATCH 3/4] nft: nft_xtables_config_load() called
- only in nft_init()
-Date: Wed, 17 Jul 2013 00:30:53 +0200
-Message-ID: <20130716223053.13253.90159.stgit@nftables>
+Subject: [xtables-arptables PATCH 4/4] nft: make functions public
+Date: Wed, 17 Jul 2013 00:31:04 +0200
+Message-ID: <20130716223104.13253.37312.stgit@nftables>
 References: <20130716222925.13253.93123.stgit@nftables>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:38674 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754301Ab3GVOcK (ORCPT
+Received: from mail-ea0-f171.google.com ([209.85.215.171]:65020 "EHLO
+	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755780Ab3GVOcU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jul 2013 10:32:10 -0400
-Received: by mail-ea0-f174.google.com with SMTP id o10so3853645eaj.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2013 07:32:09 -0700 (PDT)
+	Mon, 22 Jul 2013 10:32:20 -0400
+Received: by mail-ea0-f171.google.com with SMTP id m14so3866685eaj.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2013 07:32:19 -0700 (PDT)
 Received: from [127.0.1.1] ([37.77.121.31])
-        by mx.google.com with ESMTPSA id r54sm51203146eev.8.2013.07.22.07.32.07
+        by mx.google.com with ESMTPSA id n45sm51279230eew.1.2013.07.22.07.32.17
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Mon, 22 Jul 2013 07:32:08 -0700 (PDT)
+        Mon, 22 Jul 2013 07:32:19 -0700 (PDT)
 In-Reply-To: <20130716222925.13253.93123.stgit@nftables>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- iptables/nft.c |   28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ iptables/nft.c |   18 +++++++++---------
+ iptables/nft.h |   22 ++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 9 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 9a8986a..198c41e 100644
+index 198c41e..7224273 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -388,6 +388,14 @@ int nft_init(struct nft_handle *h)
- 	h->portid = mnl_socket_get_portid(h->nl);
- 	h->tables = tables;
+@@ -53,9 +53,9 @@
  
-+	/* If built-in chains don't exist for this table, create them */
-+	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0) {
-+		int i;
-+
-+		for (i=0; i<TABLES_MAX; i++)
-+			if (h->tables[i].name != NULL)
-+				nft_chain_builtin_init(h, h->tables[i].name, NULL, NF_ACCEPT);
-+	}
- 	return 0;
+ static void *nft_fn;
+ 
+-static int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
+-		    int (*cb)(const struct nlmsghdr *nlh, void *data),
+-		    void *data)
++int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
++	     int (*cb)(const struct nlmsghdr *nlh, void *data),
++	     void *data)
+ {
+ 	int ret;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+@@ -210,7 +210,7 @@ static struct builtin_table tables[TABLES_MAX] = {
+ 	},
+ };
+ 
+-static int
++int
+ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
+ 			bool dormant)
+ {
+@@ -242,7 +242,7 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
+ 	return ret;
  }
  
-@@ -742,10 +750,6 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
- 	uint16_t flags = NLM_F_ACK|NLM_F_CREATE;
- 	int ret = 1;
+-static struct nft_chain *
++struct nft_chain *
+ nft_chain_builtin_alloc(struct builtin_table *table,
+ 			struct builtin_chain *chain, int policy)
+ {
+@@ -262,7 +262,7 @@ nft_chain_builtin_alloc(struct builtin_table *table,
+ 	return c;
+ }
  
--	/* If built-in chains don't exist for this table, create them */
--	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
--		nft_chain_builtin_init(h, table, chain, NF_ACCEPT);
--
- 	nft_fn = nft_rule_append;
+-static void
++void
+ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
+ 		      struct builtin_chain *chain, int policy)
+ {
+@@ -288,7 +288,7 @@ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
+ }
  
- 	r = nft_rule_new(h, chain, table, cs);
-@@ -1316,10 +1320,6 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
- 	struct nft_chain *c;
- 	int ret;
+ /* find if built-in table already exists */
+-static struct builtin_table *
++struct builtin_table *
+ nft_table_builtin_find(struct nft_handle *h, const char *table)
+ {
+ 	int i;
+@@ -306,7 +306,7 @@ nft_table_builtin_find(struct nft_handle *h, const char *table)
+ }
  
--	/* If built-in chains don't exist for this table, create them */
--	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
--		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
--
- 	c = nft_chain_alloc();
- 	if (c == NULL)
- 		return 0;
-@@ -1472,10 +1472,6 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
- 	uint64_t handle;
- 	int ret;
+ /* find if built-in chain already exists */
+-static struct builtin_chain *
++struct builtin_chain *
+ nft_chain_builtin_find(struct builtin_table *t, const char *chain)
+ {
+ 	int i;
+@@ -343,7 +343,7 @@ __nft_chain_builtin_init(struct nft_handle *h,
+ 	}
+ }
  
--	/* If built-in chains don't exist for this table, create them */
--	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
--		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
--
- 	/* Find the old chain to be renamed */
- 	c = nft_chain_find(h, table, chain);
- 	if (c == NULL) {
-@@ -2170,10 +2166,6 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
- 	struct nft_rule *r;
- 	uint64_t handle;
+-static int
++int
+ nft_chain_builtin_init(struct nft_handle *h, const char *table,
+ 		       const char *chain, int policy)
+ {
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 39ed7c0..3c52b3b 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -33,6 +33,28 @@ struct nft_handle {
+ 	struct builtin_table	*tables;
+ };
  
--	/* If built-in chains don't exist for this table, create them */
--	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
--		nft_chain_builtin_init(h, table, chain, NF_ACCEPT);
--
- 	nft_fn = nft_rule_insert;
++int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
++	     int (*cb)(const struct nlmsghdr *nlh, void *data),
++	     void *data);
++
++int nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
++			  bool dormant);
++
++struct nft_chain *nft_chain_builtin_alloc(struct builtin_table *table,
++					  struct builtin_chain *chain, int policy);
++
++void nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
++			   struct builtin_chain *chain, int policy);
++
++struct builtin_table *nft_table_builtin_find(struct nft_handle *h,
++					     const char *table);
++
++struct builtin_chain *nft_chain_builtin_find(struct builtin_table *t,
++					     const char *chain);
++
++int nft_chain_builtin_init(struct nft_handle *h, const char *table,
++			   const char *chain, int policy);
++
+ int nft_init(struct nft_handle *h);
+ void nft_fini(struct nft_handle *h);
  
- 	list = nft_rule_list_create(h);
-@@ -2521,10 +2513,6 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
- 	struct nft_chain *c;
- 	bool found = false;
- 
--	/* If built-in chains don't exist for this table, create them */
--	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
--		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
--
- 	list = nft_chain_dump(h);
- 
- 	iter = nft_chain_list_iter_create(list);
 
