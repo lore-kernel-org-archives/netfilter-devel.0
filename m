@@ -1,175 +1,225 @@
-From: Bill Fink <billfink@mindspring.com>
-Subject: Re: conntrackd segfault on EPSV IPv6 ftp command when using ftp
- ExpectationSync
-Date: Tue, 16 Jul 2013 01:55:03 -0400
-Message-ID: <20130716015503.735ca678.billfink@mindspring.com>
-References: <20130705020312.25783ccd.billfink@mindspring.com>
-	<20130706132333.GA3279@localhost>
-	<20130707030458.fbf22472.billfink@mindspring.com>
-	<20130709013023.2fb1fef1.billfink@mindspring.com>
-	<20130709182223.GA6266@localhost>
-	<20130710055815.a1bd2c1d.billfink@mindspring.com>
-	<20130710220820.GA20666@localhost>
-	<20130711004827.GA5500@localhost>
-	<20130712030114.0362fb5a.billfink@mindspring.com>
-	<20130715124905.GA21260@localhost>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCHv4] netfilter: nf_tables: add insert operation
+Date: Tue, 16 Jul 2013 09:35:58 +0200
+Message-ID: <1373960158.22759.7.camel@ice-age.regit.org>
+References: <20130707215644.GA31231@localhost>
+	 <1373324177-4991-1-git-send-email-eric@regit.org>
+	 <1373324177-4991-2-git-send-email-eric@regit.org>
+	 <20130715104859.GA14071@localhost>
+	 <1373909274.17537.26.camel@ice-age.regit.org>
+	 <20130715235714.GA6221@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-reyEyVO8fT/EI79uHeZv"
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20130715124905.GA21260@localhost>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:44383 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab3GPHgJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jul 2013 03:36:09 -0400
+In-Reply-To: <20130715235714.GA6221@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 15 Jul 2013, Pablo Neira Ayuso wrote:
 
-> On Fri, Jul 12, 2013 at 03:01:14AM -0400, Bill Fink wrote:
-> > Pablo,
-> > 
-> > On Thu, 11 Jul 2013, Pablo Neira Ayuso wrote:
-> > 
-> > > On Thu, Jul 11, 2013 at 12:08:20AM +0200, Pablo Neira Ayuso wrote:
-> > > > On Wed, Jul 10, 2013 at 05:58:15AM -0400, Bill Fink wrote:
-> > > > > Almost there.  With the above patch, I now successfully get
-> > > > > IPv6 expectations on the backup firewall.  Unfortunately they're
-> > > > > not quite right.  On the backup firewall, the expectation src-IP
-> > > > > is the same as the dst-IP (either IPv4 or IPv6).
-> > > > > 
-> > > > > Primary firewall:
-> > > > > 
-> > > > > [root@sen-fw1 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > > > 251 proto=6 src=192.168.218.199 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > > > 
-> > > > > Backup firewall:
-> > > > > 
-> > > > > [root@sen-fw2 linux-3.7.3-101.fc17.x86_64]# conntrack -L expect
-> > > > > 245 proto=6 src=192.168.28.198 dst=192.168.28.198 sport=0 dport=54705 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=192.168.218.199 master-dst=192.168.28.198 sport=56877 dport=21 class=0 helper=ftp
-> > > > > conntrack v1.4.0 (conntrack-tools): 1 expectations have been shown.
-> > > > > 
-> > > > > This was an unfortunate side affect of the patch to fix the
-> > > > > conntrackd segfault problem.  If I use Florian's version
-> > > > > of the fix segfault patch rather than Pablo's then all is
-> > > > > good.
-> > > > 
-> > > > Thanks for the information, however, we still need to get working back
-> > > > the filtering support.
-> > > > 
-> > > > Could you give a try to the following patch, please?
-> > > > 
-> > > > It applies on top of conntrack-tools master branch, thanks.
-> > > 
-> > > There are still some downsides in the previous solution, please, give
-> > > a try to this patch instead.
-> > 
-> > It appears to work pretty well and does fix the src-IP issue!
-> 
-> Thanks for testing and reporting back, I have pushed the patch to
-> master.
-> 
-> > I did notice a couple of other things but they're not necessarily
-> > related to these patches.  I noticed that my long lived BGP tcp
-> > connection was getting some duplicate conntrackd ct entries (both
-> > IPv4 and IPv6).  The duplicate ct entry occurred 60 seconds after
-> > the original, and once I saw a second duplicate ct IPv4 entry,
-> > again with about a 60 second separation.
-> 
-> That's strange. Please, tell me if this happening in the primary
-> and/or the backup. If you are using the cache mode, also dump the
-> caches via -i and -e to see the content.
+--=-reyEyVO8fT/EI79uHeZv
+Content-Type: multipart/mixed; boundary="=-toj94mjF5EZ5EOwMK9cf"
 
-I'm not using the external cache.  The duplicate BGP conntrackd
-entries seem to have multiplied (this is on the primary with the
-"conntrackd -i" command):
 
-tcp      6 ESTABLISHED src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=61888 dport=179 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=179 dport=61888 [ASSURED] mark=0 [active since 18464s]
-tcp      6 ESTABLISHED src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=61888 dport=179 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=179 dport=61888 [ASSURED] mark=0 [active since 245497s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271387s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271447s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271508s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271568s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271628s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271689s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] mark=0 [active since 271749s]
-tcp      6 ESTABLISHED src=2001:xxxx:xxxx:xxxx::yyyy dst=2001:xxxx:xxxx:xxxx::zzzz sport=49166 dport=179 src=2001:xxxx:xxxx:xxxx::zzzz dst=2001:xxxx:xxxx:xxxx::yyyy sport=179 dport=49166 [ASSURED] [active since 271803s]
+--=-toj94mjF5EZ5EOwMK9cf
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-> > And on the expectation entries, they seem to have a lifetime
-> > of 300 seconds.  The IPv6 expectation entries are deleted after
-> > the 300 seconds as expected, but the IPv4 expectation entries
-> > actually go away in a minute or less.  I don't know if that
-> > is expected behavior or not.  Note I was leaving the ftp
-> > control connection open the entire time.  Also it may have
-> > just been my imagination, but it seemed if I queried it more
-> > often with "conntrack -L expect" it would stick around somewhat
-> > longer (but would go away within the minute).
-> 
-> Expectations depends on the master conntrack, if the master is
-> released, the expectations will be released too. You may be noticing
-> that effect.
+Hello Pablo,
 
-I wasn't expecting that since I was leaving the ftp control
-connection open.
+Le mardi 16 juillet 2013 =E0 01:57 +0200, Pablo Neira Ayuso a =E9crit :
+> Hi Eric,
+>=20
+> On Mon, Jul 15, 2013 at 07:27:54PM +0200, Eric Leblond wrote:
+> > Hi,
+> >=20
+> > Le lundi 15 juillet 2013 =E0 12:48 +0200, Pablo Neira Ayuso a =E9crit :
+> > > Hi Eric,
+> > >=20
+> > > On Tue, Jul 09, 2013 at 12:56:17AM +0200, Eric Leblond wrote:
+> > > > This patch adds a new rule attribute NFTA_RULE_POSITION which is
+> > > > used to store the position of a rule relatively to the others.
+> > > > By providing a create command and specifying a position, the rule i=
+s
+> > > > inserted after the rule with the handle equal to the provided
+> > > > position.
+> > > > Regarding notification, the position attribute is added to specify
+> > > > the handle of the previous rule in append mode and the handle of
+> > > > the next rule in the other case.
+> > > >=20
+> > > > Signed-off-by: Eric Leblond <eric@regit.org>
+> > > > ---
+> > > >  include/uapi/linux/netfilter/nf_tables.h |  1 +
+> > > >  net/netfilter/nf_tables_api.c            | 46 ++++++++++++++++++++=
++++++++++---
+> > > >  2 files changed, 43 insertions(+), 4 deletions(-)
+> > > >=20
+> > > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uap=
+i/linux/netfilter/nf_tables.h
+> > > > index d40a7f9..d9bf8ea 100644
+> > > > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > > > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > > > @@ -143,6 +143,7 @@ enum nft_rule_attributes {
+> > > >  	NFTA_RULE_EXPRESSIONS,
+> > > >  	NFTA_RULE_FLAGS,
+> > > >  	NFTA_RULE_COMPAT,
+> > > > +	NFTA_RULE_POSITION,
+> > > >  	__NFTA_RULE_MAX
+> > > >  };
+> > > >  #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+> > > > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_table=
+s_api.c
+> > > > index b00aca8..012eb1f 100644
+> > > > --- a/net/netfilter/nf_tables_api.c
+> > > > +++ b/net/netfilter/nf_tables_api.c
+> > > > @@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_polic=
+y[NFTA_RULE_MAX + 1] =3D {
+> > > >  	[NFTA_RULE_EXPRESSIONS]	=3D { .type =3D NLA_NESTED },
+> > > >  	[NFTA_RULE_FLAGS]	=3D { .type =3D NLA_U32 },
+> > > >  	[NFTA_RULE_COMPAT]	=3D { .type =3D NLA_NESTED },
+> > > > +	[NFTA_RULE_POSITION]	=3D { .type =3D NLA_U64 },
+> > > >  };
+> > > > =20
+> > > >  static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 porti=
+d, u32 seq,
+> > > > @@ -1279,6 +1280,7 @@ static int nf_tables_fill_rule_info(struct sk=
+_buff *skb, u32 portid, u32 seq,
+> > > >  	struct nfgenmsg *nfmsg;
+> > > >  	const struct nft_expr *expr, *next;
+> > > >  	struct nlattr *list;
+> > > > +	const struct nft_rule *prule;
+> > > > =20
+> > > >  	event |=3D NFNL_SUBSYS_NFTABLES << 8;
+> > > >  	nlh =3D nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg=
+),
+> > > > @@ -1298,6 +1300,26 @@ static int nf_tables_fill_rule_info(struct s=
+k_buff *skb, u32 portid, u32 seq,
+> > > >  	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)=
+))
+> > > >  		goto nla_put_failure;
+> > > > =20
+> > > > +	if (flags & NLM_F_APPEND) {
+> > > > +		if ((event !=3D NFT_MSG_DELRULE) &&
+> > > > +		    (rule->list.prev !=3D &chain->rules)) {
+> > > > +			prule =3D list_entry(rule->list.prev,
+> > > > +					   struct nft_rule, list);
+> > > > +			if (nla_put_be64(skb, NFTA_RULE_POSITION,
+> > > > +					 cpu_to_be64(prule->handle)))
+> > > > +				goto nla_put_failure;
+> > > > +		}
+> > >=20
+> > > This looks good but I think we can simplify this to always use .prev.
+> > >=20
+> > > 1) Append: we use .prev. If it's the first rule in the list, skip
+> > >    position attribute.
+> > >=20
+> > > 2) Insert: never dump position attribute as it is always the first
+> > >    rule in the list.
+> > >=20
+> > > 3) At position X: use .prev. If it's the first rule in the list, skip=
+.
+> > >=20
+> > > That should allows us to remove the else branch below and it should
+> > > simplify the semantics of NFTA_RULE_POSITION as well.
+> >=20
+> > This code is not pretty and I understand your point but we have two typ=
+e
+> > of operations:
+> >       * Insert before
+> >       * Append after
+> > In both cases, the presence of the NFTA_RULE_POSITION attribute is
+> > triggering the switch to this mode. And I think this is a convenient wa=
+y
+> > to update the API.
+>=20
+> I see. Then we need to save the append flag to report events correctly
+> in the commit path for the "insert after" case, according to this
+> approach (that's should be easy to resolve though with a follow up
+> patch).
 
-> You can use `conntrack -E` and `conntrack -E exp` to verify this.
 
-I couldn't get filtering to work with expect:
+IMHO, it is already there. At start of nf_tables_fill_rule_info, we are
+doing:
 
-[root@sen-fw1 ~]# conntrack -E expect -d aaa.aaa.aaa.ccc
-conntrack v1.4.0 (conntrack-tools): Illegal option `--dst' with this command
-Try `conntrack -h' or 'conntrack --help' for more information.
+	nlh =3D nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
+			flags);
 
-[root@sen-fw1 ~]# conntrack -E expect --tuple-dst aaa.aaa.aaa.ccc
-conntrack v1.4.0 (conntrack-tools): Illegal option `--tuple-dst' with this command
-Try `conntrack -h' or 'conntrack --help' for more information.
+So flags is used as flag inside nlh. And we can get the information
+during event by checking (nlh->nlmsg_flags & NLM_F_APPEND). I've done
+some tests with the attached patch and it seems to work well.
 
-But with the help of grep:
+So events get insert/append information as well as position. This should
+be enough for event listeners to follow ruleset evolution.
 
-x100ssd2% nc aaa.aaa.aaa.ccc 21
-220 FTP Server ready.
+> > Furthermore, inside nf_tables_fill_rule_info() we don't have any
+> > information to decide that we are in "position X".
+>=20
+> But we know the handle of our .prev node for that new rule we added,
+> that can be used to report back our relative location to it, ie.
+> always return the previous node.
+>=20
+> This however results in reporting back a different handle via the
+> event notification in the "insert after" case (instead of the original
+> handle passed via the rule_position attribute).
 
-gives:
+Yes, getting insert/append information and position is better.
 
-    [NEW] tcp      6 120 SYN_SENT src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=49840 dport=21 [UNREPLIED] src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=21 dport=49840 helper=ftp
- [UPDATE] tcp      6 60 SYN_RECV src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=49840 dport=21 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=21 dport=49840 helper=ftp
- [UPDATE] tcp      6 432000 ESTABLISHED src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=49840 dport=21 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=21 dport=49840 [ASSURED] helper=ftp
+> > Only solution to switch to the method you describe would be to
+> > introduce a new operation and it seems that was is wanted (it was
+> > said in initial discussion).
+>=20
+> Sure, I just wanted to discuss the nf_tables_fill_rule_info path, not
+> questioning the entire patch.
 
-Then doing:
+Cool :)
 
-USER anonymous
-331 Anonymous login ok, send your complete email address as your password
-PASS bill@
-230-
-...
-230 Anonymous login ok, restrictions apply.
-PASV
-227 Entering Passive Mode (aaa,aaa,aaa,ccc,175,61).
+BR,
+--
+Eric
 
-yields:
+--=-toj94mjF5EZ5EOwMK9cf
+Content-Disposition: attachment; filename="0001-after-before.patch"
+Content-Type: text/x-patch; name="0001-after-before.patch"; charset="ISO-8859-15"
+Content-Transfer-Encoding: base64
 
-    [NEW] 300 proto=6 src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=0 dport=44861 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=aaa.aaa.aaa.bbb master-dst=aaa.aaa.aaa.ccc sport=49840 dport=21 class=0 helper=ftp
+RnJvbSA4NmU2ZTA5ZWJiZTJiNzcwNTQ3MDM0YzJjYjZhMjIzOWY3OWYxY2U0IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQ0KRnJvbTogRXJpYyBMZWJsb25kIDxlcmljQHJlZ2l0Lm9yZz4NCkRhdGU6
+IFR1ZSwgMTYgSnVsIDIwMTMgMDk6MTI6MTkgKzAyMDANClN1YmplY3Q6IFtQQVRDSF0gYWZ0ZXIg
+YmVmb3JlDQoNClNpZ25lZC1vZmYtYnk6IEVyaWMgTGVibG9uZCA8ZXJpY0ByZWdpdC5vcmc+DQot
+LS0NCiBleGFtcGxlcy9uZnQtZXZlbnRzLmMgfCA0ICsrKysNCiAxIGZpbGUgY2hhbmdlZCwgNCBp
+bnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9leGFtcGxlcy9uZnQtZXZlbnRzLmMgYi9leGFt
+cGxlcy9uZnQtZXZlbnRzLmMNCmluZGV4IDU1NTBjNzAuLjViYmRjZTQgMTAwNjQ0DQotLS0gYS9l
+eGFtcGxlcy9uZnQtZXZlbnRzLmMNCisrKyBiL2V4YW1wbGVzL25mdC1ldmVudHMuYw0KQEAgLTYz
+LDYgKzYzLDEwIEBAIHN0YXRpYyBpbnQgcnVsZV9jYihjb25zdCBzdHJ1Y3Qgbmxtc2doZHIgKm5s
+aCwgaW50IHR5cGUpDQogCQlnb3RvIGVycl9mcmVlOw0KIAl9DQogDQorCWlmIChubGgtPm5sbXNn
+X2ZsYWdzICYgTkxNX0ZfQVBQRU5EKQ0KKwkJcHJpbnRmKCJBRlRFUiAiKTsNCisJZWxzZQ0KKwkJ
+cHJpbnRmKCJCRUZPUkUgIik7DQogCW5mdF9ydWxlX3NucHJpbnRmKGJ1Ziwgc2l6ZW9mKGJ1Ziks
+IHQsIE5GVF9SVUxFX09fREVGQVVMVCwgMCk7DQogCXByaW50ZigiWyVzXVx0JXNcbiIsIHR5cGUg
+PT0gTkZUX01TR19ORVdSVUxFID8gIk5FVyIgOiAiREVMIiwgYnVmKTsNCiANCi0tIA0KMS44LjMu
+Mg0KDQo=
 
-Not doing anything but waiting, a little while later:
 
-[DESTROY] tcp      6 src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=49840 dport=21 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=21 dport=49840 [ASSURED]
- [UPDATE] tcp      6 433405 ESTABLISHED src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=49840 dport=21 src=aaa.aaa.aaa.ccc dst=aaa.aaa.aaa.bbb sport=21 dport=49840 [ASSURED] mark=0 helper=ftp
+--=-toj94mjF5EZ5EOwMK9cf--
 
-together with:
+--=-reyEyVO8fT/EI79uHeZv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-[DESTROY] 273 proto=6 src=aaa.aaa.aaa.bbb dst=aaa.aaa.aaa.ccc sport=0 dport=44861 mask-src=255.255.255.255 mask-dst=255.255.255.255 sport=0 dport=65535 master-src=aaa.aaa.aaa.bbb master-dst=aaa.aaa.aaa.ccc sport=49840 dport=21 class=0 helper=ftp
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-So that's why the expect goes away.  Remember this didn't happen
-with IPv6 (it didn't go away until the 300 seconds expired).
+iD8DBQBR5PfenxA7CdMWjzIRAspLAJ44CCiG6sKrlYpv7cWeXx5id10Q0ACgji6+
+BictgTq7sB2MSpBx9FIgQ4I=
+=Ub38
+-----END PGP SIGNATURE-----
 
-Is the DESTROY/UPDATE on the master ftp connection normal when
-the ftp control connection hasn't been closed?
+--=-reyEyVO8fT/EI79uHeZv--
 
-At least for ftp it's not a big problem in practice since the
-expectation seems to be used almost immediately after creation
-for normal ftp transfers.
-
-					-Thanks
-
-					-Bill
