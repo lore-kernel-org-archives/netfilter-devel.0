@@ -1,37 +1,47 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH net] ipv4: set transport header earlier
-Date: Tue, 16 Jul 2013 06:56:26 -0700
-Message-ID: <1373982986.10804.106.camel@edumazet-glaptop>
+Date: Tue, 16 Jul 2013 13:00:08 -0700 (PDT)
+Message-ID: <20130716.130008.1606475609280013646.davem@davemloft.net>
 References: <1373943799.10804.96.camel@edumazet-glaptop>
-	 <51E549A0.206@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>,
-	Neal Cardwell <ncardwell@google.com>,
-	netfilter-devel@vger.kernel.org, Tom Herbert <therbert@google.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <51E549A0.206@cogentembedded.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev@vger.kernel.org, ncardwell@google.com,
+	netfilter-devel@vger.kernel.org, therbert@google.com
+To: eric.dumazet@gmail.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:39657 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933196Ab3GPUAJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jul 2013 16:00:09 -0400
+In-Reply-To: <1373943799.10804.96.camel@edumazet-glaptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-07-16 at 17:24 +0400, Sergei Shtylyov wrote:
-> > +	skb->transport_header = skb->network_header + iph->ihl*4;
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Mon, 15 Jul 2013 20:03:19 -0700
+
+> From: Eric Dumazet <edumazet@google.com>
 > 
->     Spaces around * wouldn't hurt, to be consistent with the rest of the 
-> statement and the Linux style in common.
+> commit 45f00f99d6e ("ipv4: tcp: clean up tcp_v4_early_demux()") added a
+> performance regression for non GRO traffic, basically disabling
+> IP early demux.
+> 
+> IPv6 stack resets transport header in ip6_rcv() before calling
+> IP early demux in ip6_rcv_finish(), while IPv4 does this only in
+> ip_local_deliver_finish(), _after_ IP early demux.
+> 
+> GRO traffic happened to enable IP early demux because transport header
+> is also set in inet_gro_receive()
+> 
+> Instead of reverting the faulty commit, we can make IPv4/IPv6 behave the
+> same : transport_header should be set in ip_rcv() instead of
+> ip_local_deliver_finish()
+> 
+> ip_local_deliver_finish() can also use skb_network_header_len() which is
+> faster than ip_hdrlen()
+> 
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
 
-I am well aware of this, I chose the convention used in this function
-and file.
-
-# grep ihl net/ipv4/ip_input.c
-	opt->optlen = iph->ihl*4 - sizeof(struct iphdr);
-	if (iph->ihl > 5 && ip_rcv_options(skb))
-	if (iph->ihl < 5 || iph->version != 4)
-	if (!pskb_may_pull(skb, iph->ihl*4))
-	if (unlikely(ip_fast_csum((u8 *)iph, iph->ihl)))
-	} else if (len < (iph->ihl*4))
-
-Thanks
+Applied and queued up for -stable, thanks Eric.
