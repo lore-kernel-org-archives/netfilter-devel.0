@@ -1,105 +1,64 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - PATCH 7/9] nft: Print chains in right order when saving rules
-Date: Tue, 16 Jul 2013 15:38:51 +0300
-Message-ID: <1373978333-17427-8-git-send-email-tomasz.bursztyka@linux.intel.com>
-References: <1373978333-17427-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28298 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932271Ab3GPMjJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jul 2013 08:39:09 -0400
-In-Reply-To: <1373978333-17427-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH net] ipv4: set transport header earlier
+Date: Tue, 16 Jul 2013 17:24:48 +0400
+Message-ID: <51E549A0.206@cogentembedded.com>
+References: <1373943799.10804.96.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>,
+	Neal Cardwell <ncardwell@google.com>,
+	netfilter-devel@vger.kernel.org, Tom Herbert <therbert@google.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1373943799.10804.96.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Fixes the output which was:
--P OUTPUT ACCEPT
--P FORWARD ACCEPT
--P INPUT ACCEPT
+Hello.
 
-Where it should be:
--P INPUT ACCEPT
--P FORWARD ACCEPT
--P OUTPUT ACCEPT
+On 16-07-2013 7:03, Eric Dumazet wrote:
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
----
- iptables/nft.c | 46 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 32 insertions(+), 14 deletions(-)
+> From: Eric Dumazet <edumazet@google.com>
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 2f03f63..4ca1cec 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -2540,8 +2540,36 @@ static int
- nft_rule_list_chain_save(struct nft_handle *h, const char *table,
- 			 struct nft_chain_list *list, int counters)
- {
-+	const struct builtin_table *t;
- 	struct nft_chain_list_iter *iter;
- 	struct nft_chain *c;
-+	int i;
-+
-+	/* Let's print out builtin chains first, in right order */
-+	t = nft_table_builtin_find(table);
-+	if (t == NULL)
-+		return 0;
-+
-+	for (i = 0; i < NF_IP_NUMHOOKS && t->chains[i].name != NULL; i++) {
-+		uint32_t policy;
-+
-+		c = nft_chain_list_find(list, table, t->chains[i].name);
-+		if (c == NULL)
-+			return 0;
-+
-+		policy = nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_POLICY);
-+
-+		printf("-P %s %s", t->chains[i].name, policy_name[policy]);
-+		if (counters) {
-+			printf(" -c %"PRIu64" %"PRIu64"\n",
-+				nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_PACKETS),
-+				nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_BYTES));
-+		}
-+
-+		printf("\n");
-+	}
- 
- 	iter = nft_chain_list_iter_create(list);
- 	if (iter == NULL)
-@@ -2553,25 +2581,15 @@ nft_rule_list_chain_save(struct nft_handle *h, const char *table,
- 			nft_chain_attr_get_str(c, NFT_CHAIN_ATTR_TABLE);
- 		const char *chain_name =
- 			nft_chain_attr_get_str(c, NFT_CHAIN_ATTR_NAME);
--		uint32_t policy =
--			nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_POLICY);
- 
- 		if (strcmp(table, chain_table) != 0)
- 			goto next;
- 
--		/* this is a base chain */
--		if (nft_chain_builtin(c)) {
--			printf("-P %s %s", chain_name, policy_name[policy]);
-+		/* we already handled builtin chains */
-+		if (nft_chain_builtin(c))
-+			goto next;
- 
--			if (counters) {
--				printf(" -c %"PRIu64" %"PRIu64"\n",
--					nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_PACKETS),
--					nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_BYTES));
--			} else
--				printf("\n");
--		} else {
--			printf("-N %s\n", chain_name);
--		}
-+		printf("-N %s\n", chain_name);
- next:
- 		c = nft_chain_list_iter_next(iter);
- 	}
--- 
-1.8.2.1
+> commit 45f00f99d6e ("ipv4: tcp: clean up tcp_v4_early_demux()") added a
+> performance regression for non GRO traffic, basically disabling
+> IP early demux.
 
+> IPv6 stack resets transport header in ip6_rcv() before calling
+> IP early demux in ip6_rcv_finish(), while IPv4 does this only in
+> ip_local_deliver_finish(), _after_ IP early demux.
+
+> GRO traffic happened to enable IP early demux because transport header
+> is also set in inet_gro_receive()
+
+> Instead of reverting the faulty commit, we can make IPv4/IPv6 behave the
+> same : transport_header should be set in ip_rcv() instead of
+> ip_local_deliver_finish()
+
+> ip_local_deliver_finish() can also use skb_network_header_len() which is
+> faster than ip_hdrlen()
+
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> Cc: Neal Cardwell <ncardwell@google.com>
+> Cc: Tom Herbert <therbert@google.com>
+> ---
+>   net/ipv4/ip_input.c |    7 +++----
+>   1 file changed, 3 insertions(+), 4 deletions(-)
+
+> diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
+> index 3da817b..15e3e68 100644
+> --- a/net/ipv4/ip_input.c
+> +++ b/net/ipv4/ip_input.c
+[...]
+> @@ -437,6 +434,8 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt,
+>   		goto drop;
+>   	}
+>
+> +	skb->transport_header = skb->network_header + iph->ihl*4;
+
+    Spaces around * wouldn't hurt, to be consistent with the rest of the 
+statement and the Linux style in common.
+
+WBR, Sergei
