@@ -1,31 +1,32 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [iptables-nftables - PATCH 3/9] nft: Refactor and optimize nft_rule_list
-Date: Wed, 17 Jul 2013 10:08:51 +0300
-Message-ID: <51E64303.6040902@linux.intel.com>
-References: <1373978333-17427-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1373978333-17427-4-git-send-email-tomasz.bursztyka@linux.intel.com> <20130716201228.GC14035@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [iptables-nftables - PATCH 0/2] fixes
+Date: Wed, 17 Jul 2013 10:34:13 +0300
+Message-ID: <1374046455-19234-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2510 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:63772 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752331Ab3GQHIy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jul 2013 03:08:54 -0400
-In-Reply-To: <20130716201228.GC14035@localhost>
+	id S1752483Ab3GQHeV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Jul 2013 03:34:21 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi,
 
-> On Tue, Jul 16, 2013 at 03:38:47PM +0300, Tomasz Bursztyka wrote:
->> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-> This does not apply cleanly to current head.
->
-> Could you rebase and resend, please?
+First patch is in reply of my previous "[iptables-nftables - PATCH 3/9] nft: Refactor and optimize nft_rule_list"
+Since there is no need to refactor anything anymore. And same fixe applies on rule save actually.
 
-Forget about this one, stuff are superfluous now that patch 6/7/8 are 
-useless. I have another one coming then.
+Second patch, well I am not found of "style" patches, but I am also annoyed by lines being way too long.
+Your call Pablo, take that one or scrap it. 
 
-Tomasz
+Tomasz Bursztyka (2):
+  nft: Optimize chain listing if only one is looked for
+  nft: Fix code style issues
+
+ iptables/nft.c | 94 ++++++++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 62 insertions(+), 32 deletions(-)
+
+-- 
+1.8.2.1
+
