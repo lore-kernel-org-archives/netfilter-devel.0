@@ -1,74 +1,65 @@
-From: Fiedler Roman <Roman.Fiedler@ait.ac.at>
-Subject: Conntrack vs. TCP-stack timout differences: quickfix howto
-Date: Wed, 17 Jul 2013 08:14:16 +0000
-Message-ID: <2ECE9D9EEF1F524185270138AE2326591D3BD709@S0MSMAIL111.arc.local>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [iptables-nftables - PATCH 1/2] nft: Optimize chain listing if
+ only one is looked for
+Date: Wed, 17 Jul 2013 15:40:04 +0200
+Message-ID: <20130717134004.GA7893@localhost>
+References: <1374046455-19234-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1374046455-19234-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.ait.ac.at ([62.218.164.132]:43287 "EHLO MX2.ait.ac.at"
+Received: from mail.us.es ([193.147.175.20]:42361 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751590Ab3GQIVw convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jul 2013 04:21:52 -0400
-Received: from pps.filterd (MX2 [127.0.0.1])
-	by MX2.ait.ac.at (8.14.5/8.14.5) with SMTP id r6H83Cbg021023
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2013 10:14:17 +0200
-Received: from mail.ait.ac.at ([172.30.249.112])
-	by MX2.ait.ac.at with ESMTP id 1dnau686q2-1
-	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2013 10:14:17 +0200
-Content-Language: de-DE
+	id S1754128Ab3GQNkK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Jul 2013 09:40:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1374046455-19234-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello List,
+Hi Tomasz,
 
-=46rom time to time, iptables drops related packets of TCP-connections =
-originating from the host running iptables.=20
+On Wed, Jul 17, 2013 at 10:34:14AM +0300, Tomasz Bursztyka wrote:
+> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+> ---
+>  iptables/nft.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/iptables/nft.c b/iptables/nft.c
+> index f9a88c9..f33faa5 100644
+> --- a/iptables/nft.c
+> +++ b/iptables/nft.c
+> @@ -2495,6 +2495,9 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
+>  		}
+>  		__nft_rule_list(h, c, table, rulenum, format, print_firewall);
+>  
+> +		if (chain && strcmp(chain, chain_name) == 0)
+> +			break;
+> +
+>  		found = true;
+>  
+>  next:
+> @@ -2593,6 +2596,9 @@ int nft_rule_list_save(struct nft_handle *h, const char *chain,
+>  
+>  		ret = __nft_rule_list(h, c, table, rulenum,
+>  				      counters ? 0 : FMT_NOCOUNTS, list_save);
+> +
+> +		if (chain && strcmp(chain, chain_name) != 0)
 
-Jul 17 06:02:37 [somehost] iptables:DROP-ERROR IN=3D OUT=3Deth0 MAC=3D =
-SRC=3D[somehost-ip] DST=3D[otherhost] LEN=3D64 TOS=3D00 PREC=3D0x00 TTL=
-=3D64 ID=3D48442 CE DF PROTO=3DTCP SPT=3D41902 DPT=3D80 SEQ=3D382478645=
- ACK=3D1990115033 WINDOW=3D916 ACK PSH FIN URGP=3D0
+This should be == 0. There's the same checking above __nft_rule_list.
 
-The conntrack tables are quite empty,  far away from loosing conntracks=
- due to overload. In my opinion, kernel is generating those packets sin=
-ce it is still handling the TCP-connection shutdown phase, while conntr=
-ack has sorted out the entry, believing that the connection was termina=
-ted already.
+I noticed that we don't need to strcmp(chain, chain_name) again,
+checking for chain is sufficient.
 
-Since I assume, that the cause for this are different state-timeouts in=
- iptables and TCP-stack, I would like to write a howto (or better a scr=
-ipt for automatic check) to find out, which parameters should be adjust=
-ed.
+Pushed this patch, is based on yours:
 
-Am I on the right track? Is this possible or is e.g. the iptables-TCP-s=
-tate-model simplified for speed-up, that it cannot follow all local TCP=
- state changes by design?
+http://git.netfilter.org/iptables-nftables/commit/?id=db6d43c979954b1a0e2a3d2d1fa4494c43d921c1
 
-Thanks,
-Roman
+While at it, I also noticed that selective listing per chain with -S
+was also broken, fixed here:
 
-PS: Kernel 3.9.7
+http://git.netfilter.org/iptables-nftables/commit/?id=eaa70f580a3e3b7675d75005ab71c00494a3ee6e
 
-DI Roman Fiedler
-Engineer
-Safety & Security Department
-Assistive Healthcare Information Technology
-
-AIT Austrian Institute of Technology GmbH
-Reininghausstrae 13/1=A0 |=A0 8020 Graz=A0 |=A0 Austria
-T +43(0) 50550 2957=A0 |=A0 M +43(0) 664 8561599=A0 |=A0 F +43(0) 50550=
- 2950
-roman.fiedler@ait.ac.at | http://www.ait.ac.at/
-
-=46N: 115980 i HG Wien=A0 |=A0 UID: ATU14703506
-http://www.ait.ac.at/Email-Disclaimer
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards.
