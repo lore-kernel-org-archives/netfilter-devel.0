@@ -1,283 +1,74 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - PATCH 2/2] nft: Fix code style issues
-Date: Wed, 17 Jul 2013 10:34:15 +0300
-Message-ID: <1374046455-19234-3-git-send-email-tomasz.bursztyka@linux.intel.com>
-References: <1374046455-19234-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-To: netfilter-devel@vger.kernel.org
+From: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Subject: Conntrack vs. TCP-stack timout differences: quickfix howto
+Date: Wed, 17 Jul 2013 08:14:16 +0000
+Message-ID: <2ECE9D9EEF1F524185270138AE2326591D3BD709@S0MSMAIL111.arc.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:13723 "EHLO mga03.intel.com"
+Received: from mx2.ait.ac.at ([62.218.164.132]:43287 "EHLO MX2.ait.ac.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752503Ab3GQHeY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jul 2013 03:34:24 -0400
-In-Reply-To: <1374046455-19234-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+	id S1751590Ab3GQIVw convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Jul 2013 04:21:52 -0400
+Received: from pps.filterd (MX2 [127.0.0.1])
+	by MX2.ait.ac.at (8.14.5/8.14.5) with SMTP id r6H83Cbg021023
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2013 10:14:17 +0200
+Received: from mail.ait.ac.at ([172.30.249.112])
+	by MX2.ait.ac.at with ESMTP id 1dnau686q2-1
+	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2013 10:14:17 +0200
+Content-Language: de-DE
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
----
- iptables/nft.c | 88 +++++++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 56 insertions(+), 32 deletions(-)
+Hello List,
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index f33faa5..1004ec8 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -485,7 +485,8 @@ static void nft_chain_print_debug(struct nft_chain *c, struct nlmsghdr *nlh)
- 
- 	nft_chain_snprintf(tmp, sizeof(tmp), c, 0, 0);
- 	printf("DEBUG: chain: %s", tmp);
--	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
-+	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
-+						sizeof(struct nfgenmsg));
- #endif
- }
- 
-@@ -560,7 +561,8 @@ static int __add_match(struct nft_rule_expr *e, struct xt_entry_match *m)
- {
- 	void *info;
- 
--	nft_rule_expr_set(e, NFT_EXPR_MT_NAME, m->u.user.name, strlen(m->u.user.name));
-+	nft_rule_expr_set(e, NFT_EXPR_MT_NAME, m->u.user.name,
-+						strlen(m->u.user.name));
- 	nft_rule_expr_set_u32(e, NFT_EXPR_MT_REV, m->u.user.revision);
- 
- 	info = calloc(1, m->u.match_size);
-@@ -568,7 +570,8 @@ static int __add_match(struct nft_rule_expr *e, struct xt_entry_match *m)
- 		return -ENOMEM;
- 
- 	memcpy(info, m->data, m->u.match_size);
--	nft_rule_expr_set(e, NFT_EXPR_MT_INFO, info, m->u.match_size - sizeof(*m));
-+	nft_rule_expr_set(e, NFT_EXPR_MT_INFO,
-+					info, m->u.match_size - sizeof(*m));
- 
- 	return 0;
- }
-@@ -604,7 +607,8 @@ static int __add_target(struct nft_rule_expr *e, struct xt_entry_target *t)
- 		memcpy(info, t->data, t->u.target_size);
- 	}
- 
--	nft_rule_expr_set(e, NFT_EXPR_TG_INFO, info, t->u.target_size - sizeof(*t));
-+	nft_rule_expr_set(e, NFT_EXPR_TG_INFO, info,
-+						t->u.target_size - sizeof(*t));
- 
- 	return 0;
- }
-@@ -662,7 +666,8 @@ static void nft_rule_print_debug(struct nft_rule *r, struct nlmsghdr *nlh)
- 
- 	nft_rule_snprintf(tmp, sizeof(tmp), r, 0, 0);
- 	printf("DEBUG: rule: %s", tmp);
--	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len, sizeof(struct nfgenmsg));
-+	mnl_nlmsg_fprintf(stdout, nlh, nlh->nlmsg_len,
-+					sizeof(struct nfgenmsg));
- #endif
- }
- 
-@@ -996,7 +1001,8 @@ nft_print_counters(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
- }
- 
- void
--nft_rule_print_save(struct nft_rule *r, enum nft_rule_print type, bool counters)
-+nft_rule_print_save(struct nft_rule *r, enum nft_rule_print type,
-+		    bool counters)
- {
- 	struct nft_rule_expr_iter *iter;
- 	struct nft_rule_expr *expr;
-@@ -1115,8 +1121,8 @@ static void nft_chain_print_save(struct nft_chain *c, bool basechain)
- 		if (nft_chain_attr_get(c, NFT_CHAIN_ATTR_POLICY))
- 			pol = nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_POLICY);
- 
--		printf(":%s %s [%"PRIu64":%"PRIu64"]\n", chain, policy_name[pol],
--					     pkts, bytes);
-+		printf(":%s %s [%"PRIu64":%"PRIu64"]\n",
-+					chain, policy_name[pol], pkts, bytes);
- 	} else
- 		printf(":%s - [%"PRIu64":%"PRIu64"]\n", chain, pkts, bytes);
- }
-@@ -1316,7 +1322,8 @@ err:
- 	return ret == 0 ? 1 : 0;
- }
- 
--int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *table)
-+int nft_chain_user_add(struct nft_handle *h,
-+		       const char *chain, const char *table)
- {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -1368,7 +1375,8 @@ static int __nft_chain_del(struct nft_handle *h, struct nft_chain *c)
- 	return ret;
- }
- 
--int nft_chain_user_del(struct nft_handle *h, const char *chain, const char *table)
-+int nft_chain_user_del(struct nft_handle *h,
-+		       const char *chain, const char *table)
- {
- 	struct nft_chain_list *list;
- 	struct nft_chain_list_iter *iter;
-@@ -1594,7 +1602,9 @@ err:
- }
- 
- int nft_for_each_table(struct nft_handle *h,
--		       int (*func)(struct nft_handle *h, const char *tablename, bool counters),
-+		       int (*func)(struct nft_handle *h,
-+			           const char *tablename,
-+				   bool counters),
- 		       bool counters)
- {
- 	int ret = 1;
-@@ -1641,9 +1651,8 @@ int nft_table_purge_chains(struct nft_handle *h, const char *this_table,
- 
- 	chain_obj = nft_chain_list_iter_next(iter);
- 	while (chain_obj != NULL) {
--		const char *table =
--			nft_chain_attr_get_str(chain_obj, NFT_CHAIN_ATTR_TABLE);
--
-+		const char *table = nft_chain_attr_get_str(chain_obj,
-+							NFT_CHAIN_ATTR_TABLE);
- 		if (strcmp(this_table, table) != 0)
- 			goto next;
- 
-@@ -1819,7 +1828,8 @@ __find_match(struct nft_rule_expr *expr, struct xtables_rule_match *matches)
- 			continue;
- 		}
- 
--		if (memcmp(data, m->data, m->u.user.match_size - sizeof(*m)) != 0) {
-+		if (memcmp(data, m->data,
-+				m->u.user.match_size - sizeof(*m)) != 0) {
- 			DEBUGP("mismatch match data\n");
- 			continue;
- 		}
-@@ -1830,7 +1840,8 @@ __find_match(struct nft_rule_expr *expr, struct xtables_rule_match *matches)
- 	return found;
- }
- 
--static bool find_matches(struct xtables_rule_match *matches, struct nft_rule *r)
-+static bool
-+find_matches(struct xtables_rule_match *matches, struct nft_rule *r)
- {
- 	struct nft_rule_expr_iter *iter;
- 	struct nft_rule_expr *expr;
-@@ -1862,7 +1873,8 @@ static bool find_matches(struct xtables_rule_match *matches, struct nft_rule *r)
- 	return true;
- }
- 
--static bool __find_target(struct nft_rule_expr *expr, struct xt_entry_target *t)
-+static bool
-+__find_target(struct nft_rule_expr *expr, struct xt_entry_target *t)
- {
- 	size_t len;
- 	const char *tgname = nft_rule_expr_get_str(expr, NFT_EXPR_TG_NAME);
-@@ -1944,7 +1956,8 @@ find_immediate(struct nft_rule *r, const char *jumpto)
- 			nft_rule_expr_get_str(expr, NFT_RULE_EXPR_ATTR_NAME);
- 
- 		if (strcmp(name, "immediate") == 0) {
--			int verdict = nft_rule_expr_get_u32(expr, NFT_EXPR_IMM_VERDICT);
-+			int verdict = nft_rule_expr_get_u32(expr,
-+							NFT_EXPR_IMM_VERDICT);
- 			const char *verdict_name = NULL;
- 
- 			/* No target specified but immediate shows up, this
-@@ -2189,8 +2202,8 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
- 						 NFT_RULE_F_COMMIT);
- 		}
- 		ret = nft_rule_add(h, chain, table, cs, true,
--				   nft_rule_attr_get_u64(r, NFT_RULE_ATTR_HANDLE),
--				   verbose);
-+				nft_rule_attr_get_u64(r, NFT_RULE_ATTR_HANDLE),
-+				verbose);
- 	} else
- 		errno = ENOENT;
- 
-@@ -2473,8 +2486,10 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
- 		uint32_t refs =
- 			nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_USE);
- 		struct xt_counters ctrs = {
--			.pcnt = nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_PACKETS),
--			.bcnt = nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_BYTES),
-+			.pcnt = nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_PACKETS),
-+			.bcnt = nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_BYTES),
- 		};
- 		bool basechain = false;
- 
-@@ -2547,8 +2562,10 @@ nft_rule_list_chain_save(struct nft_handle *h, const char *table,
- 
- 			if (counters) {
- 				printf(" -c %"PRIu64" %"PRIu64"\n",
--					nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_PACKETS),
--					nft_chain_attr_get_u64(c, NFT_CHAIN_ATTR_BYTES));
-+					nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_PACKETS),
-+					nft_chain_attr_get_u64(c,
-+						NFT_CHAIN_ATTR_BYTES));
- 			} else
- 				printf("\n");
- 		} else {
-@@ -2796,11 +2813,13 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 			if (errno == EEXIST) {
- 				xtables_config_perror(flags,
- 					"table `%s' already exists, skipping\n",
--					(char *)nft_table_attr_get(table, NFT_TABLE_ATTR_NAME));
-+					(char *)nft_table_attr_get(table,
-+							NFT_TABLE_ATTR_NAME));
- 			} else {
- 				xtables_config_perror(flags,
- 					"table `%s' cannot be create, reason `%s'. Exitting\n",
--					(char *)nft_table_attr_get(table, NFT_TABLE_ATTR_NAME),
-+					(char *)nft_table_attr_get(table,
-+							NFT_TABLE_ATTR_NAME),
- 					strerror(errno));
- 				nft_table_list_iter_destroy(titer);
- 				nft_table_list_free(table_list);
-@@ -2809,7 +2828,8 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 			continue;
- 		}
- 		xtables_config_perror(flags, "table `%s' has been created\n",
--			(char *)nft_table_attr_get(table, NFT_TABLE_ATTR_NAME));
-+			(char *)nft_table_attr_get(table,
-+							NFT_TABLE_ATTR_NAME));
- 	}
- 	nft_table_list_iter_destroy(titer);
- 	nft_table_list_free(table_list);
-@@ -2821,12 +2841,15 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 			if (errno == EEXIST) {
- 				xtables_config_perror(flags,
- 					"chain `%s' already exists in table `%s', skipping\n",
--					(char *)nft_chain_attr_get(chain, NFT_CHAIN_ATTR_NAME),
--					(char *)nft_chain_attr_get(chain, NFT_CHAIN_ATTR_TABLE));
-+					(char *)nft_chain_attr_get(chain,
-+							NFT_CHAIN_ATTR_NAME),
-+					(char *)nft_chain_attr_get(chain,
-+							NFT_CHAIN_ATTR_TABLE));
- 			} else {
- 				xtables_config_perror(flags,
- 					"chain `%s' cannot be create, reason `%s'. Exitting\n",
--					(char *)nft_chain_attr_get(chain, NFT_CHAIN_ATTR_NAME),
-+					(char *)nft_chain_attr_get(chain,
-+							NFT_CHAIN_ATTR_NAME),
- 					strerror(errno));
- 				nft_chain_list_iter_destroy(citer);
- 				nft_chain_list_free(chain_list);
-@@ -2838,7 +2861,8 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 		xtables_config_perror(flags,
- 			"chain `%s' in table `%s' has been created\n",
- 			(char *)nft_chain_attr_get(chain, NFT_CHAIN_ATTR_NAME),
--			(char *)nft_chain_attr_get(chain, NFT_CHAIN_ATTR_TABLE));
-+			(char *)nft_chain_attr_get(chain,
-+							NFT_CHAIN_ATTR_TABLE));
- 	}
- 	nft_chain_list_iter_destroy(citer);
- 	nft_chain_list_free(chain_list);
-@@ -2846,7 +2870,7 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 	return 0;
- }
- 
--int nft_chain_zero_counters(struct nft_handle *h, const char *chain, 
-+int nft_chain_zero_counters(struct nft_handle *h, const char *chain,
- 			    const char *table)
- {
- 	struct nft_chain_list *list;
--- 
-1.8.2.1
+=46rom time to time, iptables drops related packets of TCP-connections =
+originating from the host running iptables.=20
 
+Jul 17 06:02:37 [somehost] iptables:DROP-ERROR IN=3D OUT=3Deth0 MAC=3D =
+SRC=3D[somehost-ip] DST=3D[otherhost] LEN=3D64 TOS=3D00 PREC=3D0x00 TTL=
+=3D64 ID=3D48442 CE DF PROTO=3DTCP SPT=3D41902 DPT=3D80 SEQ=3D382478645=
+ ACK=3D1990115033 WINDOW=3D916 ACK PSH FIN URGP=3D0
+
+The conntrack tables are quite empty,  far away from loosing conntracks=
+ due to overload. In my opinion, kernel is generating those packets sin=
+ce it is still handling the TCP-connection shutdown phase, while conntr=
+ack has sorted out the entry, believing that the connection was termina=
+ted already.
+
+Since I assume, that the cause for this are different state-timeouts in=
+ iptables and TCP-stack, I would like to write a howto (or better a scr=
+ipt for automatic check) to find out, which parameters should be adjust=
+ed.
+
+Am I on the right track? Is this possible or is e.g. the iptables-TCP-s=
+tate-model simplified for speed-up, that it cannot follow all local TCP=
+ state changes by design?
+
+Thanks,
+Roman
+
+PS: Kernel 3.9.7
+
+DI Roman Fiedler
+Engineer
+Safety & Security Department
+Assistive Healthcare Information Technology
+
+AIT Austrian Institute of Technology GmbH
+Reininghausstrae 13/1=A0 |=A0 8020 Graz=A0 |=A0 Austria
+T +43(0) 50550 2957=A0 |=A0 M +43(0) 664 8561599=A0 |=A0 F +43(0) 50550=
+ 2950
+roman.fiedler@ait.ac.at | http://www.ait.ac.at/
+
+=46N: 115980 i HG Wien=A0 |=A0 UID: ATU14703506
+http://www.ait.ac.at/Email-Disclaimer
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
