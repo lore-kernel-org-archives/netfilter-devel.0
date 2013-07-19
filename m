@@ -1,33 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] chain: json: fix family and table error
-Date: Fri, 19 Jul 2013 12:21:00 +0200
-Message-ID: <20130719102100.GA3971@localhost>
-References: <20130718113601.7544.7115.stgit@Ph0enix>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, eric@regit.org
-To: Alvaro Neira <alvaroneay@gmail.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables - PATCH] nft: A non valid if index should not be handled
+Date: Fri, 19 Jul 2013 15:28:34 +0300
+Message-ID: <1374236914-14401-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41427 "EHLO mail.us.es"
+Received: from mga01.intel.com ([192.55.52.88]:17289 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750982Ab3GSKVG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jul 2013 06:21:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20130718113601.7544.7115.stgit@Ph0enix>
+	id S1751401Ab3GSM2j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jul 2013 08:28:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 18, 2013 at 01:36:01PM +0200, Alvaro Neira wrote:
-> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
->=20
-> In (74ccff7 chain: json: use string to identify policy), the json
-> support for chain was unintentionally swapping the table name and
-> the family.
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ iptables/nft-shared.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-Applied, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index c0ee4c8..5762952 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -226,18 +226,16 @@ void parse_meta(struct nft_rule_expr *e, uint8_t key, char *iniface,
+ 		if (nft_rule_expr_get_u8(e, NFT_EXPR_CMP_OP) == NFT_CMP_NEQ)
+ 			*invflags |= IPT_INV_VIA_IN;
+ 
+-		if_indextoname(value, iniface);
+-
+-		memset(iniface_mask, 0xff, strlen(iniface)+1);
++		if (if_indextoname(value, iniface) != NULL)
++			memset(iniface_mask, 0xff, strlen(iniface)+1);
+ 		break;
+ 	case NFT_META_OIF:
+ 		value = nft_rule_expr_get_u32(e, NFT_EXPR_CMP_DATA);
+ 		if (nft_rule_expr_get_u8(e, NFT_EXPR_CMP_OP) == NFT_CMP_NEQ)
+ 			*invflags |= IPT_INV_VIA_OUT;
+ 
+-		if_indextoname(value, outiface);
+-
+-		memset(outiface_mask, 0xff, strlen(outiface)+1);
++		if (if_indextoname(value, outiface) != NULL)
++			memset(outiface_mask, 0xff, strlen(outiface)+1);
+ 		break;
+ 	case NFT_META_IIFNAME:
+ 		ifname = nft_rule_expr_get(e, NFT_EXPR_CMP_DATA, &len);
+-- 
+1.8.3.2
+
