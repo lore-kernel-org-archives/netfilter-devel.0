@@ -1,30 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv5] netfilter: nf_tables: add insert operation
-Date: Fri, 19 Jul 2013 14:49:47 +0200
-Message-ID: <20130719124947.GA31908@localhost>
-References: <1373969264.22759.14.camel@ice-age.regit.org>
- <1374219946-19147-1-git-send-email-eric@regit.org>
+From: Eliezer Tamir <eliezer.tamir@linux.intel.com>
+Subject: Re: net-next is now OPEN
+Date: Fri, 19 Jul 2013 16:27:42 +0300
+Message-ID: <51E93ECE.9000108@linux.intel.com>
+References: <20130719.023518.589482296695696122.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48542 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751594Ab3GSMtv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jul 2013 08:49:51 -0400
-Content-Disposition: inline
-In-Reply-To: <1374219946-19147-1-git-send-email-eric@regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-wireless@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130719.023518.589482296695696122.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 19, 2013 at 09:45:46AM +0200, Eric Leblond wrote:
-> This patch adds a new rule attribute NFTA_RULE_POSITION which is
-> used to store the position of a rule relatively to the others.
-> By providing a create command and specifying a position, the rule is
-> inserted after the rule with the handle equal to the provided
-> position.
-> Regarding notification, the position attribute is added to specify
-> the handle of the previous rule.
+On 19/07/2013 12:35, David Miller wrote:
+> 
+> Please feel free to submit net-next patches now, thanks for being
+> so patient.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Applied, thanks a lot Eric!
+In the next couple of weeks, I would like to post changes to epoll that
+add busy polling support.
+
+Who should be CC-ed on the patches?
+
+BTW, Right now I'm seeing very good results.
+I have tested with up to 10,000 sockets using sockperf.
+There are a few more things I want to do before submitting.
+
+Thanks,
+Eliezer
