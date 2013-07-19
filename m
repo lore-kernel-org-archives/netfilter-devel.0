@@ -1,36 +1,31 @@
-From: Eliezer Tamir <eliezer.tamir@linux.intel.com>
-Subject: Re: net-next is now OPEN
-Date: Fri, 19 Jul 2013 16:27:42 +0300
-Message-ID: <51E93ECE.9000108@linux.intel.com>
-References: <20130719.023518.589482296695696122.davem@davemloft.net>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [iptables-nftables - PATCH] nft: A non valid if index should
+ not be handled
+Date: Fri, 19 Jul 2013 16:36:24 +0300
+Message-ID: <51E940D8.4090402@linux.intel.com>
+References: <1374236914-14401-1-git-send-email-tomasz.bursztyka@linux.intel.com> <20130719124153.GA30763@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-wireless@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130719.023518.589482296695696122.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:45675 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759827Ab3GSNgh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jul 2013 09:36:37 -0400
+In-Reply-To: <20130719124153.GA30763@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19/07/2013 12:35, David Miller wrote:
-> 
-> Please feel free to submit net-next patches now, thanks for being
-> so patient.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Pablo,
 
-In the next couple of weeks, I would like to post changes to epoll that
-add busy polling support.
+> We have to convert iptables-nftables to use NFT_META_IIFNAME instead
+> of NFT_META_IIF to make it behave like iptables. This was somewhere in
+> my list of pending things.
+>
+> Would you have a look at that?
 
-Who should be CC-ed on the patches?
+Sure.
 
-BTW, Right now I'm seeing very good results.
-I have tested with up to 10,000 sockets using sockperf.
-There are a few more things I want to do before submitting.
-
-Thanks,
-Eliezer
+Tomaz
