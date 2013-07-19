@@ -1,125 +1,53 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCHv5] netfilter: nf_tables: add insert operation
-Date: Fri, 19 Jul 2013 09:45:46 +0200
-Message-ID: <1374219946-19147-1-git-send-email-eric@regit.org>
-References: <1373969264.22759.14.camel@ice-age.regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: Daniel Collins <daniel.collins@smoothwall.net>
+Subject: Packet loss when using NFQUEUE and nf_conntrack_ipv4
+Date: Fri, 19 Jul 2013 09:57:30 +0100
+Message-ID: <CAOmdcgVVgPxB2BV0qxoXVquPVt-21+JvYq0ywFu7=RiJ4i7JXQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:38631 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934923Ab3GSHqG (ORCPT
+Received: from exprod7og123.obsmtp.com ([64.18.2.24]:45136 "HELO
+	exprod7og123.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751241Ab3GSJFe convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jul 2013 03:46:06 -0400
-In-Reply-To: <1373969264.22759.14.camel@ice-age.regit.org>
+	Fri, 19 Jul 2013 05:05:34 -0400
+Received: by mail-ie0-f169.google.com with SMTP id 10so8961600ied.14
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2013 02:05:33 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new rule attribute NFTA_RULE_POSITION which is
-used to store the position of a rule relatively to the others.
-By providing a create command and specifying a position, the rule is
-inserted after the rule with the handle equal to the provided
-position.
-Regarding notification, the position attribute is added to specify
-the handle of the previous rule.
+Hi all
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c            | 33 ++++++++++++++++++++++++++++----
- 2 files changed, 30 insertions(+), 4 deletions(-)
+When using NFQUEUE and nf_conntrack_ipv4 together, there is a brief
+window at the beginning of each stream where packets are lost. The
+first packet for a given conntrack tuple is sent to userspace,
+NF_ACCEPT'd using nfq_set_verdict and forwarded on by the kernel, as
+expected. Any packets transmitted within a small window (microseconds,
+depending on hardware) after the first packet, are received by the
+userspace program, the call to nfq_set_verdict suceeds but the kernel
+doesn't forward the packet on. Any packets transmitted after this
+window are received and forwarded correctly.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index d40a7f9..d9bf8ea 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -143,6 +143,7 @@ enum nft_rule_attributes {
- 	NFTA_RULE_EXPRESSIONS,
- 	NFTA_RULE_FLAGS,
- 	NFTA_RULE_COMPAT,
-+	NFTA_RULE_POSITION,
- 	__NFTA_RULE_MAX
- };
- #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b00aca8..469818f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1267,6 +1267,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_FLAGS]	= { .type = NLA_U32 },
- 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
-+	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
- };
- 
- static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
-@@ -1279,6 +1280,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	struct nfgenmsg *nfmsg;
- 	const struct nft_expr *expr, *next;
- 	struct nlattr *list;
-+	const struct nft_rule *prule;
- 
- 	event |= NFNL_SUBSYS_NFTABLES << 8;
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-@@ -1298,6 +1300,13 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
- 		goto nla_put_failure;
- 
-+	if ((event != NFT_MSG_DELRULE) && (rule->list.prev != &chain->rules)) {
-+		prule = list_entry(rule->list.prev, struct nft_rule, list);
-+		if (nla_put_be64(skb, NFTA_RULE_POSITION,
-+				 cpu_to_be64(prule->handle)))
-+			goto nla_put_failure;
-+	}
-+
- 	list = nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
- 	if (list == NULL)
- 		goto nla_put_failure;
-@@ -1537,7 +1546,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 	int err, rem;
- 	bool create;
- 	u32 flags = 0;
--	u64 handle;
-+	u64 handle, pos_handle;
- 
- 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
- 
-@@ -1571,6 +1580,15 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 		handle = nf_tables_alloc_handle(table);
- 	}
- 
-+	if (nla[NFTA_RULE_POSITION]) {
-+		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
-+			return -EOPNOTSUPP;
-+		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
-+		old_rule = __nf_tables_rule_lookup(chain, pos_handle);
-+		if (IS_ERR(old_rule))
-+			return PTR_ERR(old_rule);
-+	}
-+
- 	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
- 
- 	n = 0;
-@@ -1625,9 +1643,16 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 			nf_tables_rule_destroy(old_rule);
- 		}
- 	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
--		list_add_tail_rcu(&rule->list, &chain->rules);
--	else
--		list_add_rcu(&rule->list, &chain->rules);
-+		if (old_rule)
-+			list_add_rcu(&rule->list, &old_rule->list);
-+		else
-+			list_add_tail_rcu(&rule->list, &chain->rules);
-+	else {
-+		if (old_rule)
-+			list_add_tail_rcu(&rule->list, &old_rule->list);
-+		else
-+			list_add_rcu(&rule->list, &chain->rules);
-+	}
- 
- 	if (flags & NFT_RULE_F_COMMIT)
- 		list_add(&rule->dirty_list, &chain->dirty_rules);
--- 
-1.8.3.2
+Is this a known issue?
 
+Thanks
+
+--=20
+Daniel Collins
+Junior Developer
+daniel.collins@smoothwall.net
+
+Smoothwall Ltd
+Phone: +44 (0=AD) 8701 999500
+www.smoothwall.net
+
+Smoothwall Limited is registered in England, Company Number: 4298247
+and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
+United Kingdom
+Any opinions stated in this message are solely those of the author.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
