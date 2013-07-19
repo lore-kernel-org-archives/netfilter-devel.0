@@ -1,196 +1,122 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - RFC PATCH  00/15] Xtables extensions: full support (pure nft or compat layer)
-Date: Fri, 19 Jul 2013 18:17:29 +0300
-Message-ID: <1374247064-3361-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [iptables-nftables - RFC PATCH  01/15] xtables: Add support for injecting xtables target into nft rule
+Date: Fri, 19 Jul 2013 18:17:30 +0300
+Message-ID: <1374247064-3361-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1374247064-3361-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga14.intel.com ([143.182.124.37]:56636 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752320Ab3GSPRt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jul 2013 11:17:49 -0400
+	id S1752320Ab3GSPRu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jul 2013 11:17:50 -0400
+In-Reply-To: <1374247064-3361-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ configure.ac              |  7 +++++++
+ extensions/GNUmakefile.in |  1 +
+ include/xtables.h.in      |  5 +++++
+ iptables/nft.c            | 20 ++++++++++++--------
+ 4 files changed, 25 insertions(+), 8 deletions(-)
 
-So here it is: my proposal for a full support of xtables extensions, bo=
-th with compat layer (match/target expressions) and also with pure nft =
-translation.
-(Note that this is only an RFC, since currently: this works only on ipt=
-ables-nftables built with --enable-static, you will see why.)
-
-
-Summary
--------
-
-I came up with an idea which required a lot of refactoring, mostly to s=
-implify the code and of course to find a solution for all our problems =
-with xtables extensions.
-
-In short, now process it strictelly following these path:
-injecting rules: command line -> command structure -> nft rule -> kerne=
-l
-reading rules  : kernel -> nft rule -> command structure -> listing/sav=
-ing etc...
-
-The big difference introduced in that patch is reusing the command stru=
-cture in both ways, and not only for injecting rules.
-Result: clearer code, only 1 parsing of the rule expressions is necessa=
-ry (_that_ is a big change), and of course we can reuse easily existing=
- legacy code.
-
-
-The nft translation process
----------------------------
-
-Parsing the rule expressions is the key here.
-Central place for it: the nft translation engine. This "engine" is a ba=
-sic tree based pattern matching code.
-In short: you register an "instruction" - made of a list of nft express=
-ions - and a parsing function into a instructions tree.
-
-=46or instance, one of the possible list of nft expressions for retriev=
-ing the ip addresses part of a rule is: payload, bitwise, compare.
-Thus you can provide such list and a related parsing function to the "i=
-nstruction tree" and when you will give a rule to be translated through=
- the engine,
-if such instructions list is found, it will call the relevant parsing f=
-unction.
-
-It of course handles the case where a pattern is made of other known sm=
-aller patterns: so is the long pattern the one which matches, or the sm=
-aller ones?
-Such case is handled. The engine takes care of keeping track of all pat=
-terns. The policy of "longest pattern found" is applied for deciding wh=
-ich ones matches.
-(It matches when the given parsing function returns a success code).
-
-Now that we can express all parts of a rule via such "instructions", pa=
-rsing function can populate the command structure.
-
-
-The Xtables extensions
-----------------------
-
-Such translation engine has an interest for centralizing the parsing in=
-to one object (the command structure), but even more for future port of=
- xtables extensions,
-expressed as pure nft expressions.
-
-Currently, nftables provides a compatibility layer to support xtables e=
-xtensions as there current form: the infamouf memory blob.
-But little by little, such memory blobs will be expressed as pure nft e=
-xpressions list. The most obvious one was DNAT (and SNAT), thus I alrea=
-dy implemented such support (last patch)
-
-And there would start the troubles: about 100 of extensions, all expres=
-sed in a small subset of nft expressions... go figure which expressions=
- list matches which extensions.
-Morever that, on the contrary of current compatibility layer, the exten=
-sion name is not going to be present at all.
-
-Hopefully, the translation process described above applies perfectly he=
-re and solves that issue as well.
-
-
-Patches
--------
-
-Now the code.
-
-Please review,
-
-Tomasz Bursztyka (15):
-  xtables: Add support for injecting xtables target into nft rule
-        -> If a target extensions provides a way to "translate" its blo=
-b as pure nft expressions list, let's use it.
-  xtables: add support for injecting xtables matches into nft rule
-        -> same for matches extensions
-  nft: Add nft expressions translation engine as a library
-        -> Self explainatory. I made it af a library since both the cor=
-e and the xtalbse extensions can use it.=20
-  nft: Integrate nft translator engine in current core
-        -> That patch is the step to retrieve a command structure from =
-an nft rule, via the translation engine.=20
-  nft: Manage xtables target parsing through translation tree
-        -> Provides an instruction to support xt target expression list=
- in the translation tree
-  nft: Manage xtables matches through nft translation tree
-        -> Same for xt match expression list
-  nft: Add support for xtables extensions callback to change cs
-        -> This is debatable: xtables extensions have no access to the =
-command structure,
-            so instead I introduced such callback mecanism.=20
-  xtables: Add support for registering nft translation function for
-    target
-        -> Hook for registering an instruction into a translation tree,=
- from an xtables target extension.
-  xtables: Add support for registering nft translation function for
-    match
-        -> Same for an xtables match extension
-  nft: Register all relevant xtables extensions into translation tree
-        ->=C2=A0That one is debatable, but I needed a way to register r=
-elevant extensions (ones providing translation instruction).
-           Note: This works _only_ if you build with --enable-static. I=
- think it requires another solution, adding a pre_loading
-                 function to libxtables maybe so it could work with sha=
-red/static build.
-                 This is the main reason why I send this as an RFC.=20
-  nft: Refactor firewall printing so it reuses already parsed cs struct
-        -> Now we can scrap the old code which was multiple times going=
- through the expression list, and use the command structure
-  nft: Refactor rule deletion so it compares both cs structure
-        -> Same but when deleting a rule: let's use the command structu=
-r.
-  nft: Remove useless function
-        ->=C2=A0Ok that one is a trivial fix, actually I should have se=
-nd it appart of this patch set.
-  xtables: nft: Complete refactoring on how rules are saved
-        -> Same for listing or deleting rule: here again old code is sc=
-rapped to be able to use the command structure instead
-  xtables: Support pure nft expressions for DNAT extension
-        -> Now here is an example of an extension which can translate i=
-ts blob into pure nft expressions, and can rebeilt
-           its blog from nfs expression via registering the right instr=
-uctions/parsing function as descriped above.
-
- Makefile.am                   |   3 +
- configure.ac                  |   8 +
- extensions/GNUmakefile.in     |   1 +
- extensions/libipt_DNAT.c      | 220 +++++++++++
- include/nft-translator.h      |  85 ++++
- include/xtables.h.in          |  14 +
- iptables/Makefile.am          |   3 +-
- iptables/nft-ipv4.c           | 125 ++----
- iptables/nft-ipv6.c           |  81 ++--
- iptables/nft-shared.c         |  72 +++-
- iptables/nft-shared.h         |  23 +-
- iptables/nft-xt-ext.c         | 181 +++++++++
- iptables/nft-xt-ext.h         |  14 +
- iptables/nft.c                | 893 +++++++++++++---------------------=
---------
- iptables/nft.h                |   8 +-
- iptables/xtables-events.c     |  21 +-
- libnfttrans/Makefile.am       |  28 ++
- libnfttrans/libnfttrans.pc.in |  11 +
- libnfttrans/nft-translator.c  | 618 +++++++++++++++++++++++++++++
- 19 files changed, 1637 insertions(+), 772 deletions(-)
- create mode 100644 include/nft-translator.h
- create mode 100644 iptables/nft-xt-ext.c
- create mode 100644 iptables/nft-xt-ext.h
- create mode 100644 libnfttrans/Makefile.am
- create mode 100644 libnfttrans/libnfttrans.pc.in
- create mode 100644 libnfttrans/nft-translator.c
-
---=20
+diff --git a/configure.ac b/configure.ac
+index 48a0d54..e228078 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -104,6 +104,13 @@ PKG_CHECK_MODULES([libnftables], [libnftables >= 1.0],
+ 	[nftables=1], [nftables=0])
+ AM_CONDITIONAL([HAVE_LIBNFTABLES], [test "$nftables" = 1])
+ 
++if test "$nftables" = 1; then
++	EXTENSION_NFT_LDFLAGS="${libmnl_LIBS} ${libnftables_LIBS}";
++else
++	EXTENSION_NFT_LDFLAGS="";
++fi;
++AC_SUBST(EXTENSION_NFT_LDFLAGS)
++
+ AM_PROG_LEX
+ AC_PROG_YACC
+ 
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 4a8ff49..efb5502 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -16,6 +16,7 @@ CCLD               = ${CC}
+ CFLAGS             = @CFLAGS@
+ CPPFLAGS           = @CPPFLAGS@
+ LDFLAGS            = @LDFLAGS@
++@ENABLE_NFTABLES_TRUE@ LDFLAGS += @EXTENSION_NFT_LDFLAGS@
+ regular_CFLAGS     = @regular_CFLAGS@
+ regular_CPPFLAGS   = @regular_CPPFLAGS@
+ kinclude_CPPFLAGS  = @kinclude_CPPFLAGS@
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index 10b241f..767d53e 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -18,6 +18,8 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/x_tables.h>
+ 
++#include <libnftables/rule.h>
++
+ #ifndef IPPROTO_SCTP
+ #define IPPROTO_SCTP 132
+ #endif
+@@ -327,6 +329,9 @@ struct xtables_target
+ 	void (*x6_fcheck)(struct xt_fcheck_call *);
+ 	const struct xt_option_entry *x6_options;
+ 
++	/* NFT related */
++	int (*to_nft)(struct nft_rule *, struct xt_entry_target *);
++
+ 	size_t udata_size;
+ 
+ 	/* Ignore these men behind the curtain: */
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 72ac4b0..e773ace 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -609,17 +609,21 @@ static int __add_target(struct nft_rule_expr *e, struct xt_entry_target *t)
+ 	return 0;
+ }
+ 
+-static int add_target(struct nft_rule *r, struct xt_entry_target *t)
++static int add_target(struct nft_rule *r, struct xtables_target *target)
+ {
+-	struct nft_rule_expr *expr;
+ 	int ret;
+ 
+-	expr = nft_rule_expr_alloc("target");
+-	if (expr == NULL)
+-		return -ENOMEM;
++	if (target->to_nft == NULL) {
++		struct nft_rule_expr *expr;
+ 
+-	ret = __add_target(expr, t);
+-	nft_rule_add_expr(r, expr);
++		expr = nft_rule_expr_alloc("target");
++		if (expr == NULL)
++			return -ENOMEM;
++
++		ret = __add_target(expr, target->t);
++		nft_rule_add_expr(r, expr);
++	} else
++		ret = target->to_nft(r, target->t);
+ 
+ 	return ret;
+ }
+@@ -745,7 +749,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+ 		else if (strcmp(cs->jumpto, XTC_LABEL_RETURN) == 0)
+ 			ret = add_verdict(r, NFT_RETURN);
+ 		else
+-			ret = add_target(r, cs->target->t);
++			ret = add_target(r, cs->target);
+ 	} else if (strlen(cs->jumpto) > 0) {
+ 		/* Not standard, then it's a go / jump to chain */
+ 		if (ip_flags & IPT_F_GOTO)
+-- 
 1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
