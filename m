@@ -1,61 +1,51 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: additional include path required after UAPI changes
-Date: Sun, 21 Jul 2013 08:30:49 -0700
-Message-ID: <20130721153049.GA8444@linuxace.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Willem de Bruijn <willemb@google.com>
+Subject: [PATCH] build: fail in configure on missing dependency for optional component
+Date: Sun, 21 Jul 2013 20:02:38 -0400
+Message-ID: <1374451358-13294-1-git-send-email-willemb@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:44245 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548Ab3GUPaq (ORCPT
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:33895 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195Ab3GVACm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Jul 2013 11:30:46 -0400
-Received: by mail-pb0-f53.google.com with SMTP id xb12so6188197pbc.12
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2013 08:30:46 -0700 (PDT)
-Content-Disposition: inline
+	Sun, 21 Jul 2013 20:02:42 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q4so79492yen.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2013 17:02:41 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The build of utils/nfbpf_compile depends on libpcap. If configure is
+run with --enable-bpf-compiler, the script succeeds, but make fails.
 
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This small patch adds a test for the dependency (libpcap) in configure
+and fails hard if not found.
 
-After kernel commit 607ca46e (UAPI: (Scripted) Disintegrate include/linux),
-using the "--with-kernel" argument to build iptables stopped working due
-to the missing #ifdefs in the original files.  We need to make sure the
-UAPI include dir is listed before the original location.  Leaving both
-allows support for old and new kernels.
+---
 
-This fixes bug #833.
-
-Phil
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipt-uapi
+This small patch addresses your comment when merging the original
+nfbpf_compiler commit 1ac30c97c339957b6e3c5cf571de7bc38c827730.
+Sorry that it took me so long. Maybe it is not relevant anymore.
+---
+ configure.ac | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/configure.ac b/configure.ac
-index be216b0..5ed5165 100644
+index d165d52..d443706 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -114,10 +114,10 @@ regular_CPPFLAGS="${largefile_cppflags} -D_REENTRANT \
- 	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\" -DXTABLES_INTERNAL";
- kinclude_CPPFLAGS="";
- if [[ -n "$kbuilddir" ]]; then
--	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$kbuilddir/include";
-+	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$kbuilddir/include/uapi -I$kbuilddir/include";
- fi;
- if [[ -n "$ksourcedir" ]]; then
--	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$ksourcedir/include";
-+	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$ksourcedir/include/uapi -I$ksourcedir/include";
- fi;
- pkgdatadir='${datadir}/xtables';
+@@ -93,6 +93,11 @@ AM_CONDITIONAL([ENABLE_DEVEL], [test "$enable_devel" = "yes"])
+ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
+ AM_CONDITIONAL([ENABLE_BPFC], [test "$enable_bpfc" = "yes"])
  
++if test "x$enable_bpfc" = "xyes"; then
++	AC_CHECK_LIB(pcap, pcap_compile, ,
++                     AC_MSG_ERROR(pcap library required by optional component))
++fi
++
+ PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
+ 	[nfnetlink=1], [nfnetlink=0])
+ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+-- 
+1.8.3
 
---WIyZ46R2i8wDzkSu--
