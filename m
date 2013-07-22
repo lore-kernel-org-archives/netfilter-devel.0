@@ -1,58 +1,38 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [xtables-arptables PATCH 0/4] nft changes for xtables-arptables
-Date: Mon, 22 Jul 2013 18:43:36 +0300
-Message-ID: <51ED5328.90405@linux.intel.com>
-References: <20130716222925.13253.93123.stgit@nftables>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] Netfilter fixes for net (3.11-rc1)
+Date: Mon, 22 Jul 2013 14:34:37 -0700 (PDT)
+Message-ID: <20130722.143437.1499715214722844096.davem@davemloft.net>
+References: <1374482077-4547-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:5920 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932155Ab3GVPnk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jul 2013 11:43:40 -0400
-In-Reply-To: <20130716222925.13253.93123.stgit@nftables>
+Received: from shards.monkeyblade.net ([149.20.54.216]:34962 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932388Ab3GVVek (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Jul 2013 17:34:40 -0400
+In-Reply-To: <1374482077-4547-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Giuseppe,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 22 Jul 2013 10:34:35 +0200
 
-You need to rework patch 3 so it will fit with your future arptables 
-bootstrap.
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+> 
+> * Fix potential NULL dereference in the socket match if revision 0
+>   is used, from Eric Dumazet.
+> 
+> * Fix missing expectation NAT initialization that results in dumping
+>   the NAT part via ctnetlink, thus leading to problems in expectation
+>   synchronization through conntrackd, from myself.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-Patch 1, 2 and 4 are fine.
-
-Cheers,
-
-Tomasz
-
-> The following series implements changes in nft code that permit
-> to reuse some functions in other tool (like xtables-arptables).
->
-> I changed nft.h, now struct nft_handle gets a struct builtin_table
-> pointer used in functions to works with a properly tables and not
-> with tables declared in nft.c.
->
-> ---
->
-> Giuseppe Longo (4):
->        nft: add builtin_table pointer
->        nft: search builtin tables via nft_handle tables pointer
->        nft: nft_xtables_config_load() called only in nft_init()
->        nft: make functions public
->
->
->
->   iptables/nft.c |   77 ++++++++++++++++++--------------------------------------
->   iptables/nft.h |   42 +++++++++++++++++++++++++++++++
->   2 files changed, 67 insertions(+), 52 deletions(-)
->
-> --
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Pulled, thanks Pablo!
