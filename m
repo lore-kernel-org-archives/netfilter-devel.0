@@ -1,56 +1,72 @@
-From: Daniel Collins <daniel.collins@smoothwall.net>
-Subject: Re: Packet loss when using NFQUEUE and nf_conntrack_ipv4
-Date: Mon, 22 Jul 2013 09:33:02 +0100
-Message-ID: <CAOmdcgXQnqFXkAFzn4SHVzQBWz6_kpVVJO9MAbj7tYmyAe5jTg@mail.gmail.com>
-References: <CAOmdcgVVgPxB2BV0qxoXVquPVt-21+JvYq0ywFu7=RiJ4i7JXQ@mail.gmail.com>
-	<20130719092547.GF22686@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] Netfilter fixes for net (3.11-rc1)
+Date: Mon, 22 Jul 2013 10:34:35 +0200
+Message-ID: <1374482077-4547-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from exprod7og124.obsmtp.com ([64.18.2.26]:35855 "HELO
-	exprod7og124.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756701Ab3GVIdE convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jul 2013 04:33:04 -0400
-Received: by mail-ie0-f178.google.com with SMTP id u16so15019258iet.9
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2013 01:33:03 -0700 (PDT)
-In-Reply-To: <20130719092547.GF22686@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:48044 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756701Ab3GVIew (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Jul 2013 04:34:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Yes.  The packets are tossed because the conntrack they're associated
-> with is unconfirmed, and on reinject they clash with the unconfirmed
-> ct of the 1st packet that has been inserted into the conntrack table.
+Hi David,
 
-Is there a way it can be worked around other than queueing in the raw
-table? This isn't suitable for me as I want to check the connmark to
-tell if packets in a given stream should be queued.
+The following patchset contains Netfilter fixes for your net tree,
+they are:
 
-I've been trying to follow the code involved and I don't understand
-what purpose the confirmed flag serves. Why is adding to the conntrack
-table saved until the very end of netfilter processing and why does
-nf_conntrack_confirm have to drop packets when an entry already exists
-in the table rather than using it?
+* Fix potential NULL dereference in the socket match if revision 0
+  is used, from Eric Dumazet.
 
-Thanks
+* Fix missing expectation NAT initialization that results in dumping
+  the NAT part via ctnetlink, thus leading to problems in expectation
+  synchronization through conntrackd, from myself.
 
---=20
-Daniel Collins
-Junior Developer
-daniel.collins@smoothwall.net
+You can pull these changes from:
 
-Smoothwall Ltd
-Phone: +44 (0=AD) 8701 999500
-www.smoothwall.net
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-Smoothwall Limited is registered in England, Company Number: 4298247
-and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
-United Kingdom
-Any opinions stated in this message are solely those of the author.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 63345b4794aef4ebe16502cfe35b02bc9822d763:
+
+  Merge branch 'for_linus' of git://cavan.codon.org.uk/platform-drivers-x86 (2013-07-13 18:08:23 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to baf60efa585c78b269f0097288868a51ccc61f55:
+
+  netfilter: xt_socket: fix broken v0 support (2013-07-15 11:15:21 +0200)
+
+----------------------------------------------------------------
+Eric Dumazet (1):
+      netfilter: xt_socket: fix broken v0 support
+
+Pablo Neira Ayuso (1):
+      netfilter: ctnetlink: fix incorrect NAT expectation dumping
+
+ net/netfilter/nf_conntrack_expect.c |    5 +++++
+ net/netfilter/xt_socket.c           |   10 +++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+
+Eric Dumazet (1):
+  netfilter: xt_socket: fix broken v0 support
+
+Pablo Neira Ayuso (1):
+  netfilter: ctnetlink: fix incorrect NAT expectation dumping
+
+ net/netfilter/nf_conntrack_expect.c |    5 +++++
+ net/netfilter/xt_socket.c           |   10 +++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+-- 
+1.7.10.4
+
