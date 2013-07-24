@@ -1,71 +1,56 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH conntrack-tools] conntrack: fix reporting of unknown arguments
-Date: Wed, 24 Jul 2013 22:47:38 +0200
-Message-ID: <1374698858-1857-1-git-send-email-fw@strlen.de>
-Cc: Clemence Faure <clemence.faure@sophos.com>,
-	Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v2] iptables: allow service names in [DS]NAT targets
+Date: Wed, 24 Jul 2013 23:11:48 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1307242308350.23361@blackhole.kfki.hu>
+References: <20130708164606.GA10203@linuxace.com> <20130724190038.GA1288@localhost>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33324 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751579Ab3GXUsB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jul 2013 16:48:01 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.26]:46788 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750933Ab3GXVLv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Jul 2013 17:11:51 -0400
+In-Reply-To: <20130724190038.GA1288@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Clemence Faure <clemence.faure@sophos.com>
+On Wed, 24 Jul 2013, Pablo Neira Ayuso wrote:
 
-short options were always reported as "unknown argument".
-getopt(3) says:
+> On Mon, Jul 08, 2013 at 09:46:06AM -0700, Phil Oester wrote:
+> > As reported by Alexander Hoogerhuis, the [DS]NAT targets do not allow use of
+> > service names in the --to argument.  The same problem was fixed in the REDIRECT
+> > target in commit 84d758b3 ("extensions: REDIRECT: fix --to-ports parser").
+> > Use a similar fix here.
+> 
+> While testing this I noticed that this works:
+> 
+> --to-source 1.1.1.1:telnet
+> --to-source 1.1.1.1-1.1.1.10:1025-3000
+> --to-source 1.1.1.1-1.1.1.10:telnet
+> 
+> But this does not:
+> 
+> --to-source 1.1.1.1-1.1.1.10:telnet-http
+> iptables v1.4.19.1: SNAT: Bad value for "--to" option:
+> "1.1.1.1-1.1.1.10:telnet-ssh"
+> 
+> I think it should, for consistency (even if I have to confess that it
+> looks a bit ugly to me).
+> 
+> If you decide to address this and send me a new version to support
+> this, then it would be also good to update the manpage to say that we
+> support services starting 1.4.20.
 
-if [it] finds an option character in argv that was not included in
-optstring, or if it detects a missing option argument, it returns '?'
-and sets the external variable optopt to the actual option character.
-If the first character [...] of  optstring  is  a  colon  (':'),
-then getopt() returns ':' instead of '?' to indicate a missing option
-argument.
+That is still ambiguous - there are service names with dash. So I suggest 
+to support the notation '[name-with-dash]' in order to explicitly express 
+and handle such cases.
 
-Signed-off-by: Clemence Faure <clemence.faure@sophos.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-Will push this one soon if noone objects.
-
-diff --git a/src/conntrack.c b/src/conntrack.c
-index af36f78..7d2a365 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -333,7 +333,7 @@ static struct option original_opts[] = {
- 	{0, 0, 0, 0}
- };
- 
--static const char *getopt_str = "L::I::U::D::G::E::F::hVs:d:r:q:"
-+static const char *getopt_str = ":L::I::U::D::G::E::F::hVs:d:r:q:"
- 				"p:t:u:e:a:z[:]:{:}:m:i:f:o:n::"
- 				"g::c:b:C::Sj::w:l:";
- 
-@@ -2054,15 +2054,13 @@ int main(int argc, char *argv[])
- 			socketbuffersize = atol(optarg);
- 			options |= CT_OPT_BUFFERSIZE;
- 			break;
-+		case ':':
-+			exit_error(PARAMETER_PROBLEM,
-+				   "option `%s' requires an "
-+				   "argument", argv[optind-1]);
- 		case '?':
--			if (optopt)
--				exit_error(PARAMETER_PROBLEM,
--					   "option `%s' requires an "
--					   "argument", argv[optind-1]);
--			else
--				exit_error(PARAMETER_PROBLEM,
--					   "unknown option `%s'", 
--					   argv[optind-1]);
-+			exit_error(PARAMETER_PROBLEM,
-+				   "unknown option `%s'", argv[optind-1]);
- 			break;
- 		default:
- 			if (h && h->parse_opts 
--- 
-1.8.1.5
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
