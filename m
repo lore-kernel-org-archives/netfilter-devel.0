@@ -1,98 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Subject: Re: [xtables-arptables PATCH v2 3/5] nft: nft_xtables_config_load()
  called only in nft_init()
-Date: Wed, 24 Jul 2013 12:56:38 +0200
-Message-ID: <20130724105638.GA17248@localhost>
-References: <20130723161017.10040.6256.stgit@localhost>
- <20130723161244.10040.57825.stgit@localhost>
- <20130724085649.GC16434@localhost>
- <51EFA01B.30907@linux.intel.com>
+Date: Wed, 24 Jul 2013 14:14:37 +0300
+Message-ID: <51EFB71D.6020403@linux.intel.com>
+References: <20130723161017.10040.6256.stgit@localhost> <20130723161244.10040.57825.stgit@localhost> <20130724085649.GC16434@localhost> <51EFA01B.30907@linux.intel.com> <20130724105638.GA17248@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Giuseppe Longo <giuseppelng@gmail.com>,
 	netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60039 "EHLO mail.us.es"
+Received: from mga03.intel.com ([143.182.124.21]:20621 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751149Ab3GXK4n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jul 2013 06:56:43 -0400
-Content-Disposition: inline
-In-Reply-To: <51EFA01B.30907@linux.intel.com>
+	id S1750820Ab3GXLOk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Jul 2013 07:14:40 -0400
+In-Reply-To: <20130724105638.GA17248@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Pablo,
 
-On Wed, Jul 24, 2013 at 12:36:27PM +0300, Tomasz Bursztyka wrote:
-> Hi Pablo,
-> 
-> >>+int nft_init(struct nft_handle *h, struct builtin_table *t,
-> >>>+	     const char *filename)
-> >                          ^^^^^^^^
-> >
-> >why do we need this new parameter?
-> >
-> >The optional /etc/xtables.conf file should contain the definition for
-> >all the families, that includes IPv4, IPv6, bridge and ARP.
-> 
-> My mistake, I advised that. Imho, it's not relevant to load
-> everything for all families if the user is using only
-> xtables-iptables for instance.
-> 
-> Then ok, let's have one file, but we could make a change in
-> nft_xtables_config_load() so it would load only the tables of the
-> current family.
-> It's a quick fix to do actually.
+Indeed h->tables is always not NULL, so this test should be removed.
 
-Yes, that's the way to go.
+> Please, resolve all open issue and get back to me with a patch for
+> this if you think the time is worth to discuss this small
+> refactorization.
 
-> >>>  {
-> >>>  	h->nl = mnl_socket_open(NETLINK_NETFILTER);
-> >>>  	if (h->nl == NULL) {
-> >>>@@ -388,6 +389,16 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
-> >>>  	h->portid = mnl_socket_get_portid(h->nl);
-> >>>  	h->tables = t;
-> >>>  >+	/* If built-in chains don't exist for this table, create
-> >>them */
-> >>>+	if (nft_xtables_config_load(h, filename, 0) < 0) {
-> >>>+		int i;
-> >>>+
-> >>>+		if (h->tables != NULL) {
-> >>>+			for (i=0; i<TABLES_MAX; i++)
-> >>>+				nft_chain_builtin_init(h, h->tables[i].name,
-> >>>+						       NULL, NF_ACCEPT);
-> >>>+		}
-> >>>+	}
-> >
-> >I don't see what we get by moving nft_xtables_config_load here.
-> 
-> Why not calling this at only one unique place instead of multiple ones?
-> You need to call that anyway currently as soon as you list/change
-> the rule set.
-> It's relevant to move that here, makes code clearer.
+Getting xtables-arptables bootstrapped is an open issue.
+And while doing some necessary refactoring (like making some functions 
+public), such cleanups are also quite handy.
+I don't see the point to spread unclear code in a new place and cleaning 
+it up afterwards when it can be done just right now. It's would be more 
+time consuming.
 
-OK, but there are other chunks in this patch that are unclear to me:
+Please, consider these patches - after being reworked because they 
+obviously need it yes - to be included.
 
-@@ -1100,6 +1100,11 @@  int do_commandx(struct nft_handle *h, int
-argc, char *argv[], char **table)
-        if (h->ops == NULL)
-                xtables_error(PARAMETER_PROBLEM, "Unknown family");
- 
-+       if (h->tables == NULL) {
-+                if (nft_init(h, tables, XTABLES_CONFIG_DEFAULT) < 0)
-+                        xtables_error(OTHER_PROBLEM, "Could not initialize nftables layer.");
-+        }
-+
-        h->ops->post_parse(command, &cs, &args);
- 
-        if (command == CMD_REPLACE &&
+Cheers,
 
-By looking at patch 1, h->tables always point to some array of tables,
-so that should always evaluates true.
-
-Please, resolve all open issue and get back to me with a patch for
-this if you think the time is worth to discuss this small
-refactorization.
-
-Thanks.
+Tomasz
