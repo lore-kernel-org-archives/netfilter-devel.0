@@ -1,42 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Subject: Re: [xtables-arptables PATCH v2 3/5] nft: nft_xtables_config_load()
  called only in nft_init()
-Date: Wed, 24 Jul 2013 11:01:12 +0200
-Message-ID: <20130724090112.GE16434@localhost>
-References: <20130723161017.10040.6256.stgit@localhost>
- <20130723161244.10040.57825.stgit@localhost>
+Date: Wed, 24 Jul 2013 12:36:27 +0300
+Message-ID: <51EFA01B.30907@linux.intel.com>
+References: <20130723161017.10040.6256.stgit@localhost> <20130723161244.10040.57825.stgit@localhost> <20130724085649.GC16434@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Giuseppe Longo <giuseppelng@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57470 "EHLO mail.us.es"
+Received: from mga03.intel.com ([143.182.124.21]:46230 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855Ab3GXJBT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jul 2013 05:01:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20130723161244.10040.57825.stgit@localhost>
+	id S1751251Ab3GXJgx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Jul 2013 05:36:53 -0400
+In-Reply-To: <20130724085649.GC16434@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 23, 2013 at 06:12:47PM +0200, Giuseppe Longo wrote:
-[...]
-> @@ -239,6 +231,14 @@ xtables_restore_main(int argc, char *argv[])
->  		}
->  	}
->  
-> +        if (nft_init(&h, tables, XTABLES_CONFIG_DEFAULT) < 0) {
-> +                fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
-> +                                xtables_globals.program_name,
-> +                                xtables_globals.program_version,
-> +                                strerror(errno));
-> +                exit(EXIT_FAILURE);
-> +        }
-   ^^^^^^^^
+Hi Pablo,
 
-BTW, this is indented with spaces, not with tabs.
+>> +int nft_init(struct nft_handle *h, struct builtin_table *t,
+>> >+	     const char *filename)
+>                           ^^^^^^^^
+>
+> why do we need this new parameter?
+>
+> The optional /etc/xtables.conf file should contain the definition for
+> all the families, that includes IPv4, IPv6, bridge and ARP.
 
-It happens several times in the patchset. Please, make sure your
-patches are correctly indented.
+My mistake, I advised that. Imho, it's not relevant to load everything 
+for all families if the user is using only xtables-iptables for instance.
 
-Thanks.
+Then ok, let's have one file, but we could make a change in 
+nft_xtables_config_load() so it would load only the tables of the 
+current family.
+It's a quick fix to do actually.
+
+>
+>> >  {
+>> >  	h->nl = mnl_socket_open(NETLINK_NETFILTER);
+>> >  	if (h->nl == NULL) {
+>> >@@ -388,6 +389,16 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
+>> >  	h->portid = mnl_socket_get_portid(h->nl);
+>> >  	h->tables = t;
+>> >  
+>> >+	/* If built-in chains don't exist for this table, create them */
+>> >+	if (nft_xtables_config_load(h, filename, 0) < 0) {
+>> >+		int i;
+>> >+
+>> >+		if (h->tables != NULL) {
+>> >+			for (i=0; i<TABLES_MAX; i++)
+>> >+				nft_chain_builtin_init(h, h->tables[i].name,
+>> >+						       NULL, NF_ACCEPT);
+>> >+		}
+>> >+	}
+> I don't see what we get by moving nft_xtables_config_load here.
+
+Why not calling this at only one unique place instead of multiple ones?
+You need to call that anyway currently as soon as you list/change the 
+rule set.
+It's relevant to move that here, makes code clearer.
+
+Cheers,
+
+Tomasz
