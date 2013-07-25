@@ -1,111 +1,84 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - RFC v2 PATCH  07/17] nft: Manage xtables matches through nft translation tree
-Date: Thu, 25 Jul 2013 20:16:27 +0300
-Message-ID: <1374772597-20548-8-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables - RFC v2 PATCH  08/17] nft: Add support for xtables extensions callback to change cs
+Date: Thu, 25 Jul 2013 20:16:28 +0300
+Message-ID: <1374772597-20548-9-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:53512 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756541Ab3GYRQw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 13:16:52 -0400
+	id S1756570Ab3GYRQy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jul 2013 13:16:54 -0400
 In-Reply-To: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This add the support of compatible layer for xtables matches extension through
-the nft translator. Thus feeding give command structure with the right matches.
+This add the support of xtables extension expressed in pure nft through
+the nft translator. Thus feeding give command structure with the right
+target or match. This has been implemented as a callback, in the core,
+to let the extentions being able to feed the command structure. Which
+command structure they cannot handle (its declaration is private to the core).
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- iptables/nft-xt-ext.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ iptables/nft-xt-ext.c | 20 ++++++++++++++++++++
+ iptables/nft-xt-ext.h |  2 ++
+ iptables/nft.c        |  3 ++-
+ 3 files changed, 24 insertions(+), 1 deletion(-)
 
 diff --git a/iptables/nft-xt-ext.c b/iptables/nft-xt-ext.c
-index 70ffe35..f013493 100644
+index f013493..660e417 100644
 --- a/iptables/nft-xt-ext.c
 +++ b/iptables/nft-xt-ext.c
-@@ -64,6 +64,55 @@ static int nft_parse_xt_target(struct nft_trans_rule_context *rule_ctx,
+@@ -143,3 +143,23 @@ int nft_xt_ext_into_translation_tree(struct nft_trans_instruction_tree *tree)
+ 
  	return 0;
  }
- 
-+static int nft_parse_xt_match(struct nft_trans_rule_context *rule_ctx,
-+			      struct nft_trans_instruction_context *first,
-+			      struct nft_trans_instruction_context *useless,
-+			      nft_trans_parse_callback_f user_cb,
-+			      void *user_data)
++
++int nft_xt_ext_parse_callback(const char *ident, void *data, void *user_data)
 +{
 +	struct nft_to_cs_data *i2cs = user_data;
++	struct xtables_target *target;
 +	struct xtables_match *match;
-+	struct xt_entry_match *m;
-+	struct nft_rule_expr *e;
-+	const char *match_name;
-+	const void *info;
-+	size_t length;
-+	uint32_t rev;
 +
-+	e = nft_trans_instruction_context_get_expr(first);
++	target = xtables_find_target(ident, XTF_TRY_LOAD);
++	match = xtables_find_match(ident, XTF_TRY_LOAD, &i2cs->cs->matches);
 +
-+	if (!nft_rule_expr_is_set(e, NFT_EXPR_MT_NAME) ||
-+				!nft_rule_expr_is_set(e, NFT_EXPR_MT_REV) ||
-+				!nft_rule_expr_is_set(e, NFT_EXPR_MT_INFO))
++	if (target != NULL) {
++		target->t = data;
++		i2cs->cs->target = target;
++	} else if (match != NULL)
++		match->m = data;
++	else
 +		return -1;
-+
-+	match_name = nft_rule_expr_get_str(e, NFT_EXPR_MT_NAME);
-+	if (match_name == NULL)
-+		return -1;
-+
-+	match = xtables_find_match(match_name,
-+					XTF_TRY_LOAD, &i2cs->cs->matches);
-+	if (match == NULL)
-+		return -1;
-+
-+	info = nft_rule_expr_get(e, NFT_EXPR_TG_INFO, &length);
-+
-+	m = calloc(1, sizeof(struct xt_entry_match) + length);
-+	if (m == NULL)
-+		return -1;
-+
-+	memcpy(&m->data, info, length);
-+	m->u.match_size = length + XT_ALIGN(sizeof(struct xt_entry_match));
-+
-+	rev = nft_rule_expr_get_u32(e, NFT_EXPR_TG_REV);
-+	m->u.user.revision = rev;
-+	strcpy(m->u.user.name, match->name);
-+
-+	match->m = m;
 +
 +	return 0;
 +}
-+
- static enum nft_instruction nft_ipt_xt_target_instructions[] = {
- 	NFT_INSTRUCTION_TARGET,
- 	NFT_INSTRUCTION_MAX,
-@@ -74,12 +123,23 @@ static struct nft_trans_instruction nft_ipt_xt_target = {
- 	.function = nft_parse_xt_target,
- };
+diff --git a/iptables/nft-xt-ext.h b/iptables/nft-xt-ext.h
+index a367277..f3e6491 100644
+--- a/iptables/nft-xt-ext.h
++++ b/iptables/nft-xt-ext.h
+@@ -10,3 +10,5 @@
+ #include <nft-translator.h>
  
-+static enum nft_instruction nft_ipt_xt_match_instructions[] = {
-+	NFT_INSTRUCTION_MATCH,
-+	NFT_INSTRUCTION_MAX,
-+};
+ int nft_xt_ext_into_translation_tree(struct nft_trans_instruction_tree *tree);
 +
-+static struct nft_trans_instruction nft_ipt_xt_match = {
-+	.instructions = nft_ipt_xt_match_instructions,
-+	.function = nft_parse_xt_match,
-+};
-+
- int nft_xt_ext_into_translation_tree(struct nft_trans_instruction_tree *tree)
- {
- 	if (tree == NULL)
- 		return -1;
++int nft_xt_ext_parse_callback(const char *ident, void *data, void *user_data);
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 7b16bd3..7b619b5 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1818,7 +1818,8 @@ nft_rule_to_iptables_command_state(struct nft_rule *r,
+ 	i2cs.family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
+ 	i2cs.cs = cs;
  
- 	nft_trans_add_instruction(tree, &nft_ipt_xt_target);
-+	nft_trans_add_instruction(tree, &nft_ipt_xt_match);
+-	nft_trans_rule_translate_to_instructions(xt_nft_tree, r, NULL, &i2cs);
++	nft_trans_rule_translate_to_instructions(xt_nft_tree, r,
++					nft_xt_ext_parse_callback, &i2cs);
  
- 	return 0;
- }
+ 	if (i2cs.cs->target != NULL)
+ 		i2cs.cs->jumpto = i2cs.cs->target->name;
 -- 
 1.8.3.2
 
