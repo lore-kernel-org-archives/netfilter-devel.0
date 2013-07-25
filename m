@@ -1,277 +1,67 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - RFC v2 PATCH  13/17] nft: Refactor rule deletion so it compares both cs structure
-Date: Thu, 25 Jul 2013 20:16:33 +0300
-Message-ID: <1374772597-20548-14-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables - RFC v2 PATCH  17/17] xtables: Support -Z options for a given rule number
+Date: Thu, 25 Jul 2013 20:16:37 +0300
+Message-ID: <1374772597-20548-18-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53512 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:13363 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756629Ab3GYRRC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 13:17:02 -0400
+	id S1756642Ab3GYRRH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jul 2013 13:17:07 -0400
 In-Reply-To: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that we parse properly, in one place and at once, the rule back into a 
-command structure, it's now easier to compare the rule from that command
-structure when deleting.
-
+Support for such command:
+xtbles-multi xtables -Z foo 4
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- iptables/nft.c | 197 +++++++++++----------------------------------------------
- 1 file changed, 37 insertions(+), 160 deletions(-)
+ iptables/xtables.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 2a0fa77..39dcc06 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1830,187 +1830,64 @@ nft_rule_to_iptables_command_state(struct nft_rule *r,
- 		i2cs.cs->jumpto = "";
- }
- 
--static int matches_howmany(struct xtables_rule_match *matches)
--{
--	struct xtables_rule_match *matchp;
--	int matches_ctr = 0;
--
--	for (matchp = matches; matchp; matchp = matchp->next)
--		matches_ctr++;
--
--	return matches_ctr;
--}
--
- static bool
--__find_match(struct nft_rule_expr *expr, struct xtables_rule_match *matches)
-+compare_matches(struct xtables_rule_match *matches_1,
-+		struct xtables_rule_match *matches_2)
- {
--	const char *matchname = nft_rule_expr_get_str(expr, NFT_EXPR_MT_NAME);
--	/* Netlink aligns this match info, don't trust this length variable */
--	const char *data = nft_rule_expr_get_str(expr, NFT_EXPR_MT_INFO);
--	struct xtables_rule_match *matchp;
--	bool found = false;
--
--	for (matchp = matches; matchp; matchp = matchp->next) {
--		struct xt_entry_match *m = matchp->match->m;
-+	struct xtables_rule_match *mp_1;
-+	struct xtables_rule_match *mp_2;
-+	for (mp_1 = matches_1, mp_2 = matches_2;
-+			mp_1 && mp_2; mp_1 = mp_1->next, mp_2 = mp_2->next) {
-+		struct xt_entry_match *m_1 = mp_1->match->m;
-+		struct xt_entry_match *m_2 = mp_2->match->m;
- 
--		if (strcmp(m->u.user.name, matchname) != 0) {
-+		if (strcmp(m_1->u.user.name, m_2->u.user.name) != 0) {
- 			DEBUGP("mismatching match name\n");
--			continue;
-+			return false;
- 		}
- 
--		if (memcmp(data, m->data, m->u.user.match_size - sizeof(*m)) != 0) {
--			DEBUGP("mismatch match data\n");
--			continue;
-+		if (m_1->u.user.match_size != m_2->u.user.match_size) {
-+			DEBUGP("mismatching match size\n");
-+			return false;
- 		}
--		found = true;
--		break;
--	}
--
--	return found;
--}
--
--static bool find_matches(struct xtables_rule_match *matches, struct nft_rule *r)
--{
--	struct nft_rule_expr_iter *iter;
--	struct nft_rule_expr *expr;
--	int kernel_matches = 0;
- 
--	iter = nft_rule_expr_iter_create(r);
--	if (iter == NULL)
--		return false;
--
--	expr = nft_rule_expr_iter_next(iter);
--	while (expr != NULL) {
--		const char *name =
--			nft_rule_expr_get_str(expr, NFT_RULE_EXPR_ATTR_NAME);
--
--		if (strcmp(name, "match") == 0) {
--			if (!__find_match(expr, matches))
--				return false;
--
--			kernel_matches++;
-+		if (memcmp(m_1->data, m_2->data,
-+				m_1->u.user.match_size - sizeof(*m_1)) != 0) {
-+			DEBUGP("mismatch match data\n");
-+			return false;
- 		}
--		expr = nft_rule_expr_iter_next(iter);
- 	}
--	nft_rule_expr_iter_destroy(iter);
--
--	/* same number of matches? */
--	if (matches_howmany(matches) != kernel_matches)
--		return false;
--
--	return true;
--}
- 
--static bool __find_target(struct nft_rule_expr *expr, struct xt_entry_target *t)
--{
--	size_t len;
--	const char *tgname = nft_rule_expr_get_str(expr, NFT_EXPR_TG_NAME);
--	/* Netlink aligns this target info, don't trust this length variable */
--	const char *data = nft_rule_expr_get(expr, NFT_EXPR_TG_INFO, &len);
--
--	if (strcmp(t->u.user.name, tgname) != 0) {
--		DEBUGP("mismatching target name\n");
-+	/* Both cursor should be NULL */
-+	if (mp_1 != mp_2) {
-+		DEBUGP("mismatch matches amount\n");
- 		return false;
- 	}
- 
--	if (memcmp(data, t->data,  t->u.user.target_size - sizeof(*t)) != 0)
--		return false;
--
- 	return true;
- }
- 
--static int targets_howmany(struct xtables_target *target)
--{
--	return target != NULL ? 1 : 0;
--}
--
- static bool
--find_target(struct xtables_target *target, struct nft_rule *r)
-+compare_targets(struct xtables_target *target_1,
-+		struct xtables_target *target_2)
- {
--	struct nft_rule_expr_iter *iter;
--	struct nft_rule_expr *expr;
--	int kernel_targets = 0;
--
--	/* Special case: we use native immediate expressions to emulated
--	 * standard targets. Also, we don't want to crash with no targets.
--	 */
--	if (target == NULL || strcmp(target->name, "standard") == 0)
-+	if (target_1 == NULL && target_2 == NULL)
- 		return true;
- 
--	iter = nft_rule_expr_iter_create(r);
--	if (iter == NULL)
-+	if ((target_1 == NULL && target_2 != NULL) ||
-+				(target_1 != NULL && target_2 == NULL))
- 		return false;
- 
--	expr = nft_rule_expr_iter_next(iter);
--	while (expr != NULL) {
--		const char *name =
--			nft_rule_expr_get_str(expr, NFT_RULE_EXPR_ATTR_NAME);
--
--		if (strcmp(name, "target") == 0) {
--			/* we may support several targets in the future */
--			if (!__find_target(expr, target->t))
--				return false;
--
--			kernel_targets++;
--		}
--		expr = nft_rule_expr_iter_next(iter);
--	}
--	nft_rule_expr_iter_destroy(iter);
--
--	/* same number of targets? */
--	if (targets_howmany(target) != kernel_targets) {
--		DEBUGP("kernel targets is %d but we passed %d\n",
--		kernel_targets, targets_howmany(target));
-+	if (strcmp(target_1->t->u.user.name, target_2->t->u.user.name) != 0)
- 		return false;
--	}
- 
--	return true;
--}
--
--static bool
--find_immediate(struct nft_rule *r, const char *jumpto)
--{
--	struct nft_rule_expr_iter *iter;
--	struct nft_rule_expr *expr;
--
--	iter = nft_rule_expr_iter_create(r);
--	if (iter == NULL)
-+	if (target_1->t->u.user.target_size != target_2->t->u.user.target_size)
- 		return false;
- 
--	expr = nft_rule_expr_iter_next(iter);
--	while (expr != NULL) {
--		const char *name =
--			nft_rule_expr_get_str(expr, NFT_RULE_EXPR_ATTR_NAME);
--
--		if (strcmp(name, "immediate") == 0) {
--			int verdict = nft_rule_expr_get_u32(expr, NFT_EXPR_IMM_VERDICT);
--			const char *verdict_name = NULL;
--
--			/* No target specified but immediate shows up, this
--			 * is not the rule we are looking for.
--			 */
--			if (strlen(jumpto) == 0)
--				return false;
--
--			switch(verdict) {
--			case NF_ACCEPT:
--				verdict_name = "ACCEPT";
--				break;
--			case NF_DROP:
--				verdict_name = "DROP";
--				break;
--			case NFT_RETURN:
--				verdict_name = "RETURN";
--				break;
--			}
--
--			/* Standard target? */
--			if (verdict_name && strcmp(jumpto, verdict_name) != 0)
--				return false;
--		}
--		expr = nft_rule_expr_iter_next(iter);
--	}
--	nft_rule_expr_iter_destroy(iter);
-+	if (memcmp(target_1->t->data, target_2->t->data,
-+					target_1->t->u.user.target_size -
-+						sizeof(*target_1->t)) != 0)
-+		return false;
- 
- 	return true;
- }
-@@ -2090,18 +1967,18 @@ nft_rule_find(struct nft_rule_list *list, const char *chain, const char *table,
- 			if (!ops->is_same(cs, &this))
- 				goto next;
- 
--			if (!find_matches(cs->matches, r)) {
--				DEBUGP("matches not found\n");
-+			if (!compare_matches(cs->matches, this.matches)) {
-+				DEBUGP("Different matches\n");
- 				goto next;
- 			}
- 
--			if (!find_target(cs->target, r)) {
--				DEBUGP("target not found\n");
-+			if (!compare_targets(cs->target, this.target)) {
-+				DEBUGP("Different target\n");
- 				goto next;
- 			}
- 
--			if (!find_immediate(r, cs->jumpto)) {
--				DEBUGP("immediate not found\n");
-+			if (strcmp(cs->jumpto, this.jumpto) != 0) {
-+				DEBUGP("Different verdict\n");
- 				goto next;
- 			}
- 
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 7a6509a..748dc42 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -1194,8 +1194,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
+ 		ret = nft_chain_zero_counters(h, chain, *table);
+ 		break;
+ 	case CMD_ZERO_NUM:
+-		/* FIXME */
+-//		ret = iptc_zero_counter(chain, rulenum, *handle);
++		ret = nft_rule_zero_counters(h, chain, *table, rulenum - 1);
+ 		break;
+ 	case CMD_LIST:
+ 	case CMD_LIST|CMD_ZERO:
+@@ -1208,9 +1207,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
+ 				   cs.options&OPT_LINENUMBERS);
+ 		if (ret && (command & CMD_ZERO))
+ 			ret = nft_chain_zero_counters(h, chain, *table);
+-		/* FIXME */
+-/*		if (ret && (command & CMD_ZERO_NUM))
+-			ret = iptc_zero_counter(chain, rulenum, *handle); */
++		if (ret && (command & CMD_ZERO_NUM))
++			ret = nft_rule_zero_counters(h, chain,
++							*table, rulenum - 1);
+ 		break;
+ 	case CMD_LIST_RULES:
+ 	case CMD_LIST_RULES|CMD_ZERO:
+@@ -1218,9 +1217,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
+ 		ret = list_rules(h, chain, *table, rulenum, cs.options&OPT_VERBOSE);
+ 		if (ret && (command & CMD_ZERO))
+ 			ret = nft_chain_zero_counters(h, chain, *table);
+-		/* FIXME */
+-/*		if (ret && (command & CMD_ZERO_NUM))
+-			ret = iptc_zero_counter(chain, rulenum, *handle); */
++		if (ret && (command & CMD_ZERO_NUM))
++			ret = nft_rule_zero_counters(h, chain,
++							*table, rulenum - 1);
+ 		break;
+ 	case CMD_NEW_CHAIN:
+ 		ret = nft_chain_user_add(h, chain, *table);
 -- 
 1.8.3.2
 
