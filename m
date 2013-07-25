@@ -1,50 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next] net/sctp: Refactor SCTP skb checksum
- computation
-Date: Wed, 24 Jul 2013 23:15:22 -0700 (PDT)
-Message-ID: <20130724.231522.347956000482833125.davem@davemloft.net>
-References: <1374717125-28969-1-git-send-email-joe@wand.net.nz>
-	<alpine.LFD.2.00.1307250804180.1718@ja.ssi.bg>
-	<20130725052437.GB25854@verge.net.au>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: ja@ssi.bg, joe@wand.net.nz, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	pablo@netfilter.org, jesse@nicira.com
-To: horms@verge.net.au
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20130725052437.GB25854@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: [PATCH 0/4] Generalize DEBUGP macros
+Date: Thu, 25 Jul 2013 13:23:45 +0400
+Message-ID: <1374744229-5427-1-git-send-email-a.perevalov@samsung.com>
+Cc: pablo@netfilter.org, netfilter@vger.kernel.org,
+	Alexey Perevalov <a.perevalov@samsung.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Simon Horman <horms@verge.net.au>
-Date: Thu, 25 Jul 2013 14:24:38 +0900
+It's better to have one common header for keeping debug macro.
+There are many files currently define they own trace macros (DEBUGP).
+All of them are moved to DEBUGP from trace.h.
 
-> On Thu, Jul 25, 2013 at 08:08:11AM +0300, Julian Anastasov wrote:
->> 
->> 	Hello,
->> 
->> On Thu, 25 Jul 2013, Joe Stringer wrote:
->> 
->> > This patch consolidates the SCTP checksum calculation code from various
->> > places to a single new function, sctp_compute_cksum(skb, offset).
->> > 
->> > Signed-off-by: Joe Stringer <joe@wand.net.nz>
->> > ---
->> > v2:
->> > * Use skb->data + offset for start position of checksum calculation
->> > * Fix existing bug in sctp_csum_check() where the incorrect offset was used
->> > * Remove redundant variable in sctp_nat_csum()
->> 
->> 	v2 looks good to me, thanks!
->> 
->> Reviewed-by: Julian Anastasov <ja@ssi.bg>
-> 
-> IPVS portion:
-> 
-> Acked-by: Simon Horman <horms@verge.net.au>
-> 
-> Dave, could you consider taking this through net-next?
+Alexey Perevalov (4):
+  iptables: Introduce header for keeping debug and trace entities
+  extensions: Use DEBUGP macro from trace.h
+  iptables: Use DEBUGP macro from trace.h
+  libiptc: Use DEBUGP macro from trace.h
 
-Sure.
+ extensions/libxt_dccp.c      |    8 +---
+ extensions/libxt_sctp.c      |    8 +---
+ extensions/libxt_set.c       |    1 +
+ include/trace.h              |   14 +++++++
+ iptables/ip6tables-restore.c |    7 +---
+ iptables/iptables-restore.c  |    7 +---
+ iptables/iptables-xml.c      |    7 +---
+ libiptc/libiptc.c            |   90 +++++++++++++++++-------------------------
+ 8 files changed, 57 insertions(+), 85 deletions(-)
+ create mode 100644 include/trace.h
+
+-- 
+1.7.9.5
+
