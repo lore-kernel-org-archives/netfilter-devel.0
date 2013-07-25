@@ -1,82 +1,125 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables - RFC v2 PATCH  00/17] Xtables extensions: full support (pure nft or compat layer)
-Date: Thu, 25 Jul 2013 20:16:20 +0300
-Message-ID: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables - RFC v2 PATCH  02/17] xtables: Add support for injecting xtables target into nft rule
+Date: Thu, 25 Jul 2013 20:16:22 +0300
+Message-ID: <1374772597-20548-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:53512 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756042Ab3GYRQm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 13:16:42 -0400
+	id S1756042Ab3GYRQo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jul 2013 13:16:44 -0400
+In-Reply-To: <1374772597-20548-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This bring the support for xtables target extentions to be translated to
+pure nft expression list in the given rule.
 
-Ok I won't repeat the long text about this RFC here again.
-For more information, look at mail thread: "[iptables-nftables - RFC PATCH  00/15] Xtables extensions: full support (pure nft or compat layer)"
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ configure.ac              |  7 +++++++
+ extensions/GNUmakefile.in |  1 +
+ include/xtables.h         |  5 +++++
+ iptables/nft.c            | 20 ++++++++++++--------
+ 4 files changed, 25 insertions(+), 8 deletions(-)
 
-I applied the basic changes I told.
-
-Note: this version still requires to be built with --enable-static. See patch 9.
-
-Thanks,
-
-
-Tomasz Bursztyka (17):
-  nft: Remove useless function
-  xtables: Add support for injecting xtables target into nft rule
-  xtables: add support for injecting xtables matches into nft rule
-  nft: Add nft expressions translation engine as a library
-  nft: Integrate nft translator engine in current core
-  nft: Manage xtables target parsing through translation tree
-  nft: Manage xtables matches through nft translation tree
-  nft: Add support for xtables extensions callback to change cs
-  xtables: Add support for registering nft translation function for
-    target
-  xtables: Add support for registering nft translation function for
-    match
-  nft: Register all relevant xtables extensions into translation tree
-  nft: Refactor firewall printing so it reuses already parsed cs struct
-  nft: Refactor rule deletion so it compares both cs structure
-  xtables: nft: Complete refactoring on how rules are saved
-  xtables: Support pure nft expressions for DNAT extension
-  nft: Add a function to reset the counters of an existing rule
-  xtables: Support -Z options for a given rule number
-
- Makefile.am                       |   3 +
- configure.ac                      |   8 +
- extensions/GNUmakefile.in         |   1 +
- extensions/libipt_DNAT.c          | 221 +++++++++
- include/nft-translator.h          |  81 ++++
- include/xtables.h                 |  13 +
- iptables/Makefile.am              |   3 +-
- iptables/nft-ipv4.c               | 125 ++---
- iptables/nft-ipv6.c               |  81 ++--
- iptables/nft-shared.c             |  72 ++-
- iptables/nft-shared.h             |  23 +-
- iptables/nft-xt-ext.c             | 178 ++++++++
- iptables/nft-xt-ext.h             |  14 +
- iptables/nft.c                    | 934 +++++++++++++-------------------------
- iptables/nft.h                    |   9 +-
- iptables/xtables-events.c         |  21 +-
- iptables/xtables.c                |  15 +-
- libnfttrans/.nft-translator.c.swp | Bin 0 -> 28672 bytes
- libnfttrans/Makefile.am           |  28 ++
- libnfttrans/libnfttrans.pc        |  11 +
- libnfttrans/libnfttrans.pc.in     |  11 +
- libnfttrans/nft-translator.c      | 571 +++++++++++++++++++++++
- 22 files changed, 1637 insertions(+), 786 deletions(-)
- create mode 100644 include/nft-translator.h
- create mode 100644 iptables/nft-xt-ext.c
- create mode 100644 iptables/nft-xt-ext.h
- create mode 100644 libnfttrans/.nft-translator.c.swp
- create mode 100644 libnfttrans/Makefile.am
- create mode 100644 libnfttrans/libnfttrans.pc
- create mode 100644 libnfttrans/libnfttrans.pc.in
- create mode 100644 libnfttrans/nft-translator.c
-
+diff --git a/configure.ac b/configure.ac
+index 1c713e8..68f661c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -119,6 +119,13 @@ PKG_CHECK_MODULES([libnftables], [libnftables >= 1.0],
+ 	[nftables=1], [nftables=0])
+ AM_CONDITIONAL([HAVE_LIBNFTABLES], [test "$nftables" = 1])
+ 
++if test "$nftables" = 1; then
++	EXTENSION_NFT_LDFLAGS="${libmnl_LIBS} ${libnftables_LIBS}";
++else
++	EXTENSION_NFT_LDFLAGS="";
++fi;
++AC_SUBST(EXTENSION_NFT_LDFLAGS)
++
+ AM_PROG_LEX
+ AC_PROG_YACC
+ 
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 14e7c57..da2f38b 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -16,6 +16,7 @@ CCLD               = ${CC}
+ CFLAGS             = @CFLAGS@
+ CPPFLAGS           = @CPPFLAGS@
+ LDFLAGS            = @LDFLAGS@
++@ENABLE_NFTABLES_TRUE@ LDFLAGS += @EXTENSION_NFT_LDFLAGS@
+ regular_CFLAGS     = @regular_CFLAGS@
+ regular_CPPFLAGS   = @regular_CPPFLAGS@
+ kinclude_CPPFLAGS  = @kinclude_CPPFLAGS@
+diff --git a/include/xtables.h b/include/xtables.h
+index d4a4395..4d8874c 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -18,6 +18,8 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/x_tables.h>
+ 
++#include <libnftables/rule.h>
++
+ #ifndef IPPROTO_SCTP
+ #define IPPROTO_SCTP 132
+ #endif
+@@ -346,6 +348,9 @@ struct xtables_target
+ 	void (*x6_fcheck)(struct xt_fcheck_call *);
+ 	const struct xt_option_entry *x6_options;
+ 
++	/* NFT related */
++	int (*to_nft)(struct nft_rule *, struct xt_entry_target *);
++
+ 	size_t udata_size;
+ 
+ 	/* Ignore these men behind the curtain: */
+diff --git a/iptables/nft.c b/iptables/nft.c
+index a943069..d178f19 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -609,17 +609,21 @@ static int __add_target(struct nft_rule_expr *e, struct xt_entry_target *t)
+ 	return 0;
+ }
+ 
+-static int add_target(struct nft_rule *r, struct xt_entry_target *t)
++static int add_target(struct nft_rule *r, struct xtables_target *target)
+ {
+-	struct nft_rule_expr *expr;
+ 	int ret;
+ 
+-	expr = nft_rule_expr_alloc("target");
+-	if (expr == NULL)
+-		return -ENOMEM;
++	if (target->to_nft == NULL) {
++		struct nft_rule_expr *expr;
+ 
+-	ret = __add_target(expr, t);
+-	nft_rule_add_expr(r, expr);
++		expr = nft_rule_expr_alloc("target");
++		if (expr == NULL)
++			return -ENOMEM;
++
++		ret = __add_target(expr, target->t);
++		nft_rule_add_expr(r, expr);
++	} else
++		ret = target->to_nft(r, target->t);
+ 
+ 	return ret;
+ }
+@@ -728,7 +732,7 @@ nft_rule_new(struct nft_handle *h, const char *chain, const char *table,
+ 		else if (strcmp(cs->jumpto, XTC_LABEL_RETURN) == 0)
+ 			ret = add_verdict(r, NFT_RETURN);
+ 		else
+-			ret = add_target(r, cs->target->t);
++			ret = add_target(r, cs->target);
+ 	} else if (strlen(cs->jumpto) > 0) {
+ 		/* Not standard, then it's a go / jump to chain */
+ 		if (ip_flags & IPT_F_GOTO)
 -- 
 1.8.3.2
 
