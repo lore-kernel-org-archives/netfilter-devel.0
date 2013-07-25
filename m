@@ -1,190 +1,50 @@
-From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 6/6] examples: Add nft-chain-json-add
-Date: Thu, 25 Jul 2013 22:52:55 +0200
-Message-ID: <20130725205255.26223.29111.stgit@Ph0enix>
-References: <20130725205215.26223.77001.stgit@Ph0enix>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] immediate: xml: fix name inconsistency
+Date: Thu, 25 Jul 2013 22:54:11 +0200
+Message-ID: <20130725205411.22962.57274.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: eric@regit.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:42662 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713Ab3GYUxN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 16:53:13 -0400
-Received: by mail-wi0-f169.google.com with SMTP id c10so122687wiw.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2013 13:53:12 -0700 (PDT)
-In-Reply-To: <20130725205215.26223.77001.stgit@Ph0enix>
+Received: from smtp3.cica.es ([150.214.5.190]:33451 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752713Ab3GYUyU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jul 2013 16:54:20 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 1ADED51EE82
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2013 20:54:19 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 0w2ljF6y+REO for <netfilter-devel@vger.kernel.org>;
+	Thu, 25 Jul 2013 22:54:14 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 071AB51EDBE
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2013 22:54:14 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
+<immdata> must be <immediatedata>.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+This bug was introduced at (1e8e5d4 src: xml: consolidate parsing of data_reg via nft_mxml_data_reg_parse).
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- examples/Makefile.am          |    4 +
- examples/nft-chain-json-add.c |  120 +++++++++++++++++++++++++++++++++=
-++++++++
- 2 files changed, 124 insertions(+)
- create mode 100644 examples/nft-chain-json-add.c
+ src/expr/immediate.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/examples/Makefile.am b/examples/Makefile.am
-index 722ce0b..8d76f00 100644
---- a/examples/Makefile.am
-+++ b/examples/Makefile.am
-@@ -8,6 +8,7 @@ check_PROGRAMS =3D nft-table-add		\
- 		 nft-table-get		\
- 		 nft-chain-add		\
- 		 nft-chain-xml-add	\
-+		 nft-chain-json-add	\
- 		 nft-chain-del		\
- 		 nft-chain-get		\
- 		 nft-rule-add		\
-@@ -48,6 +49,9 @@ nft_chain_add_LDADD =3D ../src/libnftables.la ${LIBMN=
-L_LIBS}
- nft_chain_xml_add_SOURCES =3D nft-chain-xml-add.c
- nft_chain_xml_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
-=20
-+nft_chain_json_add_SOURCES =3D nft-chain-json-add.c
-+nft_chain_json_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS} ${LI=
-BXML_LIBS} ${LIBJSON_LIBS}
-+
- nft_chain_del_SOURCES =3D nft-chain-del.c
- nft_chain_del_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
-=20
-diff --git a/examples/nft-chain-json-add.c b/examples/nft-chain-json-ad=
-d.c
-new file mode 100644
-index 0000000..a46e7af
---- /dev/null
-+++ b/examples/nft-chain-json-add.c
-@@ -0,0 +1,120 @@
-+/*
-+ * (C) 2013 by =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
-+ *
-+ * Based on nft-chain-xml-add from:
-+ *
-+ * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y it
-+ * under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <errno.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftables/chain.h>
-+#include <libnftables/rule.h>
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq;
-+	struct nft_chain *c =3D NULL;
-+	int ret, fd;
-+	uint16_t family;
-+	char json[4096];
-+	char reprint[4096];
-+
-+	if (argc < 2) {
-+		printf("Usage: %s <json-file>\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	c =3D nft_chain_alloc();
-+	if (c =3D=3D NULL) {
-+		perror("OOM");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	fd =3D open(argv[1], O_RDONLY);
-+	if (fd < 0) {
-+		perror("open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (read(fd, json, sizeof(json)) < 0) {
-+		perror("read");
-+		close(fd);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	close(fd);
-+
-+	if (nft_chain_parse(c, NFT_CHAIN_PARSE_JSON, json) < 0) {
-+		printf("E: Unable to parse JSON file: %s\n", strerror(errno));
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	nft_chain_snprintf(reprint, sizeof(reprint), c, NFT_CHAIN_O_JSON, 0);
-+	printf("Parsed:\n%s\n", reprint);
-+
-+	nft_chain_attr_unset(c, NFT_CHAIN_ATTR_HANDLE);
-+	family =3D nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_FAMILY);
-+
-+	seq =3D time(NULL);
-+	nlh =3D nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, family,
-+					NLM_F_CREATE|NLM_F_ACK, seq);
-+	nft_chain_nlmsg_build_payload(nlh, c);
-+
-+	nft_chain_free(c);
-+
-+	nl =3D mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl =3D=3D NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	portid =3D mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_send");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret =3D mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
-+		if (ret <=3D 0)
-+			break;
-+		ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+
-+	}
-+	if (ret =3D=3D -1) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+
-+	mnl_socket_close(nl);
-+	return EXIT_SUCCESS;
-+}
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 48e9d1e..e65bd7c 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -192,7 +192,8 @@ nft_rule_expr_immediate_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
+ 	imm->dreg = reg;
+ 	e->flags |= (1 << NFT_EXPR_IMM_DREG);
+ 
+-	datareg_type = nft_mxml_data_reg_parse(tree, "immdata", &imm->data);
++	datareg_type = nft_mxml_data_reg_parse(tree, "immediatedata",
++					       &imm->data);
+ 	if (datareg_type < 0)
+ 		return -1;
+ 
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
