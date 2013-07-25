@@ -1,61 +1,139 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH v2] iptables: allow service names in [DS]NAT targets
-Date: Wed, 24 Jul 2013 17:17:12 -0700
-Message-ID: <20130725001712.GA14675@linuxace.com>
-References: <20130708164606.GA10203@linuxace.com>
- <20130724190038.GA1288@localhost>
- <alpine.DEB.2.00.1307242308350.23361@blackhole.kfki.hu>
+From: Joe Stringer <joe@wand.net.nz>
+Subject: Re: [net-next] net/sctp: Refactor SCTP skb checksum computation
+Date: Thu, 25 Jul 2013 10:18:05 +0900
+Message-ID: <CAOftzPiqdTA4HYDm6_KF9KsFgjyRnFsoPyUuRPUmmCO8aaPZPQ@mail.gmail.com>
+References: <1374553858-9963-1-git-send-email-joe@wand.net.nz> <alpine.LFD.2.00.1307230948590.1676@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:48430 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab3GYARE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jul 2013 20:17:04 -0400
-Received: by mail-pb0-f51.google.com with SMTP id um15so30667pbc.38
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jul 2013 17:17:04 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1307242308350.23361@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Joe Stringer <joe@wand.net.nz>, davem@davemloft.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org, pablo@netfilter.org,
+	Simon Horman <horms@verge.net.au>,
+	Jesse Gross <jesse@nicira.com>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1307230948590.1676@ja.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 24, 2013 at 11:11:48PM +0200, Jozsef Kadlecsik wrote:
-> On Wed, 24 Jul 2013, Pablo Neira Ayuso wrote:
-> > But this does not:
-> > 
-> > --to-source 1.1.1.1-1.1.1.10:telnet-http
-> > iptables v1.4.19.1: SNAT: Bad value for "--to" option:
-> > "1.1.1.1-1.1.1.10:telnet-ssh"
-> > 
-> > I think it should, for consistency (even if I have to confess that it
-> > looks a bit ugly to me).
-> > 
-> > If you decide to address this and send me a new version to support
-> > this, then it would be also good to update the manpage to say that we
-> > support services starting 1.4.20.
-> 
-> That is still ambiguous - there are service names with dash. So I suggest 
-> to support the notation '[name-with-dash]' in order to explicitly express 
-> and handle such cases.
+Thanks for the quick response. I'll fix up these issues and repost.
 
-Or perhaps as an alternative, we don't allow more than one port if one
-wishes to use service names?  It seems the port parser is going to get so
-complicated it will lead to bugs.  Particularly since ip6tables uses [ ] for
-addresses to disambiguate them from the :port section.  Now we'd have to be
-able to handle multiple [] arguments.
-
-So these would be acceptable:
-
-    :22-23
-    :ssh
-    :wap-push (port 2948)
-
-this would not:
-
-    :ssh-telnet
-
-Phil
+On Tue, Jul 23, 2013 at 4:14 PM, Julian Anastasov <ja@ssi.bg> wrote:
+>
+>         Hello,
+>
+> On Tue, 23 Jul 2013, Joe Stringer wrote:
+>
+>> This patch consolidates the SCTP checksum calculation code from various
+>> places to a single new function, sctp_compute_cksum(skb, offset).
+>>
+>> Signed-off-by: Joe Stringer <joe@wand.net.nz>
+>> ---
+>>  include/net/sctp/checksum.h           |   15 +++++++++++++++
+>>  net/netfilter/ipvs/ip_vs_proto_sctp.c |   23 ++++-------------------
+>>  net/netfilter/nf_nat_proto_sctp.c     |    8 +-------
+>>  net/sctp/input.c                      |   10 +---------
+>>  4 files changed, 21 insertions(+), 35 deletions(-)
+>>
+>> diff --git a/include/net/sctp/checksum.h b/include/net/sctp/checksum.h
+>> index 0cb08e6..8675564 100644
+>> --- a/include/net/sctp/checksum.h
+>> +++ b/include/net/sctp/checksum.h
+>> @@ -85,4 +85,19 @@ static inline __le32 sctp_end_cksum(__u32 crc32)
+>>       return cpu_to_le32(~crc32);
+>>  }
+>>
+>> +/* Calculate the CRC32C checksum of an SCTP packet.  */
+>> +static inline __le32 sctp_compute_cksum(const struct sk_buff *skb,
+>> +                                     unsigned int offset)
+>> +{
+>> +     const struct sk_buff *iter;
+>> +
+>> +     __u32 crc32 = sctp_start_cksum((__u8 *)sctp_hdr(skb),
+>> +                                    skb_headlen(skb) - offset);
+>
+>         sctp_hdr() is valid in INPUT hook after commit
+> 21d1196a35f5686c4323e42a62fdb4b23b0ab4a3 (ipv4: set transport header
+> earlier) but I'm not sure for the OUTPUT hook where
+> IPVS is working. I guess the same is valid for Netfilter.
+>
+>         IPVS uses skb_network_header(skb) + offset but
+> I guess it can work with skb->data, just like Netfilter:
+>
+>         __u32 crc32 = sctp_start_cksum(skb->data + offset,
+>
+>         This should work also in SCTP where skb->data points
+> to the SCTP header when sctp_rcv_checksum() is called.
+>
+>> +     skb_walk_frags(skb, iter)
+>> +             crc32 = sctp_update_cksum((__u8 *) iter->data,
+>> +                                       skb_headlen(iter), crc32);
+>> +
+>> +     return sctp_end_cksum(crc32);
+>> +}
+>> +
+>>  #endif /* __sctp_checksum_h__ */
+>> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+>> index 3c0da87..b2e422d 100644
+>> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
+>> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+>> @@ -66,15 +66,9 @@ sctp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+>>  static void sctp_nat_csum(struct sk_buff *skb, sctp_sctphdr_t *sctph,
+>>                         unsigned int sctphoff)
+>>  {
+>> -     __u32 crc32;
+>> -     struct sk_buff *iter;
+>> -
+>> -     crc32 = sctp_start_cksum((__u8 *)sctph, skb_headlen(skb) - sctphoff);
+>> -     skb_walk_frags(skb, iter)
+>> -             crc32 = sctp_update_cksum((u8 *) iter->data,
+>> -                                       skb_headlen(iter), crc32);
+>> -     sctph->checksum = sctp_end_cksum(crc32);
+>> +     __le32 crc32 = sctp_compute_cksum(skb, sctphoff);
+>
+>         crc32 var is not needed anymore, eg:
+>
+>         sctph->checksum = sctp_compute_cksum(skb, sctphoff);
+>
+>> +     sctph->checksum = crc32;
+>>       skb->ip_summed = CHECKSUM_UNNECESSARY;
+>>  }
+>>
+>> @@ -151,10 +145,7 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+>>  {
+>>       unsigned int sctphoff;
+>>       struct sctphdr *sh, _sctph;
+>> -     struct sk_buff *iter;
+>> -     __le32 cmp;
+>> -     __le32 val;
+>> -     __u32 tmp;
+>> +     __le32 cmp, val;
+>>
+>>  #ifdef CONFIG_IP_VS_IPV6
+>>       if (af == AF_INET6)
+>> @@ -168,13 +159,7 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+>>               return 0;
+>>
+>>       cmp = sh->checksum;
+>> -
+>> -     tmp = sctp_start_cksum((__u8 *) sh, skb_headlen(skb));
+>> -     skb_walk_frags(skb, iter)
+>> -             tmp = sctp_update_cksum((__u8 *) iter->data,
+>> -                                     skb_headlen(iter), tmp);
+>> -
+>> -     val = sctp_end_cksum(tmp);
+>> +     val = sctp_compute_cksum(skb, 0);
+>
+>         The original code has bug here, still the code
+> was never used because there are no IPVS apps with
+> SCTP support. You can safely use sctphoff here, not 0, eg:
+>
+>         val = sctp_compute_cksum(skb, sctphoff);
+>
+>>       if (val != cmp) {
+>>               /* CRC failure, dump it. */
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
