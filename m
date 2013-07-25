@@ -1,7 +1,7 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 4/6] chain: json: add function for parsing chain
-Date: Thu, 25 Jul 2013 22:52:39 +0200
-Message-ID: <20130725205239.26223.9493.stgit@Ph0enix>
+Subject: [libnftables PATCH 6/6] examples: Add nft-chain-json-add
+Date: Thu, 25 Jul 2013 22:52:55 +0200
+Message-ID: <20130725205255.26223.29111.stgit@Ph0enix>
 References: <20130725205215.26223.77001.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,199 +9,179 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:38848 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755095Ab3GYUwn (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:42662 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713Ab3GYUxN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 16:52:43 -0400
-Received: by mail-wg0-f50.google.com with SMTP id m15so2097283wgh.17
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2013 13:52:42 -0700 (PDT)
+	Thu, 25 Jul 2013 16:53:13 -0400
+Received: by mail-wi0-f169.google.com with SMTP id c10so122687wiw.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2013 13:53:12 -0700 (PDT)
 In-Reply-To: <20130725205215.26223.77001.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Add function for parsing chains in format JSON
-
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- include/libnftables/chain.h |    1=20
- src/chain.c                 |  138 +++++++++++++++++++++++++++++++++++=
+ examples/Makefile.am          |    4 +
+ examples/nft-chain-json-add.c |  120 +++++++++++++++++++++++++++++++++=
 ++++++++
- 2 files changed, 139 insertions(+)
+ 2 files changed, 124 insertions(+)
+ create mode 100644 examples/nft-chain-json-add.c
 
-diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index 382947f..53fd407 100644
---- a/include/libnftables/chain.h
-+++ b/include/libnftables/chain.h
-@@ -52,6 +52,7 @@ enum {
- enum nft_chain_parse_type {
- 	NFT_CHAIN_PARSE_NONE	=3D 0,
- 	NFT_CHAIN_PARSE_XML,
-+	NFT_CHAIN_PARSE_JSON,
- 	NFT_CHAIN_PARSE_MAX
- };
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index 722ce0b..8d76f00 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -8,6 +8,7 @@ check_PROGRAMS =3D nft-table-add		\
+ 		 nft-table-get		\
+ 		 nft-chain-add		\
+ 		 nft-chain-xml-add	\
++		 nft-chain-json-add	\
+ 		 nft-chain-del		\
+ 		 nft-chain-get		\
+ 		 nft-rule-add		\
+@@ -48,6 +49,9 @@ nft_chain_add_LDADD =3D ../src/libnftables.la ${LIBMN=
+L_LIBS}
+ nft_chain_xml_add_SOURCES =3D nft-chain-xml-add.c
+ nft_chain_xml_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
 =20
-diff --git a/src/chain.c b/src/chain.c
-index 1e07044..d9d41ee 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -468,6 +468,141 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *=
-nlh, struct nft_chain *c)
- }
- EXPORT_SYMBOL(nft_chain_nlmsg_parse);
++nft_chain_json_add_SOURCES =3D nft-chain-json-add.c
++nft_chain_json_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS} ${LI=
+BXML_LIBS} ${LIBJSON_LIBS}
++
+ nft_chain_del_SOURCES =3D nft-chain-del.c
+ nft_chain_del_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
 =20
-+static int str2policy(const char *policy)
+diff --git a/examples/nft-chain-json-add.c b/examples/nft-chain-json-ad=
+d.c
+new file mode 100644
+index 0000000..a46e7af
+--- /dev/null
++++ b/examples/nft-chain-json-add.c
+@@ -0,0 +1,120 @@
++/*
++ * (C) 2013 by =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
++ *
++ * Based on nft-chain-xml-add from:
++ *
++ * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftables/chain.h>
++#include <libnftables/rule.h>
++
++int main(int argc, char *argv[])
 +{
-+	if (strcmp("accept", policy) =3D=3D 0) {
-+		return NF_ACCEPT;
-+	} else if (strcmp("drop", policy) =3D=3D 0) {
-+		return NF_DROP;
-+	} else {
-+		return -1;
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq;
++	struct nft_chain *c =3D NULL;
++	int ret, fd;
++	uint16_t family;
++	char json[4096];
++	char reprint[4096];
++
++	if (argc < 2) {
++		printf("Usage: %s <json-file>\n", argv[0]);
++		exit(EXIT_FAILURE);
 +	}
++
++	c =3D nft_chain_alloc();
++	if (c =3D=3D NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	fd =3D open(argv[1], O_RDONLY);
++	if (fd < 0) {
++		perror("open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (read(fd, json, sizeof(json)) < 0) {
++		perror("read");
++		close(fd);
++		exit(EXIT_FAILURE);
++	}
++
++	close(fd);
++
++	if (nft_chain_parse(c, NFT_CHAIN_PARSE_JSON, json) < 0) {
++		printf("E: Unable to parse JSON file: %s\n", strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	nft_chain_snprintf(reprint, sizeof(reprint), c, NFT_CHAIN_O_JSON, 0);
++	printf("Parsed:\n%s\n", reprint);
++
++	nft_chain_attr_unset(c, NFT_CHAIN_ATTR_HANDLE);
++	family =3D nft_chain_attr_get_u32(c, NFT_CHAIN_ATTR_FAMILY);
++
++	seq =3D time(NULL);
++	nlh =3D nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, family,
++					NLM_F_CREATE|NLM_F_ACK, seq);
++	nft_chain_nlmsg_build_payload(nlh, c);
++
++	nft_chain_free(c);
++
++	nl =3D mnl_socket_open(NETLINK_NETFILTER);
++	if (nl =3D=3D NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++
++	portid =3D mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret =3D mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
++		if (ret <=3D 0)
++			break;
++		ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
++
++	}
++	if (ret =3D=3D -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++
++
++	mnl_socket_close(nl);
++	return EXIT_SUCCESS;
 +}
-+
-+static int nft_chain_json_parse(struct nft_chain *c, char *json)
-+{
-+#ifdef JSON_PARSING
-+	json_t *root;
-+	json_error_t error;
-+	uint64_t val64;
-+	uint32_t hooknum;
-+	int32_t prio;
-+	const char *valstr;
-+
-+	/* Load the tree */
-+	root =3D json_loadb (json, strlen(json), 0, &error);
-+	if (!root) {
-+		errno =3D EINVAL;
-+		return -1;
-+	}
-+
-+	root =3D json_object_get(root, "chain");
-+	if (root =3D=3D NULL) {
-+		errno =3D ERANGE;
-+		return -1;
-+	}
-+
-+	if (nft_jansson_value_parse_val(root, "version", NFT_TYPE_U64,
-+					 &val64) =3D=3D -1)
-+		goto err;
-+
-+	if (val64 !=3D NFT_CHAIN_JSON_VERSION)
-+		goto err;
-+
-+	valstr =3D nft_jansson_value_parse_str(root, "name");
-+	if (valstr =3D=3D NULL)
-+		goto err;
-+
-+	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_NAME, strdup(valstr));
-+
-+	if (nft_jansson_value_parse_val(root, "handle", NFT_TYPE_U64,
-+					 &val64) =3D=3D -1)
-+		goto err;
-+
-+	nft_chain_attr_set_u64(c,NFT_CHAIN_ATTR_HANDLE, val64);
-+
-+	if (nft_jansson_value_parse_val(root, "bytes", NFT_TYPE_U64,
-+					 &val64) =3D=3D -1)
-+		goto err;
-+
-+	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_BYTES, val64);
-+
-+	if (nft_jansson_value_parse_val(root, "packets", NFT_TYPE_U64,
-+					 &val64) =3D=3D -1)
-+		goto err;
-+
-+	if (val64 < 0)
-+		goto err;
-+
-+	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_PACKETS, val64);
-+
-+	root =3D json_object_get(root, "properties");
-+
-+	valstr =3D nft_jansson_value_parse_str(root, "family");
-+
-+	if (valstr =3D=3D NULL)
-+		goto err;
-+
-+	if (nft_str2family(valstr) =3D=3D -1)
-+		goto err;
-+
-+	nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_FAMILY, nft_str2family(valst=
-r));
-+
-+	valstr =3D nft_jansson_value_parse_str(root, "table");
-+
-+	if (valstr =3D=3D NULL)
-+		goto err;
-+
-+	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, strdup(valstr));
-+
-+	if (nft_jansson_node_exist(root, "hooknum")) {
-+		valstr =3D nft_jansson_value_parse_str(root, "type");
-+
-+		if (valstr =3D=3D NULL)
-+			goto err;
-+
-+		nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TYPE, strdup(valstr));
-+
-+		if (nft_jansson_value_parse_val(root, "prio", NFT_TYPE_S32,
-+						 &prio) =3D=3D -1)
-+			goto err;
-+
-+		nft_chain_attr_set_s32(c, NFT_CHAIN_ATTR_PRIO, prio);
-+
-+		valstr =3D nft_jansson_value_parse_str(root, "hooknum");
-+		for (hooknum =3D 0; hooknum < NF_INET_NUMHOOKS; hooknum++) {
-+			if (strcmp(valstr, hooknum2str_array[hooknum]) =3D=3D 0) {
-+				nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_HOOKNUM,
-+						       hooknum);
-+				break;
-+			}
-+		}
-+
-+		valstr =3D nft_jansson_value_parse_str(root, "policy");
-+
-+		if (valstr =3D=3D NULL)
-+			goto err;
-+
-+		if (str2policy(valstr) =3D=3D -1)
-+			goto err;
-+
-+		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_POLICY,
-+				       str2policy(valstr));
-+	}
-+
-+	free(root);
-+	return 0;
-+
-+err:
-+	free(root);
-+	errno =3D ERANGE;
-+	return -1;
-+#else
-+	errno =3D EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
- static int nft_chain_xml_parse(struct nft_chain *c, char *xml)
- {
- #ifdef XML_PARSING
-@@ -661,6 +796,9 @@ int nft_chain_parse(struct nft_chain *c, enum nft_c=
-hain_parse_type type,
- 	case NFT_CHAIN_PARSE_XML:
- 		ret =3D nft_chain_xml_parse(c, data);
- 		break;
-+	case NFT_CHAIN_PARSE_JSON:
-+		ret =3D nft_chain_json_parse(c, data);
-+		break;
- 	default:
- 		ret =3D -1;
- 		errno =3D EOPNOTSUPP;
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
