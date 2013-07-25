@@ -1,28 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] tests: xml: add realistic XML tests files
-Date: Thu, 25 Jul 2013 22:57:14 +0200
-Message-ID: <20130725205714.GA7072@localhost>
-References: <20130725204440.22426.12913.stgit@nfdev.cica.es>
+Subject: Re: [libnftables PATCH] immediate: xml: fix name inconsistency
+Date: Thu, 25 Jul 2013 22:58:03 +0200
+Message-ID: <20130725205803.GA7113@localhost>
+References: <20130725205411.22962.57274.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43014 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43066 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754504Ab3GYU5X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jul 2013 16:57:23 -0400
+	id S1752736Ab3GYU6I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jul 2013 16:58:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20130725204440.22426.12913.stgit@nfdev.cica.es>
+In-Reply-To: <20130725205411.22962.57274.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 25, 2013 at 10:44:40PM +0200, Arturo Borrero Gonzalez wrote:
-> This patch refresh current XML testfiles with some realworld expressions extracted from rules.
-> The nft instruction itself is added as a comment for future references.
+On Thu, Jul 25, 2013 at 10:54:11PM +0200, Arturo Borrero Gonzalez wrote:
+> <immdata> must be <immediatedata>.
 > 
-> All XMl files are now indented with tabs instead of spaces.
-> 
-> Also, a bunch of new realworld rules with mixed expressions are added.
+> This bug was introduced at (1e8e5d4 src: xml: consolidate parsing of
+> data_reg via nft_mxml_data_reg_parse).
 
-Applied, thanks.
+Also applied, thanks.
