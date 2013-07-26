@@ -1,70 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: iptables-xml: Fix various parsing bugs
-Date: Fri, 26 Jul 2013 16:52:21 +0200
-Message-ID: <20130726145221.GA28740@localhost>
-References: <20130620125336.GA15704@gmail.com>
+Subject: Re: [libnftables PATCH] xml: expr: fix public interface for parsing
+ XML
+Date: Fri, 26 Jul 2013 16:55:12 +0200
+Message-ID: <20130726145512.GA28808@localhost>
+References: <20130726120031.4081.51723.stgit@nfdev.cica.es>
+ <20130726141934.GA13991@localhost>
+ <CAOkSjBjD9b=X3MNu7NPpVDFrLTCf9AtS2hQtYcp19e=sEkzZOQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46442 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46704 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759187Ab3GZOw1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jul 2013 10:52:27 -0400
+	id S1759239Ab3GZOzR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jul 2013 10:55:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20130620125336.GA15704@gmail.com>
+In-Reply-To: <CAOkSjBjD9b=X3MNu7NPpVDFrLTCf9AtS2hQtYcp19e=sEkzZOQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 20, 2013 at 08:53:36AM -0400, Phil Oester wrote:
-> There are two bugs in iptables-xml do_rule_part parsing corrected by this patch:
+On Fri, Jul 26, 2013 at 04:31:47PM +0200, Arturo Borrero Gonzalez wrote:
+> On 26 July 2013 16:19, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Hi Arturo,
+> >
+> > On Fri, Jul 26, 2013 at 02:00:31PM +0200, Arturo Borrero Gonzalez wrote:
+> >> This patch adds a public interface for parsing expr XML.
+> >> Before this patch, that operation was not possible.
+> >
+> > rule parse already parses expressions.
+> >
+> > Do you need this? If so, please specify the usage. Thanks.
 > 
-> 1) Ignore "-A <chain>" instead of just "-A"
-> 2) When checking to see if we need a <match> tag, inversion needs to be taken
->    into account
+> I don't need this.
 > 
-> This closes netfilter bugzilla #679.
-
-Applied with comestic change, thanks Phil.
-
-> Phil
+> The only motivation was all object having a way of going from str to
+> nft_* but expr.
+> As you stated, currently the only way of parsing a XML expr is if the
+> expr itself is nested inside a rule.
 > 
-> Signed-off-by: Phil Oester <kernel@linuxace.com>
-> 
-> 
+> but i'm fine without it ATM.
 
-> diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
-> index 4b12bd4..99d7527 100644
-> --- a/iptables/iptables-xml.c
-> +++ b/iptables/iptables-xml.c
-> @@ -367,7 +367,8 @@ static void
->  do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
->  	     char *argv[], int argvattr[])
->  {
-> -	int arg = 1;		// ignore leading -A
-> +	int i;
-> +	int arg = 2;		// ignore leading -A <chain>
->  	char invert_next = 0;
->  	char *spacer = "";	// space when needed to assemble arguments
->  	char *level1 = NULL;
-> @@ -401,9 +402,14 @@ do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
->  
->  	/* Before we start, if the first arg is -[^-] and not -m or -j or -g 
->  	   then start a dummy <match> tag for old style built-in matches.  
-> -	   We would do this in any case, but no need if it would be empty */
-
-We prefer this comment style (similar to kernel coding style):
-
-/* This is a long comment ...
- * ...
- */
-
-/* This is a short comment */
-
-*Not your fault*, of course, that was already there, including some
-trailing whitespace.
-
-In general, I don't like patches to address comestic stuff only, I
-think they generate too much noise, so I prefer that comestic stuff
-gets fixed while fixing/enhancing some real thing, like in this case.
+Let keep this back. I prefer not to add yet another interface for
+something we don't need at this moment.
