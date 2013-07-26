@@ -1,138 +1,41 @@
 From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables-nftables PATCH 4/5] nft: export functions reusability
-Date: Fri, 26 Jul 2013 13:05:18 +0200
-Message-ID: <1374836719-27596-4-git-send-email-giuseppelng@gmail.com>
+Subject: [iptables-nftables PATCH 5/5] nft: fix family operation lookup
+Date: Fri, 26 Jul 2013 13:05:19 +0200
+Message-ID: <1374836719-27596-5-git-send-email-giuseppelng@gmail.com>
 References: <1374836719-27596-1-git-send-email-giuseppelng@gmail.com>
 Cc: Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:54288 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758409Ab3GZLGD (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:62361 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758409Ab3GZLGG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jul 2013 07:06:03 -0400
-Received: by mail-wi0-f173.google.com with SMTP id en1so607671wid.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2013 04:06:02 -0700 (PDT)
+	Fri, 26 Jul 2013 07:06:06 -0400
+Received: by mail-we0-f174.google.com with SMTP id q54so1697816wes.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2013 04:06:05 -0700 (PDT)
 In-Reply-To: <1374836719-27596-1-git-send-email-giuseppelng@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This permit to reuse some functions in other tool (like arptables)
+This fixes the family operations lookup: handle's family is the one to use at this point
 
 Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- iptables/nft.c |   20 ++++++++++----------
- iptables/nft.h |   25 +++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 10 deletions(-)
+ iptables/xtables.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index bb1a1da..f124419 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -53,9 +53,9 @@
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 59f38a9..eb614c6 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -1110,7 +1110,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
+ 	if (h->family == AF_UNSPEC)
+ 		h->family = args.family;
  
- static void *nft_fn;
- 
--static int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
--		    int (*cb)(const struct nlmsghdr *nlh, void *data),
--		    void *data)
-+int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
-+	     int (*cb)(const struct nlmsghdr *nlh, void *data),
-+	     void *data)
- {
- 	int ret;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
-@@ -210,7 +210,7 @@ struct builtin_table xtables_ipv4[TABLES_MAX] = {
- 	},
- };
- 
--static int
-+int
- nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 			bool dormant)
- {
-@@ -242,7 +242,7 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 	return ret;
- }
- 
--static struct nft_chain *
-+struct nft_chain *
- nft_chain_builtin_alloc(struct builtin_table *table,
- 			struct builtin_chain *chain, int policy)
- {
-@@ -262,7 +262,7 @@ nft_chain_builtin_alloc(struct builtin_table *table,
- 	return c;
- }
- 
--static void
-+void
- nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
- 		      struct builtin_chain *chain, int policy)
- {
-@@ -288,8 +288,8 @@ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
- }
- 
- /* find if built-in table already exists */
--static struct builtin_table 
--*nft_table_builtin_find(struct nft_handle *h, const char *table)
-+struct builtin_table *
-+nft_table_builtin_find(struct nft_handle *h, const char *table)
- {
- 	int i;
- 	bool found = false;
-@@ -306,7 +306,7 @@ static struct builtin_table
- }
- 
- /* find if built-in chain already exists */
--static struct builtin_chain *
-+struct builtin_chain *
- nft_chain_builtin_find(struct builtin_table *t, const char *chain)
- {
- 	int i;
-@@ -343,7 +343,7 @@ __nft_chain_builtin_init(struct nft_handle *h,
- 	}
- }
- 
--static int
-+int
- nft_chain_builtin_init(struct nft_handle *h, const char *table,
- 		       const char *chain, int policy)
- {
-diff --git a/iptables/nft.h b/iptables/nft.h
-index f3317c9..734b852 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -35,6 +35,31 @@ struct nft_handle {
- 
- extern struct builtin_table xtables_ipv4[TABLES_MAX];
- 
-+int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
-+	     int (*cb)(const struct nlmsghdr *nlh, void *data),
-+	     void *data);
-+
-+int nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
-+			  bool dormant);
-+
-+struct nft_chain *
-+nft_chain_builtin_alloc(struct builtin_table *table,
-+			struct builtin_chain *chain, int policy);
-+
-+void
-+nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
-+		      struct builtin_chain *chain, int policy);
-+
-+struct builtin_table *
-+nft_table_builtin_find(struct nft_handle *h, const char *table);
-+
-+struct builtin_chain *
-+nft_chain_builtin_find(struct builtin_table *t, const char *chain);
-+
-+int
-+nft_chain_builtin_init(struct nft_handle *h, const char *table,
-+		       const char *chain, int policy);
-+
- int nft_init(struct nft_handle *h, struct builtin_table *t);
- void nft_fini(struct nft_handle *h);
+-	h->ops = nft_family_ops_lookup(args.family);
++	h->ops = nft_family_ops_lookup(h->family);
+ 	if (h->ops == NULL)
+ 		xtables_error(PARAMETER_PROBLEM, "Unknown family");
  
 -- 
 1.7.8.6
