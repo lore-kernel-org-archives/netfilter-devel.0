@@ -1,66 +1,122 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables-nftables PATCH] nft: load only the tables of the current family.
-Date: Fri, 26 Jul 2013 13:37:05 +0200
-Message-ID: <1374838625-29029-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] xml: expr: fix public interface for parsing XML
+Date: Fri, 26 Jul 2013 14:00:31 +0200
+Message-ID: <20130726120031.4081.51723.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:38374 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425Ab3GZLhX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jul 2013 07:37:23 -0400
-Received: by mail-wg0-f54.google.com with SMTP id n12so2697962wgh.33
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2013 04:37:22 -0700 (PDT)
+Received: from smtp3.cica.es ([150.214.5.190]:35059 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752425Ab3GZMAl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:00:41 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 3553C51EE9B
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2013 12:00:39 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id BIsVcCSb9c1s for <netfilter-devel@vger.kernel.org>;
+	Fri, 26 Jul 2013 14:00:34 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id E3FC051EEAA
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2013 14:00:33 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This changes nft_xtables_config_load() permit to load only
-the tables of the current family
+This patch adds a public interface for parsing expr XML.
+Before this patch, that operation was not possible.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- iptables/nft.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ include/libnftables/expr.h |    3 +++
+ src/expr.c                 |   41 +++++++++++++++++++++++++++++++++++++++++
+ src/libnftables.map        |    1 +
+ 3 files changed, 45 insertions(+)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index f124419..744b7c9 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -2841,6 +2841,7 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 	struct nft_chain_list_iter *citer;
- 	struct nft_table *table;
- 	struct nft_chain *chain;
-+	uint8_t table_family, chain_family;
+diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
+index 02f38d0..31946b3 100644
+--- a/include/libnftables/expr.h
++++ b/include/libnftables/expr.h
+@@ -8,6 +8,8 @@
+ extern "C" {
+ #endif
  
- 	if (xtables_config_parse(filename, table_list, chain_list) < 0) {
- 		if (errno == ENOENT) {
-@@ -2858,6 +2859,12 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 	/* Stage 1) create tables */
- 	titer = nft_table_list_iter_create(table_list);
- 	while ((table = nft_table_list_iter_next(titer)) != NULL) {
-+		table_family = nft_table_attr_get_u32(table,
-+						      NFT_TABLE_ATTR_FAMILY);
++#include <libnftables/rule.h>
 +
-+		if (h->family != table_family)
-+			continue;
+ struct nft_rule_expr;
+ 
+ enum {
+@@ -35,6 +37,7 @@ struct nlmsghdr;
+ 
+ void nft_rule_expr_build_payload(struct nlmsghdr *nlh, struct nft_rule_expr *expr);
+ 
++int nft_rule_expr_parse(struct nft_rule_expr *expr, enum nft_rule_parse_type type, const char *data);
+ int nft_rule_expr_snprintf(char *buf, size_t buflen, struct nft_rule_expr *expr, uint32_t type, uint32_t flags);
+ 
+ enum {
+diff --git a/src/expr.c b/src/expr.c
+index 84fd64b..5c5af62 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -195,6 +195,47 @@ nft_rule_expr_build_payload(struct nlmsghdr *nlh, struct nft_rule_expr *expr)
+ }
+ EXPORT_SYMBOL(nft_rule_expr_build_payload);
+ 
++static int nft_rule_expr_parse_xml(struct nft_rule_expr *expr, const char *xml)
++{
++#ifdef XML_PARSING
++	mxml_node_t *tree;
 +
- 		if (nft_table_add(h, table) < 0) {
- 			if (errno == EEXIST) {
- 				xtables_config_perror(flags,
-@@ -2883,6 +2890,12 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 	/* Stage 2) create chains */
- 	citer = nft_chain_list_iter_create(chain_list);
- 	while ((chain = nft_chain_list_iter_next(citer)) != NULL) {
-+		chain_family = nft_chain_attr_get_u32(chain,
-+						      NFT_CHAIN_ATTR_TABLE);
++	tree = mxmlLoadString(NULL, xml, MXML_OPAQUE_CALLBACK);
++	if (tree == NULL)
++		goto einval;
 +
-+		if (h->family != chain_family)
-+			continue;
++	if (strcmp(tree->value.opaque, "expr") != 0) {
++		mxmlDelete(tree);
++		goto einval;
++	}
 +
- 		if (nft_chain_add(h, chain) < 0) {
- 			if (errno == EEXIST) {
- 				xtables_config_perror(flags,
--- 
-1.7.8.6
++	expr = nft_mxml_expr_parse(tree);
++	if (expr == NULL)
++		return -1;
++
++	return 0;
++
++einval:
++	errno = EINVAL;
++	return -1;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++int nft_rule_expr_parse(struct nft_rule_expr *expr, enum nft_rule_parse_type type, const char *data)
++{
++	switch (type) {
++	case NFT_RULE_PARSE_XML:
++		return nft_rule_expr_parse_xml(expr, data);
++	default:
++		errno = EOPNOTSUPP;
++		return -1;
++	}
++}
++EXPORT_SYMBOL(nft_rule_expr_parse);
++
+ int nft_rule_expr_snprintf(char *buf, size_t size, struct nft_rule_expr *expr,
+ 			   uint32_t type, uint32_t flags)
+ {
+diff --git a/src/libnftables.map b/src/libnftables.map
+index 614c705..16d8c05 100644
+--- a/src/libnftables.map
++++ b/src/libnftables.map
+@@ -93,6 +93,7 @@ global:
+   nft_rule_expr_get_u64;
+   nft_rule_expr_get_str;
+   nft_rule_expr_build_payload;
++  nft_rule_expr_parse;
+   nft_rule_expr_snprintf;
+   nft_rule_expr_free;
+ 
 
