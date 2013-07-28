@@ -1,51 +1,104 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/5] netfilter: nf_conntrack: remove net_ratelimit() for LOG_INVALID()
-Date: Sun, 28 Jul 2013 22:54:07 +0200
-Message-ID: <1375044851-12471-2-git-send-email-kaber@trash.net>
+Subject: [PATCH 5/5] netfilter: nf_nat: use per-conntrack locking for sequence number adjustments
+Date: Sun, 28 Jul 2013 22:54:11 +0200
+Message-ID: <1375044851-12471-6-git-send-email-kaber@trash.net>
 References: <1375044851-12471-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45253 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45254 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab3G1VCn (ORCPT
+	with ESMTP id S1752179Ab3G1VCo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Jul 2013 17:02:43 -0400
+	Sun, 28 Jul 2013 17:02:44 -0400
 In-Reply-To: <1375044851-12471-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Logging of invalid packets has to be explicitly enabled. Rate-limiting these
-messages is inconsistent with other netfilter logging features and makes
-debugging harder.
+Get rid of the global lock and use per-conntrack locks for protecting the
+sequencen number adjustment data. Additionally saves one lock/unlock
+operation for every TCP packet.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h | 7 -------
- 1 file changed, 7 deletions(-)
+ net/netfilter/nf_nat_helper.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 914d8d9..b411d7b 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -148,17 +148,10 @@ extern int nf_ct_port_nlattr_tuple_size(void);
- extern const struct nla_policy nf_ct_port_nla_policy[];
+diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
+index ff4a589..46b9baa 100644
+--- a/net/netfilter/nf_nat_helper.c
++++ b/net/netfilter/nf_nat_helper.c
+@@ -30,8 +30,6 @@
+ 	pr_debug("offset_before=%d, offset_after=%d, correction_pos=%u\n", \
+ 		 x->offset_before, x->offset_after, x->correction_pos);
  
- #ifdef CONFIG_SYSCTL
--#ifdef DEBUG_INVALID_PACKETS
- #define LOG_INVALID(net, proto)				\
- 	((net)->ct.sysctl_log_invalid == (proto) ||	\
- 	 (net)->ct.sysctl_log_invalid == IPPROTO_RAW)
- #else
--#define LOG_INVALID(net, proto)				\
--	(((net)->ct.sysctl_log_invalid == (proto) ||	\
--	  (net)->ct.sysctl_log_invalid == IPPROTO_RAW)	\
--	 && net_ratelimit())
--#endif
--#else
- static inline int LOG_INVALID(struct net *net, int proto) { return 0; }
- #endif /* CONFIG_SYSCTL */
+-static DEFINE_SPINLOCK(nf_nat_seqofs_lock);
+-
+ /* Setup TCP sequence correction given this change at this sequence */
+ static inline void
+ adjust_tcp_sequence(u32 seq,
+@@ -49,7 +47,7 @@ adjust_tcp_sequence(u32 seq,
+ 	pr_debug("adjust_tcp_sequence: Seq_offset before: ");
+ 	DUMP_OFFSET(this_way);
  
+-	spin_lock_bh(&nf_nat_seqofs_lock);
++	spin_lock_bh(&ct->lock);
+ 
+ 	/* SYN adjust. If it's uninitialized, or this is after last
+ 	 * correction, record it: we don't handle more than one
+@@ -61,31 +59,26 @@ adjust_tcp_sequence(u32 seq,
+ 		this_way->offset_before = this_way->offset_after;
+ 		this_way->offset_after += sizediff;
+ 	}
+-	spin_unlock_bh(&nf_nat_seqofs_lock);
++	spin_unlock_bh(&ct->lock);
+ 
+ 	pr_debug("adjust_tcp_sequence: Seq_offset after: ");
+ 	DUMP_OFFSET(this_way);
+ }
+ 
+-/* Get the offset value, for conntrack */
++/* Get the offset value, for conntrack. Caller must have the conntrack locked */
+ s32 nf_nat_get_offset(const struct nf_conn *ct,
+ 		      enum ip_conntrack_dir dir,
+ 		      u32 seq)
+ {
+ 	struct nf_conn_nat *nat = nfct_nat(ct);
+ 	struct nf_nat_seq *this_way;
+-	s32 offset;
+ 
+ 	if (!nat)
+ 		return 0;
+ 
+ 	this_way = &nat->seq[dir];
+-	spin_lock_bh(&nf_nat_seqofs_lock);
+-	offset = after(seq, this_way->correction_pos)
++	return after(seq, this_way->correction_pos)
+ 		 ? this_way->offset_after : this_way->offset_before;
+-	spin_unlock_bh(&nf_nat_seqofs_lock);
+-
+-	return offset;
+ }
+ 
+ /* Frobs data inside this packet, which is linear. */
+@@ -384,7 +377,7 @@ nf_nat_seq_adjust(struct sk_buff *skb,
+ 		return 0;
+ 
+ 	tcph = (void *)skb->data + protoff;
+-	spin_lock_bh(&nf_nat_seqofs_lock);
++	spin_lock_bh(&ct->lock);
+ 	if (after(ntohl(tcph->seq), this_way->correction_pos))
+ 		seqoff = this_way->offset_after;
+ 	else
+@@ -410,7 +403,7 @@ nf_nat_seq_adjust(struct sk_buff *skb,
+ 	tcph->ack_seq = newack;
+ 
+ 	res = nf_nat_sack_adjust(skb, protoff, tcph, ct, ctinfo);
+-	spin_unlock_bh(&nf_nat_seqofs_lock);
++	spin_unlock_bh(&ct->lock);
+ 
+ 	return res;
+ }
 -- 
 1.8.1.4
 
