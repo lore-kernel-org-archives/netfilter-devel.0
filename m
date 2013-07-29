@@ -1,147 +1,54 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables PATCH 4/5] nft: export functions reusability
-Date: Mon, 29 Jul 2013 11:24:16 +0300
-Message-ID: <1375086256-3994-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-References: <1374836719-27596-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 2/7] netfilter: nf_queue: relax NFQA_CT attribute check
+Date: Mon, 29 Jul 2013 15:41:51 +0200
+Message-ID: <1375105316-13216-3-git-send-email-fw@strlen.de>
+References: <1375105316-13216-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:11047 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753284Ab3G2IYm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jul 2013 04:24:42 -0400
-In-Reply-To: <1374836719-27596-1-git-send-email-giuseppelng@gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52396 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756156Ab3G2Nk0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Jul 2013 09:40:26 -0400
+In-Reply-To: <1375105316-13216-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Giuseppe Longo <giuseppelng@gmail.com>
+Allow modifying attributes of the conntrack associated with a packet
+without first requesting ct data via CFG_F_CONNTRACK or extra
+nfnetlink_conntrack socket.
 
-This permit to reuse some functions in other tool (like arptables)
+Also remove unneded rcu_read_lock; the entire function is already
+protected by rcu.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ net/netfilter/nfnetlink_queue_core.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-Hi Giuseppe,
-
-For some reason patch 4 does not apply properly. And the conflict is a non-sense, I mean:
-I don't see any conflict. With git am --reject <your patch>,  the iptables/nft.c.rej looks nothing special.
-So I regenerated your patch. Please Pablo use this one.
-
-Tomasz
-
- iptables/nft.c | 20 ++++++++++----------
- iptables/nft.h | 25 +++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 10 deletions(-)
-
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 1b91691..16380d1 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -53,9 +53,9 @@
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 971ea14..ec9de12 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -987,8 +987,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 	if (entry == NULL)
+ 		return -ENOENT;
  
- static void *nft_fn;
+-	rcu_read_lock();
+-	if (nfqa[NFQA_CT] && (queue->flags & NFQA_CFG_F_CONNTRACK))
++	if (nfqa[NFQA_CT])
+ 		ct = nfqnl_ct_parse(entry->skb, nfqa[NFQA_CT], &ctinfo);
  
--static int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
--		    int (*cb)(const struct nlmsghdr *nlh, void *data),
--		    void *data)
-+int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
-+	     int (*cb)(const struct nlmsghdr *nlh, void *data),
-+	     void *data)
- {
- 	int ret;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
-@@ -210,7 +210,7 @@ struct builtin_table xtables_ipv4[TABLES_MAX] = {
- 	},
- };
- 
--static int
-+int
- nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 			bool dormant)
- {
-@@ -242,7 +242,7 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 	return ret;
- }
- 
--static struct nft_chain *
-+struct nft_chain *
- nft_chain_builtin_alloc(struct builtin_table *table,
- 			struct builtin_chain *chain, int policy)
- {
-@@ -262,7 +262,7 @@ nft_chain_builtin_alloc(struct builtin_table *table,
- 	return c;
- }
- 
--static void
-+void
- nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
- 		      struct builtin_chain *chain, int policy)
- {
-@@ -288,8 +288,8 @@ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
- }
- 
- /* find if built-in table already exists */
--static struct builtin_table
--*nft_table_builtin_find(struct nft_handle *h, const char *table)
-+struct builtin_table *
-+nft_table_builtin_find(struct nft_handle *h, const char *table)
- {
- 	int i;
- 	bool found = false;
-@@ -306,7 +306,7 @@ static struct builtin_table
- }
- 
- /* find if built-in chain already exists */
--static struct builtin_chain *
-+struct builtin_chain *
- nft_chain_builtin_find(struct builtin_table *t, const char *chain)
- {
- 	int i;
-@@ -343,7 +343,7 @@ __nft_chain_builtin_init(struct nft_handle *h,
+ 	if (nfqa[NFQA_PAYLOAD]) {
+@@ -1002,7 +1001,6 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 		if (ct)
+ 			nfqnl_ct_seq_adjust(skb, ct, ctinfo, diff);
  	}
- }
+-	rcu_read_unlock();
  
--static int
-+int
- nft_chain_builtin_init(struct nft_handle *h, const char *table,
- 		       const char *chain, int policy)
- {
-diff --git a/iptables/nft.h b/iptables/nft.h
-index f3317c9..734b852 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -35,6 +35,31 @@ struct nft_handle {
- 
- extern struct builtin_table xtables_ipv4[TABLES_MAX];
- 
-+int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
-+	     int (*cb)(const struct nlmsghdr *nlh, void *data),
-+	     void *data);
-+
-+int nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
-+			  bool dormant);
-+
-+struct nft_chain *
-+nft_chain_builtin_alloc(struct builtin_table *table,
-+			struct builtin_chain *chain, int policy);
-+
-+void
-+nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
-+		      struct builtin_chain *chain, int policy);
-+
-+struct builtin_table *
-+nft_table_builtin_find(struct nft_handle *h, const char *table);
-+
-+struct builtin_chain *
-+nft_chain_builtin_find(struct builtin_table *t, const char *chain);
-+
-+int
-+nft_chain_builtin_init(struct nft_handle *h, const char *table,
-+		       const char *chain, int policy);
-+
- int nft_init(struct nft_handle *h, struct builtin_table *t);
- void nft_fini(struct nft_handle *h);
- 
+ 	if (nfqa[NFQA_MARK])
+ 		entry->skb->mark = ntohl(nla_get_be32(nfqa[NFQA_MARK]));
 -- 
-1.8.3.2
+1.7.8.6
 
