@@ -1,85 +1,545 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 0/7 -next] rm tproxy_core, ct event redelivery via workqueue
-Date: Mon, 29 Jul 2013 15:41:49 +0200
-Message-ID: <1375105316-13216-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 4/7] netfilter: tproxy: remove nf_tproxy_core.h
+Date: Mon, 29 Jul 2013 15:41:53 +0200
+Message-ID: <1375105316-13216-5-git-send-email-fw@strlen.de>
+References: <1375105316-13216-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52394 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52398 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524Ab3G2NkY (ORCPT
+	by vger.kernel.org with ESMTP id S1753524Ab3G2Nk2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jul 2013 09:40:24 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1V3ngU-0004qQ-Gv
-	for netfilter-devel@vger.kernel.org; Mon, 29 Jul 2013 15:40:22 +0200
+	Mon, 29 Jul 2013 09:40:28 -0400
+In-Reply-To: <1375105316-13216-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+We've removed nf_tproxy_core.ko, so also remove its header.
+The lookup helpers are split and then moved to tproxy target/socket match.
 
-The following contains a bunch of patches that id'like to see in -next tree.
-
-The two tproxy patches remove the nf_tproxy_core module - the TPROXY
-target is changed to use the generic sock_edemux destructor
-(this is one reason for the negative diffstat).
-
-The three conntrack patches are yet another attempt at removing
-the extra ecache timer:  It implements redelivery via delayed work item
-- the advantage is that redelivery is now under scheduler control and
-thus competes fairly with the userspace event consumers.
-
-I got slightly better results than current master branch, and a
-lot better results compared to the old "single timer" based patch.
-
-Because nf_conntrack_netlink.c contains a bit of redundant code copied
-from nf_conntrack_core I rebased the "cleanup" parts of your patch titled
-
-"netfilter: nf_conntrack: fix race in timer handling with reliable events"
-
-which is sitting in patchwork: http://patchwork.ozlabs.org/patch/180436/
-
-If you prefer to forward-port the cleanup bits yourself jsut let me know
-when you're finished an I will rebase my changes.
-
-Patches will also be sent in reply to this email.
-
-The following changes since commit 496e4ae7dc944faa1721bfda7e9d834d5611a874:
-
-  netfilter: nf_queue: add NFQA_SKB_CSUM_NOTVERIFIED info flag (2013-06-30 18:15:48 +0200)
-
-are available in the git repository at:
-  git://chamillionaire.breakpoint.cc/fw/nf-next.git pull-20130729
-
-Florian Westphal (7):
-      netfilter: connlabels: remove unneeded includes
-      netfilter: nf_queue: relax NFQA_CT attribute check
-      netfilter: tproxy: remove nf_tproxy_core module, keep tw sock assigned to skb
-      netfilter: tproxy: remove nf_tproxy_core.h
-      netfilter: conntrack: remove duplicate code in conntrack_netlink
-      netfilter: conntrack: don't send destroy events from iterator
-      netfilter: conntrack: remove timer from ecache extension
-
- Documentation/networking/tproxy.txt                |    5 +-
- include/net/netfilter/nf_conntrack.h               |   14 +-
- include/net/netfilter/nf_conntrack_ecache.h        |    9 +-
- include/net/netfilter/nf_tproxy_core.h             |  210 --------------------
- include/net/netns/conntrack.h                      |    5 +-
- include/uapi/linux/netfilter/nf_conntrack_common.h |    8 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c                |    2 +-
- net/ipv6/netfilter/ip6t_MASQUERADE.c               |    2 +-
- net/netfilter/Kconfig                              |   22 +--
- net/netfilter/Makefile                             |    3 -
- net/netfilter/nf_conntrack_core.c                  |  131 +++----------
- net/netfilter/nf_conntrack_ecache.c                |   63 +++++-
- net/netfilter/nf_conntrack_labels.c                |    4 -
- net/netfilter/nf_conntrack_netlink.c               |   18 +--
- net/netfilter/nf_conntrack_proto.c                 |    4 +-
- net/netfilter/nf_nat_core.c                        |    6 +-
- net/netfilter/nf_tproxy_core.c                     |   62 ------
- net/netfilter/nfnetlink_queue_core.c               |    4 +-
- net/netfilter/xt_TPROXY.c                          |  167 ++++++++++++++++-
- net/netfilter/xt_socket.c                          |   66 ++++++-
- 20 files changed, 353 insertions(+), 452 deletions(-)
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_tproxy_core.h |  206 --------------------------------
+ net/netfilter/xt_TPROXY.c              |  158 ++++++++++++++++++++++++-
+ net/netfilter/xt_socket.c              |   66 ++++++++++-
+ 3 files changed, 218 insertions(+), 212 deletions(-)
  delete mode 100644 include/net/netfilter/nf_tproxy_core.h
- delete mode 100644 net/netfilter/nf_tproxy_core.c
+
+diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
+deleted file mode 100644
+index 975ffa4..0000000
+--- a/include/net/netfilter/nf_tproxy_core.h
++++ /dev/null
+@@ -1,206 +0,0 @@
+-#ifndef _NF_TPROXY_CORE_H
+-#define _NF_TPROXY_CORE_H
+-
+-#include <linux/types.h>
+-#include <linux/in.h>
+-#include <linux/skbuff.h>
+-#include <net/sock.h>
+-#include <net/inet_hashtables.h>
+-#include <net/inet6_hashtables.h>
+-#include <net/tcp.h>
+-
+-#define NFT_LOOKUP_ANY         0
+-#define NFT_LOOKUP_LISTENER    1
+-#define NFT_LOOKUP_ESTABLISHED 2
+-
+-/* look up and get a reference to a matching socket */
+-
+-
+-/* This function is used by the 'TPROXY' target and the 'socket'
+- * match. The following lookups are supported:
+- *
+- * Explicit TProxy target rule
+- * ===========================
+- *
+- * This is used when the user wants to intercept a connection matching
+- * an explicit iptables rule. In this case the sockets are assumed
+- * matching in preference order:
+- *
+- *   - match: if there's a fully established connection matching the
+- *     _packet_ tuple, it is returned, assuming the redirection
+- *     already took place and we process a packet belonging to an
+- *     established connection
+- *
+- *   - match: if there's a listening socket matching the redirection
+- *     (e.g. on-port & on-ip of the connection), it is returned,
+- *     regardless if it was bound to 0.0.0.0 or an explicit
+- *     address. The reasoning is that if there's an explicit rule, it
+- *     does not really matter if the listener is bound to an interface
+- *     or to 0. The user already stated that he wants redirection
+- *     (since he added the rule).
+- *
+- * "socket" match based redirection (no specific rule)
+- * ===================================================
+- *
+- * There are connections with dynamic endpoints (e.g. FTP data
+- * connection) that the user is unable to add explicit rules
+- * for. These are taken care of by a generic "socket" rule. It is
+- * assumed that the proxy application is trusted to open such
+- * connections without explicit iptables rule (except of course the
+- * generic 'socket' rule). In this case the following sockets are
+- * matched in preference order:
+- *
+- *   - match: if there's a fully established connection matching the
+- *     _packet_ tuple
+- *
+- *   - match: if there's a non-zero bound listener (possibly with a
+- *     non-local address) We don't accept zero-bound listeners, since
+- *     then local services could intercept traffic going through the
+- *     box.
+- *
+- * Please note that there's an overlap between what a TPROXY target
+- * and a socket match will match. Normally if you have both rules the
+- * "socket" match will be the first one, effectively all packets
+- * belonging to established connections going through that one.
+- */
+-static inline struct sock *
+-nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
+-		      const __be32 saddr, const __be32 daddr,
+-		      const __be16 sport, const __be16 dport,
+-		      const struct net_device *in, int lookup_type)
+-{
+-	struct sock *sk;
+-
+-	/* look up socket */
+-	switch (protocol) {
+-	case IPPROTO_TCP:
+-		switch (lookup_type) {
+-		case NFT_LOOKUP_ANY:
+-			sk = __inet_lookup(net, &tcp_hashinfo,
+-					   saddr, sport, daddr, dport,
+-					   in->ifindex);
+-			break;
+-		case NFT_LOOKUP_LISTENER:
+-			sk = inet_lookup_listener(net, &tcp_hashinfo,
+-						    saddr, sport,
+-						    daddr, dport,
+-						    in->ifindex);
+-
+-			/* NOTE: we return listeners even if bound to
+-			 * 0.0.0.0, those are filtered out in
+-			 * xt_socket, since xt_TPROXY needs 0 bound
+-			 * listeners too */
+-
+-			break;
+-		case NFT_LOOKUP_ESTABLISHED:
+-			sk = inet_lookup_established(net, &tcp_hashinfo,
+-						    saddr, sport, daddr, dport,
+-						    in->ifindex);
+-			break;
+-		default:
+-			WARN_ON(1);
+-			sk = NULL;
+-			break;
+-		}
+-		break;
+-	case IPPROTO_UDP:
+-		sk = udp4_lib_lookup(net, saddr, sport, daddr, dport,
+-				     in->ifindex);
+-		if (sk && lookup_type != NFT_LOOKUP_ANY) {
+-			int connected = (sk->sk_state == TCP_ESTABLISHED);
+-			int wildcard = (inet_sk(sk)->inet_rcv_saddr == 0);
+-
+-			/* NOTE: we return listeners even if bound to
+-			 * 0.0.0.0, those are filtered out in
+-			 * xt_socket, since xt_TPROXY needs 0 bound
+-			 * listeners too */
+-			if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
+-			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
+-				sock_put(sk);
+-				sk = NULL;
+-			}
+-		}
+-		break;
+-	default:
+-		WARN_ON(1);
+-		sk = NULL;
+-	}
+-
+-	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, lookup type: %d, sock %p\n",
+-		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), lookup_type, sk);
+-
+-	return sk;
+-}
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-static inline struct sock *
+-nf_tproxy_get_sock_v6(struct net *net, const u8 protocol,
+-		      const struct in6_addr *saddr, const struct in6_addr *daddr,
+-		      const __be16 sport, const __be16 dport,
+-		      const struct net_device *in, int lookup_type)
+-{
+-	struct sock *sk;
+-
+-	/* look up socket */
+-	switch (protocol) {
+-	case IPPROTO_TCP:
+-		switch (lookup_type) {
+-		case NFT_LOOKUP_ANY:
+-			sk = inet6_lookup(net, &tcp_hashinfo,
+-					  saddr, sport, daddr, dport,
+-					  in->ifindex);
+-			break;
+-		case NFT_LOOKUP_LISTENER:
+-			sk = inet6_lookup_listener(net, &tcp_hashinfo,
+-						   saddr, sport,
+-						   daddr, ntohs(dport),
+-						   in->ifindex);
+-
+-			/* NOTE: we return listeners even if bound to
+-			 * 0.0.0.0, those are filtered out in
+-			 * xt_socket, since xt_TPROXY needs 0 bound
+-			 * listeners too */
+-
+-			break;
+-		case NFT_LOOKUP_ESTABLISHED:
+-			sk = __inet6_lookup_established(net, &tcp_hashinfo,
+-							saddr, sport, daddr, ntohs(dport),
+-							in->ifindex);
+-			break;
+-		default:
+-			WARN_ON(1);
+-			sk = NULL;
+-			break;
+-		}
+-		break;
+-	case IPPROTO_UDP:
+-		sk = udp6_lib_lookup(net, saddr, sport, daddr, dport,
+-				     in->ifindex);
+-		if (sk && lookup_type != NFT_LOOKUP_ANY) {
+-			int connected = (sk->sk_state == TCP_ESTABLISHED);
+-			int wildcard = ipv6_addr_any(&inet6_sk(sk)->rcv_saddr);
+-
+-			/* NOTE: we return listeners even if bound to
+-			 * 0.0.0.0, those are filtered out in
+-			 * xt_socket, since xt_TPROXY needs 0 bound
+-			 * listeners too */
+-			if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
+-			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
+-				sock_put(sk);
+-				sk = NULL;
+-			}
+-		}
+-		break;
+-	default:
+-		WARN_ON(1);
+-		sk = NULL;
+-	}
+-
+-	pr_debug("tproxy socket lookup: proto %u %pI6:%u -> %pI6:%u, lookup type: %d, sock %p\n",
+-		 protocol, saddr, ntohs(sport), daddr, ntohs(dport), lookup_type, sk);
+-
+-	return sk;
+-}
+-#endif
+-
+-#endif
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index 17c40de..a6f844e 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -15,7 +15,9 @@
+ #include <linux/ip.h>
+ #include <net/checksum.h>
+ #include <net/udp.h>
++#include <net/tcp.h>
+ #include <net/inet_sock.h>
++#include <net/inet_hashtables.h>
+ #include <linux/inetdevice.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -26,13 +28,18 @@
+ #define XT_TPROXY_HAVE_IPV6 1
+ #include <net/if_inet6.h>
+ #include <net/addrconf.h>
++#include <net/inet6_hashtables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ #endif
+ 
+-#include <net/netfilter/nf_tproxy_core.h>
+ #include <linux/netfilter/xt_TPROXY.h>
+ 
++enum nf_tproxy_lookup_t {
++	 NFT_LOOKUP_LISTENER,
++	 NFT_LOOKUP_ESTABLISHED,
++};
++
+ static bool tproxy_sk_is_transparent(struct sock *sk)
+ {
+ 	if (sk->sk_state != TCP_TIME_WAIT) {
+@@ -68,6 +75,155 @@ tproxy_laddr4(struct sk_buff *skb, __be32 user_laddr, __be32 daddr)
+ 	return laddr ? laddr : daddr;
+ }
+ 
++/*
++ * This is used when the user wants to intercept a connection matching
++ * an explicit iptables rule. In this case the sockets are assumed
++ * matching in preference order:
++ *
++ *   - match: if there's a fully established connection matching the
++ *     _packet_ tuple, it is returned, assuming the redirection
++ *     already took place and we process a packet belonging to an
++ *     established connection
++ *
++ *   - match: if there's a listening socket matching the redirection
++ *     (e.g. on-port & on-ip of the connection), it is returned,
++ *     regardless if it was bound to 0.0.0.0 or an explicit
++ *     address. The reasoning is that if there's an explicit rule, it
++ *     does not really matter if the listener is bound to an interface
++ *     or to 0. The user already stated that he wants redirection
++ *     (since he added the rule).
++ *
++ * Please note that there's an overlap between what a TPROXY target
++ * and a socket match will match. Normally if you have both rules the
++ * "socket" match will be the first one, effectively all packets
++ * belonging to established connections going through that one.
++ */
++static inline struct sock *
++nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in,
++		      const enum nf_tproxy_lookup_t lookup_type)
++{
++	struct sock *sk;
++
++	switch (protocol) {
++	case IPPROTO_TCP:
++		switch (lookup_type) {
++		case NFT_LOOKUP_LISTENER:
++			sk = inet_lookup_listener(net, &tcp_hashinfo,
++						    saddr, sport,
++						    daddr, dport,
++						    in->ifindex);
++
++			/* NOTE: we return listeners even if bound to
++			 * 0.0.0.0, those are filtered out in
++			 * xt_socket, since xt_TPROXY needs 0 bound
++			 * listeners too */
++
++			break;
++		case NFT_LOOKUP_ESTABLISHED:
++			sk = inet_lookup_established(net, &tcp_hashinfo,
++						    saddr, sport, daddr, dport,
++						    in->ifindex);
++			break;
++		default:
++			BUG();
++		}
++		break;
++	case IPPROTO_UDP:
++		sk = udp4_lib_lookup(net, saddr, sport, daddr, dport,
++				     in->ifindex);
++		if (sk) {
++			int connected = (sk->sk_state == TCP_ESTABLISHED);
++			int wildcard = (inet_sk(sk)->inet_rcv_saddr == 0);
++
++			/* NOTE: we return listeners even if bound to
++			 * 0.0.0.0, those are filtered out in
++			 * xt_socket, since xt_TPROXY needs 0 bound
++			 * listeners too */
++			if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
++			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
++				sock_put(sk);
++				sk = NULL;
++			}
++		}
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
++	}
++
++	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, lookup type: %d, sock %p\n",
++		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), lookup_type, sk);
++
++	return sk;
++}
++
++#if IS_ENABLED(CONFIG_IPV6)
++static inline struct sock *
++nf_tproxy_get_sock_v6(struct net *net, const u8 protocol,
++		      const struct in6_addr *saddr, const struct in6_addr *daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in,
++		      const enum nf_tproxy_lookup_t lookup_type)
++{
++	struct sock *sk;
++
++	switch (protocol) {
++	case IPPROTO_TCP:
++		switch (lookup_type) {
++		case NFT_LOOKUP_LISTENER:
++			sk = inet6_lookup_listener(net, &tcp_hashinfo,
++						   saddr, sport,
++						   daddr, ntohs(dport),
++						   in->ifindex);
++
++			/* NOTE: we return listeners even if bound to
++			 * 0.0.0.0, those are filtered out in
++			 * xt_socket, since xt_TPROXY needs 0 bound
++			 * listeners too */
++
++			break;
++		case NFT_LOOKUP_ESTABLISHED:
++			sk = __inet6_lookup_established(net, &tcp_hashinfo,
++							saddr, sport, daddr, ntohs(dport),
++							in->ifindex);
++			break;
++		default:
++			BUG();
++		}
++		break;
++	case IPPROTO_UDP:
++		sk = udp6_lib_lookup(net, saddr, sport, daddr, dport,
++				     in->ifindex);
++		if (sk) {
++			int connected = (sk->sk_state == TCP_ESTABLISHED);
++			int wildcard = ipv6_addr_any(&inet6_sk(sk)->rcv_saddr);
++
++			/* NOTE: we return listeners even if bound to
++			 * 0.0.0.0, those are filtered out in
++			 * xt_socket, since xt_TPROXY needs 0 bound
++			 * listeners too */
++			if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
++			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
++				sock_put(sk);
++				sk = NULL;
++			}
++		}
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
++	}
++
++	pr_debug("tproxy socket lookup: proto %u %pI6:%u -> %pI6:%u, lookup type: %d, sock %p\n",
++		 protocol, saddr, ntohs(sport), daddr, ntohs(dport), lookup_type, sk);
++
++	return sk;
++}
++#endif
++
+ /**
+  * tproxy_handle_time_wait4 - handle IPv4 TCP TIME_WAIT reopen redirections
+  * @skb:	The skb being processed.
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index f8b7191..a7dd108 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -19,12 +19,12 @@
+ #include <net/icmp.h>
+ #include <net/sock.h>
+ #include <net/inet_sock.h>
+-#include <net/netfilter/nf_tproxy_core.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+ 
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ #define XT_SOCKET_HAVE_IPV6 1
+ #include <linux/netfilter_ipv6/ip6_tables.h>
++#include <net/inet6_hashtables.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ #endif
+ 
+@@ -101,6 +101,43 @@ extract_icmp4_fields(const struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++/* "socket" match based redirection (no specific rule)
++ * ===================================================
++ *
++ * There are connections with dynamic endpoints (e.g. FTP data
++ * connection) that the user is unable to add explicit rules
++ * for. These are taken care of by a generic "socket" rule. It is
++ * assumed that the proxy application is trusted to open such
++ * connections without explicit iptables rule (except of course the
++ * generic 'socket' rule). In this case the following sockets are
++ * matched in preference order:
++ *
++ *   - match: if there's a fully established connection matching the
++ *     _packet_ tuple
++ *
++ *   - match: if there's a non-zero bound listener (possibly with a
++ *     non-local address) We don't accept zero-bound listeners, since
++ *     then local services could intercept traffic going through the
++ *     box.
++ */
++static struct sock *
++xt_socket_get_sock_v4(struct net *net, const u8 protocol,
++		      const __be32 saddr, const __be32 daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in)
++{
++	switch (protocol) {
++	case IPPROTO_TCP:
++		return __inet_lookup(net, &tcp_hashinfo,
++				     saddr, sport, daddr, dport,
++				     in->ifindex);
++	case IPPROTO_UDP:
++		return udp4_lib_lookup(net, saddr, sport, daddr, dport,
++				       in->ifindex);
++	}
++	return NULL;
++}
++
+ static bool
+ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 	     const struct xt_socket_mtinfo1 *info)
+@@ -156,9 +193,9 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ #endif
+ 
+ 	if (!sk)
+-		sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
++		sk = xt_socket_get_sock_v4(dev_net(skb->dev), protocol,
+ 					   saddr, daddr, sport, dport,
+-					   par->in, NFT_LOOKUP_ANY);
++					   par->in);
+ 	if (sk) {
+ 		bool wildcard;
+ 		bool transparent = true;
+@@ -261,6 +298,25 @@ extract_icmp6_fields(const struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++static struct sock *
++xt_socket_get_sock_v6(struct net *net, const u8 protocol,
++		      const struct in6_addr *saddr, const struct in6_addr *daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in)
++{
++	switch (protocol) {
++	case IPPROTO_TCP:
++		return inet6_lookup(net, &tcp_hashinfo,
++				    saddr, sport, daddr, dport,
++				    in->ifindex);
++	case IPPROTO_UDP:
++		return udp6_lib_lookup(net, saddr, sport, daddr, dport,
++				       in->ifindex);
++	}
++
++	return NULL;
++}
++
+ static bool
+ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+@@ -298,9 +354,9 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
+ 
+ 	if (!sk)
+-		sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
++		sk = xt_socket_get_sock_v6(dev_net(skb->dev), tproto,
+ 					   saddr, daddr, sport, dport,
+-					   par->in, NFT_LOOKUP_ANY);
++					   par->in);
+ 	if (sk) {
+ 		bool wildcard;
+ 		bool transparent = true;
+-- 
+1.7.8.6
+
