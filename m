@@ -1,23 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_addrtype: fix trivial typo
-Date: Wed, 31 Jul 2013 18:52:49 +0200
-Message-ID: <20130731165249.GA13813@localhost>
-References: <20130711190658.GA25378@linuxace.com>
+Subject: Re: [PATCH 1/5] netfilter: nf_conntrack: remove net_ratelimit() for
+ LOG_INVALID()
+Date: Wed, 31 Jul 2013 18:53:42 +0200
+Message-ID: <20130731165342.GB13813@localhost>
+References: <1375044851-12471-1-git-send-email-kaber@trash.net>
+ <1375044851-12471-2-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51024 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51114 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753154Ab3GaQwy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Jul 2013 12:52:54 -0400
+	id S1760461Ab3GaQxr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Jul 2013 12:53:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20130711190658.GA25378@linuxace.com>
+In-Reply-To: <1375044851-12471-2-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 11, 2013 at 12:06:58PM -0700, Phil Oester wrote:
-> Fix typo in error message.
+On Sun, Jul 28, 2013 at 10:54:07PM +0200, Patrick McHardy wrote:
+> Logging of invalid packets has to be explicitly enabled. Rate-limiting these
+> messages is inconsistent with other netfilter logging features and makes
+> debugging harder.
 
-Enqueued to nf-next, thanks.
+Applied, thanks Patrick!
