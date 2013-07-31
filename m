@@ -1,8 +1,8 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 2/7] jansson: Add helper function for building the
- tree
-Date: Wed, 31 Jul 2013 15:20:59 +0200
-Message-ID: <20130731132058.29730.38608.stgit@Ph0enix>
+Subject: [libnftables PATCH 3/7] table: remove the properties node in Json
+ output
+Date: Wed, 31 Jul 2013 15:21:06 +0200
+Message-ID: <20130731132105.29730.12385.stgit@Ph0enix>
 References: <20130731132051.29730.53717.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -10,99 +10,79 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:56204 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937Ab3GaNVC (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:46217 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752480Ab3GaNVJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Jul 2013 09:21:02 -0400
-Received: by mail-wg0-f49.google.com with SMTP id y10so601136wgg.16
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2013 06:21:01 -0700 (PDT)
+	Wed, 31 Jul 2013 09:21:09 -0400
+Received: by mail-we0-f177.google.com with SMTP id m46so591026wev.22
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2013 06:21:07 -0700 (PDT)
 In-Reply-To: <20130731132051.29730.53717.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Add a helper function for parsing and return the jansson tree
+I have removed the properties node from table because it's a node witho=
+ut relevant information
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/internal.h |    1 +
- src/jansson.c  |   19 +++++++++++++++++++
- src/table.c    |   14 +++-----------
- 3 files changed, 23 insertions(+), 11 deletions(-)
+ src/table.c                   |   12 ++----------
+ tests/jsonfiles/01-table.json |    2 +-
+ tests/jsonfiles/02-table.json |    2 +-
+ 3 files changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/src/internal.h b/src/internal.h
-index a8ae431..d1c7690 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -45,6 +45,7 @@ int nft_jansson_value_parse_val(json_t *root, const c=
-har *tag,
- 				  int type, void *out);
- const char *nft_jansson_value_parse_str(json_t *root, const char *tag)=
-;
- bool nft_jansson_node_exist(json_t *root, const char *tag);
-+json_t *nft_jansson_get_root(char *json, const char *tag, json_error_t=
- *err);
- #endif
-=20
- const char *nft_family2str(uint32_t family);
-diff --git a/src/jansson.c b/src/jansson.c
-index cc68ae0..4c778d9 100644
---- a/src/jansson.c
-+++ b/src/jansson.c
-@@ -71,4 +71,23 @@ bool nft_jansson_node_exist(json_t *root, const char=
- *tag)
- {
- 	return json_object_get(root, tag) !=3D NULL;
- }
-+
-+json_t *nft_jansson_get_root(char *json, const char *tag, json_error_t=
- *err)
-+{
-+	json_t *root;
-+
-+	root =3D json_loadb(json, strlen(json), 0, err);
-+	if (root =3D=3D NULL) {
-+		errno =3D EINVAL;
-+		return NULL;
-+	}
-+
-+	root =3D json_object_get(root, tag);
-+	if (root =3D=3D NULL) {
-+		errno =3D EINVAL;
-+		return NULL;
-+	}
-+
-+	return root;
-+}
- #endif
 diff --git a/src/table.c b/src/table.c
-index 1f4fe76..526f3e7 100644
+index 526f3e7..402e8c1 100644
 --- a/src/table.c
 +++ b/src/table.c
-@@ -290,17 +290,9 @@ static int nft_table_json_parse(struct nft_table *=
+@@ -300,12 +300,6 @@ static int nft_table_json_parse(struct nft_table *=
 t, char *json)
- 	const char *str;
- 	int family;
 =20
--	root =3D json_loadb(json, strlen(json), 0, &error);
--	if (!root) {
--		errno =3D EINVAL;
--		goto err;
--	}
--
--	root =3D json_object_get(root, "table");
+ 	nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, strdup(str));
+=20
+-	root =3D json_object_get(root, "properties");
 -	if (root =3D=3D NULL) {
 -		errno =3D EINVAL;
 -		goto err;
 -	}
-+	root =3D nft_jansson_get_root(json, "table", &error);
-+	if (root =3D=3D NULL)
-+		return -1;
-=20
- 	str =3D nft_jansson_value_parse_str(root, "name");
+-
+ 	str =3D nft_jansson_value_parse_str(root, "family");
  	if (str =3D=3D NULL)
+ 		goto err;
+@@ -360,10 +354,8 @@ static int nft_table_snprintf_json(char *buf, size=
+_t size, struct nft_table *t)
+ 	return snprintf(buf, size,
+ 			"{\"table\" : {"
+ 			"\"name\" : \"%s\","
+-			"\"properties\" : {"
+-				"\"family\" : \"%s\","
+-				"\"table_flags\" : %d"
+-				"}"
++			"\"family\" : \"%s\","
++			"\"table_flags\" : %d"
+ 			"}"
+ 			"}" ,
+ 			t->name, nft_family2str(t->family), t->table_flags);
+diff --git a/tests/jsonfiles/01-table.json b/tests/jsonfiles/01-table.j=
+son
+index 9afc014..a5ba38b 100644
+--- a/tests/jsonfiles/01-table.json
++++ b/tests/jsonfiles/01-table.json
+@@ -1 +1 @@
+-{"table" : {"name" : "filter","properties" : {"family" : "ip","table_f=
+lags" : 0}}}
++{"table" : {"name" : "filter","family" : "ip","table_flags" : 0}}
+diff --git a/tests/jsonfiles/02-table.json b/tests/jsonfiles/02-table.j=
+son
+index b66ec52..f1171a1 100644
+--- a/tests/jsonfiles/02-table.json
++++ b/tests/jsonfiles/02-table.json
+@@ -1 +1 @@
+-{"table" : {"name" : "filter2","properties" : {"family" : "ip6","table=
+_flags" : 0}}}
++{"table" : {"name" : "filter2","family" : "ip6","table_flags" : 0}}
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
