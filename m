@@ -1,65 +1,485 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 1/2] netfilter: xt_TCPMSS: fix handling of malformed TCP
- header
-Date: Wed, 31 Jul 2013 22:54:16 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1307312236050.1863@ja.ssi.bg>
-References: <1375279852-4059-1-git-send-email-pablo@netfilter.org>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH v3] iptables: Sort table names in ip[6]tables-save
+Date: Wed, 31 Jul 2013 13:21:07 -0700
+Message-ID: <20130731202107.GA12949@linuxace.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
+Content-Transfer-Encoding: 8bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:57059 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753245Ab3GaTxH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Jul 2013 15:53:07 -0400
-In-Reply-To: <1375279852-4059-1-git-send-email-pablo@netfilter.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:48441 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757512Ab3GaUVM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Jul 2013 16:21:12 -0400
+Received: by mail-pa0-f49.google.com with SMTP id bi5so1272128pad.8
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2013 13:21:11 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-	Hello,
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-On Wed, 31 Jul 2013, Pablo Neira Ayuso wrote:
+Depending upon the load order of rules, the output from ip[6]tables-save
+will vary, as ip[6]_tables_names is sorted LIFO.  As reported by
+Linus van Geuns, this makes comparing output from ip[6]tables-save across
+reboots difficult.  Attached are two patches which attempt to fix this.
 
-> Make sure the packet has enough room for the TCP header and
-> that it is not malformed.
-> 
-> While at it, store tcph->doff*4 in a variable, as it is used
-> several times.
-> 
-> Reported-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/xt_TCPMSS.c |   27 ++++++++++++++++-----------
->  1 file changed, 16 insertions(+), 11 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-> index 7011c71..2883c1c 100644
-> --- a/net/netfilter/xt_TCPMSS.c
-> +++ b/net/netfilter/xt_TCPMSS.c
+  1) Sort by default - add 'u' option to unsort
+  2) Unsorted by default - add 's' option to sort
 
-> @@ -87,8 +91,8 @@ tcpmss_mangle_packet(struct sk_buff *skb,
->  		newmss = info->mss;
->  
->  	opt = (u_int8_t *)tcph;
-> -	for (i = sizeof(struct tcphdr); i < tcph->doff*4; i += optlen(opt, i)) {
-> -		if (opt[i] == TCPOPT_MSS && tcph->doff*4 - i >= TCPOLEN_MSS &&
-> +	for (i = sizeof(struct tcphdr); i < tcp_hdrlen; i += optlen(opt, i)) {
+Please apply whichever is preferable.
 
-	If we also want to avoid the wrong access in optlen()
-we have 2 options for the above line:
+This closes bugzilla #580.
 
-1. Use 'i < tcp_hdrlen - 1' or 'i <= tcp_hdrlen - 2'
+Phil
 
-2. Use 'i <= tcp_hdrlen - TCPOLEN_MSS' and remove the
-below 'tcp_hdrlen - i >= TCPOLEN_MSS' check
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 
-> +		if (opt[i] == TCPOPT_MSS && tcp_hdrlen - i >= TCPOLEN_MSS &&
->  		    opt[i+1] == TCPOLEN_MSS) {
->  			u_int16_t oldmss;
+---
+v2: Add option to disable sorting - feedback from Maciej Żenczykowski
+v3: Provide two patches
 
-Regards
 
---
-Julian Anastasov <ja@ssi.bg>
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ipts-sort-default
+
+diff --git a/include/xtables.h b/include/xtables.h
+index c35a6e6..dc6e566 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -479,6 +479,8 @@ extern void xtables_ip6parse_any(const char *, struct in6_addr **,
+ extern void xtables_ip6parse_multiple(const char *, struct in6_addr **,
+ 	struct in6_addr **, unsigned int *);
+ 
++extern int stringcmp(const void *, const void *);
++
+ /**
+  * Print the specified value to standard output, quoting dangerous
+  * characters if required.
+diff --git a/iptables/ip6tables-save.8 b/iptables/ip6tables-save.8
+index 457be82..cc70e43 100644
+--- a/iptables/ip6tables-save.8
++++ b/iptables/ip6tables-save.8
+@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+ restrict output to only one table. If not specified, output includes all
+ available tables.
++.TP
++\fB\-u\fR, \fB\-\-unsorted\fR
++by default, tables are output in alphabetical order.  This option disables
++sorting, and tables are output in LIFO order.
+ .SH BUGS
+ None known as of iptables-1.2.1 release
+ .SH AUTHORS
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index d819b30..3a51fe4 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -9,6 +9,7 @@
+ #include <sys/errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <stdbool.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+@@ -23,12 +24,14 @@
+ #endif
+ 
+ static int show_counters = 0;
++static bool sort_tables = true;
+ 
+ static const struct option options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+ 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
++	{.name = "unsorted", .has_arg = false, .val = 'u'},
+ 	{NULL},
+ };
+ 
+@@ -36,8 +39,9 @@ static const struct option options[] = {
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+ {
+-	int ret = 1;
++	int i, count = 0, ret = 1;
+ 	FILE *procfile = NULL;
++	char **tables = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+ 
+ 	procfile = fopen("/proc/net/ip6_tables_names", "re");
+@@ -50,10 +54,18 @@ static int for_each_table(int (*func)(const char *tablename))
+ 				   "Badly formed tablename `%s'\n",
+ 				   tablename);
+ 		tablename[strlen(tablename) - 1] = '\0';
+-		ret &= func(tablename);
++		count++;
++		tables = (char **)realloc(tables, sizeof(char*)*count);
++		tables[count-1] = strdup(tablename);
+ 	}
+-
+ 	fclose(procfile);
++
++	if (sort_tables == true)
++		qsort(tables, count, sizeof(char *), stringcmp);
++	for (i = 0 ; i < count ; i++) {
++		ret &= func(tables[i]);
++	}
++
+ 	return ret;
+ }
+ 
+@@ -141,7 +153,7 @@ int ip6tables_save_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcdt:u", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = 1;
+@@ -154,6 +166,9 @@ int ip6tables_save_main(int argc, char *argv[])
+ 		case 'M':
+ 			xtables_modprobe_program = optarg;
+ 			break;
++		case 'u':
++			sort_tables = false;
++			break;
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
+diff --git a/iptables/iptables-save.8 b/iptables/iptables-save.8
+index c2e0a94..862fb9d 100644
+--- a/iptables/iptables-save.8
++++ b/iptables/iptables-save.8
+@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+ restrict output to only one table. If not specified, output includes all
+ available tables.
++.TP
++\fB\-u\fR, \fB\-\-unsorted\fR
++by default, tables are output in alphabetical order.  This option disables
++sorting, and tables are output in LIFO order.
+ .SH BUGS
+ None known as of iptables-1.2.1 release
+ .SH AUTHOR
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index e599fce..c194d9f 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -9,6 +9,7 @@
+ #include <sys/errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <stdbool.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+@@ -22,20 +23,23 @@
+ #endif
+ 
+ static int show_counters = 0;
++static bool sort_tables = true;
+ 
+ static const struct option options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+ 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
++	{.name = "unsorted", .has_arg = false, .val = 'u'},
+ 	{NULL},
+ };
+ 
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+ {
+-	int ret = 1;
++	int i, count = 0, ret = 1;
+ 	FILE *procfile = NULL;
++	char **tables = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+ 
+ 	procfile = fopen("/proc/net/ip_tables_names", "re");
+@@ -48,10 +52,18 @@ static int for_each_table(int (*func)(const char *tablename))
+ 				   "Badly formed tablename `%s'\n",
+ 				   tablename);
+ 		tablename[strlen(tablename) - 1] = '\0';
+-		ret &= func(tablename);
++		count++;
++		tables = (char **)realloc(tables, sizeof(char*)*count);
++		tables[count-1] = strdup(tablename);
+ 	}
+-
+ 	fclose(procfile);
++
++	if (sort_tables == true)
++		qsort(tables, count, sizeof(char *), stringcmp);
++	for (i = 0 ; i < count ; i++) {
++		ret &= func(tables[i]);
++	}
++
+ 	return ret;
+ }
+ 
+@@ -140,7 +152,7 @@ iptables_save_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcdt:u", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = 1;
+@@ -153,6 +165,9 @@ iptables_save_main(int argc, char *argv[])
+ 		case 'M':
+ 			xtables_modprobe_program = optarg;
+ 			break;
++		case 'u':
++			sort_tables = false;
++			break;
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index ef5bc07..ad6df1c 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -1961,3 +1961,10 @@ void get_kernel_version(void)
+ 	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
+ 	kernel_version = LINUX_VERSION(x, y, z);
+ }
++
++int stringcmp(const void *a, const void *b) 
++{ 
++	const char **ia = (const char **)a;
++	const char **ib = (const char **)b;
++	return strcmp(*ia, *ib);
++} 
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ipts-sort-nodefault
+
+diff --git a/include/xtables.h b/include/xtables.h
+index c35a6e6..dc6e566 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -479,6 +479,8 @@ extern void xtables_ip6parse_any(const char *, struct in6_addr **,
+ extern void xtables_ip6parse_multiple(const char *, struct in6_addr **,
+ 	struct in6_addr **, unsigned int *);
+ 
++extern int stringcmp(const void *, const void *);
++
+ /**
+  * Print the specified value to standard output, quoting dangerous
+  * characters if required.
+diff --git a/iptables/ip6tables-save.8 b/iptables/ip6tables-save.8
+index 457be82..0ffc9e1 100644
+--- a/iptables/ip6tables-save.8
++++ b/iptables/ip6tables-save.8
+@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+ restrict output to only one table. If not specified, output includes all
+ available tables.
++.TP
++\fB\-s\fR, \fB\-\-sorted\fR
++by default, tables are output in LIFO order.  This option enables
++sorting, and tables are output in alphabetical order.
+ .SH BUGS
+ None known as of iptables-1.2.1 release
+ .SH AUTHORS
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index d819b30..8e7390c 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -9,6 +9,7 @@
+ #include <sys/errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <stdbool.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+@@ -23,12 +24,14 @@
+ #endif
+ 
+ static int show_counters = 0;
++static bool sort_tables = false;
+ 
+ static const struct option options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+ 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
++	{.name = "sorted",   .has_arg = false, .val = 's'},
+ 	{NULL},
+ };
+ 
+@@ -36,8 +39,9 @@ static const struct option options[] = {
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+ {
+-	int ret = 1;
++	int i, count = 0, ret = 1;
+ 	FILE *procfile = NULL;
++	char **tables = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+ 
+ 	procfile = fopen("/proc/net/ip6_tables_names", "re");
+@@ -50,10 +54,18 @@ static int for_each_table(int (*func)(const char *tablename))
+ 				   "Badly formed tablename `%s'\n",
+ 				   tablename);
+ 		tablename[strlen(tablename) - 1] = '\0';
+-		ret &= func(tablename);
++		count++;
++		tables = (char **)realloc(tables, sizeof(char*)*count);
++		tables[count-1] = strdup(tablename);
+ 	}
+-
+ 	fclose(procfile);
++
++	if (sort_tables == true)
++		qsort(tables, count, sizeof(char *), stringcmp);
++	for (i = 0 ; i < count ; i++) {
++		ret &= func(tables[i]);
++	}
++
+ 	return ret;
+ }
+ 
+@@ -141,7 +153,7 @@ int ip6tables_save_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcdt:s", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = 1;
+@@ -154,6 +166,9 @@ int ip6tables_save_main(int argc, char *argv[])
+ 		case 'M':
+ 			xtables_modprobe_program = optarg;
+ 			break;
++		case 's':
++			sort_tables = true;
++			break;
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
+diff --git a/iptables/iptables-save.8 b/iptables/iptables-save.8
+index c2e0a94..3c02282 100644
+--- a/iptables/iptables-save.8
++++ b/iptables/iptables-save.8
+@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+ restrict output to only one table. If not specified, output includes all
+ available tables.
++.TP
++\fB\-s\fR, \fB\-\-sorted\fR
++by default, tables are output in LIFO order.  This option enables
++sorting, and tables are output in alphabetical order.
+ .SH BUGS
+ None known as of iptables-1.2.1 release
+ .SH AUTHOR
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index e599fce..93c865c 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -9,6 +9,7 @@
+ #include <sys/errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <stdbool.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+@@ -22,20 +23,23 @@
+ #endif
+ 
+ static int show_counters = 0;
++static bool sort_tables = false;
+ 
+ static const struct option options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+ 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
++	{.name = "sorted",   .has_arg = false, .val = 's'},
+ 	{NULL},
+ };
+ 
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+ {
+-	int ret = 1;
++	int i, count = 0, ret = 1;
+ 	FILE *procfile = NULL;
++	char **tables = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+ 
+ 	procfile = fopen("/proc/net/ip_tables_names", "re");
+@@ -48,10 +52,18 @@ static int for_each_table(int (*func)(const char *tablename))
+ 				   "Badly formed tablename `%s'\n",
+ 				   tablename);
+ 		tablename[strlen(tablename) - 1] = '\0';
+-		ret &= func(tablename);
++		count++;
++		tables = (char **)realloc(tables, sizeof(char*)*count);
++		tables[count-1] = strdup(tablename);
+ 	}
+-
+ 	fclose(procfile);
++
++	if (sort_tables == true)
++		qsort(tables, count, sizeof(char *), stringcmp);
++	for (i = 0 ; i < count ; i++) {
++		ret &= func(tables[i]);
++	}
++
+ 	return ret;
+ }
+ 
+@@ -140,7 +152,7 @@ iptables_save_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcdt:s", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = 1;
+@@ -153,6 +165,9 @@ iptables_save_main(int argc, char *argv[])
+ 		case 'M':
+ 			xtables_modprobe_program = optarg;
+ 			break;
++		case 's':
++			sort_tables = true;
++			break;
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index ef5bc07..ad6df1c 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -1961,3 +1961,10 @@ void get_kernel_version(void)
+ 	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
+ 	kernel_version = LINUX_VERSION(x, y, z);
+ }
++
++int stringcmp(const void *a, const void *b) 
++{ 
++	const char **ia = (const char **)a;
++	const char **ib = (const char **)b;
++	return strcmp(*ia, *ib);
++} 
+
+--ZPt4rx8FFjLCG7dd--
