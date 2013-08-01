@@ -1,75 +1,58 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] table: add nft_table_list_del function
-Date: Thu, 01 Aug 2013 14:45:46 +0200
-Message-ID: <20130801124546.13382.18859.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:43000 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754785Ab3HAMp5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Aug 2013 08:45:57 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 6848A51ED36
-	for <netfilter-devel@vger.kernel.org>; Thu,  1 Aug 2013 12:45:55 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id nXuT1hKatU64 for <netfilter-devel@vger.kernel.org>;
-	Thu,  1 Aug 2013 14:45:50 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 4AC7A51ED32
-	for <netfilter-devel@vger.kernel.org>; Thu,  1 Aug 2013 14:45:48 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH V2 0/3] networking: Use ETH_ALEN where appropriate
+Date: Thu,  1 Aug 2013 13:14:34 -0700
+Message-ID: <cover.1375387593.git.joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org, wimax@linuxwimax.org
+To: netdev@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds the function nft_table_list_del(), that allows to delete
-elements from a struct nft_table_list.
+Convert the uses mac addresses to ETH_ALEN so
+it's easier to find and verify where mac addresses
+need to be __aligned(2)
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
+Change from initial submission:
+- Remove include/acpi/actbl2.h conversion
+  It's a file copied from outside ACPI sources
 
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 24ca374..a2882c2 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -59,6 +59,7 @@ int nft_table_list_foreach(struct nft_table_list *table_list, int (*cb)(struct n
- 
- void nft_table_list_add(struct nft_table *r, struct nft_table_list *list);
- void nft_table_list_add_tail(struct nft_table *r, struct nft_table_list *list);
-+void nft_table_list_del(struct nft_table *t);
- 
- struct nft_table_list_iter;
- 
-diff --git a/src/libnftables.map b/src/libnftables.map
-index 614c705..012184e 100644
---- a/src/libnftables.map
-+++ b/src/libnftables.map
-@@ -21,6 +21,7 @@ global:
-   nft_table_list_foreach;
-   nft_table_list_add;
-   nft_table_list_add_tail;
-+  nft_table_list_del;
-   nft_table_list_iter_create;
-   nft_table_list_iter_next;
-   nft_table_list_iter_destroy;
-diff --git a/src/table.c b/src/table.c
-index 1d17d3b..30ca0c0 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -486,6 +486,12 @@ void nft_table_list_add_tail(struct nft_table *r, struct nft_table_list *list)
- }
- EXPORT_SYMBOL(nft_table_list_add_tail);
- 
-+void nft_table_list_del(struct nft_table *t)
-+{
-+	list_del(&t->head);
-+}
-+EXPORT_SYMBOL(nft_table_list_del);
-+
- int nft_table_list_foreach(struct nft_table_list *table_list,
- 			   int (*cb)(struct nft_table *t, void *data),
- 			   void *data)
+Joe Perches (3):
+  uapi: Convert some uses of 6 to ETH_ALEN
+  include: Convert ethernet mac address declarations to use ETH_ALEN
+  ethernet: Convert mac address uses of 6 to ETH_ALEN
 
+ drivers/net/ethernet/8390/ax88796.c                |  4 +-
+ drivers/net/ethernet/amd/pcnet32.c                 |  6 +--
+ drivers/net/ethernet/broadcom/cnic_if.h            |  6 +--
+ drivers/net/ethernet/dec/tulip/tulip_core.c        |  8 +--
+ drivers/net/ethernet/i825xx/sun3_82586.h           |  4 +-
+ drivers/net/ethernet/myricom/myri10ge/myri10ge.c   |  2 +-
+ drivers/net/ethernet/nuvoton/w90p910_ether.c       |  4 +-
+ drivers/net/ethernet/pasemi/pasemi_mac.c           | 13 ++---
+ drivers/net/ethernet/pasemi/pasemi_mac.h           |  4 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_hw.c |  4 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h            |  2 +-
+ include/linux/dm9000.h                             |  4 +-
+ include/linux/fs_enet_pd.h                         |  3 +-
+ include/linux/ieee80211.h                          | 59 +++++++++++-----------
+ include/linux/mlx4/device.h                        | 11 ++--
+ include/linux/mlx4/qp.h                            |  5 +-
+ include/linux/mv643xx_eth.h                        |  3 +-
+ include/linux/sh_eth.h                             |  3 +-
+ include/linux/smsc911x.h                           |  3 +-
+ include/linux/uwb/spec.h                           |  5 +-
+ include/media/tveeprom.h                           |  4 +-
+ include/net/irda/irlan_common.h                    |  3 +-
+ include/uapi/linux/dn.h                            |  3 +-
+ include/uapi/linux/if_bridge.h                     |  3 +-
+ include/uapi/linux/netfilter_bridge/ebt_802_3.h    |  5 +-
+ include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h  |  3 +-
+ include/uapi/linux/virtio_net.h                    |  2 +-
+ include/uapi/linux/wimax/i2400m.h                  |  4 +-
+ 28 files changed, 100 insertions(+), 80 deletions(-)
+
+-- 
+1.8.1.2.459.gbcd45b4.dirty
