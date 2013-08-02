@@ -1,69 +1,35 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: libnetfilter_queue callback and verdict order
-Date: Fri, 02 Aug 2013 09:29:15 +0200
-Message-ID: <1375428555.11948.62.camel@ice-age.regit.org>
-References: <2013073107581060268014@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH V3 0/3] networking: Use ETH_ALEN where appropriate
+Date: Fri, 02 Aug 2013 12:34:42 -0700 (PDT)
+Message-ID: <20130802.123442.500196593983076682.davem@davemloft.net>
+References: <20130801.143137.331385226409040561.davem@davemloft.net>
+	<cover.1375398692.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-JsJibmsS/yCQgWsuKSF+"
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: medialy <medialy@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:59979 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755867Ab3HBH3V (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Aug 2013 03:29:21 -0400
-In-Reply-To: <2013073107581060268014@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-
---=-JsJibmsS/yCQgWsuKSF+
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-Le mercredi 31 juillet 2013 =E0 07:58 +0800, medialy a =E9crit :
-> I am developing an application base on libnetfilter_queue to filter http =
-traffic(CentOS 5.5 x86_64).=20
-> In order to make full use of multi-CPU, I try to use a read thread(where =
-recv and nfq_handle_packet=20
-> are called) and several verdict threads(where nfq_set_verdict2 is called)=
-.=20
->=20
-> My questions are:
-> Can the parameter value in cb(qh, nfmsg, nfa, data) function used in verd=
-ict thread?
-
-No, the netlink message will be discarded at the end of the callback.
-
-> Can the packet be verdict without order?
-
-Yes.
-
-See
-https://home.regit.org/netfilter-en/using-nfqueue-and-libnetfilter_queue/
-for more information.
-
-BR,
---
-Eric
-
-
---=-JsJibmsS/yCQgWsuKSF+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Cc: wimax@linuxwimax.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org,
+	netfilter-devel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+To: joe@perches.com
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+In-Reply-To: <cover.1375398692.git.joe@perches.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+From: Joe Perches <joe@perches.com>
+Date: Thu,  1 Aug 2013 16:17:46 -0700
 
-iD8DBQBR+1/MnxA7CdMWjzIRAms2AJ0ZAuoHELHYWyXnRsiRF7SpAU1VNgCfR/Iz
-w2p678Bb3wFVcYn9flIu5pc=
-=NAFJ
------END PGP SIGNATURE-----
+> Convert the uses mac addresses to ETH_ALEN so
+> it's easier to find and verify where mac addresses
+> need to be __aligned(2)
 
---=-JsJibmsS/yCQgWsuKSF+--
-
+Series applied to net-next, thanks.
