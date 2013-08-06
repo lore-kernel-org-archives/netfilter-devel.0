@@ -1,48 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] (fix_led_parse_delay) value will now be set
-Date: Tue, 6 Aug 2013 15:38:09 +0200
-Message-ID: <20130806133809.GA15437@localhost>
-References: <1375795561-11839-1-git-send-email-Eckert.Florian@googlemail.com>
+Subject: [ANNOUNCE] libnetfilter_conntrack 1.0.4 release
+Date: Tue, 6 Aug 2013 17:45:21 +0200
+Message-ID: <20130806154521.GA14118@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Eckert <eckert.florian@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36225 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751542Ab3HFNiO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Aug 2013 09:38:14 -0400
+Content-Type: multipart/mixed; boundary="O5XBE6gyVG5Rl6Rj"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1375795561-11839-1-git-send-email-Eckert.Florian@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 06, 2013 at 03:26:01PM +0200, Florian Eckert wrote:
-> ---
->  extensions/libxt_LED.c |    2 ++
->  1 Datei ge=E4ndert, 2 Zeilen hinzugef=FCgt(+)
->=20
-> diff --git a/extensions/libxt_LED.c b/extensions/libxt_LED.c
-> index 8622c37..fd1e726 100644
-> --- a/extensions/libxt_LED.c
-> +++ b/extensions/libxt_LED.c
-> @@ -63,6 +63,8 @@ static void LED_parse(struct xt_option_call *cb)
->  			xtables_error(PARAMETER_PROBLEM,
->  				"Delay value must be within range 0..%u",
->  				UINT32_MAX);
-> +		else
-> +			led->delay=3Datoi(cb->arg);
->  		break;
 
-We have a fix for this already:
+--O5XBE6gyVG5Rl6Rj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-http://git.netfilter.org/iptables/commit/?id=3D96c42d4c46df3edbd41fa47b=
-860fba217f03cfeb
+Hi!
 
-Will be available in upcoming iptables 1.4.20.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The Netfilter project proudly presents:
+
+        libnetfilter_conntrack 1.0.4
+
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table. This
+library is currently used by conntrack-tools and iptables, among other
+applications.
+
+This release includes connlabel support, one memleak fix and fixes in
+the comparison API. See ChangeLog that comes attached to this email
+for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnetfilter_conntrack/downloads.html
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+
+Have fun!
+
+--O5XBE6gyVG5Rl6Rj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnetfilter_conntrack-1.0.4.txt"
+
+Afschin Hormozdiary (1):
+      libnetfilter_conntrack: don't ignore ATTR_CONNLABELS
+
+Florian Westphal (18):
+      api: add nfct_bitmask object
+      api: add connlabel api and attribute
+      examples: add connlabel dump/set/clear demo programs
+      api: add CTA_LABEL_MASK attribute handling
+      qa: add api test for nfct_cmp and nfct_exp functions
+      conntrack, expect: fix _cmp api with STRICT checking
+      expect: consider all expect attributes when comparing
+      conntrack: nfct_cmp: also compare labels
+      qa: nfct_cmp: verify individual attr comparision
+      connlabel: fix NULL deref on malloc failure
+      conntrack: CONNLABELS are not a nested attribute
+      conntrack: connlabel: remove useless test
+      conntrack: labels: skip labels with non-alnum characters
+      src: callback: fix memory leak when ct has dynamically allocated attr
+      conntrack: api: add nfct_snprintf_labels
+      qa: test_connlabel: don't abort when system-wide config exists
+      conntrack: labels: labelmap_new: make sure errno is 0 when no labels are found
+      build: bump version to 1.0.4
+
+
+--O5XBE6gyVG5Rl6Rj--
