@@ -1,27 +1,51 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: state match incompatibilty across versions
-Date: Tue, 6 Aug 2013 16:35:47 -0400
-Message-ID: <CA+0KVf21Vg80iemsQD4mY-KKO6AtM-_o1Bq0-v79uubJ=4iuAg@mail.gmail.com>
+Date: Tue, 6 Aug 2013 15:33:54 -0700
+Message-ID: <20130806223354.GA20287@linuxace.com>
 References: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: "Laurence J. Lane" <ljlane@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dunimos.ljlane.net ([216.218.223.72]:46038 "EHLO
-	dunimos.ljlane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab3HFUgJ (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:34324 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754585Ab3HFWdv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Aug 2013 16:36:09 -0400
-Received: from mail-vb0-f53.google.com (mail-vb0-f53.google.com [209.85.212.53])
-	(using TLSv1 with cipher ECDHE-RSA-RC4-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: google-debian@dunimos.ljlane.net)
-	by dunimos.ljlane.net (Postfix) with ESMTPSA id 6746B2665A
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2013 16:36:08 -0400 (EDT)
-Received: by mail-vb0-f53.google.com with SMTP id i3so945940vbh.40
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Aug 2013 13:36:07 -0700 (PDT)
+	Tue, 6 Aug 2013 18:33:51 -0400
+Received: by mail-pd0-f182.google.com with SMTP id r10so724099pdi.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Aug 2013 15:33:50 -0700 (PDT)
+Content-Disposition: inline
 In-Reply-To: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It appears to be in the change of state to an alias in 1.4.16.
+On Tue, Aug 06, 2013 at 02:23:44PM -0400, Laurence J. Lane wrote:
+> Debian Bug#718810 reports a problem with the state match across
+> iptables versions. The following rules were created with the same
+> states using 1.4.14. The state information on the state match do now
+> show with 1.4.19.1's iptables-save or " iptables -L". The conntrack
+> match's ctstate works as expected with the upgrade.
+
+Can't seem to reproduce the problem here:
+
+# /usr/local/ipt1414/sbin/iptables -V
+iptables v1.4.14
+# /usr/local/ipt1414/sbin/iptables -A foo -m state --state RELATED,ESTABLISHED -j ACCEPT
+# /usr/local/ipt1414/sbin/iptables -nvL foo
+Chain foo (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+
+
+# /usr/local/iptables/sbin/iptables -V
+iptables v1.4.19.1
+# /usr/local/iptables/sbin/iptables -nvL foo
+Chain foo (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+
+
+Perhaps kernel revision sensitive?
+
+Phil
