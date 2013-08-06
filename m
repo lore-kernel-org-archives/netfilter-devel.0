@@ -1,97 +1,137 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] ipvs: fixed style errors in ip_vs_dh
-Date: Tue, 6 Aug 2013 15:20:33 +0900
-Message-ID: <20130806062033.GE18246@verge.net.au>
-References: <1373570144-4785-1-git-send-email-dragos.foianu@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Dragos Foianu <dragos.foianu@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2 -next] netfilter: ctnetlink: attach expectations to unconfirmed conntracks
+Date: Tue,  6 Aug 2013 15:19:43 +0200
+Message-ID: <1375795183-10820-1-git-send-email-pablo@netfilter.org>
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:35526 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754825Ab3HFGUg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Aug 2013 02:20:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1373570144-4785-1-git-send-email-dragos.foianu@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:34695 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755977Ab3HFNTw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Aug 2013 09:19:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 11, 2013 at 10:15:44PM +0300, Dragos Foianu wrote:
-> found with the help of checkpatch.pl
+This patch adds the capability to attach expectations to unconfirmed
+conntrack entries. This patch is required by conntrack helpers that
+trigger expectations based on the first packet seen like the TFTP and
+the DHCPv6 user-space helpers.
 
-Thanks for your contribution and sorry for taking so long to look at it.
+There is no need to bump the conntrack refcount since unconfirmed
+conntracks are not yet in the hashes, thus, they are just referenced
+by one single packet. There is no trouble either in the get_next_corpse
+path, as unconfirmed conntracks only get their dying bit set to
+be discarded later on by nf_conntrack_confirm.
 
-While in principle I have no problem with these changes.
-I would like them to be be accompanied by more descriptive changelogs.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_conntrack.h               |    4 ++++
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ net/netfilter/nf_conntrack_core.c                  |   20 ++++++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c               |   17 ++++++++++++++---
+ 4 files changed, 39 insertions(+), 3 deletions(-)
 
-In the case of this patch there seem to be two fixes.
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index e5eb8b6..73e36b5 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -180,6 +180,10 @@ extern struct nf_conntrack_tuple_hash *
+ __nf_conntrack_find(struct net *net, u16 zone,
+ 		    const struct nf_conntrack_tuple *tuple);
+ 
++struct nf_conntrack_tuple_hash *
++nf_ct_unconfirmed_find(struct net *net, u16 zone,
++		       const struct nf_conntrack_tuple *tuple);
++
+ extern int nf_conntrack_hash_check_insert(struct nf_conn *ct);
+ bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
+ 
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+index 08fabc6..8f7c2fe 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -187,6 +187,7 @@ enum ctattr_expect {
+ 	CTA_EXPECT_CLASS,
+ 	CTA_EXPECT_NAT,
+ 	CTA_EXPECT_FN,
++	CTA_EXPECT_MASTER_STATUS,
+ 	__CTA_EXPECT_MAX
+ };
+ #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0934611..9e5e5b3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -406,6 +406,26 @@ nf_conntrack_find_get(struct net *net, u16 zone,
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+ 
++struct nf_conntrack_tuple_hash *
++nf_ct_unconfirmed_find(struct net *net, u16 zone,
++		       const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_tuple_hash *h, *ret = NULL;
++	struct hlist_nulls_node *n;
++
++	rcu_read_lock();
++	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.unconfirmed, hnnode) {
++		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
++		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
++			ret = h;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_find);
++
+ static void __nf_conntrack_hash_insert(struct nf_conn *ct,
+ 				       unsigned int hash,
+ 				       unsigned int repl_hash)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e842c0d..7e50790 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2747,7 +2747,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	struct nf_conn *ct;
+ 	struct nf_conn_help *help;
+ 	struct nf_conntrack_helper *helper = NULL;
+-	u_int32_t class = 0;
++	u_int32_t class = 0, master_status;
+ 	int err = 0;
+ 
+ 	/* caller guarantees that those three CTA_EXPECT_* exist */
+@@ -2761,8 +2761,18 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	if (err < 0)
+ 		return err;
+ 
++	if (cda[CTA_EXPECT_MASTER_STATUS]) {
++		master_status =
++			ntohl(nla_get_be32(cda[CTA_EXPECT_MASTER_STATUS]));
++	} else
++		master_status = IPS_CONFIRMED;
++
+ 	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(net, zone, &master_tuple);
++	if (master_status & IPS_CONFIRMED)
++		h = nf_conntrack_find_get(net, zone, &master_tuple);
++	else
++		h = nf_ct_unconfirmed_find(net, zone, &master_tuple);
++
+ 	if (!h)
+ 		return -ENOENT;
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
+@@ -2856,7 +2866,8 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ err_out:
+ 	nf_ct_expect_put(exp);
+ out:
+-	nf_ct_put(nf_ct_tuplehash_to_ctrack(h));
++	if (nf_ct_is_confirmed(ct))
++		nf_ct_put(ct);
+ 	return err;
+ }
+ 
+-- 
+1.7.10.4
 
-1. Fix whitespace associated with for statements.
-2. Place opening '{' of structure initialiser on its won line.
-
-I'm sure that the wording above can be improved, but as a minimum
-I would like something like that included in the changelog.
-
-I think that I would also prefer each of the two changes in their own
-patch, rather than grouping them together because they happen to be in the
-same file.
-
-Likewise for the following patches that you also submitted:
-
-* [PATCH] ipvs: fixed style error in ip_vs_sched
-* [PATCH] ipvs: fixed style errors and warnings in ip_vs_conn
-
-I would not object if you grouped together the same change in multiple
-files into a single patch.
-
-> Signed-off-by: Dragos Foianu <dragos.foianu@gmail.com>
-> ---
->  net/netfilter/ipvs/ip_vs_dh.c |    7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_dh.c b/net/netfilter/ipvs/ip_vs_dh.c
-> index c3b8454..8ab2fc8 100644
-> --- a/net/netfilter/ipvs/ip_vs_dh.c
-> +++ b/net/netfilter/ipvs/ip_vs_dh.c
-> @@ -110,7 +110,7 @@ ip_vs_dh_reassign(struct ip_vs_dh_state *s, struct ip_vs_service *svc)
->  	b = &s->buckets[0];
->  	p = &svc->destinations;
->  	empty = list_empty(p);
-> -	for (i=0; i<IP_VS_DH_TAB_SIZE; i++) {
-> +	for (i = 0; i < IP_VS_DH_TAB_SIZE; i++) {
->  		dest = rcu_dereference_protected(b->dest, 1);
->  		if (dest)
->  			ip_vs_dest_put(dest);
-> @@ -142,7 +142,7 @@ static void ip_vs_dh_flush(struct ip_vs_dh_state *s)
->  	struct ip_vs_dest *dest;
->  
->  	b = &s->buckets[0];
-> -	for (i=0; i<IP_VS_DH_TAB_SIZE; i++) {
-> +	for (i = 0; i < IP_VS_DH_TAB_SIZE; i++) {
->  		dest = rcu_dereference_protected(b->dest, 1);
->  		if (dest) {
->  			ip_vs_dest_put(dest);
-> @@ -244,8 +244,7 @@ ip_vs_dh_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
->  /*
->   *      IPVS DH Scheduler structure
->   */
-> -static struct ip_vs_scheduler ip_vs_dh_scheduler =
-> -{
-> +static struct ip_vs_scheduler ip_vs_dh_scheduler = {
->  	.name =			"dh",
->  	.refcnt =		ATOMIC_INIT(0),
->  	.module =		THIS_MODULE,
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
