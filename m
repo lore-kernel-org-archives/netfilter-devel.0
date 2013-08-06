@@ -1,71 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2 2/2] netfilter: xt_TCPOPTSTRIP: fix possible off by one access
-Date: Mon,  5 Aug 2013 17:21:55 +0200
-Message-ID: <1375716115-17083-2-git-send-email-pablo@netfilter.org>
-References: <1375716115-17083-1-git-send-email-pablo@netfilter.org>
-Cc: Julian Anastasov <ja@ssi.bg>
-To: netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ipvs: fixed spacing at for statements
+Date: Tue, 6 Aug 2013 15:12:17 +0900
+Message-ID: <20130806061217.GD18246@verge.net.au>
+References: <1373525142-9099-1-git-send-email-dragos.foianu@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: wensong@linux-vs.org, linux-kernel@vger.kernel.org,
+	coreteam@netfilter.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, davem@davemloft.net,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
+	ja@ssi.bg
+To: Dragos Foianu <dragos.foianu@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35289 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752915Ab3HEPWJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Aug 2013 11:22:09 -0400
-In-Reply-To: <1375716115-17083-1-git-send-email-pablo@netfilter.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:55554 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753930Ab3HFGMU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Aug 2013 02:12:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1373525142-9099-1-git-send-email-dragos.foianu@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix a possible off by one access since optlen()
-touches opt[offset+1] unsafely when i == tcp_hdrlen(skb) - 1.
+On Thu, Jul 11, 2013 at 09:45:42AM +0300, Dragos Foianu wrote:
+> found using checkpatch.pl
 
-This patch replaces tcp_hdrlen() by the local variable tcp_hdrlen
-that stores the TCP header length, to save some cycles.
+This seems reasonable to me. I will queue it up in the ipvs-next tree.
 
-Reported-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Avoid possible off by one access from the for loop condition,
-    based on idea from Julian.
-
- net/netfilter/xt_TCPOPTSTRIP.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index b68fa19..625fa1d 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -38,7 +38,7 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 	struct tcphdr *tcph;
- 	u_int16_t n, o;
- 	u_int8_t *opt;
--	int len;
-+	int len, tcp_hdrlen;
- 
- 	/* This is a fragment, no TCP header is available */
- 	if (par->fragoff != 0)
-@@ -52,7 +52,9 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 		return NF_DROP;
- 
- 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
--	if (tcph->doff * 4 > len)
-+	tcp_hdrlen = tcph->doff * 4;
-+
-+	if (len < tcp_hdrlen)
- 		return NF_DROP;
- 
- 	opt  = (u_int8_t *)tcph;
-@@ -61,10 +63,10 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
- 	 * Walk through all TCP options - if we find some option to remove,
- 	 * set all octets to %TCPOPT_NOP and adjust checksum.
- 	 */
--	for (i = sizeof(struct tcphdr); i < tcp_hdrlen(skb); i += optl) {
-+	for (i = sizeof(struct tcphdr); i < tcp_hdrlen - 1; i += optl) {
- 		optl = optlen(opt, i);
- 
--		if (i + optl > tcp_hdrlen(skb))
-+		if (i + optl > tcp_hdrlen)
- 			break;
- 
- 		if (!tcpoptstrip_test_bit(info->strip_bmap, opt[i]))
--- 
-1.7.10.4
-
+> 
+> Signed-off-by: Dragos Foianu <dragos.foianu@gmail.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_lblcr.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+> index 3cd85b2..5199448 100644
+> --- a/net/netfilter/ipvs/ip_vs_lblcr.c
+> +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+> @@ -414,7 +414,7 @@ static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
+>  
+>  	spin_lock_bh(&svc->sched_lock);
+>  	tbl->dead = 1;
+> -	for (i=0; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+> +	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+>  		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+>  			ip_vs_lblcr_free(en);
+>  		}
+> @@ -440,7 +440,7 @@ static inline void ip_vs_lblcr_full_check(struct ip_vs_service *svc)
+>  	struct ip_vs_lblcr_entry *en;
+>  	struct hlist_node *next;
+>  
+> -	for (i=0, j=tbl->rover; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+> +	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+>  		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
+>  
+>  		spin_lock(&svc->sched_lock);
+> @@ -495,7 +495,7 @@ static void ip_vs_lblcr_check_expire(unsigned long data)
+>  	if (goal > tbl->max_size/2)
+>  		goal = tbl->max_size/2;
+>  
+> -	for (i=0, j=tbl->rover; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+> +	for (i = 0, j = tbl->rover; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+>  		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
+>  
+>  		spin_lock(&svc->sched_lock);
+> @@ -536,7 +536,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+>  	/*
+>  	 *    Initialize the hash buckets
+>  	 */
+> -	for (i=0; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+> +	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+>  		INIT_HLIST_HEAD(&tbl->bucket[i]);
+>  	}
+>  	tbl->max_size = IP_VS_LBLCR_TAB_SIZE*16;
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
