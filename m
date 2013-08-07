@@ -1,51 +1,67 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: state match incompatibilty across versions
-Date: Tue, 6 Aug 2013 15:33:54 -0700
-Message-ID: <20130806223354.GA20287@linuxace.com>
-References: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
+From: Rui Xiang <rui.xiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 02/11] syslog_ns: add syslog_ns into user_namespace
+Date: Wed, 7 Aug 2013 15:37:06 +0800
+Message-ID: <1375861035-24320-3-git-send-email-rui.xiang@huawei.com>
+References: <1375861035-24320-1-git-send-email-rui.xiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Laurence J. Lane" <ljlane@debian.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:34324 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754585Ab3HFWdv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Aug 2013 18:33:51 -0400
-Received: by mail-pd0-f182.google.com with SMTP id r10so724099pdi.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Aug 2013 15:33:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, serge.hallyn-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org, libo.chen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org,
+	guz.fnst-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+To: <containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1375861035-24320-1-git-send-email-rui.xiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/containers/>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 06, 2013 at 02:23:44PM -0400, Laurence J. Lane wrote:
-> Debian Bug#718810 reports a problem with the state match across
-> iptables versions. The following rules were created with the same
-> states using 1.4.14. The state information on the state match do now
-> show with 1.4.19.1's iptables-save or " iptables -L". The conntrack
-> match's ctstate works as expected with the upgrade.
+Add a syslog_ns pointer to user_namespace, and make
+syslog_ns per user_namespace, not global.
 
-Can't seem to reproduce the problem here:
+Since syslog_ns is assigned to user_ns, we can have
+full capabilities in new user_ns to create a new syslog_ns.
 
-# /usr/local/ipt1414/sbin/iptables -V
-iptables v1.4.14
-# /usr/local/ipt1414/sbin/iptables -A foo -m state --state RELATED,ESTABLISHED -j ACCEPT
-# /usr/local/ipt1414/sbin/iptables -nvL foo
-Chain foo (0 references)
- pkts bytes target     prot opt in     out     source               destination         
-    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+Signed-off-by: Rui Xiang <rui.xiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ include/linux/syslog.h         | 5 +++++
+ include/linux/user_namespace.h | 1 +
+ 2 files changed, 6 insertions(+)
 
-
-# /usr/local/iptables/sbin/iptables -V
-iptables v1.4.19.1
-# /usr/local/iptables/sbin/iptables -nvL foo
-Chain foo (0 references)
- pkts bytes target     prot opt in     out     source               destination         
-    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
-
-
-Perhaps kernel revision sensitive?
-
-Phil
+diff --git a/include/linux/syslog.h b/include/linux/syslog.h
+index 425fafe..62ce47f 100644
+--- a/include/linux/syslog.h
++++ b/include/linux/syslog.h
+@@ -90,6 +90,11 @@ struct syslog_namespace {
+ 	size_t syslog_partial;
+ 
+ 	int dmesg_restrict;
++
++	/*
++	 * user namespace which owns this syslog ns.
++	 */
++	struct user_namespace *owner;
+ };
+ 
+ static inline struct syslog_namespace *get_syslog_ns(
+diff --git a/include/linux/user_namespace.h b/include/linux/user_namespace.h
+index b6b215f..ce2de5b 100644
+--- a/include/linux/user_namespace.h
++++ b/include/linux/user_namespace.h
+@@ -28,6 +28,7 @@ struct user_namespace {
+ 	unsigned int		proc_inum;
+ 	bool			may_mount_sysfs;
+ 	bool			may_mount_proc;
++	struct syslog_namespace *syslog_ns;
+ };
+ 
+ extern struct user_namespace init_user_ns;
+-- 
+1.8.2.2
