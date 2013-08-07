@@ -1,42 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables-nftables PATCH 3/3] nft: Print unknown target data
- only when relevant
-Date: Wed, 7 Aug 2013 11:01:12 +0200
-Message-ID: <20130807090112.GC6935@localhost>
-References: <1375864297-9347-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1375864297-9347-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [iptables-nftables PATCH 2/3] nft: Generalize nft_rule_list()
+ against current family
+Date: Wed, 07 Aug 2013 12:02:25 +0300
+Message-ID: <52020D21.3080504@linux.intel.com>
+References: <1375864297-9347-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1375864297-9347-3-git-send-email-tomasz.bursztyka@linux.intel.com> <20130807090054.GB6935@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53887 "EHLO mail.us.es"
+Received: from mga11.intel.com ([192.55.52.93]:34134 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757216Ab3HGJBU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Aug 2013 05:01:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1375864297-9347-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+	id S1757248Ab3HGJC3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Aug 2013 05:02:29 -0400
+In-Reply-To: <20130807090054.GB6935@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 07, 2013 at 11:31:37AM +0300, Tomasz Bursztyka wrote:
-> Bug is:
-> xtables -N test
-> xtables -A FORWARD -j test
-> xtables -L
-> Chain INPUT (policy ACCEPT)
-> target     prot opt source               destination
-> 
-> Chain FORWARD (policy ACCEPT)
-> target     prot opt source               destination
-> test       all  --  anywhere             anywhere            [0 bytes of unknown target data]
-> 
-> Chain OUTPUT (policy ACCEPT)
-> target     prot opt source               destination
-> 
-> Chain test (1 references)
-> target     prot opt source               destination
-> 
-> "[0 bytes of unknown target data]" should not be printed in this case.
+Hi Pablo,
 
-Applied, thanks.
+>> +const char *nft_parse_target(struct nft_rule *r, const void **targi=
+nfo,
+>> >+			     size_t *target_len)
+>> >+{
+>> >+	struct nft_rule_expr_iter *iter;
+>> >+	struct nft_rule_expr *expr;
+>> >+	const char *targname;
+> Need targname =3D NULL, otherwise:
+>
+> nft-shared.c: In function =E2=80=98nft_parse_target=E2=80=99:
+> nft-shared.c:289:14: warning: =E2=80=98targname=E2=80=99 may be used =
+uninitialized in
+> this function [-Wmaybe-uninitialized
+
+Missed this warning, thanks for finding it.
+
+Tomasz
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
