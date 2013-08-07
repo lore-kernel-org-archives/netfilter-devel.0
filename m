@@ -1,35 +1,43 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables PATCH 0/3] Generalize nft_rule_list() (+ 2 fixes)
-Date: Wed,  7 Aug 2013 11:31:34 +0300
-Message-ID: <1375864297-9347-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables PATCH 1/3] nft: Remove useless test on rulenum in nft_rule_list()
+Date: Wed,  7 Aug 2013 11:31:35 +0300
+Message-ID: <1375864297-9347-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1375864297-9347-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52965 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35727 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756045Ab3HGIbu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Aug 2013 04:31:50 -0400
+	id S1756486Ab3HGIbv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Aug 2013 04:31:51 -0400
+In-Reply-To: <1375864297-9347-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Rulenum is already handled before the loop, making this test useless.
 
-Proper refactorization of nft_rule_list() so it uses nft_family_ops .print_firewall, thus enabling its usage by other family such as ARP etc...
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ iptables/nft.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-2 small fixes: one about optimization (patch 1), and one about the output (patch 3)
-
-Tomasz Bursztyka (3):
-  nft: Remove useless test on rulenum in nft_rule_list()
-  nft: Generalize nft_rule_list() against current family
-  nft: Print unknown target data only when relevant
-
- iptables/nft-ipv4.c   |  39 ++++++--
- iptables/nft-ipv6.c   |  39 ++++++--
- iptables/nft-shared.c | 239 +++++++++++++++++++++++++++++++++++++++++++++++
- iptables/nft-shared.h |  13 ++-
- iptables/nft.c        | 254 ++------------------------------------------------
- 5 files changed, 317 insertions(+), 267 deletions(-)
-
+diff --git a/iptables/nft.c b/iptables/nft.c
+index a87d303..15c50a7 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2537,10 +2537,9 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
+ 		if (found)
+ 			printf("\n");
+ 
+-		if (!rulenum) {
+-			print_header(format, chain_name, policy_name[policy],
++		print_header(format, chain_name, policy_name[policy],
+ 				     &ctrs, basechain, refs);
+-		}
++
+ 		__nft_rule_list(h, chain_name, table,
+ 				rulenum, format, print_firewall);
+ 
 -- 
 1.8.3.2
 
