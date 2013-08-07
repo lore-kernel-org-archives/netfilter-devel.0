@@ -1,61 +1,38 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3, -next] netfilter: ctnetlink: attach expectations to
- unconfirmed conntracks
-Date: Wed, 7 Aug 2013 16:40:17 +0200
-Message-ID: <20130807144017.GB29345@breakpoint.cc>
-References: <1375883010-21852-1-git-send-email-pablo@netfilter.org>
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: libnfnetlink license
+Date: Wed, 07 Aug 2013 17:36:42 +0200
+Message-ID: <5202698A.6070109@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao feng <gaofeng@cn.fujitsu.com>,
-	Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60640 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757487Ab3HGOkT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Aug 2013 10:40:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1375883010-21852-1-git-send-email-pablo@netfilter.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40179 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756804Ab3HGPgn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Aug 2013 11:36:43 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r77FaheC021905
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Wed, 7 Aug 2013 11:36:43 -0400
+Received: from brasilia.fritz.box (brasilia.str.redhat.com [10.33.200.35])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id r77FafQr002798
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Wed, 7 Aug 2013 11:36:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patch adds the capability to attach expectations to unconfirmed
-> conntrack entries. I'm using this from nfqueue, in that case the packet
-> is retained until the user-space application returns the verdict on it.
-> This patch is required by conntrack helpers that trigger expectations
-> based on the first packet seen like the TFTP and the DHCPv6 user-space
-> helpers.
-> 
-> I don't see any practical use for this out of the nfqueue context as
-> you won't likely find what you look for. But if that ever happens,
-> we have to bump the refcount to avoid holding a reference to an
-> invalid conntrack.
+Hello,
 
-[..]
+according to the libnfnetlink README the license is GPLv2+, but the 
+information in src/iftable.c and src/rtnl.c is "GNU GPLv2" without the 
+"+". Is this intentional?
 
-> +	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.unconfirmed, hnnode) {
+src/iftable.c: * This software is Free Software and licensed under GNU 
+GPLv2.
+src/rtnl.c: * This software is free software and licensed under GNU GPLv2.
+README:This library is released under GPLv2+.
 
-Its possible that "h" has just been moved to the conntrack hash table.
-In this case, on nf_ct_tuple_equal() mismatch, then next element might
-be a bucket NULLs value, i.e., __nf_ct_unconfirmed_find() might only
-have checked 2 out of 1000 entries on the unconfirmed list.
 
-Theoretically, you could avoid this by checking if the nulls
-
-> +		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
-> +		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
-> +			ret = h;
-> +			break;
-> +		}
-> +	}
-
-value is the right one in the "no match found" case, and restart the
-search again.
-
-But I have concerns about the expected run-time behaviour on when
-you machine has a high new-connections-per-second rate.
-
-If this is only used from nfqueue, can't you re-use skb->nfct?
-It would avoid the unconfirmed list traversal.
+Regards,
+Thomas
