@@ -1,36 +1,20 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3 11/11] netfilter: use ns_printk in iptable context
-Date: Wed, 7 Aug 2013 11:17:22 +0200
-Message-ID: <20130807091722.GA9470@localhost>
-References: <1375861035-24320-1-git-send-email-rui.xiang@huawei.com>
- <1375861035-24320-12-git-send-email-rui.xiang@huawei.com>
+Subject: Re: [PATCH] xtables: trivial spelling fix
+Date: Wed, 7 Aug 2013 11:39:37 +0200
+Message-ID: <20130807093937.GA9540@localhost>
+References: <20130804150826.226f33ed@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: containers@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, serge.hallyn@ubuntu.com,
-	ebiederm@xmission.com, akpm@linux-foundation.org,
-	gaofeng@cn.fujitsu.com, guz.fnst@cn.fujitsu.com,
-	libo.chen@huawei.com
-To: Rui Xiang <rui.xiang@huawei.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56522 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59354 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756495Ab3HGJRb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Aug 2013 05:17:31 -0400
+	id S932351Ab3HGJjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Aug 2013 05:39:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1375861035-24320-12-git-send-email-rui.xiang@huawei.com>
+In-Reply-To: <20130804150826.226f33ed@nehalam.linuxnetplumber.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Wed, Aug 07, 2013 at 03:37:15PM +0800, Rui Xiang wrote:
-> To containerise iptables log, use ns_printk
-> to report individual logs to container as
-> getting syslog_ns from net->user_ns.
-
-This patch is missing the removal of a couple of LOC at the very
-beginning of ipt_log_packet and ip6t_log_packet to get this working.
-
-Please, revamp it. Thanks.
+Applied, thanks Stephen
