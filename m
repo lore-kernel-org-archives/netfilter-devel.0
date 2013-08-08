@@ -1,34 +1,57 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
-Subject: Re: state match incompatibilty across versions
-Date: Thu, 8 Aug 2013 09:53:54 -0400
-Message-ID: <CA+0KVf3yZGme50zraKy=EJj5V83Vr+SQumjaCSbdWx60y2JGtw@mail.gmail.com>
-References: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
- <CA+0KVf0RDy0ub_R0t9Fn5-dBN2dRhZqu2+eRy36Xur7nF8EHoA@mail.gmail.com> <20130808043230.GA22843@linuxace.com>
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+Subject: Re: [PATCH 3/5] netfilter: add SYNPROXY core/target
+Date: Thu, 8 Aug 2013 17:07:10 +0200
+Message-ID: <20130808170710.28394af9@redhat.com>
+References: <1375897371-18430-1-git-send-email-kaber@trash.net>
+	<1375897371-18430-4-git-send-email-kaber@trash.net>
+	<20130807222600.51eeca09@redhat.com>
+	<20130807205602.GA21463@macbook.localnet>
+	<20130808062255.GB24450@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dunimos.ljlane.net ([216.218.223.72]:46209 "EHLO
-	dunimos.ljlane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965474Ab3HHNyQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 09:54:16 -0400
-Received: from mail-ve0-f173.google.com (mail-ve0-f173.google.com [209.85.128.173])
-	(using TLSv1 with cipher ECDHE-RSA-RC4-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: google-debian@dunimos.ljlane.net)
-	by dunimos.ljlane.net (Postfix) with ESMTPSA id 82DCF293E6
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2013 09:54:15 -0400 (EDT)
-Received: by mail-ve0-f173.google.com with SMTP id cy12so3058023veb.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Aug 2013 06:54:14 -0700 (PDT)
-In-Reply-To: <20130808043230.GA22843@linuxace.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, mph@one.com, as@one.com
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130808062255.GB24450@macbook.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 8, 2013 at 12:32 AM, Phil Oester <kernel@linuxace.com> wrote:
+On Thu, 8 Aug 2013 08:22:55 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-> Issue understood.  I posted a patch in the past few hours.  Can you verify
-> this fixes the issue for you?
+> On Wed, Aug 07, 2013 at 10:56:03PM +0200, Patrick McHardy wrote:
+> > On Wed, Aug 07, 2013 at 10:26:00PM +0200, Jesper Dangaard Brouer wrote:
+> > > On Wed,  7 Aug 2013 19:42:49 +0200
+> > > Patrick McHardy <kaber@trash.net> wrote:
+> > > 
+> > > Besides when using net->proc_net_stat, then the first entry is usually
+> > > "entries" which is not percpu, this will likely confusing the tool:
+> > >   lnstat -f synproxy -c 42
+> > 
+> > I'll look into that.
+> 
+> Ok right, the first field must contains something that is not per-CPU.
+> Unfortunately I don't have anything to put there and I really don't want
+> to keep any global state. The two possibilities I see are:
+> 
+> - a dummy field
+> - the number of proxied connections, but not using a global counter but
+>   gathered by iterating over the entire conntrack hash.
+> 
+> Any opinions?
 
-It does. Thank you!
+Well, I would of cause be nice to have some "entries" counter, e.g.
+listing the number of active conntrack entries created by the SYNPROXY
+target, but I don't think it's possible to identify those conntrack
+entries, right.
+So, I think it would be okay with just a dummy "entries" field which is
+always zero.  
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
