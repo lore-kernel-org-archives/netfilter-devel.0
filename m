@@ -1,59 +1,197 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/5] netfilter: add SYNPROXY core/target
-Date: Thu, 8 Aug 2013 10:24:20 +0200
-Message-ID: <20130808082419.GB19965@macbook.localnet>
-References: <1375897371-18430-1-git-send-email-kaber@trash.net>
- <1375897371-18430-4-git-send-email-kaber@trash.net>
- <20130807222600.51eeca09@redhat.com>
- <20130807205602.GA21463@macbook.localnet>
- <20130808100448.010cd96d@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, mph@one.com, as@one.com
-To: Jesper Dangaard Brouer <jbrouer@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130808100448.010cd96d@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH -next 1/2] netfilter: ctnetlink: refactor ctnetlink_create_expect
+Date: Thu,  8 Aug 2013 11:31:19 +0200
+Message-ID: <1375954280-6579-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40831 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934188Ab3HHJbj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 05:31:39 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 08, 2013 at 10:04:48AM +0200, Jesper Dangaard Brouer wrote:
-> 
-> On Wed, 7 Aug 2013 22:56:03 +0200 Patrick McHardy <kaber@trash.net> wrote:
-> > On Wed, Aug 07, 2013 at 10:26:00PM +0200, Jesper Dangaard Brouer wrote:
-> > > On Wed,  7 Aug 2013 19:42:49 +0200 Patrick McHardy <kaber@trash.net> wrote:
-> 
-> [...]
-> > > Besides shouldn't nth->ack_seq be zero, in a SYN packet? This is the
-> > > SYN "replayed" towards the server right?
-> > > 
-> > > I also pointed to this in an earlier patch Martin showed me, but he
-> > > reported that changing this resulted in bad behavior.  So, I would
-> > > request Martin to re-test this part.
-> > 
-> > Right, it should be zero, but it doesn't matter since the ACK flag isn't
-> > set. This is used to propagate the sequence number to the hook function
-> > to initialize the sequence adjustment data. While in the target function,
-> > we don't have any connection tracking state to store this in. We could
-> > set it to zero after that, but it shouldn't matter.
-> 
-> I think it deserves a comment in the code, that you are using ack_seq,
-> to relay this information to the hook, as its not obvious.
+This patch refactors ctnetlink_create_expect by spliting it in two
+chunks. As a result, we have a new function ctnetlink_alloc_expect
+to allocate and to setup the expectation from ctnetlink.
 
-Agreed, I've added a comment.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+This is required by the follow up patch.
 
-> And I think we should set it to zero after that, else it will be
-> visible on the wire, and wireshark complains (with a warning) when it
-> sees pure SYN packets with a non-zero ACK number (Martin send me a dump
-> some time ago, and I just checked).
+ net/netfilter/nf_conntrack_netlink.c |  121 +++++++++++++++++++---------------
+ 1 file changed, 68 insertions(+), 53 deletions(-)
 
-I'm a bit reluctant to do the entire "make skb writable, change packet,
-update checksum" dance for a cosmetic issue when wireshark should in
-fact ignore the value since the ACK flag is not set. I'll give it a try
-and see how ugly it gets.
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e842c0d..dc31619 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2735,37 +2735,16 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
+ #endif
+ }
+ 
+-static int
+-ctnetlink_create_expect(struct net *net, u16 zone,
+-			const struct nlattr * const cda[],
+-			u_int8_t u3,
+-			u32 portid, int report)
++static struct nf_conntrack_expect *
++ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
++		       struct nf_conntrack_tuple *tuple,
++		       struct nf_conntrack_tuple *mask)
+ {
+-	struct nf_conntrack_tuple tuple, mask, master_tuple;
+-	struct nf_conntrack_tuple_hash *h = NULL;
+-	struct nf_conntrack_expect *exp;
+-	struct nf_conn *ct;
+-	struct nf_conn_help *help;
+ 	struct nf_conntrack_helper *helper = NULL;
++	struct nf_conn_help *help;
+ 	u_int32_t class = 0;
+-	int err = 0;
+-
+-	/* caller guarantees that those three CTA_EXPECT_* exist */
+-	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
+-	if (err < 0)
+-		return err;
+-	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
+-	if (err < 0)
+-		return err;
+-	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
+-	if (err < 0)
+-		return err;
+-
+-	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(net, zone, &master_tuple);
+-	if (!h)
+-		return -ENOENT;
+-	ct = nf_ct_tuplehash_to_ctrack(h);
++	struct nf_conntrack_expect *exp;
++	int err;
+ 
+ 	/* Look for helper of this expectation */
+ 	if (cda[CTA_EXPECT_HELP_NAME]) {
+@@ -2775,36 +2754,28 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 						    nf_ct_protonum(ct));
+ 		if (helper == NULL) {
+ #ifdef CONFIG_MODULES
+-			if (request_module("nfct-helper-%s", helpname) < 0) {
+-				err = -EOPNOTSUPP;
+-				goto out;
+-			}
++			if (request_module("nfct-helper-%s", helpname) < 0)
++				return ERR_PTR(-EOPNOTSUPP);
+ 
+ 			helper = __nf_conntrack_helper_find(helpname,
+ 							    nf_ct_l3num(ct),
+ 							    nf_ct_protonum(ct));
+-			if (helper) {
+-				err = -EAGAIN;
+-				goto out;
+-			}
++			if (helper)
++				return ERR_PTR(-EAGAIN);
+ #endif
+-			err = -EOPNOTSUPP;
+-			goto out;
++			return ERR_PTR(-EOPNOTSUPP);
+ 		}
+ 	}
+ 
+ 	if (cda[CTA_EXPECT_CLASS] && helper) {
+ 		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
+-		if (class > helper->expect_class_max) {
+-			err = -EINVAL;
+-			goto out;
+-		}
++		if (class > helper->expect_class_max)
++			return ERR_PTR(-EINVAL);
+ 	}
+ 	exp = nf_ct_expect_alloc(ct);
+-	if (!exp) {
+-		err = -ENOMEM;
+-		goto out;
+-	}
++	if (!exp)
++		return ERR_PTR(-ENOMEM);
++
+ 	help = nfct_help(ct);
+ 	if (!help) {
+ 		if (!cda[CTA_EXPECT_TIMEOUT]) {
+@@ -2842,21 +2813,65 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	exp->class = class;
+ 	exp->master = ct;
+ 	exp->helper = helper;
+-	memcpy(&exp->tuple, &tuple, sizeof(struct nf_conntrack_tuple));
+-	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
+-	exp->mask.src.u.all = mask.src.u.all;
++	exp->tuple = *tuple;
++	exp->mask.src.u3 = mask->src.u3;
++	exp->mask.src.u.all = mask->src.u.all;
+ 
+ 	if (cda[CTA_EXPECT_NAT]) {
+ 		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
+-						 exp, u3);
++						 exp, nf_ct_l3num(ct));
+ 		if (err < 0)
+ 			goto err_out;
+ 	}
+-	err = nf_ct_expect_related_report(exp, portid, report);
++	return exp;
+ err_out:
+ 	nf_ct_expect_put(exp);
+-out:
+-	nf_ct_put(nf_ct_tuplehash_to_ctrack(h));
++	return ERR_PTR(err);
++}
++
++static int
++ctnetlink_create_expect(struct net *net, u16 zone,
++			const struct nlattr * const cda[],
++			u_int8_t u3, u32 portid, int report)
++{
++	struct nf_conntrack_tuple tuple, mask, master_tuple;
++	struct nf_conntrack_tuple_hash *h = NULL;
++	struct nf_conntrack_expect *exp;
++	struct nf_conn *ct;
++	int err;
++
++	/* caller guarantees that those three CTA_EXPECT_* exist */
++	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
++	if (err < 0)
++		return err;
++	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
++	if (err < 0)
++		return err;
++	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
++	if (err < 0)
++		return err;
++
++	/* Look for master conntrack of this expectation */
++	h = nf_conntrack_find_get(net, zone, &master_tuple);
++	if (!h)
++		return -ENOENT;
++	ct = nf_ct_tuplehash_to_ctrack(h);
++
++	exp = ctnetlink_alloc_expect(cda, ct, &tuple, &mask);
++	if (IS_ERR(exp)) {
++		err = PTR_ERR(exp);
++		goto err_ct;
++	}
++
++	err = nf_ct_expect_related_report(exp, portid, report);
++	if (err < 0)
++		goto err_exp;
++
++	return 0;
++err_exp:
++	nf_ct_expect_put(exp);
++err_ct:
++	nf_ct_put(ct);
+ 	return err;
+ }
+ 
+-- 
+1.7.10.4
 
-> p.s. thanks for working on this module, which we discussed during the
-> Netfilter Workshop 2013.
-
-Well, I think its pretty cool considering the numbers ;)
