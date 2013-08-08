@@ -1,45 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: state match incompatibilty across versions
-Date: Thu, 8 Aug 2013 18:16:03 +0200
-Message-ID: <20130808161603.GA7525@localhost>
-References: <20130807234449.GA22535@linuxace.com>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: [PATCH] iptables: iptables calls setsockopt incorrectly
+Date: Thu, 8 Aug 2013 13:25:46 -0400
+Message-ID: <CA+0KVf052HAN73aMrM95aosN-=49Esam1spX=sUyvd61sDYDRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, ljlane@debian.org,
-	jengelh@medozas.de
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: multipart/mixed; boundary=047d7b3432ca0b209704e372f4ee
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55738 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934213Ab3HHQQR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 12:16:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20130807234449.GA22535@linuxace.com>
+Received: from dunimos.ljlane.net ([216.218.223.72]:46233 "EHLO
+	dunimos.ljlane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965673Ab3HHR0K (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 13:26:10 -0400
+Received: from mail-ve0-f181.google.com (mail-ve0-f181.google.com [209.85.128.181])
+	(using TLSv1 with cipher ECDHE-RSA-RC4-SHA (128/128 bits))
+	(No client certificate requested)
+	(Authenticated sender: google-debian@dunimos.ljlane.net)
+	by dunimos.ljlane.net (Postfix) with ESMTPSA id 0445729433
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2013 13:26:07 -0400 (EDT)
+Received: by mail-ve0-f181.google.com with SMTP id jz10so3302739veb.12
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Aug 2013 10:26:07 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 07, 2013 at 04:44:49PM -0700, Phil Oester wrote:
-> As reported in Debian bug #718810 [1], state match rules added in < 1.4.16
-> iptables versions are incorrectly displayed by >= 1.4.16 iptables versions.
-> Issue bisected to commit 0d701631 (libxt_state: replace as an alias to
-> xt_conntrack).
-> 
-> Fix this by adding the missing .print and .save functions for state match
-> aliases in the conntrack match.
+--047d7b3432ca0b209704e372f4ee
+Content-Type: text/plain; charset=ISO-8859-1
 
-The problem seems to be related with xtables_mt_prefer, which ranks
-the conntrack match higher than state match itself, as it treats state
-as an alias. This is OK in the userspace to kernel path, where state
-is internally transformed to conntrack, but not from kernel to
-userspace, where the state match info is being interpreted by the
-conntrack match.
+https://bugs.launchpad.net/ubuntu/+source/iptables/+bug/1187177
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=710997
 
-We could fix this from libxtables, but adding some parameter to
-xtables_find_match to indicate what path this function is called from.
-But that requires a new ABI change to resolve it, which will break
-Jamal's tc action again, I guess stephen will not be very happy with
+
+---------- Forwarded message ----------
+From: LaMont Jones <lamont@debian.org>
+Date: Mon, Jun 3, 2013 at 6:07 PM
+Subject: Bug#710997: iptables calls setsockopt incorrectly
+To: submit@bugs.debian.org
+
+
+Package: iptables
+Version: 1.4.18-1
+Tags: patch
+--
+
+Since time immemorial, iptables has called setsockopt() and treated any
+-1 return value as fatal.  Any system call can return EAGAIN or
+EINPROGRESS (depending on the origins of the API), and good coding
+practice requires checking for that and retrying or otherwise handling
 it.
 
-I'm going to take your patch, it's simple and it fixes this issue.
+In the case of iptables, if multiple processes are calling iptables
+concurrently, then it is likely that one of them will fail.  I have seen
+this with xen, as well as certain firewall configurations where the
+firewall rules are added as triggered by interfaces being discovered and
+configured.
 
-Thanks Phil.
+The attached patch fixes the issue.
+lamont
+
+--047d7b3432ca0b209704e372f4ee
+Content-Type: text/x-diff; charset=us-ascii; name="retry-setsockopt.diff"
+Content-Disposition: attachment; filename="retry-setsockopt.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: e190aaf510353da0_0.1
+
+ZGlmZiAtdXIgeC9pcHRhYmxlcy0xLjQuMTgvbGliaXB0Yy9saWJpcHRjLmMgaXB0YWJsZXMtMS40
+LjE4L2xpYmlwdGMvbGliaXB0Yy5jDQotLS0geC9pcHRhYmxlcy0xLjQuMTgvbGliaXB0Yy9saWJp
+cHRjLmMJMjAxMy0wMy0wMyAxNDo0MDoxMS4wMDAwMDAwMDAgLTA3MDANCisrKyBpcHRhYmxlcy0x
+LjQuMTgvbGliaXB0Yy9saWJpcHRjLmMJMjAxMy0wNi0wMyAxNjowMzozMS44MTk0NDgwMTkgLTA2
+MDANCkBAIC0yNTk2LDggKzI1OTYsMTAgQEANCiAJfQ0KICNlbmRpZg0KIA0KLQlyZXQgPSBzZXRz
+b2Nrb3B0KGhhbmRsZS0+c29ja2ZkLCBUQ19JUFBST1RPLCBTT19TRVRfUkVQTEFDRSwgcmVwbCwN
+CisJZG8gew0KKwkJcmV0ID0gc2V0c29ja29wdChoYW5kbGUtPnNvY2tmZCwgVENfSVBQUk9UTywg
+U09fU0VUX1JFUExBQ0UsIHJlcGwsDQogCQkJIHNpemVvZigqcmVwbCkgKyByZXBsLT5zaXplKTsN
+CisJfSB3aGlsZSAoIHJldCA8IDAgJiYgKCBlcnJubyA9PSBFQUdBSU4gfHwgZXJybm8gPT0gRUlO
+UFJPR1JFU1MpKTsNCiAJaWYgKHJldCA8IDApDQogCQlnb3RvIG91dF9mcmVlX25ld2NvdW50ZXJz
+Ow0KIA0KQEAgLTI2NzIsOCArMjY3NCwxMCBAQA0KIAl9DQogI2VuZGlmDQogDQotCXJldCA9IHNl
+dHNvY2tvcHQoaGFuZGxlLT5zb2NrZmQsIFRDX0lQUFJPVE8sIFNPX1NFVF9BRERfQ09VTlRFUlMs
+DQorCWRvIHsNCisJCXJldCA9IHNldHNvY2tvcHQoaGFuZGxlLT5zb2NrZmQsIFRDX0lQUFJPVE8s
+IFNPX1NFVF9BRERfQ09VTlRFUlMsDQogCQkJIG5ld2NvdW50ZXJzLCBjb3VudGVybGVuKTsNCisJ
+fSB3aGlsZSAoIHJldCA8IDAgJiYgKCBlcnJubyA9PSBFQUdBSU4gfHwgZXJybm8gPT0gRUlOUFJP
+R1JFU1MpKTsNCiAJaWYgKHJldCA8IDApDQogCQlnb3RvIG91dF9mcmVlX25ld2NvdW50ZXJzOw0K
+IA0K
+--047d7b3432ca0b209704e372f4ee--
