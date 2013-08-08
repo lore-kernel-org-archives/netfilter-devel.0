@@ -1,218 +1,273 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2 -next 1/2] netfilter: ctnetlink: refactor ctnetlink_create_expect
-Date: Thu,  8 Aug 2013 17:24:34 +0200
-Message-ID: <1375975475-6389-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH v2 -next 2/2] netfilter: nfnetlink_queue: allow to attach expectations to conntracks
+Date: Thu,  8 Aug 2013 17:24:35 +0200
+Message-ID: <1375975475-6389-2-git-send-email-pablo@netfilter.org>
+References: <1375975475-6389-1-git-send-email-pablo@netfilter.org>
 Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50705 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50710 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965811Ab3HHPYv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 11:24:51 -0400
+	id S965812Ab3HHPYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 11:24:53 -0400
+In-Reply-To: <1375975475-6389-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch refactors ctnetlink_create_expect by spliting it in two
-chunks. As a result, we have a new function ctnetlink_alloc_expect
-to allocate and to setup the expectation from ctnetlink.
+This patch adds the capability to attach expectations via nfnetlink_queue.
+This is required by conntrack helpers that trigger expectations based on
+the first packet seen like the TFTP and the DHCPv6 user-space helpers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: adapt it to avoid request_module under rcu lock in the follow up patch.
+v2: don't call request_module while holding rcu lock from nfqueue path,
+    spotted by Florian.
 
- net/netfilter/nf_conntrack_netlink.c |  156 +++++++++++++++++++---------------
- 1 file changed, 87 insertions(+), 69 deletions(-)
+ include/linux/netfilter.h                      |    2 +
+ include/net/netfilter/nfnetlink_queue.h        |    8 ++
+ include/uapi/linux/netfilter/nfnetlink_queue.h |    1 +
+ net/netfilter/nf_conntrack_netlink.c           |  109 ++++++++++++++++++++----
+ net/netfilter/nfnetlink_queue_core.c           |    6 ++
+ net/netfilter/nfnetlink_queue_ct.c             |   17 ++++
+ 6 files changed, 128 insertions(+), 15 deletions(-)
 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 655d5d1..e2cf786be 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -325,6 +325,8 @@ struct nfq_ct_hook {
+ 	size_t (*build_size)(const struct nf_conn *ct);
+ 	int (*build)(struct sk_buff *skb, struct nf_conn *ct);
+ 	int (*parse)(const struct nlattr *attr, struct nf_conn *ct);
++	int (*attach_expect)(const struct nlattr *attr, struct nf_conn *ct,
++			     u32 portid, u32 report);
+ };
+ extern struct nfq_ct_hook __rcu *nfq_ct_hook;
+ 
+diff --git a/include/net/netfilter/nfnetlink_queue.h b/include/net/netfilter/nfnetlink_queue.h
+index 86267a5..aff88ba 100644
+--- a/include/net/netfilter/nfnetlink_queue.h
++++ b/include/net/netfilter/nfnetlink_queue.h
+@@ -15,6 +15,8 @@ int nfqnl_ct_put(struct sk_buff *skb, struct nf_conn *ct,
+ 		 enum ip_conntrack_info ctinfo);
+ void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+ 			 enum ip_conntrack_info ctinfo, int diff);
++int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
++			u32 portid, u32 report);
+ #else
+ inline struct nf_conn *
+ nfqnl_ct_get(struct sk_buff *entskb, size_t *size, enum ip_conntrack_info *ctinfo)
+@@ -39,5 +41,11 @@ inline void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+ 				enum ip_conntrack_info ctinfo, int diff)
+ {
+ }
++
++inline int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
++			       u32 portid, u32 report)
++{
++	return 0;
++}
+ #endif /* NF_CONNTRACK */
+ #endif
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index 3a9b921..0132bad 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -46,6 +46,7 @@ enum nfqnl_attr_type {
+ 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,			/* __u32 skb meta information */
++	NFQA_EXP,			/* nf_conntrack_netlink.h */
+ 
+ 	__NFQA_MAX
+ };
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e842c0d..9aaa68b 100644
+index 9aaa68b..3e24789 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2735,76 +2735,26 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
- #endif
+@@ -1987,6 +1987,27 @@ out:
+ 	return err == -EAGAIN ? -ENOBUFS : err;
  }
  
--static int
--ctnetlink_create_expect(struct net *net, u16 zone,
--			const struct nlattr * const cda[],
--			u_int8_t u3,
--			u32 portid, int report)
++static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
++	[CTA_EXPECT_MASTER]	= { .type = NLA_NESTED },
++	[CTA_EXPECT_TUPLE]	= { .type = NLA_NESTED },
++	[CTA_EXPECT_MASK]	= { .type = NLA_NESTED },
++	[CTA_EXPECT_TIMEOUT]	= { .type = NLA_U32 },
++	[CTA_EXPECT_ID]		= { .type = NLA_U32 },
++	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING,
++				    .len = NF_CT_HELPER_NAME_LEN - 1 },
++	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
++	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
++	[CTA_EXPECT_FN]		= { .type = NLA_NUL_STRING },
++};
++
 +static struct nf_conntrack_expect *
-+ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
++ctnetlink_alloc_expect(const struct nlattr *const cda[], struct nf_conn *ct,
 +		       struct nf_conntrack_helper *helper,
 +		       struct nf_conntrack_tuple *tuple,
-+		       struct nf_conntrack_tuple *mask)
- {
--	struct nf_conntrack_tuple tuple, mask, master_tuple;
--	struct nf_conntrack_tuple_hash *h = NULL;
-+	u_int32_t class = 0;
- 	struct nf_conntrack_expect *exp;
--	struct nf_conn *ct;
- 	struct nf_conn_help *help;
--	struct nf_conntrack_helper *helper = NULL;
--	u_int32_t class = 0;
--	int err = 0;
--
--	/* caller guarantees that those three CTA_EXPECT_* exist */
--	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
--	if (err < 0)
--		return err;
--	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
--	if (err < 0)
--		return err;
--	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
--	if (err < 0)
--		return err;
--
--	/* Look for master conntrack of this expectation */
--	h = nf_conntrack_find_get(net, zone, &master_tuple);
--	if (!h)
--		return -ENOENT;
--	ct = nf_ct_tuplehash_to_ctrack(h);
--
--	/* Look for helper of this expectation */
--	if (cda[CTA_EXPECT_HELP_NAME]) {
--		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
--
--		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
--						    nf_ct_protonum(ct));
--		if (helper == NULL) {
--#ifdef CONFIG_MODULES
--			if (request_module("nfct-helper-%s", helpname) < 0) {
--				err = -EOPNOTSUPP;
--				goto out;
--			}
--
--			helper = __nf_conntrack_helper_find(helpname,
--							    nf_ct_l3num(ct),
--							    nf_ct_protonum(ct));
--			if (helper) {
--				err = -EAGAIN;
--				goto out;
--			}
--#endif
--			err = -EOPNOTSUPP;
--			goto out;
--		}
--	}
-+	int err;
- 
- 	if (cda[CTA_EXPECT_CLASS] && helper) {
- 		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
--		if (class > helper->expect_class_max) {
--			err = -EINVAL;
--			goto out;
--		}
-+		if (class > helper->expect_class_max)
-+			return ERR_PTR(-EINVAL);
- 	}
- 	exp = nf_ct_expect_alloc(ct);
--	if (!exp) {
--		err = -ENOMEM;
--		goto out;
--	}
-+	if (!exp)
-+		return ERR_PTR(-ENOMEM);
++		       struct nf_conntrack_tuple *mask);
 +
- 	help = nfct_help(ct);
- 	if (!help) {
- 		if (!cda[CTA_EXPECT_TIMEOUT]) {
-@@ -2842,21 +2792,89 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	exp->class = class;
- 	exp->master = ct;
- 	exp->helper = helper;
--	memcpy(&exp->tuple, &tuple, sizeof(struct nf_conntrack_tuple));
--	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
--	exp->mask.src.u.all = mask.src.u.all;
-+	exp->tuple = *tuple;
-+	exp->mask.src.u3 = mask->src.u3;
-+	exp->mask.src.u.all = mask->src.u.all;
+ #ifdef CONFIG_NETFILTER_NETLINK_QUEUE_CT
+ static size_t
+ ctnetlink_nfqueue_build_size(const struct nf_conn *ct)
+@@ -2127,10 +2148,83 @@ ctnetlink_nfqueue_parse(const struct nlattr *attr, struct nf_conn *ct)
+ 	return ret;
+ }
  
- 	if (cda[CTA_EXPECT_NAT]) {
- 		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
--						 exp, u3);
-+						 exp, nf_ct_l3num(ct));
- 		if (err < 0)
- 			goto err_out;
- 	}
--	err = nf_ct_expect_related_report(exp, portid, report);
-+	return exp;
- err_out:
- 	nf_ct_expect_put(exp);
--out:
--	nf_ct_put(nf_ct_tuplehash_to_ctrack(h));
-+	return ERR_PTR(err);
++static int ctnetlink_nfqueue_exp_parse(const struct nlattr * const *cda,
++				       const struct nf_conn *ct,
++				       struct nf_conntrack_tuple *tuple,
++				       struct nf_conntrack_tuple *mask)
++{
++	int err;
++
++	err = ctnetlink_parse_tuple(cda, tuple, CTA_EXPECT_TUPLE,
++				    nf_ct_l3num(ct));
++	if (err < 0)
++		return err;
++
++	return ctnetlink_parse_tuple(cda, mask, CTA_EXPECT_MASK,
++				     nf_ct_l3num(ct));
 +}
 +
 +static int
-+ctnetlink_create_expect(struct net *net, u16 zone,
-+			const struct nlattr * const cda[],
-+			u_int8_t u3, u32 portid, int report)
++ctnetlink_nfqueue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
++				u32 portid, u32 report)
 +{
-+	struct nf_conntrack_tuple tuple, mask, master_tuple;
-+	struct nf_conntrack_tuple_hash *h = NULL;
-+	struct nf_conntrack_helper *helper = NULL;
++	struct nlattr *cda[CTA_EXPECT_MAX+1];
++	struct nf_conntrack_tuple tuple, mask;
++	struct nf_conntrack_helper *helper;
 +	struct nf_conntrack_expect *exp;
-+	struct nf_conn *ct;
 +	int err;
 +
-+	/* caller guarantees that those three CTA_EXPECT_* exist */
-+	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
-+	if (err < 0)
-+		return err;
-+	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
-+	if (err < 0)
-+		return err;
-+	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
++	err = nla_parse_nested(cda, CTA_EXPECT_MAX, attr, exp_nla_policy);
 +	if (err < 0)
 +		return err;
 +
-+	/* Look for master conntrack of this expectation */
-+	h = nf_conntrack_find_get(net, zone, &master_tuple);
-+	if (!h)
-+		return -ENOENT;
-+	ct = nf_ct_tuplehash_to_ctrack(h);
++	err = ctnetlink_nfqueue_exp_parse((const struct nlattr * const *)cda,
++					  ct, &tuple, &mask);
++	if (err < 0)
++		return err;
 +
 +	if (cda[CTA_EXPECT_HELP_NAME]) {
 +		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
 +
-+		helper = __nf_conntrack_helper_find(helpname, u3,
++		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
 +						    nf_ct_protonum(ct));
 +		if (helper == NULL) {
 +#ifdef CONFIG_MODULES
++			rcu_read_unlock();
 +			if (request_module("nfct-helper-%s", helpname) < 0) {
-+				err = -EOPNOTSUPP;
-+				goto err_ct;
++				rcu_read_lock();
++				return -EOPNOTSUPP;
 +			}
-+			helper = __nf_conntrack_helper_find(helpname, u3,
++			rcu_read_lock();
++			helper = __nf_conntrack_helper_find(helpname,
++							    nf_ct_l3num(ct),
 +							    nf_ct_protonum(ct));
-+			if (helper) {
-+				err = -EAGAIN;
-+				goto err_ct;
-+			}
++			if (helper)
++				return -EAGAIN;
 +#endif
-+			err = -EOPNOTSUPP;
-+			goto err_ct;
++			return -EOPNOTSUPP;
 +		}
 +	}
 +
-+	exp = ctnetlink_alloc_expect(cda, ct, helper, &tuple, &mask);
-+	if (IS_ERR(exp)) {
-+		err = PTR_ERR(exp);
-+		goto err_ct;
-+	}
++	exp = ctnetlink_alloc_expect((const struct nlattr * const *)cda, ct,
++				     helper, &tuple, &mask);
++	if (IS_ERR(exp))
++		return PTR_ERR(exp);
 +
 +	err = nf_ct_expect_related_report(exp, portid, report);
-+	if (err < 0)
-+		goto err_exp;
++	if (err < 0) {
++		nf_ct_expect_put(exp);
++		return err;
++	}
 +
 +	return 0;
-+err_exp:
-+	nf_ct_expect_put(exp);
-+err_ct:
-+	nf_ct_put(ct);
++}
++
+ static struct nfq_ct_hook ctnetlink_nfqueue_hook = {
+ 	.build_size	= ctnetlink_nfqueue_build_size,
+ 	.build		= ctnetlink_nfqueue_build,
+ 	.parse		= ctnetlink_nfqueue_parse,
++	.attach_expect	= ctnetlink_nfqueue_attach_expect,
+ };
+ #endif /* CONFIG_NETFILTER_NETLINK_QUEUE_CT */
+ 
+@@ -2498,21 +2592,6 @@ static int ctnetlink_dump_exp_ct(struct sock *ctnl, struct sk_buff *skb,
  	return err;
  }
  
+-static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
+-	[CTA_EXPECT_MASTER]	= { .type = NLA_NESTED },
+-	[CTA_EXPECT_TUPLE]	= { .type = NLA_NESTED },
+-	[CTA_EXPECT_MASK]	= { .type = NLA_NESTED },
+-	[CTA_EXPECT_TIMEOUT]	= { .type = NLA_U32 },
+-	[CTA_EXPECT_ID]		= { .type = NLA_U32 },
+-	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING,
+-				    .len = NF_CT_HELPER_NAME_LEN - 1 },
+-	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
+-	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
+-	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+-	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
+-	[CTA_EXPECT_FN]		= { .type = NLA_NUL_STRING },
+-};
+-
+ static int
+ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
+ 		     const struct nlmsghdr *nlh,
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index ec9de12..2f7688b 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -859,6 +859,7 @@ static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
+ 	[NFQA_MARK]		= { .type = NLA_U32 },
+ 	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
+ 	[NFQA_CT]		= { .type = NLA_UNSPEC },
++	[NFQA_EXP]		= { .type = NLA_UNSPEC },
+ };
+ 
+ static const struct nla_policy nfqa_verdict_batch_policy[NFQA_MAX+1] = {
+@@ -1005,6 +1006,11 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 	if (nfqa[NFQA_MARK])
+ 		entry->skb->mark = ntohl(nla_get_be32(nfqa[NFQA_MARK]));
+ 
++	if (ct && nfqa[NFQA_EXP]) {
++		nfqnl_attach_expect(ct, nfqa[NFQA_EXP],
++				    NETLINK_CB(skb).portid, nlmsg_report(nlh));
++	}
++
+ 	nf_reinject(entry, verdict);
+ 	return 0;
+ }
+diff --git a/net/netfilter/nfnetlink_queue_ct.c b/net/netfilter/nfnetlink_queue_ct.c
+index ab61d66..1b012a0 100644
+--- a/net/netfilter/nfnetlink_queue_ct.c
++++ b/net/netfilter/nfnetlink_queue_ct.c
+@@ -96,3 +96,20 @@ void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+ 	if ((ct->status & IPS_NAT_MASK) && diff)
+ 		nfq_nat_ct->seq_adjust(skb, ct, ctinfo, diff);
+ }
++
++int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
++			u32 portid, u32 report)
++{
++	struct nfq_ct_hook *nfq_ct;
++
++	if (nf_ct_is_untracked(ct))
++		return 0;
++
++	nfq_ct = rcu_dereference(nfq_ct_hook);
++	if (nfq_ct == NULL)
++		return -1;
++
++	nfq_ct->attach_expect(attr, ct, portid, report);
++
++	return 0;
++}
 -- 
 1.7.10.4
 
