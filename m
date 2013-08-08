@@ -1,43 +1,34 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next 1/2] netfilter: ctnetlink: refactor
- ctnetlink_create_expect
-Date: Thu, 8 Aug 2013 14:28:39 +0200
-Message-ID: <20130808122839.GE29345@breakpoint.cc>
-References: <1375954280-6579-1-git-send-email-pablo@netfilter.org>
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: Re: state match incompatibilty across versions
+Date: Thu, 8 Aug 2013 09:53:54 -0400
+Message-ID: <CA+0KVf3yZGme50zraKy=EJj5V83Vr+SQumjaCSbdWx60y2JGtw@mail.gmail.com>
+References: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
+ <CA+0KVf0RDy0ub_R0t9Fn5-dBN2dRhZqu2+eRy36Xur7nF8EHoA@mail.gmail.com> <20130808043230.GA22843@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35806 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752515Ab3HHM2l (ORCPT
+Received: from dunimos.ljlane.net ([216.218.223.72]:46209 "EHLO
+	dunimos.ljlane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965474Ab3HHNyQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 08:28:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1375954280-6579-1-git-send-email-pablo@netfilter.org>
+	Thu, 8 Aug 2013 09:54:16 -0400
+Received: from mail-ve0-f173.google.com (mail-ve0-f173.google.com [209.85.128.173])
+	(using TLSv1 with cipher ECDHE-RSA-RC4-SHA (128/128 bits))
+	(No client certificate requested)
+	(Authenticated sender: google-debian@dunimos.ljlane.net)
+	by dunimos.ljlane.net (Postfix) with ESMTPSA id 82DCF293E6
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2013 09:54:15 -0400 (EDT)
+Received: by mail-ve0-f173.google.com with SMTP id cy12so3058023veb.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Aug 2013 06:54:14 -0700 (PDT)
+In-Reply-To: <20130808043230.GA22843@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patch refactors ctnetlink_create_expect by spliting it in two
-> chunks. As a result, we have a new function ctnetlink_alloc_expect
-> to allocate and to setup the expectation from ctnetlink.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> +ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
-> +		       struct nf_conntrack_tuple *tuple,
-> +		       struct nf_conntrack_tuple *mask)
->  {
-[..]
->  #ifdef CONFIG_MODULES
-> -			if (request_module("nfct-helper-%s", helpname) < 0) {
-> -				err = -EOPNOTSUPP;
-> -				goto out;
-> -			}
-> +			if (request_module("nfct-helper-%s", helpname) < 0)
-> +				return ERR_PTR(-EOPNOTSUPP);
+On Thu, Aug 8, 2013 at 12:32 AM, Phil Oester <kernel@linuxace.com> wrote:
 
-Not sure if I decoded the diff correctly, but AFAIU this
-function can now be called from rcu protected section (nfqueue verdict
-handler), so request_module might not be safe.
+> Issue understood.  I posted a patch in the past few hours.  Can you verify
+> this fixes the issue for you?
+
+It does. Thank you!
