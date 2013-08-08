@@ -1,38 +1,58 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
 Subject: Re: [PATCH 3/5] netfilter: add SYNPROXY core/target
-Date: Thu, 8 Aug 2013 08:34:26 +0200
-Message-ID: <20130808063425.GC24450@macbook.localnet>
+Date: Thu, 8 Aug 2013 10:04:48 +0200
+Message-ID: <20130808100448.010cd96d@redhat.com>
 References: <1375897371-18430-1-git-send-email-kaber@trash.net>
- <1375897371-18430-4-git-send-email-kaber@trash.net>
- <1375913514.4004.63.camel@edumazet-glaptop>
- <20130807233707.GA23937@macbook.localnet>
+	<1375897371-18430-4-git-send-email-kaber@trash.net>
+	<20130807222600.51eeca09@redhat.com>
+	<20130807205602.GA21463@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, mph@one.com, jesper.brouer@gmail.com,
-	as@one.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
+	netdev@vger.kernel.org, mph@one.com, as@one.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51950 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933761Ab3HHGea (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 02:34:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20130807233707.GA23937@macbook.localnet>
+Received: from mx1.redhat.com ([209.132.183.28]:54768 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933776Ab3HHIFA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 04:05:00 -0400
+In-Reply-To: <20130807205602.GA21463@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 08, 2013 at 01:37:11AM +0200, Patrick McHardy wrote:
-> On Wed, Aug 07, 2013 at 03:11:54PM -0700, Eric Dumazet wrote:
-> > On Wed, 2013-08-07 at 19:42 +0200, Patrick McHardy wrote:
-> > 
-> > Also please check your uses of kfree_skb() .
-> > 
-> > Some of them would better be consume_skb() (for example in
-> > ipv4_synproxy_hook())
-> 
-> I'll look into that.
 
-Agreed for this case. The only other two kfree_skb()s are actually
-error paths.
+On Wed, 7 Aug 2013 22:56:03 +0200 Patrick McHardy <kaber@trash.net> wrote:
+> On Wed, Aug 07, 2013 at 10:26:00PM +0200, Jesper Dangaard Brouer wrote:
+> > On Wed,  7 Aug 2013 19:42:49 +0200 Patrick McHardy <kaber@trash.net> wrote:
+
+[...]
+> > Besides shouldn't nth->ack_seq be zero, in a SYN packet? This is the
+> > SYN "replayed" towards the server right?
+> > 
+> > I also pointed to this in an earlier patch Martin showed me, but he
+> > reported that changing this resulted in bad behavior.  So, I would
+> > request Martin to re-test this part.
+> 
+> Right, it should be zero, but it doesn't matter since the ACK flag isn't
+> set. This is used to propagate the sequence number to the hook function
+> to initialize the sequence adjustment data. While in the target function,
+> we don't have any connection tracking state to store this in. We could
+> set it to zero after that, but it shouldn't matter.
+
+I think it deserves a comment in the code, that you are using ack_seq,
+to relay this information to the hook, as its not obvious.
+
+And I think we should set it to zero after that, else it will be
+visible on the wire, and wireshark complains (with a warning) when it
+sees pure SYN packets with a non-zero ACK number (Martin send me a dump
+some time ago, and I just checked).
+
+p.s. thanks for working on this module, which we discussed during the
+Netfilter Workshop 2013.
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
