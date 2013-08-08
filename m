@@ -1,35 +1,44 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: state match incompatibilty across versions
-Date: Wed, 7 Aug 2013 21:32:30 -0700
-Message-ID: <20130808043230.GA22843@linuxace.com>
-References: <CA+0KVf2e_Ce33SFJyK21LzLBhUhWzWdgaMje4ShZF7i7evGuMw@mail.gmail.com>
- <CA+0KVf0RDy0ub_R0t9Fn5-dBN2dRhZqu2+eRy36Xur7nF8EHoA@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/5] netfilter: add SYNPROXY core/target
+Date: Thu, 8 Aug 2013 08:22:55 +0200
+Message-ID: <20130808062255.GB24450@macbook.localnet>
+References: <1375897371-18430-1-git-send-email-kaber@trash.net>
+ <1375897371-18430-4-git-send-email-kaber@trash.net>
+ <20130807222600.51eeca09@redhat.com>
+ <20130807205602.GA21463@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Laurence J. Lane" <ljlane@debian.org>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, mph@one.com, as@one.com
+To: Jesper Dangaard Brouer <jbrouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:59722 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616Ab3HHEcd (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51884 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754771Ab3HHGW7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 00:32:33 -0400
-Received: by mail-pa0-f46.google.com with SMTP id fa1so2926440pad.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2013 21:32:32 -0700 (PDT)
+	Thu, 8 Aug 2013 02:22:59 -0400
 Content-Disposition: inline
-In-Reply-To: <CA+0KVf0RDy0ub_R0t9Fn5-dBN2dRhZqu2+eRy36Xur7nF8EHoA@mail.gmail.com>
+In-Reply-To: <20130807205602.GA21463@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 07, 2013 at 09:28:49PM -0400, Laurence J. Lane wrote:
-> I think I failed to explain the problem clearly. I'll try again.
+On Wed, Aug 07, 2013 at 10:56:03PM +0200, Patrick McHardy wrote:
+> On Wed, Aug 07, 2013 at 10:26:00PM +0200, Jesper Dangaard Brouer wrote:
+> > On Wed,  7 Aug 2013 19:42:49 +0200
+> > Patrick McHardy <kaber@trash.net> wrote:
+> > 
+> > Besides when using net->proc_net_stat, then the first entry is usually
+> > "entries" which is not percpu, this will likely confusing the tool:
+> >   lnstat -f synproxy -c 42
 > 
-> If I use iptables 1.1.14 or 1.4.15 to create a match state rule,
-> iptables 1.4.16+ binaries do not display the state information that is
-> in the kernel.
+> I'll look into that.
 
-Issue understood.  I posted a patch in the past few hours.  Can you verify
-this fixes the issue for you?
+Ok right, the first field must contains something that is not per-CPU.
+Unfortunately I don't have anything to put there and I really don't want
+to keep any global state. The two possibilities I see are:
 
-Phil
+- a dummy field
+- the number of proxied connections, but not using a global counter but
+  gathered by iterating over the entire conntrack hash.
 
+Any opinions?
