@@ -1,57 +1,218 @@
-From: Jesper Dangaard Brouer <jbrouer@redhat.com>
-Subject: Re: [PATCH 3/5] netfilter: add SYNPROXY core/target
-Date: Thu, 8 Aug 2013 17:07:10 +0200
-Message-ID: <20130808170710.28394af9@redhat.com>
-References: <1375897371-18430-1-git-send-email-kaber@trash.net>
-	<1375897371-18430-4-git-send-email-kaber@trash.net>
-	<20130807222600.51eeca09@redhat.com>
-	<20130807205602.GA21463@macbook.localnet>
-	<20130808062255.GB24450@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, mph@one.com, as@one.com
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130808062255.GB24450@macbook.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2 -next 1/2] netfilter: ctnetlink: refactor ctnetlink_create_expect
+Date: Thu,  8 Aug 2013 17:24:34 +0200
+Message-ID: <1375975475-6389-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50705 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965811Ab3HHPYv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 11:24:51 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 8 Aug 2013 08:22:55 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+This patch refactors ctnetlink_create_expect by spliting it in two
+chunks. As a result, we have a new function ctnetlink_alloc_expect
+to allocate and to setup the expectation from ctnetlink.
 
-> On Wed, Aug 07, 2013 at 10:56:03PM +0200, Patrick McHardy wrote:
-> > On Wed, Aug 07, 2013 at 10:26:00PM +0200, Jesper Dangaard Brouer wrote:
-> > > On Wed,  7 Aug 2013 19:42:49 +0200
-> > > Patrick McHardy <kaber@trash.net> wrote:
-> > > 
-> > > Besides when using net->proc_net_stat, then the first entry is usually
-> > > "entries" which is not percpu, this will likely confusing the tool:
-> > >   lnstat -f synproxy -c 42
-> > 
-> > I'll look into that.
-> 
-> Ok right, the first field must contains something that is not per-CPU.
-> Unfortunately I don't have anything to put there and I really don't want
-> to keep any global state. The two possibilities I see are:
-> 
-> - a dummy field
-> - the number of proxied connections, but not using a global counter but
->   gathered by iterating over the entire conntrack hash.
-> 
-> Any opinions?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: adapt it to avoid request_module under rcu lock in the follow up patch.
 
-Well, I would of cause be nice to have some "entries" counter, e.g.
-listing the number of active conntrack entries created by the SYNPROXY
-target, but I don't think it's possible to identify those conntrack
-entries, right.
-So, I think it would be okay with just a dummy "entries" field which is
-always zero.  
+ net/netfilter/nf_conntrack_netlink.c |  156 +++++++++++++++++++---------------
+ 1 file changed, 87 insertions(+), 69 deletions(-)
 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e842c0d..9aaa68b 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2735,76 +2735,26 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
+ #endif
+ }
+ 
+-static int
+-ctnetlink_create_expect(struct net *net, u16 zone,
+-			const struct nlattr * const cda[],
+-			u_int8_t u3,
+-			u32 portid, int report)
++static struct nf_conntrack_expect *
++ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
++		       struct nf_conntrack_helper *helper,
++		       struct nf_conntrack_tuple *tuple,
++		       struct nf_conntrack_tuple *mask)
+ {
+-	struct nf_conntrack_tuple tuple, mask, master_tuple;
+-	struct nf_conntrack_tuple_hash *h = NULL;
++	u_int32_t class = 0;
+ 	struct nf_conntrack_expect *exp;
+-	struct nf_conn *ct;
+ 	struct nf_conn_help *help;
+-	struct nf_conntrack_helper *helper = NULL;
+-	u_int32_t class = 0;
+-	int err = 0;
+-
+-	/* caller guarantees that those three CTA_EXPECT_* exist */
+-	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
+-	if (err < 0)
+-		return err;
+-	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
+-	if (err < 0)
+-		return err;
+-	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
+-	if (err < 0)
+-		return err;
+-
+-	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(net, zone, &master_tuple);
+-	if (!h)
+-		return -ENOENT;
+-	ct = nf_ct_tuplehash_to_ctrack(h);
+-
+-	/* Look for helper of this expectation */
+-	if (cda[CTA_EXPECT_HELP_NAME]) {
+-		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
+-
+-		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
+-						    nf_ct_protonum(ct));
+-		if (helper == NULL) {
+-#ifdef CONFIG_MODULES
+-			if (request_module("nfct-helper-%s", helpname) < 0) {
+-				err = -EOPNOTSUPP;
+-				goto out;
+-			}
+-
+-			helper = __nf_conntrack_helper_find(helpname,
+-							    nf_ct_l3num(ct),
+-							    nf_ct_protonum(ct));
+-			if (helper) {
+-				err = -EAGAIN;
+-				goto out;
+-			}
+-#endif
+-			err = -EOPNOTSUPP;
+-			goto out;
+-		}
+-	}
++	int err;
+ 
+ 	if (cda[CTA_EXPECT_CLASS] && helper) {
+ 		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
+-		if (class > helper->expect_class_max) {
+-			err = -EINVAL;
+-			goto out;
+-		}
++		if (class > helper->expect_class_max)
++			return ERR_PTR(-EINVAL);
+ 	}
+ 	exp = nf_ct_expect_alloc(ct);
+-	if (!exp) {
+-		err = -ENOMEM;
+-		goto out;
+-	}
++	if (!exp)
++		return ERR_PTR(-ENOMEM);
++
+ 	help = nfct_help(ct);
+ 	if (!help) {
+ 		if (!cda[CTA_EXPECT_TIMEOUT]) {
+@@ -2842,21 +2792,89 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	exp->class = class;
+ 	exp->master = ct;
+ 	exp->helper = helper;
+-	memcpy(&exp->tuple, &tuple, sizeof(struct nf_conntrack_tuple));
+-	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
+-	exp->mask.src.u.all = mask.src.u.all;
++	exp->tuple = *tuple;
++	exp->mask.src.u3 = mask->src.u3;
++	exp->mask.src.u.all = mask->src.u.all;
+ 
+ 	if (cda[CTA_EXPECT_NAT]) {
+ 		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
+-						 exp, u3);
++						 exp, nf_ct_l3num(ct));
+ 		if (err < 0)
+ 			goto err_out;
+ 	}
+-	err = nf_ct_expect_related_report(exp, portid, report);
++	return exp;
+ err_out:
+ 	nf_ct_expect_put(exp);
+-out:
+-	nf_ct_put(nf_ct_tuplehash_to_ctrack(h));
++	return ERR_PTR(err);
++}
++
++static int
++ctnetlink_create_expect(struct net *net, u16 zone,
++			const struct nlattr * const cda[],
++			u_int8_t u3, u32 portid, int report)
++{
++	struct nf_conntrack_tuple tuple, mask, master_tuple;
++	struct nf_conntrack_tuple_hash *h = NULL;
++	struct nf_conntrack_helper *helper = NULL;
++	struct nf_conntrack_expect *exp;
++	struct nf_conn *ct;
++	int err;
++
++	/* caller guarantees that those three CTA_EXPECT_* exist */
++	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE, u3);
++	if (err < 0)
++		return err;
++	err = ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK, u3);
++	if (err < 0)
++		return err;
++	err = ctnetlink_parse_tuple(cda, &master_tuple, CTA_EXPECT_MASTER, u3);
++	if (err < 0)
++		return err;
++
++	/* Look for master conntrack of this expectation */
++	h = nf_conntrack_find_get(net, zone, &master_tuple);
++	if (!h)
++		return -ENOENT;
++	ct = nf_ct_tuplehash_to_ctrack(h);
++
++	if (cda[CTA_EXPECT_HELP_NAME]) {
++		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
++
++		helper = __nf_conntrack_helper_find(helpname, u3,
++						    nf_ct_protonum(ct));
++		if (helper == NULL) {
++#ifdef CONFIG_MODULES
++			if (request_module("nfct-helper-%s", helpname) < 0) {
++				err = -EOPNOTSUPP;
++				goto err_ct;
++			}
++			helper = __nf_conntrack_helper_find(helpname, u3,
++							    nf_ct_protonum(ct));
++			if (helper) {
++				err = -EAGAIN;
++				goto err_ct;
++			}
++#endif
++			err = -EOPNOTSUPP;
++			goto err_ct;
++		}
++	}
++
++	exp = ctnetlink_alloc_expect(cda, ct, helper, &tuple, &mask);
++	if (IS_ERR(exp)) {
++		err = PTR_ERR(exp);
++		goto err_ct;
++	}
++
++	err = nf_ct_expect_related_report(exp, portid, report);
++	if (err < 0)
++		goto err_exp;
++
++	return 0;
++err_exp:
++	nf_ct_expect_put(exp);
++err_ct:
++	nf_ct_put(ct);
+ 	return err;
+ }
+ 
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
+1.7.10.4
+
