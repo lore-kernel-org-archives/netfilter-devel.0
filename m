@@ -1,75 +1,51 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: state match incompatibilty across versions
-Date: Wed, 7 Aug 2013 16:44:49 -0700
-Message-ID: <20130807234449.GA22535@linuxace.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [PATCH RFC 0/5] netfilter: implement netfilter SYN proxy
+Date: Thu, 8 Aug 2013 02:04:12 +0200
+Message-ID: <20130808000412.GF32257@order.stressinduktion.org>
+References: <1375898766.4004.37.camel@edumazet-glaptop> <20130807205959.GC21463@macbook.localnet> <20130807210540.GE32257@order.stressinduktion.org> <20130807.164056.2110811182336568861.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="TB36FDmn/VVEgNH/"
-Cc: pablo@netfilter.org, ljlane@debian.org, jengelh@medozas.de
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:63894 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651Ab3HGXow (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Aug 2013 19:44:52 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb10so2730821pad.37
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2013 16:44:52 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8
+Cc: kaber@trash.net, eric.dumazet@gmail.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, jesper.brouer@gmail.com, as@one.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20130807.164056.2110811182336568861.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, Aug 07, 2013 at 04:40:56PM -0700, David Miller wrote:
+> From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+> Date: Wed, 7 Aug 2013 23:05:40 +0200
+> 
+> > It seems, Windows stopped using tcp timestamps at least in windows 8 by
+> > default.
+> 
+> Thankfully, Android device outnumber Windows 8 installs
+> by... something like 1,000 to 1, right?
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Heh, at minimum. :)
 
-As reported in Debian bug #718810 [1], state match rules added in < 1.4.16
-iptables versions are incorrectly displayed by >= 1.4.16 iptables versions.
-Issue bisected to commit 0d701631 (libxt_state: replace as an alias to
-xt_conntrack).
+> I throw a huge "doesn't matter" to whatever Windows's TCP stack
+> decides to do.  It absolutely should not dictate whether we decide to
+> make use of this or that feature of TCP.  It's a bit player at best.
+> 
+> So if Windows 8 is the reason you're saying we shouldn't use
+> timestamps for anything, you're wrong.
 
-Fix this by adding the missing .print and .save functions for state match
-aliases in the conntrack match.
+Actually, I don't care at all, because I don't do anything with windows
+and don't get paid by anyone who wants me to care. ;)
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+But if we switch to a similar scheme as freebsd we can even care
+less because even if some other operating systems or a major provider
+decides to disable timestamps on their devices, we would still have
+window scaling, sack (and ecn?) under syn dos. So, I do think it is an
+improvement and don't see any disadvantages.
 
-[1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=718810
+So, I don't care as long as the change (and siphash or maybe another
+hashing scheme) is secure enough...
 
+Greetings,
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-state
-
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 9f7b5db..128bbd2 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -1272,6 +1272,8 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
- 		.help          = state_help,
-+		.print         = state_print,
-+		.save          = state_save,
- 		.x6_parse      = state_ct1_parse,
- 		.x6_options    = state_opts,
- 	},
-@@ -1285,6 +1287,8 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
- 		.help          = state_help,
-+		.print         = state_print,
-+		.save          = state_save,
- 		.x6_parse      = state_ct23_parse,
- 		.x6_options    = state_opts,
- 	},
-@@ -1298,6 +1302,8 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
- 		.help          = state_help,
-+		.print         = state_print,
-+		.save          = state_save,
- 		.x6_parse      = state_ct23_parse,
- 		.x6_options    = state_opts,
- 	},
-
---TB36FDmn/VVEgNH/--
+  Hannes
