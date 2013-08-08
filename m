@@ -1,57 +1,87 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: iptables calls setsockopt incorrectly
-Date: Thu, 8 Aug 2013 19:29:02 +0200
-Message-ID: <20130808172902.GA11296@localhost>
-References: <CA+0KVf052HAN73aMrM95aosN-=49Esam1spX=sUyvd61sDYDRA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
+Subject: [PATCH nftables 1/2] netfilter: nf_tables: don't delete table if in use
+Date: Thu,  8 Aug 2013 19:54:30 +0200
+Message-ID: <1375984471-21035-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33160 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35285 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965704Ab3HHR3M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Aug 2013 13:29:12 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+0KVf052HAN73aMrM95aosN-=49Esam1spX=sUyvd61sDYDRA@mail.gmail.com>
+	id S965829Ab3HHRyt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Aug 2013 13:54:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Laurence,
+Return EBUSY if you try to delete a table that is in use.
 
-On Thu, Aug 08, 2013 at 01:25:46PM -0400, Laurence J. Lane wrote:
-> https://bugs.launchpad.net/ubuntu/+source/iptables/+bug/1187177
-> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=710997
-> 
-> 
-> ---------- Forwarded message ----------
-> From: LaMont Jones <lamont@debian.org>
-> Date: Mon, Jun 3, 2013 at 6:07 PM
-> Subject: Bug#710997: iptables calls setsockopt incorrectly
-> To: submit@bugs.debian.org
-> 
-> 
-> Package: iptables
-> Version: 1.4.18-1
-> Tags: patch
-> --
-> 
-> Since time immemorial, iptables has called setsockopt() and treated any
-> -1 return value as fatal.  Any system call can return EAGAIN or
-> EINPROGRESS (depending on the origins of the API), and good coding
-> practice requires checking for that and retrying or otherwise handling
-> it.
-> 
-> In the case of iptables, if multiple processes are calling iptables
-> concurrently, then it is likely that one of them will fail.  I have seen
-> this with xen, as well as certain firewall configurations where the
-> firewall rules are added as triggered by interfaces being discovered and
-> configured.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |    4 +++-
+ net/netfilter/nf_tables_api.c     |    8 ++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-We have these two patch for to address this in mainstream:
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 805490d..215edf5 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -440,8 +440,9 @@ extern unsigned int nft_do_chain_pktinfo(struct nft_pktinfo *pkt,
+  *	@list: used internally
+  *	@chains: chains in the table
+  *	@sets: sets in the table
+- *	@flags: table flag (see enum nft_table_flags)
+  *	@hgenerator: handle generator state
++ *	@use: number of chain references to this table
++ *	@flags: table flag (see enum nft_table_flags)
+  *	@name: name of the table
+  */
+ struct nft_table {
+@@ -449,6 +450,7 @@ struct nft_table {
+ 	struct list_head		chains;
+ 	struct list_head		sets;
+ 	u64				hgenerator;
++	u32				use;
+ 	u16				flags;
+ 	char				name[];
+ };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2b7bf88..c93ce18 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -448,6 +448,9 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
+ 	if (IS_ERR(table))
+ 		return PTR_ERR(table);
+ 
++	if (table->use)
++		return -EBUSY;
++
+ 	list_del(&table->list);
+ 	nf_tables_table_notify(skb, nlh, table, NFT_MSG_DELTABLE, family);
+ 	kfree(table);
+@@ -832,6 +835,9 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	if (IS_ERR(table))
+ 		return PTR_ERR(table);
+ 
++	if (table->use == UINT_MAX)
++		return -EOVERFLOW;
++
+ 	chain = NULL;
+ 	name = nla[NFTA_CHAIN_NAME];
+ 
+@@ -986,6 +992,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		}
+ 	}
+ 	list_add_tail(&chain->list, &table->chains);
++	table->use++;
+ notify:
+ 	nf_tables_chain_notify(skb, nlh, table, chain, NFT_MSG_NEWCHAIN,
+ 			       family);
+@@ -1031,6 +1038,7 @@ static int nf_tables_delchain(struct sock *nlsk, struct sk_buff *skb,
+ 		return -EBUSY;
+ 
+ 	list_del(&chain->list);
++	table->use--;
+ 
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    chain->flags & NFT_BASE_CHAIN)
+-- 
+1.7.10.4
 
-http://git.netfilter.org/iptables/commit/?id=93587a04d0f2511e108bbc4d87a8b9d28a5c5dd8
-http://git.netfilter.org/iptables/commit/?id=d7aeda5ed45ac7ca959f12180690caa371b5b14b
-
-Regards.
