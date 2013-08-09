@@ -1,45 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 6/7] netfilter: conntrack: don't send destroy events from
- iterator
-Date: Fri, 9 Aug 2013 12:08:34 +0200
-Message-ID: <20130809100834.GA7670@localhost>
-References: <1375105316-13216-1-git-send-email-fw@strlen.de>
- <1375105316-13216-7-git-send-email-fw@strlen.de>
- <20130731170436.GF25900@localhost>
- <20130731204359.GA27170@breakpoint.cc>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 01/13] src: expr: missing commas in json output
+ support
+Date: Fri, 09 Aug 2013 13:11:48 +0200
+Message-ID: <20130809111148.29819.95689.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric@regit.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53034 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934235Ab3HIKIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 06:08:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20130731204359.GA27170@breakpoint.cc>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:47644 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967445Ab3HILMA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Aug 2013 07:12:00 -0400
+Received: by mail-we0-f181.google.com with SMTP id p58so2591364wes.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:11:59 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 31, 2013 at 10:43:59PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Jul 29, 2013 at 03:41:55PM +0200, Florian Westphal wrote:
-> > > Let nf_ct_delete handle delivery of the DESTROY event.
-> > > 
-> > > This means we now also no longer send such events for conntracks that
-> > > are still unconfirmed.
-> > 
-> > Not sure why this happens by looking at the patch. Are you refering to
-> > conntrack with IPS_CONFIRMED unset?
-> 
-> Doh.  You are right of course.
-> 
-> get_next_corpse also iterates over the unconfirmed list, and ivokes
-> iter() for those (and iter is kill_report() which calls
-> nf_conntrack_event_report()).
-> 
-> But nf_conntrack_event_report() just returns in !IPS_CONFIRMED case.
-> 
-> Thanks for pointing it out.
+=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Removed that line from the description and applied this patch. Thanks Florian.
+Added missing commas in json output support
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/expr/meta.c |    2 +-
+ src/expr/nat.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index ac01732..8f163f6 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -208,7 +208,7 @@ nft_rule_expr_meta_snprintf(char *buf, size_t len, =
+uint32_t type,
+ 				meta->dreg, meta_key2str(meta->key));
+ 	case NFT_RULE_O_JSON:
+ 		return snprintf(buf, len, "\"dreg\" : %u, "
+-					  "\"key\" : %s",
++					  "\"key\" : \"%s\"",
+ 				meta->dreg, meta_key2str(meta->key));
+ 	default:
+ 		break;
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 4b7ec27..654d4d7 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -262,7 +262,7 @@ nft_rule_expr_nat_snprintf_json(char *buf, size_t s=
+ize,
+ 	if (nat->type =3D=3D NFT_NAT_SNAT)
+ 		ret =3D snprintf(buf, len, "\"nat_type\" : \"snat\", ");
+ 	else if (nat->type =3D=3D NFT_NAT_DNAT)
+-		ret =3D snprintf(buf, len, "\nat_type\" : \"dnat\", ");
++		ret =3D snprintf(buf, len, "\"nat_type\" : \"dnat\", ");
+=20
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
