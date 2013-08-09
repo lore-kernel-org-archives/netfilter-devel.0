@@ -1,8 +1,7 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 12/13] example: nft-rule-get: family parameter
- added
-Date: Fri, 09 Aug 2013 13:14:31 +0200
-Message-ID: <20130809111431.29819.64631.stgit@Ph0enix>
+Subject: [libnftables PATCH 13/13] jansson: Add nft_jansson_family function
+Date: Fri, 09 Aug 2013 13:14:46 +0200
+Message-ID: <20130809111446.29819.79492.stgit@Ph0enix>
 References: <20130809111148.29819.95689.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -10,84 +9,115 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:62296 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967573Ab3HILOl (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:64813 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967573Ab3HILO5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 07:14:41 -0400
-Received: by mail-wi0-f169.google.com with SMTP id f14so1629567wiw.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:14:40 -0700 (PDT)
+	Fri, 9 Aug 2013 07:14:57 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hj13so1518080wib.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:14:56 -0700 (PDT)
 In-Reply-To: <20130809111148.29819.95689.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-I have added the parameter family in the example nft-rule-get.
+Refactor some existing code with the new function nft_jansson_family
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- examples/nft-rule-get.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ src/chain.c    |   10 ++--------
+ src/internal.h |    1 +
+ src/jansson.c  |   18 ++++++++++++++++++
+ src/table.c    |    9 ++-------
+ 4 files changed, 23 insertions(+), 15 deletions(-)
 
-diff --git a/examples/nft-rule-get.c b/examples/nft-rule-get.c
-index 2404f27..e78a5cf 100644
---- a/examples/nft-rule-get.c
-+++ b/examples/nft-rule-get.c
-@@ -14,6 +14,7 @@
- #include <string.h>
- #include <netinet/in.h>
+diff --git a/src/chain.c b/src/chain.c
+index e2e6f90..a6d99ca 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -517,14 +517,8 @@ static int nft_chain_json_parse(struct nft_chain *=
+c, char *json)
 =20
-+#include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
+ 	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_PACKETS, uval64);
 =20
- #include <libmnl/libmnl.h>
-@@ -52,13 +53,31 @@ int main(int argc, char *argv[])
- 	struct nlmsghdr *nlh;
- 	uint32_t portid, seq, type =3D NFT_RULE_O_DEFAULT;
- 	struct nft_rule *t =3D NULL;
--	int ret;
-+	int ret, family;
+-	valstr =3D nft_jansson_value_parse_str(root, "family");
+-
+-	if (valstr =3D=3D NULL)
+-		goto err;
+-
+-	val32 =3D nft_str2family(valstr);
+-	if (val32 =3D=3D -1)
+-		goto err;
++	if (nft_jansson_parse_family(root, &val32) !=3D 0)
++		return -1;
 =20
--	if (argc =3D=3D 2 && strcmp(argv[1], "xml") =3D=3D 0 ){
-+	if (argc < 2 || argc > 3) {
-+		fprintf(stderr, "Usage: %s <family> [xml|json]\n",
-+			argv[0]);
-+		exit(EXIT_FAILURE);
+ 	nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_FAMILY, val32);
+=20
+diff --git a/src/internal.h b/src/internal.h
+index 17d1286..62eb3c5 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -49,6 +49,7 @@ int nft_jansson_value_parse_val(json_t *root, const c=
+har *tag,
+ const char *nft_jansson_value_parse_str(json_t *root, const char *tag)=
+;
+ bool nft_jansson_node_exist(json_t *root, const char *tag);
+ json_t *nft_jansson_get_root(char *json, const char *tag, json_error_t=
+ *err);
++int nft_jansson_parse_family(json_t *root, void *out);
+ #endif
+=20
+ const char *nft_family2str(uint32_t family);
+diff --git a/src/jansson.c b/src/jansson.c
+index 4c778d9..cc3ab23 100644
+--- a/src/jansson.c
++++ b/src/jansson.c
+@@ -90,4 +90,22 @@ json_t *nft_jansson_get_root(char *json, const char =
+*tag, json_error_t *err)
+=20
+ 	return root;
+ }
++int nft_jansson_parse_family(json_t *root, void *out)
++{
++	const char *str;
++	int family;
++
++	str =3D nft_jansson_value_parse_str(root, "family");
++	if (str =3D=3D NULL)
++		return -1;
++
++	family =3D nft_str2family(str);
++	if (family < 0) {
++		errno =3D EINVAL;
++		return -1;
 +	}
 +
-+	if (strcmp(argv[1], "ip") =3D=3D 0)
-+		family =3D NFPROTO_IPV4;
-+	else if (strcmp(argv[1], "ip6") =3D=3D 0)
-+		family =3D NFPROTO_IPV6;
-+	else if (strcmp(argv[1], "bridge") =3D=3D 0)
-+		family =3D NFPROTO_BRIDGE;
-+	else if (strcmp(argv[1], "arp") =3D=3D 0)
-+		family =3D NFPROTO_ARP;
-+	else {
-+		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (argc =3D=3D 3 && strcmp(argv[2], "xml") =3D=3D 0 )
- 		type =3D NFT_RULE_O_XML;
--	}else if (argc =3D=3D 2 && strcmp(argv[1], "json") =3D=3D 0 ){
-+	else if (argc =3D=3D 3 && strcmp(argv[2], "json") =3D=3D 0 )
- 		type =3D NFT_RULE_O_JSON;
--	}
++	memcpy(out, &family, sizeof(family));
++	return 0;
++}
+ #endif
+diff --git a/src/table.c b/src/table.c
+index 18d9077..1fa0dac 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -285,13 +285,8 @@ static int nft_table_json_parse(struct nft_table *=
+t, char *json)
 =20
- 	/* XXX requires table, chain and handle attributes for selective get =
-*/
+ 	nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, strdup(str));
 =20
-@@ -69,7 +88,7 @@ int main(int argc, char *argv[])
- 	}
+-	str =3D nft_jansson_value_parse_str(root, "family");
+-	if (str =3D=3D NULL)
+-		goto err;
+-
+-	family =3D nft_str2family(str);
+-	if (family < 0)
+-		goto err;
++	if (nft_jansson_parse_family(root, &family) !=3D 0)
++		return -1;
 =20
- 	seq =3D time(NULL);
--	nlh =3D nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, AF_INET,
-+	nlh =3D nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, family,
- 					NLM_F_DUMP, seq);
+ 	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FAMILY, family);
 =20
- 	nl =3D mnl_socket_open(NETLINK_NETFILTER);
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
