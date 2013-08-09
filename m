@@ -1,41 +1,34 @@
-From: Neal Cardwell <ncardwell@google.com>
-Subject: Re: [PATCH RFC 0/5] netfilter: implement netfilter SYN proxy
-Date: Fri, 9 Aug 2013 09:55:28 -0400
-Message-ID: <CADVnQy=WAiEAcVkB6c3NPATVnd+uAjE87QEWnomWUr4+Dy-fdg@mail.gmail.com>
-References: <1375898766.4004.37.camel@edumazet-glaptop>
-	<20130807205959.GC21463@macbook.localnet>
-	<20130807210540.GE32257@order.stressinduktion.org>
-	<20130807.164056.2110811182336568861.davem@davemloft.net>
-	<20130808000412.GF32257@order.stressinduktion.org>
-	<20130808001344.GA24450@macbook.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/4] Generalize DEBUGP macros
+Date: Fri, 9 Aug 2013 17:48:09 +0200
+Message-ID: <20130809154809.GA5147@localhost>
+References: <1374744229-5427-1-git-send-email-a.perevalov@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: David Miller <davem@davemloft.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-	mph@one.com, jesper.brouer@gmail.com, as@one.com
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Alexey Perevalov <a.perevalov@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:62921 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967825Ab3HINz3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 09:55:29 -0400
-Received: by mail-ea0-f170.google.com with SMTP id h14so2048158eak.15
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 06:55:28 -0700 (PDT)
-In-Reply-To: <20130808001344.GA24450@macbook.localnet>
+Received: from mail.us.es ([193.147.175.20]:57161 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967964Ab3HIPsU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Aug 2013 11:48:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1374744229-5427-1-git-send-email-a.perevalov@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> It seems, Windows stopped using tcp timestamps at least in windows 8 by
-> default.
+Hi Alexey,
 
-I agree we should not let the Windows TCP stack behavior dictate the
-approach, but just wanted to point out that it's not just Windows 8
-that lacks timestamps. It's more that Windows 7 is about the only
-sizable Windows deployment that does use timestamps. Windows NT,
-Windows 2000, Windows XP, Windows Vista, and Windows 8 all do not use
-timestamps by default, and that adds up to about 30-40% of Internet
-clients, depending on who's measuring. Something to keep in mind.
+On Thu, Jul 25, 2013 at 01:23:45PM +0400, Alexey Perevalov wrote:
+> It's better to have one common header for keeping debug macro.
+> There are many files currently define they own trace macros (DEBUGP).
+> All of them are moved to DEBUGP from trace.h.
 
-neal
+I commented this with Jozsef, and I think that debugging enabled
+everywhere actually makes debugging harder that using selective
+debugging, as you may get debug messages that you don't actually want.
+
+Another alternative can be delete many of those DEBUGP, as I think
+they are useless these days.
+
+Regards.
