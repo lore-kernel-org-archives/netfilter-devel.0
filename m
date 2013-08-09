@@ -1,7 +1,7 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 05/13] expr: ct: optional output in ct
-Date: Fri, 09 Aug 2013 13:12:46 +0200
-Message-ID: <20130809111246.29819.71948.stgit@Ph0enix>
+Subject: [libnftables PATCH 06/13] json: bitwise: add missing node len
+Date: Fri, 09 Aug 2013 13:13:00 +0200
+Message-ID: <20130809111300.29819.10398.stgit@Ph0enix>
 References: <20130809111148.29819.95689.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,75 +9,62 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:42512 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967573Ab3HILMz (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41174 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967573Ab3HILNJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 07:12:55 -0400
-Received: by mail-wi0-f174.google.com with SMTP id j17so1516172wiw.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:12:54 -0700 (PDT)
+	Fri, 9 Aug 2013 07:13:09 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hj13so1515654wib.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:13:08 -0700 (PDT)
 In-Reply-To: <20130809111148.29819.95689.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Display direction and key if available
+I have added the len node in bitwise which was missing
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/expr/ct.c |   29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ src/expr/bitwise.c  |    5 +++--
+ src/expr/data_reg.c |    4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index 99448c6..f86fd4d 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -226,6 +226,30 @@ err:
- }
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index edc5a39..6c86acb 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -238,8 +238,9 @@ nft_rule_expr_bitwise_snprintf_json(char *buf, size=
+_t size,
+ 	int len =3D size, offset =3D 0, ret;
 =20
- static int
-+nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr=
- *e)
-+{
-+	int ret, len =3D size, offset =3D 0;
-+	struct nft_expr_ct *ct =3D nft_expr_data(e);
-+
-+	ret =3D snprintf(buf, size, "\"dreg\" : %u", ct->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
-+		ret =3D snprintf(buf+offset, size, ", \"key\" : \"%s\"",
-+						ctkey2str(ct->key));
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
-+		ret =3D snprintf(buf+offset, size, ", \"dir\" : %u", ct->dir);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+
-+}
-+
-+static int
- nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
- 			    uint32_t flags, struct nft_rule_expr *e)
- {
-@@ -241,10 +265,7 @@ nft_rule_expr_ct_snprintf(char *buf, size_t len, u=
-int32_t type,
- 					  "<dir>%u</dir>",
- 				ct->dreg, ctkey2str(ct->key), ct->dir);
- 	case NFT_RULE_O_JSON:
--		return snprintf(buf, len, "\"dreg\" : %u, "
--					  "\"key\" : \"%s\", "
--					  "\"dir\" : %u",
--				ct->dreg, ctkey2str(ct->key), ct->dir);
-+		return nft_expr_ct_snprintf_json(buf, len, e);
- 	default:
- 		break;
+ 	ret =3D snprintf(buf, len, "\"sreg\" : %u, "
+-				"\"dreg\" : %u, ",
+-		       bitwise->sreg, bitwise->dreg);
++				"\"dreg\" : %u, "
++				"\"len\" : %u, ",
++		       bitwise->sreg, bitwise->dreg, bitwise->len);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+=20
+ 	ret =3D snprintf(buf+offset, len, "\"mask\" : {");
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 825e474..4c354ef 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -250,10 +250,10 @@ nft_data_reg_value_snprintf_json(char *buf, size_=
+t size,
+ 			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 		}
+=20
+-		ret =3D snprintf(buf+offset, len, "\"");
++		ret =3D snprintf(buf+offset, len, "\", ");
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  	}
+-
++	offset -=3D 2;
+ 	ret =3D snprintf(buf+offset, len, "}");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
