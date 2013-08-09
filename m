@@ -1,7 +1,7 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 10/13] expr: nat: add nft_str2nat function
-Date: Fri, 09 Aug 2013 13:13:59 +0200
-Message-ID: <20130809111359.29819.5548.stgit@Ph0enix>
+Subject: [libnftables PATCH 11/13] expr: payload: add nft_str2base function
+Date: Fri, 09 Aug 2013 13:14:16 +0200
+Message-ID: <20130809111415.29819.19869.stgit@Ph0enix>
 References: <20130809111148.29819.95689.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,13 +9,13 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:43160 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967573Ab3HILOK (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:62670 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967573Ab3HILO1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 07:14:10 -0400
-Received: by mail-we0-f178.google.com with SMTP id u57so3469443wes.9
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:14:09 -0700 (PDT)
+	Fri, 9 Aug 2013 07:14:27 -0400
+Received: by mail-wi0-f179.google.com with SMTP id hr7so1513625wib.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:14:26 -0700 (PDT)
 In-Reply-To: <20130809111148.29819.95689.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -26,72 +26,76 @@ Add function that will be use in the JSON parser
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/expr/nat.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ src/expr/payload.c |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff --git a/src/expr/nat.c b/src/expr/nat.c
-index 654d4d7..c81dc7f 100644
---- a/src/expr/nat.c
-+++ b/src/expr/nat.c
-@@ -15,6 +15,7 @@
+diff --git a/src/expr/payload.c b/src/expr/payload.c
+index 34aee90..e32ae1b 100644
+--- a/src/expr/payload.c
++++ b/src/expr/payload.c
+@@ -13,6 +13,7 @@
+=20
  #include <stdio.h>
  #include <stdint.h>
- #include <limits.h>
 +#include <string.h>
- #include <errno.h>
+ #include <limits.h>
  #include <arpa/inet.h>
- #include <libmnl/libmnl.h>
-@@ -183,6 +184,17 @@ nft_rule_expr_nat_build(struct nlmsghdr *nlh, stru=
-ct nft_rule_expr *e)
- 				 htonl(nat->sreg_proto_max));
+ #include <errno.h>
+@@ -178,13 +179,27 @@ nft_rule_expr_payload_snprintf_json(char *buf, si=
+ze_t len, uint32_t flags,
+ 	return offset;
  }
 =20
-+static inline int nft_str2nat(const char *nat)
++static inline int nft_str2base(const char *base)
 +{
-+	if (strcmp(nat, "snat") =3D=3D 0)
-+		return NFT_NAT_SNAT;
-+	else if (strcmp(nat, "dnat") =3D=3D 0)
-+		return NFT_NAT_DNAT;
++	if (strcmp(base, "link") =3D=3D 0)
++		return NFT_PAYLOAD_LL_HEADER;
++	else if (strcmp(base, "network") =3D=3D 0)
++		return NFT_PAYLOAD_NETWORK_HEADER;
++	else if (strcmp(base, "transport") =3D=3D 0)
++		return NFT_PAYLOAD_TRANSPORT_HEADER;
 +	else {
 +		errno =3D EINVAL;
 +		return -1;
 +	}
 +}
-=20
- static int nft_rule_expr_nat_xml_parse(struct nft_rule_expr *e, mxml_n=
-ode_t *tree)
++
+ static int
+ nft_rule_expr_payload_xml_parse(struct nft_rule_expr *e, mxml_node_t *=
+tree)
  {
-@@ -190,19 +202,17 @@ static int nft_rule_expr_nat_xml_parse(struct nft=
-_rule_expr *e, mxml_node_t *tre
- 	struct nft_expr_nat *nat =3D nft_expr_data(e);
- 	const char *nat_type;
- 	int32_t reg;
--	int family;
-+	int family, nat_type_value;
+ #ifdef XML_PARSING
+ 	struct nft_expr_payload *payload =3D nft_expr_data(e);
+ 	const char *base_str;
+-	int32_t reg;
++	int32_t reg, base;
 =20
- 	nat_type =3D nft_mxml_str_parse(tree, "nat_type", MXML_DESCEND_FIRST)=
-;
- 	if (nat_type =3D=3D NULL)
+ 	reg =3D nft_mxml_reg_parse(tree, "dreg", MXML_DESCEND_FIRST);
+ 	if (reg < 0)
+@@ -197,14 +212,10 @@ nft_rule_expr_payload_xml_parse(struct nft_rule_e=
+xpr *e, mxml_node_t *tree)
+ 	if (base_str =3D=3D NULL)
  		return -1;
 =20
--	if (strcmp(nat_type, "snat") =3D=3D 0) {
--		nat->type =3D NFT_NAT_SNAT;
--	} else if (strcmp(nat_type, "dnat") =3D=3D 0) {
--		nat->type =3D NFT_NAT_DNAT;
--	} else
+-	if (strcmp(base_str, "link") =3D=3D 0)
+-		payload->base =3D NFT_PAYLOAD_LL_HEADER;
+-	else if (strcmp(base_str, "network") =3D=3D 0)
+-		payload->base =3D NFT_PAYLOAD_NETWORK_HEADER;
+-	else if (strcmp(base_str, "transport") =3D=3D 0)
+-		payload->base =3D NFT_PAYLOAD_TRANSPORT_HEADER;
+-	else
 -		goto err;
-+	nat_type_value =3D nft_str2nat(nat_type);
-+	if (nat_type_value < 0)
++	base =3D nft_str2base(base_str);
++
++	if (base < 0)
 +		return -1;
 =20
-+	nat->type =3D nat_type_value;
- 	e->flags |=3D (1 << NFT_EXPR_NAT_TYPE);
+ 	e->flags |=3D (1 << NFT_EXPR_PAYLOAD_BASE);
 =20
- 	family =3D nft_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST);
-@@ -243,9 +253,6 @@ static int nft_rule_expr_nat_xml_parse(struct nft_r=
-ule_expr *e, mxml_node_t *tre
- 	e->flags |=3D (1 << NFT_EXPR_NAT_REG_PROTO_MAX);
+@@ -220,9 +231,6 @@ nft_rule_expr_payload_xml_parse(struct nft_rule_exp=
+r *e, mxml_node_t *tree)
 =20
+ 	e->flags |=3D (1 << NFT_EXPR_PAYLOAD_LEN);
  	return 0;
 -err:
 -	errno =3D EINVAL;
