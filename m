@@ -1,7 +1,7 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 09/13] expr: cmp: add nft_str2cmp function
-Date: Fri, 09 Aug 2013 13:13:45 +0200
-Message-ID: <20130809111345.29819.80871.stgit@Ph0enix>
+Subject: [libnftables PATCH 10/13] expr: nat: add nft_str2nat function
+Date: Fri, 09 Aug 2013 13:13:59 +0200
+Message-ID: <20130809111359.29819.5548.stgit@Ph0enix>
 References: <20130809111148.29819.95689.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,13 +9,13 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:46230 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967573Ab3HILNz (ORCPT
+Received: from mail-we0-f178.google.com ([74.125.82.178]:43160 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967573Ab3HILOK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 07:13:55 -0400
-Received: by mail-wg0-f51.google.com with SMTP id a12so3398572wgh.6
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:13:54 -0700 (PDT)
+	Fri, 9 Aug 2013 07:14:10 -0400
+Received: by mail-we0-f178.google.com with SMTP id u57so3469443wes.9
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 04:14:09 -0700 (PDT)
 In-Reply-To: <20130809111148.29819.95689.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -26,74 +26,79 @@ Add function that will be use in the JSON parser
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/expr/cmp.c |   38 ++++++++++++++++++++++++--------------
- 1 file changed, 24 insertions(+), 14 deletions(-)
+ src/expr/nat.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 291ebcd..8ca4cb5 100644
---- a/src/expr/cmp.c
-+++ b/src/expr/cmp.c
-@@ -154,12 +154,32 @@ static char *expr_cmp_str[] =3D {
- 	[NFT_CMP_GTE]	=3D "gte",
- };
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 654d4d7..c81dc7f 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -15,6 +15,7 @@
+ #include <stdio.h>
+ #include <stdint.h>
+ #include <limits.h>
++#include <string.h>
+ #include <errno.h>
+ #include <arpa/inet.h>
+ #include <libmnl/libmnl.h>
+@@ -183,6 +184,17 @@ nft_rule_expr_nat_build(struct nlmsghdr *nlh, stru=
+ct nft_rule_expr *e)
+ 				 htonl(nat->sreg_proto_max));
+ }
 =20
-+static inline int nft_str2cmp(const char *op)
++static inline int nft_str2nat(const char *nat)
 +{
-+	if (strcmp(op, "eq") =3D=3D 0)
-+		return NFT_CMP_EQ;
-+	else if (strcmp(op, "neq") =3D=3D 0)
-+		return NFT_CMP_NEQ;
-+	else if (strcmp(op, "lt") =3D=3D 0)
-+		return NFT_CMP_LT;
-+	else if (strcmp(op, "lte") =3D=3D 0)
-+		return NFT_CMP_LTE;
-+	else if (strcmp(op, "gt") =3D=3D 0)
-+		return NFT_CMP_GT;
-+	else if (strcmp(op, "gte") =3D=3D 0)
-+		return NFT_CMP_GTE;
++	if (strcmp(nat, "snat") =3D=3D 0)
++		return NFT_NAT_SNAT;
++	else if (strcmp(nat, "dnat") =3D=3D 0)
++		return NFT_NAT_DNAT;
 +	else {
 +		errno =3D EINVAL;
 +		return -1;
 +	}
 +}
-+
- static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_n=
+=20
+ static int nft_rule_expr_nat_xml_parse(struct nft_rule_expr *e, mxml_n=
 ode_t *tree)
  {
- #ifdef XML_PARSING
- 	struct nft_expr_cmp *cmp =3D nft_expr_data(e);
- 	const char *op;
--	int32_t reg;
-+	int32_t reg, op_value;
-=20
- 	reg =3D nft_mxml_reg_parse(tree, "sreg", MXML_DESCEND_FIRST);
- 	if (reg < 0)
-@@ -172,21 +192,11 @@ static int nft_rule_expr_cmp_xml_parse(struct nft=
+@@ -190,19 +202,17 @@ static int nft_rule_expr_nat_xml_parse(struct nft=
 _rule_expr *e, mxml_node_t *tre
- 	if (op =3D=3D NULL)
+ 	struct nft_expr_nat *nat =3D nft_expr_data(e);
+ 	const char *nat_type;
+ 	int32_t reg;
+-	int family;
++	int family, nat_type_value;
+=20
+ 	nat_type =3D nft_mxml_str_parse(tree, "nat_type", MXML_DESCEND_FIRST)=
+;
+ 	if (nat_type =3D=3D NULL)
  		return -1;
 =20
--	if (strcmp(op, "eq") =3D=3D 0)
--		cmp->op =3D NFT_CMP_EQ;
--	else if (strcmp(op, "neq") =3D=3D 0)
--		cmp->op =3D NFT_CMP_NEQ;
--	else if (strcmp(op, "lt") =3D=3D 0)
--		cmp->op =3D NFT_CMP_LT;
--	else if (strcmp(op, "lte") =3D=3D 0)
--		cmp->op =3D NFT_CMP_LTE;
--	else if (strcmp(op, "gt") =3D=3D 0)
--		cmp->op =3D NFT_CMP_GT;
--	else if (strcmp(op, "gte") =3D=3D 0)
--		cmp->op =3D NFT_CMP_GTE;
--	else
-+	op_value =3D nft_str2cmp(op);
-+	if (op_value < 0)
- 		return -1;
+-	if (strcmp(nat_type, "snat") =3D=3D 0) {
+-		nat->type =3D NFT_NAT_SNAT;
+-	} else if (strcmp(nat_type, "dnat") =3D=3D 0) {
+-		nat->type =3D NFT_NAT_DNAT;
+-	} else
+-		goto err;
++	nat_type_value =3D nft_str2nat(nat_type);
++	if (nat_type_value < 0)
++		return -1;
 =20
-+	cmp->op =3D op_value;
- 	e->flags |=3D (1 << NFT_EXPR_CMP_OP);
++	nat->type =3D nat_type_value;
+ 	e->flags |=3D (1 << NFT_EXPR_NAT_TYPE);
 =20
- 	if (nft_mxml_data_reg_parse(tree, "cmpdata",
+ 	family =3D nft_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST);
+@@ -243,9 +253,6 @@ static int nft_rule_expr_nat_xml_parse(struct nft_r=
+ule_expr *e, mxml_node_t *tre
+ 	e->flags |=3D (1 << NFT_EXPR_NAT_REG_PROTO_MAX);
+=20
+ 	return 0;
+-err:
+-	errno =3D EINVAL;
+-	return -1;
+ #else
+ 	errno =3D EOPNOTSUPP;
+ 	return -1;
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
