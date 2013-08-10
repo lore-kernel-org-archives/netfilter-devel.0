@@ -1,147 +1,303 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 1/2] src: expr: use the function base2str in
- payload.
-Date: Sat, 10 Aug 2013 21:40:39 +0200
-Message-ID: <20130810194039.18629.89549.stgit@Ph0enix>
+Subject: [libnftables PATCH 2/2] test: compare content parsing with original
+ file content.
+Date: Sat, 10 Aug 2013 21:40:51 +0200
+Message-ID: <20130810194051.18629.33864.stgit@Ph0enix>
+References: <20130810194039.18629.89549.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:42425 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175Ab3HJTks (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:62409 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175Ab3HJTlB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Aug 2013 15:40:48 -0400
-Received: by mail-wg0-f48.google.com with SMTP id f12so4334525wgh.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Aug 2013 12:40:46 -0700 (PDT)
+	Sat, 10 Aug 2013 15:41:01 -0400
+Received: by mail-wg0-f42.google.com with SMTP id j13so622286wgh.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Aug 2013 12:41:00 -0700 (PDT)
+In-Reply-To: <20130810194039.18629.89549.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Use base2str to refactor code in the function snprintf in payload.
+Before, we have tested only if we have parsed some file but we hadn't t=
+ested if the content is OK.
+Now, we can test if we can parse some file and if the object's info is =
+the same than the content
+in the test files.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/expr/payload.c |   80 ++++++++++++++++----------------------------=
---------
- 1 file changed, 24 insertions(+), 56 deletions(-)
+ tests/nft-parsing-test.c |  186 ++++++++++++++++++++++++++++++++++++++=
+++++----
+ 1 file changed, 170 insertions(+), 16 deletions(-)
 
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index d00988a..340a0d8 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -149,31 +149,31 @@ nft_rule_expr_payload_parse(struct nft_rule_expr =
-*e, struct nlattr *attr)
- 	return 0;
- }
+diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
+index e111fd0..f9cfcdf 100644
+--- a/tests/nft-parsing-test.c
++++ b/tests/nft-parsing-test.c
+@@ -19,6 +19,138 @@
+ #include <jansson.h>
+ #endif
 =20
-+static char *base2str_array[NFT_PAYLOAD_TRANSPORT_HEADER+1] =3D {
-+	[NFT_PAYLOAD_LL_HEADER]		=3D "link",
-+	[NFT_PAYLOAD_NETWORK_HEADER] 	=3D "network",
-+	[NFT_PAYLOAD_TRANSPORT_HEADER]	=3D "transport",
++enum {
++	TEST_XML_TABLE =3D 0,
++	TEST_XML_CHAIN,
++	TEST_XML_RULE,
++	TEST_XML_SET,
++	TEST_JSON_TABLE,
++	TEST_JSON_CHAIN,
++	TEST_JSON_RULE,
++	TEST_JSON_SET,
 +};
 +
-+static const char *base2str(enum nft_payload_bases base)
++#if defined(XML_PARSING) || defined(JSON_PARSING)
++static void print_detail_error(char *a, char *b)
 +{
-+	if (base > NFT_PAYLOAD_TRANSPORT_HEADER)
-+		return "unknown";
++	int i;
++	int from =3D -1;
 +
-+	return base2str_array[base];
++	for (i =3D 0; i < strlen(b); i++) {
++		if (from =3D=3D -1 && a[i] !=3D b[i]) {
++			from =3D i;
++			break;
++
++		}
++	}
++
++	if (from !=3D -1) {
++		int k =3D from - 10;
++
++		if (k < 0)
++			k =3D 0;
++
++		fprintf(stderr, "from file:     ");
++		for (i =3D k; i < from + 10; i++)
++			fprintf(stderr, "%c", a[i]);
++
++		fprintf(stderr, "\nfrom snprintf: ");
++		for (i =3D k; i < from + 10; i++)
++			fprintf(stderr, "%c", b[i]);
++
++		/* Don't look twice below this comment ;-) */
++		fprintf(stderr, "\n               ");
++		for (i =3D k; i < from + 10; i++) {
++			if (i =3D=3D from)
++				fprintf(stderr, "^");
++			else
++				fprintf(stderr, " ");
++		}
++		fprintf(stderr, "\n");
++	}
 +}
 +
- static int
- nft_rule_expr_payload_snprintf_json(char *buf, size_t len, uint32_t fl=
-ags,
- 				   struct nft_expr_payload *p)
++static int compare_test(uint32_t type, void *input, const char *filena=
+me)
++{
++	struct nft_table *t =3D NULL;
++	struct nft_chain *c =3D NULL;
++	struct nft_rule *r =3D NULL;
++	struct nft_set *s =3D NULL;
++	char orig[4096];
++	char out[4096];
++	FILE *fp;
++
++	switch (type) {
++	case TEST_XML_TABLE:
++	case TEST_JSON_TABLE:
++		t =3D (struct nft_table *)input;
++		break;
++	case TEST_XML_CHAIN:
++	case TEST_JSON_CHAIN:
++		c =3D (struct nft_chain *)input;
++		break;
++	case TEST_XML_RULE:
++	case TEST_JSON_RULE:
++		r =3D (struct nft_rule *)input;
++		break;
++	case TEST_XML_SET:
++	case TEST_JSON_SET:
++		s =3D (struct nft_set *)input;
++		break;
++	default:
++		errno =3D EINVAL;
++		return -1;
++	}
++
++	switch (type) {
++	case TEST_XML_TABLE:
++		nft_table_snprintf(out, sizeof(out), t, NFT_TABLE_O_XML, 0);
++		break;
++	case TEST_JSON_TABLE:
++		nft_table_snprintf(out, sizeof(out), t, NFT_TABLE_O_JSON, 0);
++		break;
++	case TEST_XML_CHAIN:
++		nft_chain_snprintf(out, sizeof(out), c, NFT_CHAIN_O_XML, 0);
++		break;
++	case TEST_JSON_CHAIN:
++		nft_chain_snprintf(out, sizeof(out), c, NFT_CHAIN_O_JSON, 0);
++		break;
++	case TEST_XML_RULE:
++		nft_rule_snprintf(out, sizeof(out), r, NFT_RULE_O_XML, 0);
++		break;
++	case TEST_JSON_RULE:
++		nft_rule_snprintf(out, sizeof(out), r, NFT_RULE_O_JSON, 0);
++		break;
++	case TEST_XML_SET:
++		nft_set_snprintf(out, sizeof(out), s, NFT_SET_O_XML, 0);
++		break;
++	case TEST_JSON_SET:
++		nft_set_snprintf(out, sizeof(out), s, NFT_SET_O_JSON, 0);
++		break;
++	default:
++		errno =3D EINVAL;
++		return -1;
++	}
++
++	fp =3D fopen(filename, "r");
++	if (fp =3D=3D NULL) {
++		perror("open");
++		exit(EXIT_FAILURE);
++	}
++
++	fgets(orig, sizeof(orig), fp);
++	fclose(fp);
++
++	if (strncmp(orig, out, strlen(out)) =3D=3D 0)
++		return 0;
++
++	printf("matching %s: ", filename);
++	printf("\033[31mFAILED\e[0m (%s)\n", strerror(errno));
++	print_detail_error(orig, out);
++	return -1;
++}
++#endif
++
+ static int test_json(const char *filename)
  {
- 	int size =3D len, offset =3D 0, ret;
+ #ifdef JSON_PARSING
+@@ -44,7 +176,9 @@ static int test_json(const char *filename)
+ 		t =3D nft_table_alloc();
+ 		if (t !=3D NULL) {
+ 			if (nft_table_parse(t, NFT_TABLE_PARSE_JSON, json) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_JSON_TABLE, t, filename);
++			else
++				goto failparsing;
 =20
--	ret =3D snprintf(buf, len, "\"dreg\" : %u, \"offset\" : %u, \"len\" :=
- %u, ",
--					p->dreg, p->offset, p->len);
--	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--
--	switch (p->base) {
--	case NFT_PAYLOAD_LL_HEADER:
--		ret =3D snprintf(buf+offset, len, "\"base\" : \"link\"");
--		break;
--	case NFT_PAYLOAD_NETWORK_HEADER:
--		ret =3D snprintf(buf+offset, len, "\"base\" : \"network\"");
--		break;
--	case NFT_PAYLOAD_TRANSPORT_HEADER:
--		ret =3D snprintf(buf+offset, len, "\"base\" : \"transport\"");
--		break;
--	default:
--		ret =3D snprintf(buf+offset, len, "\"base\" : \"unknown\"");
--		break;
--	}
--
-+	ret =3D snprintf(buf, len, "\"dreg\" : %u, "
-+				 "\"offset\" : %u, "
-+				 "\"len\" : %u, "
-+				 "\"base\" : \"%s\"",
-+		       p->dreg, p->offset, p->len, base2str(p->base));
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 			nft_table_free(t);
+ 		}
+@@ -52,13 +186,23 @@ static int test_json(const char *filename)
+ 		c =3D nft_chain_alloc();
+ 		if (c !=3D NULL) {
+ 			if (nft_chain_parse(c, NFT_CHAIN_PARSE_JSON, json) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_JSON_CHAIN, c, filename);
++			else
++				goto failparsing;
 =20
- 	return offset;
-@@ -243,48 +243,16 @@ nft_rule_expr_payload_snprintf_xml(char *buf, siz=
-e_t len, uint32_t flags,
- {
- 	int size =3D len, offset =3D 0, ret;
+ 			nft_chain_free(c);
+ 		}
+ 	}
 =20
--	ret =3D snprintf(buf, len, "<dreg>%u</dreg><offset>%u</offset>"
--		       "<len>%u</len>", p->dreg, p->offset, p->len);
--	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--
--	/* A default option is not provided.
--	 * The <base> node will be missing; Is not mandatory.
--	 */
--
--	switch (p->base) {
--	case NFT_PAYLOAD_LL_HEADER:
--		ret =3D snprintf(buf+offset, len, "<base>link</base>");
--		break;
--	case NFT_PAYLOAD_NETWORK_HEADER:
--		ret =3D snprintf(buf+offset, len, "<base>network</base>");
--		break;
--	case NFT_PAYLOAD_TRANSPORT_HEADER:
--		ret =3D snprintf(buf+offset, len, "<base>transport</base>");
--		break;
--	default:
--		ret =3D snprintf(buf+offset, len, "<base>unknown</base>");
--		break;
--	}
--
-+	ret =3D snprintf(buf, len, "<dreg>%u</dreg>"
-+				 "<offset>%u</offset>"
-+				 "<len>%u</len>"
-+				 "<base>%s</base>",
-+		       p->dreg, p->offset, p->len, base2str(p->base));
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	free(root);
+ 	return ret;
++
++failparsing:
++	printf("parsing %s: ", filename);
++	printf("\033[31mFAILED\e[0m (%s)\n",
++	strerror(errno));
++	free(root);
++	return -1;
+ #else
+ 	errno =3D EOPNOTSUPP;
+ 	return -1;
+@@ -93,7 +237,9 @@ static int test_xml(const char *filename)
+ 		t =3D nft_table_alloc();
+ 		if (t !=3D NULL) {
+ 			if (nft_table_parse(t, NFT_TABLE_PARSE_XML, xml) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_XML_TABLE, t, filename);
++			else
++				goto failparsing;
 =20
- 	return offset;
- }
+ 			nft_table_free(t);
+ 		}
+@@ -101,7 +247,9 @@ static int test_xml(const char *filename)
+ 		c =3D nft_chain_alloc();
+ 		if (c !=3D NULL) {
+ 			if (nft_chain_parse(c, NFT_CHAIN_PARSE_XML, xml) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_XML_CHAIN, c, filename);
++			else
++				goto failparsing;
 =20
--static char *base2str_array[NFT_PAYLOAD_TRANSPORT_HEADER+1] =3D {
--	[NFT_PAYLOAD_LL_HEADER]		=3D "link",
--	[NFT_PAYLOAD_NETWORK_HEADER] 	=3D "network",
--	[NFT_PAYLOAD_TRANSPORT_HEADER]	=3D "transport",
--};
--
--static const char *base2str(enum nft_payload_bases base)
--{
--	if (base > NFT_PAYLOAD_TRANSPORT_HEADER)
--		return "unknown";
--
--	return base2str_array[base];
--}
--
- static int
- nft_rule_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
- 			       uint32_t flags, struct nft_rule_expr *e)
+ 			nft_chain_free(c);
+ 		}
+@@ -109,7 +257,9 @@ static int test_xml(const char *filename)
+ 		r =3D nft_rule_alloc();
+ 		if (r !=3D NULL) {
+ 			if (nft_rule_parse(r, NFT_RULE_PARSE_XML, xml) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_XML_RULE, r, filename);
++			else
++				goto failparsing;
+=20
+ 			nft_rule_free(r);
+ 		}
+@@ -117,13 +267,21 @@ static int test_xml(const char *filename)
+ 		s =3D nft_set_alloc();
+ 		if (s !=3D NULL) {
+ 			if (nft_set_parse(s, NFT_SET_PARSE_XML, xml) =3D=3D 0)
+-				ret =3D 0;
++				ret =3D compare_test(TEST_XML_SET, s, filename);
++			else
++				goto failparsing;
+=20
+ 			nft_set_free(s);
+ 		}
+ 	}
+=20
+ 	return ret;
++
++failparsing:
++	printf("parsing %s: ", filename);
++	printf("\033[31mFAILED\e[0m (%s)\n",
++	strerror(errno));
++	return -1;
+ #else
+ 	errno =3D EOPNOTSUPP;
+ 	return -1;
+@@ -157,20 +315,16 @@ int main(int argc, char *argv[])
+ 		snprintf(path, sizeof(path), "%s/%s", argv[1], dent->d_name);
+=20
+ 		if (strcmp(&dent->d_name[len-4], ".xml") =3D=3D 0) {
+-			printf("parsing %s: ", path);
+-			if (test_xml(path) < 0)
+-				printf("\033[31mFAILED\e[0m (%s)\n",
+-					strerror(errno));
+-			else
++			if (test_xml(path) =3D=3D 0) {
++				printf("parsing and matching %s: ", path);
+ 				printf("\033[32mOK\e[0m\n");
++			}
+ 		}
+ 		if (strcmp(&dent->d_name[len-5], ".json") =3D=3D 0) {
+-			printf("parsing %s: ", path);
+-			if (test_json(path) < 0)
+-				printf("\033[31mFAILED\e[0m (%s)\n",
+-					strerror(errno));
+-			else
++			if (test_json(path) =3D=3D 0) {
++				printf("parsing and matching %s: ", path);
+ 				printf("\033[32mOK\e[0m\n");
++			}
+ 		}
+ 	}
+=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
