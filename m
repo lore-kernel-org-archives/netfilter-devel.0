@@ -1,87 +1,47 @@
-From: Yuchung Cheng <ycheng@google.com>
-Subject: [PATCH] netfilter: nf_conntrack: fix tcp_in_window for Fast Open
-Date: Fri,  9 Aug 2013 17:21:27 -0700
-Message-ID: <1376094087-17700-1-git-send-email-ycheng@google.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	edumazet@google.com, Yuchung Cheng <ycheng@google.com>
-To: pablo@netfilter.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix tcp_in_window for Fast Open
+Date: Fri, 09 Aug 2013 17:25:45 -0700
+Message-ID: <1376094345.20509.17.camel@edumazet-glaptop>
+References: <1376094087-17700-1-git-send-email-ycheng@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Yuchung Cheng <ycheng@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:52649 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758329Ab3HJAV4 (ORCPT
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:51123 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967892Ab3HJAZr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 20:21:56 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z20so511362yhz.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Aug 2013 17:21:56 -0700 (PDT)
+	Fri, 9 Aug 2013 20:25:47 -0400
+In-Reply-To: <1376094087-17700-1-git-send-email-ycheng@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the conntrack checks if the ending sequence of a packet
-falls within the observed receive window. However it does so even
-if it has not observe any packet from the remote yet and uses an
-uninitialized receive window (td_maxwin).
+On Fri, 2013-08-09 at 17:21 -0700, Yuchung Cheng wrote:
+> Currently the conntrack checks if the ending sequence of a packet
+> falls within the observed receive window. However it does so even
+> if it has not observe any packet from the remote yet and uses an
+> uninitialized receive window (td_maxwin).
+> 
+> If a connection uses Fast Open to send a SYN-data packet which is
+> dropped afterward in the network. The subsequent SYNs retransmits
+> will all fail this check and be discarded, leading to a connection
+> timeout. This is because the SYN retransmit does not contain data
+> payload so
+> 
+> end == initial sequence number (isn) + 1
+> sender->td_end == isn + syn_data_len
+> receiver->td_maxwin == 0
+> 
+> The fix is to only apply this check after td_maxwin is initialized.
+> 
+> Reported-by: Michael Chan <mcfchan@stanford.edu>
+> Signed-off-by: Yuchung Cheng <ycheng@google.com>
+> ---
 
-If a connection uses Fast Open to send a SYN-data packet which is
-dropped afterward in the network. The subsequent SYNs retransmits
-will all fail this check and be discarded, leading to a connection
-timeout. This is because the SYN retransmit does not contain data
-payload so
+Acked-by: Eric Dumazet <edumazet@google.com>
 
-end == initial sequence number (isn) + 1
-sender->td_end == isn + syn_data_len
-receiver->td_maxwin == 0
 
-The fix is to only apply this check after td_maxwin is initialized.
-
-Reported-by: Michael Chan <mcfchan@stanford.edu>
-Signed-off-by: Yuchung Cheng <ycheng@google.com>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 4d4d8f1..e0f9a32 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -526,7 +526,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
- 	__u32 seq, ack, sack, end, win, swin;
- 	s16 receiver_offset;
--	bool res;
-+	bool res, in_recv_win;
- 
- 	/*
- 	 * Get the required data from the packet.
-@@ -649,14 +649,18 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
- 		 receiver->td_scale);
- 
-+	/* Is the ending sequence in the receive window (if available)? */
-+	in_recv_win = !receiver->td_maxwin ||
-+		      after(end, sender->td_end - receiver->td_maxwin - 1);
-+
- 	pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
- 		 before(seq, sender->td_maxend + 1),
--		 after(end, sender->td_end - receiver->td_maxwin - 1),
-+		 (in_recv_win ? 1 : 0),
- 		 before(sack, receiver->td_end + 1),
- 		 after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
- 
- 	if (before(seq, sender->td_maxend + 1) &&
--	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
-+	    in_recv_win &&
- 	    before(sack, receiver->td_end + 1) &&
- 	    after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
- 		/*
-@@ -725,7 +729,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
- 			"nf_ct_tcp: %s ",
- 			before(seq, sender->td_maxend + 1) ?
--			after(end, sender->td_end - receiver->td_maxwin - 1) ?
-+			in_recv_win ?
- 			before(sack, receiver->td_end + 1) ?
- 			after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1) ? "BUG"
- 			: "ACK is under the lower bound (possible overly delayed ACK)"
--- 
-1.8.3
 
