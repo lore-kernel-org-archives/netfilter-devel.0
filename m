@@ -1,25 +1,25 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix tcp_in_window for Fast Open
-Date: Fri, 09 Aug 2013 17:25:45 -0700
-Message-ID: <1376094345.20509.17.camel@edumazet-glaptop>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix tcp_in_window for Fast
+ Open
+Date: Sat, 10 Aug 2013 15:01:36 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1308101501070.5256@blackhole.kfki.hu>
 References: <1376094087-17700-1-git-send-email-ycheng@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+	netdev@vger.kernel.org, edumazet@google.com
 To: Yuchung Cheng <ycheng@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:51123 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967892Ab3HJAZr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Aug 2013 20:25:47 -0400
+Received: from smtp0.kfki.hu ([148.6.0.25]:43045 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933222Ab3HJNBj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 10 Aug 2013 09:01:39 -0400
 In-Reply-To: <1376094087-17700-1-git-send-email-ycheng@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2013-08-09 at 17:21 -0700, Yuchung Cheng wrote:
+On Fri, 9 Aug 2013, Yuchung Cheng wrote:
+
 > Currently the conntrack checks if the ending sequence of a packet
 > falls within the observed receive window. However it does so even
 > if it has not observe any packet from the remote yet and uses an
@@ -39,9 +39,67 @@ On Fri, 2013-08-09 at 17:21 -0700, Yuchung Cheng wrote:
 > 
 > Reported-by: Michael Chan <mcfchan@stanford.edu>
 > Signed-off-by: Yuchung Cheng <ycheng@google.com>
+
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
 > ---
+>  net/netfilter/nf_conntrack_proto_tcp.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 4d4d8f1..e0f9a32 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -526,7 +526,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+>  	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
+>  	__u32 seq, ack, sack, end, win, swin;
+>  	s16 receiver_offset;
+> -	bool res;
+> +	bool res, in_recv_win;
+>  
+>  	/*
+>  	 * Get the required data from the packet.
+> @@ -649,14 +649,18 @@ static bool tcp_in_window(const struct nf_conn *ct,
+>  		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
+>  		 receiver->td_scale);
+>  
+> +	/* Is the ending sequence in the receive window (if available)? */
+> +	in_recv_win = !receiver->td_maxwin ||
+> +		      after(end, sender->td_end - receiver->td_maxwin - 1);
+> +
+>  	pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
+>  		 before(seq, sender->td_maxend + 1),
+> -		 after(end, sender->td_end - receiver->td_maxwin - 1),
+> +		 (in_recv_win ? 1 : 0),
+>  		 before(sack, receiver->td_end + 1),
+>  		 after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
+>  
+>  	if (before(seq, sender->td_maxend + 1) &&
+> -	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
+> +	    in_recv_win &&
+>  	    before(sack, receiver->td_end + 1) &&
+>  	    after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
+>  		/*
+> @@ -725,7 +729,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+>  			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+>  			"nf_ct_tcp: %s ",
+>  			before(seq, sender->td_maxend + 1) ?
+> -			after(end, sender->td_end - receiver->td_maxwin - 1) ?
+> +			in_recv_win ?
+>  			before(sack, receiver->td_end + 1) ?
+>  			after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1) ? "BUG"
+>  			: "ACK is under the lower bound (possible overly delayed ACK)"
+> -- 
+> 1.8.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Acked-by: Eric Dumazet <edumazet@google.com>
-
-
-
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
