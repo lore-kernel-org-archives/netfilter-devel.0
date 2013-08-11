@@ -1,42 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] netfilter fixes for 3.11-rc4
-Date: Sat, 10 Aug 2013 13:44:50 -0700 (PDT)
-Message-ID: <20130810.134450.2199692509367745432.davem@davemloft.net>
-References: <1376153933-5747-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 2/2] test: compare content parsing with
+ original file content.
+Date: Sun, 11 Aug 2013 09:47:13 +0200
+Message-ID: <20130811074713.GA3864@localhost>
+References: <20130810194039.18629.89549.stgit@Ph0enix>
+ <20130810194051.18629.33864.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, eric@regit.org
+To: Alvaro Neira <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:33557 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758792Ab3HJUov (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Aug 2013 16:44:51 -0400
-In-Reply-To: <1376153933-5747-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:47029 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750986Ab3HKHrZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Aug 2013 03:47:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20130810194051.18629.33864.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 10 Aug 2013 18:58:49 +0200
+On Sat, Aug 10, 2013 at 09:40:51PM +0200, Alvaro Neira wrote:
+> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
+>=20
+> Before, we have tested only if we have parsed some file but we
+> hadn't tested if the content is OK.  Now, we can test if we can
+> parse some file and if the object's info is the same than the
+> content in the test files.
 
-> The following patchset contains four netfilter fixes, they are:
-> 
-> * Fix possible invalid access and mangling of the TCPMSS option in
->   xt_TCPMSS. This was spotted by Julian Anastasov.
-> 
-> * Fix possible off by one access and mangling of the TCP packet in
->   xt_TCPOPTSTRIP, also spotted by Julian Anastasov.
-> 
-> * Fix possible information leak due to missing initialization of one
->   padding field of several structures that are included in nfqueue and
->   nflog netlink messages, from Dan Carpenter.
-> 
-> * Fix TCP window tracking with Fast Open, from Yuchung Cheng.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+Applied this minor glitches, see below.
 
-Pulled, thanks Pablo!
+> diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
+> index e111fd0..f9cfcdf 100644
+> --- a/tests/nft-parsing-test.c
+> +++ b/tests/nft-parsing-test.c
+[...]
+> +	printf("matching %s: ", filename);
+
+renamed this to "validating" instead of matching.
+
+> +	printf("\033[31mFAILED\e[0m (%s)\n", strerror(errno));
+
+removed strerr there. If validation fails, ie. strcmp(original,
+output) are not equal, errno does not contain any relevant
+information.
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
