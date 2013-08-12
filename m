@@ -1,53 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 2/2] test: compare content parsing with
- original file content.
-Date: Sun, 11 Aug 2013 09:47:13 +0200
-Message-ID: <20130811074713.GA3864@localhost>
-References: <20130810194039.18629.89549.stgit@Ph0enix>
- <20130810194051.18629.33864.stgit@Ph0enix>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [iptables-nftables RFC v3 PATCH 04/16] nft: Integrate nft translator
+ engine in current core
+Date: Mon, 12 Aug 2013 10:15:22 +0300
+Message-ID: <52088B8A.8080007@linux.intel.com>
+References: <1376055090-26551-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1376055090-26551-5-git-send-email-tomasz.bursztyka@linux.intel.com> <20130809212454.GA7102@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, eric@regit.org
-To: Alvaro Neira <alvaroneay@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47029 "EHLO mail.us.es"
+Received: from mga03.intel.com ([143.182.124.21]:15089 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750986Ab3HKHrZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Aug 2013 03:47:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20130810194051.18629.33864.stgit@Ph0enix>
+	id S1752924Ab3HLHP0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Aug 2013 03:15:26 -0400
+In-Reply-To: <20130809212454.GA7102@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 10, 2013 at 09:40:51PM +0200, Alvaro Neira wrote:
-> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
->=20
-> Before, we have tested only if we have parsed some file but we
-> hadn't tested if the content is OK.  Now, we can test if we can
-> parse some file and if the object's info is the same than the
-> content in the test files.
+Hi Pablo,
 
-Applied this minor glitches, see below.
+> If I understood this correctly, your approach uses the array of
+> instructions above as keys to look up for the corresponding parser. In
+> that case, I'm afraid that this engine won't cover the complexity of
+> the payload instructions since we'll end up having*a lot*  of matching
+> combinations that will overlap in your tree. You cannot resolve that
+> ambiguity problem of what parser needs to be invoked without looking
+> at other information that is contained in the instruction, eg. payload
+> base and offset.
 
-> diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-> index e111fd0..f9cfcdf 100644
-> --- a/tests/nft-parsing-test.c
-> +++ b/tests/nft-parsing-test.c
-[...]
-> +	printf("matching %s: ", filename);
+It already handles overlapping patterns. I decided to go the simplest way:
+- you can register as many parser you want for a pattern, of course.
+- engine will try as many parser it has for a pattern as long as those 
+return -1, the one who returns 0 wins (engine tries then to continue on 
+next expressions, finding other patterns)
+- engine follows longest pattern first: so if no parser as won on the 
+current pattern, engine will start to go backward. (it will try to match 
+shorter pattern)
 
-renamed this to "validating" instead of matching.
+Have a look at nft_trans_add_instruction(), 
+retrieve_nft_trans_instructions() and execute_relevant_instruction() for 
+insights.
 
-> +	printf("\033[31mFAILED\e[0m (%s)\n", strerror(errno));
+Sure it's definitely not the most optimized but I believe it should be 
+sufficient for our concerns.
+And anyway, the API is good enough so the engine itself can be 
+transparently improved if necessary.
 
-removed strerr there. If validation fails, ie. strcmp(original,
-output) are not equal, errno does not contain any relevant
-information.
+Tomasz
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
