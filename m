@@ -1,56 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] iptables: link libxtables against libnetfilter_conntrack
-Date: Tue, 13 Aug 2013 17:32:34 +0200
-Message-ID: <20130813153234.GL29345@breakpoint.cc>
-References: <1376399723-9967-1-git-send-email-gustavo@zacarias.com.ar>
- <20130813135932.GJ29345@breakpoint.cc>
- <520A4084.200@zacarias.com.ar>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH lnf-queue] build: avoid sym namespace pollution
+Date: Tue, 13 Aug 2013 18:15:51 +0200
+Message-ID: <20130813161551.GA3901@localhost>
+References: <1376383730-11731-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:6672 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757619Ab3HMPcf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Aug 2013 11:32:35 -0400
+Received: from mail.us.es ([193.147.175.20]:55516 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757248Ab3HMQP4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Aug 2013 12:15:56 -0400
 Content-Disposition: inline
-In-Reply-To: <520A4084.200@zacarias.com.ar>
+In-Reply-To: <1376383730-11731-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gustavo Zacarias <gustavo@zacarias.com.ar> wrote:
-> On 08/13/2013 10:59 AM, Florian Westphal wrote:
-> 
-> > Only with --enable-static, right?
-> > Can you make it conditional on ENABLE_STATIC, like this?
-> 
-> Not really, it's failing for a dynamic build as well, remember binutils
-> 2.22+ defaults to --no-copy-dt-needed (it's patched away in many
-> distributions to avoid the general package build breakage).
-> It's failing for me on a buildroot cross build which doesn't patch binutils.
+On Tue, Aug 13, 2013 at 10:48:50AM +0200, Florian Westphal wrote:
+> as of f40eabb01 (add pkt_buff and protocol helper functions)
+> lnetfilter_queue exports a function named 'checksum'.  This is a bit
+> too generic and causes crash with applications that worked fine before.
 
-I can't reproduce it using ld 2.23.1, even with "-Wl,--no-copy-dt-needed-entries".
+I see, that was not the intention as they are supposed to be internal
+(as you can see in src/internal.h), however, it seems that the
+visibility changes were incomplete, sorry.
 
-Why does libxtables depend on lnf-conntrack?  And why don't you need to add
-libm explicitly?
+> This patch makes the functions checksum, checksum_tcpudp_ipv4 and
+> checksum_tcpudp_ipv6 local by building with fvis-hidden and adding
+> EXPORTs for the legacy api calls and the ones that seem to have missing
+> EXPORT tags (mainly pktbuf api).
 
-> -DALL_INCLUSIVE -DENABLE_IPV4 -DENABLE_IPV6 -pipe -Os -o xtables-multi
-[..]
-> ../extensions/libext.a(libxt_connlabel.o): In function `connlabel_get_name':
-> libxt_connlabel.c:(.text+0xe): undefined reference to
-> `nfct_labelmap_get_name'
-> ../extensions/libext.a(libxt_connlabel.o): In function `connlabel_mt_parse':
-> libxt_connlabel.c:(.text+0x6a): undefined reference to
-> `nfct_labelmap_get_bit'
-> ../extensions/libext.a(libxt_connlabel.o): In function
-> `libxt_connlabel_init':
-> libxt_connlabel.c:(.text+0x1ab): undefined reference to `nfct_labelmap_new'
-> collect2: error: ld returned 1 exit status
-> make[3]: *** [xtables-multi] Error 1
+I have applied this, thanks Florian.
 
-Yes, but that is with --enable-static.
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Alternative would be to rename "checksum" to something
 
-The Makefile handles it correctly for statistics and rateest extensions
-(it adds -lm) but not for the connlabel extension.
+I have just renamed those, even if they are internal I think it's a
+good cleanup.
