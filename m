@@ -1,41 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH lnf-queue] build: avoid sym namespace pollution
-Date: Tue, 13 Aug 2013 18:15:51 +0200
-Message-ID: <20130813161551.GA3901@localhost>
-References: <1376383730-11731-1-git-send-email-fw@strlen.de>
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: Re: [PATCH] iptables: link libxtables against libnetfilter_conntrack
+Date: Tue, 13 Aug 2013 13:36:13 -0300
+Message-ID: <520A607D.1010901@zacarias.com.ar>
+References: <1376399723-9967-1-git-send-email-gustavo@zacarias.com.ar> <20130813135932.GJ29345@breakpoint.cc> <520A4084.200@zacarias.com.ar> <20130813153234.GL29345@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55516 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757248Ab3HMQP4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Aug 2013 12:15:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1376383730-11731-1-git-send-email-fw@strlen.de>
+Received: from loknar.toptech.com.ar ([78.46.79.162]:59368 "EHLO
+	loknar.toptech.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757938Ab3HMQgZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Aug 2013 12:36:25 -0400
+In-Reply-To: <20130813153234.GL29345@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 13, 2013 at 10:48:50AM +0200, Florian Westphal wrote:
-> as of f40eabb01 (add pkt_buff and protocol helper functions)
-> lnetfilter_queue exports a function named 'checksum'.  This is a bit
-> too generic and causes crash with applications that worked fine before.
+On 08/13/2013 12:32 PM, Florian Westphal wrote:
 
-I see, that was not the intention as they are supposed to be internal
-(as you can see in src/internal.h), however, it seems that the
-visibility changes were incomplete, sorry.
+> I can't reproduce it using ld 2.23.1, even with "-Wl,--no-copy-dt-needed-entries".
+> 
+> Why does libxtables depend on lnf-conntrack?  And why don't you need to add
+> libm explicitly?
 
-> This patch makes the functions checksum, checksum_tcpudp_ipv4 and
-> checksum_tcpudp_ipv6 local by building with fvis-hidden and adding
-> EXPORTs for the legacy api calls and the ones that seem to have missing
-> EXPORT tags (mainly pktbuf api).
+Actually it doesn't, i've patched in the wrong place even though it
+"fixed it" - i'll send a V2 patching xtables-multi instead.
 
-I have applied this, thanks Florian.
+> Yes, but that is with --enable-static.
+> 
+> The Makefile handles it correctly for statistics and rateest extensions
+> (it adds -lm) but not for the connlabel extension.
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Alternative would be to rename "checksum" to something
-
-I have just renamed those, even if they are internal I think it's a
-good cleanup.
+You can have both --enable-static and --enable-shared at the same time.
+It's added in iptables/Makefile* hence my first point, i was barking at
+the wrong place :)
+Regards.
