@@ -1,95 +1,37 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH 1/2] netfilter: export xt_rpfilter.h to userland
-Date: Tue, 13 Aug 2013 15:05:38 +0200
-Message-ID: <1376399139-4181-1-git-send-email-nicolas.dichtel@6wind.com>
-Cc: pablo@netfilter.org, netdev@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: [PATCH] iptables: link libxtables against libnetfilter_conntrack
+Date: Tue, 13 Aug 2013 10:15:23 -0300
+Message-ID: <1376399723-9967-1-git-send-email-gustavo@zacarias.com.ar>
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from loknar.toptech.com.ar ([78.46.79.162]:56684 "EHLO
+	loknar.toptech.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757955Ab3HMN2f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Aug 2013 09:28:35 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This file contains the API for the match "rpfilter", hence it should be exported
-to userland.
+When libnetfilter_conntrack is available libxtables needs to link
+against it otherwise we get build failures.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
 ---
- include/linux/netfilter/xt_rpfilter.h      | 23 -----------------------
- include/uapi/linux/netfilter/Kbuild        |  1 +
- include/uapi/linux/netfilter/xt_rpfilter.h | 23 +++++++++++++++++++++++
- 3 files changed, 24 insertions(+), 23 deletions(-)
- delete mode 100644 include/linux/netfilter/xt_rpfilter.h
- create mode 100644 include/uapi/linux/netfilter/xt_rpfilter.h
+ libxtables/Makefile.am | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/linux/netfilter/xt_rpfilter.h b/include/linux/netfilter/xt_rpfilter.h
-deleted file mode 100644
-index 8358d4f71952..000000000000
---- a/include/linux/netfilter/xt_rpfilter.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--#ifndef _XT_RPATH_H
--#define _XT_RPATH_H
--
--#include <linux/types.h>
--
--enum {
--	XT_RPFILTER_LOOSE = 1 << 0,
--	XT_RPFILTER_VALID_MARK = 1 << 1,
--	XT_RPFILTER_ACCEPT_LOCAL = 1 << 2,
--	XT_RPFILTER_INVERT = 1 << 3,
--#ifdef __KERNEL__
--	XT_RPFILTER_OPTION_MASK = XT_RPFILTER_LOOSE |
--				  XT_RPFILTER_VALID_MARK |
--				  XT_RPFILTER_ACCEPT_LOCAL |
--				  XT_RPFILTER_INVERT,
--#endif
--};
--
--struct xt_rpfilter_info {
--	__u8 flags;
--};
--
--#endif
-diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-index 41115776d76f..dc00927ffd62 100644
---- a/include/uapi/linux/netfilter/Kbuild
-+++ b/include/uapi/linux/netfilter/Kbuild
-@@ -68,6 +68,7 @@ header-y += xt_quota.h
- header-y += xt_rateest.h
- header-y += xt_realm.h
- header-y += xt_recent.h
-+header-y += xt_rpfilter.h
- header-y += xt_sctp.h
- header-y += xt_set.h
- header-y += xt_socket.h
-diff --git a/include/uapi/linux/netfilter/xt_rpfilter.h b/include/uapi/linux/netfilter/xt_rpfilter.h
-new file mode 100644
-index 000000000000..8358d4f71952
---- /dev/null
-+++ b/include/uapi/linux/netfilter/xt_rpfilter.h
-@@ -0,0 +1,23 @@
-+#ifndef _XT_RPATH_H
-+#define _XT_RPATH_H
-+
-+#include <linux/types.h>
-+
-+enum {
-+	XT_RPFILTER_LOOSE = 1 << 0,
-+	XT_RPFILTER_VALID_MARK = 1 << 1,
-+	XT_RPFILTER_ACCEPT_LOCAL = 1 << 2,
-+	XT_RPFILTER_INVERT = 1 << 3,
-+#ifdef __KERNEL__
-+	XT_RPFILTER_OPTION_MASK = XT_RPFILTER_LOOSE |
-+				  XT_RPFILTER_VALID_MARK |
-+				  XT_RPFILTER_ACCEPT_LOCAL |
-+				  XT_RPFILTER_INVERT,
-+#endif
-+};
-+
-+struct xt_rpfilter_info {
-+	__u8 flags;
-+};
-+
-+#endif
+diff --git a/libxtables/Makefile.am b/libxtables/Makefile.am
+index c5795fe..2460815 100644
+--- a/libxtables/Makefile.am
++++ b/libxtables/Makefile.am
+@@ -18,3 +18,6 @@ libxtables_la_LIBADD += -ldl
+ else
+ libxtables_la_CFLAGS  = ${AM_CFLAGS} -DNO_SHARED_LIBS=1
+ endif
++if HAVE_LIBNETFILTER_CONNTRACK
++libxtables_la_LIBADD += @libnetfilter_conntrack_LIBS@
++endif
 -- 
-1.8.2.1
+1.8.1.5
+
