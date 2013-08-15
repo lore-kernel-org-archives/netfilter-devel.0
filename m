@@ -1,52 +1,46 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] nftables: validate port number in inet_service_type_parse
-Date: Thu, 15 Aug 2013 10:19:11 -0700
-Message-ID: <20130815171911.GA15645@linuxace.com>
+Subject: [PATCH] nftables: allow protocols by number in
+ inet_protocol_type_parse
+Date: Thu, 15 Aug 2013 16:09:07 -0700
+Message-ID: <20130815230906.GA22230@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
+Content-Type: multipart/mixed; boundary="LZvS9be/3tNcYl/X"
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:49003 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758087Ab3HORTI (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:57110 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752376Ab3HOXJC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Aug 2013 13:19:08 -0400
-Received: by mail-pd0-f170.google.com with SMTP id x10so1067980pdj.29
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Aug 2013 10:19:06 -0700 (PDT)
+	Thu, 15 Aug 2013 19:09:02 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro12so1333586pbb.41
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Aug 2013 16:09:01 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---r5Pyd7+fXNt84Ff3
+--LZvS9be/3tNcYl/X
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-At present, nft accepts out of range port values such as in this example:
-
-    nft add rule ip filter input tcp dport 123456 accept 
-
-Attached patch adds checks for both integer overflow and 16 bit overflow,
-and avoids getaddrinfo call in the (common) case of digit input. Example
-above now produces this output:
-
-    <cmdline>:1:36-41: Error: Service out of range
-    add rule ip filter input tcp dport 123456 accept
-                                       ^^^^^^
+nftables does not currently allow specifying protocols by number.  Below
+patch adds this capability.
 
 Phil
 
 Signed-off-by: Phil Oester <kernel@linuxace.com>
 
+---
+Note the errno include is duplicated in this patch and my earlier
+"nftables: validate port number in inet_service_type_parse" patch.
 
-
---r5Pyd7+fXNt84Ff3
+--LZvS9be/3tNcYl/X
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-nft-inet_service_type_parse
+Content-Disposition: attachment; filename=patch-nft-inet_protocol_type_parse
 
 diff --git a/src/datatype.c b/src/datatype.c
-index 55368ee..be32851 100644
+index 55368ee..0a1cf2d 100644
 --- a/src/datatype.c
 +++ b/src/datatype.c
 @@ -11,6 +11,7 @@
@@ -57,43 +51,39 @@ index 55368ee..be32851 100644
  #include <netdb.h>
  #include <arpa/inet.h>
  #include <linux/types.h>
-@@ -500,18 +501,30 @@ static struct error_record *inet_service_type_parse(const struct expr *sym,
+@@ -457,14 +458,28 @@ static struct error_record *inet_protocol_type_parse(const struct expr *sym,
+ 						     struct expr **res)
  {
- 	struct addrinfo *ai;
- 	uint16_t port;
+ 	struct protoent *p;
+-
+-	p = getprotobyname(sym->identifier);
+-	if (p == NULL)
+-		return error(&sym->location, "Could not resolve protocol name");
++	uint8_t proto;
 +	uintmax_t i;
- 	int err;
 +	char *end;
 +
 +	errno = 0;
 +	i = strtoumax(sym->identifier, &end, 0);
 +	if (sym->identifier != end && *end == '\0') {
-+		if (errno == ERANGE || i > UINT16_MAX)
-+			return error(&sym->location, "Service out of range");
++		if (errno == ERANGE || i > UINT8_MAX)
++			return error(&sym->location, "Protocol out of range");
 +
-+		port = i;
++		proto = i;
 +	} else {
-+		err = getaddrinfo(NULL, sym->identifier, NULL, &ai);
-+		if (err != 0)
-+			return error(&sym->location, "Could not resolve service: %s",
-+				     gai_strerror(err));
++		p = getprotobyname(sym->identifier);
++		if (p == NULL)
++			return error(&sym->location, "Could not resolve protocol name");
 +
-+		port = ((struct sockaddr_in *)ai->ai_addr)->sin_port;
-+		freeaddrinfo(ai);
++		proto = p->p_proto;
 +	}
  
--	err = getaddrinfo(NULL, sym->identifier, NULL, &ai);
--	if (err != 0)
--		return error(&sym->location, "Could not resolve service: %s",
--			     gai_strerror(err));
--
--	port = ((struct sockaddr_in *)ai->ai_addr)->sin_port;
- 	*res = constant_expr_alloc(&sym->location, &inet_service_type,
- 				   BYTEORDER_BIG_ENDIAN,
- 				   sizeof(port) * BITS_PER_BYTE, &port);
--	freeaddrinfo(ai);
+ 	*res = constant_expr_alloc(&sym->location, &inet_protocol_type,
+ 				   BYTEORDER_HOST_ENDIAN, BITS_PER_BYTE,
+-				   &p->p_proto);
++				   &proto);
  	return NULL;
  }
  
 
---r5Pyd7+fXNt84Ff3--
+--LZvS9be/3tNcYl/X--
