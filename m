@@ -1,136 +1,72 @@
-From: Christoph Paasch <christoph.paasch@uclouvain.be>
-Subject: Re: NAT stops forwarding ACKs after PMTU discovery
-Date: Mon, 19 Aug 2013 14:33:14 +0200
-Message-ID: <20130819123314.GC3583@cpaasch-mac>
-References: <521061B4.1030508@fatooh.org>
- <1376839467.21329.36.camel@edumazet-glaptop>
- <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>
- <1376870425.4226.25.camel@edumazet-glaptop>
- <1376870592.4226.27.camel@edumazet-glaptop>
- <5211DAA6.1070302@fatooh.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] utils: fix error path for nft_strtoi
+Date: Mon, 19 Aug 2013 14:37:30 +0200
+Message-ID: <20130819123729.21346.17925.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Corey Hickey <bugfood-ml@fatooh.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5211DAA6.1070302@fatooh.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:55148 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751341Ab3HSMhk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Aug 2013 08:37:40 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id E782F51ED1B
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2013 12:37:37 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id W7dNMjV8E25N for <netfilter-devel@vger.kernel.org>;
+	Mon, 19 Aug 2013 14:37:32 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 831A751ECEF
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2013 14:37:32 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+If the return of nft_get_value() is not evaluated, we don't know if the parsed
+value is between the limits of his type.
 
-I would say, the problem is due to a sequence-number rewriting
-middlebox, who does not correctly handle the SACK-blocks.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ 0 files changed
 
-In remote.pcap, you see:
-Packet#10: A Dup-ACK: ACK 1005503816, SACK: 1005505184-1005505648
-The SACK actually covers Packet#9
+diff --git a/src/utils.c b/src/utils.c
+index 848eba9..9a0bcfe 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -103,6 +103,7 @@ int nft_get_value(enum nft_type type, void *val, void *out)
+ 
+ int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
+ {
++	int ret;
+ 	int64_t sval = 0;
+ 	uint64_t uval = -1;
+ 	char *endptr;
+@@ -113,14 +114,14 @@ int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
+ 	case NFT_TYPE_U32:
+ 	case NFT_TYPE_U64:
+ 		uval = strtoll(string, &endptr, base);
+-		nft_get_value(type, &uval, out);
++		ret = nft_get_value(type, &uval, out);
+ 		break;
+ 	case NFT_TYPE_S8:
+ 	case NFT_TYPE_S16:
+ 	case NFT_TYPE_S32:
+ 	case NFT_TYPE_S64:
+ 		sval = strtoull(string, &endptr, base);
+-		nft_get_value(type, &sval, out);
++		ret = nft_get_value(type, &sval, out);
+ 		break;
+ 	default:
+ 		errno = EINVAL;
+@@ -132,7 +133,7 @@ int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
+ 		return -1;
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ const char *nft_verdict2str(uint32_t verdict)
 
-In tun0.pcap, you have:
-Packet#9: The one that is SACK'ed: SEQ: 3514869772
-Packet#11: The Dup-ACK: ACK: 3514868404, SACK: 3570452498-3570452962
-
-You can see that the SACK-block is not really aligned with the ACK-numbers.
-
-Netfilter is probably dropping the Dup-ACK, because the SACK-block is
-acknowledging unseen data.
-
-
-There are middleboxes out there that randomize the sequence numbers, due to
-an old bug in Windows, where the initial sequence number was not
-sufficiently randomized. There are some of these middleboxes, who simply do
-not support SACK, thus modify only the sequence numbers of the TCP-header
-(https://supportforums.cisco.com/docs/DOC-12668#TCP_Sequence_Number_Randomization_and_SACK).
-
-This results in a TCP retransmission timeout on the sender, because of
-the invalid SACK-blocks, the duplicate ACKs are not accounted. This
-completly kills the performance, as you can see in our presentation given at
-IETF87: http://tools.ietf.org/agenda/87/slides/slides-87-tcpm-11.pdf
-
-We have a patch that accounts DUP-ACKs with invalid SACK-blocks effectively
-as duplicate acknowledgments. I can send the patches, if the
-netdev-community is interested in accepting these upstream.
-
-
-Cheers,
-Christoph
-
-
-
-On 19/08/13 - 01:43:18, Corey Hickey wrote:
-> On 2013-08-18 17:03, Eric Dumazet wrote:
-> > On Sun, 2013-08-18 at 17:00 -0700, Eric Dumazet wrote:
-> > 
-> >> Code like this seems very suspect to me :
-> >>
-> >> before(sack, receiver->td_end + 1)
-> >>
-> > 
-> > My suggestion would be to try :
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> 
-> [...]
-> 
-> Thanks for all your suggestions--I really wasn't expecting so much on a
-> weekend. Here's all the data I have for tonight.
-> 
-> 
-> I tried the linux-next kernel, then linux-next with your patch applied.
-> Neither of them fix the problem, unfortunately. I have taken tcpdumps
-> for a working SSH and a failing SSH.
-> 
-> http://fatooh.org/files/tmp/linux-next-patch1.tar.bz2
-> 
-> [localhost]
-> sudo tcpdump -ni br0 -s 0 -w /tmp/local.pcap 'host 10.15.24.13 or icmp'
-> 
-> [router eth0]
-> tcpdump -ni eth0 -s 0 -w /tmp/eth0.pcap \
->     'host 10.15.24.13 or (icmp and host not 69.78.33.132)'
-> * the exclusion here is just to remove some unrelated clutter
-> 
-> [router tun0]
-> tcpdump -ni tun0 -s 0 -w /tmp/tun0.pcap -s 0 'host 10.15.24.13 or icmp'
-> 
-> [remote]
-> tcpdump -ni eth0 -s 0 -w remote.pcap 'host 192.168.61.56'
-> 
-> 
-> Some notes:
-> 
-> 1. I tested the new kernels only on the Linux router, assuming that is
-> where it was intended.
-> 
-> 2. I take back what I wrote earlier about every connection that involves
-> PMTU discovery failed; I may have been observing this wrong. For now,
-> the situation is that some connections stop forwarding packets from the
-> remote host immediately after the retransmit, while other work fine.
-> 
-> 3. From local.pcap, you can see that my localhost doesn't actually
-> transmit a large packet, yet the router's eth0 sees a large packet come
-> in. I think this is due to TSO, but I'm not completely sure.
-> 
-> 4. For some reason, I cannot reproduce this when SSHing to a host at
-> work that is running Debian sid with 3.10-1-amd64, but I can reproduce
-> it when SSHing to hosts running Centos 6.4 with
-> 2.6.32-358.6.1.el6.x86_64 (which surely has a ton of patches applied,
-> for whatever that's worth).
-> 
-> 5. I have only a vague understanding of SACK; I will be reading up on
-> this soon. I will also look into packetdrill for reproducing the
-> problem, if the SSH results aren't good enough.
-> 
-> 6. If I reduce the MTU on localhost to match the path MTU, the problem
-> does go away.
-> 
-> Thanks again for all the help,
-> Corey
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
