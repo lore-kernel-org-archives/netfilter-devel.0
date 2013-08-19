@@ -1,72 +1,60 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] utils: fix error path for nft_strtoi
-Date: Mon, 19 Aug 2013 14:37:30 +0200
-Message-ID: <20130819123729.21346.17925.stgit@nfdev.cica.es>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: NAT stops forwarding ACKs after PMTU discovery
+Date: Mon, 19 Aug 2013 06:24:17 -0700
+Message-ID: <1376918657.4226.59.camel@edumazet-glaptop>
+References: <521061B4.1030508@fatooh.org>
+	 <1376839467.21329.36.camel@edumazet-glaptop>
+	 <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>
+	 <1376870425.4226.25.camel@edumazet-glaptop>
+	 <1376870592.4226.27.camel@edumazet-glaptop> <5211DAA6.1070302@fatooh.org>
+	 <20130819123314.GC3583@cpaasch-mac>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55148 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751341Ab3HSMhk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Aug 2013 08:37:40 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id E782F51ED1B
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2013 12:37:37 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id W7dNMjV8E25N for <netfilter-devel@vger.kernel.org>;
-	Mon, 19 Aug 2013 14:37:32 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 831A751ECEF
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2013 14:37:32 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Corey Hickey <bugfood-ml@fatooh.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Christoph Paasch <christoph.paasch@uclouvain.be>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130819123314.GC3583@cpaasch-mac>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If the return of nft_get_value() is not evaluated, we don't know if the parsed
-value is between the limits of his type.
+On Mon, 2013-08-19 at 14:33 +0200, Christoph Paasch wrote:
+> Hello,
+> 
+> I would say, the problem is due to a sequence-number rewriting
+> middlebox, who does not correctly handle the SACK-blocks.
+> 
+> In remote.pcap, you see:
+> Packet#10: A Dup-ACK: ACK 1005503816, SACK: 1005505184-1005505648
+> The SACK actually covers Packet#9
+> 
+> In tun0.pcap, you have:
+> Packet#9: The one that is SACK'ed: SEQ: 3514869772
+> Packet#11: The Dup-ACK: ACK: 3514868404, SACK: 3570452498-3570452962
+> 
+> You can see that the SACK-block is not really aligned with the ACK-numbers.
+> 
+> Netfilter is probably dropping the Dup-ACK, because the SACK-block is
+> acknowledging unseen data.
+> 
+> 
+> There are middleboxes out there that randomize the sequence numbers, due to
+> an old bug in Windows, where the initial sequence number was not
+> sufficiently randomized. There are some of these middleboxes, who simply do
+> not support SACK, thus modify only the sequence numbers of the TCP-header
+> (https://supportforums.cisco.com/docs/DOC-12668#TCP_Sequence_Number_Randomization_and_SACK).
+> 
+> This results in a TCP retransmission timeout on the sender, because of
+> the invalid SACK-blocks, the duplicate ACKs are not accounted. This
+> completly kills the performance, as you can see in our presentation given at
+> IETF87: http://tools.ietf.org/agenda/87/slides/slides-87-tcpm-11.pdf
+> 
+> We have a patch that accounts DUP-ACKs with invalid SACK-blocks effectively
+> as duplicate acknowledgments. I can send the patches, if the
+> netdev-community is interested in accepting these upstream.
+> 
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
-
-diff --git a/src/utils.c b/src/utils.c
-index 848eba9..9a0bcfe 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -103,6 +103,7 @@ int nft_get_value(enum nft_type type, void *val, void *out)
- 
- int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
- {
-+	int ret;
- 	int64_t sval = 0;
- 	uint64_t uval = -1;
- 	char *endptr;
-@@ -113,14 +114,14 @@ int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
- 	case NFT_TYPE_U32:
- 	case NFT_TYPE_U64:
- 		uval = strtoll(string, &endptr, base);
--		nft_get_value(type, &uval, out);
-+		ret = nft_get_value(type, &uval, out);
- 		break;
- 	case NFT_TYPE_S8:
- 	case NFT_TYPE_S16:
- 	case NFT_TYPE_S32:
- 	case NFT_TYPE_S64:
- 		sval = strtoull(string, &endptr, base);
--		nft_get_value(type, &sval, out);
-+		ret = nft_get_value(type, &sval, out);
- 		break;
- 	default:
- 		errno = EINVAL;
-@@ -132,7 +133,7 @@ int nft_strtoi(const char *string, int base, void *out, enum nft_type type)
- 		return -1;
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- const char *nft_verdict2str(uint32_t verdict)
-
+You mean a netfilter patch, a tcp patch, or both ?
