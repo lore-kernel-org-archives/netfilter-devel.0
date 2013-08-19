@@ -1,68 +1,64 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
-Subject: [PATCH] iptables: libip(6)t_REJECT.man default icmp types
-Date: Sun, 18 Aug 2013 19:41:40 -0400
-Message-ID: <1376869300-9146-1-git-send-email-ljlane@debian.org>
-Cc: "Laurence J. Lane" <ljlane@debian.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dunimos.ljlane.net ([216.218.223.72]:44604 "EHLO
-	dunimos.ljlane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755664Ab3HRXlu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Aug 2013 19:41:50 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: NAT stops forwarding ACKs after PMTU discovery
+Date: Sun, 18 Aug 2013 17:00:25 -0700
+Message-ID: <1376870425.4226.25.camel@edumazet-glaptop>
+References: <521061B4.1030508@fatooh.org>
+	 <1376839467.21329.36.camel@edumazet-glaptop>
+	 <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Corey Hickey <bugfood-ml@fatooh.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: "Laurence J. Lane" <ljlane@debian.org>
+On Sun, 2013-08-18 at 23:23 +0200, Jozsef Kadlecsik wrote:
 
-The extension man page shows "port-unreach" and "port-unreachable" as
-default icmpi6 and icomp reject-with types. Either and variations work
-fine for writing rules, but they are displayed as "icmp6-port-unreachable"
-and "icmp-port-unreachable". Let's make that consistent.
+> It's a PMTU related problem, so I'd suggest to check first the next ones:
+> 
+> Aren't the ICMP error messages (i.e. fragmentation-needed) filtered out?
+> If not, does adding an explicit TCPMSS rule to the mangle table help?
 
-http://bugs.debian.org/644819
+Thats totally irrelevant. tcp conntrack should not care of ICMP messages
+anyway.
 
-Signed-off-by: Laurence J. Lane <ljlane@debian.org>
----
- extensions/libip6t_REJECT.man | 7 +++----
- extensions/libipt_REJECT.man  | 6 +++---
- 2 files changed, 6 insertions(+), 7 deletions(-)
+> Isn't there SACK options involved? Maybe there's a "smart" sequence 
+> number "anonymizer" device in the path which forgets about the SEQ numbers 
+> in the SACK options and thus such packets are marked as INVALID.
+> 
 
-diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
-index 2d09e05..0030a51 100644
---- a/extensions/libip6t_REJECT.man
-+++ b/extensions/libip6t_REJECT.man
-@@ -18,10 +18,9 @@ The type given can be
- \fBicmp6\-adm\-prohibited\fP,
- \fBadm\-prohibited\fP,
- \fBicmp6\-addr\-unreachable\fP,
--\fBaddr\-unreach\fP,
--\fBicmp6\-port\-unreachable\fP or
--\fBport\-unreach\fP
--which return the appropriate ICMPv6 error message (\fBport\-unreach\fP is
-+\fBaddr\-unreach\fP, or
-+\fBicmp6\-port\-unreachable\fP,
-+which return the appropriate ICMPv6 error message (\fBicmp6\-port\-unreachable\fP is
- the default). Finally, the option
- \fBtcp\-reset\fP
- can be used on rules which only match the TCP protocol: this causes a
-diff --git a/extensions/libipt_REJECT.man b/extensions/libipt_REJECT.man
-index c419a85..926da03 100644
---- a/extensions/libipt_REJECT.man
-+++ b/extensions/libipt_REJECT.man
-@@ -18,9 +18,9 @@ The type given can be
- \fBicmp\-port\-unreachable\fP,
- \fBicmp\-proto\-unreachable\fP,
- \fBicmp\-net\-prohibited\fP,
--\fBicmp\-host\-prohibited\fP or
--\fBicmp\-admin\-prohibited\fP (*)
--which return the appropriate ICMP error message (\fBport\-unreachable\fP is
-+\fBicmp\-host\-prohibited\fP, or
-+\fBicmp\-admin\-prohibited\fP (*),
-+which return the appropriate ICMP error message (\fBicmp\-port\-unreachable\fP is
- the default).  The option
- \fBtcp\-reset\fP
- can be used on rules which only match the TCP protocol: this causes a
--- 
-1.8.1.2
+As I understood the report, they were no SACK at all, but plain ACK
+messages, and conntrack believes these ACK are outside the window
+because it remembers the @end sequence of the probe, and the @maxwin of
+receiver.
 
+Lets say the probe is 2000 bytes, seq 1:2001
+
+conntrack records end = 2001
+
+Of course this packet is lost.
+
+The retransmit sends a 1000 bytes packet, seq 1:1001
+
+conntrack pass the packet.
+
+Receiver acks it using ack 1001
+
+conntrack drops this ack because of some confusion about the prior 2001
+end, and the window (might be as small as 1000)
+
+Code like this seems very suspect to me :
+
+before(sack, receiver->td_end + 1)
+
+It basically says that conntrack doesn't deal with reorders on the
+network.
+
+> So tcpdumps captured at both sides could really help to tell what goes wrong.
+
+We probably can reproduce this bug using packetdrill.
