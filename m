@@ -1,51 +1,85 @@
-From: Lorraine Hall <lorraineehall@gmail.com>
-Subject: Fastest way to send a packet from a target module
-Date: Sun, 18 Aug 2013 17:13:46 -0700
-Message-ID: <CALSwv_LuRuOuTnQJdGq3pOL+Bk8GmJDypeTJz3hLuJJ0QiZHDA@mail.gmail.com>
+From: Corey Hickey <bugfood-ml@fatooh.org>
+Subject: Re: NAT stops forwarding ACKs after PMTU discovery
+Date: Mon, 19 Aug 2013 01:43:18 -0700
+Message-ID: <5211DAA6.1070302@fatooh.org>
+References: <521061B4.1030508@fatooh.org>  <1376839467.21329.36.camel@edumazet-glaptop>  <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>  <1376870425.4226.25.camel@edumazet-glaptop> <1376870592.4226.27.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f194.google.com ([74.125.82.194]:40100 "EHLO
-	mail-we0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755788Ab3HSANs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Aug 2013 20:13:48 -0400
-Received: by mail-we0-f194.google.com with SMTP id u55so645068wes.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Aug 2013 17:13:46 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1376870592.4226.27.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 2013-08-18 17:03, Eric Dumazet wrote:
+> On Sun, 2013-08-18 at 17:00 -0700, Eric Dumazet wrote:
+> 
+>> Code like this seems very suspect to me :
+>>
+>> before(sack, receiver->td_end + 1)
+>>
+> 
+> My suggestion would be to try :
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
 
-In an iptables target module (that handles incoming packets), I need to send a
-response packet back to the sender, then I can return NF_DROP or NF_STOLEN.
+[...]
 
-The first approach I tested was to allocate a new SKB, prepare the packet and
-send it out. While this worked, I found that calling alloc_skb() was a major
-performance killer.
+Thanks for all your suggestions--I really wasn't expecting so much on a
+weekend. Here's all the data I have for tonight.
 
-My second approach was to reuse the SKB the packet arrived in, swap the MAC and
-IP addresses and UDP ports, modify the packet (and adjust SKB length), call
-dev_queue_xmit() to send it out the same interface it arrived in, and return
-NF_STOLEN. This works because the response packet is not larger than the
-request packet, and I also perform some validation on the request packet (no
-IPv4 options, no fragmentation). It also avoids the overhead of L3 routing,
-which I realize limits flexibility a bit but that flexibility isn't necessary in
-this case.
 
-I also have another possible approach, but I haven't tested this one yet: I
-could have an SKB pool, probably one per RX queue, increase the reference count
-by 1 so dev_queue_xmit() doesn't free the preallocated SKBs, walk the pool and
-use the first SKB with a reference count of 1. This would also allow me to
-prepare the UDP payload with some application-specific stuff (headers), then I'd
-only need to fill in a few struct fields to send a packet out.
+I tried the linux-next kernel, then linux-next with your patch applied.
+Neither of them fix the problem, unfortunately. I have taken tcpdumps
+for a working SSH and a failing SSH.
 
-So far the second approach has worked quite well in testing, much better than
-the first. But I'm still wondering if there any possible unforeseen consequences
-from modifying the NIC's SKB and resending it. Also, I'm wondering if that is
-even the best approach to take, or if the third option may be better.
+http://fatooh.org/files/tmp/linux-next-patch1.tar.bz2
 
-Thanks,
+[localhost]
+sudo tcpdump -ni br0 -s 0 -w /tmp/local.pcap 'host 10.15.24.13 or icmp'
 
-L
+[router eth0]
+tcpdump -ni eth0 -s 0 -w /tmp/eth0.pcap \
+    'host 10.15.24.13 or (icmp and host not 69.78.33.132)'
+* the exclusion here is just to remove some unrelated clutter
+
+[router tun0]
+tcpdump -ni tun0 -s 0 -w /tmp/tun0.pcap -s 0 'host 10.15.24.13 or icmp'
+
+[remote]
+tcpdump -ni eth0 -s 0 -w remote.pcap 'host 192.168.61.56'
+
+
+Some notes:
+
+1. I tested the new kernels only on the Linux router, assuming that is
+where it was intended.
+
+2. I take back what I wrote earlier about every connection that involves
+PMTU discovery failed; I may have been observing this wrong. For now,
+the situation is that some connections stop forwarding packets from the
+remote host immediately after the retransmit, while other work fine.
+
+3. From local.pcap, you can see that my localhost doesn't actually
+transmit a large packet, yet the router's eth0 sees a large packet come
+in. I think this is due to TSO, but I'm not completely sure.
+
+4. For some reason, I cannot reproduce this when SSHing to a host at
+work that is running Debian sid with 3.10-1-amd64, but I can reproduce
+it when SSHing to hosts running Centos 6.4 with
+2.6.32-358.6.1.el6.x86_64 (which surely has a ton of patches applied,
+for whatever that's worth).
+
+5. I have only a vague understanding of SACK; I will be reading up on
+this soon. I will also look into packetdrill for reproducing the
+problem, if the SSH results aren't good enough.
+
+6. If I reduce the MTU on localhost to match the path MTU, the problem
+does go away.
+
+Thanks again for all the help,
+Corey
