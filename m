@@ -1,73 +1,144 @@
-From: Corey Hickey <bugfood-ml@fatooh.org>
-Subject: Re: NAT stops forwarding ACKs after PMTU discovery
-Date: Mon, 19 Aug 2013 21:18:15 -0700
-Message-ID: <5212EE07.2090803@fatooh.org>
-References: <521061B4.1030508@fatooh.org>   <1376839467.21329.36.camel@edumazet-glaptop>   <alpine.DEB.2.00.1308182314050.25515@blackhole.kfki.hu>   <1376870425.4226.25.camel@edumazet-glaptop>   <1376870592.4226.27.camel@edumazet-glaptop> <5211DAA6.1070302@fatooh.org>  <20130819123314.GC3583@cpaasch-mac>   <1376918657.4226.59.camel@edumazet-glaptop>   <20130819134919.GF3583@cpaasch-mac>  <1376920685.4226.61.camel@edumazet-glaptop>  <alpine.DEB.2.00.1308192207130.27869@blackhole.kfki.hu> <1376946527.4226.80.camel@edumazet-glaptop> <alpine.DEB.2.00.1308192330200.28532@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Christoph Paasch <christoph.paasch@uclouvain.be>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/19] Netfilter/IPVS updates for net-next
+Date: Tue, 20 Aug 2013 12:54:32 +0200
+Message-ID: <1376996091-3964-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from juniper.fatooh.org ([173.255.221.30]:48414 "EHLO
-	juniper.fatooh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab3HTESQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Aug 2013 00:18:16 -0400
-In-Reply-To: <alpine.DEB.2.00.1308192330200.28532@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:60047 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab3HTKzE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 Aug 2013 06:55:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2013-08-19 15:07, Jozsef Kadlecsik wrote:
-> It can be fixed by fixing the middlebox, or disabling SACK by the 
-> TCPOPTSTRIP target, or by relaxing conntrack. For the latter, the next 
-> untested patch may be sufficient:
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 7dcc376..8b5d783 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -649,6 +649,11 @@ static bool tcp_in_window(const struct nf_conn *ct,
->  		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
->  		 receiver->td_scale);
->  
-> +	/* Fall back to ACK when SACK is bogus */
-> +	if (!(before(sack, receiver->td_end + 1) &&
-> +	      after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)))
-> +		sack = ack;
-> +	      
->  	pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
->  		 before(seq, sender->td_maxend + 1),
->  		 after(end, sender->td_end - receiver->td_maxwin - 1),
-> 
-> However it is good to cover the issue thus?
+Hi David,
 
-This didn't quite apply to my kernel tree, but I let patch apply it with
-fuzz=2 and got:
+The following batch contains Netfilter/IPVS updates for your net-next tree.
+More specifically, they are:
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 2f80107..94b326b 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -653,6 +653,11 @@ static bool tcp_in_window(const struct nf_conn *ct,
-        in_recv_win = !receiver->td_maxwin ||
-                      after(end, sender->td_end - receiver->td_maxwin - 1);
- 
-+       /* Fall back to ACK when SACK is bogus */
-+       if (!(before(sack, receiver->td_end + 1) &&
-+             after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)))
-+               sack = ack;
-+
-        pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
-                 before(seq, sender->td_maxend + 1),
-                 (in_recv_win ? 1 : 0),
+* Trivial typo fix in xt_addrtype, from Phil Oester.
 
+* Remove net_ratelimit in the conntrack logging for consistency with other
+  logging subsystem, from Patrick McHardy.
 
+* Remove unneeded includes from the recently added xt_connlabel support, from
+  Florian Westphal.
 
-I can confirm, that does indeed work! Thank you. I will continue watching
-this thread for other things to test, if need be.
+* Allow to update conntracks via nfqueue, don't need NFQA_CFG_F_CONNTRACK for
+  this, from Florian Westphal.
 
--Corey
+* Remove tproxy core, now that we have socket early demux, from Florian
+  Westphal.
+
+* A couple of patches to refactor conntrack event reporting to save a good
+  bunch of lines, from Florian Westphal.
+
+* Fix missing locking in NAT sequence adjustment, it did not manifested in
+  any known bug so far, from Patrick McHardy.
+
+* Change sequence number adjustment variable to 32 bits, to delay the
+  possible early overflow in long standing connections, also from Patrick.
+
+* Comestic cleanups for IPVS, from Dragos Foianu.
+
+* Fix possible null dereference in IPVS in the SH scheduler, from Daniel
+  Borkmann.
+
+* Allow to attach conntrack expectations via nfqueue. Before this patch, you
+  had to use ctnetlink instead, thus, we save the conntrack lookup.
+
+* Export xt_rpfilter and xt_HMARK header files, from Nicolas Dichtel.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 9025c8e253369d324111c041032018955b80dd55:
+
+  drivers/net/ethernet/stmicro/stmmac: don't check resource with devm_ioremap_resource (2013-07-24 23:59:33 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to 38c67328ac79cb9eaf61b5d4750fe3b9cff0dd15:
+
+  netfilter: export xt_HMARK.h to userland (2013-08-14 10:48:05 +0200)
+
+----------------------------------------------------------------
+Daniel Borkmann (1):
+      ipvs: ip_vs_sh: ip_vs_sh_get_port: check skb_header_pointer for NULL
+
+Dragos Foianu (1):
+      ipvs: fixed spacing at for statements
+
+Florian Westphal (7):
+      netfilter: connlabels: remove unneeded includes
+      netfilter: nf_queue: relax NFQA_CT attribute check
+      netfilter: tproxy: remove nf_tproxy_core, keep tw sk assigned to skb
+      netfilter: tproxy: remove nf_tproxy_core.h
+      netfilter: nf_conntrack: remove duplicate code in ctnetlink
+      netfilter: tproxy: fix build with IP6_NF_IPTABLES=n
+      netfilter: nf_conntrack: don't send destroy events from iterator
+
+Nicolas Dichtel (2):
+      netfilter: export xt_rpfilter.h to userland
+      netfilter: export xt_HMARK.h to userland
+
+Pablo Neira Ayuso (2):
+      netfilter: ctnetlink: refactor ctnetlink_create_expect
+      netfilter: nfnetlink_queue: allow to attach expectations to conntracks
+
+Patrick McHardy (5):
+      netfilter: nf_conntrack: remove net_ratelimit() for LOG_INVALID()
+      netfilter: nf_conntrack: constify sk_buff argument to nf_ct_attach()
+      netfilter: nf_nat: fix locking in nf_nat_seq_adjust()
+      netfilter: nf_nat: change sequence number adjustments to 32 bits
+      netfilter: nf_nat: use per-conntrack locking for sequence number adjustments
+
+Phil Oester (1):
+      netfilter: xt_addrtype: fix trivial typo
+
+ Documentation/networking/tproxy.txt              |    5 +-
+ include/linux/netfilter.h                        |    8 +-
+ include/net/netfilter/nf_conntrack.h             |    9 +-
+ include/net/netfilter/nf_conntrack_l4proto.h     |    7 -
+ include/net/netfilter/nf_nat.h                   |    2 +-
+ include/net/netfilter/nf_nat_helper.h            |    6 +-
+ include/net/netfilter/nf_tproxy_core.h           |  210 -----------------
+ include/net/netfilter/nfnetlink_queue.h          |    8 +
+ include/uapi/linux/netfilter/Kbuild              |    2 +
+ include/uapi/linux/netfilter/nfnetlink_queue.h   |    1 +
+ include/{ => uapi}/linux/netfilter/xt_HMARK.h    |    0
+ include/{ => uapi}/linux/netfilter/xt_rpfilter.h |    0
+ net/ipv4/netfilter/ipt_MASQUERADE.c              |    2 +-
+ net/ipv6/netfilter/ip6t_MASQUERADE.c             |    2 +-
+ net/netfilter/Kconfig                            |   22 +-
+ net/netfilter/Makefile                           |    3 -
+ net/netfilter/core.c                             |    7 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c                 |    8 +-
+ net/netfilter/ipvs/ip_vs_sh.c                    |    6 +
+ net/netfilter/nf_conntrack_core.c                |   69 ++----
+ net/netfilter/nf_conntrack_labels.c              |    4 -
+ net/netfilter/nf_conntrack_netlink.c             |  269 ++++++++++++++--------
+ net/netfilter/nf_conntrack_proto.c               |    4 +-
+ net/netfilter/nf_conntrack_proto_tcp.c           |    4 +-
+ net/netfilter/nf_nat_core.c                      |    6 +-
+ net/netfilter/nf_nat_helper.c                    |   28 ++-
+ net/netfilter/nf_tproxy_core.c                   |   62 -----
+ net/netfilter/nfnetlink_queue_core.c             |   11 +-
+ net/netfilter/nfnetlink_queue_ct.c               |   15 ++
+ net/netfilter/xt_TPROXY.c                        |  169 +++++++++++++-
+ net/netfilter/xt_addrtype.c                      |    2 +-
+ net/netfilter/xt_socket.c                        |   66 +++++-
+ 32 files changed, 513 insertions(+), 504 deletions(-)
+ delete mode 100644 include/net/netfilter/nf_tproxy_core.h
+ rename include/{ => uapi}/linux/netfilter/xt_HMARK.h (100%)
+ rename include/{ => uapi}/linux/netfilter/xt_rpfilter.h (100%)
+ delete mode 100644 net/netfilter/nf_tproxy_core.c
+
