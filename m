@@ -1,660 +1,1327 @@
 From: Alvaro Neira <alvaroneay@gmail.com>
-Subject: [libnftables PATCH 2/3] tests: rule: add json parsing support
-Date: Tue, 20 Aug 2013 17:58:56 +0200
-Message-ID: <20130820155855.8850.37279.stgit@Ph0enix>
-References: <20130820155844.8850.85717.stgit@Ph0enix>
+Subject: [libnftables PATCH 1/3] rule: Add json parser support
+Date: Tue, 20 Aug 2013 17:58:46 +0200
+Message-ID: <20130820155844.8850.85717.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:44191 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab3HTP7T (ORCPT
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:48072 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab3HTP7L (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Aug 2013 11:59:19 -0400
-Received: by mail-we0-f170.google.com with SMTP id w62so597196wes.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2013 08:59:18 -0700 (PDT)
-In-Reply-To: <20130820155844.8850.85717.stgit@Ph0enix>
+	Tue, 20 Aug 2013 11:59:11 -0400
+Received: by mail-wg0-f52.google.com with SMTP id b13so543618wgh.31
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2013 08:59:10 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Test the functions for parsing rules in JSON.
+Add function for parsing rules in JSON format
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- tests/jsonfiles/20-rule-bitwise.json   |    1 +
- tests/jsonfiles/21-rule-byteorder.json |    1 +
- tests/jsonfiles/22-rule-cmp.json       |    1 +
- tests/jsonfiles/23-rule-counter.json   |    1 +
- tests/jsonfiles/24-rule-ct.json        |    1 +
- tests/jsonfiles/25-rule-exthdr.json    |    1 +
- tests/jsonfiles/26-rule-immediate.json |    1 +
- tests/jsonfiles/27-rule-limit.json     |    1 +
- tests/jsonfiles/28-rule-log.json       |    1 +
- tests/jsonfiles/29-rule-match.json     |    1 +
- tests/jsonfiles/30-rule-lookup.json    |    1 +
- tests/jsonfiles/31-rule-meta.json      |    1 +
- tests/jsonfiles/32-rule-nat4.json      |    1 +
- tests/jsonfiles/33-rule-nat6.json      |    1 +
- tests/jsonfiles/34-rule-payload.json   |    1 +
- tests/jsonfiles/35-rule-target.json    |    1 +
- tests/jsonfiles/36-rule-real.json      |    1 +
- tests/jsonfiles/37-rule-real.json      |    1 +
- tests/jsonfiles/38-rule-real.json      |    1 +
- tests/jsonfiles/39-rule-real.json      |    1 +
- tests/jsonfiles/40-rule-real.json      |    1 +
- tests/jsonfiles/41-rule-real.json      |    1 +
- tests/jsonfiles/42-rule-real.json      |    1 +
- tests/jsonfiles/43-rule-real.json      |    1 +
- tests/jsonfiles/44-rule-real.json      |    1 +
- tests/jsonfiles/45-rule-real.json      |    1 +
- tests/jsonfiles/46-rule-real.json      |    1 +
- tests/jsonfiles/47-rule-real.json      |    1 +
- tests/jsonfiles/48-rule-real.json      |    1 +
- tests/jsonfiles/49-rule-real.json      |    1 +
- tests/jsonfiles/50-rule-real.json      |    1 +
- tests/jsonfiles/51-rule-real.json      |    1 +
- tests/jsonfiles/52-rule-real.json      |    1 +
- tests/jsonfiles/53-rule-real.json      |    1 +
- tests/jsonfiles/54-rule-real.json      |    1 +
- tests/jsonfiles/55-rule-real.json      |    1 +
- tests/jsonfiles/56-rule-real.json      |    1 +
- tests/jsonfiles/57-rule-real.json      |    1 +
- tests/jsonfiles/58-rule-real.json      |    1 +
- tests/jsonfiles/59-rule-real.json      |    1 +
- tests/jsonfiles/60-rule-real.json      |    1 +
- tests/jsonfiles/61-rule-real.json      |    1 +
- tests/nft-parsing-test.c               |   11 +++++++++++
- 43 files changed, 53 insertions(+)
- create mode 100644 tests/jsonfiles/20-rule-bitwise.json
- create mode 100644 tests/jsonfiles/21-rule-byteorder.json
- create mode 100644 tests/jsonfiles/22-rule-cmp.json
- create mode 100644 tests/jsonfiles/23-rule-counter.json
- create mode 100644 tests/jsonfiles/24-rule-ct.json
- create mode 100644 tests/jsonfiles/25-rule-exthdr.json
- create mode 100644 tests/jsonfiles/26-rule-immediate.json
- create mode 100644 tests/jsonfiles/27-rule-limit.json
- create mode 100644 tests/jsonfiles/28-rule-log.json
- create mode 100644 tests/jsonfiles/29-rule-match.json
- create mode 100644 tests/jsonfiles/30-rule-lookup.json
- create mode 100644 tests/jsonfiles/31-rule-meta.json
- create mode 100644 tests/jsonfiles/32-rule-nat4.json
- create mode 100644 tests/jsonfiles/33-rule-nat6.json
- create mode 100644 tests/jsonfiles/34-rule-payload.json
- create mode 100644 tests/jsonfiles/35-rule-target.json
- create mode 100644 tests/jsonfiles/36-rule-real.json
- create mode 100644 tests/jsonfiles/37-rule-real.json
- create mode 100644 tests/jsonfiles/38-rule-real.json
- create mode 100644 tests/jsonfiles/39-rule-real.json
- create mode 100644 tests/jsonfiles/40-rule-real.json
- create mode 100644 tests/jsonfiles/41-rule-real.json
- create mode 100644 tests/jsonfiles/42-rule-real.json
- create mode 100644 tests/jsonfiles/43-rule-real.json
- create mode 100644 tests/jsonfiles/44-rule-real.json
- create mode 100644 tests/jsonfiles/45-rule-real.json
- create mode 100644 tests/jsonfiles/46-rule-real.json
- create mode 100644 tests/jsonfiles/47-rule-real.json
- create mode 100644 tests/jsonfiles/48-rule-real.json
- create mode 100644 tests/jsonfiles/49-rule-real.json
- create mode 100644 tests/jsonfiles/50-rule-real.json
- create mode 100644 tests/jsonfiles/51-rule-real.json
- create mode 100644 tests/jsonfiles/52-rule-real.json
- create mode 100644 tests/jsonfiles/53-rule-real.json
- create mode 100644 tests/jsonfiles/54-rule-real.json
- create mode 100644 tests/jsonfiles/55-rule-real.json
- create mode 100644 tests/jsonfiles/56-rule-real.json
- create mode 100644 tests/jsonfiles/57-rule-real.json
- create mode 100644 tests/jsonfiles/58-rule-real.json
- create mode 100644 tests/jsonfiles/59-rule-real.json
- create mode 100644 tests/jsonfiles/60-rule-real.json
- create mode 100644 tests/jsonfiles/61-rule-real.json
-
-diff --git a/tests/jsonfiles/20-rule-bitwise.json b/tests/jsonfiles/20-=
-rule-bitwise.json
-new file mode 100644
-index 0000000..d39d0f9
---- /dev/null
-+++ b/tests/jsonfiles/20-rule-bitwise.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 20,"flags" : 0, "expr" : [ { "type" : "bitwise", "sreg" : 1, =
-"dreg" : 1, "len" : 4, "mask" : {"data_reg": { "type" : "value", "len" =
-: 4, "data0" : "0x0000000a"}}, "xor" : {"data_reg": { "type" : "value",=
- "len" : 4, "data0" : "0x00000000"}}}]}}
-diff --git a/tests/jsonfiles/21-rule-byteorder.json b/tests/jsonfiles/2=
-1-rule-byteorder.json
-new file mode 100644
-index 0000000..631ee51
---- /dev/null
-+++ b/tests/jsonfiles/21-rule-byteorder.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 21,"flags" : 0, "expr" : [ { "type" : "byteorder", "sreg" : 3=
-, "dreg" : 4, "op" : "hton", "len" : 4, "size" : 4}]}}
-diff --git a/tests/jsonfiles/22-rule-cmp.json b/tests/jsonfiles/22-rule=
--cmp.json
-new file mode 100644
-index 0000000..ae36cbc
---- /dev/null
-+++ b/tests/jsonfiles/22-rule-cmp.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "forward",=
- "handle" : 22,"flags" : 0, "expr" : [ { "type" : "cmp", "sreg" : 1, "o=
-p" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 16, "da=
-ta0" : "0x00000000", "data1" : "0x6e6f6200", "data2" : "0x2e303164", "d=
-ata3" : "0x00393331"}}}]}}
-diff --git a/tests/jsonfiles/23-rule-counter.json b/tests/jsonfiles/23-=
-rule-counter.json
-new file mode 100644
-index 0000000..6c0a745
---- /dev/null
-+++ b/tests/jsonfiles/23-rule-counter.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 23,"flags" : 0, "expr" : [ { "type" : "counter", "pkts" : 13=
-5, "bytes" : 21655}]}}
-diff --git a/tests/jsonfiles/24-rule-ct.json b/tests/jsonfiles/24-rule-=
-ct.json
-new file mode 100644
-index 0000000..2c640c5
---- /dev/null
-+++ b/tests/jsonfiles/24-rule-ct.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 24,"flags" : 0, "expr" : [ { "type" : "ct", "dreg" : 1, "key"=
- : "state"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"d=
-ata_reg": { "type" : "value", "len" : 4, "data0" : "0x00000008"}}}]}}
-diff --git a/tests/jsonfiles/25-rule-exthdr.json b/tests/jsonfiles/25-r=
-ule-exthdr.json
-new file mode 100644
-index 0000000..8234a8b
---- /dev/null
-+++ b/tests/jsonfiles/25-rule-exthdr.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 25,"flags" : 0, "expr" : [ { "type" : "exthdr", "dreg" : 1, "=
-exthdr_type" : "mh", "offset" : 2, "len" : 16}]}}
-diff --git a/tests/jsonfiles/26-rule-immediate.json b/tests/jsonfiles/2=
-6-rule-immediate.json
-new file mode 100644
-index 0000000..1751c17
---- /dev/null
-+++ b/tests/jsonfiles/26-rule-immediate.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 26,"flags" : 0, "expr" : [ { "type" : "immediate", "dreg" : 0=
-, "immediatedata" : {"data_reg": {"type" : "verdict", "verdict" : "acce=
-pt"}}}]}}
-diff --git a/tests/jsonfiles/27-rule-limit.json b/tests/jsonfiles/27-ru=
-le-limit.json
-new file mode 100644
-index 0000000..4ae3b70
---- /dev/null
-+++ b/tests/jsonfiles/27-rule-limit.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 27,"flags" : 0, "expr" : [ { "type" : "limit", "rate" : 32132=
-1, "depth" : 0 }]}}
-diff --git a/tests/jsonfiles/28-rule-log.json b/tests/jsonfiles/28-rule=
--log.json
-new file mode 100644
-index 0000000..50e5088
---- /dev/null
-+++ b/tests/jsonfiles/28-rule-log.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 28,"flags" : 0, "expr" : [ { "type" : "log", "prefix" : "test=
-_chain", "group" : 1, "snaplen" : 0, "qthreshold" : 0 }]}}
-diff --git a/tests/jsonfiles/29-rule-match.json b/tests/jsonfiles/29-ru=
-le-match.json
-new file mode 100644
-index 0000000..8270764
---- /dev/null
-+++ b/tests/jsonfiles/29-rule-match.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 9,"flags" : 0, "expr" : [ { "type" : "match", "name" : "state=
-"}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/30-rule-lookup.json b/tests/jsonfiles/30-r=
-ule-lookup.json
-new file mode 100644
-index 0000000..e98b865
---- /dev/null
-+++ b/tests/jsonfiles/30-rule-lookup.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 8,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1, "=
-offset" : 12, "len" : 4, "base" : "network"}, { "type" : "lookup", "set=
-" : "set0", "sreg" : 1, "dreg" : 0}]}}
-diff --git a/tests/jsonfiles/31-rule-meta.json b/tests/jsonfiles/31-rul=
-e-meta.json
-new file mode 100644
-index 0000000..b67a719
---- /dev/null
-+++ b/tests/jsonfiles/31-rule-meta.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 8,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "ke=
-y" : "protocol"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" =
-: {"data_reg": { "type" : "value", "len" : 4, "data0" : "0x000003e8"}}}=
-, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/32-rule-nat4.json b/tests/jsonfiles/32-rul=
-e-nat4.json
-new file mode 100644
-index 0000000..fb311d2
---- /dev/null
-+++ b/tests/jsonfiles/32-rule-nat4.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 10,"flags" : 0, "expr" : [ { "type" : "nat", "nat_type" : "dn=
-at", "family" : "ip", "sreg_addr_min" : 1, "sreg_addr_max" : 2, "sreg_p=
-roto_min" : 3, "sreg_proto_max" : 4}]}}
-diff --git a/tests/jsonfiles/33-rule-nat6.json b/tests/jsonfiles/33-rul=
-e-nat6.json
-new file mode 100644
-index 0000000..cd11c04
---- /dev/null
-+++ b/tests/jsonfiles/33-rule-nat6.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip6", "table" : "nat", "chain"  : "output", "h=
-andle" : 33,"flags" : 0, "expr" : [ { "type" : "nat", "nat_type" : "sna=
-t", "family" : "ip6", "sreg_addr_min" : 1, "sreg_addr_max" : 2, "sreg_p=
-roto_min" : 3, "sreg_proto_max" : 4}]}}
-diff --git a/tests/jsonfiles/34-rule-payload.json b/tests/jsonfiles/34-=
-rule-payload.json
-new file mode 100644
-index 0000000..6015dc4
---- /dev/null
-+++ b/tests/jsonfiles/34-rule-payload.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "input", "=
-handle" : 26,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1, =
-"offset" : 9, "len" : 1, "base" : "network"}, { "type" : "cmp", "sreg" =
-: 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : =
-1, "data0" : "0x00000006"}}}, { "type" : "payload", "dreg" : 1, "offset=
-" : 2, "len" : 2, "base" : "transport"}, { "type" : "cmp", "sreg" : 1, =
-"op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 2, "d=
-ata0" : "0x00001600"}}}, { "type" : "immediate", "dreg" : 0, "immediate=
-data" : {"data_reg": {"type" : "verdict", "verdict" : "accept"}}}]}}
-diff --git a/tests/jsonfiles/35-rule-target.json b/tests/jsonfiles/35-r=
-ule-target.json
-new file mode 100644
-index 0000000..a435264
---- /dev/null
-+++ b/tests/jsonfiles/35-rule-target.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "INPUT", "=
-handle" : 20,"flags" : 0, "expr" : [ { "type" : "counter", "pkts" : 17,=
- "bytes" : 4436}, { "type" : "target", "name" : "LOG"}]}}
-diff --git a/tests/jsonfiles/36-rule-real.json b/tests/jsonfiles/36-rul=
-e-real.json
-new file mode 100644
-index 0000000..9ea5e48
---- /dev/null
-+++ b/tests/jsonfiles/36-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 36,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 12, "len" : 8, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 8=
-, "data0" : "0x0100a8c0", "data1" : "0x6400a8c0"}}}, { "type" : "counte=
-r", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/37-rule-real.json b/tests/jsonfiles/37-rul=
-e-real.json
-new file mode 100644
-index 0000000..99bd818
---- /dev/null
-+++ b/tests/jsonfiles/37-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 37,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4=
-, "data0" : "0x0100a8c0"}}}]}}
-diff --git a/tests/jsonfiles/38-rule-real.json b/tests/jsonfiles/38-rul=
-e-real.json
-new file mode 100644
-index 0000000..26384a4
---- /dev/null
-+++ b/tests/jsonfiles/38-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 38,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4=
-, "data0" : "0x0100a8c0"}}}]}}
-diff --git a/tests/jsonfiles/39-rule-real.json b/tests/jsonfiles/39-rul=
-e-real.json
-new file mode 100644
-index 0000000..f77c5a5
---- /dev/null
-+++ b/tests/jsonfiles/39-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 39,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "gte", "cmpdata" : {"data_reg": { "type" : "value", "len" : =
-4, "data0" : "0x0100a8c0"}}}, { "type" : "cmp", "sreg" : 1, "op" : "lte=
-", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4, "data0" : "0=
-xfa00a8c0"}}}]}}
-diff --git a/tests/jsonfiles/40-rule-real.json b/tests/jsonfiles/40-rul=
-e-real.json
-new file mode 100644
-index 0000000..fff70dd
---- /dev/null
-+++ b/tests/jsonfiles/40-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 40,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4=
-, "data0" : "0x0100a8c0"}}}, { "type" : "counter", "pkts" : 0, "bytes" =
-: 0}]}}
-diff --git a/tests/jsonfiles/41-rule-real.json b/tests/jsonfiles/41-rul=
-e-real.json
-new file mode 100644
-index 0000000..a5c0e49
---- /dev/null
-+++ b/tests/jsonfiles/41-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 41,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4=
-, "data0" : "0x0100a8c0"}}}, { "type" : "counter", "pkts" : 0, "bytes" =
-: 0}, { "type" : "immediate", "dreg" : 0, "immediatedata" : {"data_reg"=
-: {"type" : "verdict", "verdict" : "drop"}}}]}}
-diff --git a/tests/jsonfiles/42-rule-real.json b/tests/jsonfiles/42-rul=
-e-real.json
-new file mode 100644
-index 0000000..ec2b4a9
---- /dev/null
-+++ b/tests/jsonfiles/42-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 42,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 16, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4=
-, "data0" : "0x0100a8c0"}}}, { "type" : "counter", "pkts" : 0, "bytes" =
-: 0}, { "type" : "log", "prefix" : "(null)", "group" : 0, "snaplen" : 0=
-, "qthreshold" : 0 }]}}
-diff --git a/tests/jsonfiles/43-rule-real.json b/tests/jsonfiles/43-rul=
-e-real.json
-new file mode 100644
-index 0000000..22f7cd1
---- /dev/null
-+++ b/tests/jsonfiles/43-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 43,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 9, "len" : 1, "base" : "link"}, { "type" : "cmp", "sreg" : =
-1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 1,=
- "data0" : "0x00000006"}}}, { "type" : "payload", "dreg" : 1, "offset" =
-: 2, "len" : 2, "base" : "link"}, { "type" : "cmp", "sreg" : 1, "op" : =
-"eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 2, "data0" :=
- "0x00001600"}}}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/44-rule-real.json b/tests/jsonfiles/44-rul=
-e-real.json
-new file mode 100644
-index 0000000..c7401ae
---- /dev/null
-+++ b/tests/jsonfiles/44-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 44,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 9, "len" : 1, "base" : "link"}, { "type" : "cmp", "sreg" : =
-1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 1,=
- "data0" : "0x00000006"}}}, { "type" : "payload", "dreg" : 1, "offset" =
-: 0, "len" : 4, "base" : "link"}, { "type" : "cmp", "sreg" : 1, "op" : =
-"eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 4, "data0" :=
- "0x16000004"}}}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/45-rule-real.json b/tests/jsonfiles/45-rul=
-e-real.json
-new file mode 100644
-index 0000000..5f9df87
---- /dev/null
-+++ b/tests/jsonfiles/45-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 45,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 12, "len" : 8, "base" : "link"}, { "type" : "cmp", "sreg" :=
- 1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 8=
-, "data0" : "0x0100a8c0", "data1" : "0x6400a8c0"}}}, { "type" : "counte=
-r", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/46-rule-real.json b/tests/jsonfiles/46-rul=
-e-real.json
-new file mode 100644
-index 0000000..3b1a96b
---- /dev/null
-+++ b/tests/jsonfiles/46-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 46,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 9, "len" : 1, "base" : "link"}, { "type" : "cmp", "sreg" : =
-1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 1,=
- "data0" : "0x00000006"}}}, { "type" : "payload", "dreg" : 1, "offset" =
-: 0, "len" : 8, "base" : "link"}, { "type" : "cmp", "sreg" : 1, "op" : =
-"eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 8, "data0" :=
- "0x16000004", "data1" : "0x00000000"}}}]}}
-diff --git a/tests/jsonfiles/47-rule-real.json b/tests/jsonfiles/47-rul=
-e-real.json
-new file mode 100644
-index 0000000..2f36100
---- /dev/null
-+++ b/tests/jsonfiles/47-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 47,"flags" : 0, "expr" : [ { "type" : "payload", "dreg" : 1,=
- "offset" : 9, "len" : 1, "base" : "link"}, { "type" : "cmp", "sreg" : =
-1, "op" : "eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 1,=
- "data0" : "0x00000006"}}}, { "type" : "payload", "dreg" : 1, "offset" =
-: 0, "len" : 8, "base" : "link"}, { "type" : "cmp", "sreg" : 1, "op" : =
-"eq", "cmpdata" : {"data_reg": { "type" : "value", "len" : 8, "data0" :=
- "0x16000004", "data1" : "0x00000000"}}}]}}
-diff --git a/tests/jsonfiles/48-rule-real.json b/tests/jsonfiles/48-rul=
-e-real.json
-new file mode 100644
-index 0000000..86fbd83
---- /dev/null
-+++ b/tests/jsonfiles/48-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 48,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "len"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"=
-data_reg": { "type" : "value", "len" : 4, "data0" : "0x000003e8"}}}, { =
-"type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/49-rule-real.json b/tests/jsonfiles/49-rul=
-e-real.json
-new file mode 100644
-index 0000000..dc6a680
---- /dev/null
-+++ b/tests/jsonfiles/49-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 49,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "mark"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {=
-"data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000000"}}}, {=
- "type" : "counter", "pkts" : 55, "bytes" : 11407}]}}
-diff --git a/tests/jsonfiles/50-rule-real.json b/tests/jsonfiles/50-rul=
-e-real.json
-new file mode 100644
-index 0000000..3845a8c
---- /dev/null
-+++ b/tests/jsonfiles/50-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 50,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "iif"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"=
-data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000001"}}}, { =
-"type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/51-rule-real.json b/tests/jsonfiles/51-rul=
-e-real.json
-new file mode 100644
-index 0000000..f2f1784
---- /dev/null
-+++ b/tests/jsonfiles/51-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 51,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "iifname"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" =
-: {"data_reg": { "type" : "value", "len" : 16, "data0" : "0x00000000", =
-"data1" : "0x00000000", "data2" : "0x65000000", "data3" : "0x00306874"}=
-}}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/52-rule-real.json b/tests/jsonfiles/52-rul=
-e-real.json
-new file mode 100644
-index 0000000..7d16017
---- /dev/null
-+++ b/tests/jsonfiles/52-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 52,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "oif"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"=
-data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000001"}}}, { =
-"type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/53-rule-real.json b/tests/jsonfiles/53-rul=
-e-real.json
-new file mode 100644
-index 0000000..2ba527c
---- /dev/null
-+++ b/tests/jsonfiles/53-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 53,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "oifname"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" =
-: {"data_reg": { "type" : "value", "len" : 16, "data0" : "0x00000000", =
-"data1" : "0x00000000", "data2" : "0x65000000", "data3" : "0x00306874"}=
-}}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/54-rule-real.json b/tests/jsonfiles/54-rul=
-e-real.json
-new file mode 100644
-index 0000000..a222e1d
---- /dev/null
-+++ b/tests/jsonfiles/54-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 54,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "skuid"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : =
-{"data_reg": { "type" : "value", "len" : 4, "data0" : "0x000003e8"}}}, =
-{ "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/55-rule-real.json b/tests/jsonfiles/55-rul=
-e-real.json
-new file mode 100644
-index 0000000..1527349
---- /dev/null
-+++ b/tests/jsonfiles/55-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 55,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "skgid"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : =
-{"data_reg": { "type" : "value", "len" : 4, "data0" : "0x000003e8"}}}, =
-{ "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/56-rule-real.json b/tests/jsonfiles/56-rul=
-e-real.json
-new file mode 100644
-index 0000000..b33dd78
---- /dev/null
-+++ b/tests/jsonfiles/56-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 56,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "secmark"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" =
-: {"data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000000"}}}=
-, { "type" : "counter", "pkts" : 55, "bytes" : 11407}]}}
-diff --git a/tests/jsonfiles/57-rule-real.json b/tests/jsonfiles/57-rul=
-e-real.json
-new file mode 100644
-index 0000000..9c0a1eb
---- /dev/null
-+++ b/tests/jsonfiles/57-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 57,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "len"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"=
-data_reg": { "type" : "value", "len" : 4, "data0" : "0x000003e8"}}}, { =
-"type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/58-rule-real.json b/tests/jsonfiles/58-rul=
-e-real.json
-new file mode 100644
-index 0000000..6934748
---- /dev/null
-+++ b/tests/jsonfiles/58-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 58,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "protocol"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata"=
- : {"data_reg": { "type" : "value", "len" : 2, "data0" : "0x00000008"}}=
-}, { "type" : "counter", "pkts" : 55, "bytes" : 11407}]}}
-diff --git a/tests/jsonfiles/59-rule-real.json b/tests/jsonfiles/59-rul=
-e-real.json
-new file mode 100644
-index 0000000..298a291
---- /dev/null
-+++ b/tests/jsonfiles/59-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 59,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "mark"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {=
-"data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000000"}}}, {=
- "type" : "counter", "pkts" : 55, "bytes" : 11407}]}}
-diff --git a/tests/jsonfiles/60-rule-real.json b/tests/jsonfiles/60-rul=
-e-real.json
-new file mode 100644
-index 0000000..e124411
---- /dev/null
-+++ b/tests/jsonfiles/60-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 60,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "iif"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" : {"=
-data_reg": { "type" : "value", "len" : 4, "data0" : "0x00000001"}}}, { =
-"type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/jsonfiles/61-rule-real.json b/tests/jsonfiles/61-rul=
-e-real.json
-new file mode 100644
-index 0000000..f74acf2
---- /dev/null
-+++ b/tests/jsonfiles/61-rule-real.json
-@@ -0,0 +1 @@
-+{ "rule": { "family" : "ip", "table" : "filter", "chain"  : "output", =
-"handle" : 61,"flags" : 0, "expr" : [ { "type" : "meta", "dreg" : 1, "k=
-ey" : "iifname"}, { "type" : "cmp", "sreg" : 1, "op" : "eq", "cmpdata" =
-: {"data_reg": { "type" : "value", "len" : 16, "data0" : "0x00000000", =
-"data1" : "0x00000000", "data2" : "0x65000000", "data3" : "0x00306874"}=
-}}, { "type" : "counter", "pkts" : 0, "bytes" : 0}]}}
-diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-index 9e457e8..bf5b519 100644
---- a/tests/nft-parsing-test.c
-+++ b/tests/nft-parsing-test.c
-@@ -157,6 +157,7 @@ static int test_json(const char *filename)
- 	int ret =3D -1;
- 	struct nft_table *t =3D NULL;
- 	struct nft_chain *c =3D NULL;
-+	struct nft_rule *r =3D NULL;
- 	json_t *root;
- 	json_error_t error;
- 	char *json =3D NULL;
-@@ -189,6 +190,16 @@ static int test_json(const char *filename)
-=20
- 			nft_chain_free(c);
- 		}
-+	} else if (json_object_get(root, "rule") !=3D NULL) {
-+		r =3D nft_rule_alloc();
-+		if (r !=3D NULL) {
-+			if (nft_rule_parse(r, NFT_RULE_PARSE_JSON, json) =3D=3D 0)
-+				ret =3D compare_test(TEST_JSON_RULE, r, filename);
-+			else
-+				goto failparsing;
+ include/libnftables/rule.h |    1=20
+ src/expr/bitwise.c         |   45 ++++++++++++++++++++++
+ src/expr/byteorder.c       |   50 ++++++++++++++++++++++++
+ src/expr/cmp.c             |   38 ++++++++++++++++++
+ src/expr/counter.c         |   26 +++++++++++++
+ src/expr/ct.c              |   49 ++++++++++++++++++++++++
+ src/expr/data_reg.c        |   77 ++++++++++++++++++++++++++++++++++++=
 +
-+			nft_rule_free(r);
-+		}
+ src/expr/data_reg.h        |    5 ++
+ src/expr/exthdr.c          |   43 +++++++++++++++++++++
+ src/expr/immediate.c       |   40 +++++++++++++++++++
+ src/expr/limit.c           |   25 ++++++++++++
+ src/expr/log.c             |   39 +++++++++++++++++++
+ src/expr/lookup.c          |   31 +++++++++++++++
+ src/expr/match.c           |   22 ++++++++++-
+ src/expr/meta.c            |   34 ++++++++++++++++
+ src/expr/nat.c             |   59 +++++++++++++++++++++++++++++
+ src/expr/payload.c         |   43 +++++++++++++++++++++
+ src/expr/target.c          |   20 ++++++++++
+ src/expr_ops.h             |    5 ++
+ src/internal.h             |    8 ++++
+ src/jansson.c              |   91 ++++++++++++++++++++++++++++++++++++=
+++++++++
+ src/rule.c                 |   90 ++++++++++++++++++++++++++++++++++++=
+++++++++
+ 22 files changed, 839 insertions(+), 2 deletions(-)
+
+diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
+index c597444..dd0e212 100644
+--- a/include/libnftables/rule.h
++++ b/include/libnftables/rule.h
+@@ -51,6 +51,7 @@ enum {
+ enum nft_rule_parse_type {
+ 	NFT_RULE_PARSE_NONE	=3D 0,
+ 	NFT_RULE_PARSE_XML,
++	NFT_RULE_PARSE_JSON,
+ 	NFT_RULE_PARSE_MAX,
+ };
+=20
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index 6c86acb..8cea075 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -181,6 +181,50 @@ nft_rule_expr_bitwise_parse(struct nft_rule_expr *=
+e, struct nlattr *attr)
+ }
+=20
+ static int
++nft_rule_expr_bitwise_json_parse(struct nft_rule_expr *e, json_t *root=
+)
++{
++#ifdef JSON_PARSING
++	struct nft_expr_bitwise *bitwise =3D nft_expr_data(e);
++	uint32_t reg, len;
++
++	if (nft_jansson_value_parse_reg(root, "sreg", NFT_TYPE_U32, &reg) =3D=
+=3D -1)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_SREG, reg);
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) =3D=
+=3D -1)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_DREG, reg);
++
++	if (nft_jansson_value_parse_val(root, "len", NFT_TYPE_U32, &len) =3D=3D=
+ -1)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BITWISE_LEN, len);
++
++	if (nft_jansson_data_reg_parse(root, "mask",
++				       &bitwise->mask) !=3D DATA_VALUE)
++		return -1;
++
++	e->flags |=3D (1 << NFT_EXPR_BITWISE_MASK);
++
++	if (nft_jansson_data_reg_parse(root, "xor",
++				       &bitwise->xor) !=3D DATA_VALUE)
++		return -1;
++
++	e->flags |=3D (1 << NFT_EXPR_BITWISE_XOR);
++
++	if (bitwise->mask.len !=3D bitwise->xor.len)
++		return -1;
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_bitwise_xml_parse(struct nft_rule_expr *e, mxml_node_t *=
+tree)
+ {
+ #ifdef XML_PARSING
+@@ -349,6 +393,7 @@ struct expr_ops expr_ops_bitwise =3D {
+ 	.build		=3D nft_rule_expr_bitwise_build,
+ 	.snprintf	=3D nft_rule_expr_bitwise_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_bitwise_xml_parse,
++	.json_parse	=3D nft_rule_expr_bitwise_json_parse,
+ };
+=20
+ static void __init expr_bitwise(void)
+diff --git a/src/expr/byteorder.c b/src/expr/byteorder.c
+index e2d442c..f596ff3 100644
+--- a/src/expr/byteorder.c
++++ b/src/expr/byteorder.c
+@@ -194,6 +194,55 @@ static inline int nft_str2ntoh(const char *op)
+ }
+=20
+ static int
++nft_rule_expr_byteorder_json_parse(struct nft_rule_expr *e, json_t *ro=
+ot)
++{
++#ifdef JSON_PARSING
++	const char *op;
++	uint32_t uval32;
++	int ntoh;
++
++	if (nft_jansson_value_parse_reg(root, "sreg", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BYTEORDER_SREG, uval32);
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BYTEORDER_DREG, uval32);
++
++	op =3D nft_jansson_value_parse_str(root, "op");
++	if (op =3D=3D NULL)
++		return -1;
++
++	ntoh =3D nft_str2ntoh(op);
++	if (ntoh < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BYTEORDER_OP, ntoh);
++
++	if (nft_jansson_value_parse_val(root, "len", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BYTEORDER_LEN, uval32);
++
++	if (nft_jansson_value_parse_val(root, "size", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_BYTEORDER_SIZE, uval32);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_byteorder_xml_parse(struct nft_rule_expr *e, mxml_node_t=
+ *tree)
+ {
+ #ifdef XML_PARSING
+@@ -329,6 +378,7 @@ struct expr_ops expr_ops_byteorder =3D {
+ 	.build		=3D nft_rule_expr_byteorder_build,
+ 	.snprintf	=3D nft_rule_expr_byteorder_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_byteorder_xml_parse,
++	.json_parse	=3D nft_rule_expr_byteorder_json_parse,
+ };
+=20
+ static void __init expr_byteorder_init(void)
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index 8ca4cb5..16be540 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -174,6 +174,43 @@ static inline int nft_str2cmp(const char *op)
+ 	}
+ }
+=20
++static int nft_rule_expr_cmp_json_parse(struct nft_rule_expr *e, json_=
+t *root)
++{
++#ifdef JSON_PARSING
++	struct nft_expr_cmp *cmp =3D nft_expr_data(e);
++	const char *op;
++	uint32_t uval32;
++	int base;
++
++	if (nft_jansson_value_parse_val(root, "sreg", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, uval32);
++
++	op =3D nft_jansson_value_parse_str(root, "op");
++	if (op =3D=3D NULL)
++		return -1;
++
++	base =3D nft_str2cmp(op);
++	if (base < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, base);
++
++	if (nft_jansson_data_reg_parse(root, "cmpdata",
++				       &cmp->data) !=3D DATA_VALUE)
++		return -1;
++
++	e->flags |=3D (1 << NFT_EXPR_CMP_DATA);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_n=
+ode_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -296,6 +333,7 @@ struct expr_ops expr_ops_cmp =3D {
+ 	.build		=3D nft_rule_expr_cmp_build,
+ 	.snprintf	=3D nft_rule_expr_cmp_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_cmp_xml_parse,
++	.json_parse	=3D nft_rule_expr_cmp_json_parse,
+ };
+ static void __init expr_cmp_init(void)
+ {
+diff --git a/src/expr/counter.c b/src/expr/counter.c
+index 75ad469..6cdd637 100644
+--- a/src/expr/counter.c
++++ b/src/expr/counter.c
+@@ -119,6 +119,31 @@ nft_rule_expr_counter_parse(struct nft_rule_expr *=
+e, struct nlattr *attr)
+ }
+=20
+ static int
++nft_rule_expr_counter_json_parse(struct nft_rule_expr *e, json_t *root=
+)
++{
++#ifdef JSON_PARSING
++	uint64_t uval64;
++
++	if (nft_jansson_value_parse_val(root, "pkts", NFT_TYPE_U64,
++					&uval64) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u64(e, NFT_EXPR_CTR_PACKETS, uval64);
++
++	if (nft_jansson_value_parse_val(root, "bytes", NFT_TYPE_U64,
++					&uval64) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u64(e, NFT_EXPR_CTR_BYTES, uval64);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_counter_xml_parse(struct nft_rule_expr *e, mxml_node_t *=
+tree)
+ {
+ #ifdef XML_PARSING
+@@ -175,6 +200,7 @@ struct expr_ops expr_ops_counter =3D {
+ 	.build		=3D nft_rule_expr_counter_build,
+ 	.snprintf	=3D nft_rule_expr_counter_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_counter_xml_parse,
++	.json_parse	=3D nft_rule_expr_counter_json_parse,
+ };
+=20
+ static void __init expr_counter_init(void)
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index f86fd4d..c131e67 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -178,6 +178,54 @@ static inline int str2ctkey(const char *ctkey)
+ 	return -1;
+ }
+=20
++static int nft_rule_expr_ct_json_parse(struct nft_rule_expr *e, json_t=
+ *root)
++{
++#ifdef JSON_PARSING
++	const char *key_str;
++	uint32_t reg;
++	uint8_t dir;
++	int key;
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_CT_DREG, reg);
++
++	if (nft_jansson_node_exist(root, "key")) {
++		key_str =3D nft_jansson_value_parse_str(root, "key");
++		if (key_str =3D=3D NULL)
++			return -1;
++
++		key =3D str2ctkey(key_str);
++		if (key < 0)
++			goto err;
++
++		nft_rule_expr_set_u32(e, NFT_EXPR_CT_KEY, key);
++
++	}
++
++	if (nft_jansson_node_exist(root, "dir")) {
++		if (nft_jansson_value_parse_val(root, "dir", NFT_TYPE_U8,
++						&dir) !=3D 0)
++			return -1;
++
++		if (dir !=3D IP_CT_DIR_ORIGINAL && dir !=3D IP_CT_DIR_REPLY)
++			goto err;
++
++		nft_rule_expr_set_u8(e, NFT_EXPR_CT_DIR, dir);
++	}
++
++	return 0;
++err:
++	errno =3D EINVAL;
++	return -1;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++
+ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, mxml_no=
+de_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -282,6 +330,7 @@ struct expr_ops expr_ops_ct =3D {
+ 	.build		=3D nft_rule_expr_ct_build,
+ 	.snprintf	=3D nft_rule_expr_ct_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_ct_xml_parse,
++	.json_parse	=3D nft_rule_expr_ct_json_parse,
+ };
+=20
+ static void __init expr_ct_init(void)
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 4c354ef..d0e1a83 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -26,6 +26,83 @@
+ #include "data_reg.h"
+ #include "internal.h"
+=20
++#ifdef JSON_PARSING
++static int nft_data_reg_verdict_json_parse(union nft_data_reg *reg, js=
+on_t *data)
++{
++	int verdict;
++	const char *verdict_str;
++
++	verdict_str =3D nft_jansson_value_parse_str(data, "verdict");
++	if (verdict_str =3D=3D NULL)
++		return -1;
++
++	verdict =3D nft_str2verdict(verdict_str);
++	if (verdict < 0)
++		return -1;
++
++	reg->verdict =3D (uint32_t)verdict;
++
++	return 0;
++}
++
++static int nft_data_reg_chain_json_parse(union nft_data_reg *reg, json=
+_t *data)
++{
++	reg->chain =3D strdup(nft_jansson_value_parse_str(data, "chain"));
++	if (reg->chain =3D=3D NULL) {
++		return -1;
++	}
++
++	return 0;
++}
++
++static int nft_data_reg_value_json_parse(union nft_data_reg *reg, json=
+_t *data)
++{
++	int i;
++	char node_name[6];
++
++	if (nft_jansson_value_parse_val(data, "len", NFT_TYPE_U8,
++					&reg->len) !=3D 0)
++			return -1;
++
++	for (i =3D 0; i < div_round_up(reg->len, sizeof(uint32_t)); i++) {
++		sprintf(node_name, "data%d", i);
++
++		if (nft_jansson_str2num(data, node_name, BASE_HEX,
++				        &reg->val[i], NFT_TYPE_U32) !=3D 0)
++			return -1;
++	}
++
++	return 0;
++}
++#endif
++
++int nft_data_reg_json_parse(union nft_data_reg *reg, json_t *data)
++{
++#ifdef JSON_PARSING
++
++	const char *type;
++
++	type =3D nft_jansson_value_parse_str(data, "type");
++	if (type =3D=3D NULL) {
++		return -1;
++	}
++
++	/* Select what type of parsing is needed */
++	if (strcmp(type, "value") =3D=3D 0) {
++		return nft_data_reg_value_json_parse(reg, data);
++	} else if (strcmp(type, "verdict") =3D=3D 0) {
++		return nft_data_reg_verdict_json_parse(reg, data);
++	} else if (strcmp(type, "chain") =3D=3D 0) {
++		return nft_data_reg_chain_json_parse(reg, data);
++	}
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ #ifdef XML_PARSING
+ static int nft_data_reg_verdict_xml_parse(union nft_data_reg *reg, cha=
+r *xml)
+ {
+diff --git a/src/expr/data_reg.h b/src/expr/data_reg.h
+index 9aee11f..7819919 100644
+--- a/src/expr/data_reg.h
++++ b/src/expr/data_reg.h
+@@ -18,9 +18,14 @@ union nft_data_reg {
+ 	};
+ };
+=20
++#ifndef JSON_PARSING
++#define json_t void
++#endif
++
+ int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *=
+reg,
+                         uint32_t output_format, uint32_t flags, int re=
+g_type);
+ int nft_data_reg_xml_parse(union nft_data_reg *reg, char *xml);
+ int nft_parse_data(union nft_data_reg *data, struct nlattr *attr, int =
+*type);
++int nft_data_reg_json_parse(union nft_data_reg *reg, json_t *data);
+=20
+ #endif
+diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
+index 9781232..8d4e8b7 100644
+--- a/src/expr/exthdr.c
++++ b/src/expr/exthdr.c
+@@ -192,6 +192,48 @@ static inline int str2exthdr_type(const char *str)
+ 	return -1;
+ }
+=20
++static int
++nft_rule_expr_exthdr_json_parse(struct nft_rule_expr *e, json_t *root)
++{
++#ifdef JSON_PARSING
++	const char *exthdr_type;
++	uint32_t uval32;
++	int type;
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_DREG, uval32);
++
++	exthdr_type =3D nft_jansson_value_parse_str(root, "exthdr_type");
++	if (exthdr_type =3D=3D NULL)
++		return -1;
++
++	type =3D str2exthdr_type(exthdr_type);
++	if (type < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_TYPE, type);
++
++	if (nft_jansson_value_parse_val(root, "offset", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_OFFSET, uval32);
++
++	if (nft_jansson_value_parse_val(root, "len", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	 nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_LEN, uval32);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
+=20
+ static int
+ nft_rule_expr_exthdr_xml_parse(struct nft_rule_expr *e, mxml_node_t *t=
+ree)
+@@ -284,6 +326,7 @@ struct expr_ops expr_ops_exthdr =3D {
+ 	.build		=3D nft_rule_expr_exthdr_build,
+ 	.snprintf	=3D nft_rule_expr_exthdr_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_exthdr_xml_parse,
++	.json_parse	=3D nft_rule_expr_exthdr_json_parse,
+ };
+=20
+ static void __init expr_exthdr_init(void)
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 2061172..d548b75 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -178,6 +178,45 @@ nft_rule_expr_immediate_parse(struct nft_rule_expr=
+ *e, struct nlattr *attr)
+ }
+=20
+ static int
++nft_rule_expr_immediate_json_parse(struct nft_rule_expr *e, json_t *ro=
+ot)
++{
++#ifdef JSON_PARSING
++	struct nft_expr_immediate *imm =3D nft_expr_data(e);
++	int datareg_type;
++	uint32_t reg;
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_IMM_DREG, reg);
++
++	datareg_type =3D nft_jansson_data_reg_parse(root, "immediatedata",
++						  &imm->data);
++	if (datareg_type < 0)
++		return -1;
++
++	switch (datareg_type) {
++	case DATA_VALUE:
++		e->flags |=3D (1 << NFT_EXPR_IMM_DATA);
++		break;
++	case DATA_VERDICT:
++		e->flags |=3D (1 << NFT_EXPR_IMM_VERDICT);
++		break;
++	case DATA_CHAIN:
++		e->flags |=3D (1 << NFT_EXPR_IMM_CHAIN);
++		break;
++	default:
++		return -1;
++	}
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_immediate_xml_parse(struct nft_rule_expr *e, mxml_node_t=
+ *tree)
+ {
+ #ifdef XML_PARSING
+@@ -342,6 +381,7 @@ struct expr_ops expr_ops_immediate =3D {
+ 	.build		=3D nft_rule_expr_immediate_build,
+ 	.snprintf	=3D nft_rule_expr_immediate_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_immediate_xml_parse,
++	.json_parse	=3D nft_rule_expr_immediate_json_parse,
+ };
+=20
+ static void __init expr_immediate_init(void)
+diff --git a/src/expr/limit.c b/src/expr/limit.c
+index 336bdb0..d65c0a9 100644
+--- a/src/expr/limit.c
++++ b/src/expr/limit.c
+@@ -118,6 +118,30 @@ nft_rule_expr_limit_parse(struct nft_rule_expr *e,=
+ struct nlattr *attr)
+ 	return 0;
+ }
+=20
++static int nft_rule_expr_limit_json_parse(struct nft_rule_expr *e, jso=
+n_t *root)
++{
++#ifdef JSON_PARSING
++	uint64_t uval64;
++
++	if (nft_jansson_value_parse_val(root, "rate", NFT_TYPE_U64,
++					&uval64) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_RATE, uval64);
++
++	if (nft_jansson_value_parse_val(root, "depth", NFT_TYPE_U64,
++					&uval64) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u64(e, NFT_EXPR_LIMIT_DEPTH, uval64);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ static int nft_rule_expr_limit_xml_parse(struct nft_rule_expr *e, mxml=
+_node_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -176,6 +200,7 @@ struct expr_ops expr_ops_limit =3D {
+ 	.build		=3D nft_rule_expr_limit_build,
+ 	.snprintf	=3D nft_rule_expr_limit_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_limit_xml_parse,
++	.json_parse	=3D nft_rule_expr_limit_json_parse,
+ };
+=20
+ static void __init expr_limit_init(void)
+diff --git a/src/expr/log.c b/src/expr/log.c
+index 38b59f1..1dfea1b 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -156,6 +156,44 @@ nft_rule_expr_log_parse(struct nft_rule_expr *e, s=
+truct nlattr *attr)
+ 	return 0;
+ }
+=20
++static int nft_rule_expr_log_json_parse(struct nft_rule_expr *e, json_=
+t *root)
++{
++#ifdef JSON_PARSING
++	const char *prefix;
++	uint32_t snaplen;
++	uint16_t uval16;
++
++	prefix =3D nft_jansson_value_parse_str(root, "prefix");
++	if (prefix =3D=3D NULL)
++		return -1;
++
++	nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
++
++	if (nft_jansson_value_parse_val(root, "group", NFT_TYPE_U16,
++					&uval16) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, uval16);
++
++	if (nft_jansson_value_parse_val(root, "snaplen", NFT_TYPE_U32,
++					&snaplen) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
++
++	if (nft_jansson_value_parse_val(root, "qthreshold", NFT_TYPE_U16,
++					&uval16) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, uval16);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ static int nft_rule_expr_log_xml_parse(struct nft_rule_expr *e, mxml_n=
+ode_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -236,6 +274,7 @@ struct expr_ops expr_ops_log =3D {
+ 	.build		=3D nft_rule_expr_log_build,
+ 	.snprintf	=3D nft_rule_expr_log_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_log_xml_parse,
++	.json_parse	=3D nft_rule_expr_log_json_parse,
+ };
+=20
+ static void __init expr_log_init(void)
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index d66577b..34f484c 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -143,6 +143,36 @@ nft_rule_expr_lookup_parse(struct nft_rule_expr *e=
+, struct nlattr *attr)
+ }
+=20
+ static int
++nft_rule_expr_lookup_json_parse(struct nft_rule_expr *e, json_t *root)
++{
++#ifdef JSON_PARSING
++	const char *set_name;
++	int32_t reg;
++
++	set_name =3D nft_jansson_value_parse_str(root, "set");
++	if (set_name =3D=3D NULL)
++		return -1;
++
++	nft_rule_expr_set_str(e, NFT_EXPR_LOOKUP_SET, set_name);
++
++	if (nft_jansson_value_parse_reg(root, "sreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_SREG, reg);
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_LOOKUP_DREG, reg);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_lookup_xml_parse(struct nft_rule_expr *e, mxml_node_t *t=
+ree)
+ {
+ #ifdef XML_PARSING
+@@ -248,6 +278,7 @@ struct expr_ops expr_ops_lookup =3D {
+ 	.build		=3D nft_rule_expr_lookup_build,
+ 	.snprintf	=3D nft_rule_expr_lookup_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_lookup_xml_parse,
++	.json_parse	=3D nft_rule_expr_lookup_json_parse,
+ };
+=20
+ static void __init expr_lookup_init(void)
+diff --git a/src/expr/match.c b/src/expr/match.c
+index d155bb3..763e11e 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -170,6 +170,25 @@ static int nft_rule_expr_match_parse(struct nft_ru=
+le_expr *e, struct nlattr *att
+ 	return 0;
+ }
+=20
++static int nft_rule_expr_match_json_parse(struct nft_rule_expr *e, jso=
+n_t *root)
++{
++#ifdef JSON_PARSING
++	const char *name;
++
++	name =3D nft_jansson_value_parse_str(root, "name");
++	if (name =3D=3D NULL)
++		return -1;
++
++	nft_rule_expr_set_str(e, NFT_EXPR_MT_NAME, name);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++
+ static int nft_rule_expr_match_xml_parse(struct nft_rule_expr *e, mxml=
+_node_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -247,7 +266,8 @@ struct expr_ops expr_ops_match =3D {
+ 	.parse		=3D nft_rule_expr_match_parse,
+ 	.build		=3D nft_rule_expr_match_build,
+ 	.snprintf	=3D nft_rule_expr_match_snprintf,
+-	.xml_parse =3D nft_rule_expr_match_xml_parse,
++	.xml_parse 	=3D nft_rule_expr_match_xml_parse,
++	.json_parse 	=3D nft_rule_expr_match_json_parse,
+ };
+=20
+ static void __init expr_match_init(void)
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 8f163f6..84b8ba8 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -156,9 +156,40 @@ static inline int str2meta_key(const char *str)
+ 			return i;
  	}
 =20
- 	free(json);
++	errno =3D EINVAL;
+ 	return -1;
+ }
+=20
++static int nft_rule_expr_meta_json_parse(struct nft_rule_expr *e, json=
+_t *root)
++{
++#ifdef JSON_PARSING
++	const char *key_str;
++	uint32_t reg;
++	int key;
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++                return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, reg);
++
++	key_str =3D nft_jansson_value_parse_str(root, "key");
++	if (key_str =3D=3D NULL)
++		return -1;
++
++	key =3D str2meta_key(key_str);
++	if (key < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++
+ static int nft_rule_expr_meta_xml_parse(struct nft_rule_expr *e, mxml_=
+node_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -225,7 +256,8 @@ struct expr_ops expr_ops_meta =3D {
+ 	.parse		=3D nft_rule_expr_meta_parse,
+ 	.build		=3D nft_rule_expr_meta_build,
+ 	.snprintf	=3D nft_rule_expr_meta_snprintf,
+-	.xml_parse =3D nft_rule_expr_meta_xml_parse,
++	.xml_parse 	=3D nft_rule_expr_meta_xml_parse,
++	.json_parse 	=3D nft_rule_expr_meta_json_parse,
+ };
+=20
+ static void __init expr_meta_init(void)
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index e6866ec..312594f 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -196,6 +196,64 @@ static inline int nft_str2nat(const char *nat)
+ 	}
+ }
+=20
++static int nft_rule_expr_nat_json_parse(struct nft_rule_expr *e, json_=
+t *root)
++{
++#ifdef JSON_PARSING
++	const char *nat_type, *family_str;
++	uint32_t reg;
++	int val32;
++
++	nat_type =3D nft_jansson_value_parse_str(root, "nat_type");
++	if (nat_type =3D=3D NULL)
++		return -1;
++
++	val32 =3D nft_str2nat(nat_type);
++	if (val32 < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_TYPE, val32);
++
++	family_str =3D nft_jansson_value_parse_str(root, "family");
++	if (family_str =3D=3D NULL)
++		return -1;
++
++	val32 =3D nft_str2family(family_str);
++	if (val32 < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_FAMILY, val32);
++
++	if (nft_jansson_value_parse_reg(root, "sreg_addr_min", NFT_TYPE_U32,
++					&reg) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MIN, reg);
++
++	if (nft_jansson_value_parse_reg(root, "sreg_addr_max", NFT_TYPE_U32,
++					&reg) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MAX, reg);
++
++	if (nft_jansson_value_parse_reg(root, "sreg_proto_min", NFT_TYPE_U32,
++					&reg) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MIN, reg);
++
++	if (nft_jansson_value_parse_reg(root, "sreg_proto_max", NFT_TYPE_U32,
++					&reg) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MAX, reg);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ static int nft_rule_expr_nat_xml_parse(struct nft_rule_expr *e, mxml_n=
+ode_t *tree)
+ {
+ #ifdef XML_PARSING
+@@ -402,6 +460,7 @@ struct expr_ops expr_ops_nat =3D {
+ 	.build		=3D nft_rule_expr_nat_build,
+ 	.snprintf	=3D nft_rule_expr_nat_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_nat_xml_parse,
++	.json_parse	=3D nft_rule_expr_nat_json_parse,
+ };
+=20
+ static void __init expr_nat_init(void)
+diff --git a/src/expr/payload.c b/src/expr/payload.c
+index 340a0d8..84346a1 100644
+--- a/src/expr/payload.c
++++ b/src/expr/payload.c
+@@ -194,6 +194,48 @@ static inline int nft_str2base(const char *base)
+ }
+=20
+ static int
++nft_rule_expr_payload_json_parse(struct nft_rule_expr *e, json_t *root=
+)
++{
++#ifdef JSON_PARSING
++	const char *base_str;
++	uint32_t reg, uval32;
++	int base;
++
++	if (nft_jansson_value_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) !=3D=
+ 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_DREG, reg);
++
++	base_str =3D nft_jansson_value_parse_str(root, "base");
++	if (base_str =3D=3D NULL)
++		return -1;
++
++	base =3D nft_str2base(base_str);
++	if (base < 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_BASE, base);
++
++	if (nft_jansson_value_parse_val(root, "offset", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_OFFSET, uval32);
++
++	if (nft_jansson_value_parse_val(root, "len", NFT_TYPE_U32,
++					&uval32) !=3D 0)
++		return -1;
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_LEN, uval32);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_payload_xml_parse(struct nft_rule_expr *e, mxml_node_t *=
+tree)
+ {
+ #ifdef XML_PARSING
+@@ -286,6 +328,7 @@ struct expr_ops expr_ops_payload =3D {
+ 	.build		=3D nft_rule_expr_payload_build,
+ 	.snprintf	=3D nft_rule_expr_payload_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_payload_xml_parse,
++	.json_parse	=3D nft_rule_expr_payload_json_parse,
+ };
+=20
+ static void __init expr_payload_init(void)
+diff --git a/src/expr/target.c b/src/expr/target.c
+index 5ef53cb..ede4830 100644
+--- a/src/expr/target.c
++++ b/src/expr/target.c
+@@ -171,6 +171,25 @@ static int nft_rule_expr_target_parse(struct nft_r=
+ule_expr *e, struct nlattr *at
+ }
+=20
+ static int
++nft_rule_expr_target_json_parse(struct nft_rule_expr *e, json_t *root)
++{
++#ifdef JSON_PARSING
++	const char *name;
++
++	name =3D nft_jansson_value_parse_str(root, "name");
++	if (name =3D=3D NULL)
++		return -1;
++
++	nft_rule_expr_set_str(e, NFT_EXPR_TG_NAME, name);
++
++	return 0;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int
+ nft_rule_expr_target_xml_parse(struct nft_rule_expr *e, mxml_node_t *t=
+ree)
+ {
+ #ifdef XML_PARSING
+@@ -250,6 +269,7 @@ struct expr_ops expr_ops_target =3D {
+ 	.build		=3D nft_rule_expr_target_build,
+ 	.snprintf	=3D nft_rule_expr_target_snprintf,
+ 	.xml_parse	=3D nft_rule_expr_target_xml_parse,
++	.json_parse	=3D nft_rule_expr_target_json_parse,
+ };
+=20
+ static void __init expr_target_init(void)
+diff --git a/src/expr_ops.h b/src/expr_ops.h
+index a46a309..12973ce 100644
+--- a/src/expr_ops.h
++++ b/src/expr_ops.h
+@@ -13,6 +13,10 @@ struct nft_rule_expr;
+ #define mxml_node_t void
+ #endif
+=20
++#ifndef JSON_PARSING
++#define json_t void
++#endif
++
+ struct expr_ops {
+ 	struct list_head head;
+=20
+@@ -25,6 +29,7 @@ struct expr_ops {
+ 	void	(*build)(struct nlmsghdr *nlh, struct nft_rule_expr *e);
+ 	int	(*snprintf)(char *buf, size_t len, uint32_t type, uint32_t flags,=
+ struct nft_rule_expr *e);
+ 	int	(*xml_parse)(struct nft_rule_expr *e, mxml_node_t *tree);
++	int	(*json_parse)(struct nft_rule_expr *e, json_t *data);
+ };
+=20
+ void nft_expr_ops_register(struct expr_ops *ops);
+diff --git a/src/internal.h b/src/internal.h
+index 5ca2288..cf110c3 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -52,6 +52,14 @@ json_t *nft_jansson_create_root(char *json, json_err=
+or_t *err);
+ json_t *nft_jansson_get_node(json_t *root, const char *tag);
+ void nft_jansson_free_root(json_t *root);
+ int nft_jansson_parse_family(json_t *root, void *out);
++int nft_jansson_str2num(json_t *root, const char *tag, int base, void =
+*out,
++			enum nft_type type);
++int nft_jansson_value_parse_reg(json_t *root, const char *tag,
++				int type, void *out);
++struct nft_rule_expr *nft_jansson_expr_parse(json_t *root);
++union nft_data_reg;
++int nft_jansson_data_reg_parse(json_t *root, const char *tag,
++			       union nft_data_reg *data_reg);
+ #endif
+=20
+ const char *nft_family2str(uint32_t family);
+diff --git a/src/jansson.c b/src/jansson.c
+index ca29863..f0ef04c 100644
+--- a/src/jansson.c
++++ b/src/jansson.c
+@@ -15,6 +15,10 @@
+ #include <arpa/inet.h>
+ #include <errno.h>
+ #include <string.h>
++#include "expr_ops.h"
++
++#include <libnftables/expr.h>
++#include <linux/netfilter/nf_tables.h>
+=20
+ #ifdef JSON_PARSING
+=20
+@@ -121,4 +125,91 @@ int nft_jansson_parse_family(json_t *root, void *o=
+ut)
+ 	memcpy(out, &family, sizeof(family));
+ 	return 0;
+ }
++
++int nft_jansson_value_parse_reg(json_t *root, const char *tag, int typ=
+e,
++				void *out)
++{
++	if (nft_jansson_value_parse_val(root, tag, type, out) !=3D 0)
++		return -1;
++
++	if (*((uint32_t *)out) > NFT_REG_MAX){
++		errno =3D ERANGE;
++		return -1;
++	}
++
++	return 0;
++}
++
++int nft_jansson_str2num(json_t *root, const char *tag, int base,
++			void *out, enum nft_type type)
++{
++	const char *str;
++
++	str =3D nft_jansson_value_parse_str(root, tag);
++	if (str =3D=3D NULL)
++		return -1;
++
++	return nft_strtoi(str, base, out, type);
++}
++
++struct nft_rule_expr *nft_jansson_expr_parse(json_t *root)
++{
++	struct nft_rule_expr *e;
++	const char *type;
++	int ret;
++
++	type =3D nft_jansson_value_parse_str(root, "type");
++	if (type =3D=3D NULL)
++		return NULL;
++
++	e =3D nft_rule_expr_alloc(type);
++	if (e =3D=3D NULL)
++		return NULL;;
++
++	ret =3D e->ops->json_parse(e, root);
++
++	return ret < 0 ? NULL : e;
++}
++
++int nft_jansson_data_reg_parse(json_t *root, const char *tag,
++			       union nft_data_reg *data_reg)
++{
++	json_t *data;
++	const char *type;
++	int ret;
++
++	data =3D json_object_get(root, tag);
++	if (data =3D=3D NULL) {
++		errno =3D EINVAL;
++		return -1;
++	}
++
++	data =3D json_object_get(data, "data_reg");
++	if (data =3D=3D NULL) {
++		errno =3D EINVAL;
++		return -1;
++	}
++
++	ret =3D nft_data_reg_json_parse(data_reg, data);
++
++	if (ret < 0) {
++		errno =3D EINVAL;
++		return -1;
++	}
++
++	type =3D nft_jansson_value_parse_str(data, "type");
++	if (type =3D=3D NULL)
++		return -1;
++
++	if (strcmp(type, "value") =3D=3D 0)
++		return DATA_VALUE;
++	else if (strcmp(type, "verdict") =3D=3D 0)
++		return DATA_VERDICT;
++	else if (strcmp(type, "chain") =3D=3D 0)
++		return DATA_CHAIN;
++	else {
++		errno =3D EINVAL;
++		return -1;
++	}
++}
+ #endif
+diff --git a/src/rule.c b/src/rule.c
+index 7f905d2..feacc26 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -475,6 +475,93 @@ int nft_rule_nlmsg_parse(const struct nlmsghdr *nl=
+h, struct nft_rule *r)
+ }
+ EXPORT_SYMBOL(nft_rule_nlmsg_parse);
+=20
++static int nft_rule_json_parse(struct nft_rule *r, char *json)
++{
++#ifdef JSON_PARSING
++	json_t *root, *node, *array;
++	json_error_t error;
++	struct nft_rule_expr *e;
++	const char *str =3D NULL;
++	uint64_t uval64;
++	uint32_t uval32;
++	int i, family;
++
++	node =3D nft_jansson_create_root(json, &error);
++	if (node =3D=3D NULL)
++		return -1;
++
++	root =3D nft_jansson_get_node(node, "rule");
++	if (root =3D=3D NULL)
++		return -1;
++
++	if (nft_jansson_parse_family(root, &family) !=3D 0)
++		goto err;
++
++	nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FAMILY, family);
++
++	str =3D nft_jansson_value_parse_str(root, "table");
++	if (str =3D=3D NULL)
++		goto err;
++
++	nft_rule_attr_set_str(r, NFT_RULE_ATTR_TABLE, str);
++
++	str =3D nft_jansson_value_parse_str(root, "chain");
++	if (str =3D=3D NULL)
++		goto err;
++
++	nft_rule_attr_set_str(r, NFT_RULE_ATTR_CHAIN, str);
++
++	if (nft_jansson_value_parse_val(root, "handle",
++					NFT_TYPE_U64, &uval64) =3D=3D -1)
++		goto err;
++
++	nft_rule_attr_set_u64(r, NFT_RULE_ATTR_HANDLE, uval64);
++
++	if (nft_jansson_value_parse_val(root, "flags",
++					NFT_TYPE_U32, &uval32) =3D=3D -1)
++		goto err;
++
++	nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FLAGS, uval32);
++
++	if (nft_jansson_node_exist(root, "compat_proto") ||
++	    nft_jansson_node_exist(root, "compat_flags")) {
++		if (nft_jansson_value_parse_val(root, "compat_proto",
++					 	NFT_TYPE_U32, &uval32) =3D=3D -1)
++			goto err;
++
++		nft_rule_attr_set_u32(r, NFT_RULE_ATTR_COMPAT_PROTO, uval32);
++
++		if (nft_jansson_value_parse_val(root, "compat_flags",
++					 	NFT_TYPE_U32, &uval32) =3D=3D -1)
++			goto err;
++
++		nft_rule_attr_set_u32(r, NFT_RULE_ATTR_COMPAT_FLAGS, uval32);
++	}
++
++	array =3D json_object_get(root, "expr");
++	if (array =3D=3D NULL)
++		goto err;
++
++	for (i =3D 0; i < json_array_size(array); ++i) {
++
++		e =3D nft_jansson_expr_parse(json_array_get(array, i));
++		if (e =3D=3D NULL)
++			goto err;
++
++		nft_rule_add_expr(r, e);
++	}
++
++	json_decref(node);
++	return 0;
++err:
++	json_decref(node);
++	return -1;
++#else
++	errno =3D EOPNOTSUPP;
++	return -1;
++#endif
++}
++
+ static int nft_rule_xml_parse(struct nft_rule *r, char *xml)
+ {
+ #ifdef XML_PARSING
+@@ -589,6 +676,9 @@ int nft_rule_parse(struct nft_rule *r, enum nft_rul=
+e_parse_type type, char *data
+ 	case NFT_RULE_PARSE_XML:
+ 		ret =3D nft_rule_xml_parse(r, data);
+ 		break;
++	case NFT_RULE_PARSE_JSON:
++		ret =3D nft_rule_json_parse(r, data);
++		break;
+ 	default:
+ 		ret =3D -1;
+ 		errno =3D EOPNOTSUPP;
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
