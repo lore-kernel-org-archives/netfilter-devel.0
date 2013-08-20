@@ -1,270 +1,186 @@
-From: Drunkard Zhang <gongfan193@gmail.com>
-Subject: ipvsadm: One-packet scheduling with UDP service is unstable
-Date: Tue, 20 Aug 2013 23:06:05 +0800
-Message-ID: <CAJiejCQPa7V703RwOeWPpbQMJQvfswRn+pvTKFmNdeU05RU3SQ@mail.gmail.com>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 3/3] examples: Add nft-rule-json-add
+Date: Tue, 20 Aug 2013 17:59:03 +0200
+Message-ID: <20130820155903.8850.44422.stgit@Ph0enix>
+References: <20130820155844.8850.85717.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric@regit.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f45.google.com ([209.85.216.45]:61883 "EHLO
-	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab3HTPG0 (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:60089 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906Ab3HTP70 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Aug 2013 11:06:26 -0400
+	Tue, 20 Aug 2013 11:59:26 -0400
+Received: by mail-we0-f177.google.com with SMTP id m46so581101wev.22
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2013 08:59:25 -0700 (PDT)
+In-Reply-To: <20130820155844.8850.85717.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Need help here, thank you for replying :-)
+=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-I'm setting up a syslog cluster based on IPVS, all UDP datagrams sent
-from firewall with fixed source IP and fixed source port, so
-pseudo-random balancing based on client IP and port won't working. And
-it seems that keepalived is not supporting One-packet scheduling
-option, so I did some hacks on it after keepalived started:
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ examples/Makefile.am         |    4 +
+ examples/nft-rule-json-add.c |  117 ++++++++++++++++++++++++++++++++++=
+++++++++
+ 2 files changed, 121 insertions(+)
+ create mode 100644 examples/nft-rule-json-add.c
 
-1. dump LVS rules with ipvsadm -S -n > rules-vs3;
-2. add --ops option;
-3. restore LVS rules with ipvsadm-restore < rules-vs3;
-4. dump the running LVS rules with ipvsadm -S -n
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index 8d76f00..639aafb 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -14,6 +14,7 @@ check_PROGRAMS =3D nft-table-add		\
+ 		 nft-rule-add		\
+ 		 nft-rule-insert	\
+ 		 nft-rule-xml-add	\
++		 nft-rule-json-add	\
+ 		 nft-rule-del		\
+ 		 nft-rule-get		\
+ 		 nft-events		\
+@@ -67,6 +68,9 @@ nft_rule_insert_LDADD =3D ../src/libnftables.la ${LIB=
+MNL_LIBS} ${LIBXML_LIBS}
+ nft_rule_xml_add_SOURCES =3D nft-rule-xml-add.c
+ nft_rule_xml_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
+=20
++nft_rule_json_add_SOURCES =3D nft-rule-json-add.c
++nft_rule_json_add_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
++
+ nft_rule_del_SOURCES =3D nft-rule-del.c
+ nft_rule_del_LDADD =3D ../src/libnftables.la ${LIBMNL_LIBS}
+=20
+diff --git a/examples/nft-rule-json-add.c b/examples/nft-rule-json-add.=
+c
+new file mode 100644
+index 0000000..bf56b89
+--- /dev/null
++++ b/examples/nft-rule-json-add.c
+@@ -0,0 +1,117 @@
++/*
++ * (C) 2013 by =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
++ *
++ * Based on nft-rule-xml-add from:
++ *
++ * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <stddef.h>	/* for offsetof */
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftables/rule.h>
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq;
++	struct nft_rule *r =3D NULL;
++	int ret, fd;
++	uint8_t family;
++	char json[4096];
++	char reprint[4096];
++
++	if (argc < 2) {
++		printf("Usage: %s <json-file>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	fd =3D open(argv[1], O_RDONLY);
++	if (fd < 0) {
++		perror("open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (read(fd, json, sizeof(json)) < 0) {
++		perror("read");
++		close(fd);
++		exit(EXIT_FAILURE);
++	}
++	close(fd);
++
++	r =3D nft_rule_alloc();
++	if (r =3D=3D NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	if (nft_rule_parse(r, NFT_RULE_PARSE_JSON, json) < 0) {
++		printf("E: Unable to parse JSON file: %s\n", strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	nft_rule_snprintf(reprint, sizeof(reprint), r, NFT_RULE_O_JSON, 0);
++	printf("Parsed:\n%s\n", reprint);
++
++	nft_rule_attr_unset(r, NFT_RULE_ATTR_HANDLE);
++	family =3D nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
++
++	seq =3D time(NULL);
++	nlh =3D nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, family,
++				       NLM_F_CREATE|NLM_F_APPEND|NLM_F_ACK,
++				       seq);
++	nft_rule_nlmsg_build_payload(nlh, r);
++	nft_rule_free(r);
++
++	nl =3D mnl_socket_open(NETLINK_NETFILTER);
++	if (nl =3D=3D NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid =3D mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret =3D mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
++		if (ret <=3D 0)
++			break;
++		ret =3D mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret =3D=3D -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
 
-So, I got two problems here:
-
-1. Dumped rules in step 4 above is not usable anymore, the double-dash
-in --ops lost, so I can't restore rule with this dump anymore. This
-must be a bug.
-
-2. The --ops option is not working sometimes you applied the rules,
-and in most of times the --ops just not working. To make it work, just
-'ipvsadm-restore < rules-vs3' for plenty of times until it's working.
-I haven't find the patterns make it work yet. This is lucky, I can't
-get it work on second host at all.
-
-The "not working" above means the UDP datagrams from one source IP is
-sticked to one realserver, it doesn't distribute to other realservers
-which --ops designed for.
-
-So I wondering if there's some CONFIG_* options that ipvs needs, or
-recent development broke the code?
-
-Here's my hosts, both running updated Gentoo. This is the second host
-that --ops doesn't work at all:
-vs3 ~ # uname -r
-3.10.7-gentoo
-vs3 ~ # lspci |grep net
-01:00.0 Ethernet controller: Broadcom Corporation NetXtreme II BCM5716
-Gigabit Ethernet (rev 20)
-01:00.1 Ethernet controller: Broadcom Corporation NetXtreme II BCM5716
-Gigabit Ethernet (rev 20)
-vs3 ~ # emerge --info ipvsadm keepalived
-Portage 2.1.12.2 (default/linux/amd64/13.0, gcc-4.6.3, glibc-2.15-r3,
-3.10.7-gentoo x86_64)
-=================================================================
-                         System Settings
-=================================================================
-System uname: Linux-3.10.7-gentoo-x86_64-Intel-R-_Xeon-R-_CPU_E5620_@_2.40GHz-with-gentoo-2.2
-KiB Mem:    16423692 total,  15907924 free
-KiB Swap:          0 total,         0 free
-Timestamp of tree: Mon, 19 Aug 2013 21:30:01 +0000
-ld GNU ld (GNU Binutils) 2.23.1
-app-shells/bash:          4.2_p45
-dev-lang/python:          2.7.5, 3.2.5-r1
-dev-util/pkgconfig:       0.28
-sys-apps/baselayout:      2.2
-sys-apps/openrc:          0.11.8
-sys-apps/sandbox:         2.6-r1
-sys-devel/autoconf:       2.69
-sys-devel/automake:       1.12.6
-sys-devel/binutils:       2.23.1
-sys-devel/gcc:            4.6.3
-sys-devel/gcc-config:     1.7.3
-sys-devel/libtool:        2.4-r1
-sys-devel/make:           3.82-r4
-sys-kernel/linux-headers: 3.7 (virtual/os-headers)
-sys-libs/glibc:           2.15-r3
-Repositories: gentoo
-ACCEPT_KEYWORDS="amd64"
-ACCEPT_LICENSE="* -@EULA"
-CBUILD="x86_64-pc-linux-gnu"
-CFLAGS="-march=corei7 -O2 -pipe"
-CHOST="x86_64-pc-linux-gnu"
-CONFIG_PROTECT="/etc /var/bind"
-CONFIG_PROTECT_MASK="/etc/ca-certificates.conf /etc/env.d /etc/gconf
-/etc/gentoo-release /etc/revdep-rebuild /etc/sandbox.d /etc/terminfo"
-CXXFLAGS="-march=corei7 -O2 -pipe"
-DISTDIR="/usr/portage/distfiles"
-FCFLAGS="-O2 -pipe"
-FEATURES="assume-digests binpkg-logs config-protect-if-modified
-distlocks ebuild-locks fixlafiles merge-sync news parallel-fetch
-preserve-libs protect-owned sandbox sfperms strict
-unknown-features-warn unmerge-logs unmerge-orphans userfetch"
-FFLAGS="-O2 -pipe"
-LANG="en_US.utf8"
-LDFLAGS="-Wl,-O1 -Wl,--as-needed"
-MAKEOPTS="-j17"
-PKGDIR="/usr/portage/packages"
-PORTAGE_CONFIGROOT="/"
-PORTAGE_RSYNC_OPTS="--recursive --links --safe-links --perms --times
---compress --force --whole-file --delete --stats --human-readable
---timeout=180 --exclude=/distfiles --exclude=/local
---exclude=/packages"
-PORTAGE_TMPDIR="/var/tmp"
-PORTDIR="/usr/portage"
-PORTDIR_OVERLAY=""
-USE="acl acpi aio amd64 bash-completion berkdb bzip2 cli cracklib
-crypt cxx dri fortran gdbm iconv ipv6 mmap mmx modules mudflap
-multilib ncurses nls nptl openmp pam pcre readline session smp sse
-sse2 ssl ssse3 tcpd threads unicode vim-syntax zlib" ABI_X86="64"
-ALSA_CARDS="ali5451 als4000 atiixp atiixp-modem bt87x ca0106 cmipci
-emu10k1x ens1370 ens1371 es1938 es1968 fm801 hda-intel intel8x0
-intel8x0m maestro3 trident usb-audio via82xx via82xx-modem ymfpci"
-APACHE2_MODULES="authn_core authz_core socache_shmcb unixd actions
-alias auth_basic authn_alias authn_anon authn_dbm authn_default
-authn_file authz_dbm authz_default authz_groupfile authz_host
-authz_owner authz_user autoindex cache cgi cgid dav dav_fs dav_lock
-deflate dir disk_cache env expires ext_filter file_cache filter
-headers include info log_config logio mem_cache mime mime_magic
-negotiation rewrite setenvif speling status unique_id userdir
-usertrack vhost_alias" CALLIGRA_FEATURES="kexi words flow plan sheets
-stage tables krita karbon braindump author" CAMERAS="ptp2"
-COLLECTD_PLUGINS="df interface irq load memory rrdtool swap syslog"
-ELIBC="glibc" GPSD_PROTOCOLS="ashtech aivdm earthmate evermore fv18
-garmin garmintxt gpsclock itrax mtk3301 nmea ntrip navcom oceanserver
-oldstyle oncore rtcm104v2 rtcm104v3 sirf superstar2 timing tsip
-tripmate tnt ubx" INPUT_DEVICES="keyboard mouse evdev" KERNEL="linux"
-LCD_DEVICES="bayrad cfontz cfontz633 glk hd44780 lb216 lcdm001 mtxorb
-ncurses text" LIBREOFFICE_EXTENSIONS="presenter-console
-presenter-minimizer" OFFICE_IMPLEMENTATION="libreoffice"
-PHP_TARGETS="php5-4" PYTHON_SINGLE_TARGET="python2_7"
-PYTHON_TARGETS="python2_7 python3_2" RUBY_TARGETS="ruby19 ruby18"
-USERLAND="GNU" VIDEO_CARDS="fbdev glint intel mach64 mga nouveau nv
-r128 radeon savage sis tdfx trident vesa via vmware dummy v4l"
-XTABLES_ADDONS="quota2 psd pknock lscan length2 ipv4options ipset
-ipp2p iface geoip fuzzy condition tee tarpit sysrq steal rawnat
-logmark ipmark dhcpmac delude chaos account"
-Unset:  CPPFLAGS, CTARGET, EMERGE_DEFAULT_OPTS, INSTALL_MASK, LC_ALL,
-PORTAGE_BUNZIP2_COMMAND, PORTAGE_COMPRESS, PORTAGE_COMPRESS_FLAGS,
-PORTAGE_RSYNC_EXTRA_OPTS, USE_PYTHON
-=================================================================
-                        Package Settings
-=================================================================
-sys-cluster/ipvsadm-1.26-r2 was built with the following:
-USE="(multilib) -static-libs" ABI_X86="64"
-sys-cluster/keepalived-1.2.2-r4 was built with the following:
-USE="ipv6 (multilib) -debug" ABI_X86="64"
-
-
-And this is the host that --ops works occasionally:
-vs4 ~ # uname -r
-3.10.7-gentoo
-vs4 ~ # lspci |grep net
-05:00.0 Ethernet controller: Intel Corporation 80003ES2LAN Gigabit
-Ethernet Controller (Copper) (rev 01)
-05:00.1 Ethernet controller: Intel Corporation 80003ES2LAN Gigabit
-Ethernet Controller (Copper) (rev 01)
-vs4 ~ # emerge --info ipvsadm keepalived
-Portage 2.1.12.2 (default/linux/amd64/13.0, gcc-4.6.3, glibc-2.15-r3,
-3.10.7-gentoo x86_64)
-=================================================================
-                         System Settings
-=================================================================
-System uname: Linux-3.10.7-gentoo-x86_64-Intel-R-_Xeon-R-_CPU_E5405_@_2.00GHz-with-gentoo-2.2
-KiB Mem:     4046544 total,   3192820 free
-KiB Swap:          0 total,         0 free
-Timestamp of tree: Fri, 16 Aug 2013 21:30:01 +0000
-ld GNU ld (GNU Binutils) 2.23.1
-app-shells/bash:          4.2_p45
-dev-lang/python:          2.7.5, 3.2.5-r1
-dev-util/pkgconfig:       0.28
-sys-apps/baselayout:      2.2
-sys-apps/openrc:          0.11.8
-sys-apps/sandbox:         2.6-r1
-sys-devel/autoconf:       2.69
-sys-devel/automake:       1.12.6
-sys-devel/binutils:       2.23.1
-sys-devel/gcc:            4.6.3
-sys-devel/gcc-config:     1.7.3
-sys-devel/libtool:        2.4-r1
-sys-devel/make:           3.82-r4
-sys-kernel/linux-headers: 3.7 (virtual/os-headers)
-sys-libs/glibc:           2.15-r3
-Repositories: gentoo
-ACCEPT_KEYWORDS="amd64"
-ACCEPT_LICENSE="* -@EULA"
-CBUILD="x86_64-pc-linux-gnu"
-CFLAGS="-march=core2 -O2 -pipe"
-CHOST="x86_64-pc-linux-gnu"
-CONFIG_PROTECT="/etc /var/bind"
-CONFIG_PROTECT_MASK="/etc/ca-certificates.conf /etc/env.d /etc/gconf
-/etc/gentoo-release /etc/revdep-rebuild /etc/sandbox.d /etc/terminfo"
-CXXFLAGS="-march=core2 -O2 -pipe"
-DISTDIR="/usr/portage/distfiles"
-FCFLAGS="-O2 -pipe"
-FEATURES="assume-digests binpkg-logs config-protect-if-modified
-distlocks ebuild-locks fixlafiles merge-sync news parallel-fetch
-preserve-libs protect-owned sandbox sfperms strict
-unknown-features-warn unmerge-logs unmerge-orphans userfetch"
-FFLAGS="-O2 -pipe"
-LANG="en_US.utf8"
-LDFLAGS="-Wl,-O1 -Wl,--as-needed"
-MAKEOPTS="-j5"
-PKGDIR="/usr/portage/packages"
-PORTAGE_CONFIGROOT="/"
-PORTAGE_RSYNC_OPTS="--recursive --links --safe-links --perms --times
---compress --force --whole-file --delete --stats --human-readable
---timeout=180 --exclude=/distfiles --exclude=/local
---exclude=/packages"
-PORTAGE_TMPDIR="/var/tmp"
-PORTDIR="/usr/portage"
-PORTDIR_OVERLAY=""
-USE="acl acpi aio amd64 bash-completion berkdb bzip2 cli cracklib
-crypt cxx dri fortran gdbm iconv ipv6 mmap mmx modules mudflap
-multilib ncurses nls nptl openmp pam pcre readline session smp sse
-sse2 ssl ssse3 threads unicode vim-syntax zlib" ABI_X86="64"
-ALSA_CARDS="ali5451 als4000 atiixp atiixp-modem bt87x ca0106 cmipci
-emu10k1x ens1370 ens1371 es1938 es1968 fm801 hda-intel intel8x0
-intel8x0m maestro3 trident usb-audio via82xx via82xx-modem ymfpci"
-APACHE2_MODULES="authn_core authz_core socache_shmcb unixd actions
-alias auth_basic authn_alias authn_anon authn_dbm authn_default
-authn_file authz_dbm authz_default authz_groupfile authz_host
-authz_owner authz_user autoindex cache cgi cgid dav dav_fs dav_lock
-deflate dir disk_cache env expires ext_filter file_cache filter
-headers include info log_config logio mem_cache mime mime_magic
-negotiation rewrite setenvif speling status unique_id userdir
-usertrack vhost_alias" CALLIGRA_FEATURES="kexi words flow plan sheets
-stage tables krita karbon braindump author" CAMERAS="ptp2"
-COLLECTD_PLUGINS="df interface irq load memory rrdtool swap syslog"
-ELIBC="glibc" GPSD_PROTOCOLS="ashtech aivdm earthmate evermore fv18
-garmin garmintxt gpsclock itrax mtk3301 nmea ntrip navcom oceanserver
-oldstyle oncore rtcm104v2 rtcm104v3 sirf superstar2 timing tsip
-tripmate tnt ubx" INPUT_DEVICES="keyboard mouse evdev" KERNEL="linux"
-LCD_DEVICES="bayrad cfontz cfontz633 glk hd44780 lb216 lcdm001 mtxorb
-ncurses text" LIBREOFFICE_EXTENSIONS="presenter-console
-presenter-minimizer" OFFICE_IMPLEMENTATION="libreoffice"
-PHP_TARGETS="php5-4" PYTHON_SINGLE_TARGET="python2_7"
-PYTHON_TARGETS="python2_7 python3_2" RUBY_TARGETS="ruby19 ruby18"
-USERLAND="GNU" VIDEO_CARDS="fbdev glint intel mach64 mga nouveau nv
-r128 radeon savage sis tdfx trident vesa via vmware dummy v4l"
-XTABLES_ADDONS="quota2 psd pknock lscan length2 ipv4options ipset
-ipp2p iface geoip fuzzy condition tee tarpit sysrq steal rawnat
-logmark ipmark dhcpmac delude chaos account"
-Unset:  CPPFLAGS, CTARGET, EMERGE_DEFAULT_OPTS, INSTALL_MASK, LC_ALL,
-PORTAGE_BUNZIP2_COMMAND, PORTAGE_COMPRESS, PORTAGE_COMPRESS_FLAGS,
-PORTAGE_RSYNC_EXTRA_OPTS, USE_PYTHON
-=================================================================
-                        Package Settings
-=================================================================
-sys-cluster/ipvsadm-1.26-r2 was built with the following:
-USE="(multilib) -static-libs" ABI_X86="64"
-sys-cluster/keepalived-1.2.2-r4 was built with the following:
-USE="ipv6 (multilib) -debug" ABI_X86="64"
-
-Do I need to attach kernel config file?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
