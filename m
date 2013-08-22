@@ -1,74 +1,107 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: ipvsadm: One-packet scheduling with UDP service is unstable
-Date: Thu, 22 Aug 2013 17:14:02 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1308221558160.2993@ja.ssi.bg>
-References: <CAJiejCQPa7V703RwOeWPpbQMJQvfswRn+pvTKFmNdeU05RU3SQ@mail.gmail.com> <alpine.LFD.2.00.1308220925340.1727@ja.ssi.bg> <CAJiejCSdfBKC3c1dqya55R5T0VBCTm3qaM6nL-CY+H0o5hbwoA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-To: Drunkard Zhang <gongfan193@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJiejCSdfBKC3c1dqya55R5T0VBCTm3qaM6nL-CY+H0o5hbwoA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH lnf-queue] api: add nfq_nlmsg_get_timestamp helper
+Date: Thu, 22 Aug 2013 17:07:17 +0200
+Message-ID: <1377184037-19790-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49366 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752631Ab3HVPH1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Aug 2013 11:07:27 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+The NFQA_TIMESTAMP structure is in network byte order, so it seems
+appropriate to add a helper to convert it to a timeval struct.
 
-	Hello,
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ examples/nf-queue.c                             |    9 ++++++++-
+ include/libnetfilter_queue/libnetfilter_queue.h |    2 ++
+ src/nlmsg.c                                     |   15 +++++++++++++++
+ 3 files changed, 25 insertions(+), 1 deletions(-)
 
-On Thu, 22 Aug 2013, Drunkard Zhang wrote:
+diff --git a/examples/nf-queue.c b/examples/nf-queue.c
+index 1f465ad..2722426 100644
+--- a/examples/nf-queue.c
++++ b/examples/nf-queue.c
+@@ -5,6 +5,7 @@
+ #include <string.h>
+ #include <time.h>
+ #include <arpa/inet.h>
++#include <sys/time.h>
+ 
+ #include <libmnl/libmnl.h>
+ #include <linux/netfilter.h>
+@@ -54,6 +55,7 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
+ 	uint32_t id = 0, skbinfo;
+ 	struct nfgenmsg *nfg;
+ 	uint16_t plen;
++	struct timeval tv;
+ 
+ 	if (nfq_nlmsg_parse(nlh, attr) < 0) {
+ 		perror("problems parsing");
+@@ -72,7 +74,11 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
+ 	plen = mnl_attr_get_payload_len(attr[NFQA_PAYLOAD]);
+ 	/* void *payload = mnl_attr_get_payload(attr[NFQA_PAYLOAD]); */
+ 
+-	skbinfo = attr[NFQA_SKB_INFO] ? ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO])) : 0;
++	if (attr[NFQA_TIMESTAMP])
++		nfq_nlmsg_get_timestamp(attr[NFQA_TIMESTAMP], &tv);
++	else
++		gettimeofday(&tv, NULL);
++	printf("%lu:%06lu ", (long) tv.tv_sec, (long) tv.tv_usec);
+ 
+ 	if (attr[NFQA_CAP_LEN]) {
+ 		uint32_t orig_len = ntohl(mnl_attr_get_u32(attr[NFQA_CAP_LEN]));
+@@ -80,6 +86,7 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
+ 			printf("truncated ");
+ 	}
+ 
++	skbinfo = attr[NFQA_SKB_INFO] ? ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO])) : 0;
+ 	if (skbinfo & NFQA_SKB_GSO)
+ 		printf("GSO ");
+ 
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index b9f16e2..537cabf 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -144,6 +144,8 @@ void nfq_nlmsg_verdict_put_pkt(struct nlmsghdr *nlh, const void *pkt, uint32_t p
+ 
+ int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **pkt);
+ 
++void nfq_nlmsg_get_timestamp(const struct nlattr *attr, struct timeval *tv);
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index e7a30e0..10f96cf 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -172,5 +172,20 @@ int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
+ EXPORT_SYMBOL(nfq_nlmsg_parse);
+ 
+ /**
++ * nfq_nlmsg_get_timestamp - get the packet timestamp
++ * \param attr pointer to valid NFQA_TIMESTAMP attribute header
++ * \param timeval structure to fill with data
++ *
++ * This function always succeeds.
++ */
++void nfq_nlmsg_get_timestamp(const struct nlattr *attr, struct timeval *tv)
++{
++	struct nfqnl_msg_packet_timestamp *ts = mnl_attr_get_payload(attr);
++	tv->tv_sec = __be64_to_cpu(ts->sec);
++	tv->tv_usec = __be64_to_cpu(ts->usec);
++}
++EXPORT_SYMBOL(nfq_nlmsg_get_timestamp);
++
++/**
+  * @}
+  */
+-- 
+1.7.8.6
 
-> 2013/8/22 Julian Anastasov <ja@ssi.bg>:
-> >
-> >         No kernel options should be related to OPS. I assume
-> > you are not using the SH scheduler. Make sure the OPS mode
-> > is properly applied to the virtual service, check for "ops"
-> > in the configuration:
-> >
-> > cat /proc/net/ip_vs
-> 
-> Still no lucky here, ops is set in running config, but it's not like
-> that in real world.
-> 
-> vs3 ~ # cat /proc/net/ip_vs
-> IP Virtual Server version 1.2.1 (size=1024)
-> Prot LocalAddress:Port Scheduler Flags
->   -> RemoteAddress:Port Forward Weight ActiveConn InActConn
-> UDP  96A46478:0202 wrr ops
-
->   -> 96A46450:0202      Route   25     0          1
-
-	The OPS connections are accounted in InActConn
-for a very short period, they live up to 1 jiffie, eg. 10ms.
-Also, WRR should be reliable for OPS while other
-schedulers (eg. *LC) are not suitable.
-
-> And the traffic routed to each realserver didn't following weight I
-> set, it's routed pretty much one to one. I got 17 udp sources sending
-> to 16 different realservers, the others are bonding to another VIP.
-> 
-> Prot LocalAddress:Port                 CPS    InPPS   OutPPS    InBPS   OutBPS
->   -> RemoteAddress:Port
-> UDP  x.x.x.120:514                 0    67622        0 12339373        0
->   -> x.x.x.65:514                  0       29        0     2895        0
->   -> x.x.x.66:514                  0      225        0    21850        0
-
-	Do you see the same problem with ipvsadm -Ln --stats ?
-ipvsadm -Z may be needed to zero the stats after restoring all
-rules. "Conns" counter in stats should be according to WRR
-weights, it shows the scheduler decisions.
-
-	In your rates listing CPS 0 is confusing, even for OPS.
-Is it from the new ipvsadm?
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
