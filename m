@@ -1,44 +1,52 @@
-From: Dong Fang <yp.fangdong@gmail.com>
-Subject: [PATCH] netfilter: avoid array overflow in nf_register_hook
-Date: Fri, 23 Aug 2013 23:07:31 -0400
-Message-ID: <1377313651-16096-1-git-send-email-yp.fangdong@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, yp.fangdong@gmail.com
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: avoid array overflow in nf_register_hook
+Date: Fri, 23 Aug 2013 09:05:55 -0700
+Message-ID: <1377273955.8828.13.camel@edumazet-glaptop>
+References: <1377313495-16060-1-git-send-email-yp.fangdong@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Dong Fang <yp.fangdong@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:48238 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108Ab3HWPJ6 (ORCPT
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:52128 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323Ab3HWQGD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 11:09:58 -0400
+	Fri, 23 Aug 2013 12:06:03 -0400
+In-Reply-To: <1377313495-16060-1-git-send-email-yp.fangdong@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fix the array overflow in nf_register_hook function
+On Fri, 2013-08-23 at 23:04 -0400, Dong Fang wrote:
+> This patch fix the array overflow in nf_register_hook function
+> 
+> Signed-off-by: Dong Fang <yp.fangdong@gmail.com>
+> ---
+>  net/netfilter/core.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index 2217363..819eee1 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -68,8 +68,11 @@ static DEFINE_MUTEX(nf_hook_mutex);
+>  int nf_register_hook(struct nf_hook_ops *reg)
+>  {
+>  	struct nf_hook_ops *elem;
+> -	int err;
+> +	int err = -EINVAL;
+>  
+> +	if (reg->pf >= NFPROTO_NUMPROTO || reg->hooknum >= NF_MAX_HOOKS)
+> +		return err;
+> +
 
-Signed-off-by: Dong Fang <yp.fangdong@gmail.com>
----
- net/netfilter/core.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+Thats a bug in the caller.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 2217363..819eee1 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -68,8 +68,11 @@ static DEFINE_MUTEX(nf_hook_mutex);
- int nf_register_hook(struct nf_hook_ops *reg)
- {
- 	struct nf_hook_ops *elem;
--	int err;
-+	int err = -EINVAL;
- 
-+	if (reg->pf >= NFPROTO_NUMPROTO || reg->hooknum >= NF_MAX_HOOKS)
-+		return err;
-+
- 	err = mutex_lock_interruptible(&nf_hook_mutex);
- 	if (err < 0)
- 		return err;
--- 
-1.7.1
+We want a hard crash so that the poor netfilter guy who made this error
+can fix the bug before sending us a buggy patch.
+
 
