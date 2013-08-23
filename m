@@ -1,30 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: travelling...
-Date: Fri, 23 Aug 2013 11:13:08 -0700 (PDT)
-Message-ID: <20130823.111308.1720597810013400745.davem@davemloft.net>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] netfilter: avoid array overflow in nf_register_hook
+Date: Fri, 23 Aug 2013 22:14:39 +0400
+Message-ID: <5217A68F.2050302@cogentembedded.com>
+References: <1377313651-16096-1-git-send-email-yp.fangdong@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Dong Fang <yp.fangdong@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:41544 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755580Ab3HWSNJ (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:43007 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760Ab3HWSOe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 14:13:09 -0400
+	Fri, 23 Aug 2013 14:14:34 -0400
+Received: by mail-la0-f52.google.com with SMTP id ev20so722525lab.25
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2013 11:14:33 -0700 (PDT)
+In-Reply-To: <1377313651-16096-1-git-send-email-yp.fangdong@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello.
 
-I'm travelling over the weekend so I won't be as responsive as
-usual.
+On 08/24/2013 07:07 AM, Dong Fang wrote:
 
-I just pushed 'net' to Linus and he pulled it in.  I plan to work
-on my next set of -stable submissions this coming Monday.
+> This patch fix the array overflow in nf_register_hook function
 
-If a merge of 'net' into 'net-next' would be useful for someone,
-now would be a really good time to tell me.
+> Signed-off-by: Dong Fang <yp.fangdong@gmail.com>
+> ---
+>   net/netfilter/core.c |    5 ++++-
+>   1 files changed, 4 insertions(+), 1 deletions(-)
 
-Thanks.
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index 2217363..819eee1 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -68,8 +68,11 @@ static DEFINE_MUTEX(nf_hook_mutex);
+>   int nf_register_hook(struct nf_hook_ops *reg)
+>   {
+>   	struct nf_hook_ops *elem;
+> -	int err;
+> +	int err = -EINVAL;
+>
+> +	if (reg->pf >= NFPROTO_NUMPROTO || reg->hooknum >= NF_MAX_HOOKS)
+> +		return err;
+
+    Why not just return -EINVAL and avoid unneeded 'err' initialization?
+
+> +
+>   	err = mutex_lock_interruptible(&nf_hook_mutex);
+>   	if (err < 0)
+>   		return err;
+
+WBR, Sergei
+
 
