@@ -1,99 +1,78 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] rule: complete print/parse position attr
-Date: Fri, 23 Aug 2013 13:35:35 +0200
-Message-ID: <20130823113535.2701.175.stgit@nfdev.cica.es>
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+Subject: Re: [PATCH v2 nf-next] netfilter: conntrack: remove the central
+ spinlock
+Date: Fri, 23 Aug 2013 16:42:28 +0200
+Message-ID: <20130823164228.1bc92a48@redhat.com>
+References: <1368068665.13473.81.camel@edumazet-glaptop>
+	<1369244868.3301.343.camel@edumazet-glaptop>
+	<20130524151647.18388e27@redhat.com>
+	<1369403496.3301.401.camel@edumazet-glaptop>
+	<20130527143346.2d19e854@redhat.com>
+	<20130527123656.GA16212@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	Tom Herbert <therbert@google.com>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60847 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755248Ab3HWLfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 07:35:45 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id A9AB851ED18
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2013 11:35:42 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id fCrCSBnw0G-x for <netfilter-devel@vger.kernel.org>;
-	Fri, 23 Aug 2013 13:35:37 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 733A451ECD6
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 Aug 2013 13:35:37 +0200 (CEST)
+Received: from mx1.redhat.com ([209.132.183.28]:37187 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755311Ab3HWOmk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 10:42:40 -0400
+In-Reply-To: <20130527123656.GA16212@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Do printf/parse of position attr in both XML and JSON.
+Hi Pablo,
 
-Note that the position attr is optional as stated in net/netfilter/nf_tables_api.c
+On Mon, 27 May 2013 14:36:56 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
+> On Mon, May 27, 2013 at 02:33:46PM +0200, Jesper Dangaard Brouer wrote:
+> > On Fri, 24 May 2013 06:51:36 -0700
+> > Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > 
+> > > On Fri, 2013-05-24 at 15:16 +0200, Jesper Dangaard Brouer wrote:
+> > [...cut...]
+> > > > I'm amazed, this patch will actually make it a viable choice to load
+> > > > the conntrack modules on a DDoS based filtering box, and use the
+> > > > conntracks to protect against ACK and SYN+ACK attacks.
+> > > > 
+> > > > Simply by not accepting the ACK or SYN+ACK to create a conntrack
+> > > > entry. Via the command:
+> > > >  sysctl -w net/netfilter/nf_conntrack_tcp_loose=0
+> > > > 
+> > > > A quick test show; now I can run a LISTEN process on the port, and
+> > > > handle an SYN+ACK attack of approx 2580Kpps (and the same for ACK
+> > > > attacks), while running a LISTEN process on the port.
+> > > > 
+> > [...]
+> > > > 
+> > > 
+> > > Wow, this is very interesting !
+> > > 
+> > > Did you test the thing when expectations are possible ? (say ftp
+> > > module loaded)
+> > 
+> > Nope. I'm not sure how to create a test case, that causes an
+> > expectation to be created.
+> 
+> This is still in my queue, I didn't forget about this. I need to find
+> some spare time to give this a test with expectations enabled and also
+> with conntrackd/state-sync.
 
-diff --git a/src/rule.c b/src/rule.c
-index 98c2022..aca88d0 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -538,6 +538,14 @@ static int nft_rule_json_parse(struct nft_rule *r, const char *json)
- 		nft_rule_attr_set_u32(r, NFT_RULE_ATTR_COMPAT_FLAGS, uval32);
- 	}
- 
-+	if (nft_jansson_node_exist(root, "position")) {
-+		if (nft_jansson_value_parse_val(root, "position",
-+						NFT_TYPE_U64, &uval64) == -1)
-+			goto err;
-+
-+		nft_rule_attr_set_u64(r, NFT_RULE_ATTR_POSITION, uval64);
-+	}
-+
- 	array = json_object_get(root, "expr");
- 	if (array == NULL)
- 		goto err;
-@@ -636,6 +644,16 @@ static int nft_rule_xml_parse(struct nft_rule *r, const char *xml)
- 		r->flags |= (1 << NFT_RULE_ATTR_COMPAT_FLAGS);
- 	}
- 
-+	node = mxmlFindElement(tree, tree, "position", NULL, NULL,
-+			       MXML_DESCEND_FIRST);
-+	if (node != NULL && node->child != NULL) {
-+		if (nft_strtoi(node->child->value.opaque, BASE_DEC,
-+			       &r->position, NFT_TYPE_U64) != 0)
-+			goto err;
-+
-+		r->flags |= (1 << NFT_RULE_ATTR_POSITION);
-+	}
-+
- 	/* Iterating over <expr> */
- 	for (node = mxmlFindElement(tree, tree, "expr", "type",
- 				    NULL, MXML_DESCEND);
-@@ -714,6 +732,13 @@ static int nft_rule_snprintf_json(char *buf, size_t size, struct nft_rule *r,
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-+	if (r->flags & (1 << NFT_RULE_ATTR_POSITION)) {
-+		ret = snprintf(buf+offset, len,
-+			       "\"position\" : %"PRIu64", ",
-+			       r->position);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
- 	ret = snprintf(buf+offset, len, "\"expr\" : [");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-@@ -756,6 +781,13 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-+	if (r->flags & (1 << NFT_RULE_ATTR_POSITION)) {
-+		ret = snprintf(buf+offset, len,
-+			       "<position>%"PRIu64"</position>",
-+			       r->position);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
- 	list_for_each_entry(expr, &r->expr_list, head) {
- 		ret = snprintf(buf+offset, len,
- 				"<expr type=\"%s\">", expr->ops->name);
+What about this patch, what is the status?
+Is it still on you queue, or did it get applied without me noticing?
 
+
+Link for people wanting to read-up on thread:
+ http://thread.gmane.org/gmane.linux.network/268758/
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
