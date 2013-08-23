@@ -1,41 +1,47 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
-Subject: [PATCH] iptables: libxt_string.man add example
-Date: Fri, 23 Aug 2013 02:41:25 -0400
-Message-ID: <1377240085-15466-1-git-send-email-ljlane@debian.org>
-Cc: "Laurence J. Lane" <ljlane@debian.org>
-To: netfilter-devel@vger.kernel.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH nft] src: allow to specify the base chain type
+Date: Fri, 23 Aug 2013 10:39:05 +0300
+Message-ID: <52171199.5090700@linux.intel.com>
+References: <1377185191-9961-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ankh.ljlane.net ([71.19.149.249]:40617 "EHLO ankh.ljlane.net"
+Received: from mga03.intel.com ([143.182.124.21]:16349 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754527Ab3HWGla (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 02:41:30 -0400
+	id S1753688Ab3HWHjI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 03:39:08 -0400
+In-Reply-To: <1377185191-9961-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Show delimeters for hex string pattern.
+Hi Pablo,
 
-http://bugs.debian.org/699904
+Nice extension. I just have small comments how we could improve the 
+command line:
 
-Signed-off-by: Laurence J. Lane <ljlane@debian.org>
----
- extensions/libxt_string.man | 7 +++++++
- 1 file changed, 7 insertions(+)
+> This patch allows you to specify the type of the base chain, eg.
+>
+> 	add table mangle
+> 	add chain mangle OUTPUT { type route hook NF_INET_LOCAL_OUT 0; }
 
-diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
-index b6b271d..ebea1d3 100644
---- a/extensions/libxt_string.man
-+++ b/extensions/libxt_string.man
-@@ -16,3 +16,10 @@ Matches the given pattern.
- .TP
- [\fB!\fP] \fB\-\-hex\-string\fP \fIpattern\fP
- Matches the given pattern in hex notation.
-+.TP
-+Example:
-+.PP
-+   Log HTTP GET requests for /test:
-+.PP
-+   iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-string 'GET /test' \-j LOG
-+   iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-hex\-string '|474554202F74657374|' \-j LOG
--- 
-1.8.4.rc3
+Instead of NF_INET_LOCAL_OUT could we get OUT? (not literally ;) )
 
+IN, OUT, PRE-ROUTING, FORWARD, POST-ROUTING etc...
+And depending on chain's family, nft would use the right value there 
+(IN: is NF_INET_LOCAL_IN for ipv4, NF_ARP_IN for arp, etc...)
+
+It would also make command line easier and more readable.
+
+One more debatable:
+What about adding prio keyword? So it would be { type <string> hook 
+<string> prio <num> }
+Or keeping both possibility <num> or prio <num>?
+
+I can prepare a patch if you want,
+
+Cheers,
+
+Tomasz
