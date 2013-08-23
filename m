@@ -1,73 +1,42 @@
-From: Antonio Quartulli <ordex@autistici.org>
-Subject: Re: travelling...
-Date: Fri, 23 Aug 2013 22:16:48 +0200
-Message-ID: <20130823201648.GC2896@ritirata.org>
-References: <20130823.111308.1720597810013400745.davem@davemloft.net>
- <20130823182943.GE808@order.stressinduktion.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="qtZFehHsKgwS5rPz"
-To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130823182943.GE808@order.stressinduktion.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: [PATCH v2] iptables: libxt_string.man add example
+Date: Fri, 23 Aug 2013 16:55:22 -0400
+Message-ID: <1377291322-17456-1-git-send-email-ljlane@debian.org>
+References: <CA+0KVf1g3KXXkFDDpWq3YVGRQKU7Wat+gEiuE6x-9ozka2vdyA@mail.gmail.com>
+Cc: "Laurence J. Lane" <ljlane@debian.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ankh.ljlane.net ([71.19.149.249]:40658 "EHLO ankh.ljlane.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755799Ab3HWUzf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 16:55:35 -0400
+In-Reply-To: <CA+0KVf1g3KXXkFDDpWq3YVGRQKU7Wat+gEiuE6x-9ozka2vdyA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Show use of hex pattern delimeters.
 
---qtZFehHsKgwS5rPz
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+http://bugs.debian.org/699904
 
-On Fri, Aug 23, 2013 at 08:29:43PM +0200, Hannes Frederic Sowa wrote:
-> On Fri, Aug 23, 2013 at 11:13:08AM -0700, David Miller wrote:
-> >=20
-> > I'm travelling over the weekend so I won't be as responsive as
-> > usual.
-> >=20
-> > I just pushed 'net' to Linus and he pulled it in.  I plan to work
-> > on my next set of -stable submissions this coming Monday.
-> >=20
-> > If a merge of 'net' into 'net-next' would be useful for someone,
-> > now would be a really good time to tell me.
->=20
-> If it would not take you too much time, it would be nice. I depend on
-> a change in net to make another small patch. :)
+Signed-off-by: Laurence J. Lane <ljlane@debian.org>
+---
+ extensions/libxt_string.man | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-If possible I'd need that too in order to send a couple of changes to net-n=
-ext.
+diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
+index b6b271d..ab395b2 100644
+--- a/extensions/libxt_string.man
++++ b/extensions/libxt_string.man
+@@ -16,3 +16,9 @@ Matches the given pattern.
+ .TP
+ [\fB!\fP] \fB\-\-hex\-string\fP \fIpattern\fP
+ Matches the given pattern in hex notation.
++.TP
++Example: log HTTP GET requests for /test using string and hex string patterns
++.IP
++iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-string 'GET /test' \-j LOG
++.IP
++iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-hex\-string '|474554202F74657374|' \-j LOG
+-- 
+1.8.4.rc3
 
-Have a nice weekend!
-
-
---=20
-Antonio Quartulli
-
-=2E.each of us alone is worth nothing..
-Ernesto "Che" Guevara
-
---qtZFehHsKgwS5rPz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSF8MwAAoJEADl0hg6qKeOdLsP/0vhG7K1RRlM4K3h0dRNbGE1
-c/185PiukL2+GoePMU353FxntamC2TYmEkLlBUiyIsuOvn4HTGh784zki1NF6pVZ
-34O0QrLwJtA27fIH5hBu/Ht2hyPxY4hA2aF01dwHmSXgn61A35cleS0blwDfhqKa
-D43C0GhnUJPgW5ofbkJ1w4yPkwQbJEe62/da6sHJSIW1qJ/0uXEEwWC73MmuLlt6
-3eo2/d9EwwTz/3X/WhkQeUseU2c6YAMHwAd34zE9MZBUaI0zmfu20E7Tz8zlbF63
-SXi1iOhRbjVUXsLB8Gx4fM3ghfu7E1+a3xiYjB+WdRDrjrQqGjz7FMHgdUok1Mf1
-TDAki7Et91zhd9FeIZPB2JBKqeYBzXeUqL7Oh8UYnQrKKPyvcCSGt109zKj6ycdB
-RBCF+3M1V3d66FXl3l2gS7U83Gl+bcmEzguB8TWwbt7bgxxKvntmXsxC080GxcPr
-xMbgSN7zkc5A9NsHJWJ1vvQEEcNtOo0EDY426tVUEbtARbWdW9/Y69zyMxudLpC0
-Snq0Tg7mYdDSMMOuDVTya3rihavKc1zABy/ub5jB8IcZOQYYRIybsH6DTgbb6rsD
-vNaRTPVpbvTsaktZ1px5cN1vnLoKq/MBshfmn/HqaYvn6qsD36wvZmEFwdLWS+Zp
-57mmNFlWW/IwrwNJ+Sp4
-=tFvA
------END PGP SIGNATURE-----
-
---qtZFehHsKgwS5rPz--
