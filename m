@@ -1,42 +1,73 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCHv2] iptables: link against libnetfilter_conntrack
-Date: Fri, 23 Aug 2013 22:03:46 +0200
-Message-ID: <20130823200346.GC5311@breakpoint.cc>
-References: <1376411824-22311-1-git-send-email-gustavo@zacarias.com.ar>
- <alpine.LSU.2.10.9.1308132051420.22862@nerf07.vanv.qr>
+From: Antonio Quartulli <ordex@autistici.org>
+Subject: Re: travelling...
+Date: Fri, 23 Aug 2013 22:16:48 +0200
+Message-ID: <20130823201648.GC2896@ritirata.org>
+References: <20130823.111308.1720597810013400745.davem@davemloft.net>
+ <20130823182943.GE808@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54290 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932215Ab3HWUDu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 16:03:50 -0400
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="qtZFehHsKgwS5rPz"
+To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.10.9.1308132051420.22862@nerf07.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20130823182943.GE808@order.stressinduktion.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt <jengelh@inai.de> wrote:
-> On Tuesday 2013-08-13 18:37, Gustavo Zacarias wrote:
-> >diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-> >index a4246eb..6390b7c 100644
-> >--- a/iptables/Makefile.am
-> >+++ b/iptables/Makefile.am
-> >@@ -21,6 +21,9 @@ xtables_multi_SOURCES += ip6tables-save.c ip6tables-restore.c \
-> > xtables_multi_CFLAGS  += -DENABLE_IPV6
-> > xtables_multi_LDADD   += ../libiptc/libip6tc.la ../extensions/libext6.a
-> > endif
-> >+if HAVE_LIBNETFILTER_CONNTRACK
-> >+xtables_multi_LDADD += @libnetfilter_conntrack_LIBS@
-> >+endif
-> > xtables_multi_SOURCES += xshared.c
-> > xtables_multi_LDADD   += ../libxtables/libxtables.la -lm
-> 
-> The righteous patch would be something like the following.
-[..]
 
-Applied to stable-1.4.20, thanks everyone.
+--qtZFehHsKgwS5rPz
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Aug 23, 2013 at 08:29:43PM +0200, Hannes Frederic Sowa wrote:
+> On Fri, Aug 23, 2013 at 11:13:08AM -0700, David Miller wrote:
+> >=20
+> > I'm travelling over the weekend so I won't be as responsive as
+> > usual.
+> >=20
+> > I just pushed 'net' to Linus and he pulled it in.  I plan to work
+> > on my next set of -stable submissions this coming Monday.
+> >=20
+> > If a merge of 'net' into 'net-next' would be useful for someone,
+> > now would be a really good time to tell me.
+>=20
+> If it would not take you too much time, it would be nice. I depend on
+> a change in net to make another small patch. :)
+
+If possible I'd need that too in order to send a couple of changes to net-n=
+ext.
+
+Have a nice weekend!
+
+
+--=20
+Antonio Quartulli
+
+=2E.each of us alone is worth nothing..
+Ernesto "Che" Guevara
+
+--qtZFehHsKgwS5rPz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSF8MwAAoJEADl0hg6qKeOdLsP/0vhG7K1RRlM4K3h0dRNbGE1
+c/185PiukL2+GoePMU353FxntamC2TYmEkLlBUiyIsuOvn4HTGh784zki1NF6pVZ
+34O0QrLwJtA27fIH5hBu/Ht2hyPxY4hA2aF01dwHmSXgn61A35cleS0blwDfhqKa
+D43C0GhnUJPgW5ofbkJ1w4yPkwQbJEe62/da6sHJSIW1qJ/0uXEEwWC73MmuLlt6
+3eo2/d9EwwTz/3X/WhkQeUseU2c6YAMHwAd34zE9MZBUaI0zmfu20E7Tz8zlbF63
+SXi1iOhRbjVUXsLB8Gx4fM3ghfu7E1+a3xiYjB+WdRDrjrQqGjz7FMHgdUok1Mf1
+TDAki7Et91zhd9FeIZPB2JBKqeYBzXeUqL7Oh8UYnQrKKPyvcCSGt109zKj6ycdB
+RBCF+3M1V3d66FXl3l2gS7U83Gl+bcmEzguB8TWwbt7bgxxKvntmXsxC080GxcPr
+xMbgSN7zkc5A9NsHJWJ1vvQEEcNtOo0EDY426tVUEbtARbWdW9/Y69zyMxudLpC0
+Snq0Tg7mYdDSMMOuDVTya3rihavKc1zABy/ub5jB8IcZOQYYRIybsH6DTgbb6rsD
+vNaRTPVpbvTsaktZ1px5cN1vnLoKq/MBshfmn/HqaYvn6qsD36wvZmEFwdLWS+Zp
+57mmNFlWW/IwrwNJ+Sp4
+=tFvA
+-----END PGP SIGNATURE-----
+
+--qtZFehHsKgwS5rPz--
