@@ -1,47 +1,84 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH nft] src: allow to specify the base chain type
-Date: Fri, 23 Aug 2013 10:39:05 +0300
-Message-ID: <52171199.5090700@linux.intel.com>
-References: <1377185191-9961-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH RFC 0/6] SYNPROXY target v2
+Date: Fri, 23 Aug 2013 09:52:03 +0200
+Message-ID: <1377244329-20146-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, jesper.brouer@gmail.com, as@one.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16349 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753688Ab3HWHjI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 03:39:08 -0400
-In-Reply-To: <1377185191-9961-1-git-send-email-pablo@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:49517 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754259Ab3HWHwM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 03:52:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+The following patches contain the current version of the SYNPROXY target.
+Changes this the last posting are:
 
-Nice extension. I just have small comments how we could improve the 
-command line:
+- use sysctl_ip_default_ttl instead of hardcoding 64
 
-> This patch allows you to specify the type of the base chain, eg.
->
-> 	add table mangle
-> 	add chain mangle OUTPUT { type route hook NF_INET_LOCAL_OUT 0; }
+- use MAX_TCP_HEADER instead of LL_MAX_HEADER
 
-Instead of NF_INET_LOCAL_OUT could we get OUT? (not literally ;) )
+- add some comments requested by Jesper regarding ack_seq initialization
+  in the server's SYN packet
 
-IN, OUT, PRE-ROUTING, FORWARD, POST-ROUTING etc...
-And depending on chain's family, nft would use the right value there 
-(IN: is NF_INET_LOCAL_IN for ipv4, NF_ARP_IN for arp, etc...)
+- use consume_skb() instead of kfree_skb() in the synproxy hook
 
-It would also make command line easier and more readable.
+- remove a fixme and add explicit check for "-p tcp" in the SYNPROXY rule
+  in the IPv6 version
 
-One more debatable:
-What about adding prio keyword? So it would be { type <string> hook 
-<string> prio <num> }
-Or keeping both possibility <num> or prio <num>?
+- some whitespace fixes
 
-I can prepare a patch if you want,
+- a larger number of fixes for properly handling retransmissions and
+  out of order packets, please see the changelog included in patch 6/6
+  for details.
+  
+  I've kept those in a seperate patch for now to ease review, we'll do
+  some more extensive testing on monday and I'll fold the changes in
+  their respective patches before the final submission.
 
-Cheers,
+Comments welcome.
 
-Tomasz
+
+Patrick McHardy (6):
+      netfilter: nf_conntrack: make sequence number adjustments usuable without NAT
+      net: syncookies: export cookie_v4_init_sequence/cookie_v4_check
+      netfilter: add SYNPROXY core/target
+      net: syncookies: export cookie_v6_init_sequence/cookie_v6_check
+      netfilter: add IPv6 SYNPROXY target
+      netfilter: synproxy: fix handling of retransmissions before established state
+
+ include/linux/netfilter.h                          |   9 +-
+ include/net/netfilter/nf_conntrack_extend.h        |   6 +
+ include/net/netfilter/nf_conntrack_seqadj.h        |  51 +++
+ include/net/netfilter/nf_conntrack_synproxy.h      |  76 ++++
+ include/net/netfilter/nf_nat.h                     |  10 -
+ include/net/netfilter/nf_nat_helper.h              |  19 -
+ include/net/tcp.h                                  |   8 +
+ include/uapi/linux/netfilter/nf_conntrack_common.h |   3 +-
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |  15 +-
+ include/uapi/linux/netfilter/xt_SYNPROXY.h         |  16 +
+ net/ipv4/netfilter/Kconfig                         |  13 +
+ net/ipv4/netfilter/Makefile                        |   1 +
+ net/ipv4/netfilter/ipt_SYNPROXY.c                  | 457 ++++++++++++++++++++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |   7 +-
+ net/ipv4/syncookies.c                              |  29 +-
+ net/ipv6/netfilter/Kconfig                         |  13 +
+ net/ipv6/netfilter/Makefile                        |   1 +
+ net/ipv6/netfilter/ip6t_SYNPROXY.c                 | 480 +++++++++++++++++++++
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |   7 +-
+ net/ipv6/syncookies.c                              |  25 +-
+ net/netfilter/Kconfig                              |   3 +
+ net/netfilter/Makefile                             |   5 +-
+ net/netfilter/nf_conntrack_core.c                  |  22 +-
+ net/netfilter/nf_conntrack_netlink.c               | 115 +++--
+ net/netfilter/nf_conntrack_proto_tcp.c             |  34 +-
+ net/netfilter/nf_conntrack_seqadj.c                | 238 ++++++++++
+ net/netfilter/nf_nat_core.c                        |  16 +-
+ net/netfilter/nf_nat_helper.c                      | 228 +---------
+ net/netfilter/nf_nat_sip.c                         |   3 +-
+ net/netfilter/nf_synproxy_core.c                   | 431 ++++++++++++++++++
+ net/netfilter/nfnetlink_queue_ct.c                 |   8 +-
+ 31 files changed, 1953 insertions(+), 396 deletions(-)
