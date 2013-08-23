@@ -1,42 +1,41 @@
-From: Nathan Hintz <nlhintz@hotmail.com>
-Subject: [PATCH] netfilter: nf_defrag_ipv6.o included twice
-Date: Thu, 22 Aug 2013 22:09:12 -0700
-Message-ID: <BLU0-SMTP246C0F210C1747FE63C4E97AC4E0@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	Nathan Hintz <nlhintz@hotmail.com>
-To: pablo@netfilter.org
+From: "Laurence J. Lane" <ljlane@debian.org>
+Subject: [PATCH] iptables: libxt_string.man add example
+Date: Fri, 23 Aug 2013 02:41:25 -0400
+Message-ID: <1377240085-15466-1-git-send-email-ljlane@debian.org>
+Cc: "Laurence J. Lane" <ljlane@debian.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from blu0-omc1-s17.blu0.hotmail.com ([65.55.116.28]:32831 "EHLO
-	blu0-omc1-s17.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754303Ab3HWFQQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Aug 2013 01:16:16 -0400
+Received: from ankh.ljlane.net ([71.19.149.249]:40617 "EHLO ankh.ljlane.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754527Ab3HWGla (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 02:41:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-'nf_defrag_ipv6' is built as a separate module; it shouldn't be
-included in the 'nf_conntrack_ipv6' module as well.
+Show delimeters for hex string pattern.
 
-Signed-off-by: Nathan Hintz <nlhintz@hotmail.com>
+http://bugs.debian.org/699904
+
+Signed-off-by: Laurence J. Lane <ljlane@debian.org>
 ---
- net/ipv6/netfilter/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ extensions/libxt_string.man | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 2d11fcc..ad13bf0 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -14,7 +14,7 @@ obj-$(CONFIG_NF_NAT_IPV6) += ip6table_nat.o
- nf_conntrack_ipv6-y  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o
- 
- # l3 independent conntrack
--obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o nf_defrag_ipv6.o
-+obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
- 
- nf_nat_ipv6-y		:= nf_nat_l3proto_ipv6.o nf_nat_proto_icmpv6.o
- obj-$(CONFIG_NF_NAT_IPV6) += nf_nat_ipv6.o
+diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
+index b6b271d..ebea1d3 100644
+--- a/extensions/libxt_string.man
++++ b/extensions/libxt_string.man
+@@ -16,3 +16,10 @@ Matches the given pattern.
+ .TP
+ [\fB!\fP] \fB\-\-hex\-string\fP \fIpattern\fP
+ Matches the given pattern in hex notation.
++.TP
++Example:
++.PP
++   Log HTTP GET requests for /test:
++.PP
++   iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-string 'GET /test' \-j LOG
++   iptables \-A INPUT \-p tcp \-\-dport 80 \-m string \-\-algo bm \-\-hex\-string '|474554202F74657374|' \-j LOG
 -- 
-1.8.3.1
+1.8.4.rc3
 
