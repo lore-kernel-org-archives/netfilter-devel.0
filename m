@@ -1,15 +1,19 @@
 From: Dong Fang <yp.fangdong@gmail.com>
 Subject: [PATCH] netfilter: avoid array overflow in nf_register_hook
-Date: Fri, 23 Aug 2013 23:04:55 -0400
-Message-ID: <1377313495-16060-1-git-send-email-yp.fangdong@gmail.com>
+Date: Fri, 23 Aug 2013 23:07:31 -0400
+Message-ID: <1377313651-16096-1-git-send-email-yp.fangdong@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	Dong Fang <yp.fangdong@gmail.com>
+	coreteam@netfilter.org, netdev@vger.kernel.org
 To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	davem@davemloft.net, yp.fangdong@gmail.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:48238 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753108Ab3HWPJ6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Aug 2013 11:09:58 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 This patch fix the array overflow in nf_register_hook function
 
