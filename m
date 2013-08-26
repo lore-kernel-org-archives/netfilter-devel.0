@@ -1,39 +1,109 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: travelling...
-Date: Mon, 26 Aug 2013 17:10:58 -0400 (EDT)
-Message-ID: <20130826.171058.1874177104912449242.davem@davemloft.net>
-References: <20130823.111308.1720597810013400745.davem@davemloft.net>
-	<20130823182943.GE808@order.stressinduktion.org>
-	<20130823201648.GC2896@ritirata.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2 nf-next] netfilter: conntrack: remove the central
+ spinlock
+Date: Tue, 27 Aug 2013 00:28:45 +0200
+Message-ID: <20130826222844.GA19478@localhost>
+References: <1368068665.13473.81.camel@edumazet-glaptop>
+ <1369244868.3301.343.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: ordex@autistici.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130823201648.GC2896@ritirata.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	Tom Herbert <therbert@google.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Jesper Dangaard Brouer <jbrouer@redhat.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51406 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752303Ab3HZW2v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Aug 2013 18:28:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1369244868.3301.343.camel@edumazet-glaptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Antonio Quartulli <ordex@autistici.org>
-Date: Fri, 23 Aug 2013 22:16:48 +0200
+Hi Eric,
 
-> On Fri, Aug 23, 2013 at 08:29:43PM +0200, Hannes Frederic Sowa wrote:
->> On Fri, Aug 23, 2013 at 11:13:08AM -0700, David Miller wrote:
->> > 
->> > I'm travelling over the weekend so I won't be as responsive as
->> > usual.
->> > 
->> > I just pushed 'net' to Linus and he pulled it in.  I plan to work
->> > on my next set of -stable submissions this coming Monday.
->> > 
->> > If a merge of 'net' into 'net-next' would be useful for someone,
->> > now would be a really good time to tell me.
->> 
->> If it would not take you too much time, it would be nice. I depend on
->> a change in net to make another small patch. :)
-> 
-> If possible I'd need that too in order to send a couple of changes to net-next.
+Several comments on the expectation side.
 
-Ok, that's two requests so I did merge net into net-next just now.
+On Wed, May 22, 2013 at 10:47:48AM -0700, Eric Dumazet wrote:
+[...]
+>diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+>index 0283bae..c0823b9 100644
+>--- a/net/netfilter/nf_conntrack_core.c
+>+++ b/net/netfilter/nf_conntrack_core.c
+[...]
+> @@ -196,6 +247,47 @@ clean_from_lists(struct nf_conn *ct)
+>        nf_ct_remove_expectations(ct);
+
+With this patch, we hold the conntrack lock when calling
+clean_from_lists but I think that's not enough.
+nf_conntrack_expect_lock spinlock protection is missing here.
+
+> }
+[...]
+> @@ -820,39 +930,41 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+>  				 ecache ? ecache->expmask : 0,
+>  			     GFP_ATOMIC);
+>  
+> -	spin_lock_bh(&nf_conntrack_lock);
+> -	exp = nf_ct_find_expectation(net, zone, tuple);
+> -	if (exp) {
+> -		pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
+> -			 ct, exp);
+> -		/* Welcome, Mr. Bond.  We've been expecting you... */
+> -		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+> -		ct->master = exp->master;
+> -		if (exp->helper) {
+> -			help = nf_ct_helper_ext_add(ct, exp->helper,
+> -						    GFP_ATOMIC);
+> -			if (help)
+> -				rcu_assign_pointer(help->helper, exp->helper);
+> -		}
+> +	local_bh_disable();
+> +	if (net->ct.expect_count) {
+> +		spin_lock(&nf_conntrack_expect_lock);
+
+I also think we have a possible race for expected conntracks. The
+problem is that expectations don't bump the refcount of the master
+conntrack.
+
+> +		exp = nf_ct_find_expectation(net, zone, tuple);
+
+... Now that we have independent locks for conntrack and expectation
+lists, a packet may match an expectation while another CPU is walking
+through the nf_ct_delete_from_lists bits using exp->master as input.
+
+> +		if (exp) {
+> +			pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
+> +				 ct, exp);
+> +			/* Welcome, Mr. Bond.  We've been expecting you... */
+> +			__set_bit(IPS_EXPECTED_BIT, &ct->status);
+> +			ct->master = exp->master;
+
+Then, ct->master points to the (vanished) conntrack.
+
+> +			if (exp->helper) {
+> +				help = nf_ct_helper_ext_add(ct, exp->helper,
+> +							    GFP_ATOMIC);
+> +				if (help)
+> +					rcu_assign_pointer(help->helper, exp->helper);
+> +			}
+>  
+>  #ifdef CONFIG_NF_CONNTRACK_MARK
+> -		ct->mark = exp->master->mark;
+> +			ct->mark = exp->master->mark;
+>  #endif
+>  #ifdef CONFIG_NF_CONNTRACK_SECMARK
+> -		ct->secmark = exp->master->secmark;
+> +			ct->secmark = exp->master->secmark;
+>  #endif
+> -		nf_conntrack_get(&ct->master->ct_general);
+> -		NF_CT_STAT_INC(net, expect_new);
+> -	} else {
+> +			nf_conntrack_get(&ct->master->ct_general);
+
+So this needs to adjust the refcounting logic for expectations, to
+bump it earlier, during the expectation insertion.
+
+Regards.
