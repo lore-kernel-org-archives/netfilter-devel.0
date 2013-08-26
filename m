@@ -1,109 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 nf-next] netfilter: conntrack: remove the central
- spinlock
-Date: Tue, 27 Aug 2013 00:28:45 +0200
-Message-ID: <20130826222844.GA19478@localhost>
-References: <1368068665.13473.81.camel@edumazet-glaptop>
- <1369244868.3301.343.camel@edumazet-glaptop>
+Subject: Re: [PATCH nft] src: allow to specify the base chain type
+Date: Tue, 27 Aug 2013 00:37:32 +0200
+Message-ID: <20130826223732.GA4031@localhost>
+References: <1377185191-9961-1-git-send-email-pablo@netfilter.org>
+ <52171199.5090700@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-	Tom Herbert <therbert@google.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Jesper Dangaard Brouer <jbrouer@redhat.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51406 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51836 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752303Ab3HZW2v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Aug 2013 18:28:51 -0400
+	id S1752373Ab3HZWhw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Aug 2013 18:37:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1369244868.3301.343.camel@edumazet-glaptop>
+In-Reply-To: <52171199.5090700@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
-
-Several comments on the expectation side.
-
-On Wed, May 22, 2013 at 10:47:48AM -0700, Eric Dumazet wrote:
+On Fri, Aug 23, 2013 at 10:39:05AM +0300, Tomasz Bursztyka wrote:
 [...]
->diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
->index 0283bae..c0823b9 100644
->--- a/net/netfilter/nf_conntrack_core.c
->+++ b/net/netfilter/nf_conntrack_core.c
-[...]
-> @@ -196,6 +247,47 @@ clean_from_lists(struct nf_conn *ct)
->        nf_ct_remove_expectations(ct);
+> >	add table mangle
+> >	add chain mangle OUTPUT { type route hook NF_INET_LOCAL_OUT 0; }
+> 
+> Instead of NF_INET_LOCAL_OUT could we get OUT? (not literally ;) )
 
-With this patch, we hold the conntrack lock when calling
-clean_from_lists but I think that's not enough.
-nf_conntrack_expect_lock spinlock protection is missing here.
+makes sense.
 
-> }
-[...]
-> @@ -820,39 +930,41 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->  				 ecache ? ecache->expmask : 0,
->  			     GFP_ATOMIC);
->  
-> -	spin_lock_bh(&nf_conntrack_lock);
-> -	exp = nf_ct_find_expectation(net, zone, tuple);
-> -	if (exp) {
-> -		pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
-> -			 ct, exp);
-> -		/* Welcome, Mr. Bond.  We've been expecting you... */
-> -		__set_bit(IPS_EXPECTED_BIT, &ct->status);
-> -		ct->master = exp->master;
-> -		if (exp->helper) {
-> -			help = nf_ct_helper_ext_add(ct, exp->helper,
-> -						    GFP_ATOMIC);
-> -			if (help)
-> -				rcu_assign_pointer(help->helper, exp->helper);
-> -		}
-> +	local_bh_disable();
-> +	if (net->ct.expect_count) {
-> +		spin_lock(&nf_conntrack_expect_lock);
+> IN, OUT, PRE-ROUTING, FORWARD, POST-ROUTING etc...
 
-I also think we have a possible race for expected conntracks. The
-problem is that expectations don't bump the refcount of the master
-conntrack.
+I prefer: input, output, prerouting, forward, postrouting.
 
-> +		exp = nf_ct_find_expectation(net, zone, tuple);
+> And depending on chain's family, nft would use the right value there
+> (IN: is NF_INET_LOCAL_IN for ipv4, NF_ARP_IN for arp, etc...)
+> 
+> It would also make command line easier and more readable.
+> 
+> One more debatable:
+> What about adding prio keyword? So it would be { type <string> hook
+> <string> prio <num> }
+> Or keeping both possibility <num> or prio <num>?
 
-... Now that we have independent locks for conntrack and expectation
-lists, a packet may match an expectation while another CPU is walking
-through the nf_ct_delete_from_lists bits using exp->master as input.
+it also makes sense to me, but that should come in a separated patch.
 
-> +		if (exp) {
-> +			pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
-> +				 ct, exp);
-> +			/* Welcome, Mr. Bond.  We've been expecting you... */
-> +			__set_bit(IPS_EXPECTED_BIT, &ct->status);
-> +			ct->master = exp->master;
+> I can prepare a patch if you want,
 
-Then, ct->master points to the (vanished) conntrack.
-
-> +			if (exp->helper) {
-> +				help = nf_ct_helper_ext_add(ct, exp->helper,
-> +							    GFP_ATOMIC);
-> +				if (help)
-> +					rcu_assign_pointer(help->helper, exp->helper);
-> +			}
->  
->  #ifdef CONFIG_NF_CONNTRACK_MARK
-> -		ct->mark = exp->master->mark;
-> +			ct->mark = exp->master->mark;
->  #endif
->  #ifdef CONFIG_NF_CONNTRACK_SECMARK
-> -		ct->secmark = exp->master->secmark;
-> +			ct->secmark = exp->master->secmark;
->  #endif
-> -		nf_conntrack_get(&ct->master->ct_general);
-> -		NF_CT_STAT_INC(net, expect_new);
-> -	} else {
-> +			nf_conntrack_get(&ct->master->ct_general);
-
-So this needs to adjust the refcounting logic for expectations, to
-bump it earlier, during the expectation insertion.
-
-Regards.
+Go ahead. Thanks.
