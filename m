@@ -1,50 +1,39 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH RFC 0/6] SYNPROXY target v2
-Date: Mon, 26 Aug 2013 16:24:49 -0400 (EDT)
-Message-ID: <20130826.162449.1876700852280042769.davem@davemloft.net>
-References: <1377244329-20146-1-git-send-email-kaber@trash.net>
+Subject: Re: travelling...
+Date: Mon, 26 Aug 2013 17:10:58 -0400 (EDT)
+Message-ID: <20130826.171058.1874177104912449242.davem@davemloft.net>
+References: <20130823.111308.1720597810013400745.davem@davemloft.net>
+	<20130823182943.GE808@order.stressinduktion.org>
+	<20130823201648.GC2896@ritirata.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, mph@one.com, jesper.brouer@gmail.com,
-	as@one.com
-To: kaber@trash.net
+Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: ordex@autistici.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1377244329-20146-1-git-send-email-kaber@trash.net>
+In-Reply-To: <20130823201648.GC2896@ritirata.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 23 Aug 2013 09:52:03 +0200
+From: Antonio Quartulli <ordex@autistici.org>
+Date: Fri, 23 Aug 2013 22:16:48 +0200
 
-> The following patches contain the current version of the SYNPROXY target.
-> Changes this the last posting are:
+> On Fri, Aug 23, 2013 at 08:29:43PM +0200, Hannes Frederic Sowa wrote:
+>> On Fri, Aug 23, 2013 at 11:13:08AM -0700, David Miller wrote:
+>> > 
+>> > I'm travelling over the weekend so I won't be as responsive as
+>> > usual.
+>> > 
+>> > I just pushed 'net' to Linus and he pulled it in.  I plan to work
+>> > on my next set of -stable submissions this coming Monday.
+>> > 
+>> > If a merge of 'net' into 'net-next' would be useful for someone,
+>> > now would be a really good time to tell me.
+>> 
+>> If it would not take you too much time, it would be nice. I depend on
+>> a change in net to make another small patch. :)
 > 
-> - use sysctl_ip_default_ttl instead of hardcoding 64
-> 
-> - use MAX_TCP_HEADER instead of LL_MAX_HEADER
-> 
-> - add some comments requested by Jesper regarding ack_seq initialization
->   in the server's SYN packet
-> 
-> - use consume_skb() instead of kfree_skb() in the synproxy hook
-> 
-> - remove a fixme and add explicit check for "-p tcp" in the SYNPROXY rule
->   in the IPv6 version
-> 
-> - some whitespace fixes
-> 
-> - a larger number of fixes for properly handling retransmissions and
->   out of order packets, please see the changelog included in patch 6/6
->   for details.
->   
->   I've kept those in a seperate patch for now to ease review, we'll do
->   some more extensive testing on monday and I'll fold the changes in
->   their respective patches before the final submission.
-> 
-> Comments welcome.
+> If possible I'd need that too in order to send a couple of changes to net-next.
 
-No objections to the non-netfilter portions:
-
-Acked-by: David S. Miller <davem@davemloft.net>
+Ok, that's two requests so I did merge net into net-next just now.
