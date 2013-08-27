@@ -1,65 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH lnf-queue] api: add nfq_nlmsg_get_timestamp helper
-Date: Tue, 27 Aug 2013 00:53:25 +0200
-Message-ID: <20130826225325.GA4695@localhost>
-References: <1377184037-19790-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 0/5] netfilter: SYNPROXY target v3
+Date: Tue, 27 Aug 2013 08:50:11 +0200
+Message-ID: <1377586216-7024-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, jesper.brouer@gmail.com, as@one.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52452 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616Ab3HZWxg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Aug 2013 18:53:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1377184037-19790-1-git-send-email-fw@strlen.de>
+Received: from stinky.trash.net ([213.144.137.162]:58738 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752057Ab3H0Gua (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Aug 2013 02:50:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
+The following patches contain the latest version of the SYNPROXY target.
 
-On Thu, Aug 22, 2013 at 05:07:17PM +0200, Florian Westphal wrote:
-> The NFQA_TIMESTAMP structure is in network byte order, so it seems
-> appropriate to add a helper to convert it to a timeval struct.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  examples/nf-queue.c                             |    9 ++++++++-
->  include/libnetfilter_queue/libnetfilter_queue.h |    2 ++
->  src/nlmsg.c                                     |   15 +++++++++++++++
->  3 files changed, 25 insertions(+), 1 deletions(-)
-> 
-> diff --git a/examples/nf-queue.c b/examples/nf-queue.c
-> index 1f465ad..2722426 100644
-> --- a/examples/nf-queue.c
-> +++ b/examples/nf-queue.c
-> @@ -5,6 +5,7 @@
->  #include <string.h>
->  #include <time.h>
->  #include <arpa/inet.h>
-> +#include <sys/time.h>
->  
->  #include <libmnl/libmnl.h>
->  #include <linux/netfilter.h>
-> @@ -54,6 +55,7 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  	uint32_t id = 0, skbinfo;
->  	struct nfgenmsg *nfg;
->  	uint16_t plen;
-> +	struct timeval tv;
->  
->  	if (nfq_nlmsg_parse(nlh, attr) < 0) {
->  		perror("problems parsing");
-> @@ -72,7 +74,11 @@ static int queue_cb(const struct nlmsghdr *nlh, void *data)
->  	plen = mnl_attr_get_payload_len(attr[NFQA_PAYLOAD]);
->  	/* void *payload = mnl_attr_get_payload(attr[NFQA_PAYLOAD]); */
->  
-> -	skbinfo = attr[NFQA_SKB_INFO] ? ntohl(mnl_attr_get_u32(attr[NFQA_SKB_INFO])) : 0;
-> +	if (attr[NFQA_TIMESTAMP])
-> +		nfq_nlmsg_get_timestamp(attr[NFQA_TIMESTAMP], &tv);
+The SYNPROXY operates by marking the initial SYN from the client as UNTRACKED
+and directing it to the SYNPROXY target. The target responds with a SYN/ACK
+containing a cookie and encodes options such as window scaling factor, SACK
+perm etc. into the timestamp, if timestamps are used (similar to TCP). The
+window size is set to zero. The response is also sent as untracked packet.
 
-I think we can update nfq_get_timestamp to use libmnl without breaking
-backward compatibility. Same thing with all other getter functions
-that we have.
+When the final ACK is received the cookie is validated, the original options
+extracted and a SYN to the original destination is generated. The SYN to the
+original destination uses the avertised window from the final ACK and the
+options from the initial SYN packet. The SYN is not sent as untracked, so
+from a connection tracking POV it will look like the original packet from
+the client and instantiate a new connection. When the server responds with
+a SYN/ACK a final ACK for the server is generated and a window update with
+the window size announced by the server is sent to the client. At this
+point the connection is handed of to conntrack and the only thing the
+target is still involved in is timestamp translation through the registerd
+hooks.
 
-Regards.
+Since the SYN proxy can't know the options the server supports, they have
+to be specified as parameters to the SYNPROXY target. The assumption is that
+these options are constant as long as you don't change settings on the
+server. Since the SYN proxy can't know the initial sequence number and
+timestamp values the server will use, both have to be translated in the
+direction server->client. Sequence number translation is done using the
+standard sequence number translation mechanisms originally only used for
+NAT, timestamps are translated in a hook registered by the SYNPROXY target.
+
+Usage is as follows:
+
+iptables -t raw -A PREROUTING -i eth0 -p tcp --dport 80 --syn -j NOTRACK
+iptables -A INPUT -i eth0 -p tcp --dport 80 -m state UNTRACKED,INVALID \
+        -j SYNPROXY --sack-perm --timestamp --mss 1480 --wscale 7 --ecn
+
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+
+The second rule catches untracked packets and directs them to the target.
+The purpose of disabling loose tracking is to have the final ACK from the
+client not be picked up by conntrack, so it won't create a new conntrack
+entry and will be marked INVALID and also get directed to the target.
+
+We did some extensive testing on Monday and it verified all retransmit
+bugs have been fixed. With 1.4Mpps SYNs the load on a 16 way Xeon L6530
+2.13 Ghz machine was between 3% and 6%.
+
+There's one single change since v2:
+
+Reopened TCP connections while the conntrack is in CLOSE state weren't
+handled properly. The sequence number and timestamp adjustments need
+to be reset in this case. Another counter has been introduced for this.
+
+>From my POV, these patches are ready for merging now.
+
+Please apply.
