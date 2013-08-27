@@ -1,35 +1,43 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
-Subject: spurious errors with protocol names used as chain names
-Date: Tue, 27 Aug 2013 15:53:40 -0400
-Message-ID: <CA+0KVf39i-73Z1WR_jbPC2W-81TS2cvy0YhCmMm41VYJx+_F4A@mail.gmail.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Netfilter owner match breakage
+Date: Tue, 27 Aug 2013 13:24:45 -0700
+Message-ID: <20130827202445.GA3114@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ankh.ljlane.net ([71.19.149.249]:41510 "EHLO ankh.ljlane.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518Ab3H0TyE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Aug 2013 15:54:04 -0400
-Received: from mail-vc0-f174.google.com (mail-vc0-f174.google.com [209.85.220.174])
-	(using TLSv1 with cipher ECDHE-RSA-RC4-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: google-debian@ankh.ljlane.net)
-	by ankh.ljlane.net (Postfix) with ESMTPSA id 8C8881177A
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2013 15:54:02 -0400 (EDT)
-Received: by mail-vc0-f174.google.com with SMTP id gd11so3306358vcb.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2013 12:54:01 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: edumazet@google.com
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-http://bugs.debian.org/699537
+In commit 90ba9b19 (tcp: tcp_make_synack() can use alloc_skb()), Eric changed
+the call to sock_wmalloc in tcp_make_synack to alloc_skb.  In doing so,
+the netfilter owner match lost its ability to block the SYNACK packet on
+outbound listening sockets.  For example:
 
-Using a protocol name as user-defined chain name produces an error
-when creating the chain or applying it as a target. The chain seem to
-work fine despite the error. udplite and "all" do not produce an
-error.
+[phil@f19_main ~]$ id
+uid=1000(phil) gid=1000(phil) groups=1000(phil)
 
-# iptables -N tcp
-/lib/xtables/libxt_tcp.so: no "tcp" extension found for this protocol
-# iptables -A INPUT -p tcp --dport 80 -j tcp
-/lib/xtables/libxt_tcp.so: no "tcp" extension found for this protocol
+[phil@f19_main ~]$ sudo iptables -A OUTPUT -p tcp -m owner --uid-owner 1000 -j REJECT
+
+[phil@f19_main ~]$ echo hi | nc -l -p 8888
+
+Before this commit, attempting to connect to the port 8888 listener generated
+this:
+
+10.10.10.1.47457 > 10.10.10.110.8888: Flags [S], seq 1855270582 [...]
+10.10.10.110 > 10.10.10.110: ICMP 10.10.10.1 tcp port 47457 unreachable, length 68
+
+After this commit, the session is established but the first packet of the
+session gets rejected:
+
+10.10.10.1.47453 > 10.10.10.110.8888: Flags [S], seq 2089355862 [...]
+10.10.10.110.8888 > 10.10.10.1.47453: Flags [S.], seq 2554257713, ack 2089355863 [...]
+10.10.10.1.47453 > 10.10.10.110.8888: Flags [.], ack 1, win 115 [...]
+10.10.10.110 > 10.10.10.110: ICMP 10.10.10.1 tcp port 47453 unreachable, length 63
+
+Reverting 90ba9b19 (and adjusting for the removal of s_data_desired) fixes the
+problem.  Is there a better way to do this?
+
+Phil
