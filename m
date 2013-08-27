@@ -1,20 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_defrag_ipv6.o included twice
-Date: Wed, 28 Aug 2013 00:50:11 +0200
-Message-ID: <20130827225011.GA15556@localhost>
-References: <BLU0-SMTP246C0F210C1747FE63C4E97AC4E0@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Nathan Hintz <nlhintz@hotmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BLU0-SMTP246C0F210C1747FE63C4E97AC4E0@phx.gbl>
-Sender: netfilter-owner@vger.kernel.org
+Subject: [PATCH 8/8] netfilter: ctnetlink: fix uninitialized variable
+Date: Wed, 28 Aug 2013 00:53:38 +0200
+Message-ID: <1377644018-15685-9-git-send-email-pablo@netfilter.org>
+References: <1377644018-15685-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1377644018-15685-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 22, 2013 at 10:09:12PM -0700, Nathan Hintz wrote:
-> 'nf_defrag_ipv6' is built as a separate module; it shouldn't be
-> included in the 'nf_conntrack_ipv6' module as well.
+From: Florian Westphal <fw@strlen.de>
 
-Applied, thanks.
+net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_nfqueue_attach_expect':
+'helper' may be used uninitialized in this function
+
+It was only initialized in if CTA_EXPECT_HELP_NAME attribute was
+present, it must be NULL otherwise.
+
+Problem added recently in bd077937
+(netfilter: nfnetlink_queue: allow to attach expectations to conntracks).
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 7c55745..eea936b 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2162,7 +2162,7 @@ ctnetlink_nfqueue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
+ {
+ 	struct nlattr *cda[CTA_EXPECT_MAX+1];
+ 	struct nf_conntrack_tuple tuple, mask;
+-	struct nf_conntrack_helper *helper;
++	struct nf_conntrack_helper *helper = NULL;
+ 	struct nf_conntrack_expect *exp;
+ 	int err;
+ 
+-- 
+1.7.10.4
