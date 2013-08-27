@@ -1,176 +1,108 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] extensions: add SYNPROXY extension
-Date: Tue, 27 Aug 2013 08:58:09 +0200
-Message-ID: <1377586689-8119-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	mph@one.com, jesper.brouer@gmail.com, as@one.com
-To: pablo@netfilter.org
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: [PATCH 0/5] netfilter: SYNPROXY target v3
+Date: Tue, 27 Aug 2013 10:35:56 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1308270951520.25216@ask.diku.dk>
+References: <1377586216-7024-1-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, mph@one.com, jesper.brouer@gmail.com,
+	as@one.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1377586216-7024-1-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- extensions/libxt_SYNPROXY.c           | 127 ++++++++++++++++++++++++++++++++++
- include/linux/netfilter/xt_SYNPROXY.h |  16 +++++
- 2 files changed, 143 insertions(+)
- create mode 100644 extensions/libxt_SYNPROXY.c
- create mode 100644 include/linux/netfilter/xt_SYNPROXY.h
+On Tue, 27 Aug 2013, Patrick McHardy wrote:
 
-diff --git a/extensions/libxt_SYNPROXY.c b/extensions/libxt_SYNPROXY.c
-new file mode 100644
-index 0000000..475590e
---- /dev/null
-+++ b/extensions/libxt_SYNPROXY.c
-@@ -0,0 +1,127 @@
-+
-+/*
-+ * Copyright (c) 2013 Patrick McHardy <kaber@trash.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter/xt_SYNPROXY.h>
-+
-+enum {
-+	O_SACK_PERM = 0,
-+	O_TIMESTAMP,
-+	O_WSCALE,
-+	O_MSS,
-+	O_ECN,
-+};
-+
-+static void SYNPROXY_help(void)
-+{
-+	printf(
-+"SYNPROXY target options:\n"
-+"  --sack-perm                        Set SACK_PERM\n"
-+"  --timestamp                        Set TIMESTAMP\n"
-+"  --wscale value                     Set window scaling factor\n"
-+"  --mss value                        Set MSS value\n"
-+"  --ecn                              Set ECN\n");
-+}
-+
-+static const struct xt_option_entry SYNPROXY_opts[] = {
-+	{.name = "sack-perm", .id = O_SACK_PERM, .type = XTTYPE_NONE, },
-+	{.name = "timestamp", .id = O_TIMESTAMP, .type = XTTYPE_NONE, },
-+	{.name = "wscale",    .id = O_WSCALE,    .type = XTTYPE_UINT32, },
-+	{.name = "mss",       .id = O_MSS,       .type = XTTYPE_UINT32, },
-+	{.name = "ecn",       .id = O_ECN,	 .type = XTTYPE_NONE, },
-+	XTOPT_TABLEEND,
-+};
-+
-+static void SYNPROXY_parse(struct xt_option_call *cb)
-+{
-+	struct xt_synproxy_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SACK_PERM:
-+		info->options |= XT_SYNPROXY_OPT_SACK_PERM;
-+		break;
-+	case O_TIMESTAMP:
-+		info->options |= XT_SYNPROXY_OPT_TIMESTAMP;
-+		break;
-+	case O_WSCALE:
-+		info->options |= XT_SYNPROXY_OPT_WSCALE;
-+		info->wscale = cb->val.u32;
-+		break;
-+	case O_MSS:
-+		info->options |= XT_SYNPROXY_OPT_MSS;
-+		info->mss = cb->val.u32;
-+		break;
-+	case O_ECN:
-+		info->options |= XT_SYNPROXY_OPT_ECN;
-+		break;
-+	}
-+}
-+
-+static void SYNPROXY_check(struct xt_fcheck_call *cb)
-+{
-+}
-+
-+static void SYNPROXY_print(const void *ip, const struct xt_entry_target *target,
-+                           int numeric)
-+{
-+	const struct xt_synproxy_info *info =
-+		(const struct xt_synproxy_info *)target->data;
-+
-+	printf(" SYNPROXY ");
-+	if (info->options & XT_SYNPROXY_OPT_SACK_PERM)
-+		printf("sack-perm ");
-+	if (info->options & XT_SYNPROXY_OPT_TIMESTAMP)
-+		printf("timestamp ");
-+	if (info->options & XT_SYNPROXY_OPT_WSCALE)
-+		printf("wscale %u ", info->wscale);
-+	if (info->options & XT_SYNPROXY_OPT_MSS)
-+		printf("mss %u ", info->mss);
-+	if (info->options & XT_SYNPROXY_OPT_ECN)
-+		printf("ecn ");
-+}
-+
-+static void SYNPROXY_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct xt_synproxy_info *info =
-+		(const struct xt_synproxy_info *)target->data;
-+
-+	if (info->options & XT_SYNPROXY_OPT_SACK_PERM)
-+		printf(" --sack-perm");
-+	if (info->options & XT_SYNPROXY_OPT_TIMESTAMP)
-+		printf(" --timestamp");
-+	if (info->options & XT_SYNPROXY_OPT_WSCALE)
-+		printf(" --wscale %u", info->wscale);
-+	if (info->options & XT_SYNPROXY_OPT_MSS)
-+		printf(" --mss %u", info->mss);
-+	if (info->options & XT_SYNPROXY_OPT_ECN)
-+		printf(" --ecn");
-+}
-+
-+static struct xtables_target synproxy_tg_reg = {
-+	.family        = NFPROTO_UNSPEC,
-+	.name          = "SYNPROXY",
-+	.version       = XTABLES_VERSION,
-+	.revision      = 0,
-+	.size          = XT_ALIGN(sizeof(struct xt_synproxy_info)),
-+	.userspacesize = XT_ALIGN(sizeof(struct xt_synproxy_info)),
-+	.help          = SYNPROXY_help,
-+	.print         = SYNPROXY_print,
-+	.save          = SYNPROXY_save,
-+	.x6_parse      = SYNPROXY_parse,
-+	.x6_fcheck     = SYNPROXY_check,
-+	.x6_options    = SYNPROXY_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&synproxy_tg_reg);
-+}
-diff --git a/include/linux/netfilter/xt_SYNPROXY.h b/include/linux/netfilter/xt_SYNPROXY.h
-new file mode 100644
-index 0000000..2d59fba
---- /dev/null
-+++ b/include/linux/netfilter/xt_SYNPROXY.h
-@@ -0,0 +1,16 @@
-+#ifndef _XT_SYNPROXY_H
-+#define _XT_SYNPROXY_H
-+
-+#define XT_SYNPROXY_OPT_MSS		0x01
-+#define XT_SYNPROXY_OPT_WSCALE		0x02
-+#define XT_SYNPROXY_OPT_SACK_PERM	0x04
-+#define XT_SYNPROXY_OPT_TIMESTAMP	0x08
-+#define XT_SYNPROXY_OPT_ECN		0x10
-+
-+struct xt_synproxy_info {
-+	__u8	options;
-+	__u8	wscale;
-+	__u16	mss;
-+};
-+
-+#endif /* _XT_SYNPROXY_H */
--- 
-1.8.1.4
+> The following patches contain the latest version of the SYNPROXY target.
+>
+> The SYNPROXY operates by marking the initial SYN from the client as UNTRACKED
+> and directing it to the SYNPROXY target. The target responds with a SYN/ACK
+> containing a cookie and encodes options such as window scaling factor, SACK
+> perm etc. into the timestamp, if timestamps are used (similar to TCP). The
+> window size is set to zero. The response is also sent as untracked packet.
+>
+> When the final ACK is received the cookie is validated, the original options
+> extracted and a SYN to the original destination is generated. The SYN to the
+> original destination uses the avertised window from the final ACK and the
+> options from the initial SYN packet. The SYN is not sent as untracked, so
+> from a connection tracking POV it will look like the original packet from
+> the client and instantiate a new connection. When the server responds with
+> a SYN/ACK a final ACK for the server is generated and a window update with
+> the window size announced by the server is sent to the client. At this
+> point the connection is handed of to conntrack and the only thing the
+> target is still involved in is timestamp translation through the registerd
+> hooks.
+>
+> Since the SYN proxy can't know the options the server supports, they have
+> to be specified as parameters to the SYNPROXY target. The assumption is that
+> these options are constant as long as you don't change settings on the
+> server.
+
+Future extention idea: Perhaps we could auto detect the options the server 
+supports, after the first connection have been created?
+I know this is problematic/difficult for the iptables framework, because 
+it would require the module to keep an internal dynamic state, which 
+iptables module does not handle well (due to how the entires ruleset is 
+reloaded on rule changes).
+Guess, the easiest thing to implement, would be to give a warning,
+if the options (the server supports) does not match the modules config.
+
+
+
+> Since the SYN proxy can't know the initial sequence number and
+> timestamp values the server will use, both have to be translated in the
+> direction server->client. Sequence number translation is done using the
+> standard sequence number translation mechanisms originally only used for
+> NAT, timestamps are translated in a hook registered by the SYNPROXY target.
+>
+> Usage is as follows:
+>
+> iptables -t raw -A PREROUTING -i eth0 -p tcp --dport 80 --syn -j NOTRACK
+> iptables -A INPUT -i eth0 -p tcp --dport 80 -m state UNTRACKED,INVALID \
+>        -j SYNPROXY --sack-perm --timestamp --mss 1480 --wscale 7 --ecn
+>
+> echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+>
+> The second rule catches untracked packets and directs them to the target.
+> The purpose of disabling loose tracking is to have the final ACK from the
+> client not be picked up by conntrack, so it won't create a new conntrack
+> entry and will be marked INVALID and also get directed to the target.
+>
+> We did some extensive testing on Monday and it verified all retransmit
+> bugs have been fixed. With 1.4Mpps SYNs the load on a 16 way Xeon L6530
+> 2.13 Ghz machine was between 3% and 6%.
+
+It was a Xeon L5630 ;-)
+
+We tested both SYN and ACK flood-attacks, while running ab (Apache 
+Benchmark). The 1.4Mpps comes from limitations on the generator host 
+(which used trafgen).  We also did some short tests with a modified 
+pktgen.  And Martin wrote a test tool, that would delay conn 
+establishment, to test retransmits.  And Patritck tested in (simulated) 
+drop situations.
+
+
+> There's one single change since v2:
+>
+> Reopened TCP connections while the conntrack is in CLOSE state weren't
+> handled properly. The sequence number and timestamp adjustments need
+> to be reset in this case. Another counter has been introduced for this.
+>
+> From my POV, these patches are ready for merging now.
+
+Yes, Martin and Patrick (and I) have done some good testing of the module. 
+And we have flushed out and solved several bugs in this process.
+
+
+Cheers,
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
