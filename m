@@ -1,55 +1,31 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Netfilter owner match breakage
-Date: Tue, 27 Aug 2013 13:43:31 -0700
-Message-ID: <1377636211.8828.152.camel@edumazet-glaptop>
-References: <20130827202445.GA3114@linuxace.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: ip[6]t_REJECT: tcp-reset using wrong MAC
+ source if bridged
+Date: Wed, 28 Aug 2013 00:49:08 +0200
+Message-ID: <20130827224908.GA15535@localhost>
+References: <20130626211627.GA22947@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	edumazet@google.com
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
 To: Phil Oester <kernel@linuxace.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130827202445.GA3114@linuxace.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43798 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752099Ab3H0WtT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Aug 2013 18:49:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20130626211627.GA22947@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-08-27 at 13:24 -0700, Phil Oester wrote:
-> In commit 90ba9b19 (tcp: tcp_make_synack() can use alloc_skb()), Eric changed
-> the call to sock_wmalloc in tcp_make_synack to alloc_skb.  In doing so,
-> the netfilter owner match lost its ability to block the SYNACK packet on
-> outbound listening sockets.  For example:
+On Wed, Jun 26, 2013 at 05:16:28PM -0400, Phil Oester wrote:
+> As reported by Casper Gripenberg, in a bridged setup, using ip[6]t_REJECT
+> with the tcp-reset option sends out reset packets with the src MAC address
+> of the local bridge interface, instead of the MAC address of the intended
+> destination.  This causes some routers/firewalls to drop the reset packet
+> as it appears to be spoofed.  Fix this by bypassing ip[6]_local_out and
+> setting the MAC of the sender in the tcp reset packet. 
 > 
-> [phil@f19_main ~]$ id
-> uid=1000(phil) gid=1000(phil) groups=1000(phil)
-> 
-> [phil@f19_main ~]$ sudo iptables -A OUTPUT -p tcp -m owner --uid-owner 1000 -j REJECT
-> 
+> This closes netfilter bugzilla #531.
 
-Oh well.
-
-> [phil@f19_main ~]$ echo hi | nc -l -p 8888
-> 
-> Before this commit, attempting to connect to the port 8888 listener generated
-> this:
-> 
-> 10.10.10.1.47457 > 10.10.10.110.8888: Flags [S], seq 1855270582 [...]
-> 10.10.10.110 > 10.10.10.110: ICMP 10.10.10.1 tcp port 47457 unreachable, length 68
-> 
-
-Hmm... I think TCP stack should send more SYNACK, no ?
-
-It sounds more logical to block the incoming SYN, but whatever.
-
-> After this commit, the session is established but the first packet of the
-> session gets rejected:
-> 
-> 10.10.10.1.47453 > 10.10.10.110.8888: Flags [S], seq 2089355862 [...]
-> 10.10.10.110.8888 > 10.10.10.1.47453: Flags [S.], seq 2554257713, ack 2089355863 [...]
-> 10.10.10.1.47453 > 10.10.10.110.8888: Flags [.], ack 1, win 115 [...]
-> 10.10.10.110 > 10.10.10.110: ICMP 10.10.10.1 tcp port 47453 unreachable, length 63
-> 
-> Reverting 90ba9b19 (and adjusting for the removal of s_data_desired) fixes the
-> problem.  Is there a better way to do this?
-
-Well, a revert seems OK to me, it was not a critical change.
+Applied, thanks Phil.
