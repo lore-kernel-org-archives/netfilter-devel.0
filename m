@@ -1,42 +1,56 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: ctnetlink: fix uninitialized variable
-Date: Tue, 27 Aug 2013 11:47:26 +0200
-Message-ID: <1377596846-1790-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH 0/5] netfilter: SYNPROXY target v3
+Date: Tue, 27 Aug 2013 14:08:46 +0200
+Message-ID: <20130827140846.1df57a2d@redhat.com>
+References: <1377586216-7024-1-git-send-email-kaber@trash.net>
+	<Pine.LNX.4.64.1308270951520.25216@ask.diku.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, as@one.com
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33573 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752738Ab3H0Jrf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Aug 2013 05:47:35 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:21334 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab3H0MJF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Aug 2013 08:09:05 -0400
+In-Reply-To: <Pine.LNX.4.64.1308270951520.25216@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_nfqueue_attach_expect':
-'helper' may be used uninitialized in this function
 
-It was only initialized in if CTA_EXPECT_HELP_NAME attribute was
-present, it must be NULL otherwise.
+On Tue, 27 Aug 2013 10:35:56 +0200 (CEST) Jesper Dangaard Brouer <hawk@diku.dk> wrote:
+> On Tue, 27 Aug 2013, Patrick McHardy wrote:
 
-Problem added recently in bd077937
-(netfilter: nfnetlink_queue: allow to attach expectations to conntracks).
+> > We did some extensive testing on Monday and it verified all retransmit
+> > bugs have been fixed. With 1.4Mpps SYNs the load on a 16 way Xeon L6530
+> > 2.13 Ghz machine was between 3% and 6%.
+> 
+> It was a Xeon L5630 ;-)
+> 
+> We tested both SYN and ACK flood-attacks, while running ab (Apache 
+> Benchmark). The 1.4Mpps comes from limitations on the generator host 
+> (which used trafgen).  We also did some short tests with a modified 
+> pktgen.  And Martin wrote a test tool, that would delay conn 
+> establishment, to test retransmits.  And Patritck tested in (simulated) 
+> drop situations.
+> 
+[...]
+> >
+> > From my POV, these patches are ready for merging now.
+> 
+> Yes, Martin and Patrick (and I) have done some good testing of the module. 
+> And we have flushed out and solved several bugs in this process.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index fa61fea..1f4ffa2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2170,7 +2170,7 @@ ctnetlink_nfqueue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
- {
- 	struct nlattr *cda[CTA_EXPECT_MAX+1];
- 	struct nf_conntrack_tuple tuple, mask;
--	struct nf_conntrack_helper *helper;
-+	struct nf_conntrack_helper *helper = NULL;
- 	struct nf_conntrack_expect *exp;
- 	int err;
- 
+Series:
+
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+
 -- 
-1.7.8.6
-
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
