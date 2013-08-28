@@ -1,43 +1,97 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH lnf-queue] api: add nfq_nlmsg_get_timestamp helper
-Date: Wed, 28 Aug 2013 10:46:52 +0200
-Message-ID: <20130828084652.GJ32493@breakpoint.cc>
-References: <1377184037-19790-1-git-send-email-fw@strlen.de>
- <20130826225325.GA4695@localhost>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [nf-next PATCH] netfilter: more strict TCP flag matching in SYNPROXY
+Date: Wed, 28 Aug 2013 15:14:38 +0200
+Message-ID: <20130828131438.24364.25004.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, as@one.com, Jesper Dangaard Brouer <brouer@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37041 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753132Ab3H1Iqy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Aug 2013 04:46:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20130826225325.GA4695@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:62204 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753829Ab3H1NDY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Aug 2013 09:03:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Florian,
-> 
-> On Thu, Aug 22, 2013 at 05:07:17PM +0200, Florian Westphal wrote:
-> > The NFQA_TIMESTAMP structure is in network byte order, so it seems
-> > appropriate to add a helper to convert it to a timeval struct.
-[..]
+Its seems Patrick missed to incoorporate some of my requested changes
+during review v2 of SYNPROXY netfilter module.
 
-> I think we can update nfq_get_timestamp to use libmnl without breaking
-> backward compatibility. Same thing with all other getter functions
-> that we have.
+Which were, to avoid SYN+ACK packets to enter the path, meant for the
+ACK packet from the client (from the 3WHS).
 
-How did you plan to do this without breaking api/abi?
+Further there were a bug in ip6t_SYNPROXY.c, for matching SYN packets
+that didn't exclude the ACK flag.
 
-To call the existing libnfnetlink based function given an libmnl attr[] array
-you need to:
+Go a step further with SYN packet/flag matching by excluding flags
+ACK+FIN+RST, in both IPv4 and IPv6 modules.
 
-struct nfq_data d;
-d.data = (void **) &attr[1];
-nfq_get_timestamp(&d, &tv);
 
-Which is just "ewww".
+The intented usage of SYNPROXY is as follows:
+(gracefully describing usage in commit)
+
+ iptables -t raw -A PREROUTING -i eth0 -p tcp --dport 80 --syn -j NOTRACK
+ iptables -A INPUT -i eth0 -p tcp --dport 80 -m state UNTRACKED,INVALID \
+         -j SYNPROXY --sack-perm --timestamp --mss 1480 --wscale 7 --ecn
+
+ echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+
+This does filter SYN flags early, for packets in the UNTRACKED state,
+but packets in the INVALID state with other TCP flags could still
+reach the module, thus this stricter flag matching is still needed.
+
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+---
+
+ net/ipv4/netfilter/ipt_SYNPROXY.c  |    4 ++--
+ net/ipv6/netfilter/ip6t_SYNPROXY.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 94371db..90e489e 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -269,7 +269,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ 	synproxy_parse_options(skb, par->thoff, th, &opts);
+ 
+-	if (th->syn && !th->ack) {
++	if (th->syn && !(th->ack || th->fin || th->rst)) {
+ 		/* Initial SYN from client */
+ 		this_cpu_inc(snet->stats->syn_received);
+ 
+@@ -285,7 +285,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+ 		synproxy_send_client_synack(skb, th, &opts);
+-	} else if (th->ack && !(th->fin || th->rst))
++	} else if (th->ack && !(th->fin || th->rst || th->syn))
+ 		/* ACK from client */
+ 		synproxy_recv_client_ack(snet, skb, th, &opts, ntohl(th->seq));
+ 
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 4270a9b..a5af0bf 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -284,7 +284,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ 	synproxy_parse_options(skb, par->thoff, th, &opts);
+ 
+-	if (th->syn) {
++	if (th->syn && !(th->ack || th->fin || th->rst)) {
+ 		/* Initial SYN from client */
+ 		this_cpu_inc(snet->stats->syn_received);
+ 
+@@ -300,7 +300,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+ 		synproxy_send_client_synack(skb, th, &opts);
+-	} else if (th->ack && !(th->fin || th->rst))
++	} else if (th->ack && !(th->fin || th->rst || th->syn))
+ 		/* ACK from client */
+ 		synproxy_recv_client_ack(snet, skb, th, &opts, ntohl(th->seq));
+ 
+
