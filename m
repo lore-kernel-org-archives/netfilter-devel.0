@@ -1,48 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nf-next PATCH] netfilter: more strict TCP flag matching in
- SYNPROXY
-Date: Thu, 29 Aug 2013 12:33:34 +0200
-Message-ID: <20130829103334.GC14229@macbook.localnet>
-References: <20130828131438.24364.25004.stgit@dragon>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH] netfilter: SYNPROXY core: fix warning in
+ __nf_ct_ext_add_length()
+Date: Thu, 29 Aug 2013 12:38:52 +0200
+Message-ID: <20130829123852.7b1c0093@redhat.com>
+References: <1377765129-8490-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	mph@one.com, as@one.com
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130828131438.24364.25004.stgit@dragon>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, mph@one.com
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45903 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755884Ab3H2KjG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Aug 2013 06:39:06 -0400
+In-Reply-To: <1377765129-8490-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 28, 2013 at 03:14:38PM +0200, Jesper Dangaard Brouer wrote:
-> Its seems Patrick missed to incoorporate some of my requested changes
-> during review v2 of SYNPROXY netfilter module.
-> 
-> Which were, to avoid SYN+ACK packets to enter the path, meant for the
-> ACK packet from the client (from the 3WHS).
-> 
-> Further there were a bug in ip6t_SYNPROXY.c, for matching SYN packets
-> that didn't exclude the ACK flag.
-> 
-> Go a step further with SYN packet/flag matching by excluding flags
-> ACK+FIN+RST, in both IPv4 and IPv6 modules.
-> 
-> 
-> The intented usage of SYNPROXY is as follows:
-> (gracefully describing usage in commit)
-> 
->  iptables -t raw -A PREROUTING -i eth0 -p tcp --dport 80 --syn -j NOTRACK
->  iptables -A INPUT -i eth0 -p tcp --dport 80 -m state UNTRACKED,INVALID \
->          -j SYNPROXY --sack-perm --timestamp --mss 1480 --wscale 7 --ecn
-> 
->  echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
-> 
-> This does filter SYN flags early, for packets in the UNTRACKED state,
-> but packets in the INVALID state with other TCP flags could still
-> reach the module, thus this stricter flag matching is still needed.
-> 
-> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+On Thu, 29 Aug 2013 10:32:09 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-Acked-by: Patrick McHardy <kaber@trash.net>
+> With CONFIG_NETFILTER_DEBUG we get the following warning during SYNPROXY init:
+> 
+> [   80.558906] WARNING: CPU: 1 PID: 4833 at net/netfilter/nf_conntrack_extend.c:80 __nf_ct_ext_add_length+0x217/0x220 [nf_conntrack]()
+> 
+> The reason is that the conntrack template is set to confirmed before adding
+> the extension and it is invalid to add extensions to already confirmed
+> conntracks. Fix by adding the extensions before setting the conntrack to
+> confirmed.
+> 
+> Reported-by: Jesper Dangaard Brouer <jesper.brouer@gmail.com>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+
+I have verified that the warning is gone after this patch, thanks!
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
