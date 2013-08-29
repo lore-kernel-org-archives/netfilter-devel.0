@@ -1,49 +1,53 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [nf-next PATCH] netfilter: Extend SYNPROXY with a --continue
- option
-Date: Thu, 29 Aug 2013 10:23:58 +0200
-Message-ID: <20130829102358.4f93ee24@redhat.com>
-References: <20130828152549.8250.97982.stgit@dragon>
-	<20130828160038.GA25799@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	mph@one.com, as@one.com
-To: Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] netfilter: SYNPROXY core: fix warning in __nf_ct_ext_add_length()
+Date: Thu, 29 Aug 2013 10:32:09 +0200
+Message-ID: <1377765129-8490-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, mph@one.com,
+	jesper.brouer@gmail.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21925 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752922Ab3H2IYL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Aug 2013 04:24:11 -0400
-In-Reply-To: <20130828160038.GA25799@macbook.localnet>
+Received: from stinky.trash.net ([213.144.137.162]:50727 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887Ab3H2IcL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Aug 2013 04:32:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 28 Aug 2013 18:00:42 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+With CONFIG_NETFILTER_DEBUG we get the following warning during SYNPROXY init:
 
-> On Wed, Aug 28, 2013 at 05:26:55PM +0200, Jesper Dangaard Brouer wrote:
-> > Packets reaching SYNPROXY are default dropped, as they are most likely
-> > invalid (given the state matching).  In other configurations it might
-> > be beneficial to let packet not consumed by SYNPROXY (SYN and ACK) to
-> > continue being processed by the stack.
-> > 
-> > Introducing a --continue option/flag for the SYNPROXY target to allow
-> > these unmatched packets to continue being processed.  This would also
-> > help in debugging the module via LOG.
-> 
-> I don't think we should add an option for this. Just DROP packets consumed
-> by the target and have the other ones continue.
+[   80.558906] WARNING: CPU: 1 PID: 4833 at net/netfilter/nf_conntrack_extend.c:80 __nf_ct_ext_add_length+0x217/0x220 [nf_conntrack]()
 
-I agree.  I'll send a new patch, defaulting to XT_CONTINUE.
+The reason is that the conntrack template is set to confirmed before adding
+the extension and it is invalid to add extensions to already confirmed
+conntracks. Fix by adding the extensions before setting the conntrack to
+confirmed.
 
-Self:
-Nacked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Reported-by: Jesper Dangaard Brouer <jesper.brouer@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nf_synproxy_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index d23dc79..6fd967c 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -356,12 +356,12 @@ static int __net_init synproxy_net_init(struct net *net)
+ 		goto err1;
+ 	}
+ 
+-	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
+-	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
+ 	if (!nfct_seqadj_ext_add(ct))
+ 		goto err2;
+ 	if (!nfct_synproxy_ext_add(ct))
+ 		goto err2;
++	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
++	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
+ 
+ 	snet->tmpl = ct;
+ 
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
+1.8.1.4
+
