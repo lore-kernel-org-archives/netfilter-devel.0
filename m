@@ -1,48 +1,49 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [nftables tool PATCH] INSTALL: Update dependency list and repository URLs
-Date: Thu, 29 Aug 2013 09:18:39 +0300
-Message-ID: <1377757119-3165-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-To: netfilter-devel@vger.kernel.org
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [nf-next PATCH] netfilter: Extend SYNPROXY with a --continue
+ option
+Date: Thu, 29 Aug 2013 10:23:58 +0200
+Message-ID: <20130829102358.4f93ee24@redhat.com>
+References: <20130828152549.8250.97982.stgit@dragon>
+	<20130828160038.GA25799@macbook.localnet>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	mph@one.com, as@one.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13045 "EHLO mga02.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:21925 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777Ab3H2GTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Aug 2013 02:19:03 -0400
+	id S1752922Ab3H2IYL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Aug 2013 04:24:11 -0400
+In-Reply-To: <20130828160038.GA25799@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
----
- INSTALL | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+On Wed, 28 Aug 2013 18:00:42 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-diff --git a/INSTALL b/INSTALL
-index 1f51ed0..09f6cd4 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -6,7 +6,9 @@ Installation instructions for nftables
- 
-   - standard glibc headers, gcc etc.
- 
--  - libnl including support for nftables: git://git.netfilter.org/libnl-nft.git
-+  - libmnl: git://git.netfilter.org/libmnl
-+
-+  - libnftables: git://git.netfilter.org/libnftables
- 
-   - flex
- 
-@@ -52,8 +54,8 @@ Installation instructions for nftables
- 
-  The nftables kernel tree can be found at:
- 
-- git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nft-2.6.git
-+ git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nftables.git
- 
-  The latest version of this code can be found at:
- 
-- git://git.netfilter.org/nftables.git
-+ git://git.netfilter.org/nftables
+> On Wed, Aug 28, 2013 at 05:26:55PM +0200, Jesper Dangaard Brouer wrote:
+> > Packets reaching SYNPROXY are default dropped, as they are most likely
+> > invalid (given the state matching).  In other configurations it might
+> > be beneficial to let packet not consumed by SYNPROXY (SYN and ACK) to
+> > continue being processed by the stack.
+> > 
+> > Introducing a --continue option/flag for the SYNPROXY target to allow
+> > these unmatched packets to continue being processed.  This would also
+> > help in debugging the module via LOG.
+> 
+> I don't think we should add an option for this. Just DROP packets consumed
+> by the target and have the other ones continue.
+
+I agree.  I'll send a new patch, defaulting to XT_CONTINUE.
+
+Self:
+Nacked-by: Jesper Dangaard Brouer <brouer@redhat.com>
 -- 
-1.8.3.2
-
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
