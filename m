@@ -1,34 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] tcp: tcp_make_synack() should use sock_wmalloc
-Date: Fri, 30 Aug 2013 16:03:32 -0400 (EDT)
-Message-ID: <20130830.160332.1978667608563540935.davem@davemloft.net>
-References: <20130827234140.GA3301@linuxace.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v3] iptables: Sort table names in ip[6]tables-save
+Date: Fri, 30 Aug 2013 23:11:58 +0200
+Message-ID: <20130830211158.GA3850@localhost>
+References: <20130731202107.GA12949@linuxace.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	eric.dumazet@gmail.com, pablo@netfilter.org
-To: kernel@linuxace.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130827234140.GA3301@linuxace.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46270 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753904Ab3H3VMD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Aug 2013 17:12:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20130731202107.GA12949@linuxace.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Phil Oester <kernel@linuxace.com>
-Date: Tue, 27 Aug 2013 16:41:40 -0700
+Hi Phil,
 
-> In commit 90ba9b19 (tcp: tcp_make_synack() can use alloc_skb()), Eric changed
-> the call to sock_wmalloc in tcp_make_synack to alloc_skb.  In doing so,
-> the netfilter owner match lost its ability to block the SYNACK packet on
-> outbound listening sockets.  Revert the change, restoring the owner match
-> functionality.
+On Wed, Jul 31, 2013 at 01:21:07PM -0700, Phil Oester wrote:
+> Depending upon the load order of rules, the output from ip[6]tables-save
+> will vary, as ip[6]_tables_names is sorted LIFO.  As reported by
+> Linus van Geuns, this makes comparing output from ip[6]tables-save across
+> reboots difficult.  Attached are two patches which attempt to fix this.
 > 
-> This closes netfilter bugzilla #847.
-> 
-> Signed-off-by: Phil Oester <kernel@linuxace.com>
+>   1) Sort by default - add 'u' option to unsort
+>   2) Unsorted by default - add 's' option to sort
 
-Applied and queued up for -stable, thanks.
+I think we should just sorted it inconditionally. I don't get how that
+can be useful for any interesting purpose.
 
-Eric, I guess if you really want to get rid of the wmem atomics you
-can just attach the socket and make a special destructor.  Maybe it
-is not even worth it at that point however.
+More comments below:
+
+> diff --git a/include/xtables.h b/include/xtables.h
+> index c35a6e6..dc6e566 100644
+> --- a/include/xtables.h
+> +++ b/include/xtables.h
+> @@ -479,6 +479,8 @@ extern void xtables_ip6parse_any(const char *, struct in6_addr **,
+>  extern void xtables_ip6parse_multiple(const char *, struct in6_addr **,
+>  	struct in6_addr **, unsigned int *);
+>  
+> +extern int stringcmp(const void *, const void *);
+
+Please, no new function into libxtables for this. Better define it
+internally to iptables-save and ip6tables-save.
+
+I also have to ask you to make a patch for iptables-nftables, so we
+obtain the same behaviour in xtables-save.
+
+Thanks.
