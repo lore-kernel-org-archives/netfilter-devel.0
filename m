@@ -1,32 +1,35 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH] [RFC] xt_owner: enable xt_owner on INPUT chain
-Date: Fri, 30 Aug 2013 07:54:37 -0700
-Message-ID: <20130830145437.GA7648@linuxace.com>
+Date: Fri, 30 Aug 2013 17:08:37 +0200
+Message-ID: <20130830150837.GN32493@breakpoint.cc>
 References: <1377866623-25948-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <20130830145437.GA7648@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: valentina.giusti@bmw-carit.de
+Cc: valentina.giusti@bmw-carit.de, netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:52792 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756283Ab3H3Oyz (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45378 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752653Ab3H3PIm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Aug 2013 10:54:55 -0400
-Received: by mail-pa0-f46.google.com with SMTP id fa1so2418511pad.5
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2013 07:54:54 -0700 (PDT)
+	Fri, 30 Aug 2013 11:08:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1377866623-25948-1-git-send-email-valentina.giusti@bmw-carit.de>
+In-Reply-To: <20130830145437.GA7648@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 30, 2013 at 02:43:42PM +0200, valentina.giusti@bmw-carit.de wrote:
-> I'm working on getting the owner extension also on the INPUT chain.
+Phil Oester <kernel@linuxace.com> wrote:
+> On Fri, Aug 30, 2013 at 02:43:42PM +0200, valentina.giusti@bmw-carit.de wrote:
+> > I'm working on getting the owner extension also on the INPUT chain.
+> > 
+> > In the meanwhile, could anybody please give feedback and tell me if this is the
+> > right direction?
 > 
-> In the meanwhile, could anybody please give feedback and tell me if this is the
-> right direction?
+> What about the (common) case of no local socket?  I think that's why the owner
+> match was restricted to output|postrouting in the first place, no?
 
-What about the (common) case of no local socket?  I think that's why the owner
-match was restricted to output|postrouting in the first place, no?
-
-Phil
+No, it was restricted because skb->sk is only set for locally generated
+outgoing packets.  As Valentina explained, with tcp early demux skb->sk
+will already be set for incoming tcp packets when the packet traverses
+the INPUT chain.
