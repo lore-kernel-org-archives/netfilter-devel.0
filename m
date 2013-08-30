@@ -1,33 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 0/5] IPVS fixes for v3.11
-Date: Fri, 30 Aug 2013 21:26:53 +0200
-Message-ID: <20130830192653.GA8350@localhost>
-References: <1377854068-22340-1-git-send-email-horms@verge.net.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] tcp: tcp_make_synack() should use sock_wmalloc
+Date: Fri, 30 Aug 2013 16:03:32 -0400 (EDT)
+Message-ID: <20130830.160332.1978667608563540935.davem@davemloft.net>
+References: <20130827234140.GA3301@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1377854068-22340-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	eric.dumazet@gmail.com, pablo@netfilter.org
+To: kernel@linuxace.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130827234140.GA3301@linuxace.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Simon,
+From: Phil Oester <kernel@linuxace.com>
+Date: Tue, 27 Aug 2013 16:41:40 -0700
 
-On Fri, Aug 30, 2013 at 06:14:23PM +0900, Simon Horman wrote:
-> Hi Pablo,
+> In commit 90ba9b19 (tcp: tcp_make_synack() can use alloc_skb()), Eric changed
+> the call to sock_wmalloc in tcp_make_synack to alloc_skb.  In doing so,
+> the netfilter owner match lost its ability to block the SYNACK packet on
+> outbound listening sockets.  Revert the change, restoring the owner match
+> functionality.
 > 
-> I'm not sure if it is too late in the cycle but
-> if not could you please consider these fixes for v3.11?
+> This closes netfilter bugzilla #847.
 > 
-> In my opinion these all seem to be -stable candidates.
-> I would appreciate your opinion on that.
+> Signed-off-by: Phil Oester <kernel@linuxace.com>
 
-We're fairly late in the -rc cycle. I prefer to ask David to take
-these once 3.11 is released, then ask for -stable inclusion.
+Applied and queued up for -stable, thanks.
 
-Regards.
+Eric, I guess if you really want to get rid of the wmem atomics you
+can just attach the socket and make a special destructor.  Maybe it
+is not even worth it at that point however.
