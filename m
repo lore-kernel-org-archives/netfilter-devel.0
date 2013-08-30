@@ -1,76 +1,99 @@
-From: Valentijn Sessink <valentyn@blub.net>
-Subject: Re: xt_recent.c bug - and cleanup
-Date: Fri, 30 Aug 2013 07:27:01 +0200
-Message-ID: <52202D25.6030606@blub.net>
-References: <521F1F77.3030808@blub.net> <20130829220904.GA6810@linuxace.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Phil Oester <kernel@linuxace.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from filter.openoffice.nl ([178.63.187.165]:35641 "EHLO
-	filter.openoffice.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752567Ab3H3FfT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Aug 2013 01:35:19 -0400
-In-Reply-To: <20130829220904.GA6810@linuxace.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH nf 0/5] IPVS fixes for v3.11
+Date: Fri, 30 Aug 2013 18:14:23 +0900
+Message-ID: <1377854068-22340-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+Hi Pablo,
 
-First, thanks for looking into this.
+I'm not sure if it is too late in the cycle but
+if not could you please consider these fixes for v3.11?
 
-On 30-08-13 00:09, Phil Oester wrote:
-> I disagree with your assessment.  Take a closer look at the man page
-> for recent match (emphasis added to relevant portion):
->   [!] --update
->      Like --rcheck, except it will update the "last seen" timestamp **if it matches**
-> Your rule _does not match_ for "friends".  Because you used inversion, it only
-> matches for non-friends (and then, of course, there is no timestamp to
-> update).
+In my opinion these all seem to be -stable candidates.
+I would appreciate your opinion on that.
 
-The manpage says "This will always return success (or failure if ! is
-passed in).", which IMHO means the "!" is only meant to reverse the
-return value. But I agree that the man page is not very clear.
 
-But, as you have reviewed the code, I'd like to ask you why the code
-calls recent_entry_update(t, e) when there's nothing to update (i.e. a
-call to recent_entry_init(), if any, would be more appropriate) - and
-the code knows it?
+The following changes since commit e75dc677ff8d06ffa61bef6fee436227ae5440c6:
 
-> By design.
+  hso: Fix stack corruption on some architectures (2013-08-21 20:47:59 -0700)
 
-Then calling recent_entry_update is a bug. Besides, see below how the
---seconds check fits in.
+are available in the git repository at:
 
-You're right though, that --update --seconds 10 only updates within the
-10 seconds scope as well.
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.11
 
-> This is confusing, to be sure, but from my review of the code, it is also
-> by design.  Unfortunately when you use --seconds, it DOES NOT MATCH,
-> and therefore it does not update.  But then on the next packet, since
-> there was no update on the first packet, it still does not match on the
-> second.  And on and on...  It will never match, and it will never update
-> the entry.
+for you to fetch changes up to d5af9df3233d4cb2e7c9011af86ed53cdd12a136:
 
-Let's say you use
--A INPUT -m recent ! --update --name friends --seconds 600 --rsource -j
-LOG --log-prefix "go away: "
+  ipvs: fix overflow on dest weight multiply (2013-08-30 17:52:03 +0900)
 
-Then the first 600 seconds, you're welcome. Then after 600 seconds, you
-don't match - ** and suddenly your entry is updated **. So for the next
-600 seconds, you're welcome again! After that, you're not welcome, so
-your entry is updated again.
+----------------------------------------------------------------
+Fixes for IPVS for v3.11
 
-That's silly.
+* Fix overflow in LBLC and LBLCR schedulers.
 
-The reason I found this, is that I'm trying to actually * use * the
-recent module with the inversion, and if this is not a bug, well, then
-its really odd at least - I can't even think how it could be useful this
-way.
+  This resolves a regression introduced by commit b552f7e3a9524abcbcdf
+  ("ipvs: unify the formula to estimate the overhead of processing
+  connections").
 
-Best regards,
+  This problem was introduced in v2.6.38
 
-Valentijn
+* Correct stats calculation in the absence of CPU 0 in the possible mask
+
+  This resolves a regression introduced by commit 17fc9963f837ef1
+  ("IPVS: netns, ip_vs_stats and its procfs").
+
+  This problem was introduced in v2.6.38
+
+* Make the service replacement more robust
+
+  This resolves a regression introduced by commit 578bc3ef1e473a
+  ("ipvs: reorganize dest trash")
+
+  This problem was introduced in 3.9
+
+* Do not use dest after ip_vs_dest_put in LBLCR
+
+  This resolves a regression introduced by commit c5549571f975ab
+  ("ipvs: convert lblcr scheduler to rcu")
+
+  This problem was introduced in 3.9
+
+* Do not use dest after ip_vs_dest_put in LBLC
+
+  This resolves a regression introduced by commit 2a4ffb70eef39
+  ("ipvs: convert lblc scheduler to rcu")
+
+  This problem was introduced in 3.9
+
+----------------------------------------------------------------
+Julian Anastasov (4):
+      ipvs: do not use dest after ip_vs_dest_put in LBLC
+      ipvs: do not use dest after ip_vs_dest_put in LBLCR
+      ipvs: make the service replacement more robust
+      ipvs: stats should not depend on CPU 0
+
+Simon Kirby (1):
+      ipvs: fix overflow on dest weight multiply
+
+ include/net/ip_vs.h              |  8 ++--
+ net/netfilter/ipvs/ip_vs_core.c  | 12 +++++-
+ net/netfilter/ipvs/ip_vs_ctl.c   | 90 ++++++++++++++++------------------------
+ net/netfilter/ipvs/ip_vs_est.c   |  4 +-
+ net/netfilter/ipvs/ip_vs_lblc.c  | 72 +++++++++++++++-----------------
+ net/netfilter/ipvs/ip_vs_lblcr.c | 62 ++++++++++++---------------
+ net/netfilter/ipvs/ip_vs_nq.c    |  8 ++--
+ net/netfilter/ipvs/ip_vs_sed.c   |  8 ++--
+ net/netfilter/ipvs/ip_vs_wlc.c   |  6 +--
+ 9 files changed, 121 insertions(+), 149 deletions(-)
+
+
+
+-- 
+1.8.4
+
