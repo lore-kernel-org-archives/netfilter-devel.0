@@ -1,72 +1,304 @@
-From: valentina.giusti@bmw-carit.de
-Subject: [PATCH] xt_owner: enable xt_owner on INPUT chain
-Date: Fri, 30 Aug 2013 14:43:43 +0200
-Message-ID: <1377866623-25948-2-git-send-email-valentina.giusti@bmw-carit.de>
-References: <1377866623-25948-1-git-send-email-valentina.giusti@bmw-carit.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables-nftables PATCH] nft: refactoring parse operations for more genericity
+Date: Fri, 30 Aug 2013 15:35:53 +0200
+Message-ID: <1377869753-9093-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:49544 "EHLO
-	linuxmail.bmw-carit.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752797Ab3H3Mwa (ORCPT
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:37801 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752498Ab3H3NgC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Aug 2013 08:52:30 -0400
-In-Reply-To: <1377866623-25948-1-git-send-email-valentina.giusti@bmw-carit.de>
+	Fri, 30 Aug 2013 09:36:02 -0400
+Received: by mail-ea0-f180.google.com with SMTP id h10so911523eaj.25
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2013 06:36:01 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Valentina Giusti <valentina.giusti@bmw-carit.de>
+This will allow reusing nft_parse_* function for other family than IPv4
+or IPv6.
 
-Since (41063e9 ipv4: Early TCP socket demux), we can apply the owner
-extension on the INPUT chain and match established TCP sockets.
-However, because of the same commit, we can have skb->sk pointing to a
-timewait socket, in which case accessing skb->sk->sk_socket is invalid.
-
-Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
-
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- net/netfilter/xt_owner.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ iptables/nft-ipv4.c   |   27 ++++++++++++++++++++++-----
+ iptables/nft-ipv6.c   |   26 +++++++++++++++++++++-----
+ iptables/nft-shared.c |   44 +++++++++++++++++++++++++++-----------------
+ iptables/nft-shared.h |    8 ++++----
+ 4 files changed, 74 insertions(+), 31 deletions(-)
 
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index ca2e577..df03cac 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -16,6 +16,7 @@
- #include <net/sock.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_owner.h>
-+#include <net/tcp_states.h>
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index a08df71..b7a6095 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -148,17 +148,20 @@ static const char *mask_to_str(uint32_t mask)
+ }
  
- static int owner_check(const struct xt_mtchk_param *par)
+ static void nft_ipv4_parse_meta(struct nft_rule_expr *e, uint8_t key,
+-				struct iptables_command_state *cs)
++				void *data)
  {
-@@ -34,7 +35,8 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_owner_match_info *info = par->matchinfo;
- 	const struct file *filp;
++	struct iptables_command_state *cs = data;
++
+ 	parse_meta(e, key, cs->fw.ip.iniface, cs->fw.ip.iniface_mask,
+ 		   cs->fw.ip.outiface, cs->fw.ip.outiface_mask,
+ 		   &cs->fw.ip.invflags);
+ }
  
--	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
-+	if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT ||
-+	    skb->sk->sk_socket == NULL)
- 		return (info->match ^ info->invert) == 0;
- 	else if (info->match & info->invert & XT_OWNER_SOCKET)
- 		/*
-@@ -76,7 +78,8 @@ static struct xt_match owner_mt_reg __read_mostly = {
- 	.checkentry = owner_check,
- 	.match      = owner_mt,
- 	.matchsize  = sizeof(struct xt_owner_match_info),
--	.hooks      = (1 << NF_INET_LOCAL_OUT) |
-+	.hooks      = (1 << NF_INET_LOCAL_IN) |
-+		      (1 << NF_INET_LOCAL_OUT) |
- 	              (1 << NF_INET_POST_ROUTING),
- 	.me         = THIS_MODULE,
+ static void nft_ipv4_parse_payload(struct nft_rule_expr_iter *iter,
+-				   struct iptables_command_state *cs,
+-				   uint32_t offset)
++				   uint32_t offset, void *data)
+ {
++	struct iptables_command_state *cs = data;
++
+ 	switch(offset) {
+ 	struct in_addr addr;
+ 	uint8_t proto;
+@@ -196,9 +199,15 @@ static void nft_ipv4_parse_payload(struct nft_rule_expr_iter *iter,
+ 	}
+ }
+ 
+-static void nft_ipv4_parse_immediate(struct iptables_command_state *cs)
++static void nft_ipv4_parse_immediate(const char *jumpto, bool nft_goto,
++				     void *data)
+ {
+-	cs->fw.ip.flags |= IPT_F_GOTO;
++	struct iptables_command_state *cs = data;
++
++	cs->jumpto = jumpto;
++
++	if (nft_goto)
++		cs->fw.ip.flags |= IPT_F_GOTO;
+ }
+ 
+ static void print_ipv4_addr(const struct iptables_command_state *cs,
+@@ -351,6 +360,13 @@ static void nft_ipv4_post_parse(int command,
+ 			      " source or destination IP addresses");
+ }
+ 
++static void nft_ipv4_parse_target(struct xtables_target *t, void *data)
++{
++	struct iptables_command_state *cs = data;
++
++	cs->target = t;
++}
++
+ struct nft_family_ops nft_family_ops_ipv4 = {
+ 	.add			= nft_ipv4_add,
+ 	.is_same		= nft_ipv4_is_same,
+@@ -360,4 +376,5 @@ struct nft_family_ops nft_family_ops_ipv4 = {
+ 	.print_firewall		= nft_ipv4_print_firewall,
+ 	.save_firewall		= nft_ipv4_save_firewall,
+ 	.post_parse		= nft_ipv4_post_parse,
++	.parse_target		= nft_ipv4_parse_target,
  };
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 9bb5798..27e63a4 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -70,17 +70,19 @@ static bool nft_ipv6_is_same(const struct iptables_command_state *a,
+ }
+ 
+ static void nft_ipv6_parse_meta(struct nft_rule_expr *e, uint8_t key,
+-				struct iptables_command_state *cs)
++				void *data)
+ {
++	struct iptables_command_state *cs = data;
++
+ 	parse_meta(e, key, cs->fw6.ipv6.iniface,
+ 		   cs->fw6.ipv6.iniface_mask, cs->fw6.ipv6.outiface,
+ 		   cs->fw6.ipv6.outiface_mask, &cs->fw6.ipv6.invflags);
+ }
+ 
+ static void nft_ipv6_parse_payload(struct nft_rule_expr_iter *iter,
+-				   struct iptables_command_state *cs,
+-				   uint32_t offset)
++				   uint32_t offset, void *data)
+ {
++	struct iptables_command_state *cs = data;
+ 	switch (offset) {
+ 	struct in6_addr addr;
+ 	uint8_t proto;
+@@ -110,9 +112,15 @@ static void nft_ipv6_parse_payload(struct nft_rule_expr_iter *iter,
+ 	}
+ }
+ 
+-static void nft_ipv6_parse_immediate(struct iptables_command_state *cs)
++static void nft_ipv6_parse_immediate(const char *jumpto, bool nft_goto,
++				     void *data)
+ {
+-	cs->fw6.ipv6.flags |= IPT_F_GOTO;
++	struct iptables_command_state *cs = data;
++
++	cs->jumpto = jumpto;
++
++	if (nft_goto)
++		cs->fw6.ipv6.flags |= IPT_F_GOTO;
+ }
+ 
+ static void print_ipv6_addr(const struct iptables_command_state *cs,
+@@ -274,6 +282,13 @@ static void nft_ipv6_post_parse(int command, struct iptables_command_state *cs,
+ 			      " source or destination IP addresses");
+ }
+ 
++static void nft_ipv6_parse_target(struct xtables_target *t, void *data)
++{
++	struct iptables_command_state *cs = data;
++
++	cs->target = t;
++}
++
+ struct nft_family_ops nft_family_ops_ipv6 = {
+ 	.add			= nft_ipv6_add,
+ 	.is_same		= nft_ipv6_is_same,
+@@ -283,4 +298,5 @@ struct nft_family_ops nft_family_ops_ipv6 = {
+ 	.print_firewall		= nft_ipv6_print_firewall,
+ 	.save_firewall		= nft_ipv6_save_firewall,
+ 	.post_parse		= nft_ipv6_post_parse,
++	.parse_target		= nft_ipv6_parse_target,
+ };
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 9e57b36..12a91f9 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -283,13 +283,14 @@ void parse_meta(struct nft_rule_expr *e, uint8_t key, char *iniface,
+ 
+ static void
+ nft_parse_target(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+-		 struct iptables_command_state *cs)
++		 int family, void *data)
+ {
+ 	size_t tg_len;
+ 	const char *targname = nft_rule_expr_get_str(e, NFT_EXPR_TG_NAME);
+ 	const void *targinfo = nft_rule_expr_get(e, NFT_EXPR_TG_INFO, &tg_len);
+ 	struct xtables_target *target;
+ 	struct xt_entry_target *t;
++	struct nft_family_ops *ops;
+ 
+ 	target = xtables_find_target(targname, XTF_TRY_LOAD);
+ 	if (target == NULL)
+@@ -306,7 +307,9 @@ nft_parse_target(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+ 	strcpy(t->u.user.name, target->name);
+ 
+ 	target->t = t;
+-	cs->target = target;
++
++	ops = nft_family_ops_lookup(family);
++	ops->parse_target(data, target);
+ }
+ 
+ static void
+@@ -380,8 +383,9 @@ void get_cmp_data(struct nft_rule_expr_iter *iter,
+ 
+ static void
+ nft_parse_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+-	       int family, struct iptables_command_state *cs)
++	       int family, void *data)
+ {
++	struct iptables_command_state *cs = data;
+ 	uint8_t key = nft_rule_expr_get_u8(e, NFT_EXPR_META_KEY);
+ 	struct nft_family_ops *ops = nft_family_ops_lookup(family);
+ 	const char *name;
+@@ -401,14 +405,15 @@ nft_parse_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+ 
+ static void
+ nft_parse_payload(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+-		  int family, struct iptables_command_state *cs)
++		  int family, void *data)
+ {
++	struct iptables_command_state *cs = data;
+ 	struct nft_family_ops *ops = nft_family_ops_lookup(family);
+ 	uint32_t offset;
+ 
+ 	offset = nft_rule_expr_get_u32(e, NFT_EXPR_PAYLOAD_OFFSET);
+ 
+-	ops->parse_payload(iter, cs, offset);
++	ops->parse_payload(iter, offset, cs);
+ }
+ 
+ static void
+@@ -421,30 +426,35 @@ nft_parse_counter(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+ 
+ static void
+ nft_parse_immediate(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+-		    int family, struct iptables_command_state *cs)
++		    int family, void *data)
+ {
+ 	int verdict = nft_rule_expr_get_u32(e, NFT_EXPR_IMM_VERDICT);
+ 	const char *chain = nft_rule_expr_get_str(e, NFT_EXPR_IMM_CHAIN);
+ 	struct nft_family_ops *ops;
++	const char *jumpto;
++	bool nft_goto = false;
+ 
+ 	/* Standard target? */
+ 	switch(verdict) {
+ 	case NF_ACCEPT:
+-		cs->jumpto = "ACCEPT";
+-		return;
++		jumpto = "ACCEPT";
++		break;
+ 	case NF_DROP:
+-		cs->jumpto = "DROP";
+-		return;
++		jumpto = "DROP";
++		break;
+ 	case NFT_RETURN:
+-		cs->jumpto = "RETURN";
+-		return;
++		jumpto = "RETURN";
++		break;;
+ 	case NFT_GOTO:
+-		ops = nft_family_ops_lookup(family);
+-		ops->parse_immediate(cs);
++		nft_goto = true;
++		break;
+ 	case NFT_JUMP:
+-		cs->jumpto = chain;
+-		return;
++		jumpto = chain;
++		break;
+ 	}
++
++	ops = nft_family_ops_lookup(family);
++	ops->parse_immediate(jumpto, nft_goto, data);
+ }
+ 
+ void nft_rule_to_iptables_command_state(struct nft_rule *r,
+@@ -474,7 +484,7 @@ void nft_rule_to_iptables_command_state(struct nft_rule *r,
+ 		else if (strcmp(name, "match") == 0)
+ 			nft_parse_match(expr, iter, cs);
+ 		else if (strcmp(name, "target") == 0)
+-			nft_parse_target(expr, iter, cs);
++			nft_parse_target(expr, iter, family, cs);
+ 
+ 		expr = nft_rule_expr_iter_next(iter);
+ 	}
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 861b6db..ed2617c 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -43,17 +43,17 @@ struct nft_family_ops {
+ 	void (*print_payload)(struct nft_rule_expr *e,
+ 			      struct nft_rule_expr_iter *iter);
+ 	void (*parse_meta)(struct nft_rule_expr *e, uint8_t key,
+-			   struct iptables_command_state *cs);
++			   void *data);
+ 	void (*parse_payload)(struct nft_rule_expr_iter *iter,
+-			      struct iptables_command_state *cs,
+-			      uint32_t offset);
+-	void (*parse_immediate)(struct iptables_command_state *cs);
++			      uint32_t offset, void *data);
++	void (*parse_immediate)(const char *jumpto, bool nft_goto, void *data);
+ 	void (*print_firewall)(struct nft_rule *r, unsigned int num,
+ 			       unsigned int format);
+ 	uint8_t (*save_firewall)(const struct iptables_command_state *cs,
+ 				 unsigned int format);
+ 	void (*post_parse)(int command, struct iptables_command_state *cs,
+ 			   struct xtables_args *args);
++	void (*parse_target)(struct xtables_target *t, void *data);
+ };
+ 
+ void add_meta(struct nft_rule *r, uint32_t key);
 -- 
-1.7.10.4
+1.7.8.6
 
