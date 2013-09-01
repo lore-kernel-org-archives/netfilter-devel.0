@@ -1,22 +1,22 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: [PATCH v2 1/2] netfilter: ipset: rework hash ext. handling to be more manageable.
-Date: Sun,  1 Sep 2013 21:58:41 +0200
-Message-ID: <1378065522-65492-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: [PATCH v2 2/2] netfilter: ipset: rework bitmap ext. handling to be more manageable.
+Date: Sun,  1 Sep 2013 21:58:42 +0200
+Message-ID: <1378065522-65492-3-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 References: <1378065522-65492-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:55031 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:55038 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894Ab3IAT75 (ORCPT
+	with ESMTP id S1755220Ab3IAUAb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Sep 2013 15:59:57 -0400
+	Sun, 1 Sep 2013 16:00:31 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by mail.uptheinter.net (Postfix) with ESMTP id 72325A049A
-	for <netfilter-devel@vger.kernel.org>; Sun,  1 Sep 2013 20:59:52 +0100 (BST)
+	by mail.uptheinter.net (Postfix) with ESMTP id B3431A2C73
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Sep 2013 21:00:30 +0100 (BST)
 Received: from mail.uptheinter.net ([127.0.0.1])
 	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id Xj9-xT3Z-PE3 for <netfilter-devel@vger.kernel.org>;
-	Sun,  1 Sep 2013 20:58:43 +0100 (BST)
+	with LMTP id ENtR_UhvLhG9 for <netfilter-devel@vger.kernel.org>;
+	Sun,  1 Sep 2013 20:59:52 +0100 (BST)
 In-Reply-To: <1378065522-65492-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -24,187 +24,372 @@ List-ID: <netfilter-devel.vger.kernel.org>
 From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
 The previous code that handled all the various combinations of ipset
-extensions in the hash family consisted of trees of if/else statements
-that check all the possible extension combinations. This patch
-simplifies that code down to a couple of switch statements and a
-preprocessor macro to facilite appropriate setup.
+extensions in the bitmap family was largely duplicated across the
+various types. Additionally, it also had trees of if/else statements
+that check the possible extension combinations. This patch simplifies
+and deduplicates most of that code using the same means as the
+preceeding patch to simplify extension handling within the hash family.
 
 This should significantly reduce the new lines of code that would have
 to be introduced to add more extensions in the future.
 
 Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 ---
- kernel/include/uapi/linux/netfilter/ipset/ip_set.h |   8 +-
- kernel/net/netfilter/ipset/ip_set_hash_gen.h       | 121 ++++++++-------------
- 2 files changed, 54 insertions(+), 75 deletions(-)
+ kernel/net/netfilter/ipset/ip_set_bitmap_gen.h   | 55 +++++++++++++++++++
+ kernel/net/netfilter/ipset/ip_set_bitmap_ip.c    | 68 +++---------------------
+ kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c | 63 +++-------------------
+ kernel/net/netfilter/ipset/ip_set_bitmap_port.c  | 57 ++------------------
+ 4 files changed, 75 insertions(+), 168 deletions(-)
 
-diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-index 8024cdf..17779ca 100644
---- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -166,7 +166,11 @@ enum ipset_cmd_flags {
- 	IPSET_FLAG_CMD_MAX = 15,
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_gen.h b/kernel/net/netfilter/ipset/ip_set_bitmap_gen.h
+index d39905e..097da65 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -15,6 +15,7 @@
+ #define mtype_do_del		IPSET_TOKEN(MTYPE, _do_del)
+ #define mtype_do_list		IPSET_TOKEN(MTYPE, _do_list)
+ #define mtype_do_head		IPSET_TOKEN(MTYPE, _do_head)
++#define mtype_do_create		IPSET_TOKEN(MTYPE, _do_create)
+ #define mtype_adt_elem		IPSET_TOKEN(MTYPE, _adt_elem)
+ #define mtype_add_timeout	IPSET_TOKEN(MTYPE, _add_timeout)
+ #define mtype_gc_init		IPSET_TOKEN(MTYPE, _gc_init)
+@@ -256,6 +257,60 @@ mtype_gc(unsigned long ul_set)
+ 	add_timer(&map->gc);
+ }
+ 
++#define generate_offsets(X,C,T)						\
++	map->dsize = sizeof(struct IPSET_TOKEN(mtype, X));		\
++	c_off = offsetof(struct IPSET_TOKEN(mtype, C), counter);	\
++	t_off = offsetof(struct IPSET_TOKEN(mtype, T), timeout);
++
++static inline int
++mtype_do_create(struct mtype *map, struct nlattr *tb[], struct ip_set *set, create_args)
++{
++	unsigned int cadt_flags = 0, i = IPSET_FLAG_EXT_BEGIN;
++	int c_off = 0, t_off = 0;
++
++	if(tb[IPSET_ATTR_CADT_FLAGS])
++		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]) & ~IPSET_FLAG_EXT_BEGIN;
++	if(tb[IPSET_ATTR_TIMEOUT])
++		cadt_flags |= IPSET_FLAG_WITH_TIMEOUTS;
++
++	if (!cadt_flags) {
++		map->dsize = 0;
++		INIT_MAP();
++	} else {
++		switch (cadt_flags) {
++			case (IPSET_FLAG_WITH_COUNTERS  |
++			      IPSET_FLAG_WITH_TIMEOUTS) :
++				generate_offsets(ct_elem, ct_elem, ct_elem);
++				break;
++			case  IPSET_FLAG_WITH_TIMEOUTS  :
++				generate_offsets(t_elem, c_elem, t_elem);
++				break;
++			case  IPSET_FLAG_WITH_COUNTERS  :
++				generate_offsets(c_elem, c_elem, t_elem);
++				break;
++		}
++		for(; i < (1 << IPSET_FLAG_CADT_MAX) ; i = (i << 1)) {
++			switch (cadt_flags & i) {
++				case IPSET_FLAG_WITH_COUNTERS:
++					map->offset[IPSET_OFFSET_COUNTER] = c_off;
++					set->extensions |= IPSET_EXT_COUNTER;
++					break;
++				case IPSET_FLAG_WITH_TIMEOUTS:
++					map->offset[IPSET_OFFSET_TIMEOUT] = t_off;
++					set->extensions |= IPSET_EXT_TIMEOUT;
++					break;
++			}
++		}
++		INIT_MAP();
++		/* Since we can't set the timeout until after init, we check again */
++		if (cadt_flags & IPSET_FLAG_WITH_TIMEOUTS) {
++			map->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
++			IPSET_TOKEN(mtype, _gc_init)(set, IPSET_TOKEN(mtype, _gc));
++		}
++	}
++	return 0;
++}
++
+ static const struct ip_set_type_variant mtype = {
+ 	.kadt	= mtype_kadt,
+ 	.uadt	= mtype_uadt,
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
+index ce99d26..8736e75 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -228,8 +228,6 @@ struct bitmap_ipct_elem {
+ 	struct ip_set_counter counter;
  };
  
--/* Flags at CADT attribute level, upper half of cmdattrs */
-+/* Flags at CADT attribute level, upper half of cmdattrs
-+ *
-+ * We recycle NOMATCH for TIMEOUT since it is only used for
-+ * ipset creation.
-+ */
- enum ipset_cadt_flags {
- 	IPSET_FLAG_BIT_BEFORE	= 0,
- 	IPSET_FLAG_BEFORE	= (1 << IPSET_FLAG_BIT_BEFORE),
-@@ -174,6 +178,8 @@ enum ipset_cadt_flags {
- 	IPSET_FLAG_PHYSDEV	= (1 << IPSET_FLAG_BIT_PHYSDEV),
- 	IPSET_FLAG_BIT_NOMATCH	= 2,
- 	IPSET_FLAG_NOMATCH	= (1 << IPSET_FLAG_BIT_NOMATCH),
-+	IPSET_FLAG_EXT_BEGIN = 2,
-+	IPSET_FLAG_WITH_TIMEOUTS = (1 << IPSET_FLAG_EXT_BEGIN),
- 	IPSET_FLAG_BIT_WITH_COUNTERS = 3,
- 	IPSET_FLAG_WITH_COUNTERS = (1 << IPSET_FLAG_BIT_WITH_COUNTERS),
- 	IPSET_FLAG_CADT_MAX	= 15,
-diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-index 906c778..047a877 100644
---- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1056,6 +1056,7 @@ IPSET_TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
- 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
- 	u32 cadt_flags = 0;
- 	u8 hbits;
-+	int i = IPSET_FLAG_EXT_BEGIN, t_off = 0, c_off = 0;
- #ifdef IP_SET_HASH_WITH_NETMASK
- 	u8 netmask;
- #endif
-@@ -1134,82 +1135,54 @@ IPSET_TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
- 		set->variant = &IPSET_TOKEN(HTYPE, 6_variant);
+-#include "ip_set_bitmap_gen.h"
+-
+ /* Create bitmap:ip type of sets */
  
- 	if (tb[IPSET_ATTR_CADT_FLAGS])
+ static bool
+@@ -260,11 +258,17 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ 	return true;
+ }
+ 
++#define create_args	u32 first_ip, u32 last_ip, u32 hosts, 		\
++			u64 elements, u8 netmask
++#define INIT_MAP()	init_map_ip(set, map, first_ip, last_ip,	\
++				    elements, hosts, netmask)
++#include "ip_set_bitmap_gen.h"
++
+ static int
+ bitmap_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	struct bitmap_ip *map;
+-	u32 first_ip = 0, last_ip = 0, hosts, cadt_flags = 0;
++	u32 first_ip = 0, last_ip = 0, hosts;
+ 	u64 elements;
+ 	u8 netmask = 32;
+ 	int ret;
+@@ -336,63 +340,7 @@ bitmap_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 
+ 	map->memsize = bitmap_bytes(0, elements - 1);
+ 	set->variant = &bitmap_ip;
+-	if (tb[IPSET_ATTR_CADT_FLAGS])
 -		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
 -	if (cadt_flags & IPSET_FLAG_WITH_COUNTERS) {
 -		set->extensions |= IPSET_EXT_COUNTER;
 -		if (tb[IPSET_ATTR_TIMEOUT]) {
--			h->timeout =
+-			map->dsize = sizeof(struct bitmap_ipct_elem);
+-			map->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct bitmap_ipct_elem, timeout);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_ipct_elem, counter);
+-
+-			if (!init_map_ip(set, map, first_ip, last_ip,
+-					 elements, hosts, netmask)) {
+-				kfree(map);
+-				return -ENOMEM;
+-			}
+-
+-			map->timeout = ip_set_timeout_uget(
+-				tb[IPSET_ATTR_TIMEOUT]);
+-			set->extensions |= IPSET_EXT_TIMEOUT;
+-
+-			bitmap_ip_gc_init(set, bitmap_ip_gc);
+-		} else {
+-			map->dsize = sizeof(struct bitmap_ipc_elem);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_ipc_elem, counter);
+-
+-			if (!init_map_ip(set, map, first_ip, last_ip,
+-					 elements, hosts, netmask)) {
+-				kfree(map);
+-				return -ENOMEM;
+-			}
+-		}
+-	} else if (tb[IPSET_ATTR_TIMEOUT]) {
+-		map->dsize = sizeof(struct bitmap_ipt_elem);
+-		map->offset[IPSET_OFFSET_TIMEOUT] =
+-			offsetof(struct bitmap_ipt_elem, timeout);
+-
+-		if (!init_map_ip(set, map, first_ip, last_ip,
+-				 elements, hosts, netmask)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-
+-		map->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+-		set->extensions |= IPSET_EXT_TIMEOUT;
+-
+-		bitmap_ip_gc_init(set, bitmap_ip_gc);
+-	} else {
+-		map->dsize = 0;
+-		if (!init_map_ip(set, map, first_ip, last_ip,
+-				 elements, hosts, netmask)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-	}
+-	return 0;
++	return mtype_do_create(map, tb, set, first_ip, last_ip, hosts, elements, netmask);
+ }
+ 
+ static struct ip_set_type bitmap_ip_type __read_mostly = {
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 6d5bad9..ba2cd3e 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -322,8 +322,6 @@ struct bitmap_ipmacct_elem {
+ 	struct ip_set_counter counter;
+ };
+ 
+-#include "ip_set_bitmap_gen.h"
+-
+ /* Create bitmap:ip,mac type of sets */
+ 
+ static bool
+@@ -351,11 +349,16 @@ init_map_ipmac(struct ip_set *set, struct bitmap_ipmac *map,
+ 	return true;
+ }
+ 
++#define create_args	u32 first_ip, u32 last_ip, u64 elements
++#define INIT_MAP()	init_map_ipmac(set, map, first_ip, last_ip, elements)
++
++#include "ip_set_bitmap_gen.h"
++
+ static int
+ bitmap_ipmac_create(struct ip_set *set, struct nlattr *tb[],
+ 		    u32 flags)
+ {
+-	u32 first_ip = 0, last_ip = 0, cadt_flags = 0;
++	u32 first_ip = 0, last_ip = 0;
+ 	u64 elements;
+ 	struct bitmap_ipmac *map;
+ 	int ret;
+@@ -399,59 +402,7 @@ bitmap_ipmac_create(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	map->memsize = bitmap_bytes(0, elements - 1);
+ 	set->variant = &bitmap_ipmac;
+-	if (tb[IPSET_ATTR_CADT_FLAGS])
+-		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+-	if (cadt_flags & IPSET_FLAG_WITH_COUNTERS) {
+-		set->extensions |= IPSET_EXT_COUNTER;
+-		if (tb[IPSET_ATTR_TIMEOUT]) {
+-			map->dsize = sizeof(struct bitmap_ipmacct_elem);
+-			map->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct bitmap_ipmacct_elem, timeout);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_ipmacct_elem, counter);
+-
+-			if (!init_map_ipmac(set, map, first_ip, last_ip,
+-					    elements)) {
+-				kfree(map);
+-				return -ENOMEM;
+-			}
+-			map->timeout = ip_set_timeout_uget(
+-				tb[IPSET_ATTR_TIMEOUT]);
+-			set->extensions |= IPSET_EXT_TIMEOUT;
+-			bitmap_ipmac_gc_init(set, bitmap_ipmac_gc);
+-		} else {
+-			map->dsize = sizeof(struct bitmap_ipmacc_elem);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_ipmacc_elem, counter);
+-
+-			if (!init_map_ipmac(set, map, first_ip, last_ip,
+-					    elements)) {
+-				kfree(map);
+-				return -ENOMEM;
+-			}
+-		}
+-	} else if (tb[IPSET_ATTR_TIMEOUT]) {
+-		map->dsize = sizeof(struct bitmap_ipmact_elem);
+-		map->offset[IPSET_OFFSET_TIMEOUT] =
+-			offsetof(struct bitmap_ipmact_elem, timeout);
+-
+-		if (!init_map_ipmac(set, map, first_ip, last_ip, elements)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-		map->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+-		set->extensions |= IPSET_EXT_TIMEOUT;
+-		bitmap_ipmac_gc_init(set, bitmap_ipmac_gc);
+-	} else {
+-		map->dsize = sizeof(struct bitmap_ipmac_elem);
+-
+-		if (!init_map_ipmac(set, map, first_ip, last_ip, elements)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-		set->variant = &bitmap_ipmac;
+-	}
+-	return 0;
++	return mtype_do_create(map, tb, set, first_ip, last_ip, elements);
+ }
+ 
+ static struct ip_set_type bitmap_ipmac_type = {
+diff --git a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
+index b220489..70a9c09 100644
+--- a/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/kernel/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -219,8 +219,6 @@ struct bitmap_portct_elem {
+ 	struct ip_set_counter counter;
+ };
+ 
+-#include "ip_set_bitmap_gen.h"
+-
+ /* Create bitmap:ip type of sets */
+ 
+ static bool
+@@ -247,12 +245,15 @@ init_map_port(struct ip_set *set, struct bitmap_port *map,
+ 	return true;
+ }
+ 
++#define create_args	u32 first_port, u32 last_port
++#define INIT_MAP()	init_map_port(set, map, first_port, last_port)
++#include "ip_set_bitmap_gen.h"
++
+ static int
+ bitmap_port_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	struct bitmap_port *map;
+ 	u16 first_port, last_port;
+-	u32 cadt_flags = 0;
+ 
+ 	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+@@ -276,55 +277,7 @@ bitmap_port_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	map->elements = last_port - first_port + 1;
+ 	map->memsize = map->elements * sizeof(unsigned long);
+ 	set->variant = &bitmap_port;
+-	if (tb[IPSET_ATTR_CADT_FLAGS])
+-		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+-	if (cadt_flags & IPSET_FLAG_WITH_COUNTERS) {
+-		set->extensions |= IPSET_EXT_COUNTER;
+-		if (tb[IPSET_ATTR_TIMEOUT]) {
+-			map->dsize = sizeof(struct bitmap_portct_elem);
+-			map->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct bitmap_portct_elem, timeout);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_portct_elem, counter);
+-			if (!init_map_port(set, map, first_port, last_port)) {
+-				kfree(map);
+-				return -ENOMEM;
+-			}
+-
+-			map->timeout =
 -				ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
 -			set->extensions |= IPSET_EXT_TIMEOUT;
--			if (set->family == NFPROTO_IPV4) {
--				h->dsize = sizeof(struct
--					IPSET_TOKEN(HTYPE, 4ct_elem));
--				h->offset[IPSET_OFFSET_TIMEOUT] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 4ct_elem),
--						timeout);
--				h->offset[IPSET_OFFSET_COUNTER] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 4ct_elem),
--						counter);
--				IPSET_TOKEN(HTYPE, 4_gc_init)(set,
--					IPSET_TOKEN(HTYPE, 4_gc));
--			} else {
--				h->dsize = sizeof(struct
--					IPSET_TOKEN(HTYPE, 6ct_elem));
--				h->offset[IPSET_OFFSET_TIMEOUT] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 6ct_elem),
--						timeout);
--				h->offset[IPSET_OFFSET_COUNTER] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 6ct_elem),
--						counter);
--				IPSET_TOKEN(HTYPE, 6_gc_init)(set,
--					IPSET_TOKEN(HTYPE, 6_gc));
--			}
+-			bitmap_port_gc_init(set, bitmap_port_gc);
 -		} else {
--			if (set->family == NFPROTO_IPV4) {
--				h->dsize =
--					sizeof(struct
--						IPSET_TOKEN(HTYPE, 4c_elem));
--				h->offset[IPSET_OFFSET_COUNTER] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 4c_elem),
--						counter);
--			} else {
--				h->dsize =
--					sizeof(struct
--						IPSET_TOKEN(HTYPE, 6c_elem));
--				h->offset[IPSET_OFFSET_COUNTER] =
--					offsetof(struct
--						IPSET_TOKEN(HTYPE, 6c_elem),
--						counter);
+-			map->dsize = sizeof(struct bitmap_portc_elem);
+-			map->offset[IPSET_OFFSET_COUNTER] =
+-				offsetof(struct bitmap_portc_elem, counter);
+-			if (!init_map_port(set, map, first_port, last_port)) {
+-				kfree(map);
+-				return -ENOMEM;
 -			}
-+		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]) & ~IPSET_FLAG_EXT_BEGIN;
-+	if (tb[IPSET_ATTR_TIMEOUT])
-+		cadt_flags |= IPSET_FLAG_WITH_TIMEOUTS;
-+/* Due to the inherent limitations of a preprocessor macro, all vars are set
-+ * and we simply use the ones we need during the flag iteration stage.
-+ */
-+#define generate_offsets(X,C,T)							\
-+if(set->family == NFPROTO_IPV4) {						\
-+	h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, X)));	\
-+	c_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, C)), counter);\
-+	t_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, T)), timeout);\
-+} else {									\
-+	h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, X)));	\
-+	c_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, C)), counter);\
-+	t_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, T)), timeout);\
-+}
-+	if(!cadt_flags) {
-+		generate_offsets(_elem,c_elem,t_elem);
-+	} else {
-+		switch(cadt_flags) {
-+			case (IPSET_FLAG_WITH_COUNTERS |
-+			     IPSET_FLAG_WITH_TIMEOUTS) :
-+				generate_offsets(ct_elem, ct_elem, ct_elem);
-+				break;
-+			case IPSET_FLAG_WITH_TIMEOUTS :
-+				generate_offsets(t_elem, c_elem, t_elem);
-+				break;
-+			case IPSET_FLAG_WITH_COUNTERS :
-+				generate_offsets(c_elem, c_elem, t_elem);
-+				break;
- 		}
+-		}
 -	} else if (tb[IPSET_ATTR_TIMEOUT]) {
--		h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+-		map->dsize = sizeof(struct bitmap_portt_elem);
+-		map->offset[IPSET_OFFSET_TIMEOUT] =
+-			offsetof(struct bitmap_portt_elem, timeout);
+-		if (!init_map_port(set, map, first_port, last_port)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-
+-		map->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
 -		set->extensions |= IPSET_EXT_TIMEOUT;
--		if (set->family == NFPROTO_IPV4) {
--			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4t_elem));
--			h->offset[IPSET_OFFSET_TIMEOUT] =
--				offsetof(struct IPSET_TOKEN(HTYPE, 4t_elem),
--					 timeout);
--			IPSET_TOKEN(HTYPE, 4_gc_init)(set,
--				IPSET_TOKEN(HTYPE, 4_gc));
--		} else {
--			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6t_elem));
--			h->offset[IPSET_OFFSET_TIMEOUT] =
--				offsetof(struct IPSET_TOKEN(HTYPE, 6t_elem),
--					 timeout);
--			IPSET_TOKEN(HTYPE, 6_gc_init)(set,
--				IPSET_TOKEN(HTYPE, 6_gc));
-+		for(; i < (1 << IPSET_FLAG_CADT_MAX); i = (i << 1)) {
-+			switch(cadt_flags & i) {
-+				case IPSET_FLAG_WITH_COUNTERS:
-+					set->extensions |= IPSET_EXT_COUNTER;
-+					h->offset[IPSET_OFFSET_COUNTER] = c_off;
-+					break;
-+				case IPSET_FLAG_WITH_TIMEOUTS:
-+					set->extensions |= IPSET_EXT_TIMEOUT;
-+					h->offset[IPSET_OFFSET_TIMEOUT] = t_off;
-+					h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
-+					if(set->family == NFPROTO_IPV4)
-+						IPSET_TOKEN(HTYPE, 4_gc_init)(set, IPSET_TOKEN(HTYPE, 4_gc));
-+					else
-+						IPSET_TOKEN(HTYPE, 6_gc_init)(set, IPSET_TOKEN(HTYPE, 6_gc));
-+					break;
-+			}
- 		}
+-		bitmap_port_gc_init(set, bitmap_port_gc);
 -	} else {
--		if (set->family == NFPROTO_IPV4)
--			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4_elem));
--		else
--			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6_elem));
- 	}
+-		map->dsize = 0;
+-		if (!init_map_port(set, map, first_port, last_port)) {
+-			kfree(map);
+-			return -ENOMEM;
+-		}
+-
+-	}
+-	return 0;
++	return mtype_do_create(map, tb, set, first_port, last_port);
+ }
  
- 	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
+ static struct ip_set_type bitmap_port_type = {
 -- 
 1.8.3.2
 
