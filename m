@@ -1,55 +1,210 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] netfilter: xt_TCPMSS: correct return value in
- tcpmss_mangle_packet
-Date: Sun, 1 Sep 2013 08:32:21 -0700
-Message-ID: <20130901153221.GB10125@linuxace.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="fUYQa+Pmc3FrFX/N"
-Cc: pablo@netfilter.org
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: [PATCH v2 1/2] netfilter: ipset: rework hash ext. handling to be more manageable.
+Date: Sun,  1 Sep 2013 21:58:41 +0200
+Message-ID: <1378065522-65492-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+References: <1378065522-65492-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:48455 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757674Ab3IAPcp (ORCPT
+Received: from mail.uptheinter.net ([77.74.196.236]:55031 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894Ab3IAT75 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Sep 2013 11:32:45 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so3759645pdi.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Sep 2013 08:32:45 -0700 (PDT)
-Content-Disposition: inline
+	Sun, 1 Sep 2013 15:59:57 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id 72325A049A
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Sep 2013 20:59:52 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Xj9-xT3Z-PE3 for <netfilter-devel@vger.kernel.org>;
+	Sun,  1 Sep 2013 20:58:43 +0100 (BST)
+In-Reply-To: <1378065522-65492-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The previous code that handled all the various combinations of ipset
+extensions in the hash family consisted of trees of if/else statements
+that check all the possible extension combinations. This patch
+simplifies that code down to a couple of switch statements and a
+preprocessor macro to facilite appropriate setup.
 
-In commit b396966c4 (netfilter: xt_TCPMSS: Fix missing fragmentation handling),
-I attempted to add safe fragment handling to xt_TCPMSS.  However, Andy Padavan
-of Project N56U correctly points out that returning XT_CONTINUE in this
-function does not work.  The callers (tcpmss_tg[46]) expect to receive a value
-of 0 in order to return XT_CONTINUE.
+This should significantly reduce the new lines of code that would have
+to be introduced to add more extensions in the future.
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+---
+ kernel/include/uapi/linux/netfilter/ipset/ip_set.h |   8 +-
+ kernel/net/netfilter/ipset/ip_set_hash_gen.h       | 121 ++++++++-------------
+ 2 files changed, 54 insertions(+), 75 deletions(-)
 
-
-
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-tcpmss-frag
-
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 6113cc7..cd24290 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -60,7 +60,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+index 8024cdf..17779ca 100644
+--- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -166,7 +166,11 @@ enum ipset_cmd_flags {
+ 	IPSET_FLAG_CMD_MAX = 15,
+ };
  
- 	/* This is a fragment, no TCP header is available */
- 	if (par->fragoff != 0)
--		return XT_CONTINUE;
-+		return 0;
+-/* Flags at CADT attribute level, upper half of cmdattrs */
++/* Flags at CADT attribute level, upper half of cmdattrs
++ *
++ * We recycle NOMATCH for TIMEOUT since it is only used for
++ * ipset creation.
++ */
+ enum ipset_cadt_flags {
+ 	IPSET_FLAG_BIT_BEFORE	= 0,
+ 	IPSET_FLAG_BEFORE	= (1 << IPSET_FLAG_BIT_BEFORE),
+@@ -174,6 +178,8 @@ enum ipset_cadt_flags {
+ 	IPSET_FLAG_PHYSDEV	= (1 << IPSET_FLAG_BIT_PHYSDEV),
+ 	IPSET_FLAG_BIT_NOMATCH	= 2,
+ 	IPSET_FLAG_NOMATCH	= (1 << IPSET_FLAG_BIT_NOMATCH),
++	IPSET_FLAG_EXT_BEGIN = 2,
++	IPSET_FLAG_WITH_TIMEOUTS = (1 << IPSET_FLAG_EXT_BEGIN),
+ 	IPSET_FLAG_BIT_WITH_COUNTERS = 3,
+ 	IPSET_FLAG_WITH_COUNTERS = (1 << IPSET_FLAG_BIT_WITH_COUNTERS),
+ 	IPSET_FLAG_CADT_MAX	= 15,
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+index 906c778..047a877 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -1056,6 +1056,7 @@ IPSET_TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u32 cadt_flags = 0;
+ 	u8 hbits;
++	int i = IPSET_FLAG_EXT_BEGIN, t_off = 0, c_off = 0;
+ #ifdef IP_SET_HASH_WITH_NETMASK
+ 	u8 netmask;
+ #endif
+@@ -1134,82 +1135,54 @@ IPSET_TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 		set->variant = &IPSET_TOKEN(HTYPE, 6_variant);
  
- 	if (!skb_make_writable(skb, skb->len))
- 		return -1;
+ 	if (tb[IPSET_ATTR_CADT_FLAGS])
+-		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+-	if (cadt_flags & IPSET_FLAG_WITH_COUNTERS) {
+-		set->extensions |= IPSET_EXT_COUNTER;
+-		if (tb[IPSET_ATTR_TIMEOUT]) {
+-			h->timeout =
+-				ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+-			set->extensions |= IPSET_EXT_TIMEOUT;
+-			if (set->family == NFPROTO_IPV4) {
+-				h->dsize = sizeof(struct
+-					IPSET_TOKEN(HTYPE, 4ct_elem));
+-				h->offset[IPSET_OFFSET_TIMEOUT] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 4ct_elem),
+-						timeout);
+-				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 4ct_elem),
+-						counter);
+-				IPSET_TOKEN(HTYPE, 4_gc_init)(set,
+-					IPSET_TOKEN(HTYPE, 4_gc));
+-			} else {
+-				h->dsize = sizeof(struct
+-					IPSET_TOKEN(HTYPE, 6ct_elem));
+-				h->offset[IPSET_OFFSET_TIMEOUT] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 6ct_elem),
+-						timeout);
+-				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 6ct_elem),
+-						counter);
+-				IPSET_TOKEN(HTYPE, 6_gc_init)(set,
+-					IPSET_TOKEN(HTYPE, 6_gc));
+-			}
+-		} else {
+-			if (set->family == NFPROTO_IPV4) {
+-				h->dsize =
+-					sizeof(struct
+-						IPSET_TOKEN(HTYPE, 4c_elem));
+-				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 4c_elem),
+-						counter);
+-			} else {
+-				h->dsize =
+-					sizeof(struct
+-						IPSET_TOKEN(HTYPE, 6c_elem));
+-				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct
+-						IPSET_TOKEN(HTYPE, 6c_elem),
+-						counter);
+-			}
++		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]) & ~IPSET_FLAG_EXT_BEGIN;
++	if (tb[IPSET_ATTR_TIMEOUT])
++		cadt_flags |= IPSET_FLAG_WITH_TIMEOUTS;
++/* Due to the inherent limitations of a preprocessor macro, all vars are set
++ * and we simply use the ones we need during the flag iteration stage.
++ */
++#define generate_offsets(X,C,T)							\
++if(set->family == NFPROTO_IPV4) {						\
++	h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, X)));	\
++	c_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, C)), counter);\
++	t_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, T)), timeout);\
++} else {									\
++	h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, X)));	\
++	c_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, C)), counter);\
++	t_off = offsetof(struct IPSET_TOKEN(HTYPE, IPSET_TOKEN(4, T)), timeout);\
++}
++	if(!cadt_flags) {
++		generate_offsets(_elem,c_elem,t_elem);
++	} else {
++		switch(cadt_flags) {
++			case (IPSET_FLAG_WITH_COUNTERS |
++			     IPSET_FLAG_WITH_TIMEOUTS) :
++				generate_offsets(ct_elem, ct_elem, ct_elem);
++				break;
++			case IPSET_FLAG_WITH_TIMEOUTS :
++				generate_offsets(t_elem, c_elem, t_elem);
++				break;
++			case IPSET_FLAG_WITH_COUNTERS :
++				generate_offsets(c_elem, c_elem, t_elem);
++				break;
+ 		}
+-	} else if (tb[IPSET_ATTR_TIMEOUT]) {
+-		h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+-		set->extensions |= IPSET_EXT_TIMEOUT;
+-		if (set->family == NFPROTO_IPV4) {
+-			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4t_elem));
+-			h->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct IPSET_TOKEN(HTYPE, 4t_elem),
+-					 timeout);
+-			IPSET_TOKEN(HTYPE, 4_gc_init)(set,
+-				IPSET_TOKEN(HTYPE, 4_gc));
+-		} else {
+-			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6t_elem));
+-			h->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct IPSET_TOKEN(HTYPE, 6t_elem),
+-					 timeout);
+-			IPSET_TOKEN(HTYPE, 6_gc_init)(set,
+-				IPSET_TOKEN(HTYPE, 6_gc));
++		for(; i < (1 << IPSET_FLAG_CADT_MAX); i = (i << 1)) {
++			switch(cadt_flags & i) {
++				case IPSET_FLAG_WITH_COUNTERS:
++					set->extensions |= IPSET_EXT_COUNTER;
++					h->offset[IPSET_OFFSET_COUNTER] = c_off;
++					break;
++				case IPSET_FLAG_WITH_TIMEOUTS:
++					set->extensions |= IPSET_EXT_TIMEOUT;
++					h->offset[IPSET_OFFSET_TIMEOUT] = t_off;
++					h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
++					if(set->family == NFPROTO_IPV4)
++						IPSET_TOKEN(HTYPE, 4_gc_init)(set, IPSET_TOKEN(HTYPE, 4_gc));
++					else
++						IPSET_TOKEN(HTYPE, 6_gc_init)(set, IPSET_TOKEN(HTYPE, 6_gc));
++					break;
++			}
+ 		}
+-	} else {
+-		if (set->family == NFPROTO_IPV4)
+-			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4_elem));
+-		else
+-			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6_elem));
+ 	}
+ 
+ 	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
+-- 
+1.8.3.2
 
---fUYQa+Pmc3FrFX/N--
