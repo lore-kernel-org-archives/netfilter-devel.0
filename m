@@ -1,141 +1,67 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/6] Ipset comment extension - provide annotation of
- ipset entries
-Date: Mon, 2 Sep 2013 22:08:46 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309022205030.1199@blackhole.kfki.hu>
-References: <1378103757-14426-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Corey Hickey <bugfood-ml@fatooh.org>
+Subject: Re: [PATCH 1/1] netfilter: Ignore bogus SACK option values in TCP
+ conntrack
+Date: Mon, 02 Sep 2013 13:39:09 -0700
+Message-ID: <5224F76D.3010506@fatooh.org>
+References: <1378148280-1153-1-git-send-email-kadlec@blackhole.kfki.hu> <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:47305 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758895Ab3IBUIr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Sep 2013 16:08:47 -0400
-In-Reply-To: <1378103757-14426-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Received: from juniper.fatooh.org ([173.255.221.30]:53491 "EHLO
+	juniper.fatooh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758902Ab3IBUjK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Sep 2013 16:39:10 -0400
+In-Reply-To: <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Oliver,
-
-On Mon, 2 Sep 2013, Oliver wrote:
-
-> From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+On 2013-09-02 11:58, Jozsef Kadlecsik wrote:
+> The netfilter TCP conntrack used to mark packets with bogus SACK option
+> values as INVALID. However, it seems broken SEQ anonymizers, which are
+> responsible for such traffic, are not going to die out soon and conntrack
+> effectively blocks traffic coming through such devices.
 > 
-> The following patch series provides a new extension that can be
-> enabled on any of the bitmap/hash ipsets to provide the ability
-> to annotate each entry with an arbitrary string comment.
-
-I'd really like to know where it's useful and required.
-
-The comments are not used for anything at all in the kernel, those are 
-just extra baggage. Static sets (not updated by the SET target) are 
-created from userspace, where all these comments belong to. Dynamic sets 
-(updated by the SET target) are just dynamic and I don't really see how 
-the comments could be useful there.
-
-So what are the user cases where it's useful?
-
-Best regards,
-Jozsef
- 
-> Comments are allocated dynamically rather than consuming fixed
-> space in the settype struct. This does come with the cost of
-> having to walk all the entries when flushing/deleting, but
-> otherwise has no bearing on the general operation of ipsets.
+> Better be liberal at conntrack level: when SACK is bogus, ignore it.
 > 
-> Currently I have the maximum comment length hardcoded with a
-> preprocessor symbol, it could be easily removed within the
-> kernel if userspace was altered to dynamically allocate also.
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Reported-by: Corey Hickey <bugfood-ml@fatooh.org>
+> Tested-by: Corey Hickey <bugfood-ml@fatooh.org>
+> ---
+>  net/netfilter/nf_conntrack_proto_tcp.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> Right now it's using kmalloc and GFP_KERNEL, I imagine that 
-> would need to be changed if someone wanted to modify xt_SET to
-> apply comments to entries that it creates.
-> 
-> This patch series depends on an earlier one which I sent that
-> reworks and simplifies the extensions handling tree in order
-> to successfully apply. (see netfilter patchwork 271643 & 271644) 
-> 
-> I have not increased the revision of the hash:net,net type in
-> this series since, given that it's not released (yet!), there's
-> not all that much point in doing so.
-> 
-> Additionally, I haven't written any unit tests for this since I'm
-> not really sure exactly what you'd want to test, so please let me
-> know your ideas. (Related: I hate writing unit tests)
-> 
-> I may have misunderstood the library version incrementing info
-> in Make_global.am so if that's completely wrong, let me know :)
-> 
-> TL;DR: added comments for ipset entries, please test and give
-> feedback, make sure you have my earlier patches if you try to
-> use it.
-> 
-> Cheers!
-> 
-> Oliver Smith (6):
->   netfilter: ipset: Support comments for ipset entries in the core.
->   netfilter: ipset: Support comments in hash-type ipsets.
->   netfilter: ipset: Support comments in bitmap-type ipsets.
->   ipset: Rework the "fake" argument parsing for ipset restore.
->   ipset: Support comments in the userspace library.
->   ipset: Add new userspace set revisions for comment support
-> 
->  Make_global.am                                     |   2 +-
->  include/libipset/data.h                            |   6 +-
->  include/libipset/linux_ip_set.h                    |   9 +
->  include/libipset/parse.h                           |   2 +
->  include/libipset/print.h                           |   3 +
->  kernel/include/linux/netfilter/ipset/ip_set.h      |  12 ++
->  .../include/linux/netfilter/ipset/ip_set_comment.h |  52 ++++++
->  kernel/include/uapi/linux/netfilter/ipset/ip_set.h |   4 +
->  kernel/net/netfilter/ipset/ip_set_bitmap_gen.h     |  77 ++++++--
->  kernel/net/netfilter/ipset/ip_set_bitmap_ip.c      |  31 +++-
->  kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c   |  47 ++++-
->  kernel/net/netfilter/ipset/ip_set_bitmap_port.c    |  30 +++-
->  kernel/net/netfilter/ipset/ip_set_core.c           |   6 +
->  kernel/net/netfilter/ipset/ip_set_hash_gen.h       |  72 ++++++--
->  kernel/net/netfilter/ipset/ip_set_hash_ip.c        |  51 +++++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |  75 +++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |  83 ++++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |  91 +++++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_net.c       |  75 +++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |  91 +++++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_netnet.c    |  88 ++++++++++
->  kernel/net/netfilter/ipset/ip_set_hash_netport.c   |  83 ++++++++-
->  lib/data.c                                         |  34 ++++
->  lib/debug.c                                        |   1 +
->  lib/errcode.c                                      |   2 +
->  lib/ipset_bitmap_ip.c                              | 114 ++++++++++++
->  lib/ipset_bitmap_ipmac.c                           | 118 +++++++++++++
->  lib/ipset_bitmap_port.c                            | 107 +++++++++++
->  lib/ipset_hash_ip.c                                | 138 +++++++++++++++
->  lib/ipset_hash_ipport.c                            | 161 +++++++++++++++++
->  lib/ipset_hash_ipportnet.c                         | 195 +++++++++++++++++++++
->  lib/ipset_hash_net.c                               | 145 +++++++++++++++
->  lib/ipset_hash_netnet.c                            |  14 +-
->  lib/ipset_hash_netport.c                           | 158 +++++++++++++++++
->  lib/libipset.map                                   |   6 +
->  lib/parse.c                                        |  27 +++
->  lib/print.c                                        |  31 ++++
->  lib/session.c                                      |   8 +-
->  lib/types.c                                        |   4 +-
->  src/ipset.c                                        |  32 +++-
->  40 files changed, 2232 insertions(+), 53 deletions(-)
->  create mode 100644 kernel/include/linux/netfilter/ipset/ip_set_comment.h
-> 
-> -- 
-> 1.8.3.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 44d1ea3..cd67de8 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -640,6 +640,11 @@ static bool tcp_in_window(const struct nf_conn *ct,
+>  	in_recv_win = !receiver->td_maxwin ||
+>  		      after(end, sender->td_end - receiver->td_maxwin - 1);
+>  
+> +	/* Fall back to ACK when SACK is bogus */
+> +	if (!(before(sack, receiver->td_end + 1) &&
+> +	      after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)))
+> +		sack = ack;
+> +
+>  	pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
+>  		 before(seq, sender->td_maxend + 1),
+>  		 (in_recv_win ? 1 : 0),
 > 
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+
+I've been running Jozsef's patch on linux-next compiled on 2013-08-19. I
+can confirm that it fixes the problem I'm having with broken SEQ
+randomization on FWSM, and I haven't seen any problems caused by it.
+
+http://www.spinics.net/lists/netdev/msg246898.html
+
+I'm still planning to work with my boss to disable SEQ randomization,
+hopefully this week.
+
+Thanks,
+Corey
