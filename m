@@ -1,46 +1,103 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH 1/1] netfilter: Ignore bogus SACK option values in TCP
- conntrack
-Date: Mon, 2 Sep 2013 14:57:36 -0700
-Message-ID: <20130902215736.GA11580@linuxace.com>
-References: <1378148280-1153-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu>
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Re: [PATCH v2] Add hash:net,net ipset for storage of v4/v6 CIDR pairs.
+Date: Tue, 03 Sep 2013 01:25:01 +0200
+Message-ID: <1456379.dYSmDFJkLx@gentoovm>
+References: <7121481.vIdJUAPkhx@gentoovm> <1377825634-20308-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309022104310.1199@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Corey Hickey <bugfood-ml@fatooh.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:37722 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759007Ab3IBV6G (ORCPT
+Received: from mail.uptheinter.net ([77.74.196.236]:59261 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655Ab3IBXZ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Sep 2013 17:58:06 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so5120149pbb.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Sep 2013 14:58:05 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu>
+	Mon, 2 Sep 2013 19:25:56 -0400
+In-Reply-To: <alpine.DEB.2.00.1309022104310.1199@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 02, 2013 at 08:58:00PM +0200, Jozsef Kadlecsik wrote:
-> The netfilter TCP conntrack used to mark packets with bogus SACK option
-> values as INVALID. However, it seems broken SEQ anonymizers, which are
-> responsible for such traffic, are not going to die out soon and conntrack
-> effectively blocks traffic coming through such devices.
+On Monday 02 September 2013 21:46:06 Jozsef Kadlecsik wrote:
+> Hi Oliver,
 > 
-> Better be liberal at conntrack level: when SACK is bogus, ignore it.
+> On Fri, 30 Aug 2013, Oliver wrote:
+> > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+> > 
+> > This adds a new set that provides the ability to configure pairs of
+> > subnets.
+> > 
+> > In order to achieve this, additional handling code has been
+> > added to deal with the fact that both parameters accept an arbitrary
+> > CIDR range. A preprocessor symbol is used to conditionally enable this
+> > extra code.
+> 
+> The patch is a good step forward, but see my comments.
+> 
 
-But if conntrack were being "liberal" then it wouldn't care about the value of
-the ACKs either, no?  This sort of defeats the purpose of TCP window tracking.
-At the very least, this workaround should be dependent upon
-nf_conntrack_tcp_be_liberal != 0.  
+<snip>
 
-Also note that David Miller refused to accept a patch working around this
-issue in the TCP stack [1].  Why should netfilter do so?
+> > +#ifdef IP_SET_HASH_WITH_TWO_NETS
+> > +	u8 cidr2;
+> > +#endif
+> > 
+> >  	u32 nets;		/* number of elements per cidr */
+> > 
+> > +#ifdef IP_SET_HASH_WITH_TWO_NETS
+> > +	u32 nets2;		/* number of elements per secondary cidr */
+> > +#endif
+> > 
+> >  };
+> 
+> The code can further be simplified by introducing the array of cidr and
+> nets struct elements and the single a double net types just set the
+> array length.
 
-Phil
+Yes, I like this idea, I will refactor it - I also foresee a comparison saving 
+since I can union the types in the netnet code itself.
+ 
+> 
+> If the arrays of cidr and nets introduced, then mtype_add_cidr,
+> mtype_add_cidr2 and mtype_del_cidr, mtype_del_cidr2 can be unified. That
+> way you can get rid of the the functions duplications.
+
+Yep, as above, will simplify and merge this.
 
 
-[1] http://marc.info/?l=linux-netdev&m=137714232805063&w=2
+> > +static inline void
+> > +hash_netnet4_data_reset_elem(struct hash_netnet4_elem *elem, struct
+> > hash_netnet4_elem *orig) +{
+> > +	elem->ip2 = orig->ip2;
+> > +}
+> 
+> Shouldn't elem->cidr2 be reset to the original value too?
+
+No, that's not necessary since cidr2 is never overwritten. The reason this 
+function was added is because when we iterate over ip2, it is successively 
+ANDed in-place with each CIDR we test, which means that the address bits are  
+destroyed. Once we do a new iteration of ip1, we have to first restore ip2, the 
+cidr values don't get touched so they're fine.
+
+> > +0 ipset add test 192.168.68.69/27,192.168.129.69/27
+> > +# Test first random value
+> > +0 ipset test test "2.0.0.255,2.0.1.255"
+> 
+> Why are the quotation marks required?
+
+They're not, not sure how that snuck in there, although of course, it doesn't 
+cause a problem, I'll clean it out.
+
+> 
+> Please add tests (for the IPv6 variant too), where the precedence of the
+> first network over the second one is demonstrated and verified, i.e. there
+> are intersecting networks like "10.0.0.0/16,192.168.0.0/24",
+> 10.0.0.0/24,192.168.0.0/16" nomatch", "10.0.0.0/30,192.168.0.0/24" and all
+> the different match/non-match cases are checked/tested. In the tests above
+> there's no such a case and it's important, for documentation purposes too.
+> 
+> Otherwise the patch looks just fine.
+
+Excellent, will do, thanks!
+
+Kind Regards,
+Oliver.
