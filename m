@@ -1,60 +1,71 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v2 0/2] ipset: rework extension handling to be more manageable.
-Date: Tue, 03 Sep 2013 12:49:42 +0200
-Message-ID: <5424021.zqoC0v9HMS@gentoovm>
-References: <1378065522-65492-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309022153040.1199@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/2 v2] cleanup and shrink ipset handling code.
+Date: Tue,  3 Sep 2013 13:03:23 +0200
+Message-ID: <1378206205-19591-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:60956 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:32784 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759914Ab3ICKtz (ORCPT
+	with ESMTP id S1754047Ab3ICLDz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Sep 2013 06:49:55 -0400
-In-Reply-To: <alpine.DEB.2.00.1309022153040.1199@blackhole.kfki.hu>
+	Tue, 3 Sep 2013 07:03:55 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id 20106A2DE9
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2013 12:03:52 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 7i4XmovE_SGk for <netfilter-devel@vger.kernel.org>;
+	Tue,  3 Sep 2013 12:03:25 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 02 September 2013 22:04:55 Jozsef Kadlecsik wrote:
-> Hi Oliver,
-> 
-<snip>
-> 
-> [Instead of extending "enum ipset_cadt_flags", better rely on the
-> existing "enum ip_set_extension".]
-> 
-> The set extensions in their current form (full unique structures defined
-> in all combinations ) reached their limit from management point of view.
-> So a cleanup should change it, with the goal of keeping the memory
-> requirements to the same as present but opening up for more possible
-> extensions.
-> 
-> One possible way is to use memory blobs where the first part is the base
-> structure for a given type (like "struct hash_netnet4_elem"), and the set
-> structure is extended with the offsets to the extensions in the blob next
-> to the base structure. That involves a couple of castings and changing
-> access to all extensions by pointers (that means some reorganizatiom for
-> the timeout extension).
-> 
-> What do you think?
-> 
-> Best regards,
-> Jozsef
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
-I looked again at my simplification and realised that actually it can be made 
-extremely trivial, all the struct combinations and handling of flag 
-combinations can go away and we can just have the for() loop that does setup 
-for each flag. I'm still using cadt_flags because in order to move to using the 
-extensions enum, from what I currently see, that'd require a bit of a redo in 
-userspace to send it across in the netlink message as a separate thing - 
-which, whilst that does strike me as a nice thing to get done, I'd consider it 
-largely separate from just cleaning up that ugly mess.
+Following on from my previous patch, I noticed that the existing way
+of managing the extensions could actually be trivially reworked by
+simply checking each flag bit in series and setting up the size and
+offsets incrementally. This makes adding new extensions as simple as
+throwing a new case into the switch, no set file changes needed. It
+also avoids having to do any unpleasant upheaveal of timeout.
 
-Anyhow, I've completed the cleanup, [PATCH v2] will land shortly, details in 
-cover letter.
+This patch is intended to apply directly against the current HEAD of
+master in the ipset repo.
 
-Kind Regards,
-Oliver.
+One caveat to note is that since we now define each extension
+independently, it is important to ensure a proper alignment value so
+that each subsequent struct ends up on a "nice" boundary in memory.
+Since both timeout and counter should align on their own nicely, I
+didn't bother adding alignment statements to them. Anyone writing a
+new extension should ensure they're a good codizen and align appropriately.
+
+On that note, there is the option of simply aligning everything to the GCC
+value __BIGGEST_ALIGNMENT__, on my 64-bit box that comes out at 16 bytes,
+perhaps that's overkill - although there are instructions that can do a 16
+byte load. Perhaps I'm just going overboard though... in6_addr doesn't even
+align to 64 bits, so maybe nobody cares but me. <breaks out the violin>
+
+Cheers!
+
+Oliver Smith (2):
+  netfilter: ipset: rework hash ext. handling to be more manageable.
+  netfilter: ipset: rework bitmap ext. handling to be more manageable.
+
+ kernel/include/linux/netfilter/ipset/ip_set.h      |   4 +
+ kernel/include/uapi/linux/netfilter/ipset/ip_set.h |   8 +-
+ kernel/net/netfilter/ipset/ip_set_bitmap_gen.h     |  34 +++++++
+ kernel/net/netfilter/ipset/ip_set_bitmap_ip.c      |  87 ++----------------
+ kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c   |  96 ++-----------------
+ kernel/net/netfilter/ipset/ip_set_bitmap_port.c    |  76 +--------------
+ kernel/net/netfilter/ipset/ip_set_hash_gen.h       | 102 ++++++---------------
+ kernel/net/netfilter/ipset/ip_set_hash_ip.c        |  36 +-------
+ kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |  54 +----------
+ kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |  58 +-----------
+ kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |  66 +------------
+ kernel/net/netfilter/ipset/ip_set_hash_net.c       |  54 +----------
+ kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |  67 +-------------
+ kernel/net/netfilter/ipset/ip_set_hash_netport.c   |  60 +-----------
+ 14 files changed, 106 insertions(+), 696 deletions(-)
+
+-- 
+1.8.3.2
+
