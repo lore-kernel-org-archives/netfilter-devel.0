@@ -1,212 +1,65 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Subject: [PATCH net] bridge: netfiler: update find_inlist_lock_noload() more
- accurate
-Date: Tue, 3 Sep 2013 15:15:05 +0800
-Message-ID: <52258C79.2010508@huawei.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] netfilter: Ignore bogus SACK option values in TCP
+ conntrack
+Date: Tue, 3 Sep 2013 09:31:19 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309030858120.2504@blackhole.kfki.hu>
+References: <1378148280-1153-1-git-send-email-kadlec@blackhole.kfki.hu> <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu> <20130902215736.GA11580@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: Bart De Schuymer <bart.de.schuymer@pandora.be>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	<bridge@lists.linux-foundation.org>,
-	<netfilter-devel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>,
-	Baoquan He <baoquan.he@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Corey Hickey <bugfood-ml@fatooh.org>
+To: Phil Oester <kernel@linuxace.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:39119 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755160Ab3ICHbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Sep 2013 03:31:23 -0400
+In-Reply-To: <20130902215736.GA11580@linuxace.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Baoquan He <baoquan.he@gmail.com> has report a problem which occurred by the following command:
+On Mon, 2 Sep 2013, Phil Oester wrote:
 
-make SUBDIRS=net/bridge/netfilter/
-cp /net/bridge/netfilter/ebtables.ko
-/lib/modules/3.11.0-rc7+/kernel/net/bridge/netfilter/ebtables.ko
-depmod
-modprobe ebtables.ko
-reboot
+> On Mon, Sep 02, 2013 at 08:58:00PM +0200, Jozsef Kadlecsik wrote:
+> > The netfilter TCP conntrack used to mark packets with bogus SACK option
+> > values as INVALID. However, it seems broken SEQ anonymizers, which are
+> > responsible for such traffic, are not going to die out soon and conntrack
+> > effectively blocks traffic coming through such devices.
+> > 
+> > Better be liberal at conntrack level: when SACK is bogus, ignore it.
+> 
+> But if conntrack were being "liberal" then it wouldn't care about the 
+> value of the ACKs either, no?  This sort of defeats the purpose of TCP 
+> window tracking.
 
-----------------------------------------------------------------------
+No, it doesn't defeat it - we fall back to checking the ACK value against 
+the window.
 
-[   48.895000] BUG: soft lockup - CPU#1 stuck for 22s! [ebtables:444]
-[   48.901191] Modules linked in: bnep(F) bluetooth(F) ebtables(F)
-ip6table_filter(F) ip6_tables(F) rfkill(F) snd_hda_intel(F+)
-snd_hda_codec(F) snd_hwdep(F) snd_seq(F) sn)
-[   48.950034] CPU: 1 PID: 444 Comm: ebtables Tainted: GF     D
-3.11.0-rc7+ #1
-[   48.957433] Hardware name: Hewlett-Packard HP Z420 Workstation/1589,
-BIOS J61 v01.02 03/09/2012
-[   48.966131] task: ffff88040c2dc650 ti: ffff8804187d2000 task.ti:
-ffff8804187d2000
-[   48.973610] RIP: 0010:[<ffffffff812e57a7>]  [<ffffffff812e57a7>]
-strcmp+0x27/0x40
-[   48.981119] RSP: 0018:ffff8804187d3db8  EFLAGS: 00000246
-[   48.986430] RAX: 0000000000000000 RBX: 00007fffda942730 RCX:
-ffff8804187d3fd8
-[   48.993566] RDX: 0000000000000000 RSI: ffff8804187d3e01 RDI:
-ffffffff81cb8a39
-[   49.000707] RBP: ffff8804187d3db8 R08: 00000000fffffff2 R09:
-0000000000000000
-[   49.007841] R10: 0000000000000163 R11: 0000000000000000 R12:
-ffffffff8128300c
-[   49.014972] R13: ffff8804187d3d98 R14: ffff8804187d3ef4 R15:
-0000000000000004
-[   49.022112] FS:  00007faab6589740(0000) GS:ffff88042fc80000(0000)
-knlGS:0000000000000000
-[   49.030194] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   49.035942] CR2: 0000003f0d810414 CR3: 000000040d2cc000 CR4:
-00000000000407e0
-[   49.043077] Stack:
-[   49.045096]  ffff8804187d3de8 ffffffffa0249674 0000000000000080
-ffffffff81cb8180
-[   49.052559]  00007fffda942730 ffff8804187d3ef4 ffff8804187d3ea0
-ffffffffa02497a9
-[   49.060020]  0000000000000000 00007265746c6966 0000003f0d7b92c0
-00007fffda942850
-[   49.067487] Call Trace:
-[   49.069949]  [<ffffffffa0249674>]
-find_inlist_lock.constprop.16+0x54/0x100 [ebtables]
-[   49.077779]  [<ffffffffa02497a9>] do_ebt_get_ctl+0x89/0x1d0 [ebtables]
-[   49.084306]  [<ffffffff81551ca8>] nf_getsockopt+0x68/0x90
-[   49.089717]  [<ffffffff81560d40>] ip_getsockopt+0x80/0xa0
-[   49.095113]  [<ffffffff815835c5>] raw_getsockopt+0x25/0x50
-[   49.100588]  [<ffffffff8150ddd4>] sock_common_getsockopt+0x14/0x20
-[   49.106766]  [<ffffffff8150d208>] SyS_getsockopt+0x68/0xd0
-[   49.112257]  [<ffffffff8162c682>] system_call_fastpath+0x16/0x1b
-[   49.118260] Code: 00 00 00 00 55 48 89 e5 eb 0e 66 2e 0f 1f 84 00 00
-00 00 00 84 c0 74 1c 48 83 c7 01 0f b6 47 ff 48 83 c6 01 3a 46 ff 74 eb
-19 c0 <83> c8 01 5d c3 0f 1
-[   76.925880] BUG: soft lockup - CPU#1 stuck for 22s! [ebtables:444]
-[   76.932069] Modules linked in: bnep(F) bluetooth(F) ebtables(F)
-ip6table_filter(F) ip6_tables(F) rfkill(F) snd_hda_intel(F+)
-snd_hda_codec(F) snd_hwdep(F) snd_seq(F) sn)
-[   76.980847] CPU: 1 PID: 444 Comm: ebtables Tainted: GF     D
-3.11.0-rc7+ #1
-[   76.988245] Hardware name: Hewlett-Packard HP Z420 Workstation/1589,
-BIOS J61 v01.02 03/09/2012
-[   76.996940] task: ffff88040c2dc650 ti: ffff8804187d2000 task.ti:
-ffff8804187d2000
-[   77.004426] RIP: 0010:[<ffffffff812e5784>]  [<ffffffff812e5784>]
-strcmp+0x4/0x40
-[   77.011849] RSP: 0018:ffff8804187d3db8  EFLAGS: 00000212
-[   77.017163] RAX: 0000000000000001 RBX: 00007fffda942730 RCX:
-ffff8804187d3fd8
-[   77.024304] RDX: 0000000000000000 RSI: ffff8804187d3e00 RDI:
-ffffffff81cb8a38
-[   77.031434] RBP: ffff8804187d3db8 R08: 00000000fffffff2 R09:
-0000000000000000
-[   77.038566] R10: 0000000000000163 R11: 0000000000000000 R12:
-ffffffff8128300c
-[   77.045699] R13: ffff8804187d3d98 R14: ffff8804187d3ef4 R15:
-0000000000000004
-[   77.052842] FS:  00007faab6589740(0000) GS:ffff88042fc80000(0000)
-knlGS:0000000000000000
-[   77.060934] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   77.066668] CR2: 0000003f0d810414 CR3: 000000040d2cc000 CR4:
-00000000000407e0
-[   77.073799] Stack:
-[   77.075818]  ffff8804187d3de8 ffffffffa0249674 0000000000000080
-ffffffff81cb8180
-[   77.083287]  00007fffda942730 ffff8804187d3ef4 ffff8804187d3ea0
-ffffffffa02497a9
-[   77.090749]  0000000000000000 00007265746c6966 0000003f0d7b92c0
-00007fffda942850
-[   77.098215] Call Trace:
-[   77.100668]  [<ffffffffa0249674>]
-find_inlist_lock.constprop.16+0x54/0x100 [ebtables]
-[   77.108500]  [<ffffffffa02497a9>] do_ebt_get_ctl+0x89/0x1d0 [ebtables]
-[   77.115035]  [<ffffffff81551ca8>] nf_getsockopt+0x68/0x90
-[   77.120438]  [<ffffffff81560d40>] ip_getsockopt+0x80/0xa0
-[   77.125845]  [<ffffffff815835c5>] raw_getsockopt+0x25/0x50
-[   77.131328]  [<ffffffff8150ddd4>] sock_common_getsockopt+0x14/0x20
-[   77.137515]  [<ffffffff8150d208>] SyS_getsockopt+0x68/0xd0
-[   77.143011]  [<ffffffff8162c682>] system_call_fastpath+0x16/0x1b
-[   77.149019] Code: 0f 1f 80 00 00 00 00 48 83 c6 01 0f b6 4e ff 48 83
-c2 01 84 c9 88 4a ff 75 ed 5d c3 66 66 2e 0f 1f 84 00 00 00 00 00 55 48
-89 e5 <eb> 0e 66 2e 0f 1f 8
+> At the very least, this workaround should be dependent upon 
+> nf_conntrack_tcp_be_liberal != 0.
+> 
+> Also note that David Miller refused to accept a patch working around this
+> issue in the TCP stack [1].  Why should netfilter do so?
+> 
+> [1] http://marc.info/?l=linux-netdev&m=137714232805063&w=2
 
----------------------------------------------------------------------------
+The purpose of that patch is to get back as much performance of TCP as 
+possible, by working around the broken SACK options.
 
-The find_inlist_lock did not distinguish the error whether lock failed or
-module non-existent, the imperfection processing procedure may course the
-problem.
+This patch lets the traffic at least through, otherwise it's simply 
+blocked by conntrack. Similarly to the TCP stack, conntrack should ignore 
+bogus SACK values instead of effectively dropping the stream.
 
-Return the correct value if mutex_lock_interruptible() failed, avoid
-confusion with that the modules is not exist, and deal with the return
-value in right way.
+This is a long time issue. To be honest, I believed such anonymizer 
+devices would have disappeared (fixed) by now. However it is apparently 
+not so and at the same time conntrack actually breaks TCP robustness. 
+Therefore I think it should be fixed.
 
-After the patch, the problem didn't happened again, so I confident the bug
-was fixed.
-
-Reported-by: Baoquan He <baoquan.he@gmail.com>
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Baoquan He <baoquan.he@gmail.com>
----
- net/bridge/netfilter/ebtables.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
-
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index ac78024..e7fe9f8 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -322,17 +322,14 @@ static inline void *
- find_inlist_lock_noload(struct list_head *head, const char *name, int *error,
-    struct mutex *mutex)
- {
--	struct {
--		struct list_head list;
--		char name[EBT_FUNCTION_MAXNAMELEN];
--	} *e;
-+	struct ebt_table *e;
- 
- 	*error = mutex_lock_interruptible(mutex);
- 	if (*error != 0)
--		return NULL;
-+		return ERR_PTR(-EINTR);
- 
- 	list_for_each_entry(e, head, list) {
--		if (strcmp(e->name, name) == 0)
-+		 if (strcmp(e->name, name) == 0 && try_module_get(e->me))
- 			return e;
- 	}
- 	*error = -ENOENT;
-@@ -1005,7 +1002,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
- 		goto free_counterstmp;
- 
- 	t = find_table_lock(net, repl->name, &ret, &ebt_mutex);
--	if (!t) {
-+	if (IS_ERR_OR_NULL(t)) {
- 		ret = -ENOENT;
- 		goto free_iterate;
- 	}
-@@ -1284,7 +1281,7 @@ static int do_update_counters(struct net *net, const char *name,
- 		return -ENOMEM;
- 
- 	t = find_table_lock(net, name, &ret, &ebt_mutex);
--	if (!t)
-+	if (IS_ERR_OR_NULL(t))
- 		goto free_tmp;
- 
- 	if (num_counters != t->private->nentries) {
-@@ -1504,7 +1501,7 @@ static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 		return -EFAULT;
- 
- 	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
--	if (!t)
-+	if (IS_ERR_OR_NULL(t))
- 		return ret;
- 
- 	switch(cmd) {
-@@ -2319,7 +2316,7 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd,
- 		return -EFAULT;
- 
- 	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
--	if (!t)
-+	if (IS_ERR_OR_NULL(t))
- 		return ret;
- 
- 	xt_compat_lock(NFPROTO_BRIDGE);
--- 
-1.8.2.1
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
