@@ -1,103 +1,212 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v2] Add hash:net,net ipset for storage of v4/v6 CIDR pairs.
-Date: Tue, 03 Sep 2013 01:25:01 +0200
-Message-ID: <1456379.dYSmDFJkLx@gentoovm>
-References: <7121481.vIdJUAPkhx@gentoovm> <1377825634-20308-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309022104310.1199@blackhole.kfki.hu>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: [PATCH net] bridge: netfiler: update find_inlist_lock_noload() more
+ accurate
+Date: Tue, 3 Sep 2013 15:15:05 +0800
+Message-ID: <52258C79.2010508@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:59261 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655Ab3IBXZ4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Sep 2013 19:25:56 -0400
-In-Reply-To: <alpine.DEB.2.00.1309022104310.1199@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: Bart De Schuymer <bart.de.schuymer@pandora.be>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	<bridge@lists.linux-foundation.org>,
+	<netfilter-devel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>,
+	Baoquan He <baoquan.he@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 02 September 2013 21:46:06 Jozsef Kadlecsik wrote:
-> Hi Oliver,
-> 
-> On Fri, 30 Aug 2013, Oliver wrote:
-> > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > 
-> > This adds a new set that provides the ability to configure pairs of
-> > subnets.
-> > 
-> > In order to achieve this, additional handling code has been
-> > added to deal with the fact that both parameters accept an arbitrary
-> > CIDR range. A preprocessor symbol is used to conditionally enable this
-> > extra code.
-> 
-> The patch is a good step forward, but see my comments.
-> 
+Baoquan He <baoquan.he@gmail.com> has report a problem which occurred by the following command:
 
-<snip>
+make SUBDIRS=net/bridge/netfilter/
+cp /net/bridge/netfilter/ebtables.ko
+/lib/modules/3.11.0-rc7+/kernel/net/bridge/netfilter/ebtables.ko
+depmod
+modprobe ebtables.ko
+reboot
 
-> > +#ifdef IP_SET_HASH_WITH_TWO_NETS
-> > +	u8 cidr2;
-> > +#endif
-> > 
-> >  	u32 nets;		/* number of elements per cidr */
-> > 
-> > +#ifdef IP_SET_HASH_WITH_TWO_NETS
-> > +	u32 nets2;		/* number of elements per secondary cidr */
-> > +#endif
-> > 
-> >  };
-> 
-> The code can further be simplified by introducing the array of cidr and
-> nets struct elements and the single a double net types just set the
-> array length.
+----------------------------------------------------------------------
 
-Yes, I like this idea, I will refactor it - I also foresee a comparison saving 
-since I can union the types in the netnet code itself.
+[   48.895000] BUG: soft lockup - CPU#1 stuck for 22s! [ebtables:444]
+[   48.901191] Modules linked in: bnep(F) bluetooth(F) ebtables(F)
+ip6table_filter(F) ip6_tables(F) rfkill(F) snd_hda_intel(F+)
+snd_hda_codec(F) snd_hwdep(F) snd_seq(F) sn)
+[   48.950034] CPU: 1 PID: 444 Comm: ebtables Tainted: GF     D
+3.11.0-rc7+ #1
+[   48.957433] Hardware name: Hewlett-Packard HP Z420 Workstation/1589,
+BIOS J61 v01.02 03/09/2012
+[   48.966131] task: ffff88040c2dc650 ti: ffff8804187d2000 task.ti:
+ffff8804187d2000
+[   48.973610] RIP: 0010:[<ffffffff812e57a7>]  [<ffffffff812e57a7>]
+strcmp+0x27/0x40
+[   48.981119] RSP: 0018:ffff8804187d3db8  EFLAGS: 00000246
+[   48.986430] RAX: 0000000000000000 RBX: 00007fffda942730 RCX:
+ffff8804187d3fd8
+[   48.993566] RDX: 0000000000000000 RSI: ffff8804187d3e01 RDI:
+ffffffff81cb8a39
+[   49.000707] RBP: ffff8804187d3db8 R08: 00000000fffffff2 R09:
+0000000000000000
+[   49.007841] R10: 0000000000000163 R11: 0000000000000000 R12:
+ffffffff8128300c
+[   49.014972] R13: ffff8804187d3d98 R14: ffff8804187d3ef4 R15:
+0000000000000004
+[   49.022112] FS:  00007faab6589740(0000) GS:ffff88042fc80000(0000)
+knlGS:0000000000000000
+[   49.030194] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   49.035942] CR2: 0000003f0d810414 CR3: 000000040d2cc000 CR4:
+00000000000407e0
+[   49.043077] Stack:
+[   49.045096]  ffff8804187d3de8 ffffffffa0249674 0000000000000080
+ffffffff81cb8180
+[   49.052559]  00007fffda942730 ffff8804187d3ef4 ffff8804187d3ea0
+ffffffffa02497a9
+[   49.060020]  0000000000000000 00007265746c6966 0000003f0d7b92c0
+00007fffda942850
+[   49.067487] Call Trace:
+[   49.069949]  [<ffffffffa0249674>]
+find_inlist_lock.constprop.16+0x54/0x100 [ebtables]
+[   49.077779]  [<ffffffffa02497a9>] do_ebt_get_ctl+0x89/0x1d0 [ebtables]
+[   49.084306]  [<ffffffff81551ca8>] nf_getsockopt+0x68/0x90
+[   49.089717]  [<ffffffff81560d40>] ip_getsockopt+0x80/0xa0
+[   49.095113]  [<ffffffff815835c5>] raw_getsockopt+0x25/0x50
+[   49.100588]  [<ffffffff8150ddd4>] sock_common_getsockopt+0x14/0x20
+[   49.106766]  [<ffffffff8150d208>] SyS_getsockopt+0x68/0xd0
+[   49.112257]  [<ffffffff8162c682>] system_call_fastpath+0x16/0x1b
+[   49.118260] Code: 00 00 00 00 55 48 89 e5 eb 0e 66 2e 0f 1f 84 00 00
+00 00 00 84 c0 74 1c 48 83 c7 01 0f b6 47 ff 48 83 c6 01 3a 46 ff 74 eb
+19 c0 <83> c8 01 5d c3 0f 1
+[   76.925880] BUG: soft lockup - CPU#1 stuck for 22s! [ebtables:444]
+[   76.932069] Modules linked in: bnep(F) bluetooth(F) ebtables(F)
+ip6table_filter(F) ip6_tables(F) rfkill(F) snd_hda_intel(F+)
+snd_hda_codec(F) snd_hwdep(F) snd_seq(F) sn)
+[   76.980847] CPU: 1 PID: 444 Comm: ebtables Tainted: GF     D
+3.11.0-rc7+ #1
+[   76.988245] Hardware name: Hewlett-Packard HP Z420 Workstation/1589,
+BIOS J61 v01.02 03/09/2012
+[   76.996940] task: ffff88040c2dc650 ti: ffff8804187d2000 task.ti:
+ffff8804187d2000
+[   77.004426] RIP: 0010:[<ffffffff812e5784>]  [<ffffffff812e5784>]
+strcmp+0x4/0x40
+[   77.011849] RSP: 0018:ffff8804187d3db8  EFLAGS: 00000212
+[   77.017163] RAX: 0000000000000001 RBX: 00007fffda942730 RCX:
+ffff8804187d3fd8
+[   77.024304] RDX: 0000000000000000 RSI: ffff8804187d3e00 RDI:
+ffffffff81cb8a38
+[   77.031434] RBP: ffff8804187d3db8 R08: 00000000fffffff2 R09:
+0000000000000000
+[   77.038566] R10: 0000000000000163 R11: 0000000000000000 R12:
+ffffffff8128300c
+[   77.045699] R13: ffff8804187d3d98 R14: ffff8804187d3ef4 R15:
+0000000000000004
+[   77.052842] FS:  00007faab6589740(0000) GS:ffff88042fc80000(0000)
+knlGS:0000000000000000
+[   77.060934] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   77.066668] CR2: 0000003f0d810414 CR3: 000000040d2cc000 CR4:
+00000000000407e0
+[   77.073799] Stack:
+[   77.075818]  ffff8804187d3de8 ffffffffa0249674 0000000000000080
+ffffffff81cb8180
+[   77.083287]  00007fffda942730 ffff8804187d3ef4 ffff8804187d3ea0
+ffffffffa02497a9
+[   77.090749]  0000000000000000 00007265746c6966 0000003f0d7b92c0
+00007fffda942850
+[   77.098215] Call Trace:
+[   77.100668]  [<ffffffffa0249674>]
+find_inlist_lock.constprop.16+0x54/0x100 [ebtables]
+[   77.108500]  [<ffffffffa02497a9>] do_ebt_get_ctl+0x89/0x1d0 [ebtables]
+[   77.115035]  [<ffffffff81551ca8>] nf_getsockopt+0x68/0x90
+[   77.120438]  [<ffffffff81560d40>] ip_getsockopt+0x80/0xa0
+[   77.125845]  [<ffffffff815835c5>] raw_getsockopt+0x25/0x50
+[   77.131328]  [<ffffffff8150ddd4>] sock_common_getsockopt+0x14/0x20
+[   77.137515]  [<ffffffff8150d208>] SyS_getsockopt+0x68/0xd0
+[   77.143011]  [<ffffffff8162c682>] system_call_fastpath+0x16/0x1b
+[   77.149019] Code: 0f 1f 80 00 00 00 00 48 83 c6 01 0f b6 4e ff 48 83
+c2 01 84 c9 88 4a ff 75 ed 5d c3 66 66 2e 0f 1f 84 00 00 00 00 00 55 48
+89 e5 <eb> 0e 66 2e 0f 1f 8
+
+---------------------------------------------------------------------------
+
+The find_inlist_lock did not distinguish the error whether lock failed or
+module non-existent, the imperfection processing procedure may course the
+problem.
+
+Return the correct value if mutex_lock_interruptible() failed, avoid
+confusion with that the modules is not exist, and deal with the return
+value in right way.
+
+After the patch, the problem didn't happened again, so I confident the bug
+was fixed.
+
+Reported-by: Baoquan He <baoquan.he@gmail.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+Cc: Baoquan He <baoquan.he@gmail.com>
+---
+ net/bridge/netfilter/ebtables.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index ac78024..e7fe9f8 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -322,17 +322,14 @@ static inline void *
+ find_inlist_lock_noload(struct list_head *head, const char *name, int *error,
+    struct mutex *mutex)
+ {
+-	struct {
+-		struct list_head list;
+-		char name[EBT_FUNCTION_MAXNAMELEN];
+-	} *e;
++	struct ebt_table *e;
  
-> 
-> If the arrays of cidr and nets introduced, then mtype_add_cidr,
-> mtype_add_cidr2 and mtype_del_cidr, mtype_del_cidr2 can be unified. That
-> way you can get rid of the the functions duplications.
-
-Yep, as above, will simplify and merge this.
-
-
-> > +static inline void
-> > +hash_netnet4_data_reset_elem(struct hash_netnet4_elem *elem, struct
-> > hash_netnet4_elem *orig) +{
-> > +	elem->ip2 = orig->ip2;
-> > +}
-> 
-> Shouldn't elem->cidr2 be reset to the original value too?
-
-No, that's not necessary since cidr2 is never overwritten. The reason this 
-function was added is because when we iterate over ip2, it is successively 
-ANDed in-place with each CIDR we test, which means that the address bits are  
-destroyed. Once we do a new iteration of ip1, we have to first restore ip2, the 
-cidr values don't get touched so they're fine.
-
-> > +0 ipset add test 192.168.68.69/27,192.168.129.69/27
-> > +# Test first random value
-> > +0 ipset test test "2.0.0.255,2.0.1.255"
-> 
-> Why are the quotation marks required?
-
-They're not, not sure how that snuck in there, although of course, it doesn't 
-cause a problem, I'll clean it out.
-
-> 
-> Please add tests (for the IPv6 variant too), where the precedence of the
-> first network over the second one is demonstrated and verified, i.e. there
-> are intersecting networks like "10.0.0.0/16,192.168.0.0/24",
-> 10.0.0.0/24,192.168.0.0/16" nomatch", "10.0.0.0/30,192.168.0.0/24" and all
-> the different match/non-match cases are checked/tested. In the tests above
-> there's no such a case and it's important, for documentation purposes too.
-> 
-> Otherwise the patch looks just fine.
-
-Excellent, will do, thanks!
-
-Kind Regards,
-Oliver.
+ 	*error = mutex_lock_interruptible(mutex);
+ 	if (*error != 0)
+-		return NULL;
++		return ERR_PTR(-EINTR);
+ 
+ 	list_for_each_entry(e, head, list) {
+-		if (strcmp(e->name, name) == 0)
++		 if (strcmp(e->name, name) == 0 && try_module_get(e->me))
+ 			return e;
+ 	}
+ 	*error = -ENOENT;
+@@ -1005,7 +1002,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 		goto free_counterstmp;
+ 
+ 	t = find_table_lock(net, repl->name, &ret, &ebt_mutex);
+-	if (!t) {
++	if (IS_ERR_OR_NULL(t)) {
+ 		ret = -ENOENT;
+ 		goto free_iterate;
+ 	}
+@@ -1284,7 +1281,7 @@ static int do_update_counters(struct net *net, const char *name,
+ 		return -ENOMEM;
+ 
+ 	t = find_table_lock(net, name, &ret, &ebt_mutex);
+-	if (!t)
++	if (IS_ERR_OR_NULL(t))
+ 		goto free_tmp;
+ 
+ 	if (num_counters != t->private->nentries) {
+@@ -1504,7 +1501,7 @@ static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		return -EFAULT;
+ 
+ 	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
+-	if (!t)
++	if (IS_ERR_OR_NULL(t))
+ 		return ret;
+ 
+ 	switch(cmd) {
+@@ -2319,7 +2316,7 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd,
+ 		return -EFAULT;
+ 
+ 	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
+-	if (!t)
++	if (IS_ERR_OR_NULL(t))
+ 		return ret;
+ 
+ 	xt_compat_lock(NFPROTO_BRIDGE);
+-- 
+1.8.2.1
