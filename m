@@ -1,73 +1,46 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/6] Ipset comment extension - provide annotation of
- ipset entries
-Date: Tue, 3 Sep 2013 10:43:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309031022410.2504@blackhole.kfki.hu>
-References: <1378103757-14426-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309022205030.1199@blackhole.kfki.hu> <1421284.CRq8hvcun7@gentoovm>
+Subject: Re: [PATCH v2] Add hash:net,net ipset for storage of v4/v6 CIDR
+ pairs.
+Date: Tue, 3 Sep 2013 10:56:25 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309031048130.2504@blackhole.kfki.hu>
+References: <7121481.vIdJUAPkhx@gentoovm> <1377825634-20308-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309022104310.1199@blackhole.kfki.hu> <1456379.dYSmDFJkLx@gentoovm>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:45683 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:55682 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932473Ab3ICIn5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Sep 2013 04:43:57 -0400
-In-Reply-To: <1421284.CRq8hvcun7@gentoovm>
+	id S932372Ab3ICI41 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Sep 2013 04:56:27 -0400
+In-Reply-To: <1456379.dYSmDFJkLx@gentoovm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2 Sep 2013, Oliver wrote:
+On Tue, 3 Sep 2013, Oliver wrote:
 
-> On Monday 02 September 2013 22:08:46 Jozsef Kadlecsik wrote:
+> > > +static inline void
+> > > +hash_netnet4_data_reset_elem(struct hash_netnet4_elem *elem, struct
+> > > hash_netnet4_elem *orig) +{
+> > > +	elem->ip2 = orig->ip2;
+> > > +}
 > > 
-> > On Mon, 2 Sep 2013, Oliver wrote:
-> > > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > > 
-> > > The following patch series provides a new extension that can be
-> > > enabled on any of the bitmap/hash ipsets to provide the ability
-> > > to annotate each entry with an arbitrary string comment.
-> > 
-> > I'd really like to know where it's useful and required.
-> > 
-> > The comments are not used for anything at all in the kernel, those are
-> > just extra baggage. Static sets (not updated by the SET target) are
-> > created from userspace, where all these comments belong to. Dynamic sets
-> > (updated by the SET target) are just dynamic and I don't really see how
-> > the comments could be useful there.
-> > 
-> > So what are the user cases where it's useful?
+> > Shouldn't elem->cidr2 be reset to the original value too?
 > 
-> Same as the user cases where -m comment is useful in iptables... Granted 
-> that I can't see a use for dynamically setting them via -j SET, but 
-> there may be a case for that if you wanted to be able to discern 
-> manually entered comments from dynamic ones in a single ipset.
+> No, that's not necessary since cidr2 is never overwritten. The reason 
+> this function was added is because when we iterate over ip2, it is 
+> successively ANDed in-place with each CIDR we test, which means that the 
+> address bits are destroyed. Once we do a new iteration of ip1, we have 
+> to first restore ip2, the cidr values don't get touched so they're fine.
 
--m comment in ip[6]tables was a step in a slippery slope... In a similar 
-way one could argue for comment fields in routing or traffic shaping 
-entries too.
+mtype_data_reset_elem is called to undo what mtype_data_netmask did. And 
+that sets cidr2 too.
+
+A tiny optimization in mtype_test_cidrs is to split up mtype_data_netmask 
+into two functions, so that ip/cidr is set in the first loop and ip2/cidr2 
+in the second loop. Currently ip/cidr is unnecessarily set in the second 
+loop again and again.
  
-> Anyhow, the use case is simple: 
-> 
-> If you're using a system for firewalling, very often comments are 
-> applied to iptables rules in order to explain why they are there, or 
-> whatever unblocking/blocking/mangling request they relate to. If you're 
-> leveraging ipset to avoid massive, unwieldly, slow chains of iptables 
-> rules, you've then lost the ability to annotate entries that you've 
-> added. So, the use case is exactly as it is for xt_comment in 
-> ip(6)tables-land; Namely to enable documentation of why an entry is 
-> present.
-
-In my opinion complex cases where rules/entries are best annotated with 
-comments should be implemented in a meta language on top of 
-ip[6]tables/ipset. The configuration is then viewed entirely in userspace, 
-without any kernel queries and the task of the kernel is just to run the 
-rules/sets translated from the language and pushed into kernel.
-
-Anyway, I'll review your patches on the comment extension. However it'll 
-depend on the internal reorganization of the extensions, so reworking will 
-be required.
-
 Best regards,
 Jozsef
 -
