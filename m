@@ -1,9 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/4] [RFC] nfnetlink_acct: Traffic-based and periodic
+Subject: Re: [PATCH 2/4] libnetfilter-acct: Introduce support for
  notifications
-Date: Wed, 4 Sep 2013 14:39:20 +0200
-Message-ID: <20130904123920.GB4900@localhost>
+Date: Wed, 4 Sep 2013 14:44:20 +0200
+Message-ID: <20130904124420.GA3541@localhost>
 References: <1378296333-19208-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <1378296333-19208-3-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
@@ -11,78 +12,87 @@ Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>
 To: valentina.giusti@bmw-carit.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60821 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33487 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934599Ab3IDMjY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Sep 2013 08:39:24 -0400
+	id S1756285Ab3IDMoY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Sep 2013 08:44:24 -0400
 Content-Disposition: inline
-In-Reply-To: <1378296333-19208-1-git-send-email-valentina.giusti@bmw-carit.de>
+In-Reply-To: <1378296333-19208-3-git-send-email-valentina.giusti@bmw-carit.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 04, 2013 at 02:05:29PM +0200, valentina.giusti@bmw-carit.de wrote:
+On Wed, Sep 04, 2013 at 02:05:31PM +0200, valentina.giusti@bmw-carit.de wrote:
 > From: Valentina Giusti <valentina.giusti@bmw-carit.de>
 > 
-> This patchset introduces notifications of accounting objects to userspace for
-> nfacct.
-> Notifications can be sent periodically or based on the amount of accounted bytes
-> or packets. In case a notification is set by giving a period as well as a given
-> amount of traffic, the number of notifications triggered during a period can be
-> rate limited.
+> Introduce support for notifications. Intervals can be configured as bytes
+> and packets or as time periods. When the intervals are configured in both
+> ways, it's also possible to specify a limit for the amount of
+> notifications based on accounted packets or bytes during a single period.
 > 
-> The need for notifications stems from monitoring applications (e.g. connman)
-> which currently need to keep polling accounting objects via nfnl_acct_get() in 
-> order to get updated statistics. This is far from ideal in scenarios with large
-> amounts of accounting objects and diverse, unpredictable network traffic.
+> Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> ---
+>  include/libnetfilter_acct/libnetfilter_acct.h |    5 +++
+>  include/linux/netfilter/nfnetlink_acct.h      |    6 ++++
+>  src/libnetfilter_acct.c                       |   45 +++++++++++++++++++++++++
+>  3 files changed, 56 insertions(+)
 > 
-> This implementation introduces a new message type, NFNL_MSG_ACCT_NOTIFY, which
-> is sent by userspace (typically, libnetfilter_acct) in order to configure
-> accounting notifications.
-> The new message parameters are NFACCT_NOTIFY_PACKETS, NFACCT_NOTIFY_BYTES and
-> NFACCT_NOTIFY_PERIOD, which are sent with the accounting object name. Userspace
-> applications would typically configure desired notification modes and then get 
-> appropriate notifications via netlink, on the same socket used for said
-> configuration.
-> 
-> The patches needed for libnetfilter_acct and nfacct are included in this series.
-> 
-> An example of nfacct usage is:
-> 
-> $ nfacct add http-traffic # Create the accounting object
-> 
-> [create related iptables rules here]
-> 
-> $ nfacct notify http-traffic bytes 1024
-> [for every 1024 bytes of HTTP traffic:]
-> { pkts = 00000000000000039225, bytes = 00000000000002361568 } = http-traffic;
-> { pkts = 00000000000000039245, bytes = 00000000000002362608 } = http-traffic;
-> ...
-> 
-> or:
-> 
-> $ nfacct notify-traffic http packets 100
-> [for every 100 packets of HTTP traffic:]
-> { pkts = 00000000000000008303, bytes = 00000000000000486469 } = http-traffic;
-> { pkts = 00000000000000008403, bytes = 00000000000000494581 } = http-traffic;
-> ...
-> 
-> or:
-> 
-> $ nfacct notify http-traffic interval 120
-> [every two minutes:]
-> { pkts = 00000000000000008303, bytes = 00000000000000486469 } = http-traffic;
-> { pkts = 00000000000000008403, bytes = 00000000000000494581 } = http-traffic;
-> ...
-> 
-> or:
-> 
-> $ nfacct notify http-traffic bytes 1024 bytes-ratelimit 4 period 5
-> { pkts = 00000000000000010172, bytes = 00000000000000628714 } = http-traffic;
-> { pkts = 00000000000000010192, bytes = 00000000000000629754 } = http-traffic;
-> { pkts = 00000000000000010212, bytes = 00000000000000630794 } = http-traffic;
-> { pkts = 00000000000000010232, bytes = 00000000000000631834 } = http-traffic;
-> { pkts = 00000000000000010894, bytes = 00000000000000672343 } = http-traffic;
-> ...
+> diff --git a/include/libnetfilter_acct/libnetfilter_acct.h b/include/libnetfilter_acct/libnetfilter_acct.h
+> index b00e366..b0a5bf6 100644
+> --- a/include/libnetfilter_acct/libnetfilter_acct.h
+> +++ b/include/libnetfilter_acct/libnetfilter_acct.h
+> @@ -14,6 +14,11 @@ enum nfacct_attr_type {
+>  	NFACCT_ATTR_NAME = 0,
+>  	NFACCT_ATTR_PKTS,
+>  	NFACCT_ATTR_BYTES,
+> +	NFACCT_ATTR_NOTIFY_PKTS,
+> +	NFACCT_ATTR_NOTIFY_P_RL, /* packets notification rate limit */
+> +	NFACCT_ATTR_NOTIFY_BYTES,
+> +	NFACCT_ATTR_NOTIFY_B_RL, /* bytes notification rate limit */
+> +	NFACCT_ATTR_NOTIFY_PERIOD,
+>  };
+>  
+>  struct nfacct *nfacct_alloc(void);
+> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+> index c7b6269..8125e57 100644
+> --- a/include/linux/netfilter/nfnetlink_acct.h
+> +++ b/include/linux/netfilter/nfnetlink_acct.h
+> @@ -10,6 +10,7 @@ enum nfnl_acct_msg_types {
+>  	NFNL_MSG_ACCT_GET,
+>  	NFNL_MSG_ACCT_GET_CTRZERO,
+>  	NFNL_MSG_ACCT_DEL,
+> +	NFNL_MSG_ACCT_NOTIFY,
+>  	NFNL_MSG_ACCT_MAX
+>  };
+>  
+> @@ -19,6 +20,11 @@ enum nfnl_acct_type {
+>  	NFACCT_PKTS,
+>  	NFACCT_BYTES,
+>  	NFACCT_USE,
+> +	NFACCT_NOTIFY_PKTS,
+> +	NFACCT_NOTIFY_P_RL,	/* packets notification rate limit */
+> +	NFACCT_NOTIFY_BYTES,
+> +	NFACCT_NOTIFY_B_RL,	/* bytes notification rate limit */
+> +	NFACCT_NOTIFY_PERIOD,
+>  	__NFACCT_MAX
+>  };
+>  #define NFACCT_MAX (__NFACCT_MAX - 1)
+> diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
+> index ba89e2d..4fb0d26 100644
+> --- a/src/libnetfilter_acct.c
+> +++ b/src/libnetfilter_acct.c
+> @@ -60,6 +60,11 @@ struct nfacct {
+>  	char		name[NFACCT_NAME_MAX];
+>  	uint64_t	pkts;
+>  	uint64_t	bytes;
+> +	uint32_t	notify_pkts;
+> +	uint32_t	notify_pkts_rl;
+> +	uint32_t	notify_bytes;
+> +	uint32_t	notify_bytes_rl;
+> +	uint32_t	notify_period;
 
-You can implement this from userspace by polling to obtain the
-counters.
+This is bloating the nfacct object for everyone in the earth not using
+this notification infrastructure.
