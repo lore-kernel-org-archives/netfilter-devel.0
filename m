@@ -1,54 +1,46 @@
-From: Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
-Subject: Re: [PATCH] xt_owner: enable xt_owner on INPUT chain
-Date: Wed, 04 Sep 2013 14:58:13 +0200
-Message-ID: <52272E65.5070208@oss.bmw-carit.de>
-References: <1377866623-25948-1-git-send-email-valentina.giusti@bmw-carit.de> <1377866623-25948-2-git-send-email-valentina.giusti@bmw-carit.de> <20130904123459.GA4900@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] set: xml: fix key_type parsing
+Date: Wed, 04 Sep 2013 18:03:25 +0200
+Message-ID: <20130904160324.19268.79096.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: valentina.giusti@bmw-carit.de, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:49620 "EHLO
-	linuxmail.bmw-carit.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756285Ab3IDNHx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Sep 2013 09:07:53 -0400
-In-Reply-To: <20130904123459.GA4900@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:35326 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756855Ab3IDQDf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Sep 2013 12:03:35 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 45ECB51ED05
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Sep 2013 16:03:33 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id eCGUeDIG2CK8 for <netfilter-devel@vger.kernel.org>;
+	Wed,  4 Sep 2013 18:03:28 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 0CDC151ED22
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Sep 2013 18:03:26 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Bug introduced by myself at 44928cd5 [set: add XML parsing]
 
-thanks for having a look at this patch.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ 0 files changed
 
-On 09/04/2013 02:34 PM, Pablo Neira Ayuso wrote:
-> On Fri, Aug 30, 2013 at 02:43:43PM +0200, valentina.giusti@bmw-carit.de wrote:
->> From: Valentina Giusti <valentina.giusti@bmw-carit.de>
->>
->> Since (41063e9 ipv4: Early TCP socket demux), we can apply the owner
->> extension on the INPUT chain and match established TCP sockets.
->> However, because of the same commit, we can have skb->sk pointing to a
->> timewait socket, in which case accessing skb->sk->sk_socket is invalid.
-> This only works for established TCP sockets. Thus, this rule:
->
-> -A INPUT -m owner --socket-exists -j ACCEPT
-> -A OUTPUT -m owner --socket-exists -j ACCEPT
->
-> are semantically different depending on the path.
-
-True, in fact my idea is to enable early demultiplexing also for other 
-kinds of sockets - as mentioned in the cover letter to this patch: 
-http://marc.info/?l=netfilter-devel&m=137786715327396&w=2.
-
-Sorry, I should probably have made it clear that also this patch was 
-part of the [RFC], since of course I didn't mean to have it applied now.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/set.c b/src/set.c
+index 1168b54..fe30e77 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -458,7 +458,7 @@ static int nft_set_xml_parse(struct nft_set *s, const char *xml)
+ 	s->flags |= (1 << NFT_SET_ATTR_KEY_TYPE);
+ 
+ 	if (nft_mxml_num_parse(tree, "key_len", MXML_DESCEND_FIRST,
+-			       BASE_DEC, &s->key_type, NFT_TYPE_U32) != 0)
++			       BASE_DEC, &s->key_len, NFT_TYPE_U32) != 0)
+ 		goto err;
+ 
+ 	s->flags |= (1 << NFT_SET_ATTR_KEY_LEN);
 
