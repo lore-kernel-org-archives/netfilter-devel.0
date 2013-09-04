@@ -1,46 +1,32 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] set: xml: fix key_type parsing
-Date: Wed, 04 Sep 2013 18:03:25 +0200
-Message-ID: <20130904160324.19268.79096.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter updates for net-next
+Date: Wed, 04 Sep 2013 12:28:39 -0400 (EDT)
+Message-ID: <20130904.122839.250569956671503111.davem@davemloft.net>
+References: <1378299625-4638-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:35326 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756855Ab3IDQDf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Sep 2013 12:03:35 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 45ECB51ED05
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Sep 2013 16:03:33 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id eCGUeDIG2CK8 for <netfilter-devel@vger.kernel.org>;
-	Wed,  4 Sep 2013 18:03:28 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 0CDC151ED22
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Sep 2013 18:03:26 +0200 (CEST)
+Received: from shards.monkeyblade.net ([149.20.54.216]:38336 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756436Ab3IDQ2l (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Sep 2013 12:28:41 -0400
+In-Reply-To: <1378299625-4638-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bug introduced by myself at 44928cd5 [set: add XML parsing]
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  4 Sep 2013 15:00:21 +0200
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
+> The following batch contains:
+> 
+> * Three fixes for the new synproxy target available in your
+>   net-next tree, from Jesper D. Brouer and Patrick McHardy.
+> 
+> * One fix for TCPMSS to correctly handling the fragmentation
+>   case, from Phil Oester. I'll pass this one to -stable.
 
-diff --git a/src/set.c b/src/set.c
-index 1168b54..fe30e77 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -458,7 +458,7 @@ static int nft_set_xml_parse(struct nft_set *s, const char *xml)
- 	s->flags |= (1 << NFT_SET_ATTR_KEY_TYPE);
- 
- 	if (nft_mxml_num_parse(tree, "key_len", MXML_DESCEND_FIRST,
--			       BASE_DEC, &s->key_type, NFT_TYPE_U32) != 0)
-+			       BASE_DEC, &s->key_len, NFT_TYPE_U32) != 0)
- 		goto err;
- 
- 	s->flags |= (1 << NFT_SET_ATTR_KEY_LEN);
-
+Pulled, thanks Pablo.
