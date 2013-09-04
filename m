@@ -1,25 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables-nftables PATCH 1/1 v4] nft: refactoring parse
- operations for more genericity
-Date: Wed, 4 Sep 2013 14:47:10 +0200
-Message-ID: <20130904124710.GA4371@localhost>
-References: <1378298201-10814-1-git-send-email-giuseppelng@gmail.com>
+Subject: Re: [nf-next PATCH] netfilter: SYNPROXY let unrelated packets
+ continue
+Date: Wed, 4 Sep 2013 14:56:26 +0200
+Message-ID: <20130904125626.GA4520@localhost>
+References: <20130829101625.14346.41071.stgit@dragon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, mph@one.com, as@one.com
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33887 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35373 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754194Ab3IDMrQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Sep 2013 08:47:16 -0400
+	id S1754283Ab3IDM4b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Sep 2013 08:56:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1378298201-10814-1-git-send-email-giuseppelng@gmail.com>
+In-Reply-To: <20130829101625.14346.41071.stgit@dragon>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 04, 2013 at 02:36:41PM +0200, Giuseppe Longo wrote:
-> This will allow reusing nft_parse_* function for other family than IPv4
-> or IPv6.
+On Thu, Aug 29, 2013 at 12:18:46PM +0200, Jesper Dangaard Brouer wrote:
+> Packets reaching SYNPROXY were default dropped, as they were most
+> likely invalid (given the recommended state matching).  This
+> patch, changes SYNPROXY target to let packets, not consumed,
+> continue being processed by the stack.
+> 
+> This will be more in line other target modules. As it will allow
+> more flexible configurations of handling, logging or matching on
+> packets in INVALID states.
 
-Applied, thanks Giuseppe!
+Applied, thanks.
