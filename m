@@ -1,74 +1,24 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v2] netfilter: ipset: refactor hash types to use address/cidr arrays.
-Date: Wed, 04 Sep 2013 07:21:15 +0200
-Message-ID: <24199506.ar3DiBo0cH@gentoovm>
-References: <1378232143-27406-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309032219430.4986@blackhole.kfki.hu> <alpine.DEB.2.00.1309040003360.5303@blackhole.kfki.hu>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: Re: [iptables-nftables PATCH v3] nft: refactoring parse operations
+ for more genericity
+Date: Wed, 4 Sep 2013 09:57:13 +0200
+Message-ID: <CAFpD06S3Dzm0M66T9DEzn-3o9nWNmbKZf5rTiiiCVtg2eYgk3A@mail.gmail.com>
+References: <1378214018-8270-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:35598 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756079Ab3IDFV3 (ORCPT
+Received: from mail-vb0-f51.google.com ([209.85.212.51]:65184 "EHLO
+	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762104Ab3IDH5O (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Sep 2013 01:21:29 -0400
-In-Reply-To: <alpine.DEB.2.00.1309040003360.5303@blackhole.kfki.hu>
+	Wed, 4 Sep 2013 03:57:14 -0400
+Received: by mail-vb0-f51.google.com with SMTP id x16so4614606vbf.24
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Sep 2013 00:57:13 -0700 (PDT)
+In-Reply-To: <1378214018-8270-1-git-send-email-giuseppelng@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 04 September 2013 00:06:01 Jozsef Kadlecsik wrote:
-> On Tue, 3 Sep 2013, Jozsef Kadlecsik wrote:
-> > On Tue, 3 Sep 2013, Oliver wrote:
-> [...]
-> 
-> > > -mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length)
-> > > +mtype_add_cidr(struct htype *h, const u8 cidr[], u8 nets_length)
-> > 
-> > I do remember you asked it and I confused you: no, the hash types need not
-> > be changed for this (see below), mtype_add_cidr requires just a new arg as
-> > to which member of the cidr/net array of struct htype to be updated.
-> 
-> I was thinking about something like this (untested, unchecked):
-
-<snip>
-
-> @@ -296,46 +300,46 @@ struct htype {
->  /* Network cidr size book keeping when the hash stores different
->   * sized networks */
->  static void
-> -mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length)
-> +mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
-
-Ok, I see what you were envisioning now - I'm not entirely sure if the benefit 
-of not having to modify the existing hash structs outweighs the cost of having 
-to insert special cases in the generic header - especially now considering 
-each hash only consists of a single struct for each address family.
-
-Essentially, this is going to be something of a tradeoff; if it's left like it 
-is now, all the existing single calls to mtype_add_cidr/mtype_del_cidr don't 
-require any modification since the loop inside them handles CIDR for N number 
-of nets simply by virtue of whatever you #define IPSET_NET_COUNT to be.
-
-On the other hand, if we want to avoid changing the existing *net* hashes to 
-conform to the array style, it'll require special cases that execute multiple 
-calls to mtype_add_cidr and mtype_del_cidr - the blow could be softened by 
-sticking a loop around it, but that's effectively going to be a small chunk of 
-code duplication in order to get there. Part of the confusion I would say was 
-that I figured you wanted to deduplicate the code as much as possible, so with 
-that I went all-out and refactored the entire lot of existing types 
-accordingly.
-
-So, the way I see it... go with what we have right now, less code duplication, 
-smaller code in general or have special cases for IPSET_NET_COUNT > 1.
-
-Let me know what you think, I'm not massively concerned either way, but my 
-vote would be for how it is now (quelle surprise?)
-
-Thanks,
-Oliver.
-
-P.S. I've made a bunch of corrections to the comments extension and rebased it 
-against all these general fixes and improvements, so I'll give it another once-
-over and patch-bomb the mailing list with it later.
+Please, ignore this patch.
+I see some mistakes.
