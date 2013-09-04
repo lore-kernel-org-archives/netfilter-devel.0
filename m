@@ -1,26 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: merge window warning
-Date: Wed, 04 Sep 2013 14:05:03 -0400 (EDT)
-Message-ID: <20130904.140503.666147189279362088.davem@davemloft.net>
-References: <20130904.131001.1189384206727310769.davem@davemloft.net>
-	<CAL3LdT5s=8E123aR8rwCZjjGUjv3jTzyJxX3fzu56kge6PHh2g@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: linux-next: Tree for Sep 4 (netfilter: xt_TPROXY)
+Date: Wed, 4 Sep 2013 23:09:40 +0200
+Message-ID: <20130904210940.GP32493@breakpoint.cc>
+References: <20130904181300.06fbf0698863cfaacf9fad9a@canb.auug.org.au>
+ <52277212.5020006@infradead.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: jeffrey.t.kirsher@intel.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAL3LdT5s=8E123aR8rwCZjjGUjv3jTzyJxX3fzu56kge6PHh2g@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58581 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752857Ab3IDVJ5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Sep 2013 17:09:57 -0400
+Content-Disposition: inline
+In-Reply-To: <52277212.5020006@infradead.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Date: Wed, 4 Sep 2013 10:40:45 -0700
+Randy Dunlap <rdunlap@infradead.org> wrote:
+> On 09/04/13 01:13, Stephen Rothwell wrote:
+> > Hi all,
+> > 
+> > Please do not add any code for v3.13 to your linux-next included branches
+> > until after v3.12-rc1 is released.
+> > 
+> > Changes since 20130902:
+> > 
+> 
+> on x86_64:
+> 
+> when CONFIG_IPV6=m
+> and CONFIG_NETFILTER_XT_TARGET_TPROXY=y:
+> 
+> net/built-in.o: In function `tproxy_tg6_v1':
+> xt_TPROXY.c:(.text+0x5dc05): undefined reference to `udp6_lib_lookup'
+> xt_TPROXY.c:(.text+0x5e32f): undefined reference to `udp6_lib_lookup'
+> xt_TPROXY.c:(.text+0x5e432): undefined reference to `udp6_lib_lookup'
+> net/built-in.o: In function `tproxy_tg_init':
+> xt_TPROXY.c:(.init.text+0x1540): undefined reference to `nf_defrag_ipv6_enable'
 
-> Would Jesse's i40e series be acceptable if I push today, since 4
-> versions have been sent previously for review?  I ask, because I was
-> in the process of submitting v5 and want to make sure it is ok before
-> submitting.
+Thanks for reporting.
 
-It's a new driver, so it should be OK.
+I can reproduce same error with 3.10.6 stable tree, so its not
+a recent problem.
+
+As always, the tempting solution is to just forbid TPROXY=y with IPV6=m but
+it would be better to get rid of the ipv6 link time deps..
