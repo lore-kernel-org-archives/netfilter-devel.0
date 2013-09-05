@@ -1,42 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] set: xml: fix key_type parsing
-Date: Thu, 5 Sep 2013 11:08:13 +0200
-Message-ID: <20130905090813.GA5396@localhost>
-References: <20130904160324.19268.79096.stgit@nfdev.cica.es>
- <20130905085340.GA4317@localhost>
- <CAOkSjBhSTxGXbMA3Yy2mt2JDCgc0eRDaRYjygRUNACrB4BKYZg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 3/3] conntrack: do not exit when update returns an error
+Date: Thu,  5 Sep 2013 11:27:50 +0200
+Message-ID: <1378373270-6914-3-git-send-email-fw@strlen.de>
+References: <1378373270-6914-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46644 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757674Ab3IEJIT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Sep 2013 05:08:19 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBhSTxGXbMA3Yy2mt2JDCgc0eRDaRYjygRUNACrB4BKYZg@mail.gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59813 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763411Ab3IEJ2C (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Sep 2013 05:28:02 -0400
+In-Reply-To: <1378373270-6914-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 05, 2013 at 10:58:02AM +0200, Arturo Borrero Gonzalez wrote:
-> On 5 September 2013 10:53, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Sep 04, 2013 at 06:03:25PM +0200, Arturo Borrero Gonzalez wrote:
-> >> Bug introduced by myself at 44928cd5 [set: add XML parsing]
-> >
-> > Applied.
-> >
-> > Please, investigate why the json/xml test infrastructure did not catch
-> > up this. Thanks.
-> 
-> The current testfiles for set uses the same value both in key_type and key_len.
+If we fail to update an entry, just try to continue with the next one
+instead of exiting.
 
-I expected something like this.
+Can happen f.e. when using "conntrack -U --add-label bla", but the
+conntrack entry in the kernel does not have the label extension set.
 
-> In fact, I discovered this bug using nft-parsing-test, but with
-> others, additional files.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/conntrack.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-I see, I think that including such a test to master would be good.
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 404ecc9..1e45ca8 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -1492,12 +1492,10 @@ static int update_cb(enum nf_conntrack_msg_type type,
+ 	}
+ 
+ 	res = nfct_query(ith, NFCT_Q_UPDATE, tmp);
+-	if (res < 0) {
+-		nfct_destroy(tmp);
+-		exit_error(OTHER_PROBLEM,
+-			   "Operation failed: %s",
++	if (res < 0)
++		fprintf(stderr,
++			   "Operation failed: %s\n",
+ 			   err2str(errno, CT_UPDATE));
+-	}
+ 	nfct_callback_register(ith, NFCT_T_ALL, print_cb, NULL);
+ 
+ 	res = nfct_query(ith, NFCT_Q_GET, tmp);
+-- 
+1.7.8.6
 
-Regards.
