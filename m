@@ -1,52 +1,39 @@
-From: Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
-Subject: Re: [PATCH 2/4] libnetfilter-acct: Introduce support for notifications
-Date: Thu, 05 Sep 2013 10:04:43 +0200
-Message-ID: <52283B1B.4010800@oss.bmw-carit.de>
-References: <1378296333-19208-1-git-send-email-valentina.giusti@bmw-carit.de> <1378296333-19208-3-git-send-email-valentina.giusti@bmw-carit.de> <20130904124420.GA3541@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/4] [RFC] nfnetlink_acct: Traffic-based and periodic
+ notifications
+Date: Thu, 5 Sep 2013 10:27:52 +0200
+Message-ID: <20130905082752.GA3975@localhost>
+References: <1378296333-19208-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <20130904123920.GB4900@localhost>
+ <522839BC.6000909@oss.bmw-carit.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: valentina.giusti@bmw-carit.de, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	"David S. Miller" <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:49638 "EHLO
-	linuxmail.bmw-carit.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757216Ab3IEIEo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Sep 2013 04:04:44 -0400
-In-Reply-To: <20130904124420.GA3541@localhost>
+Received: from mail.us.es ([193.147.175.20]:35385 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757502Ab3IEI15 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Sep 2013 04:27:57 -0400
+Content-Disposition: inline
+In-Reply-To: <522839BC.6000909@oss.bmw-carit.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Thu, Sep 05, 2013 at 09:58:52AM +0200, Valentina Giusti wrote:
+[...]
+> As I mentioned, there are
+> 
+> "applications (e.g. connman) which currently need to keep polling
+> accounting objects via nfnl_acct_get() in order to get updated
+> statistics. This is far from ideal in scenarios with large amounts
+> of accounting objects and diverse, unpredictable network traffic."
 
-On 09/04/2013 02:44 PM, Pablo Neira Ayuso wrote:
-> On Wed, Sep 04, 2013 at 02:05:31PM +0200,valentina.giusti@bmw-carit.de  wrote:
+You get around 100 accounting objects with one single recv syscall on
+x86_64 when polling from userspace. If you're noticing performance
+issues with this approach, please report them more precisely.
 
-<snip>
-
->>   #define NFACCT_MAX (__NFACCT_MAX - 1)
->> diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
->> index ba89e2d..4fb0d26 100644
->> --- a/src/libnetfilter_acct.c
->> +++ b/src/libnetfilter_acct.c
->> @@ -60,6 +60,11 @@ struct nfacct {
->>   	char		name[NFACCT_NAME_MAX];
->>   	uint64_t	pkts;
->>   	uint64_t	bytes;
->> +	uint32_t	notify_pkts;
->> +	uint32_t	notify_pkts_rl;
->> +	uint32_t	notify_bytes;
->> +	uint32_t	notify_bytes_rl;
->> +	uint32_t	notify_period;
-> This is bloating the nfacct object for everyone in the earth not using
-> this notification infrastructure.
-
-Right... I'll replace this with a pointer to another structure. Do you 
-suggest that I also #ifdef everything?
-
-Thank you.
-
--V.
+Regards.
