@@ -1,48 +1,38 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH] set: xml: fix key_type parsing
-Date: Thu, 5 Sep 2013 10:58:02 +0200
-Message-ID: <CAOkSjBhSTxGXbMA3Yy2mt2JDCgc0eRDaRYjygRUNACrB4BKYZg@mail.gmail.com>
-References: <20130904160324.19268.79096.stgit@nfdev.cica.es> <20130905085340.GA4317@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nftables tool v2 PATCH 2/4] src: Ensure given base chain type
+ is a valid one
+Date: Thu, 5 Sep 2013 11:03:30 +0200
+Message-ID: <20130905090330.GA5349@localhost>
+References: <1378288222-13182-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1378288222-13182-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <20130904104550.GB8768@localhost>
+ <522719A2.3@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:54582 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763441Ab3IEI6X convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Sep 2013 04:58:23 -0400
-Received: by mail-lb0-f173.google.com with SMTP id o14so1414294lbi.32
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Sep 2013 01:58:22 -0700 (PDT)
-In-Reply-To: <20130905085340.GA4317@localhost>
+Received: from mail.us.es ([193.147.175.20]:44940 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757674Ab3IEJDe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Sep 2013 05:03:34 -0400
+Content-Disposition: inline
+In-Reply-To: <522719A2.3@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 5 September 2013 10:53, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> On Wed, Sep 04, 2013 at 06:03:25PM +0200, Arturo Borrero Gonzalez wro=
-te:
->> Bug introduced by myself at 44928cd5 [set: add XML parsing]
->
-> Applied.
->
-> Please, investigate why the json/xml test infrastructure did not catc=
-h
-> up this. Thanks.
+On Wed, Sep 04, 2013 at 02:29:38PM +0300, Tomasz Bursztyka wrote:
+> Hi Pablo,
+> 
+> >>It verifies at command line parsing that given type is "filter", "nat",
+> >>>or "route".
+> >The kernel will just bail out if we pass an invalid chain type.
+> 
+> Sure, however I thought it would be nice to avoid one useless kernel
+> call. (and the error is still possible to locate at that point)
 
-The current testfiles for set uses the same value both in key_type and =
-key_len.
+I was trying to avoid the need for updating nft if we ever have a new
+chain type, but that's unlikely to happen and users get better error
+reporting with this patch.
 
-In fact, I discovered this bug using nft-parsing-test, but with
-others, additional files.
-
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have applied it, thanks.
