@@ -1,76 +1,51 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v2] netfilter: ipset: refactor hash types to use address/cidr arrays.
-Date: Fri, 06 Sep 2013 22:43:10 +0200
-Message-ID: <2217859.YSQ2Hmiv8L@gentoovm>
-References: <1378232143-27406-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1894701.xWd9IXYenT@gentoovm> <alpine.DEB.2.00.1309061950350.14814@blackhole.kfki.hu>
+From: umesh sirsiwal <umesh31@gmail.com>
+Subject: Fwd: tproxy and NAT incompatible?
+Date: Fri, 6 Sep 2013 16:54:38 -0400
+Message-ID: <CALk=bdaBVhDGAoC1L6Vmt4F2_V=vtrr8hAiRG84oAEherG=h+A@mail.gmail.com>
+References: <CALk=bdYu4NNsXpjn8p3AcSYCdZT_3RaM_x0S22m+OBtZM26Vxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:45891 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081Ab3IFUne (ORCPT
+Received: from mail-vc0-f179.google.com ([209.85.220.179]:60718 "EHLO
+	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab3IFUy6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Sep 2013 16:43:34 -0400
-In-Reply-To: <alpine.DEB.2.00.1309061950350.14814@blackhole.kfki.hu>
+	Fri, 6 Sep 2013 16:54:58 -0400
+Received: by mail-vc0-f179.google.com with SMTP id ht10so2519858vcb.38
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Sep 2013 13:54:58 -0700 (PDT)
+In-Reply-To: <CALk=bdYu4NNsXpjn8p3AcSYCdZT_3RaM_x0S22m+OBtZM26Vxg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 06 September 2013 20:00:19 Jozsef Kadlecsik wrote:
-> Hi Oliver,
-> 
-> On Fri, 6 Sep 2013, Oliver wrote:
-> > Alright, I took a look at the changes - I'll wait for the extension
-> > cleanup then send out a rebased version of hash:net,net since that's
-> > presumably going to be the difference between having to declare struct
-> > combinations for the various extensions versus not having to do it. I'm
-> > very intrigued to see what you can come up with that's shorter than my
-> > rework :P
-> 
-> There's a technical problem with your refactoring patchset (it doesn't
-> prevent unaligned access to extension members), and a design issue: the
-> data about the extensions (offsets) should belong to the core. There's
-> still code duplication between the bitmap and hash types in it when even
-> the list type is missing. The solution means an overall rearrangig and
-> that's what I'm working on.
+Hello,
+We have a unique situation. Our core application software needs to be
+IP transparent. For this purpose it uses tproxy. When connecting to
+upstream some of our client connections need to be SNATed.
 
-Sounds good. I was working under the expectation that explicitly setting the 
-alignment of extension structs wasn't that big of a deal, but I agree that 
-it's better if it doesn't need to be manually taken care of and moving more 
-stuff into the core would definitely improve things.
+This gives to the following situation:
 
-> 
-> > On a related note - I was thinking about the impact of recursively
-> > walking the CIDRs and it did occur to me that this operation is very
-> > parallelisable - however, I found that when I ran ipset -T on the set,
-> > the in-kernel code is running in an interrupt context (somehow, I
-> > couldn't see what made it like that), which means it's not possible to
-> > spin up kthreads (unless there's something that I don't know about) -
-> > when testing of an ipset is called via xt_set, is that also running in
-> > an interrupt context? if not, it could be parallelised quite nicely,
-> > which I anticipate would give some gains on multicore systems, and
-> > especially for IPv6, one would think.
-> 
-> How could the walking of the CIDRs be parallellized, when the lookup must
-> follow the priority of the networks? (With the exception of checking
-> multiple same sized networks.)
+As the client request arrives a conntrack is created that looks like:
+IPa, Pa, IPb, Pb, IPa, Pa, IPb, Pb
 
-Well, pretty easily... as the most basic (albeit not necessarily most resource 
-efficient) example: you spin up a kthread for every CIDR size and then check the 
-return value of each kthread you spun up in order that you started them - the 
-first result you get to that has a non-zero return value is obviously the one 
-you require and you're done. Naturally the time saving here is coming from the 
-hash table searches for every given CIDR size being done in parallel; the 
-thread controller code is still going to iterate, but it's just checking a 
-return code.
+As we connect out to the origin a new conntrack entry is created that
+looks like:
+IPa, Pa', IPb, Pb, NAT-IPa, NAT-Pa, IPb, Pb
 
-I already took a stab at this, but it's currently impossible because the 
-moment kthread_create_on_node() is called and goes into 
-sched_setscheduler_nocheck(), it triggers BUG_ON(in_interrupt()) - I poked 
-through all the base code but I don't see exactly how or why we're inside an 
-interrupt context when responding to ipset userspace commands.
+With some probability an independent incoming request may look like:
+IPa, Pa', IPb, Pb
 
-Kind Regards,
-Oliver.
+We see that as SYN with this request arrives, the old NAT conntrack
+entry is removed blackholing the upstream connection.
+
+Can tproxy be safely used with SNAT? Is there a way around this issue?
+
+
+-Umesh
+
+
+
+
+
+-- 
+Homepage: http://blogs.techievarta.com/
