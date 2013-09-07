@@ -1,45 +1,36 @@
-From: "Laurence J. Lane" <ljlane@debian.org>
-Subject: [iptables PATCH] docs: use generic syslog reference in libxt_LOG.man
-Date: Fri,  6 Sep 2013 17:46:00 -0400
-Message-ID: <1378503960-16261-1-git-send-email-ljlane@debian.org>
-Cc: "Laurence J. Lane" <ljlane@debian.org>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [iptables PATCH] build: add DESTDIR to vx_bin_links
+Date: Sat, 7 Sep 2013 02:49:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1309070244090.3288@nerf07.vanv.qr>
+References: <1378503540-16134-1-git-send-email-ljlane@debian.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: "Laurence J. Lane" <ljlane@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ankh.ljlane.net ([71.19.149.249]:46606 "EHLO ankh.ljlane.net"
+Received: from ares07.inai.de ([5.9.24.206]:58555 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748Ab3IFVqJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Sep 2013 17:46:09 -0400
+	id S1751040Ab3IGAtj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Sep 2013 20:49:39 -0400
+In-Reply-To: <1378503540-16134-1-git-send-email-ljlane@debian.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fedora, ArchLinux, Ubuntu, and Debian, at the least, use
-alternative syslog daemons by default these days. Let's make
-the syslog reference generic.
 
-Reference: http://bugs.debian.org/567564
+On Friday 2013-09-06 23:39, Laurence J. Lane wrote:
 
-Signed-off-by: Laurence J. Lane <ljlane@debian.org>
----
- extensions/libxt_LOG.man | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+>Fixes dangling symlinks when using DESTDIR.
+>
+>Signed-off-by: Laurence J. Lane <ljlane@debian.org>
+>-	for i in ${vx_bin_links}; do ${LN_S} -f \
+>           "${sbindir}/xtables-multi" "${DESTDIR}${bindir}/$$i"; done;
+>+	for i in ${vx_bin_links}; do ${LN_S} -f \
+>           "${DESTDIR}${sbindir}/xtables-multi" "${DESTDIR}${bindir}/$$i"; done;
 
-diff --git a/extensions/libxt_LOG.man b/extensions/libxt_LOG.man
-index 6d3a83a..354edf4 100644
---- a/extensions/libxt_LOG.man
-+++ b/extensions/libxt_LOG.man
-@@ -1,10 +1,8 @@
- Turn on kernel logging of matching packets.  When this option is set
- for a rule, the Linux kernel will print some information on all
- matching packets (like most IP/IPv6 header fields) via the kernel log
--(where it can be read with
--.I dmesg
--or
--.IR syslogd (8)).
-+(where it can be read with \fIdmesg(1)\fP or read in the syslog).
-+.PP
- This is a "non-terminating target", i.e. rule traversal continues at
- the next rule.  So if you want to LOG the packets you refuse, use two
- separate rules with the same matching criteria, first using target LOG
--- 
-1.8.4.rc3
+This seems totally incorrect. By including DESTDIR in the symlink 
+target, you are *creating* a dangling symlink. RPM, DEB (and whatever 
+other packages) would suddenly contain a file that goes like
 
+ $ rpm -ql iptables
+ lrwxrwxrwx 1 root root 13 Jan 27 2013 /usr/sbin/iptables ->
+   /home/abuild/rpmbuild/BUILDROOT/iptables-1.4.20/usr/bin/xtables-multi
