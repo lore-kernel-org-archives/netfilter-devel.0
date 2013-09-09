@@ -1,56 +1,31 @@
-From: "V. Lavrov" <lve@guap.ru>
-Subject: BUG: kernel 3.10 + ipset + NET_NS
-Date: Mon, 09 Sep 2013 14:05:44 +0400
-Message-ID: <522D9D78.7080802@guap.ru>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: BUG: kernel 3.10 + ipset + NET_NS
+Date: Mon, 9 Sep 2013 12:52:33 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309091251510.19930@blackhole.kfki.hu>
+References: <522D9D78.7080802@guap.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: "V. Lavrov" <lve@guap.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.guap.ru ([91.151.188.3]:23795 "EHLO ns1.guap.ru"
+Received: from smtp2.kfki.hu ([148.6.0.28]:41443 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab3IIKaP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Sep 2013 06:30:15 -0400
-Received: from [10.0.0.64] ([10.0.0.64])
-	(user=lve mech=CRAM-MD5 bits=0)
-	by mail.guap.ru (8.14.7/8.14.4) with ESMTP id r89A5iWs003330
-	for <netfilter-devel@vger.kernel.org>; Mon, 9 Sep 2013 14:05:44 +0400
+	id S1751705Ab3IIKwe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Sep 2013 06:52:34 -0400
+In-Reply-To: <522D9D78.7080802@guap.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ipset does not support NET_NS. All containers have a common ipsets.
+On Mon, 9 Sep 2013, V. Lavrov wrote:
 
-Host:
-root@ls-gw2:~# ipset -V
-ipset v6.19, protocol version: 6
-root@ls-gw2:~# uname -r
-3.10.10
-iroot@ls-gw2:~# pset -N xxx hash:ip
-root@ls-gw2:~# ipset -A xxx 1.1.1.1
+> ipset does not support NET_NS. All containers have a common ipsets.
 
-LXC:
+That's true, because no one requested netns support in ipset.
 
-root@orig:~# ipset -L xxx
-Name: xxx
-Type: hash:ip
-Revision: 1
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 8280
-References: 0
-Members:
-1.1.1.1
-root@orig:~# ipset -A xxx 2.2.2.2
-
-Host:
-
-root@ls-gw2:~# ipset -L
-Name: xxx
-Type: hash:ip
-Revision: 1
-Header: family inet hashsize 1024 maxelem 65536
-Size in memory: 8296
-References: 0
-Members:
-1.1.1.1
-2.2.2.2
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
