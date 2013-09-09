@@ -1,57 +1,56 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [iptables PATCH] build: add DESTDIR to vx_bin_links
-Date: Sat, 7 Sep 2013 23:41:08 -0700
-Message-ID: <CAHo-OozRAQw+WffYW0JyD37wdVUFQmgyi_6ePLst0s5Kz+cgBA@mail.gmail.com>
-References: <1378503540-16134-1-git-send-email-ljlane@debian.org>
-	<alpine.LSU.2.11.1309070244090.3288@nerf07.vanv.qr>
-	<CA+0KVf2vdjHfcS=p9Z9RLy-vgogvan2S2RrU2CcsOBDWe-JBHg@mail.gmail.com>
+From: "V. Lavrov" <lve@guap.ru>
+Subject: BUG: kernel 3.10 + ipset + NET_NS
+Date: Mon, 09 Sep 2013 14:05:44 +0400
+Message-ID: <522D9D78.7080802@guap.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: "Laurence J. Lane" <ljlane@debian.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f172.google.com ([209.85.220.172]:51194 "EHLO
-	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab3IHGlJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Sep 2013 02:41:09 -0400
-Received: by mail-vc0-f172.google.com with SMTP id m17so3270284vca.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Sep 2013 23:41:08 -0700 (PDT)
-In-Reply-To: <CA+0KVf2vdjHfcS=p9Z9RLy-vgogvan2S2RrU2CcsOBDWe-JBHg@mail.gmail.com>
+Received: from mx1.guap.ru ([91.151.188.3]:23795 "EHLO ns1.guap.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752485Ab3IIKaP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Sep 2013 06:30:15 -0400
+Received: from [10.0.0.64] ([10.0.0.64])
+	(user=lve mech=CRAM-MD5 bits=0)
+	by mail.guap.ru (8.14.7/8.14.4) with ESMTP id r89A5iWs003330
+	for <netfilter-devel@vger.kernel.org>; Mon, 9 Sep 2013 14:05:44 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It should probably be a relative link, but that's probably hard to do
-seeing as we don't know how many levels up you need to go...
+ipset does not support NET_NS. All containers have a common ipsets.
 
-On Fri, Sep 6, 2013 at 7:14 PM, Laurence J. Lane <ljlane@debian.org> wrote:
-> You're right. Withdrawn.
->
-> On Fri, Sep 6, 2013 at 8:49 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->>
->> On Friday 2013-09-06 23:39, Laurence J. Lane wrote:
->>
->>>Fixes dangling symlinks when using DESTDIR.
->>>
->>>Signed-off-by: Laurence J. Lane <ljlane@debian.org>
->>>-      for i in ${vx_bin_links}; do ${LN_S} -f \
->>>           "${sbindir}/xtables-multi" "${DESTDIR}${bindir}/$$i"; done;
->>>+      for i in ${vx_bin_links}; do ${LN_S} -f \
->>>           "${DESTDIR}${sbindir}/xtables-multi" "${DESTDIR}${bindir}/$$i"; done;
->>
->> This seems totally incorrect. By including DESTDIR in the symlink
->> target, you are *creating* a dangling symlink. RPM, DEB (and whatever
->> other packages) would suddenly contain a file that goes like
->>
->>  $ rpm -ql iptables
->>  lrwxrwxrwx 1 root root 13 Jan 27 2013 /usr/sbin/iptables ->
->>    /home/abuild/rpmbuild/BUILDROOT/iptables-1.4.20/usr/bin/xtables-multi
->>
->> !DSPAM:522a78438821787114786!
->>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Host:
+root@ls-gw2:~# ipset -V
+ipset v6.19, protocol version: 6
+root@ls-gw2:~# uname -r
+3.10.10
+iroot@ls-gw2:~# pset -N xxx hash:ip
+root@ls-gw2:~# ipset -A xxx 1.1.1.1
+
+LXC:
+
+root@orig:~# ipset -L xxx
+Name: xxx
+Type: hash:ip
+Revision: 1
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 8280
+References: 0
+Members:
+1.1.1.1
+root@orig:~# ipset -A xxx 2.2.2.2
+
+Host:
+
+root@ls-gw2:~# ipset -L
+Name: xxx
+Type: hash:ip
+Revision: 1
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 8296
+References: 0
+Members:
+1.1.1.1
+2.2.2.2
+
