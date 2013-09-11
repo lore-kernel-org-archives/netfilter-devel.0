@@ -1,112 +1,53 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v3] netfilter: ipset: Fix serious failure in CIDR tracking
-Date: Wed, 11 Sep 2013 17:32:18 +0200
-Message-ID: <1613281.TIUUNvYVSf@gentoovm>
-References: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309111555360.27719@blackhole.kfki.hu>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH nf] netfilter: use RCU safe kfree for conntrack extensions
+Date: Wed, 11 Sep 2013 10:09:47 -0700
+Message-ID: <20130911170946.GA2926@linuxace.com>
+References: <20130911090900.0129AE8AFF@unicorn.suse.cz>
+ <20130911145715.GA2882@linuxace.com>
+ <20130911152804.GA5397@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:34887 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268Ab3IKPdT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Sep 2013 11:33:19 -0400
-In-Reply-To: <alpine.DEB.2.00.1309111555360.27719@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Michal Kubecek <mkubecek@suse.cz>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130911152804.GA5397@unicorn.suse.cz>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 11 September 2013 16:01:18 Jozsef Kadlecsik wrote:
-> Hi Oliver,
+On Wed, Sep 11, 2013 at 05:28:05PM +0200, Michal Kubecek wrote:
+> > Looking at
+> > your proposed fix, the NAT extension data should have been cleaned
+> > from the bysource list in nf_nat_cleanup_conntrack (via __nf_ct_ext_destroy)
+> > before reaching the kfree.  Would you agree?
 > 
-> On Wed, 11 Sep 2013, Oliver wrote:
-> > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > 
-> > This fixes a serious bug affecting all hash types with a net element -
-> > specifically, if a CIDR value is deleted such that none of the same size
-> > exist any more, all larger (less-specific) values will then fail to
-> > match. Adding back any prefix with a CIDR equal to or more specific than
-> > the one deleted will fix it.
-> > 
-> > Steps to reproduce:
-> > ipset -N test hash:net
-> > ipset -A test 1.1.0.0/16
-> > ipset -A test 2.2.2.0/24
-> > ipset -T test 1.1.1.1		#1.1.1.1 IS in set
-> > ipset -D test 2.2.2.0/24
-> > ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
-> > 
-> > This is due to the fact that the nets counter was unconditionally
-> > decremented prior to the iteration that shifts up the entries. Now, we
-> > first check if there is a proceeding entry and if not, decrement it and
-> > return. Otherwise, we proceed to iterate and then clean up the last
-> > element afterwards.
-> > 
-> > Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > ---
-> > 
-> >  kernel/net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++------
-> >  1 file changed, 7 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > b/kernel/net/netfilter/ipset/ip_set_hash_gen.h index 7a5b776..6599ea8
-> > 100644
-> > --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > @@ -307,19 +307,20 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8
-> > nets_length, u8 n)> 
-> >  static void
-> >  mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
-> >  {
-> > 
-> > -	u8 i, j;
-> > +	u8 i, j, net_end = nets_length - 1;
-> > 
-> > -	for (i = 0; i < nets_length - 1 && h->nets[i].cidr[n] != cidr; i++)
-> > +	for (i = 0; i < net_end && h->nets[i].cidr[n] != cidr; i++)
-> > 
-> >  		;
-> > 
-> > -	h->nets[i].nets[n]--;
-> > -
-> > -	if (h->nets[i].nets[n] != 0)
-> > +	if (h->nets[i].nets[n] > 1 || i == net_end || !h->nets[i + 1].nets[n]) 
-{
-> > +		h->nets[i].nets[n]--;
-> > 
-> >  		return;
-> > 
-> > +	}
-> 
-> If you restored the original code in the part above, then the whole thing
-> could be collapsed into starting the next loop from j = i + 1 (and
-> changing the indices in the for body accordingly).
+> It is cleaned from the list but as it is an RCU list, other readers can
+> still be holding pointers to it. We have to wait for the RCU grace
+> period before we can reuse it.
 
-I'm not sure I follow; the whole problem is that the proceeding loop fails 
-because the element at j gets set to zero, causing it to be skipped when we do 
-our shift-up below - why would we want to bother with looping when we can just 
-decrement and return immediately?
+Agreed - looks like your fix should work.  However, two nits:
 
-> 
-> > -	for (j = i; j < nets_length - 1 && h->nets[j].nets[n]; j++) {
-> > +	for (j = i; j < net_end && h->nets[j].nets[n]; j++) {
-> > 
-> >  		h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
-> >  		h->nets[j].nets[n] = h->nets[j + 1].nets[n];
-> >  	
-> >  	}
-> > 
-> > +	h->nets[j].nets[n] = 0;
-> 
-> Here the checking of the value "j" is missing.
+1) normally RCU functions have _rcu suffixes.  So nf_ct_ext_free should
+become nf_ct_ext_free_rcu.
 
-I suppose we can check this, but what's the point really? j is always going to 
-be nets_length - 1, so setting that element to zero is either necessary for 
-cleanup, or won't do anything of use (nor harm) - why add in a memory read to 
-see if we need to do a memory write when there's no harm in just doing it 
-regardless?
+2) kfree_rcu was not added to the kernel until 3.0.  All of the bug
+reports I've been looking into (including the original in netfilter bugzilla
+at http://bugzilla.netfilter.org/show_bug.cgi?id=714) have been reported in
+2.6.32 or earlier kernels.  So a different fix would need to be backported for
+-stable.  For that, we would probably export __nf_ct_ext_free_rcu from
+nf_conntrack_extend.c and change the kfree call in nf_ct_ext_free_rcu to
+call_rcu(&ct->ext->rcu, __nf_ct_ext_free_rcu). Of course the alternative
+is just to use this fix for both old and new kernels for simplicity.
 
-Kind Regards,
-Oliver.
+> No, it is a bugreport from our customer. And even that customer
+> encountered it only once so far. Which is not very surprising as to
+> reproduce it, you have to be (un)lucky twice: first to have someone
+> overwrite the area soon enough and second to have someone access the
+> area after it is overwritten.
+
+Yes, hitting this seems dependent upon phase of the moon.
+
+Phil
