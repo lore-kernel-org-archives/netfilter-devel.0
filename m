@@ -1,76 +1,112 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [PATCH nf] netfilter: use RCU safe kfree for conntrack extensions
-Date: Wed, 11 Sep 2013 17:28:05 +0200
-Message-ID: <20130911152804.GA5397@unicorn.suse.cz>
-References: <20130911090900.0129AE8AFF@unicorn.suse.cz>
- <20130911145715.GA2882@linuxace.com>
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Re: [PATCH v3] netfilter: ipset: Fix serious failure in CIDR tracking
+Date: Wed, 11 Sep 2013 17:32:18 +0200
+Message-ID: <1613281.TIUUNvYVSf@gentoovm>
+References: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309111555360.27719@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	coreteam@netfilter.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47438 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754075Ab3IKP2H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Sep 2013 11:28:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20130911145715.GA2882@linuxace.com>
+Received: from mail.uptheinter.net ([77.74.196.236]:34887 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755268Ab3IKPdT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Sep 2013 11:33:19 -0400
+In-Reply-To: <alpine.DEB.2.00.1309111555360.27719@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 11, 2013 at 07:57:15AM -0700, Phil Oester wrote:
-> On Wed, Sep 11, 2013 at 10:17:27AM +0200, Michal Kubecek wrote:
-> > Commit 68b80f11 (netfilter: nf_nat: fix RCU races) introduced
-> > RCU protection for freeing extension data when reallocation
-> > moves them to a new location. We need the same protection when
-> > freeing them in nf_ct_ext_free() in order to prevent a
-> > use-after-free by other threads referencing a NAT extension data
-> > via bysource list.
+On Wednesday 11 September 2013 16:01:18 Jozsef Kadlecsik wrote:
+> Hi Oliver,
 > 
-> Hi Michal - 
+> On Wed, 11 Sep 2013, Oliver wrote:
+> > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+> > 
+> > This fixes a serious bug affecting all hash types with a net element -
+> > specifically, if a CIDR value is deleted such that none of the same size
+> > exist any more, all larger (less-specific) values will then fail to
+> > match. Adding back any prefix with a CIDR equal to or more specific than
+> > the one deleted will fix it.
+> > 
+> > Steps to reproduce:
+> > ipset -N test hash:net
+> > ipset -A test 1.1.0.0/16
+> > ipset -A test 2.2.2.0/24
+> > ipset -T test 1.1.1.1		#1.1.1.1 IS in set
+> > ipset -D test 2.2.2.0/24
+> > ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
+> > 
+> > This is due to the fact that the nets counter was unconditionally
+> > decremented prior to the iteration that shifts up the entries. Now, we
+> > first check if there is a proceeding entry and if not, decrement it and
+> > return. Otherwise, we proceed to iterate and then clean up the last
+> > element afterwards.
+> > 
+> > Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+> > ---
+> > 
+> >  kernel/net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++------
+> >  1 file changed, 7 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > b/kernel/net/netfilter/ipset/ip_set_hash_gen.h index 7a5b776..6599ea8
+> > 100644
+> > --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > @@ -307,19 +307,20 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8
+> > nets_length, u8 n)> 
+> >  static void
+> >  mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+> >  {
+> > 
+> > -	u8 i, j;
+> > +	u8 i, j, net_end = nets_length - 1;
+> > 
+> > -	for (i = 0; i < nets_length - 1 && h->nets[i].cidr[n] != cidr; i++)
+> > +	for (i = 0; i < net_end && h->nets[i].cidr[n] != cidr; i++)
+> > 
+> >  		;
+> > 
+> > -	h->nets[i].nets[n]--;
+> > -
+> > -	if (h->nets[i].nets[n] != 0)
+> > +	if (h->nets[i].nets[n] > 1 || i == net_end || !h->nets[i + 1].nets[n]) 
+{
+> > +		h->nets[i].nets[n]--;
+> > 
+> >  		return;
+> > 
+> > +	}
 > 
-> coincidentally I've been looking into this area this week due to another
-> bug report (https://bugzilla.kernel.org/show_bug.cgi?id=60853).
+> If you restored the original code in the part above, then the whole thing
+> could be collapsed into starting the next loop from j = i + 1 (and
+> changing the indices in the for body accordingly).
 
-Looking at the initial command, I would say this bug report is actually
-of the same origin as ours.
+I'm not sure I follow; the whole problem is that the proceeding loop fails 
+because the element at j gets set to zero, causing it to be skipped when we do 
+our shift-up below - why would we want to bother with looping when we can just 
+decrement and return immediately?
 
-> Looking at
-> your proposed fix, the NAT extension data should have been cleaned
-> from the bysource list in nf_nat_cleanup_conntrack (via __nf_ct_ext_destroy)
-> before reaching the kfree.  Would you agree?
+> 
+> > -	for (j = i; j < nets_length - 1 && h->nets[j].nets[n]; j++) {
+> > +	for (j = i; j < net_end && h->nets[j].nets[n]; j++) {
+> > 
+> >  		h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
+> >  		h->nets[j].nets[n] = h->nets[j + 1].nets[n];
+> >  	
+> >  	}
+> > 
+> > +	h->nets[j].nets[n] = 0;
+> 
+> Here the checking of the value "j" is missing.
 
-It is cleaned from the list but as it is an RCU list, other readers can
-still be holding pointers to it. We have to wait for the RCU grace
-period before we can reuse it.
+I suppose we can check this, but what's the point really? j is always going to 
+be nets_length - 1, so setting that element to zero is either necessary for 
+cleanup, or won't do anything of use (nor harm) - why add in a memory read to 
+see if we need to do a memory write when there's no harm in just doing it 
+regardless?
 
-> The reporter of #60853 suggested adding a synchronize_rcu to the end of the
-> nf_nat_cleanup_conntrack function, which seems sane.
-
-That was also my first idea. However, nf_nat_cleanup_conntrack() is
-called from __nf_ct_ext_destroy() inside a rcu_read_lock() /
-rcu_read_unlock() block. Even if this block is for a different RCU list,
-we still cannot call synchronize_rcu() while inside it.
-
-We could call synchronize_rcu() in __nf_ct_ext_destroy() after
-rcu_read_unlock() but this would IMHO add an unnecessary delay so it is
-more efficient and more appropriate to wait before the actual kfree()
-which is the operation that needs to wait for RCU grace period.
-
-> I have been trying to reproduce the crash to test that theory.
-> Are you able to reproduce an OOPS in your testing?  Or is there a bug
-> report you are working from?
-
-No, it is a bugreport from our customer. And even that customer
-encountered it only once so far. Which is not very surprising as to
-reproduce it, you have to be (un)lucky twice: first to have someone
-overwrite the area soon enough and second to have someone access the
-area after it is overwritten. This is IMHO the reason why the reporter
-cleared the block with memset() for testing purposes.
-
-                                                     Michal Kubecek
-
+Kind Regards,
+Oliver.
