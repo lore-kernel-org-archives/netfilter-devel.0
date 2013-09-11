@@ -1,53 +1,48 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Michal Kubecek <mkubecek@suse.cz>
 Subject: Re: [PATCH nf] netfilter: use RCU safe kfree for conntrack extensions
-Date: Wed, 11 Sep 2013 10:09:47 -0700
-Message-ID: <20130911170946.GA2926@linuxace.com>
+Date: Wed, 11 Sep 2013 19:42:48 +0200
+Message-ID: <20130911174248.GA8318@unicorn.suse.cz>
 References: <20130911090900.0129AE8AFF@unicorn.suse.cz>
  <20130911145715.GA2882@linuxace.com>
  <20130911152804.GA5397@unicorn.suse.cz>
+ <20130911170946.GA2926@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Michal Kubecek <mkubecek@suse.cz>
-Return-path: <netdev-owner@vger.kernel.org>
+To: Phil Oester <kernel@linuxace.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:52600 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753203Ab3IKRmu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Sep 2013 13:42:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20130911152804.GA5397@unicorn.suse.cz>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20130911170946.GA2926@linuxace.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 11, 2013 at 05:28:05PM +0200, Michal Kubecek wrote:
-> > Looking at
-> > your proposed fix, the NAT extension data should have been cleaned
-> > from the bysource list in nf_nat_cleanup_conntrack (via __nf_ct_ext_destroy)
-> > before reaching the kfree.  Would you agree?
+On Wed, Sep 11, 2013 at 10:09:47AM -0700, Phil Oester wrote:
 > 
-> It is cleaned from the list but as it is an RCU list, other readers can
-> still be holding pointers to it. We have to wait for the RCU grace
-> period before we can reuse it.
+> 1) normally RCU functions have _rcu suffixes.  So nf_ct_ext_free should
+> become nf_ct_ext_free_rcu.
 
-Agreed - looks like your fix should work.  However, two nits:
+Right. I'll post updated version with the rename tomorrow.
 
-1) normally RCU functions have _rcu suffixes.  So nf_ct_ext_free should
-become nf_ct_ext_free_rcu.
+> 2) kfree_rcu was not added to the kernel until 3.0.  All of the bug
+> reports I've been looking into (including the original in netfilter bugzilla
+> at http://bugzilla.netfilter.org/show_bug.cgi?id=714) have been reported in
+> 2.6.32 or earlier kernels.  So a different fix would need to be backported for
+> -stable.  For that, we would probably export __nf_ct_ext_free_rcu from
+> nf_conntrack_extend.c and change the kfree call in nf_ct_ext_free_rcu to
+> call_rcu(&ct->ext->rcu, __nf_ct_ext_free_rcu).
 
-2) kfree_rcu was not added to the kernel until 3.0.  All of the bug
-reports I've been looking into (including the original in netfilter bugzilla
-at http://bugzilla.netfilter.org/show_bug.cgi?id=714) have been reported in
-2.6.32 or earlier kernels.  So a different fix would need to be backported for
--stable.  For that, we would probably export __nf_ct_ext_free_rcu from
-nf_conntrack_extend.c and change the kfree call in nf_ct_ext_free_rcu to
-call_rcu(&ct->ext->rcu, __nf_ct_ext_free_rcu). Of course the alternative
-is just to use this fix for both old and new kernels for simplicity.
+Yes, the patch submitted here is against current nf branch. For
+SLES 11 SP1 (with 2.6.32 kernel), I'm going to use call_rcu() the way
+original commit 68b80f11 does. IIRC the only pre-3.0 stable branch still
+maintained is 2.6.32, all others are 3.0 or newer so they have
+kfree_rcu() and also use it in __nf_ct_ext_add() since commit 1f8d36a1. 
 
-> No, it is a bugreport from our customer. And even that customer
-> encountered it only once so far. Which is not very surprising as to
-> reproduce it, you have to be (un)lucky twice: first to have someone
-> overwrite the area soon enough and second to have someone access the
-> area after it is overwritten.
+                                                        Michal Kubecek
 
-Yes, hitting this seems dependent upon phase of the moon.
-
-Phil
