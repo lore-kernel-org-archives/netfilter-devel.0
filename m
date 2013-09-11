@@ -1,74 +1,81 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH] netfilter: ipset: Fix serious failure in CIDR tracking
-Date: Wed, 11 Sep 2013 12:03:54 +0200
-Message-ID: <2026391.LxvAc7OJST@gentoovm>
-References: <1378847564-35416-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <21246863.YTu25Qqz4P@gentoovm> <alpine.DEB.2.00.1309110858510.27719@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH v2] netfilter: ipset: Fix serious failure in CIDR tracking
+Date: Wed, 11 Sep 2013 12:04:37 +0200
+Message-ID: <1378893877-37102-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:33990 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:34003 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab3IKKEb (ORCPT
+	with ESMTP id S1753579Ab3IKKFg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Sep 2013 06:04:31 -0400
-In-Reply-To: <alpine.DEB.2.00.1309110858510.27719@blackhole.kfki.hu>
+	Wed, 11 Sep 2013 06:05:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id ABF66A30CC
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Sep 2013 11:05:35 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id HuPqyOK6001j for <netfilter-devel@vger.kernel.org>;
+	Wed, 11 Sep 2013 11:04:38 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 11 September 2013 09:05:03 Jozsef Kadlecsik wrote:
-> On Wed, 11 Sep 2013, Oliver wrote:
-> > On Tuesday 10 September 2013 23:55:14 Jozsef Kadlecsik wrote:
-> > > On Tue, 10 Sep 2013, Oliver wrote:
-> > > > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > > > 
-> > > > This fixes a serious bug affecting all hash types with a net element -
-> > > > specifically, if a CIDR value is deleted such that none of the same
-> > > > size
-> > > > exist any more, all larger (less-specific) values will then fail to
-> > > > match. Adding back any prefix with a CIDR equal to or more specific
-> > > > than
-> > > > the one deleted will fix it.
-> > > > 
-> > > > Steps to reproduce:
-> > > > ipset -N test hash:net
-> > > > ipset -A test 1.1.0.0/16
-> > > > ipset -A test 2.2.2.0/24
-> > > > ipset -T test 1.1.1.1		#1.1.1.1 IS in set
-> > > > ipset -D test 2.2.2.0/24
-> > > > ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
-> > > > 
-> > > > This is due to the fact that the nets counter was unconditionally
-> > > > decremented prior to the iteration that shifts up the entries. Now, we
-> > > > first check if there is a proceeding entry and if not, decrement it
-> > > > and
-> > > > return. Otherwise, we proceed to iterate and then clean up the last
-> > > > element afterwards.
-> > > > 
-> > > > Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> > > 
-> > > Good catch! But unconditionally checking the next entry may point over
-> > > the
-> > > array.
-> > 
-> > Are you sure? In mtype_del_cidr() we only iterate up to (nets_length - 1)
-> > rather than nets_length, so I didn't think that i+1 could end up going
-> > over
-> > the end of the array.
-> 
-> (nets_length - 1) is the last index in the array. In the first for loop
-> "i" can reach this value, so "i+1" is over the array.
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
-OK, I see.
-> 
-> Also, your patch decrements the nets[i] value only if the next entry is
-> empty, that an error too.
+This fixes a serious bug affecting all hash types with a net element -
+specifically, if a CIDR value is deleted such that none of the same size
+exist any more, all larger (less-specific) values will then fail to
+match. Adding back any prefix with a CIDR equal to or more specific than
+the one deleted will fix it.
 
-Yep, I've redone it so that we decrement if it's > 1 OR the last possible 
-position OR there's nothing beyond it. Otherwise, it's left untouched and we 
-loop, which then overwrites it on the first iteration.
+Steps to reproduce:
+ipset -N test hash:net
+ipset -A test 1.1.0.0/16
+ipset -A test 2.2.2.0/24
+ipset -T test 1.1.1.1		#1.1.1.1 IS in set
+ipset -D test 2.2.2.0/24
+ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
 
-Kind Regards,
-Oliver.
+This is due to the fact that the nets counter was unconditionally
+decremented prior to the iteration that shifts up the entries. Now, we
+first check if there is a proceeding entry and if not, decrement it and
+return. Otherwise, we proceed to iterate and then clean up the last
+element afterwards.
+
+Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+---
+ kernel/net/netfilter/ipset/ip_set_hash_gen.h | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+index 7a5b776..99c3624 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -307,19 +307,20 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ static void
+ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ {
+-	u8 i, j;
++	u8 i, j, net_end = nets_length - 1;
+ 
+-	for (i = 0; i < nets_length - 1 && h->nets[i].cidr[n] != cidr; i++)
++	for (i = 0; i < net_end && h->nets[i].cidr[n] != cidr; i++)
+ 		;
+-	h->nets[i].nets[n]--;
+-
+-	if (h->nets[i].nets[n] != 0)
++	if (h->nets[i].nets[n] > 1 || i == net_end || !h->nets[i + 1].nets[n]) {
++		h->nets[i].nets[n]--;
+ 		return;
++	}
+ 
+ 	for (j = i; j < nets_length - 1 && h->nets[j].nets[n]; j++) {
+ 		h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
+ 		h->nets[j].nets[n] = h->nets[j + 1].nets[n];
+ 	}
++	h->nets[j].nets[n] = 0;
+ }
+ #endif
+ 
+-- 
+1.8.3.2
+
