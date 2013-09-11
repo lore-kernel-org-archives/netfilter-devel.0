@@ -1,95 +1,50 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v3] netfilter: ipset: Fix serious failure in CIDR
- tracking
-Date: Wed, 11 Sep 2013 16:01:18 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309111555360.27719@blackhole.kfki.hu>
-References: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH nf] netfilter: use RCU safe kfree for conntrack extensions
+Date: Wed, 11 Sep 2013 07:57:15 -0700
+Message-ID: <20130911145715.GA2882@linuxace.com>
+References: <20130911090900.0129AE8AFF@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	coreteam@netfilter.org
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:37294 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754366Ab3IKOBU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Sep 2013 10:01:20 -0400
-In-Reply-To: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:37876 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752981Ab3IKO5J (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Sep 2013 10:57:09 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa1so9351982pad.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Sep 2013 07:57:08 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130911090900.0129AE8AFF@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Oliver,
+On Wed, Sep 11, 2013 at 10:17:27AM +0200, Michal Kubecek wrote:
+> Commit 68b80f11 (netfilter: nf_nat: fix RCU races) introduced
+> RCU protection for freeing extension data when reallocation
+> moves them to a new location. We need the same protection when
+> freeing them in nf_ct_ext_free() in order to prevent a
+> use-after-free by other threads referencing a NAT extension data
+> via bysource list.
 
-On Wed, 11 Sep 2013, Oliver wrote:
+Hi Michal - 
 
-> From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> 
-> This fixes a serious bug affecting all hash types with a net element -
-> specifically, if a CIDR value is deleted such that none of the same size
-> exist any more, all larger (less-specific) values will then fail to
-> match. Adding back any prefix with a CIDR equal to or more specific than
-> the one deleted will fix it.
-> 
-> Steps to reproduce:
-> ipset -N test hash:net
-> ipset -A test 1.1.0.0/16
-> ipset -A test 2.2.2.0/24
-> ipset -T test 1.1.1.1		#1.1.1.1 IS in set
-> ipset -D test 2.2.2.0/24
-> ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
-> 
-> This is due to the fact that the nets counter was unconditionally
-> decremented prior to the iteration that shifts up the entries. Now, we
-> first check if there is a proceeding entry and if not, decrement it and
-> return. Otherwise, we proceed to iterate and then clean up the last
-> element afterwards.
-> 
-> Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> ---
->  kernel/net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> index 7a5b776..6599ea8 100644
-> --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -307,19 +307,20 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
->  static void
->  mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
->  {
-> -	u8 i, j;
-> +	u8 i, j, net_end = nets_length - 1;
->  
-> -	for (i = 0; i < nets_length - 1 && h->nets[i].cidr[n] != cidr; i++)
-> +	for (i = 0; i < net_end && h->nets[i].cidr[n] != cidr; i++)
->  		;
-> -	h->nets[i].nets[n]--;
-> -
-> -	if (h->nets[i].nets[n] != 0)
-> +	if (h->nets[i].nets[n] > 1 || i == net_end || !h->nets[i + 1].nets[n]) {
-> +		h->nets[i].nets[n]--;
->  		return;
-> +	}
+coincidentally I've been looking into this area this week due to another
+bug report (https://bugzilla.kernel.org/show_bug.cgi?id=60853).  Looking at
+your proposed fix, the NAT extension data should have been cleaned
+from the bysource list in nf_nat_cleanup_conntrack (via __nf_ct_ext_destroy)
+before reaching the kfree.  Would you agree?
 
-If you restored the original code in the part above, then the whole thing 
-could be collapsed into starting the next loop from j = i + 1 (and 
-changing the indices in the for body accordingly).
-  
-> -	for (j = i; j < nets_length - 1 && h->nets[j].nets[n]; j++) {
-> +	for (j = i; j < net_end && h->nets[j].nets[n]; j++) {
->  		h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
->  		h->nets[j].nets[n] = h->nets[j + 1].nets[n];
->  	}
-> +	h->nets[j].nets[n] = 0;
+The reporter of #60853 suggested adding a synchronize_rcu to the end of the
+nf_nat_cleanup_conntrack function, which seems sane.  I have been trying to 
+reproduce the crash to test that theory.
 
-Here the checking of the value "j" is missing.
+Are you able to reproduce an OOPS in your testing?  Or is there a bug report
+you are working from?
 
->  }
->  #endif
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Phil
