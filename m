@@ -1,70 +1,43 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftables 2/3] expr: log: use real length when fetching attributes
-Date: Fri, 13 Sep 2013 16:44:47 +0200
-Message-ID: <1379083488-20752-2-git-send-email-fw@strlen.de>
-References: <1379083488-20752-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nftables kernel 1/3] netfilter: nft_log: group is u16, snaplen u32
+Date: Fri, 13 Sep 2013 16:44:46 +0200
+Message-ID: <1379083488-20752-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58017 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58016 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757224Ab3IMOpG (ORCPT
+	by vger.kernel.org with ESMTP id S1757183Ab3IMOpF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Sep 2013 10:45:06 -0400
-In-Reply-To: <1379083488-20752-1-git-send-email-fw@strlen.de>
+	Fri, 13 Sep 2013 10:45:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NFTA_LOG_SNAPLEN is u32 and NFTA_LOG_QTHRESHOLD is u16.
-Without this, netlink messages from kernel fail mnl_validate step when
-QTHRESH or SNAPLEN was set.
-
-Also, nft_rule_expr_log_get must update data_length, else 'nft list' doesn't
-show log arguments (prefix, group ..) because the netlink message
-decoding uses nft_rule_expr_get_u16/32 etc. which validate the length, too.
+0edecbe17ae (netfilter: nft_log: group and qthreshold are 2^16)
+made the correct changes except in the nla_policy where
+it changed snaplen instead of group attibute.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/expr/log.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ net/netfilter/nft_log.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/expr/log.c b/src/expr/log.c
-index bbbd5b9..90fb32e 100644
---- a/src/expr/log.c
-+++ b/src/expr/log.c
-@@ -64,12 +64,16 @@ nft_rule_expr_log_get(const struct nft_rule_expr *e, uint16_t type,
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index 65cc62f..70b1be2 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -37,9 +37,9 @@ static void nft_log_eval(const struct nft_expr *expr,
+ }
  
- 	switch(type) {
- 	case NFT_EXPR_LOG_PREFIX:
-+		*data_len = strlen(log->prefix)+1;
- 		return log->prefix;
- 	case NFT_EXPR_LOG_GROUP:
-+		*data_len = sizeof(log->group);
- 		return &log->group;
- 	case NFT_EXPR_LOG_SNAPLEN:
-+		*data_len = sizeof(log->snaplen);
- 		return &log->snaplen;
- 	case NFT_EXPR_LOG_QTHRESHOLD:
-+		*data_len = sizeof(log->qthreshold);
- 		return &log->qthreshold;
- 	}
- 	return NULL;
-@@ -91,13 +95,13 @@ static int nft_rule_expr_log_cb(const struct nlattr *attr, void *data)
- 		}
- 		break;
- 	case NFTA_LOG_GROUP:
--	case NFTA_LOG_SNAPLEN:
-+	case NFTA_LOG_QTHRESHOLD:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0) {
- 			perror("mnl_attr_validate");
- 			return MNL_CB_ERROR;
- 		}
- 		break;
--	case NFTA_LOG_QTHRESHOLD:
-+	case NFTA_LOG_SNAPLEN:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
- 			perror("mnl_attr_validate");
- 			return MNL_CB_ERROR;
+ static const struct nla_policy nft_log_policy[NFTA_LOG_MAX + 1] = {
+-	[NFTA_LOG_GROUP]	= { .type = NLA_U32 },
++	[NFTA_LOG_GROUP]	= { .type = NLA_U16 },
+ 	[NFTA_LOG_PREFIX]	= { .type = NLA_STRING },
+-	[NFTA_LOG_SNAPLEN]	= { .type = NLA_U16 },
++	[NFTA_LOG_SNAPLEN]	= { .type = NLA_U32 },
+ 	[NFTA_LOG_QTHRESHOLD]	= { .type = NLA_U16 },
+ };
+ 
 -- 
 1.7.8.6
 
