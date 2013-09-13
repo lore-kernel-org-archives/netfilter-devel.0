@@ -1,56 +1,33 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] netfilter: ipv6: icmpv6_manip_pkt comparing codes to types
-Date: Thu, 12 Sep 2013 18:04:16 -0700
-Message-ID: <20130913010416.GA8656@linuxace.com>
+From: Jiri Popelka <jpopelka@redhat.com>
+Subject: [arptables] please include license file in tarball
+Date: Fri, 13 Sep 2013 16:26:46 +0200
+Message-ID: <523320A6.4070407@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
-Cc: pablo@netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:40299 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780Ab3IMBEC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Sep 2013 21:04:02 -0400
-Received: by mail-pd0-f173.google.com with SMTP id p10so541283pdj.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Sep 2013 18:04:01 -0700 (PDT)
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:25517 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756843Ab3IMO0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Sep 2013 10:26:48 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r8DEQmgN023166
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2013 10:26:48 -0400
+Received: from zepelin.brq.redhat.com (zepelin.brq.redhat.com [10.34.4.75])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r8DEQlCB002110
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2013 10:26:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+there's been no license file included in arptables release tarball.
+Would it be possible to include one [1] ?
 
-In commit 58a317f1 (netfilter: ipv6: add IPv6 NAT support), icmpv6_manip_pkt
-was added with an incorrect comparison of ICMP codes to types.  This causes
-problems when using NAT rules with the --random option.  Correct the
-comparison.
+Thank you
+--
+Jiri
 
-This closes netfilter bugzilla #851, reported by Alexander Neumann.
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-icmpv6_manip_pkt
-
-diff --git a/net/ipv6/netfilter/nf_nat_proto_icmpv6.c b/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
-index 61aaf70..2205e8e 100644
---- a/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_nat_proto_icmpv6.c
-@@ -69,8 +69,8 @@ icmpv6_manip_pkt(struct sk_buff *skb,
- 	hdr = (struct icmp6hdr *)(skb->data + hdroff);
- 	l3proto->csum_update(skb, iphdroff, &hdr->icmp6_cksum,
- 			     tuple, maniptype);
--	if (hdr->icmp6_code == ICMPV6_ECHO_REQUEST ||
--	    hdr->icmp6_code == ICMPV6_ECHO_REPLY) {
-+	if (hdr->icmp6_type == ICMPV6_ECHO_REQUEST ||
-+	    hdr->icmp6_type == ICMPV6_ECHO_REPLY) {
- 		inet_proto_csum_replace2(&hdr->icmp6_cksum, skb,
- 					 hdr->icmp6_identifier,
- 					 tuple->src.u.icmp.id, 0);
-
---DocE+STaALJfprDB--
+[1] http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
