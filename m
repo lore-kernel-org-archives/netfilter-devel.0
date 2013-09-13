@@ -1,71 +1,72 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v3] netfilter: ipset: Fix serious failure in CIDR
- tracking
-Date: Fri, 13 Sep 2013 22:03:36 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309132156290.4634@blackhole.kfki.hu>
-References: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1613281.TIUUNvYVSf@gentoovm> <alpine.DEB.2.00.1309112117470.30814@blackhole.kfki.hu> <34508068.QlVPmtIuPd@gentoovm>
+Subject: Re: [PATCH 1/1] netfilter: Ignore bogus SACK option values in TCP
+ conntrack
+Date: Fri, 13 Sep 2013 22:16:14 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309042059510.8849@blackhole.kfki.hu>
+References: <1378148280-1153-1-git-send-email-kadlec@blackhole.kfki.hu> <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu> <20130902215736.GA11580@linuxace.com> <alpine.DEB.2.00.1309030858120.2504@blackhole.kfki.hu>
+ <20130904165403.GA13703@linuxace.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Corey Hickey <bugfood-ml@fatooh.org>
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:43047 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:54142 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754864Ab3IMUDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Sep 2013 16:03:37 -0400
-In-Reply-To: <34508068.QlVPmtIuPd@gentoovm>
+	id S1752516Ab3IMUQR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Sep 2013 16:16:17 -0400
+In-Reply-To: <20130904165403.GA13703@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 12 Sep 2013, Oliver wrote:
+On Wed, 4 Sep 2013, Phil Oester wrote:
 
-> On Wednesday 11 September 2013 21:32:26 Jozsef Kadlecsik wrote:
-> > On Wed, 11 Sep 2013, Oliver wrote:
-> > > On Wednesday 11 September 2013 16:01:18 Jozsef Kadlecsik wrote:
-> > > > On Wed, 11 Sep 2013, Oliver wrote:
-> <snip>
-> > > > 
-> > > > If you restored the original code in the part above, then the whole
-> > > > thing
-> > > > could be collapsed into starting the next loop from j = i + 1 (and
-> > > > changing the indices in the for body accordingly).
+> On Tue, Sep 03, 2013 at 09:31:19AM +0200, Jozsef Kadlecsik wrote:
+> > On Mon, 2 Sep 2013, Phil Oester wrote:
+> > > But if conntrack were being "liberal" then it wouldn't care about the 
+> > > value of the ACKs either, no?  This sort of defeats the purpose of TCP 
+> > > window tracking.
+> > 
+> > No, it doesn't defeat it - we fall back to checking the ACK value against 
+> > the window.
+> > 
+> > > At the very least, this workaround should be dependent upon 
+> > > nf_conntrack_tcp_be_liberal != 0.
 > > > 
-> > > I'm not sure I follow; the whole problem is that the proceeding loop
-> > > fails because the element at j gets set to zero, causing it to be
-> > > skipped when we do our shift-up below - why would we want to bother with
-> > > looping when we can just decrement and return immediately?
+> > > Also note that David Miller refused to accept a patch working around this
+> > > issue in the TCP stack [1].  Why should netfilter do so?
+> > > 
+> > > [1] http://marc.info/?l=linux-netdev&m=137714232805063&w=2
 > > 
-> > The for loop below would not be started due to the conditions: actually,
-> > then conditions above ("i == net_end || !h->nets[i + 1].nets[n]") would be
-> > "moved" here. In another words, would not be duplicated:
+> > The purpose of that patch is to get back as much performance of TCP as 
+> > possible, by working around the broken SACK options.
 > > 
-> > 	for (j = i + 1; j < nets_length - 1 && h->nets[j].nets[n]; j++)
-> > 		h->nets[j - 1].cidr[n] = h->nets[j + 1].cidr[n];
-> > 		..
-> > 	}
-> > 	if (j < nets_length)
-> > 		h->nets[j - 1].nets[n] = 0;
+> > This patch lets the traffic at least through, otherwise it's simply 
+> > blocked by conntrack. Similarly to the TCP stack, conntrack should ignore 
+> > bogus SACK values instead of effectively dropping the stream.
 > > 
+> > This is a long time issue. To be honest, I believed such anonymizer 
+> > devices would have disappeared (fixed) by now. However it is apparently 
+> > not so and at the same time conntrack actually breaks TCP robustness. 
+> > Therefore I think it should be fixed.
 > 
-> I don't really like this idea; i + 1 after the second iteration will 
-> point to whatever was shifted up, this obviously doesn't really present 
-> a problem since if the element is empty, we won't iterate any more, but 
-> I don't think it looks good for code clarity and it's just going to be a 
-> non-changing value that the processor must pointlessly compare on every 
-> iteration (first and second run notwithstanding).
+> This should still only be allowed if nf_conntrack_tcp_be_liberal is 
+> enabled IMHO (or some new sysctl like 
+> nf_conntrack_tcp_sack_be_liberal?).  Personally I don't care about these 
+> broken middleboxes, and would rather not have SACK validation disabled 
+> by default.
 
-I couldn't follow your reasoning above, maybe it's just too late here.
+nf_conntrack_tcp_be_liberal disables window tracking completely, including 
+SACK validation too.
 
-Anyway, I'd like to ask you two small modifications compared to v3 and 
-that's all:
+I have been thinking on this from time to time and couldn't come up with a 
+solution which is satisfying: even if an nf_conntrack_tcp_sack_be_liberal
+flag is added to the patch, if it's default off, then that's almost the 
+same situations as we have at the present.
 
-- Change the condition of the first "if" to an inequality, with a 
-  continue statement in the if body. Thus the next lines can be shifted
-  to the left, for better readability.
-- Move the "i == net_end" test to the last position, because that is
-  the less likely case.
-
-Thanks! 
+Unless someone can back the patch with good arguments, I say forget about 
+it.
 
 Best regards,
 Jozsef
