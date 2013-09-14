@@ -1,48 +1,88 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH v3] netfilter: ipset: Fix serious failure in CIDR tracking
-Date: Sat, 14 Sep 2013 10:38:14 +0200
-Message-ID: <2121442.K0PkEKYW9J@gentoovm>
-References: <1378894613-37279-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <34508068.QlVPmtIuPd@gentoovm> <alpine.DEB.2.00.1309132156290.4634@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH v5] netfilter: ipset: Fix serious failure in CIDR tracking
+Date: Sat, 14 Sep 2013 11:05:53 +0200
+Message-ID: <1379149553-18945-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:46096 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:46180 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab3INIiy (ORCPT
+	with ESMTP id S1752923Ab3INJGH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Sep 2013 04:38:54 -0400
-In-Reply-To: <alpine.DEB.2.00.1309132156290.4634@blackhole.kfki.hu>
+	Sat, 14 Sep 2013 05:06:07 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id 0E401A2FA7
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Sep 2013 10:06:05 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 7foboJgntOwy for <netfilter-devel@vger.kernel.org>;
+	Sat, 14 Sep 2013 10:05:55 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 13 September 2013 22:03:36 you wrote:
-<snip>
-> 
-> I couldn't follow your reasoning above, maybe it's just too late here.
-> 
-> Anyway, I'd like to ask you two small modifications compared to v3 and
-> that's all:
-> 
-> - Change the condition of the first "if" to an inequality, with a
->   continue statement in the if body. Thus the next lines can be shifted
->   to the left, for better readability.
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
-OK, sounds good, I assume you mean v4, since a continue would not be valid in 
-v3.
+This fixes a serious bug affecting all hash types with a net element -
+specifically, if a CIDR value is deleted such that none of the same size
+exist any more, all larger (less-specific) values will then fail to
+match. Adding back any prefix with a CIDR equal to or more specific than
+the one deleted will fix it.
 
-> - Move the "i == net_end" test to the last position, because that is
->   the less likely case.
+Steps to reproduce:
+ipset -N test hash:net
+ipset -A test 1.1.0.0/16
+ipset -A test 2.2.2.0/24
+ipset -T test 1.1.1.1		#1.1.1.1 IS in set
+ipset -D test 2.2.2.0/24
+ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
 
-This would create an error if we reached the very last possible iteration 
-(i.e. *i* being 1 less than nets_length) - we need to check if it is equal to 
-net_end (i.e. nets_length - 1) in the order it is right now so that we do not 
-attempt a memory access beyond the boundary of the array (i.e. the final [i + 
-1] check within the if() statement).
+This is due to the fact that the nets counter was unconditionally
+decremented prior to the iteration that shifts up the entries. Now, we
+first check if there is a proceeding entry and if not, decrement it and
+return. Otherwise, we proceed to iterate and then zero the last element,
+which, in most cases, will already be zero.
 
-I'll land the new patch shortly.
+Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+---
+ kernel/net/netfilter/ipset/ip_set_hash_gen.h | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-Kind Regards,
-Oliver.
+diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+index 7a5b776..3add0bf 100644
+--- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -307,18 +307,22 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ static void
+ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ {
+-	u8 i, j;
++	u8 i, j, net_end = nets_length - 1;
+ 
+-	for (i = 0; i < nets_length - 1 && h->nets[i].cidr[n] != cidr; i++)
+-		;
+-	h->nets[i].nets[n]--;
+-
+-	if (h->nets[i].nets[n] != 0)
++	for (i = 0; i < nets_length; i++) {
++		if (h->nets[i].cidr[n] != cidr)
++			continue;
++		if (h->nets[i].nets[n] > 1 || i == net_end ||
++		    h->nets[i + 1].nets[n] == 0) {
++			h->nets[i].nets[n]--;
++			return;
++		}
++		for (j = i; j < net_end && h->nets[j].nets[n]; j++) {
++			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
++			h->nets[j].nets[n] = h->nets[j + 1].nets[n];
++		}
++		h->nets[j].nets[n] = 0;
+ 		return;
+-
+-	for (j = i; j < nets_length - 1 && h->nets[j].nets[n]; j++) {
+-		h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
+-		h->nets[j].nets[n] = h->nets[j + 1].nets[n];
+ 	}
+ }
+ #endif
+-- 
+1.8.3.2
+
