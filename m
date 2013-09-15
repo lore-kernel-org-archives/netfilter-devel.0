@@ -1,55 +1,41 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v5] netfilter: ipset: Fix serious failure in CIDR
- tracking
-Date: Sun, 15 Sep 2013 15:01:36 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309151500440.8707@blackhole.kfki.hu>
-References: <1379149553-18945-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH 1/1] netfilter: Ignore bogus SACK option values in TCP
+ conntrack
+Date: Sun, 15 Sep 2013 09:22:52 -0700
+Message-ID: <20130915162252.GA7020@linuxace.com>
+References: <1378148280-1153-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1378148280-1153-2-git-send-email-kadlec@blackhole.kfki.hu>
+ <20130902215736.GA11580@linuxace.com>
+ <alpine.DEB.2.00.1309030858120.2504@blackhole.kfki.hu>
+ <20130904165403.GA13703@linuxace.com>
+ <alpine.DEB.2.00.1309042059510.8849@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Corey Hickey <bugfood-ml@fatooh.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:37147 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755914Ab3IONBi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Sep 2013 09:01:38 -0400
-In-Reply-To: <1379149553-18945-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35821 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367Ab3IOQWp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Sep 2013 12:22:45 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rq2so3148020pbb.33
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Sep 2013 09:22:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1309042059510.8849@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 14 Sep 2013, Oliver wrote:
+On Fri, Sep 13, 2013 at 10:16:14PM +0200, Jozsef Kadlecsik wrote:
+> I have been thinking on this from time to time and couldn't come up with a 
+> solution which is satisfying: even if an nf_conntrack_tcp_sack_be_liberal
+> flag is added to the patch, if it's default off, then that's almost the 
+> same situations as we have at the present.
 
-> From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> 
-> This fixes a serious bug affecting all hash types with a net element -
-> specifically, if a CIDR value is deleted such that none of the same size
-> exist any more, all larger (less-specific) values will then fail to
-> match. Adding back any prefix with a CIDR equal to or more specific than
-> the one deleted will fix it.
-> 
-> Steps to reproduce:
-> ipset -N test hash:net
-> ipset -A test 1.1.0.0/16
-> ipset -A test 2.2.2.0/24
-> ipset -T test 1.1.1.1		#1.1.1.1 IS in set
-> ipset -D test 2.2.2.0/24
-> ipset -T test 1.1.1.1		#1.1.1.1 IS NOT in set
-> 
-> This is due to the fact that the nets counter was unconditionally
-> decremented prior to the iteration that shifts up the entries. Now, we
-> first check if there is a proceeding entry and if not, decrement it and
-> return. Otherwise, we proceed to iterate and then zero the last element,
-> which, in most cases, will already be zero.
-> 
-> Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+With the additional sysctl, at least the 0.1% of admins which are bit by
+these braindead anonymizer boxes would have the option of working around
+them without completely disabling TCP window tracking.  
 
-Patch is applied, thanks. I'm going to release a new ipset version next 
-week.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Phil
