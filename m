@@ -1,29 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipv6: icmpv6_manip_pkt comparing codes to
- types
-Date: Sat, 14 Sep 2013 21:24:45 +0200
-Message-ID: <20130914192445.GA16387@localhost>
-References: <20130913010416.GA8656@linuxace.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ipset PATCH] configure: uclinux is also linux
+Date: Sun, 15 Sep 2013 15:00:35 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309151432160.8707@blackhole.kfki.hu>
+References: <1378841015-23295-1-git-send-email-gustavo@zacarias.com.ar> <1378841015-23295-2-git-send-email-gustavo@zacarias.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+To: Gustavo Zacarias <gustavo@zacarias.com.ar>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48956 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:37139 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752614Ab3INTZX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Sep 2013 15:25:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20130913010416.GA8656@linuxace.com>
+	id S1755914Ab3IONAi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Sep 2013 09:00:38 -0400
+In-Reply-To: <1378841015-23295-2-git-send-email-gustavo@zacarias.com.ar>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 12, 2013 at 06:04:16PM -0700, Phil Oester wrote:
-> In commit 58a317f1 (netfilter: ipv6: add IPv6 NAT support), icmpv6_manip_pkt
-> was added with an incorrect comparison of ICMP codes to types.  This causes
-> problems when using NAT rules with the --random option.  Correct the
-> comparison.
-> 
-> This closes netfilter bugzilla #851, reported by Alexander Neumann.
+On Tue, 10 Sep 2013, Gustavo Zacarias wrote:
 
-Applied, thanks Phil.
+> Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+> ---
+>  configure.ac | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 6b64576..6d06ef5 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -14,7 +14,7 @@ LTDL_INIT([nonrecursive])
+>  
+>  dnl Shortcut: Linux supported alone
+>  case "$host" in
+> -*-*-linux*) ;;
+> +*-*-linux* | *-*-uclinux*) ;;
+>  *) AC_MSG_ERROR([Linux systems supported exclusively!]);;
+>  esac
+>  
+> -- 
+> 1.8.1.5
+
+Patch is applied, thanks.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
