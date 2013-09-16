@@ -1,51 +1,82 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v5] netfilter: ipset: Fix serious failure in CIDR
- tracking
-Date: Mon, 16 Sep 2013 14:22:36 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309161416040.10847@blackhole.kfki.hu>
-References: <1379149553-18945-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309151500440.8707@blackhole.kfki.hu> <2364787.0VxS47rTg4@gentoovm>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Eric Leblond <eric@regit.org>
+Subject: [nftables PATCH 2/4] Suppress non working examples.
+Date: Mon, 16 Sep 2013 18:27:36 +0200
+Message-ID: <1379348858-29187-3-git-send-email-eric@regit.org>
+References: <1379348858-29187-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:57809 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292Ab3IPMWi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Sep 2013 08:22:38 -0400
-In-Reply-To: <2364787.0VxS47rTg4@gentoovm>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:37450 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614Ab3IPRHn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Sep 2013 13:07:43 -0400
+In-Reply-To: <1379348858-29187-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 16 Sep 2013, Oliver wrote:
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ files/nftables/ipv4-raw      | 6 ------
+ files/nftables/ipv4-security | 7 -------
+ files/nftables/ipv6-raw      | 6 ------
+ files/nftables/ipv6-security | 7 -------
+ 4 files changed, 26 deletions(-)
+ delete mode 100644 files/nftables/ipv4-raw
+ delete mode 100644 files/nftables/ipv4-security
+ delete mode 100644 files/nftables/ipv6-raw
+ delete mode 100644 files/nftables/ipv6-security
 
-> On Sunday 15 September 2013 15:01:36 Jozsef Kadlecsik wrote:
-> > Patch is applied, thanks. I'm going to release a new ipset version next
-> > week.
-> 
-> Excellent, can you possibly make that a friday, I should have a chance 
-> to get rebased versions of hash:net,net and comments done a few days 
-> before then with in hope of getting one or t'other committed.
-
-The release can wait till Friday.
- 
-> Also, I'd very much like to see this bugfix in the stable kernels, I'm not 
-> exactly sure what the etiquette is on getting it into the pre-requisite 
-> mainline fastest? do I submit it to DaveM's net mailing list or straight to 
-> LKML, or something else entirely?
-
-The normal way is that I collect the patches and send them to Pablo who 
-then submits those to Dave.
-
-It turned out that the stable kernels lack a lot of bugfixes, so for a 
-couple of days I have been working on identifying the missing patches. 
-Some backporting is required, so it'll still take some time for me to 
-complete and update the trees.
-
-Best regards,
-Jozsef
+diff --git a/files/nftables/ipv4-raw b/files/nftables/ipv4-raw
+deleted file mode 100644
+index 6bc2181..0000000
+--- a/files/nftables/ipv4-raw
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#! nft -f
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+-table raw {
+-	chain prerouting	{ hook NF_INET_PRE_ROUTING	-300; }
+-	chain output		{ hook NF_INET_LOCAL_OUT	-300; }
+-}
+diff --git a/files/nftables/ipv4-security b/files/nftables/ipv4-security
+deleted file mode 100644
+index 3ac5bd2..0000000
+--- a/files/nftables/ipv4-security
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#! nft -f
+-
+-table security {
+-	chain input		{ hook NF_INET_LOCAL_IN		50; }
+-	chain forward		{ hook NF_INET_FORWARD		50; }
+-	chain output		{ hook NF_INET_LOCAL_OUT	50; }
+-}
+diff --git a/files/nftables/ipv6-raw b/files/nftables/ipv6-raw
+deleted file mode 100644
+index 54940ca..0000000
+--- a/files/nftables/ipv6-raw
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#! nft -f
+-
+-table ip6 raw {
+-	chain prerouting	{ hook NF_INET_PRE_ROUTING	-2147483647; }
+-	chain output		{ hook NF_INET_LOCAL_OUT	-2147483647; }
+-}
+diff --git a/files/nftables/ipv6-security b/files/nftables/ipv6-security
+deleted file mode 100644
+index f379bfd..0000000
+--- a/files/nftables/ipv6-security
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#! nft -f
+-
+-table ip6 security {
+-	chain input		{ hook NF_INET_LOCAL_IN		50; }
+-	chain forward		{ hook NF_INET_FORWARD		50; }
+-	chain output		{ hook NF_INET_LOCAL_OUT	50; }
+-}
+-- 
+1.8.4.rc3
+
