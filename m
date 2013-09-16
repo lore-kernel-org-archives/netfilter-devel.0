@@ -1,176 +1,86 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/4] netfilter: ipset: Consistent userspace testing with nomatch flag
-Date: Mon, 16 Sep 2013 20:47:57 +0200
-Message-ID: <1379357279-13361-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 4/4] netfilter: ipset: Fix serious failure in CIDR tracking
+Date: Mon, 16 Sep 2013 20:47:59 +0200
+Message-ID: <1379357279-13361-5-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:56911 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:41335 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751229Ab3IPSsB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Sep 2013 14:48:01 -0400
+	id S1751197Ab3IPSsA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Sep 2013 14:48:00 -0400
 In-Reply-To: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The "nomatch" commandline flag should invert the matching at testing,
-similarly to the --return-nomatch flag of the "set" match of iptables.
-Until now it worked with the elements with "nomatch" flag only. From
-now on it works with elements without the flag too, i.e:
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
- # ipset n test hash:net
- # ipset a test 10.0.0.0/24 nomatch
- # ipset t test 10.0.0.1
- 10.0.0.1 is NOT in set test.
- # ipset t test 10.0.0.1 nomatch
- 10.0.0.1 is in set test.
+This fixes a serious bug affecting all hash types with a net element -
+specifically, if a CIDR value is deleted such that none of the same size
+exist any more, all larger (less-specific) values will then fail to
+match. Adding back any prefix with a CIDR equal to or more specific than
+the one deleted will fix it.
 
- # ipset a test 192.168.0.0/24
- # ipset t test 192.168.0.1
- 192.168.0.1 is in set test.
- # ipset t test 192.168.0.1 nomatch
- 192.168.0.1 is NOT in set test.
+Steps to reproduce:
+ipset -N test hash:net
+ipset -A test 1.1.0.0/16
+ipset -A test 2.2.2.0/24
+ipset -T test 1.1.1.1           #1.1.1.1 IS in set
+ipset -D test 2.2.2.0/24
+ipset -T test 1.1.1.1           #1.1.1.1 IS NOT in set
 
- Before the patch the results were
+This is due to the fact that the nets counter was unconditionally
+decremented prior to the iteration that shifts up the entries. Now, we
+first check if there is a proceeding entry and if not, decrement it and
+return. Otherwise, we proceed to iterate and then zero the last element,
+which, in most cases, will already be zero.
 
- ...
- # ipset t test 192.168.0.1
- 192.168.0.1 is in set test.
- # ipset t test 192.168.0.1 nomatch
- 192.168.0.1 is in set test.
-
+Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      |    6 ++++--
- net/netfilter/ipset/ip_set_core.c           |    3 +--
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 ++--
- net/netfilter/ipset/ip_set_hash_net.c       |    4 ++--
- net/netfilter/ipset/ip_set_hash_netiface.c  |    4 ++--
- net/netfilter/ipset/ip_set_hash_netport.c   |    4 ++--
- 6 files changed, 13 insertions(+), 12 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h |   28 ++++++++++++++++------------
+ 1 files changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index d80e275..9ac9fbd 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -296,10 +296,12 @@ ip_set_eexist(int ret, u32 flags)
- 
- /* Match elements marked with nomatch */
- static inline bool
--ip_set_enomatch(int ret, u32 flags, enum ipset_adt adt)
-+ip_set_enomatch(int ret, u32 flags, enum ipset_adt adt, struct ip_set *set)
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 57beb17..707bc52 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -325,18 +325,22 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length)
+ static void
+ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length)
  {
- 	return adt == IPSET_TEST &&
--	       ret == -ENOTEMPTY && ((flags >> 16) & IPSET_FLAG_NOMATCH);
-+	       (set->type->features & IPSET_TYPE_NOMATCH) &&
-+	       ((flags >> 16) & IPSET_FLAG_NOMATCH) &&
-+	       (ret > 0 || ret == -ENOTEMPTY);
+-	u8 i, j;
+-
+-	for (i = 0; i < nets_length - 1 && h->nets[i].cidr != cidr; i++)
+-		;
+-	h->nets[i].nets--;
+-
+-	if (h->nets[i].nets != 0)
+-		return;
+-
+-	for (j = i; j < nets_length - 1 && h->nets[j].nets; j++) {
+-		h->nets[j].cidr = h->nets[j + 1].cidr;
+-		h->nets[j].nets = h->nets[j + 1].nets;
++	u8 i, j, net_end = nets_length - 1;
++
++	for (i = 0; i < nets_length; i++) {
++	        if (h->nets[i].cidr != cidr)
++	                continue;
++                if (h->nets[i].nets > 1 || i == net_end ||
++                    h->nets[i + 1].nets == 0) {
++                        h->nets[i].nets--;
++                        return;
++                }
++                for (j = i; j < net_end && h->nets[j].nets; j++) {
++		        h->nets[j].cidr = h->nets[j + 1].cidr;
++		        h->nets[j].nets = h->nets[j + 1].nets;
++                }
++                h->nets[j].nets = 0;
++                return;
+ 	}
  }
- 
- /* Check the NLA_F_NET_BYTEORDER flag */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index f771390..c8c303c 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1489,8 +1489,7 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
- 	if (ret == -EAGAIN)
- 		ret = 1;
- 
--	return (ret < 0 && ret != -ENOTEMPTY) ? ret :
--		ret > 0 ? 0 : -IPSET_ERR_EXIST;
-+	return ret > 0 ? 0 : -IPSET_ERR_EXIST;
- }
- 
- /* Get headed data of a set */
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index c6a5253..f15f3e2 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -260,7 +260,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 		e.ip = htonl(ip);
- 		e.ip2 = htonl(ip2_from & ip_set_hostmask(e.cidr + 1));
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
-@@ -544,7 +544,7 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index da740ce..223e9f5 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -199,7 +199,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
- 		e.ip = htonl(ip & ip_set_hostmask(e.cidr));
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret:
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
-@@ -396,7 +396,7 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	ret = adtfn(set, &e, &ext, &ext, flags);
- 
--	return ip_set_enomatch(ret, flags, adt) ? 1 :
-+	return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 	       ip_set_eexist(ret, flags) ? 0 : ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 84ae6f6..7d798d5 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -368,7 +368,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
- 		e.ip = htonl(ip & ip_set_hostmask(e.cidr));
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
-@@ -634,7 +634,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	ret = adtfn(set, &e, &ext, &ext, flags);
- 
--	return ip_set_enomatch(ret, flags, adt) ? 1 :
-+	return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 	       ip_set_eexist(ret, flags) ? 0 : ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 9a08698..09d6690 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -244,7 +244,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (adt == IPSET_TEST || !(with_ports || tb[IPSET_ATTR_IP_TO])) {
- 		e.ip = htonl(ip & ip_set_hostmask(e.cidr + 1));
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
-@@ -489,7 +489,7 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
- 		ret = adtfn(set, &e, &ext, &ext, flags);
--		return ip_set_enomatch(ret, flags, adt) ? 1 :
-+		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
- 	}
- 
+ #endif
 -- 
 1.7.0.4
 
