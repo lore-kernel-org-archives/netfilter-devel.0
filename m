@@ -1,86 +1,46 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 4/4] netfilter: ipset: Fix serious failure in CIDR tracking
-Date: Mon, 16 Sep 2013 20:47:59 +0200
-Message-ID: <1379357279-13361-5-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/4] ipset patches for nf
+Date: Mon, 16 Sep 2013 20:47:55 +0200
+Message-ID: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:41335 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:56912 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197Ab3IPSsA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751207Ab3IPSsA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 16 Sep 2013 14:48:00 -0400
-In-Reply-To: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Hi Pablo,
 
-This fixes a serious bug affecting all hash types with a net element -
-specifically, if a CIDR value is deleted such that none of the same size
-exist any more, all larger (less-specific) values will then fail to
-match. Adding back any prefix with a CIDR equal to or more specific than
-the one deleted will fix it.
+Next follows the ipset related fixes for the nf tree. Please consider applying them.
 
-Steps to reproduce:
-ipset -N test hash:net
-ipset -A test 1.1.0.0/16
-ipset -A test 2.2.2.0/24
-ipset -T test 1.1.1.1           #1.1.1.1 IS in set
-ipset -D test 2.2.2.0/24
-ipset -T test 1.1.1.1           #1.1.1.1 IS NOT in set
+Best regards,
+Jozsef
 
-This is due to the fact that the nets counter was unconditionally
-decremented prior to the iteration that shifts up the entries. Now, we
-first check if there is a proceeding entry and if not, decrement it and
-return. Otherwise, we proceed to iterate and then zero the last element,
-which, in most cases, will already be zero.
+The following changes since commit d830f0fa1dd7ca447c38aec82cd44230e0b7ca75:
+  Phil Oester (1):
+        netfilter: nf_nat_proto_icmpv6:: fix wrong comparison in icmpv6_manip_pkt
 
-Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_hash_gen.h |   28 ++++++++++++++++------------
- 1 files changed, 16 insertions(+), 12 deletions(-)
+are available in the git repository at:
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 57beb17..707bc52 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -325,18 +325,22 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length)
- static void
- mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length)
- {
--	u8 i, j;
--
--	for (i = 0; i < nets_length - 1 && h->nets[i].cidr != cidr; i++)
--		;
--	h->nets[i].nets--;
--
--	if (h->nets[i].nets != 0)
--		return;
--
--	for (j = i; j < nets_length - 1 && h->nets[j].nets; j++) {
--		h->nets[j].cidr = h->nets[j + 1].cidr;
--		h->nets[j].nets = h->nets[j + 1].nets;
-+	u8 i, j, net_end = nets_length - 1;
-+
-+	for (i = 0; i < nets_length; i++) {
-+	        if (h->nets[i].cidr != cidr)
-+	                continue;
-+                if (h->nets[i].nets > 1 || i == net_end ||
-+                    h->nets[i + 1].nets == 0) {
-+                        h->nets[i].nets--;
-+                        return;
-+                }
-+                for (j = i; j < net_end && h->nets[j].nets; j++) {
-+		        h->nets[j].cidr = h->nets[j + 1].cidr;
-+		        h->nets[j].nets = h->nets[j + 1].nets;
-+                }
-+                h->nets[j].nets = 0;
-+                return;
- 	}
- }
- #endif
--- 
-1.7.0.4
+  git://blackhole.kfki.hu/nf master
 
+Jozsef Kadlecsik (3):
+      netfilter: ipset: Skip really non-first fragments for IPv6 when getting port/protocol
+      netfilter: ipset: Consistent userspace testing with nomatch flag
+      netfilter: ipset: Validate the set family and not the set type family at swapping
+
+Oliver Smith (1):
+      netfilter: ipset: Fix serious failure in CIDR tracking
+
+ include/linux/netfilter/ipset/ip_set.h      |    6 +++-
+ net/netfilter/ipset/ip_set_core.c           |    5 +--
+ net/netfilter/ipset/ip_set_getport.c        |    4 +-
+ net/netfilter/ipset/ip_set_hash_gen.h       |   28 +++++++++++++++-----------
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 +-
+ net/netfilter/ipset/ip_set_hash_net.c       |    4 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c  |    4 +-
+ net/netfilter/ipset/ip_set_hash_netport.c   |    4 +-
+ 8 files changed, 32 insertions(+), 27 deletions(-)
