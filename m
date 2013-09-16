@@ -1,39 +1,176 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 3/4] netfilter: ipset: Validate the set family and not the set type family at swapping
-Date: Mon, 16 Sep 2013 20:47:58 +0200
-Message-ID: <1379357279-13361-4-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/4] netfilter: ipset: Consistent userspace testing with nomatch flag
+Date: Mon, 16 Sep 2013 20:47:57 +0200
+Message-ID: <1379357279-13361-3-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:56913 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:56911 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799Ab3IPSsA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Sep 2013 14:48:00 -0400
+	id S1751229Ab3IPSsB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Sep 2013 14:48:01 -0400
 In-Reply-To: <1379357279-13361-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This closes netfilter bugzilla #843, reported by Quentin Armitage.
+The "nomatch" commandline flag should invert the matching at testing,
+similarly to the --return-nomatch flag of the "set" match of iptables.
+Until now it worked with the elements with "nomatch" flag only. From
+now on it works with elements without the flag too, i.e:
+
+ # ipset n test hash:net
+ # ipset a test 10.0.0.0/24 nomatch
+ # ipset t test 10.0.0.1
+ 10.0.0.1 is NOT in set test.
+ # ipset t test 10.0.0.1 nomatch
+ 10.0.0.1 is in set test.
+
+ # ipset a test 192.168.0.0/24
+ # ipset t test 192.168.0.1
+ 192.168.0.1 is in set test.
+ # ipset t test 192.168.0.1 nomatch
+ 192.168.0.1 is NOT in set test.
+
+ Before the patch the results were
+
+ ...
+ # ipset t test 192.168.0.1
+ 192.168.0.1 is in set test.
+ # ipset t test 192.168.0.1 nomatch
+ 192.168.0.1 is in set test.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h      |    6 ++++--
+ net/netfilter/ipset/ip_set_core.c           |    3 +--
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 ++--
+ net/netfilter/ipset/ip_set_hash_net.c       |    4 ++--
+ net/netfilter/ipset/ip_set_hash_netiface.c  |    4 ++--
+ net/netfilter/ipset/ip_set_hash_netport.c   |    4 ++--
+ 6 files changed, 13 insertions(+), 12 deletions(-)
 
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index d80e275..9ac9fbd 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -296,10 +296,12 @@ ip_set_eexist(int ret, u32 flags)
+ 
+ /* Match elements marked with nomatch */
+ static inline bool
+-ip_set_enomatch(int ret, u32 flags, enum ipset_adt adt)
++ip_set_enomatch(int ret, u32 flags, enum ipset_adt adt, struct ip_set *set)
+ {
+ 	return adt == IPSET_TEST &&
+-	       ret == -ENOTEMPTY && ((flags >> 16) & IPSET_FLAG_NOMATCH);
++	       (set->type->features & IPSET_TYPE_NOMATCH) &&
++	       ((flags >> 16) & IPSET_FLAG_NOMATCH) &&
++	       (ret > 0 || ret == -ENOTEMPTY);
+ }
+ 
+ /* Check the NLA_F_NET_BYTEORDER flag */
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index c8c303c..f2e30fb 100644
+index f771390..c8c303c 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1052,7 +1052,7 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
- 	 * Not an artificial restriction anymore, as we must prevent
- 	 * possible loops created by swapping in setlist type of sets. */
- 	if (!(from->type->features == to->type->features &&
--	      from->type->family == to->type->family))
-+	      from->family == to->family))
- 		return -IPSET_ERR_TYPE_MISMATCH;
+@@ -1489,8 +1489,7 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 	if (ret == -EAGAIN)
+ 		ret = 1;
  
- 	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
+-	return (ret < 0 && ret != -ENOTEMPTY) ? ret :
+-		ret > 0 ? 0 : -IPSET_ERR_EXIST;
++	return ret > 0 ? 0 : -IPSET_ERR_EXIST;
+ }
+ 
+ /* Get headed data of a set */
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index c6a5253..f15f3e2 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -260,7 +260,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		e.ip = htonl(ip);
+ 		e.ip2 = htonl(ip2_from & ip_set_hostmask(e.cidr + 1));
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+@@ -544,7 +544,7 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index da740ce..223e9f5 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -199,7 +199,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
+ 		e.ip = htonl(ip & ip_set_hostmask(e.cidr));
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret:
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+@@ -396,7 +396,7 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	ret = adtfn(set, &e, &ext, &ext, flags);
+ 
+-	return ip_set_enomatch(ret, flags, adt) ? 1 :
++	return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 	       ip_set_eexist(ret, flags) ? 0 : ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 84ae6f6..7d798d5 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -368,7 +368,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
+ 		e.ip = htonl(ip & ip_set_hostmask(e.cidr));
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+@@ -634,7 +634,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	ret = adtfn(set, &e, &ext, &ext, flags);
+ 
+-	return ip_set_enomatch(ret, flags, adt) ? 1 :
++	return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 	       ip_set_eexist(ret, flags) ? 0 : ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index 9a08698..09d6690 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -244,7 +244,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (adt == IPSET_TEST || !(with_ports || tb[IPSET_ATTR_IP_TO])) {
+ 		e.ip = htonl(ip & ip_set_hostmask(e.cidr + 1));
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+@@ -489,7 +489,7 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+-		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
+ 		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
 -- 
 1.7.0.4
 
