@@ -1,43 +1,28 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [nftables PATCH 3/4] Update chain creation format.
-Date: Mon, 16 Sep 2013 22:21:44 +0200
-Message-ID: <20130916202144.GE9713@breakpoint.cc>
-References: <1379348858-29187-1-git-send-email-eric@regit.org>
- <1379348858-29187-4-git-send-email-eric@regit.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH] src: xml: refactor XML parsing code
+Date: Mon, 16 Sep 2013 22:44:00 +0200
+Message-ID: <20130916204400.GA11246@localhost>
+References: <20130916182451.17068.80471.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37935 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750880Ab3IPUVq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Sep 2013 16:21:46 -0400
+Received: from mail.us.es ([193.147.175.20]:41670 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750948Ab3IPUoH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Sep 2013 16:44:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1379348858-29187-4-git-send-email-eric@regit.org>
+In-Reply-To: <20130916182451.17068.80471.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond <eric@regit.org> wrote:
-> type keyword is now mandatory when creating a new chain. This
-> patc halso implement the change required following the usage of human
-> notation in hook.
+On Mon, Sep 16, 2013 at 08:24:51PM +0200, Arturo Borrero Gonzalez wrote:
+> This patch refactors nft_*_xml_parse to provide a new intermediate function
+> nft_mxml_parse_* which will allow us to navigate an entire XML tree
+> containing a ruleset without xml2text2xml conversions.
+> 
+> While at it, I added a helper to build the XML tree and validate the top node
+> name.
 
-> diff --git a/files/nftables/bridge-filter b/files/nftables/bridge-filter
-> index ca306d4..6ed303e 100644
-> --- a/files/nftables/bridge-filter
-> +++ b/files/nftables/bridge-filter
-> @@ -1,7 +1,7 @@
->  #! nft -f
->  
->  table bridge filter {
-> -	chain input		{ hook NF_INET_LOCAL_IN		-200; }
-> -	chain forward		{ hook NF_INET_FORWARD		-200; }
-> -	chain output		{ hook NF_INET_LOCAL_OUT	200; }
-> +	chain input		{ table filter hook input priority -200; }
-> +	chain forward		{ table filter hook forward priority -200; }
-> +	chain output		{ table filter hook output priority 200; }
->  }
-
-Did you mean 'type filter' instead of 'table' here?
+Applied, thanks.
