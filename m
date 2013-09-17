@@ -1,1348 +1,1217 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: [PATCH 6/6] ipset: Add new userspace set revisions for comment support
-Date: Tue, 17 Sep 2013 15:13:25 +0200
-Message-ID: <1379423605-22777-7-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: "V. Lavrov" <lve@guap.ru>
+Subject: [PATCH 1/1] ipset: Add net namespace for ipset
+Date: Tue, 17 Sep 2013 17:36:03 +0400
+Message-ID: <52385AC3.7010607@guap.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------090009070206010004050809"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:60546 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683Ab3IQNPv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Sep 2013 09:15:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.uptheinter.net (Postfix) with ESMTP id 43839A32BB
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Sep 2013 14:15:50 +0100 (BST)
-Received: from mail.uptheinter.net ([127.0.0.1])
-	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id vA_f5v3Drwsn for <netfilter-devel@vger.kernel.org>;
-	Tue, 17 Sep 2013 14:15:10 +0100 (BST)
-In-Reply-To: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Received: from mx1.guap.ru ([91.151.188.3]:25578 "EHLO ns1.guap.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753112Ab3IQNgH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Sep 2013 09:36:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+This is a multi-part message in MIME format.
+--------------090009070206010004050809
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This introduces new revisions of all hash and bitmap ipsets to
-complement the comment functionality introduced into the kernel modules.
+This patch adds netns support for ipset.
 
-Currently all sets have a compile-time limit of 255 characters including
-\0. This can otherwise be arbitrarily modified.
+Major changes were made in ip_set_core.c and ip_set.h.Added the initialization and
+destruction of the network namespace for ipset subsystem.
+In the prototypes of public functions ip_set added parameter "struct net*".
 
-Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
----
- lib/ipset_bitmap_ip.c      | 114 ++++++++++++++++++++++++++
- lib/ipset_bitmap_ipmac.c   | 118 +++++++++++++++++++++++++++
- lib/ipset_bitmap_port.c    | 107 +++++++++++++++++++++++++
- lib/ipset_hash_ip.c        | 138 ++++++++++++++++++++++++++++++++
- lib/ipset_hash_ipport.c    | 161 +++++++++++++++++++++++++++++++++++++
- lib/ipset_hash_ipportnet.c | 195 +++++++++++++++++++++++++++++++++++++++++++++
- lib/ipset_hash_net.c       | 145 +++++++++++++++++++++++++++++++++
- lib/ipset_hash_netnet.c    |  14 +++-
- lib/ipset_hash_netport.c   | 158 ++++++++++++++++++++++++++++++++++++
- 9 files changed, 1148 insertions(+), 2 deletions(-)
+The remaining corrections related to the change prototypes of public functions ip_set_xxx.
 
-diff --git a/lib/ipset_bitmap_ip.c b/lib/ipset_bitmap_ip.c
-index a4726db..3b58661 100644
---- a/lib/ipset_bitmap_ip.c
-+++ b/lib/ipset_bitmap_ip.c
-@@ -201,9 +201,123 @@ static struct ipset_type ipset_bitmap_ip1 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg bitmap_ip_create_args2[] = {
-+	{ .name = { "range", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_netrange,	.print = ipset_print_ip,
-+	},
-+	{ .name = { "netmask", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_NETMASK,
-+	  .parse = ipset_parse_netmask,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Backward compatibility */
-+	{ .name = { "from", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_single_ip,
-+	},
-+	{ .name = { "to", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP_TO,
-+	  .parse = ipset_parse_single_ip,
-+	},
-+	{ .name = { "network", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_net,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg bitmap_ip_add_args2[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const char bitmap_ip_usage2[] =
-+"create SETNAME bitmap:ip range IP/CIDR|FROM-TO\n"
-+"               [netmask CIDR] [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP|IP/CIDR|FROM-TO [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP|IP/CIDR|FROM-TO\n"
-+"test   SETNAME IP\n\n"
-+"where IP, FROM and TO are IPv4 addresses (or hostnames),\n"
-+"      CIDR is a valid IPv4 CIDR prefix.\n";
-+
-+static struct ipset_type ipset_bitmap_ip2 = {
-+	.name = "bitmap:ip",
-+	.alias = { "ipmap", NULL },
-+	.revision = 2,
-+	.family = NFPROTO_IPV4,
-+	.dimension = IPSET_DIM_ONE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = bitmap_ip_create_args2,
-+		[IPSET_ADD] = bitmap_ip_add_args2,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_NETMASK)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+
-+	.usage = bitmap_ip_usage2,
-+	.description = "comments support",
-+};
- void _init(void);
- void _init(void)
- {
- 	ipset_type_add(&ipset_bitmap_ip0);
- 	ipset_type_add(&ipset_bitmap_ip1);
-+	ipset_type_add(&ipset_bitmap_ip2);
- }
-diff --git a/lib/ipset_bitmap_ipmac.c b/lib/ipset_bitmap_ipmac.c
-index 67217a9..34f9b24 100644
---- a/lib/ipset_bitmap_ipmac.c
-+++ b/lib/ipset_bitmap_ipmac.c
-@@ -207,9 +207,127 @@ static struct ipset_type ipset_bitmap_ipmac1 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg bitmap_ipmac_create_args2[] = {
-+	{ .name = { "range", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_netrange,	.print = ipset_print_ip,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Backward compatibility */
-+	{ .name = { "from", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_single_ip,
-+	},
-+	{ .name = { "to", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP_TO,
-+	  .parse = ipset_parse_single_ip,
-+	},
-+	{ .name = { "network", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_net,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg bitmap_ipmac_add_args2[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const char bitmap_ipmac_usage2[] =
-+"create SETNAME bitmap:ip,mac range IP/CIDR|FROM-TO\n"
-+"               [matchunset] [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP[,MAC] [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP[,MAC]\n"
-+"test   SETNAME IP[,MAC]\n\n"
-+"where IP, FROM and TO are IPv4 addresses (or hostnames),\n"
-+"      CIDR is a valid IPv4 CIDR prefix,\n"
-+"      MAC is a valid MAC address.\n";
-+
-+static struct ipset_type ipset_bitmap_ipmac2 = {
-+	.name = "bitmap:ip,mac",
-+	.alias = { "macipmap", NULL },
-+	.revision = 2,
-+	.family = NFPROTO_IPV4,
-+	.dimension = IPSET_DIM_TWO,
-+	.last_elem_optional = true,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_single_ip,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+		[IPSET_DIM_TWO - 1] = {
-+			.parse = ipset_parse_ether,
-+			.print = ipset_print_ether,
-+			.opt = IPSET_OPT_ETHER
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = bitmap_ipmac_create_args2,
-+		[IPSET_ADD] = bitmap_ipmac_add_args2,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_ETHER)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_ETHER),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_ETHER),
-+	},
-+
-+	.usage = bitmap_ipmac_usage2,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
- 	ipset_type_add(&ipset_bitmap_ipmac0);
- 	ipset_type_add(&ipset_bitmap_ipmac1);
-+	ipset_type_add(&ipset_bitmap_ipmac2);
- }
-diff --git a/lib/ipset_bitmap_port.c b/lib/ipset_bitmap_port.c
-index a706d80..f42a3d2 100644
---- a/lib/ipset_bitmap_port.c
-+++ b/lib/ipset_bitmap_port.c
-@@ -185,9 +185,116 @@ static struct ipset_type ipset_bitmap_port1 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg bitmap_port_create_args2[] = {
-+	{ .name = { "range", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PORT,
-+	  .parse = ipset_parse_tcp_udp_port,	.print = ipset_print_port,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Backward compatibility */
-+	{ .name = { "from", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PORT,
-+	  .parse = ipset_parse_single_tcp_port,
-+	},
-+	{ .name = { "to", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PORT_TO,
-+	  .parse = ipset_parse_single_tcp_port,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg bitmap_port_add_args2[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const char bitmap_port_usage2[] =
-+"create SETNAME bitmap:port range [PROTO:]FROM-TO\n"
-+"               [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME [PROTO:]PORT|FROM-TO [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME [PROTO:]PORT|FROM-TO\n"
-+"test   SETNAME [PROTO:]PORT\n\n"
-+"where PORT, FROM and TO are port numbers or port names from /etc/services.\n"
-+"PROTO is only needed if a service name is used and it does not exist as a TCP service;\n"
-+"it isn't used otherwise with the bitmap.\n";
-+
-+static struct ipset_type ipset_bitmap_port2 = {
-+	.name = "bitmap:port",
-+	.alias = { "portmap", NULL },
-+	.revision = 2,
-+	.family = NFPROTO_UNSPEC,
-+	.dimension = IPSET_DIM_ONE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_tcp_udp_port,
-+			.print = ipset_print_port,
-+			.opt = IPSET_OPT_PORT
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = bitmap_port_create_args2,
-+		[IPSET_ADD] = bitmap_port_add_args2,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_PORT),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_PORT),
-+	},
-+
-+	.usage = bitmap_port_usage2,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
- 	ipset_type_add(&ipset_bitmap_port0);
- 	ipset_type_add(&ipset_bitmap_port1);
-+	ipset_type_add(&ipset_bitmap_port2);
- }
-diff --git a/lib/ipset_hash_ip.c b/lib/ipset_hash_ip.c
-index 19688db..d910d1f 100644
---- a/lib/ipset_hash_ip.c
-+++ b/lib/ipset_hash_ip.c
-@@ -246,9 +246,147 @@ static struct ipset_type ipset_hash_ip1 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg hash_ip_create_args2[] = {
-+	{ .name = { "family", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,		.print = ipset_print_family,
-+	},
-+	/* Alias: family inet */
-+	{ .name = { "-4", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	/* Alias: family inet6 */
-+	{ .name = { "-6", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	{ .name = { "hashsize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "maxelem", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "netmask", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_NETMASK,
-+	  .parse = ipset_parse_netmask,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Ignored options: backward compatibilty */
-+	{ .name = { "probes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PROBES,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "resize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_RESIZE,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "gc", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_GC,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_ip_add_args2[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const char hash_ip_usage2[] =
-+"create SETNAME hash:ip\n"
-+"		[family inet|inet6]\n"
-+"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [netmask CIDR] [timeout VALUE]\n"
-+"               [counters] [comments]\n"
-+"add    SETNAME IP [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP\n"
-+"test   SETNAME IP\n\n"
-+"where depending on the INET family\n"
-+"      IP is a valid IPv4 or IPv6 address (or hostname),\n"
-+"      CIDR is a valid IPv4 or IPv6 CIDR prefix.\n"
-+"      Adding/deleting multiple elements in IP/CIDR or FROM-TO form\n"
-+"      is supported for IPv4.\n";
-+
-+static struct ipset_type ipset_hash_ip2 = {
-+	.name = "hash:ip",
-+	.alias = { "iphash", NULL },
-+	.revision = 2,
-+	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_ONE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip4_single6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = hash_ip_create_args2,
-+		[IPSET_ADD] = hash_ip_add_args2,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
-+			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_NETMASK)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+
-+	.usage = hash_ip_usage2,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
- 	ipset_type_add(&ipset_hash_ip0);
- 	ipset_type_add(&ipset_hash_ip1);
-+	ipset_type_add(&ipset_hash_ip2);
- }
-diff --git a/lib/ipset_hash_ipport.c b/lib/ipset_hash_ipport.c
-index b1c9f72..61848d5 100644
---- a/lib/ipset_hash_ipport.c
-+++ b/lib/ipset_hash_ipport.c
-@@ -294,9 +294,170 @@ static struct ipset_type ipset_hash_ipport2 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg hash_ipport_create_args3[] = {
-+	{ .name = { "family", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,		.print = ipset_print_family,
-+	},
-+	/* Alias: family inet */
-+	{ .name = { "-4", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	/* Alias: family inet6 */
-+	{ .name = { "-6", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	{ .name = { "hashsize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "maxelem", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Backward compatibility */
-+	{ .name = { "probes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PROBES,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "resize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_RESIZE,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "from", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ .name = { "to", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP_TO,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ .name = { "network", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_ipport_add_args3[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const char hash_ipport_usage3[] =
-+"create SETNAME hash:ip,port\n"
-+"		[family inet|inet6]\n"
-+"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP,PROTO:PORT [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP,PROTO:PORT\n"
-+"test   SETNAME IP,PROTO:PORT\n\n"
-+"where depending on the INET family\n"
-+"      IP is a valid IPv4 or IPv6 address (or hostname).\n"
-+"      Adding/deleting multiple elements in IP/CIDR or FROM-TO form\n"
-+"      is supported for IPv4.\n"
-+"      Adding/deleting multiple elements with TCP/SCTP/UDP/UDPLITE\n"
-+"      port range is supported both for IPv4 and IPv6.\n";
-+
-+static struct ipset_type ipset_hash_ipport3 = {
-+	.name = "hash:ip,port",
-+	.alias = { "ipporthash", NULL },
-+	.revision = 3,
-+	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_TWO,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip4_single6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+		[IPSET_DIM_TWO - 1] = {
-+			.parse = ipset_parse_proto_port,
-+			.print = ipset_print_proto_port,
-+			.opt = IPSET_OPT_PORT
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = hash_ipport_create_args3,
-+		[IPSET_ADD] = hash_ipport_add_args3,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
-+			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO),
-+	},
-+
-+	.usage = hash_ipport_usage3,
-+	.usagefn = ipset_port_usage,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
- 	ipset_type_add(&ipset_hash_ipport1);
- 	ipset_type_add(&ipset_hash_ipport2);
-+	ipset_type_add(&ipset_hash_ipport3);
- }
-diff --git a/lib/ipset_hash_ipportnet.c b/lib/ipset_hash_ipportnet.c
-index 2c2e014..0ea1f96 100644
---- a/lib/ipset_hash_ipportnet.c
-+++ b/lib/ipset_hash_ipportnet.c
-@@ -544,6 +544,200 @@ static struct ipset_type ipset_hash_ipportnet4 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg hash_ipportnet_create_args5[] = {
-+	{ .name = { "family", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,		.print = ipset_print_family,
-+	},
-+	/* Alias: family inet */
-+	{ .name = { "-4", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	/* Alias: family inet6 */
-+	{ .name = { "-6", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	{ .name = { "hashsize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "maxelem", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Backward compatibility */
-+	{ .name = { "probes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PROBES,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "resize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_RESIZE,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "from", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ .name = { "to", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP_TO,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ .name = { "network", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_ipportnet_add_args5[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_ipportnet_test_args5[] = {
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ },
-+};
-+
-+static const char hash_ipportnet_usage5[] =
-+"create SETNAME hash:ip,port,net\n"
-+"		[family inet|inet6]\n"
-+"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP,PROTO:PORT,IP[/CIDR] [timeout VALUE] [nomatch]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP,PROTO:PORT,IP[/CIDR]\n"
-+"test   SETNAME IP,PROTO:PORT,IP[/CIDR]\n\n"
-+"where depending on the INET family\n"
-+"      IP are valid IPv4 or IPv6 addresses (or hostnames),\n"
-+"      CIDR is a valid IPv4 or IPv6 CIDR prefix.\n"
-+"      Adding/deleting multiple elements in IP/CIDR or FROM-TO form\n"
-+"      in both IP components are supported for IPv4.\n"
-+"      Adding/deleting multiple elements with TCP/SCTP/UDP/UDPLITE\n"
-+"      port range is supported both for IPv4 and IPv6.\n";
-+
-+static struct ipset_type ipset_hash_ipportnet5 = {
-+	.name = "hash:ip,port,net",
-+	.alias = { "ipportnethash", NULL },
-+	.revision = 5,
-+	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_THREE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip4_single6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+		[IPSET_DIM_TWO - 1] = {
-+			.parse = ipset_parse_proto_port,
-+			.print = ipset_print_proto_port,
-+			.opt = IPSET_OPT_PORT
-+		},
-+		[IPSET_DIM_THREE - 1] = {
-+			.parse = ipset_parse_ip4_net6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP2
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = hash_ipportnet_create_args5,
-+		[IPSET_ADD] = hash_ipportnet_add_args5,
-+		[IPSET_TEST] = hash_ipportnet_test_args5,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
-+			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2)
-+			| IPSET_FLAG(IPSET_OPT_CIDR2)
-+			| IPSET_FLAG(IPSET_OPT_IP2_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2)
-+			| IPSET_FLAG(IPSET_OPT_CIDR2)
-+			| IPSET_FLAG(IPSET_OPT_IP2_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_IP2)
-+			| IPSET_FLAG(IPSET_OPT_CIDR2)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH),
-+	},
-+
-+	.usage = hash_ipportnet_usage5,
-+	.usagefn = ipset_port_usage,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
-@@ -551,4 +745,5 @@ void _init(void)
- 	ipset_type_add(&ipset_hash_ipportnet2);
- 	ipset_type_add(&ipset_hash_ipportnet3);
- 	ipset_type_add(&ipset_hash_ipportnet4);
-+	ipset_type_add(&ipset_hash_ipportnet5);
- }
-diff --git a/lib/ipset_hash_net.c b/lib/ipset_hash_net.c
-index a80d732..0b13304 100644
---- a/lib/ipset_hash_net.c
-+++ b/lib/ipset_hash_net.c
-@@ -366,6 +366,150 @@ static struct ipset_type ipset_hash_net3 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg hash_net_create_args4[] = {
-+	{ .name = { "family", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,		.print = ipset_print_family,
-+	},
-+	/* Alias: family inet */
-+	{ .name = { "-4", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	/* Alias: family inet6 */
-+	{ .name = { "-6", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	{ .name = { "hashsize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "maxelem", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	/* Ignored options: backward compatibilty */
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "probes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PROBES,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ .name = { "resize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_RESIZE,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_net_add_args4[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_net_test_args4[] = {
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ },
-+};
-+
-+static const char hash_net_usage4[] =
-+"create SETNAME hash:net\n"
-+"		[family inet|inet6]\n"
-+"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP[/CIDR]|FROM-TO [timeout VALUE] [nomatch]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP[/CIDR]|FROM-TO\n"
-+"test   SETNAME IP[/CIDR]\n\n"
-+"where depending on the INET family\n"
-+"      IP is an IPv4 or IPv6 address (or hostname),\n"
-+"      CIDR is a valid IPv4 or IPv6 CIDR prefix.\n"
-+"      IP range is not supported with IPv6.\n";
-+
-+static struct ipset_type ipset_hash_net4 = {
-+	.name = "hash:net",
-+	.alias = { "nethash", NULL },
-+	.revision = 4,
-+	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_ONE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip4_net6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = hash_net_create_args4,
-+		[IPSET_ADD] = hash_net_add_args4,
-+		[IPSET_TEST] = hash_net_test_args4,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
-+			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH),
-+	},
-+
-+	.usage = hash_net_usage4,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
-@@ -373,4 +517,5 @@ void _init(void)
- 	ipset_type_add(&ipset_hash_net1);
- 	ipset_type_add(&ipset_hash_net2);
- 	ipset_type_add(&ipset_hash_net3);
-+	ipset_type_add(&ipset_hash_net4);
- }
-diff --git a/lib/ipset_hash_netnet.c b/lib/ipset_hash_netnet.c
-index 5cc5a40..fff7909 100644
---- a/lib/ipset_hash_netnet.c
-+++ b/lib/ipset_hash_netnet.c
-@@ -42,6 +42,10 @@ static const struct ipset_arg hash_netnet_create_args0[] = {
- 	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
- 	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
- 	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
- 	{ },
- };
- 
-@@ -62,6 +66,10 @@ static const struct ipset_arg hash_netnet_add_args0[] = {
- 	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
- 	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
- 	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
- 	{ },
- };
- 
-@@ -123,7 +131,8 @@ static struct ipset_type ipset_hash_netnet0 = {
- 		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
- 			| IPSET_FLAG(IPSET_OPT_MAXELEM)
- 			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
--			| IPSET_FLAG(IPSET_OPT_COUNTERS),
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
- 		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
- 			| IPSET_FLAG(IPSET_OPT_CIDR)
- 			| IPSET_FLAG(IPSET_OPT_IP_TO)
-@@ -133,7 +142,8 @@ static struct ipset_type ipset_hash_netnet0 = {
- 			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
- 			| IPSET_FLAG(IPSET_OPT_NOMATCH)
- 			| IPSET_FLAG(IPSET_OPT_PACKETS)
--			| IPSET_FLAG(IPSET_OPT_BYTES),
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
- 		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
- 			| IPSET_FLAG(IPSET_OPT_CIDR)
- 			| IPSET_FLAG(IPSET_OPT_IP_TO)
-diff --git a/lib/ipset_hash_netport.c b/lib/ipset_hash_netport.c
-index 2b26cf2..a9fe4eb 100644
---- a/lib/ipset_hash_netport.c
-+++ b/lib/ipset_hash_netport.c
-@@ -437,6 +437,163 @@ static struct ipset_type ipset_hash_netport4 = {
- 	.description = "counters support",
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg hash_netport_create_args5[] = {
-+	{ .name = { "family", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,		.print = ipset_print_family,
-+	},
-+	/* Alias: family inet */
-+	{ .name = { "-4", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	/* Alias: family inet6 */
-+	{ .name = { "-6", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
-+	  .parse = ipset_parse_family,
-+	},
-+	{ .name = { "hashsize", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "maxelem", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
-+	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comments", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COMMENTS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_netport_add_args5[] = {
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "packets", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PACKETS,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "bytes", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_BYTES,
-+	  .parse = ipset_parse_uint64,		.print = ipset_print_number,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_COMMENT,
-+	  .parse = ipset_parse_comment,		.print = ipset_print_comment,
-+	},
-+	{ },
-+};
-+
-+static const struct ipset_arg hash_netport_test_args5[] = {
-+	{ .name = { "nomatch", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_NOMATCH,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ },
-+};
-+
-+static const char hash_netport_usage5[] =
-+"create SETNAME hash:net,port\n"
-+"		[family inet|inet6]\n"
-+"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [timeout VALUE] [counters] [comments]\n"
-+"add    SETNAME IP[/CIDR]|FROM-TO,PROTO:PORT [timeout VALUE] [nomatch]\n"
-+"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
-+"del    SETNAME IP[/CIDR]|FROM-TO,PROTO:PORT\n"
-+"test   SETNAME IP[/CIDR],PROTO:PORT\n\n"
-+"where depending on the INET family\n"
-+"      IP is a valid IPv4 or IPv6 address (or hostname),\n"
-+"      CIDR is a valid IPv4 or IPv6 CIDR prefix.\n"
-+"      Adding/deleting multiple elements with IPv4 is supported.\n"
-+"      Adding/deleting multiple elements with TCP/SCTP/UDP/UDPLITE\n"
-+"      port range is supported both for IPv4 and IPv6.\n";
-+
-+static struct ipset_type ipset_hash_netport5 = {
-+	.name = "hash:net,port",
-+	.alias = { "netporthash", NULL },
-+	.revision = 5,
-+	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_TWO,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_ip4_net6,
-+			.print = ipset_print_ip,
-+			.opt = IPSET_OPT_IP
-+		},
-+		[IPSET_DIM_TWO - 1] = {
-+			.parse = ipset_parse_proto_port,
-+			.print = ipset_print_proto_port,
-+			.opt = IPSET_OPT_PORT
-+		},
-+	},
-+	.args = {
-+		[IPSET_CREATE] = hash_netport_create_args5,
-+		[IPSET_ADD] = hash_netport_add_args5,
-+		[IPSET_TEST] = hash_netport_test_args5,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_PORT),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
-+			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_COMMENTS),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_COMMENT),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PORT_TO)
-+			| IPSET_FLAG(IPSET_OPT_PROTO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_CIDR)
-+			| IPSET_FLAG(IPSET_OPT_PORT)
-+			| IPSET_FLAG(IPSET_OPT_PROTO)
-+			| IPSET_FLAG(IPSET_OPT_NOMATCH),
-+	},
-+
-+	.usage = hash_netport_usage5,
-+	.usagefn = ipset_port_usage,
-+	.description = "comments support",
-+};
-+
- void _init(void);
- void _init(void)
- {
-@@ -444,4 +601,5 @@ void _init(void)
- 	ipset_type_add(&ipset_hash_netport2);
- 	ipset_type_add(&ipset_hash_netport3);
- 	ipset_type_add(&ipset_hash_netport4);
-+	ipset_type_add(&ipset_hash_netport5);
- }
--- 
-1.8.3.2
+The patch was developed for the kernel 3.10.10 (ipset not changed in .11 and .12).
+
+Signed-off-by: Vitaly Lavrov <lve@guap.ru>
+--
+include/linux/netfilter/ipset/ip_set.h | 16 +--
+net/netfilter/ipset/ip_set_bitmap_ip.c | 3 +-
+net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
+net/netfilter/ipset/ip_set_bitmap_port.c | 3 +-
+net/netfilter/ipset/ip_set_core.c | 282 ++++++++++++++++++++++++++++++----------------
+net/netfilter/ipset/ip_set_hash_gen.h | 3 +-
+net/netfilter/ipset/ip_set_list_set.c | 26 +++--
+net/netfilter/xt_set.c | 40 +++----
+net/sched/em_ipset.c | 7 +-
+9 files changed, 238 insertions(+), 144 deletions(-)
 
 
+
+--------------090009070206010004050809
+Content-Type: text/plain; charset=UTF-8;
+ name="ipset-netns-3.10.10.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ipset-netns-3.10.10.diff"
+
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index d80e275..5589d1f 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -147,7 +147,8 @@ struct ip_set_type {
+ 	u8 revision_min, revision_max;
+ 
+ 	/* Create set */
+-	int (*create)(struct ip_set *set, struct nlattr *tb[], u32 flags);
++	int (*create)(struct net *net,
++		      struct ip_set *set, struct nlattr *tb[], u32 flags);
+ 
+ 	/* Attribute policies */
+ 	const struct nla_policy create_policy[IPSET_ATTR_CREATE_MAX + 1];
+@@ -248,12 +249,13 @@ ip_set_init_counter(struct ip_set_counter *counter,
+ }
+ 
+ /* register and unregister set references */
+-extern ip_set_id_t ip_set_get_byname(const char *name, struct ip_set **set);
+-extern void ip_set_put_byindex(ip_set_id_t index);
+-extern const char *ip_set_name_byindex(ip_set_id_t index);
+-extern ip_set_id_t ip_set_nfnl_get(const char *name);
+-extern ip_set_id_t ip_set_nfnl_get_byindex(ip_set_id_t index);
+-extern void ip_set_nfnl_put(ip_set_id_t index);
++extern ip_set_id_t ip_set_get_byname(struct net *net,
++				     const char *name, struct ip_set **set);
++extern void ip_set_put_byindex(struct net *net, ip_set_id_t index);
++extern const char *ip_set_name_byindex(struct net *net, ip_set_id_t index);
++extern ip_set_id_t ip_set_nfnl_get(struct net *net, const char *name);
++extern ip_set_id_t ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index);
++extern void ip_set_nfnl_put(struct net *net, ip_set_id_t index);
+ 
+ /* API for iptables set match, and SET target */
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index f1a8128..2fb2b7a 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -261,7 +261,8 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ }
+ 
+ static int
+-bitmap_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
++bitmap_ip_create(struct net *net,
++		 struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	struct bitmap_ip *map;
+ 	u32 first_ip, last_ip, hosts, cadt_flags = 0;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 3b30e0b..0a8bf8f 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -352,7 +352,7 @@ init_map_ipmac(struct ip_set *set, struct bitmap_ipmac *map,
+ }
+ 
+ static int
+-bitmap_ipmac_create(struct ip_set *set, struct nlattr *tb[],
++bitmap_ipmac_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		    u32 flags)
+ {
+ 	u32 first_ip, last_ip, cadt_flags = 0;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 8207d1f..d2c2dc2 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -248,7 +248,8 @@ init_map_port(struct ip_set *set, struct bitmap_port *map,
+ }
+ 
+ static int
+-bitmap_port_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
++bitmap_port_create(struct net *net,
++		   struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	struct bitmap_port *map;
+ 	u16 first_port, last_port;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index f771390..220d94c 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -17,6 +17,8 @@
+ #include <linux/spinlock.h>
+ #include <linux/rculist.h>
+ #include <net/netlink.h>
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
+ 
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/x_tables.h>
+@@ -27,8 +29,17 @@ static LIST_HEAD(ip_set_type_list);		/* all registered set types */
+ static DEFINE_MUTEX(ip_set_type_mutex);		/* protects ip_set_type_list */
+ static DEFINE_RWLOCK(ip_set_ref_lock);		/* protects the set refs */
+ 
+-static struct ip_set * __rcu *ip_set_list;	/* all individual sets */
+-static ip_set_id_t ip_set_max = CONFIG_IP_SET_MAX; /* max number of sets */
++struct ip_set_net {
++	struct ip_set * __rcu *ip_set_list; /* all individual sets */
++	ip_set_id_t	ip_set_max; /* max number of sets */
++	int		is_deleted;
++};
++static int ip_set_net_id __read_mostly;
++
++static inline struct ip_set_net *ip_set_pernet(struct net *net)
++{
++	return net_generic(net, ip_set_net_id);
++}
+ 
+ #define IP_SET_INC	64
+ #define STREQ(a, b)	(strncmp(a, b, IPSET_MAXNAMELEN) == 0)
+@@ -45,8 +56,8 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
+ /* When the nfnl mutex is held: */
+ #define nfnl_dereference(p)		\
+ 	rcu_dereference_protected(p, 1)
+-#define nfnl_set(id)			\
+-	nfnl_dereference(ip_set_list)[id]
++#define nfnl_set(inst, id)			\
++	nfnl_dereference((inst)->ip_set_list)[id]
+ 
+ /*
+  * The set types are implemented in modules and registered set types
+@@ -374,13 +385,14 @@ __ip_set_put(struct ip_set *set)
+  */
+ 
+ static inline struct ip_set *
+-ip_set_rcu_get(ip_set_id_t index)
++ip_set_rcu_get(struct net *net, ip_set_id_t index)
+ {
+ 	struct ip_set *set;
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+ 	rcu_read_lock();
+ 	/* ip_set_list itself needs to be protected */
+-	set = rcu_dereference(ip_set_list)[index];
++	set = rcu_dereference(inst->ip_set_list)[index];
+ 	rcu_read_unlock();
+ 
+ 	return set;
+@@ -390,7 +402,8 @@ int
+ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 	    const struct xt_action_param *par, struct ip_set_adt_opt *opt)
+ {
+-	struct ip_set *set = ip_set_rcu_get(index);
++	struct ip_set *set = ip_set_rcu_get(
++			dev_net(par->in ? par->in : par->out), index);
+ 	int ret = 0;
+ 
+ 	BUG_ON(set == NULL);
+@@ -428,7 +441,8 @@ int
+ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+ 	   const struct xt_action_param *par, struct ip_set_adt_opt *opt)
+ {
+-	struct ip_set *set = ip_set_rcu_get(index);
++	struct ip_set *set = ip_set_rcu_get(
++			dev_net(par->in ? par->in : par->out), index);
+ 	int ret;
+ 
+ 	BUG_ON(set == NULL);
+@@ -450,7 +464,8 @@ int
+ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+ 	   const struct xt_action_param *par, struct ip_set_adt_opt *opt)
+ {
+-	struct ip_set *set = ip_set_rcu_get(index);
++	struct ip_set *set = ip_set_rcu_get(
++			dev_net(par->in ? par->in : par->out), index);
+ 	int ret = 0;
+ 
+ 	BUG_ON(set == NULL);
+@@ -474,14 +489,15 @@ EXPORT_SYMBOL_GPL(ip_set_del);
+  *
+  */
+ ip_set_id_t
+-ip_set_get_byname(const char *name, struct ip_set **set)
++ip_set_get_byname(struct net *net, const char *name, struct ip_set **set)
+ {
+ 	ip_set_id_t i, index = IPSET_INVALID_ID;
+ 	struct ip_set *s;
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+ 	rcu_read_lock();
+-	for (i = 0; i < ip_set_max; i++) {
+-		s = rcu_dereference(ip_set_list)[i];
++	for (i = 0; i < inst->ip_set_max; i++) {
++		s = rcu_dereference(inst->ip_set_list)[i];
+ 		if (s != NULL && STREQ(s->name, name)) {
+ 			__ip_set_get(s);
+ 			index = i;
+@@ -501,17 +517,26 @@ EXPORT_SYMBOL_GPL(ip_set_get_byname);
+  * to be valid, after calling this function.
+  *
+  */
+-void
+-ip_set_put_byindex(ip_set_id_t index)
++
++static inline void
++__ip_set_put_byindex(struct ip_set_net *inst, ip_set_id_t index)
+ {
+ 	struct ip_set *set;
+ 
+ 	rcu_read_lock();
+-	set = rcu_dereference(ip_set_list)[index];
++	set = rcu_dereference(inst->ip_set_list)[index];
+ 	if (set != NULL)
+ 		__ip_set_put(set);
+ 	rcu_read_unlock();
+ }
++
++void
++ip_set_put_byindex(struct net *net, ip_set_id_t index)
++{
++	struct ip_set_net *inst = ip_set_pernet(net);
++
++	__ip_set_put_byindex(inst, index);
++}
+ EXPORT_SYMBOL_GPL(ip_set_put_byindex);
+ 
+ /*
+@@ -522,9 +547,9 @@ EXPORT_SYMBOL_GPL(ip_set_put_byindex);
+  *
+  */
+ const char *
+-ip_set_name_byindex(ip_set_id_t index)
++ip_set_name_byindex(struct net *net, ip_set_id_t index)
+ {
+-	const struct ip_set *set = ip_set_rcu_get(index);
++	const struct ip_set *set = ip_set_rcu_get(net, index);
+ 
+ 	BUG_ON(set == NULL);
+ 	BUG_ON(set->ref == 0);
+@@ -546,14 +571,15 @@ EXPORT_SYMBOL_GPL(ip_set_name_byindex);
+  * The nfnl mutex is used in the function.
+  */
+ ip_set_id_t
+-ip_set_nfnl_get(const char *name)
++ip_set_nfnl_get(struct net *net, const char *name)
+ {
+ 	ip_set_id_t i, index = IPSET_INVALID_ID;
+ 	struct ip_set *s;
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+ 	nfnl_lock(NFNL_SUBSYS_IPSET);
+-	for (i = 0; i < ip_set_max; i++) {
+-		s = nfnl_set(i);
++	for (i = 0; i < inst->ip_set_max; i++) {
++		s = nfnl_set(inst, i);
+ 		if (s != NULL && STREQ(s->name, name)) {
+ 			__ip_set_get(s);
+ 			index = i;
+@@ -573,15 +599,16 @@ EXPORT_SYMBOL_GPL(ip_set_nfnl_get);
+  * The nfnl mutex is used in the function.
+  */
+ ip_set_id_t
+-ip_set_nfnl_get_byindex(ip_set_id_t index)
++ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index)
+ {
+ 	struct ip_set *set;
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+-	if (index > ip_set_max)
++	if (index > inst->ip_set_max)
+ 		return IPSET_INVALID_ID;
+ 
+ 	nfnl_lock(NFNL_SUBSYS_IPSET);
+-	set = nfnl_set(index);
++	set = nfnl_set(inst, index);
+ 	if (set)
+ 		__ip_set_get(set);
+ 	else
+@@ -600,13 +627,17 @@ EXPORT_SYMBOL_GPL(ip_set_nfnl_get_byindex);
+  * The nfnl mutex is used in the function.
+  */
+ void
+-ip_set_nfnl_put(ip_set_id_t index)
++ip_set_nfnl_put(struct net *net, ip_set_id_t index)
+ {
+ 	struct ip_set *set;
++	struct ip_set_net *inst = ip_set_pernet(net);
++
+ 	nfnl_lock(NFNL_SUBSYS_IPSET);
+-	set = nfnl_set(index);
+-	if (set != NULL)
+-		__ip_set_put(set);
++	if (!inst->is_deleted) { /* already delete from ip_set_net_exit() */
++		set = nfnl_set(inst, index);
++		if (set != NULL)
++			__ip_set_put(set);
++	}
+ 	nfnl_unlock(NFNL_SUBSYS_IPSET);
+ }
+ EXPORT_SYMBOL_GPL(ip_set_nfnl_put);
+@@ -664,14 +695,14 @@ static const struct nla_policy ip_set_create_policy[IPSET_ATTR_CMD_MAX + 1] = {
+ };
+ 
+ static struct ip_set *
+-find_set_and_id(const char *name, ip_set_id_t *id)
++find_set_and_id(struct ip_set_net *inst, const char *name, ip_set_id_t *id)
+ {
+ 	struct ip_set *set = NULL;
+ 	ip_set_id_t i;
+ 
+ 	*id = IPSET_INVALID_ID;
+-	for (i = 0; i < ip_set_max; i++) {
+-		set = nfnl_set(i);
++	for (i = 0; i < inst->ip_set_max; i++) {
++		set = nfnl_set(inst, i);
+ 		if (set != NULL && STREQ(set->name, name)) {
+ 			*id = i;
+ 			break;
+@@ -681,22 +712,23 @@ find_set_and_id(const char *name, ip_set_id_t *id)
+ }
+ 
+ static inline struct ip_set *
+-find_set(const char *name)
++find_set(struct ip_set_net *inst, const char *name)
+ {
+ 	ip_set_id_t id;
+ 
+-	return find_set_and_id(name, &id);
++	return find_set_and_id(inst, name, &id);
+ }
+ 
+ static int
+-find_free_id(const char *name, ip_set_id_t *index, struct ip_set **set)
++find_free_id(struct ip_set_net *inst,
++	     const char *name, ip_set_id_t *index, struct ip_set **set)
+ {
+ 	struct ip_set *s;
+ 	ip_set_id_t i;
+ 
+ 	*index = IPSET_INVALID_ID;
+-	for (i = 0;  i < ip_set_max; i++) {
+-		s = nfnl_set(i);
++	for (i = 0;  i < inst->ip_set_max; i++) {
++		s = nfnl_set(inst, i);
+ 		if (s == NULL) {
+ 			if (*index == IPSET_INVALID_ID)
+ 				*index = i;
+@@ -725,6 +757,8 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	      const struct nlmsghdr *nlh,
+ 	      const struct nlattr * const attr[])
+ {
++	struct net *net = sock_net(ctnl);
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 	struct ip_set *set, *clash = NULL;
+ 	ip_set_id_t index = IPSET_INVALID_ID;
+ 	struct nlattr *tb[IPSET_ATTR_CREATE_MAX+1] = {};
+@@ -783,7 +817,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 		goto put_out;
+ 	}
+ 
+-	ret = set->type->create(set, tb, flags);
++	ret = set->type->create(net, set, tb, flags);
+ 	if (ret != 0)
+ 		goto put_out;
+ 
+@@ -794,7 +828,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	 * by the nfnl mutex. Find the first free index in ip_set_list
+ 	 * and check clashing.
+ 	 */
+-	ret = find_free_id(set->name, &index, &clash);
++	ret = find_free_id(inst, set->name, &index, &clash);
+ 	if (ret == -EEXIST) {
+ 		/* If this is the same set and requested, ignore error */
+ 		if ((flags & IPSET_FLAG_EXIST) &&
+@@ -807,9 +841,9 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 		goto cleanup;
+ 	} else if (ret == -IPSET_ERR_MAX_SETS) {
+ 		struct ip_set **list, **tmp;
+-		ip_set_id_t i = ip_set_max + IP_SET_INC;
++		ip_set_id_t i = inst->ip_set_max + IP_SET_INC;
+ 
+-		if (i < ip_set_max || i == IPSET_INVALID_ID)
++		if (i < inst->ip_set_max || i == IPSET_INVALID_ID)
+ 			/* Wraparound */
+ 			goto cleanup;
+ 
+@@ -817,14 +851,14 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 		if (!list)
+ 			goto cleanup;
+ 		/* nfnl mutex is held, both lists are valid */
+-		tmp = nfnl_dereference(ip_set_list);
+-		memcpy(list, tmp, sizeof(struct ip_set *) * ip_set_max);
+-		rcu_assign_pointer(ip_set_list, list);
++		tmp = nfnl_dereference(inst->ip_set_list);
++		memcpy(list, tmp, sizeof(struct ip_set *) * inst->ip_set_max);
++		rcu_assign_pointer(inst->ip_set_list, list);
+ 		/* Make sure all current packets have passed through */
+ 		synchronize_net();
+ 		/* Use new list */
+-		index = ip_set_max;
+-		ip_set_max = i;
++		index = inst->ip_set_max;
++		inst->ip_set_max = i;
+ 		kfree(tmp);
+ 		ret = 0;
+ 	} else if (ret)
+@@ -834,7 +868,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	 * Finally! Add our shiny new set to the list, and be done.
+ 	 */
+ 	pr_debug("create: '%s' created with index %u!\n", set->name, index);
+-	nfnl_set(index) = set;
++	nfnl_set(inst, index) = set;
+ 
+ 	return ret;
+ 
+@@ -857,12 +891,12 @@ ip_set_setname_policy[IPSET_ATTR_CMD_MAX + 1] = {
+ };
+ 
+ static void
+-ip_set_destroy_set(ip_set_id_t index)
++ip_set_destroy_set(struct ip_set_net *inst, ip_set_id_t index)
+ {
+-	struct ip_set *set = nfnl_set(index);
++	struct ip_set *set = nfnl_set(inst, index);
+ 
+ 	pr_debug("set: %s\n",  set->name);
+-	nfnl_set(index) = NULL;
++	nfnl_set(inst, index) = NULL;
+ 
+ 	/* Must call it without holding any lock */
+ 	set->variant->destroy(set);
+@@ -875,6 +909,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 	       const struct nlmsghdr *nlh,
+ 	       const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *s;
+ 	ip_set_id_t i;
+ 	int ret = 0;
+@@ -894,21 +929,22 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 	 */
+ 	read_lock_bh(&ip_set_ref_lock);
+ 	if (!attr[IPSET_ATTR_SETNAME]) {
+-		for (i = 0; i < ip_set_max; i++) {
+-			s = nfnl_set(i);
++		for (i = 0; i < inst->ip_set_max; i++) {
++			s = nfnl_set(inst, i);
+ 			if (s != NULL && s->ref) {
+ 				ret = -IPSET_ERR_BUSY;
+ 				goto out;
+ 			}
+ 		}
+ 		read_unlock_bh(&ip_set_ref_lock);
+-		for (i = 0; i < ip_set_max; i++) {
+-			s = nfnl_set(i);
++		for (i = 0; i < inst->ip_set_max; i++) {
++			s = nfnl_set(inst, i);
+ 			if (s != NULL)
+-				ip_set_destroy_set(i);
++				ip_set_destroy_set(inst, i);
+ 		}
+ 	} else {
+-		s = find_set_and_id(nla_data(attr[IPSET_ATTR_SETNAME]), &i);
++		s = find_set_and_id(inst,
++				    nla_data(attr[IPSET_ATTR_SETNAME]), &i);
+ 		if (s == NULL) {
+ 			ret = -ENOENT;
+ 			goto out;
+@@ -918,7 +954,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 		}
+ 		read_unlock_bh(&ip_set_ref_lock);
+ 
+-		ip_set_destroy_set(i);
++		ip_set_destroy_set(inst, i);
+ 	}
+ 	return 0;
+ out:
+@@ -943,6 +979,7 @@ ip_set_flush(struct sock *ctnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh,
+ 	     const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *s;
+ 	ip_set_id_t i;
+ 
+@@ -950,13 +987,13 @@ ip_set_flush(struct sock *ctnl, struct sk_buff *skb,
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (!attr[IPSET_ATTR_SETNAME]) {
+-		for (i = 0; i < ip_set_max; i++) {
+-			s = nfnl_set(i);
++		for (i = 0; i < inst->ip_set_max; i++) {
++			s = nfnl_set(inst, i);
+ 			if (s != NULL)
+ 				ip_set_flush_set(s);
+ 		}
+ 	} else {
+-		s = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++		s = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 		if (s == NULL)
+ 			return -ENOENT;
+ 
+@@ -982,6 +1019,7 @@ ip_set_rename(struct sock *ctnl, struct sk_buff *skb,
+ 	      const struct nlmsghdr *nlh,
+ 	      const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *set, *s;
+ 	const char *name2;
+ 	ip_set_id_t i;
+@@ -992,7 +1030,7 @@ ip_set_rename(struct sock *ctnl, struct sk_buff *skb,
+ 		     attr[IPSET_ATTR_SETNAME2] == NULL))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	set = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++	set = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 	if (set == NULL)
+ 		return -ENOENT;
+ 
+@@ -1003,8 +1041,8 @@ ip_set_rename(struct sock *ctnl, struct sk_buff *skb,
+ 	}
+ 
+ 	name2 = nla_data(attr[IPSET_ATTR_SETNAME2]);
+-	for (i = 0; i < ip_set_max; i++) {
+-		s = nfnl_set(i);
++	for (i = 0; i < inst->ip_set_max; i++) {
++		s = nfnl_set(inst, i);
+ 		if (s != NULL && STREQ(s->name, name2)) {
+ 			ret = -IPSET_ERR_EXIST_SETNAME2;
+ 			goto out;
+@@ -1031,6 +1069,7 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
+ 	    const struct nlmsghdr *nlh,
+ 	    const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *from, *to;
+ 	ip_set_id_t from_id, to_id;
+ 	char from_name[IPSET_MAXNAMELEN];
+@@ -1040,11 +1079,12 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
+ 		     attr[IPSET_ATTR_SETNAME2] == NULL))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	from = find_set_and_id(nla_data(attr[IPSET_ATTR_SETNAME]), &from_id);
++	from = find_set_and_id(inst,
++			       nla_data(attr[IPSET_ATTR_SETNAME]), &from_id);
+ 	if (from == NULL)
+ 		return -ENOENT;
+ 
+-	to = find_set_and_id(nla_data(attr[IPSET_ATTR_SETNAME2]), &to_id);
++	to = find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME2]), &to_id);
+ 	if (to == NULL)
+ 		return -IPSET_ERR_EXIST_SETNAME2;
+ 
+@@ -1061,8 +1101,8 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 	write_lock_bh(&ip_set_ref_lock);
+ 	swap(from->ref, to->ref);
+-	nfnl_set(from_id) = to;
+-	nfnl_set(to_id) = from;
++	nfnl_set(inst, from_id) = to;
++	nfnl_set(inst, to_id) = from;
+ 	write_unlock_bh(&ip_set_ref_lock);
+ 
+ 	return 0;
+@@ -1081,9 +1121,10 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
+ static int
+ ip_set_dump_done(struct netlink_callback *cb)
+ {
++	struct ip_set_net *inst = (struct ip_set_net *)cb->data;
+ 	if (cb->args[2]) {
+-		pr_debug("release set %s\n", nfnl_set(cb->args[1])->name);
+-		ip_set_put_byindex((ip_set_id_t) cb->args[1]);
++		pr_debug("release set %s\n", nfnl_set(inst, cb->args[1])->name);
++		__ip_set_put_byindex(inst, (ip_set_id_t) cb->args[1]);
+ 	}
+ 	return 0;
+ }
+@@ -1109,6 +1150,7 @@ dump_init(struct netlink_callback *cb)
+ 	struct nlattr *attr = (void *)nlh + min_len;
+ 	u32 dump_type;
+ 	ip_set_id_t index;
++	struct ip_set_net *inst = (struct ip_set_net *)cb->data;
+ 
+ 	/* Second pass, so parser can't fail */
+ 	nla_parse(cda, IPSET_ATTR_CMD_MAX,
+@@ -1122,7 +1164,7 @@ dump_init(struct netlink_callback *cb)
+ 	if (cda[IPSET_ATTR_SETNAME]) {
+ 		struct ip_set *set;
+ 
+-		set = find_set_and_id(nla_data(cda[IPSET_ATTR_SETNAME]),
++		set = find_set_and_id(inst, nla_data(cda[IPSET_ATTR_SETNAME]),
+ 				      &index);
+ 		if (set == NULL)
+ 			return -ENOENT;
+@@ -1150,6 +1192,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 	unsigned int flags = NETLINK_CB(cb->skb).portid ? NLM_F_MULTI : 0;
+ 	u32 dump_type, dump_flags;
+ 	int ret = 0;
++	struct ip_set_net *inst = (struct ip_set_net *)cb->data;
+ 
+ 	if (!cb->args[0]) {
+ 		ret = dump_init(cb);
+@@ -1163,18 +1206,18 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 		}
+ 	}
+ 
+-	if (cb->args[1] >= ip_set_max)
++	if (cb->args[1] >= inst->ip_set_max)
+ 		goto out;
+ 
+ 	dump_type = DUMP_TYPE(cb->args[0]);
+ 	dump_flags = DUMP_FLAGS(cb->args[0]);
+-	max = dump_type == DUMP_ONE ? cb->args[1] + 1 : ip_set_max;
++	max = dump_type == DUMP_ONE ? cb->args[1] + 1 : inst->ip_set_max;
+ dump_last:
+ 	pr_debug("args[0]: %u %u args[1]: %ld\n",
+ 		 dump_type, dump_flags, cb->args[1]);
+ 	for (; cb->args[1] < max; cb->args[1]++) {
+ 		index = (ip_set_id_t) cb->args[1];
+-		set = nfnl_set(index);
++		set = nfnl_set(inst, index);
+ 		if (set == NULL) {
+ 			if (dump_type == DUMP_ONE) {
+ 				ret = -ENOENT;
+@@ -1252,8 +1295,8 @@ next_set:
+ release_refcount:
+ 	/* If there was an error or set is done, release set */
+ 	if (ret || !cb->args[2]) {
+-		pr_debug("release set %s\n", nfnl_set(index)->name);
+-		ip_set_put_byindex(index);
++		pr_debug("release set %s\n", nfnl_set(inst, index)->name);
++		__ip_set_put_byindex(inst, index);
+ 		cb->args[2] = 0;
+ 	}
+ out:
+@@ -1271,6 +1314,8 @@ ip_set_dump(struct sock *ctnl, struct sk_buff *skb,
+ 	    const struct nlmsghdr *nlh,
+ 	    const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
++
+ 	if (unlikely(protocol_failed(attr)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+@@ -1278,6 +1323,7 @@ ip_set_dump(struct sock *ctnl, struct sk_buff *skb,
+ 		struct netlink_dump_control c = {
+ 			.dump = ip_set_dump_start,
+ 			.done = ip_set_dump_done,
++			.data = (void *)inst
+ 		};
+ 		return netlink_dump_start(ctnl, skb, nlh, &c);
+ 	}
+@@ -1356,6 +1402,7 @@ ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
+ 	    const struct nlmsghdr *nlh,
+ 	    const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *set;
+ 	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1] = {};
+ 	const struct nlattr *nla;
+@@ -1374,7 +1421,7 @@ ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
+ 		       attr[IPSET_ATTR_LINENO] == NULL))))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	set = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++	set = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 	if (set == NULL)
+ 		return -ENOENT;
+ 
+@@ -1410,6 +1457,7 @@ ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
+ 	    const struct nlmsghdr *nlh,
+ 	    const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *set;
+ 	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1] = {};
+ 	const struct nlattr *nla;
+@@ -1428,7 +1476,7 @@ ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
+ 		       attr[IPSET_ATTR_LINENO] == NULL))))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	set = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++	set = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 	if (set == NULL)
+ 		return -ENOENT;
+ 
+@@ -1464,6 +1512,7 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh,
+ 	     const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	struct ip_set *set;
+ 	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1] = {};
+ 	int ret = 0;
+@@ -1474,7 +1523,7 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 		     !flag_nested(attr[IPSET_ATTR_DATA])))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	set = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++	set = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 	if (set == NULL)
+ 		return -ENOENT;
+ 
+@@ -1500,6 +1549,7 @@ ip_set_header(struct sock *ctnl, struct sk_buff *skb,
+ 	      const struct nlmsghdr *nlh,
+ 	      const struct nlattr * const attr[])
+ {
++	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
+ 	const struct ip_set *set;
+ 	struct sk_buff *skb2;
+ 	struct nlmsghdr *nlh2;
+@@ -1509,7 +1559,7 @@ ip_set_header(struct sock *ctnl, struct sk_buff *skb,
+ 		     attr[IPSET_ATTR_SETNAME] == NULL))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	set = find_set(nla_data(attr[IPSET_ATTR_SETNAME]));
++	set = find_set(inst, nla_data(attr[IPSET_ATTR_SETNAME]));
+ 	if (set == NULL)
+ 		return -ENOENT;
+ 
+@@ -1734,8 +1784,10 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+ 	unsigned int *op;
+ 	void *data;
+ 	int copylen = *len, ret = 0;
++	struct net *net = sock_net(sk);
++	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+-	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
++	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+ 		return -EPERM;
+ 	if (optval != SO_IP_SET)
+ 		return -EBADF;
+@@ -1784,7 +1836,7 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+ 		}
+ 		req_get->set.name[IPSET_MAXNAMELEN - 1] = '\0';
+ 		nfnl_lock(NFNL_SUBSYS_IPSET);
+-		find_set_and_id(req_get->set.name, &id);
++		find_set_and_id(inst, req_get->set.name, &id);
+ 		req_get->set.index = id;
+ 		nfnl_unlock(NFNL_SUBSYS_IPSET);
+ 		goto copy;
+@@ -1794,12 +1846,12 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+ 		struct ip_set *set;
+ 
+ 		if (*len != sizeof(struct ip_set_req_get_set) ||
+-		    req_get->set.index >= ip_set_max) {
++		    req_get->set.index >= inst->ip_set_max) {
+ 			ret = -EINVAL;
+ 			goto done;
+ 		}
+ 		nfnl_lock(NFNL_SUBSYS_IPSET);
+-		set = nfnl_set(req_get->set.index);
++		set = nfnl_set(inst, req_get->set.index);
+ 		strncpy(req_get->set.name, set ? set->name : "",
+ 			IPSET_MAXNAMELEN);
+ 		nfnl_unlock(NFNL_SUBSYS_IPSET);
+@@ -1828,49 +1880,81 @@ static struct nf_sockopt_ops so_set __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static int __init
+-ip_set_init(void)
++static int __net_init
++ip_set_net_init(struct net *net)
+ {
++	struct ip_set_net *inst = ip_set_pernet(net);
++
+ 	struct ip_set **list;
+-	int ret;
+ 
+-	if (max_sets)
+-		ip_set_max = max_sets;
+-	if (ip_set_max >= IPSET_INVALID_ID)
+-		ip_set_max = IPSET_INVALID_ID - 1;
++	inst->ip_set_max = max_sets ? max_sets : CONFIG_IP_SET_MAX;
++	if (inst->ip_set_max >= IPSET_INVALID_ID)
++		inst->ip_set_max = IPSET_INVALID_ID - 1;
+ 
+-	list = kzalloc(sizeof(struct ip_set *) * ip_set_max, GFP_KERNEL);
++	list = kzalloc(sizeof(struct ip_set *) * inst->ip_set_max, GFP_KERNEL);
+ 	if (!list)
+ 		return -ENOMEM;
++	inst->is_deleted = 0;
++	rcu_assign_pointer(inst->ip_set_list, list);
++	pr_notice("ip_set: protocol %u\n", IPSET_PROTOCOL);
++	return 0;
++}
++
++static void __net_exit
++ip_set_net_exit(struct net *net)
++{
++	struct ip_set_net *inst = ip_set_pernet(net);
++
++	struct ip_set *set = NULL;
++	ip_set_id_t i;
++
++	inst->is_deleted = 1; /* flag for ip_set_nfnl_put */
++
++	for (i = 0; i < inst->ip_set_max; i++) {
++		set = nfnl_set(inst, i);
++		if (set != NULL)
++			ip_set_destroy_set(inst, i);
++	}
++	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
++}
+ 
+-	rcu_assign_pointer(ip_set_list, list);
+-	ret = nfnetlink_subsys_register(&ip_set_netlink_subsys);
++static struct pernet_operations ip_set_net_ops = {
++	.init	= ip_set_net_init,
++	.exit   = ip_set_net_exit,
++	.id	= &ip_set_net_id,
++	.size	= sizeof(struct ip_set_net)
++};
++
++
++static int __init
++ip_set_init(void) {
++	int ret = nfnetlink_subsys_register(&ip_set_netlink_subsys);
+ 	if (ret != 0) {
+ 		pr_err("ip_set: cannot register with nfnetlink.\n");
+-		kfree(list);
+ 		return ret;
+ 	}
+ 	ret = nf_register_sockopt(&so_set);
+ 	if (ret != 0) {
+ 		pr_err("SO_SET registry failed: %d\n", ret);
+ 		nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
+-		kfree(list);
+ 		return ret;
+ 	}
+-
+-	pr_notice("ip_set: protocol %u\n", IPSET_PROTOCOL);
++	ret = register_pernet_subsys(&ip_set_net_ops);
++	if (ret) {
++		pr_err("ip_set: cannot register pernet_subsys.\n");
++		nf_unregister_sockopt(&so_set);
++		nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
++		return ret;
++	}
+ 	return 0;
+ }
+ 
+ static void __exit
+ ip_set_fini(void)
+ {
+-	struct ip_set **list = rcu_dereference_protected(ip_set_list, 1);
+-
+-	/* There can't be any existing set */
++	unregister_pernet_subsys(&ip_set_net_ops);
+ 	nf_unregister_sockopt(&so_set);
+ 	nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
+-	kfree(list);
+ 	pr_debug("these are the famous last words\n");
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 57beb17..0a87a8e 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -942,7 +942,8 @@ static const struct ip_set_type_variant mtype_variant = {
+ 
+ #ifdef IP_SET_EMIT_CREATE
+ static int
+-TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
++TOKEN(HTYPE, _create)(struct net *net,
++		      struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u32 cadt_flags = 0;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 979b8c9..1784e4f 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -63,6 +63,7 @@ struct list_set {
+ 	u32 size;		/* size of set list array */
+ 	u32 timeout;		/* timeout value */
+ 	struct timer_list gc;	/* garbage collection */
++	struct net *net;	/* namespace */
+ 	struct set_elem members[0]; /* the set members */
+ };
+ 
+@@ -204,13 +205,13 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
+ 	if (e->id != IPSET_INVALID_ID) {
+ 		if (i == map->size - 1)
+ 			/* Last element replaced: e.g. add new,before,last */
+-			ip_set_put_byindex(e->id);
++			ip_set_put_byindex(map->net, e->id);
+ 		else {
+ 			struct set_elem *x = list_set_elem(map, map->size - 1);
+ 
+ 			/* Last element pushed off */
+ 			if (x->id != IPSET_INVALID_ID)
+-				ip_set_put_byindex(x->id);
++				ip_set_put_byindex(map->net, x->id);
+ 			memmove(list_set_elem(map, i + 1), e,
+ 				map->dsize * (map->size - (i + 1)));
+ 		}
+@@ -230,7 +231,7 @@ list_set_del(struct ip_set *set, u32 i)
+ 	struct list_set *map = set->data;
+ 	struct set_elem *e = list_set_elem(map, i);
+ 
+-	ip_set_put_byindex(e->id);
++	ip_set_put_byindex(map->net, e->id);
+ 
+ 	if (i < map->size - 1)
+ 		memmove(e, list_set_elem(map, i + 1),
+@@ -324,7 +325,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		if (SET_WITH_COUNTER(set))
+ 			ip_set_init_counter(ext_counter(e, map), ext);
+ 		/* Set is already added to the list */
+-		ip_set_put_byindex(d->id);
++		ip_set_put_byindex(map->net, d->id);
+ 		return 0;
+ 	}
+ insert:
+@@ -403,7 +404,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ret = ip_set_get_extensions(set, tb, &ext);
+ 	if (ret)
+ 		return ret;
+-	e.id = ip_set_get_byname(nla_data(tb[IPSET_ATTR_NAME]), &s);
++	e.id = ip_set_get_byname(map->net, nla_data(tb[IPSET_ATTR_NAME]), &s);
+ 	if (e.id == IPSET_INVALID_ID)
+ 		return -IPSET_ERR_NAME;
+ 	/* "Loop detection" */
+@@ -423,7 +424,8 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	}
+ 
+ 	if (tb[IPSET_ATTR_NAMEREF]) {
+-		e.refid = ip_set_get_byname(nla_data(tb[IPSET_ATTR_NAMEREF]),
++		e.refid = ip_set_get_byname(map->net,
++					    nla_data(tb[IPSET_ATTR_NAMEREF]),
+ 					    &s);
+ 		if (e.refid == IPSET_INVALID_ID) {
+ 			ret = -IPSET_ERR_NAMEREF;
+@@ -439,9 +441,9 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ finish:
+ 	if (e.refid != IPSET_INVALID_ID)
+-		ip_set_put_byindex(e.refid);
++		ip_set_put_byindex(map->net, e.refid);
+ 	if (adt != IPSET_ADD || ret)
+-		ip_set_put_byindex(e.id);
++		ip_set_put_byindex(map->net, e.id);
+ 
+ 	return ip_set_eexist(ret, flags) ? 0 : ret;
+ }
+@@ -456,7 +458,7 @@ list_set_flush(struct ip_set *set)
+ 	for (i = 0; i < map->size; i++) {
+ 		e = list_set_elem(map, i);
+ 		if (e->id != IPSET_INVALID_ID) {
+-			ip_set_put_byindex(e->id);
++			ip_set_put_byindex(map->net, e->id);
+ 			e->id = IPSET_INVALID_ID;
+ 		}
+ 	}
+@@ -530,7 +532,7 @@ list_set_list(const struct ip_set *set,
+ 				goto nla_put_failure;
+ 		}
+ 		if (nla_put_string(skb, IPSET_ATTR_NAME,
+-				   ip_set_name_byindex(e->id)))
++				   ip_set_name_byindex(map->net, e->id)))
+ 			goto nla_put_failure;
+ 		if (SET_WITH_TIMEOUT(set) &&
+ 		    nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+@@ -638,7 +640,8 @@ init_list_set(struct ip_set *set, u32 size, size_t dsize,
+ }
+ 
+ static int
+-list_set_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
++list_set_create(struct net *net,
++		struct ip_set *set, struct nlattr *tb[], u32 flags)
+ {
+ 	struct list_set *map;
+ 	u32 size = IP_SET_LIST_DEFAULT_SIZE, cadt_flags = 0;
+@@ -694,6 +697,7 @@ list_set_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 		if (!map)
+ 			return -ENOMEM;
+ 	}
++	map->net = net;
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 31790e7..c4ed655 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -81,7 +81,7 @@ set_match_v0_checkentry(const struct xt_mtchk_param *par)
+ 	struct xt_set_info_match_v0 *info = par->matchinfo;
+ 	ip_set_id_t index;
+ 
+-	index = ip_set_nfnl_get_byindex(info->match_set.index);
++	index = ip_set_nfnl_get_byindex(par->net, info->match_set.index);
+ 
+ 	if (index == IPSET_INVALID_ID) {
+ 		pr_warning("Cannot find set indentified by id %u to match\n",
+@@ -91,7 +91,7 @@ set_match_v0_checkentry(const struct xt_mtchk_param *par)
+ 	if (info->match_set.u.flags[IPSET_DIM_MAX-1] != 0) {
+ 		pr_warning("Protocol error: set match dimension "
+ 			   "is over the limit!\n");
+-		ip_set_nfnl_put(info->match_set.index);
++		ip_set_nfnl_put(par->net, info->match_set.index);
+ 		return -ERANGE;
+ 	}
+ 
+@@ -106,7 +106,7 @@ set_match_v0_destroy(const struct xt_mtdtor_param *par)
+ {
+ 	struct xt_set_info_match_v0 *info = par->matchinfo;
+ 
+-	ip_set_nfnl_put(info->match_set.index);
++	ip_set_nfnl_put(par->net, info->match_set.index);
+ }
+ 
+ static unsigned int
+@@ -133,7 +133,7 @@ set_target_v0_checkentry(const struct xt_tgchk_param *par)
+ 	ip_set_id_t index;
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID) {
+-		index = ip_set_nfnl_get_byindex(info->add_set.index);
++		index = ip_set_nfnl_get_byindex(par->net, info->add_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+ 			pr_warning("Cannot find add_set index %u as target\n",
+ 				   info->add_set.index);
+@@ -142,12 +142,12 @@ set_target_v0_checkentry(const struct xt_tgchk_param *par)
+ 	}
+ 
+ 	if (info->del_set.index != IPSET_INVALID_ID) {
+-		index = ip_set_nfnl_get_byindex(info->del_set.index);
++		index = ip_set_nfnl_get_byindex(par->net, info->del_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+ 			pr_warning("Cannot find del_set index %u as target\n",
+ 				   info->del_set.index);
+ 			if (info->add_set.index != IPSET_INVALID_ID)
+-				ip_set_nfnl_put(info->add_set.index);
++				ip_set_nfnl_put(par->net, info->add_set.index);
+ 			return -ENOENT;
+ 		}
+ 	}
+@@ -156,9 +156,9 @@ set_target_v0_checkentry(const struct xt_tgchk_param *par)
+ 		pr_warning("Protocol error: SET target dimension "
+ 			   "is over the limit!\n");
+ 		if (info->add_set.index != IPSET_INVALID_ID)
+-			ip_set_nfnl_put(info->add_set.index);
++			ip_set_nfnl_put(par->net, info->add_set.index);
+ 		if (info->del_set.index != IPSET_INVALID_ID)
+-			ip_set_nfnl_put(info->del_set.index);
++			ip_set_nfnl_put(par->net, info->del_set.index);
+ 		return -ERANGE;
+ 	}
+ 
+@@ -175,9 +175,9 @@ set_target_v0_destroy(const struct xt_tgdtor_param *par)
+ 	const struct xt_set_info_target_v0 *info = par->targinfo;
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+-		ip_set_nfnl_put(info->add_set.index);
++		ip_set_nfnl_put(par->net, info->add_set.index);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-		ip_set_nfnl_put(info->del_set.index);
++		ip_set_nfnl_put(par->net, info->del_set.index);
+ }
+ 
+ /* Revision 1 match and target */
+@@ -202,7 +202,7 @@ set_match_v1_checkentry(const struct xt_mtchk_param *par)
+ 	struct xt_set_info_match_v1 *info = par->matchinfo;
+ 	ip_set_id_t index;
+ 
+-	index = ip_set_nfnl_get_byindex(info->match_set.index);
++	index = ip_set_nfnl_get_byindex(par->net, info->match_set.index);
+ 
+ 	if (index == IPSET_INVALID_ID) {
+ 		pr_warning("Cannot find set indentified by id %u to match\n",
+@@ -212,7 +212,7 @@ set_match_v1_checkentry(const struct xt_mtchk_param *par)
+ 	if (info->match_set.dim > IPSET_DIM_MAX) {
+ 		pr_warning("Protocol error: set match dimension "
+ 			   "is over the limit!\n");
+-		ip_set_nfnl_put(info->match_set.index);
++		ip_set_nfnl_put(par->net, info->match_set.index);
+ 		return -ERANGE;
+ 	}
+ 
+@@ -224,7 +224,7 @@ set_match_v1_destroy(const struct xt_mtdtor_param *par)
+ {
+ 	struct xt_set_info_match_v1 *info = par->matchinfo;
+ 
+-	ip_set_nfnl_put(info->match_set.index);
++	ip_set_nfnl_put(par->net, info->match_set.index);
+ }
+ 
+ static unsigned int
+@@ -251,7 +251,7 @@ set_target_v1_checkentry(const struct xt_tgchk_param *par)
+ 	ip_set_id_t index;
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID) {
+-		index = ip_set_nfnl_get_byindex(info->add_set.index);
++		index = ip_set_nfnl_get_byindex(par->net, info->add_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+ 			pr_warning("Cannot find add_set index %u as target\n",
+ 				   info->add_set.index);
+@@ -260,12 +260,12 @@ set_target_v1_checkentry(const struct xt_tgchk_param *par)
+ 	}
+ 
+ 	if (info->del_set.index != IPSET_INVALID_ID) {
+-		index = ip_set_nfnl_get_byindex(info->del_set.index);
++		index = ip_set_nfnl_get_byindex(par->net, info->del_set.index);
+ 		if (index == IPSET_INVALID_ID) {
+ 			pr_warning("Cannot find del_set index %u as target\n",
+ 				   info->del_set.index);
+ 			if (info->add_set.index != IPSET_INVALID_ID)
+-				ip_set_nfnl_put(info->add_set.index);
++				ip_set_nfnl_put(par->net, info->add_set.index);
+ 			return -ENOENT;
+ 		}
+ 	}
+@@ -274,9 +274,9 @@ set_target_v1_checkentry(const struct xt_tgchk_param *par)
+ 		pr_warning("Protocol error: SET target dimension "
+ 			   "is over the limit!\n");
+ 		if (info->add_set.index != IPSET_INVALID_ID)
+-			ip_set_nfnl_put(info->add_set.index);
++			ip_set_nfnl_put(par->net, info->add_set.index);
+ 		if (info->del_set.index != IPSET_INVALID_ID)
+-			ip_set_nfnl_put(info->del_set.index);
++			ip_set_nfnl_put(par->net, info->del_set.index);
+ 		return -ERANGE;
+ 	}
+ 
+@@ -289,9 +289,9 @@ set_target_v1_destroy(const struct xt_tgdtor_param *par)
+ 	const struct xt_set_info_target_v1 *info = par->targinfo;
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+-		ip_set_nfnl_put(info->add_set.index);
++		ip_set_nfnl_put(par->net, info->add_set.index);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-		ip_set_nfnl_put(info->del_set.index);
++		ip_set_nfnl_put(par->net, info->del_set.index);
+ }
+ 
+ /* Revision 2 target */
+diff --git a/net/sched/em_ipset.c b/net/sched/em_ipset.c
+index 938b7cb..1ac41d3 100644
+--- a/net/sched/em_ipset.c
++++ b/net/sched/em_ipset.c
+@@ -24,11 +24,12 @@ static int em_ipset_change(struct tcf_proto *tp, void *data, int data_len,
+ {
+ 	struct xt_set_info *set = data;
+ 	ip_set_id_t index;
++	struct net *net = qdisc_dev(tp->q)->nd_net;
+ 
+ 	if (data_len != sizeof(*set))
+ 		return -EINVAL;
+ 
+-	index = ip_set_nfnl_get_byindex(set->index);
++	index = ip_set_nfnl_get_byindex(net, set->index);
+ 	if (index == IPSET_INVALID_ID)
+ 		return -ENOENT;
+ 
+@@ -37,7 +38,7 @@ static int em_ipset_change(struct tcf_proto *tp, void *data, int data_len,
+ 	if (em->data)
+ 		return 0;
+ 
+-	ip_set_nfnl_put(index);
++	ip_set_nfnl_put(net, index);
+ 	return -ENOMEM;
+ }
+ 
+@@ -45,7 +46,7 @@ static void em_ipset_destroy(struct tcf_proto *p, struct tcf_ematch *em)
+ {
+ 	const struct xt_set_info *set = (const void *) em->data;
+ 	if (set) {
+-		ip_set_nfnl_put(set->index);
++		ip_set_nfnl_put(qdisc_dev(p->q)->nd_net, set->index);
+ 		kfree((void *) em->data);
+ 	}
+ }
+
+--------------090009070206010004050809--
