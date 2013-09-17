@@ -1,253 +1,375 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -nftables v2 1/4] netfilter: nf_tables: get rid of per rule list_head for commits
-Date: Tue, 17 Sep 2013 12:43:10 +0200
-Message-ID: <1379414593-17956-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -nftables v2 3/4] netfilter: nfnetlink: add batch support and use it from nf_tables
+Date: Tue, 17 Sep 2013 12:43:12 +0200
+Message-ID: <1379414593-17956-4-git-send-email-pablo@netfilter.org>
 References: <1379414593-17956-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52633 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52646 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752270Ab3IQKn3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Sep 2013 06:43:29 -0400
+	id S1752270Ab3IQKnb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Sep 2013 06:43:31 -0400
 In-Reply-To: <1379414593-17956-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Get rid of the extra struct list_head per rule. With this patch, a
-temporary object is allocated to store the rule update information.
+This patch adds batch support for nfnetlink, this allows you
+to atomically handle a batch of netlink messages. This is used
+by nf_tables to improve the existing atomic rule-set update
+approach.
+
+Two new nfnetlink control messages are added for this purpose,
+they are:
+
+* NFNL_MSG_BATCH_BEGIN, that indicates the beginning of a batch,
+  the nfgenmsg->res_id indicates the nfnetlink subsystem ID.
+
+* NFNL_MSG_BATCH_END, that results in the invocation of the
+  ss->commit callback function. If not specified or an error
+  ocurred in the batch, the ss->abort function is invoked
+  instead.
+
+This allows us to get rid of the NFT_MSG_COMMIT and NFT_MSG_ABORT
+nf_tables message types.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |   15 ++++++-
- net/netfilter/nf_tables_api.c     |   83 ++++++++++++++++++++++++-------------
- 2 files changed, 67 insertions(+), 31 deletions(-)
+ include/linux/netfilter/nfnetlink.h      |    2 +
+ include/net/netfilter/nf_tables.h        |    2 +
+ include/uapi/linux/netfilter/nf_tables.h |    2 -
+ include/uapi/linux/netfilter/nfnetlink.h |    4 +
+ net/netfilter/nf_tables_api.c            |   25 ++---
+ net/netfilter/nfnetlink.c                |  171 +++++++++++++++++++++++++++++-
+ 6 files changed, 182 insertions(+), 24 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 215edf5..fe08cf4 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -321,7 +321,6 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
-  *	struct nft_rule - nf_tables rule
-  *
-  *	@list: used internally
-- *	@dirty_list: this rule needs an update after new generation
-  *	@rcu_head: used internally for rcu
-  *	@handle: rule handle
-  *	@genmask: generation mask
-@@ -330,7 +329,6 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
-  */
- struct nft_rule {
- 	struct list_head		list;
--	struct list_head		dirty_list;
- 	struct rcu_head			rcu_head;
- 	u64				handle:46,
- 					genmask:2,
-@@ -339,6 +337,19 @@ struct nft_rule {
- 		__attribute__((aligned(__alignof__(struct nft_expr))));
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index cadb740..0aab055 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -23,6 +23,8 @@ struct nfnetlink_subsystem {
+ 	__u8 subsys_id;			/* nfnetlink subsystem ID */
+ 	__u8 cb_count;			/* number of callbacks */
+ 	const struct nfnl_callback *cb;	/* callback for individual types */
++	int (*commit)(struct sk_buff *skb);
++	int (*abort)(struct sk_buff *skb);
  };
  
-+/**
-+ *	struct nft_rule_trans - nf_tables rule update in transaction
-+ *
-+ *	@list: used internally
-+ *	@rule: rule that needs to be updated
-+ *	@family: family expressesed as AF_*
-+ */
-+struct nft_rule_trans {
-+	struct list_head		list;
-+	struct nft_rule			*rule;
-+	u8				family;
-+};
+ extern int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 6b644c2..54c4a5c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -344,6 +344,7 @@ struct nft_rule {
+  *	@rule: rule that needs to be updated
+  *	@chain: chain that this rule belongs to
+  *	@table: table for which this chain applies
++ *	@nlh: netlink header of the message that contain this update
+  *	@family: family expressesed as AF_*
+  */
+ struct nft_rule_trans {
+@@ -351,6 +352,7 @@ struct nft_rule_trans {
+ 	struct nft_rule			*rule;
+ 	const struct nft_chain		*chain;
+ 	const struct nft_table		*table;
++	const struct nlmsghdr		*nlh;
+ 	u8				family;
+ };
+ 
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index d9bf8ea..cbb5c75 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -48,8 +48,6 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWSETELEM,
+ 	NFT_MSG_GETSETELEM,
+ 	NFT_MSG_DELSETELEM,
+-	NFT_MSG_COMMIT,
+-	NFT_MSG_ABORT,
+ 	NFT_MSG_MAX,
+ };
+ 
+diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
+index 2889594..596ddd4 100644
+--- a/include/uapi/linux/netfilter/nfnetlink.h
++++ b/include/uapi/linux/netfilter/nfnetlink.h
+@@ -57,4 +57,8 @@ struct nfgenmsg {
+ #define NFNL_SUBSYS_NFT_COMPAT		11
+ #define NFNL_SUBSYS_COUNT		12
+ 
++/* Reserved control nfnetlink messages */
++#define NFNL_MSG_BATCH_BEGIN		NLMSG_MIN_TYPE
++#define NFNL_MSG_BATCH_END		NLMSG_MIN_TYPE+1
 +
- static inline struct nft_expr *nft_expr_first(const struct nft_rule *rule)
- {
- 	return (struct nft_expr *)&rule->data[0];
+ #endif /* _UAPI_NFNETLINK_H */
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c5d0129..f099d0d 100644
+index 8c78d36..ec2a566 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1537,6 +1537,22 @@ static void nf_tables_rule_destroy(struct nft_rule *rule)
+@@ -1548,6 +1548,7 @@ static int nf_tables_trans_add(struct nft_rule *rule, const struct nft_ctx *ctx)
+ 	rupd->table = ctx->table;
+ 	rupd->rule = rule;
+ 	rupd->family = ctx->afi->family;
++	rupd->nlh = ctx->nlh;
+ 	list_add(&rupd->list, &ctx->net->nft.commit_list);
  
- static struct nft_expr_info *info;
- 
-+static int nf_tables_trans_add(struct nft_rule *rule, const struct nft_ctx *ctx)
-+{
-+	struct nft_rule_trans *rupd;
-+	struct nft_chain *chain = (struct nft_chain *)ctx->chain;
-+
-+	rupd = kmalloc(sizeof(struct nft_rule_trans), GFP_KERNEL);
-+	if (rupd == NULL)
-+	       return -ENOMEM;
-+
-+	rupd->rule = rule;
-+	rupd->family = ctx->afi->family;
-+	list_add(&rupd->list, &chain->dirty_rules);
-+
-+	return 0;
-+}
-+
- static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 			     const struct nlmsghdr *nlh,
- 			     const struct nlattr * const nla[])
-@@ -1664,7 +1680,9 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 	}
- 
- 	if (flags & NFT_RULE_F_COMMIT)
--		list_add(&rule->dirty_list, &chain->dirty_rules);
-+		err = nf_tables_trans_add(rule, &ctx);
-+		if (err < 0)
-+			goto err2;
- 	else {
- 		nf_tables_rule_notify(skb, nlh, table, chain, rule,
- 				      NFT_MSG_NEWRULE,
-@@ -1683,14 +1701,14 @@ err1:
+ 	return 0;
+@@ -1772,9 +1773,7 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
  	return err;
  }
  
--static void
-+static int
- nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule, u32 flags)
+-static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
+-			    const struct nlmsghdr *nlh,
+-			    const struct nlattr * const nla[])
++static int nf_tables_commit(struct sk_buff *skb)
  {
--	if (flags & NFT_RULE_F_COMMIT) {
--		struct nft_chain *chain = (struct nft_chain *)ctx->chain;
-+	int err = 0;
+ 	struct net *net = sock_net(skb->sk);
+ 	struct nft_rule_trans *rupd, *tmp;
+@@ -1800,7 +1799,7 @@ static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
+ 		 */
+ 		if (nft_rule_is_active(net, rupd->rule)) {
+ 			nft_rule_clear(net, rupd->rule);
+-			nf_tables_rule_notify(skb, nlh, rupd->table,
++			nf_tables_rule_notify(skb, rupd->nlh, rupd->table,
+ 					      rupd->chain, rupd->rule,
+ 					      NFT_MSG_NEWRULE, 0,
+ 					      rupd->family);
+@@ -1810,7 +1809,7 @@ static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
  
-+	if (flags & NFT_RULE_F_COMMIT) {
- 		nft_rule_disactivate_next(ctx->net, rule);
--		list_add(&rule->dirty_list, &chain->dirty_rules);
-+		err = nf_tables_trans_add(rule, ctx);
- 	} else {
- 		list_del_rcu(&rule->list);
- 		nf_tables_rule_notify(ctx->skb, ctx->nlh, ctx->table,
-@@ -1698,6 +1716,7 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule, u32 flags)
- 				      0, ctx->afi->family);
- 		nf_tables_rule_destroy(rule);
- 	}
-+	return err;
+ 		/* This rule is in the past, get rid of it */
+ 		list_del_rcu(&rupd->rule->list);
+-		nf_tables_rule_notify(skb, nlh, rupd->table, rupd->chain,
++		nf_tables_rule_notify(skb, rupd->nlh, rupd->table, rupd->chain,
+ 				      rupd->rule, NFT_MSG_DELRULE, 0,
+ 				      rupd->family);
+ 		nf_tables_rule_destroy(rupd->rule);
+@@ -1820,9 +1819,7 @@ static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
+ 	return 0;
  }
  
- static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
-@@ -1710,7 +1729,7 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
- 	const struct nft_table *table;
- 	struct nft_chain *chain;
- 	struct nft_rule *rule, *tmp;
--	int family = nfmsg->nfgen_family;
-+	int family = nfmsg->nfgen_family, err = 0;
- 	struct nft_ctx ctx;
- 	u32 flags = 0;
+-static int nf_tables_abort(struct sock *nlsk, struct sk_buff *skb,
+-			   const struct nlmsghdr *nlh,
+-			   const struct nlattr * const nla[])
++static int nf_tables_abort(struct sk_buff *skb)
+ {
+ 	struct net *net = sock_net(skb->sk);
+ 	struct nft_rule_trans *rupd, *tmp;
+@@ -2804,16 +2801,6 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
+ 		.policy		= nft_set_elem_list_policy,
+ 	},
+-	[NFT_MSG_COMMIT] = {
+-		.call		= nf_tables_commit,
+-		.attr_count	= NFTA_TABLE_MAX,
+-		.policy		= nft_rule_policy,
+-	},
+-	[NFT_MSG_ABORT] = {
+-		.call		= nf_tables_abort,
+-		.attr_count	= NFTA_TABLE_MAX,
+-		.policy		= nft_rule_policy,
+-	},
+ };
  
-@@ -1740,14 +1759,17 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
- 		if (IS_ERR(rule))
- 			return PTR_ERR(rule);
+ static const struct nfnetlink_subsystem nf_tables_subsys = {
+@@ -2821,6 +2808,8 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.subsys_id	= NFNL_SUBSYS_NFTABLES,
+ 	.cb_count	= NFT_MSG_MAX,
+ 	.cb		= nf_tables_cb,
++	.commit		= nf_tables_commit,
++	.abort		= nf_tables_abort,
+ };
  
--		nf_tables_delrule_one(&ctx, rule, flags);
-+		err = nf_tables_delrule_one(&ctx, rule, flags);
- 	} else {
- 		/* Remove all rules in this chain */
--		list_for_each_entry_safe(rule, tmp, &chain->rules, list)
--			nf_tables_delrule_one(&ctx, rule, flags);
-+		list_for_each_entry_safe(rule, tmp, &chain->rules, list) {
-+			err = nf_tables_delrule_one(&ctx, rule, flags);
-+			if (err < 0)
-+				break;
+ /*
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 572d87d..8dde792 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -147,9 +147,6 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	const struct nfnetlink_subsystem *ss;
+ 	int type, err;
+ 
+-	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+-		return -EPERM;
+-
+ 	/* All the messages must at least contain nfgenmsg */
+ 	if (nlmsg_len(nlh) < sizeof(struct nfgenmsg))
+ 		return 0;
+@@ -217,9 +214,175 @@ replay:
+ 	}
+ }
+ 
++static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
++				u_int16_t subsys_id)
++{
++	struct sk_buff *nskb, *oskb = skb;
++	struct net *net = sock_net(skb->sk);
++	const struct nfnetlink_subsystem *ss;
++	const struct nfnl_callback *nc;
++	bool success = true, done = false;
++	int err;
++
++	if (subsys_id >= NFNL_SUBSYS_COUNT)
++		return netlink_ack(skb, nlh, -EINVAL);
++replay:
++	nskb = netlink_skb_clone(oskb, GFP_KERNEL);
++	if (!nskb)
++		return netlink_ack(oskb, nlh, -ENOMEM);
++
++	nskb->sk = oskb->sk;
++	skb = nskb;
++
++	nfnl_lock(subsys_id);
++	ss = rcu_dereference_protected(table[subsys_id].subsys,
++				       lockdep_is_held(&table[subsys_id].mutex));
++	if (!ss) {
++#ifdef CONFIG_MODULES
++		nfnl_unlock(subsys_id);
++		request_module("nfnetlink-subsys-%d", subsys_id);
++		nfnl_lock(subsys_id);
++		ss = rcu_dereference_protected(table[subsys_id].subsys,
++					       lockdep_is_held(&table[subsys_id].mutex));
++		if (!ss)
++#endif
++		{
++			nfnl_unlock(subsys_id);
++			kfree_skb(nskb);
++			return netlink_ack(skb, nlh, -EOPNOTSUPP);
 +		}
- 	}
- 
--	return 0;
-+	return err;
++	}
++
++	if (!ss->commit || !ss->abort) {
++		nfnl_unlock(subsys_id);
++		kfree_skb(nskb);
++		return netlink_ack(skb, nlh, -EOPNOTSUPP);
++	}
++
++	while (skb->len >= nlmsg_total_size(0)) {
++		int msglen, type;
++
++		nlh = nlmsg_hdr(skb);
++		err = 0;
++
++		if (nlh->nlmsg_len < NLMSG_HDRLEN) {
++			err = -EINVAL;
++			goto ack;
++		}
++
++		/* Only requests are handled by the kernel */
++		if (!(nlh->nlmsg_flags & NLM_F_REQUEST)) {
++			err = -EINVAL;
++			goto ack;
++		}
++
++		type = nlh->nlmsg_type;
++		if (type == NFNL_MSG_BATCH_END) {
++			done = true;
++			goto done;
++		} else if (type < NLMSG_MIN_TYPE) {
++			err = -EINVAL;
++			goto ack;
++		}
++
++		/* We only accept a batch with messages for the same
++		 * subsystem.
++		 */
++		if (NFNL_SUBSYS_ID(type) != subsys_id) {
++			err = -EINVAL;
++			goto ack;
++		}
++
++		nc = nfnetlink_find_client(type, ss);
++		if (!nc) {
++			err = -EINVAL;
++			goto ack;
++		}
++
++		{
++			int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
++			u_int8_t cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
++			struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++			struct nlattr *attr = (void *)nlh + min_len;
++			int attrlen = nlh->nlmsg_len - min_len;
++
++			err = nla_parse(cda, ss->cb[cb_id].attr_count,
++					attr, attrlen, ss->cb[cb_id].policy);
++			if (err < 0)
++				goto ack;
++
++			if (nc->call) {
++				err = nc->call(net->nfnl, skb, nlh,
++					       (const struct nlattr **)cda);
++			}
++
++			/* The lock was released to autoload some module, we
++			 * have to abort and start from scratch using the
++			 * original skb.
++			 */
++			if (err == -EAGAIN) {
++				ss->abort(skb);
++				nfnl_unlock(subsys_id);
++				kfree_skb(nskb);
++				goto replay;
++			}
++		}
++ack:
++		if (nlh->nlmsg_flags & NLM_F_ACK || err) {
++			/* We don't stop processing the batch on errors, thus,
++			 * userspace gets all the errors that the batch
++			 * triggers.
++			 */
++			netlink_ack(skb, nlh, err);
++			if (err)
++				success = false;
++		}
++
++		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
++		if (msglen > skb->len)
++			msglen = skb->len;
++		skb_pull(skb, msglen);
++	}
++done:
++	if (success && done)
++		ss->commit(skb);
++	else
++		ss->abort(skb);
++
++	nfnl_unlock(subsys_id);
++	kfree_skb(nskb);
++}
++
+ static void nfnetlink_rcv(struct sk_buff *skb)
+ {
+-	netlink_rcv_skb(skb, &nfnetlink_rcv_msg);
++	struct nlmsghdr *nlh = nlmsg_hdr(skb);
++	struct net *net = sock_net(skb->sk);
++	int msglen;
++
++	if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
++		return netlink_ack(skb, nlh, -EPERM);
++
++	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
++	    skb->len < nlh->nlmsg_len)
++		return;
++
++	if (nlh->nlmsg_type == NFNL_MSG_BATCH_BEGIN) {
++		struct nfgenmsg *nfgenmsg;
++
++		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
++		if (msglen > skb->len)
++			msglen = skb->len;
++
++		if (nlh->nlmsg_len < NLMSG_HDRLEN ||
++		    skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
++			return;
++
++		nfgenmsg = nlmsg_data(nlh);
++		skb_pull(skb, msglen);
++		nfnetlink_rcv_batch(skb, nlh, nfgenmsg->res_id);
++	} else {
++		netlink_rcv_skb(skb, &nfnetlink_rcv_msg);
++	}
  }
  
- static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
-@@ -1759,8 +1781,7 @@ static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
- 	struct net *net = sock_net(skb->sk);
- 	struct nft_table *table;
- 	struct nft_chain *chain;
--	struct nft_rule *rule, *tmp;
--	int family = nfmsg->nfgen_family;
-+	struct nft_rule_trans *rupd, *tmp;
- 	bool create;
- 
- 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
-@@ -1782,31 +1803,33 @@ static int nf_tables_commit(struct sock *nlsk, struct sk_buff *skb,
- 
- 	list_for_each_entry(table, &afi->tables, list) {
- 		list_for_each_entry(chain, &table->chains, list) {
--			list_for_each_entry_safe(rule, tmp, &chain->dirty_rules, dirty_list) {
-+			list_for_each_entry_safe(rupd, tmp, &chain->dirty_rules, list) {
- 				/* Delete this rule from the dirty list */
--				list_del(&rule->dirty_list);
-+				list_del(&rupd->list);
- 
- 				/* This rule was inactive in the past and just
- 				 * became active. Clear the next bit of the
- 				 * genmask since its meaning has changed, now
- 				 * it is the future.
- 				 */
--				if (nft_rule_is_active(net, rule)) {
--					nft_rule_clear(net, rule);
-+				if (nft_rule_is_active(net, rupd->rule)) {
-+					nft_rule_clear(net, rupd->rule);
- 					nf_tables_rule_notify(skb, nlh, table,
--							      chain, rule,
-+							      chain, rupd->rule,
- 							      NFT_MSG_NEWRULE,
- 							      0,
--							      nfmsg->nfgen_family);
-+							      rupd->family);
-+					kfree(rupd);
- 					continue;
- 				}
- 
- 				/* This rule is in the past, get rid of it */
--				list_del_rcu(&rule->list);
-+				list_del_rcu(&rupd->rule->list);
- 				nf_tables_rule_notify(skb, nlh, table, chain,
--						      rule, NFT_MSG_DELRULE, 0,
--						      family);
--				nf_tables_rule_destroy(rule);
-+						      rupd->rule, NFT_MSG_DELRULE, 0,
-+						      rupd->family);
-+				nf_tables_rule_destroy(rupd->rule);
-+				kfree(rupd);
- 			}
- 		}
- 	}
-@@ -1823,7 +1846,7 @@ static int nf_tables_abort(struct sock *nlsk, struct sk_buff *skb,
- 	struct net *net = sock_net(skb->sk);
- 	struct nft_table *table;
- 	struct nft_chain *chain;
--	struct nft_rule *rule, *tmp;
-+	struct nft_rule_trans *rupd, *tmp;
- 	bool create;
- 
- 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
-@@ -1834,18 +1857,20 @@ static int nf_tables_abort(struct sock *nlsk, struct sk_buff *skb,
- 
- 	list_for_each_entry(table, &afi->tables, list) {
- 		list_for_each_entry(chain, &table->chains, list) {
--			list_for_each_entry_safe(rule, tmp, &chain->dirty_rules, dirty_list) {
-+			list_for_each_entry_safe(rupd, tmp, &chain->dirty_rules, list) {
- 				/* Delete all rules from the dirty list */
--				list_del(&rule->dirty_list);
-+				list_del(&rupd->list);
- 
--				if (!nft_rule_is_active_next(net, rule)) {
--					nft_rule_clear(net, rule);
-+				if (!nft_rule_is_active_next(net, rupd->rule)) {
-+					nft_rule_clear(net, rupd->rule);
-+					kfree(rupd);
- 					continue;
- 				}
- 
- 				/* This rule is inactive, get rid of it */
--				list_del_rcu(&rule->list);
--				nf_tables_rule_destroy(rule);
-+				list_del_rcu(&rupd->rule->list);
-+				nf_tables_rule_destroy(rupd->rule);
-+				kfree(rupd);
- 			}
- 		}
- 	}
+ #ifdef CONFIG_MODULES
 -- 
 1.7.10.4
 
