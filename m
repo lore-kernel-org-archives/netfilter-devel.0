@@ -1,33 +1,51 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: nfnetlink_queue: shouldn't it be entry->skb?
-Date: Tue, 17 Sep 2013 13:43:48 +0800
-Message-ID: <5237EC14.5010908@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/4 -nftables v2] nf_tables atomic rule-set update
+Date: Tue, 17 Sep 2013 12:43:09 +0200
+Message-ID: <1379414593-17956-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:16700 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751445Ab3IQFom (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Sep 2013 01:44:42 -0400
+Received: from mail.us.es ([193.147.175.20]:52618 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751970Ab3IQKn0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Sep 2013 06:43:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-skb is the netlink type sk_buff, shouldn't we pass entry->skb to nfqnl_ct_seq_adjust?
-Since I'm blocked by how to send proper netlink message to make nfqnl_ct_parse find
-out ct :( , I haven't confirmed this problem. :(
+This patchset introduces improvements for the atomic rule update
+infrastructure, main changes are:
 
+* Get rid of the extra struct list_head per rule as discussed.
+  With this patch, a temporary object is allocated to store the
+  rule update information.
 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queu
-index 95a98c8..ae2e5c1 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -1009,7 +1009,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
-                        verdict = NF_DROP;
+* The commit and abort loops have been also simplified. Basically,
+  there is a single list per net namespace that contains pending
+  rule updates.
 
-                if (ct)
--                       nfqnl_ct_seq_adjust(skb, ct, ctinfo, diff);
-+                       nfqnl_ct_seq_adjust(entry->skb, ct, ctinfo, diff);
-        }
+* A new begin message to explicitly enter the transaction mode,
+  The end message indicates that commit need to happen. If not
+  specified, the pending updates are aborted.
+
+* Remove the commit flag per rule, thus, all rule updates are
+  transactional.
+
+These changes requires userspace updates, they will be posted soon.
+
+Pablo Neira Ayuso (4):
+  netfilter: nf_tables: get rid of per rule list_head for commits
+  netfilter: nf_tables: use per netns commit list
+  netfilter: nfnetlink: add batch support and use it from nf_tables
+  netfilter: nf_tables: all rule updates are transactional
+
+ include/linux/netfilter/nfnetlink.h      |    2 +
+ include/net/netfilter/nf_tables.h        |   23 +++-
+ include/net/netns/nftables.h             |    1 +
+ include/uapi/linux/netfilter/nf_tables.h |    7 -
+ include/uapi/linux/netfilter/nfnetlink.h |    4 +
+ net/netfilter/nf_tables_api.c            |  213 +++++++++++-------------------
+ net/netfilter/nfnetlink.c                |  171 +++++++++++++++++++++++-
+ 7 files changed, 272 insertions(+), 149 deletions(-)
+
+-- 
+1.7.10.4
+
