@@ -1,33 +1,37 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: ip6_finish_output2 change broke netfilter xt_TEE target
-Date: Tue, 17 Sep 2013 12:54:34 -0700
-Message-ID: <20130917195434.GA8424@linuxace.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: yoshfuji@linux-ipv6.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:34341 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416Ab3IQTyN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Sep 2013 15:54:13 -0400
-Received: by mail-pd0-f179.google.com with SMTP id v10so6095055pde.10
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Sep 2013 12:54:13 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 7/7] netfilter: nfnetlink_queue: use network skb for sequence adjustment
+Date: Wed, 18 Sep 2013 00:07:34 +0200
+Message-ID: <1379455654-3905-8-git-send-email-pablo@netfilter.org>
+References: <1379455654-3905-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1379455654-3905-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The change made in commit 6fd6ce20 (ipv6: Do not depend on rt->n in
-ip6_finish_output2) broke the xt_TEE target for IPv6 packets.  Instead
-of using the nexthop provided in the --gateway option, ip6_finish_output2
-is now performing neighbor solicitation for the original daddr in the
-copied skb.
+From: Gao feng <gaofeng@cn.fujitsu.com>
 
-Similar breakage occurred in IPv4, and was fixed (in 2ad5b9e4) by using
-the flag FLOWI_FLAG_KNOWN_NH.  I can find no easy way to make use of that
-flag here.  Reverting 6fd6ce20 makes TEE work again, but I am not clear
-on what problem that commit was attempting to solve.  Yoshifuji?
+Instead of the netlink skb.
 
-Phil
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 95a98c8..ae2e5c1 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -1009,7 +1009,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 			verdict = NF_DROP;
+ 
+ 		if (ct)
+-			nfqnl_ct_seq_adjust(skb, ct, ctinfo, diff);
++			nfqnl_ct_seq_adjust(entry->skb, ct, ctinfo, diff);
+ 	}
+ 
+ 	if (nfqa[NFQA_MARK])
+-- 
+1.7.10.4
