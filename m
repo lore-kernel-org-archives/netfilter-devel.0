@@ -1,19 +1,19 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/6] netfilter: ipset: Support comments for ipset entries
- in the core.
-Date: Wed, 18 Sep 2013 19:56:23 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309181928140.21599@blackhole.kfki.hu>
-References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Re: [PATCH 2/6] netfilter: ipset: Support comments in hash-type
+ ipsets.
+Date: Wed, 18 Sep 2013 20:03:43 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309181956470.21599@blackhole.kfki.hu>
+References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-3-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:60728 "EHLO smtp2.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:43720 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753666Ab3IRR4Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Sep 2013 13:56:25 -0400
-In-Reply-To: <1379423605-22777-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+	id S1751865Ab3IRSDo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Sep 2013 14:03:44 -0400
+In-Reply-To: <1379423605-22777-3-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -21,269 +21,168 @@ On Tue, 17 Sep 2013, Oliver wrote:
 
 > From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 > 
-> This adds the core support for having comments on ipset entries.
+> This provides kernel support for creating ipsets with comment support.
 > 
-> The comments are stored as standard null-terminated strings in
-> dynamically allocated memory after being passed to the kernel. As a
-> result of this, code has been added to the generic destroy function to
-> iterate all extensions and call that extension's destroy task if the set
-> has that extension activated, and if such a task is defined.
+> This does incur a penalty to flushing/destroying an ipset since all
+> entries are walked in order to free the allocated strings, this penalty
+> is of course less expensive than the operation of listing an ipset to
+> userspace, so for general-purpose usage the overall impact is expected
+> to be little to none.
 > 
 > Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 > ---
->  kernel/include/linux/netfilter/ipset/ip_set.h      | 40 ++++++++++++----
->  .../include/linux/netfilter/ipset/ip_set_comment.h | 54 ++++++++++++++++++++++
->  kernel/include/uapi/linux/netfilter/ipset/ip_set.h |  4 ++
->  kernel/net/netfilter/ipset/ip_set_core.c           | 14 ++++++
->  4 files changed, 104 insertions(+), 8 deletions(-)
->  create mode 100644 kernel/include/linux/netfilter/ipset/ip_set_comment.h
+>  kernel/net/netfilter/ipset/ip_set_hash_gen.h       | 10 +++++++++-
+>  kernel/net/netfilter/ipset/ip_set_hash_ip.c        |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_net.c       |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |  3 ++-
+>  kernel/net/netfilter/ipset/ip_set_hash_netport.c   |  3 ++-
+>  8 files changed, 23 insertions(+), 8 deletions(-)
 > 
-> diff --git a/kernel/include/linux/netfilter/ipset/ip_set.h b/kernel/include/linux/netfilter/ipset/ip_set.h
-> index c687abb..ee831f3 100644
-> --- a/kernel/include/linux/netfilter/ipset/ip_set.h
-> +++ b/kernel/include/linux/netfilter/ipset/ip_set.h
-> @@ -54,6 +54,8 @@ enum ip_set_extension {
->  	IPSET_EXT_TIMEOUT = (1 << IPSET_EXT_BIT_TIMEOUT),
->  	IPSET_EXT_BIT_COUNTER = 1,
->  	IPSET_EXT_COUNTER = (1 << IPSET_EXT_BIT_COUNTER),
-> +	IPSET_EXT_BIT_COMMENT = 2,
-> +	IPSET_EXT_COMMENT = (1 << IPSET_EXT_BIT_COMMENT),
->  	/* Mark set with an extension which needs to call destroy */
->  	IPSET_EXT_BIT_DESTROY = 7,
->  	IPSET_EXT_DESTROY = (1 << IPSET_EXT_BIT_DESTROY),
-> @@ -61,11 +63,15 @@ enum ip_set_extension {
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> index 4098edc..193aac9 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -710,6 +710,8 @@ reuse_slot:
+>  		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
+>  	if (SET_WITH_COUNTER(set))
+>  		ip_set_init_counter(ext_counter(data, set), ext);
+> +	if(SET_WITH_COMMENT(set))
+> +		ip_set_init_comment(ext_comment(data, set), ext);
 >  
->  #define SET_WITH_TIMEOUT(s)	((s)->extensions & IPSET_EXT_TIMEOUT)
->  #define SET_WITH_COUNTER(s)	((s)->extensions & IPSET_EXT_COUNTER)
-> +#define SET_WITH_COMMENT(s)	((s)->extensions & IPSET_EXT_COMMENT)
-> +
-> +/* Comment struct */
+>  out:
+>  	rcu_read_unlock_bh();
+> @@ -929,7 +931,10 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+>  	     nla_put_net32(skb, IPSET_ATTR_TIMEOUT, htonl(set->timeout))) ||
+>  	    ((set->extensions & IPSET_EXT_COUNTER) &&
+>  	     nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS,
+> -			   htonl(IPSET_FLAG_WITH_COUNTERS))))
+> +			   htonl(IPSET_FLAG_WITH_COUNTERS))) ||
+> +	    ((set->extensions & IPSET_EXT_COMMENT) &&
+> +	     nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS,
+> +			   htonl(IPSET_FLAG_WITH_COMMENTS))))
+>  		goto nla_put_failure;
+>  	ipset_nest_end(skb, nested);
 
-The comment structure then should come here, no?
+The protocol doesn't support returning the IPSET_ATTR_CADT_FLAGS attribute 
+multiple times. Initialize the flag and send if not zero, like in the 
+*_data_list functions of the hash:*net* types.
+
+The same applies to the bitmap types.
+
+As I see, the extension is missing for the list:set type, please add it 
+there too.
   
->  /* Extension id, in size order */
->  enum ip_set_ext_id {
->  	IPSET_EXT_ID_COUNTER = 0,
->  	IPSET_EXT_ID_TIMEOUT,
-> +	IPSET_EXT_ID_COMMENT,
->  	IPSET_EXT_ID_MAX,
->  };
->  
-> @@ -86,6 +92,7 @@ struct ip_set_ext {
->  	u64 packets;
->  	u64 bytes;
->  	u32 timeout;
-> +	char *comment;
->  };
->  
->  struct ip_set_counter {
-> @@ -93,20 +100,21 @@ struct ip_set_counter {
->  	atomic64_t packets;
->  };
->  
-> -struct ip_set;
-> +struct ip_set_comment {
-> +	char *str;
-> +};
->  
-> -static inline void
-> -ip_set_ext_destroy(struct ip_set *set, void *data)
-> -{
-> -	/* Check that the extension is enabled for the set and
-> -	 * call it's destroy function for its extension part in data.
-> -	 */
-> -}
-> +struct ip_set;
->  
-> +#define ext_generic(e, s, i)	\
-> +(void *)(((void *)(e)) + (s)->offset[i])
->  #define ext_timeout(e, s)	\
->  (unsigned long *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_TIMEOUT])
->  #define ext_counter(e, s)	\
->  (struct ip_set_counter *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_COUNTER])
-> +#define ext_comment(e, s)	\
-> +(struct ip_set_comment *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_COMMENT])
-> +
->  
->  typedef int (*ipset_adtfn)(struct ip_set *set, void *value,
->  			   const struct ip_set_ext *ext,
-> @@ -224,6 +232,21 @@ struct ip_set {
->  };
->  
->  static inline void
-> +ip_set_ext_destroy(struct ip_set *set, void *data)
-> +{
-> +	u32 id = 0;
-> +	/* Check that the extension is enabled for the set and
-> +	 * call it's destroy function for its extension part in data.
-> +	 */
-> +	for (; id < IPSET_EXT_ID_MAX; id++) {
-> +		if (!(set->extensions & ip_set_extensions[id].type) ||
-> +		    !ip_set_extensions[id].destroy)
-> +			continue;
-> +		ip_set_extensions[id].destroy(ext_generic(data, set, id));
-> +	}
-> +}
-
-Originally, when preparing ipset for this kind of extensions, I added the 
-same generic function body to ip_set_ext_destroy. However, it means 
-wasting two loops unnecessarily when we do exactly know which 
-extension type needs the call to the destroy function. So a simple
-
-static inline void
-ip_set_ext_destroy(struct ip_set *set, void *data)
-{
-	if (SET_WITH_COMMENT(set))
-		ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(
-			ext_comment(data, set));
-}
-
-suffices. Extensions cannot be added without modifying the ipset core.
-
-> +static inline void
->  ip_set_add_bytes(u64 bytes, struct ip_set_counter *counter)
->  {
->  	atomic64_add((long long)bytes, &(counter)->bytes);
-> @@ -426,6 +449,7 @@ bitmap_bytes(u32 a, u32 b)
->  }
->  
->  #include <linux/netfilter/ipset/ip_set_timeout.h>
-> +#include <linux/netfilter/ipset/ip_set_comment.h>
->  
->  #define IP_SET_INIT_KEXT(skb, opt, set)			\
->  	{ .bytes = (skb)->len, .packets = 1,		\
-> diff --git a/kernel/include/linux/netfilter/ipset/ip_set_comment.h b/kernel/include/linux/netfilter/ipset/ip_set_comment.h
-> new file mode 100644
-> index 0000000..981a41e
-> --- /dev/null
-> +++ b/kernel/include/linux/netfilter/ipset/ip_set_comment.h
-> @@ -0,0 +1,54 @@
-> +#ifndef _IP_SET_COMMENT_H
-> +#define _IP_SET_COMMENT_H
-> +
-> +/* Copyright (C) 2013 Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#define IP_SET_MAX_COMMENT_SIZE 255
-> +
-> +#ifdef __KERNEL__
-> +
-> +static inline char*
-> +ip_set_comment_uget(struct nlattr *tb)
-> +{
-> +	return nla_data(tb);
-> +}
-> +
-> +static inline void
-> +ip_set_init_comment(struct ip_set_comment *comment,
-> +		    const struct ip_set_ext *ext)
-> +{
-> +	size_t len = ext->comment ? strlen(ext->comment) : 0;
-> +	if (!len)
-> +		return;
-> +	if (unlikely(len > IP_SET_MAX_COMMENT_SIZE))
-> +		len = IP_SET_MAX_COMMENT_SIZE;
-> +	if (unlikely(comment->str))
-> +		kfree(comment->str);
-> +	comment->str = kzalloc(len + 1, GFP_KERNEL);
-> +	strlcpy(comment->str, ext->comment, len + 1);
-> +}
->
-> +static inline bool
-> +ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
-> +{
-> +	if(!comment->str)
-> +		return NULL;
-> +	return nla_put_string(skb, IPSET_ATTR_COMMENT, comment->str);
-> +}
-> +
-> +static inline void
-> +ip_set_comment_free(struct ip_set_comment *comment)
-> +{
-> +	if(unlikely(!comment->str))
-> +		return;
-> +	kfree(comment->str);
-> +	comment->str = NULL;
-> +}
-> +
-> +#endif
-> +#endif
-> diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-> index 2b61ac4..98dce6a 100644
-> --- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-> +++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-> @@ -110,6 +110,7 @@ enum {
->  	IPSET_ATTR_IFACE,
->  	IPSET_ATTR_BYTES,
->  	IPSET_ATTR_PACKETS,
-> +	IPSET_ATTR_COMMENT,
->  	__IPSET_ATTR_ADT_MAX,
->  };
->  #define IPSET_ATTR_ADT_MAX	(__IPSET_ATTR_ADT_MAX - 1)
-> @@ -140,6 +141,7 @@ enum ipset_errno {
->  	IPSET_ERR_IPADDR_IPV4,
->  	IPSET_ERR_IPADDR_IPV6,
->  	IPSET_ERR_COUNTER,
-> +	IPSET_ERR_COMMENT,
->  
->  	/* Type specific error codes */
->  	IPSET_ERR_TYPE_SPECIFIC = 4352,
-> @@ -176,6 +178,8 @@ enum ipset_cadt_flags {
->  	IPSET_FLAG_NOMATCH	= (1 << IPSET_FLAG_BIT_NOMATCH),
->  	IPSET_FLAG_BIT_WITH_COUNTERS = 3,
->  	IPSET_FLAG_WITH_COUNTERS = (1 << IPSET_FLAG_BIT_WITH_COUNTERS),
-> +	IPSET_FLAG_BIT_WITH_COMMENTS = 4,
-> +	IPSET_FLAG_WITH_COMMENTS = (1 << IPSET_FLAG_BIT_WITH_COMMENTS),
->  	IPSET_FLAG_CADT_MAX	= 15,
->  };
-
-Please use singular "COMMENT" everywhere. The "COMMENT" and "COMMENTS" 
-mixed usage lead to confusion (see the userspace). (The counters are 
-packet and byte counters, therefore plural.)
-  
-> diff --git a/kernel/net/netfilter/ipset/ip_set_core.c b/kernel/net/netfilter/ipset/ip_set_core.c
-> index a2030ee..84b73cf 100644
-> --- a/kernel/net/netfilter/ipset/ip_set_core.c
-> +++ b/kernel/net/netfilter/ipset/ip_set_core.c
-> @@ -321,6 +321,7 @@ ip_set_get_ipaddr6(struct nlattr *nla, union nf_inet_addr *ipaddr)
->  }
->  EXPORT_SYMBOL_GPL(ip_set_get_ipaddr6);
->  
-> +typedef void (*destroyer)(void *);
->  /* ipset data extension types, in size order */
->  
->  const struct ip_set_ext_type ip_set_extensions[] = {
-> @@ -335,6 +336,13 @@ const struct ip_set_ext_type ip_set_extensions[] = {
->  		.len	= sizeof(unsigned long),
->  		.align	= __alignof__(unsigned long),
->  	},
-> +	[IPSET_EXT_ID_COMMENT] = {
-> +		.type	 = IPSET_EXT_COMMENT | IPSET_EXT_DESTROY,
-> +		.flag	 = IPSET_FLAG_WITH_COMMENTS,
-> +		.len	 = sizeof(struct ip_set_comment),
-> +		.align	 = __alignof__(struct ip_set_comment),
-> +		.destroy = (destroyer) ip_set_comment_free,
-> +	},
->  };
->  EXPORT_SYMBOL_GPL(ip_set_extensions);
->  
-> @@ -386,6 +394,12 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
->  			ext->packets = be64_to_cpu(nla_get_be64(
->  						   tb[IPSET_ATTR_PACKETS]));
+> @@ -986,6 +991,9 @@ mtype_list(const struct ip_set *set,
+>  			if (SET_WITH_COUNTER(set) &&
+>  			    ip_set_put_counter(skb, ext_counter(e, set)))
+>  				goto nla_put_failure;
+> +			if (SET_WITH_COMMENT(set) &&
+> +			    ip_set_put_comment(skb, ext_comment(e, set)))
+> +				goto nla_put_failure;
+>  			ipset_nest_end(skb, nested);
+>  		}
 >  	}
-> +	if(tb[IPSET_ATTR_COMMENT]) {
-> +		if(!(set->extensions & IPSET_EXT_COMMENT))
-> +			return -IPSET_ERR_COMMENT;
-> +		ext->comment = ip_set_comment_uget(tb[IPSET_ATTR_COMMENT]);
-> +	}
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(ip_set_get_extensions);
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ip.c b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
+> index a111ffe..da2433d 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_ip.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
+> @@ -24,7 +24,8 @@
+>  #include <linux/netfilter/ipset/ip_set_hash.h>
+>  
+>  #define IPSET_TYPE_REV_MIN	0
+> -#define IPSET_TYPE_REV_MAX	1	/* Counters support */
+> +/*				1	   Counters support */
+> +#define IPSET_TYPE_REV_MAX	2	/* Comments support */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
+> index 5dc735c..c7a9083 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_ipport.c
+> @@ -26,7 +26,8 @@
+>  
+>  #define IPSET_TYPE_REV_MIN	0
+>  /*				1    SCTP and UDPLITE support added */
+> -#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
+> +/*				2    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	3 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
+> index 8c43dc7..cb17d9a 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportip.c
+> @@ -26,7 +26,8 @@
+>  
+>  #define IPSET_TYPE_REV_MIN	0
+>  /*				1    SCTP and UDPLITE support added */
+> -#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
+> +/*				2    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	3 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
+> index 3489045..071aed7 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c
+> @@ -28,7 +28,8 @@
+>  /*				1    SCTP and UDPLITE support added */
+>  /*				2    Range as input support for IPv4 added */
+>  /*				3    nomatch flag support added */
+> -#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
+> +/*				4    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	5 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_net.c b/kernel/net/netfilter/ipset/ip_set_hash_net.c
+> index d559855..7ff21b9 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_net.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_net.c
+> @@ -25,7 +25,8 @@
+>  #define IPSET_TYPE_REV_MIN	0
+>  /*				1    Range as input support for IPv4 added */
+>  /*				2    nomatch flag support added */
+> -#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
+> +/*				3    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	4 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
+> index 26703e9..fb49cb5 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_netiface.c
+> @@ -26,7 +26,8 @@
+>  #define IPSET_TYPE_REV_MIN	0
+>  /*				1    nomatch flag support added */
+>  /*				2    /0 support added */
+> -#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
+> +/*				3    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	4 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_netport.c b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
+> index 45b6e91..e3e6fd8 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_netport.c
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_netport.c
+> @@ -27,7 +27,8 @@
+>  /*				1    SCTP and UDPLITE support added */
+>  /*				2    Range as input support for IPv4 added */
+>  /*				3    nomatch flag support added */
+> -#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
+> +/*				4    Counters support added */
+> +#define IPSET_TYPE_REV_MAX	5 /* Comments support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
 > -- 
 > 1.8.3.2
 
