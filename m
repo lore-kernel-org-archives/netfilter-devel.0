@@ -1,62 +1,60 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH 5/6] ipset: Support comments in the userspace library.
-Date: Thu, 19 Sep 2013 16:35:47 +0200
-Message-ID: <2453382.7aUm7cClMH@gentoovm>
-References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-6-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309182022560.21599@blackhole.kfki.hu>
+Subject: Re: [PATCH 4/6] ipset: Rework the "fake" argument parsing for ipset restore.
+Date: Thu, 19 Sep 2013 16:56:20 +0200
+Message-ID: <3741696.TYR9IgWk1Y@gentoovm>
+References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-5-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309182016290.21599@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:41106 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:41183 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562Ab3ISOgM (ORCPT
+	with ESMTP id S1752921Ab3ISO4b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 10:36:12 -0400
-In-Reply-To: <alpine.DEB.2.00.1309182022560.21599@blackhole.kfki.hu>
+	Thu, 19 Sep 2013 10:56:31 -0400
+In-Reply-To: <alpine.DEB.2.00.1309182016290.21599@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 18 September 2013 20:43:30 Jozsef Kadlecsik wrote:
+On Wednesday 18 September 2013 20:22:41 Jozsef Kadlecsik wrote:
 > On Tue, 17 Sep 2013, Oliver wrote:
 <snip>
-> > diff --git a/lib/types.c b/lib/types.c
-> > index adaba83..b95114f 100644
-> > --- a/lib/types.c
-> > +++ b/lib/types.c
-> > @@ -607,7 +607,7 @@ ipset_load_types(void)
+> > -	newargv[newargc++] = ptr;
+> > +	newargv[newargc] = calloc(strlen(ptr) + 1, sizeof(*ptr));
+> > +	ipset_strlcpy(newargv[newargc++], ptr, strlen(ptr) + 1);
 > > 
-> >  		len = snprintf(path, sizeof(path), "%.*s",
-> >  		
-> >  			       (unsigned int)(next - dir), dir);
+> >  	while ((ptr = strtok(NULL, " \t\r\n")) != NULL) {
 > > 
-> > -		if (len >= sizeof(path) || len < 0)
-> > +		if (len >= (int)sizeof(path) || len < (int)0)
-> > 
-> >  			continue;
-> >  		
-> >  		n = scandir(path, &list, NULL, alphasort);
-> > 
-> > @@ -620,7 +620,7 @@ ipset_load_types(void)
-> > 
-> >  			len = snprintf(file, sizeof(file), "%s/%s",
-> >  			
-> >  				       path, list[n]->d_name);
-> > 
-> > -			if (len >= sizeof(file) || len < 0)
-> > +			if (len >= (int)sizeof(file) || len < (int)0)
-> > 
-> >  				goto nextf;
-> >  			
-> >  			if (dlopen(file, RTLD_NOW) == NULL)
+> > -		if ((newargc + 1) < (int)(sizeof(newargv)/sizeof(char *)))
+> > -			newargv[newargc++] = ptr;
+> > -		else {
+> > +		if ((newargc + 1) < (int)(sizeof(newargv)/sizeof(char *))) {
+> > +			tmp = newargv[newargc] = calloc(strlen(ptr) + 1,
+> > +							sizeof(*ptr));
+> > +			if(*ptr == '"') {
+> > +				ipset_strlcpy(tmp, ptr + 1, (strlen(ptr) + 1) *
+> > +					      sizeof(*ptr));
+> > +				ipset_strlcat(tmp, " ", (strlen(ptr) + 1) *
+> > +					      sizeof(*ptr));
+> > +				while((ptr = strtok(NULL, "\"")) != NULL) {
+> > +					if(*ptr == '\n' || *ptr == '\r')
+> > +						continue;
+> > +					tmp = realloc(tmp, (strlen(tmp) +
+> > +						      strlen(ptr) + 1) *
+> > +						      sizeof(*ptr));
+> > +					ipset_strlcat(tmp, ptr, (strlen(tmp) +
+> > +						      strlen(ptr) + 1) *
+> > +						      sizeof(*ptr));
+> > +				}
 > 
-> I don't see why these two modifications are required.
+> Why is there the inside while loop? We look for a single closing quote.
+> Also, I'd better like to see an error reported if the closing quote is
+> missing instead of silently accepting it.
+So, I've come to the conclusion that is is all horribly ugly and strtok is 
+more of a hinderance than a help here, so... I've redone it in a very similar 
+vein to that of the iptables_restore code.
 
-Just to prevent a build failure in debug mode because warnings are treated as 
-errors and comparing an int to a size_t obviously makes it unhappy.
-
-All other other changes you specified have been made. :)
-
-Thanks,
-Oliver.
+Kind Regards,
+Oliver
