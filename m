@@ -1,164 +1,93 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -nftables 1/3] netfilter: nf_tables: allow to dump all existing sets
-Date: Thu, 19 Sep 2013 22:18:51 +0200
-Message-ID: <1379621933-6064-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -nftables 2/3] netfilter: nf_tables: nft_meta: fix socket uid,gid handling
+Date: Thu, 19 Sep 2013 22:18:52 +0200
+Message-ID: <1379621933-6064-2-git-send-email-pablo@netfilter.org>
+References: <1379621933-6064-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37703 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37707 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752734Ab3ISUTB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 16:19:01 -0400
+	id S1753335Ab3ISUTC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Sep 2013 16:19:02 -0400
+In-Reply-To: <1379621933-6064-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If no table specified, dump all existing sets. This simplifies
-userspace applications, which don't require to iterate over the
-existing list of tables anymore to retrieve all the existing
-sets.
+net/netfilter/nft_meta.c: In function =E2=80=98nft_meta_eval=E2=80=99:
+net/netfilter/nft_meta.c:82:17: error: incompatible types when assignin=
+g to type =E2=80=98u32=E2=80=99 from type =E2=80=98kuid_t=E2=80=99
+net/netfilter/nft_meta.c:88:17: error: incompatible types when assignin=
+g to type =E2=80=98u32=E2=80=99 from type =E2=80=98kgid_t=E2=80=99
 
+Reported-by: Bj=C3=B8rnar Ness <bjornar.ness@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |   96 +++++++++++++++++++++++++++++++----------
- 1 file changed, 74 insertions(+), 22 deletions(-)
+ net/netfilter/nft_meta.c |   32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4bb0ea5..35e23b7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1901,15 +1901,17 @@ static int nft_ctx_init_from_setattr(struct nft_ctx *ctx,
- 	struct net *net = sock_net(skb->sk);
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	const struct nft_af_info *afi;
--	const struct nft_table *table;
-+	const struct nft_table *table = NULL;
- 
- 	afi = nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
- 	if (IS_ERR(afi))
- 		return PTR_ERR(afi);
- 
--	table = nf_tables_table_lookup(afi, nla[NFTA_SET_TABLE]);
--	if (IS_ERR(table))
--		return PTR_ERR(table);
-+	if (nla[NFTA_SET_TABLE] != NULL) {
-+		table = nf_tables_table_lookup(afi, nla[NFTA_SET_TABLE]);
-+		if (IS_ERR(table))
-+			return PTR_ERR(table);
-+	}
- 
- 	nft_ctx_init(ctx, skb, nlh, afi, table, NULL, nla);
- 	return 0;
-@@ -2044,14 +2046,70 @@ err:
- 	return err;
- }
- 
-+static int nf_tables_dump_sets_table(struct nft_ctx *ctx, struct sk_buff *skb,
-+				     struct netlink_callback *cb)
-+{
-+	const struct nft_set *set;
-+	unsigned int idx = 0, s_idx = cb->args[0];
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 84256bc..8c28220 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -16,6 +16,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/dst.h>
+ #include <net/sock.h>
++#include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
+=20
+ struct nft_meta {
+@@ -76,16 +77,35 @@ static void nft_meta_eval(const struct nft_expr *ex=
+pr,
+ 		*(u16 *)dest->data =3D out->type;
+ 		break;
+ 	case NFT_META_SKUID:
+-		if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL ||
+-		    skb->sk->sk_socket->file =3D=3D NULL)
++		if (skb->sk =3D=3D NULL || skb->sk->sk_state =3D=3D TCP_TIME_WAIT)
+ 			goto err;
+-		dest->data[0] =3D skb->sk->sk_socket->file->f_cred->fsuid;
 +
-+	if (cb->args[1])
-+		return skb->len;
-+
-+	list_for_each_entry(set, &ctx->table->sets, list) {
-+		if (idx < s_idx)
-+			goto cont;
-+		if (nf_tables_fill_set(skb, ctx, set, NFT_MSG_NEWSET,
-+				       NLM_F_MULTI) < 0) {
-+			cb->args[0] = idx;
-+			goto done;
++		read_lock_bh(&skb->sk->sk_callback_lock);
++		if (skb->sk->sk_socket =3D=3D NULL ||
++		    skb->sk->sk_socket->file =3D=3D NULL) {
++			read_unlock_bh(&skb->sk->sk_callback_lock);
++			goto err;
 +		}
-+cont:
-+		idx++;
-+	}
-+	cb->args[1] = 1;
-+done:
-+	return skb->len;
-+}
 +
-+static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff *skb,
-+				   struct netlink_callback *cb)
-+{
-+	const struct nft_set *set;
-+	unsigned int idx = 0, s_idx = cb->args[0];
-+	struct nft_table *table, *cur_table = (struct nft_table *)cb->args[2];
++		dest->data[0] =3D
++			from_kuid_munged(&init_user_ns,
++				skb->sk->sk_socket->file->f_cred->fsuid);
++		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
+ 	case NFT_META_SKGID:
+-		if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL ||
+-		    skb->sk->sk_socket->file =3D=3D NULL)
++		if (skb->sk =3D=3D NULL || skb->sk->sk_state =3D=3D TCP_TIME_WAIT)
++			goto err;
 +
-+	if (cb->args[1])
-+		return skb->len;
-+
-+	list_for_each_entry(table, &ctx->afi->tables, list) {
-+		if (cur_table && cur_table != table)
-+			continue;
-+
-+		ctx->table = table;
-+		list_for_each_entry(set, &ctx->table->sets, list) {
-+			if (idx < s_idx)
-+				goto cont;
-+			if (nf_tables_fill_set(skb, ctx, set, NFT_MSG_NEWSET,
-+					       NLM_F_MULTI) < 0) {
-+				cb->args[0] = idx;
-+				cb->args[2] = (unsigned long) table;
-+				goto done;
-+			}
-+cont:
-+			idx++;
++		read_lock_bh(&skb->sk->sk_callback_lock);
++		if (skb->sk->sk_socket =3D=3D NULL ||
++		    skb->sk->sk_socket->file =3D=3D NULL) {
++			read_unlock_bh(&skb->sk->sk_callback_lock);
+ 			goto err;
+-		dest->data[0] =3D skb->sk->sk_socket->file->f_cred->fsgid;
 +		}
-+	}
-+	cb->args[1] = 1;
-+done:
-+	return skb->len;
-+}
-+
- static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
- 	struct nlattr *nla[NFTA_SET_MAX + 1];
--	const struct nft_set *set;
- 	struct nft_ctx ctx;
--	unsigned int idx = 0, s_idx = cb->args[0];
--	int err;
-+	int err, ret;
- 
- 	err = nlmsg_parse(cb->nlh, sizeof(*nfmsg), nla, NFTA_SET_MAX,
- 			  nft_set_policy);
-@@ -2062,21 +2120,12 @@ static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
- 	if (err < 0)
- 		return err;
- 
--	list_for_each_entry(set, &ctx.table->sets, list) {
--		if (idx < s_idx)
--			goto cont;
--		if (idx > s_idx)
--			memset(&cb->args[1], 0,
--			       sizeof(cb->args) - sizeof(cb->args[0]));
--		if (nf_tables_fill_set(skb, &ctx, set, NFT_MSG_NEWSET,
--				       NLM_F_MULTI) < 0)
--			goto done;
--cont:
--		idx++;
--	}
--done:
--	cb->args[0] = idx;
--	return skb->len;
-+	if (ctx.table == NULL)
-+		ret = nf_tables_dump_sets_all(&ctx, skb, cb);
-+	else
-+		ret = nf_tables_dump_sets_table(&ctx, skb, cb);
-+
-+	return ret;
- }
- 
- static int nf_tables_getset(struct sock *nlsk, struct sk_buff *skb,
-@@ -2273,6 +2322,9 @@ static int nf_tables_delset(struct sock *nlsk, struct sk_buff *skb,
- 	struct nft_ctx ctx;
- 	int err;
- 
-+	if (nla[NFTA_SET_TABLE] == NULL)
-+		return -EINVAL;
-+
- 	err = nft_ctx_init_from_setattr(&ctx, skb, nlh, nla);
- 	if (err < 0)
- 		return err;
--- 
++		dest->data[0] =3D
++			from_kgid_munged(&init_user_ns,
++				 skb->sk->sk_socket->file->f_cred->fsgid);
++		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
+ #ifdef CONFIG_NET_CLS_ROUTE
+ 	case NFT_META_RTCLASSID: {
+--=20
 1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
