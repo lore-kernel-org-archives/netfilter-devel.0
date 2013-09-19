@@ -1,36 +1,72 @@
-From: =?ISO-8859-1?Q?Bj=F8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Problem compiling nftables kernel
-Date: Thu, 19 Sep 2013 11:28:31 +0200
-Message-ID: <CAJO99T=QRpNUmmdfXVj6xfNp_gDqRszfAzjSkygGsoyCKhJN=Q@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/2] netfilter: ipset: Add hash:net,net module to
+ kernel.
+Date: Thu, 19 Sep 2013 11:30:50 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309191123460.23327@blackhole.kfki.hu>
+References: <1379420818-22541-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379420818-22541-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309181913300.21599@blackhole.kfki.hu> <4983376.CzhlSNdZFQ@gentoovm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33924 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3ISJ2d convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 05:28:33 -0400
-Received: by mail-lb0-f172.google.com with SMTP id x18so7586369lbi.17
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2013 02:28:32 -0700 (PDT)
+Received: from smtp-in.kfki.hu ([148.6.0.26]:54044 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752071Ab3ISJaw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Sep 2013 05:30:52 -0400
+In-Reply-To: <4983376.CzhlSNdZFQ@gentoovm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-git: 6b92ef23eb12021c5ffe3ff03f60f6e0359c02c2
+On Thu, 19 Sep 2013, Oliver wrote:
 
-x86_64
+> > On Tue, 17 Sep 2013, Oliver wrote:
+> <snip>
+> > > @@ -461,6 +462,9 @@ mtype_expire(struct ip_set *set, struct htype *h, u8
+> > > nets_length, size_t dsize)> 
+> > >  	struct mtype_elem *data;
+> > >  	u32 i;
+> > >  	int j;
+> > > 
+> > > +#if IPSET_NET_COUNT > 1
+> > > +	u8 k;
+> > > +#endif
+> > 
+> > Please get rid of all these #if .. [#else ...] #endif constructions,
+> > except in mtype_test_cidrs. The compiler optimizes away the for loop when
+> > IPSET_NET_COUNT == 1.
+> 
+> Yep, there's a couple of other places where I don't currently see a way 
+> around it, but anywhere that it doesn't pose a logical problem to 
+> existing types, I've removed it.
 
-net/netfilter/nft_meta.c: In function =91nft_meta_eval=92:
-net/netfilter/nft_meta.c:82:17: error: incompatible types when
-assigning to type =91u32=92 from type =91kuid_t=92
-net/netfilter/nft_meta.c:88:17: error: incompatible types when
-assigning to type =91u32=92 from type =91kgid_t=92
+Where do you think it's required, except in mtype_test_cidrs?
+ 
+> > > +	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+> > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+> > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+> > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+> > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
+> > > +		return -IPSET_ERR_PROTOCOL;
+> > > +	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+> > > +		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+> > 
+> > Check tb[IPSET_ATTR_IP2_TO] in the condition above too.
+> 
+> This is IPv6, I thought ranges weren't even legitimate here, also, if 
+> this is wrong, hash:net must be too... Or does IP2_TO not mean what I 
+> think it means?
 
---=20
-Bj(/)rnar
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IPSET_ATTR_IP2_TO carries the endpoint of the range of the second IP type 
+of element and ranges are not allowed in either IP type of element part 
+for IPv6. It is not valid for hash:net at all, but messages for 
+hash:net,net types may carry it. ipset itself does not allow the syntax, 
+but the library is free to use for anyone and therefore the kernel must 
+handle the case.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
