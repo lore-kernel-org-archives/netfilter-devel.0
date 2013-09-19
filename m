@@ -1,60 +1,85 @@
 From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH 4/6] ipset: Rework the "fake" argument parsing for ipset restore.
-Date: Thu, 19 Sep 2013 16:56:20 +0200
-Message-ID: <3741696.TYR9IgWk1Y@gentoovm>
-References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-5-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309182016290.21599@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/2] netfilter: ipset: Add hash:net,net module to kernel.
+Date: Thu, 19 Sep 2013 17:00:46 +0200
+Message-ID: <2141855.SG6BU49OR8@gentoovm>
+References: <1379420818-22541-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <4983376.CzhlSNdZFQ@gentoovm> <alpine.DEB.2.00.1309191123460.23327@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:41183 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:41213 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921Ab3ISO4b (ORCPT
+	with ESMTP id S1751751Ab3ISPA4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 10:56:31 -0400
-In-Reply-To: <alpine.DEB.2.00.1309182016290.21599@blackhole.kfki.hu>
+	Thu, 19 Sep 2013 11:00:56 -0400
+In-Reply-To: <alpine.DEB.2.00.1309191123460.23327@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 18 September 2013 20:22:41 Jozsef Kadlecsik wrote:
-> On Tue, 17 Sep 2013, Oliver wrote:
-<snip>
-> > -	newargv[newargc++] = ptr;
-> > +	newargv[newargc] = calloc(strlen(ptr) + 1, sizeof(*ptr));
-> > +	ipset_strlcpy(newargv[newargc++], ptr, strlen(ptr) + 1);
+On Thursday 19 September 2013 11:30:50 Jozsef Kadlecsik wrote:
+> On Thu, 19 Sep 2013, Oliver wrote:
+> > > On Tue, 17 Sep 2013, Oliver wrote:
+> > <snip>
 > > 
-> >  	while ((ptr = strtok(NULL, " \t\r\n")) != NULL) {
+> > > > @@ -461,6 +462,9 @@ mtype_expire(struct ip_set *set, struct htype *h,
+> > > > u8
+> > > > nets_length, size_t dsize)>
+> > > > 
+> > > >  	struct mtype_elem *data;
+> > > >  	u32 i;
+> > > >  	int j;
+> > > > 
+> > > > +#if IPSET_NET_COUNT > 1
+> > > > +	u8 k;
+> > > > +#endif
+> > > 
+> > > Please get rid of all these #if .. [#else ...] #endif constructions,
+> > > except in mtype_test_cidrs. The compiler optimizes away the for loop
+> > > when
+> > > IPSET_NET_COUNT == 1.
 > > 
-> > -		if ((newargc + 1) < (int)(sizeof(newargv)/sizeof(char *)))
-> > -			newargv[newargc++] = ptr;
-> > -		else {
-> > +		if ((newargc + 1) < (int)(sizeof(newargv)/sizeof(char *))) {
-> > +			tmp = newargv[newargc] = calloc(strlen(ptr) + 1,
-> > +							sizeof(*ptr));
-> > +			if(*ptr == '"') {
-> > +				ipset_strlcpy(tmp, ptr + 1, (strlen(ptr) + 1) *
-> > +					      sizeof(*ptr));
-> > +				ipset_strlcat(tmp, " ", (strlen(ptr) + 1) *
-> > +					      sizeof(*ptr));
-> > +				while((ptr = strtok(NULL, "\"")) != NULL) {
-> > +					if(*ptr == '\n' || *ptr == '\r')
-> > +						continue;
-> > +					tmp = realloc(tmp, (strlen(tmp) +
-> > +						      strlen(ptr) + 1) *
-> > +						      sizeof(*ptr));
-> > +					ipset_strlcat(tmp, ptr, (strlen(tmp) +
-> > +						      strlen(ptr) + 1) *
-> > +						      sizeof(*ptr));
-> > +				}
+> > Yep, there's a couple of other places where I don't currently see a way
+> > around it, but anywhere that it doesn't pose a logical problem to
+> > existing types, I've removed it.
 > 
-> Why is there the inside while loop? We look for a single closing quote.
-> Also, I'd better like to see an error reported if the closing quote is
-> missing instead of silently accepting it.
-So, I've come to the conclusion that is is all horribly ugly and strtok is 
-more of a hinderance than a help here, so... I've redone it in a very similar 
-vein to that of the iptables_restore code.
+> Where do you think it's required, except in mtype_test_cidrs?
 
-Kind Regards,
-Oliver
+Well actually, I've come to the realisation that it's actually required pretty 
+much everywhere that I placed it because of the simple reason that in the 
+existing hash types, data->cidr is not a u8 array, but it is in hash:net,net 
+obviously.
+
+So now either we can convert all the existing hash types so that the cidr 
+member of their struct is a single-element array, or we keep the preprocessor 
+conditions, your choice.
+
+> 
+> > > > +	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+> > > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+> > > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+> > > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+> > > > +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
+> > > > +		return -IPSET_ERR_PROTOCOL;
+> > > > +	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+> > > > +		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+> > > 
+> > > Check tb[IPSET_ATTR_IP2_TO] in the condition above too.
+> > 
+> > This is IPv6, I thought ranges weren't even legitimate here, also, if
+> > this is wrong, hash:net must be too... Or does IP2_TO not mean what I
+> > think it means?
+> 
+> IPSET_ATTR_IP2_TO carries the endpoint of the range of the second IP type
+> of element and ranges are not allowed in either IP type of element part
+> for IPv6. It is not valid for hash:net at all, but messages for
+> hash:net,net types may carry it. ipset itself does not allow the syntax,
+> but the library is free to use for anyone and therefore the kernel must
+> handle the case.
+
+OK, I see what you mean now, for some reason I didn't see the IPSET_ATTR_IP_TO 
+check, obviously TO2 is needed, I will fix that before sending v2.
+
+Thanks,
+Oliver.
