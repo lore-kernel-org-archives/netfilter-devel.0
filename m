@@ -1,101 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Problem compiling nftables kernel
-Date: Thu, 19 Sep 2013 12:07:07 +0200
-Message-ID: <20130919100707.GA4193@localhost>
-References: <CAJO99T=QRpNUmmdfXVj6xfNp_gDqRszfAzjSkygGsoyCKhJN=Q@mail.gmail.com>
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Re: [PATCH 5/6] ipset: Support comments in the userspace library.
+Date: Thu, 19 Sep 2013 16:35:47 +0200
+Message-ID: <2453382.7aUm7cClMH@gentoovm>
+References: <1379423605-22777-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379423605-22777-6-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <alpine.DEB.2.00.1309182022560.21599@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Cc: netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51418 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751694Ab3ISKHY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 06:07:24 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJO99T=QRpNUmmdfXVj6xfNp_gDqRszfAzjSkygGsoyCKhJN=Q@mail.gmail.com>
+Received: from mail.uptheinter.net ([77.74.196.236]:41106 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab3ISOgM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Sep 2013 10:36:12 -0400
+In-Reply-To: <alpine.DEB.2.00.1309182022560.21599@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-On Thu, Sep 19, 2013 at 11:28:31AM +0200, Bjørnar Ness wrote:
-> git: 6b92ef23eb12021c5ffe3ff03f60f6e0359c02c2
+On Wednesday 18 September 2013 20:43:30 Jozsef Kadlecsik wrote:
+> On Tue, 17 Sep 2013, Oliver wrote:
+<snip>
+> > diff --git a/lib/types.c b/lib/types.c
+> > index adaba83..b95114f 100644
+> > --- a/lib/types.c
+> > +++ b/lib/types.c
+> > @@ -607,7 +607,7 @@ ipset_load_types(void)
+> > 
+> >  		len = snprintf(path, sizeof(path), "%.*s",
+> >  		
+> >  			       (unsigned int)(next - dir), dir);
+> > 
+> > -		if (len >= sizeof(path) || len < 0)
+> > +		if (len >= (int)sizeof(path) || len < (int)0)
+> > 
+> >  			continue;
+> >  		
+> >  		n = scandir(path, &list, NULL, alphasort);
+> > 
+> > @@ -620,7 +620,7 @@ ipset_load_types(void)
+> > 
+> >  			len = snprintf(file, sizeof(file), "%s/%s",
+> >  			
+> >  				       path, list[n]->d_name);
+> > 
+> > -			if (len >= sizeof(file) || len < 0)
+> > +			if (len >= (int)sizeof(file) || len < (int)0)
+> > 
+> >  				goto nextf;
+> >  			
+> >  			if (dlopen(file, RTLD_NOW) == NULL)
 > 
-> x86_64
-> 
-> net/netfilter/nft_meta.c: In function ‘nft_meta_eval’:
-> net/netfilter/nft_meta.c:82:17: error: incompatible types when
-> assigning to type ‘u32’ from type ‘kuid_t’
-> net/netfilter/nft_meta.c:88:17: error: incompatible types when
-> assigning to type ‘u32’ from type ‘kgid_t’
+> I don't see why these two modifications are required.
 
-Please, give a try to the attached patch.
+Just to prevent a build failure in debug mode because warnings are treated as 
+errors and comparing an int to a size_t obviously makes it unhappy.
 
-Thanks.
+All other other changes you specified have been made. :)
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="meta.patch"
-
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 84256bc..4c6998d 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -16,6 +16,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/dst.h>
- #include <net/sock.h>
-+#include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_meta {
-@@ -76,16 +77,35 @@ static void nft_meta_eval(const struct nft_expr *expr,
- 		*(u16 *)dest->data = out->type;
- 		break;
- 	case NFT_META_SKUID:
--		if (skb->sk == NULL || skb->sk->sk_socket == NULL ||
--		    skb->sk->sk_socket->file == NULL)
-+		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
- 			goto err;
--		dest->data[0] = skb->sk->sk_socket->file->f_cred->fsuid;
-+
-+		read_lock_bh(&skb->sk->sk_callback_lock);
-+		if (skb->sk->sk_socket == NULL ||
-+		    skb->sk->sk_socket->file == NULL) {
-+			read_unlock_bh(&skb->sk->sk_callback_lock);
-+			goto err;
-+		}
-+
-+		dest->data[0] =
-+			from_kuid_munged(&init_user_ns,
-+				skb->sk->sk_socket->file->f_cred->fsuid);
-+		read_unlock_bh(&skb->sk->sk_callback_lock);
- 		break;
- 	case NFT_META_SKGID:
--		if (skb->sk == NULL || skb->sk->sk_socket == NULL ||
--		    skb->sk->sk_socket->file == NULL)
-+		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
-+			goto err;
-+
-+		read_lock_bh(&skb->sk->sk_callback_lock);
-+		if (skb->sk->sk_socket == NULL ||
-+		    skb->sk->sk_socket->file == NULL) {
-+			read_unlock_bh(&skb->sk->sk_callback_lock);
- 			goto err;
--		dest->data[0] = skb->sk->sk_socket->file->f_cred->fsgid;
-+		}
-+		dest->data[0] =
-+			from_kuid_munged(&init_user_ns,
-+				 skb->sk->sk_socket->file->f_cred->fsgid);
-+		read_unlock_bh(&skb->sk->sk_callback_lock);
- 		break;
- #ifdef CONFIG_NET_CLS_ROUTE
- 	case NFT_META_RTCLASSID: {
-
---YZ5djTAD1cGYuMQK--
+Thanks,
+Oliver.
