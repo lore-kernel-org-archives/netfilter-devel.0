@@ -1,58 +1,35 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2 1/2] netfilter: ipset: Add hash:net,net module to
- kernel.
-Date: Fri, 20 Sep 2013 22:23:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309202221140.28758@blackhole.kfki.hu>
-References: <1379664834-41326-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1379664834-41326-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [FIX 1/1] sip: add missing RCU reader lock
+Date: Fri, 20 Sep 2013 22:20:42 +0200
+Message-ID: <20130920202042.GA3659@imap.eitzenberger.org>
+References: <20130920155217.281613399@eitzenberger.org>
+ <20130920155817.660882995@eitzenberger.org>
+ <20130920165539.GA27970@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:46048 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755552Ab3ITUXI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Sep 2013 16:23:08 -0400
-In-Reply-To: <1379664834-41326-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Received: from moutng.kundenserver.de ([212.227.17.8]:58514 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022Ab3ITUY7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Sep 2013 16:24:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20130920165539.GA27970@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 20 Sep 2013, Oliver wrote:
 
-> From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+> > I chose to not just extend the first RCU protected area but putting
+> > the rcu_read_unlock() down, because there is a 'return' in between.
 > 
-> This adds a new set that provides the ability to configure pairs of
-> subnets. A small amount of additional handling code has been added to
-> the generic hash header file - this code is conditionally activated by a
-> preprocessor definition.
+> I'd suggest to do that since your patch still doesn't cover the
+> direct_rtp nf_nat_sdp_port_hook dereference. Actually with your patch
+> we have unbalanced RCU locking since the direct_rtp case contains
+> a "goto err1".
 
-Patch is applied with a small modification:
-[...] 
-> +static int
-> +hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
-> +	       enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
-> +{
-> +	ipset_adtfn adtfn = set->variant->adt[adt];
-> +	struct hash_netnet6_elem e = { .cidr[0] = HOST_MASK,
-> +				       .cidr[1] = HOST_MASK };
-> +	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-> +	int ret;
-> +
-> +	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
-> +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-> +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
-> +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-> +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
-> +		return -IPSET_ERR_PROTOCOL;
-> +	if (unlikely(tb[IPSET_ATTR_IP_TO]))
-> +		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+Sure, I'll send a 2nd patch in a new thread.
 
-The testing of tb[IPSET_ATTR_IP2_TO] was still missing, so I added here.
+ /Holger
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
