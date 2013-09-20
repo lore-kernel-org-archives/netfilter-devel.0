@@ -1,81 +1,94 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -nftables 3/3] netfilter: fix missing dependency
-Date: Thu, 19 Sep 2013 22:18:53 +0200
-Message-ID: <1379621933-6064-3-git-send-email-pablo@netfilter.org>
-References: <1379621933-6064-1-git-send-email-pablo@netfilter.org>
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: Re: [PATCH 1/2] netfilter: ipset: Add hash:net,net module to kernel.
+Date: Fri, 20 Sep 2013 09:10:12 +0200
+Message-ID: <3633622.RvhfsYxaem@gentoovm>
+References: <1379420818-22541-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <2141855.SG6BU49OR8@gentoovm> <alpine.DEB.2.00.1309192042050.24965@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37711 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753335Ab3ISUTH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Sep 2013 16:19:07 -0400
-In-Reply-To: <1379621933-6064-1-git-send-email-pablo@netfilter.org>
+Received: from mail.uptheinter.net ([77.74.196.236]:44770 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753522Ab3ITHKm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Sep 2013 03:10:42 -0400
+In-Reply-To: <alpine.DEB.2.00.1309192042050.24965@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With CONFIG_NFT_CHAIN_NAT_IPV4=3Dy
+On Thursday 19 September 2013 20:58:23 Jozsef Kadlecsik wrote:
+> On Thu, 19 Sep 2013, Oliver wrote:
+> > On Thursday 19 September 2013 11:30:50 Jozsef Kadlecsik wrote:
+> > > On Thu, 19 Sep 2013, Oliver wrote:
+> > > > > On Tue, 17 Sep 2013, Oliver wrote:
+> > > > <snip>
+> > > > 
+> > > > > > @@ -461,6 +462,9 @@ mtype_expire(struct ip_set *set, struct htype
+> > > > > > *h,
+> > > > > > u8
+> > > > > > nets_length, size_t dsize)>
+> > > > > > 
+> > > > > >  	struct mtype_elem *data;
+> > > > > >  	u32 i;
+> > > > > >  	int j;
+> > > > > > 
+> > > > > > +#if IPSET_NET_COUNT > 1
+> > > > > > +	u8 k;
+> > > > > > +#endif
+> > > > > 
+> > > > > Please get rid of all these #if .. [#else ...] #endif constructions,
+> > > > > except in mtype_test_cidrs. The compiler optimizes away the for loop
+> > > > > when
+> > > > > IPSET_NET_COUNT == 1.
+> > > > 
+> > > > Yep, there's a couple of other places where I don't currently see a
+> > > > way
+> > > > around it, but anywhere that it doesn't pose a logical problem to
+> > > > existing types, I've removed it.
+> > > 
+> > > Where do you think it's required, except in mtype_test_cidrs?
+> > 
+> > Well actually, I've come to the realisation that it's actually required
+> > pretty much everywhere that I placed it because of the simple reason
+> > that in the existing hash types, data->cidr is not a u8 array, but it is
+> > in hash:net,net obviously.
+> 
+> Yes, you are quite right, I was blind.
+> 
+> > So now either we can convert all the existing hash types so that the
+> > cidr member of their struct is a single-element array, or we keep the
+> > preprocessor conditions, your choice.
+> 
+> I don't really like either of them... What about tweaking the CIDR macro,
+> into something like this:
+> 
+> #ifdef IP_SET_HASH_WITH_NETS
+> #if IPSET_NET_COUNT > 1
+> #define __CIDR(data, i)		((data)->cidr[i])
+> #else
+> #define __CIDR(data, i)		((data)->cidr)
+> #endif
+> #ifdef IP_SET_HASH_WITH_NETS_PACKED
+> /* When cidr is packed with nomatch, cidr - 1 is stored in the entry */
+> #define CIDR(data, i)		(__CIDR(data, i) + 1)
+> #else
+> #define CIDR(data, i)		__CIDR(data, i)
+> #endif
+> #endif
+> 
+> What do you think?
 
-net/ipv4/netfilter/nft_chain_nat_ipv4.c: In function =E2=80=98nf_nat_fn=
-=E2=80=99:
-net/ipv4/netfilter/nft_chain_nat_ipv4.c:56:1: error: =E2=80=98NF_CT_EXT=
-_NAT=E2=80=99 undeclared (first use in this function)
-net/ipv4/netfilter/nft_chain_nat_ipv4.c:56:1: note: each undeclared ide=
-ntifier is reported only once for each function it appears in
+Yeah, that works for me.
 
-Reported-by: Bj=C3=B8rnar Ness <bjornar.ness@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/Kconfig |    2 +-
- net/ipv6/netfilter/Kconfig |    2 +-
- net/netfilter/Kconfig      |    1 +
- 3 files changed, 3 insertions(+), 2 deletions(-)
+I simplified __CIDR for multiple nets to just the following:
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 4d6f03a..1ea0da4 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -50,7 +50,7 @@ config NFT_CHAIN_ROUTE_IPV4
-=20
- config NFT_CHAIN_NAT_IPV4
- 	depends on NF_TABLES_IPV4
--	depends on NFT_NAT
-+	depends on NF_NAT_IPV4 && NFT_NAT
- 	tristate "IPv4 nf_tables nat chain support"
-=20
- config NF_TABLES_ARP
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 61270d1..4863516 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -35,7 +35,7 @@ config NFT_CHAIN_ROUTE_IPV6
-=20
- config NFT_CHAIN_NAT_IPV6
- 	depends on NF_TABLES_IPV6
--	depends on NFT_NAT
-+	depends on NF_NAT_IPV6 && NFT_NAT
- 	tristate "IPv6 nf_tables nat chain support"
-=20
- config IP6_NF_IPTABLES
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 2e0c3f8..8e2ffe3 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -464,6 +464,7 @@ config NFT_LIMIT
- config NFT_NAT
- 	depends on NF_TABLES
- 	depends on NF_CONNTRACK
-+	depends on NF_NAT
- 	tristate "Netfilter nf_tables nat module"
-=20
- config NFT_COMPAT
---=20
-1.7.10.4
+#define __CIDR(cidr, i)         (cidr[i])
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So the changes to the rest of the code are pretty minimal :)
+
+I'll patch-bomb the mailing list shortly.
+
+Kind Regards,
+Oliver.
