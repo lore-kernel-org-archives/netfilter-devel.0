@@ -1,30 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL 0/5] IPVS fixes for v3.12
-Date: Fri, 20 Sep 2013 12:07:44 +0200
-Message-ID: <20130920100744.GA6767@localhost>
-References: <1379533542-9891-1-git-send-email-horms@verge.net.au>
+From: BNP PARIBAS FORTIS <gabriela.barrientos@syc.com.mx>
+Subject: Belangrijke mededeling.
+Date: Fri, 20 Sep 2013 04:49:55 -0500 (CDT)
+Message-ID: <12477161.568821.1379670595856.JavaMail.root@syc.com.mx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1379533542-9891-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nvocorreo.syc.com.mx ([148.243.136.135]:49809 "EHLO
+	nvocorreo.syc.com.mx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754271Ab3ITKpp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Sep 2013 06:45:45 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 18, 2013 at 02:45:37PM -0500, Simon Horman wrote:
-> please consider the following fixes for IPVS for v3.12.
-> 
-> The following changes since commit 61c5923a2f2d8ab98a1e3c76f17e0f4a871ec75b:
-> 
->   Merge branch 'master' of git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf (2013-09-17 20:22:53 -0400)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.12
-
-Pulled, thanks Simon.
+<html><head><style> body {height: 100%; color:#000000; font-size:10pt; font-family:Verdana, Arial, Helvetica, sans-serif;}</style></head><body><div class="App Managed" id="PageElt"><div class="AppInner"><div class="t_mbgc slideOnResize RPOff Inbox" id="BelowHeader"><div class="Middle slideOnResize" id="Middle"><div class="ContentRight WithRightRail" id="contentRight"></div></div></div></div></div></body></html>
