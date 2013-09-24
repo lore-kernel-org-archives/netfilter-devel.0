@@ -1,43 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: fix basechain release
-Date: Tue, 24 Sep 2013 03:14:47 +0200
-Message-ID: <1379985287-4118-1-git-send-email-pablo@netfilter.org>
+Subject: [NOTICE] nftables rebased upon 3.11 and rule batching update
+Date: Tue, 24 Sep 2013 12:49:43 +0200
+Message-ID: <20130924104943.GA8176@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34050 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33773 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661Ab3IXBO4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Sep 2013 21:14:56 -0400
+	id S1753120Ab3IXKtx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Sep 2013 06:49:53 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Base chains are containers of the chain object, kfree was
-receiving the wrong memory address in that case.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+I have rebased nftables upon 3.11, you can find the current Linux
+kernel tree at:
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 91cba3b..f2d7f93 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1004,10 +1004,11 @@ static void nf_tables_rcu_chain_destroy(struct rcu_head *head)
- 
- 	BUG_ON(chain->use > 0);
- 
--	if (chain->flags & NFT_BASE_CHAIN)
-+	if (chain->flags & NFT_BASE_CHAIN) {
- 		free_percpu(nft_base_chain(chain)->stats);
--
--	kfree(chain);
-+		kfree(nft_base_chain(chain));
-+	} else
-+		kfree(chain);
- }
- 
- static int nf_tables_delchain(struct sock *nlsk, struct sk_buff *skb,
--- 
-1.7.10.4
+https://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/log/
 
+The old tree that is based upon 3.10 is still reachable here:
+
+https://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/log/?h=master-3.10
+
+The rule batching patches requires 3.11 as it contains large skb
+support for netlink, so don't try the fast path of taking new patches
+there and applying them to 3.10, it won't work ;-).
+
+I have also pushed patches for libnftables, nft and iptables-nftables.
+The rule batching support is an interface update, so make sure you run
+latest git tree snapshots with nftables upon 3.11.
+
+Please, help testing, report problems and send me patches for it :-)
+
+Thanks!
