@@ -1,41 +1,89 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH v2 2/2] This patch adds a ruleset object API
- to libnftables.
-Date: Wed, 25 Sep 2013 23:11:25 +0200
-Message-ID: <CAOkSjBgcG-is-6vUmPZEhB662VxATwX8i9r_FwNc5asv3-qoTw@mail.gmail.com>
-References: <20130924125410.18650.33470.stgit@Ph0enix> <20130924125421.18650.8806.stgit@Ph0enix>
- <20130925203801.GA13683@localhost>
+Subject: [libnftables PATCH 1/2] set_elem: xml: avoid code duplication
+Date: Thu, 26 Sep 2013 00:13:02 +0200
+Message-ID: <20130925221302.16997.17406.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Alvaro Neira <alvaroneay@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, Eric Leblond <eric@regit.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:48356 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755478Ab3IYVLq convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Sep 2013 17:11:46 -0400
-Received: by mail-la0-f51.google.com with SMTP id es20so211600lab.24
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2013 14:11:45 -0700 (PDT)
-In-Reply-To: <20130925203801.GA13683@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:34150 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755978Ab3IYWNO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Sep 2013 18:13:14 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 702D351ED83
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2013 22:13:10 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id sg4wFVx2w45x for <netfilter-devel@vger.kernel.org>;
+	Thu, 26 Sep 2013 00:13:05 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 051F751ED6B
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 00:13:04 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25 September 2013 22:38, Pablo Neira Ayuso <pablo@netfilter.org> wro=
-te:
-> @Arturo, could you resolve the following issues in Alvaro's patch and
-> send a new version? Thanks.
+This patch removes 3x code duplication in the XML snprintf function.
 
-Sure!
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/set_elem.c |   32 +++++++++-----------------------
+ 1 file changed, 9 insertions(+), 23 deletions(-)
 
-best regards.
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/set_elem.c b/src/set_elem.c
+index a9e0751..885893b 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -519,7 +519,7 @@ static int nft_set_elem_snprintf_default(char *buf, size_t size,
+ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
+ 				     struct nft_set_elem *e, uint32_t flags)
+ {
+-	int ret, len = size, offset = 0;
++	int ret, len = size, offset = 0, type = DATA_NONE;
+ 
+ 	ret = snprintf(buf, size, "<set_elem>"
+ 				"<flags>%u</flags><key>",
+@@ -533,33 +533,19 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
+ 	ret = snprintf(buf+offset, size, "</key>");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	if (e->flags & (1 << NFT_SET_ELEM_ATTR_DATA)) {
+-		ret = snprintf(buf+offset, size, "<data>");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-		ret = nft_data_reg_snprintf(buf+offset, len, &e->data,
+-					    NFT_RULE_O_XML, flags, DATA_VALUE);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-		ret = snprintf(buf+offset, size, "</data>");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	} else if (e->flags & (1 << NFT_SET_ELEM_ATTR_VERDICT)) {
+-		ret = snprintf(buf+offset, size, "<data>");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-		ret = nft_data_reg_snprintf(buf+offset, len, &e->data,
+-					    NFT_RULE_O_XML, flags,
+-					    DATA_VERDICT);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_DATA))
++		type = DATA_VALUE;
++	else if (e->flags & (1 << NFT_SET_ELEM_ATTR_CHAIN))
++		type = DATA_CHAIN;
++	else if (e->flags & (1 << NFT_SET_ELEM_ATTR_VERDICT))
++		type = DATA_VERDICT;
+ 
+-		ret = snprintf(buf+offset, size, "</data>");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	} else if (e->flags & (1 << NFT_SET_ELEM_ATTR_CHAIN)) {
++	if (type != DATA_NONE) {
+ 		ret = snprintf(buf+offset, size, "<data>");
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_data_reg_snprintf(buf+offset, len, &e->data,
+-					    NFT_RULE_O_XML, flags, DATA_CHAIN);
++					    NFT_RULE_O_XML, flags, type);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = snprintf(buf+offset, size, "</data>");
+
