@@ -1,167 +1,79 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH nf-next 1/6] ipt_CLUSTERIP: make proc directory per net namespace
-Date: Wed, 25 Sep 2013 15:38:44 +0800
-Message-ID: <1380094729-30674-2-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH nf-next 6/6] ipt_CLUSTERIP: use proper net namespace to operate CLUSTERIP
+Date: Wed, 25 Sep 2013 15:38:49 +0800
+Message-ID: <1380094729-30674-7-git-send-email-gaofeng@cn.fujitsu.com>
 References: <1380094729-30674-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: Gao feng <gaofeng@cn.fujitsu.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:65305 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:28919 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750832Ab3IYHhr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Sep 2013 03:37:47 -0400
+	id S1753278Ab3IYHht (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Sep 2013 03:37:49 -0400
 Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
-	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r8P7bepo004287
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2013 15:37:41 +0800
+	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r8P7bfDY004295
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2013 15:37:42 +0800
 In-Reply-To: <1380094729-30674-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Create /proc/net/ipt_CLUSTERIP directory for per net namespace.
-Right now,only allow to create entries under the ipt_CLUSTERIP
-in init net namespace.
+we can allow users in uninit net namespace to operate ipt_CLUSTERIP
+now.
 
 Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 70 +++++++++++++++++++++++++++-----------
- 1 file changed, 51 insertions(+), 19 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 0b732ef..e66b91b 100644
+index c93dfd2..ecd808a 100644
 --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
 +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -28,6 +28,7 @@
- #include <linux/netfilter_ipv4/ipt_CLUSTERIP.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/net_namespace.h>
-+#include <net/netns/generic.h>
- #include <net/checksum.h>
- #include <net/ip.h>
- 
-@@ -64,9 +65,16 @@ static DEFINE_SPINLOCK(clusterip_lock);
- 
- #ifdef CONFIG_PROC_FS
- static const struct file_operations clusterip_proc_fops;
--static struct proc_dir_entry *clusterip_procdir;
- #endif
- 
-+static int clusterip_net_id __read_mostly;
-+
-+struct clusterip_net {
-+#ifdef CONFIG_PROC_FS
-+	struct proc_dir_entry *procdir;
-+#endif
-+};
-+
+@@ -99,7 +99,8 @@ clusterip_config_put(struct clusterip_config *c)
  static inline void
- clusterip_config_get(struct clusterip_config *c)
+ clusterip_config_entry_put(struct clusterip_config *c)
  {
-@@ -158,6 +166,7 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
- 			struct net_device *dev)
- {
+-	struct clusterip_net *cn = net_generic(&init_net, clusterip_net_id);
++	struct net *net = dev_net(c->dev);
++	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
+ 
+ 	local_bh_disable();
+ 	if (atomic_dec_and_lock(&c->entries, &cn->lock)) {
+@@ -381,7 +382,7 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	/* FIXME: further sanity checks */
+ 
+-	config = clusterip_config_find_get(&init_net, e->ip.dst.s_addr, 1);
++	config = clusterip_config_find_get(par->net, e->ip.dst.s_addr, 1);
+ 	if (!config) {
+ 		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
+ 			pr_info("no config found for %pI4, need 'new'\n",
+@@ -395,7 +396,7 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 				return -EINVAL;
+ 			}
+ 
+-			dev = dev_get_by_name(&init_net, e->ip.iniface);
++			dev = dev_get_by_name(par->net, e->ip.iniface);
+ 			if (!dev) {
+ 				pr_info("no such interface %s\n",
+ 					e->ip.iniface);
+@@ -503,6 +504,7 @@ arp_mangle(unsigned int hook,
+ 	struct arphdr *arp = arp_hdr(skb);
+ 	struct arp_payload *payload;
  	struct clusterip_config *c;
-+	struct clusterip_net *cn = net_generic(&init_net, clusterip_net_id);
++	struct net *net = dev_net(in ? in : out);
  
- 	c = kzalloc(sizeof(*c), GFP_ATOMIC);
+ 	/* we don't care about non-ethernet and non-ipv4 ARP */
+ 	if (arp->ar_hrd != htons(ARPHRD_ETHER) ||
+@@ -519,7 +521,7 @@ arp_mangle(unsigned int hook,
+ 
+ 	/* if there is no clusterip configuration for the arp reply's
+ 	 * source ip, we don't want to mangle it */
+-	c = clusterip_config_find_get(&init_net, payload->src_ip, 0);
++	c = clusterip_config_find_get(net, payload->src_ip, 0);
  	if (!c)
-@@ -180,7 +189,7 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
- 		/* create proc dir entry */
- 		sprintf(buffer, "%pI4", &ip);
- 		c->pde = proc_create_data(buffer, S_IWUSR|S_IRUSR,
--					  clusterip_procdir,
-+					  cn->procdir,
- 					  &clusterip_proc_fops, c);
- 		if (!c->pde) {
- 			kfree(c);
-@@ -698,48 +707,71 @@ static const struct file_operations clusterip_proc_fops = {
+ 		return NF_ACCEPT;
  
- #endif /* CONFIG_PROC_FS */
- 
-+static int clusterip_net_init(struct net *net)
-+{
-+#ifdef CONFIG_PROC_FS
-+	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
-+
-+	cn->procdir = proc_mkdir("ipt_CLUSTERIP", net->proc_net);
-+	if (!cn->procdir) {
-+		pr_err("Unable to proc dir entry\n");
-+		return -ENOMEM;
-+	}
-+#endif /* CONFIG_PROC_FS */
-+
-+	return 0;
-+}
-+
-+static void clusterip_net_exit(struct net *net)
-+{
-+#ifdef CONFIG_PROC_FS
-+	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
-+	proc_remove(cn->procdir);
-+#endif
-+}
-+
-+static struct pernet_operations clusterip_net_ops = {
-+	.init = clusterip_net_init,
-+	.exit = clusterip_net_exit,
-+	.id   = &clusterip_net_id,
-+	.size = sizeof(struct clusterip_net),
-+};
-+
- static int __init clusterip_tg_init(void)
- {
- 	int ret;
- 
--	ret = xt_register_target(&clusterip_tg_reg);
-+	ret = register_pernet_subsys(&clusterip_net_ops);
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = xt_register_target(&clusterip_tg_reg);
-+	if (ret < 0)
-+		goto cleanup_subsys;
-+
- 	ret = nf_register_hook(&cip_arp_ops);
- 	if (ret < 0)
- 		goto cleanup_target;
- 
--#ifdef CONFIG_PROC_FS
--	clusterip_procdir = proc_mkdir("ipt_CLUSTERIP", init_net.proc_net);
--	if (!clusterip_procdir) {
--		pr_err("Unable to proc dir entry\n");
--		ret = -ENOMEM;
--		goto cleanup_hook;
--	}
--#endif /* CONFIG_PROC_FS */
--
- 	pr_info("ClusterIP Version %s loaded successfully\n",
- 		CLUSTERIP_VERSION);
-+
- 	return 0;
- 
--#ifdef CONFIG_PROC_FS
--cleanup_hook:
--	nf_unregister_hook(&cip_arp_ops);
--#endif /* CONFIG_PROC_FS */
- cleanup_target:
- 	xt_unregister_target(&clusterip_tg_reg);
-+cleanup_subsys:
-+	unregister_pernet_subsys(&clusterip_net_ops);
- 	return ret;
- }
- 
- static void __exit clusterip_tg_exit(void)
- {
- 	pr_info("ClusterIP Version %s unloading\n", CLUSTERIP_VERSION);
--#ifdef CONFIG_PROC_FS
--	proc_remove(clusterip_procdir);
--#endif
-+
- 	nf_unregister_hook(&cip_arp_ops);
- 	xt_unregister_target(&clusterip_tg_reg);
-+	unregister_pernet_subsys(&clusterip_net_ops);
- 
- 	/* Wait for completion of call_rcu_bh()'s (clusterip_config_rcu_free) */
- 	rcu_barrier_bh();
 -- 
 1.8.3.1
 
