@@ -1,12 +1,11 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
- structures for lockdep
-Date: Thu, 26 Sep 2013 12:26:25 -0700
-Message-ID: <1380223585.3165.205.camel@edumazet-glaptop>
-References: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>
-	 <1380220464-28840-2-git-send-email-john.stultz@linaro.org>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync structures
+ for lockdep
+Date: Thu, 26 Sep 2013 12:34:30 -0700
+Message-ID: <52448C46.2050107@linaro.org>
+References: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>	 <1380220464-28840-2-git-send-email-john.stultz@linaro.org> <1380223585.3165.205.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Cc: LKML <linux-kernel@vger.kernel.org>,
 	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
@@ -29,46 +28,46 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:40924 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab3IZT0v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Sep 2013 15:26:51 -0400
-In-Reply-To: <1380220464-28840-2-git-send-email-john.stultz@linaro.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1380223585.3165.205.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2013-09-26 at 11:34 -0700, John Stultz wrote:
-> In order to enable lockdep on seqcount/seqlock structures, we
-> must explicitly initialize any locks.
-> 
+On 09/26/2013 12:26 PM, Eric Dumazet wrote:
+> On Thu, 2013-09-26 at 11:34 -0700, John Stultz wrote:
+>> In order to enable lockdep on seqcount/seqlock structures, we
+>> must explicitly initialize any locks.
+>>
+>> diff --git a/include/linux/u64_stats_sync.h b/include/linux/u64_stats_sync.h
+>> index 8da8c4e..c450e11 100644
+>> --- a/include/linux/u64_stats_sync.h
+>> +++ b/include/linux/u64_stats_sync.h
+>> @@ -67,6 +67,13 @@ struct u64_stats_sync {
+>>  #endif
+>>  };
+>>  
+>> +
+>> +#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+>> +#define u64_stats_init(syncp)	seqcount_init(syncp.seq)
+>> +#else
+>> +#define u64_stats_init(syncp)
+>> +#endif
+>> +
+> I would prefer a function.
+>
+> static inline void u64_stats_init(struct u64_stats_sync *syncp)
+> {
+> #if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+> 	seqcount_init(&syncp->seq);
+> #endif
+> }
 
-> diff --git a/include/linux/u64_stats_sync.h b/include/linux/u64_stats_sync.h
-> index 8da8c4e..c450e11 100644
-> --- a/include/linux/u64_stats_sync.h
-> +++ b/include/linux/u64_stats_sync.h
-> @@ -67,6 +67,13 @@ struct u64_stats_sync {
->  #endif
->  };
->  
-> +
-> +#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
-> +#define u64_stats_init(syncp)	seqcount_init(syncp.seq)
-> +#else
-> +#define u64_stats_init(syncp)
-> +#endif
-> +
+No objection, though I worry that will obscure the lockdep key name,
+causing all the u64_stat_sync locks to appear the same.
 
-I would prefer a function.
+I'll give it a quick shot to see if the compiler inlines it well enough
+to preserve the name.
 
-static inline void u64_stats_init(struct u64_stats_sync *syncp)
-{
-#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
-	seqcount_init(&syncp->seq);
-#endif
-}
-
-
-
+thanks
+-john
