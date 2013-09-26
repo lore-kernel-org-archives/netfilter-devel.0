@@ -1,394 +1,144 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 2/2] src: snprintf: fix buffer lengths
-Date: Thu, 26 Sep 2013 00:13:08 +0200
-Message-ID: <20130925221308.16997.11502.stgit@nfdev.cica.es>
-References: <20130925221302.16997.17406.stgit@nfdev.cica.es>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 1/2] =?UTF-8?q?xt=5FTCPMSS=EF=BC=9AGet=20reserve=20mtu=20o?= =?UTF-8?q?nly=20when=20specifing=20option=20clamp-mss-to-pmtu?=
+Date: Thu, 26 Sep 2013 15:00:30 +0800
+Message-ID: <1380178831-20360-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:34153 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755983Ab3IYWNR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Sep 2013 18:13:17 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 2168E51ED6B
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Sep 2013 22:13:16 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 8zN1eKQYaaXZ for <netfilter-devel@vger.kernel.org>;
-	Thu, 26 Sep 2013 00:13:10 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 462EC51ED81
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 00:13:10 +0200 (CEST)
-In-Reply-To: <20130925221302.16997.17406.stgit@nfdev.cica.es>
+Received: from cn.fujitsu.com ([222.73.24.84]:26068 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752894Ab3IZG7Y convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Sep 2013 02:59:24 -0400
+Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
+	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r8Q6xLrl027656
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 14:59:21 +0800
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use 'len' instead of 'size' as length of the buffer to print.
+Don't get reserve mtu when user sepcifies the mss through
+set-mss.
 
-While at it, fix invalid JSON offset in snprintf for sets and some
-other minor style issues, such as bad indentations.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- src/chain.c    |   20 +++++++++-----------
- src/expr/ct.c  |    6 +++---
- src/rule.c     |   12 +++++++-----
- src/set.c      |   32 +++++++++++++++++---------------
- src/set_elem.c |   22 +++++++++++-----------
- 5 files changed, 47 insertions(+), 45 deletions(-)
+ net/netfilter/xt_TCPMSS.c | 70 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 36 insertions(+), 34 deletions(-)
 
-diff --git a/src/chain.c b/src/chain.c
-index 8c0d804..874116a 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -753,7 +753,7 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index cd24290..62776de 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -43,10 +43,41 @@ optlen(const u_int8_t *opt, unsigned int offset)
+ 		return opt[offset+1];
+ }
+ 
++static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
++				    unsigned int family)
++{
++	struct flowi fl;
++	const struct nf_afinfo *ai;
++	struct rtable *rt = NULL;
++	u_int32_t mtu     = ~0U;
++
++	if (family == PF_INET) {
++		struct flowi4 *fl4 = &fl.u.ip4;
++		memset(fl4, 0, sizeof(*fl4));
++		fl4->daddr = ip_hdr(skb)->saddr;
++	} else {
++		struct flowi6 *fl6 = &fl.u.ip6;
++
++		memset(fl6, 0, sizeof(*fl6));
++		fl6->daddr = ipv6_hdr(skb)->saddr;
++	}
++	rcu_read_lock();
++	ai = nf_get_afinfo(family);
++	if (ai != NULL)
++		ai->route(&init_net, (struct dst_entry **)&rt, &fl, false);
++	rcu_read_unlock();
++
++	if (rt != NULL) {
++		mtu = dst_mtu(&rt->dst);
++		dst_release(&rt->dst);
++	}
++	return mtu;
++}
++
+ static int
+ tcpmss_mangle_packet(struct sk_buff *skb,
+ 		     const struct xt_action_param *par,
+-		     unsigned int in_mtu,
++		     unsigned int family,
+ 		     unsigned int tcphoff,
+ 		     unsigned int minlen)
  {
- 	int ret, len = size, offset = 0;
+@@ -76,6 +107,8 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 		return -1;
  
--	ret = snprintf(buf, size,
-+	ret = snprintf(buf, len,
- 		"{ \"chain\": {"
- 			"\"name\": \"%s\","
- 			"\"handle\": %"PRIu64","
-@@ -768,7 +768,7 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
++		unsigned int in_mtu = tcpmss_reverse_mtu(skb, family);
++
+ 		if (dst_mtu(skb_dst(skb)) <= minlen) {
+ 			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+ 					    dst_mtu(skb_dst(skb)));
+@@ -165,37 +198,6 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	return TCPOLEN_MSS;
+ }
  
- 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
--		ret =  snprintf(buf+offset, size,
-+		ret =  snprintf(buf+offset, len,
- 				",\"type\": \"%s\","
- 				"\"hooknum\": \"%s\","
- 				"\"prio\": %d,"
-@@ -778,9 +778,7 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size,
--		"}"
--		"}");
-+	ret = snprintf(buf+offset, len, "}}");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-@@ -790,14 +788,14 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+-static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
+-				    unsigned int family)
+-{
+-	struct flowi fl;
+-	const struct nf_afinfo *ai;
+-	struct rtable *rt = NULL;
+-	u_int32_t mtu     = ~0U;
+-
+-	if (family == PF_INET) {
+-		struct flowi4 *fl4 = &fl.u.ip4;
+-		memset(fl4, 0, sizeof(*fl4));
+-		fl4->daddr = ip_hdr(skb)->saddr;
+-	} else {
+-		struct flowi6 *fl6 = &fl.u.ip6;
+-
+-		memset(fl6, 0, sizeof(*fl6));
+-		fl6->daddr = ipv6_hdr(skb)->saddr;
+-	}
+-	rcu_read_lock();
+-	ai = nf_get_afinfo(family);
+-	if (ai != NULL)
+-		ai->route(&init_net, (struct dst_entry **)&rt, &fl, false);
+-	rcu_read_unlock();
+-
+-	if (rt != NULL) {
+-		mtu = dst_mtu(&rt->dst);
+-		dst_release(&rt->dst);
+-	}
+-	return mtu;
+-}
+-
+ static unsigned int
+ tcpmss_tg4(struct sk_buff *skb, const struct xt_action_param *par)
  {
- 	int ret, len = size, offset = 0;
+@@ -204,7 +206,7 @@ tcpmss_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	int ret;
  
--	ret = snprintf(buf, size, "<chain><name>%s</name>"
-+	ret = snprintf(buf, len, "<chain><name>%s</name>"
- 		       "<handle>%"PRIu64"</handle><bytes>%"PRIu64"</bytes>"
- 		       "<packets>%"PRIu64"</packets><table>%s</table>",
- 		       c->name, c->handle, c->bytes, c->packets, c->table);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
--		ret =  snprintf(buf+offset, size,
-+		ret =  snprintf(buf+offset, len,
- 				"<type>%s</type>"
- 				"<hooknum>%s</hooknum>"
- 				"<prio>%d</prio>"
-@@ -807,7 +805,7 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, "<family>%s</family></chain>",
-+	ret = snprintf(buf+offset, len, "<family>%s</family></chain>",
- 		       nft_family2str(c->family));
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-@@ -819,12 +817,12 @@ static int nft_chain_snprintf_default(char *buf, size_t size,
- {
- 	int ret, len = size, offset = 0;
- 
--	ret = snprintf(buf, size, "%s %s %s",
--			nft_family2str(c->family), c->table, c->name);
-+	ret = snprintf(buf, len, "%s %s %s",
-+		       nft_family2str(c->family), c->table, c->name);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
--		ret = snprintf(buf+offset, size,
-+		ret = snprintf(buf+offset, len,
- 			       " type %s hook %s prio %d policy %s use %d "
- 			       "packets %"PRIu64" bytes %"PRIu64"",
- 			       c->type, nft_hooknum2str(c->family, c->hooknum),
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index ccefa1b..bf18c7e 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -279,17 +279,17 @@ nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
- 	int ret, len = size, offset = 0;
- 	struct nft_expr_ct *ct = nft_expr_data(e);
- 
--	ret = snprintf(buf, size, "\"dreg\" : %u", ct->dreg);
-+	ret = snprintf(buf, len, "\"dreg\" : %u", ct->dreg);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
--		ret = snprintf(buf+offset, size, ", \"key\" : \"%s\"",
-+		ret = snprintf(buf+offset, len, ", \"key\" : \"%s\"",
- 						ctkey2str(ct->key));
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
- 	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
--		ret = snprintf(buf+offset, size, ", \"dir\" : %u", ct->dir);
-+		ret = snprintf(buf+offset, len, ", \"dir\" : %u", ct->dir);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-diff --git a/src/rule.c b/src/rule.c
-index 5fd8814..550b325 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -705,7 +705,7 @@ static int nft_rule_snprintf_json(char *buf, size_t size, struct nft_rule *r,
- 	int ret, len = size, offset = 0;
- 	struct nft_rule_expr *expr;
- 
--	ret = snprintf(buf, size,
-+	ret = snprintf(buf, len,
- 		       "{ \"rule\": { \"family\" : \"%s\", \"table\" : \"%s\", "
- 		       "\"chain\"  : \"%s\", \"handle\" : %llu,",
- 		       nft_family2str(r->family), r->table, r->chain,
-@@ -759,7 +759,7 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 	int ret, len = size, offset = 0;
- 	struct nft_rule_expr *expr;
- 
--	ret = snprintf(buf, size, "<rule><family>%s</family>"
-+	ret = snprintf(buf, len, "<rule><family>%s</family>"
- 		       "<table>%s</table><chain>%s</chain>"
- 		       "<handle>%llu</handle><flags>%u</flags>",
- 		       nft_family2str(r->family), r->table, r->chain,
-@@ -786,7 +786,8 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 				"<expr type=\"%s\">", expr->ops->name);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = nft_rule_expr_snprintf(buf+offset, size, expr, type, flags);
-+		ret = nft_rule_expr_snprintf(buf+offset, len, expr,
-+					     type, flags);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 		ret = snprintf(buf+offset, len, "</expr>");
-@@ -805,7 +806,7 @@ static int nft_rule_snprintf_default(char *buf, size_t size, struct nft_rule *r,
- 	struct nft_rule_expr *expr;
- 	int ret, len = size, offset = 0;
- 
--	ret = snprintf(buf, size, "%s %s %s %"PRIu64" %"PRIu64"\n",
-+	ret = snprintf(buf, len, "%s %s %s %"PRIu64" %"PRIu64"\n",
- 			nft_family2str(r->family), r->table, r->chain,
- 			r->handle, r->position);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-@@ -814,7 +815,8 @@ static int nft_rule_snprintf_default(char *buf, size_t size, struct nft_rule *r,
- 		ret = snprintf(buf+offset, len, "  [ %s ", expr->ops->name);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = nft_rule_expr_snprintf(buf+offset, size, expr, type, flags);
-+		ret = nft_rule_expr_snprintf(buf+offset, len, expr,
-+					     type, flags);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 		ret = snprintf(buf+offset, len, "]\n");
-diff --git a/src/set.c b/src/set.c
-index 530776d..7a9aedb 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -543,7 +543,7 @@ static int nft_set_snprintf_json(char *buf, size_t size, struct nft_set *s,
- 	int len = size, offset = 0, ret;
- 	struct nft_set_elem *elem;
- 
--	ret = snprintf(buf, size, "{ \"set\": { \"name\": \"%s\","
-+	ret = snprintf(buf, len, "{ \"set\": { \"name\": \"%s\","
- 				  "\"table\": \"%s\","
- 				  "\"flags\": %u,\"family\": \"%s\","
- 				  "\"key_type\": %u,\"key_len\": %u",
-@@ -553,7 +553,7 @@ static int nft_set_snprintf_json(char *buf, size_t size, struct nft_set *s,
- 
- 	if(s->flags & (1 << NFT_SET_ATTR_DATA_TYPE) &&
- 	   s->flags & (1 << NFT_SET_ATTR_DATA_LEN)){
--		ret = snprintf(buf+offset, size,
-+		ret = snprintf(buf+offset, len,
- 				  ",\"data_type\": %u,\"data_len\": %u",
- 			s->data_type, s->data_len);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-@@ -561,26 +561,28 @@ static int nft_set_snprintf_json(char *buf, size_t size, struct nft_set *s,
- 
- 	/* Empty set? Skip printinf of elements */
- 	if (list_empty(&s->element_list)){
--		ret = snprintf(buf+offset, size, "}}");
-+		ret = snprintf(buf+offset, len, "}}");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 		return offset;
- 	}
- 
--	ret = snprintf(buf+offset, size, ",\"set_elem\": [");
-+	ret = snprintf(buf+offset, len, ",\"set_elem\": [");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	list_for_each_entry(elem, &s->element_list, head) {
--		ret = snprintf(buf+offset, size, "{");
-+		ret = snprintf(buf+offset, len, "{");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = nft_set_elem_snprintf(buf+offset, size, elem, type, flags);
-+		ret = nft_set_elem_snprintf(buf+offset, len, elem, type, flags);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = snprintf(buf+offset, size, "}, ");
-+		ret = snprintf(buf+offset, len, "}, ");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
-+	/* Overwrite trailing ", " from last set_elem */
-+	offset -= 2;
- 
--	ret = snprintf(buf+offset-2, size, "]}}");
-+	ret = snprintf(buf+offset, len, "]}}");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-@@ -593,7 +595,7 @@ static int nft_set_snprintf_default(char *buf, size_t size, struct nft_set *s,
- 	int len = size, offset = 0;
- 	struct nft_set_elem *elem;
- 
--	ret = snprintf(buf, size, "%s %s %x",
-+	ret = snprintf(buf, len, "%s %s %x",
- 			s->name, s->table, s->set_flags);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-@@ -601,14 +603,14 @@ static int nft_set_snprintf_default(char *buf, size_t size, struct nft_set *s,
- 	if (list_empty(&s->element_list))
- 		return offset;
- 
--	ret = snprintf(buf+offset, size, "\n");
-+	ret = snprintf(buf+offset, len, "\n");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	list_for_each_entry(elem, &s->element_list, head) {
--		ret = snprintf(buf+offset, size, "\t");
-+		ret = snprintf(buf+offset, len, "\t");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = nft_set_elem_snprintf(buf+offset, size, elem, type, flags);
-+		ret = nft_set_elem_snprintf(buf+offset, len, elem, type, flags);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-@@ -622,7 +624,7 @@ static int nft_set_snprintf_xml(char *buf, size_t size, struct nft_set *s,
- 	int len = size, offset = 0;
- 	struct nft_set_elem *elem;
- 
--	ret = snprintf(buf, size, "<set><family>%s</family>"
-+	ret = snprintf(buf, len, "<set><family>%s</family>"
- 				  "<table>%s</table>"
- 				  "<name>%s</name>"
- 				  "<flags>%u</flags>"
-@@ -637,13 +639,13 @@ static int nft_set_snprintf_xml(char *buf, size_t size, struct nft_set *s,
- 
- 	if (!list_empty(&s->element_list)) {
- 		list_for_each_entry(elem, &s->element_list, head) {
--			ret = nft_set_elem_snprintf(buf+offset, size, elem,
-+			ret = nft_set_elem_snprintf(buf+offset, len, elem,
- 						    NFT_SET_O_XML, flags);
- 			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 		}
- 	}
- 
--	ret = snprintf(buf+offset, size, "</set>");
-+	ret = snprintf(buf+offset, len, "</set>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 885893b..ba24c96 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -454,17 +454,17 @@ static int nft_set_elem_snprintf_json(char *buf, size_t size,
- {
- 	int ret, len = size, offset = 0, type = -1;
- 
--	ret = snprintf(buf, size, "\"flags\": %u", e->set_elem_flags);
-+	ret = snprintf(buf, len, "\"flags\": %u", e->set_elem_flags);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, size, ",\"key\": {");
-+	ret = snprintf(buf+offset, len, ",\"key\": {");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = nft_data_reg_snprintf(buf+offset, len, &e->key,
- 				    NFT_RULE_O_JSON, flags, DATA_VALUE);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, size, "}");
-+	ret = snprintf(buf+offset, len, "}");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (e->flags & (1 << NFT_SET_ELEM_ATTR_DATA))
-@@ -475,14 +475,14 @@ static int nft_set_elem_snprintf_json(char *buf, size_t size,
- 		type = DATA_VERDICT;
- 
- 	if (type != -1) {
--		ret = snprintf(buf+offset, size, ",\"data\": {");
-+		ret = snprintf(buf+offset, len, ",\"data\": {");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 		ret = nft_data_reg_snprintf(buf+offset, len, &e->data,
- 				    NFT_RULE_O_JSON, flags, type);
- 			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = snprintf(buf+offset, size, "}");
-+		ret = snprintf(buf+offset, len, "}");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-@@ -494,7 +494,7 @@ static int nft_set_elem_snprintf_default(char *buf, size_t size,
- {
- 	int ret, len = size, offset = 0, i;
- 
--	ret = snprintf(buf, size, "element ");
-+	ret = snprintf(buf, len, "element ");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	for (i = 0; i < div_round_up(e->key.len, sizeof(uint32_t)); i++) {
-@@ -502,7 +502,7 @@ static int nft_set_elem_snprintf_default(char *buf, size_t size,
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, " : ");
-+	ret = snprintf(buf+offset, len, " : ");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	for (i = 0; i < div_round_up(e->data.len, sizeof(uint32_t)); i++) {
-@@ -530,7 +530,7 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
- 				    NFT_RULE_O_XML, flags, DATA_VALUE);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, size, "</key>");
-+	ret = snprintf(buf+offset, len, "</key>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (e->flags & (1 << NFT_SET_ELEM_ATTR_DATA))
-@@ -541,18 +541,18 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
- 		type = DATA_VERDICT;
- 
- 	if (type != DATA_NONE) {
--		ret = snprintf(buf+offset, size, "<data>");
-+		ret = snprintf(buf+offset, len, "<data>");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 		ret = nft_data_reg_snprintf(buf+offset, len, &e->data,
- 					    NFT_RULE_O_XML, flags, type);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = snprintf(buf+offset, size, "</data>");
-+		ret = snprintf(buf+offset, len, "</data>");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, "</set_elem>");
-+	ret = snprintf(buf+offset, len, "</set_elem>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
+ 	ret = tcpmss_mangle_packet(skb, par,
+-				   tcpmss_reverse_mtu(skb, PF_INET),
++				   PF_INET,
+ 				   iph->ihl * 4,
+ 				   sizeof(*iph) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+@@ -233,7 +235,7 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+ 	ret = tcpmss_mangle_packet(skb, par,
+-				   tcpmss_reverse_mtu(skb, PF_INET6),
++				   PF_INET6,
+ 				   tcphoff,
+ 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+-- 
+1.8.3.1
 
