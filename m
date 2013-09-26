@@ -1,53 +1,62 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
- structures for lockdep
-Date: Thu, 26 Sep 2013 12:46:03 -0700
-Message-ID: <1380224763.3165.208.camel@edumazet-glaptop>
-References: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>
-		 <1380220464-28840-2-git-send-email-john.stultz@linaro.org>
-	 <1380223585.3165.205.camel@edumazet-glaptop> <52448C46.2050107@linaro.org>
-	 <52448D58.9060503@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Mirko Lindner <mlindner@marvell.com>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Roger Luethi <rl@hellgate.ch>,
-	Patrick McHardy <kaber@trash.net>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <52448D58.9060503@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 0/3 - GIT PULL] include/linux: Remove externs from networking function prototypes
+Date: Thu, 26 Sep 2013 15:18:30 -0700
+Message-ID: <cover.1380233637.git.joe@perches.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, linux-hippi@sunsite.dk,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
+To: netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtprelay0145.hostedemail.com ([216.40.44.145]:35300 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754121Ab3IZWSm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Sep 2013 18:18:42 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2013-09-26 at 12:39 -0700, John Stultz wrote:
 
-> > No objection, though I worry that will obscure the lockdep key name,
-> > causing all the u64_stat_sync locks to appear the same.
-> >
-> > I'll give it a quick shot to see if the compiler inlines it well enough
-> > to preserve the name.
-> Yea, unfortunately this causes the reports to all look like:
-> 
+The following changes since commit aae8c287e664d49df4aa315ad263c33b9a2af3e1:
 
-> 
-> So I suspect using the macro is the best approach here. Is that ok?
+  Merge branch 'bonding_neighbours' (2013-09-26 16:02:19 -0400)
 
-Oh well, right :)
+are available in the git repository at:
+
+  git://repo.or.cz/linux-2.6/trivial-mods.git 20130926_include_linux_networking_externs
+
+for you to fetch changes up to f629d208d27a22f495b7734eede585b5d207e912:
+
+  [networking]device.h: Remove extern from function prototypes (2013-09-26 15:06:58 -0700)
+
+----------------------------------------------------------------
+
+Joe Perches (3):
+  netfilter: Remove extern from function prototypes
+  net.h/skbuff.h: Remove extern from function prototypes
+  [networking]device.h: Remove extern from function prototypes
+
+ include/linux/etherdevice.h                      |  35 +-
+ include/linux/fcdevice.h                         |   2 +-
+ include/linux/fddidevice.h                       |   7 +-
+ include/linux/hippidevice.h                      |  10 +-
+ include/linux/inetdevice.h                       |  28 +-
+ include/linux/net.h                              |  82 ++---
+ include/linux/netdevice.h                        | 432 +++++++++++------------
+ include/linux/netfilter.h                        |  10 +-
+ include/linux/netfilter/nf_conntrack_common.h    |   2 +-
+ include/linux/netfilter/nf_conntrack_h323.h      |  14 +-
+ include/linux/netfilter/nf_conntrack_proto_gre.h |   4 +-
+ include/linux/netfilter/nf_conntrack_sip.h       |  57 ++-
+ include/linux/netfilter/nfnetlink.h              |  28 +-
+ include/linux/netfilter/nfnetlink_acct.h         |   6 +-
+ include/linux/netfilter/x_tables.h               | 128 ++++---
+ include/linux/netfilter_bridge.h                 |   4 +-
+ include/linux/netfilter_ipv4.h                   |   6 +-
+ include/linux/netfilter_ipv6.h                   |  10 +-
+ include/linux/skbuff.h                           | 250 ++++++-------
+ 19 files changed, 529 insertions(+), 586 deletions(-)
+
+-- 
+1.8.1.2.459.gbcd45b4.dirty
+
