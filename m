@@ -1,56 +1,131 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: xtables_ipmask_to_numeric incorrect with non-CIDR
- masks
-Date: Thu, 26 Sep 2013 09:06:58 -0700
-Message-ID: <20130926160658.GA12333@home>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="X1bOJ3K7DJ5YkBrT"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: John Stultz <john.stultz@linaro.org>
+Subject: [PATCH 0/4][RFC] Lockdep enablement for seqcount/seqlocks
+Date: Thu, 26 Sep 2013 11:34:20 -0700
+Message-ID: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>
+Cc: John Stultz <john.stultz@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Mirko Lindner <mlindner@marvell.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Roger Luethi <rl@hellgate.ch>,
+	Patrick McHardy <kaber@trash.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:41209 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab3IZQHB (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:45188 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab3IZSeb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Sep 2013 12:07:01 -0400
-Received: by mail-pb0-f42.google.com with SMTP id un15so1336261pbc.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 09:07:00 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 26 Sep 2013 14:34:31 -0400
+Received: by mail-pb0-f51.google.com with SMTP id jt11so1508106pbb.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 11:34:31 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+I wanted to send this out again for feedback.
 
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch series enables lockdep for seqcount/seqlock structures,
+as well as provides the required cleanups to explicitly initialize
+the seqcount structures on u64_stat_sync users.
 
-As pointed out by Peter Hoelsken, rules created with non-standard masks such as
-0.255.0.0, 0.0.255.0, etc. are displayed when output with iptables -L in CIDR
-notation as -1.  This is because the cidr variable in xtables_ipmask_to_numeric
-is unsigned, and the return value of -1 from xtables_ipmask_to_cidr is therefore
-converted to 4294967295.  Add a cast to workaround the issue.
+In addition the last two patches in this provide naive fixes to
+some of the issues the new lockdep infrastructure caught.
 
-This closes netfilter bugzilla #854.
+I'd greatly appreciate any thoughts or feedback on the series!
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+thanks
+-john
+
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Mirko Lindner <mlindner@marvell.com>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
+Cc: Roger Luethi <rl@hellgate.ch>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: James Morris <jmorris@namei.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Cc: Wensong Zhang <wensong@linux-vs.org>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Jesse Gross <jesse@nicira.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 
 
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipt-cidr
+John Stultz (4):
+  [RFC] net: Explicitly initialize u64_stats_sync structures for lockdep
+  [RFC] seqcount: Add lockdep functionality to seqcount/seqlock
+    structures
+  [RFC] cpuset: Fix potential deadlock w/ set_mems_allowed
+  [RFC] ipv6: Fix for possible ipv6 seqlock deadlock
 
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index ef5bc07..8437baf 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -1243,7 +1243,7 @@ const char *xtables_ipmask_to_numeric(const struct in_addr *mask)
- 	uint32_t cidr;
- 
- 	cidr = xtables_ipmask_to_cidr(mask);
--	if (cidr < 0) {
-+	if (cidr == (unsigned int)-1) {
- 		/* mask was not a decent combination of 1's and 0's */
- 		sprintf(buf, "/%s", xtables_ipaddr_to_numeric(mask));
- 		return buf;
+ arch/x86/vdso/vclock_gettime.c                 |  8 +--
+ drivers/net/dummy.c                            |  6 ++
+ drivers/net/ethernet/emulex/benet/be_main.c    |  4 ++
+ drivers/net/ethernet/intel/igb/igb_main.c      |  5 ++
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c  |  4 ++
+ drivers/net/ethernet/marvell/mvneta.c          |  3 +
+ drivers/net/ethernet/marvell/sky2.c            |  3 +
+ drivers/net/ethernet/neterion/vxge/vxge-main.c |  4 ++
+ drivers/net/ethernet/nvidia/forcedeth.c        |  2 +
+ drivers/net/ethernet/realtek/8139too.c         |  3 +
+ drivers/net/ethernet/tile/tilepro.c            |  2 +
+ drivers/net/ethernet/via/via-rhine.c           |  3 +
+ drivers/net/ifb.c                              |  5 ++
+ drivers/net/loopback.c                         |  6 ++
+ drivers/net/macvlan.c                          |  7 +++
+ drivers/net/nlmon.c                            |  8 +++
+ drivers/net/team/team.c                        |  6 ++
+ drivers/net/team/team_mode_loadbalance.c       |  9 ++-
+ drivers/net/veth.c                             |  8 +++
+ drivers/net/virtio_net.c                       |  8 +++
+ drivers/net/vxlan.c                            |  8 +++
+ drivers/net/xen-netfront.c                     |  6 ++
+ fs/dcache.c                                    |  4 +-
+ fs/fs_struct.c                                 |  2 +-
+ include/linux/cpuset.h                         |  4 ++
+ include/linux/init_task.h                      |  8 +--
+ include/linux/lockdep.h                        |  8 ++-
+ include/linux/seqlock.h                        | 79 ++++++++++++++++++++++++--
+ include/linux/u64_stats_sync.h                 |  7 +++
+ mm/filemap_xip.c                               |  2 +-
+ net/8021q/vlan_dev.c                           |  9 ++-
+ net/bridge/br_device.c                         |  7 +++
+ net/ipv4/af_inet.c                             | 14 +++++
+ net/ipv4/ip_tunnel.c                           |  8 ++-
+ net/ipv6/addrconf.c                            | 14 +++++
+ net/ipv6/af_inet6.c                            | 14 +++++
+ net/ipv6/ip6_gre.c                             | 15 +++++
+ net/ipv6/ip6_output.c                          |  7 ++-
+ net/ipv6/ip6_tunnel.c                          |  7 +++
+ net/ipv6/sit.c                                 | 15 +++++
+ net/netfilter/ipvs/ip_vs_ctl.c                 | 25 +++++++-
+ net/openvswitch/datapath.c                     |  6 ++
+ net/openvswitch/vport.c                        |  8 +++
+ 43 files changed, 354 insertions(+), 27 deletions(-)
 
---X1bOJ3K7DJ5YkBrT--
+-- 
+1.8.1.2
+
+
