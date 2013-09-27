@@ -1,51 +1,70 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 1/1] ipset: Add net namespace for ipset
-Date: Fri, 27 Sep 2013 14:33:08 +0800
-Message-ID: <524526A4.6010409@cn.fujitsu.com>
-References: <5244222F.2030507@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
+ structures for lockdep
+Date: Fri, 27 Sep 2013 02:15:41 -0700
+Message-ID: <1380273341.30872.1.camel@edumazet-glaptop.roam.corp.google.com>
+References: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>
+	 <1380220464-28840-2-git-send-email-john.stultz@linaro.org>
+	 <1380223585.3165.205.camel@edumazet-glaptop>
+	 <20130927054455.GA6597@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Vitaly Lavrov <vel21ripn@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Mirko Lindner <mlindner@marvell.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Roger Luethi <rl@hellgate.ch>,
+	Patrick McHardy <kaber@trash.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.
+To: Ingo Molnar <mingo@kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:22654 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751202Ab3I0GcC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 02:32:02 -0400
-In-Reply-To: <5244222F.2030507@gmail.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60404 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab3I0JPp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Sep 2013 05:15:45 -0400
+In-Reply-To: <20130927054455.GA6597@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09/26/2013 08:01 PM, Vitaly Lavrov wrote:
-> This patch adds netns support for ipset.
-> 
-> Major changes were made in ip_set_core.c and ip_set.h.
-> Global variables are moved to per net namespace.
-> Added initialization code and the destruction of the network namespace ipset subsystem.
-> In the prototypes of public functions ip_set_* added parameter "struct net*".
-> 
-> The remaining corrections related to the change prototypes of public functions ip_set_*.
-> 
-> The patch for git://git.netfilter.org/ipset.git commit 6a4ec96c0b8caac5c35474e40e319704d92ca347
-> 
-> Signed-off-by: Vitaly Lavrov <lve@guap.ru>
-> -- 
+On Fri, 2013-09-27 at 07:44 +0200, Ingo Molnar wrote:
 
-Looks good to me, thanks!
-
-Acked-by: Gao feng <gaofeng@cn.fujitsu.com>
-
->  kernel/include/linux/netfilter/ipset/ip_set.h    |  16 ++-
->  kernel/net/netfilter/ipset/ip_set_bitmap_ip.c    |   3 +-
->  kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c |   2 +-
->  kernel/net/netfilter/ipset/ip_set_bitmap_port.c  |   3 +-
->  kernel/net/netfilter/ipset/ip_set_core.c         | 286 +++++++++++++++++++++++++--------------
->  kernel/net/netfilter/ipset/ip_set_hash_gen.h     |   3 +-
->  kernel/net/netfilter/ipset/ip_set_list_set.c     |  31 +++--
->  kernel/net/netfilter/xt_set.c                    |  40 +++---
->  kernel/net/sched/em_ipset.c                      |   7 +-
->  9 files changed, 243 insertions(+), 148 deletions(-)
+> C cannot pass along symbolic names, unfortunately, so we are stuck with 
+> 1970's tech and the C preprocessor.
 > 
+
+Yes, I realized that a bit too late.
+
+> There's a way to make such macros look a tiny bit more structured and thus 
+> be more palatable:
+> 
+> #if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+> # define u64_stats_init(syncp) seqcount_init(syncp.seq)
+> #else
+> # define u64_stats_init(syncp)
+> #endif
+> 
+> Note, the 'else' branch should probably be:
+> 
+> # define u64_stats_init(syncp) do { } while (0)
+
+Yes, this is better ;)
+
+Thanks !
+
 
