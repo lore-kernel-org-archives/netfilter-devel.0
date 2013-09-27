@@ -1,28 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] docs: use generic syslog reference in
- libxt_LOG.man
-Date: Fri, 27 Sep 2013 16:32:46 +0200
-Message-ID: <20130927143246.GA14740@localhost>
-References: <1378503960-16261-1-git-send-email-ljlane@debian.org>
+Subject: Re: [PATCH v2] iptables: extensions/GNUMakefile.in use CPPFLAGS
+Date: Fri, 27 Sep 2013 16:44:00 +0200
+Message-ID: <20130927144400.GA14954@localhost>
+References: <alpine.LSU.2.10.9.1308200149450.1576@nerf07.vanv.qr>
+ <1377189887-12537-1-git-send-email-ljlane@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: "Laurence J. Lane" <ljlane@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47444 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49403 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753649Ab3I0Ocv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 10:32:51 -0400
+	id S1753166Ab3I0OoJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Sep 2013 10:44:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1378503960-16261-1-git-send-email-ljlane@debian.org>
+In-Reply-To: <1377189887-12537-1-git-send-email-ljlane@debian.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 06, 2013 at 05:46:00PM -0400, Laurence J. Lane wrote:
-> Fedora, ArchLinux, Ubuntu, and Debian, at the least, use
-> alternative syslog daemons by default these days. Let's make
-> the syslog reference generic.
+On Thu, Aug 22, 2013 at 12:44:47PM -0400, Laurence J. Lane wrote:
+> "All other Makefiles add CPPFLAGS to ${COMPILE} (automake), but GNUmakefile.in
+>  doesn't set it."
 > 
-> Reference: http://bugs.debian.org/567564
+> http://bugs.debian.org/665286
 
-OK, let's put this in the tree, thanks.
+Applied, thanks.
