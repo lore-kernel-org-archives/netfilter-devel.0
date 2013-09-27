@@ -1,30 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 2/2] src: snprintf: fix buffer lengths
-Date: Fri, 27 Sep 2013 16:06:29 +0200
-Message-ID: <20130927140629.GB10107@localhost>
-References: <20130925221302.16997.17406.stgit@nfdev.cica.es>
- <20130925221308.16997.11502.stgit@nfdev.cica.es>
+Subject: Re: [FIX V2] sip: add missing RCU reader lock
+Date: Fri, 27 Sep 2013 16:14:25 +0200
+Message-ID: <20130927141425.GA10230@localhost>
+References: <20130920204304.GA12439@imap.eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: "holger@eitzenberger.org" <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43765 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44835 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752475Ab3I0OGe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 10:06:34 -0400
+	id S1752710Ab3I0OO3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Sep 2013 10:14:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20130925221308.16997.11502.stgit@nfdev.cica.es>
+In-Reply-To: <20130920204304.GA12439@imap.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 26, 2013 at 12:13:08AM +0200, Arturo Borrero Gonzalez wrote:
-> Use 'len' instead of 'size' as length of the buffer to print.
+On Fri, Sep 20, 2013 at 10:43:04PM +0200, Holger Eitzenberger wrote:
+> Hi,
+> 
+> I noticed that set_expected_rtp_rtcp() in net-next misses a 2nd
+> RCU reader lock when dereferencing the 2nd hook function.  Same
+> bug is present in kernel v3.8 at least.
+> 
+> This is a resend, which extend the RCU protected area as needed.
 
-Applied, thanks.
+Applied to nf-next, thanks Holger.
 
-> While at it, fix invalid JSON offset in snprintf for sets and some
-> other minor style issues, such as bad indentations.
-
-I prefer separated patches to address each issue. Please, do so next
-time.
+I added to the description a short clarification, as Patrick mentioned,
+this is comestic fix.
