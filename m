@@ -1,51 +1,83 @@
-From: Michael Kopreski <michaelkopreski@gmail.com>
-Subject: Using libiptc to programmatically modify iptables rules
-Date: Fri, 27 Sep 2013 01:31:13 -0400
-Message-ID: <CAG0djwzdncvtTn_4kTTX0Yj+rvaGU4FDVWeVHnXGeeWSEgUGhQ@mail.gmail.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
+ structures for lockdep
+Date: Fri, 27 Sep 2013 07:44:55 +0200
+Message-ID: <20130927054455.GA6597@gmail.com>
+References: <1380220464-28840-1-git-send-email-john.stultz@linaro.org>
+ <1380220464-28840-2-git-send-email-john.stultz@linaro.org>
+ <1380223585.3165.205.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vb0-f42.google.com ([209.85.212.42]:36307 "EHLO
-	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819Ab3I0FbO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 01:31:14 -0400
-Received: by mail-vb0-f42.google.com with SMTP id e12so1517362vbg.15
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2013 22:31:13 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-Hello,
-
-I am attempting to use libiptc to retrieve and replace rules written to
-iptables.  I have been using iptc_replace_entry() to substitute the
-existing rule with one that I have generated, but with little success.
-The function exits with a "Invalid argument" error, so I think that the
-problem may lie with the ipt_entry struct that I am attempting to
-create.  I only need a very basic rule that defines a target (in the
-present case, RETURN); otherwise the rule can be empty.
-
-So far, I have been creating an ipt_entry struct and appending an
-ipt_entry_target.  I have tried writing the target struct to (&ipt_entry +
-sizeof(struct ipt_entry) ) as well as to the elems member
-of ipt_entry (which I believe should be the same place, given that there
-are no matches or other data appended, yes?).  I also set the
-target_size, target_offset, and next_offset (XT_ALIGN'ed) values, as
-well as the u.user.name string (of course, in truth only the last is
-directly significant to my purposes).  I have been doing some rooting
-around in the iptables code to try to familiarize myself with what is
-going on, but I feel I must be missing something.
-
-I was hoping to gain some more insight into the way the ipt_entry data
-is structured, and perhaps even a 'recipe' of sorts to create my simple
-rule.  Is the problem a padding/size issue, or am I not setting the
-proper values for the target? (It seems in the target struct in the
-existing ipt rules does not have the u.user.name set, despite having a
-RETURN target; perhaps I should be setting a pointer for the kernel
-instead?)  Any help would be greatly appreciated.
+Content-Type: text/plain; charset=us-ascii
+Cc: John Stultz <john.stultz@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Mirko Lindner <mlindner@marvell.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Roger Luethi <rl@hellgate.ch>,
+	Patrick McHardy <kaber@trash.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1380223585.3165.205.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-Thanks in advance,
+* Eric Dumazet <eric.dumazet@gmail.com> wrote:
 
-Michael Kopreski
+> On Thu, 2013-09-26 at 11:34 -0700, John Stultz wrote:
+> > In order to enable lockdep on seqcount/seqlock structures, we
+> > must explicitly initialize any locks.
+> > 
+> 
+> > diff --git a/include/linux/u64_stats_sync.h b/include/linux/u64_stats_sync.h
+> > index 8da8c4e..c450e11 100644
+> > --- a/include/linux/u64_stats_sync.h
+> > +++ b/include/linux/u64_stats_sync.h
+> > @@ -67,6 +67,13 @@ struct u64_stats_sync {
+> >  #endif
+> >  };
+> >  
+> > +
+> > +#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+> > +#define u64_stats_init(syncp)	seqcount_init(syncp.seq)
+> > +#else
+> > +#define u64_stats_init(syncp)
+> > +#endif
+> > +
+> 
+> I would prefer a function.
+
+C cannot pass along symbolic names, unfortunately, so we are stuck with 
+1970's tech and the C preprocessor.
+
+There's a way to make such macros look a tiny bit more structured and thus 
+be more palatable:
+
+#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+# define u64_stats_init(syncp) seqcount_init(syncp.seq)
+#else
+# define u64_stats_init(syncp)
+#endif
+
+Note, the 'else' branch should probably be:
+
+# define u64_stats_init(syncp) do { } while (0)
+
+Thanks,
+
+	Ingo
