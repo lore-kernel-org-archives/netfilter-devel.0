@@ -1,24 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] xt_TCPMSS: lookup route in proper net namesapce
-Date: Fri, 27 Sep 2013 16:20:48 +0200
-Message-ID: <20130927142048.GB10784@localhost>
-References: <1380178831-20360-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1380178831-20360-2-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 1/2] nfnetlink_queue: use proper net to allocate skb
+Date: Fri, 27 Sep 2013 16:26:37 +0200
+Message-ID: <20130927142637.GA12260@localhost>
+References: <1379935256-18598-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45736 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46635 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069Ab3I0OUw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 10:20:52 -0400
+	id S1751993Ab3I0O0m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Sep 2013 10:26:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1380178831-20360-2-git-send-email-gaofeng@cn.fujitsu.com>
+In-Reply-To: <1379935256-18598-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 26, 2013 at 03:00:31PM +0800, Gao feng wrote:
-> Otherwise the pmtu will be incorrect.
+On Mon, Sep 23, 2013 at 07:20:55PM +0800, Gao feng wrote:
+> Use proper net struct to allocate skb,otherwise
+> netlink mmap will be of no effect.
 
 Applied, thanks.
