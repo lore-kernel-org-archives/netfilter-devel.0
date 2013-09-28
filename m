@@ -1,48 +1,45 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 6/6] sched, wait: Make the __wait_event*() interface more
- friendly
-Date: Fri, 27 Sep 2013 19:08:35 +0200
-Message-ID: <20130927170835.GH15690@laptop.programming.kicks-ass.net>
-References: <20130927161501.323694767@infradead.org>
- <20130927161852.137894317@infradead.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] ipset: Add net namespace for ipset
+Date: Sat, 28 Sep 2013 18:43:13 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1309281842420.22866@blackhole.kfki.hu>
+References: <5244222F.2030507@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Oleg Nesterov <oleg@redhat.com>,
-	Paul McKenney <paulmck@linux.vnet.ibm.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Ingo Molnar <mingo@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Vitaly Lavrov <vel21ripn@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:59161 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab3I0RIn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Sep 2013 13:08:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20130927161852.137894317@infradead.org>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:49773 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754149Ab3I1QnR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Sep 2013 12:43:17 -0400
+In-Reply-To: <5244222F.2030507@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 27, 2013 at 06:15:07PM +0200, Peter Zijlstra wrote:
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -1637,12 +1637,9 @@ static int sync_thread_master(void *data
->  			continue;
->  		}
->  		while (ip_vs_send_sync_msg(tinfo->sock, sb->mesg) < 0) {
-> -			int ret = 0;
-> -
-> -			__wait_event_interruptible(*sk_sleep(sk),
-> +			int ret = __wait_event_interruptible(*sk_sleep(sk),
->  						   sock_writeable(sk) ||
-> -						   kthread_should_stop(),
-> -						   ret);
-> +						   kthread_should_stop());
->  			if (unlikely(kthread_should_stop()))
->  				goto done;
->  		}
+On Thu, 26 Sep 2013, Vitaly Lavrov wrote:
 
-That site seems to be ignoring the interruptible state... seems wrong.
+> This patch adds netns support for ipset.
+> 
+> Major changes were made in ip_set_core.c and ip_set.h.
+> Global variables are moved to per net namespace.
+> Added initialization code and the destruction of the network namespace ipset
+> subsystem.
+> In the prototypes of public functions ip_set_* added parameter "struct net*".
+> 
+> The remaining corrections related to the change prototypes of public functions
+> ip_set_*.
+> 
+> The patch for git://git.netfilter.org/ipset.git commit
+> 6a4ec96c0b8caac5c35474e40e319704d92ca347
+> 
+> Signed-off-by: Vitaly Lavrov <lve@guap.ru>
 
-Pablo?
+Patch is applied, thanks.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
