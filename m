@@ -1,36 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 11/12] netfilter: Remove extern from function
- prototypes
-Date: Sat, 28 Sep 2013 21:17:54 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1309282117370.24233@nerf07.vanv.qr>
-References: <445209f8885ccd8234fa787c30d63e63fc7917d7.1379961014.git.joe@perches.com> <de1106130366672acb936422f4da7cbb1aafbda1.1379961014.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Joe Perches <joe@perches.com>
+From: Eric Leblond <eric@regit.org>
+Subject: [nftables PATCH 0/2] IPv6 improvements
+Date: Sun, 29 Sep 2013 11:53:27 +0200
+Message-ID: <1380448409-19583-1-git-send-email-eric@regit.org>
+Cc: eric@regit.org
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:50176 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751184Ab3I1TR4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Sep 2013 15:17:56 -0400
-In-Reply-To: <de1106130366672acb936422f4da7cbb1aafbda1.1379961014.git.joe@perches.com>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:50853 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889Ab3I2Jxq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Sep 2013 05:53:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2013-09-23 20:37, Joe Perches wrote:
+Hello,
 
->There are a mix of function prototypes with and without extern
->in the kernel sources.  Standardize on not using extern for
->function prototypes.
->
->Function prototypes don't need to be written with extern.
->extern is assumed by the compiler.  Its use is as unnecessary as
->using auto to declare automatic/local variables in a block.
+This patchset fixes IPv6 prefix computation and adds the
+missing part for IPv6 NAT support.
 
-Or you could just extern all functions for consistency with variables.
+I'm not really happy with the first patch because it seems
+the prefixmask is computed during the evaluation. But that
+result is not used and the prefix mask is rebuild from the
+prefix_len in the netlink phase. 
+
+Eric Leblond (2):
+  fix IPv6 prefix computation.
+  Add support for IPv6 NAT
+
+ src/evaluate.c            |  8 ++++++--
+ src/netlink.c             | 11 +++++++----
+ src/netlink_delinearize.c | 16 ++++++++++++++--
+ 3 files changed, 27 insertions(+), 8 deletions(-)
+
+BR,
+-- 
+1.8.4.rc3
+
