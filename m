@@ -1,76 +1,101 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCH 1/2] fix IPv6 prefix computation.
-Date: Sun, 29 Sep 2013 11:53:28 +0200
-Message-ID: <1380448409-19583-2-git-send-email-eric@regit.org>
+Subject: [nftables PATCH 2/2] Add support for IPv6 NAT
+Date: Sun, 29 Sep 2013 11:53:29 +0200
+Message-ID: <1380448409-19583-3-git-send-email-eric@regit.org>
 References: <1380448409-19583-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:50857 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:50860 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890Ab3I2Jxt (ORCPT
+	with ESMTP id S1751103Ab3I2Jxv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Sep 2013 05:53:49 -0400
+	Sun, 29 Sep 2013 05:53:51 -0400
 In-Reply-To: <1380448409-19583-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The prefix building algorithm in netlink phase was incorrect in
-IPv6.
-
-For example, when adding the following rule
- nft add rule ip6 nat postrouting ip6 saddr 2::/64 --debug=all
-
-we had:
-
- ip6 nat postrouting 0 0
-  [ payload load 16b @ network header + 8 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0x00000000 0x99361540 0x00007f8d 0x2e33a1eb ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
-  [ cmp eq reg 1 0x00000200 0x00000000 0x00000000 0x00000000 ]
-
-With the patch the result is as expected:
-
- ip6 nat postrouting 0 0
-  [ payload load 16b @ network header + 8 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0xffffffff 0xffffffff 0x00000000 0x00000000 ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
-  [ cmp eq reg 1 0x00000200 0x00000000 0x00000000 0x00000000 ]
+This patch adds support for IPv6 NAT. It adds IPv6
+support in evaluation and in delinearization which
+were the only missing parts.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- src/netlink.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ src/evaluate.c            |  8 ++++++--
+ src/netlink_delinearize.c | 16 ++++++++++++++--
+ 2 files changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index c48e667..b1e44ad 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -234,7 +234,8 @@ static void netlink_gen_verdict(const struct expr *expr,
- static void netlink_gen_prefix(const struct expr *expr,
- 			       struct nft_data_linearize *data)
- {
--	uint32_t i, cidr, idx;
-+	uint32_t idx;
-+	int32_t i, cidr;
- 	uint32_t mask;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 29fa32b..94fee64 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1121,8 +1121,12 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 	int err;
  
- 	assert(expr->ops->type == EXPR_PREFIX);
-@@ -242,11 +243,13 @@ static void netlink_gen_prefix(const struct expr *expr,
- 	data->len = div_round_up(expr->prefix->len, BITS_PER_BYTE);
- 	cidr = expr->prefix_len;
+ 	if (stmt->nat.addr != NULL) {
+-		expr_set_context(&ctx->ectx, &ipaddr_type,
+-				 4 * BITS_PER_BYTE);
++		if (pctx && (pctx->family == AF_INET))
++			expr_set_context(&ctx->ectx, &ipaddr_type,
++					4 * BITS_PER_BYTE);
++		else
++			expr_set_context(&ctx->ectx, &ip6addr_type,
++					 16 * BITS_PER_BYTE);
+ 		err = expr_evaluate(ctx, &stmt->nat.addr);
+ 		if (err < 0)
+ 			return err;
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4aacbbd..d80fc78 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -21,6 +21,7 @@
+ #include <gmputil.h>
+ #include <utils.h>
+ #include <erec.h>
++#include <sys/socket.h>
  
--	for (i = 0; i < data->len; i+= 32) {
-+	for (i = 0; (uint32_t)i / BITS_PER_BYTE < data->len; i += 32) {
- 		if (cidr - i >= 32)
--			mask = 0;
-+			mask = 0xffffffff;
-+		else if (cidr - i > 0)
-+			mask = (1 << (cidr - i)) - 1;
- 		else
--			mask = (1 << cidr) - 1;
-+			mask = 0;
+ struct netlink_parse_ctx {
+ 	struct list_head	*msgs;
+@@ -406,10 +407,13 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ 	struct stmt *stmt;
+ 	struct expr *addr, *proto;
+ 	enum nft_registers reg1, reg2;
++	int family;
  
- 		idx = i / 32;
- 		data->value[idx] = mask;
+ 	stmt = nat_stmt_alloc(loc);
+ 	stmt->nat.type = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_TYPE);
+ 
++	family = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_FAMILY);
++
+ 	reg1 = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_REG_ADDR_MIN);
+ 	if (reg1) {
+ 		addr = netlink_get_register(ctx, loc, reg1);
+@@ -418,7 +422,11 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ 					     "NAT statement has no address "
+ 					     "expression");
+ 
+-		expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++		if (family == AF_INET)
++			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++		else
++			expr_set_type(addr, &ip6addr_type,
++				      BYTEORDER_BIG_ENDIAN);
+ 		stmt->nat.addr = addr;
+ 	}
+ 
+@@ -430,7 +438,11 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ 					     "NAT statement has no address "
+ 					     "expression");
+ 
+-		expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++		if (family == AF_INET)
++			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++		else
++			expr_set_type(addr, &ip6addr_type,
++				      BYTEORDER_BIG_ENDIAN);
+ 		if (stmt->nat.addr != NULL)
+ 			addr = range_expr_alloc(loc, stmt->nat.addr, addr);
+ 		stmt->nat.addr = addr;
 -- 
 1.8.4.rc3
 
