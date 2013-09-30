@@ -1,38 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/2] ipset: Add userspace code to support hash:net,port,net
- kernel module.
-Date: Mon, 30 Sep 2013 20:26:42 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1309302025500.28842@blackhole.kfki.hu>
-References: <1380392401-53264-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa> <1380392401-53264-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
+Date: Mon, 30 Sep 2013 20:34:01 +0200
+Message-ID: <20130930183401.GA972@localhost>
+References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
+ <20130930150557.32124.88117.stgit@nfdev.cica.es>
+ <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:46979 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:50982 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755187Ab3I3S0o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 14:26:44 -0400
-In-Reply-To: <1380392401-53264-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+	id S1755300Ab3I3SeH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 14:34:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 28 Sep 2013, Oliver wrote:
-
-> From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+On Mon, Sep 30, 2013 at 11:06:44AM -0700, Stephen Hemminger wrote:
+> On Mon, 30 Sep 2013 17:05:57 +0200
+> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
 > 
-> This adds the userspace library, tests to validate correct operation of
-> the module and also provides appropriate usage information in the man
-> page.
+> > Be consistent in JSON style.
+> > 
+> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 > 
-> Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+> All the effort to format and add whitespace in JSON is not that important
+> since it is intended to be parsed by something, and parsers ignore it.
+> Many applications just use as little whitespace as possible to reduce size
+> of output!
 
-Patch is applied, thanks.
+Thanks Stephen, we'll stick to using as little whitespace as possible.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Moreover, there are tools and functions (included in libjansson) to
+make this human friendly, in case anyone needs it.
