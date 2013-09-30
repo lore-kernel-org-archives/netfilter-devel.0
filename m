@@ -1,118 +1,69 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [libmnl PATCH] debug: don't colorize output on non tty
-Date: Mon, 30 Sep 2013 23:38:26 +0200
-Message-ID: <1380577106-13006-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
+Date: Mon, 30 Sep 2013 23:55:25 +0200
+Message-ID: <CAOkSjBgtDpNAJ0zHbpJ417+rdnse0gstAHqgEQqiNo9BSRv+Jw@mail.gmail.com>
+References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
+ <20130930150557.32124.88117.stgit@nfdev.cica.es> <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
+ <20130930183401.GA972@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:34098 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755663Ab3I3Vis (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:62758 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755859Ab3I3Vzr convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 17:38:48 -0400
+	Mon, 30 Sep 2013 17:55:47 -0400
+Received: by mail-lb0-f180.google.com with SMTP id q8so4959408lbi.25
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2013 14:55:45 -0700 (PDT)
+In-Reply-To: <20130930183401.GA972@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When output is not a tty (pipe or redirect to a file), the color
-display is causing the output to be unreadable:
-  02 00 00 00  |        |  extra header  |
- |ESC[1;31m00008ESC[0m|ESC[1;32m--ESC[0m|ESC[1;34m00001ESC[0m|   |len |flags| type|
-This patch tests if the output is a terminal and only add color in
-this case. It also displays space instead of char 0 if a letter is
-not existing.
+On 30 September 2013 20:34, Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
+> On Mon, Sep 30, 2013 at 11:06:44AM -0700, Stephen Hemminger wrote:
+>> On Mon, 30 Sep 2013 17:05:57 +0200
+>> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+>>
+>> > Be consistent in JSON style.
+>> >
+>> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.=
+com>
+>>
+>> All the effort to format and add whitespace in JSON is not that impo=
+rtant
+>> since it is intended to be parsed by something, and parsers ignore i=
+t.
+>> Many applications just use as little whitespace as possible to reduc=
+e size
+>> of output!
+>
+> Thanks Stephen, we'll stick to using as little whitespace as possible=
+=2E
+>
+> Moreover, there are tools and functions (included in libjansson) to
+> make this human friendly, in case anyone needs it.
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/nlmsg.c | 69 ++++++++++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 43 insertions(+), 26 deletions(-)
+I also don't care so much about the format, actually (white spaces or
+not..). I just tried to give some consistency.
 
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index fdb7af8..07f19ba 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -281,28 +281,45 @@ mnl_nlmsg_fprintf_payload(FILE *fd, const struct nlmsghdr *nlh,
- 			fprintf(fd, "|  extra header  |\n");
- 		/* this seems like an attribute header. */
- 		} else if (rem == 0 && (attr->nla_type & NLA_TYPE_MASK) != 0) {
--			fprintf(fd, "|%c[%d;%dm"
--				    "%.5u"
--				    "%c[%dm"
--				    "|"
--				    "%c[%d;%dm"
--				    "%c%c"
--				    "%c[%dm"
--				    "|"
--				    "%c[%d;%dm"
--				    "%.5u"
--				    "%c[%dm|\t",
--				27, 1, 31,
--				attr->nla_len,
--				27, 0,
--				27, 1, 32,
--				attr->nla_type & NLA_F_NESTED ? 'N' : '-',
--				attr->nla_type &
--					NLA_F_NET_BYTEORDER ? 'B' : '-',
--				27, 0,
--				27, 1, 34,
--				attr->nla_type & NLA_TYPE_MASK,
--				27, 0);
-+			if (isatty(fileno(fd))) {
-+				fprintf(fd, "|%c[%d;%dm"
-+					    "%.5u"
-+					    "%c[%dm"
-+					    "|"
-+					    "%c[%d;%dm"
-+					    "%c%c"
-+					    "%c[%dm"
-+					    "|"
-+					    "%c[%d;%dm"
-+					    "%.5u"
-+					    "%c[%dm|\t",
-+					27, 1, 31,
-+					attr->nla_len,
-+					27, 0,
-+					27, 1, 32,
-+					attr->nla_type &
-+						NLA_F_NESTED ? 'N' : '-',
-+					attr->nla_type &
-+						NLA_F_NET_BYTEORDER ? 'B' : '-',
-+					27, 0,
-+					27, 1, 34,
-+					attr->nla_type & NLA_TYPE_MASK,
-+					27, 0);
-+			} else {
-+				fprintf(fd, "|"
-+					    "%.5u"
-+					    "|"
-+					    "%c%c"
-+					    "|"
-+					    "%.5u"
-+					    "|\t",
-+					attr->nla_len,
-+					attr->nla_type &
-+						NLA_F_NESTED ? 'N' : '-',
-+					attr->nla_type &
-+						NLA_F_NET_BYTEORDER ? 'B' : '-',
-+					attr->nla_type & NLA_TYPE_MASK);
-+			}
- 			fprintf(fd, "|len |flags| type|\n");
- 
- 			if (!(attr->nla_type & NLA_F_NESTED)) {
-@@ -317,10 +334,10 @@ mnl_nlmsg_fprintf_payload(FILE *fd, const struct nlmsghdr *nlh,
- 				0xff & b[i+2],	0xff & b[i+3]);
- 			fprintf(fd, "|      data      |");
- 			fprintf(fd, "\t %c %c %c %c\n",
--				isalnum(b[i]) ? b[i] : 0,
--				isalnum(b[i+1]) ? b[i+1] : 0,
--				isalnum(b[i+2]) ? b[i+2] : 0,
--				isalnum(b[i+3]) ? b[i+3] : 0);
-+				isalnum(b[i]) ? b[i] : 32,
-+				isalnum(b[i+1]) ? b[i+1] : 32,
-+				isalnum(b[i+2]) ? b[i+2] : 32,
-+				isalnum(b[i+3]) ? b[i+3] : 32);
- 		}
- 	}
- 	fprintf(fd, "----------------\t------------------\n");
--- 
-1.8.4.rc3
+{ \"rule\":
+{ \"chain\":
+{ \"set\":
+{\"table\" :
 
+I did not notice other inconsistencies in order to make a patch fixing
+all of them. Maybe Alvaro knows others.
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
