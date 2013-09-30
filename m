@@ -1,76 +1,38 @@
 From: Mathias Krause <minipli@googlemail.com>
-Subject: [PATCH 1/2] netfilter: ebt_ulog: fix info leaks
-Date: Mon, 30 Sep 2013 22:05:07 +0200
-Message-ID: <1380571508-15486-2-git-send-email-minipli@googlemail.com>
-References: <1380571508-15486-1-git-send-email-minipli@googlemail.com>
+Subject: [PATCH 0/2] netlink heap info leak fixes
+Date: Mon, 30 Sep 2013 22:05:06 +0200
+Message-ID: <1380571508-15486-1-git-send-email-minipli@googlemail.com>
 Cc: Mathias Krause <minipli@googlemail.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Bart De Schuymer <bart.de.schuymer@pandora.be>
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:48129 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab3I3UFa (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:52626 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755908Ab3I3UFc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 16:05:30 -0400
-Received: by mail-bk0-f44.google.com with SMTP id mz10so2288384bkb.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2013 13:05:29 -0700 (PDT)
-In-Reply-To: <1380571508-15486-1-git-send-email-minipli@googlemail.com>
+	Mon, 30 Sep 2013 16:05:32 -0400
+Received: by mail-bk0-f52.google.com with SMTP id e11so2184756bkh.25
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2013 13:05:28 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The ulog messages leak heap bytes by the means of padding bytes and
-incompletely filled string arrays. Fix those by memset(0)'ing the
-whole struct before filling it.
+This series fixes a few netlink related heap info leaks.
 
-Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
----
+All probably material for stable (ebt_ulog: v2.6.11+, ipt_ULOG: v2.5.2.4+).
+
+Please apply!
+
+
+Mathias Krause (2):
+  netfilter: ebt_ulog: fix info leaks
+  netfilter: ipt_ULOG: fix info leaks
+
  net/bridge/netfilter/ebt_ulog.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/ipt_ULOG.c   |    7 +------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 5180938..7c470c3 100644
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -181,6 +181,7 @@ static void ebt_ulog_packet(struct net *net, unsigned int hooknr,
- 	ub->qlen++;
- 
- 	pm = nlmsg_data(nlh);
-+	memset(pm, 0, sizeof(*pm));
- 
- 	/* Fill in the ulog data */
- 	pm->version = EBT_ULOG_VERSION;
-@@ -193,8 +194,6 @@ static void ebt_ulog_packet(struct net *net, unsigned int hooknr,
- 	pm->hook = hooknr;
- 	if (uloginfo->prefix != NULL)
- 		strcpy(pm->prefix, uloginfo->prefix);
--	else
--		*(pm->prefix) = '\0';
- 
- 	if (in) {
- 		strcpy(pm->physindev, in->name);
-@@ -204,16 +203,14 @@ static void ebt_ulog_packet(struct net *net, unsigned int hooknr,
- 			strcpy(pm->indev, br_port_get_rcu(in)->br->dev->name);
- 		else
- 			strcpy(pm->indev, in->name);
--	} else
--		pm->indev[0] = pm->physindev[0] = '\0';
-+	}
- 
- 	if (out) {
- 		/* If out exists, then out is a bridge port */
- 		strcpy(pm->physoutdev, out->name);
- 		/* rcu_read_lock()ed by nf_hook_slow */
- 		strcpy(pm->outdev, br_port_get_rcu(out)->br->dev->name);
--	} else
--		pm->outdev[0] = pm->physoutdev[0] = '\0';
-+	}
- 
- 	if (skb_copy_bits(skb, -ETH_HLEN, pm->data, copy_len) < 0)
- 		BUG();
 -- 
 1.7.10.4
 
