@@ -1,29 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 3/3] src: add low-level ruleset API
-Date: Mon, 30 Sep 2013 19:46:38 +0200
-Message-ID: <20130930174638.GC31379@localhost>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
+Date: Mon, 30 Sep 2013 11:06:44 -0700
+Message-ID: <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
 References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
- <20130930150602.32124.86409.stgit@nfdev.cica.es>
+	<20130930150557.32124.88117.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43526 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755224Ab3I3Rqn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 13:46:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20130930150602.32124.86409.stgit@nfdev.cica.es>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:64814 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755447Ab3I3SGu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 14:06:50 -0400
+Received: by mail-pd0-f177.google.com with SMTP id y10so5996425pdj.36
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2013 11:06:50 -0700 (PDT)
+In-Reply-To: <20130930150557.32124.88117.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 05:06:02PM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds a low level ruleset API for libnftables.
+On Mon, 30 Sep 2013 17:05:57 +0200
+Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
 
-I cannot apply this patch, it depends on 1/3 :-(
+> Be consistent in JSON style.
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-I think this work should have come in first place, we've been working
-on it for quite some time. The improvements for the test
-infrastructure are not so important, that's test infrastructure code
-after all.
+All the effort to format and add whitespace in JSON is not that important
+since it is intended to be parsed by something, and parsers ignore it.
+Many applications just use as little whitespace as possible to reduce size
+of output!
