@@ -1,101 +1,169 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCH 2/2] Add support for IPv6 NAT
-Date: Sun, 29 Sep 2013 11:53:29 +0200
-Message-ID: <1380448409-19583-3-git-send-email-eric@regit.org>
-References: <1380448409-19583-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] netfilter: synproxy: fix BUG_ON triggered by corrupt TCP packets
+Date: Mon, 30 Sep 2013 08:51:46 +0100
+Message-ID: <1380527506-27585-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, mph@one.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:50860 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab3I2Jxv (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36393 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab3I3Hvv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Sep 2013 05:53:51 -0400
-In-Reply-To: <1380448409-19583-1-git-send-email-eric@regit.org>
+	Mon, 30 Sep 2013 03:51:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for IPv6 NAT. It adds IPv6
-support in evaluation and in delinearization which
-were the only missing parts.
+TCP packets hitting the SYN proxy through the SYNPROXY target are not
+validated by TCP conntrack. When th->doff is below 5, an underflow happens
+when calculating the options length, causing skb_header_pointer() to
+return NULL and triggering the BUG_ON().
 
-Signed-off-by: Eric Leblond <eric@regit.org>
+Handle this case gracefully by checking for NULL instead of using BUG_ON().
+
+Reported-by: Martin Topholm <mph@one.com>
+Tested-by: Martin Topholm <mph@one.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- src/evaluate.c            |  8 ++++++--
- src/netlink_delinearize.c | 16 ++++++++++++++--
- 2 files changed, 20 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_conntrack_synproxy.h |  2 +-
+ net/ipv4/netfilter/ipt_SYNPROXY.c             | 10 +++++++---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c            | 10 +++++++---
+ net/netfilter/nf_synproxy_core.c              | 12 +++++++-----
+ 4 files changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 29fa32b..94fee64 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1121,8 +1121,12 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
- 	int err;
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 806f54a..f572f31 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -56,7 +56,7 @@ struct synproxy_options {
  
- 	if (stmt->nat.addr != NULL) {
--		expr_set_context(&ctx->ectx, &ipaddr_type,
--				 4 * BITS_PER_BYTE);
-+		if (pctx && (pctx->family == AF_INET))
-+			expr_set_context(&ctx->ectx, &ipaddr_type,
-+					4 * BITS_PER_BYTE);
-+		else
-+			expr_set_context(&ctx->ectx, &ip6addr_type,
-+					 16 * BITS_PER_BYTE);
- 		err = expr_evaluate(ctx, &stmt->nat.addr);
- 		if (err < 0)
- 			return err;
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 4aacbbd..d80fc78 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -21,6 +21,7 @@
- #include <gmputil.h>
- #include <utils.h>
- #include <erec.h>
-+#include <sys/socket.h>
+ struct tcphdr;
+ struct xt_synproxy_info;
+-extern void synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
++extern bool synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 				   const struct tcphdr *th,
+ 				   struct synproxy_options *opts);
+ extern unsigned int synproxy_options_size(const struct synproxy_options *opts);
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 67e17dc..b6346bf 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -267,7 +267,8 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	if (th == NULL)
+ 		return NF_DROP;
  
- struct netlink_parse_ctx {
- 	struct list_head	*msgs;
-@@ -406,10 +407,13 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
- 	struct stmt *stmt;
- 	struct expr *addr, *proto;
- 	enum nft_registers reg1, reg2;
-+	int family;
+-	synproxy_parse_options(skb, par->thoff, th, &opts);
++	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
++		return NF_DROP;
  
- 	stmt = nat_stmt_alloc(loc);
- 	stmt->nat.type = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_TYPE);
+ 	if (th->syn && !(th->ack || th->fin || th->rst)) {
+ 		/* Initial SYN from client */
+@@ -350,7 +351,8 @@ static unsigned int ipv4_synproxy_hook(unsigned int hooknum,
  
-+	family = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_FAMILY);
+ 		/* fall through */
+ 	case TCP_CONNTRACK_SYN_SENT:
+-		synproxy_parse_options(skb, thoff, th, &opts);
++		if (!synproxy_parse_options(skb, thoff, th, &opts))
++			return NF_DROP;
+ 
+ 		if (!th->syn && th->ack &&
+ 		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
+@@ -373,7 +375,9 @@ static unsigned int ipv4_synproxy_hook(unsigned int hooknum,
+ 		if (!th->syn || !th->ack)
+ 			break;
+ 
+-		synproxy_parse_options(skb, thoff, th, &opts);
++		if (!synproxy_parse_options(skb, thoff, th, &opts))
++			return NF_DROP;
 +
- 	reg1 = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_REG_ADDR_MIN);
- 	if (reg1) {
- 		addr = netlink_get_register(ctx, loc, reg1);
-@@ -418,7 +422,11 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
- 					     "NAT statement has no address "
- 					     "expression");
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy->tsoff = opts.tsval - synproxy->its;
  
--		expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
-+		if (family == AF_INET)
-+			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
-+		else
-+			expr_set_type(addr, &ip6addr_type,
-+				      BYTEORDER_BIG_ENDIAN);
- 		stmt->nat.addr = addr;
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 19cfea8..2748b04 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -282,7 +282,8 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	if (th == NULL)
+ 		return NF_DROP;
+ 
+-	synproxy_parse_options(skb, par->thoff, th, &opts);
++	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
++		return NF_DROP;
+ 
+ 	if (th->syn && !(th->ack || th->fin || th->rst)) {
+ 		/* Initial SYN from client */
+@@ -372,7 +373,8 @@ static unsigned int ipv6_synproxy_hook(unsigned int hooknum,
+ 
+ 		/* fall through */
+ 	case TCP_CONNTRACK_SYN_SENT:
+-		synproxy_parse_options(skb, thoff, th, &opts);
++		if (!synproxy_parse_options(skb, thoff, th, &opts))
++			return NF_DROP;
+ 
+ 		if (!th->syn && th->ack &&
+ 		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
+@@ -395,7 +397,9 @@ static unsigned int ipv6_synproxy_hook(unsigned int hooknum,
+ 		if (!th->syn || !th->ack)
+ 			break;
+ 
+-		synproxy_parse_options(skb, thoff, th, &opts);
++		if (!synproxy_parse_options(skb, thoff, th, &opts))
++			return NF_DROP;
++
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy->tsoff = opts.tsval - synproxy->its;
+ 
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 6fd967c..cdf4567 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -24,7 +24,7 @@
+ int synproxy_net_id;
+ EXPORT_SYMBOL_GPL(synproxy_net_id);
+ 
+-void
++bool
+ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 		       const struct tcphdr *th, struct synproxy_options *opts)
+ {
+@@ -32,7 +32,8 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 	u8 buf[40], *ptr;
+ 
+ 	ptr = skb_header_pointer(skb, doff + sizeof(*th), length, buf);
+-	BUG_ON(ptr == NULL);
++	if (ptr == NULL)
++		return false;
+ 
+ 	opts->options = 0;
+ 	while (length > 0) {
+@@ -41,16 +42,16 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 
+ 		switch (opcode) {
+ 		case TCPOPT_EOL:
+-			return;
++			return true;
+ 		case TCPOPT_NOP:
+ 			length--;
+ 			continue;
+ 		default:
+ 			opsize = *ptr++;
+ 			if (opsize < 2)
+-				return;
++				return true;
+ 			if (opsize > length)
+-				return;
++				return true;
+ 
+ 			switch (opcode) {
+ 			case TCPOPT_MSS:
+@@ -84,6 +85,7 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 			length -= opsize;
+ 		}
  	}
++	return true;
+ }
+ EXPORT_SYMBOL_GPL(synproxy_parse_options);
  
-@@ -430,7 +438,11 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
- 					     "NAT statement has no address "
- 					     "expression");
- 
--		expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
-+		if (family == AF_INET)
-+			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
-+		else
-+			expr_set_type(addr, &ip6addr_type,
-+				      BYTEORDER_BIG_ENDIAN);
- 		if (stmt->nat.addr != NULL)
- 			addr = range_expr_alloc(loc, stmt->nat.addr, addr);
- 		stmt->nat.addr = addr;
 -- 
-1.8.4.rc3
+1.8.3.1
 
