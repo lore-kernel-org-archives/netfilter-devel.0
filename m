@@ -1,340 +1,703 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 10/26] netfilter: ipset: Prepare ipset to support multiple networks for hash types
-Date: Mon, 30 Sep 2013 21:50:21 +0200
-Message-ID: <1380570637-31235-11-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 04/26] netfilter: ipset: Rename simple macro names to avoid namespace issues.
+Date: Mon, 30 Sep 2013 21:50:15 +0200
+Message-ID: <1380570637-31235-5-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:49321 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:60585 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756169Ab3I3Tuk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756317Ab3I3Tuk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 30 Sep 2013 15:50:40 -0400
 In-Reply-To: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to support hash:net,net, hash:net,port,net etc. types,
-arrays are introduced for the book-keeping of existing cidr sizes
-and network numbers in a set.
-
+Reported-by: David Laight <David.Laight@ACULAB.COM>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      |    2 +
- net/netfilter/ipset/ip_set_hash_gen.h       |   78 ++++++++++++++-------------
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 +-
- net/netfilter/ipset/ip_set_hash_net.c       |    4 +-
- net/netfilter/ipset/ip_set_hash_netiface.c  |    4 +-
- net/netfilter/ipset/ip_set_hash_netport.c   |    4 +-
- 6 files changed, 50 insertions(+), 46 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h      |    3 +
+ net/netfilter/ipset/ip_set_bitmap_gen.h     |   47 ++++-----
+ net/netfilter/ipset/ip_set_bitmap_ip.c      |   10 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c   |   10 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c    |   10 +-
+ net/netfilter/ipset/ip_set_hash_gen.h       |  147 ++++++++++++++-------------
+ net/netfilter/ipset/ip_set_hash_ip.c        |   10 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c    |   12 +-
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |   12 +-
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |   16 ++--
+ net/netfilter/ipset/ip_set_hash_net.c       |   14 ++--
+ net/netfilter/ipset/ip_set_hash_netiface.c  |   14 ++--
+ net/netfilter/ipset/ip_set_hash_netport.c   |   16 ++--
+ net/netfilter/ipset/ip_set_list_set.c       |   10 +-
+ 14 files changed, 169 insertions(+), 162 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 69aa604..56012a3 100644
+index 9ac9fbd..f900f33 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -398,6 +398,8 @@ bitmap_bytes(u32 a, u32 b)
+@@ -398,4 +398,7 @@ bitmap_bytes(u32 a, u32 b)
  	{ .bytes = ULLONG_MAX, .packets = ULLONG_MAX,	\
  	  .timeout = (map)->timeout }
  
-+#define IP_SET_INIT_CIDR(a, b) ((a) ? (a) : (b))
++#define IPSET_CONCAT(a, b)		a##b
++#define IPSET_TOKEN(a, b)		IPSET_CONCAT(a, b)
 +
- #define IPSET_CONCAT(a, b)		a##b
- #define IPSET_TOKEN(a, b)		IPSET_CONCAT(a, b)
+ #endif /*_IP_SET_H */
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index f6af97c..d39905e 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -8,31 +8,28 @@
+ #ifndef __IP_SET_BITMAP_IP_GEN_H
+ #define __IP_SET_BITMAP_IP_GEN_H
  
+-#define CONCAT(a, b)		a##b
+-#define TOKEN(a,b)		CONCAT(a, b)
+-
+-#define mtype_do_test		TOKEN(MTYPE, _do_test)
+-#define mtype_gc_test		TOKEN(MTYPE, _gc_test)
+-#define mtype_is_filled		TOKEN(MTYPE, _is_filled)
+-#define mtype_do_add		TOKEN(MTYPE, _do_add)
+-#define mtype_do_del		TOKEN(MTYPE, _do_del)
+-#define mtype_do_list		TOKEN(MTYPE, _do_list)
+-#define mtype_do_head		TOKEN(MTYPE, _do_head)
+-#define mtype_adt_elem		TOKEN(MTYPE, _adt_elem)
+-#define mtype_add_timeout	TOKEN(MTYPE, _add_timeout)
+-#define mtype_gc_init		TOKEN(MTYPE, _gc_init)
+-#define mtype_kadt		TOKEN(MTYPE, _kadt)
+-#define mtype_uadt		TOKEN(MTYPE, _uadt)
+-#define mtype_destroy		TOKEN(MTYPE, _destroy)
+-#define mtype_flush		TOKEN(MTYPE, _flush)
+-#define mtype_head		TOKEN(MTYPE, _head)
+-#define mtype_same_set		TOKEN(MTYPE, _same_set)
+-#define mtype_elem		TOKEN(MTYPE, _elem)
+-#define mtype_test		TOKEN(MTYPE, _test)
+-#define mtype_add		TOKEN(MTYPE, _add)
+-#define mtype_del		TOKEN(MTYPE, _del)
+-#define mtype_list		TOKEN(MTYPE, _list)
+-#define mtype_gc		TOKEN(MTYPE, _gc)
++#define mtype_do_test		IPSET_TOKEN(MTYPE, _do_test)
++#define mtype_gc_test		IPSET_TOKEN(MTYPE, _gc_test)
++#define mtype_is_filled		IPSET_TOKEN(MTYPE, _is_filled)
++#define mtype_do_add		IPSET_TOKEN(MTYPE, _do_add)
++#define mtype_do_del		IPSET_TOKEN(MTYPE, _do_del)
++#define mtype_do_list		IPSET_TOKEN(MTYPE, _do_list)
++#define mtype_do_head		IPSET_TOKEN(MTYPE, _do_head)
++#define mtype_adt_elem		IPSET_TOKEN(MTYPE, _adt_elem)
++#define mtype_add_timeout	IPSET_TOKEN(MTYPE, _add_timeout)
++#define mtype_gc_init		IPSET_TOKEN(MTYPE, _gc_init)
++#define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
++#define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
++#define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
++#define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
++#define mtype_head		IPSET_TOKEN(MTYPE, _head)
++#define mtype_same_set		IPSET_TOKEN(MTYPE, _same_set)
++#define mtype_elem		IPSET_TOKEN(MTYPE, _elem)
++#define mtype_test		IPSET_TOKEN(MTYPE, _test)
++#define mtype_add		IPSET_TOKEN(MTYPE, _add)
++#define mtype_del		IPSET_TOKEN(MTYPE, _del)
++#define mtype_list		IPSET_TOKEN(MTYPE, _list)
++#define mtype_gc		IPSET_TOKEN(MTYPE, _gc)
+ #define mtype			MTYPE
+ 
+ #define ext_timeout(e, m)	\
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index f1a8128..c2f89b1 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -25,12 +25,12 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_bitmap.h>
+ 
+-#define REVISION_MIN	0
+-#define REVISION_MAX	1	/* Counter support added */
++#define IPSET_TYPE_REV_MIN	0
++#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("bitmap:ip", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("bitmap:ip", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_bitmap:ip");
+ 
+ #define MTYPE		bitmap_ip
+@@ -401,8 +401,8 @@ static struct ip_set_type bitmap_ip_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP,
+ 	.dimension	= IPSET_DIM_ONE,
+ 	.family		= NFPROTO_IPV4,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= bitmap_ip_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 3b30e0b..1d6551c 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -25,12 +25,12 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_bitmap.h>
+ 
+-#define REVISION_MIN	0
+-#define REVISION_MAX	1	/* Counter support added */
++#define IPSET_TYPE_REV_MIN	0
++#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("bitmap:ip,mac", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("bitmap:ip,mac", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_bitmap:ip,mac");
+ 
+ #define MTYPE		bitmap_ipmac
+@@ -460,8 +460,8 @@ static struct ip_set_type bitmap_ipmac_type = {
+ 	.features	= IPSET_TYPE_IP | IPSET_TYPE_MAC,
+ 	.dimension	= IPSET_DIM_TWO,
+ 	.family		= NFPROTO_IPV4,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= bitmap_ipmac_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 8207d1f..b220489 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -20,12 +20,12 @@
+ #include <linux/netfilter/ipset/ip_set_bitmap.h>
+ #include <linux/netfilter/ipset/ip_set_getport.h>
+ 
+-#define REVISION_MIN	0
+-#define REVISION_MAX	1	/* Counter support added */
++#define IPSET_TYPE_REV_MIN	0
++#define IPSET_TYPE_REV_MAX	1	/* Counter support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("bitmap:port", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("bitmap:port", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_bitmap:port");
+ 
+ #define MTYPE		bitmap_port
+@@ -333,8 +333,8 @@ static struct ip_set_type bitmap_port_type = {
+ 	.features	= IPSET_TYPE_PORT,
+ 	.dimension	= IPSET_DIM_ONE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= bitmap_port_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_PORT]	= { .type = NLA_U16 },
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 68b9cce..a833240 100644
+index 09a21dd..68b9cce 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -77,10 +77,14 @@ struct htable {
+@@ -17,9 +17,6 @@
  
- #define hbucket(h, i)		(&((h)->bucket[i]))
+ #define rcu_dereference_bh_nfnl(p)	rcu_dereference_bh_check(p, 1)
  
-+#ifndef IPSET_NET_COUNT
-+#define IPSET_NET_COUNT		1
-+#endif
-+
- /* Book-keeping of the prefixes added to the set */
- struct net_prefixes {
--	u8 cidr;		/* the different cidr values in the set */
--	u32 nets;		/* number of elements per cidr */
-+	u32 nets[IPSET_NET_COUNT]; /* number of elements per cidr */
-+	u8 cidr[IPSET_NET_COUNT];  /* the different cidr values in the set */
- };
+-#define CONCAT(a, b)		a##b
+-#define TOKEN(a, b)		CONCAT(a, b)
+-
+ /* Hashing which uses arrays to resolve clashing. The hash table is resized
+  * (doubled) when searching becomes too long.
+  * Internally jhash is used with the assumption that the size of the
+@@ -222,41 +219,41 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
  
- /* Compute the hash table size */
-@@ -165,13 +169,13 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
- #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
+ #undef HKEY
  
- #ifdef IP_SET_HASH_WITH_MULTI
--#define NETS_LENGTH(family)	(SET_HOST_MASK(family) + 1)
-+#define NLEN(family)		(SET_HOST_MASK(family) + 1)
+-#define mtype_data_equal	TOKEN(MTYPE, _data_equal)
++#define mtype_data_equal	IPSET_TOKEN(MTYPE, _data_equal)
+ #ifdef IP_SET_HASH_WITH_NETS
+-#define mtype_do_data_match	TOKEN(MTYPE, _do_data_match)
++#define mtype_do_data_match	IPSET_TOKEN(MTYPE, _do_data_match)
  #else
--#define NETS_LENGTH(family)	SET_HOST_MASK(family)
-+#define NLEN(family)		SET_HOST_MASK(family)
+ #define mtype_do_data_match(d)	1
  #endif
+-#define mtype_data_set_flags	TOKEN(MTYPE, _data_set_flags)
+-#define mtype_data_reset_flags	TOKEN(MTYPE, _data_reset_flags)
+-#define mtype_data_netmask	TOKEN(MTYPE, _data_netmask)
+-#define mtype_data_list		TOKEN(MTYPE, _data_list)
+-#define mtype_data_next		TOKEN(MTYPE, _data_next)
+-#define mtype_elem		TOKEN(MTYPE, _elem)
+-#define mtype_add_cidr		TOKEN(MTYPE, _add_cidr)
+-#define mtype_del_cidr		TOKEN(MTYPE, _del_cidr)
+-#define mtype_ahash_memsize	TOKEN(MTYPE, _ahash_memsize)
+-#define mtype_flush		TOKEN(MTYPE, _flush)
+-#define mtype_destroy		TOKEN(MTYPE, _destroy)
+-#define mtype_gc_init		TOKEN(MTYPE, _gc_init)
+-#define mtype_same_set		TOKEN(MTYPE, _same_set)
+-#define mtype_kadt		TOKEN(MTYPE, _kadt)
+-#define mtype_uadt		TOKEN(MTYPE, _uadt)
++#define mtype_data_set_flags	IPSET_TOKEN(MTYPE, _data_set_flags)
++#define mtype_data_reset_flags	IPSET_TOKEN(MTYPE, _data_reset_flags)
++#define mtype_data_netmask	IPSET_TOKEN(MTYPE, _data_netmask)
++#define mtype_data_list		IPSET_TOKEN(MTYPE, _data_list)
++#define mtype_data_next		IPSET_TOKEN(MTYPE, _data_next)
++#define mtype_elem		IPSET_TOKEN(MTYPE, _elem)
++#define mtype_add_cidr		IPSET_TOKEN(MTYPE, _add_cidr)
++#define mtype_del_cidr		IPSET_TOKEN(MTYPE, _del_cidr)
++#define mtype_ahash_memsize	IPSET_TOKEN(MTYPE, _ahash_memsize)
++#define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
++#define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
++#define mtype_gc_init		IPSET_TOKEN(MTYPE, _gc_init)
++#define mtype_same_set		IPSET_TOKEN(MTYPE, _same_set)
++#define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
++#define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
+ #define mtype			MTYPE
  
- #else
--#define NETS_LENGTH(family)	0
-+#define NLEN(family)		0
- #endif /* IP_SET_HASH_WITH_NETS */
+-#define mtype_elem		TOKEN(MTYPE, _elem)
+-#define mtype_add		TOKEN(MTYPE, _add)
+-#define mtype_del		TOKEN(MTYPE, _del)
+-#define mtype_test_cidrs	TOKEN(MTYPE, _test_cidrs)
+-#define mtype_test		TOKEN(MTYPE, _test)
+-#define mtype_expire		TOKEN(MTYPE, _expire)
+-#define mtype_resize		TOKEN(MTYPE, _resize)
+-#define mtype_head		TOKEN(MTYPE, _head)
+-#define mtype_list		TOKEN(MTYPE, _list)
+-#define mtype_gc		TOKEN(MTYPE, _gc)
+-#define mtype_variant		TOKEN(MTYPE, _variant)
+-#define mtype_data_match	TOKEN(MTYPE, _data_match)
++#define mtype_elem		IPSET_TOKEN(MTYPE, _elem)
++#define mtype_add		IPSET_TOKEN(MTYPE, _add)
++#define mtype_del		IPSET_TOKEN(MTYPE, _del)
++#define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
++#define mtype_test		IPSET_TOKEN(MTYPE, _test)
++#define mtype_expire		IPSET_TOKEN(MTYPE, _expire)
++#define mtype_resize		IPSET_TOKEN(MTYPE, _resize)
++#define mtype_head		IPSET_TOKEN(MTYPE, _head)
++#define mtype_list		IPSET_TOKEN(MTYPE, _list)
++#define mtype_gc		IPSET_TOKEN(MTYPE, _gc)
++#define mtype_variant		IPSET_TOKEN(MTYPE, _variant)
++#define mtype_data_match	IPSET_TOKEN(MTYPE, _data_match)
  
- #define ext_timeout(e, h)	\
-@@ -296,49 +300,49 @@ struct htype {
- /* Network cidr size book keeping when the hash stores different
-  * sized networks */
- static void
--mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length)
-+mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ #ifndef HKEY_DATALEN
+ #define HKEY_DATALEN		sizeof(struct mtype_elem)
+@@ -941,13 +938,13 @@ nla_put_failure:
+ }
+ 
+ static int
+-TOKEN(MTYPE, _kadt)(struct ip_set *set, const struct sk_buff *skb,
+-	      const struct xt_action_param *par,
+-	      enum ipset_adt adt, struct ip_set_adt_opt *opt);
++IPSET_TOKEN(MTYPE, _kadt)(struct ip_set *set, const struct sk_buff *skb,
++	    const struct xt_action_param *par,
++	    enum ipset_adt adt, struct ip_set_adt_opt *opt);
+ 
+ static int
+-TOKEN(MTYPE, _uadt)(struct ip_set *set, struct nlattr *tb[],
+-	      enum ipset_adt adt, u32 *lineno, u32 flags, bool retried);
++IPSET_TOKEN(MTYPE, _uadt)(struct ip_set *set, struct nlattr *tb[],
++	    enum ipset_adt adt, u32 *lineno, u32 flags, bool retried);
+ 
+ static const struct ip_set_type_variant mtype_variant = {
+ 	.kadt	= mtype_kadt,
+@@ -967,7 +964,7 @@ static const struct ip_set_type_variant mtype_variant = {
+ 
+ #ifdef IP_SET_EMIT_CREATE
+ static int
+-TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
++IPSET_TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
  {
- 	int i, j;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u32 cadt_flags = 0;
+@@ -1045,9 +1042,9 @@ TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
  
- 	/* Add in increasing prefix order, so larger cidr first */
--	for (i = 0, j = -1; i < nets_length && h->nets[i].nets; i++) {
-+	for (i = 0, j = -1; i < nets_length && h->nets[i].nets[n]; i++) {
- 		if (j != -1)
- 			continue;
--		else if (h->nets[i].cidr < cidr)
-+		else if (h->nets[i].cidr[n] < cidr)
- 			j = i;
--		else if (h->nets[i].cidr == cidr) {
--			h->nets[i].nets++;
-+		else if (h->nets[i].cidr[n] == cidr) {
-+			h->nets[i].nets[n]++;
- 			return;
+ 	set->data = h;
+ 	if (set->family ==  NFPROTO_IPV4)
+-		set->variant = &TOKEN(HTYPE, 4_variant);
++		set->variant = &IPSET_TOKEN(HTYPE, 4_variant);
+ 	else
+-		set->variant = &TOKEN(HTYPE, 6_variant);
++		set->variant = &IPSET_TOKEN(HTYPE, 6_variant);
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS])
+ 		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+@@ -1058,64 +1055,74 @@ TOKEN(HTYPE, _create)(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 				ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 			set->extensions |= IPSET_EXT_TIMEOUT;
+ 			if (set->family == NFPROTO_IPV4) {
+-				h->dsize =
+-					sizeof(struct TOKEN(HTYPE, 4ct_elem));
++				h->dsize = sizeof(struct
++					IPSET_TOKEN(HTYPE, 4ct_elem));
+ 				h->offset[IPSET_OFFSET_TIMEOUT] =
+-					offsetof(struct TOKEN(HTYPE, 4ct_elem),
+-						 timeout);
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 4ct_elem),
++						timeout);
+ 				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct TOKEN(HTYPE, 4ct_elem),
+-						 counter);
+-				TOKEN(HTYPE, 4_gc_init)(set,
+-					TOKEN(HTYPE, 4_gc));
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 4ct_elem),
++						counter);
++				IPSET_TOKEN(HTYPE, 4_gc_init)(set,
++					IPSET_TOKEN(HTYPE, 4_gc));
+ 			} else {
+-				h->dsize =
+-					sizeof(struct TOKEN(HTYPE, 6ct_elem));
++				h->dsize = sizeof(struct
++					IPSET_TOKEN(HTYPE, 6ct_elem));
+ 				h->offset[IPSET_OFFSET_TIMEOUT] =
+-					offsetof(struct TOKEN(HTYPE, 6ct_elem),
+-						 timeout);
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 6ct_elem),
++						timeout);
+ 				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct TOKEN(HTYPE, 6ct_elem),
+-						 counter);
+-				TOKEN(HTYPE, 6_gc_init)(set,
+-					TOKEN(HTYPE, 6_gc));
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 6ct_elem),
++						counter);
++				IPSET_TOKEN(HTYPE, 6_gc_init)(set,
++					IPSET_TOKEN(HTYPE, 6_gc));
+ 			}
+ 		} else {
+ 			if (set->family == NFPROTO_IPV4) {
+ 				h->dsize =
+-					sizeof(struct TOKEN(HTYPE, 4c_elem));
++					sizeof(struct
++						IPSET_TOKEN(HTYPE, 4c_elem));
+ 				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct TOKEN(HTYPE, 4c_elem),
+-						 counter);
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 4c_elem),
++						counter);
+ 			} else {
+ 				h->dsize =
+-					sizeof(struct TOKEN(HTYPE, 6c_elem));
++					sizeof(struct
++						IPSET_TOKEN(HTYPE, 6c_elem));
+ 				h->offset[IPSET_OFFSET_COUNTER] =
+-					offsetof(struct TOKEN(HTYPE, 6c_elem),
+-						 counter);
++					offsetof(struct
++						IPSET_TOKEN(HTYPE, 6c_elem),
++						counter);
+ 			}
  		}
- 	}
- 	if (j != -1) {
- 		for (; i > j; i--) {
--			h->nets[i].cidr = h->nets[i - 1].cidr;
--			h->nets[i].nets = h->nets[i - 1].nets;
-+			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
-+			h->nets[i].nets[n] = h->nets[i - 1].nets[n];
+ 	} else if (tb[IPSET_ATTR_TIMEOUT]) {
+ 		h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 		set->extensions |= IPSET_EXT_TIMEOUT;
+ 		if (set->family == NFPROTO_IPV4) {
+-			h->dsize = sizeof(struct TOKEN(HTYPE, 4t_elem));
++			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4t_elem));
+ 			h->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct TOKEN(HTYPE, 4t_elem),
++				offsetof(struct IPSET_TOKEN(HTYPE, 4t_elem),
+ 					 timeout);
+-			TOKEN(HTYPE, 4_gc_init)(set, TOKEN(HTYPE, 4_gc));
++			IPSET_TOKEN(HTYPE, 4_gc_init)(set,
++				IPSET_TOKEN(HTYPE, 4_gc));
+ 		} else {
+-			h->dsize = sizeof(struct TOKEN(HTYPE, 6t_elem));
++			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6t_elem));
+ 			h->offset[IPSET_OFFSET_TIMEOUT] =
+-				offsetof(struct TOKEN(HTYPE, 6t_elem),
++				offsetof(struct IPSET_TOKEN(HTYPE, 6t_elem),
+ 					 timeout);
+-			TOKEN(HTYPE, 6_gc_init)(set, TOKEN(HTYPE, 6_gc));
++			IPSET_TOKEN(HTYPE, 6_gc_init)(set,
++				IPSET_TOKEN(HTYPE, 6_gc));
  		}
- 	}
--	h->nets[i].cidr = cidr;
--	h->nets[i].nets = 1;
-+	h->nets[i].cidr[n] = cidr;
-+	h->nets[i].nets[n] = 1;
- }
- 
- static void
--mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length)
-+mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- {
- 	u8 i, j, net_end = nets_length - 1;
- 
- 	for (i = 0; i < nets_length; i++) {
--	        if (h->nets[i].cidr != cidr)
-+	        if (h->nets[i].cidr[n] != cidr)
- 	                continue;
--                if (h->nets[i].nets > 1 || i == net_end ||
--                    h->nets[i + 1].nets == 0) {
--                        h->nets[i].nets--;
-+                if (h->nets[i].nets[n] > 1 || i == net_end ||
-+                    h->nets[i + 1].nets[n] == 0) {
-+                        h->nets[i].nets[n]--;
-                         return;
-                 }
--                for (j = i; j < net_end && h->nets[j].nets; j++) {
--		        h->nets[j].cidr = h->nets[j + 1].cidr;
--		        h->nets[j].nets = h->nets[j + 1].nets;
-+                for (j = i; j < net_end && h->nets[j].nets[n]; j++) {
-+		        h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
-+		        h->nets[j].nets[n] = h->nets[j + 1].nets[n];
-                 }
--                h->nets[j].nets = 0;
-+                h->nets[j].nets[n] = 0;
-                 return;
- 	}
- }
-@@ -382,8 +386,7 @@ mtype_flush(struct ip_set *set)
- 		}
- 	}
- #ifdef IP_SET_HASH_WITH_NETS
--	memset(h->nets, 0, sizeof(struct net_prefixes)
--			   * NETS_LENGTH(set->family));
-+	memset(h->nets, 0, sizeof(struct net_prefixes) * NLEN(set->family));
- #endif
- 	h->elements = 0;
- }
-@@ -459,7 +462,7 @@ mtype_expire(struct htype *h, u8 nets_length, size_t dsize)
- 				pr_debug("expired %u/%u\n", i, j);
- #ifdef IP_SET_HASH_WITH_NETS
- 				mtype_del_cidr(h, CIDR(data->cidr),
--					       nets_length);
-+					       nets_length, 0);
- #endif
- 				if (j != n->pos - 1)
- 					/* Not last one */
-@@ -494,7 +497,7 @@ mtype_gc(unsigned long ul_set)
- 
- 	pr_debug("called\n");
- 	write_lock_bh(&set->lock);
--	mtype_expire(h, NETS_LENGTH(set->family), h->dsize);
-+	mtype_expire(h, NLEN(set->family), h->dsize);
- 	write_unlock_bh(&set->lock);
- 
- 	h->gc.expires = jiffies + IPSET_GC_PERIOD(h->timeout) * HZ;
-@@ -523,8 +526,7 @@ mtype_resize(struct ip_set *set, bool retried)
- 	if (SET_WITH_TIMEOUT(set) && !retried) {
- 		i = h->elements;
- 		write_lock_bh(&set->lock);
--		mtype_expire(set->data, NETS_LENGTH(set->family),
--			     h->dsize);
-+		mtype_expire(set->data, NLEN(set->family), h->dsize);
- 		write_unlock_bh(&set->lock);
- 		if (h->elements < i)
- 			return 0;
-@@ -607,7 +609,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 
- 	if (SET_WITH_TIMEOUT(set) && h->elements >= h->maxelem)
- 		/* FIXME: when set is full, we slow down here */
--		mtype_expire(h, NETS_LENGTH(set->family), h->dsize);
-+		mtype_expire(h, NLEN(set->family), h->dsize);
- 
- 	if (h->elements >= h->maxelem) {
- 		if (net_ratelimit())
-@@ -645,8 +647,8 @@ reuse_slot:
- 		/* Fill out reused slot */
- 		data = ahash_data(n, j, h->dsize);
- #ifdef IP_SET_HASH_WITH_NETS
--		mtype_del_cidr(h, CIDR(data->cidr), NETS_LENGTH(set->family));
--		mtype_add_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
-+		mtype_del_cidr(h, CIDR(data->cidr), NLEN(set->family), 0);
-+		mtype_add_cidr(h, CIDR(d->cidr), NLEN(set->family), 0);
- #endif
  	} else {
- 		/* Use/create a new slot */
-@@ -659,7 +661,7 @@ reuse_slot:
- 		}
- 		data = ahash_data(n, n->pos++, h->dsize);
- #ifdef IP_SET_HASH_WITH_NETS
--		mtype_add_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
-+		mtype_add_cidr(h, CIDR(d->cidr), NLEN(set->family), 0);
- #endif
- 		h->elements++;
+ 		if (set->family == NFPROTO_IPV4)
+-			h->dsize = sizeof(struct TOKEN(HTYPE, 4_elem));
++			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 4_elem));
+ 		else
+-			h->dsize = sizeof(struct TOKEN(HTYPE, 6_elem));
++			h->dsize = sizeof(struct IPSET_TOKEN(HTYPE, 6_elem));
  	}
-@@ -711,7 +713,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		n->pos--;
- 		h->elements--;
- #ifdef IP_SET_HASH_WITH_NETS
--		mtype_del_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
-+		mtype_del_cidr(h, CIDR(d->cidr), NLEN(set->family), 0);
- #endif
- 		if (n->pos + AHASH_INIT_SIZE < n->size) {
- 			void *tmp = kzalloc((n->size - AHASH_INIT_SIZE)
-@@ -760,11 +762,11 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 	struct mtype_elem *data;
- 	int i, j = 0;
- 	u32 key, multi = 0;
--	u8 nets_length = NETS_LENGTH(set->family);
-+	u8 nets_length = NLEN(set->family);
  
- 	pr_debug("test by nets\n");
--	for (; j < nets_length && h->nets[j].nets && !multi; j++) {
--		mtype_data_netmask(d, h->nets[j].cidr);
-+	for (; j < nets_length && h->nets[j].nets[0] && !multi; j++) {
-+		mtype_data_netmask(d, h->nets[j].cidr[0]);
- 		key = HKEY(d, h->initval, t->htable_bits);
- 		n = hbucket(t, key);
- 		for (i = 0; i < n->pos; i++) {
-@@ -839,7 +841,7 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
- 	size_t memsize;
+ 	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index c74e6e1..de44fca 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -23,12 +23,12 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
  
- 	t = rcu_dereference_bh_nfnl(h->table);
--	memsize = mtype_ahash_memsize(h, t, NETS_LENGTH(set->family));
-+	memsize = mtype_ahash_memsize(h, t, NLEN(set->family));
+-#define REVISION_MIN	0
+-#define REVISION_MAX	1	/* Counters support */
++#define IPSET_TYPE_REV_MIN	0
++#define IPSET_TYPE_REV_MAX	1	/* Counters support */
  
- 	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
- 	if (!nested)
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:ip", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:ip", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:ip");
+ 
+ /* Type specific function prefix */
+@@ -304,8 +304,8 @@ static struct ip_set_type hash_ip_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP,
+ 	.dimension	= IPSET_DIM_ONE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_ip_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 7a2d2bd..b514ff4 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -24,13 +24,13 @@
+ #include <linux/netfilter/ipset/ip_set_getport.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+-#define REVISION_MIN	0
+-/*			1    SCTP and UDPLITE support added */
+-#define REVISION_MAX	2 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    SCTP and UDPLITE support added */
++#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:ip,port", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:ip,port", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:ip,port");
+ 
+ /* Type specific function prefix */
+@@ -396,8 +396,8 @@ static struct ip_set_type hash_ipport_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
+ 	.dimension	= IPSET_DIM_TWO,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_ipport_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 34e8a1a..d05070d 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -24,13 +24,13 @@
+ #include <linux/netfilter/ipset/ip_set_getport.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+-#define REVISION_MIN	0
+-/*			1    SCTP and UDPLITE support added */
+-#define REVISION_MAX	2 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    SCTP and UDPLITE support added */
++#define IPSET_TYPE_REV_MAX	2 /* Counters support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:ip,port,ip", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:ip,port,ip", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:ip,port,ip");
+ 
+ /* Type specific function prefix */
+@@ -414,8 +414,8 @@ static struct ip_set_type hash_ipportip_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
+ 	.dimension	= IPSET_DIM_THREE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_ipportip_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
 diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index f111558..6ce5a8e 100644
+index 9a80d8b..7d1dede 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -170,7 +170,7 @@ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_ipportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportnet4_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr - 1 : HOST_MASK - 1
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK) - 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+@@ -24,15 +24,15 @@
+ #include <linux/netfilter/ipset/ip_set_getport.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
  
-@@ -454,7 +454,7 @@ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_ipportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportnet6_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr - 1 : HOST_MASK - 1
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK) - 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+-#define REVISION_MIN	0
+-/*			1    SCTP and UDPLITE support added */
+-/*			2    Range as input support for IPv4 added */
+-/*			3    nomatch flag support added */
+-#define REVISION_MAX	4 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    SCTP and UDPLITE support added */
++/*				2    Range as input support for IPv4 added */
++/*				3    nomatch flag support added */
++#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
  
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:ip,port,net", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:ip,port,net", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:ip,port,net");
+ 
+ /* Type specific function prefix */
+@@ -574,8 +574,8 @@ static struct ip_set_type hash_ipportnet_type __read_mostly = {
+ 			  IPSET_TYPE_NOMATCH,
+ 	.dimension	= IPSET_DIM_THREE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_ipportnet_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
 diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 0a64dad..ec1c7dc 100644
+index 223e9f5..9cb9ef4 100644
 --- a/net/netfilter/ipset/ip_set_hash_net.c
 +++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -143,7 +143,7 @@ hash_net4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_net *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_net4_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+@@ -22,14 +22,14 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
  
-@@ -338,7 +338,7 @@ hash_net6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_net *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_net6_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+-#define REVISION_MIN	0
+-/*			1    Range as input support for IPv4 added */
+-/*			2    nomatch flag support added */
+-#define REVISION_MAX	3 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    Range as input support for IPv4 added */
++/*				2    nomatch flag support added */
++#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
  
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:net", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:net", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net");
+ 
+ /* Type specific function prefix */
+@@ -406,8 +406,8 @@ static struct ip_set_type hash_net_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP | IPSET_TYPE_NOMATCH,
+ 	.dimension	= IPSET_DIM_ONE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_net_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
 diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 846371b..814b4e3 100644
+index 7d798d5..2310fc2 100644
 --- a/net/netfilter/ipset/ip_set_hash_netiface.c
 +++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -265,7 +265,7 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netiface *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netiface4_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK,
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
- 		.elem = 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
-@@ -534,7 +534,7 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_netiface *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netiface6_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK,
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK),
- 		.elem = 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+@@ -23,14 +23,14 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+-#define REVISION_MIN	0
+-/*			1    nomatch flag support added */
+-/*			2    /0 support added */
+-#define REVISION_MAX	3 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    nomatch flag support added */
++/*				2    /0 support added */
++#define IPSET_TYPE_REV_MAX	3 /* Counters support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:net,iface", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:net,iface", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net,iface");
+ 
+ /* Interface name rbtree */
+@@ -645,8 +645,8 @@ static struct ip_set_type hash_netiface_type __read_mostly = {
+ 			  IPSET_TYPE_NOMATCH,
+ 	.dimension	= IPSET_DIM_TWO,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_netiface_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
 diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index d98a685..3bd923d 100644
+index 09d6690..1601d48 100644
 --- a/net/netfilter/ipset/ip_set_hash_netport.c
 +++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -162,7 +162,7 @@ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_netport *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netport4_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr - 1 : HOST_MASK - 1
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK) - 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+@@ -23,15 +23,15 @@
+ #include <linux/netfilter/ipset/ip_set_getport.h>
+ #include <linux/netfilter/ipset/ip_set_hash.h>
  
-@@ -407,7 +407,7 @@ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	const struct hash_netport *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netport6_elem e = {
--		.cidr = h->nets[0].cidr ? h->nets[0].cidr - 1 : HOST_MASK - 1,
-+		.cidr = IP_SET_INIT_CIDR(h->nets[0].cidr[0], HOST_MASK) - 1,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, h);
+-#define REVISION_MIN	0
+-/*			1    SCTP and UDPLITE support added */
+-/*			2    Range as input support for IPv4 added */
+-/*			3    nomatch flag support added */
+-#define REVISION_MAX	4 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++/*				1    SCTP and UDPLITE support added */
++/*				2    Range as input support for IPv4 added */
++/*				3    nomatch flag support added */
++#define IPSET_TYPE_REV_MAX	4 /* Counters support added */
  
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("hash:net,port", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("hash:net,port", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net,port");
+ 
+ /* Type specific function prefix */
+@@ -518,8 +518,8 @@ static struct ip_set_type hash_netport_type __read_mostly = {
+ 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_NOMATCH,
+ 	.dimension	= IPSET_DIM_TWO,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_netport_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 68299ee..a9e301f 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -15,12 +15,12 @@
+ #include <linux/netfilter/ipset/ip_set.h>
+ #include <linux/netfilter/ipset/ip_set_list.h>
+ 
+-#define REVISION_MIN	0
+-#define REVISION_MAX	1 /* Counters support added */
++#define IPSET_TYPE_REV_MIN	0
++#define IPSET_TYPE_REV_MAX	1 /* Counters support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+-IP_SET_MODULE_DESC("list:set", REVISION_MIN, REVISION_MAX);
++IP_SET_MODULE_DESC("list:set", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_list:set");
+ 
+ /* Member elements  */
+@@ -703,8 +703,8 @@ static struct ip_set_type list_set_type __read_mostly = {
+ 	.features	= IPSET_TYPE_NAME | IPSET_DUMP_LAST,
+ 	.dimension	= IPSET_DIM_ONE,
+ 	.family		= NFPROTO_UNSPEC,
+-	.revision_min	= REVISION_MIN,
+-	.revision_max	= REVISION_MAX,
++	.revision_min	= IPSET_TYPE_REV_MIN,
++	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= list_set_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_SIZE]	= { .type = NLA_U32 },
 -- 
 1.7.0.4
 
