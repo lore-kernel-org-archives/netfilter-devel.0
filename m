@@ -1,40 +1,78 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3 - GIT PULL] include/linux: Remove externs from
- networking function prototypes
-Date: Mon, 30 Sep 2013 15:37:32 -0400 (EDT)
-Message-ID: <20130930.153732.1943350951159238111.davem@davemloft.net>
-References: <cover.1380233637.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-hippi@sunsite.dk, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: joe@perches.com
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 09/26] netfilter: ipset: Introduce new operation to get both setname and family
+Date: Mon, 30 Sep 2013 21:50:20 +0200
+Message-ID: <1380570637-31235-10-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:35886 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755390Ab3I3Thf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 15:37:35 -0400
-In-Reply-To: <cover.1380233637.git.joe@perches.com>
+Received: from smtp0.kfki.hu ([148.6.0.25]:60586 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756318Ab3I3Tuj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 15:50:39 -0400
+In-Reply-To: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joe Perches <joe@perches.com>
-Date: Thu, 26 Sep 2013 15:18:30 -0700
+ip[6]tables set match and SET target need to know the family of the set
+in order to reject adding rules which refer to a set with a non-mathcing
+family. Currently such rules are silently accepted and then ignored
+instead of generating a clear error message to the user, which is not
+helpful.
 
-> 
-> The following changes since commit aae8c287e664d49df4aa315ad263c33b9a2af3e1:
-> 
->   Merge branch 'bonding_neighbours' (2013-09-26 16:02:19 -0400)
-> 
-> are available in the git repository at:
-> 
->   git://repo.or.cz/linux-2.6/trivial-mods.git 20130926_include_linux_networking_externs
-> 
-> for you to fetch changes up to f629d208d27a22f495b7734eede585b5d207e912:
-> 
->   [networking]device.h: Remove extern from function prototypes (2013-09-26 15:06:58 -0700)
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/uapi/linux/netfilter/ipset/ip_set.h |    8 ++++++++
+ net/netfilter/ipset/ip_set_core.c           |   17 +++++++++++++++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-Pulled, thanks Joe.
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
+index 8024cdf..2b61ac4 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -250,6 +250,14 @@ struct ip_set_req_get_set {
+ #define IP_SET_OP_GET_BYINDEX	0x00000007	/* Get set name by index */
+ /* Uses ip_set_req_get_set */
+ 
++#define IP_SET_OP_GET_FNAME	0x00000008	/* Get set index and family */
++struct ip_set_req_get_set_family {
++	unsigned int op;
++	unsigned int version;
++	unsigned int family;
++	union ip_set_name_index set;
++};
++
+ #define IP_SET_OP_VERSION	0x00000100	/* Ask kernel version */
+ struct ip_set_req_version {
+ 	unsigned int op;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index f2e30fb..428c30a 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1788,6 +1788,23 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+ 		nfnl_unlock(NFNL_SUBSYS_IPSET);
+ 		goto copy;
+ 	}
++	case IP_SET_OP_GET_FNAME: {
++		struct ip_set_req_get_set_family *req_get = data;
++		ip_set_id_t id;
++
++		if (*len != sizeof(struct ip_set_req_get_set_family)) {
++			ret = -EINVAL;
++			goto done;
++		}
++		req_get->set.name[IPSET_MAXNAMELEN - 1] = '\0';
++		nfnl_lock(NFNL_SUBSYS_IPSET);
++		find_set_and_id(req_get->set.name, &id);
++		req_get->set.index = id;
++		if (id != IPSET_INVALID_ID)
++			req_get->family = nfnl_set(id)->family;
++		nfnl_unlock(NFNL_SUBSYS_IPSET);
++		goto copy;
++	}
+ 	case IP_SET_OP_GET_BYINDEX: {
+ 		struct ip_set_req_get_set *req_get = data;
+ 		struct ip_set *set;
+-- 
+1.7.0.4
+
