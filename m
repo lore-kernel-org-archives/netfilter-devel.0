@@ -1,49 +1,173 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 23/26] netfilter: ipset: For set:list types, replaced elements must be zeroed out
-Date: Mon, 30 Sep 2013 21:50:34 +0200
-Message-ID: <1380570637-31235-24-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 24/26] netfilter: ipset: Use a common function at listing the extensions
+Date: Mon, 30 Sep 2013 21:50:35 +0200
+Message-ID: <1380570637-31235-25-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:60605 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:60588 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756376Ab3I3Tup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756378Ab3I3Tup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 30 Sep 2013 15:50:45 -0400
 In-Reply-To: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The new extensions require zero initialization for the new element
-to be added into a slot from where another element was pushed away.
-
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_list_set.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h    |   21 +++++++++++++++++++++
+ net/netfilter/ipset/ip_set_bitmap_gen.h   |   29 ++++++++++-------------------
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c |   11 -----------
+ net/netfilter/ipset/ip_set_hash_gen.h     |   11 +----------
+ net/netfilter/ipset/ip_set_list_set.c     |   11 +----------
+ 5 files changed, 33 insertions(+), 50 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index f9681dc..e23f33c 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -184,6 +184,8 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
- 			}
- 			memmove(list_set_elem(set, map, i + 1), e,
- 				set->dsize * (map->size - (i + 1)));
-+			/* Extensions must be initialized to zero */
-+			memset(e, 0, set->dsize);
- 		}
- 	}
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 407f84d..da2a45a 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -461,6 +461,27 @@ bitmap_bytes(u32 a, u32 b)
+ #include <linux/netfilter/ipset/ip_set_timeout.h>
+ #include <linux/netfilter/ipset/ip_set_comment.h>
  
-@@ -192,7 +194,7 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
- 		ip_set_timeout_set(ext_timeout(e, set), ext->timeout);
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(e, set), ext);
--	if (SET_WITH_COMMENT(set) && ext->comment)
-+	if (SET_WITH_COMMENT(set))
- 		ip_set_init_comment(ext_comment(e, set), ext);
++static inline int
++ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
++		      const void *e, bool active)
++{
++	if (SET_WITH_TIMEOUT(set)) {
++		unsigned long *timeout = ext_timeout(e, set);
++
++		if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
++			htonl(active ? ip_set_timeout_get(timeout)
++				: *timeout)))
++			return -EMSGSIZE;
++	}
++	if (SET_WITH_COUNTER(set) &&
++	    ip_set_put_counter(skb, ext_counter(e, set)))
++		return -EMSGSIZE;
++	if (SET_WITH_COMMENT(set) &&
++	    ip_set_put_comment(skb, ext_comment(e, set)))
++		return -EMSGSIZE;
++	return 0;
++}
++
+ #define IP_SET_INIT_KEXT(skb, opt, set)			\
+ 	{ .bytes = (skb)->len, .packets = 1,		\
+ 	  .timeout = ip_set_adt_opt_timeout(opt, set) }
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 6167fc9..a13e15b 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -183,6 +183,14 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
  	return 0;
  }
+ 
++#ifndef IP_SET_BITMAP_STORED_TIMEOUT
++static inline bool
++mtype_is_filled(const struct mtype_elem *x)
++{
++	return true;
++}
++#endif
++
+ static int
+ mtype_list(const struct ip_set *set,
+ 	   struct sk_buff *skb, struct netlink_callback *cb)
+@@ -215,25 +223,8 @@ mtype_list(const struct ip_set *set,
+ 		}
+ 		if (mtype_do_list(skb, map, id, set->dsize))
+ 			goto nla_put_failure;
+-		if (SET_WITH_TIMEOUT(set)) {
+-#ifdef IP_SET_BITMAP_STORED_TIMEOUT
+-			if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+-					  htonl(ip_set_timeout_stored(map, id,
+-							ext_timeout(x, set),
+-							set->dsize))))
+-				goto nla_put_failure;
+-#else
+-			if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+-					  htonl(ip_set_timeout_get(
+-							ext_timeout(x, set)))))
+-				goto nla_put_failure;
+-#endif
+-		}
+-		if (SET_WITH_COUNTER(set) &&
+-		    ip_set_put_counter(skb, ext_counter(x, set)))
+-			goto nla_put_failure;
+-		if (SET_WITH_COMMENT(set) &&
+-		    ip_set_put_comment(skb, ext_comment(x, set)))
++		if (ip_set_put_extensions(skb, set, x,
++		    mtype_is_filled((const struct mtype_elem *) x)))
+ 			goto nla_put_failure;
+ 		ipset_nest_end(skb, nested);
+ 	}
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index fb4d163..87a218f 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -176,17 +176,6 @@ bitmap_ipmac_do_del(const struct bitmap_ipmac_adt_elem *e,
+ 	return !test_and_clear_bit(e->id, map->members);
+ }
+ 
+-static inline unsigned long
+-ip_set_timeout_stored(struct bitmap_ipmac *map, u32 id, unsigned long *timeout,
+-		      size_t dsize)
+-{
+-	const struct bitmap_ipmac_elem *elem =
+-		get_elem(map->extensions, id, dsize);
+-
+-	return elem->filled == MAC_FILLED ? ip_set_timeout_get(timeout) :
+-					    *timeout;
+-}
+-
+ static inline int
+ bitmap_ipmac_do_list(struct sk_buff *skb, const struct bitmap_ipmac *map,
+ 		     u32 id, size_t dsize)
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 1cffeb9..b4add20 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -961,16 +961,7 @@ mtype_list(const struct ip_set *set,
+ 			}
+ 			if (mtype_data_list(skb, e))
+ 				goto nla_put_failure;
+-			if (SET_WITH_TIMEOUT(set) &&
+-			    nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+-					  htonl(ip_set_timeout_get(
+-						ext_timeout(e, set)))))
+-				goto nla_put_failure;
+-			if (SET_WITH_COUNTER(set) &&
+-			    ip_set_put_counter(skb, ext_counter(e, set)))
+-				goto nla_put_failure;
+-			if (SET_WITH_COMMENT(set) &&
+-			    ip_set_put_comment(skb, ext_comment(e, set)))
++			if (ip_set_put_extensions(skb, set, e, true))
+ 				goto nla_put_failure;
+ 			ipset_nest_end(skb, nested);
+ 		}
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index e23f33c..ba4232e 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -512,16 +512,7 @@ list_set_list(const struct ip_set *set,
+ 		if (nla_put_string(skb, IPSET_ATTR_NAME,
+ 				   ip_set_name_byindex(e->id)))
+ 			goto nla_put_failure;
+-		if (SET_WITH_TIMEOUT(set) &&
+-		    nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
+-				  htonl(ip_set_timeout_get(
+-						ext_timeout(e, set)))))
+-			goto nla_put_failure;
+-		if (SET_WITH_COUNTER(set) &&
+-		    ip_set_put_counter(skb, ext_counter(e, set)))
+-			goto nla_put_failure;
+-		if (SET_WITH_COMMENT(set) &&
+-		    ip_set_put_comment(skb, ext_comment(e, set)))
++		if (ip_set_put_extensions(skb, set, e, true))
+ 			goto nla_put_failure;
+ 		ipset_nest_end(skb, nested);
+ 	}
 -- 
 1.7.0.4
 
