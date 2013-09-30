@@ -1,48 +1,30 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [PATCH] netfilter: synproxy: fix BUG_ON triggered by corrupt
- TCP packets
-Date: Mon, 30 Sep 2013 12:43:33 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1309301241400.8972@ask.diku.dk>
-References: <1380527506-27585-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	mph@one.com
-To: Patrick McHardy <kaber@trash.net>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: [PATCH net-next 0/1] sip: introduce nf_nat_sip_hooks
+Date: Mon, 30 Sep 2013 15:51:50 +0200
+Message-ID: <20130930135150.440707982@eitzenberger.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:35485 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840Ab3I3LEK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 07:04:10 -0400
-In-Reply-To: <1380527506-27585-1-git-send-email-kaber@trash.net>
+Received: from moutng.kundenserver.de ([212.227.17.10]:58715 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754044Ab3I3N4B (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 09:56:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 30 Sep 2013, Patrick McHardy wrote:
+Hi Pablo,
 
-> TCP packets hitting the SYN proxy through the SYNPROXY target are not
-> validated by TCP conntrack. When th->doff is below 5, an underflow happens
-> when calculating the options length, causing skb_header_pointer() to
-> return NULL and triggering the BUG_ON().
->
-> Handle this case gracefully by checking for NULL instead of using BUG_ON().
->
-> Reported-by: Martin Topholm <mph@one.com>
-> Tested-by: Martin Topholm <mph@one.com>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-> ---
+both nf_conntrack_sip and nf_nat_sip use 7 different NAT hooks
+currently: they are exported by the conntrack module, then set by the
+NAT module at module_init() time.
 
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Quite some of this repetitive task can be avoided by introducing
+nf_nat_sip_hooks.
 
-Thanks for fixing this!
+SIP helper has been tested after applying this patch.
 
-Cheers,
-   Jesper Brouer
+Please check the following patch.
 
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+ /Holger
+
