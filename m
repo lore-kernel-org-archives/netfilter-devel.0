@@ -1,237 +1,49 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 08/26] netfilter: ipset: order matches and targets separatedly in xt_set.c
-Date: Mon, 30 Sep 2013 21:50:19 +0200
-Message-ID: <1380570637-31235-9-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 23/26] netfilter: ipset: For set:list types, replaced elements must be zeroed out
+Date: Mon, 30 Sep 2013 21:50:34 +0200
+Message-ID: <1380570637-31235-24-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:36520 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:60605 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756318Ab3I3Tum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 15:50:42 -0400
+	id S1756376Ab3I3Tup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 15:50:45 -0400
 In-Reply-To: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The new extensions require zero initialization for the new element
+to be added into a slot from where another element was pushed away.
+
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/xt_set.c |  188 ++++++++++++++++++++++++-----------------------
- 1 files changed, 96 insertions(+), 92 deletions(-)
+ net/netfilter/ipset/ip_set_list_set.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index 31790e7..2095488 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -109,6 +109,101 @@ set_match_v0_destroy(const struct xt_mtdtor_param *par)
- 	ip_set_nfnl_put(info->match_set.index);
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index f9681dc..e23f33c 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -184,6 +184,8 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
+ 			}
+ 			memmove(list_set_elem(set, map, i + 1), e,
+ 				set->dsize * (map->size - (i + 1)));
++			/* Extensions must be initialized to zero */
++			memset(e, 0, set->dsize);
+ 		}
+ 	}
+ 
+@@ -192,7 +194,7 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
+ 		ip_set_timeout_set(ext_timeout(e, set), ext->timeout);
+ 	if (SET_WITH_COUNTER(set))
+ 		ip_set_init_counter(ext_counter(e, set), ext);
+-	if (SET_WITH_COMMENT(set) && ext->comment)
++	if (SET_WITH_COMMENT(set))
+ 		ip_set_init_comment(ext_comment(e, set), ext);
+ 	return 0;
  }
- 
-+/* Revision 1 match */
-+
-+static bool
-+set_match_v1(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_set_info_match_v1 *info = par->matchinfo;
-+	ADT_OPT(opt, par->family, info->match_set.dim,
-+		info->match_set.flags, 0, UINT_MAX);
-+
-+	if (opt.flags & IPSET_RETURN_NOMATCH)
-+		opt.cmdflags |= IPSET_FLAG_RETURN_NOMATCH;
-+
-+	return match_set(info->match_set.index, skb, par, &opt,
-+			 info->match_set.flags & IPSET_INV_MATCH);
-+}
-+
-+static int
-+set_match_v1_checkentry(const struct xt_mtchk_param *par)
-+{
-+	struct xt_set_info_match_v1 *info = par->matchinfo;
-+	ip_set_id_t index;
-+
-+	index = ip_set_nfnl_get_byindex(info->match_set.index);
-+
-+	if (index == IPSET_INVALID_ID) {
-+		pr_warning("Cannot find set indentified by id %u to match\n",
-+			   info->match_set.index);
-+		return -ENOENT;
-+	}
-+	if (info->match_set.dim > IPSET_DIM_MAX) {
-+		pr_warning("Protocol error: set match dimension "
-+			   "is over the limit!\n");
-+		ip_set_nfnl_put(info->match_set.index);
-+		return -ERANGE;
-+	}
-+
-+	return 0;
-+}
-+
-+static void
-+set_match_v1_destroy(const struct xt_mtdtor_param *par)
-+{
-+	struct xt_set_info_match_v1 *info = par->matchinfo;
-+
-+	ip_set_nfnl_put(info->match_set.index);
-+}
-+
-+/* Revision 3 match */
-+
-+static bool
-+match_counter(u64 counter, const struct ip_set_counter_match *info)
-+{
-+	switch (info->op) {
-+	case IPSET_COUNTER_NONE:
-+		return true;
-+	case IPSET_COUNTER_EQ:
-+		return counter == info->value;
-+	case IPSET_COUNTER_NE:
-+		return counter != info->value;
-+	case IPSET_COUNTER_LT:
-+		return counter < info->value;
-+	case IPSET_COUNTER_GT:
-+		return counter > info->value;
-+	}
-+	return false;
-+}
-+
-+static bool
-+set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_set_info_match_v3 *info = par->matchinfo;
-+	ADT_OPT(opt, par->family, info->match_set.dim,
-+		info->match_set.flags, info->flags, UINT_MAX);
-+	int ret;
-+
-+	if (info->packets.op != IPSET_COUNTER_NONE ||
-+	    info->bytes.op != IPSET_COUNTER_NONE)
-+		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
-+
-+	ret = match_set(info->match_set.index, skb, par, &opt,
-+			info->match_set.flags & IPSET_INV_MATCH);
-+
-+	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
-+		return ret;
-+
-+	if (!match_counter(opt.ext.packets, &info->packets))
-+		return 0;
-+	return match_counter(opt.ext.bytes, &info->bytes);
-+}
-+
-+#define set_match_v3_checkentry	set_match_v1_checkentry
-+#define set_match_v3_destroy	set_match_v1_destroy
-+
-+/* Revision 0 interface: backward compatible with netfilter/iptables */
-+
- static unsigned int
- set_target_v0(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -180,52 +275,7 @@ set_target_v0_destroy(const struct xt_tgdtor_param *par)
- 		ip_set_nfnl_put(info->del_set.index);
- }
- 
--/* Revision 1 match and target */
--
--static bool
--set_match_v1(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct xt_set_info_match_v1 *info = par->matchinfo;
--	ADT_OPT(opt, par->family, info->match_set.dim,
--		info->match_set.flags, 0, UINT_MAX);
--
--	if (opt.flags & IPSET_RETURN_NOMATCH)
--		opt.cmdflags |= IPSET_FLAG_RETURN_NOMATCH;
--
--	return match_set(info->match_set.index, skb, par, &opt,
--			 info->match_set.flags & IPSET_INV_MATCH);
--}
--
--static int
--set_match_v1_checkentry(const struct xt_mtchk_param *par)
--{
--	struct xt_set_info_match_v1 *info = par->matchinfo;
--	ip_set_id_t index;
--
--	index = ip_set_nfnl_get_byindex(info->match_set.index);
--
--	if (index == IPSET_INVALID_ID) {
--		pr_warning("Cannot find set indentified by id %u to match\n",
--			   info->match_set.index);
--		return -ENOENT;
--	}
--	if (info->match_set.dim > IPSET_DIM_MAX) {
--		pr_warning("Protocol error: set match dimension "
--			   "is over the limit!\n");
--		ip_set_nfnl_put(info->match_set.index);
--		return -ERANGE;
--	}
--
--	return 0;
--}
--
--static void
--set_match_v1_destroy(const struct xt_mtdtor_param *par)
--{
--	struct xt_set_info_match_v1 *info = par->matchinfo;
--
--	ip_set_nfnl_put(info->match_set.index);
--}
-+/* Revision 1 target */
- 
- static unsigned int
- set_target_v1(struct sk_buff *skb, const struct xt_action_param *par)
-@@ -320,52 +370,6 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
- #define set_target_v2_checkentry	set_target_v1_checkentry
- #define set_target_v2_destroy		set_target_v1_destroy
- 
--/* Revision 3 match */
--
--static bool
--match_counter(u64 counter, const struct ip_set_counter_match *info)
--{
--	switch (info->op) {
--	case IPSET_COUNTER_NONE:
--		return true;
--	case IPSET_COUNTER_EQ:
--		return counter == info->value;
--	case IPSET_COUNTER_NE:
--		return counter != info->value;
--	case IPSET_COUNTER_LT:
--		return counter < info->value;
--	case IPSET_COUNTER_GT:
--		return counter > info->value;
--	}
--	return false;
--}
--
--static bool
--set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct xt_set_info_match_v3 *info = par->matchinfo;
--	ADT_OPT(opt, par->family, info->match_set.dim,
--		info->match_set.flags, info->flags, UINT_MAX);
--	int ret;
--
--	if (info->packets.op != IPSET_COUNTER_NONE ||
--	    info->bytes.op != IPSET_COUNTER_NONE)
--		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
--
--	ret = match_set(info->match_set.index, skb, par, &opt,
--			info->match_set.flags & IPSET_INV_MATCH);
--
--	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
--		return ret;
--
--	if (!match_counter(opt.ext.packets, &info->packets))
--		return 0;
--	return match_counter(opt.ext.bytes, &info->bytes);
--}
--
--#define set_match_v3_checkentry	set_match_v1_checkentry
--#define set_match_v3_destroy	set_match_v1_destroy
--
- static struct xt_match set_matches[] __read_mostly = {
- 	{
- 		.name		= "set",
 -- 
 1.7.0.4
 
