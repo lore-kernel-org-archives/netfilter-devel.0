@@ -1,39 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
-Date: Mon, 30 Sep 2013 20:34:01 +0200
-Message-ID: <20130930183401.GA972@localhost>
-References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
- <20130930150557.32124.88117.stgit@nfdev.cica.es>
- <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3 - GIT PULL] include/linux: Remove externs from
+ networking function prototypes
+Date: Mon, 30 Sep 2013 15:37:32 -0400 (EDT)
+Message-ID: <20130930.153732.1943350951159238111.davem@davemloft.net>
+References: <cover.1380233637.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-hippi@sunsite.dk, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: joe@perches.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50982 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755300Ab3I3SeH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 14:34:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
+Received: from shards.monkeyblade.net ([149.20.54.216]:35886 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390Ab3I3Thf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 15:37:35 -0400
+In-Reply-To: <cover.1380233637.git.joe@perches.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 11:06:44AM -0700, Stephen Hemminger wrote:
-> On Mon, 30 Sep 2013 17:05:57 +0200
-> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-> 
-> > Be consistent in JSON style.
-> > 
-> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> 
-> All the effort to format and add whitespace in JSON is not that important
-> since it is intended to be parsed by something, and parsers ignore it.
-> Many applications just use as little whitespace as possible to reduce size
-> of output!
+From: Joe Perches <joe@perches.com>
+Date: Thu, 26 Sep 2013 15:18:30 -0700
 
-Thanks Stephen, we'll stick to using as little whitespace as possible.
+> 
+> The following changes since commit aae8c287e664d49df4aa315ad263c33b9a2af3e1:
+> 
+>   Merge branch 'bonding_neighbours' (2013-09-26 16:02:19 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://repo.or.cz/linux-2.6/trivial-mods.git 20130926_include_linux_networking_externs
+> 
+> for you to fetch changes up to f629d208d27a22f495b7734eede585b5d207e912:
+> 
+>   [networking]device.h: Remove extern from function prototypes (2013-09-26 15:06:58 -0700)
 
-Moreover, there are tools and functions (included in libjansson) to
-make this human friendly, in case anyone needs it.
+Pulled, thanks Joe.
