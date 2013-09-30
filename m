@@ -1,169 +1,121 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netfilter: synproxy: fix BUG_ON triggered by corrupt TCP packets
-Date: Mon, 30 Sep 2013 08:51:46 +0100
-Message-ID: <1380527506-27585-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, mph@one.com
-To: pablo@netfilter.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [nftables tool - PATCH] include: Add proper nfnetlink header to fix compilation error
+Date: Mon, 30 Sep 2013 12:22:42 +0300
+Message-ID: <1380532962-27411-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36393 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab3I3Hvv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 03:51:51 -0400
+Received: from mga09.intel.com ([134.134.136.24]:54563 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754072Ab3I3JWs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 05:22:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-TCP packets hitting the SYN proxy through the SYNPROXY target are not
-validated by TCP conntrack. When th->doff is below 5, an underflow happens
-when calculating the options length, causing skb_header_pointer() to
-return NULL and triggering the BUG_ON().
+=46ixes:
+src/mnl.c: In function =E2=80=98mnl_batch_put=E2=80=99:
+src/mnl.c:117:16: error: =E2=80=98NFNL_SUBSYS_NFTABLES=E2=80=99 undecla=
+red (first use in
+this function)
+src/mnl.c:117:16: note: each undeclared identifier is reported only onc=
+e
+for each function it appears in
+src/mnl.c: In function =E2=80=98mnl_batch_begin=E2=80=99:
+src/mnl.c:125:16: error: =E2=80=98NFNL_MSG_BATCH_BEGIN=E2=80=99 undecla=
+red (first use in
+this function)
+src/mnl.c: In function =E2=80=98mnl_batch_end=E2=80=99:
+src/mnl.c:130:16: error: =E2=80=98NFNL_MSG_BATCH_END=E2=80=99 undeclare=
+d (first use in
+this function)
 
-Handle this case gracefully by checking for NULL instead of using BUG_ON().
-
-Reported-by: Martin Topholm <mph@one.com>
-Tested-by: Martin Topholm <mph@one.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- include/net/netfilter/nf_conntrack_synproxy.h |  2 +-
- net/ipv4/netfilter/ipt_SYNPROXY.c             | 10 +++++++---
- net/ipv6/netfilter/ip6t_SYNPROXY.c            | 10 +++++++---
- net/netfilter/nf_synproxy_core.c              | 12 +++++++-----
- 4 files changed, 22 insertions(+), 12 deletions(-)
+ include/linux/netfilter/nfnetlink.h | 64 +++++++++++++++++++++++++++++=
+++++++++
+ 1 file changed, 64 insertions(+)
+ create mode 100644 include/linux/netfilter/nfnetlink.h
 
-diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
-index 806f54a..f572f31 100644
---- a/include/net/netfilter/nf_conntrack_synproxy.h
-+++ b/include/net/netfilter/nf_conntrack_synproxy.h
-@@ -56,7 +56,7 @@ struct synproxy_options {
- 
- struct tcphdr;
- struct xt_synproxy_info;
--extern void synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
-+extern bool synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
- 				   const struct tcphdr *th,
- 				   struct synproxy_options *opts);
- extern unsigned int synproxy_options_size(const struct synproxy_options *opts);
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 67e17dc..b6346bf 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -267,7 +267,8 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- 	if (th == NULL)
- 		return NF_DROP;
- 
--	synproxy_parse_options(skb, par->thoff, th, &opts);
-+	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
-+		return NF_DROP;
- 
- 	if (th->syn && !(th->ack || th->fin || th->rst)) {
- 		/* Initial SYN from client */
-@@ -350,7 +351,8 @@ static unsigned int ipv4_synproxy_hook(unsigned int hooknum,
- 
- 		/* fall through */
- 	case TCP_CONNTRACK_SYN_SENT:
--		synproxy_parse_options(skb, thoff, th, &opts);
-+		if (!synproxy_parse_options(skb, thoff, th, &opts))
-+			return NF_DROP;
- 
- 		if (!th->syn && th->ack &&
- 		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
-@@ -373,7 +375,9 @@ static unsigned int ipv4_synproxy_hook(unsigned int hooknum,
- 		if (!th->syn || !th->ack)
- 			break;
- 
--		synproxy_parse_options(skb, thoff, th, &opts);
-+		if (!synproxy_parse_options(skb, thoff, th, &opts))
-+			return NF_DROP;
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfil=
+ter/nfnetlink.h
+new file mode 100644
+index 0000000..06eea26
+--- /dev/null
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -0,0 +1,64 @@
++#ifndef _NFNETLINK_H
++#define _NFNETLINK_H
++#include <linux/types.h>
++#include <linux/netfilter/nfnetlink_compat.h>
 +
- 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
- 			synproxy->tsoff = opts.tsval - synproxy->its;
- 
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 19cfea8..2748b04 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -282,7 +282,8 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 	if (th == NULL)
- 		return NF_DROP;
- 
--	synproxy_parse_options(skb, par->thoff, th, &opts);
-+	if (!synproxy_parse_options(skb, par->thoff, th, &opts))
-+		return NF_DROP;
- 
- 	if (th->syn && !(th->ack || th->fin || th->rst)) {
- 		/* Initial SYN from client */
-@@ -372,7 +373,8 @@ static unsigned int ipv6_synproxy_hook(unsigned int hooknum,
- 
- 		/* fall through */
- 	case TCP_CONNTRACK_SYN_SENT:
--		synproxy_parse_options(skb, thoff, th, &opts);
-+		if (!synproxy_parse_options(skb, thoff, th, &opts))
-+			return NF_DROP;
- 
- 		if (!th->syn && th->ack &&
- 		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
-@@ -395,7 +397,9 @@ static unsigned int ipv6_synproxy_hook(unsigned int hooknum,
- 		if (!th->syn || !th->ack)
- 			break;
- 
--		synproxy_parse_options(skb, thoff, th, &opts);
-+		if (!synproxy_parse_options(skb, thoff, th, &opts))
-+			return NF_DROP;
++enum nfnetlink_groups {
++	NFNLGRP_NONE,
++#define NFNLGRP_NONE			NFNLGRP_NONE
++	NFNLGRP_CONNTRACK_NEW,
++#define NFNLGRP_CONNTRACK_NEW		NFNLGRP_CONNTRACK_NEW
++	NFNLGRP_CONNTRACK_UPDATE,
++#define NFNLGRP_CONNTRACK_UPDATE	NFNLGRP_CONNTRACK_UPDATE
++	NFNLGRP_CONNTRACK_DESTROY,
++#define NFNLGRP_CONNTRACK_DESTROY	NFNLGRP_CONNTRACK_DESTROY
++	NFNLGRP_CONNTRACK_EXP_NEW,
++#define	NFNLGRP_CONNTRACK_EXP_NEW	NFNLGRP_CONNTRACK_EXP_NEW
++	NFNLGRP_CONNTRACK_EXP_UPDATE,
++#define NFNLGRP_CONNTRACK_EXP_UPDATE	NFNLGRP_CONNTRACK_EXP_UPDATE
++	NFNLGRP_CONNTRACK_EXP_DESTROY,
++#define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
++	NFNLGRP_NFTABLES,
++#define NFNLGRP_NFTABLES		NFNLGRP_NFTABLES
++	__NFNLGRP_MAX,
++};
++#define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
 +
- 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
- 			synproxy->tsoff = opts.tsval - synproxy->its;
- 
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 6fd967c..cdf4567 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -24,7 +24,7 @@
- int synproxy_net_id;
- EXPORT_SYMBOL_GPL(synproxy_net_id);
- 
--void
-+bool
- synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
- 		       const struct tcphdr *th, struct synproxy_options *opts)
- {
-@@ -32,7 +32,8 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
- 	u8 buf[40], *ptr;
- 
- 	ptr = skb_header_pointer(skb, doff + sizeof(*th), length, buf);
--	BUG_ON(ptr == NULL);
-+	if (ptr == NULL)
-+		return false;
- 
- 	opts->options = 0;
- 	while (length > 0) {
-@@ -41,16 +42,16 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
- 
- 		switch (opcode) {
- 		case TCPOPT_EOL:
--			return;
-+			return true;
- 		case TCPOPT_NOP:
- 			length--;
- 			continue;
- 		default:
- 			opsize = *ptr++;
- 			if (opsize < 2)
--				return;
-+				return true;
- 			if (opsize > length)
--				return;
-+				return true;
- 
- 			switch (opcode) {
- 			case TCPOPT_MSS:
-@@ -84,6 +85,7 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
- 			length -= opsize;
- 		}
- 	}
-+	return true;
- }
- EXPORT_SYMBOL_GPL(synproxy_parse_options);
- 
--- 
-1.8.3.1
++/* General form of address family dependent message.
++ */
++struct nfgenmsg {
++	__u8  nfgen_family;		/* AF_xxx */
++	__u8  version;		/* nfnetlink version */
++	__be16    res_id;		/* resource id */
++};
++
++#define NFNETLINK_V0	0
++
++/* netfilter netlink message types are split in two pieces:
++ * 8 bit subsystem, 8bit operation.
++ */
++
++#define NFNL_SUBSYS_ID(x)	((x & 0xff00) >> 8)
++#define NFNL_MSG_TYPE(x)	(x & 0x00ff)
++
++/* No enum here, otherwise __stringify() trick of MODULE_ALIAS_NFNL_SU=
+BSYS()
++ * won't work anymore */
++#define NFNL_SUBSYS_NONE 		0
++#define NFNL_SUBSYS_CTNETLINK		1
++#define NFNL_SUBSYS_CTNETLINK_EXP	2
++#define NFNL_SUBSYS_QUEUE		3
++#define NFNL_SUBSYS_ULOG		4
++#define NFNL_SUBSYS_OSF			5
++#define NFNL_SUBSYS_IPSET		6
++#define NFNL_SUBSYS_ACCT		7
++#define NFNL_SUBSYS_CTNETLINK_TIMEOUT	8
++#define NFNL_SUBSYS_CTHELPER		9
++#define NFNL_SUBSYS_NFTABLES		10
++#define NFNL_SUBSYS_NFT_COMPAT		11
++#define NFNL_SUBSYS_COUNT		12
++
++/* Reserved control nfnetlink messages */
++#define NFNL_MSG_BATCH_BEGIN		NLMSG_MIN_TYPE
++#define NFNL_MSG_BATCH_END		NLMSG_MIN_TYPE+1
++
++#endif /* _NFNETLINK_H */
+--=20
+1.8.3.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
