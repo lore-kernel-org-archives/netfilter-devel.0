@@ -1,45 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables tool - PATCH] include: Add proper nfnetlink header to
- fix compilation error
-Date: Mon, 30 Sep 2013 12:48:38 +0200
-Message-ID: <20130930104838.GA6086@localhost>
-References: <1380532962-27411-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: Re: [nftables PATCH 1/2] fix IPv6 prefix computation.
+Date: Mon, 30 Sep 2013 12:57:15 +0200
+Message-ID: <20130930105715.GA6448@localhost>
+References: <1380448409-19583-1-git-send-email-eric@regit.org>
+ <1380448409-19583-2-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52811 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56368 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755409Ab3I3Kss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 06:48:48 -0400
+	id S1753854Ab3I3K52 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 06:57:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1380532962-27411-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+In-Reply-To: <1380448409-19583-2-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 12:22:42PM +0300, Tomasz Bursztyka wrote:
-> Fixes:
-> src/mnl.c: In function =E2=80=98mnl_batch_put=E2=80=99:
-> src/mnl.c:117:16: error: =E2=80=98NFNL_SUBSYS_NFTABLES=E2=80=99 undec=
-lared (first use in
-> this function)
-> src/mnl.c:117:16: note: each undeclared identifier is reported only o=
-nce
-> for each function it appears in
-> src/mnl.c: In function =E2=80=98mnl_batch_begin=E2=80=99:
-> src/mnl.c:125:16: error: =E2=80=98NFNL_MSG_BATCH_BEGIN=E2=80=99 undec=
-lared (first use in
-> this function)
-> src/mnl.c: In function =E2=80=98mnl_batch_end=E2=80=99:
-> src/mnl.c:130:16: error: =E2=80=98NFNL_MSG_BATCH_END=E2=80=99 undecla=
-red (first use in
-> this function)
+On Sun, Sep 29, 2013 at 11:53:28AM +0200, Eric Leblond wrote:
+> The prefix building algorithm in netlink phase was incorrect in
+> IPv6.
+> 
+> For example, when adding the following rule
+>  nft add rule ip6 nat postrouting ip6 saddr 2::/64 --debug=all
+> 
+> we had:
+> 
+>  ip6 nat postrouting 0 0
+>   [ payload load 16b @ network header + 8 => reg 1 ]
+>   [ bitwise reg 1 = (reg=1 & 0x00000000 0x99361540 0x00007f8d 0x2e33a1eb ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+>   [ cmp eq reg 1 0x00000200 0x00000000 0x00000000 0x00000000 ]
+> 
+> With the patch the result is as expected:
+> 
+>  ip6 nat postrouting 0 0
+>   [ payload load 16b @ network header + 8 => reg 1 ]
+>   [ bitwise reg 1 = (reg=1 & 0xffffffff 0xffffffff 0x00000000 0x00000000 ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+>   [ cmp eq reg 1 0x00000200 0x00000000 0x00000000 0x00000000 ]
 
-Applied, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Eric!
