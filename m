@@ -1,38 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: cttimeout: allow to set/get default protocol timeouts
-Date: Mon, 30 Sep 2013 19:24:27 +0200
-Message-ID: <1380561867-25041-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH conntrack-tools] nfct: timeout: add support for default protocol timeout tuning
+Date: Mon, 30 Sep 2013 19:25:33 +0200
+Message-ID: <1380561933-25102-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39953 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40154 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755340Ab3I3RYh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Sep 2013 13:24:37 -0400
+	id S1755835Ab3I3RZu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Sep 2013 13:25:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Default timeouts are currently set via proc/sysctl interface, the
-typical pattern is a file name like:
+This new interface supersedes the /proc interface:
 
-/proc/sys/net/netfilter/nf_conntrack_PROTOCOL_timeout_STATE
+/proc/sys/net/netfilter/nf_conntrack_PROTO_STATE_timeout
 
-This results in one entry per default protocol state timeout.
-This patch simplifies this by allowing to set default protocol
-timeouts via cttimeout netlink interface.
-
-This should allow us to get rid of the existing proc/sysctl code
-in the midterm.
+to tune default conntrack timeout helpers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nfnetlink_cttimeout.h |    2 +
- net/netfilter/nfnetlink_cttimeout.c                |  161 +++++++++++++++++++-
- 2 files changed, 155 insertions(+), 8 deletions(-)
+ include/linux/netfilter/nfnetlink_cttimeout.h |    2 +
+ include/nfct.h                                |    2 +
+ src/nfct-extensions/timeout.c                 |  155 ++++++++++++++++++++++++-
+ 3 files changed, 157 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_cttimeout.h b/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
+diff --git a/include/linux/netfilter/nfnetlink_cttimeout.h b/include/linux/netfilter/nfnetlink_cttimeout.h
 index a2810a7..1ab0b97 100644
---- a/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
+--- a/include/linux/netfilter/nfnetlink_cttimeout.h
++++ b/include/linux/netfilter/nfnetlink_cttimeout.h
 @@ -6,6 +6,8 @@ enum ctnl_timeout_msg_types {
  	IPCTNL_MSG_TIMEOUT_NEW,
  	IPCTNL_MSG_TIMEOUT_GET,
@@ -42,213 +37,213 @@ index a2810a7..1ab0b97 100644
  
  	IPCTNL_MSG_TIMEOUT_MAX
  };
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 5058049..476accd 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -49,10 +49,8 @@ static const struct nla_policy cttimeout_nla_policy[CTA_TIMEOUT_MAX+1] = {
+diff --git a/include/nfct.h b/include/nfct.h
+index ddf9038..f40985c 100644
+--- a/include/nfct.h
++++ b/include/nfct.h
+@@ -19,6 +19,8 @@ enum {
+ 	NFCT_CMD_GET,
+ 	NFCT_CMD_FLUSH,
+ 	NFCT_CMD_DISABLE,
++	NFCT_CMD_DEFAULT_SET,
++	NFCT_CMD_DEFAULT_GET,
  };
  
- static int
--ctnl_timeout_parse_policy(struct ctnl_timeout *timeout,
--			  struct nf_conntrack_l4proto *l4proto,
--			  struct net *net,
--			  const struct nlattr *attr)
-+ctnl_timeout_parse_policy(void *timeouts, struct nf_conntrack_l4proto *l4proto,
-+			  struct net *net, const struct nlattr *attr)
+ #define __init __attribute__((constructor))
+diff --git a/src/nfct-extensions/timeout.c b/src/nfct-extensions/timeout.c
+index 0cf92bb..7142bcd 100644
+--- a/src/nfct-extensions/timeout.c
++++ b/src/nfct-extensions/timeout.c
+@@ -32,8 +32,8 @@ static void
+ nfct_cmd_timeout_usage(char *argv[])
  {
- 	int ret = 0;
- 
-@@ -64,8 +62,7 @@ ctnl_timeout_parse_policy(struct ctnl_timeout *timeout,
- 		if (ret < 0)
- 			return ret;
- 
--		ret = l4proto->ctnl_timeout.nlattr_to_obj(tb, net,
--							  &timeout->data);
-+		ret = l4proto->ctnl_timeout.nlattr_to_obj(tb, net, timeouts);
- 	}
- 	return ret;
- }
-@@ -123,7 +120,8 @@ cttimeout_new_timeout(struct sock *ctnl, struct sk_buff *skb,
- 				goto err_proto_put;
- 			}
- 
--			ret = ctnl_timeout_parse_policy(matching, l4proto, net,
-+			ret = ctnl_timeout_parse_policy(&matching->data,
-+							l4proto, net,
- 							cda[CTA_TIMEOUT_DATA]);
- 			return ret;
- 		}
-@@ -138,7 +136,7 @@ cttimeout_new_timeout(struct sock *ctnl, struct sk_buff *skb,
- 		goto err_proto_put;
- 	}
- 
--	ret = ctnl_timeout_parse_policy(timeout, l4proto, net,
-+	ret = ctnl_timeout_parse_policy(&timeout->data, l4proto, net,
- 					cda[CTA_TIMEOUT_DATA]);
- 	if (ret < 0)
- 		goto err;
-@@ -342,6 +340,147 @@ cttimeout_del_timeout(struct sock *ctnl, struct sk_buff *skb,
- 	return ret;
+ 	fprintf(stderr, "nfct v%s: Missing command\n"
+-			"%s timeout list|add|delete|get|flush "
+-			"[parameters...]\n", VERSION, argv[0]);
++			"%s timeout <list|add|delete|get|flush|set> "
++			"[<parameters>, ...]\n", VERSION, argv[0]);
  }
  
-+static int
-+cttimeout_default_set(struct sock *ctnl, struct sk_buff *skb,
-+		      const struct nlmsghdr *nlh,
-+		      const struct nlattr * const cda[])
+ static int nfct_cmd_timeout_list(int argc, char *argv[]);
+@@ -41,6 +41,8 @@ static int nfct_cmd_timeout_add(int argc, char *argv[]);
+ static int nfct_cmd_timeout_delete(int argc, char *argv[]);
+ static int nfct_cmd_timeout_get(int argc, char *argv[]);
+ static int nfct_cmd_timeout_flush(int argc, char *argv[]);
++static int nfct_cmd_timeout_default_set(int argc, char *argv[]);
++static int nfct_cmd_timeout_default_get(int argc, char *argv[]);
+ 
+ static int nfct_cmd_timeout_parse_params(int argc, char *argv[])
+ {
+@@ -60,6 +62,10 @@ static int nfct_cmd_timeout_parse_params(int argc, char *argv[])
+ 		cmd = NFCT_CMD_GET;
+ 	else if (strncmp(argv[2], "flush", strlen(argv[2])) == 0)
+ 		cmd = NFCT_CMD_FLUSH;
++	else if (strncmp(argv[2], "default-set", strlen(argv[2])) == 0)
++		cmd = NFCT_CMD_DEFAULT_SET;
++	else if (strncmp(argv[2], "default-get", strlen(argv[2])) == 0)
++		cmd = NFCT_CMD_DEFAULT_GET;
+ 	else {
+ 		fprintf(stderr, "nfct v%s: Unknown command: %s\n",
+ 			VERSION, argv[2]);
+@@ -82,6 +88,12 @@ static int nfct_cmd_timeout_parse_params(int argc, char *argv[])
+ 	case NFCT_CMD_FLUSH:
+ 		ret = nfct_cmd_timeout_flush(argc, argv);
+ 		break;
++	case NFCT_CMD_DEFAULT_SET:
++		ret = nfct_cmd_timeout_default_set(argc, argv);
++		break;
++	case NFCT_CMD_DEFAULT_GET:
++		ret = nfct_cmd_timeout_default_get(argc, argv);
++		break;
+ 	}
+ 
+ 	return ret;
+@@ -524,6 +536,145 @@ int nfct_cmd_timeout_flush(int argc, char *argv[])
+ 	return 0;
+ }
+ 
++static int nfct_cmd_timeout_default_set(int argc, char *argv[])
 +{
-+	__u16 l3num;
-+	__u8 l4num;
-+	struct nf_conntrack_l4proto *l4proto;
-+	struct net *net = sock_net(skb->sk);
-+	unsigned int *timeouts;
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq;
++	struct nfct_timeout *t;
 +	int ret;
 +
-+	if (!cda[CTA_TIMEOUT_L3PROTO] ||
-+	    !cda[CTA_TIMEOUT_L4PROTO] ||
-+	    !cda[CTA_TIMEOUT_DATA])
-+		return -EINVAL;
-+
-+	l3num = ntohs(nla_get_be16(cda[CTA_TIMEOUT_L3PROTO]));
-+	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
-+	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
-+
-+	/* This protocol is not supported, skip. */
-+	if (l4proto->l4proto != l4num) {
-+		ret = -EOPNOTSUPP;
-+		goto err;
++	if (argc < 6) {
++		nfct_perror("missing parameters\n"
++			    "syntax: nfct timeout default-set "
++			    "family protocol state1 "
++			    "timeout1 state2 timeout2...");
++		return -1;
 +	}
 +
-+	timeouts = l4proto->get_timeouts(net);
++	t = nfct_timeout_alloc();
++	if (t == NULL)
++		return -1;
 +
-+	ret = ctnl_timeout_parse_policy(timeouts, l4proto, net,
-+					cda[CTA_TIMEOUT_DATA]);
-+	if (ret < 0)
-+		goto err;
++	if (nfct_cmd_timeout_parse(t, argc-3, &argv[3]) < 0)
++		return -1;
 +
-+	nf_ct_l4proto_put(l4proto);
++	seq = time(NULL);
++	nlh = nfct_timeout_nlmsg_build_hdr(buf, IPCTNL_MSG_TIMEOUT_DEFAULT_SET,
++					   NLM_F_ACK, seq);
++	nfct_timeout_nlmsg_build_payload(nlh, t);
++	nfct_timeout_free(t);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		nfct_perror("mnl_socket_open");
++		return -1;
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		nfct_perror("mnl_socket_bind");
++		return -1;
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		nfct_perror("mnl_socket_send");
++		return -1;
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		nfct_perror("error");
++		return -1;
++	}
++
++	mnl_socket_close(nl);
++
 +	return 0;
-+err:
-+	nf_ct_l4proto_put(l4proto);
-+	return ret;
 +}
 +
-+static int
-+cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
-+			    u32 seq, u32 type, int event,
-+			    struct nf_conntrack_l4proto *l4proto)
++static int nfct_cmd_timeout_default_get(int argc, char *argv[])
 +{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
 +	struct nlmsghdr *nlh;
-+	struct nfgenmsg *nfmsg;
-+	unsigned int flags = portid ? NLM_F_MULTI : 0;
++	uint32_t portid, seq;
++	struct nfct_timeout *t;
++	int ret, l3proto, l4proto;
 +
-+	event |= NFNL_SUBSYS_CTNETLINK_TIMEOUT << 8;
-+	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
-+	if (nlh == NULL)
-+		goto nlmsg_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family = AF_UNSPEC;
-+	nfmsg->version = NFNETLINK_V0;
-+	nfmsg->res_id = 0;
-+
-+	if (nla_put_be16(skb, CTA_TIMEOUT_L3PROTO, htons(l4proto->l3proto)) ||
-+	    nla_put_u8(skb, CTA_TIMEOUT_L4PROTO, l4proto->l4proto))
-+		goto nla_put_failure;
-+
-+	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
-+		struct nlattr *nest_parms;
-+		unsigned int *timeouts = l4proto->get_timeouts(net);
-+		int ret;
-+
-+		nest_parms = nla_nest_start(skb,
-+					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
-+		if (!nest_parms)
-+			goto nla_put_failure;
-+
-+		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, timeouts);
-+		if (ret < 0)
-+			goto nla_put_failure;
-+
-+		nla_nest_end(skb, nest_parms);
++	if (argc < 3) {
++		nfct_perror("missing parameters\n"
++			    "syntax: nfct timeout default-get "
++			    "family protocol");
++		return -1;
 +	}
 +
-+	nlmsg_end(skb, nlh);
-+	return skb->len;
++	t = nfct_timeout_alloc();
++	if (t == NULL)
++		return -1;
 +
-+nlmsg_failure:
-+nla_put_failure:
-+	nlmsg_cancel(skb, nlh);
-+	return -1;
++	argc-=3;
++	argv+=3;
++
++	l3proto = nfct_cmd_get_l3proto(argv);
++	if (l3proto < 0)
++		return -1;
++
++	nfct_timeout_attr_set_u16(t, NFCT_TIMEOUT_ATTR_L3PROTO, l3proto);
++	argc--;
++	argv++;
++
++	l4proto = nfct_cmd_get_l4proto(argv);
++	if (l4proto < 0)
++		return -1;
++
++	nfct_timeout_attr_set_u8(t, NFCT_TIMEOUT_ATTR_L4PROTO, l4proto);
++
++	seq = time(NULL);
++	nlh = nfct_timeout_nlmsg_build_hdr(buf, IPCTNL_MSG_TIMEOUT_DEFAULT_GET,
++					   NLM_F_ACK, seq);
++	nfct_timeout_nlmsg_build_payload(nlh, t);
++	nfct_timeout_free(t);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		nfct_perror("mnl_socket_open");
++		return -1;
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		nfct_perror("mnl_socket_bind");
++		return -1;
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		nfct_perror("mnl_socket_send");
++		return -1;
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, nfct_timeout_cb, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		nfct_perror("error");
++		return -1;
++	}
++	mnl_socket_close(nl);
++
++	return 0;
 +}
-+
-+static int cttimeout_default_get(struct sock *ctnl, struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
-+{
-+	__u16 l3num;
-+	__u8 l4num;
-+	struct nf_conntrack_l4proto *l4proto;
-+	struct net *net = sock_net(skb->sk);
-+	struct sk_buff *skb2;
-+	int ret, err;
-+
-+	if (!cda[CTA_TIMEOUT_L3PROTO] || !cda[CTA_TIMEOUT_L4PROTO])
-+		return -EINVAL;
-+
-+	l3num = ntohs(nla_get_be16(cda[CTA_TIMEOUT_L3PROTO]));
-+	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
-+	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
-+
-+	/* This protocol is not supported, skip. */
-+	if (l4proto->l4proto != l4num) {
-+		err = -EOPNOTSUPP;
-+		goto err;
-+	}
-+
-+	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (skb2 == NULL) {
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+
-+	ret = cttimeout_default_fill_info(net, skb2, NETLINK_CB(skb).portid,
-+					  nlh->nlmsg_seq,
-+					  NFNL_MSG_TYPE(nlh->nlmsg_type),
-+					  IPCTNL_MSG_TIMEOUT_DEFAULT_SET,
-+					  l4proto);
-+	if (ret <= 0) {
-+		kfree_skb(skb2);
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+	ret = netlink_unicast(ctnl, skb2, NETLINK_CB(skb).portid, MSG_DONTWAIT);
-+	if (ret > 0)
-+		ret = 0;
-+
-+	/* this avoids a loop in nfnetlink. */
-+	return ret == -EAGAIN ? -ENOBUFS : ret;
-+err:
-+	nf_ct_l4proto_put(l4proto);
-+	return err;
-+}
-+
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- static struct ctnl_timeout *ctnl_timeout_find_get(const char *name)
- {
-@@ -384,6 +523,12 @@ static const struct nfnl_callback cttimeout_cb[IPCTNL_MSG_TIMEOUT_MAX] = {
- 	[IPCTNL_MSG_TIMEOUT_DELETE]	= { .call = cttimeout_del_timeout,
- 					    .attr_count = CTA_TIMEOUT_MAX,
- 					    .policy = cttimeout_nla_policy },
-+	[IPCTNL_MSG_TIMEOUT_DEFAULT_SET]= { .call = cttimeout_default_set,
-+					    .attr_count = CTA_TIMEOUT_MAX,
-+					    .policy = cttimeout_nla_policy },
-+	[IPCTNL_MSG_TIMEOUT_DEFAULT_GET]= { .call = cttimeout_default_get,
-+					    .attr_count = CTA_TIMEOUT_MAX,
-+					    .policy = cttimeout_nla_policy },
- };
- 
- static const struct nfnetlink_subsystem cttimeout_subsys = {
+ static struct nfct_extension timeout = {
+ 	.type		= NFCT_SUBSYS_TIMEOUT,
+ 	.parse_params	= nfct_cmd_timeout_parse_params,
 -- 
 1.7.10.4
 
