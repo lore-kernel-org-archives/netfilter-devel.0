@@ -1,42 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 1/3] tests: fix error reporting
-Date: Tue, 1 Oct 2013 11:45:38 +0200
-Message-ID: <20131001094538.GB7573@localhost>
-References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
- <20130930174157.GA31379@localhost>
- <CAOkSjBjFsqZSSaNr6jUMN3aZR=fA+TR2dBSVNyOp_xLGt84DvQ@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH 2] src: add low-level ruleset API
+Date: Tue, 1 Oct 2013 11:46:38 +0200
+Message-ID: <CAOkSjBjZ7hKJxGfdhD_y9CUGJZzdKjAEnBVoqPAQUcTevhVahg@mail.gmail.com>
+References: <20130930223246.12985.64667.stgit@nfdev.cica.es> <20131001093813.GA7452@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:54284 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751477Ab3JAJpo (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:54783 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753131Ab3JAJq7 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 05:45:44 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjFsqZSSaNr6jUMN3aZR=fA+TR2dBSVNyOp_xLGt84DvQ@mail.gmail.com>
+	Tue, 1 Oct 2013 05:46:59 -0400
+Received: by mail-lb0-f177.google.com with SMTP id w7so5583440lbi.22
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Oct 2013 02:46:58 -0700 (PDT)
+In-Reply-To: <20131001093813.GA7452@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 01, 2013 at 12:02:15AM +0200, Arturo Borrero Gonzalez wrote:
-> On 30 September 2013 19:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Sep 30, 2013 at 05:05:52PM +0200, Arturo Borrero Gonzalez wrote:
-> >> The testbench was not reporting errors properly.
-> >>
-> >> With this patch, "1" is returned to the shell if the test failed (instead of
-> >> returning "0" unconditionally). Textual reporting is also fixed.
-> >
-> > How is it broken?
-> >
-> > IIRC the error reporting provides some rudimentary cursor to indicate
-> > where the problem happens. I think this patch breaks it.
-> 
-> I don't see where the break happens. Could you give me some hints?
-> 
-> For me, the cursor works as expected.
+On 1 October 2013 11:38, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Oct 01, 2013 at 12:33:18AM +0200, Arturo Borrero Gonzalez wro=
+te:
+>> This patch adds a low level ruleset API for libnftables.
+>
+> Applied, thanks Arturo.
+>
+> BTW, any plan to send me example files?
 
-This patch includes changes for different things, please split it in
-chunks including the corresponding description. Thanks.
+It seem I can't dump sets with af NFPROTO_UNSPEC.
+
+I'm looking nf_tables_api.c wondering how difficult is to implement it.
+
+In nf_tables_dump_sets_all(), I think we need to iterate afs  like in
+dump_tables(), ie:
+
+list_for_each_entry(afi, &net->nft.af_info, list) {
+  if (family !=3D NFPROTO_UNSPEC && family !=3D afi->family)
+    continue;
+[...]
+
+
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
