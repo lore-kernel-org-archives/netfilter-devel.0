@@ -1,52 +1,173 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH 2] src: add low-level ruleset API
-Date: Tue, 1 Oct 2013 11:46:38 +0200
-Message-ID: <CAOkSjBjZ7hKJxGfdhD_y9CUGJZzdKjAEnBVoqPAQUcTevhVahg@mail.gmail.com>
-References: <20130930223246.12985.64667.stgit@nfdev.cica.es> <20131001093813.GA7452@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/6] ipvs: do not use dest after ip_vs_dest_put in LBLC
+Date: Tue,  1 Oct 2013 11:35:29 +0200
+Message-ID: <1380620132-7388-3-git-send-email-pablo@netfilter.org>
+References: <1380620132-7388-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:54783 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753131Ab3JAJq7 convert rfc822-to-8bit (ORCPT
+Received: from slan-550-85.anhosting.com ([209.236.71.68]:55785 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752629Ab3JAKDt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 05:46:59 -0400
-Received: by mail-lb0-f177.google.com with SMTP id w7so5583440lbi.22
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Oct 2013 02:46:58 -0700 (PDT)
-In-Reply-To: <20131001093813.GA7452@localhost>
+	Tue, 1 Oct 2013 06:03:49 -0400
+In-Reply-To: <1380620132-7388-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 1 October 2013 11:38, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Oct 01, 2013 at 12:33:18AM +0200, Arturo Borrero Gonzalez wro=
-te:
->> This patch adds a low level ruleset API for libnftables.
->
-> Applied, thanks Arturo.
->
-> BTW, any plan to send me example files?
+From: Julian Anastasov <ja@ssi.bg>
 
-It seem I can't dump sets with af NFPROTO_UNSPEC.
+commit c2a4ffb70eef39 ("ipvs: convert lblc scheduler to rcu")
+allows RCU readers to use dest after calling ip_vs_dest_put().
+In the corner case it can race with ip_vs_dest_trash_expire()
+which can release the dest while it is being returned to the
+RCU readers as scheduling result.
 
-I'm looking nf_tables_api.c wondering how difficult is to implement it.
+To fix the problem do not allow en->dest to be replaced and
+defer the ip_vs_dest_put() call by using RCU callback. Now
+en->dest does not need to be RCU pointer.
 
-In nf_tables_dump_sets_all(), I think we need to iterate afs  like in
-dump_tables(), ie:
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_lblc.c |   68 ++++++++++++++++++---------------------
+ 1 file changed, 31 insertions(+), 37 deletions(-)
 
-list_for_each_entry(afi, &net->nft.af_info, list) {
-  if (family !=3D NFPROTO_UNSPEC && family !=3D afi->family)
-    continue;
-[...]
+diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
+index eb814bf..eff13c9 100644
+--- a/net/netfilter/ipvs/ip_vs_lblc.c
++++ b/net/netfilter/ipvs/ip_vs_lblc.c
+@@ -93,7 +93,7 @@ struct ip_vs_lblc_entry {
+ 	struct hlist_node	list;
+ 	int			af;		/* address family */
+ 	union nf_inet_addr      addr;           /* destination IP address */
+-	struct ip_vs_dest __rcu	*dest;          /* real server (cache) */
++	struct ip_vs_dest	*dest;          /* real server (cache) */
+ 	unsigned long           lastuse;        /* last used time */
+ 	struct rcu_head		rcu_head;
+ };
+@@ -130,20 +130,21 @@ static struct ctl_table vs_vars_table[] = {
+ };
+ #endif
+ 
+-static inline void ip_vs_lblc_free(struct ip_vs_lblc_entry *en)
++static void ip_vs_lblc_rcu_free(struct rcu_head *head)
+ {
+-	struct ip_vs_dest *dest;
++	struct ip_vs_lblc_entry *en = container_of(head,
++						   struct ip_vs_lblc_entry,
++						   rcu_head);
+ 
+-	hlist_del_rcu(&en->list);
+-	/*
+-	 * We don't kfree dest because it is referred either by its service
+-	 * or the trash dest list.
+-	 */
+-	dest = rcu_dereference_protected(en->dest, 1);
+-	ip_vs_dest_put(dest);
+-	kfree_rcu(en, rcu_head);
++	ip_vs_dest_put(en->dest);
++	kfree(en);
+ }
+ 
++static inline void ip_vs_lblc_del(struct ip_vs_lblc_entry *en)
++{
++	hlist_del_rcu(&en->list);
++	call_rcu(&en->rcu_head, ip_vs_lblc_rcu_free);
++}
+ 
+ /*
+  *	Returns hash value for IPVS LBLC entry
+@@ -203,30 +204,23 @@ ip_vs_lblc_new(struct ip_vs_lblc_table *tbl, const union nf_inet_addr *daddr,
+ 	struct ip_vs_lblc_entry *en;
+ 
+ 	en = ip_vs_lblc_get(dest->af, tbl, daddr);
+-	if (!en) {
+-		en = kmalloc(sizeof(*en), GFP_ATOMIC);
+-		if (!en)
+-			return NULL;
+-
+-		en->af = dest->af;
+-		ip_vs_addr_copy(dest->af, &en->addr, daddr);
+-		en->lastuse = jiffies;
++	if (en) {
++		if (en->dest == dest)
++			return en;
++		ip_vs_lblc_del(en);
++	}
++	en = kmalloc(sizeof(*en), GFP_ATOMIC);
++	if (!en)
++		return NULL;
+ 
+-		ip_vs_dest_hold(dest);
+-		RCU_INIT_POINTER(en->dest, dest);
++	en->af = dest->af;
++	ip_vs_addr_copy(dest->af, &en->addr, daddr);
++	en->lastuse = jiffies;
+ 
+-		ip_vs_lblc_hash(tbl, en);
+-	} else {
+-		struct ip_vs_dest *old_dest;
++	ip_vs_dest_hold(dest);
++	en->dest = dest;
+ 
+-		old_dest = rcu_dereference_protected(en->dest, 1);
+-		if (old_dest != dest) {
+-			ip_vs_dest_put(old_dest);
+-			ip_vs_dest_hold(dest);
+-			/* No ordering constraints for refcnt */
+-			RCU_INIT_POINTER(en->dest, dest);
+-		}
+-	}
++	ip_vs_lblc_hash(tbl, en);
+ 
+ 	return en;
+ }
+@@ -246,7 +240,7 @@ static void ip_vs_lblc_flush(struct ip_vs_service *svc)
+ 	tbl->dead = 1;
+ 	for (i=0; i<IP_VS_LBLC_TAB_SIZE; i++) {
+ 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+-			ip_vs_lblc_free(en);
++			ip_vs_lblc_del(en);
+ 			atomic_dec(&tbl->entries);
+ 		}
+ 	}
+@@ -281,7 +275,7 @@ static inline void ip_vs_lblc_full_check(struct ip_vs_service *svc)
+ 					sysctl_lblc_expiration(svc)))
+ 				continue;
+ 
+-			ip_vs_lblc_free(en);
++			ip_vs_lblc_del(en);
+ 			atomic_dec(&tbl->entries);
+ 		}
+ 		spin_unlock(&svc->sched_lock);
+@@ -335,7 +329,7 @@ static void ip_vs_lblc_check_expire(unsigned long data)
+ 			if (time_before(now, en->lastuse + ENTRY_TIMEOUT))
+ 				continue;
+ 
+-			ip_vs_lblc_free(en);
++			ip_vs_lblc_del(en);
+ 			atomic_dec(&tbl->entries);
+ 			goal--;
+ 		}
+@@ -511,7 +505,7 @@ ip_vs_lblc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
+ 		 * free up entries from the trash at any time.
+ 		 */
+ 
+-		dest = rcu_dereference(en->dest);
++		dest = en->dest;
+ 		if ((dest->flags & IP_VS_DEST_F_AVAILABLE) &&
+ 		    atomic_read(&dest->weight) > 0 && !is_overloaded(dest, svc))
+ 			goto out;
+@@ -631,7 +625,7 @@ static void __exit ip_vs_lblc_cleanup(void)
+ {
+ 	unregister_ip_vs_scheduler(&ip_vs_lblc_scheduler);
+ 	unregister_pernet_subsys(&ip_vs_lblc_ops);
+-	synchronize_rcu();
++	rcu_barrier();
+ }
+ 
+ 
+-- 
+1.7.10.4
 
-
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
