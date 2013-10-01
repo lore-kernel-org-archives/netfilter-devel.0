@@ -1,79 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/6] Netfilter/IPVS fixes for net
-Date: Tue,  1 Oct 2013 11:08:25 +0200
-Message-ID: <1380618511-6109-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
+Date: Tue, 1 Oct 2013 11:43:58 +0200
+Message-ID: <20131001094358.GA7573@localhost>
+References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
+ <20130930150557.32124.88117.stgit@nfdev.cica.es>
+ <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
+ <20130930183401.GA972@localhost>
+ <CAOkSjBgtDpNAJ0zHbpJ417+rdnse0gstAHqgEQqiNo9BSRv+Jw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:30557 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752482Ab3JAJoE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Oct 2013 05:44:04 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBgtDpNAJ0zHbpJ417+rdnse0gstAHqgEQqiNo9BSRv+Jw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+On Mon, Sep 30, 2013 at 11:55:25PM +0200, Arturo Borrero Gonzalez wrote:
+> On 30 September 2013 20:34, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Sep 30, 2013 at 11:06:44AM -0700, Stephen Hemminger wrote:
+> >> On Mon, 30 Sep 2013 17:05:57 +0200
+> >> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+> >>
+> >> > Be consistent in JSON style.
+> >> >
+> >> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> >>
+> >> All the effort to format and add whitespace in JSON is not that important
+> >> since it is intended to be parsed by something, and parsers ignore it.
+> >> Many applications just use as little whitespace as possible to reduce size
+> >> of output!
+> >
+> > Thanks Stephen, we'll stick to using as little whitespace as possible.
+> >
+> > Moreover, there are tools and functions (included in libjansson) to
+> > make this human friendly, in case anyone needs it.
+> 
+> I also don't care so much about the format, actually (white spaces or
+> not..). I just tried to give some consistency.
+> 
+> { \"rule\":
+> { \"chain\":
+> { \"set\":
+> {\"table\" :
 
-The following patchset contains Netfilter/IPVS fixes for your net
-tree, they are:
-
-* Fix BUG_ON splat due to malformed TCP packets seen by synproxy, from
-  Patrick McHardy.
-
-* Fix possible weight overflow in lblc and lblcr schedulers due to
-  32-bits arithmetics, from Simon Kirby.
-
-* Fix possible memory access race in the lblc and lblcr schedulers,
-  introduced when it was converted to use RCU, two patches from
-  Julian Anastasov.
-
-* Fix hard dependency on CPU 0 when reading per-cpu stats in the
-  rate estimator, from Julian Anastasov.
-
-* Fix race that may lead to object use after release, when invoking
-  ipvsadm -C && ipvsadm -R, introduced when adding RCU, from Julian
-  Anastasov.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 61c5923a2f2d8ab98a1e3c76f17e0f4a871ec75b:
-
-  Merge branch 'master' of git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf (2013-09-17 20:22:53 -0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-for you to fetch changes up to f4a87e7bd2eaef26a3ca25437ce8b807de2966ad:
-
-  netfilter: synproxy: fix BUG_ON triggered by corrupt TCP packets (2013-09-30 12:44:38 +0200)
-
-----------------------------------------------------------------
-Julian Anastasov (4):
-      ipvs: make the service replacement more robust
-      ipvs: do not use dest after ip_vs_dest_put in LBLC
-      ipvs: do not use dest after ip_vs_dest_put in LBLCR
-      ipvs: stats should not depend on CPU 0
-
-Patrick McHardy (1):
-      netfilter: synproxy: fix BUG_ON triggered by corrupt TCP packets
-
-Simon Kirby (1):
-      ipvs: fix overflow on dest weight multiply
-
- include/net/ip_vs.h                           |    9 +--
- include/net/netfilter/nf_conntrack_synproxy.h |    2 +-
- net/ipv4/netfilter/ipt_SYNPROXY.c             |   10 ++-
- net/ipv6/netfilter/ip6t_SYNPROXY.c            |   10 ++-
- net/netfilter/ipvs/ip_vs_core.c               |   12 +++-
- net/netfilter/ipvs/ip_vs_ctl.c                |   86 ++++++++++---------------
- net/netfilter/ipvs/ip_vs_est.c                |    4 +-
- net/netfilter/ipvs/ip_vs_lblc.c               |   72 ++++++++++-----------
- net/netfilter/ipvs/ip_vs_lblcr.c              |   62 ++++++++----------
- net/netfilter/ipvs/ip_vs_nq.c                 |    8 +--
- net/netfilter/ipvs/ip_vs_sed.c                |    8 +--
- net/netfilter/ipvs/ip_vs_wlc.c                |    6 +-
- net/netfilter/nf_synproxy_core.c              |   12 ++--
- 13 files changed, 143 insertions(+), 158 deletions(-)
+For consistency, please send me a patch to remove the spaces. Thanks!
