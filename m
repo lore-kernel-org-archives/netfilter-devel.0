@@ -1,74 +1,91 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 6/6] sched, wait: Make the __wait_event*() interface more
- friendly
-Date: Tue, 1 Oct 2013 22:58:13 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1310012245020.1782@ja.ssi.bg>
-References: <alpine.LFD.2.00.1310011054280.1710@ja.ssi.bg> <20131001171950.GA16145@redhat.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 00/26] ipset patches for nf-next
+Date: Tue, 1 Oct 2013 22:07:31 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1310012130320.1883@blackhole.kfki.hu>
+References: <1380570637-31235-1-git-send-email-kadlec@blackhole.kfki.hu> <20131001102421.GA5653@localhost>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Paul McKenney <paulmck@linux.vnet.ibm.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Oleg Nesterov <oleg@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:60645 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750881Ab3JATyO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 15:54:14 -0400
-In-Reply-To: <20131001171950.GA16145@redhat.com>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:56428 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab3JAUHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Oct 2013 16:07:33 -0400
+In-Reply-To: <20131001102421.GA5653@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, 1 Oct 2013, Pablo Neira Ayuso wrote:
 
-	Hello,
-
-On Tue, 1 Oct 2013, Oleg Nesterov wrote:
-
-> On 10/01, Julian Anastasov wrote:
-> >
-> > 	Hello,
-> >
-> > > On Fri, Sep 27, 2013 at 06:15:07PM +0200, Peter Zijlstra wrote:
-> > > > +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> > > > @@ -1637,12 +1637,9 @@ static int sync_thread_master(void *data
-> > > >                     continue;
-> > > >             }
-> > > >             while (ip_vs_send_sync_msg(tinfo->sock, sb->mesg) < 0) {
-> > > > -                   int ret = 0;
-> > > > -
-> > > > -                   __wait_event_interruptible(*sk_sleep(sk),
-> > > > +                   int ret =
-> > __wait_event_interruptible(*sk_sleep(sk),
-> > > >                                                sock_writeable(sk) ||
-> > > > -                                              kthread_should_stop(),
-> > > > -                                              ret);
-> > > > +                                              kthread_should_stop());
-> > > >                     if (unlikely(kthread_should_stop()))
-> > > >                             goto done;
-> > > >             }
-> > >
-> > > That site seems to be ignoring the interruptible state... seems wrong.
-> >
-> > 	This is a kthread which ignores signals by default.
-> > It terminates only with kthread_stop.
+> On Mon, Sep 30, 2013 at 09:50:11PM +0200, Jozsef Kadlecsik wrote:
+> > Hi Pablo,
+> > 
+> > Here follows a huge batch of ipset patches for nf-next. Besides a lot of small
+> > fixes and corrections, it contains two new set types, a reworked extensions
+> > support with a new extension (per element comments) and netns support.
+> > Please consider applying them.
 > 
-> This only means that (with or without this change)
-> __wait_event_interruptible() generates the dead code but this
-> thread doesn't contribute to load_avg.
+> Pulled, thanks Jozsef!
 > 
-> Anyway this patch should not makes any difference.
+> Please, could you send me a short summary of changes commenting the 
+> patchset? Something similar to what I usually send to David when I make 
+> a pull-request would be just fine. Thanks.
 
-	Yes, your patch looks ok to me. In the past
-we used ssleep() but IPVS users were confused why
-IPVS threads increase the load average. So, we
-switched to _interruptible calls and later the socket
-polling was added.
+Sure, here it comes:
 
-Regards
+The patchset contains the following fixes and new features for ipset:
 
---
-Julian Anastasov <ja@ssi.bg>
+* Don't call ip_nest_end needlessly in the error path from me, suggested 
+  by Pablo Neira Ayuso.
+* Fixed sparse warnings about shadowed variable and missing rcu annotation
+  and fix of "may be used uninitialized" warnings, from me.
+* Renamed simple macro names to avoid namespace issues, reported by David 
+  Laight.
+* Use fix sized type for timeout in the extension part, and cosmetic
+  ordering of matches and targets separatedly in xt_set.c, from me.
+* Support package fragments for IPv4 protos without ports from Anders K. 
+  Pedersen. For example this allows a hash:ip,port ipset containing the 
+  entry 192.168.0.1,gre:0 to match all package fragments for PPTP VPN 
+  tunnels to/from the host. Without this patch only the first package 
+  fragment (with fragment offset 0) was matched.
+* Introduced a new operation to get both setname and family, from me.
+  ip[6]tables set match and SET target need to know the family of the set
+  in order to reject adding rules which refer to a set with a non-mathcing
+  family. Currently such rules are silently accepted and then ignored
+  instead of generating an error message to the user.
+* Reworked extensions support in ipset types from me. The approach of
+  defining structures with all variations is not manageable as the
+  number of extensions grows. Therefore a blob for the extensions is
+  introduced, somewhat similar to conntrack. The support of extensions
+  which need a per data destroy function is added as well.
+* When an element timed out in a list:set type of set, the garbage
+  collector skipped the checking of the next element. So the purging
+  was delayed to the next run of the gc, fixed by me.
+* A small Kconfig fix: NETFILTER_NETLINK cannot be selected and
+  ipset requires it.
+* hash:net,net type from Oliver Smith. The type provides the ability to 
+  store pairs of subnets in a set.
+* Comment for ipset entries from Oliver Smith. This makes possible to
+  annotate entries in a set with comments, for example:
+
+  ipset n foo hash:net,net comment
+  ipset a foo 10.0.0.0/21,192.168.1.0/24 comment "office nets A and B"
+
+* Fix of hash types resizing with comment extension from me.
+* Fix of new extensions for list:set type when an element is added
+  into a slot from where another element was pushed away from me.
+* Introduction of a common function for the listing of the element 
+  extensions from me.
+* Net namespace support for ipset from Vitaly Lavrov.
+* hash:net,port,net type from Oliver Smith, which makes possible
+  to store the triples of two subnets and a protocol, port pair in
+  a set.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
