@@ -1,44 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/6] Add net namespace support for ipt_CLUSTERIP
-Date: Tue, 1 Oct 2013 13:05:05 +0200
-Message-ID: <20131001110505.GA7180@localhost>
-References: <1380094729-30674-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] Netfilter/IPVS fixes for net
+Date: Tue, 01 Oct 2013 12:39:58 -0400 (EDT)
+Message-ID: <20131001.123958.666337591702028107.davem@davemloft.net>
+References: <1380618511-6109-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:59289 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752743Ab3JALFL (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:54855 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751303Ab3JAQkA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 07:05:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1380094729-30674-1-git-send-email-gaofeng@cn.fujitsu.com>
+	Tue, 1 Oct 2013 12:40:00 -0400
+In-Reply-To: <1380618511-6109-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Gao,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue,  1 Oct 2013 11:08:25 +0200
 
-On Wed, Sep 25, 2013 at 03:38:43PM +0800, Gao feng wrote:
-> This patchset adds net namespace support for ipt_CLUSTERIP,
-> makes clusterip_configs,clusterip_lock and clusterip_procdir
-> per net namespace, and allow users in container to operate
-> the proper pernet resource of CLUSTERIP.
+> The following patchset contains Netfilter/IPVS fixes for your net
+> tree, they are:
 > 
-> Gao feng (6):
->   ipt_CLUSTERIP: make proc directory per net namespace
->   ipt_CLUSTERIP: make clusterip_list per net namespace
->   ipt_CLUSTERIP: make clusterip_lock per net namespace
->   ipt_CLUSTERIP: add parameter net in clusterip_config_find_get
->   ipt_CLUSTERIP: create proc entry under proper ipt_CLUSTERIP directory
->   ipt_CLUSTERIP: use proper net namespace to operate CLUSTERIP
+> * Fix BUG_ON splat due to malformed TCP packets seen by synproxy, from
+>   Patrick McHardy.
+> 
+> * Fix possible weight overflow in lblc and lblcr schedulers due to
+>   32-bits arithmetics, from Simon Kirby.
+> 
+> * Fix possible memory access race in the lblc and lblcr schedulers,
+>   introduced when it was converted to use RCU, two patches from
+>   Julian Anastasov.
+> 
+> * Fix hard dependency on CPU 0 when reading per-cpu stats in the
+>   rate estimator, from Julian Anastasov.
+> 
+> * Fix race that may lead to object use after release, when invoking
+>   ipvsadm -C && ipvsadm -R, introduced when adding RCU, from Julian
+>   Anastasov.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-CLUSTERIP is a subset of the cluster match. The cluster match allows
-gateway configurations, which are not possible with CLUSTERIP.
-
-If you really need these, I can take them. But I'd be happy if you can
-check the cluster match to make sure there are no issue regarding net
-namespaces.
-
-Let me know.
+Pulled, thanks Pablo.
