@@ -1,48 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] Netfilter/IPVS fixes for net
-Date: Tue, 01 Oct 2013 12:39:58 -0400 (EDT)
-Message-ID: <20131001.123958.666337591702028107.davem@davemloft.net>
-References: <1380618511-6109-1-git-send-email-pablo@netfilter.org>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [PATCH 6/6] sched, wait: Make the __wait_event*() interface
+	more friendly
+Date: Tue, 1 Oct 2013 19:19:50 +0200
+Message-ID: <20131001171950.GA16145@redhat.com>
+References: <alpine.LFD.2.00.1310011054280.1710@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Paul McKenney <paulmck@linux.vnet.ibm.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:54855 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303Ab3JAQkA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 12:40:00 -0400
-In-Reply-To: <1380618511-6109-1-git-send-email-pablo@netfilter.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50319 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750994Ab3JAR07 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Oct 2013 13:26:59 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1310011054280.1710@ja.ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  1 Oct 2013 11:08:25 +0200
+On 10/01, Julian Anastasov wrote:
+>
+> 	Hello,
+>
+> > On Fri, Sep 27, 2013 at 06:15:07PM +0200, Peter Zijlstra wrote:
+> > > +++ b/net/netfilter/ipvs/ip_vs_sync.c
+> > > @@ -1637,12 +1637,9 @@ static int sync_thread_master(void *data
+> > >                     continue;
+> > >             }
+> > >             while (ip_vs_send_sync_msg(tinfo->sock, sb->mesg) < 0) {
+> > > -                   int ret = 0;
+> > > -
+> > > -                   __wait_event_interruptible(*sk_sleep(sk),
+> > > +                   int ret =
+> __wait_event_interruptible(*sk_sleep(sk),
+> > >                                                sock_writeable(sk) ||
+> > > -                                              kthread_should_stop(),
+> > > -                                              ret);
+> > > +                                              kthread_should_stop());
+> > >                     if (unlikely(kthread_should_stop()))
+> > >                             goto done;
+> > >             }
+> >
+> > That site seems to be ignoring the interruptible state... seems wrong.
+>
+> 	This is a kthread which ignores signals by default.
+> It terminates only with kthread_stop.
 
-> The following patchset contains Netfilter/IPVS fixes for your net
-> tree, they are:
-> 
-> * Fix BUG_ON splat due to malformed TCP packets seen by synproxy, from
->   Patrick McHardy.
-> 
-> * Fix possible weight overflow in lblc and lblcr schedulers due to
->   32-bits arithmetics, from Simon Kirby.
-> 
-> * Fix possible memory access race in the lblc and lblcr schedulers,
->   introduced when it was converted to use RCU, two patches from
->   Julian Anastasov.
-> 
-> * Fix hard dependency on CPU 0 when reading per-cpu stats in the
->   rate estimator, from Julian Anastasov.
-> 
-> * Fix race that may lead to object use after release, when invoking
->   ipvsadm -C && ipvsadm -R, introduced when adding RCU, from Julian
->   Anastasov.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+This only means that (with or without this change)
+__wait_event_interruptible() generates the dead code but this
+thread doesn't contribute to load_avg.
 
-Pulled, thanks Pablo.
+Anyway this patch should not makes any difference.
+
+Oleg.
+
