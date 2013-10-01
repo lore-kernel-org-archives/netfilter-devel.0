@@ -1,56 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 2/3] table: json: fix json style
-Date: Tue, 1 Oct 2013 11:43:58 +0200
-Message-ID: <20131001094358.GA7573@localhost>
+Subject: Re: [libnftables PATCH 1/3] tests: fix error reporting
+Date: Tue, 1 Oct 2013 11:45:38 +0200
+Message-ID: <20131001094538.GB7573@localhost>
 References: <20130930150551.32124.23680.stgit@nfdev.cica.es>
- <20130930150557.32124.88117.stgit@nfdev.cica.es>
- <20130930110644.07aa64c1@nehalam.linuxnetplumber.net>
- <20130930183401.GA972@localhost>
- <CAOkSjBgtDpNAJ0zHbpJ417+rdnse0gstAHqgEQqiNo9BSRv+Jw@mail.gmail.com>
+ <20130930174157.GA31379@localhost>
+ <CAOkSjBjFsqZSSaNr6jUMN3aZR=fA+TR2dBSVNyOp_xLGt84DvQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:30557 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:54284 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752482Ab3JAJoE (ORCPT
+	by vger.kernel.org with ESMTP id S1751477Ab3JAJpo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Oct 2013 05:44:04 -0400
+	Tue, 1 Oct 2013 05:45:44 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgtDpNAJ0zHbpJ417+rdnse0gstAHqgEQqiNo9BSRv+Jw@mail.gmail.com>
+In-Reply-To: <CAOkSjBjFsqZSSaNr6jUMN3aZR=fA+TR2dBSVNyOp_xLGt84DvQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 11:55:25PM +0200, Arturo Borrero Gonzalez wrote:
-> On 30 September 2013 20:34, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Sep 30, 2013 at 11:06:44AM -0700, Stephen Hemminger wrote:
-> >> On Mon, 30 Sep 2013 17:05:57 +0200
-> >> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+On Tue, Oct 01, 2013 at 12:02:15AM +0200, Arturo Borrero Gonzalez wrote:
+> On 30 September 2013 19:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Sep 30, 2013 at 05:05:52PM +0200, Arturo Borrero Gonzalez wrote:
+> >> The testbench was not reporting errors properly.
 > >>
-> >> > Be consistent in JSON style.
-> >> >
-> >> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> >>
-> >> All the effort to format and add whitespace in JSON is not that important
-> >> since it is intended to be parsed by something, and parsers ignore it.
-> >> Many applications just use as little whitespace as possible to reduce size
-> >> of output!
+> >> With this patch, "1" is returned to the shell if the test failed (instead of
+> >> returning "0" unconditionally). Textual reporting is also fixed.
 > >
-> > Thanks Stephen, we'll stick to using as little whitespace as possible.
+> > How is it broken?
 > >
-> > Moreover, there are tools and functions (included in libjansson) to
-> > make this human friendly, in case anyone needs it.
+> > IIRC the error reporting provides some rudimentary cursor to indicate
+> > where the problem happens. I think this patch breaks it.
 > 
-> I also don't care so much about the format, actually (white spaces or
-> not..). I just tried to give some consistency.
+> I don't see where the break happens. Could you give me some hints?
 > 
-> { \"rule\":
-> { \"chain\":
-> { \"set\":
-> {\"table\" :
+> For me, the cursor works as expected.
 
-For consistency, please send me a patch to remove the spaces. Thanks!
+This patch includes changes for different things, please split it in
+chunks including the corresponding description. Thanks.
