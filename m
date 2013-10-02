@@ -1,61 +1,36 @@
-From: Jiri Popelka <jpopelka@redhat.com>
-Subject: [PATCH 1/2] Error: STRING_NULL
-Date: Wed,  2 Oct 2013 10:43:37 +0200
-Message-ID: <1380703418-3067-2-git-send-email-jpopelka@redhat.com>
-References: <1380703418-3067-1-git-send-email-jpopelka@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libmnl PATCH] debug: don't colorize output on non tty
+Date: Wed, 2 Oct 2013 17:25:12 +0200
+Message-ID: <20131002152512.GA22293@localhost>
+References: <1380577106-13006-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?q?Jarom=C3=ADr=20Kon=C4=8Dick=C3=BD?= <jkoncick@redhat.com>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48910 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:41895 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753360Ab3JBIns (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Oct 2013 04:43:48 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r928hm1t009585
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Wed, 2 Oct 2013 04:43:48 -0400
-In-Reply-To: <1380703418-3067-1-git-send-email-jpopelka@redhat.com>
+	id S1752926Ab3JBPZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Oct 2013 11:25:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1380577106-13006-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Jarom=C3=ADr Kon=C4=8Dick=C3=BD <jkoncick@redhat.com>
+Hi Eric,
 
-arptables-v0.0.4/arptables.c:1671: string_null_argument: Function "read=
-(int, void *, size_t)" does not terminate string "*ret".
-arptables-v0.0.4/arptables.c:1675: string_null: Passing unterminated st=
-ring "ret" to "strlen(char const *)", which expects a null-terminated s=
-tring.
----
- userspace/arptables/arptables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On Mon, Sep 30, 2013 at 11:38:26PM +0200, Eric Leblond wrote:
+> When output is not a tty (pipe or redirect to a file), the color
+> display is causing the output to be unreadable:
+>   02 00 00 00  |        |  extra header  |
+>  |ESC[1;31m00008ESC[0m|ESC[1;32m--ESC[0m|ESC[1;34m00001ESC[0m|   |len |flags| type|
+> This patch tests if the output is a terminal and only add color in
+> this case. It also displays space instead of char 0 if a letter is
+> not existing.
 
-diff --git a/userspace/arptables/arptables.c b/userspace/arptables/arpt=
-ables.c
-index 5535ab2..8ef445a 100644
---- a/userspace/arptables/arptables.c
-+++ b/userspace/arptables/arptables.c
-@@ -1668,10 +1668,12 @@ static char *get_modprobe(void)
-=20
- 	ret =3D malloc(1024);
- 	if (ret) {
--		switch (read(procfile, ret, 1024)) {
-+		int read_bytes =3D read(procfile, ret, 1024);
-+		switch (read_bytes) {
- 		case -1: goto fail;
- 		case 1024: goto fail; /* Partial read.  Wierd */
- 		}
-+		ret[read_bytes] =3D '\0';
- 		if (ret[strlen(ret)-1]=3D=3D'\n')
- 			ret[strlen(ret)-1]=3D0;
- 		close(procfile);
---=20
-1.8.3.1
+In both cases, you can use less -r to interpret the colors, is that
+enough to address what you're noticing?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The chunk to replace char 0 by 32 looks fine to me.
+
+Let me know.
