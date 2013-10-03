@@ -1,42 +1,52 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCH] netlink: use build_id to lower message size
-Date: Thu,  3 Oct 2013 01:16:33 +0200
-Message-ID: <1380755793-18011-1-git-send-email-eric@regit.org>
-References: <1380755553.6862.32.camel@tiger2>
-Cc: eric@regit.org, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [iptables-nftables PATCH 0/3] NFPROTO_ARP and arp mangle target
+ support (+ one minor fix)
+Date: Thu, 03 Oct 2013 11:26:19 +0300
+Message-ID: <524D2A2B.1010507@linux.intel.com>
+References: <1378453910-17954-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:50428 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928Ab3JBXQt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Oct 2013 19:16:49 -0400
-In-Reply-To: <1380755553.6862.32.camel@tiger2>
+Received: from mga14.intel.com ([143.182.124.37]:65004 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753895Ab3JCI1D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 04:27:03 -0400
+In-Reply-To: <1378453910-17954-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-THis patch makes use of the new nft_rule_nlmsg_build_id function
-from libnftables for the delete operation. This lower the size
-of the netlink message sent to kernel when flushing the rules.
+Hi,
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/mnl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+@Pablo: I understand that patch 2 is not necessary, but what about patch 
+3? This one is relevant to get xtables-arp being able to handle mangle 
+target.
+Or is there any issue with it?
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 27b181a..3c07156 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -292,7 +292,7 @@ int mnl_nft_rule_batch_del(struct nft_rule *nlr, unsigned int flags,
- 			nft_rule_attr_get_u32(nlr, NFT_RULE_ATTR_FAMILY),
- 			NLM_F_ACK, seqnum);
- 
--	nft_rule_nlmsg_build_payload(nlh, nlr);
-+	nft_rule_nlmsg_build_id(nlh, nlr);
- 
- 	if (!mnl_nlmsg_batch_next(batch))
- 		mnl_batch_page_add();
--- 
-1.8.4.rc3
+Tomasz
+
+> This patchset prepares for arptables-nftables to be included so it will use libxtables for its target.
+>
+> Tomasz Bursztyka (3):
+>    nft: Fix a minor compilation warning
+>    libxtables: Add NFPROTO_ARP support for libarpt_* prefixed extensions
+>    libxtables: Port libarptc mangle target into libxtables
+>
+>   configure.ac                              |   5 +
+>   extensions/GNUmakefile.in                 |  52 +++-
+>   extensions/libarpt_mangle.c               | 388 ++++++++++++++++++++++++++++++
+>   include/linux/netfilter_arp.h             |  19 ++
+>   include/linux/netfilter_arp/arp_tables.h  | 204 ++++++++++++++++
+>   include/linux/netfilter_arp/arpt_mangle.h |  26 ++
+>   iptables/nft-shared.c                     |   2 +-
+>   libxtables/xtables.c                      |  14 ++
+>   8 files changed, 701 insertions(+), 9 deletions(-)
+>   create mode 100644 extensions/libarpt_mangle.c
+>   create mode 100644 include/linux/netfilter_arp.h
+>   create mode 100644 include/linux/netfilter_arp/arp_tables.h
+>   create mode 100644 include/linux/netfilter_arp/arpt_mangle.h
+>
 
