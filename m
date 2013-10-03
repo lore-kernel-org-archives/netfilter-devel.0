@@ -1,53 +1,41 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables PATCH] nft: Calculate properly the target size when parsing it back
-Date: Thu,  3 Oct 2013 16:00:59 +0300
-Message-ID: <1380805259-12404-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables-nftables PATCH] nft: initialize flags in nft_arp_parse_meta
+Date: Thu,  3 Oct 2013 16:31:39 +0200
+Message-ID: <1380810699-2872-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5195 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab3JCNBH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 09:01:07 -0400
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:48888 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab3JCObd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 10:31:33 -0400
+Received: by mail-ea0-f177.google.com with SMTP id f15so1137793eak.22
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Oct 2013 07:31:32 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Without this, we might allocate less space for the xt_entry_target as we
-should, thus leading to a possible bug.
+This small patch initialize the flags in nft_arp_parse_meta,
+now the nft_arp_rule_find is working properly.
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- iptables/nft-shared.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ iptables/nft-arp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index c9bde90..25cb177 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -292,18 +292,21 @@ void nft_parse_target(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
- 	struct xtables_target *target;
- 	struct xt_entry_target *t;
- 	struct nft_family_ops *ops;
-+	size_t size;
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index cf8fe28..3d753c2 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -267,7 +267,7 @@ static void nft_arp_parse_meta(struct nft_rule_expr *e, uint8_t key,
+ 			       void *data)
+ {
+ 	struct arpt_entry *fw = data;
+-	uint8_t flags;
++	uint8_t flags = 0;
  
- 	target = xtables_find_target(targname, XTF_TRY_LOAD);
- 	if (target == NULL)
- 		return;
- 
--	t = calloc(1, sizeof(struct xt_entry_target) + tg_len);
-+	size = XT_ALIGN(sizeof(struct xt_entry_target)) + tg_len;
-+
-+	t = calloc(1, size);
- 	if (t == NULL) {
- 		fprintf(stderr, "OOM");
- 		exit(EXIT_FAILURE);
- 	}
- 	memcpy(&t->data, targinfo, tg_len);
--	t->u.target_size = tg_len + XT_ALIGN(sizeof(struct xt_entry_target));
-+	t->u.target_size = size;
- 	t->u.user.revision = nft_rule_expr_get_u32(e, NFT_EXPR_TG_REV);
- 	strcpy(t->u.user.name, target->name);
- 
+ 	parse_meta(e, key, fw->arp.iniface, fw->arp.iniface_mask,
+ 		   fw->arp.outiface, fw->arp.outiface_mask,
 -- 
-1.8.3.2
+1.7.8.6
 
