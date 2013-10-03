@@ -1,66 +1,51 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables PATCH] lixtables: Fixes option issues in libxt_mangle.c
-Date: Thu,  3 Oct 2013 14:28:05 +0300
-Message-ID: <1380799685-11091-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables PATCH] nft: Header inclusion missing
+Date: Thu,  3 Oct 2013 14:39:22 +0300
+Message-ID: <1380800362-11290-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:25708 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:2603 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751871Ab3JCL2M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 07:28:12 -0400
+	id S1752016Ab3JCLj0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 07:39:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-- use proper option IDs
-- remove irrelevant flags on setting options mandatory
+=46ixes:
+nft-shared.c: In function =E2=80=98nft_ipv46_rule_find=E2=80=99:
+nft-shared.c:725:2: warning: implicit declaration of function =E2=80=98=
+nft_rule_print_save=E2=80=99 [-Wimplicit-function-declaration]
+nft-shared.c:725:32: error: =E2=80=98NFT_RULE_APPEND=E2=80=99 undeclare=
+d (first use in this function)
+nft-shared.c:725:32: note: each undeclared identifier is reported only =
+once for each function it appears in
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- extensions/libxt_mangle.c | 29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ iptables/nft-shared.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/extensions/libxt_mangle.c b/extensions/libxt_mangle.c
-index 822033c..4b20feb 100644
---- a/extensions/libxt_mangle.c
-+++ b/extensions/libxt_mangle.c
-@@ -33,22 +33,21 @@ static void mangle_help(void)
- 	);
- }
- 
--#define MANGLE_IPS    '1'
--#define MANGLE_IPT    '2'
--#define MANGLE_DEVS   '3'
--#define MANGLE_DEVT   '4'
--#define MANGLE_TARGET '5'
-+enum {
-+	MANGLE_IPS    = 0,
-+	MANGLE_IPT    = 1,
-+	MANGLE_DEVS   = 2,
-+	MANGLE_DEVT   = 3,
-+	MANGLE_TARGET = 4,
-+};
-+
- static const struct xt_option_entry mangle_opts[] = {
--	{ .name = "mangle-ip-s", .id = MANGLE_IPS, .type = XTTYPE_STRING,
--	  .flags = XTOPT_MAND },
--	{ .name = "mangle-ip-d", .id = MANGLE_IPT, .type = XTTYPE_STRING,
--	  .flags = XTOPT_MAND },
--	{ .name = "mangle-mac-s", .id = MANGLE_DEVS, .type = XTTYPE_STRING,
--	  .flags = XTOPT_MAND },
--	{ .name = "mangle-mac-d", .id = MANGLE_DEVT, .type = XTTYPE_STRING,
--	  .flags = XTOPT_MAND },
--	{ .name = "mangle-target", .id = MANGLE_TARGET, .type = XTTYPE_STRING,
--	  .flags = XTOPT_MAND },
-+	{ .name = "mangle-ip-s", .id = MANGLE_IPS, .type = XTTYPE_STRING },
-+	{ .name = "mangle-ip-d", .id = MANGLE_IPT, .type = XTTYPE_STRING },
-+	{ .name = "mangle-mac-s", .id = MANGLE_DEVS, .type = XTTYPE_STRING },
-+	{ .name = "mangle-mac-d", .id = MANGLE_DEVT, .type = XTTYPE_STRING },
-+	{ .name = "mangle-target", .id = MANGLE_TARGET,
-+	  .type = XTTYPE_STRING },
- 	XTOPT_TABLEEND,
- };
- 
--- 
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 5c09fe1..c9bde90 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -27,6 +27,7 @@
+=20
+ #include "nft-shared.h"
+ #include "xshared.h"
++#include "nft.h"
+=20
+ extern struct nft_family_ops nft_family_ops_ipv4;
+ extern struct nft_family_ops nft_family_ops_ipv6;
+--=20
 1.8.3.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
