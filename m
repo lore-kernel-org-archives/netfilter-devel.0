@@ -1,34 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH] netlink: use build_id to lower message size
-Date: Thu, 3 Oct 2013 18:25:48 +0200
-Message-ID: <20131003162548.GA6896@localhost>
-References: <1380755553.6862.32.camel@tiger2>
- <1380755793-18011-1-git-send-email-eric@regit.org>
+From: Aijaz Lending <yin01@aijaz527.onmicrosoft.com>
+Subject: looking for loan
+Date: Fri, 4 Oct 2013 01:33:28 +0530
+Message-ID: <95865890-306b-4709-ab4b-97d510756ef4@HKXPR02MB213.apcprd02.prod.outlook.com>
+Reply-To: <sg.loan.sg@outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <yin01@aijaz527.onmicrosoft.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49190 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753775Ab3JCQZ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 12:25:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1380755793-18011-1-git-send-email-eric@regit.org>
+Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.104]:41751
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755215Ab3JCUEI convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 16:04:08 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 03, 2013 at 01:16:33AM +0200, Eric Leblond wrote:
-> THis patch makes use of the new nft_rule_nlmsg_build_id function
-> from libnftables for the delete operation. This lower the size
-> of the netlink message sent to kernel when flushing the rules.
+Do you have a firm or company that need loan to start up a business or need,personal loan, Debt consolidation? For more information,Contact us now for a guarantee loan with low interest rate. We will provide you with loan to meet your needs. For more information contact us with the following information's.
+Full name:
+country:
+Address:
+Phone Number:
+Amount needed:
+Duration of loan:
 
-I think we can simplify the flush operation with a small change in
-nf_tables_delrule. The idea is to delete all rule if no chain is
-specified.
-
-The current approach is pretty time consuming, as we have to fetch the
-ruleset from the kernel, iterate over it and build the message to
-delete them.
-
-Would you send me patches to follow this approach?
+sg.loan.sg@outlook.com
+Kind regards
