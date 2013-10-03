@@ -1,30 +1,30 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [iptables-nftables PATCH 2/3] libxtables: Port libarptc mangle
- target into libxtables
-Date: Thu, 03 Oct 2013 13:43:52 +0300
-Message-ID: <524D4A68.4020505@linux.intel.com>
-References: <1380793977-9730-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1380793977-9730-3-git-send-email-tomasz.bursztyka@linux.intel.com> <20131003103229.GB15413@localhost> <20131003103606.GA15817@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nftables PATCH 0/4] fix rule flush operation
+Date: Thu, 3 Oct 2013 13:22:49 +0200
+Message-ID: <20131003112249.GA16200@localhost>
+References: <1380755288-17587-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:32497 "EHLO mga14.intel.com"
+Received: from mail.us.es ([193.147.175.20]:60785 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374Ab3JCKnz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 06:43:55 -0400
-In-Reply-To: <20131003103606.GA15817@localhost>
+	id S1752629Ab3JCLW5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 07:22:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1380755288-17587-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Thu, Oct 03, 2013 at 01:08:04AM +0200, Eric Leblond wrote:
+> 
+> Hello,
+> 
+> Here's a small patchset which fixes rule flushing. A command
+> like:
+>  nft flush table ip6 nat 
+> was not flushing the rules at all. Patch 4 fixes the problem
+> and patch 3 limit the scope of the flush which was not limited.
 
-> We need a follow up fix for this:
->
-> xtables-arp  -A  OUTPUT  -o  eth1  --h-length  6  -j mangle --mangle-mac-s 01:00:5e:00:01:01
-> xtables-arp v1.4.19.1: Extension mangle uses invalid ID 49
-
-Will take a look at this.
-
-Tomasz
+All applied, thanks Eric.
