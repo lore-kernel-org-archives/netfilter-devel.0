@@ -1,34 +1,35 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [iptables-nftables PATCH 0/3] NFPROTO_ARP and arp mangle target
- support (+ one minor fix)
-Date: Thu, 03 Oct 2013 12:31:00 +0300
-Message-ID: <524D3954.8030104@linux.intel.com>
-References: <1378453910-17954-1-git-send-email-tomasz.bursztyka@linux.intel.com> <524D2A2B.1010507@linux.intel.com> <20131003092359.GA14246@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [iptables-nftables PATCH 0/3] xtables-arp fixes + libxt_mangle addition
+Date: Thu,  3 Oct 2013 12:52:54 +0300
+Message-ID: <1380793977-9730-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:2328 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:10353 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751710Ab3JCJbD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 05:31:03 -0400
-In-Reply-To: <20131003092359.GA14246@localhost>
+	id S1752789Ab3JCJxE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Oct 2013 05:53:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-> Please, rename it to libxt_mangle.c and restrict its usage to the
-> NFPROTO_ARP family. With this change, I think we can skip patch 2, I'm
-> reticent to bloat our build system to support libarp_ prefix, it's
-> just one single extension after all.
->
-> Let me know if you have any issue, thanks.
+Patch 1 and 2 fixes 2 issuse (patch 2 is a very minor one).
+Patch 3 adds the support of 'mangle' target for xtables-arp through libxtables.
 
-Ok, should work.
-Then I have to fix xtables-arp-standalone.c so it does not try to look 
-for any libarp_ prefix right?
+Note: Giuseppe has a patch for nft_arp_parse_meta() also, for a bug in -D as well.
 
-Tomasz
+Tomasz Bursztyka (3):
+  xtables: arp: Store target entry properly and compare them relevantly
+  libxtables: Port libarptc mangle target into libxtables
+  xtables: arp: Do not add a useless prefix for afinfo_arp
+
+ extensions/libxt_mangle.c         | 389 ++++++++++++++++++++++++++++++++++++++
+ iptables/nft-arp.c                |  44 ++---
+ iptables/nft-shared.h             |   4 +-
+ iptables/xtables-arp-standalone.c |   2 +-
+ iptables/xtables-arp.c            |   8 +-
+ 5 files changed, 417 insertions(+), 30 deletions(-)
+ create mode 100644 extensions/libxt_mangle.c
+
+-- 
+1.8.3.2
+
