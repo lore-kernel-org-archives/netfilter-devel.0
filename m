@@ -1,30 +1,69 @@
-From: Aijaz Lending <yin01@aijaz527.onmicrosoft.com>
-Subject: looking for loan
-Date: Fri, 4 Oct 2013 01:33:28 +0530
-Message-ID: <95865890-306b-4709-ab4b-97d510756ef4@HKXPR02MB213.apcprd02.prod.outlook.com>
-Reply-To: <sg.loan.sg@outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <yin01@aijaz527.onmicrosoft.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 01/33] netfilter: nf_ct_sip: extend RCU read lock in set_expected_rtp_rtcp()
+Date: Fri,  4 Oct 2013 10:32:46 +0200
+Message-ID: <1380875598-5250-2-git-send-email-pablo@netfilter.org>
+References: <1380875598-5250-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.104]:41751
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755215Ab3JCUEI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Oct 2013 16:04:08 -0400
-Content-Description: Mail message body
+Received: from mail.us.es ([193.147.175.20]:55400 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751325Ab3JDIde (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Oct 2013 04:33:34 -0400
+In-Reply-To: <1380875598-5250-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Do you have a firm or company that need loan to start up a business or need,personal loan, Debt consolidation? For more information,Contact us now for a guarantee loan with low interest rate. We will provide you with loan to meet your needs. For more information contact us with the following information's.
-Full name:
-country:
-Address:
-Phone Number:
-Amount needed:
-Duration of loan:
+From: "holger@eitzenberger.org" <holger@eitzenberger.org>
 
-sg.loan.sg@outlook.com
-Kind regards
+Currently set_expected_rtp_rtcp() in the SIP helper uses
+rcu_dereference() two times to access two different NAT hook
+functions. However, only the first one is protected by the RCU
+reader lock, but the 2nd isn't. Fix it by extending the RCU
+protected area.
+
+This is more a cosmetic thing since we rely on all netfilter hooks
+being rcu_read_lock()ed by nf_hook_slow() in many places anyways,
+as Patrick McHardy clarified.
+
+Signed-off-by: Holger Eitzenberger <holger.eitzenberger@sophos.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_sip.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index e0c4373..5ed8c44 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -966,7 +966,6 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ #endif
+ 			skip_expect = 1;
+ 	} while (!skip_expect);
+-	rcu_read_unlock();
+ 
+ 	base_port = ntohs(tuple.dst.u.udp.port) & ~1;
+ 	rtp_port = htons(base_port);
+@@ -980,8 +979,10 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 			goto err1;
+ 	}
+ 
+-	if (skip_expect)
++	if (skip_expect) {
++		rcu_read_unlock();
+ 		return NF_ACCEPT;
++	}
+ 
+ 	rtp_exp = nf_ct_expect_alloc(ct);
+ 	if (rtp_exp == NULL)
+@@ -1012,6 +1013,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ err2:
+ 	nf_ct_expect_put(rtp_exp);
+ err1:
++	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+-- 
+1.7.10.4
+
