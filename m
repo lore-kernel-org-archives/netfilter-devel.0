@@ -1,172 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/33] netfilter: ipset: Fix "may be used uninitialized" warnings
-Date: Fri,  4 Oct 2013 10:32:53 +0200
-Message-ID: <1380875598-5250-9-git-send-email-pablo@netfilter.org>
-References: <1380875598-5250-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH nf-next 0/6] Add net namespace support for ipt_CLUSTERIP
+Date: Fri, 04 Oct 2013 16:51:39 +0800
+Message-ID: <524E819B.1080306@cn.fujitsu.com>
+References: <1380094729-30674-1-git-send-email-gaofeng@cn.fujitsu.com> <20131001110505.GA7180@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55518 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754281Ab3JDIdv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Oct 2013 04:33:51 -0400
-In-Reply-To: <1380875598-5250-1-git-send-email-pablo@netfilter.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:27796 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752010Ab3JDIuc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Oct 2013 04:50:32 -0400
+In-Reply-To: <20131001110505.GA7180@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Hi Pablo,
 
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_bitmap_ip.c      |    4 ++--
- net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    4 ++--
- net/netfilter/ipset/ip_set_hash_ip.c        |    2 +-
- net/netfilter/ipset/ip_set_hash_ipport.c    |    2 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c  |    2 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 ++--
- net/netfilter/ipset/ip_set_hash_net.c       |    2 +-
- net/netfilter/ipset/ip_set_hash_netiface.c  |    2 +-
- net/netfilter/ipset/ip_set_hash_netport.c   |    2 +-
- 9 files changed, 12 insertions(+), 12 deletions(-)
+On 10/01/2013 07:05 PM, Pablo Neira Ayuso wrote:
+> Hi Gao,
+> 
+> On Wed, Sep 25, 2013 at 03:38:43PM +0800, Gao feng wrote:
+>> This patchset adds net namespace support for ipt_CLUSTERIP,
+>> makes clusterip_configs,clusterip_lock and clusterip_procdir
+>> per net namespace, and allow users in container to operate
+>> the proper pernet resource of CLUSTERIP.
+>>
+>> Gao feng (6):
+>>   ipt_CLUSTERIP: make proc directory per net namespace
+>>   ipt_CLUSTERIP: make clusterip_list per net namespace
+>>   ipt_CLUSTERIP: make clusterip_lock per net namespace
+>>   ipt_CLUSTERIP: add parameter net in clusterip_config_find_get
+>>   ipt_CLUSTERIP: create proc entry under proper ipt_CLUSTERIP directory
+>>   ipt_CLUSTERIP: use proper net namespace to operate CLUSTERIP
+> 
+> CLUSTERIP is a subset of the cluster match. The cluster match allows
+> gateway configurations, which are not possible with CLUSTERIP.
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index c2f89b1..ce99d26 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -131,7 +131,7 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
- {
- 	struct bitmap_ip *map = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	u32 ip, ip_to;
-+	u32 ip = 0, ip_to = 0;
- 	struct bitmap_ip_adt_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(map);
- 	int ret = 0;
-@@ -264,7 +264,7 @@ static int
- bitmap_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
- {
- 	struct bitmap_ip *map;
--	u32 first_ip, last_ip, hosts, cadt_flags = 0;
-+	u32 first_ip = 0, last_ip = 0, hosts, cadt_flags = 0;
- 	u64 elements;
- 	u8 netmask = 32;
- 	int ret;
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 1d6551c..6d5bad9 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -246,7 +246,7 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct bitmap_ipmac_adt_elem e = {};
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(map);
--	u32 ip;
-+	u32 ip = 0;
- 	int ret = 0;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-@@ -355,7 +355,7 @@ static int
- bitmap_ipmac_create(struct ip_set *set, struct nlattr *tb[],
- 		    u32 flags)
- {
--	u32 first_ip, last_ip, cadt_flags = 0;
-+	u32 first_ip = 0, last_ip = 0, cadt_flags = 0;
- 	u64 elements;
- 	struct bitmap_ipmac *map;
- 	int ret;
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index de44fca..260c9a8 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -119,7 +119,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ip4_elem e = {};
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip, ip_to, hosts;
-+	u32 ip = 0, ip_to = 0, hosts;
- 	int ret = 0;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index b514ff4..64caad3 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -137,7 +137,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip, ip_to, p = 0, port, port_to;
-+	u32 ip, ip_to = 0, p = 0, port, port_to;
- 	bool with_ports = false;
- 	int ret;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index d05070d..2873bbc 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -142,7 +142,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportip4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip, ip_to, p = 0, port, port_to;
-+	u32 ip, ip_to = 0, p = 0, port, port_to;
- 	bool with_ports = false;
- 	int ret;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 7d1dede..f111558 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -196,8 +196,8 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportnet4_elem e = { .cidr = HOST_MASK - 1 };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip, ip_to, p = 0, port, port_to;
--	u32 ip2_from, ip2_to, ip2_last, ip2;
-+	u32 ip = 0, ip_to = 0, p = 0, port, port_to;
-+	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
- 	bool with_ports = false;
- 	u8 cidr;
- 	int ret;
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 9cb9ef4..0a64dad 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -166,7 +166,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_net4_elem e = { .cidr = HOST_MASK };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip = 0, ip_to, last;
-+	u32 ip = 0, ip_to = 0, last;
- 	int ret;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 2310fc2..846371b 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -320,7 +320,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netiface4_elem e = { .cidr = HOST_MASK, .elem = 1 };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 ip = 0, ip_to, last;
-+	u32 ip = 0, ip_to = 0, last;
- 	char iface[IFNAMSIZ];
- 	int ret;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 1601d48..d98a685 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -187,7 +187,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netport4_elem e = { .cidr = HOST_MASK - 1 };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(h);
--	u32 port, port_to, p = 0, ip = 0, ip_to, last;
-+	u32 port, port_to, p = 0, ip = 0, ip_to = 0, last;
- 	bool with_ports = false;
- 	u8 cidr;
- 	int ret;
--- 
-1.7.10.4
+Yes, but seems ipt_CLUSTERIP is more popular.(from the result I seach through google)
 
+> 
+> If you really need these, I can take them. But I'd be happy if you can
+> check the cluster match to make sure there are no issue regarding net
+> namespaces.
+> 
+
+I looked into the codes of cluster match module, and did some simple test,
+it has no need to do with net namespace. works well in container :)
+
+Thanks
