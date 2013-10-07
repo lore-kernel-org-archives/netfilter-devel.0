@@ -1,49 +1,62 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH] nft: arp: add parse_target to nft_family_ops_arp
-Date: Mon, 07 Oct 2013 08:43:20 +0300
-Message-ID: <525249F8.4020108@linux.intel.com>
-References: <1381063007-6184-1-git-send-email-giuseppelng@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Giuseppe Longo <giuseppelng@gmail.com>,
-	netfilter-devel@vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH] man: update the manpage for cluster match
+Date: Mon, 7 Oct 2013 16:22:56 +0800
+Message-ID: <1381134176-18168-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47017 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460Ab3JGFnW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Oct 2013 01:43:22 -0400
-In-Reply-To: <1381063007-6184-1-git-send-email-giuseppelng@gmail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:10882 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751604Ab3JGJAI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Oct 2013 05:00:08 -0400
+Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
+	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r978LkfG018535
+	for <netfilter-devel@vger.kernel.org>; Mon, 7 Oct 2013 16:21:50 +0800
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good catch!
+--h-length,--mangle-mac-s,--mangle-mac-d,--destination-mac
+are not supported by arptables now,and the chain name is IN/OUT.
 
-I probably read that file dozens of time and did not spot this...
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ extensions/libxt_cluster.man | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-Thanks,
-
-Tomasz
-
-> This patch adds parse_target for arp family, fixing segfaults
-> for xtables-arp -L after rules like:
->
-> - xtables-arp -A OUTPUT -o eth0 -j CLASSIFY --set-class 0:7
-> - xtables-arp -A OUTPUT -o eth1 --h-length 6 -j mangle --mangle-mac-s 01:00:5e:00:01:01
->
-> Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
-> ---
->   iptables/nft-arp.c |    1 +
->   1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-> index 570962d..08f8814 100644
-> --- a/iptables/nft-arp.c
-> +++ b/iptables/nft-arp.c
-> @@ -643,4 +643,5 @@ struct nft_family_ops nft_family_ops_arp = {
->   	.print_firewall		= nft_arp_print_firewall,
->   	.post_parse		= NULL,
->   	.rule_find		= nft_arp_rule_find,
-> +	.parse_target		= nft_arp_parse_target,
->   };
+diff --git a/extensions/libxt_cluster.man b/extensions/libxt_cluster.man
+index 62ad71c..808a4d7 100644
+--- a/extensions/libxt_cluster.man
++++ b/extensions/libxt_cluster.man
+@@ -41,19 +41,19 @@ ip maddr add 01:00:5e:00:01:01 dev eth1
+ .IP
+ ip maddr add 01:00:5e:00:01:02 dev eth2
+ .IP
+-arptables \-A OUTPUT \-o eth1 \-\-h\-length 6
+-\-j mangle \-\-mangle-mac-s 01:00:5e:00:01:01
++arptables \-A OUT \-o eth1 \-arhln 6
++\-j mangle \-\-mangle-hw-s 01:00:5e:00:01:01
+ .IP
+-arptables \-A INPUT \-i eth1 \-\-h-length 6
+-\-\-destination-mac 01:00:5e:00:01:01
+-\-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
++arptables \-A IN \-i eth1 \-arhln 6
++\-\-target-hw 01:00:5e:00:01:01
++\-j mangle \-\-mangle\-hw\-d 00:zz:yy:xx:5a:27
+ .IP
+-arptables \-A OUTPUT \-o eth2 \-\-h\-length 6
+-\-j mangle \-\-mangle\-mac\-s 01:00:5e:00:01:02
++arptables \-A OUT \-o eth2 \-arhln 6
++\-j mangle \-\-mangle\-hw\-s 01:00:5e:00:01:02
+ .IP
+-arptables \-A INPUT \-i eth2 \-\-h\-length 6
+-\-\-destination\-mac 01:00:5e:00:01:02
+-\-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
++arptables \-A IN \-i eth2 \-arhln 6
++\-\-target\-hw 01:00:5e:00:01:02
++\-j mangle \-\-mangle\-hw\-d 00:zz:yy:xx:5a:27
+ .PP
+ In the case of TCP connections, pickup facility has to be disabled
+ to avoid marking TCP ACK packets coming in the reply direction as
+-- 
+1.8.3.1
 
