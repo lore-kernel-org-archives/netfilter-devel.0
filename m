@@ -1,62 +1,46 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH] man: update the manpage for cluster match
-Date: Mon, 7 Oct 2013 16:22:56 +0800
-Message-ID: <1381134176-18168-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: Gao feng <gaofeng@cn.fujitsu.com>
-To: netfilter-devel@vger.kernel.org
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
+ group matching
+Date: Mon, 07 Oct 2013 11:17:50 +0200
+Message-ID: <52527C3E.1060004@redhat.com>
+References: <1380910855-12325-1-git-send-email-dborkman@redhat.com> <52522555.70407@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>,
+	cgroups@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:10882 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751604Ab3JGJAI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Oct 2013 05:00:08 -0400
-Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
-	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r978LkfG018535
-	for <netfilter-devel@vger.kernel.org>; Mon, 7 Oct 2013 16:21:50 +0800
+Received: from mx1.redhat.com ([209.132.183.28]:60482 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754175Ab3JGJSC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Oct 2013 05:18:02 -0400
+In-Reply-To: <52522555.70407@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---h-length,--mangle-mac-s,--mangle-mac-d,--destination-mac
-are not supported by arptables now,and the chain name is IN/OUT.
+On 10/07/2013 05:07 AM, Gao feng wrote:
+> On 10/05/2013 02:20 AM, Daniel Borkmann wrote:
+>> +static void cgroup_attach(struct cgroup_subsys_state *css,
+>> +			  struct cgroup_taskset *tset)
+>> +{
+>> +	struct task_struct *p;
+>> +	void *v;
+>> +
+>> +	cgroup_taskset_for_each(p, css, tset) {
+>> +		task_lock(p);
+>> +		v = (void *)(unsigned long) task_fwid(p);
+>
+> Shouldn't v be css_nf_state(css)->fwid?
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
----
- extensions/libxt_cluster.man | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Nope, this is in line with net_cls and net_prio; the task has been
+moved there via cgroup backend already through cgroup_attach_task(),
+so we only need to update each of it's socket sk_cgrp_fwid parts.
+css is not strictly for net_filter. See also: 6a328d8c6f (cgroup:
+net_cls: Rework update socket logic)
 
-diff --git a/extensions/libxt_cluster.man b/extensions/libxt_cluster.man
-index 62ad71c..808a4d7 100644
---- a/extensions/libxt_cluster.man
-+++ b/extensions/libxt_cluster.man
-@@ -41,19 +41,19 @@ ip maddr add 01:00:5e:00:01:01 dev eth1
- .IP
- ip maddr add 01:00:5e:00:01:02 dev eth2
- .IP
--arptables \-A OUTPUT \-o eth1 \-\-h\-length 6
--\-j mangle \-\-mangle-mac-s 01:00:5e:00:01:01
-+arptables \-A OUT \-o eth1 \-arhln 6
-+\-j mangle \-\-mangle-hw-s 01:00:5e:00:01:01
- .IP
--arptables \-A INPUT \-i eth1 \-\-h-length 6
--\-\-destination-mac 01:00:5e:00:01:01
--\-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
-+arptables \-A IN \-i eth1 \-arhln 6
-+\-\-target-hw 01:00:5e:00:01:01
-+\-j mangle \-\-mangle\-hw\-d 00:zz:yy:xx:5a:27
- .IP
--arptables \-A OUTPUT \-o eth2 \-\-h\-length 6
--\-j mangle \-\-mangle\-mac\-s 01:00:5e:00:01:02
-+arptables \-A OUT \-o eth2 \-arhln 6
-+\-j mangle \-\-mangle\-hw\-s 01:00:5e:00:01:02
- .IP
--arptables \-A INPUT \-i eth2 \-\-h\-length 6
--\-\-destination\-mac 01:00:5e:00:01:02
--\-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
-+arptables \-A IN \-i eth2 \-arhln 6
-+\-\-target\-hw 01:00:5e:00:01:02
-+\-j mangle \-\-mangle\-hw\-d 00:zz:yy:xx:5a:27
- .PP
- In the case of TCP connections, pickup facility has to be disabled
- to avoid marking TCP ACK packets coming in the reply direction as
--- 
-1.8.3.1
-
+>> +		iterate_fd(p->files, 0, cgroup_fwid_update, v);
+>> +		task_unlock(p);
+>> +	}
+>> +}
