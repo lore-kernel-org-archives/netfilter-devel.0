@@ -1,35 +1,49 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
- group matching
-Date: Mon, 07 Oct 2013 11:07:01 +0800
-Message-ID: <52522555.70407@cn.fujitsu.com>
-References: <1380910855-12325-1-git-send-email-dborkman@redhat.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH] nft: arp: add parse_target to nft_family_ops_arp
+Date: Mon, 07 Oct 2013 08:43:20 +0300
+Message-ID: <525249F8.4020108@linux.intel.com>
+References: <1381063007-6184-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>,
-	cgroups@vger.kernel.org
-To: Daniel Borkmann <dborkman@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1380910855-12325-1-git-send-email-dborkman@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Giuseppe Longo <giuseppelng@gmail.com>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:47017 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751460Ab3JGFnW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Oct 2013 01:43:22 -0400
+In-Reply-To: <1381063007-6184-1-git-send-email-giuseppelng@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/05/2013 02:20 AM, Daniel Borkmann wrote:
-> +static void cgroup_attach(struct cgroup_subsys_state *css,
-> +			  struct cgroup_taskset *tset)
-> +{
-> +	struct task_struct *p;
-> +	void *v;
-> +
-> +	cgroup_taskset_for_each(p, css, tset) {
-> +		task_lock(p);
-> +		v = (void *)(unsigned long) task_fwid(p);
+Good catch!
 
-Shouldn't v be css_nf_state(css)->fwid?
+I probably read that file dozens of time and did not spot this...
 
-> +		iterate_fd(p->files, 0, cgroup_fwid_update, v);
-> +		task_unlock(p);
-> +	}
-> +}
+Thanks,
+
+Tomasz
+
+> This patch adds parse_target for arp family, fixing segfaults
+> for xtables-arp -L after rules like:
+>
+> - xtables-arp -A OUTPUT -o eth0 -j CLASSIFY --set-class 0:7
+> - xtables-arp -A OUTPUT -o eth1 --h-length 6 -j mangle --mangle-mac-s 01:00:5e:00:01:01
+>
+> Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+> ---
+>   iptables/nft-arp.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+> index 570962d..08f8814 100644
+> --- a/iptables/nft-arp.c
+> +++ b/iptables/nft-arp.c
+> @@ -643,4 +643,5 @@ struct nft_family_ops nft_family_ops_arp = {
+>   	.print_firewall		= nft_arp_print_firewall,
+>   	.post_parse		= NULL,
+>   	.rule_find		= nft_arp_rule_find,
+> +	.parse_target		= nft_arp_parse_target,
+>   };
+
