@@ -1,94 +1,79 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
- group matching
-Date: Tue, 08 Oct 2013 10:05:02 +0200
-Message-ID: <5253BCAE.5060409@redhat.com>
-References: <1380910855-12325-1-git-send-email-dborkman@redhat.com> <20131007164647.GA2481@htj.dyndns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, cgroups@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [iptables-nftables 2/2] nft: pass ipt_entry to ->save_firewall hook
+Date: Tue,  8 Oct 2013 11:11:19 +0200
+Message-ID: <1381223479-1157-2-git-send-email-pablo@netfilter.org>
+References: <1381223479-1157-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1380 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:55744 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752024Ab3JHIFL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Oct 2013 04:05:11 -0400
-In-Reply-To: <20131007164647.GA2481@htj.dyndns.org>
+	id S1754778Ab3JHJLa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Oct 2013 05:11:30 -0400
+In-Reply-To: <1381223479-1157-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Tejun,
+The extension needs the ipt_entry not to crash. Since cs->fw
+actually points to an union that also contains cs->fw6, just
+pass cs->fw to make it work.
 
-On 10/07/2013 06:46 PM, Tejun Heo wrote:
-> On Fri, Oct 04, 2013 at 08:20:55PM +0200, Daniel Borkmann wrote:
->> It would be useful e.g. in a server or desktop environment to have
->> a facility in the notion of fine-grained "per application" or "per
->> application group" firewall policies. Probably, users in the mobile/
->> embedded area (e.g. Android based) with different security policy
->> requirements for application groups could have great benefit from
->> that as well. For example, with a little bit of configuration effort,
->> an admin could whitelist well-known applications, and thus block
->> otherwise unwanted "hard-to-track" applications like [1] from a
->> user's machine.
->>
->> Implementation of PID-based matching would not be appropriate
->> as they frequently change, and child tracking would make that
->> even more complex and ugly. Cgroups would be a perfect candidate
->> for accomplishing that as they associate a set of tasks with a
->> set of parameters for one or more subsystems, in our case the
->> netfilter subsystem, which, of course, can be combined with other
->> cgroup subsystems into something more complex.
->>
->> As mentioned, to overcome this constraint, such processes could
->> be placed into one or multiple cgroups where different fine-grained
->> rules can be defined depending on the application scenario, while
->> e.g. everything else that is not part of that could be dropped (or
->> vice versa), thus making life harder for unwanted processes to
->> communicate to the outside world. So, we make use of cgroups here
->> to track jobs and limit their resources in terms of iptables
->> policies; in other words, limiting what they are allowed to
->> communicate.
->>
->> We have similar cgroup facilities in networking for traffic
->> classifier, and netprio cgroups. This feature adds a lightweight
->> cgroup id matching in terms of network security resp. network
->> traffic isolation as part of netfilter's xtables subsystem.
->
-> I don't think the two net cgroups were a good idea and definitely
-> don't want to continue the trend.  I think this is being done
-> backwards.  Wouldn't it be more logical to implement netfilter rule to
-> match the target cgroup paths?  It really doesn't make much sense to
-> me to add separate controllers to just tag processes.  Please classify
-> tasks in cgroup and let netfilter match the cgroups.
+This fixes:
 
-Thanks for your feedback!
+-A INPUT -p tcp -m multiport --ports 1,2,3,4,6,7,8,9,10,11,12,13,14,15
 
-Could you elaborate on "Wouldn't it be more logical to implement netfilter
-rule to match the target cgroup paths?". I don't think (or hope) you mean
-some string comparison on the dentry path here? :) With our proposal, we
-have in the network stack's critical path only the following code that is
-being executed here to match the cgroup ...
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ iptables/nft-shared.c |    4 ++--
+ iptables/nft.c        |    8 +++++---
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-static bool
-cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
-{
-	const struct xt_cgroup_info *info = par->matchinfo;
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 25cb177..ebcb969 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -633,14 +633,14 @@ void print_matches_and_target(struct iptables_command_state *cs,
+ 
+ 	for (matchp = cs->matches; matchp; matchp = matchp->next) {
+ 		if (matchp->match->print != NULL) {
+-			matchp->match->print(NULL, matchp->match->m,
++			matchp->match->print(&cs->fw, matchp->match->m,
+ 					     format & FMT_NUMERIC);
+ 		}
+ 	}
+ 
+ 	if (cs->target != NULL) {
+ 		if (cs->target->print != NULL) {
+-			cs->target->print(NULL, cs->target->t,
++			cs->target->print(&cs->fw, cs->target->t,
+ 					  format & FMT_NUMERIC);
+ 		}
+ 	}
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 50e756b..01e0264 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1040,8 +1040,10 @@ nft_rule_print_save(const struct iptables_command_state *cs,
+ 		} else
+ 			printf("-m %s", matchp->match->name);
+ 
+-		if (matchp->match->save != NULL)
+-			matchp->match->save(NULL, matchp->match->m);
++		if (matchp->match->save != NULL) {
++			/* cs->fw union makes the trick */
++			matchp->match->save(&cs->fw, matchp->match->m);
++		}
+ 		printf(" ");
+ 	}
+ 
+@@ -1052,7 +1054,7 @@ nft_rule_print_save(const struct iptables_command_state *cs,
+ 			printf("-j %s", cs->jumpto);
+ 
+ 		if (cs->target->save != NULL)
+-			cs->target->save(NULL, cs->target->t);
++			cs->target->save(&cs->fw, cs->target->t);
+ 	} else if (strlen(cs->jumpto) > 0)
+ 		printf("-%c %s", ip_flags & IPT_F_GOTO ? 'g' : 'j',
+ 								cs->jumpto);
+-- 
+1.7.10.4
 
-	if (skb->sk == NULL)
-		return false;
-
-	return (info->id == skb->sk->sk_cgrp_fwid) ^ info->invert;
-}
-
-... where ``info->id == skb->sk->sk_cgrp_fwid'' is the actual work, so very
-lightweight, which is good for high loads (1Gbit/s, 10Gbit/s and beyond), of
-course. Also, it would be intuitive for admins familiar with other subsystems
-to just set up and use these cgroup ids in iptabels. I'm not yet quite sure
-how your suggestion would look like, so you would need to setup some "dummy"
-subgroups first just to have a path that you can match on?
-
-Thanks,
-
-Daniel
