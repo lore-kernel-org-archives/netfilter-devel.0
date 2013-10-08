@@ -1,58 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables-nftables 1/2] xtables: fix missing ipt_entry for
- MASQUERADE target
-Date: Tue, 8 Oct 2013 11:44:52 +0200
-Message-ID: <20131008094452.GB7186@localhost>
-References: <1381223479-1157-1-git-send-email-pablo@netfilter.org>
- <5253CD59.9060508@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH] nfnetlink: use rcu_assign_pointer in nfnetlink_subsys_unregister
+Date: Tue, 8 Oct 2013 18:04:08 +0800
+Message-ID: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39153 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754735Ab3JHJo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Oct 2013 05:44:58 -0400
-Content-Disposition: inline
-In-Reply-To: <5253CD59.9060508@linux.intel.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:2235 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751869Ab3JHKD1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Oct 2013 06:03:27 -0400
+Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
+	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r98A2xvw017395
+	for <netfilter-devel@vger.kernel.org>; Tue, 8 Oct 2013 18:02:59 +0800
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 08, 2013 at 12:16:09PM +0300, Tomasz Bursztyka wrote:
-> Hi Pablo,
-> >+	/* Default on AF_INET */
-> >+	h->ops = nft_family_ops_lookup(AF_INET);
-> >+	if (h->ops == NULL)
-> >+		xtables_error(PARAMETER_PROBLEM, "Unknown family");
-> >+
-> 
-> Since you use AF_INET by default...
+Though I don't face an oops, but it is more safer to
+set table's subsys through rcu_assign_pointer.
 
-If neither -4 and -6 is passed, we assume AF_INET.
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nfnetlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> >  	opts = xt_params->orig_opts;
-> >  	while ((cs.c = getopt_long(argc, argv,
-> >  	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:46",
-> >@@ -894,6 +899,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
-> >  			if (args.proto == 0 && (args.invflags & XT_INV_PROTO))
-> >  				xtables_error(PARAMETER_PROBLEM,
-> >  					   "rule would never match protocol");
-> >+
-> >+			/* This needs to happen here to parse extensions */
-> >+			h->ops->proto_parse(&cs, &args);
-> >  			break;
-> >  		case 's':
-> >@@ -1033,11 +1041,21 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
-> >  		case '4':
-> >  			if (args.family != AF_INET)
-> >  				exit_tryhelp(2);
-> >+
-> >+			h->ops = nft_family_ops_lookup(args.family);
-> >+			if (h->ops == NULL)
-> >+				xtables_error(PARAMETER_PROBLEM,
-> >+					      "Unknown family");
-> 
-> ... this is useless I guess, then.
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 572d87d..3cd2fe6 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
+ int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
+ {
+ 	nfnl_lock(n->subsys_id);
+-	table[n->subsys_id].subsys = NULL;
++	rcu_assign_pointer(table[n->subsys_id].subsys, NULL);
+ 	nfnl_unlock(n->subsys_id);
+ 	synchronize_rcu();
+ 	return 0;
+-- 
+1.8.3.1
 
-Yes, copied and pasted from the original code, will remove it.
