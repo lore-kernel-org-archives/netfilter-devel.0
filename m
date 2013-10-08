@@ -1,68 +1,47 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] nfnetlink: use rcu_assign_pointer in
- nfnetlink_subsys_unregister
-Date: Tue, 08 Oct 2013 08:23:54 -0700
-Message-ID: <1381245834.12191.37.camel@edumazet-glaptop.roam.corp.google.com>
-References: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] iptables: improve chain name validation
+Date: Tue, 8 Oct 2013 09:08:56 -0700
+Message-ID: <20131008160856.GA18402@home>
+References: <20131005163315.GA16881@home>
+ <alpine.LSU.2.11.1310071613590.6551@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:33480 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797Ab3JHPYI (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:57881 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754301Ab3JHQI7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Oct 2013 11:24:08 -0400
-Received: by mail-yh0-f44.google.com with SMTP id f64so2119911yha.31
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Oct 2013 08:24:07 -0700 (PDT)
-In-Reply-To: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
+	Tue, 8 Oct 2013 12:08:59 -0400
+Received: by mail-pd0-f169.google.com with SMTP id r10so8970551pdi.28
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Oct 2013 09:08:59 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.11.1310071613590.6551@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-10-08 at 18:04 +0800, Gao feng wrote:
-> Though I don't face an oops, but it is more safer to
-> set table's subsys through rcu_assign_pointer.
-> 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  net/netfilter/nfnetlink.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index 572d87d..3cd2fe6 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
->  int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
->  {
->  	nfnl_lock(n->subsys_id);
-> -	table[n->subsys_id].subsys = NULL;
-> +	rcu_assign_pointer(table[n->subsys_id].subsys, NULL);
->  	nfnl_unlock(n->subsys_id);
->  	synchronize_rcu();
->  	return 0;
+On Mon, Oct 07, 2013 at 04:14:47PM +0200, Jan Engelhardt wrote:
+> IMO iptables-save should just put the chain name in quotes (calling 
+> xtables_save_string) if there is a need to do so.
 
-Certainly not.
+Example:
+# iptables -N 'hog wash'
+# iptables -A INPUT -j 'hog wash'
+iptables v1.4.20: Invalid target name `hog wash'
+Try `iptables -h' or 'iptables --help' for more information.
 
-Assigning a NULL pointer do not require rcu_assign_pointer() but this,
-if you want to be really really clean.
+Code:
+static const char *
+parse_target(const char *targetname)
+{
+...
+        for (ptr = targetname; *ptr; ptr++)
+                if (isspace(*ptr))
+                        xtables_error(PARAMETER_PROBLEM,
+                                   "Invalid target name `%s'", targetname);
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 572d87d..649958b 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
- int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
- {
- 	nfnl_lock(n->subsys_id);
--	table[n->subsys_id].subsys = NULL;
-+	RCU_INIT_POINTER(table[n->subsys_id].subsys, NULL);
- 	nfnl_unlock(n->subsys_id);
- 	synchronize_rcu();
- 	return 0;
+Conclusion:
+It seems pointless to allow adding chains which cannot actually be used.
 
-
-
-
+Phil
