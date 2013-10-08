@@ -1,41 +1,58 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH] nfnetlink: use rcu_assign_pointer in nfnetlink_subsys_unregister
-Date: Tue, 8 Oct 2013 18:04:08 +0800
-Message-ID: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: Gao feng <gaofeng@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH iptables-nftables] nft: fix bad length when comparing extension data area
+Date: Tue,  8 Oct 2013 12:32:08 +0200
+Message-ID: <1381228328-29031-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:2235 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751869Ab3JHKD1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Oct 2013 06:03:27 -0400
-Received: from fnstmail02.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
-	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id r98A2xvw017395
-	for <netfilter-devel@vger.kernel.org>; Tue, 8 Oct 2013 18:02:59 +0800
+Received: from mail.us.es ([193.147.175.20]:59435 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752488Ab3JHKcQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Oct 2013 06:32:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Though I don't face an oops, but it is more safer to
-set table's subsys through rcu_assign_pointer.
+Use ->userspacesize to compare the extension data area, otherwise
+we also compare the internal private pointers which are only
+meaningful to the kernelspace.
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+This fixes:
+
+xtables -4 -D INPUT -m connlimit \
+	--connlimit-above 10 --connlimit-mask 32 --connlimit-daddr
+
+But it also fixes many other matches/targets which use internal
+private data.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/nft-shared.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 572d87d..3cd2fe6 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
- int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
- {
- 	nfnl_lock(n->subsys_id);
--	table[n->subsys_id].subsys = NULL;
-+	rcu_assign_pointer(table[n->subsys_id].subsys, NULL);
- 	nfnl_unlock(n->subsys_id);
- 	synchronize_rcu();
- 	return 0;
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index ebcb969..3987f74 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -683,7 +683,7 @@ compare_matches(struct xtables_rule_match *mt1, struct xtables_rule_match *mt2)
+ 		}
+ 
+ 		if (memcmp(m1->data, m2->data,
+-			   m1->u.user.match_size - sizeof(*m1)) != 0) {
++			   mp1->match->userspacesize) != 0) {
+ 			DEBUGP("mismatch match data\n");
+ 			return false;
+ 		}
+@@ -709,10 +709,8 @@ bool compare_targets(struct xtables_target *tg1, struct xtables_target *tg2)
+ 	if (strcmp(tg1->t->u.user.name, tg2->t->u.user.name) != 0)
+ 		return false;
+ 
+-	if (memcmp(tg1->t->data, tg2->t->data,
+-		   tg1->t->u.user.target_size - sizeof(*tg1->t)) != 0) {
++	if (memcmp(tg1->t->data, tg2->t->data, tg1->userspacesize) != 0)
+ 		return false;
+-	}
+ 
+ 	return true;
+ }
 -- 
-1.8.3.1
+1.7.10.4
 
