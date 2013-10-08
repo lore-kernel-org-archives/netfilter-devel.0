@@ -1,35 +1,68 @@
-From: Anand Raj Manickam <anandrm@gmail.com>
-Subject: iptables-nftables mnl_nft_batch_talk:: Invalid argument
-Date: Tue, 8 Oct 2013 18:59:32 +0530
-Message-ID: <CAEyr1FTqVgbM3zK-UAL0fHU4MRkYvf-xzNb7Cp7FQT3NQiMgXQ@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] nfnetlink: use rcu_assign_pointer in
+ nfnetlink_subsys_unregister
+Date: Tue, 08 Oct 2013 08:23:54 -0700
+Message-ID: <1381245834.12191.37.camel@edumazet-glaptop.roam.corp.google.com>
+References: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f54.google.com ([209.85.216.54]:48271 "EHLO
-	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804Ab3JHN3d (ORCPT
+Received: from mail-yh0-f44.google.com ([209.85.213.44]:33480 "EHLO
+	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797Ab3JHPYI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Oct 2013 09:29:33 -0400
-Received: by mail-qa0-f54.google.com with SMTP id bv4so3763390qab.6
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Oct 2013 06:29:32 -0700 (PDT)
+	Tue, 8 Oct 2013 11:24:08 -0400
+Received: by mail-yh0-f44.google.com with SMTP id f64so2119911yha.31
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Oct 2013 08:24:07 -0700 (PDT)
+In-Reply-To: <1381226648-10959-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When i run a simple rule like
-# xtables -4 -A INPUT -s 1.1.1.1/32 -j ACCEPT
-i get the following error.
-mnl_nft_batch_talk:: Invalid argument
-iptables: Invalid argument. Run `dmesg' for more information.
+On Tue, 2013-10-08 at 18:04 +0800, Gao feng wrote:
+> Though I don't face an oops, but it is more safer to
+> set table's subsys through rcu_assign_pointer.
+> 
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ---
+>  net/netfilter/nfnetlink.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+> index 572d87d..3cd2fe6 100644
+> --- a/net/netfilter/nfnetlink.c
+> +++ b/net/netfilter/nfnetlink.c
+> @@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
+>  int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
+>  {
+>  	nfnl_lock(n->subsys_id);
+> -	table[n->subsys_id].subsys = NULL;
+> +	rcu_assign_pointer(table[n->subsys_id].subsys, NULL);
+>  	nfnl_unlock(n->subsys_id);
+>  	synchronize_rcu();
+>  	return 0;
 
-1579.346156] ip_tables: (C) 2000-2006 Netfilter Core Team
-[ 1582.397561] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
-[ 1582.755111] IPv6: ADDRCONF(NETDEV_UP): virbr0: link is not ready
-[ 1583.533624] Ebtables v2.0 registered
-[ 1583.594789] ip6_tables: (C) 2000-2006 Netfilter Core Team
-[ 2301.194401] Netfilter messages via NETLINK v0.30.
-[ 2318.937750] nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>
-[1141676.975006] nf_tables_compat: (c) 2012 Pablo Neira Ayuso
-<pablo@netfilter.org>
+Certainly not.
 
-All the tool are updated to the latest , with 3.11 kernel
+Assigning a NULL pointer do not require rcu_assign_pointer() but this,
+if you want to be really really clean.
+
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 572d87d..649958b 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -78,7 +78,7 @@ EXPORT_SYMBOL_GPL(nfnetlink_subsys_register);
+ int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n)
+ {
+ 	nfnl_lock(n->subsys_id);
+-	table[n->subsys_id].subsys = NULL;
++	RCU_INIT_POINTER(table[n->subsys_id].subsys, NULL);
+ 	nfnl_unlock(n->subsys_id);
+ 	synchronize_rcu();
+ 	return 0;
+
+
+
+
