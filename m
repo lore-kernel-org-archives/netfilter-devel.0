@@ -1,454 +1,54 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 1/2] examples: add nft-ruleset-get
-Date: Wed, 09 Oct 2013 12:18:06 +0200
-Message-ID: <20131009101806.29759.55315.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH 2/2] examples: nft-set-get: retrieve all sets
+Date: Wed, 09 Oct 2013 12:18:12 +0200
+Message-ID: <20131009101812.29759.71506.stgit@nfdev.cica.es>
+References: <20131009101806.29759.55315.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40118 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:40130 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753111Ab3JIKSO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Oct 2013 06:18:14 -0400
+	id S1753111Ab3JIKSR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Oct 2013 06:18:17 -0400
 Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id EE58D51ED4E
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 10:18:10 +0000 (UTC)
+	by smtp.cica.es (Postfix) with ESMTP id 30C3F51ED4E
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 10:18:16 +0000 (UTC)
 Received: from smtp.cica.es ([127.0.0.1])
 	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id HQUeOtXKncrU for <netfilter-devel@vger.kernel.org>;
-	Wed,  9 Oct 2013 12:18:10 +0200 (CEST)
+	with ESMTP id 0bgkNQJwduHc for <netfilter-devel@vger.kernel.org>;
+	Wed,  9 Oct 2013 12:18:16 +0200 (CEST)
 Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id C4EB351ED34
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 12:18:10 +0200 (CEST)
+	by smtp.cica.es (Postfix) with ESMTP id F140051ED34
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 12:18:15 +0200 (CEST)
+In-Reply-To: <20131009101806.29759.55315.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This example prints the ruleset, using the ruleset API of nftables.
-
-The kernel patch [b63108a] (netfilter: nf_tables: allow to dump sets with
-NFPROTO_UNSPEC) is required.
+Other nftables objects are allowed to be dumped with NFPROTO_UNSPEC.
+With sets is also possible since kernel patch [b63108a] (netfilter: nf_tables:
+allow to dump sets with NFPROTO_UNSPEC).
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- examples/Makefile.am       |    4 
- examples/nft-ruleset-get.c |  388 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 392 insertions(+)
- create mode 100644 examples/nft-ruleset-get.c
+ examples/nft-set-get.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/examples/Makefile.am b/examples/Makefile.am
-index 9965387..b909684 100644
---- a/examples/Makefile.am
-+++ b/examples/Makefile.am
-@@ -25,6 +25,7 @@ check_PROGRAMS = nft-table-add		\
- 		 nft-set-elem-add	\
- 		 nft-set-elem-get	\
- 		 nft-set-elem-del	\
-+		 nft-ruleset-get	\
- 		 nft-compat-get
+diff --git a/examples/nft-set-get.c b/examples/nft-set-get.c
+index 4bc585c..672026f 100644
+--- a/examples/nft-set-get.c
++++ b/examples/nft-set-get.c
+@@ -74,8 +74,10 @@ int main(int argc, char *argv[])
+ 		family = NFPROTO_BRIDGE;
+ 	else if (strcmp(argv[1], "arp") == 0)
+ 		family = NFPROTO_ARP;
++	else if (strcmp(argv[1], "any") == 0)
++		family = NFPROTO_UNSPEC;
+ 	else {
+-		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
++		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp, any\n");
+ 		exit(EXIT_FAILURE);
+ 	}
  
- nft_table_add_SOURCES = nft-table-add.c
-@@ -102,5 +103,8 @@ nft_set_elem_del_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
- nft_set_elem_get_SOURCES = nft-set-elem-get.c
- nft_set_elem_get_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
- 
-+nft_ruleset_get_SOURCES = nft-ruleset-get.c
-+nft_ruleset_get_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
-+
- nft_compat_get_SOURCES = nft-compat-get.c
- nft_compat_get_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
-diff --git a/examples/nft-ruleset-get.c b/examples/nft-ruleset-get.c
-new file mode 100644
-index 0000000..200f018
---- /dev/null
-+++ b/examples/nft-ruleset-get.c
-@@ -0,0 +1,388 @@
-+/*
-+ * Copyright (c) 2013 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * based on previous code from:
-+ *
-+ * Copyright (c) 2013 Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+#include <errno.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftables/ruleset.h>
-+#include <libnftables/table.h>
-+#include <libnftables/chain.h>
-+#include <libnftables/set.h>
-+#include <libnftables/rule.h>
-+
-+static int seq;
-+
-+static void memory_allocation_error(void)
-+{
-+	perror("OOM");
-+	exit(EXIT_FAILURE);
-+}
-+
-+static int
-+mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
-+	 int (*cb)(const struct nlmsghdr *nlh, void *data), void *cb_data)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	uint32_t portid = mnl_socket_get_portid(nf_sock);
-+	int ret;
-+
-+	if (mnl_socket_sendto(nf_sock, data, len) < 0)
-+		return -1;
-+
-+	ret = mnl_socket_recvfrom(nf_sock, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, seq, portid, cb, cb_data);
-+		if (ret <= 0)
-+			goto out;
-+
-+		ret = mnl_socket_recvfrom(nf_sock, buf, sizeof(buf));
-+	}
-+out:
-+	if (ret < 0 && errno == EAGAIN)
-+		return 0;
-+
-+	return ret;
-+}
-+
-+/*
-+ * Rule
-+ */
-+static int rule_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nft_rule_list *nlr_list = data;
-+	struct nft_rule *r;
-+
-+	r = nft_rule_alloc();
-+	if (r == NULL)
-+		memory_allocation_error();
-+
-+	if (nft_rule_nlmsg_parse(nlh, r) < 0)
-+		goto err_free;
-+
-+	nft_rule_list_add_tail(r, nlr_list);
-+	return MNL_CB_OK;
-+
-+err_free:
-+	nft_rule_free(r);
-+	return MNL_CB_OK;
-+}
-+
-+static struct nft_rule_list *mnl_rule_dump(struct mnl_socket *nf_sock,
-+					   int family)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	struct nft_rule_list *nlr_list;
-+	int ret;
-+
-+	nlr_list = nft_rule_list_alloc();
-+	if (nlr_list == NULL)
-+		memory_allocation_error();
-+
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, family,
-+				       NLM_F_DUMP, seq);
-+
-+	ret = mnl_talk(nf_sock, nlh, nlh->nlmsg_len, rule_cb, nlr_list);
-+	if (ret < 0)
-+		goto err;
-+
-+	return nlr_list;
-+err:
-+	nft_rule_list_free(nlr_list);
-+	return NULL;
-+}
-+
-+/*
-+ * Chain
-+ */
-+static int chain_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nft_chain_list *nlc_list = data;
-+	struct nft_chain *c;
-+
-+	c = nft_chain_alloc();
-+	if (c == NULL)
-+		memory_allocation_error();
-+
-+	if (nft_chain_nlmsg_parse(nlh, c) < 0)
-+		goto err_free;
-+
-+	nft_chain_list_add_tail(c, nlc_list);
-+	return MNL_CB_OK;
-+
-+err_free:
-+	nft_chain_free(c);
-+	return MNL_CB_OK;
-+}
-+
-+static struct nft_chain_list *mnl_chain_dump(struct mnl_socket *nf_sock,
-+					     int family)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	struct nft_chain_list *nlc_list;
-+	int ret;
-+
-+	nlc_list = nft_chain_list_alloc();
-+	if (nlc_list == NULL)
-+		memory_allocation_error();
-+
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, family,
-+					NLM_F_DUMP, seq);
-+
-+	ret = mnl_talk(nf_sock, nlh, nlh->nlmsg_len, chain_cb, nlc_list);
-+	if (ret < 0)
-+		goto err;
-+
-+	return nlc_list;
-+err:
-+	nft_chain_list_free(nlc_list);
-+	return NULL;
-+}
-+
-+/*
-+ * Table
-+ */
-+static int table_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nft_table_list *nlt_list = data;
-+	struct nft_table *t;
-+
-+	t = nft_table_alloc();
-+	if (t == NULL)
-+		memory_allocation_error();
-+
-+	if (nft_table_nlmsg_parse(nlh, t) < 0)
-+		goto err_free;
-+
-+	nft_table_list_add_tail(t, nlt_list);
-+	return MNL_CB_OK;
-+
-+err_free:
-+	nft_table_free(t);
-+	return MNL_CB_OK;
-+}
-+
-+static struct nft_table_list *mnl_table_dump(struct mnl_socket *nf_sock,
-+					     int family)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	struct nft_table_list *nlt_list;
-+	int ret;
-+
-+	nlt_list = nft_table_list_alloc();
-+	if (nlt_list == NULL)
-+		memory_allocation_error();
-+
-+	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, family,
-+					NLM_F_DUMP, seq);
-+
-+	ret = mnl_talk(nf_sock, nlh, nlh->nlmsg_len, table_cb, nlt_list);
-+	if (ret < 0)
-+		goto err;
-+
-+	return nlt_list;
-+err:
-+	nft_table_list_free(nlt_list);
-+	return NULL;
-+}
-+
-+/*
-+ * Set elements
-+ */
-+static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	nft_set_elems_nlmsg_parse(nlh, data);
-+	return MNL_CB_OK;
-+}
-+
-+static int mnl_setelem_get(struct mnl_socket *nf_sock, struct nft_set *nls)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
-+
-+	nlh = nft_set_nlmsg_build_hdr(buf, NFT_MSG_GETSETELEM, family,
-+				      NLM_F_DUMP|NLM_F_ACK, seq);
-+	nft_set_nlmsg_build_payload(nlh, nls);
-+
-+	return mnl_talk(nf_sock, nlh, nlh->nlmsg_len, set_elem_cb, nls);
-+}
-+
-+/*
-+ * Set
-+ */
-+static int set_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nft_set_list *nls_list = data;
-+	struct nft_set *s;
-+
-+	s = nft_set_alloc();
-+	if (s == NULL)
-+		memory_allocation_error();
-+
-+	if (nft_set_nlmsg_parse(nlh, s) < 0)
-+		goto err_free;
-+
-+	nft_set_list_add_tail(s, nls_list);
-+	return MNL_CB_OK;
-+
-+err_free:
-+	nft_set_free(s);
-+	return MNL_CB_OK;
-+}
-+
-+static struct nft_set_list *
-+mnl_set_dump(struct mnl_socket *nf_sock, int family)
-+{
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	struct nft_set *s;
-+	struct nft_set_list *nls_list;
-+	struct nft_set *si;
-+	struct nft_set_list_iter *i;
-+	int ret;
-+
-+	s = nft_set_alloc();
-+	if (s == NULL)
-+		memory_allocation_error();
-+
-+	nlh = nft_set_nlmsg_build_hdr(buf, NFT_MSG_GETSET, family,
-+				      NLM_F_DUMP|NLM_F_ACK, seq);
-+	nft_set_nlmsg_build_payload(nlh, s);
-+	nft_set_free(s);
-+
-+	nls_list = nft_set_list_alloc();
-+	if (nls_list == NULL)
-+		memory_allocation_error();
-+
-+	ret = mnl_talk(nf_sock, nlh, nlh->nlmsg_len, set_cb, nls_list);
-+	if (ret < 0)
-+		goto err;
-+
-+	i = nft_set_list_iter_create(nls_list);
-+	if (i == NULL)
-+		memory_allocation_error();
-+
-+	si = nft_set_list_iter_next(i);
-+	while (si != NULL) {
-+		if (mnl_setelem_get(nf_sock, si) != 0) {
-+			perror("E: Unable to get set elements\n");
-+			nft_set_list_iter_destroy(i);
-+			goto err;
-+		}
-+		si = nft_set_list_iter_next(i);
-+	}
-+
-+	nft_set_list_iter_destroy(i);
-+
-+	return nls_list;
-+err:
-+	nft_set_list_free(nls_list);
-+	return NULL;
-+}
-+
-+/*
-+ * ruleset
-+ */
-+
-+static struct nft_ruleset *mnl_ruleset_dump(struct mnl_socket *nf_sock)
-+{
-+	struct nft_ruleset *rs;
-+	struct nft_table_list *t;
-+	struct nft_chain_list *c;
-+	struct nft_set_list *s;
-+	struct nft_rule_list *r;
-+
-+	rs = nft_ruleset_alloc();
-+	if (rs == NULL)
-+		memory_allocation_error();
-+
-+	t = mnl_table_dump(nf_sock, NFPROTO_UNSPEC);
-+	if (t != NULL)
-+		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_TABLELIST, t);
-+
-+	c = mnl_chain_dump(nf_sock, NFPROTO_UNSPEC);
-+	if (c != NULL)
-+		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_CHAINLIST, c);
-+
-+	r = mnl_rule_dump(nf_sock, NFPROTO_UNSPEC);
-+	if (r != NULL)
-+		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_RULELIST, r);
-+
-+	s = mnl_set_dump(nf_sock, NFPROTO_UNSPEC);
-+	if (s != NULL)
-+		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_SETLIST, s);
-+
-+	return rs;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	uint32_t type = NFT_RULESET_O_DEFAULT;
-+	struct nft_ruleset *rs;
-+	size_t len = 1024000;
-+	char *buf;
-+
-+	if (argc > 2) {
-+		fprintf(stderr, "%s [xml|json]\n",
-+			argv[0]);
-+		return EXIT_FAILURE;
-+	}
-+
-+	if (argc == 2) {
-+		if (strcmp(argv[1], "xml") == 0)
-+			type = NFT_RULESET_O_XML;
-+		else if (strcmp(argv[1], "json") == 0)
-+			type = NFT_RULESET_O_JSON;
-+		else {
-+			fprintf(stderr, "Unknown type: [xml|json]\n");
-+			exit(EXIT_FAILURE);
-+		}
-+	}
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	seq = time(NULL);
-+
-+	rs = mnl_ruleset_dump(nl);
-+	if (rs == NULL) {
-+		perror("ruleset_dump");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	buf = malloc(len);
-+	nft_ruleset_snprintf(buf, len, rs, type, 0);
-+	printf("%s\n", buf);
-+	free(buf);
-+
-+	exit(EXIT_SUCCESS);
-+}
 
