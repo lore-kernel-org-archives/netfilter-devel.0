@@ -1,85 +1,56 @@
-From: Adam Kubicki <akubicki@gmail.com>
-Subject: extension module 'owner' enhancement
-Date: Wed, 9 Oct 2013 20:38:47 +0200
-Message-ID: <CAGx=skFP0-q8YSMA-NHvxiRP289ALSRehqcqttv+exYUgg30aw@mail.gmail.com>
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
+ group matching
+Date: Wed, 09 Oct 2013 21:12:49 +0200
+Message-ID: <5255AAB1.5000802@redhat.com>
+References: <1380910855-12325-1-git-send-email-dborkman@redhat.com> <20131007164647.GA2481@htj.dyndns.org> <5253BCAE.5060409@redhat.com> <20131009170409.GH22495@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63752 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144Ab3JISit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Oct 2013 14:38:49 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c13so621396eek.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Oct 2013 11:38:48 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, cgroups@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20131009170409.GH22495@htj.dyndns.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
--m owner --gid-owner works fine, but only for process primary group id.
-Below is patch which also checks supplemental groups of sending process.
-Based on in_group_p() function from kernel/groups.c  (often used for
-permission DAC control in FS modules).
+On 10/09/2013 07:04 PM, Tejun Heo wrote:
+> Hello,
+>
+> On Tue, Oct 08, 2013 at 10:05:02AM +0200, Daniel Borkmann wrote:
+>> Could you elaborate on "Wouldn't it be more logical to implement netfilter
+>> rule to match the target cgroup paths?". I don't think (or hope) you mean
+>> some string comparison on the dentry path here? :) With our proposal, we
+>> have in the network stack's critical path only the following code that is
+>> being executed here to match the cgroup ...
+>
+> Comparing path each time obviously doesn't make sense but you can
+> determine the cgroup on config and hold onto the pointer while the
+> rule exists.
+>
+>> ... where ``info->id == skb->sk->sk_cgrp_fwid'' is the actual work, so very
+>> lightweight, which is good for high loads (1Gbit/s, 10Gbit/s and beyond), of
+>> course. Also, it would be intuitive for admins familiar with other subsystems
+>> to just set up and use these cgroup ids in iptabels. I'm not yet quite sure
+>> how your suggestion would look like, so you would need to setup some "dummy"
+>> subgroups first just to have a path that you can match on?
+>
+> Currently, it's tricky because we have multiple hierarchies to
+> consider and there isn't an efficient way to map from task to cgroup
+> on a specific hierarchy.  I'm not sure whether we should add another
+> mapping table in css_set or just allow using path matching on the
+> unified hierarchy.  The latter should be cleaner and easier but more
+> restrictive.
+>
+> Anyways, it isn't manageable in the long term to keep adding
+> controllers simply to tag tasks differently.  If we want to do this,
+> let's please work on a way to match a task's cgroup affiliation
+> efficiently.
 
-now it's easy to allow --gid-owner <group-allowed-to-access>, or
-reject ! --gid-owner <group-allowed-to-access>
-just add additional functional group to user account.
+Agreed, let us solve that first, and then I go back to the netfilter module
+to bring netfilter and cgroups together.
 
-For groups range, supplemental groups are checked only for first GID of range.
+Thanks,
 
-Below is patch (shorter than this description.. ;)
-
-$ diff -c /tmp/xt_owner.c.old net/netfilter/xt_owner.c
-*** /tmp/xt_owner.c.old    2013-10-04 00:13:46.226282418 +0200
---- net/netfilter/xt_owner.c    2013-10-04 06:02:53.074281341 +0200
-***************
-*** 17,22 ****
---- 17,45 ----
-  #include <linux/netfilter/x_tables.h>
-  #include <linux/netfilter/xt_owner.h>
-
-+ /* groups_search, not EXPORTed so copied from kernel/groups.c */
-+ /* a simple bsearch */
-+ int groups_search(const struct group_info *group_info, gid_t grp)
-+ {
-+     unsigned int left, right;
-+
-+     if (!group_info)
-+         return 0;
-+
-+     left = 0;
-+     right = group_info->ngroups;
-+     while (left < right) {
-+         unsigned int mid = (left+right)/2;
-+         if (grp > GROUP_AT(group_info, mid))
-+             left = mid + 1;
-+         else if (grp < GROUP_AT(group_info, mid))
-+             right = mid;
-+         else
-+             return 1;
-+     }
-+     return 0;
-+ }
-+
-  static bool
-  owner_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-  {
-***************
-*** 44,51 ****
-              return false;
-
-      if (info->match & XT_OWNER_GID)
-!         if ((filp->f_cred->fsgid >= info->gid_min &&
-!             filp->f_cred->fsgid <= info->gid_max) ^
-              !(info->invert & XT_OWNER_GID))
-              return false;
-
---- 67,75 ----
-              return false;
-
-      if (info->match & XT_OWNER_GID)
-!         if (((filp->f_cred->fsgid >= info->gid_min &&
-!             filp->f_cred->fsgid <= info->gid_max) ||
-!             groups_search(filp->f_cred->group_info, info->gid_min)) ^
-              !(info->invert & XT_OWNER_GID))
-              return false;
+Daniel
