@@ -1,33 +1,55 @@
-From: Jamilahussain <MSG73@HUSSEIN478.onmicrosoft.com>
-Subject: RE: INVESTMENT/ RELOCATION ASSISTANCE. 9th/10/2013
-Date: Wed, 9 Oct 2013 18:52:27 +0530
-Message-ID: <e27f43f3-21ff-4551-8338-74c7e1315655__34825.9731465534$1381325010$gmane$org@HKNPR06MB020.apcprd06.prod.outlook.com>
-Reply-To: <mrs.indu.jain@postribe.com>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
+ group matching
+Date: Wed, 9 Oct 2013 13:04:09 -0400
+Message-ID: <20131009170409.GH22495@htj.dyndns.org>
+References: <1380910855-12325-1-git-send-email-dborkman@redhat.com>
+ <20131007164647.GA2481@htj.dyndns.org>
+ <5253BCAE.5060409@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <MSG73@HUSSEIN478.onmicrosoft.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.105]:37675
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753459Ab3JINXG convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Oct 2013 09:23:06 -0400
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5253BCAE.5060409-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear Beloved, 
+Hello,
 
-I am Mrs. Jamila Hussein a Teacher and a Muslim Convert here in Syria,i had sent a previous mail which i am not sure you got. I need your assistance to invest and assist relocate 3 kids who are 17 years and below so that they can get a better life there in your country due to the on going crises here in Syria.
+On Tue, Oct 08, 2013 at 10:05:02AM +0200, Daniel Borkmann wrote:
+> Could you elaborate on "Wouldn't it be more logical to implement netfilter
+> rule to match the target cgroup paths?". I don't think (or hope) you mean
+> some string comparison on the dentry path here? :) With our proposal, we
+> have in the network stack's critical path only the following code that is
+> being executed here to match the cgroup ...
 
-I need your trust, before the death of their parents they had a savings with an Indian Bank, so money is not the issue. 
+Comparing path each time obviously doesn't make sense but you can
+determine the cgroup on config and hold onto the pointer while the
+rule exists.
 
-I got your reference in my search for someone who suits my 
-purpose.If you can help me reply, let me know.
+> ... where ``info->id == skb->sk->sk_cgrp_fwid'' is the actual work, so very
+> lightweight, which is good for high loads (1Gbit/s, 10Gbit/s and beyond), of
+> course. Also, it would be intuitive for admins familiar with other subsystems
+> to just set up and use these cgroup ids in iptabels. I'm not yet quite sure
+> how your suggestion would look like, so you would need to setup some "dummy"
+> subgroups first just to have a path that you can match on?
 
-Regards,
+Currently, it's tricky because we have multiple hierarchies to
+consider and there isn't an efficient way to map from task to cgroup
+on a specific hierarchy.  I'm not sure whether we should add another
+mapping table in css_set or just allow using path matching on the
+unified hierarchy.  The latter should be cleaner and easier but more
+restrictive.
 
-Mrs. Jamila Hussein
-=====================================4
+Anyways, it isn't manageable in the long term to keep adding
+controllers simply to tag tasks differently.  If we want to do this,
+let's please work on a way to match a task's cgroup affiliation
+efficiently.
+
+Thanks.
+
+-- 
+tejun
