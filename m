@@ -1,54 +1,33 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 2/2] examples: nft-set-get: retrieve all sets
-Date: Wed, 09 Oct 2013 12:18:12 +0200
-Message-ID: <20131009101812.29759.71506.stgit@nfdev.cica.es>
-References: <20131009101806.29759.55315.stgit@nfdev.cica.es>
+From: Jamilahussain <MSG73@HUSSEIN478.onmicrosoft.com>
+Subject: RE: INVESTMENT/ RELOCATION ASSISTANCE. 9th/10/2013
+Date: Wed, 9 Oct 2013 18:52:27 +0530
+Message-ID: <e27f43f3-21ff-4551-8338-74c7e1315655__34825.9731465534$1381325010$gmane$org@HKNPR06MB020.apcprd06.prod.outlook.com>
+Reply-To: <mrs.indu.jain@postribe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <MSG73@HUSSEIN478.onmicrosoft.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40130 "EHLO smtp.cica.es"
+Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.105]:37675
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753111Ab3JIKSR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Oct 2013 06:18:17 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 30C3F51ED4E
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 10:18:16 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 0bgkNQJwduHc for <netfilter-devel@vger.kernel.org>;
-	Wed,  9 Oct 2013 12:18:16 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id F140051ED34
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2013 12:18:15 +0200 (CEST)
-In-Reply-To: <20131009101806.29759.55315.stgit@nfdev.cica.es>
+	id S1753459Ab3JINXG convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Oct 2013 09:23:06 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Other nftables objects are allowed to be dumped with NFPROTO_UNSPEC.
-With sets is also possible since kernel patch [b63108a] (netfilter: nf_tables:
-allow to dump sets with NFPROTO_UNSPEC).
+Dear Beloved, 
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- examples/nft-set-get.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I am Mrs. Jamila Hussein a Teacher and a Muslim Convert here in Syria,i had sent a previous mail which i am not sure you got. I need your assistance to invest and assist relocate 3 kids who are 17 years and below so that they can get a better life there in your country due to the on going crises here in Syria.
 
-diff --git a/examples/nft-set-get.c b/examples/nft-set-get.c
-index 4bc585c..672026f 100644
---- a/examples/nft-set-get.c
-+++ b/examples/nft-set-get.c
-@@ -74,8 +74,10 @@ int main(int argc, char *argv[])
- 		family = NFPROTO_BRIDGE;
- 	else if (strcmp(argv[1], "arp") == 0)
- 		family = NFPROTO_ARP;
-+	else if (strcmp(argv[1], "any") == 0)
-+		family = NFPROTO_UNSPEC;
- 	else {
--		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-+		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp, any\n");
- 		exit(EXIT_FAILURE);
- 	}
- 
+I need your trust, before the death of their parents they had a savings with an Indian Bank, so money is not the issue. 
 
+I got your reference in my search for someone who suits my 
+purpose.If you can help me reply, let me know.
+
+Regards,
+
+Mrs. Jamila Hussein
+=====================================4
