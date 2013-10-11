@@ -1,27 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: ipt_ULOG: fix info leaks
-Date: Fri, 11 Oct 2013 10:54:55 +0200
-Message-ID: <20131011085455.GB4124@localhost>
-References: <1380571508-15486-1-git-send-email-minipli@googlemail.com>
- <1380571508-15486-3-git-send-email-minipli@googlemail.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [nftables kernel - PATCH 1/2] netfilter: nf_tables: Update uapi
+ nftables netlink header documentation
+Date: Fri, 11 Oct 2013 12:10:00 +0300
+Message-ID: <5257C068.9050900@linux.intel.com>
+References: <1381139880-20311-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1381139880-20311-2-git-send-email-tomasz.bursztyka@linux.intel.com> <20131011084307.GA3956@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Mathias Krause <minipli@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49358 "EHLO mail.us.es"
+Received: from mga02.intel.com ([134.134.136.20]:1247 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753170Ab3JKIzA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Oct 2013 04:55:00 -0400
-Content-Disposition: inline
-In-Reply-To: <1380571508-15486-3-git-send-email-minipli@googlemail.com>
+	id S1751971Ab3JKJKZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Oct 2013 05:10:25 -0400
+In-Reply-To: <20131011084307.GA3956@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 30, 2013 at 10:05:08PM +0200, Mathias Krause wrote:
-> The ulog messages leak heap bytes by the means of padding bytes and
-> incompletely filled string arrays. Fix those by memset(0)'ing the
-> whole struct before filling it.
+Hi Pablo,
 
-Applied, thanks.
+>   * @NFTA_BYTEORDER_SIZE:_TODO_  (NLA_U32)
+> warning: 3 lines add whitespace errors.
+>
+> Please, mind with whitespace errors at the end of lines. I have fixed
+> them here.
+
+Indeed, my editor was not configured to show them on comments.
+Sorry for this
+
+Tomasz
+
