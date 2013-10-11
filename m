@@ -1,49 +1,38 @@
-From: Anand Raj Manickam <anandrm@gmail.com>
-Subject: [PATCH] iptables-nftables nft: Removes NFT_META_IIF ,NFT_META_OIF
-Date: Fri, 11 Oct 2013 12:08:38 +0530
-Message-ID: <CAEyr1FSxBQC3u3wePjscZPmtiqA5m54qc-8j8Sbz-8+JRcu2Mw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] iptables-nftables nft: Removes if_nametoindex
+ ,NFT_META_OIF for outiface
+Date: Fri, 11 Oct 2013 10:15:25 +0200
+Message-ID: <20131011081525.GA4127@localhost>
+References: <CAEyr1FRKpudN76NbA-o0MAsMy8XpPFjBwviSy4xtWB46LcCekw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Anand Raj Manickam <anandrm@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:49277 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab3JKGii (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Oct 2013 02:38:38 -0400
-Received: by mail-qa0-f47.google.com with SMTP id k15so186269qaq.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2013 23:38:38 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:37904 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756601Ab3JKIPa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Oct 2013 04:15:30 -0400
+Content-Disposition: inline
+In-Reply-To: <CAEyr1FRKpudN76NbA-o0MAsMy8XpPFjBwviSy4xtWB46LcCekw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Removes the  NFT_META_IIF ,NFT_META_OIF
+On Fri, Oct 11, 2013 at 11:34:04AM +0530, Anand Raj Manickam wrote:
+> This patch fixes the issue where , the Rules are added for non
+> existent interface and unable to delete.
+> eg xtables -t nat -I POSTROUTING -o eth10.10 -j MASQUERADE , allows
+> you to add the rule , where eth10.10 interface is not created.
+> But will not allow to delete as the label maps to * by  if_nametoindex().
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 25cb177..a115d7d 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -227,39 +218,20 @@ void parse_meta(struct nft_rule_expr *e, uint8_t
-key, char *iniface,
-        uint32_t len;
+This patch doesn't apply:
 
-        switch(key) {
--       case NFT_META_IIF:
--               value = nft_rule_expr_get_u32(e, NFT_EXPR_CMP_DATA);
--               if (nft_rule_expr_get_u8(e, NFT_EXPR_CMP_OP) == NFT_CMP_NEQ)
--                       *invflags |= IPT_INV_VIA_IN;
--
--               if_indextoname(value, iniface);
--
--               memset(iniface_mask, 0xff, strlen(iniface)+1);
--               break;
--       case NFT_META_OIF:
--               value = nft_rule_expr_get_u32(e, NFT_EXPR_CMP_DATA);
--               if (nft_rule_expr_get_u8(e, NFT_EXPR_CMP_OP) == NFT_CMP_NEQ)
--                       *invflags |= IPT_INV_VIA_OUT;
--
--               if_indextoname(value, outiface);
--
--               memset(outiface_mask, 0xff, strlen(outiface)+1);
--               break;
-        case NFT_META_IIFNAME:
+patch -p1 < /tmp/anand.patch
+patching file iptables/nft-shared.c
+patch: **** malformed patch at line 6: *iface, int invflags)
+
+Please, no need to split things in that many chunks per file. One
+single patch file to address one thing is just fine, the repository
+has to remain in consistent state between patches.
+
+Thanks.
