@@ -1,114 +1,47 @@
-From: Anand Raj Manickam <anandrm@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH] iptables-nftables nft: Removes if_nametoindex
  ,NFT_META_OIF for outiface
-Date: Fri, 11 Oct 2013 15:05:05 +0530
-Message-ID: <CAEyr1FSUeGcw_DXBCP7xm0D9D9eFzM98Dv-Mwv0jfyTwaYo--w@mail.gmail.com>
+Date: Fri, 11 Oct 2013 11:50:12 +0200
+Message-ID: <20131011095012.GA4787@localhost>
 References: <CAEyr1FRKpudN76NbA-o0MAsMy8XpPFjBwviSy4xtWB46LcCekw@mail.gmail.com>
-	<20131011081525.GA4127@localhost>
+ <20131011081525.GA4127@localhost>
+ <CAEyr1FSUeGcw_DXBCP7xm0D9D9eFzM98Dv-Mwv0jfyTwaYo--w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=089e0158cb926908ab04e873d539
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Anand Raj Manickam <anandrm@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:51111 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752047Ab3JKJfI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Oct 2013 05:35:08 -0400
-Received: by mail-lb0-f180.google.com with SMTP id q8so3121053lbi.39
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2013 02:35:06 -0700 (PDT)
-In-Reply-To: <20131011081525.GA4127@localhost>
+Received: from mail.us.es ([193.147.175.20]:37929 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757432Ab3JKJuU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Oct 2013 05:50:20 -0400
+Content-Disposition: inline
+In-Reply-To: <CAEyr1FSUeGcw_DXBCP7xm0D9D9eFzM98Dv-Mwv0jfyTwaYo--w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---089e0158cb926908ab04e873d539
-Content-Type: text/plain; charset=ISO-8859-1
+On Fri, Oct 11, 2013 at 03:05:05PM +0530, Anand Raj Manickam wrote:
+> On Fri, Oct 11, 2013 at 1:45 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Fri, Oct 11, 2013 at 11:34:04AM +0530, Anand Raj Manickam wrote:
+> >> This patch fixes the issue where , the Rules are added for non
+> >> existent interface and unable to delete.
+> >> eg xtables -t nat -I POSTROUTING -o eth10.10 -j MASQUERADE , allows
+> >> you to add the rule , where eth10.10 interface is not created.
+> >> But will not allow to delete as the label maps to * by  if_nametoindex().
+> >
+> > This patch doesn't apply:
+> >
+> > patch -p1 < /tmp/anand.patch
+> > patching file iptables/nft-shared.c
+> > patch: **** malformed patch at line 6: *iface, int invflags)
+> >
+> > Please, no need to split things in that many chunks per file. One
+> > single patch file to address one thing is just fine, the repository
+> > has to remain in consistent state between patches.
+> >
+> > Thanks.
+> 
+> Merged all into a single patch.
 
-On Fri, Oct 11, 2013 at 1:45 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Oct 11, 2013 at 11:34:04AM +0530, Anand Raj Manickam wrote:
->> This patch fixes the issue where , the Rules are added for non
->> existent interface and unable to delete.
->> eg xtables -t nat -I POSTROUTING -o eth10.10 -j MASQUERADE , allows
->> you to add the rule , where eth10.10 interface is not created.
->> But will not allow to delete as the label maps to * by  if_nametoindex().
->
-> This patch doesn't apply:
->
-> patch -p1 < /tmp/anand.patch
-> patching file iptables/nft-shared.c
-> patch: **** malformed patch at line 6: *iface, int invflags)
->
-> Please, no need to split things in that many chunks per file. One
-> single patch file to address one thing is just fine, the repository
-> has to remain in consistent state between patches.
->
-> Thanks.
-
-Merged all into a single patch.
-Thanks,
-Anand
-
---089e0158cb926908ab04e873d539
-Content-Type: application/octet-stream; name="tmp.patch"
-Content-Disposition: attachment; filename="tmp.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hmn7xyma0
-
-ZGlmZiAtLWdpdCBhL2lwdGFibGVzL25mdC1zaGFyZWQuYyBiL2lwdGFibGVzL25mdC1zaGFyZWQu
-YwppbmRleCAyNWNiMTc3Li5hMTE1ZDdkIDEwMDY0NAotLS0gYS9pcHRhYmxlcy9uZnQtc2hhcmVk
-LmMKKysrIGIvaXB0YWJsZXMvbmZ0LXNoYXJlZC5jCkBAIC0xMjQsMTMgKzEyNCw4IEBAIHZvaWQg
-YWRkX2luaWZhY2Uoc3RydWN0IG5mdF9ydWxlICpyLCBjaGFyICppZmFjZSwgaW50IGludmZsYWdz
-KQogCWVsc2UKIAkJb3AgPSBORlRfQ01QX0VROwogCi0JaWYgKGlmYWNlW2lmYWNlX2xlbiAtIDFd
-ID09ICcrJykgewotCQlhZGRfbWV0YShyLCBORlRfTUVUQV9JSUZOQU1FKTsKLQkJYWRkX2NtcF9w
-dHIociwgb3AsIGlmYWNlLCBpZmFjZV9sZW4gLSAxKTsKLQl9IGVsc2UgewotCQlhZGRfbWV0YShy
-LCBORlRfTUVUQV9JSUYpOwotCQlhZGRfY21wX3UzMihyLCBpZl9uYW1ldG9pbmRleChpZmFjZSks
-IG9wKTsKLQl9CisJYWRkX21ldGEociwgTkZUX01FVEFfSUlGTkFNRSk7CisJYWRkX2NtcF9wdHIo
-ciwgb3AsIGlmYWNlLCBpZmFjZV9sZW4pOwogfQogCiB2b2lkIGFkZF9vdXRpZmFjZShzdHJ1Y3Qg
-bmZ0X3J1bGUgKnIsIGNoYXIgKmlmYWNlLCBpbnQgaW52ZmxhZ3MpCkBAIC0xNDUsMTMgKzE0MCw5
-IEBAIHZvaWQgYWRkX291dGlmYWNlKHN0cnVjdCBuZnRfcnVsZSAqciwgY2hhciAqaWZhY2UsIGlu
-dCBpbnZmbGFncykKIAllbHNlCiAJCW9wID0gTkZUX0NNUF9FUTsKIAotCWlmIChpZmFjZVtpZmFj
-ZV9sZW4gLSAxXSA9PSAnKycpIHsKLQkJYWRkX21ldGEociwgTkZUX01FVEFfT0lGTkFNRSk7Ci0J
-CWFkZF9jbXBfcHRyKHIsIG9wLCBpZmFjZSwgaWZhY2VfbGVuIC0gMSk7Ci0JfSBlbHNlIHsKLQkJ
-YWRkX21ldGEociwgTkZUX01FVEFfT0lGKTsKLQkJYWRkX2NtcF91MzIociwgaWZfbmFtZXRvaW5k
-ZXgoaWZhY2UpLCBvcCk7Ci0JfQorCS8qUmVtb3ZlZCBORlRfTUVUQV9PSUYgLCB3aWxsIHN0aWNr
-IHRvIE5GVF9NRVRBX09JRk5BTUUgYXMgaW4gaXB0YWJsZXMgKi8KKwlhZGRfbWV0YShyLCBORlRf
-TUVUQV9PSUZOQU1FKTsKKwlhZGRfY21wX3B0cihyLCBvcCwgaWZhY2UsIGlmYWNlX2xlbik7CiB9
-CiAKIHZvaWQgYWRkX2FkZHIoc3RydWN0IG5mdF9ydWxlICpyLCBpbnQgb2Zmc2V0LApAQCAtMjI3
-LDM5ICsyMTgsMjAgQEAgdm9pZCBwYXJzZV9tZXRhKHN0cnVjdCBuZnRfcnVsZV9leHByICplLCB1
-aW50OF90IGtleSwgY2hhciAqaW5pZmFjZSwKIAl1aW50MzJfdCBsZW47CiAKIAlzd2l0Y2goa2V5
-KSB7Ci0JY2FzZSBORlRfTUVUQV9JSUY6Ci0JCXZhbHVlID0gbmZ0X3J1bGVfZXhwcl9nZXRfdTMy
-KGUsIE5GVF9FWFBSX0NNUF9EQVRBKTsKLQkJaWYgKG5mdF9ydWxlX2V4cHJfZ2V0X3U4KGUsIE5G
-VF9FWFBSX0NNUF9PUCkgPT0gTkZUX0NNUF9ORVEpCi0JCQkqaW52ZmxhZ3MgfD0gSVBUX0lOVl9W
-SUFfSU47Ci0KLQkJaWZfaW5kZXh0b25hbWUodmFsdWUsIGluaWZhY2UpOwotCi0JCW1lbXNldChp
-bmlmYWNlX21hc2ssIDB4ZmYsIHN0cmxlbihpbmlmYWNlKSsxKTsKLQkJYnJlYWs7Ci0JY2FzZSBO
-RlRfTUVUQV9PSUY6Ci0JCXZhbHVlID0gbmZ0X3J1bGVfZXhwcl9nZXRfdTMyKGUsIE5GVF9FWFBS
-X0NNUF9EQVRBKTsKLQkJaWYgKG5mdF9ydWxlX2V4cHJfZ2V0X3U4KGUsIE5GVF9FWFBSX0NNUF9P
-UCkgPT0gTkZUX0NNUF9ORVEpCi0JCQkqaW52ZmxhZ3MgfD0gSVBUX0lOVl9WSUFfT1VUOwotCi0J
-CWlmX2luZGV4dG9uYW1lKHZhbHVlLCBvdXRpZmFjZSk7Ci0KLQkJbWVtc2V0KG91dGlmYWNlX21h
-c2ssIDB4ZmYsIHN0cmxlbihvdXRpZmFjZSkrMSk7Ci0JCWJyZWFrOwogCWNhc2UgTkZUX01FVEFf
-SUlGTkFNRToKIAkJaWZuYW1lID0gbmZ0X3J1bGVfZXhwcl9nZXQoZSwgTkZUX0VYUFJfQ01QX0RB
-VEEsICZsZW4pOwogCQlpZiAobmZ0X3J1bGVfZXhwcl9nZXRfdTgoZSwgTkZUX0VYUFJfQ01QX09Q
-KSA9PSBORlRfQ01QX05FUSkKIAkJCSppbnZmbGFncyB8PSBJUFRfSU5WX1ZJQV9JTjsKIAogCQlt
-ZW1jcHkoaW5pZmFjZSwgaWZuYW1lLCBsZW4pOwotCQlpbmlmYWNlW2xlbl0gPSAnXDAnOwogCi0J
-CS8qIElmIHplcm8sIHRoZW4gdGhpcyBpcyBhbiBpbnRlcmZhY2UgbWFzayAqLwotCQlpZiAoaWZf
-bmFtZXRvaW5kZXgoaW5pZmFjZSkgPT0gMCkgewotCQkJaW5pZmFjZVtsZW5dID0gJysnOwotCQkJ
-aW5pZmFjZVtsZW4rMV0gPSAnXDAnOworCQlpZiAoaW5pZmFjZVtsZW4tMV0gPT0gJysnKSB7CisJ
-CQlpbmlmYWNlW2xlbl0gPSAnXDAnOworCQkJbWVtc2V0KGluaWZhY2VfbWFzaywgMHhmZiwgKGxl
-biAtIDEpKTsKKwkJfSBlbHNlIHsKKwkJCWluaWZhY2VbbGVuICsgMV0gPSAnXDAnOworCQkJbWVt
-c2V0KGluaWZhY2VfbWFzaywgMHhmZiwgKGxlbiArIDEpKTsKIAkJfQotCi0JCW1lbXNldChpbmlm
-YWNlX21hc2ssIDB4ZmYsIGxlbik7CiAJCWJyZWFrOwogCWNhc2UgTkZUX01FVEFfT0lGTkFNRToK
-IAkJaWZuYW1lID0gbmZ0X3J1bGVfZXhwcl9nZXQoZSwgTkZUX0VYUFJfQ01QX0RBVEEsICZsZW4p
-OwpAQCAtMjY3LDE1ICsyMzksMTUgQEAgdm9pZCBwYXJzZV9tZXRhKHN0cnVjdCBuZnRfcnVsZV9l
-eHByICplLCB1aW50OF90IGtleSwgY2hhciAqaW5pZmFjZSwKIAkJCSppbnZmbGFncyB8PSBJUFRf
-SU5WX1ZJQV9PVVQ7CiAKIAkJbWVtY3B5KG91dGlmYWNlLCBpZm5hbWUsIGxlbik7Ci0JCW91dGlm
-YWNlW2xlbl0gPSAnXDAnOwogCi0JCS8qIElmIHplcm8sIHRoZW4gdGhpcyBpcyBhbiBpbnRlcmZh
-Y2UgbWFzayAqLwotCQlpZiAoaWZfbmFtZXRvaW5kZXgob3V0aWZhY2UpID09IDApIHsKLQkJCW91
-dGlmYWNlW2xlbl0gPSAnKyc7Ci0JCQlvdXRpZmFjZVtsZW4rMV0gPSAnXDAnOwotCQl9CisJCWlm
-IChvdXRpZmFjZVtsZW4gLTFdID09ICcrJykgeworICAgICAgICAgICAgICAgICAgICAgICAgb3V0
-aWZhY2VbbGVuXSA9ICdcMCc7CisgICAgICAgICAgICAgICAgICAgICAgICBtZW1zZXQob3V0aWZh
-Y2VfbWFzaywgMHhmZiwgKGxlbiAtIDEpKTsKKyAgICAgICAgICAgICAgICB9IGVsc2UgeworICAg
-ICAgICAgICAgICAgIAlvdXRpZmFjZVtsZW4gKyAxIF0gPSAnXDAnOworICAgICAgICAgICAgICAg
-ICAgICAgICAgbWVtc2V0KG91dGlmYWNlX21hc2ssIDB4ZmYsIChsZW4gKyAxKSk7CisgICAgICAg
-ICAgICAgICAgfQogCi0JCW1lbXNldChvdXRpZmFjZV9tYXNrLCAweGZmLCBsZW4pOwogCQlicmVh
-azsKIAlkZWZhdWx0OgogCQlERUJVR1AoInVua25vd24gbWV0YSBrZXkgJWRcbiIsIGtleSk7Cg==
---089e0158cb926908ab04e873d539--
+I still think this still breaks -i eth+ matching, as there was special
+handling for that case.
