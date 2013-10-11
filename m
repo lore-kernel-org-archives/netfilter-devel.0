@@ -1,82 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH] src: fix return code
-Date: Fri, 11 Oct 2013 10:25:53 +0200
-Message-ID: <20131011082552.GB3630@localhost>
-References: <20131010211156.12209.65147.stgit@nfdev.cica.es>
+Subject: Re: [nftables kernel - PATCH 1/2] netfilter: nf_tables: Update uapi
+ nftables netlink header documentation
+Date: Fri, 11 Oct 2013 10:43:07 +0200
+Message-ID: <20131011084307.GA3956@localhost>
+References: <1381139880-20311-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1381139880-20311-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41006 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45970 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755913Ab3JKI0E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Oct 2013 04:26:04 -0400
+	id S1752047Ab3JKInM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Oct 2013 04:43:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20131010211156.12209.65147.stgit@nfdev.cica.es>
+In-Reply-To: <1381139880-20311-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 10, 2013 at 11:11:56PM +0200, Arturo Borrero Gonzalez wrote:
-> Exit with NFT_EXIT_FAILURE if something went wrong in the netlink zone.
-> 
-> Before this patch:
-> 
-> # nft list chain filter asd ; echo $?
-> internal:0:0-0: Error: Could not find chain `asd' in table `filter': [...]
-> 
-> 0
-> 
-> After this patch:
-> 
-> # nft list chain filter asd ; echo $?
-> internal:0:0-0: Error: Could not find chain `asd' in table `filter': [...]
-> 
-> 1
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  src/main.c |    7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/src/main.c b/src/main.c
-> index 3ddcb71..9aa5f1b 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -222,7 +222,7 @@ int main(int argc, char * const *argv)
->  	char *buf = NULL, *filename = NULL;
->  	unsigned int len;
->  	bool interactive = false;
-> -	int i, val;
-> +	int i, val, rc = NFT_EXIT_FAILURE;
->  
->  	while (1) {
->  		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
-> @@ -318,11 +318,12 @@ int main(int argc, char * const *argv)
->  		exit(NFT_EXIT_FAILURE);
->  	}
->  
-> -	nft_run(scanner, &state, &msgs);
-> +	if (nft_run(scanner, &state, &msgs) == 0)
-> +		rc = NFT_EXIT_SUCCESS;
+On Mon, Oct 07, 2013 at 12:57:59PM +0300, Tomasz Bursztyka wrote:
+> Thus all types, attributes, flags and so on get properly updated as the
+> very first ones were.
 
-I prefer if you check for errors, the convention is to check for
-errors, which should be the less frequent path. So assume
-NFT_EXIT_SUCCESS by default.
+Applying: netfilter: nf_tables: Update uapi nftables netlink header
+documentation
+/home/pablo/devel/scm/git-kernel/korg/nftables-backup/.git/rebase-apply/patch:76:
+trailing whitespace.
+ * @NFT_RULE_COMPAT_F_INV: invert the check result
+/home/pablo/devel/scm/git-kernel/korg/nftables-backup/.git/rebase-apply/patch:87:
+trailing whitespace.
+ * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags
+ * (NLA_U32)
+/home/pablo/devel/scm/git-kernel/korg/nftables-backup/.git/rebase-apply/patch:114:
+trailing whitespace.
+ * @NFTA_BYTEORDER_SIZE: _TODO_ (NLA_U32)
+warning: 3 lines add whitespace errors.
 
->  out:
->  	scanner_destroy(scanner);
->  	erec_print_list(stdout, &msgs);
->  
->  	xfree(buf);
-> -	return 0;
-> +	exit(rc);
+Please, mind with whitespace errors at the end of lines. I have fixed
+them here.
 
-Please, replace this with 'return rc;'
-
->  }
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
