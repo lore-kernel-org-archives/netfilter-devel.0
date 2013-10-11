@@ -1,75 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [OOPS PATCH 1/1] netfilter: fix OOPS in flush_expectations()
-Date: Fri, 11 Oct 2013 15:35:41 +0100
-Message-ID: <20131011143539.GA5276@macbook.localnet>
-References: <20131011140204.916097373@eitzenberger.org>
- <20131011140440.339579297@eitzenberger.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
+From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Subject: [PATCH] netfilter: ipset: Fix configure failure when --with-kmod=no
+Date: Fri, 11 Oct 2013 16:41:12 +0200
+Message-ID: <1381502472-12217-2-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+References: <1381502472-12217-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45748 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968Ab3JKOft (ORCPT
+Received: from mail.uptheinter.net ([77.74.196.236]:46731 "EHLO
+	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab3JKOm5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Oct 2013 10:35:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20131011140440.339579297@eitzenberger.org>
+	Fri, 11 Oct 2013 10:42:57 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.uptheinter.net (Postfix) with ESMTP id 975559FF14
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2013 15:42:56 +0100 (BST)
+Received: from mail.uptheinter.net ([127.0.0.1])
+	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id wPbaywVXOcCp for <netfilter-devel@vger.kernel.org>;
+	Fri, 11 Oct 2013 15:41:44 +0100 (BST)
+In-Reply-To: <1381502472-12217-1-git-send-email-oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 11, 2013 at 04:02:05PM +0200, Holger Eitzenberger wrote:
-> This is the initial report I got:
-> 
->   [ 2886.953175] BUG: unable to handle kernel paging request at 00100100
->   [ 2886.956435] IP: [<f88a4ab8>] flush_expectations+0x68/0x85 [nf_conntrack_sip]
->   [ 2886.956435] *pde = 00000000
->   [ 2886.956435] Oops: 0000 [001] SMP
->   ...
->   [ 2886.956435] Pid: 5606, comm: red_server.plc Tainted: G O
->   3.3.8-79.g20f5c30-smp 001 Astaro AG ASG/i845GV-W83627HF
->   [ 2886.956435] EIP: 0060:[<f88a4ab8>] EFLAGS: 00210246 CPU: 0
->   [ 2886.956435] EIP is at flush_expectations+0x68/0x85 [nf_conntrack_sip]
->   [ 2886.956435] EAX: 00000000 EBX: 00100100 ECX: 00000000 EDX: effdc0a0
->   [ 2886.956435] ESI: 00100100 EDI: 00000001 EBP: 00000001 ESP: f5c0bd54
->   [ 2886.956435] DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
->   [ 2886.956435] Process red_server.plc (pid: 5606, ti=f5c0a000 task=f5da2a20 task.ti=efc62000)
->   [ 2886.956435] Stack:
->   [ 2886.956435] f490b948 00000001 00000197 f45f4f00 f88a5918 f5c0bde0 f5c0bddc 0000001c
->   [ 2886.956435] 00000014 f88a72a8 0000015d f5c0bddc 00000001 f88a472e f5c0bddc f5c0bde0
->   [ 2886.956435] 00000001 00000197 00000014 f490b948 f45f4f00 f88a72a8 00000197 00000001
-> 
-> Which is due to nf_conntrack_expect.lnode hlist entry not being reset
-> to NULL after being removed from the list in hlist_del(), but instead to
-> LIST_POISON1.  And because of this hlist_for_each_entry_safe() does
-> not terminate correctly.
-> 
-> Therefore change nf_ct_unlink_expect_report() to use __hlist_del()
-> instead.
+From: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 
-We should be holding the conntrack lock here and in flush_expectations(),
-Not sure what I'm missing here, but if locking were used correctly, this
-shouldn't be happening.
+When configuring the sources to build without kernel modules, the path
+to the kernel sources was not set and the kernel header files were still
+checked.
 
-> 
-> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-> 
-> Index: linux-stable-3.8.y/net/netfilter/nf_conntrack_expect.c
-> ===================================================================
-> --- linux-stable-3.8.y.orig/net/netfilter/nf_conntrack_expect.c
-> +++ linux-stable-3.8.y/net/netfilter/nf_conntrack_expect.c
-> @@ -51,7 +51,7 @@ void nf_ct_unlink_expect_report(struct n
->  	hlist_del_rcu(&exp->hnode);
->  	net->ct.expect_count--;
->  
-> -	hlist_del(&exp->lnode);
-> +	__hlist_del(&exp->lnode);
->  	master_help->expecting[exp->class]--;
->  
->  	nf_ct_expect_event_report(IPEXP_DESTROY, exp, pid, report);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now, we do not check the kernel sources for compatibility if we're not
+going to build any kernel modules.
+
+Signed-off-by: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+---
+ configure.ac | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 0eb1022..d56328c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -167,6 +167,8 @@ AC_CHECK_TYPES([union nf_inet_addr],,,[#include <linux/types.h>
+ dnl Checks for functions
+ AC_CHECK_FUNCS(gethostbyname2)
+ 
++if test "$BUILDKMOD" == "yes"
++then
+ dnl Check kernel incompatibilities... Ugly like hell
+ AC_MSG_CHECKING([kernel source for struct xt_action_param])
+ if test -f $ksourcedir/include/linux/netfilter/x_tables.h && \
+@@ -309,6 +311,7 @@ else
+ 	AC_MSG_RESULT(no)
+ 	AC_MSG_ERROR([Netns support is required in the Linux kernel tree])
+ fi
++fi
+ 
+ dnl Checks for compiler characteristics.
+ dnl Check extra warning flags except
+-- 
+1.8.3.2
+
