@@ -1,59 +1,60 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [nftables-kernel PATCH 3/7] netfilter: nf_tables: Expose the table's chain usage to the netlink API
-Date: Mon, 14 Oct 2013 15:46:52 +0300
-Message-ID: <1381754816-28472-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [nftables-kernel PATCH 4/7] netfilter: nf_tables: Use a semantically relevant name on chain's refs
+Date: Mon, 14 Oct 2013 15:46:53 +0300
+Message-ID: <1381754816-28472-5-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1381754816-28472-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:52811 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755988Ab3JNMrG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Oct 2013 08:47:06 -0400
+	id S1756064Ab3JNMrH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Oct 2013 08:47:07 -0400
 In-Reply-To: <1381754816-28472-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-User space can therefore know whether a table is in use or not, and by
-how many chains.
-
-Suggested by Pablo Neira Ayuso.
+NFTA_CHAIN_USE is less semantically self-explaining than
+NFTA_CHAIN_REFS.
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c            | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h | 4 ++--
+ net/netfilter/nf_tables_api.c            | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b108548..28f0ffb 100644
+index 28f0ffb..81eec3b 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -110,11 +110,13 @@ enum nft_table_flags {
-  *
-  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
-  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
-+ * @NFTA_TABLE_CHAINS: number of chains in this table (NLA_U32)
+@@ -129,7 +129,7 @@ enum nft_table_attributes {
+  * @NFTA_CHAIN_NAME: name of the chain (NLA_STRING)
+  * @NFTA_CHAIN_HOOK: hook specification for basechains (NLA_NESTED: nft_hook_attributes)
+  * @NFTA_CHAIN_POLICY: numeric policy of the chain (NLA_U32)
+- * @NFTA_CHAIN_USE: number of references to this chain (NLA_U32)
++ * @NFTA_CHAIN_REFS: number of references to this chain (NLA_U32)
+  * @NFTA_CHAIN_TYPE: type name of the string (NLA_NUL_STRING)
+  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
   */
- enum nft_table_attributes {
- 	NFTA_TABLE_UNSPEC,
- 	NFTA_TABLE_NAME,
- 	NFTA_TABLE_FLAGS,
-+	NFTA_TABLE_CHAINS,
- 	__NFTA_TABLE_MAX
- };
- #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
+@@ -140,7 +140,7 @@ enum nft_chain_attributes {
+ 	NFTA_CHAIN_NAME,
+ 	NFTA_CHAIN_HOOK,
+ 	NFTA_CHAIN_POLICY,
+-	NFTA_CHAIN_USE,
++	NFTA_CHAIN_REFS,
+ 	NFTA_CHAIN_TYPE,
+ 	NFTA_CHAIN_COUNTERS,
+ 	__NFTA_CHAIN_MAX
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index dcddc49..482b689 100644
+index 482b689..951c264 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -180,7 +180,8 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	nfmsg->res_id		= 0;
+@@ -614,7 +614,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 			goto nla_put_failure;
+ 	}
  
- 	if (nla_put_string(skb, NFTA_TABLE_NAME, table->name) ||
--	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)))
-+	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)) ||
-+	    nla_put_be32(skb, NFTA_TABLE_CHAINS, htonl(table->use)))
+-	if (nla_put_be32(skb, NFTA_CHAIN_USE, htonl(chain->use)))
++	if (nla_put_be32(skb, NFTA_CHAIN_REFS, htonl(chain->use)))
  		goto nla_put_failure;
  
  	return nlmsg_end(skb, nlh);
