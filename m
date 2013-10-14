@@ -1,38 +1,40 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH] nft: arp: fix STRING_OVERFLOW
-Date: Mon, 14 Oct 2013 09:14:27 +0300
-Message-ID: <525B8BC3.6070804@linux.intel.com>
-References: <1381569712-7835-1-git-send-email-giuseppelng@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Giuseppe Longo <giuseppelng@gmail.com>,
-	netfilter-devel@vger.kernel.org
+Subject: [nftables-kernel PATCH 1/7] netfilter: nf_tables: Fix API documentation on a missing part
+Date: Mon, 14 Oct 2013 15:46:50 +0300
+Message-ID: <1381754816-28472-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1381754816-28472-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60648 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:41645 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796Ab3JNGOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Oct 2013 02:14:30 -0400
-In-Reply-To: <1381569712-7835-1-git-send-email-giuseppelng@gmail.com>
+	id S1755988Ab3JNMrD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Oct 2013 08:47:03 -0400
+In-Reply-To: <1381754816-28472-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Giuseppe Longo a =E9crit :
+Add the documentation for NFTA_BYTEORDER_SIZE attribute which was left
+with a non relevant _TODO_.
 
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> This patch replace strcat with strncat and strcpy with strncpy
-> fixing possible string overflow.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index be8a062..b108548 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -398,7 +398,7 @@ enum nft_byteorder_ops {
+  * @NFTA_BYTEORDER_DREG: destination register (NLA_U32: nft_registers)
+  * @NFTA_BYTEORDER_OP: operator (NLA_U32: enum nft_byteorder_ops)
+  * @NFTA_BYTEORDER_LEN: length of the data (NLA_U32)
+- * @NFTA_BYTEORDER_SIZE: _TODO_ (NLA_U32)
++ * @NFTA_BYTEORDER_SIZE: data size in bytes (NLA_U32: 2 or 4)
+  */
+ enum nft_byteorder_attributes {
+ 	NFTA_BYTEORDER_UNSPEC,
+-- 
+1.8.3.2
 
-Can you remind in the commit message that this patch is a backport of=20
-the patch http://patchwork.ozlabs.org/patch/279672/ ?
-(I mean: name the original author)
-
-Thanks,
-
-Tomasz
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
