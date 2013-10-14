@@ -1,62 +1,39 @@
-From: "mancha" <mancha1@hush.com>
-Subject: ip{,6}tables-save misleading return code
-Date: Mon, 14 Oct 2013 20:38:16 +0000
-Message-ID: <20131014203816.CC16360191@smtp.hushmail.com>
-Reply-To: mancha1@hush.com
+From: Hani Benhabiles <kroosec@gmail.com>
+Subject: [PATCH conntrack-tools] conntrackd: Don't hardcode libs dir path
+Date: Mon, 14 Oct 2013 23:14:24 +0100
+Message-ID: <20131014221424.GA10577@doj>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp10.hushmail.com ([65.39.178.143]:49214 "EHLO
-	smtp10.hushmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756815Ab3JNVLU (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:47420 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756998Ab3JNWOc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Oct 2013 17:11:20 -0400
-Received: from smtp10.hushmail.com (localhost [127.0.0.1])
-	by smtp10.hushmail.com (Postfix) with SMTP id EA74CC01B0
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2013 20:38:16 +0000 (UTC)
-Received: from smtp.hushmail.com (w6.hushmail.com [65.39.178.92])
-	by smtp10.hushmail.com (Postfix) with ESMTP
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2013 20:38:16 +0000 (UTC)
+	Mon, 14 Oct 2013 18:14:32 -0400
+Received: by mail-ee0-f50.google.com with SMTP id d51so3640697eek.23
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2013 15:14:31 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello, this came up on freenode's #netfilter today.
+Use CONNTRACKD_LIB_DIR instead of hardcoded path.
 
-ip{,6}tables-save(8), when run as an unprivileged user (who
-doesn't have access to /proc/net/ip{,6}_tables_names), displays
-no output and returns 0 because of a Boolean inversion.
+Signed-off-by: Hani Benhabiles <kroosec@gmail.com>
+---
 
-luser@myhost:~$ iptables-save; echo $? 
-0
-
-The patch below changes the return to 1 if fopen() fails.
-Additionally, one could add "if (errno == EACCESS)" conditioned
-error messages.
-
---mancha
-
---- a/iptables/iptables-save.c  2013-10-14
-+++ b/iptables/iptables-save.c  2013-10-14
-@@ -40,7 +40,7 @@ static int for_each_table(int (*func)(co
-
-        procfile = fopen("/proc/net/ip_tables_names", "re");
-        if (!procfile)
--               return ret;
-+               return 0;
-
-        while (fgets(tablename, sizeof(tablename), procfile)) {
-                if (tablename[strlen(tablename) - 1] != '\n')
---- a/iptables/ip6tables-save.c 2013-10-14
-+++ b/iptables/ip6tables-save.c 2013-10-14
-@@ -42,7 +42,7 @@ static int for_each_table(int (*func)(co
-
-        procfile = fopen("/proc/net/ip6_tables_names", "re");
-        if (!procfile)
--               return ret;
-+               return 0;
-
-        while (fgets(tablename, sizeof(tablename), procfile)) {
-                if (tablename[strlen(tablename) - 1] != '\n')
+diff --git a/src/read_config_yy.y b/src/read_config_yy.y
+index fa517bb..73fabbf 100644
+--- a/src/read_config_yy.y
++++ b/src/read_config_yy.y
+@@ -1613,8 +1613,7 @@ helper_type: T_TYPE T_STRING T_STRING T_STRING '{' helper_type_list  '}'
+ 	}
+ 
+ #ifdef BUILD_CTHELPER
+-	/* XXX use configure.ac definitions. */
+-	helper = helper_find("/usr/lib/conntrack-tools", $2, l4proto, RTLD_NOW);
++	helper = helper_find(CONNTRACKD_LIB_DIR, $2, l4proto, RTLD_NOW);
+ 	if (helper == NULL) {
+ 		print_err(CTD_CFG_ERROR, "Unknown `%s' helper", $2);
+ 		exit(EXIT_FAILURE);
 
