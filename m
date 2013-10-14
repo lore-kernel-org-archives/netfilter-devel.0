@@ -1,27 +1,71 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [nftables-kernel PATCH 0/7] API minor fixes and improvement proposals
-Date: Mon, 14 Oct 2013 16:50:36 +0300
-Message-ID: <525BF6AC.4050000@linux.intel.com>
-References: <1381754816-28472-1-git-send-email-tomasz.bursztyka@linux.intel.com> <20131014125814.GA31411@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:5034 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793Ab3JNNup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Oct 2013 09:50:45 -0400
-In-Reply-To: <20131014125814.GA31411@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 02/17] netfilter: nf_nat: move alloc_null_binding to nf_nat_core.c
+Date: Mon, 14 Oct 2013 18:38:43 +0200
+Message-ID: <1381768738-17739-3-git-send-email-pablo@netfilter.org>
+References: <1381768738-17739-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, kaber@trash.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1381768738-17739-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Similar to nat_decode_session, alloc_null_binding is needed for both
+ip_tables and nf_tables, so move it to nf_nat_core.c. This change
+is required by nf_tables.
 
-> Code for user-space is missing, won't take these until finished.
+This is an adapted version of the original patch from Patrick McHardy.
 
-Sure, that's why I put them as "proposal" so it could be quickly 
-reviewed, at least for the API part. (patch 6 and 7 mostly)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_nat.h |    3 +++
+ net/netfilter/nf_nat_core.c    |   20 ++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-Tomasz
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index c29b4e5..07eaaf6 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -45,6 +45,9 @@ unsigned int nf_nat_setup_info(struct nf_conn *ct,
+ 			       const struct nf_nat_range *range,
+ 			       enum nf_nat_manip_type maniptype);
+ 
++extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
++					      unsigned int hooknum);
++
+ /* Is this tuple already taken? (not by us)*/
+ int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_conntrack);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 6f0f4f7..63a8154 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -432,6 +432,26 @@ nf_nat_setup_info(struct nf_conn *ct,
+ }
+ EXPORT_SYMBOL(nf_nat_setup_info);
+ 
++unsigned int
++nf_nat_alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
++{
++	/* Force range to this IP; let proto decide mapping for
++	 * per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
++	 * Use reply in case it's already been mangled (eg local packet).
++	 */
++	union nf_inet_addr ip =
++		(HOOK2MANIP(hooknum) == NF_NAT_MANIP_SRC ?
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3 :
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3);
++	struct nf_nat_range range = {
++		.flags		= NF_NAT_RANGE_MAP_IPS,
++		.min_addr	= ip,
++		.max_addr	= ip,
++	};
++	return nf_nat_setup_info(ct, &range, HOOK2MANIP(hooknum));
++}
++EXPORT_SYMBOL_GPL(nf_nat_alloc_null_binding);
++
+ /* Do packet manipulations according to nf_nat_setup_info. */
+ unsigned int nf_nat_packet(struct nf_conn *ct,
+ 			   enum ip_conntrack_info ctinfo,
+-- 
+1.7.10.4
