@@ -1,70 +1,111 @@
-From: Anand Raj Manickam <anandrm@gmail.com>
-Subject: Re: [RFC PATCH nft] src: add support for interface wildcard name
-Date: Wed, 16 Oct 2013 18:48:04 +0530
-Message-ID: <CAEyr1FTnZV0tr4qCYSbW3MUotUXLUqMhs7k6zZO3_ip9WTn12A@mail.gmail.com>
-References: <1381846993-30093-1-git-send-email-fw@strlen.de>
-	<20131016103949.GA10032@localhost>
-	<20131016110043.GB12157@breakpoint.cc>
-	<20131016125839.GA10867@localhost>
-	<20131016130154.GA10886@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH iptables-nftables] nft: fix interface wildcard matching
+Date: Wed, 16 Oct 2013 16:07:12 +0200
+Message-ID: <1381932432-16754-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qe0-f45.google.com ([209.85.128.45]:54283 "EHLO
-	mail-qe0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934364Ab3JPNSF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Oct 2013 09:18:05 -0400
-Received: by mail-qe0-f45.google.com with SMTP id 8so547860qea.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2013 06:18:04 -0700 (PDT)
-In-Reply-To: <20131016130154.GA10886@localhost>
+Received: from mail.us.es ([193.147.175.20]:58338 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934006Ab3JPOHX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Oct 2013 10:07:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 16, 2013 at 6:31 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Oct 16, 2013 at 02:58:39PM +0200, Pablo Neira Ayuso wrote:
->> On Wed, Oct 16, 2013 at 01:00:43PM +0200, Florian Westphal wrote:
->> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > > On Tue, Oct 15, 2013 at 04:23:13PM +0200, Florian Westphal wrote:
->> > > > Uses same syntax as iptables: itfname+.
->> > >
->> > > Good you're bringing up this issue, we've been discussing this for a
->> > > while with recent Anand's patch.
->> > >
->> > > > The '+' suffix is not stored on the kernel side; this approach
->> > > > is the same as the one used by iptables-nftables.
->> > >
->> > > Hm, it seems current iptables-nftables seems broken by:
->> > >
->> > > 73ea1cc nft: convert rule into a command state structure
->> >
->> > I tested with latest ipt-nft (42531b3a6) -- admittingly, I did only
->> > test xt-save output, which adds '+' postfix in the no-trailing-nul case.
->> >
->> > > >  Caveats:
->> > > >   - I am not convinced '+' is a good idea -- it is ambiguous since
->> > > >   'foo+' is a legal interface name.
->> > >
->> > > I think we can remove the '+' in nft, so we match exactly what we
->> > > pass for the ifname case, eg. iifname "eth".
->> >
->> > Hm.  "iifname eth1": Should it match eth1? Yes. But what about eth10,
->> > eth1.42, etc?  I think we need an explicit way to resolve the ambiguity;
->>
->> I think "iffname eth1" should mean match "eth1\0".
->
-> Oh I see, the ambiguity comes from nft syntax, then we do need some
-> the wildcard character, yes.
->
-> We can add "ifname-mask eth0", thus,
->
->         ifname-mask eth1 means match "eth1", including eth1, eth1.0, etc.
->         ifname eth1 means match "eth1\0".
+In (73ea1cc nft: convert rule into a command state structure), the
+interface wildcard matching got broken. The previous handling was
+flawed by the use of ifnametoindex in scenario where the interface
+may vanished after a rule was added.
 
-iptables use the mask in kernel (ip_packet_match)  to do the wildcard match.
-Currently ipt-nft  does use the MASK for the rule validation and with
-patch submitted earlier , it should now help us to ADD/DELETE rules.
-The opinion here is to push the offset/mask validation on the
-nft_meta_eval in kernel ?
+This approach relies on the trailing '\0' to identify if this is
+an exact or wildcard matching, based on discussion with Florian.
+
+Based on initial patch from Anand Raj Manickam.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ iptables/nft-shared.c |   38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
+
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 3987f74..e0eaa17 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -124,13 +124,11 @@ void add_iniface(struct nft_rule *r, char *iface, int invflags)
+ 	else
+ 		op = NFT_CMP_EQ;
+ 
+-	if (iface[iface_len - 1] == '+') {
+-		add_meta(r, NFT_META_IIFNAME);
++	add_meta(r, NFT_META_IIFNAME);
++	if (iface[iface_len - 1] == '+')
+ 		add_cmp_ptr(r, op, iface, iface_len - 1);
+-	} else {
+-		add_meta(r, NFT_META_IIF);
+-		add_cmp_u32(r, if_nametoindex(iface), op);
+-	}
++	else
++		add_cmp_ptr(r, op, iface, iface_len + 1);
+ }
+ 
+ void add_outiface(struct nft_rule *r, char *iface, int invflags)
+@@ -145,13 +143,11 @@ void add_outiface(struct nft_rule *r, char *iface, int invflags)
+ 	else
+ 		op = NFT_CMP_EQ;
+ 
+-	if (iface[iface_len - 1] == '+') {
+-		add_meta(r, NFT_META_OIFNAME);
++	add_meta(r, NFT_META_OIFNAME);
++	if (iface[iface_len - 1] == '+')
+ 		add_cmp_ptr(r, op, iface, iface_len - 1);
+-	} else {
+-		add_meta(r, NFT_META_OIF);
+-		add_cmp_u32(r, if_nametoindex(iface), op);
+-	}
++	else
++		add_cmp_ptr(r, op, iface, iface_len + 1);
+ }
+ 
+ void add_addr(struct nft_rule *r, int offset,
+@@ -251,15 +247,14 @@ void parse_meta(struct nft_rule_expr *e, uint8_t key, char *iniface,
+ 			*invflags |= IPT_INV_VIA_IN;
+ 
+ 		memcpy(iniface, ifname, len);
+-		iniface[len] = '\0';
+ 
+-		/* If zero, then this is an interface mask */
+-		if (if_nametoindex(iniface) == 0) {
++		if (iniface[len] == '\0')
++			memset(iniface_mask, 0xff, len);
++		else {
+ 			iniface[len] = '+';
+ 			iniface[len+1] = '\0';
++			memset(iniface_mask, 0xff, len + 1);
+ 		}
+-
+-		memset(iniface_mask, 0xff, len);
+ 		break;
+ 	case NFT_META_OIFNAME:
+ 		ifname = nft_rule_expr_get(e, NFT_EXPR_CMP_DATA, &len);
+@@ -267,15 +262,14 @@ void parse_meta(struct nft_rule_expr *e, uint8_t key, char *iniface,
+ 			*invflags |= IPT_INV_VIA_OUT;
+ 
+ 		memcpy(outiface, ifname, len);
+-		outiface[len] = '\0';
+ 
+-		/* If zero, then this is an interface mask */
+-		if (if_nametoindex(outiface) == 0) {
++		if (outiface[len] == '\0')
++			memset(outiface_mask, 0xff, len);
++		else {
+ 			outiface[len] = '+';
+ 			outiface[len+1] = '\0';
++			memset(outiface_mask, 0xff, len + 1);
+ 		}
+-
+-		memset(outiface_mask, 0xff, len);
+ 		break;
+ 	default:
+ 		DEBUGP("unknown meta key %d\n", key);
+-- 
+1.7.10.4
+
