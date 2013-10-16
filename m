@@ -1,407 +1,159 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] src: add fprintf functions
-Date: Wed, 16 Oct 2013 19:14:38 +0200
-Message-ID: <20131016171437.27537.1477.stgit@nfdev.cica.es>
+From: "Vitaly E. Lavrov" <lve@guap.ru>
+Subject: [RFC PATCH nf_conntrack_extend] new extensions without changes kernel
+ source
+Date: Wed, 16 Oct 2013 23:36:23 +0400
+Message-ID: <525EEAB7.4090901@guap.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030608090301070509090308"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36920 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761257Ab3JPROu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Oct 2013 13:14:50 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 0F2AB51ED1D
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2013 17:14:47 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id oogWVy0DfZ5i for <netfilter-devel@vger.kernel.org>;
-	Wed, 16 Oct 2013 19:14:41 +0200 (CEST)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 5BB3151ED16
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2013 19:14:41 +0200 (CEST)
+Received: from ns1.guap.ru ([91.151.188.3]:12331 "EHLO ns1.guap.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753183Ab3JPTg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Oct 2013 15:36:26 -0400
+Received: from [10.150.100.7] (95-161-251-39.broadband.spb.TiERA.org [95.161.251.39])
+	(user=lve@guap.ru mech=CRAM-MD5 bits=0)
+	by mail.guap.ru (8.14.7/8.14.4) with ESMTP id r9GJaNXr029838
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2013 23:36:23 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now it's possible to print directly from libnftables to a file or other stream.
+This is a multi-part message in MIME format.
+--------------030608090301070509090308
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-In order to don't force any format, the caller must print '\n'.
+How to add additional data to the conntrack? This is needed to
+the implementation of ndpi-netfilter.
 
-Signed-off-by: Arturo Borrero Gonzale <arturo.borrero.glez@gmail.com>
----
- include/libnftables/chain.h   |    1 +
- include/libnftables/rule.h    |    1 +
- include/libnftables/ruleset.h |    1 +
- include/libnftables/set.h     |    2 ++
- include/libnftables/table.h   |    1 +
- src/chain.c                   |   27 +++++++++++++++++++++++++++
- src/internal.h                |    2 ++
- src/libnftables.map           |    6 ++++++
- src/rule.c                    |   27 +++++++++++++++++++++++++++
- src/ruleset.c                 |   28 ++++++++++++++++++++++++++++
- src/set.c                     |   27 +++++++++++++++++++++++++++
- src/set_elem.c                |   27 +++++++++++++++++++++++++++
- src/table.c                   |   27 +++++++++++++++++++++++++++
- 13 files changed, 177 insertions(+)
+Now it is possible to add data to a struct "nf_conn-> ext" through
+nf_conntrack_extend, but it requires a change in the kernel code.
 
-diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index d3086ea..4b58f16 100644
---- a/include/libnftables/chain.h
-+++ b/include/libnftables/chain.h
-@@ -58,6 +58,7 @@ enum nft_chain_parse_type {
- 
- int nft_chain_parse(struct nft_chain *c, enum nft_chain_parse_type type, const char *data);
- int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *t, uint32_t type, uint32_t flags);
-+int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_chain_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *t);
-diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
-index 9fba9c8..a35b700 100644
---- a/include/libnftables/rule.h
-+++ b/include/libnftables/rule.h
-@@ -57,6 +57,7 @@ enum nft_rule_parse_type {
- 
- int nft_rule_parse(struct nft_rule *r, enum nft_rule_parse_type type, const char *data);
- int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *t, uint32_t type, uint32_t flags);
-+int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_rule_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_rule *t);
-diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
-index a4a1279..980276d 100644
---- a/include/libnftables/ruleset.h
-+++ b/include/libnftables/ruleset.h
-@@ -37,6 +37,7 @@ enum nft_ruleset_parse_type {
- 
- int nft_ruleset_parse(struct nft_ruleset *rs, enum nft_ruleset_parse_type type, const char *data);
- int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
-+int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/include/libnftables/set.h b/include/libnftables/set.h
-index e377826..2bddda4 100644
---- a/include/libnftables/set.h
-+++ b/include/libnftables/set.h
-@@ -36,6 +36,7 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
- int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
- 
- int nft_set_snprintf(char *buf, size_t size, struct nft_set *s, uint32_t type, uint32_t flags);
-+int nft_set_fprintf(FILE *fp, struct nft_set *s, uint32_t type, uint32_t flags);
- 
- struct nft_set_list;
- 
-@@ -106,6 +107,7 @@ int nft_set_elem_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set_elem *s)
- 
- int nft_set_elem_parse(struct nft_set_elem *e, enum nft_set_parse_type type, const char *data);
- int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *s, uint32_t type, uint32_t flags);
-+int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type, uint32_t flags);
- 
- int nft_set_elem_foreach(struct nft_set *s, int (*cb)(struct nft_set_elem *e, void *data), void *data);
- 
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 66574cf..c412c43 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -46,6 +46,7 @@ enum nft_table_parse_type {
- 
- int nft_table_parse(struct nft_table *t, enum nft_table_parse_type type, const char *data);
- int nft_table_snprintf(char *buf, size_t size, struct nft_table *t, uint32_t type, uint32_t flags);
-+int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_table_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_table *t);
-diff --git a/src/chain.c b/src/chain.c
-index f831479..b92b22f 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -851,6 +851,33 @@ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
- }
- EXPORT_SYMBOL(nft_chain_snprintf);
- 
-+int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type,
-+		      uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_chain_snprintf(buf, bufsiz, c, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_chain_snprintf(buf, bufsiz, c, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_chain_fprintf);
-+
- struct nft_chain_list {
- 	struct list_head list;
- };
-diff --git a/src/internal.h b/src/internal.h
-index b29288a..e0f17ec 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -17,6 +17,8 @@
- #define BASE_DEC 10
- #define BASE_HEX 16
- 
-+#define NFT_SNPRINTF_BUFSIZ 4096
-+
- enum nft_type {
- 	NFT_TYPE_U8,
- 	NFT_TYPE_U16,
-diff --git a/src/libnftables.map b/src/libnftables.map
-index 1223403..aa47714 100644
---- a/src/libnftables.map
-+++ b/src/libnftables.map
-@@ -12,6 +12,7 @@ global:
-   nft_table_attr_get_str;
-   nft_table_parse;
-   nft_table_snprintf;
-+  nft_table_fprintf;
-   nft_table_nlmsg_build_hdr;
-   nft_table_nlmsg_build_payload;
-   nft_table_nlmsg_parse;
-@@ -42,6 +43,7 @@ global:
-   nft_chain_attr_get_str;
-   nft_chain_parse;
-   nft_chain_snprintf;
-+  nft_chain_fprintf;
-   nft_chain_nlmsg_build_hdr;
-   nft_chain_nlmsg_build_payload;
-   nft_chain_nlmsg_parse;
-@@ -71,6 +73,7 @@ global:
-   nft_rule_attr_get_str;
-   nft_rule_parse;
-   nft_rule_snprintf;
-+  nft_rule_fprintf;
-   nft_rule_nlmsg_build_hdr;
-   nft_rule_nlmsg_build_payload;
-   nft_rule_nlmsg_parse;
-@@ -126,6 +129,7 @@ global:
-   nft_set_nlmsg_parse;
-   nft_set_parse;
-   nft_set_snprintf;
-+  nft_set_fprintf;
- 
-   nft_set_list_alloc;
-   nft_set_list_free;
-@@ -157,6 +161,7 @@ global:
-   nft_set_elem_nlmsg_parse;
-   nft_set_elem_parse;
-   nft_set_elem_snprintf;
-+  nft_set_elem_fprinf;
- 
-   nft_set_elems_nlmsg_build_payload;
-   nft_set_elems_nlmsg_parse;
-@@ -176,6 +181,7 @@ global:
-   nft_ruleset_attr_get;
-   nft_ruleset_parse;
-   nft_ruleset_snprintf;
-+  nft_ruleset_fprintf;
- 
- local: *;
- };
-diff --git a/src/rule.c b/src/rule.c
-index 7f2bce6..68e733b 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -843,6 +843,33 @@ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
- }
- EXPORT_SYMBOL(nft_rule_snprintf);
- 
-+int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type,
-+		     uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_rule_snprintf(buf, bufsiz, r, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_rule_snprintf(buf, bufsiz, r, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_rule_fprintf);
-+
- int nft_rule_expr_foreach(struct nft_rule *r,
-                           int (*cb)(struct nft_rule_expr *e, void *data),
-                           void *data)
-diff --git a/src/ruleset.c b/src/ruleset.c
-index a7fbc33..54c3fc1 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -811,3 +811,31 @@ int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *r,
- 	return -1;
- }
- EXPORT_SYMBOL(nft_ruleset_snprintf);
-+
-+int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
-+			uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_ruleset_snprintf(buf, bufsiz, rs, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_ruleset_snprintf(buf, bufsiz, rs, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_ruleset_fprintf);
-+
-diff --git a/src/set.c b/src/set.c
-index 31185a0..099fa4b 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -668,6 +668,33 @@ int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
- }
- EXPORT_SYMBOL(nft_set_snprintf);
- 
-+int nft_set_fprintf(FILE *fp, struct nft_set *s, uint32_t type,
-+		    uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_set_snprintf(buf, bufsiz, s, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_set_snprintf(buf, bufsiz, s, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_set_fprintf);
-+
- void nft_set_elem_add(struct nft_set *s, struct nft_set_elem *elem)
- {
- 	list_add_tail(&elem->head, &s->element_list);
-diff --git a/src/set_elem.c b/src/set_elem.c
-index ba24c96..2dacd48 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -575,6 +575,33 @@ int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
- }
- EXPORT_SYMBOL(nft_set_elem_snprintf);
- 
-+int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type,
-+			 uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_set_elem_snprintf(buf, bufsiz, se, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_set_elem_snprintf(buf, bufsiz, se, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_set_elem_fprintf);
-+
- int nft_set_elem_foreach(struct nft_set *s,
- 			 int (*cb)(struct nft_set_elem *e, void *data),
- 			 void *data)
-diff --git a/src/table.c b/src/table.c
-index 7f14b32..fd1307d 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -388,6 +388,33 @@ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
- }
- EXPORT_SYMBOL(nft_table_snprintf);
- 
-+int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type,
-+		      uint32_t flags)
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = nft_table_snprintf(buf, bufsiz, t, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = nft_table_snprintf(buf, bufsiz, t, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nft_table_fprintf);
-+
- struct nft_table_list {
- 	struct list_head list;
- };
+I have developed a patch to register custom extensions in nf_conn->ext.
+In the kernel configuration, you can specify the maximum number of additional
+extensions (0..8). When registering a custom extension to specify an
+additional unique identifier extension (u32). In the extension properties
+seq_print added optional method to display data in "/proc/net/nf_conntrack".
 
+What lacks is in this patch?
+
+
+--------------030608090301070509090308
+Content-Type: text/plain; charset=UTF-8;
+ name="nf_conntrack_custom_extend.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="nf_conntrack_custom_extend.diff"
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXh0ZW5k
+LmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2V4dGVuZC5oCmluZGV4
+IDk3N2JjOGEuLjcyMGY2OTkgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbmV0L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfZXh0ZW5kLmgKKysrIGIvaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nv
+bm50cmFja19leHRlbmQuaApAQCAtMjYsNyArMjYsOCBAQCBlbnVtIG5mX2N0X2V4dF9pZCB7
+CiAjaWZkZWYgQ09ORklHX05GX0NPTk5UUkFDS19MQUJFTFMKIAlORl9DVF9FWFRfTEFCRUxT
+LAogI2VuZGlmCi0JTkZfQ1RfRVhUX05VTSwKKwlORl9DVF9FWFRfQ1VTVE9NLAorCU5GX0NU
+X0VYVF9OVU09TkZfQ1RfRVhUX0NVU1RPTStDT05GSUdfTkZfQ09OTlRSQUNLX0NVU1RPTSwK
+IH07CiAKICNkZWZpbmUgTkZfQ1RfRVhUX0hFTFBFUl9UWVBFIHN0cnVjdCBuZl9jb25uX2hl
+bHAKQEAgLTk0LDEyICs5NSwxNiBAQCB2b2lkICpfX25mX2N0X2V4dF9hZGRfbGVuZ3RoKHN0
+cnVjdCBuZl9jb25uICpjdCwgZW51bSBuZl9jdF9leHRfaWQgaWQsCiAKICNkZWZpbmUgTkZf
+Q1RfRVhUX0ZfUFJFQUxMT0MJMHgwMDAxCiAKK3N0cnVjdCBzZXFfZmlsZTsKKwogc3RydWN0
+IG5mX2N0X2V4dF90eXBlIHsKIAkvKiBEZXN0cm95cyByZWxhdGlvbnNoaXBzIChjYW4gYmUg
+TlVMTCkuICovCiAJdm9pZCAoKmRlc3Ryb3kpKHN0cnVjdCBuZl9jb25uICpjdCk7CiAJLyog
+Q2FsbGVkIHdoZW4gcmVhbGxvYWN0ZWQgKGNhbiBiZSBOVUxMKS4KIAkgICBDb250ZW50cyBo
+YXMgYWxyZWFkeSBiZWVuIG1vdmVkLiAqLwogCXZvaWQgKCptb3ZlKSh2b2lkICpuZXcsIHZv
+aWQgKm9sZCk7CisJLyogUHJpbnQgY3VzdG9tIGluZm8gKGNhbiBiZSBOVUxMKSAqLworCXVu
+c2lnbmVkIGludCAoKnNlcV9wcmludCkoc3RydWN0IHNlcV9maWxlICpzLCBjb25zdCBzdHJ1
+Y3QgbmZfY29ubiAqY3QsIGludCBkaXIpOwogCiAJZW51bSBuZl9jdF9leHRfaWQgaWQ7CiAK
+QEAgLTExMiw2ICsxMTcsOCBAQCBzdHJ1Y3QgbmZfY3RfZXh0X3R5cGUgewogCXU4IGFsbG9j
+X3NpemU7CiB9OwogCit1bnNpZ25lZCBpbnQgbmZfY3RfZXh0X3NlcV9wcmludChzdHJ1Y3Qg
+c2VxX2ZpbGUgKnMsIGNvbnN0IHN0cnVjdCBuZl9jb25uICpjdCwgaW50IGRpcik7CiBpbnQg
+bmZfY3RfZXh0ZW5kX3JlZ2lzdGVyKHN0cnVjdCBuZl9jdF9leHRfdHlwZSAqdHlwZSk7Citp
+bnQgbmZfY3RfZXh0ZW5kX2N1c3RvbV9yZWdpc3RlcihzdHJ1Y3QgbmZfY3RfZXh0X3R5cGUg
+KnR5cGUsdW5zaWduZWQgbG9uZyBpbnQgY2lkKTsKIHZvaWQgbmZfY3RfZXh0ZW5kX3VucmVn
+aXN0ZXIoc3RydWN0IG5mX2N0X2V4dF90eXBlICp0eXBlKTsKICNlbmRpZiAvKiBfTkZfQ09O
+TlRSQUNLX0VYVEVORF9IICovCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL0tjb25maWcg
+Yi9uZXQvbmV0ZmlsdGVyL0tjb25maWcKaW5kZXggOWU3NzMyZC4uNzVjOGE1ZCAxMDA2NDQK
+LS0tIGEvbmV0L25ldGZpbHRlci9LY29uZmlnCisrKyBiL25ldC9uZXRmaWx0ZXIvS2NvbmZp
+ZwpAQCAtNzAsNiArNzAsMTYgQEAgY29uZmlnIE5GX0NPTk5UUkFDS19TRUNNQVJLCiAKIAkg
+IElmIHVuc3VyZSwgc2F5ICdOJy4KIAorY29uZmlnIE5GX0NPTk5UUkFDS19DVVNUT00KKwlp
+bnQgIk51bWJlciBvZiBjdXN0b20gZXh0ZW5kIgorCXJhbmdlIDAgOAorCWRlcGVuZHMgb24g
+TkVURklMVEVSX0FEVkFOQ0VECisJZGVmYXVsdCAiNCIKKwloZWxwCisJICBUaGlzIHBhcmFt
+ZXRlciBzcGVjaWZpZXMgaG93IG1hbnkgY3VzdG9tIGV4dGVuc2lvbnMgY2FuIGJlIHJlZ2lz
+dGVyZWQuCisKKwkgIFRoZSBkZWZhdWx0IHZhbHVlIGlzIDQuCisKIGNvbmZpZyBORl9DT05O
+VFJBQ0tfWk9ORVMKIAlib29sICAnQ29ubmVjdGlvbiB0cmFja2luZyB6b25lcycKIAlkZXBl
+bmRzIG9uIE5FVEZJTFRFUl9BRFZBTkNFRApkaWZmIC0tZ2l0IGEvbmV0L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfYWNjdC5jIGIvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfYWNjdC5j
+CmluZGV4IDJkMzAzMGEuLjdmOTcxMjYgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0ZXIvbmZf
+Y29ubnRyYWNrX2FjY3QuYworKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19hY2N0
+LmMKQEAgLTUyLDYgKzUyLDcgQEAgc2VxX3ByaW50X2FjY3Qoc3RydWN0IHNlcV9maWxlICpz
+LCBjb25zdCBzdHJ1Y3QgbmZfY29ubiAqY3QsIGludCBkaXIpCiBFWFBPUlRfU1lNQk9MX0dQ
+TChzZXFfcHJpbnRfYWNjdCk7CiAKIHN0YXRpYyBzdHJ1Y3QgbmZfY3RfZXh0X3R5cGUgYWNj
+dF9leHRlbmQgX19yZWFkX21vc3RseSA9IHsKKwkuc2VxX3ByaW50ID0gc2VxX3ByaW50X2Fj
+Y3QsCiAJLmxlbgk9IHNpemVvZihzdHJ1Y3QgbmZfY29ubl9jb3VudGVyW0lQX0NUX0RJUl9N
+QVhdKSwKIAkuYWxpZ24JPSBfX2FsaWdub2ZfXyhzdHJ1Y3QgbmZfY29ubl9jb3VudGVyW0lQ
+X0NUX0RJUl9NQVhdKSwKIAkuaWQJPSBORl9DVF9FWFRfQUNDVCwKZGlmZiAtLWdpdCBhL25l
+dC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2V4dGVuZC5jIGIvbmV0L25ldGZpbHRlci9uZl9j
+b25udHJhY2tfZXh0ZW5kLmMKaW5kZXggMWE5NTQ1OS4uMjg0OTlhZSAxMDA2NDQKLS0tIGEv
+bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXh0ZW5kLmMKKysrIGIvbmV0L25ldGZpbHRl
+ci9uZl9jb25udHJhY2tfZXh0ZW5kLmMKQEAgLTQzLDYgKzQzLDMwIEBAIHZvaWQgX19uZl9j
+dF9leHRfZGVzdHJveShzdHJ1Y3QgbmZfY29ubiAqY3QpCiB9CiBFWFBPUlRfU1lNQk9MKF9f
+bmZfY3RfZXh0X2Rlc3Ryb3kpOwogCitzdHJ1Y3Qgc2VxX2ZpbGU7CisKK3Vuc2lnbmVkIGlu
+dCBuZl9jdF9leHRfc2VxX3ByaW50KHN0cnVjdCBzZXFfZmlsZSAqcywgY29uc3Qgc3RydWN0
+IG5mX2Nvbm4gKmN0LCBpbnQgZGlyKQoreworCXVuc2lnbmVkIGludCBpLHJldD0wOworCXN0
+cnVjdCBuZl9jdF9leHRfdHlwZSAqdDsKKwlzdHJ1Y3QgbmZfY3RfZXh0ICpleHQgPSBjdC0+
+ZXh0OworCisJZm9yIChpID0gMDsgaSA8IE5GX0NUX0VYVF9OVU07IGkrKykgeworCQlpZiAo
+IV9fbmZfY3RfZXh0X2V4aXN0KGV4dCwgaSkpCisJCQljb250aW51ZTsKKworCQlyY3VfcmVh
+ZF9sb2NrKCk7IC8vIEZJWE1FCisJCXQgPSByY3VfZGVyZWZlcmVuY2UobmZfY3RfZXh0X3R5
+cGVzW2ldKTsKKwkJaWYgKHQgJiYgdC0+c2VxX3ByaW50KQorCQkJcmV0ID0gdC0+c2VxX3By
+aW50KHMsY3QsZGlyKTsKKwkJcmN1X3JlYWRfdW5sb2NrKCk7CisJCWlmKHJldCkKKwkJCXJl
+dHVybiByZXQ7CisJfQorCXJldHVybiByZXQ7Cit9CitFWFBPUlRfU1lNQk9MKG5mX2N0X2V4
+dF9zZXFfcHJpbnQpOworCiBzdGF0aWMgdm9pZCAqCiBuZl9jdF9leHRfY3JlYXRlKHN0cnVj
+dCBuZl9jdF9leHQgKipleHQsIGVudW0gbmZfY3RfZXh0X2lkIGlkLAogCQkgc2l6ZV90IHZh
+cl9hbGxvY19sZW4sIGdmcF90IGdmcCkKQEAgLTE1Niw2ICsxODAsMjQgQEAgc3RhdGljIHZv
+aWQgdXBkYXRlX2FsbG9jX3NpemUoc3RydWN0IG5mX2N0X2V4dF90eXBlICp0eXBlKQogCX0K
+IH0KIAorc3RhdGljIHVuc2lnbmVkIGxvbmcgaW50IG5mX2N0X2V4dF9jdXN0X2lkW0NPTkZJ
+R19ORl9DT05OVFJBQ0tfQ1VTVE9NXTsKK3N0YXRpYyBlbnVtIG5mX2N0X2V4dF9pZCAKK25m
+X2N0X2V4dGVuZF9nZXRfY3VzdG9tX2lkKHVuc2lnbmVkIGxvbmcgaW50IGV4dF9pZCkKK3sK
+KwllbnVtIG5mX2N0X2V4dF9pZCByZXQgPSAwOworCWludCBpOworCW11dGV4X2xvY2soJm5m
+X2N0X2V4dF90eXBlX211dGV4KTsKKwlmb3IoaSA9IDA7IGkgPCBDT05GSUdfTkZfQ09OTlRS
+QUNLX0NVU1RPTTsgaSsrKSB7CisJCWlmKCFuZl9jdF9leHRfY3VzdF9pZFtpXSkgeworCQkJ
+bmZfY3RfZXh0X2N1c3RfaWRbaV0gPSBleHRfaWQ7CisJCQlyZXQgPSBpK05GX0NUX0VYVF9D
+VVNUT007CisJCQlicmVhazsKKwkJfQorCX0KKwltdXRleF91bmxvY2soJm5mX2N0X2V4dF90
+eXBlX211dGV4KTsKKwlyZXR1cm4gcmV0OworfQorCiAvKiBUaGlzIE1VU1QgYmUgY2FsbGVk
+IGluIHByb2Nlc3MgY29udGV4dC4gKi8KIGludCBuZl9jdF9leHRlbmRfcmVnaXN0ZXIoc3Ry
+dWN0IG5mX2N0X2V4dF90eXBlICp0eXBlKQogewpAQCAtMTc5LDEyICsyMjEsMzIgQEAgb3V0
+OgogfQogRVhQT1JUX1NZTUJPTF9HUEwobmZfY3RfZXh0ZW5kX3JlZ2lzdGVyKTsKIAoraW50
+IG5mX2N0X2V4dGVuZF9jdXN0b21fcmVnaXN0ZXIoc3RydWN0IG5mX2N0X2V4dF90eXBlICp0
+eXBlLAorCQkJCSB1bnNpZ25lZCBsb25nIGludCBjaWQpCit7CisJaW50IHJldDsKKwllbnVt
+IG5mX2N0X2V4dF9pZCBuZXdfaWQgPSBuZl9jdF9leHRlbmRfZ2V0X2N1c3RvbV9pZChjaWQp
+OworCWlmKCFuZXdfaWQpCisJCXJldHVybiAtRUJVU1k7CisJdHlwZS0+aWQgPSBuZXdfaWQ7
+CisJcmV0ID0gbmZfY3RfZXh0ZW5kX3JlZ2lzdGVyKHR5cGUpOworCWlmKHJldCA8IDApIHsK
+KwkJbXV0ZXhfbG9jaygmbmZfY3RfZXh0X3R5cGVfbXV0ZXgpOworCQluZl9jdF9leHRfY3Vz
+dF9pZFtuZXdfaWQgLSBORl9DVF9FWFRfQ1VTVE9NXSA9IDA7CisJCW11dGV4X3VubG9jaygm
+bmZfY3RfZXh0X3R5cGVfbXV0ZXgpOworCX0KKwlyZXR1cm4gcmV0OworfQorRVhQT1JUX1NZ
+TUJPTF9HUEwobmZfY3RfZXh0ZW5kX2N1c3RvbV9yZWdpc3Rlcik7CisKIC8qIFRoaXMgTVVT
+VCBiZSBjYWxsZWQgaW4gcHJvY2VzcyBjb250ZXh0LiAqLwogdm9pZCBuZl9jdF9leHRlbmRf
+dW5yZWdpc3RlcihzdHJ1Y3QgbmZfY3RfZXh0X3R5cGUgKnR5cGUpCiB7CiAJbXV0ZXhfbG9j
+aygmbmZfY3RfZXh0X3R5cGVfbXV0ZXgpOwogCVJDVV9JTklUX1BPSU5URVIobmZfY3RfZXh0
+X3R5cGVzW3R5cGUtPmlkXSwgTlVMTCk7CiAJdXBkYXRlX2FsbG9jX3NpemUodHlwZSk7CisJ
+aWYodHlwZS0+aWQgPj0gTkZfQ1RfRVhUX0NVU1RPTSAmJiB0eXBlLT5pZCA8IE5GX0NUX0VY
+VF9OVU0pCisJCW5mX2N0X2V4dF9jdXN0X2lkW3R5cGUtPmlkLU5GX0NUX0VYVF9DVVNUT01d
+ID0gMDsKIAltdXRleF91bmxvY2soJm5mX2N0X2V4dF90eXBlX211dGV4KTsKIAlyY3VfYmFy
+cmllcigpOyAvKiBXYWl0IGZvciBjb21wbGV0aW9uIG9mIGNhbGxfcmN1KCkncyAqLwogfQpk
+aWZmIC0tZ2l0IGEvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfc3RhbmRhbG9uZS5jIGIv
+bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfc3RhbmRhbG9uZS5jCmluZGV4IDYzYmFkNjEu
+LjFkNWIzMTEgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX3N0YW5k
+YWxvbmUuYworKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19zdGFuZGFsb25lLmMK
+QEAgLTIwNiw3ICsyMDYsNyBAQCBzdGF0aWMgaW50IGN0X3NlcV9zaG93KHN0cnVjdCBzZXFf
+ZmlsZSAqcywgdm9pZCAqdikKIAkJCWwzcHJvdG8sIGw0cHJvdG8pKQogCQlnb3RvIHJlbGVh
+c2U7CiAKLQlpZiAoc2VxX3ByaW50X2FjY3QocywgY3QsIElQX0NUX0RJUl9PUklHSU5BTCkp
+CisJaWYgKG5mX2N0X2V4dF9zZXFfcHJpbnQocyxjdCxJUF9DVF9ESVJfT1JJR0lOQUwpKQog
+CQlnb3RvIHJlbGVhc2U7CiAKIAlpZiAoISh0ZXN0X2JpdChJUFNfU0VFTl9SRVBMWV9CSVQs
+ICZjdC0+c3RhdHVzKSkpCkBAIC0yMTcsNyArMjE3LDcgQEAgc3RhdGljIGludCBjdF9zZXFf
+c2hvdyhzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKnYpCiAJCQlsM3Byb3RvLCBsNHByb3Rv
+KSkKIAkJZ290byByZWxlYXNlOwogCi0JaWYgKHNlcV9wcmludF9hY2N0KHMsIGN0LCBJUF9D
+VF9ESVJfUkVQTFkpKQorCWlmIChuZl9jdF9leHRfc2VxX3ByaW50KHMsY3QsSVBfQ1RfRElS
+X1JFUExZKSkKIAkJZ290byByZWxlYXNlOwogCiAJaWYgKHRlc3RfYml0KElQU19BU1NVUkVE
+X0JJVCwgJmN0LT5zdGF0dXMpKQo=
+--------------030608090301070509090308--
