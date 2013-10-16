@@ -1,86 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH nft] src: add support for interface wildcard name
-Date: Wed, 16 Oct 2013 12:39:49 +0200
-Message-ID: <20131016103949.GA10032@localhost>
-References: <1381846993-30093-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 2/3] ipvs: avoid rcu_barrier during netns cleanup
+Date: Wed, 16 Oct 2013 12:43:06 +0200
+Message-ID: <20131016104306.GA10288@localhost>
+References: <1381802507-7934-1-git-send-email-horms@verge.net.au>
+ <1381802507-7934-3-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Anand Raj Manickam <anandrm@gmail.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58910 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760286Ab3JPKj7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Oct 2013 06:39:59 -0400
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1381846993-30093-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1381802507-7934-3-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Florian,
-
-On Tue, Oct 15, 2013 at 04:23:13PM +0200, Florian Westphal wrote:
-> Uses same syntax as iptables: itfname+.
-
-Good you're bringing up this issue, we've been discussing this for a
-while with recent Anand's patch.
-
-> The '+' suffix is not stored on the kernel side; this approach
-> is the same as the one used by iptables-nftables.
-
-Hm, it seems current iptables-nftables seems broken by:
-
-73ea1cc nft: convert rule into a command state structure
-
-So let's have a look at the previous handling we had (which is the one
-I guess you're refering to):
-
-       ifname_ptr = nft_rule_expr_get(e, NFT_EXPR_CMP_DATA, &len);
-       memcpy(ifname, ifname_ptr, len);
-       ifname[len] = '\0';
-
-       /* if this is zero, then assume this is a interface */
-       if (if_nametoindex(ifname) == 0) {
-               ifname[len] = '+';
-               ifname[len+1] = '\0';
-       }
-
-That if_nametoindex handling was a bit of cheat: if the interface is
-gone after adding the rule, it will attach the '+', which is wrong.
-
-> +static void ifname_type_print(const struct expr *expr)
-> +{
-> +	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
-> +	char data[len];
-> +
-> +	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
-> +	printf("\"%.*s", len, data);
-> +	if (len && data[len-1] != '\0')
-> +		printf("+"); /* string without nul: interface wildcard match */
-> +	printf("\"");
-> +}
-
-Your assumption regarding trailing nul looks similar to what I can see
-in iptables, let's go that way in iptables-nftables.
-
-> i.e. xtables-save understands 'nft .. meta oifname foo+' and vice versa.
+On Tue, Oct 15, 2013 at 11:01:46AM +0900, Simon Horman wrote:
+> From: Julian Anastasov <ja@ssi.bg>
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Caveats:
->   - I am not convinced '+' is a good idea -- it is ambiguous since
->   'foo+' is a legal interface name.
+> commit 578bc3ef1e473a ("ipvs: reorganize dest trash") added
+> rcu_barrier() on cleanup to wait dest users and schedulers
+> like LBLC and LBLCR to put their last dest reference.
+> Using rcu_barrier with many namespaces is problematic.
+> 
+> Trying to fix it by freeing dest with kfree_rcu is not
+> a solution, RCU callbacks can run in parallel and execution
+> order is random.
+> 
+> Fix it by creating new function ip_vs_dest_put_and_free()
+> which is heavier than ip_vs_dest_put(). We will use it just
+> for schedulers like LBLC, LBLCR that can delay their dest
+> release.
+> 
+> By default, dests reference is above 0 if they are present in
+> service and it is 0 when deleted but still in trash list.
+> Change the dest trash code to use ip_vs_dest_put_and_free(),
+> so that refcnt -1 can be used for freeing. As result,
+> such checks remain in slow path and the rcu_barrier() from
+> netns cleanup can be removed.
 
-I think we can remove the '+' in nft, so we match exactly what we
-pass for the ifname case, eg. iifname "eth".
+I can enqueue this fix to nf if you like. No need to resend, I can
+manually apply.
 
-OK with this approach?
-
->   Maybe we should use 'foo/' (Linux forbids / in interface names) instead?
->   - added a new 'itfname' data type since I felt uncomfortable
->     with allowing 'non-nul-terminated' strings.
->   - removes a FIXME in netlink_delinearize.  What was that about? :-}
-
-I don't remember the reason for that case, please try to dig it out
-from the history. Thanks!
+Let me know.
