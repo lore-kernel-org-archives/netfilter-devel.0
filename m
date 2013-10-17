@@ -1,48 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] ipvs: avoid rcu_barrier during netns cleanup
-Date: Thu, 17 Oct 2013 10:11:42 +0200
-Message-ID: <20131017081142.GA5324@localhost>
-References: <1381802507-7934-1-git-send-email-horms@verge.net.au>
- <1381802507-7934-3-git-send-email-horms@verge.net.au>
- <20131016104306.GA10288@localhost>
- <alpine.LFD.2.03.1310162231380.1917@ssi.bg>
- <20131017004939.GB21728@verge.net.au>
+Subject: Re: [PATCH net-next] netfilter: xt_socket: use sock_gen_put()
+Date: Thu, 17 Oct 2013 10:29:26 +0200
+Message-ID: <20131017082926.GA7949@localhost>
+References: <1381507405.4971.108.camel@edumazet-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: David Miller <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52236 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099Ab3JQI3b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Oct 2013 04:29:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20131017004939.GB21728@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1381507405.4971.108.camel@edumazet-glaptop.roam.corp.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 17, 2013 at 09:49:39AM +0900, Simon Horman wrote:
-> On Wed, Oct 16, 2013 at 10:52:14PM +0300, Julian Anastasov wrote:
-> > 
-> > 	Hello,
-> > 
-> > On Wed, 16 Oct 2013, Pablo Neira Ayuso wrote:
-> > 
-> > > I can enqueue this fix to nf if you like. No need to resend, I can
-> > > manually apply.
-> > > 
-> > > Let me know.
-> > 
-> > 	It is not critical. I waited weeks the net tree to be
-> > copied into net-next because it collides with the recent
-> > "ipvs: make the service replacement more robust" change in
-> > net tree :) But if a rcu_barrier in the netns cleanup looks
-> > scary enough you can push it to nf. IMHO, it just adds
-> > unneeded delay there.
+On Fri, Oct 11, 2013 at 09:03:25AM -0700, Eric Dumazet wrote:
+> From: Eric Dumazet <edumazet@google.com>
 > 
-> If it is not critical I would prefer for it to travel through
-> nf-next. Though I do not feel strongly about this.
+> TCP listener refactoring, part 7 :
+> 
+> Use sock_gen_put() instead of xt_socket_put_sk() for future
+> SYN_RECV support.
 
-Will enqueue for nf-next.
-
-I'd appreciate if you can recover the tradition of attaching a short
-evaluation in the cover letter as I do when I send pull requests to
-David. Thanks!
+Applied, thanks Eric.
