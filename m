@@ -1,41 +1,45 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: Simon Horman <horms@verge.net.au>
 Subject: Re: [PATCH 2/3] ipvs: avoid rcu_barrier during netns cleanup
-Date: Wed, 16 Oct 2013 22:52:14 +0300 (EEST)
-Message-ID: <alpine.LFD.2.03.1310162231380.1917@ssi.bg>
-References: <1381802507-7934-1-git-send-email-horms@verge.net.au> <1381802507-7934-3-git-send-email-horms@verge.net.au> <20131016104306.GA10288@localhost>
+Date: Thu, 17 Oct 2013 09:49:39 +0900
+Message-ID: <20131017004939.GB21728@verge.net.au>
+References: <1381802507-7934-1-git-send-email-horms@verge.net.au>
+ <1381802507-7934-3-git-send-email-horms@verge.net.au>
+ <20131016104306.GA10288@localhost>
+ <alpine.LFD.2.03.1310162231380.1917@ssi.bg>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	Wensong Zhang <wensong@linux-vs.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:36745 "EHLO ja.home.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756196Ab3JPTwu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Oct 2013 15:52:50 -0400
-In-Reply-To: <20131016104306.GA10288@localhost>
+Received: from kirsty.vergenet.net ([202.4.237.240]:50209 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760722Ab3JQAtp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Oct 2013 20:49:45 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.03.1310162231380.1917@ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Wed, 16 Oct 2013, Pablo Neira Ayuso wrote:
-
-> I can enqueue this fix to nf if you like. No need to resend, I can
-> manually apply.
+On Wed, Oct 16, 2013 at 10:52:14PM +0300, Julian Anastasov wrote:
 > 
-> Let me know.
+> 	Hello,
+> 
+> On Wed, 16 Oct 2013, Pablo Neira Ayuso wrote:
+> 
+> > I can enqueue this fix to nf if you like. No need to resend, I can
+> > manually apply.
+> > 
+> > Let me know.
+> 
+> 	It is not critical. I waited weeks the net tree to be
+> copied into net-next because it collides with the recent
+> "ipvs: make the service replacement more robust" change in
+> net tree :) But if a rcu_barrier in the netns cleanup looks
+> scary enough you can push it to nf. IMHO, it just adds
+> unneeded delay there.
 
-	It is not critical. I waited weeks the net tree to be
-copied into net-next because it collides with the recent
-"ipvs: make the service replacement more robust" change in
-net tree :) But if a rcu_barrier in the netns cleanup looks
-scary enough you can push it to nf. IMHO, it just adds
-unneeded delay there.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+If it is not critical I would prefer for it to travel through
+nf-next. Though I do not feel strongly about this.
