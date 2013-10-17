@@ -1,51 +1,46 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: fix ordering of jumpstack allocation and
- table update
-Date: Thu, 17 Oct 2013 06:52:32 -0700
-Message-ID: <1382017952.2045.150.camel@edumazet-glaptop.roam.corp.google.com>
-References: <1382016273-21993-1-git-send-email-will.deacon@arm.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/17] netfilter updates: nf_tables pull request
+Date: Thu, 17 Oct 2013 15:23:02 -0400 (EDT)
+Message-ID: <20131017.152302.168119302436570514.davem@davemloft.net>
+References: <1381768738-17739-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Will Deacon <will.deacon@arm.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:46011 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754579Ab3JQNwf (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:46292 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758877Ab3JQTXS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Oct 2013 09:52:35 -0400
-In-Reply-To: <1382016273-21993-1-git-send-email-will.deacon@arm.com>
+	Thu, 17 Oct 2013 15:23:18 -0400
+In-Reply-To: <1381768738-17739-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2013-10-17 at 14:24 +0100, Will Deacon wrote:
-> During kernel stability testing on an SMP ARMv7 system, Yalin Wang
-> reported the following panic from the netfilter code:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 14 Oct 2013 18:38:41 +0200
+
+> The following patchset contains the current original nf_tables tree
+> condensed in 17 patches. I have organized them by chronogical order
+> since the original nf_tables code was released in 2009 and by
+> dependencies between the different patches.
+ ...
+> There is still work to do to fully replace x_tables [4] [5] but that can
+> be done incrementally by extending our netlink API. Moreover, looking at
+> netfilter-devel and the amount of contributions to nf_tables we've been
+> getting, I think it would be good to have it mainstream to avoid accumulating
+> large patchsets skip continuous rebases.
 > 
-
-> On weakly ordered memory architectures, the writes to table->private
-> and newinfo->jumpstack from CPU1 can be observed out of order by CPU0.
-> Furthermore, on architectures which don't respect ordering of address
-> dependencies (i.e. Alpha), the reads from CPU0 can also be re-ordered.
+> I tried to provide a reasonable patchset, we have more than 100 accumulated
+> patches in the original nf_tables tree, so I collapsed many of the small
+> fixes to the main patch we had since 2009 and provide a small batch for
+> review to netdev, while trying to retain part of the history.
 > 
-> This patch adds an smp_wmb() before the assignment to table->private
-> (which is essentially publishing newinfo) to ensure that all writes to
-> newinfo will be observed before plugging it into the table structure.
-> A dependent-read barrier is also added on the consumer side, to ensure
-> the same ordering requirement are also respected there.
+> For those who didn't give a try to nf_tables yet, there's a quick howto
+> available from Eric Leblond that describes how to get things working [6].
 > 
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> Reported-by: Wang, Yalin <Yalin.Wang@sonymobile.com>
-> Tested-by: Wang, Yalin <Yalin.Wang@sonymobile.com>
-> Signed-off-by: Will Deacon <will.deacon@arm.com>
-> ---
+> Comments/reviews welcome.
 
-Nice catch !
-
-Acked-by: Eric Dumazet <edumazet@google.com>
-
-
+This looks great, pulled, thanks a lot!!
