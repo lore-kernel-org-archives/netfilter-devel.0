@@ -1,33 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] json: remove space in Json output support
-Date: Thu, 17 Oct 2013 10:05:22 +0200
-Message-ID: <20131017080522.GA5260@localhost>
-References: <20131013195233.6261.62757.stgit@Ph0enix>
+Subject: Re: [PATCH 2/3] ipvs: avoid rcu_barrier during netns cleanup
+Date: Thu, 17 Oct 2013 10:11:42 +0200
+Message-ID: <20131017081142.GA5324@localhost>
+References: <1381802507-7934-1-git-send-email-horms@verge.net.au>
+ <1381802507-7934-3-git-send-email-horms@verge.net.au>
+ <20131016104306.GA10288@localhost>
+ <alpine.LFD.2.03.1310162231380.1917@ssi.bg>
+ <20131017004939.GB21728@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, eric@regit.org
-To: Alvaro Neira <alvaroneay@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43673 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056Ab3JQIFa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Oct 2013 04:05:30 -0400
+Content-Type: text/plain; charset=us-ascii
+Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131013195233.6261.62757.stgit@Ph0enix>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20131017004939.GB21728@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Oct 13, 2013 at 09:52:34PM +0200, Alvaro Neira wrote:
-> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
->=20
-> Remove all the spaces inside JSON output support for reducing size
-> of output buffer and create consistence with table, chain, rule
-> and set.
+On Thu, Oct 17, 2013 at 09:49:39AM +0900, Simon Horman wrote:
+> On Wed, Oct 16, 2013 at 10:52:14PM +0300, Julian Anastasov wrote:
+> > 
+> > 	Hello,
+> > 
+> > On Wed, 16 Oct 2013, Pablo Neira Ayuso wrote:
+> > 
+> > > I can enqueue this fix to nf if you like. No need to resend, I can
+> > > manually apply.
+> > > 
+> > > Let me know.
+> > 
+> > 	It is not critical. I waited weeks the net tree to be
+> > copied into net-next because it collides with the recent
+> > "ipvs: make the service replacement more robust" change in
+> > net tree :) But if a rcu_barrier in the netns cleanup looks
+> > scary enough you can push it to nf. IMHO, it just adds
+> > unneeded delay there.
+> 
+> If it is not critical I would prefer for it to travel through
+> nf-next. Though I do not feel strongly about this.
 
-Applied, thanks =C1lvaro.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will enqueue for nf-next.
+
+I'd appreciate if you can recover the tradition of attaching a short
+evaluation in the cover letter as I do when I send pull requests to
+David. Thanks!
