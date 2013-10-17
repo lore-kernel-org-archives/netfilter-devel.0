@@ -1,67 +1,89 @@
-From: Rolf Fokkens <rolf@rolffokkens.nl>
-Subject: No more PHYSIN in iptables INPUT rules in kernel 3.11.3
-Date: Thu, 17 Oct 2013 12:44:26 +0200
-Message-ID: <CE858BF4.B9C9%rolf@rolffokkens.nl>
-References: <CE858BED.B9C9%rolf@rolffokkens.nl>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH RFC 3/3] acct: add input and output interface index
+Date: Thu, 17 Oct 2013 13:06:30 +0200
+Message-ID: <20131017110630.GA11148@localhost>
+References: <20130926153150.280914229@eitzenberger.org>
+ <20130926154005.592908761@eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: Jasper Siero <jasper.siero@target-holding.nl>
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Krzysztof Piotr Oledzki <ole@ans.pl>
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:55315 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754173Ab3JQKod (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Oct 2013 06:44:33 -0400
-Received: by mail-wi0-f174.google.com with SMTP id cb5so8159143wib.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2013 03:44:32 -0700 (PDT)
-In-Reply-To: <CE858BED.B9C9%rolf@rolffokkens.nl>
+Received: from mail.us.es ([193.147.175.20]:54324 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753844Ab3JQLGf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Oct 2013 07:06:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20130926154005.592908761@eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-FYI: I created the following redhat bugzilla bug:
-https://bugzilla.redhat.com/show_bug.cgi?id=1019743Since upgrading to
-Fedora 19 kernel iptables processing apparently no longer has the notion
-of a PHYSIN device (in case of a bridge interface) for INPUT rules. PHYSIN
-is no longer available in iptables logging, nor is it matched by any
-rules.Version-Release number of selected component (if applicable):
-kernel-3.11.3-201.fc19.x86_64
+Hi Holger,
 
-Steps to Reproduce:
-1. Add iptables rules like this:
-   iptables -I INPUT -i br1 -m conntrack --ctstate NEW  -j LOG
---log-prefix NOPHYSIN
-   iptables -I INPUT -i br1 -m conntrack --ctstate NEW  -m physdev
---physdev-in vnet+ -j LOG --log-prefix PHYSIN
-2. Note that the logging shows only NOPHYSIN messages and no PHYSIN
-messages
-3. Note that the counters for the first rule are updated while the
-counters for the second remain 0
+I like patches 1/3 and 2/3, they are nice cleanups.
 
-Additional info:
-Previous (working kernel): kernel-3.9.4-200.fc18.x86_64
+Some comments regarding this patch.
 
-A selection from our syslog demonstrates the issue. At about 10:10:00 the
-system was rebooted, after that PHSYIN is lost for INPUT rules:
+On Thu, Sep 26, 2013 at 05:31:53PM +0200, Holger Eitzenberger wrote:
+> The interface indices are exported as uint32_t, although being
+> signed integer inside the kernel, which goes in line with
+> what nfnetlink_queue does.
+> 
+> Both interface indices are wrapped inside CTA_ACCT.
+> 
+> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+> 
+> Index: net-next-ipfix/include/net/netfilter/nf_conntrack_acct.h
+> ===================================================================
+> --- net-next-ipfix.orig/include/net/netfilter/nf_conntrack_acct.h
+> +++ net-next-ipfix/include/net/netfilter/nf_conntrack_acct.h
+> @@ -21,6 +21,8 @@ struct nf_conn_counter {
+>  
+>  struct nf_conn_acct {
+>  	struct nf_conn_counter counter[IP_CT_DIR_MAX];
+> +	int indev;
+> +	int outdev;
+>  };
+>  
+>  static inline
+> Index: net-next-ipfix/net/netfilter/nf_conntrack_core.c
+> ===================================================================
+> --- net-next-ipfix.orig/net/netfilter/nf_conntrack_core.c
+> +++ net-next-ipfix/net/netfilter/nf_conntrack_core.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/mm.h>
+>  #include <linux/nsproxy.h>
+>  #include <linux/rculist_nulls.h>
+> +#include <net/dst.h>
+>  
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nf_conntrack_l3proto.h>
+> @@ -1110,6 +1111,7 @@ void __nf_ct_refresh_acct(struct nf_conn
+>  acct:
+>  	if (do_acct) {
+>  		struct nf_conn_acct *acct;
+> +		struct dst_entry *dst;
+>  
+>  		acct = nf_conn_acct_find(ct);
+>  		if (acct) {
+> @@ -1117,6 +1119,13 @@ acct:
+>  
+>  			atomic64_inc(&counter[CTINFO2DIR(ctinfo)].packets);
+>  			atomic64_add(skb->len, &counter[CTINFO2DIR(ctinfo)].bytes);
+> +
+> +			if (acct->indev == 0 && skb->dev)
+> +				acct->indev = skb->dev->ifindex;
+> +
+> +			dst = skb_dst(skb);
+> +			if (acct->outdev == 0 && dst && dst->dev)
+> +				acct->outdev = dst->dev->ifindex;
 
-Oct 14 09:49:11 kvm02 kernel: [1552500.679452] iptables:DROPREST:IN=br1
-OUT= PHYSIN=vnet4 MAC=c8:60:00:8a:5b:6a:52:54:00:9c:c5:fb:08:00
-SRC=129.125.100.130 DST=129.125.100.102 LEN=328 TOS=0x00 PREC=0x00 TTL=64
-ID=0 DF PROTO=UDP SPT=68 DPT=67 LEN=308
-Oct 14 10:05:01 kvm02 kernel: [1553450.653313] iptables:DROPREST:IN=br1
-OUT= PHYSIN=em1 MAC=c8:60:00:8a:5b:6a:00:d0:00:97:4c:00:08:00
-SRC=178.32.8.224 DST=129.125.100.102 LEN=44 TOS=0x00 PREC=0x00 TTL=56
-ID=5582 PROTO=TCP SPT=111 DPT=29609 WINDOW=16384 RES=0x00 ACK SYN
-URGP=0 
-Oct 14 10:12:12 kvm02 kernel: [   32.913511] iptables:DROPREST:IN=br1 OUT=
-MAC=c8:60:00:8a:5b:6a:00:d0:00:97:4c:00:08:00 SRC=122.136.196.116
-DST=129.125.100.102 LEN=82 TOS=0x00 PREC=0x00 TTL=114 ID=13667 PROTO=UDP
-SPT=18485 DPT=53 LEN=62
-Oct 14 10:19:25 kvm02 kernel: [  465.852664] iptables:DROPREST:IN=br1 OUT=
-MAC=c8:60:00:8a:5b:6a:52:54:00:9c:c5:fb:08:00 SRC=129.125.100.130
-DST=129.125.100.102 LEN=70 TOS=0x00 PREC=0x00 TTL=63 ID=44769 DF PROTO=UDP
-SPT=41923 DPT=53 LEN=50
+If you only set indev/outdev once we can skip the conntrack extension
+by passing the skb to nf_ct_deliver_cached_events and include this
+information in the conntrack events. That would not allow to dump the
+device from conntrack dumps though. I still have concerns with this
+approach as this doesn't seem to cover the scenario in which the
+in/outdev changes.
 
-
+Regards.
