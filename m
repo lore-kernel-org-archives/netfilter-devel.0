@@ -1,79 +1,59 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [nftables-kernel PATCH] netfilter: nftables: Fix sparse endianness issue on nft_nat.c
-Date: Fri, 18 Oct 2013 12:00:53 +0300
-Message-ID: <1382086853-14251-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/3] ipset patches for nf-next
+Date: Fri, 18 Oct 2013 11:41:54 +0200
+Message-ID: <1382089317-24311-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19393 "EHLO mga14.intel.com"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:33613 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751765Ab3JRJBB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Oct 2013 05:01:01 -0400
+	id S1752675Ab3JRJmA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Oct 2013 05:42:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes this:
+Hi Pablo,
 
-CHECK   net/netfilter/nft_nat.c
-net/netfilter/nft_nat.c:50:43: warning: incorrect type in assignment (different base types)
-net/netfilter/nft_nat.c:50:43:    expected restricted __be32 [addressable] [usertype] ip
-net/netfilter/nft_nat.c:50:43:    got unsigned int [unsigned] [usertype] <noident>
-net/netfilter/nft_nat.c:51:43: warning: incorrect type in assignment (different base types)
-net/netfilter/nft_nat.c:51:43:    expected restricted __be32 [addressable] [usertype] ip
-net/netfilter/nft_nat.c:51:43:    got unsigned int [unsigned] [usertype] <noident>
-net/netfilter/nft_nat.c:65:37: warning: incorrect type in assignment (different base types)
-net/netfilter/nft_nat.c:65:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
-net/netfilter/nft_nat.c:65:37:    got unsigned int [unsigned] <noident>
-net/netfilter/nft_nat.c:66:37: warning: incorrect type in assignment (different base types)
-net/netfilter/nft_nat.c:66:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
-net/netfilter/nft_nat.c:66:37:    got unsigned int [unsigned] <noident>
+Here follows three small patches for nf-next:
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
----
+- Instead of cb->data, use callback dump args only and introduce
+  symbolic names to access the arg members.
+- We have to use dev_net() instead of the direct access to ->nd_net,
+  otherwise compilation fails if NET_NS is not enabled. Reported by
+  the kbuild test robot.
+- Unnamed unions should be possible to be initialized directly, but
+  unfortunately it's not so and can lead to compile time error.
+  Reported by Husnu Demir.
 
-Hi,
+All patches are from me.
 
-looks a bit ugly, would there be another way to fix this?
+Best regards,
+Jozsef
 
-Tomasz
+The following changes since commit d86946d2c5b4e519ffe435c2deeb2c9436ceb04f:
 
- net/netfilter/nft_nat.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+  netfilter: ipt_CLUSTERIP: use proper net namespace to operate CLUSTERIP (2013-10-17 10:48:47 +0200)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index b0b87b2..f9d488f 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -47,8 +47,12 @@ static void nft_nat_eval(const struct nft_expr *expr,
- 	memset(&range, 0, sizeof(range));
- 	if (priv->sreg_addr_min) {
- 		if (priv->family == AF_INET) {
--			range.min_addr.ip = data[priv->sreg_addr_min].data[0];
--			range.max_addr.ip = data[priv->sreg_addr_max].data[0];
-+			range.min_addr.ip =
-+				be32_to_cpup((__be32 *)
-+					data[priv->sreg_addr_min].data);
-+			range.max_addr.ip =
-+				be32_to_cpup((__be32 *)
-+					data[priv->sreg_addr_max].data);
- 
- 		} else {
- 			memcpy(range.min_addr.ip6,
-@@ -62,8 +66,12 @@ static void nft_nat_eval(const struct nft_expr *expr,
- 	}
- 
- 	if (priv->sreg_proto_min) {
--		range.min_proto.all = data[priv->sreg_proto_min].data[0];
--		range.max_proto.all = data[priv->sreg_proto_max].data[0];
-+		range.min_proto.all =
-+			be16_to_cpup((__be16 *)
-+					data[priv->sreg_proto_min].data);
-+		range.max_proto.all =
-+			be16_to_cpup((__be16 *)
-+					data[priv->sreg_proto_max].data);
- 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
--- 
-1.8.3.2
+are available in the git repository at:
 
+  git://blackhole.kfki.hu/nf-next master
+
+for you to fetch changes up to e190952746fb81143945d2397f74aa7ae773bc82:
+
+  netfilter: ipset: The unnamed union initialization may lead to compilation error (2013-10-18 11:38:53 +0200)
+
+----------------------------------------------------------------
+Jozsef Kadlecsik (3):
+      netfilter: ipset: Use netlink callback dump args only
+      net: sched: Use dev_net() instead of the direct access to ->nd_net
+      netfilter: ipset: The unnamed union initialization may lead to compilation error
+
+ include/linux/netfilter/ipset/ip_set.h       |   10 ++++
+ net/netfilter/ipset/ip_set_bitmap_gen.h      |   11 ++--
+ net/netfilter/ipset/ip_set_core.c            |   70 +++++++++++++-------------
+ net/netfilter/ipset/ip_set_hash_gen.h        |   20 ++++----
+ net/netfilter/ipset/ip_set_hash_netnet.c     |   22 ++++----
+ net/netfilter/ipset/ip_set_hash_netportnet.c |   22 ++++----
+ net/netfilter/ipset/ip_set_list_set.c        |   11 ++--
+ net/sched/em_ipset.c                         |    4 +-
+ 8 files changed, 90 insertions(+), 80 deletions(-)
