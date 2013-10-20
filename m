@@ -1,42 +1,30 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 03/17] netfilter: add nftables
-Date: Sun, 20 Oct 2013 13:46:03 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1310201338320.13725@nerf07.vanv.qr>
-References: <1381768738-17739-1-git-send-email-pablo@netfilter.org> <1381768738-17739-4-git-send-email-pablo@netfilter.org>
+Subject: Re: [RFC PATCH nft] src: add support for interface wildcard name
+Date: Sun, 20 Oct 2013 13:49:33 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1310201346510.13725@nerf07.vanv.qr>
+References: <1381846993-30093-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	kaber@trash.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1381768738-17739-4-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares07.inai.de ([5.9.24.206]:37730 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751326Ab3JTLte (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Oct 2013 07:49:34 -0400
+In-Reply-To: <1381846993-30093-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2013-10-14 18:38, Pablo Neira Ayuso wrote:
->
->+static int __init nf_table_nat_init(void)
->+{
->+	int err;
->+
->+	list_add_tail(&nf_chain_nat_prerouting.chain.list,
->+		      &nf_table_nat_ipv4.chains);
->+	list_add_tail(&nf_chain_nat_postrouting.chain.list,
->+		      &nf_table_nat_ipv4.chains);
->+	list_add_tail(&nf_chain_nat_output.chain.list,
->+		      &nf_table_nat_ipv4.chains);
->+	list_add_tail(&nf_chain_nat_input.chain.list,
->+		      &nf_table_nat_ipv4.chains);
->+
->+	err = nft_register_table(&nf_table_nat_ipv4, NFPROTO_IPV4);
->+	if (err < 0)
->+		goto err1;
+On Tuesday 2013-10-15 16:23, Florian Westphal wrote:
 
-Why do we still have this redundant table separation?
+> Caveats:
+>  - I am not convinced '+' is a good idea -- it is ambiguous since
+>  'foo+' is a legal interface name.
+>  Maybe we should use 'foo/' (Linux forbids / in interface names) instead?
 
-This ugly 90s era relict was a result of the module split,
-but given that arbitrary base chain creation is now exposed,
-it is no longer necessary. (It was not really necessary
-before either, but that is how things grew in the past.)
-Don't carry over 90s mistakes.
+While there are almost no limitations on the interface name, there
+is a limit to what characters are _useful_ to have in an interface
+name. Picking foo+ was a sensible decision back then, and continues
+to be, unless you want to go for the optically different 'foo*'.
