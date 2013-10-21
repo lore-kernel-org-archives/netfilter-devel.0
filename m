@@ -1,39 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftables] set_elem: fix access after free in case of parsing errors
-Date: Mon, 21 Oct 2013 14:52:48 +0200
-Message-ID: <1382359968-5345-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54396 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753331Ab3JUMw4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Oct 2013 08:52:56 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Daniel Wagner <wagi@monom.org>
+Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
+ group matching
+Date: Mon, 21 Oct 2013 16:09:22 +0100
+Message-ID: <526543A2.2040901@monom.org>
+References: <1380910855-12325-1-git-send-email-dborkman@redhat.com> <87li1qp3l8.fsf@xmission.com> <526231E0.6060903@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Tejun Heo <tj@kernel.org>,
+	cgroups@vger.kernel.org
+To: Daniel Borkmann <dborkman@redhat.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <526231E0.6060903@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If this fails to parse a set element, stop the processing.
+Hi Daniel
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/set_elem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On 10/19/2013 08:16 AM, Daniel Borkmann wrote:
+> On 10/19/2013 01:21 AM, Eric W. Biederman wrote:
+>
+>> I am coming to this late.  But two concrete suggestions.
+>>
+>> 1) process groups and sessions don't change as frequently as pids.
+>>
+>> 2) It is possible to put a set of processes in their own network
+>>     namespace and pipe just the packets you want those processes to
+>>     use into that network namespace.  Using an ingress queueing filter
+>>     makes that process very efficient even if you have to filter by port.
+>
+> Actually in our case we're filtering outgoing traffic, based on which
+> local socket that originated from; so you wouldn't need all of that
+> construct. Also, you wouldn't even need to have an a-prio knowledge of
+> the application internals regarding their use of particular use of ports
+> or protocols. I don't think that such a setup will have the same
+> efficiency, ease of use, and power to distinguish the application the
+> traffic came from in such a lightweight, protocol independent and easy way.
 
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 5bb82f6..5ef46f2 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -298,8 +298,10 @@ static int nft_set_elems_parse2(struct nft_set *s, const struct nlattr *nest)
- 			break;
- 		}
-         }
--	if (ret < 0)
-+	if (ret < 0) {
- 		xfree(e);
-+		return -1;
-+	}
- 
- 	/* Add this new element to this set */
- 	list_add_tail(&e->head, &s->element_list);
--- 
-1.7.10.4
+Sorry for beeing late as well (and also stupid question)
 
+Couldn't you use something from the LSM? I mean you allow the
+application to create the socket etc and then block later
+the traffic originated from that socket. Wouldn't it make
+more sense to block early?
+
+cheers,
+daniel
