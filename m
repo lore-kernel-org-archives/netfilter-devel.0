@@ -1,55 +1,197 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH net 0/3] ipv6: use rt6i_gateway as nexthop
-Date: Mon, 21 Oct 2013 11:35:41 +0200
-Message-ID: <20131021093541.GG28333@order.stressinduktion.org>
-References: <1382272985-1528-1-git-send-email-ja@ssi.bg>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] netfilter: fix ordering of jumpstack allocation and
+ table update
+Date: Mon, 21 Oct 2013 13:14:53 +0100
+Message-ID: <20131021121452.GA29250@mudshark.cambridge.arm.com>
+References: <1382016273-21993-1-git-send-email-will.deacon@arm.com>
+ <20131018111536.GA11132@localhost>
+ <20131018165749.GI3296@mudshark.cambridge.arm.com>
+ <1382116693.3284.21.camel@edumazet-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39834 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753207Ab3JUMPD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Oct 2013 08:15:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1382272985-1528-1-git-send-email-ja@ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1382116693.3284.21.camel@edumazet-glaptop.roam.corp.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 20, 2013 at 03:43:02PM +0300, Julian Anastasov wrote:
-> 	The second patch is an optimization that makes sure
-> all resulting routes have rt6i_gateway filled, so that we
-> can avoid the complex ipv6_addr_any() call added to rt6_nexthop()
-> by patch 1. And it sets rt6i_gateway for local routes, a case
-> not handled by patch 1.
+On Fri, Oct 18, 2013 at 06:18:13PM +0100, Eric Dumazet wrote:
+> On Fri, 2013-10-18 at 17:57 +0100, Will Deacon wrote:
+> > Hi Pablo,
+> > 
+> 
+> > > We also need fixes for net/ipv6/netfilter/ip6_tables.c and
+> > > net/ipv4/netfilter/arp_tables.c as well. Could you extend this patch
+> > > and resend?
+> > 
+> > Sure, I can try, but that's going to require a bit of time to sit down and
+> > look at the shared data, access order, dependencies etc. I'm currently
+> > preparing for Edinburgh, so it might be a while before I get a chance to
+> > extend this.
+> 
+> That's basically same code copy/pasted, so it should be relatively easy.
 
-Not related to the patch:
+Ok, I took a look and I think I see what you mean: there are just some
+additional consumers of the tables, so there aren't any additional writers
+afaict (at least, net/bridge/netfilter/ebtables.c uses rw locks so we don't
+have an issue there).
 
-That reminds me that Yoshifuji had the idea to cache the results for
-ipv6_addr_type in IP6CB to avoid calling this function over and over again.
-Maybe we can do the same for rt6_infos to save some cycles here and there.
+Attempt at an updated patch below.
 
+Cheers,
 
-Also, what do you think about this site:
+Will
 
-net/ipv6/ip6_output.c:
-    411 
-    412                 rt = (struct rt6_info *) dst;
-    413                 if (rt->rt6i_flags & RTF_GATEWAY)
-    414                         target = &rt->rt6i_gateway;
-    415                 else
-    416                         target = &hdr->daddr;
-    417 
+--->8
 
-Our provided skb_dst should come from ip6_route_input, thus ip6_pol_route. So
-I assume we have rt6i_gateway == hdr->daddr there, too. It is a bit more
-complicated because of possible routing extension headers. Maybe you already
-looked at this already?
+>From 128bff68debba70c3cec4b4ac01050d7e864aa83 Mon Sep 17 00:00:00 2001
+From: Will Deacon <will.deacon@arm.com>
+Date: Thu, 17 Oct 2013 13:34:13 +0100
+Subject: [PATCH v2] netfilter: fix ordering of jumpstack allocation and table
+ update
 
-I just found it while searching which other code paths do emit packets
-while xt_TEE is processing (generation of redirects) and could also lead
-to stack exhaustion. But the path in ip6_forward seems fine.
+During kernel stability testing on an SMP ARMv7 system, Yalin Wang
+reported the following panic from the netfilter code:
 
-Greetings,
+  1fe0: 0000001c 5e2d3b10 4007e779 4009e110 60000010 00000032 ff565656 ff545454
+  [<c06c48dc>] (ipt_do_table+0x448/0x584) from [<c0655ef0>] (nf_iterate+0x48/0x7c)
+  [<c0655ef0>] (nf_iterate+0x48/0x7c) from [<c0655f7c>] (nf_hook_slow+0x58/0x104)
+  [<c0655f7c>] (nf_hook_slow+0x58/0x104) from [<c0683bbc>] (ip_local_deliver+0x88/0xa8)
+  [<c0683bbc>] (ip_local_deliver+0x88/0xa8) from [<c0683718>] (ip_rcv_finish+0x418/0x43c)
+  [<c0683718>] (ip_rcv_finish+0x418/0x43c) from [<c062b1c4>] (__netif_receive_skb+0x4cc/0x598)
+  [<c062b1c4>] (__netif_receive_skb+0x4cc/0x598) from [<c062b314>] (process_backlog+0x84/0x158)
+  [<c062b314>] (process_backlog+0x84/0x158) from [<c062de84>] (net_rx_action+0x70/0x1dc)
+  [<c062de84>] (net_rx_action+0x70/0x1dc) from [<c0088230>] (__do_softirq+0x11c/0x27c)
+  [<c0088230>] (__do_softirq+0x11c/0x27c) from [<c008857c>] (do_softirq+0x44/0x50)
+  [<c008857c>] (do_softirq+0x44/0x50) from [<c0088614>] (local_bh_enable_ip+0x8c/0xd0)
+  [<c0088614>] (local_bh_enable_ip+0x8c/0xd0) from [<c06b0330>] (inet_stream_connect+0x164/0x298)
+  [<c06b0330>] (inet_stream_connect+0x164/0x298) from [<c061d68c>] (sys_connect+0x88/0xc8)
+  [<c061d68c>] (sys_connect+0x88/0xc8) from [<c000e340>] (ret_fast_syscall+0x0/0x30)
+  Code: 2a000021 e59d2028 e59de01c e59f011c (e7824103)
+  ---[ end trace da227214a82491bd ]---
+  Kernel panic - not syncing: Fatal exception in interrupt
 
-  Hannes
+This comes about because CPU1 is executing xt_replace_table in response
+to a setsockopt syscall, resulting in:
+
+	ret = xt_jumpstack_alloc(newinfo);
+		--> newinfo->jumpstack = kzalloc(size, GFP_KERNEL);
+
+	[...]
+
+	table->private = newinfo;
+	newinfo->initial_entries = private->initial_entries;
+
+Meanwhile, CPU0 is handling the network receive path and ends up in
+ipt_do_table, resulting in:
+
+	private = table->private;
+
+	[...]
+
+	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
+
+On weakly ordered memory architectures, the writes to table->private
+and newinfo->jumpstack from CPU1 can be observed out of order by CPU0.
+Furthermore, on architectures which don't respect ordering of address
+dependencies (i.e. Alpha), the reads from CPU0 can also be re-ordered.
+
+This patch adds an smp_wmb() before the assignment to table->private
+(which is essentially publishing newinfo) to ensure that all writes to
+newinfo will be observed before plugging it into the table structure.
+A dependent-read barrier is also added on the consumer sides, to ensure
+the same ordering requirements are also respected there.
+
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Reported-by: Wang, Yalin <Yalin.Wang@sonymobile.com>
+Tested-by: Wang, Yalin <Yalin.Wang@sonymobile.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+---
+ net/ipv4/netfilter/arp_tables.c | 5 +++++
+ net/ipv4/netfilter/ip_tables.c  | 5 +++++
+ net/ipv6/netfilter/ip6_tables.c | 5 +++++
+ net/netfilter/x_tables.c        | 7 ++++++-
+ 4 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 85a4f21..59da7cd 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -271,6 +271,11 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	local_bh_disable();
+ 	addend = xt_write_recseq_begin();
+ 	private = table->private;
++	/*
++	 * Ensure we load private-> members after we've fetched the base
++	 * pointer.
++	 */
++	smp_read_barrier_depends();
+ 	table_base = private->entries[smp_processor_id()];
+ 
+ 	e = get_entry(table_base, private->hook_entry[hook]);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index d23118d..718dfbd 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -327,6 +327,11 @@ ipt_do_table(struct sk_buff *skb,
+ 	addend = xt_write_recseq_begin();
+ 	private = table->private;
+ 	cpu        = smp_processor_id();
++	/*
++	 * Ensure we load private-> members after we've fetched the base
++	 * pointer.
++	 */
++	smp_read_barrier_depends();
+ 	table_base = private->entries[cpu];
+ 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
+ 	stackptr   = per_cpu_ptr(private->stackptr, cpu);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 44400c2..710238f 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -349,6 +349,11 @@ ip6t_do_table(struct sk_buff *skb,
+ 	local_bh_disable();
+ 	addend = xt_write_recseq_begin();
+ 	private = table->private;
++	/*
++	 * Ensure we load private-> members after we've fetched the base
++	 * pointer.
++	 */
++	smp_read_barrier_depends();
+ 	cpu        = smp_processor_id();
+ 	table_base = private->entries[cpu];
+ 	jumpstack  = (struct ip6t_entry **)private->jumpstack[cpu];
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 8b03028..227aa11 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -845,8 +845,13 @@ xt_replace_table(struct xt_table *table,
+ 		return NULL;
+ 	}
+ 
+-	table->private = newinfo;
+ 	newinfo->initial_entries = private->initial_entries;
++	/*
++	 * Ensure contents of newinfo are visible before assigning to
++	 * private.
++	 */
++	smp_wmb();
++	table->private = newinfo;
+ 
+ 	/*
+ 	 * Even though table entries have now been swapped, other CPU's
+-- 
+1.8.3.2
 
