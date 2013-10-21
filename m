@@ -1,32 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net 2/3] ipv6: fill rt6i_gateway with nexthop address
-Date: Mon, 21 Oct 2013 18:42:05 -0400 (EDT)
-Message-ID: <20131021.184205.2063781996744790668.davem@davemloft.net>
-References: <1382272985-1528-3-git-send-email-ja@ssi.bg>
-	<20131021050159.GE28333@order.stressinduktion.org>
-	<alpine.LFD.2.03.1310211009270.1522@ssi.bg>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: ipset 6.20 compile failure on <3.8
+Date: Tue, 22 Oct 2013 00:53:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1310220048430.30326@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: hannes@stressinduktion.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	yoshfuji@linux-ipv6.org
-To: ja@ssi.bg
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.03.1310211009270.1522@ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares07.inai.de ([5.9.24.206]:48179 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751559Ab3JUWxk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Oct 2013 18:53:40 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
-Date: Mon, 21 Oct 2013 10:31:06 +0300 (EEST)
 
-> 	Thanks for the review! I don't mind too about
-> removing rt6_nexthop. For me it is 51% against 49% to keep it
-> as it denotes the places that use nexthop and not gateway.
-> May be more opinions will help to decide because I don't know
-> if there are any plans to use similar techniques as done for IPv4.
+The openSUSE build system reports for their kernel 3.7 a FTBFS
+for ipset 6.20 (path abridged with a '~'):
 
-I have no strong opinion about removing rt6_nexthop.
+[   94s]   CC [M]  ~/kernel/net/sched/em_ipset.o
+[   94s]   CC [M]  ~/kernel/net/netfilter/xt_set.o
+[   97s]   CC [M]  ~/kernel/net/netfilter/ipset/ip_set_core.o
+[   97s]   CC [M]  ~/kernel/net/netfilter/ipset/ip_set_getport.o
+[   97s] ~/kernel/net/netfilter/ipset/ip_set_core.c: In function 'ip_set_sockfn_get':
+[   97s] ~/kernel/net/netfilter/ipset/ip_set_core.c:1867:21: error: 'struct net' has no member named 'user_ns'
 
-If it is of low cost today and makes the code easier to
-undersand and grep, just leave it alone.
+The lines 1867+ are:
+        if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+                return -EPERM;
+
+But net->user_ns is only available starting from 3.8.
