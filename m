@@ -1,37 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] statement: avoid huge rodata array
-Date: Tue, 22 Oct 2013 15:18:41 +0200
-Message-ID: <20131022131841.GA7127@localhost>
-References: <1382445302-8050-1-git-send-email-fw@strlen.de>
- <20131022131241.GE12157@breakpoint.cc>
+From: =?ISO-8859-1?Q?Pekka_Pietik=E4inen?= <pp@ee.oulu.fi>
+Subject: netfilter: xt_socket: add XT_SOCKET_NOWILDCARD flag causes behavioural
+ change in userspace?
+Date: Tue, 22 Oct 2013 16:33:48 +0300
+Message-ID: <52667EBC.5010709@ee.oulu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: edumazet@google.com, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45419 "EHLO mail.us.es"
+Received: from ee.oulu.fi ([130.231.61.23]:58509 "EHLO ee.oulu.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752533Ab3JVNSr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Oct 2013 09:18:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20131022131241.GE12157@breakpoint.cc>
+	id S1751372Ab3JVOZs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Oct 2013 10:25:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 22, 2013 at 03:12:41PM +0200, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > commit b259d1a ('src: operational limit match') creates huge
-> > array, increasing nft binary size from ~240k to ~5m on x86_64.
-> > 
-> > Use switch statement instead.
-> 
-> Applied,
-> 
-> > +static const char *get_unit(uint64_t u)
-> > +{
-> > +	switch (u) {
-> > +	case 1: return "seconds";
-> 
-> ... after changing this to 'second', spotted by Phil Oester.
+After a kernel update to 3.11 (feat. commit 
+681f130f39e10087475383e6771b9366e26bab0c) my "generate fake tcp 
+connections from random ip addresses" app broke, test case as simple as 
+running (on default gw of victim):
 
-Please, push a patch to change libnftables to 'second'. Thanks!
+s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_IP, socket.IP_TRANSPARENT, 1)
+
+s.bind(("5.5.5.5",6666))
+s.connect(("192.168.122.46",22))
+
+---
+
+ip route flush table 100
+ip rule add fwmark 1 lookup 100
+ip route add local 0.0.0.0/0 dev lo table 100
+
+---
+
+*mangle
+-N DIVERT
+-A DIVERT -j MARK --set-mark 1
+-A DIVERT -j ACCEPT
+-A PREROUTING -p tcp -m socket -j DIVERT
+
+and the 3-way handshake never finishes. Without -m socket (or with the 
+new --nowildcard) it does.
+
+Bug, feature or end-user cluelessness? (no problem fixing my ruleset, 
+but it's still a behaviourial change :P )
+
