@@ -1,44 +1,52 @@
-From: Daniel Wagner <wagi@monom.org>
-Subject: Re: [PATCH nf-next] netfilter: xtables: lightweight process control
- group matching
-Date: Tue, 22 Oct 2013 08:45:32 +0100
-Message-ID: <52662D1C.2020104@monom.org>
-References: <1380910855-12325-1-git-send-email-dborkman@redhat.com> <87li1qp3l8.fsf@xmission.com> <526231E0.6060903@redhat.com> <526543A2.2040901@monom.org> <52654CE6.7030706@redhat.com> <91E2D863603AD4478F101CE81E76E45D01828D59@SHSMSX103.ccr.corp.intel.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix ordering of jumpstack allocation and
+ table update
+Date: Tue, 22 Oct 2013 10:21:59 +0200
+Message-ID: <20131022082159.GA20713@localhost>
+References: <1382016273-21993-1-git-send-email-will.deacon@arm.com>
+ <20131018111536.GA11132@localhost>
+ <20131018165749.GI3296@mudshark.cambridge.arm.com>
+ <1382116693.3284.21.camel@edumazet-glaptop.roam.corp.google.com>
+ <20131021121452.GA29250@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Tejun Heo <tj@kernel.org>,
-	"cgroups@vger.kernel.org" <cgroups@vger.kernel.org>
-To: "Ni, Xun" <xun.ni@intel.com>, Daniel Borkmann <dborkman@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <91E2D863603AD4478F101CE81E76E45D01828D59@SHSMSX103.ccr.corp.intel.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Will Deacon <will.deacon@arm.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54429 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753396Ab3JVIWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Oct 2013 04:22:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20131021121452.GA29250@mudshark.cambridge.arm.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Xun,
+On Mon, Oct 21, 2013 at 01:14:53PM +0100, Will Deacon wrote:
+> On Fri, Oct 18, 2013 at 06:18:13PM +0100, Eric Dumazet wrote:
+> > On Fri, 2013-10-18 at 17:57 +0100, Will Deacon wrote:
+> > > Hi Pablo,
+> > > 
+> > 
+> > > > We also need fixes for net/ipv6/netfilter/ip6_tables.c and
+> > > > net/ipv4/netfilter/arp_tables.c as well. Could you extend this patch
+> > > > and resend?
+> > > 
+> > > Sure, I can try, but that's going to require a bit of time to sit down and
+> > > look at the shared data, access order, dependencies etc. I'm currently
+> > > preparing for Edinburgh, so it might be a while before I get a chance to
+> > > extend this.
+> > 
+> > That's basically same code copy/pasted, so it should be relatively easy.
+> 
+> Ok, I took a look and I think I see what you mean: there are just some
+> additional consumers of the tables, so there aren't any additional writers
+> afaict (at least, net/bridge/netfilter/ebtables.c uses rw locks so we don't
+> have an issue there).
+> 
+> Attempt at an updated patch below.
 
-On 10/22/2013 08:15 AM, Ni, Xun wrote:
-> Hello, Daniel:
-> can all your examples block early before doing network operations?
-
-I was referring to Linux Security Module which allows
-to define access policies for an application e.g. which ports are
-allowed to be used.
-
-If the goal is just to block those ports you don't have to go through
-half of the networking stack to figure out via an iptable rules that
-this access is not allowed.
-
-> What's the whole netfilter universe? Can you give us more clear
-> examples?
-
-I am not sure if I understood your question correctly. In case you
-are asking what netfilter is I would like pointing you to the
-http://www.netfilter.org/ project page.
-
-cheers,
-daniel
+Applied, thanks Will.
