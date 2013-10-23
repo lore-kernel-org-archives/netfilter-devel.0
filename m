@@ -1,59 +1,36 @@
-From: "David Laight" <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack allocation and table update
-Date: Wed, 23 Oct 2013 10:45:04 +0100
-Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B73A2@saturn3.aculab.com>
-References: <1382519724-3953-1-git-send-email-pablo@netfilter.org> <1382519724-3953-4-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <1382519724-3953-4-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] netfilter: ipset: remove duplicate define
+Date: Wed, 23 Oct 2013 12:36:14 +0200
+Message-ID: <1382524574-3214-1-git-send-email-michael.opdenacker@free-electrons.com>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Subject: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack allocation and table update
-...
-> Meanwhile, CPU0 is handling the network receive path and ends up in
-> ipt_do_table, resulting in:
-> 
-> 	private = table->private;
-> 
-> 	[...]
-> 
-> 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
-> 
-> On weakly ordered memory architectures, the writes to table->private
-> and newinfo->jumpstack from CPU1 can be observed out of order by CPU0.
-> Furthermore, on architectures which don't respect ordering of address
-> dependencies (i.e. Alpha), the reads from CPU0 can also be re-ordered.
+This patch removes a duplicate define from
+net/netfilter/ipset/ip_set_hash_gen.h
 
-Which reads might be out of order?
-AFAICT they are strongly sequenced because they second depends on the
-value read by the first.
-So I don't see why the read barrier is needed.
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ net/netfilter/ipset/ip_set_hash_gen.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-I presume the above code is tied to a single cpu.
-
-...
-> 
-> -	table->private = newinfo;
->  	newinfo->initial_entries = private->initial_entries;
-> +	/*
-> +	 * Ensure contents of newinfo are visible before assigning to
-> +	 * private.
-> +	 */
-> +	smp_wmb();
-> +	table->private = newinfo;
-
-Those writes were in the wrong order on all systems.
-Also gcc needs to be told not to reorder the writes even on non-smp
-systems (if the code might be pre-empted).
-So an asm volatile (:::"memory") is needed there even if no specific
-synchronisation instruction is needed.
-
-	David
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 707bc52..b37a65f 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -243,7 +243,6 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
+ #define mtype_uadt		TOKEN(MTYPE, _uadt)
+ #define mtype			MTYPE
+ 
+-#define mtype_elem		TOKEN(MTYPE, _elem)
+ #define mtype_add		TOKEN(MTYPE, _add)
+ #define mtype_del		TOKEN(MTYPE, _del)
+ #define mtype_test_cidrs	TOKEN(MTYPE, _test_cidrs)
+-- 
+1.8.1.2
