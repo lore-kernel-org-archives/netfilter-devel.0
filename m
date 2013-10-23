@@ -1,46 +1,77 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack
- allocation and table update
-Date: Wed, 23 Oct 2013 10:04:56 -0700
-Message-ID: <1382547896.7572.29.camel@edumazet-glaptop.roam.corp.google.com>
-References: <1382519724-3953-1-git-send-email-pablo@netfilter.org>
-	 <1382519724-3953-4-git-send-email-pablo@netfilter.org>
-	 <AE90C24D6B3A694183C094C60CF0A2F6026B73A2@saturn3.aculab.com>
-	 <20131023163706.GA5117@mudshark.cambridge.arm.com>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync structures
+ for lockdep
+Date: Wed, 23 Oct 2013 11:23:03 -0700
+Message-ID: <52681407.8060804@linaro.org>
+References: <1381186321-4906-1-git-send-email-john.stultz@linaro.org> <1381186321-4906-2-git-send-email-john.stultz@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Laight <David.Laight@ACULAB.COM>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Will Deacon <will.deacon@arm.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Mirko Lindner <mlindner@marvell.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Roger Luethi <rl@hellgate.ch>,
+	Patrick McHardy <kaber@trash.net>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: John Stultz <john.stultz@linaro.org>,
+	LKML <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:41001 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab3JWRFB (ORCPT
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:48923 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752542Ab3JWSXI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Oct 2013 13:05:01 -0400
-In-Reply-To: <20131023163706.GA5117@mudshark.cambridge.arm.com>
+	Wed, 23 Oct 2013 14:23:08 -0400
+Received: by mail-pd0-f180.google.com with SMTP id p10so1232010pdj.39
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2013 11:23:07 -0700 (PDT)
+In-Reply-To: <1381186321-4906-2-git-send-email-john.stultz@linaro.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2013-10-23 at 17:37 +0100, Will Deacon wrote:
+On 10/07/2013 03:51 PM, John Stultz wrote:
+> In order to enable lockdep on seqcount/seqlock structures, we
+> must explicitly initialize any locks.
+>
+> The u64_stats_sync structure, uses a seqcount, and thus we need
+> to introduce a u64_stats_init() function and use it to initialize
+> the structure.
+>
+> This unfortunately adds a lot of fairly trivial initialization code
+> to a number of drivers. But the benefit of ensuring correctness makes
+> this worth while.
+>
+> Because these changes are required for lockdep to be enabled, and the
+> changes are quite trivial, I've not yet split this patch out into 30-some
+> separate patches, as I figured it would be better to get the various
+> maintainers thoughts on how to best merge this change along with
+> the seqcount lockdep enablement.
 
-> What I'm *not* 100% sure about is the table freeing path. There is a mutex
-> there for removing the table from a list, but I'm not sure how we ensure
-> that there are no parallel readers at that point.
+Just wanted to ping folks on this patch, as I haven't gotten any feedback.
 
-Sequence is :
+As its a prereq for the seqcount lockdep support, I'd like to get it
+queued/merged, but I'm not sure what the right maintainer path or
+approach should be.
 
-xt_replace_table();
-get_counters();
-xt_free_table_info();
+1) Do folks prefer to see this patch split up into 30-some separate
+trivial clenaup patches, or have it go in all as one logical change?
 
-get_counters() is the way we ensure no cpu is using old copy of the
-table before freeing.
+2) Would folks want this patch (in whichever form) to be merged
+separately via the networking maintainers, or can it be merged via -tip
+as part of the seqcount lockdep series?
 
-
-
-
+thanks
+-john
