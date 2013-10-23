@@ -1,36 +1,37 @@
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] netfilter: ipset: remove duplicate define
-Date: Wed, 23 Oct 2013 12:36:14 +0200
-Message-ID: <1382524574-3214-1-git-send-email-michael.opdenacker@free-electrons.com>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: RE: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack
+ allocation and table update
+Date: Wed, 23 Oct 2013 05:13:33 -0700
+Message-ID: <1382530413.7572.8.camel@edumazet-glaptop.roam.corp.google.com>
+References: <1382519724-3953-1-git-send-email-pablo@netfilter.org>
+	 <1382519724-3953-4-git-send-email-pablo@netfilter.org>
+	 <AE90C24D6B3A694183C094C60CF0A2F6026B73A2@saturn3.aculab.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:40412 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172Ab3JWMNh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Oct 2013 08:13:37 -0400
+In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B73A2@saturn3.aculab.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes a duplicate define from
-net/netfilter/ipset/ip_set_hash_gen.h
+On Wed, 2013-10-23 at 10:45 +0100, David Laight wrote:
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
----
- net/netfilter/ipset/ip_set_hash_gen.h | 1 -
- 1 file changed, 1 deletion(-)
+> Those writes were in the wrong order on all systems.
+> Also gcc needs to be told not to reorder the writes even on non-smp
+> systems (if the code might be pre-empted).
+> So an asm volatile (:::"memory") is needed there even if no specific
+> synchronisation instruction is needed.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 707bc52..b37a65f 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -243,7 +243,6 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
- #define mtype_uadt		TOKEN(MTYPE, _uadt)
- #define mtype			MTYPE
- 
--#define mtype_elem		TOKEN(MTYPE, _elem)
- #define mtype_add		TOKEN(MTYPE, _add)
- #define mtype_del		TOKEN(MTYPE, _del)
- #define mtype_test_cidrs	TOKEN(MTYPE, _test_cidrs)
--- 
-1.8.1.2
+smp_wmb() contains this compiler barrier already.
+
+
+
