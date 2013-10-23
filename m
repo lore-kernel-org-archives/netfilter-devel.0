@@ -1,47 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: skip checksum verification for outgoing
- rejected ipv6 packets
-Date: Wed, 23 Oct 2013 11:22:08 +0200
-Message-ID: <20131023092208.GA4938@localhost>
-References: <20131022083631.GA28194@stfomichev-desktop>
- <20131022105540.GD12157@breakpoint.cc>
- <20131022124323.GB3255@stfomichev-desktop>
+From: "David Laight" <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack allocation and table update
+Date: Wed, 23 Oct 2013 10:45:04 +0100
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B73A2@saturn3.aculab.com>
+References: <1382519724-3953-1-git-send-email-pablo@netfilter.org> <1382519724-3953-4-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net, fw@strlen.de
-To: Stanislav Fomichev <stfomichev@yandex-team.ru>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39320 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740Ab3JWJWT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Oct 2013 05:22:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20131022124323.GB3255@stfomichev-desktop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>,
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <1382519724-3953-4-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 22, 2013 at 04:43:23PM +0400, Stanislav Fomichev wrote:
-> Don't verify checksum for outgoing packets because checksum calculation
-> may be done by the device.
+> Subject: [PATCH 3/3] netfilter: x_tables: fix ordering of jumpstack allocation and table update
+...
+> Meanwhile, CPU0 is handling the network receive path and ends up in
+> ipt_do_table, resulting in:
 > 
-> Without this patch:
-> $ ip6tables -I OUTPUT -p tcp --dport 80 -j REJECT --reject-with tcp-reset
-> $ time telnet ipv6.google.com 80
-> Trying 2a00:1450:4010:c03::67...
-> telnet: Unable to connect to remote host: Connection timed out
+> 	private = table->private;
 > 
-> real    0m7.201s
-> user    0m0.000s
-> sys     0m0.000s
+> 	[...]
 > 
-> With the patch applied:
-> $ ip6tables -I OUTPUT -p tcp --dport 80 -j REJECT --reject-with tcp-reset
-> $ time telnet ipv6.google.com 80
-> Trying 2a00:1450:4010:c03::67...
-> telnet: Unable to connect to remote host: Connection refused
+> 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
 > 
-> real    0m0.085s
-> user    0m0.000s
-> sys     0m0.000s
+> On weakly ordered memory architectures, the writes to table->private
+> and newinfo->jumpstack from CPU1 can be observed out of order by CPU0.
+> Furthermore, on architectures which don't respect ordering of address
+> dependencies (i.e. Alpha), the reads from CPU0 can also be re-ordered.
 
-Applied to nf-next, thanks!
+Which reads might be out of order?
+AFAICT they are strongly sequenced because they second depends on the
+value read by the first.
+So I don't see why the read barrier is needed.
+
+I presume the above code is tied to a single cpu.
+
+...
+> 
+> -	table->private = newinfo;
+>  	newinfo->initial_entries = private->initial_entries;
+> +	/*
+> +	 * Ensure contents of newinfo are visible before assigning to
+> +	 * private.
+> +	 */
+> +	smp_wmb();
+> +	table->private = newinfo;
+
+Those writes were in the wrong order on all systems.
+Also gcc needs to be told not to reorder the writes even on non-smp
+systems (if the code might be pre-empted).
+So an asm volatile (:::"memory") is needed there even if no specific
+synchronisation instruction is needed.
+
+	David
