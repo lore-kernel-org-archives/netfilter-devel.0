@@ -1,69 +1,39 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
- structures for lockdep
-Date: Wed, 23 Oct 2013 22:37:19 +0300 (EEST)
-Message-ID: <alpine.LFD.2.03.1310232222380.1747@ssi.bg>
-References: <1381186321-4906-1-git-send-email-john.stultz@linaro.org> <1381186321-4906-2-git-send-email-john.stultz@linaro.org> <52681407.8060804@linaro.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] netfilter fixes for net
+Date: Wed, 23 Oct 2013 16:56:32 -0400 (EDT)
+Message-ID: <20131023.165632.1355159920749130897.davem@davemloft.net>
+References: <1382519724-3953-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Mirko Lindner <mlindner@marvell.com>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Roger Luethi <rl@hellgate.ch>,
-	Patrick McHardy <kaber@trash.net>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Jesse Gross <jesse@nicira.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@kernel.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.ker
-To: John Stultz <john.stultz@linaro.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:38555 "EHLO ja.home.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752742Ab3JWTqV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Oct 2013 15:46:21 -0400
-In-Reply-To: <52681407.8060804@linaro.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:41013 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab3JWU4d (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Oct 2013 16:56:33 -0400
+In-Reply-To: <1382519724-3953-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 23 Oct 2013 11:15:21 +0200
 
-	Hello,
-
-On Wed, 23 Oct 2013, John Stultz wrote:
-
-> Just wanted to ping folks on this patch, as I haven't gotten any feedback.
+> The following patchset contains three netfilter fixes for your net
+> tree, they are:
 > 
-> As its a prereq for the seqcount lockdep support, I'd like to get it
-> queued/merged, but I'm not sure what the right maintainer path or
-> approach should be.
+> * A couple of fixes to resolve info leak to userspace due to uninitialized
+>   memory area in ulogd, from Mathias Krause.
 > 
-> 1) Do folks prefer to see this patch split up into 30-some separate
-> trivial clenaup patches, or have it go in all as one logical change?
+> * Fix instruction ordering issues that may lead to the access of
+>   uninitialized data in x_tables. The problem involves the table update
+>  (producer) and the main packet matching (consumer) routines. Detected in
+>   SMP ARMv7, from Will Deacon.
 > 
-> 2) Would folks want this patch (in whichever form) to be merged
-> separately via the networking maintainers, or can it be merged via -tip
-> as part of the seqcount lockdep series?
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-	The IPVS part in net/netfilter/ipvs/ looks ok to me.
-We do not have any pending changes for this area, so you can
-skip the ipvs trees for this change. If you need ack for the
-IPVS part, here it is:
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Pulled, thanks Pablo.
