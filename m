@@ -1,13 +1,13 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync structures
- for lockdep
-Date: Wed, 23 Oct 2013 11:23:03 -0700
-Message-ID: <52681407.8060804@linaro.org>
-References: <1381186321-4906-1-git-send-email-john.stultz@linaro.org> <1381186321-4906-2-git-send-email-john.stultz@linaro.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 1/4] [RFC] net: Explicitly initialize u64_stats_sync
+ structures for lockdep
+Date: Wed, 23 Oct 2013 22:37:19 +0300 (EEST)
+Message-ID: <alpine.LFD.2.03.1310232222380.1747@ssi.bg>
+References: <1381186321-4906-1-git-send-email-john.stultz@linaro.org> <1381186321-4906-2-git-send-email-john.stultz@linaro.org> <52681407.8060804@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
 	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
 	Mirko Lindner <mlindner@marvell.com>,
 	Stephen Hemminger <stephen@networkplumber.org>,
@@ -20,58 +20,50 @@ Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
 	Wensong Zhang <wensong@linux-vs.org>,
 	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>, Jesse Gross <jesse@nicira.com>,
+	Jesse Gross <jesse@nicira.com>,
 	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
 	Steven Rostedt <rostedt@goodmis.org>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Ingo Molnar <mingo@kernel.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>,
-	LKML <linux-kernel@vger.kernel.org>
+	netfilter-devel@vger.ker
+To: John Stultz <john.stultz@linaro.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:48923 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542Ab3JWSXI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Oct 2013 14:23:08 -0400
-Received: by mail-pd0-f180.google.com with SMTP id p10so1232010pdj.39
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Oct 2013 11:23:07 -0700 (PDT)
-In-Reply-To: <1381186321-4906-2-git-send-email-john.stultz@linaro.org>
+Received: from ja.ssi.bg ([178.16.129.10]:38555 "EHLO ja.home.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752742Ab3JWTqV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Oct 2013 15:46:21 -0400
+In-Reply-To: <52681407.8060804@linaro.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/07/2013 03:51 PM, John Stultz wrote:
-> In order to enable lockdep on seqcount/seqlock structures, we
-> must explicitly initialize any locks.
->
-> The u64_stats_sync structure, uses a seqcount, and thus we need
-> to introduce a u64_stats_init() function and use it to initialize
-> the structure.
->
-> This unfortunately adds a lot of fairly trivial initialization code
-> to a number of drivers. But the benefit of ensuring correctness makes
-> this worth while.
->
-> Because these changes are required for lockdep to be enabled, and the
-> changes are quite trivial, I've not yet split this patch out into 30-some
-> separate patches, as I figured it would be better to get the various
-> maintainers thoughts on how to best merge this change along with
-> the seqcount lockdep enablement.
 
-Just wanted to ping folks on this patch, as I haven't gotten any feedback.
+	Hello,
 
-As its a prereq for the seqcount lockdep support, I'd like to get it
-queued/merged, but I'm not sure what the right maintainer path or
-approach should be.
+On Wed, 23 Oct 2013, John Stultz wrote:
 
-1) Do folks prefer to see this patch split up into 30-some separate
-trivial clenaup patches, or have it go in all as one logical change?
+> Just wanted to ping folks on this patch, as I haven't gotten any feedback.
+> 
+> As its a prereq for the seqcount lockdep support, I'd like to get it
+> queued/merged, but I'm not sure what the right maintainer path or
+> approach should be.
+> 
+> 1) Do folks prefer to see this patch split up into 30-some separate
+> trivial clenaup patches, or have it go in all as one logical change?
+> 
+> 2) Would folks want this patch (in whichever form) to be merged
+> separately via the networking maintainers, or can it be merged via -tip
+> as part of the seqcount lockdep series?
 
-2) Would folks want this patch (in whichever form) to be merged
-separately via the networking maintainers, or can it be merged via -tip
-as part of the seqcount lockdep series?
+	The IPVS part in net/netfilter/ipvs/ looks ok to me.
+We do not have any pending changes for this area, so you can
+skip the ipvs trees for this change. If you need ack for the
+IPVS part, here it is:
 
-thanks
--john
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
