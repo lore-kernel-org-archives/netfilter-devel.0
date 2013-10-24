@@ -1,59 +1,53 @@
-From: =?UTF-8?B?UGVra2EgUGlldGlrw6RpbmVu?= <pp@ee.oulu.fi>
-Subject: Re: netfilter: xt_socket: add XT_SOCKET_NOWILDCARD flag causes behavioural
- change in userspace?
-Date: Thu, 24 Oct 2013 15:27:06 +0300
-Message-ID: <5269121A.3040104@ee.oulu.fi>
-References: <52667EBC.5010709@ee.oulu.fi> <20131024095212.GA4422@localhost>	 <1382609706.7572.48.camel@edumazet-glaptop.roam.corp.google.com>	 <526902D1.50803@ee.oulu.fi> <1382616307.7572.56.camel@edumazet-glaptop.roam.corp.google.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: netfilter: xt_socket: add XT_SOCKET_NOWILDCARD flag causes
+ behavioural change in userspace?
+Date: Thu, 24 Oct 2013 14:51:35 +0200
+Message-ID: <20131024125135.GA993@breakpoint.cc>
+References: <52667EBC.5010709@ee.oulu.fi>
+ <20131024095212.GA4422@localhost>
+ <1382609706.7572.48.camel@edumazet-glaptop.roam.corp.google.com>
+ <526902D1.50803@ee.oulu.fi>
+ <1382616307.7572.56.camel@edumazet-glaptop.roam.corp.google.com>
+ <5269121A.3040104@ee.oulu.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020704010102040607040300"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, edumazet@google.com,
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>, edumazet@google.com,
 	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Pekka =?iso-8859-15?Q?Pietik=E4inen?= <pp@ee.oulu.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ee.oulu.fi ([130.231.61.23]:55481 "EHLO ee.oulu.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752760Ab3JXM1L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Oct 2013 08:27:11 -0400
-In-Reply-To: <1382616307.7572.56.camel@edumazet-glaptop.roam.corp.google.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41939 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754380Ab3JXMvn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Oct 2013 08:51:43 -0400
+Content-Disposition: inline
+In-Reply-To: <5269121A.3040104@ee.oulu.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020704010102040607040300
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Pekka Pietik=E4inen <pp@ee.oulu.fi> wrote:
+> On 24/10/13 15:05, Eric Dumazet wrote:
+> >sk_state 7 means TCP_CLOSE
+> >
+> >I do not see how a TCP_CLOSE socket can be matched...
+> >
+> Yep, TCP_CLOSE can't be right, sk_state isn't correct with early
+> demux perhaps?
 
-On 24/10/13 15:05, Eric Dumazet wrote:
-> sk_state 7 means TCP_CLOSE
->
-> I do not see how a TCP_CLOSE socket can be matched...
->
-Yep, TCP_CLOSE can't be right, sk_state isn't correct with early demux 
-perhaps?
+What is weird is that early_demux should NOT influence xt_socket
+because from the rules you posted you are using this in PREROUTING,
+which is before tcp early demux magic.
 
-Finding 
-https://android.googlesource.com/kernel/common/+/experimental/android-3.8%5E!/ 
-I managed to get  the old behaviour with the attached patch, but I'm 
-having a hard time following what's really happening.
+Do you have any other netfilter rules (-j TPROXY perhaps?) that could
+explain why the skb has a socket attached in the first place by
+the time it ends up in the netfilter socket match?
 
-
-
-
---------------020704010102040607040300
-Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
- name="xt_socket.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="xt_socket.diff"
-
-LS0tIC91c3Ivc3JjL2RlYnVnL2tlcm5lbC0zLjExLmZjMTkvbGludXgtMy4xMS42LTIwMC5m
-YzE5Lng4Nl82NC9uZXQvbmV0ZmlsdGVyL3h0X3NvY2tldC5jCTIwMTMtMDktMDIgMjM6NDY6
-MTAuMDAwMDAwMDAwICswMzAwCisrKyB4dF9zb2NrZXQuYwkyMDEzLTEwLTI0IDE1OjA3OjU5
-LjU5MjYwNzQzMyArMDMwMApAQCAtMTE1LDYgKzExNSw4IEBACiAJc3RydWN0IG5mX2Nvbm4g
-Y29uc3QgKmN0OwogCWVudW0gaXBfY29ubnRyYWNrX2luZm8gY3RpbmZvOwogI2VuZGlmCisJ
-aWYgKHNrICYmIHNrLT5za19zdGF0ZSA9PSBUQ1BfQ0xPU0UpCisJICBzayA9IE5VTEw7CiAK
-IAlpZiAoaXBoLT5wcm90b2NvbCA9PSBJUFBST1RPX1VEUCB8fCBpcGgtPnByb3RvY29sID09
-IElQUFJPVE9fVENQKSB7CiAJCWhwID0gc2tiX2hlYWRlcl9wb2ludGVyKHNrYiwgaXBfaGRy
-bGVuKHNrYiksCg==
---------------020704010102040607040300--
+[ ip_rcv() orphans the skb before netfilter prerouting, so skb->sk
+  should be NULL ]
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
