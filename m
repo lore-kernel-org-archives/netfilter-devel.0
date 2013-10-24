@@ -1,53 +1,55 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: netfilter: xt_socket: add XT_SOCKET_NOWILDCARD flag causes
- behavioural change in userspace?
-Date: Thu, 24 Oct 2013 14:51:35 +0200
-Message-ID: <20131024125135.GA993@breakpoint.cc>
-References: <52667EBC.5010709@ee.oulu.fi>
- <20131024095212.GA4422@localhost>
- <1382609706.7572.48.camel@edumazet-glaptop.roam.corp.google.com>
- <526902D1.50803@ee.oulu.fi>
- <1382616307.7572.56.camel@edumazet-glaptop.roam.corp.google.com>
- <5269121A.3040104@ee.oulu.fi>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] test: xml: fix malformed ruleset testfile
+Date: Thu, 24 Oct 2013 17:00:58 +0200
+Message-ID: <20131024150058.21634.49651.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, edumazet@google.com,
-	netfilter-devel@vger.kernel.org
-To: Pekka =?iso-8859-15?Q?Pietik=E4inen?= <pp@ee.oulu.fi>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41939 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754380Ab3JXMvn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Oct 2013 08:51:43 -0400
-Content-Disposition: inline
-In-Reply-To: <5269121A.3040104@ee.oulu.fi>
+Received: from smtp3.cica.es ([150.214.5.190]:42868 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754709Ab3JXPBQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Oct 2013 11:01:16 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 5330451ED47
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2013 15:01:09 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id N6D5U51J4S3K for <netfilter-devel@vger.kernel.org>;
+	Thu, 24 Oct 2013 17:01:03 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id BD51551ECD7
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Oct 2013 17:01:01 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pekka Pietik=E4inen <pp@ee.oulu.fi> wrote:
-> On 24/10/13 15:05, Eric Dumazet wrote:
-> >sk_state 7 means TCP_CLOSE
-> >
-> >I do not see how a TCP_CLOSE socket can be matched...
-> >
-> Yep, TCP_CLOSE can't be right, sk_state isn't correct with early
-> demux perhaps?
+Give a new XML ruleset testfile. For some reason, the previous was truncated.
+This passed silently as nft-parsing-test is not reporting some errors properly.
 
-What is weird is that early_demux should NOT influence xt_socket
-because from the rules you posted you are using this in PREROUTING,
-which is before tcp early demux magic.
+This new file provides:
+ * 2 tables
+ * 3 chains
+ * 2 sets, with and without maps
+ * 3 rules with mixed exprs
 
-Do you have any other netfilter rules (-j TPROXY perhaps?) that could
-explain why the skb has a socket attached in the first place by
-the time it ends up in the netfilter socket match?
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/xmlfiles/75-ruleset.xml |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[ ip_rcv() orphans the skb before netfilter prerouting, so skb->sk
-  should be NULL ]
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/tests/xmlfiles/75-ruleset.xml b/tests/xmlfiles/75-ruleset.xml
+index 926c2be..5f673a6 100644
+--- a/tests/xmlfiles/75-ruleset.xml
++++ b/tests/xmlfiles/75-ruleset.xml
+@@ -1 +1 @@
+-<nftables><table><name>filter</name><family>ip</family><flags>0</flags></table><table><name>filter2</name><family>ip</family><flags>0</flags></table><chain><name>input</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>output</name><handle>3</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><set><family>ip</family><table>filter</table><name>set0</name><flags>3</flags><key_type>12</key_type><key_len>2</key_len><data_type>0</data_type><data_len>0</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00001900</data0></data_reg></key></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00001600</data0></data_reg></key><
+ /set_elem></set><set><family>ip</family><table>filter</table><name>set1</name><flags>3</flags><key_type>12</key_type><key_len>2</key_len><data_type>0</data_type><data_len>0</data_len><set_el
++<nftables><table><name>filter</name><family>ip</family><flags>0</flags></table><table><name>filter</name><family>ip6</family><flags>0</flags></table><chain><name>input</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>output</name><handle>2</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>forward</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip6</family></chain><set><family>ip6</family><table>filter</table><name>set0</name><flags>3</flags><key_type>12</key_type><key_len>2</key_len><data_type>0</data_type><data_len>0</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00004300</data0></data
+ _reg></key></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00003500</data0></data_reg></key></set_elem></set><set><family>ip</family><table>filter</tabl
+ e><name>map0</name><flags>11</flags><key_type>12</key_type><key_len>2</key_len><data_type>4294967040</data_type><data_len>16</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00005000</data0></data_reg></key><data><data_reg type="verdict"><verdict>drop</verdict></data_reg></data></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00001600</data0></data_reg></key><data><data_reg type="verdict"><verdict>accept</verdict></data_reg></data></set_elem></set><rule><family>ip</family><table>filter</table><chain>input</chain><handle>8</handle><flags>0</flags><expr type="counter"><pkts>0</pkts><bytes>0</bytes></expr><expr type="immediate"><dreg>0</dreg><immediatedata><data_reg type="verdict"><verdict>accept</verdict></data_reg></i
+ mmediatedata></expr></rule><rule><family>ip</family><table>filter</table><chain>output</chain><handle>9</handle><flags>0</flags><expr type="payload"><dreg>1</dreg><offset>9</offset><len>1</l
+ en><base>network</base></expr><expr type="cmp"><sreg>1</sreg><op>eq</op><cmpdata><data_reg type="value"><len>1</len><data0>0x00000006</data0></data_reg></cmpdata></expr><expr type="payload"><dreg>1</dreg><offset>2</offset><len>2</len><base>transport</base></expr><expr type="lookup"><set>map0</set><sreg>1</sreg><dreg>0</dreg></expr></rule><rule><family>ip6</family><table>filter</table><chain>forward</chain><handle>2</handle><flags>0</flags><expr type="payload"><dreg>1</dreg><offset>6</offset><len>1</len><base>network</base></expr><expr type="cmp"><sreg>1</sreg><op>eq</op><cmpdata><data_reg type="value"><len>1</len><data0>0x00000011</data0></data_reg></cmpdata></expr><expr type="payload"><dreg>1</dreg><offset>2</offset><len>2</len><base>transport</base></expr><expr type="lookup"><set>set0</
+ set><sreg>1</sreg><dreg>0</dreg></expr><expr type="counter"><pkts>0</pkts><bytes>0</bytes></expr><expr type="immediate"><dreg>0</dreg><immediatedata><data_reg type="verdict"><verdict>accept<
+ /verdict></data_reg></immediatedata></expr></rule></nftables>
+
