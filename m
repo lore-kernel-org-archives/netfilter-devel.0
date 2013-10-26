@@ -1,24 +1,55 @@
-From: "Mr. X" <jul217@juy793.onmicrosoft.com>
-Subject: my subject
-Date: Sat, 26 Oct 2013 14:08:38 +0530
-Message-ID: <f57526f3-cb25-415c-9c12-e24b5cca2c9f__49509.0994671502$1382776761$gmane$org@HKNPR06MB067.apcprd06.prod.outlook.com>
-Reply-To: <guaranteeloancompany1@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <jul217@juy793.onmicrosoft.com>
+From: Kevin Cernekee <cernekee@gmail.com>
+Subject: [PATCH iptables 0/3] Fix build errors on Android
+Date: Sat, 26 Oct 2013 11:50:30 -0700
+Message-ID: <1382813433-20890-1-git-send-email-cernekee@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from emea01-am1-ndr.ptr.protection.outlook.com ([157.56.116.106]:63689
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752636Ab3JZIjN convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:57399 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753199Ab3JZSuo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Oct 2013 04:39:13 -0400
-Content-Description: Mail message body
+	Sat, 26 Oct 2013 14:50:44 -0400
+Received: by mail-pb0-f45.google.com with SMTP id ma3so1240462pbc.18
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2013 11:50:43 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The current head of tree is not buildable with Android NDK r9 due to
+a few small incompatibilities.  This series attempts to address them.
 
-Need a Loan, Loans from $5000 - $10,000,000 00. Get your no obligation FREE quote now! Repayments up to 54 Months. No Collateral, Money paid into your account within 24 hours after approval. For more Info contact us today  guaranteeloancompany1@gmail.com
+Android normally bundles a version of iptables which has additional
+deltas (xt_quota2 match, xt_IDLETIMER modifications) from mainline.
+I will not address those here.
 
+With my patches applied, this produces a usable ARM xtables-multi binary:
+
+NDK=/opt/android-ndk-r9
+export PATH=$NDK/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86_64/bin:$PATH
+./autogen.sh
+./configure --host=arm-linux-androideabi \
+        --disable-shared --enable-static \
+        CFLAGS="--sysroot=$NDK/platforms/android-8/arch-arm"
+make
+
+I retested x86 PC builds to make sure that nothing else broke.
+
+Another way to handle the TCPOPTSTRIP issue is to add #ifndef's in
+libxt_TCPOPTSTRIP.c for each missing constant, similar to how
+TCPOPT_MD5SIG is currently done.  If this is preferred, let me know.
+
+
+Kevin Cernekee (3):
+  android: libiptc: Fix socklen_t type mismatch on Android
+  android: Don't include conflicting headers
+  android: build: Blacklist TCPOPTSTRIP on systems that lack TCPOPT_*
+
+ configure.ac                         |    8 ++++++++
+ include/libiptc/ipt_kernel_headers.h |    2 +-
+ libiptc/libip4tc.c                   |    2 +-
+ libiptc/libip6tc.c                   |    2 +-
+ 4 files changed, 11 insertions(+), 3 deletions(-)
+
+-- 
+1.7.9.5
 
