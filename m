@@ -1,46 +1,44 @@
-From: Kevin Cernekee <cernekee@gmail.com>
-Subject: [PATCH iptables 2/3] android: Don't include conflicting headers
-Date: Sat, 26 Oct 2013 11:50:32 -0700
-Message-ID: <1382813433-20890-3-git-send-email-cernekee@gmail.com>
-References: <1382813433-20890-1-git-send-email-cernekee@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: WGH <wgh@torlan.ru>
+Subject: conntrack, idle TCP connection and keep-alives
+Date: Sun, 27 Oct 2013 00:14:48 +0400
+Message-ID: <526C22B8.5030102@torlan.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:62828 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199Ab3JZSus (ORCPT
+Received: from forward2h.mail.yandex.net ([84.201.187.147]:47653 "EHLO
+	forward2h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766Ab3JZUWK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Oct 2013 14:50:48 -0400
-Received: by mail-pa0-f45.google.com with SMTP id kp14so5158438pab.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Oct 2013 11:50:47 -0700 (PDT)
-In-Reply-To: <1382813433-20890-1-git-send-email-cernekee@gmail.com>
+	Sat, 26 Oct 2013 16:22:10 -0400
+Received: from smtp1h.mail.yandex.net (smtp1h.mail.yandex.net [84.201.187.144])
+	by forward2h.mail.yandex.net (Yandex) with ESMTP id 11ACF702115
+	for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2013 00:14:50 +0400 (MSK)
+Received: from smtp1h.mail.yandex.net (localhost [127.0.0.1])
+	by smtp1h.mail.yandex.net (Yandex) with ESMTP id D174C13400EC
+	for <netfilter-devel@vger.kernel.org>; Sun, 27 Oct 2013 00:14:50 +0400 (MSK)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-<netinet/ip.h> and <linux/ip.h> redefine a couple of structs, including
-iphdr.  Handle this the same way as on glibc, i.e. don't include
-<linux/ip.h>.
+Hello!
 
-This change comes from AOSP.
+It seems that, when masquerading, conntrack silently drops idle
+connection after nf_conntrack_tcp_timeout_established seconds. This's
+pretty terrible, as application inside the network, if it never sends
+anything, will never know that connection was dropped.
 
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
----
- include/libiptc/ipt_kernel_headers.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+RFC 5382 gives us a solution to this:
+> A NAT can check if an endpoint for a session has crashed by sending a
+> TCP keep-alive packet and receiving a TCP RST packet in response.
 
-diff --git a/include/libiptc/ipt_kernel_headers.h b/include/libiptc/ipt_kernel_headers.h
-index 18861fe..60c7998 100644
---- a/include/libiptc/ipt_kernel_headers.h
-+++ b/include/libiptc/ipt_kernel_headers.h
-@@ -5,7 +5,7 @@
- 
- #include <limits.h>
- 
--#if defined(__GLIBC__) && __GLIBC__ == 2
-+#if defined(__ANDROID__) || (defined(__GLIBC__) && __GLIBC__ == 2)
- #include <netinet/ip.h>
- #include <netinet/in.h>
- #include <netinet/ip_icmp.h>
--- 
-1.7.9.5
+However, it I couldn't find such feature in netfilter. It would be
+pretty nice to have.
 
+It would be much more effective than enabling keep-alives system-wide
+(which is not even possible in practice). It makes sense that NAT has to
+manage such things, as only NAT knows the timeouts of itself. If there's
+a NAT along the route, it will send keep-alives (overhead, but
+inevitable). If there's no NATs, there will be no keep-alives. Simple.
+
+AFAIK, Cisco implements this under name Dead Connection Detection.
