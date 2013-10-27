@@ -1,35 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] bridge: netfilter: orphan skb before invoking ip
- netfilter hooks
-Date: Sun, 27 Oct 2013 21:46:04 +0100
-Message-ID: <20131027204604.GA9753@localhost>
-References: <1382643162-20009-1-git-send-email-fw@strlen.de>
- <1382645650.7572.68.camel@edumazet-glaptop.roam.corp.google.com>
- <20131024210023.GA6543@breakpoint.cc>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: conntrack, idle TCP connection and keep-alives
+Date: Sun, 27 Oct 2013 21:49:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1310272141110.7234@blackhole.kfki.hu>
+References: <526C22B8.5030102@torlan.ru> <20131027153408.GA20634@home> <20131027180129.GC27597@macbook.localnet> <20131027183825.GA17696@macbook.localnet> <alpine.DEB.2.10.1310272007460.7234@blackhole.kfki.hu> <20131027192019.GD32366@macbook.localnet>
+ <526D6825.2090505@torlan.ru> <20131027193243.GA16338@macbook.localnet> <20131027193434.GA16816@macbook.localnet> <alpine.DEB.2.10.1310272041390.7234@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: WGH <wgh@torlan.ru>, Phil Oester <kernel@linuxace.com>,
 	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33269 "EHLO mail.us.es"
+Received: from smtp2.kfki.hu ([148.6.0.28]:60069 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752982Ab3J0UqJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Oct 2013 16:46:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20131024210023.GA6543@breakpoint.cc>
+	id S1753911Ab3J0Utt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 16:49:49 -0400
+In-Reply-To: <alpine.DEB.2.10.1310272041390.7234@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 24, 2013 at 11:00:23PM +0200, Florian Westphal wrote:
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-[...]
-> > > it re-uses existing skb->sk if possible, assuming ->sk was set by
-> > > tcp early demux.
-> > 
-> > s/tcp/ip/ since it also can work for UDP sockets in net-next
-> 
-> True.  Pablo, could you amend this bit if you decide to apply this
-> to -next tree (i guess -next is fine)?
+On Sun, 27 Oct 2013, Jozsef Kadlecsik wrote:
 
-Amended and applied, thanks Florian!
+> On Sun, 27 Oct 2013, Patrick McHardy wrote:
+> 
+> > On Sun, Oct 27, 2013 at 07:32:44PM +0000, Patrick McHardy wrote:
+> > > On Sun, Oct 27, 2013 at 11:23:17PM +0400, WGH wrote:
+> > > > On 27.10.2013 23:20, Patrick McHardy wrote:
+> > > > > On Sun, Oct 27, 2013 at 08:14:19PM +0100, Jozsef Kadlecsik wrote:
+> > > > >> I think a single flag could be sufficient: if the timer in conntrack goes 
+> > > > >> off and the entry is in the ESTABLISHED state and this flag is not set, 
+> > > > >> then send a TCP keepalive packet and start the timer with a short timeout. 
+> > > > >> If we receive the reply packet, then the long ESTABLISHED timeout value 
+> > > > >> can be restored and the flag cleared.
+> > > > > Sure, I think we wouldn't even need that flag, we can just send the keepalive
+> > > > > and set a short timeout. If a RST is received, the connection is killed
+> > > > > anyway, otherwise it will be refreshed with the ESTABLISHED timeout.
+> > > > >
+> > > > > But we do need a timestamp value to pass PAWS.
+> > > > I believe you forgot the third scenario: neither ACK nor RST is received
+> > > > in reply.
+> > > 
+> > > Actually no, "... and set a short timeout ...".
+> > 
+> > Well, OK, we do need a flag to distinguish normal timeout from probe 
+> > timeout. But still I don't see how we can do this without increasing the 
+> > size of every conntrack by at least 4 bytes.
+> 
+> Yes, you're right: PAWS assumes all packets carry timestamps option, an 
+> option-less ACK isn't sufficient. And increasing every conntrack entry 
+> does seem too expensive when the application itself could send keep-alive 
+> packets.
+
+Looking at the source code, actually, the Linux TCP stack handles 
+gracefully TCP packets without timestamp options when sender originally 
+announced TCP timestamps. So it seems to me we could send a simple, 
+option-less "keep-alive" packet. RFC1323 does not discuss the case but if 
+the option is missing, stacks should fall back to the base handling, 
+isn't it? ;-)
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
