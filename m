@@ -1,30 +1,30 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] netfilter: ipset: remove duplicate define
-Date: Sun, 27 Oct 2013 19:07:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1310271907130.6494@blackhole.kfki.hu>
-References: <1382524574-3214-1-git-send-email-michael.opdenacker@free-electrons.com>
+Subject: Re: [PATCH] build: fix incorrect library versioning
+Date: Sun, 27 Oct 2013 19:12:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1310271911310.6494@blackhole.kfki.hu>
+References: <1382275044-11654-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1382524574-3214-1-git-send-email-michael.opdenacker@free-electrons.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:54624 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955Ab3J0SMt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 14:12:49 -0400
+In-Reply-To: <1382275044-11654-1-git-send-email-jengelh@inai.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 23 Oct 2013, Michael Opdenacker wrote:
+On Sun, 20 Oct 2013, Jan Engelhardt wrote:
 
-> This patch removes a duplicate define from
-> net/netfilter/ipset/ip_set_hash_gen.h
-> 
-> Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+> Commit v6.20~12 caused libipset to shift from libipset.so.3 to
+> .so.2. That is the wrong thing to do. Set it back to 3+2, as
+> intended.
+> ---
 
-Patch is applied to the ipset git tree, thanks.
+Patch is applied, thanks. I should have noticed the shift in the library 
+version number :-(.
 
 Best regards,
 Jozsef
