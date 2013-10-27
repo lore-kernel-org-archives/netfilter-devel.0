@@ -1,45 +1,59 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.20.1 released
-Date: Sun, 27 Oct 2013 19:52:01 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1310271947300.7144@blackhole.kfki.hu>
+Subject: Re: conntrack, idle TCP connection and keep-alives
+Date: Sun, 27 Oct 2013 20:14:19 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1310272007460.7234@blackhole.kfki.hu>
+References: <526C22B8.5030102@torlan.ru> <20131027153408.GA20634@home> <20131027180129.GC27597@macbook.localnet> <20131027183825.GA17696@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc: Phil Oester <kernel@linuxace.com>, WGH <wgh@torlan.ru>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:33199 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:37865 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955Ab3J0SwE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Oct 2013 14:52:04 -0400
+	id S1752397Ab3J0TOW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 15:14:22 -0400
+In-Reply-To: <20131027183825.GA17696@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Sun, 27 Oct 2013, Patrick McHardy wrote:
 
-I'm happy to announce ipset 6.20.1. The most important fix in this release 
-is the memory allocation for bitmap:port: unnecessarily large memory was 
-allocated in versions 6.19-6.20.
+> On Sun, Oct 27, 2013 at 06:01:30PM +0000, Patrick McHardy wrote:
+> > On Sun, Oct 27, 2013 at 08:34:09AM -0700, Phil Oester wrote:
+> > > On Sun, Oct 27, 2013 at 12:14:48AM +0400, WGH wrote:
+> > > > It seems that, when masquerading, conntrack silently drops idle
+> > > > connection after nf_conntrack_tcp_timeout_established seconds. This's
+> > > > pretty terrible, as application inside the network, if it never sends
+> > > > anything, will never know that connection was dropped.
+> > > 
+> > > If this is a problem for you, then increase nf_conntrack_tcp_timeout_established
+> > > to an insanely high value.  You do realize, of course, that the conntrack
+> > > table has a finite number of entries.
+> > >  
+> > > > RFC 5382 gives us a solution to this:
+> > > > > A NAT can check if an endpoint for a session has crashed by sending a
+> > > > > TCP keep-alive packet and receiving a TCP RST packet in response.
+> > > > 
+> > > > However, it I couldn't find such feature in netfilter. It would be
+> > > > pretty nice to have.
+> > > 
+> > > Keepalives should be done in the application, not in the firewall.
+> > 
+> > Actually I think its a pretty nice idea to reduce breakage introduced
+> > by NATs. There a millions of embedded devices that use very small timeout
+> > values to reduce memory usage, at the cost of frequently breaking idle
+> > connections.
+> 
+> The downside seems to be that we'd need to keep track of timestamp values
+> to send valid keepalives, which also costs extra memory. I don't think that
+> cost is justifiable for NAT keepalives alone.
 
-Userspace changes:
-  - build: fix incorrect library versioning (Jan Engelhardt)
-  - netfilter: ipset: Fix configure failure when --with-kmod=no
-    (Oliver Smith)
-  - Avoid clashing with configured kernel in [CONFIG_]IP_SET_MAX
-
-Kernel part changes:
-  - netfilter: ipset: remove duplicate define (Michael Opdenacker)
-  - net->user_ns is available starting from 3.8, add compatibility
-    checking (reported by Jan Engelhardt)
-  - Fix memory allocation for bitmap:port (reported by Quentin Armitage)
-  - Avoid clashing with configured kernel in [CONFIG_]IP_SET_MAX
-  - The unnamed union initialization may lead to compilation error
-    (reported by Husnu Demir)
-  - Use dev_net() instead of the direct access to ->nd_net (reported by
-    the kbuild test robot)
-
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
+I think a single flag could be sufficient: if the timer in conntrack goes 
+off and the entry is in the ESTABLISHED state and this flag is not set, 
+then send a TCP keepalive packet and start the timer with a short timeout. 
+If we receive the reply packet, then the long ESTABLISHED timeout value 
+can be restored and the flag cleared.
 
 Best regards,
 Jozsef
