@@ -1,30 +1,30 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] build: fix incorrect library versioning
-Date: Sun, 27 Oct 2013 19:12:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1310271911310.6494@blackhole.kfki.hu>
-References: <1382275044-11654-1-git-send-email-jengelh@inai.de>
+Subject: Re: [PATCH] netfilter: ipset: Fix library interface version
+Date: Sun, 27 Oct 2013 19:14:36 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1310271912590.6494@blackhole.kfki.hu>
+References: <20131026080206.GA19266@nitrogen.neutroncom.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:54624 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:60022 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955Ab3J0SMt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Oct 2013 14:12:49 -0400
-In-Reply-To: <1382275044-11654-1-git-send-email-jengelh@inai.de>
+	id S1751936Ab3J0SOh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 14:14:37 -0400
+In-Reply-To: <20131026080206.GA19266@nitrogen.neutroncom.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 20 Oct 2013, Jan Engelhardt wrote:
+On Sat, 26 Oct 2013, Neutron Soutmun wrote:
 
-> Commit v6.20~12 caused libipset to shift from libipset.so.3 to
-> .so.2. That is the wrong thing to do. Set it back to 3+2, as
-> intended.
-> ---
+> * The library interface version should be 5:0:2 which it will create the
+>   libipset.so.3.2.0 instead of 4:1:2 which create the libipset.so.2.2.1
+> 
+> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
 
-Patch is applied, thanks. I should have noticed the shift in the library 
-version number :-(.
+Jan Engelhardt already sent a patch to fix the library version, I have 
+applied his patch.
 
 Best regards,
 Jozsef
