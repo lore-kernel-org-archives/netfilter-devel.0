@@ -1,45 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: conntrack, idle TCP connection and keep-alives
-Date: Sun, 27 Oct 2013 18:01:30 +0000
-Message-ID: <20131027180129.GC27597@macbook.localnet>
-References: <526C22B8.5030102@torlan.ru>
- <20131027153408.GA20634@home>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset 6.20 compile failure on <3.8
+Date: Sun, 27 Oct 2013 19:02:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1310271901530.6494@blackhole.kfki.hu>
+References: <alpine.LSU.2.11.1310220048430.30326@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: WGH <wgh@torlan.ru>, netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64788 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab3J0SBf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Oct 2013 14:01:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20131027153408.GA20634@home>
+Received: from smtp0.kfki.hu ([148.6.0.25]:46090 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906Ab3J0SCf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 14:02:35 -0400
+In-Reply-To: <alpine.LSU.2.11.1310220048430.30326@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 27, 2013 at 08:34:09AM -0700, Phil Oester wrote:
-> On Sun, Oct 27, 2013 at 12:14:48AM +0400, WGH wrote:
-> > It seems that, when masquerading, conntrack silently drops idle
-> > connection after nf_conntrack_tcp_timeout_established seconds. This's
-> > pretty terrible, as application inside the network, if it never sends
-> > anything, will never know that connection was dropped.
-> 
-> If this is a problem for you, then increase nf_conntrack_tcp_timeout_established
-> to an insanely high value.  You do realize, of course, that the conntrack
-> table has a finite number of entries.
->  
-> > RFC 5382 gives us a solution to this:
-> > > A NAT can check if an endpoint for a session has crashed by sending a
-> > > TCP keep-alive packet and receiving a TCP RST packet in response.
-> > 
-> > However, it I couldn't find such feature in netfilter. It would be
-> > pretty nice to have.
-> 
-> Keepalives should be done in the application, not in the firewall.
+Hi Jan,
 
-Actually I think its a pretty nice idea to reduce breakage introduced
-by NATs. There a millions of embedded devices that use very small timeout
-values to reduce memory usage, at the cost of frequently breaking idle
-connections.
+On Tue, 22 Oct 2013, Jan Engelhardt wrote:
+ 
+> The openSUSE build system reports for their kernel 3.7 a FTBFS
+> for ipset 6.20 (path abridged with a '~'):
+> 
+> [   94s]   CC [M]  ~/kernel/net/sched/em_ipset.o
+> [   94s]   CC [M]  ~/kernel/net/netfilter/xt_set.o
+> [   97s]   CC [M]  ~/kernel/net/netfilter/ipset/ip_set_core.o
+> [   97s]   CC [M]  ~/kernel/net/netfilter/ipset/ip_set_getport.o
+> [   97s] ~/kernel/net/netfilter/ipset/ip_set_core.c: In function 'ip_set_sockfn_get':
+> [   97s] ~/kernel/net/netfilter/ipset/ip_set_core.c:1867:21: error: 'struct net' has no member named 'user_ns'
+> 
+> The lines 1867+ are:
+>         if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+>                 return -EPERM;
+> 
+> But net->user_ns is only available starting from 3.8.
+
+I have added the compatibility checking, thanks for reporting it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
