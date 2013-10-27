@@ -1,52 +1,51 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/2] ipset patches for nf-next
-Date: Sun, 27 Oct 2013 19:31:57 +0100
-Message-ID: <1382898719-7003-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: conntrack, idle TCP connection and keep-alives
+Date: Sun, 27 Oct 2013 18:38:26 +0000
+Message-ID: <20131027183825.GA17696@macbook.localnet>
+References: <526C22B8.5030102@torlan.ru>
+ <20131027153408.GA20634@home>
+ <20131027180129.GC27597@macbook.localnet>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: WGH <wgh@torlan.ru>, netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:40648 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753487Ab3J0ScB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Oct 2013 14:32:01 -0400
+Received: from stinky.trash.net ([213.144.137.162]:64969 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752397Ab3J0Sia (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Oct 2013 14:38:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20131027180129.GC27597@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Sun, Oct 27, 2013 at 06:01:30PM +0000, Patrick McHardy wrote:
+> On Sun, Oct 27, 2013 at 08:34:09AM -0700, Phil Oester wrote:
+> > On Sun, Oct 27, 2013 at 12:14:48AM +0400, WGH wrote:
+> > > It seems that, when masquerading, conntrack silently drops idle
+> > > connection after nf_conntrack_tcp_timeout_established seconds. This's
+> > > pretty terrible, as application inside the network, if it never sends
+> > > anything, will never know that connection was dropped.
+> > 
+> > If this is a problem for you, then increase nf_conntrack_tcp_timeout_established
+> > to an insanely high value.  You do realize, of course, that the conntrack
+> > table has a finite number of entries.
+> >  
+> > > RFC 5382 gives us a solution to this:
+> > > > A NAT can check if an endpoint for a session has crashed by sending a
+> > > > TCP keep-alive packet and receiving a TCP RST packet in response.
+> > > 
+> > > However, it I couldn't find such feature in netfilter. It would be
+> > > pretty nice to have.
+> > 
+> > Keepalives should be done in the application, not in the firewall.
+> 
+> Actually I think its a pretty nice idea to reduce breakage introduced
+> by NATs. There a millions of embedded devices that use very small timeout
+> values to reduce memory usage, at the cost of frequently breaking idle
+> connections.
 
-Here follows two patches for nf-next.
-
-- Fix memory allocation for bitmap:port: at the restructuring of
-  the bitmap types creation in ipset, for the bitmap:port type wrong
-  (too large) memory allocation was copied. Reported by Quentin Armitage,
-  the patch is from me.
-- Remove a duplicate define from net/netfilter/ipset/ip_set_hash_gen.h,
-  submitted by Michael Opdenacker.
-
-Please apply them.
-
-Best regards,
-Jozsef
-
-The following changes since commit f2020b27be94222eb25c39ff46eb9917cb92897b:
-
-  netfilter: ip6t_REJECT: skip checksum verification for outgoing ipv6 packets (2013-10-23 11:20:00 +0200)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 1e56555ee1f3d04d89bdaa3df57ad2da9fbc0999:
-
-  netfilter: ipset: remove duplicate define (2013-10-27 19:24:45 +0100)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      netfilter:ipset: Fix memory allocation for bitmap:port
-
-Michael Opdenacker (1):
-      netfilter: ipset: remove duplicate define
-
- net/netfilter/ipset/ip_set_bitmap_port.c |    2 +-
- net/netfilter/ipset/ip_set_hash_gen.h    |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+The downside seems to be that we'd need to keep track of timestamp values
+to send valid keepalives, which also costs extra memory. I don't think that
+cost is justifiable for NAT keepalives alone.
