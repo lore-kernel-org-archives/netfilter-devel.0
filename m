@@ -1,57 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RFC PATCH 0/2 nf_tables] 32/64/128-bits word addressing in nf_tables
-Date: Mon, 28 Oct 2013 13:59:37 +0100
-Message-ID: <1382965180-9400-1-git-send-email-pablo@netfilter.org>
+Subject: [RFC PATCH 2/2 nf_tables] netfilter: nf_tables: round to 32 bits in payload operations
+Date: Mon, 28 Oct 2013 13:59:39 +0100
+Message-ID: <1382965180-9400-3-git-send-email-pablo@netfilter.org>
+References: <1382965180-9400-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49939 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49948 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756409Ab3J1M7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 08:59:48 -0400
+	id S1756435Ab3J1M7x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:59:53 -0400
+In-Reply-To: <1382965180-9400-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a preliminary patchset to allow nf_tables to address registers
-at 32/64/128 bits word size. This is something that Patrick and I have
-been discussing for a while.
+If you need to fetch less than 32 bits, round it up to 32 bits
+to make sure that it zeroes the remaining part of the register.
 
-The proposed approach in this patchset adds the new register addressing
-to the nf_tables core, the overlapping register approach describe in
-patch 1/2 is backward compatible.
+This changes is required by concatenations.
 
-Still missing a kernel patch to allow set elements higher than 128 bits,
-so we can have concatenations including IPv6 addresses, but that limitation
-should be easy to remove. Explicit set type selection is also required,
-currently, it is selecting the rb-tree set type here, which is suboptimal.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Comments welcome.
-
-Pablo Neira Ayuso (2):
-  netfilter: nf_tables: allow 32/64/128-bits register addressing
-  netfilter: nf_tables: round to 32 bits in payload operations
-
- include/net/netfilter/nf_tables.h        |   16 +++++-
- include/uapi/linux/netfilter/nf_tables.h |   35 ++++++++++++-
- net/netfilter/nf_tables_api.c            |    4 +-
- net/netfilter/nf_tables_core.c           |   81 +++++++++++++++++++++++-------
- net/netfilter/nft_bitwise.c              |   10 ++--
- net/netfilter/nft_byteorder.c            |   10 ++--
- net/netfilter/nft_cmp.c                  |    8 +--
- net/netfilter/nft_compat.c               |   16 +++---
- net/netfilter/nft_ct.c                   |   35 +++++++------
- net/netfilter/nft_exthdr.c               |    9 ++--
- net/netfilter/nft_hash.c                 |   13 +++--
- net/netfilter/nft_immediate.c            |    5 +-
- net/netfilter/nft_limit.c                |    5 +-
- net/netfilter/nft_log.c                  |    3 +-
- net/netfilter/nft_lookup.c               |    9 ++--
- net/netfilter/nft_meta.c                 |   37 +++++++-------
- net/netfilter/nft_nat.c                  |   27 +++++-----
- net/netfilter/nft_payload.c              |    9 ++--
- net/netfilter/nft_rbtree.c               |    5 +-
- 19 files changed, 207 insertions(+), 130 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index b814b0c4..5feb409 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -54,11 +54,11 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 		return false;
+ 
+ 	if (priv->len == 2)
+-		*(u16 *)dest = *(u16 *)ptr;
++		*dest = *(u16 *)ptr;
+ 	else if (priv->len == 4)
+-		*(u32 *)dest = *(u32 *)ptr;
++		*dest = *(u32 *)ptr;
+ 	else
+-		*(u8 *)dest = *(u8 *)ptr;
++		*dest = *(u8 *)ptr;
+ 	return true;
+ }
+ 
 -- 
 1.7.10.4
 
