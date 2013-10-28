@@ -1,79 +1,38 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: [PATCH FIX] NFQUEUE: fix --queue-bypass regression
-Date: Mon, 28 Oct 2013 14:42:33 +0100
-Message-ID: <20131028134233.GZ13405@imap.eitzenberger.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nftables-kernel PATCH v2] netfilter: nftables: Fix sparse
+ endianness issue on nft_nat.c
+Date: Mon, 28 Oct 2013 17:46:16 +0100
+Message-ID: <20131028164616.GA13962@localhost>
+References: <1382955585-21113-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="eHmdSDY+kY2au76U"
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64838 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756563Ab3J1Nmj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 09:42:39 -0400
+Received: from mail.us.es ([193.147.175.20]:38578 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757025Ab3J1QqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 12:46:22 -0400
 Content-Disposition: inline
+In-Reply-To: <1382955585-21113-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Oct 28, 2013 at 12:19:45PM +0200, Tomasz Bursztyka wrote:
+> Fixes this:
+> 
+> CHECK   net/netfilter/nft_nat.c
+> net/netfilter/nft_nat.c:50:43: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:50:43:    expected restricted __be32 [addressable] [usertype] ip
+> net/netfilter/nft_nat.c:50:43:    got unsigned int [unsigned] [usertype] <noident>
+> net/netfilter/nft_nat.c:51:43: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:51:43:    expected restricted __be32 [addressable] [usertype] ip
+> net/netfilter/nft_nat.c:51:43:    got unsigned int [unsigned] [usertype] <noident>
+> net/netfilter/nft_nat.c:65:37: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:65:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
+> net/netfilter/nft_nat.c:65:37:    got unsigned int [unsigned] <noident>
+> net/netfilter/nft_nat.c:66:37: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:66:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
+> net/netfilter/nft_nat.c:66:37:    got unsigned int [unsigned] <noident>
 
---eHmdSDY+kY2au76U
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Pablo,
-
-Florian reported a regression when using the --queue-bypass with v3 of
-the target.
-
-Regression is in since 8746ddcf12bb26 ("netfilter: xt_NFQUEUE:
-introduce CPU fanout").
-
-The attached patch fixes that for me.
-
- /Holger
-
-
---eHmdSDY+kY2au76U
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="nfqueue-fix-bypass.diff"
-
-[27428] NFQUEUE: fix bypass on v3
-
-V3 of the NFQUEUE target ignores the --queue-bypass flag,
-causing packets to be dropped when the userspace listener
-isn't running.
-
-Regression is in since 8746ddcf12bb26 ("netfilter: xt_NFQUEUE:
-introduce CPU fanout").
-
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-
-Index: net-next/net/netfilter/xt_NFQUEUE.c
-===================================================================
---- net-next.orig/net/netfilter/xt_NFQUEUE.c
-+++ net-next/net/netfilter/xt_NFQUEUE.c
-@@ -147,6 +147,7 @@ nfqueue_tg_v3(struct sk_buff *skb, const
- {
- 	const struct xt_NFQ_info_v3 *info = par->targinfo;
- 	u32 queue = info->queuenum;
-+	int ret;
- 
- 	if (info->queues_total > 1) {
- 		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-@@ -157,7 +158,11 @@ nfqueue_tg_v3(struct sk_buff *skb, const
- 			queue = nfqueue_hash(skb, par);
- 	}
- 
--	return NF_QUEUE_NR(queue);
-+	ret = NF_QUEUE_NR(queue);
-+	if (info->flags & NFQ_FLAG_BYPASS)
-+		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
-+
-+	return ret;
- }
- 
- static struct xt_target nfqueue_tg_reg[] __read_mostly = {
-
---eHmdSDY+kY2au76U--
+Applied, thanks.
