@@ -1,40 +1,233 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] test: xml: fix truncated ruleset testfile
-Date: Mon, 28 Oct 2013 11:24:57 +0100
-Message-ID: <20131028102457.31546.59921.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH 1/2] ruleset: factorize json/xml tagging
+Date: Mon, 28 Oct 2013 11:57:47 +0100
+Message-ID: <20131028105747.32691.93153.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:34669 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:34289 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754133Ab3J1KZJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 06:25:09 -0400
+	id S1754529Ab3J1K57 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 06:57:59 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 3202451ED5D
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2013 10:57:56 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id HhFEJf+UZH5I for <netfilter-devel@vger.kernel.org>;
+	Mon, 28 Oct 2013 11:57:50 +0100 (CET)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id A7E6C51ECC9
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Oct 2013 11:57:50 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Give a new XML ruleset testfile. It seems that patchwork doesn't like too
-long lines.
+This factorization of JSON/XML open & close tag allows reutilice code in future
+patches (for example, the fprintf API functions).
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- tests/xmlfiles/75-ruleset.xml |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/ruleset.c |  107 +++++++++++++++++++++++++++++----------------------------
+ 1 file changed, 54 insertions(+), 53 deletions(-)
 
-diff --git a/tests/xmlfiles/75-ruleset.xml b/tests/xmlfiles/75-ruleset.xml
-index 27fe3f8..76f36a5 100644
---- a/tests/xmlfiles/75-ruleset.xml
-+++ b/tests/xmlfiles/75-ruleset.xml
-@@ -1 +1 @@
--<nftables><table><name>filter</name><family>ip</family><flags>0</flags></table><table><name>filter</name><family>ip6</family><flags>0</flags></table><chain><name>input</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>output</name><handle>2</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>forward</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip6</family></chain><set><family>ip6</family><table>filter</table><name>set0</name><flags>3</flags><key_type>12</key_type><key_len>2</key_len><data_type>0</data_type><data_len>0</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00004300</data0></data
- _reg></key></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00003500</data0></data_reg></key></set_elem></set><set><family>ip</family><table>filter</tabl
-+<nftables><table><name>filter</name><family>ip</family><flags>0</flags></table><table><name>filter</name><family>ip6</family><flags>0</flags></table><chain><name>input</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>output</name><handle>2</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip</family></chain><chain><name>forward</name><handle>1</handle><bytes>0</bytes><packets>0</packets><table>filter</table><family>ip6</family></chain><set><family>ip6</family><table>filter</table><name>set0</name><flags>3</flags><key_type>12</key_type><key_len>2</key_len><data_type>0</data_type><data_len>0</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00004300</data0></data
- _reg></key></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00003500</data0></data_reg></key></set_elem></set><set><family>ip</family><table>filter</tabl
- e><name>map0</name><flags>11</flags><key_type>12</key_type><key_len>2</key_len><data_type>4294967040</data_type><data_len>16</data_len><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00005000</data0></data_reg></key><data><data_reg type="verdict"><verdict>drop</verdict></data_reg></data></set_elem><set_elem><flags>0</flags><key><data_reg type="value"><len>2</len><data0>0x00001600</data0></data_reg></key><data><data_reg type="verdict"><verdict>accept</verdict></data_reg></data></set_elem></set><rule><family>ip</family><table>filter</table><chain>input</chain><handle>8</handle><expr type="counter"><pkts>0</pkts><bytes>0</bytes></expr><expr type="immediate"><dreg>0</dreg><immediatedata><data_reg type="verdict"><verdict>accept</verdict></data_reg></immediatedata></e
- xpr></rule><rule><family>ip</family><table>filter</table><chain>output</chain><handle>9</handle><expr type="payload"><dreg>1</dreg><offset>9</offset><len>1</len><base>network</base></expr><e
- xpr type="cmp"><sreg>1</sreg><op>eq</op><cmpdata><data_reg type="value"><len>1</len><data0>0x00000006</data0></data_reg></cmpdata></expr><expr type="payload"><dreg>1</dreg><offset>2</offset><len>2</len><base>transport</base></expr><expr type="lookup"><set>map0</set><sreg>1</sreg><dreg>0</dreg></expr></rule><rule><family>ip6</family><table>filter</table><chain>forward</chain><handle>2</handle><expr type="payload"><dreg>1</dreg><offset>6</offset><len>1</len><base>network</base></expr><expr type="cmp"><sreg>1</sreg><op>eq</op><cmpdata><data_reg type="value"><len>1</len><data0>0x00000011</data0></data_reg></cmpdata></expr><expr type="payload"><dreg>1</dreg><offset>2</offset><len>2</len><base>transport</base></expr><expr type="lookup"><set>set0</set><sreg>1</sreg><dreg>0</dreg></expr><expr typ
- e="counter"><pkts>0</pkts><bytes>0</bytes></expr><expr type="immediate"><dreg>0</dreg><immediatedata><data_reg type="verdict"><verdict>accept</verdict></data_reg></immediatedata></expr></rul
- e></nftables>
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 8944da6..24b849b 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -579,18 +579,42 @@ int nft_ruleset_parse(struct nft_ruleset *r, enum nft_ruleset_parse_type type,
+ }
+ EXPORT_SYMBOL(nft_ruleset_parse);
+ 
+-static int separator_snprintf(char *buf, size_t size, void *obj, uint32_t type)
++static const char *nft_ruleset_o_opentag(uint32_t type)
++{
++	switch (type) {
++	case NFT_RULESET_O_XML:
++		return "<nftables>";
++	case NFT_RULESET_O_JSON:
++		return "{\"nftables\":[";
++	default:
++		return "";
++	}
++}
++
++static const char *nft_ruleset_o_separator(void *obj, uint32_t type)
+ {
+ 	if (obj == NULL)
+-		return 0;
++		return "";
+ 
+ 	switch (type) {
+ 	case NFT_RULESET_O_JSON:
+-		return snprintf(buf, size, ",");
++		return ",";
+ 	case NFT_RULESET_O_DEFAULT:
+-		return snprintf(buf, size, "\n");
++		return "\n";
+ 	default:
+-		return 0;
++		return "";
++	}
++}
++
++static const char *nft_ruleset_o_closetag(uint32_t type)
++{
++	switch (type) {
++	case NFT_RULESET_O_XML:
++		return "</nftables>";
++	case NFT_RULESET_O_JSON:
++		return "]}";
++	default:
++		return "";
+ 	}
+ }
+ 
+@@ -613,7 +637,9 @@ nft_ruleset_snprintf_table(char *buf, size_t size,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		t = nft_table_list_iter_next(ti);
+-		ret = separator_snprintf(buf+offset, len, t, type);
++
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(t, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nft_table_list_iter_destroy(ti);
+@@ -640,7 +666,9 @@ nft_ruleset_snprintf_chain(char *buf, size_t size,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		c = nft_chain_list_iter_next(ci);
+-		ret = separator_snprintf(buf+offset, len, c, type);
++
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(c, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nft_chain_list_iter_destroy(ci);
+@@ -667,7 +695,9 @@ nft_ruleset_snprintf_set(char *buf, size_t size,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		s = nft_set_list_iter_next(si);
+-		ret = separator_snprintf(buf+offset, len, s, type);
++
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(s, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nft_set_list_iter_destroy(si);
+@@ -694,7 +724,9 @@ nft_ruleset_snprintf_rule(char *buf, size_t size,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		r = nft_rule_list_iter_next(ri);
+-		ret = separator_snprintf(buf+offset, len, r, type);
++
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(r, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nft_rule_list_iter_destroy(ri);
+@@ -709,6 +741,9 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 	int ret, len = size, offset = 0;
+ 	void *prev = NULL;
+ 
++	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_opentag(type));
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST) &&
+ 	    (!nft_table_list_is_empty(rs->table_list))) {
+ 		ret = nft_ruleset_snprintf_table(buf+offset, len, rs,
+@@ -721,7 +756,8 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_CHAINLIST) &&
+ 	    (!nft_chain_list_is_empty(rs->chain_list))) {
+-		ret = separator_snprintf(buf+offset, len, prev, type);
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(prev, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_chain(buf+offset, len, rs,
+@@ -734,7 +770,8 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_SETLIST) &&
+ 	    (!nft_set_list_is_empty(rs->set_list))) {
+-		ret = separator_snprintf(buf+offset, len, prev, type);
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(prev, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_set(buf+offset, len, rs,
+@@ -747,7 +784,8 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_RULELIST) &&
+ 	    (!nft_rule_list_is_empty(rs->rule_list))) {
+-		ret = separator_snprintf(buf+offset, len, prev, type);
++		ret = snprintf(buf+offset, len, "%s",
++			       nft_ruleset_o_separator(prev, type));
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_rule(buf+offset, len, rs,
+@@ -755,42 +793,7 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
+-	return offset;
+-}
+-
+-static int
+-nft_ruleset_snprintf_xml(char *buf, size_t size, const struct nft_ruleset *rs,
+-			 uint32_t flags)
+-{
+-	int ret, len = size, offset = 0;
+-
+-	ret = snprintf(buf, size, "<nftables>");
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-	ret = nft_ruleset_do_snprintf(buf+offset, len, rs, NFT_RULESET_O_XML,
+-				      flags);
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-	ret = snprintf(buf+offset, len, "</nftables>");
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-	return offset;
+-}
+-
+-static int
+-nft_ruleset_snprintf_json(char *buf, size_t size, const struct nft_ruleset *rs,
+-			  uint32_t flags)
+-{
+-	int ret, len = size, offset = 0;
+-
+-	ret = snprintf(buf, size, "{\"nftables\":[");
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-	ret = nft_ruleset_do_snprintf(buf+offset, len, rs, NFT_RULESET_O_JSON,
+-				      flags);
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-
+-	ret = snprintf(buf+offset, len, "]}");
++	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_closetag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+@@ -801,14 +804,12 @@ int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *r,
+ {
+ 	switch (type) {
+ 	case NFT_RULESET_O_DEFAULT:
+-		return nft_ruleset_do_snprintf(buf, size, r, type, flags);
+ 	case NFT_RULESET_O_XML:
+-		return nft_ruleset_snprintf_xml(buf, size, r, flags);
+ 	case NFT_RULESET_O_JSON:
+-		return nft_ruleset_snprintf_json(buf, size, r, flags);
++		return nft_ruleset_do_snprintf(buf, size, r, type, flags);
+ 	default:
+-		break;
++		errno = EOPNOTSUPP;
++		return -1;
+ 	}
+-	return -1;
+ }
+ EXPORT_SYMBOL(nft_ruleset_snprintf);
 
