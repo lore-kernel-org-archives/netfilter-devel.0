@@ -1,44 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] test: xml: fix malformed ruleset testfile
-Date: Mon, 28 Oct 2013 09:58:07 +0100
-Message-ID: <20131028085807.GA3763@localhost>
-References: <20131024150058.21634.49651.stgit@nfdev.cica.es>
- <20131027200107.GA6569@localhost>
- <CAOkSjBiwg6WOSMGBVr6QHoy3prt4UkeURiPmrWPG74Zfv9eoOw@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: conntrack, idle TCP connection and keep-alives
+Date: Mon, 28 Oct 2013 09:29:43 +0000
+Message-ID: <20131028092943.GB9612@macbook.localnet>
+References: <20131027153408.GA20634@home>
+ <20131027180129.GC27597@macbook.localnet>
+ <20131027183825.GA17696@macbook.localnet>
+ <alpine.DEB.2.10.1310272007460.7234@blackhole.kfki.hu>
+ <20131027192019.GD32366@macbook.localnet>
+ <526D6825.2090505@torlan.ru>
+ <20131027193243.GA16338@macbook.localnet>
+ <20131027193434.GA16816@macbook.localnet>
+ <alpine.DEB.2.10.1310272041390.7234@blackhole.kfki.hu>
+ <alpine.DEB.2.10.1310272141110.7234@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: WGH <wgh@torlan.ru>, Phil Oester <kernel@linuxace.com>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45703 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754908Ab3J1I6P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 04:58:15 -0400
+Received: from stinky.trash.net ([213.144.137.162]:37444 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045Ab3J1J3t (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 05:29:49 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBiwg6WOSMGBVr6QHoy3prt4UkeURiPmrWPG74Zfv9eoOw@mail.gmail.com>
+In-Reply-To: <alpine.DEB.2.10.1310272141110.7234@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 28, 2013 at 09:28:22AM +0100, Arturo Borrero Gonzalez wrote:
-> On 27 October 2013 21:01, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Oct 24, 2013 at 05:00:58PM +0200, Arturo Borrero Gonzalez wrote:
-> >> Give a new XML ruleset testfile. For some reason, the previous was truncated.
-> >> This passed silently as nft-parsing-test is not reporting some errors properly.
-> >>
-> >> This new file provides:
-> >>  * 2 tables
-> >>  * 3 chains
-> >>  * 2 sets, with and without maps
-> >>  * 3 rules with mixed exprs
-> >
-> > Applied, thanks Arturo.
+On Sun, Oct 27, 2013 at 09:49:47PM +0100, Jozsef Kadlecsik wrote:
+> On Sun, 27 Oct 2013, Jozsef Kadlecsik wrote:
 > 
-> something went wrong again. The new testfile is also malformed...
+> > On Sun, 27 Oct 2013, Patrick McHardy wrote:
+> > 
+> > > On Sun, Oct 27, 2013 at 07:32:44PM +0000, Patrick McHardy wrote:
+> > > > On Sun, Oct 27, 2013 at 11:23:17PM +0400, WGH wrote:
+> > > > > On 27.10.2013 23:20, Patrick McHardy wrote:
+> > > > > > On Sun, Oct 27, 2013 at 08:14:19PM +0100, Jozsef Kadlecsik wrote:
+> > > > > >> I think a single flag could be sufficient: if the timer in conntrack goes 
+> > > > > >> off and the entry is in the ESTABLISHED state and this flag is not set, 
+> > > > > >> then send a TCP keepalive packet and start the timer with a short timeout. 
+> > > > > >> If we receive the reply packet, then the long ESTABLISHED timeout value 
+> > > > > >> can be restored and the flag cleared.
+> > > > > > Sure, I think we wouldn't even need that flag, we can just send the keepalive
+> > > > > > and set a short timeout. If a RST is received, the connection is killed
+> > > > > > anyway, otherwise it will be refreshed with the ESTABLISHED timeout.
+> > > > > >
+> > > > > > But we do need a timestamp value to pass PAWS.
+> > > > > I believe you forgot the third scenario: neither ACK nor RST is received
+> > > > > in reply.
+> > > > 
+> > > > Actually no, "... and set a short timeout ...".
+> > > 
+> > > Well, OK, we do need a flag to distinguish normal timeout from probe 
+> > > timeout. But still I don't see how we can do this without increasing the 
+> > > size of every conntrack by at least 4 bytes.
+> > 
+> > Yes, you're right: PAWS assumes all packets carry timestamps option, an 
+> > option-less ACK isn't sufficient. And increasing every conntrack entry 
+> > does seem too expensive when the application itself could send keep-alive 
+> > packets.
+> 
+> Looking at the source code, actually, the Linux TCP stack handles 
+> gracefully TCP packets without timestamp options when sender originally 
+> announced TCP timestamps. So it seems to me we could send a simple, 
+> option-less "keep-alive" packet. RFC1323 does not discuss the case but if 
+> the option is missing, stacks should fall back to the base handling, 
+> isn't it? ;-)
 
-Indeed, it's been truncated, I got your patch from patchwork. It seems
-it does like too long lines, check:
-
-http://patchwork.ozlabs.org/patch/285934/
-
-Please, send me a new patch, I'll apply directly from your email.
+That would be one option. Alternatively we could just make it optional
+by putting it into an extend or, looking at the NAT structure, shrink
+it a bit more for the NAT case to make up for the size increase by
+moving the PPtP helper data to an extend.
