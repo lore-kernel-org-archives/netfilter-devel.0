@@ -1,121 +1,30 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 3/4] build: avoid inclusion of stdbool.h in C++
-Date: Mon, 28 Oct 2013 13:27:19 +0100
-Message-ID: <1382963240-18760-4-git-send-email-jengelh@inai.de>
-References: <1382963240-18760-1-git-send-email-jengelh@inai.de>
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables 1/3] android: libiptc: Fix socklen_t type mismatch
+ on Android
+Date: Mon, 28 Oct 2013 13:31:55 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1310281330550.5620@nerf07.vanv.qr>
+References: <1382813433-20890-1-git-send-email-cernekee@gmail.com> <1382813433-20890-2-git-send-email-cernekee@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Kevin Cernekee <cernekee@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:34050 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:34086 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756247Ab3J1M11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 08:27:27 -0400
-In-Reply-To: <1382963240-18760-1-git-send-email-jengelh@inai.de>
+	id S1756025Ab3J1Mb4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:31:56 -0400
+In-Reply-To: <1382813433-20890-2-git-send-email-cernekee@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-C++ does not need this header, as it already has bool builtin.
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- include/libnftables/chain.h   | 4 +++-
- include/libnftables/expr.h    | 4 +++-
- include/libnftables/rule.h    | 4 +++-
- include/libnftables/ruleset.h | 4 +++-
- include/libnftables/set.h     | 4 +++-
- include/libnftables/table.h   | 4 +++-
- 6 files changed, 18 insertions(+), 6 deletions(-)
+On Saturday 2013-10-26 20:50, Kevin Cernekee wrote:
+> 
+>-#if !defined(__GLIBC__) || (__GLIBC__ < 2)
+>+#if !defined(__ANDROID__) && (!defined(__GLIBC__) || (__GLIBC__ < 2))
+> typedef unsigned int socklen_t;
+> #endif
 
-diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index d3ba75b..13b037d 100644
---- a/include/libnftables/chain.h
-+++ b/include/libnftables/chain.h
-@@ -2,7 +2,9 @@
- #define _CHAIN_H_
- 
- #include <stdint.h>
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <sys/types.h>
- 
- #ifdef __cplusplus
-diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
-index 81e224c..d5f13a6 100644
---- a/include/libnftables/expr.h
-+++ b/include/libnftables/expr.h
-@@ -2,7 +2,9 @@
- #define _RULE_EXPR_H_
- 
- #include <stdint.h>
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <sys/types.h>
- 
- #ifdef __cplusplus
-diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
-index 5b5263a..cb71e49 100644
---- a/include/libnftables/rule.h
-+++ b/include/libnftables/rule.h
-@@ -2,7 +2,9 @@
- #define _RULE_H_
- 
- #include <stdint.h>
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <sys/types.h>
- 
- #ifdef __cplusplus
-diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
-index 49f7c4e..96ff425 100644
---- a/include/libnftables/ruleset.h
-+++ b/include/libnftables/ruleset.h
-@@ -1,7 +1,9 @@
- #ifndef _RULESET_H_
- #define _RULESET_H_
- 
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <stdint.h>
- #include <sys/types.h>
- 
-diff --git a/include/libnftables/set.h b/include/libnftables/set.h
-index 1bd7670..92af85c 100644
---- a/include/libnftables/set.h
-+++ b/include/libnftables/set.h
-@@ -2,7 +2,9 @@
- #define _NFT_SET_H_
- 
- #include <stdint.h>
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <sys/types.h>
- 
- enum {
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 86978e1..b91a457 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -2,7 +2,9 @@
- #define _TABLE_H_
- 
- #include <stdint.h>
--#include <stdbool.h>
-+#ifndef __cplusplus
-+#	include <stdbool.h>
-+#endif
- #include <sys/types.h>
- 
- #ifdef __cplusplus
--- 
-1.8.2
-
+Do we still need this group of 3 lines anyway? Are we willingly
+targeting any libc which does not have socklen_t defined --
+or glibc 1.x for that matter?
