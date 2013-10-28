@@ -1,45 +1,121 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 2/2] build: resolve build errors in dependent programs
-Date: Mon, 28 Oct 2013 13:27:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1310281314430.5620@nerf07.vanv.qr>
-References: <1382279356-5050-1-git-send-email-jengelh@inai.de> <1382279356-5050-3-git-send-email-jengelh@inai.de> <20131027210138.GA11945@localhost>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/4] build: avoid inclusion of stdbool.h in C++
+Date: Mon, 28 Oct 2013 13:27:19 +0100
+Message-ID: <1382963240-18760-4-git-send-email-jengelh@inai.de>
+References: <1382963240-18760-1-git-send-email-jengelh@inai.de>
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:34041 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:34050 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756004Ab3J1M1Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 08:27:25 -0400
-In-Reply-To: <20131027210138.GA11945@localhost>
+	id S1756247Ab3J1M11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:27:27 -0400
+In-Reply-To: <1382963240-18760-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+C++ does not need this header, as it already has bool builtin.
 
-On Sunday 2013-10-27 22:01, Pablo Neira Ayuso wrote:
->On Sun, Oct 20, 2013 at 04:29:16PM +0200, Jan Engelhardt wrote:
->> 
->> 	chain.h:44:71: warning: "struct nlmsghdr" declared inside
->> 	parameter list [enabled by default]
->> 	chain.h:60:35: error: unknown type name "size_t"
->
->This is fixing two different issues in one single patch.
->I have applied a patch to add struct nlmsghdr without definition.
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ include/libnftables/chain.h   | 4 +++-
+ include/libnftables/expr.h    | 4 +++-
+ include/libnftables/rule.h    | 4 +++-
+ include/libnftables/ruleset.h | 4 +++-
+ include/libnftables/set.h     | 4 +++-
+ include/libnftables/table.h   | 4 +++-
+ 6 files changed, 18 insertions(+), 6 deletions(-)
 
-Well, there's still size_t left.
+diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
+index d3ba75b..13b037d 100644
+--- a/include/libnftables/chain.h
++++ b/include/libnftables/chain.h
+@@ -2,7 +2,9 @@
+ #define _CHAIN_H_
+ 
+ #include <stdint.h>
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <sys/types.h>
+ 
+ #ifdef __cplusplus
+diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
+index 81e224c..d5f13a6 100644
+--- a/include/libnftables/expr.h
++++ b/include/libnftables/expr.h
+@@ -2,7 +2,9 @@
+ #define _RULE_EXPR_H_
+ 
+ #include <stdint.h>
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <sys/types.h>
+ 
+ #ifdef __cplusplus
+diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
+index 5b5263a..cb71e49 100644
+--- a/include/libnftables/rule.h
++++ b/include/libnftables/rule.h
+@@ -2,7 +2,9 @@
+ #define _RULE_H_
+ 
+ #include <stdint.h>
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <sys/types.h>
+ 
+ #ifdef __cplusplus
+diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
+index 49f7c4e..96ff425 100644
+--- a/include/libnftables/ruleset.h
++++ b/include/libnftables/ruleset.h
+@@ -1,7 +1,9 @@
+ #ifndef _RULESET_H_
+ #define _RULESET_H_
+ 
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+diff --git a/include/libnftables/set.h b/include/libnftables/set.h
+index 1bd7670..92af85c 100644
+--- a/include/libnftables/set.h
++++ b/include/libnftables/set.h
+@@ -2,7 +2,9 @@
+ #define _NFT_SET_H_
+ 
+ #include <stdint.h>
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <sys/types.h>
+ 
+ enum {
+diff --git a/include/libnftables/table.h b/include/libnftables/table.h
+index 86978e1..b91a457 100644
+--- a/include/libnftables/table.h
++++ b/include/libnftables/table.h
+@@ -2,7 +2,9 @@
+ #define _TABLE_H_
+ 
+ #include <stdint.h>
+-#include <stdbool.h>
++#ifndef __cplusplus
++#	include <stdbool.h>
++#endif
+ #include <sys/types.h>
+ 
+ #ifdef __cplusplus
+-- 
+1.8.2
 
->Regarding the c++ changes, we already discussed this in libmnl's
->patch:
->
->5b8a0c7 include: don't force compiler to enter C++11 mode
->
->this change doesn't seem to be required by g++ at all.
-
-Not required by g++, but wanted by the standard. Also note that
-in my current submission, I expressly specified
-
-#if ... __cplusplus >= 2011UL.
-
-which is how to tackle this. The remaining patches will be posted
-by git-s-e shortly.
