@@ -1,74 +1,69 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: conntrack, idle TCP connection and keep-alives
-Date: Mon, 28 Oct 2013 09:29:43 +0000
-Message-ID: <20131028092943.GB9612@macbook.localnet>
-References: <20131027153408.GA20634@home>
- <20131027180129.GC27597@macbook.localnet>
- <20131027183825.GA17696@macbook.localnet>
- <alpine.DEB.2.10.1310272007460.7234@blackhole.kfki.hu>
- <20131027192019.GD32366@macbook.localnet>
- <526D6825.2090505@torlan.ru>
- <20131027193243.GA16338@macbook.localnet>
- <20131027193434.GA16816@macbook.localnet>
- <alpine.DEB.2.10.1310272041390.7234@blackhole.kfki.hu>
- <alpine.DEB.2.10.1310272141110.7234@blackhole.kfki.hu>
+Subject: Re: [nftables-kernel PATCH] netfilter: nftables: Fix sparse
+ endianness issue on nft_nat.c
+Date: Mon, 28 Oct 2013 09:41:11 +0000
+Message-ID: <20131028094111.GA9725@macbook.localnet>
+References: <1382086853-14251-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: WGH <wgh@torlan.ru>, Phil Oester <kernel@linuxace.com>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37444 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37509 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045Ab3J1J3t (ORCPT
+	with ESMTP id S1756119Ab3J1JlP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 05:29:49 -0400
+	Mon, 28 Oct 2013 05:41:15 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1310272141110.7234@blackhole.kfki.hu>
+In-Reply-To: <1382086853-14251-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 27, 2013 at 09:49:47PM +0100, Jozsef Kadlecsik wrote:
-> On Sun, 27 Oct 2013, Jozsef Kadlecsik wrote:
+On Fri, Oct 18, 2013 at 12:00:53PM +0300, Tomasz Bursztyka wrote:
+> Fixes this:
 > 
-> > On Sun, 27 Oct 2013, Patrick McHardy wrote:
-> > 
-> > > On Sun, Oct 27, 2013 at 07:32:44PM +0000, Patrick McHardy wrote:
-> > > > On Sun, Oct 27, 2013 at 11:23:17PM +0400, WGH wrote:
-> > > > > On 27.10.2013 23:20, Patrick McHardy wrote:
-> > > > > > On Sun, Oct 27, 2013 at 08:14:19PM +0100, Jozsef Kadlecsik wrote:
-> > > > > >> I think a single flag could be sufficient: if the timer in conntrack goes 
-> > > > > >> off and the entry is in the ESTABLISHED state and this flag is not set, 
-> > > > > >> then send a TCP keepalive packet and start the timer with a short timeout. 
-> > > > > >> If we receive the reply packet, then the long ESTABLISHED timeout value 
-> > > > > >> can be restored and the flag cleared.
-> > > > > > Sure, I think we wouldn't even need that flag, we can just send the keepalive
-> > > > > > and set a short timeout. If a RST is received, the connection is killed
-> > > > > > anyway, otherwise it will be refreshed with the ESTABLISHED timeout.
-> > > > > >
-> > > > > > But we do need a timestamp value to pass PAWS.
-> > > > > I believe you forgot the third scenario: neither ACK nor RST is received
-> > > > > in reply.
-> > > > 
-> > > > Actually no, "... and set a short timeout ...".
-> > > 
-> > > Well, OK, we do need a flag to distinguish normal timeout from probe 
-> > > timeout. But still I don't see how we can do this without increasing the 
-> > > size of every conntrack by at least 4 bytes.
-> > 
-> > Yes, you're right: PAWS assumes all packets carry timestamps option, an 
-> > option-less ACK isn't sufficient. And increasing every conntrack entry 
-> > does seem too expensive when the application itself could send keep-alive 
-> > packets.
+> CHECK   net/netfilter/nft_nat.c
+> net/netfilter/nft_nat.c:50:43: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:50:43:    expected restricted __be32 [addressable] [usertype] ip
+> net/netfilter/nft_nat.c:50:43:    got unsigned int [unsigned] [usertype] <noident>
+> net/netfilter/nft_nat.c:51:43: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:51:43:    expected restricted __be32 [addressable] [usertype] ip
+> net/netfilter/nft_nat.c:51:43:    got unsigned int [unsigned] [usertype] <noident>
+> net/netfilter/nft_nat.c:65:37: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:65:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
+> net/netfilter/nft_nat.c:65:37:    got unsigned int [unsigned] <noident>
+> net/netfilter/nft_nat.c:66:37: warning: incorrect type in assignment (different base types)
+> net/netfilter/nft_nat.c:66:37:    expected restricted __be16 [addressable] [assigned] [usertype] all
+> net/netfilter/nft_nat.c:66:37:    got unsigned int [unsigned] <noident>
 > 
-> Looking at the source code, actually, the Linux TCP stack handles 
-> gracefully TCP packets without timestamp options when sender originally 
-> announced TCP timestamps. So it seems to me we could send a simple, 
-> option-less "keep-alive" packet. RFC1323 does not discuss the case but if 
-> the option is missing, stacks should fall back to the base handling, 
-> isn't it? ;-)
+> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+> ---
+> 
+> Hi,
+> 
+> looks a bit ugly, would there be another way to fix this?
+> 
+> Tomasz
+> 
+>  net/netfilter/nft_nat.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+> index b0b87b2..f9d488f 100644
+> --- a/net/netfilter/nft_nat.c
+> +++ b/net/netfilter/nft_nat.c
+> @@ -47,8 +47,12 @@ static void nft_nat_eval(const struct nft_expr *expr,
+>  	memset(&range, 0, sizeof(range));
+>  	if (priv->sreg_addr_min) {
+>  		if (priv->family == AF_INET) {
+> -			range.min_addr.ip = data[priv->sreg_addr_min].data[0];
+> -			range.max_addr.ip = data[priv->sreg_addr_max].data[0];
+> +			range.min_addr.ip =
+> +				be32_to_cpup((__be32 *)
+> +					data[priv->sreg_addr_min].data);
+> +			range.max_addr.ip =
+> +				be32_to_cpup((__be32 *)
+> +					data[priv->sreg_addr_max].data);
 
-That would be one option. Alternatively we could just make it optional
-by putting it into an extend or, looking at the NAT structure, shrink
-it a bit more for the NAT case to make up for the size increase by
-moving the PPtP helper data to an extend.
+That doesn't seem correct, we don't want to actually switch the byteorder of
+the data. I'd suggest to simply use (__force __be32).
