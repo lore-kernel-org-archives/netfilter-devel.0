@@ -1,30 +1,57 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH iptables 1/3] android: libiptc: Fix socklen_t type mismatch
- on Android
-Date: Mon, 28 Oct 2013 13:31:55 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1310281330550.5620@nerf07.vanv.qr>
-References: <1382813433-20890-1-git-send-email-cernekee@gmail.com> <1382813433-20890-2-git-send-email-cernekee@gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Kevin Cernekee <cernekee@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [RFC PATCH 0/2 nf_tables] 32/64/128-bits word addressing in nf_tables
+Date: Mon, 28 Oct 2013 13:59:37 +0100
+Message-ID: <1382965180-9400-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:34086 "EHLO ares07.inai.de"
+Received: from mail.us.es ([193.147.175.20]:49939 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756025Ab3J1Mb4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Oct 2013 08:31:56 -0400
-In-Reply-To: <1382813433-20890-2-git-send-email-cernekee@gmail.com>
+	id S1756409Ab3J1M7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Oct 2013 08:59:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a preliminary patchset to allow nf_tables to address registers
+at 32/64/128 bits word size. This is something that Patrick and I have
+been discussing for a while.
 
-On Saturday 2013-10-26 20:50, Kevin Cernekee wrote:
-> 
->-#if !defined(__GLIBC__) || (__GLIBC__ < 2)
->+#if !defined(__ANDROID__) && (!defined(__GLIBC__) || (__GLIBC__ < 2))
-> typedef unsigned int socklen_t;
-> #endif
+The proposed approach in this patchset adds the new register addressing
+to the nf_tables core, the overlapping register approach describe in
+patch 1/2 is backward compatible.
 
-Do we still need this group of 3 lines anyway? Are we willingly
-targeting any libc which does not have socklen_t defined --
-or glibc 1.x for that matter?
+Still missing a kernel patch to allow set elements higher than 128 bits,
+so we can have concatenations including IPv6 addresses, but that limitation
+should be easy to remove. Explicit set type selection is also required,
+currently, it is selecting the rb-tree set type here, which is suboptimal.
+
+Comments welcome.
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_tables: allow 32/64/128-bits register addressing
+  netfilter: nf_tables: round to 32 bits in payload operations
+
+ include/net/netfilter/nf_tables.h        |   16 +++++-
+ include/uapi/linux/netfilter/nf_tables.h |   35 ++++++++++++-
+ net/netfilter/nf_tables_api.c            |    4 +-
+ net/netfilter/nf_tables_core.c           |   81 +++++++++++++++++++++++-------
+ net/netfilter/nft_bitwise.c              |   10 ++--
+ net/netfilter/nft_byteorder.c            |   10 ++--
+ net/netfilter/nft_cmp.c                  |    8 +--
+ net/netfilter/nft_compat.c               |   16 +++---
+ net/netfilter/nft_ct.c                   |   35 +++++++------
+ net/netfilter/nft_exthdr.c               |    9 ++--
+ net/netfilter/nft_hash.c                 |   13 +++--
+ net/netfilter/nft_immediate.c            |    5 +-
+ net/netfilter/nft_limit.c                |    5 +-
+ net/netfilter/nft_log.c                  |    3 +-
+ net/netfilter/nft_lookup.c               |    9 ++--
+ net/netfilter/nft_meta.c                 |   37 +++++++-------
+ net/netfilter/nft_nat.c                  |   27 +++++-----
+ net/netfilter/nft_payload.c              |    9 ++--
+ net/netfilter/nft_rbtree.c               |    5 +-
+ 19 files changed, 207 insertions(+), 130 deletions(-)
+
+-- 
+1.7.10.4
+
