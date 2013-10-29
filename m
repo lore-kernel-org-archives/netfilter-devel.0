@@ -1,55 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: xt_NFQUEUE: fix --queue-bypass regression
-Date: Tue, 29 Oct 2013 13:13:16 +0100
-Message-ID: <1383048796-7964-2-git-send-email-pablo@netfilter.org>
-References: <1383048796-7964-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1383048796-7964-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [RFC PATCH nf_conntrack_extend] new extensions without changes
+ kernel source
+Date: Tue, 29 Oct 2013 13:22:12 +0100
+Message-ID: <20131029122212.GA8019@localhost>
+References: <525EEAB7.4090901@guap.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: "Vitaly E. Lavrov" <lve@guap.ru>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:39474 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751978Ab3J2MWV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Oct 2013 08:22:21 -0400
+Content-Disposition: inline
+In-Reply-To: <525EEAB7.4090901@guap.ru>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Holger Eitzenberger <holger@eitzenberger.org>
+Hi Vitaly,
 
-V3 of the NFQUEUE target ignores the --queue-bypass flag,
-causing packets to be dropped when the userspace listener
-isn't running.
+On Wed, Oct 16, 2013 at 11:36:23PM +0400, Vitaly E. Lavrov wrote:
+> How to add additional data to the conntrack? This is needed to
+> the implementation of ndpi-netfilter.
+> 
+> Now it is possible to add data to a struct "nf_conn-> ext" through
+> nf_conntrack_extend, but it requires a change in the kernel code.
+> 
+> I have developed a patch to register custom extensions in nf_conn->ext.
+> In the kernel configuration, you can specify the maximum number of additional
+> extensions (0..8). When registering a custom extension to specify an
+> additional unique identifier extension (u32). In the extension properties
+> seq_print added optional method to display data in "/proc/net/nf_conntrack".
+> 
+> What lacks is in this patch?
 
-Regression is in since 8746ddcf12bb26 ("netfilter: xt_NFQUEUE:
-introduce CPU fanout").
+I'm reticent to get this extremely generic infrastructure into
+mainstream, we need to know more on the ndpi needs and discuss some
+generic infrastructure that most layer 7 implementation can benefit
+from.
 
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_NFQUEUE.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index 1e2fae3..ed00fef 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -147,6 +147,7 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_NFQ_info_v3 *info = par->targinfo;
- 	u32 queue = info->queuenum;
-+	int ret;
- 
- 	if (info->queues_total > 1) {
- 		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-@@ -157,7 +158,11 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
- 			queue = nfqueue_hash(skb, par);
- 	}
- 
--	return NF_QUEUE_NR(queue);
-+	ret = NF_QUEUE_NR(queue);
-+	if (info->flags & NFQ_FLAG_BYPASS)
-+		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
-+
-+	return ret;
- }
- 
- static struct xt_target nfqueue_tg_reg[] __read_mostly = {
--- 
-1.7.10.4
+BTW, please try to avoid /proc interfaces, we try to run away from them
+if possible, using ctnetlink would be better.
