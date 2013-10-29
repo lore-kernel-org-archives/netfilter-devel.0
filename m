@@ -1,64 +1,46 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: IPV6 nf defrag does not work
-Date: Tue, 29 Oct 2013 13:03:29 +0100
-Message-ID: <20131029120329.GB18526@minipsycho.orion>
-References: <20131029105208.GA18526@minipsycho.orion>
- <20131029115617.GA16615@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:37414 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754888Ab3J2MDc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Oct 2013 08:03:32 -0400
-Received: by mail-ea0-f174.google.com with SMTP id z15so2905621ead.33
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2013 05:03:31 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20131029115617.GA16615@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter fix for net
+Date: Tue, 29 Oct 2013 13:13:15 +0100
+Message-ID: <1383048796-7964-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Tue, Oct 29, 2013 at 12:56:17PM CET, fw@strlen.de wrote:
->Jiri Pirko <jiri@resnulli.us> wrote:
->> On the current net-next if you on HOSTA do:
->> ip6tables -I INPUT -p icmpv6 -j DROP
->> ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
->> 
->> and on HOSTB you do:
->> ping6 HOSTA -s2000    (MTU is 1500)
->> 
->> Only the first ICMP echo request will be passed through, the rest is not
->> passed on HOSTA. This issue does not occur with smaller packets than MTU (where
->> fragmentation does not happen).
->>
->> I'm trying to find out where the problem is.
->
->Are you sure this is new behaviour? As far back as I can remember
->it was always like this.
+Hi David,
 
-Yes. This is not new.
+This pull request contains the following netfilter fix:
 
->
->in ip6tables, the individual fragments are sent through the ruleset,
->iow. you'll need to make use of '-m conntrack' to match the fragments
->belonging to an existing connection.
+* fix --queue-bypass in xt_NFQUEUE revision 3. While adding the
+  revision 3 of this target, the bypass flags were not correctly
+  handled anymore, thus, breaking packet bypassing if no application
+  is listening from userspace, patch from Holger Eitzenberger,
+  reported by Florian Westphal.
 
-Hmm. I think that it is not correct to force user (iptables user) to
-make dirrerent rules because some ipv6 packets might be fragmented.
-This should be handled in kernel.
+You can pull this change from:
 
->
->I don't know why this is, and I don't like this either.
->But this is how it was implemented, see
->
->net/ipv6/netfilter/nf_defrag_ipv6_hooks.c, ipv6_defrag() ->
->nf_ct_frag6_output()
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-Yep. I'm studying the code atm.
+Thanks!
 
+----------------------------------------------------------------
 
+The following changes since commit fecda03493646b53f53892fa3c38c75ba9310374:
+
+  net: sctp: fix ASCONF to allow non SCTP_ADDR_SRC addresses in ipv6 (2013-10-23 16:57:14 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to d954777324ffcba0b2f8119c102237426c654eeb:
+
+  netfilter: xt_NFQUEUE: fix --queue-bypass regression (2013-10-29 13:05:54 +0100)
+
+----------------------------------------------------------------
+Holger Eitzenberger (1):
+      netfilter: xt_NFQUEUE: fix --queue-bypass regression
+
+ net/netfilter/xt_NFQUEUE.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
