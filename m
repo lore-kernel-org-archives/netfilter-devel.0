@@ -1,51 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft tool PATCH] src: include <stdio.h>
-Date: Tue, 29 Oct 2013 13:24:53 +0100
-Message-ID: <20131029122453.GA8056@localhost>
-References: <20131028232710.11563.530.stgit@nfdev.cica.es>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: IPV6 nf defrag does not work
+Date: Tue, 29 Oct 2013 15:30:30 +0100
+Message-ID: <20131029143030.GC18526@minipsycho.orion>
+References: <20131029105208.GA18526@minipsycho.orion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40280 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751349Ab3J2MY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Oct 2013 08:24:58 -0400
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	yoshfuji@linux-ipv6.org, kadlec@blackhole.kfki.hu, kaber@trash.net
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131028232710.11563.530.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20131029105208.GA18526@minipsycho.orion>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 29, 2013 at 12:27:10AM +0100, Arturo Borrero Gonzalez wrote=
-:
-> This prevents compile errors:
-> 	[...] error: unknown type name =E2=80=98FILE=E2=80=99
->=20
-> when using with the libnftables patch 'src: add fprintf API functions=
-'.
->=20
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
+Tue, Oct 29, 2013 at 11:52:08AM CET, jiri@resnulli.us wrote:
+>Hi All.
 >
-> ---
->  src/netlink_delinearize.c |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index 3bb143b..8318e5c 100644
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -10,6 +10,7 @@
->   */
-> =20
->  #include <stdlib.h>
-> +#include <stdio.h>
+>On the current net-next if you on HOSTA do:
+>ip6tables -I INPUT -p icmpv6 -j DROP
+>ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
+>
+>and on HOSTB you do:
+>ping6 HOSTA -s2000    (MTU is 1500)
+>
+>Only the first ICMP echo request will be passed through, the rest is not
+>passed on HOSTA. This issue does not occur with smaller packets than MTU (where
+>fragmentation does not happen).
+>
 
-This means that you have to include this in the libnftables header
-files.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm. The reason why first packet goes through is because of:
+commit 58a317f1061c894d2344c0b6a18ab4a64b69b815
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Sun Aug 26 19:14:12 2012 +0200
+
+    netfilter: ipv6: add IPv6 NAT support
+
+
+First packet will hit "if ((help && help->helper) || !nf_ct_is_confirmed(ct))"
+(ct is uncorfirmed for it).
+
+
+For this, nf_conntrack_ipv6 has to be loaded. Continuing investigation.
+
+
+
+>I'm trying to find out where the problem is.
+>
+>Any quick ideas?
+>
+>Thanks
+>
+>Jiri
