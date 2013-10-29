@@ -1,54 +1,36 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: IPV6 nf defrag does not work
-Date: Tue, 29 Oct 2013 15:30:30 +0100
-Message-ID: <20131029143030.GC18526@minipsycho.orion>
-References: <20131029105208.GA18526@minipsycho.orion>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter fix for net
+Date: Tue, 29 Oct 2013 16:54:17 -0400 (EDT)
+Message-ID: <20131029.165417.2227248279184824852.davem@davemloft.net>
+References: <1383048796-7964-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	yoshfuji@linux-ipv6.org, kadlec@blackhole.kfki.hu, kaber@trash.net
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131029105208.GA18526@minipsycho.orion>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:48539 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751044Ab3J2UyV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Oct 2013 16:54:21 -0400
+In-Reply-To: <1383048796-7964-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tue, Oct 29, 2013 at 11:52:08AM CET, jiri@resnulli.us wrote:
->Hi All.
->
->On the current net-next if you on HOSTA do:
->ip6tables -I INPUT -p icmpv6 -j DROP
->ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
->
->and on HOSTB you do:
->ping6 HOSTA -s2000    (MTU is 1500)
->
->Only the first ICMP echo request will be passed through, the rest is not
->passed on HOSTA. This issue does not occur with smaller packets than MTU (where
->fragmentation does not happen).
->
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 29 Oct 2013 13:13:15 +0100
 
-Hmm. The reason why first packet goes through is because of:
-commit 58a317f1061c894d2344c0b6a18ab4a64b69b815
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Sun Aug 26 19:14:12 2012 +0200
+> This pull request contains the following netfilter fix:
+> 
+> * fix --queue-bypass in xt_NFQUEUE revision 3. While adding the
+>   revision 3 of this target, the bypass flags were not correctly
+>   handled anymore, thus, breaking packet bypassing if no application
+>   is listening from userspace, patch from Holger Eitzenberger,
+>   reported by Florian Westphal.
+> 
+> You can pull this change from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 
-    netfilter: ipv6: add IPv6 NAT support
-
-
-First packet will hit "if ((help && help->helper) || !nf_ct_is_confirmed(ct))"
-(ct is uncorfirmed for it).
-
-
-For this, nf_conntrack_ipv6 has to be loaded. Continuing investigation.
-
-
-
->I'm trying to find out where the problem is.
->
->Any quick ideas?
->
->Thanks
->
->Jiri
+Pulled, thanks Pablo.
