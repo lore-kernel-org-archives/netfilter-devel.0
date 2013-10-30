@@ -1,601 +1,110 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH v2] src: add fprintf API functions
-Date: Tue, 29 Oct 2013 23:44:25 +0100
-Message-ID: <20131029224201.16047.1806.stgit@nfdev.cica.es>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ipv6 fragmentation-related panic in netfilter
+Date: Wed, 30 Oct 2013 00:07:11 +0000
+Message-ID: <20131030000701.GB25469@macbook.localnet>
+References: <2060a7d2-c307-4e30-b1d4-0bd26c904d6f@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Tomas Hlavacek <tmshlvck@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:58448 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750719Ab3J2Woh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Oct 2013 18:44:37 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 1944551ED98
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2013 22:44:34 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 1bY4a-Z8TC4C for <netfilter-devel@vger.kernel.org>;
-	Tue, 29 Oct 2013 23:44:28 +0100 (CET)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 041C751ED51
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Oct 2013 23:44:27 +0100 (CET)
+Received: from stinky.trash.net ([213.144.137.162]:52178 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752381Ab3J3AHS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Oct 2013 20:07:18 -0400
+Content-Disposition: inline
+In-Reply-To: <2060a7d2-c307-4e30-b1d4-0bd26c904d6f@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now it's possible to print directly from libnftables to a file or other stream.
-In order to don't force any format, the caller must print any trailing '\n'.
+On Tue, Oct 29, 2013 at 10:07:59PM +0100, Tomas Hlavacek wrote:
+> Hi!
+> 
+> I have encountered following condition on 3 distinct hosts in last
+> few days. Hosts are failing several times a day (4 to 7 times) and
+> it usually happens roughly at the same time. Affected hosts has
+> almost exactly the same HW, but different kernel versions from
+> Debian (Wheezy) default 3.2 up to 3.11.6.
+> 
+> 
+>      KERNEL: /usr/src/vmlinux                   DUMPFILE:
+> dump.201310291545  [PARTIAL DUMP]
+>        CPUS: 16
+>        DATE: Tue Oct 29 15:45:11 2013
+>      UPTIME: 06:04:17
+> LOAD AVERAGE: 0.04, 0.25, 0.32
+>       TASKS: 211
+>    NODENAME: fw03a
+>     RELEASE: 3.11.6
+>     VERSION: #2 SMP Mon Oct 28 20:29:03 CET 2013
+>     MACHINE: x86_64  (2393 Mhz)
+>      MEMORY: 12 GB
+>       PANIC:         PID: 0
+>     COMMAND: "swapper/1"
+>        TASK: ffff8801b90ac7b0  (1 of 16)  [THREAD_INFO: ffff8801b90b4000]
+>         CPU: 1
+>       STATE: TASK_RUNNING (PANIC)
+> 
+> crash> bt
+> PID: 0      TASK: ffff8801b90ac7b0  CPU: 1   COMMAND: "swapper/1"
+> #0 [ffff8801bfc235d0] machine_kexec at ffffffff81032f68
+> #1 [ffff8801bfc23610] crash_kexec at ffffffff8109e055
+> #2 [ffff8801bfc236e0] oops_end at ffffffff81005e90
+> #3 [ffff8801bfc23700] do_invalid_op at ffffffff81003004
+> #4 [ffff8801bfc237a0] invalid_op at ffffffff8142b368
+>    [exception RIP: pskb_expand_head+596]
+>    RIP: ffffffff81333c74  RSP: ffff8801bfc23850  RFLAGS: 00010202
+>    RAX: 0000000000000003  RBX: ffff8801b6d99080  RCX: 0000000000000020
+>    RDX: 00000000000005f4  RSI: 0000000000000000  RDI: ffff8801b6d99080
+>    RBP: 0000000040115833   R8: 00000000000002c0   R9: ffff8801b8cf2c00
+>    R10: 000000000000ffff  R11: 00000000197033fe  R12: 0000000000000000
+>    R13: ffff880337b59a00  R14: ffffffffa03fb160  R15: ffff880337b59a00
+>    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+> #5 [ffff8801bfc23858] __nf_conntrack_confirm at ffffffffa03ace16
+> [nf_conntrack]
+> #6 [ffff8801bfc238c8] vlan_netlink_fini at ffffffffa03fb160 [8021q]
+> #7 [ffff8801bfc23928] dev_queue_xmit at ffffffff81342d79
+> #8 [ffff8801bfc23978] ip6_finish_output2 at ffffffff813d26ee
+> #9 [ffff8801bfc239c8] ip6_forward at ffffffff813d44be
+> #10 [ffff8801bfc23a48] __ipv6_conntrack_in at ffffffffa034f7b6
+> [nf_conntrack_ipv6]
+> #11 [ffff8801bfc23a98] nf_iterate at ffffffff8136ba0d
+> #12 [ffff8801bfc23af8] nf_hook_slow at ffffffff8136baae
+> #13 [ffff8801bfc23b68] nf_ct_frag6_output at ffffffffa039decf
+> [nf_defrag_ipv6]
+> #14 [ffff8801bfc23bd8] ipv6_defrag at ffffffffa039d0c1 [nf_defrag_ipv6]
+> #15 [ffff8801bfc23c18] nf_iterate at ffffffff8136ba0d
+> #16 [ffff8801bfc23c78] nf_hook_slow at ffffffff8136baae
+> #17 [ffff8801bfc23ce8] ipv6_rcv at ffffffff813d59f5
+> #18 [ffff8801bfc23d38] __netif_receive_skb_core at ffffffff813410db
+> #19 [ffff8801bfc23db8] napi_gro_receive at ffffffff81341d88
+> #20 [ffff8801bfc23dd8] igb_poll at ffffffffa0035867 [igb]
+> #21 [ffff8801bfc23e88] net_rx_action at ffffffff81341ac9
+> #22 [ffff8801bfc23ed8] __do_softirq at ffffffff81049fb6
+> #23 [ffff8801bfc23f38] call_softirq at ffffffff8142b4fc
+> #24 [ffff8801bfc23f50] do_softirq at ffffffff8100481d
+> #25 [ffff8801bfc23f80] do_IRQ at ffffffff810043bb
+> --- <IRQ stack> ---
+> #26 [ffff8801b90b5db8] ret_from_intr at ffffffff81429baa
+>    [exception RIP: cpuidle_enter_state+86]
+>    RIP: ffffffff813107a6  RSP: ffff8801b90b5e68  RFLAGS: 00000216
+>    RAX: 000000000007ff2b  RBX: 0000000140523c4c  RCX: 0000000000000018
+>    RDX: 0000000225c17d03  RSI: 0000000000000000  RDI: ffffffff81812600
+>    RBP: 0000000000000004   R8: 0000000000000018   R9: 00000000000006cf
+>    R10: 0000000000000001  R11: 0000000000000006  R12: 0000000100523c4e
+>    R13: 0000000000000000  R14: ffffffff81066415  R15: 0000000000000086
+>    ORIG_RAX: ffffffffffffff94  CS: 0010  SS: 0018
+> #27 [ffff8801b90b5eb0] cpuidle_idle_call at ffffffff813108ce
+> #28 [ffff8801b90b5ee0] arch_cpu_idle at ffffffff8100b769
+> #29 [ffff8801b90b5ef0] cpu_startup_entry at ffffffff81086b1d
+> #30 [ffff8801b90b5f30] start_secondary at ffffffff8102af40
+> 
+> I am investigating at the moment. All suggestions/help would be
+> appreciated.
 
-The error reporting of fprintf (< 0) is respected.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: include <stdio.h> in header files.
-
- include/libnftables/chain.h   |    2 
- include/libnftables/rule.h    |    2 
- include/libnftables/ruleset.h |    3 +
- include/libnftables/set.h     |    3 +
- include/libnftables/table.h   |    2 
- src/chain.c                   |   13 +++
- src/internal.h                |    4 +
- src/libnftables.map           |    6 +
- src/rule.c                    |   13 +++
- src/ruleset.c                 |  203 +++++++++++++++++++++++++++++++++++++++++
- src/set.c                     |   13 +++
- src/set_elem.c                |   13 +++
- src/table.c                   |   13 +++
- src/utils.c                   |   27 +++++
- 14 files changed, 317 insertions(+)
-
-diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index d85a2a2..66f19c0 100644
---- a/include/libnftables/chain.h
-+++ b/include/libnftables/chain.h
-@@ -1,6 +1,7 @@
- #ifndef _CHAIN_H_
- #define _CHAIN_H_
- 
-+#include <stdio.h>
- #include <stdint.h>
- #include <stdbool.h>
- 
-@@ -60,6 +61,7 @@ enum nft_chain_parse_type {
- 
- int nft_chain_parse(struct nft_chain *c, enum nft_chain_parse_type type, const char *data);
- int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *t, uint32_t type, uint32_t flags);
-+int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_chain_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *t);
-diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
-index a501d2d..cdbd8d2 100644
---- a/include/libnftables/rule.h
-+++ b/include/libnftables/rule.h
-@@ -1,6 +1,7 @@
- #ifndef _RULE_H_
- #define _RULE_H_
- 
-+#include <stdio.h>
- #include <stdint.h>
- #include <stdbool.h>
- 
-@@ -58,6 +59,7 @@ enum nft_rule_parse_type {
- 
- int nft_rule_parse(struct nft_rule *r, enum nft_rule_parse_type type, const char *data);
- int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *t, uint32_t type, uint32_t flags);
-+int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_rule_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_rule *t);
-diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
-index a4a1279..35e4d71 100644
---- a/include/libnftables/ruleset.h
-+++ b/include/libnftables/ruleset.h
-@@ -1,6 +1,8 @@
- #ifndef _RULESET_H_
- #define _RULESET_H_
- 
-+#include <stdio.h>
-+
- #ifdef __cplusplus
- extern "C" {
- #endif
-@@ -37,6 +39,7 @@ enum nft_ruleset_parse_type {
- 
- int nft_ruleset_parse(struct nft_ruleset *rs, enum nft_ruleset_parse_type type, const char *data);
- int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
-+int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/include/libnftables/set.h b/include/libnftables/set.h
-index 14a6327..a087009 100644
---- a/include/libnftables/set.h
-+++ b/include/libnftables/set.h
-@@ -1,6 +1,7 @@
- #ifndef _NFT_SET_H_
- #define _NFT_SET_H_
- 
-+#include <stdio.h>
- #include <stdint.h>
- #include <stdbool.h>
- 
-@@ -38,6 +39,7 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
- int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
- 
- int nft_set_snprintf(char *buf, size_t size, struct nft_set *s, uint32_t type, uint32_t flags);
-+int nft_set_fprintf(FILE *fp, struct nft_set *s, uint32_t type, uint32_t flags);
- 
- struct nft_set_list;
- 
-@@ -108,6 +110,7 @@ int nft_set_elem_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set_elem *s)
- 
- int nft_set_elem_parse(struct nft_set_elem *e, enum nft_set_parse_type type, const char *data);
- int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *s, uint32_t type, uint32_t flags);
-+int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type, uint32_t flags);
- 
- int nft_set_elem_foreach(struct nft_set *s, int (*cb)(struct nft_set_elem *e, void *data), void *data);
- 
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 42a4aa7..4a323bd 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -1,6 +1,7 @@
- #ifndef _TABLE_H_
- #define _TABLE_H_
- 
-+#include <stdio.h>
- #include <stdint.h>
- #include <stdbool.h>
- 
-@@ -48,6 +49,7 @@ enum nft_table_parse_type {
- 
- int nft_table_parse(struct nft_table *t, enum nft_table_parse_type type, const char *data);
- int nft_table_snprintf(char *buf, size_t size, struct nft_table *t, uint32_t type, uint32_t flags);
-+int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type, uint32_t flags);
- 
- struct nlmsghdr *nft_table_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
- int nft_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_table *t);
-diff --git a/src/chain.c b/src/chain.c
-index 6179f68..cdb398f 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -851,6 +851,19 @@ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
- }
- EXPORT_SYMBOL(nft_chain_snprintf);
- 
-+static inline int nft_chain_do_snprintf(char *buf, size_t size, void *c,
-+					uint32_t type, uint32_t flags)
-+{
-+	return nft_chain_snprintf(buf, size, c, type, flags);
-+}
-+
-+int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type,
-+		      uint32_t flags)
-+{
-+	return nft_fprintf(fp, c, type, flags, nft_chain_do_snprintf);
-+}
-+EXPORT_SYMBOL(nft_chain_fprintf);
-+
- struct nft_chain_list {
- 	struct list_head list;
- };
-diff --git a/src/internal.h b/src/internal.h
-index b29288a..6449a9f 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -17,6 +17,8 @@
- #define BASE_DEC 10
- #define BASE_HEX 16
- 
-+#define NFT_SNPRINTF_BUFSIZ 4096
-+
- enum nft_type {
- 	NFT_TYPE_U8,
- 	NFT_TYPE_U16,
-@@ -88,6 +90,8 @@ const char *nft_verdict2str(uint32_t verdict);
- int nft_str2verdict(const char *verdict);
- int nft_get_value(enum nft_type type, void *val, void *out);
- 
-+int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj, uint32_t type, uint32_t flags));
-+
- void xfree(const void *ptr);
- 
- struct expr_ops;
-diff --git a/src/libnftables.map b/src/libnftables.map
-index 1223403..aa47714 100644
---- a/src/libnftables.map
-+++ b/src/libnftables.map
-@@ -12,6 +12,7 @@ global:
-   nft_table_attr_get_str;
-   nft_table_parse;
-   nft_table_snprintf;
-+  nft_table_fprintf;
-   nft_table_nlmsg_build_hdr;
-   nft_table_nlmsg_build_payload;
-   nft_table_nlmsg_parse;
-@@ -42,6 +43,7 @@ global:
-   nft_chain_attr_get_str;
-   nft_chain_parse;
-   nft_chain_snprintf;
-+  nft_chain_fprintf;
-   nft_chain_nlmsg_build_hdr;
-   nft_chain_nlmsg_build_payload;
-   nft_chain_nlmsg_parse;
-@@ -71,6 +73,7 @@ global:
-   nft_rule_attr_get_str;
-   nft_rule_parse;
-   nft_rule_snprintf;
-+  nft_rule_fprintf;
-   nft_rule_nlmsg_build_hdr;
-   nft_rule_nlmsg_build_payload;
-   nft_rule_nlmsg_parse;
-@@ -126,6 +129,7 @@ global:
-   nft_set_nlmsg_parse;
-   nft_set_parse;
-   nft_set_snprintf;
-+  nft_set_fprintf;
- 
-   nft_set_list_alloc;
-   nft_set_list_free;
-@@ -157,6 +161,7 @@ global:
-   nft_set_elem_nlmsg_parse;
-   nft_set_elem_parse;
-   nft_set_elem_snprintf;
-+  nft_set_elem_fprinf;
- 
-   nft_set_elems_nlmsg_build_payload;
-   nft_set_elems_nlmsg_parse;
-@@ -176,6 +181,7 @@ global:
-   nft_ruleset_attr_get;
-   nft_ruleset_parse;
-   nft_ruleset_snprintf;
-+  nft_ruleset_fprintf;
- 
- local: *;
- };
-diff --git a/src/rule.c b/src/rule.c
-index d135f38..3b45dc7 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -819,6 +819,19 @@ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
- }
- EXPORT_SYMBOL(nft_rule_snprintf);
- 
-+static inline int nft_rule_do_snprintf(char *buf, size_t size, void *r,
-+				       uint32_t type, uint32_t flags)
-+{
-+	return nft_rule_snprintf(buf, size, r, type, flags);
-+}
-+
-+int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type,
-+		     uint32_t flags)
-+{
-+	return nft_fprintf(fp, r, type, flags, nft_rule_do_snprintf);
-+}
-+EXPORT_SYMBOL(nft_rule_fprintf);
-+
- int nft_rule_expr_foreach(struct nft_rule *r,
-                           int (*cb)(struct nft_rule_expr *e, void *data),
-                           void *data)
-diff --git a/src/ruleset.c b/src/ruleset.c
-index 24b849b..ee2c60a 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -813,3 +813,206 @@ int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *r,
- 	}
- }
- EXPORT_SYMBOL(nft_ruleset_snprintf);
-+
-+static int nft_ruleset_fprintf_tables(FILE *fp, const struct nft_ruleset *rs,
-+				      uint32_t type, uint32_t flags)
-+{
-+	int len = 0, ret = 0;
-+	struct nft_table *t;
-+	struct nft_table_list_iter *ti;
-+
-+	ti = nft_table_list_iter_create(rs->table_list);
-+	if (ti == NULL)
-+		return -1;
-+
-+	t = nft_table_list_iter_next(ti);
-+	while (t != NULL) {
-+		ret = nft_table_fprintf(fp, t, type, flags);
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+
-+		t = nft_table_list_iter_next(ti);
-+
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(t, type));
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+	}
-+	nft_table_list_iter_destroy(ti);
-+
-+	return len;
-+err:
-+	nft_table_list_iter_destroy(ti);
-+	return -1;
-+}
-+
-+static int nft_ruleset_fprintf_chains(FILE *fp, const struct nft_ruleset *rs,
-+				      uint32_t type, uint32_t flags)
-+{
-+	int len = 0, ret = 0;
-+	struct nft_chain *o;
-+	struct nft_chain_list_iter *i;
-+
-+	i = nft_chain_list_iter_create(rs->chain_list);
-+	if (i == NULL)
-+		return -1;
-+
-+	o = nft_chain_list_iter_next(i);
-+	while (o != NULL) {
-+		ret = nft_chain_fprintf(fp, o, type, flags);
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+
-+		o = nft_chain_list_iter_next(i);
-+
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(o, type));
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+	}
-+	nft_chain_list_iter_destroy(i);
-+
-+	return len;
-+err:
-+	nft_chain_list_iter_destroy(i);
-+	return -1;
-+}
-+
-+static int nft_ruleset_fprintf_sets(FILE *fp, const struct nft_ruleset *rs,
-+				    uint32_t type, uint32_t flags)
-+{
-+	int len = 0, ret = 0;
-+	struct nft_set *o;
-+	struct nft_set_list_iter *i;
-+
-+	i = nft_set_list_iter_create(rs->set_list);
-+	if (i == NULL)
-+		return -1;
-+
-+	o = nft_set_list_iter_next(i);
-+	while (o != NULL) {
-+		ret = nft_set_fprintf(fp, o, type, flags);
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+
-+		o = nft_set_list_iter_next(i);
-+
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(o, type));
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+	}
-+	nft_set_list_iter_destroy(i);
-+
-+	return len;
-+err:
-+	nft_set_list_iter_destroy(i);
-+	return -1;
-+}
-+
-+static int nft_ruleset_fprintf_rules(FILE *fp, const struct nft_ruleset *rs,
-+				    uint32_t type, uint32_t flags)
-+{
-+	int len = 0, ret = 0;
-+	struct nft_rule *o;
-+	struct nft_rule_list_iter *i;
-+
-+	i = nft_rule_list_iter_create(rs->rule_list);
-+	if (i == NULL)
-+		return -1;
-+
-+	o = nft_rule_list_iter_next(i);
-+	while (o != NULL) {
-+		ret = nft_rule_fprintf(fp, o, type, flags);
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+
-+		o = nft_rule_list_iter_next(i);
-+
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(o, type));
-+		if (ret < 0)
-+			goto err;
-+
-+		len += ret;
-+	}
-+	nft_rule_list_iter_destroy(i);
-+
-+	return len;
-+err:
-+	nft_rule_list_iter_destroy(i);
-+	return -1;
-+}
-+
-+#define NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len)	\
-+	if (ret < 0)				\
-+		return -1;			\
-+	len += ret;
-+
-+int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
-+			uint32_t flags)
-+{
-+	int len = 0, ret = 0;
-+	void *prev = NULL;
-+
-+	ret = fprintf(fp, "%s", nft_ruleset_o_opentag(type));
-+	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST)) &&
-+	    (!nft_table_list_is_empty(rs->table_list))) {
-+		ret = nft_ruleset_fprintf_tables(fp, rs, type, flags);
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		if (ret > 0)
-+			prev = rs->table_list;
-+	}
-+
-+	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_CHAINLIST)) &&
-+	    (!nft_chain_list_is_empty(rs->chain_list))) {
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		ret = nft_ruleset_fprintf_chains(fp, rs, type, flags);
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		if (ret > 0)
-+			prev = rs->chain_list;
-+	}
-+
-+	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_SETLIST)) &&
-+	    (!nft_set_list_is_empty(rs->set_list))) {
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		ret = nft_ruleset_fprintf_sets(fp, rs, type, flags);
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		if (ret > 0)
-+			prev = rs->set_list;
-+	}
-+
-+	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_RULELIST)) &&
-+	    (!nft_rule_list_is_empty(rs->rule_list))) {
-+		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+		ret = nft_ruleset_fprintf_rules(fp, rs, type, flags);
-+		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+	}
-+
-+	ret = fprintf(fp, "%s", nft_ruleset_o_closetag(type));
-+	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
-+
-+	return len;
-+}
-+EXPORT_SYMBOL(nft_ruleset_fprintf);
-diff --git a/src/set.c b/src/set.c
-index 2c6e6a6..9620006 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -668,6 +668,19 @@ int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
- }
- EXPORT_SYMBOL(nft_set_snprintf);
- 
-+static inline int nft_set_do_snprintf(char *buf, size_t size, void *s,
-+				      uint32_t type, uint32_t flags)
-+{
-+	return nft_set_snprintf(buf, size, s, type, flags);
-+}
-+
-+int nft_set_fprintf(FILE *fp, struct nft_set *s, uint32_t type,
-+		    uint32_t flags)
-+{
-+	return nft_fprintf(fp, s, type, flags, nft_set_do_snprintf);
-+}
-+EXPORT_SYMBOL(nft_set_fprintf);
-+
- void nft_set_elem_add(struct nft_set *s, struct nft_set_elem *elem)
- {
- 	list_add_tail(&elem->head, &s->element_list);
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 5ef46f2..516905d 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -577,6 +577,19 @@ int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
- }
- EXPORT_SYMBOL(nft_set_elem_snprintf);
- 
-+static inline int nft_set_elem_do_snprintf(char *buf, size_t size, void *e,
-+					   uint32_t type, uint32_t flags)
-+{
-+	return nft_set_elem_snprintf(buf, size, e, type, flags);
-+}
-+
-+int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type,
-+			 uint32_t flags)
-+{
-+	return nft_fprintf(fp, se, type, flags, nft_set_elem_do_snprintf);
-+}
-+EXPORT_SYMBOL(nft_set_elem_fprintf);
-+
- int nft_set_elem_foreach(struct nft_set *s,
- 			 int (*cb)(struct nft_set_elem *e, void *data),
- 			 void *data)
-diff --git a/src/table.c b/src/table.c
-index d3ff188..d1acc7c 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -388,6 +388,19 @@ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
- }
- EXPORT_SYMBOL(nft_table_snprintf);
- 
-+static inline int nft_table_do_snprintf(char *buf, size_t size, void *t,
-+					uint32_t type, uint32_t flags)
-+{
-+	return nft_table_snprintf(buf, size, t, type, flags);
-+}
-+
-+int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type,
-+		      uint32_t flags)
-+{
-+	return nft_fprintf(fp, t, type, flags, nft_table_do_snprintf);
-+}
-+EXPORT_SYMBOL(nft_table_fprintf);
-+
- struct nft_table_list {
- 	struct list_head list;
- };
-diff --git a/src/utils.c b/src/utils.c
-index 9a0bcfe..2415917 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -174,3 +174,30 @@ void xfree(const void *ptr)
- {
- 	free((void *)ptr);
- }
-+
-+int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
-+		int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj,
-+				   uint32_t type, uint32_t flags))
-+{
-+	char _buf[NFT_SNPRINTF_BUFSIZ];
-+	char *buf = _buf;
-+	size_t bufsiz = sizeof(_buf);
-+	int ret;
-+
-+	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
-+	if (ret > NFT_SNPRINTF_BUFSIZ) {
-+		buf = calloc(1, ret);
-+		if (buf == NULL)
-+			return -1;
-+
-+		bufsiz = ret;
-+		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
-+	}
-+
-+	ret = fprintf(fp, "%s", buf);
-+
-+	if (buf != _buf)
-+		xfree(buf);
-+
-+	return ret;
-+}
-
+The problem is that the reassembled packet is referenced by the individual
+fragments, so we trigger the BUG_ON in pskb_expand_head(). In this
+particular case the case we BUG() on is actually OK, but I'm looking at
+a way we can fix this without special casing. Hope to have a patch for
+testing in the next hours.
