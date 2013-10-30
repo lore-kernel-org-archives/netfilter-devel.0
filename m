@@ -1,164 +1,41 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next 2/2] net: ipvs: sctp: do not recalc sctp csum when ports didn't change
-Date: Wed, 30 Oct 2013 10:11:26 +0900
-Message-ID: <1383095486-5215-3-git-send-email-horms@verge.net.au>
-References: <1383095486-5215-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1383095486-5215-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] netfilter: nf_tables: remove duplicated include from nf_tables_ipv4.c
+Date: Wed, 30 Oct 2013 13:31:30 +0800
+Message-ID: <CAPgLHd_rvGiaM-XVo8AoVXz=et4gzp1F2zKuxGZsAmLDPODRwQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: yongjun_wei@trendmicro.com.cn, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:59482 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab3J3Fbc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Oct 2013 01:31:32 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Daniel Borkmann <dborkman@redhat.com>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Unlike UDP or TCP, we do not take the pseudo-header into
-account in SCTP checksums. So in case port mapping is the
-very same, we do not need to recalculate the whole SCTP
-checksum in software, which is very expensive.
+Remove duplicated include.
 
-Also, similarly as in TCP, take into account when a private
-helper mangled the packet. In that case, we also need to
-recalculate the checksum even if ports might be same.
-
-Thanks for feedback regarding skb->ip_summed checks from
-Julian Anastasov; here's a discussion on these checks for
-snat and dnat:
-
-* For snat_handler(), we can see CHECKSUM_PARTIAL from
-  virtual devices, and from LOCAL_OUT, otherwise it
-  should be CHECKSUM_UNNECESSARY. In general, in snat it
-  is more complex. skb contains the original route and
-  ip_vs_route_me_harder() can change the route after
-  snat_handler. So, for locally generated replies from
-  local server we can not preserve the CHECKSUM_PARTIAL
-  mode. It is an chicken or egg dilemma: snat_handler
-  needs the device after rerouting (to check for
-  NETIF_F_SCTP_CSUM), while ip_route_me_harder() wants
-  the snat_handler() to put the new saddr for proper
-  rerouting.
-
-* For dnat_handler(), we should not see CHECKSUM_COMPLETE
-  for SCTP, in fact the small set of drivers that support
-  SCTP offloading return CHECKSUM_UNNECESSARY on correctly
-  received SCTP csum. We can see CHECKSUM_PARTIAL from
-  local stack or received from virtual drivers. The idea is
-  that SCTP decides to avoid csum calculation if hardware
-  supports offloading. IPVS can change the device after
-  rerouting to real server but we can preserve the
-  CHECKSUM_PARTIAL mode if the new device supports
-  offloading too. This works because skb dst is changed
-  before dnat_handler and we see the new device. So, checks
-  in the 'if' part will decide whether it is ok to keep
-  CHECKSUM_PARTIAL for the output. If the packet was with
-  CHECKSUM_NONE, hence we deal with unknown checksum. As we
-  recalculate the sum for IP header in all cases, it should
-  be safe to use CHECKSUM_UNNECESSARY. We can forward wrong
-  checksum in this case (without cp->app). In case of
-  CHECKSUM_UNNECESSARY, the csum was valid on receive.
-
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 39 +++++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/nf_tables_ipv4.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 9ca7aa0..2f7ea75 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -81,6 +81,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- {
- 	sctp_sctphdr_t *sctph;
- 	unsigned int sctphoff = iph->len;
-+	bool payload_csum = false;
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index 8f7536b..0f4cbfe 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -16,7 +16,6 @@
+ #include <net/netfilter/nf_tables.h>
+ #include <net/net_namespace.h>
+ #include <net/ip.h>
+-#include <net/net_namespace.h>
+ #include <net/netfilter/nf_tables_ipv4.h>
  
- #ifdef CONFIG_IP_VS_IPV6
- 	if (cp->af == AF_INET6 && iph->fragoffs)
-@@ -92,19 +93,31 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-+		int ret;
-+
- 		/* Some checks before mangling */
- 		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
- 			return 0;
- 
- 		/* Call application helper if needed */
--		if (!ip_vs_app_pkt_out(cp, skb))
-+		ret = ip_vs_app_pkt_out(cp, skb);
-+		if (ret == 0)
- 			return 0;
-+		/* ret=2: csum update is needed after payload mangling */
-+		if (ret == 2)
-+			payload_csum = true;
- 	}
- 
- 	sctph = (void *) skb_network_header(skb) + sctphoff;
--	sctph->source = cp->vport;
- 
--	sctp_nat_csum(skb, sctph, sctphoff);
-+	/* Only update csum if we really have to */
-+	if (sctph->source != cp->vport || payload_csum ||
-+	    skb->ip_summed == CHECKSUM_PARTIAL) {
-+		sctph->source = cp->vport;
-+		sctp_nat_csum(skb, sctph, sctphoff);
-+	} else {
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
-+	}
- 
- 	return 1;
- }
-@@ -115,6 +128,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- {
- 	sctp_sctphdr_t *sctph;
- 	unsigned int sctphoff = iph->len;
-+	bool payload_csum = false;
- 
- #ifdef CONFIG_IP_VS_IPV6
- 	if (cp->af == AF_INET6 && iph->fragoffs)
-@@ -126,19 +140,32 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-+		int ret;
-+
- 		/* Some checks before mangling */
- 		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
- 			return 0;
- 
- 		/* Call application helper if needed */
--		if (!ip_vs_app_pkt_in(cp, skb))
-+		ret = ip_vs_app_pkt_in(cp, skb);
-+		if (ret == 0)
- 			return 0;
-+		/* ret=2: csum update is needed after payload mangling */
-+		if (ret == 2)
-+			payload_csum = true;
- 	}
- 
- 	sctph = (void *) skb_network_header(skb) + sctphoff;
--	sctph->dest = cp->dport;
- 
--	sctp_nat_csum(skb, sctph, sctphoff);
-+	/* Only update csum if we really have to */
-+	if (sctph->dest != cp->dport || payload_csum ||
-+	    (skb->ip_summed == CHECKSUM_PARTIAL &&
-+	     !(skb_dst(skb)->dev->features & NETIF_F_SCTP_CSUM))) {
-+		sctph->dest = cp->dport;
-+		sctp_nat_csum(skb, sctph, sctphoff);
-+	} else if (skb->ip_summed != CHECKSUM_PARTIAL) {
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
-+	}
- 
- 	return 1;
- }
--- 
-1.8.4
+ static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
+
