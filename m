@@ -1,38 +1,52 @@
-From: Dirk <biecie547@gmail.com>
-Subject: Re: [RFC PATCH nf_conntrack_extend] new extensions without changes
- kernel source
-Date: Thu, 31 Oct 2013 10:22:00 +0100
-Message-ID: <CALqGmB05qyeF0gr5z9aOC4NW9EVJoStvPAGB6PVptDErC77B3A@mail.gmail.com>
-References: <525EEAB7.4090901@guap.ru>
-	<20131029122212.GA8019@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH 2/6] test: fix memleak in XML testing
+Date: Thu, 31 Oct 2013 13:36:23 +0100
+Message-ID: <20131031123623.32572.16985.stgit@nfdev.cica.es>
+References: <20131031123618.32572.24929.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:51176 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882Ab3JaJWB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Oct 2013 05:22:01 -0400
-Received: by mail-oa0-f47.google.com with SMTP id i1so2797999oag.34
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2013 02:22:00 -0700 (PDT)
-In-Reply-To: <20131029122212.GA8019@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:57588 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752982Ab3JaMg2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Oct 2013 08:36:28 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 4A04D51EEA5
+	for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2013 12:36:26 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id O5nl0553A7nG for <netfilter-devel@vger.kernel.org>;
+	Thu, 31 Oct 2013 13:36:26 +0100 (CET)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 2B2D351EDBA
+	for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2013 13:36:26 +0100 (CET)
+In-Reply-To: <20131031123618.32572.24929.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> I'm reticent to get this extremely generic infrastructure into
-> mainstream, we need to know more on the ndpi needs and discuss some
-> generic infrastructure that most layer 7 implementation can benefit
-> from.
+Ensure the tree is freed when done.
 
-I was always under the impression a more generic conntrack extend
-mechanism that could also be used by kernel modules would never be
-allowed into mainstream?
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/nft-parsing-test.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-My use case is a QoS module that does per flow packet queueing. A more
-generic mechanism that doesn't require a kernel patch/recompile would
-be very welcome :-)
+diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
+index 70028a0..5eaaa1e 100644
+--- a/tests/nft-parsing-test.c
++++ b/tests/nft-parsing-test.c
+@@ -335,9 +335,11 @@ static int test_xml(const char *filename)
+ 		}
+ 	}
+ 
++	mxmlDelete(tree);
+ 	return ret;
+ 
+ failparsing:
++	mxmlDelete(tree);
+ 	printf("parsing %s: ", filename);
+ 	printf("\033[31mFAILED\e[0m (%s)\n", strerror(errno));
+ 	return -1;
 
-
-Kind regards,
-Dirk
