@@ -1,60 +1,38 @@
-From: Nikolay Martynov <mar.kolya@gmail.com>
-Subject: [PATCH 1/1] ipset: fix timeout data type size
-Date: Thu, 31 Oct 2013 00:34:31 -0400
-Message-ID: <1383194071-25937-1-git-send-email-mar.kolya@gmail.com>
-Cc: Nikolay Martynov <mar.kolya@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: kadlec@netfilter.org
+From: Dirk <biecie547@gmail.com>
+Subject: Re: [RFC PATCH nf_conntrack_extend] new extensions without changes
+ kernel source
+Date: Thu, 31 Oct 2013 10:22:00 +0100
+Message-ID: <CALqGmB05qyeF0gr5z9aOC4NW9EVJoStvPAGB6PVptDErC77B3A@mail.gmail.com>
+References: <525EEAB7.4090901@guap.ru>
+	<20131029122212.GA8019@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:45976 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332Ab3JaEei (ORCPT
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:51176 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab3JaJWB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Oct 2013 00:34:38 -0400
-Received: by mail-ob0-f180.google.com with SMTP id wo20so2458879obc.25
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Oct 2013 21:34:38 -0700 (PDT)
+	Thu, 31 Oct 2013 05:22:01 -0400
+Received: by mail-oa0-f47.google.com with SMTP id i1so2797999oag.34
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2013 02:22:00 -0700 (PDT)
+In-Reply-To: <20131029122212.GA8019@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently it is impossible to set timeout on some architectures
-(MIPS ar71xx at least) because timeout is parsed into long long data
-type but used as uint32 without proper conversion. This patch fixes
-this issue. Tested on ar71xx router.
+> I'm reticent to get this extremely generic infrastructure into
+> mainstream, we need to know more on the ndpi needs and discuss some
+> generic infrastructure that most layer 7 implementation can benefit
+> from.
 
-Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
----
- lib/parse.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+I was always under the impression a more generic conntrack extend
+mechanism that could also be used by kernel modules would never be
+allowed into mainstream?
 
-diff --git a/lib/parse.c b/lib/parse.c
-index 8ea8542..440ef8f 100644
---- a/lib/parse.c
-+++ b/lib/parse.c
-@@ -1292,15 +1292,20 @@ ipset_parse_timeout(struct ipset_session *session,
- 		    enum ipset_opt opt, const char *str)
- {
- 	int err;
--	unsigned long long num = 0;
-+	unsigned long long llnum = 0;
-+	uint32_t num = 0;
- 
- 	assert(session);
- 	assert(opt == IPSET_OPT_TIMEOUT);
- 	assert(str);
- 
--	err = string_to_number_ll(session, str, 0, UINT_MAX/1000, &num);
--	if (err == 0)
-+	err = string_to_number_ll(session, str, 0, UINT_MAX/1000, &llnum);
-+	if (err == 0) {
-+		/* Timeout is expected to be 32bits wide, so we have
-+		   to convert it here */
-+		num = llnum;
- 		return ipset_session_data_set(session, opt, &num);
-+	}
- 
- 	return err;
- }
--- 
-Thanks.
-Nikolay.
+My use case is a QoS module that does per flow packet queueing. A more
+generic mechanism that doesn't require a kernel patch/recompile would
+be very welcome :-)
 
+
+Kind regards,
+Dirk
