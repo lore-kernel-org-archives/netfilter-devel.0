@@ -1,100 +1,42 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: add --line-numbers short option
-Date: Thu, 31 Oct 2013 13:51:01 -0700
-Message-ID: <20131031205101.GB1304@home>
+From: Steffen Klassert <steffen.klassert@secunet.com>
+Subject: Re: ipv6 fragmentation-related panic in netfilter
+Date: Fri, 1 Nov 2013 09:45:29 +0100
+Message-ID: <20131101084529.GL31491@secunet.com>
+References: <2060a7d2-c307-4e30-b1d4-0bd26c904d6f@gmail.com>
+ <20131030000701.GB25469@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="+QahgC5+KEYLbs62"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Tomas Hlavacek <tmshlvck@gmail.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:62837 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab3JaUvE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Oct 2013 16:51:04 -0400
-Received: by mail-pb0-f48.google.com with SMTP id mc17so3308842pbc.7
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Oct 2013 13:51:03 -0700 (PDT)
+Received: from a.mx.secunet.com ([195.81.216.161]:49716 "EHLO a.mx.secunet.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754622Ab3KAIpc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Nov 2013 04:45:32 -0400
 Content-Disposition: inline
+In-Reply-To: <20131030000701.GB25469@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Oct 30, 2013 at 12:07:11AM +0000, Patrick McHardy wrote:
+> 
+> The problem is that the reassembled packet is referenced by the individual
+> fragments, so we trigger the BUG_ON in pskb_expand_head(). In this
+> particular case the case we BUG() on is actually OK, but I'm looking at
+> a way we can fix this without special casing. Hope to have a patch for
+> testing in the next hours.
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Just for the record. I'm observing similar, quite reproducable crashes when
+receiving fragmented icmp echo request packets on an IPsec gateway with
+nf_conntrack_ipv6.
 
-Internally, -0 is used as a short option to represent --line-numbers.  This
-causes confusion, however, when using --line-numbers with a command which
-does not support it.  For instance:
+Since git commit 58a317f10 ("netfilter: ipv6: add IPv6 NAT support")
+netfilter might insert a reassembled ipv6 packet with a shared skb and
+local_df = 1 to the ok function. In case of xfrm, __xfrm6_output()
+fragments the packet again and when adjusting the headroom later, we
+crash because of a shared skb.
 
-    # /usr/local/iptables/sbin/ip6tables -S --line-numbers
-    ip6tables v1.4.20: Illegal option `-0' with this command
-
-Fix this by enabling and documenting -0 as a short option for --line-numbers.
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ipt-linenums
-
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 76de367..21f2354 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -259,7 +259,7 @@ exit_printhelp(const struct xtables_rule_match *matches)
- "  --table	-t table	table to manipulate (default: `filter')\n"
- "  --verbose	-v		verbose mode\n"
- "  --wait	-w		wait for the xtables lock\n"
--"  --line-numbers		print line numbers when listing\n"
-+"  --line-numbers -0		print line numbers when listing\n"
- "  --exact	-x		expand numbers (display exact values)\n"
- /*"[!] --fragment	-f		match second or further fragments only\n"*/
- "  --modprobe=<command>		try to insert modules using this command\n"
-@@ -1332,7 +1332,7 @@ int do_command6(int argc, char *argv[], char **table,
- 
- 	opts = xt_params->orig_opts;
- 	while ((cs.c = getopt_long(argc, argv,
--	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvwnt:m:xc:g:46",
-+	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvwnt:m:xc:g:046",
- 					   opts, NULL)) != -1) {
- 		switch (cs.c) {
- 			/*
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 155c97e..64a1542 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -381,7 +381,7 @@ instead of only the rounded number in K's (multiples of 1000)
- M's (multiples of 1000K) or G's (multiples of 1000M).  This option is
- only relevant for the \fB\-L\fP command.
- .TP
--\fB\-\-line\-numbers\fP
-+\fB\-0\fP, \fB\-\-line\-numbers\fP
- When listing rules, add line numbers to the beginning of each rule,
- corresponding to that rule's position in the chain.
- .TP
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index d3899bc..fc01536 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -253,7 +253,7 @@ exit_printhelp(const struct xtables_rule_match *matches)
- "  --table	-t table	table to manipulate (default: `filter')\n"
- "  --verbose	-v		verbose mode\n"
- "  --wait	-w		wait for the xtables lock\n"
--"  --line-numbers		print line numbers when listing\n"
-+"  --line-numbers -0		print line numbers when listing\n"
- "  --exact	-x		expand numbers (display exact values)\n"
- "[!] --fragment	-f		match second or further fragments only\n"
- "  --modprobe=<command>		try to insert modules using this command\n"
-@@ -1328,7 +1328,7 @@ int do_command4(int argc, char *argv[], char **table,
- 
- 	opts = xt_params->orig_opts;
- 	while ((cs.c = getopt_long(argc, argv,
--	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvwnt:m:xc:g:46",
-+	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvwnt:m:xc:g:046",
- 					   opts, NULL)) != -1) {
- 		switch (cs.c) {
- 			/*
-
---+QahgC5+KEYLbs62--
+I can fix it by checking for a shared skb in ip6_fragment() and do
+slow path fragmentation then. But we never needed such a check in
+ip6_fragment(), so it's maybe better to fix it in netfilter.
