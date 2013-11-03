@@ -1,42 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nftables: tar packages
-Date: Sun, 3 Nov 2013 18:45:06 +0100
-Message-ID: <20131103174506.GA3836@localhost>
-References: <52757AD7.30204@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Subject: [PATCH nft] payload: fix ethernet type protocol matching
+Date: Sun,  3 Nov 2013 20:46:54 +0100
+Message-ID: <1383508014-22185-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48868 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59508 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753723Ab3KCRpL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Nov 2013 12:45:11 -0500
-Content-Disposition: inline
-In-Reply-To: <52757AD7.30204@gmail.com>
+	id S1751395Ab3KCTrD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Nov 2013 14:47:03 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Nov 02, 2013 at 11:21:11PM +0100, Xose Vazquez Perez wrote:
-> hi Pablo/Patrick,
-> 
-> Are you going to do tar packages of nftables [1]
-> infrastructure (libnftables, nftables, iptables-nftables) ?
-> 
-> Or just only git ?
+This fixes ethernet type protocol matching, which is needed
+to match network layer information, eg.
 
-You can fetch daily snapshots via:
+ nft add rule bridge filter input ip protocol icmp counter
 
-ftp://ftp.netfilter.org/pub/libnftables/snapshot/
-ftp://ftp.netfilter.org/pub/nftables/snapshot/
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/payload.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Remember that the first expected Linux kernel version including
-nftables is *3.13*.
+diff --git a/src/payload.c b/src/payload.c
+index 0d22360..ea0d4e2 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -1010,7 +1010,7 @@ const struct datatype ethertype_type = {
+ 	.type		= TYPE_ETHERTYPE,
+ 	.name		= "ethertype",
+ 	.desc		= "Ethernet protocol",
+-	.byteorder	= BYTEORDER_HOST_ENDIAN,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= 2 * BITS_PER_BYTE,
+ 	.basetype	= &integer_type,
+ 	.basefmt	= "0x%.4Zx",
+-- 
+1.7.10.4
 
-The iptables-nftables tree is planned to be merged into iptables by
-when 3.13-rc1 will be released.
-
-The library ABI will freeze by when 3.13 will be released, meanwhile
-expect ABI breakages. My recommendation, at this stage, is that you
-keep fresh paired installations of libnftables and nftables to avoid
-troubles.
