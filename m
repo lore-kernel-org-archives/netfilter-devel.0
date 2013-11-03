@@ -1,26 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 6/6] test: report compilation without support
-Date: Sun, 3 Nov 2013 22:33:37 +0100
-Message-ID: <20131103213337.GF10464@localhost>
-References: <20131031123618.32572.24929.stgit@nfdev.cica.es>
- <20131031123644.32572.55345.stgit@nfdev.cica.es>
+Subject: Re: [GIT PULL] Second Round of IPVS updates for v3.13
+Date: Sun, 3 Nov 2013 22:35:28 +0100
+Message-ID: <20131103213528.GA10509@localhost>
+References: <1383095486-5215-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41671 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752315Ab3KCVdl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Nov 2013 16:33:41 -0500
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Daniel Borkmann <dborkman@redhat.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131031123644.32572.55345.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1383095486-5215-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 31, 2013 at 01:36:44PM +0100, Arturo Borrero Gonzalez wrote:
-> Print a message when there is no support for some parser.
+On Wed, Oct 30, 2013 at 10:11:24AM +0900, Simon Horman wrote:
+[...]
+> The following changes since commit 6b8dbcf2c44fd7aa716560d04e9857c870bd510c:
 > 
-> Remove those EOPNOTSUPPs because they are unused.
+>   bridge: netfilter: orphan skb before invoking ip netfilter hooks (2013-10-27 21:44:33 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs2-for-v3.13
 
-Applied, thanks.
+Pulled, thanks Simon.
