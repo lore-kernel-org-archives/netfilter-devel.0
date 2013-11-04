@@ -1,54 +1,60 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [PATCH iptables] extensions: libxt_cluster: add note on arptables-jf
-Date: Mon, 4 Nov 2013 12:39:34 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1311041234290.13395@ask.diku.dk>
-References: <1383562439-12113-1-git-send-email-pablo@netfilter.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: netfilter: nf_tables: add compatibility layer for x_tables
+Date: Mon, 4 Nov 2013 15:58:00 +0300
+Message-ID: <20131104125800.GA12213@longonot.mountain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:38159 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753656Ab3KDLjo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Nov 2013 06:39:44 -0500
-In-Reply-To: <1383562439-12113-1-git-send-email-pablo@netfilter.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:34058 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929Ab3KDNBF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Nov 2013 08:01:05 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello Pablo Neira Ayuso,
 
-On Mon, 4 Nov 2013, Pablo Neira Ayuso wrote:
+The patch 0ca743a55991: "netfilter: nf_tables: add compatibility 
+layer for x_tables" from Oct 14, 2013, leads to the following Smatch
+warning: "net/netfilter/nft_compat.c:140 nft_parse_compat()
+	 warn: signedness bug returning '(-34)'"
 
-> Gao feng reported problems while getting the cluster match working with
-> arptables. This patch adds a note in the manpage to warn about the arptables-jf
-> syntax, which is different from mainstream arptables.
->
-> Reported-by: Gao feng <gaofeng@cn.fujitsu.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> extensions/libxt_cluster.man |    5 +++++
-> 1 file changed, 5 insertions(+)
->
-> diff --git a/extensions/libxt_cluster.man b/extensions/libxt_cluster.man
-> index 62ad71c..94b4b20 100644
-> --- a/extensions/libxt_cluster.man
-> +++ b/extensions/libxt_cluster.man
-> @@ -55,6 +55,11 @@ arptables \-A INPUT \-i eth2 \-\-h\-length 6
-> \-\-destination\-mac 01:00:5e:00:01:02
-> \-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
-> .PP
-> +\fBNOTE\fP: the arptables commands above use mainstream syntax. If you
-> +are using arptables-jf included in some RedHat, CentOS and Fedora
-> +versions, you will hit syntax errors. Therefore, you'll have to adapt
-> +these to the arptables-jf syntax to get them working.
+net/netfilter/nft_compat.c
+   131  static u8 nft_parse_compat(const struct nlattr *attr, bool *inv)
+   132  {
+   133          struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
+   134          u32 flags;
+   135          int err;
+   136  
+   137          err = nla_parse_nested(tb, NFTA_RULE_COMPAT_MAX, attr,
+   138                                 nft_rule_compat_policy);
+   139          if (err < 0)
+   140                  return err;
+                        ^^^^^^^^^^
+   141  
+   142          if (!tb[NFTA_RULE_COMPAT_PROTO] || !tb[NFTA_RULE_COMPAT_FLAGS])
+   143                  return -EINVAL;
+                        ^^^^^^^^^^^^^^^
+   144  
+   145          flags = ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_FLAGS]));
+   146          if (flags & ~NFT_RULE_COMPAT_F_MASK)
+   147                  return -EINVAL;
+                        ^^^^^^^^^^^^^^^
 
+   148          if (flags & NFT_RULE_COMPAT_F_INV)
+   149                  *inv = true;
+   150  
+   151          return ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
+   152  }
 
-While on the subject of arptables_jf.  Red Hat will be replacing 
-arptables_jf with the mainstream arptables in RHEL7 and Fedora 21.
+This function returns error codes but the return type is u8 so the error
+codes are transformed into small positive values.  The callers don't
+check the return.
 
--- 
-Best regards,
-   Jesper Dangaard Brouer
-   MSc.CS, Sr. Network Kernel Developer at Red Hat
-   Author of http://www.iptv-analyzer.org
-   LinkedIn: http://www.linkedin.com/in/brouer
+regards,
+dan carpenter
+
