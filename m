@@ -1,32 +1,42 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] iptables: improve chain name validation
-Date: Sun, 3 Nov 2013 14:33:42 -0800
-Message-ID: <20131103223342.GA3239@home>
-References: <20131005163315.GA16881@home>
- <20131103202323.GA31399@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH iptables] extensions: libxt_cluster: add note on arptables-jf
+Date: Mon,  4 Nov 2013 11:53:59 +0100
+Message-ID: <1383562439-12113-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:38930 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048Ab3KCWdp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Nov 2013 17:33:45 -0500
-Received: by mail-pb0-f48.google.com with SMTP id mc17so6336958pbc.7
-        for <netfilter-devel@vger.kernel.org>; Sun, 03 Nov 2013 14:33:44 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20131103202323.GA31399@localhost>
+Received: from mail.us.es ([193.147.175.20]:45608 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750789Ab3KDKyJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Nov 2013 05:54:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 03, 2013 at 09:23:23PM +0100, Pablo Neira Ayuso wrote:
-> Applied, thanks Phil.
-> 
-> I have mangled this patch to include the ip6tables.c chunk, let me
-> know if you find any problem with it.
+Gao feng reported problems while getting the cluster match working with
+arptables. This patch adds a note in the manpage to warn about the arptables-jf
+syntax, which is different from mainstream arptables.
 
-Looks good.  Sorry I missed the -6 version.
+Reported-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ extensions/libxt_cluster.man |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Phil
+diff --git a/extensions/libxt_cluster.man b/extensions/libxt_cluster.man
+index 62ad71c..94b4b20 100644
+--- a/extensions/libxt_cluster.man
++++ b/extensions/libxt_cluster.man
+@@ -55,6 +55,11 @@ arptables \-A INPUT \-i eth2 \-\-h\-length 6
+ \-\-destination\-mac 01:00:5e:00:01:02
+ \-j mangle \-\-mangle\-mac\-d 00:zz:yy:xx:5a:27
+ .PP
++\fBNOTE\fP: the arptables commands above use mainstream syntax. If you
++are using arptables-jf included in some RedHat, CentOS and Fedora
++versions, you will hit syntax errors. Therefore, you'll have to adapt
++these to the arptables-jf syntax to get them working.
++.PP
+ In the case of TCP connections, pickup facility has to be disabled
+ to avoid marking TCP ACK packets coming in the reply direction as
+ valid.
+-- 
+1.7.10.4
+
