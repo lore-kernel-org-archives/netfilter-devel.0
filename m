@@ -1,60 +1,56 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: netfilter: nf_tables: add compatibility layer for x_tables
-Date: Mon, 4 Nov 2013 15:58:00 +0300
-Message-ID: <20131104125800.GA12213@longonot.mountain>
+Subject: [patch] netfilter: nf_tables: use _safe version of list_for_each
+Date: Mon, 4 Nov 2013 15:58:56 +0300
+Message-ID: <20131104125856.GB12213@longonot.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:34058 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929Ab3KDNBF (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:50566 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751782Ab3KDNCS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Nov 2013 08:01:05 -0500
+	Mon, 4 Nov 2013 08:02:18 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo Neira Ayuso,
+We need to use the _safe version of list_for_each_entry() here otherwise
+we have a use after free bug.
 
-The patch 0ca743a55991: "netfilter: nf_tables: add compatibility 
-layer for x_tables" from Oct 14, 2013, leads to the following Smatch
-warning: "net/netfilter/nft_compat.c:140 nft_parse_compat()
-	 warn: signedness bug returning '(-34)'"
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-net/netfilter/nft_compat.c
-   131  static u8 nft_parse_compat(const struct nlattr *attr, bool *inv)
-   132  {
-   133          struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
-   134          u32 flags;
-   135          int err;
-   136  
-   137          err = nla_parse_nested(tb, NFTA_RULE_COMPAT_MAX, attr,
-   138                                 nft_rule_compat_policy);
-   139          if (err < 0)
-   140                  return err;
-                        ^^^^^^^^^^
-   141  
-   142          if (!tb[NFTA_RULE_COMPAT_PROTO] || !tb[NFTA_RULE_COMPAT_FLAGS])
-   143                  return -EINVAL;
-                        ^^^^^^^^^^^^^^^
-   144  
-   145          flags = ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_FLAGS]));
-   146          if (flags & ~NFT_RULE_COMPAT_F_MASK)
-   147                  return -EINVAL;
-                        ^^^^^^^^^^^^^^^
-
-   148          if (flags & NFT_RULE_COMPAT_F_INV)
-   149                  *inv = true;
-   150  
-   151          return ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
-   152  }
-
-This function returns error codes but the return type is u8 so the error
-codes are transformed into small positive values.  The callers don't
-check the return.
-
-regards,
-dan carpenter
-
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 4811f76..a82667c 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -634,9 +634,9 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 
+ static void nft_match_release(void)
+ {
+-	struct nft_xt *nft_match;
++	struct nft_xt *nft_match, *tmp;
+ 
+-	list_for_each_entry(nft_match, &nft_match_list, head)
++	list_for_each_entry_safe(nft_match, tmp, &nft_match_list, head)
+ 		kfree(nft_match);
+ }
+ 
+@@ -705,9 +705,9 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 
+ static void nft_target_release(void)
+ {
+-	struct nft_xt *nft_target;
++	struct nft_xt *nft_target, *tmp;
+ 
+-	list_for_each_entry(nft_target, &nft_target_list, head)
++	list_for_each_entry_safe(nft_target, tmp, &nft_target_list, head)
+ 		kfree(nft_target);
+ }
+ 
