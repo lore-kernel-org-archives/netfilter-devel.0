@@ -1,56 +1,60 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] netfilter: nf_tables: use _safe version of list_for_each
-Date: Mon, 4 Nov 2013 15:58:56 +0300
-Message-ID: <20131104125856.GB12213@longonot.mountain>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [patch net-next RFC] netfilter: ip6_tables: use reasm skb for
+ matching
+Date: Mon, 4 Nov 2013 16:22:26 +0100
+Message-ID: <20131104152226.GA5103@minipsycho.orion>
+References: <1383130201-6198-1-git-send-email-jiri@resnulli.us>
+ <20131030134100.GD16615@breakpoint.cc>
+ <20131030141354.GB1456@minipsycho.orion>
+ <20131030144400.GE16615@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:50566 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782Ab3KDNCS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Nov 2013 08:02:18 -0500
+Cc: netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20131030144400.GE16615@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We need to use the _safe version of list_for_each_entry() here otherwise
-we have a use after free bug.
+Wed, Oct 30, 2013 at 03:44:00PM CET, fw@strlen.de wrote:
+>Jiri Pirko <jiri@resnulli.us> wrote:
+>> >This is a bit backwards, I think.
+>> >- We gather frags
+>> >- Then we invoke ip6t_do_table for each individual fragment
+>> >
+>> >So basically your patch is equivalent to
+>> >for_each_frag( )
+>> >  ip6t_do_table(reassembled_skb)
+>> >
+>> >Which makes no sense to me - why traverse the ruleset n times with the same
+>> >packet?
+>> 
+>> Because each fragment need to be pushed through separately.
+>
+>Why?  AFAIU we only need to ensure that (in forwarding case) we
+>send out the original fragments instead of the reassembled packet.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+I don't knot why, that's the way it is done now. From the top of my head
+I can't think of any scenario why it would hurt to push the reassebled
+packet instead (and of course send out original fragments at the end of
+the way for forwarding)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 4811f76..a82667c 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -634,9 +634,9 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 
- static void nft_match_release(void)
- {
--	struct nft_xt *nft_match;
-+	struct nft_xt *nft_match, *tmp;
- 
--	list_for_each_entry(nft_match, &nft_match_list, head)
-+	list_for_each_entry_safe(nft_match, tmp, &nft_match_list, head)
- 		kfree(nft_match);
- }
- 
-@@ -705,9 +705,9 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 
- static void nft_target_release(void)
- {
--	struct nft_xt *nft_target;
-+	struct nft_xt *nft_target, *tmp;
- 
--	list_for_each_entry(nft_target, &nft_target_list, head)
-+	list_for_each_entry_safe(nft_target, tmp, &nft_target_list, head)
- 		kfree(nft_target);
- }
- 
+>
+>> What different approach would you suggest?
+>
+>I am sure that current behaviour is intentional, so I'd first like to
+>understand WHY this was implemented this way.
+>
+>Also, this would change very long standing behaviour so one might argue that
+>this is a no-go anyway.
+
+Can you think aof any sane use case this change could possible break?
+
+>
+>What is the exact problem that this is supposed to solve?
+
+Look at the patch description. There's an example. The problem is that
+fragments are not correctly matched.
