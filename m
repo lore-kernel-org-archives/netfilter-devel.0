@@ -1,290 +1,148 @@
-From: James Chapman <jchapman@katalix.com>
-Subject: [PATCH] iptables: add support for l2tp match
-Date: Mon,  4 Nov 2013 16:41:40 +0000
-Message-ID: <1383583300-26424-1-git-send-email-jchapman@katalix.com>
-Cc: James Chapman <jchapman@katalix.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/20] Netfilter/IPVS updates for net-next
+Date: Mon,  4 Nov 2013 22:50:22 +0100
+Message-ID: <1383601842-4570-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from katalix.com ([82.103.140.233]:43627 "EHLO bert.katalix.com"
+Received: from mail.us.es ([193.147.175.20]:55655 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848Ab3KDQu7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Nov 2013 11:50:59 -0500
+	id S1751155Ab3KDVuv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Nov 2013 16:50:51 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds an iptables extension to support the l2tp xtables
-add-on. The matcher lets users filter on one or more fields of L2TP
-packets: tunnel-id, session-id, protocol version, encapsulation type
-(IP or UDP), packet type (control or data).
+Hi David,
 
-Requires corresponding netfilter xt_l2tp kernel support, submitted
-separately.
+This is another batch containing Netfilter/IPVS updates for your net-next
+tree, they are:
 
-Signed-off-by: James Chapman <jchapman@katalix.com>
----
-:000000 100644 0000000... bb1e567... A	extensions/libxt_l2tp.c
-:000000 100644 0000000... b492725... A	extensions/libxt_l2tp.man
- extensions/libxt_l2tp.c   |  213 +++++++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_l2tp.man |   32 +++++++
- 2 files changed, 245 insertions(+), 0 deletions(-)
+* Six patches to make the ipt_CLUSTERIP target support netnamespace,
+  from Gao feng.
 
-diff --git a/extensions/libxt_l2tp.c b/extensions/libxt_l2tp.c
-new file mode 100644
-index 0000000..bb1e567
---- /dev/null
-+++ b/extensions/libxt_l2tp.c
-@@ -0,0 +1,213 @@
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <strings.h>
-+#include <netdb.h>
-+#include <arpa/inet.h>
-+#include <xtables.h>
-+#include <linux/netfilter/xt_l2tp.h>
-+
-+enum {
-+	O_TID = 0,
-+	O_SID,
-+	O_VERSION,
-+	O_ENCAP,
-+	O_TYPE,
-+};
-+
-+static void l2tp_help(void)
-+{
-+	printf(
-+"l2tp match options:\n"
-+" --tunnel-id id\n"
-+" --tid ...\n"
-+"				match tunnel-id\n"
-+" --session-id id\n"
-+" --sid ...\n"
-+"				match session-id\n"
-+" --pversion {2|3}\n"
-+"				match version\n"
-+" --encap {udp|ip}\n"
-+"				match encapsulation\n"
-+" --type {control|data}\n"
-+"				match packet type\n");
-+}
-+
-+#define s struct xt_l2tp_info
-+static const struct xt_option_entry l2tp_opts[] = {
-+	{.name = "tunnel-id", .id = O_TID, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, tid)},
-+	{.name = "tid", .id = O_TID, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, tid)},
-+	{.name = "session-id", .id = O_SID, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, sid)},
-+	{.name = "sid", .id = O_SID, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, sid)},
-+	{.name = "pversion", .id = O_VERSION, .type = XTTYPE_UINT8,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, version)},
-+	{.name = "encap", .id = O_ENCAP, .type = XTTYPE_STRING },
-+	{.name = "type", .id = O_TYPE, .type = XTTYPE_STRING },
-+	XTOPT_TABLEEND,
-+};
-+#undef s
-+
-+static int parse_encap(const char *s)
-+{
-+	if (strcmp(s, "udp") == 0)
-+		return XT_L2TP_ENCAP_UDP;
-+	if (strcmp(s, "ip") == 0)
-+		return XT_L2TP_ENCAP_IP;
-+	xtables_error(PARAMETER_PROBLEM, "l2tp: invalid encap \"%s\"", s);
-+}
-+
-+static int parse_type(const char *s)
-+{
-+	if (strcmp(s, "control") == 0)
-+		return XT_L2TP_TYPE_CONTROL;
-+	if (strcmp(s, "data") == 0)
-+		return XT_L2TP_TYPE_DATA;
-+	xtables_error(PARAMETER_PROBLEM, "l2tp: invalid type \"%s\"", s);
-+}
-+
-+static void l2tp_parse(struct xt_option_call *cb)
-+{
-+	struct xt_l2tp_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TID:
-+		info->flags |= XT_L2TP_TID;
-+		break;
-+	case O_SID:
-+		info->flags |= XT_L2TP_SID;
-+		break;
-+	case O_VERSION:
-+		info->flags |= XT_L2TP_VERSION;
-+		break;
-+	case O_ENCAP:
-+		info->encap = parse_encap(cb->arg);
-+		info->flags |= XT_L2TP_ENCAP;
-+		break;
-+	case O_TYPE:
-+		info->type = parse_type(cb->arg);
-+		info->flags |= XT_L2TP_TYPE;
-+		break;
-+	}
-+}
-+
-+static void l2tp_check(struct xt_fcheck_call *cb)
-+{
-+	struct xt_l2tp_info *info = cb->data;
-+
-+	if ((!(info->flags & XT_L2TP_TID)) &&
-+	    (!(info->flags & XT_L2TP_SID)) &&
-+	    ((!(info->flags & XT_L2TP_TYPE)) || (info->type != XT_L2TP_TYPE_CONTROL)))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "l2tp tid, sid or control type not specified");
-+
-+	if ((info->flags & XT_L2TP_VERSION) &&
-+	    ((info->version < 2) || (info->version > 3)))
-+		xtables_error(PARAMETER_PROBLEM, "l2tp: invalid version \"%d\"", info->version);
-+
-+	if (info->version < 3) {
-+		if (!(info->flags & XT_L2TP_TID))
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "l2tp tid is required unless version is 3");
-+		if (info->encap == XT_L2TP_ENCAP_IP)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "l2tp encap ip invalid unless version is 3");
-+		if (info->tid > 0xffff)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "l2tp tid is 16 bits unless version is 3");
-+		if (info->sid > 0xffff)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "l2tp sid is 16 bits unless version is 3");
-+	}
-+}
-+
-+static void print_encap(uint8_t encap, const char *prefix)
-+{
-+	printf(" %sencap ", prefix);
-+
-+	switch (encap) {
-+	case XT_L2TP_ENCAP_UDP:
-+		printf("udp");
-+		break;
-+	case XT_L2TP_ENCAP_IP:
-+		printf("ip");
-+		break;
-+	default:
-+		printf("???");
-+		break;
-+	}
-+}
-+
-+static void print_type(uint8_t type, const char *prefix)
-+{
-+	printf(" %stype ", prefix);
-+
-+	switch (type) {
-+	case XT_L2TP_TYPE_CONTROL:
-+		printf("control");
-+		break;
-+	case XT_L2TP_TYPE_DATA:
-+		printf("data");
-+		break;
-+	default:
-+		printf("???");
-+		break;
-+	}
-+}
-+
-+static void l2tp_print(const void *ip, const struct xt_entry_match *match, int numeric)
-+{
-+	const struct xt_l2tp_info *info = (struct xt_l2tp_info *)match->data;
-+
-+	printf(" l2tp");
-+	if (info->flags & XT_L2TP_TID)
-+		printf(" tid %u", info->tid);
-+	if (info->flags & XT_L2TP_SID)
-+		printf(" sid %u", info->sid);
-+	if (info->flags & XT_L2TP_VERSION)
-+		printf(" pver %hd", info->version);
-+	if (info->flags & XT_L2TP_ENCAP)
-+		print_encap(info->encap, "");
-+	if (info->flags & XT_L2TP_TYPE)
-+		print_type(info->type, "");
-+}
-+
-+static void l2tp_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_l2tp_info *info = (struct xt_l2tp_info *)match->data;
-+
-+	if (info->flags & XT_L2TP_TID)
-+		printf(" --tid %u", info->tid);
-+	if (info->flags & XT_L2TP_SID)
-+		printf(" --sid %u", info->sid);
-+	if (info->flags & XT_L2TP_VERSION)
-+		printf(" --pversion %hd", info->version);
-+	if (info->flags & XT_L2TP_ENCAP)
-+		print_encap(info->encap, "--");
-+	if (info->flags & XT_L2TP_TYPE)
-+		print_type(info->type, "--");
-+}
-+
-+static struct xtables_match l2tp_match = {
-+	.family		= NFPROTO_UNSPEC,
-+	.name		= "l2tp",
-+	.version	= XTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_l2tp_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_l2tp_info)),
-+	.help		= l2tp_help,
-+	.print		= l2tp_print,
-+	.save		= l2tp_save,
-+	.x6_fcheck	= l2tp_check,
-+	.x6_parse	= l2tp_parse,
-+	.x6_options	= l2tp_opts,
-+};
-+
-+void
-+_init(void)
-+{
-+	xtables_register_match(&l2tp_match);
-+}
-diff --git a/extensions/libxt_l2tp.man b/extensions/libxt_l2tp.man
-new file mode 100644
-index 0000000..b492725
---- /dev/null
-+++ b/extensions/libxt_l2tp.man
-@@ -0,0 +1,32 @@
-+This is used to match L2TP packets. L2TP tunnels are identified by
-+tunnel-id and session-id fields in the L2TP header. L2TPv2 and L2TPv3
-+are supported. 
-+.TP
-+\fB\-\-tunnel\-id\fP,\fB\-\-tid\fP \fIid\fP
-+.TP
-+\fB\-\-session\-id\fP,\fB\-\-sid\fP \fIid\fP
-+.TP
-+\fB\-\-pversion\fP {\fB2\fP|\fB3\fP}
-+.TP
-+\fB\-\-encap\fP {\fBudp\fP|\fBip\fP}
-+.TP
-+\fB\-\-type\fP {\fBcontrol\fP|\fBdata\fP}
-+.PP
-+At least one of \fB\-\-tunnel\-id\fP, \fB\-\-session\-id\fP must be
-+specified.
-+.PP
-+L2TP match rules should always be used together with IP address
-+specifiers since the tunnel-id and session-id fields are scoped by the
-+L2TP sender or receiver.
-+.PP
-+To match L2TPv3 packets which use 32-bit tunnel and session ids, the
-+\fBpversion\fP option must be used to set the protocol version to 3.
-+.PP
-+Examples:
-+.IP
-+iptables \-A INPUT \-s 1.2.3.4 \-m l2tp
-+\-\-tid 42 \-j DROP
-+.IP
-+iptables \-A OUTPUT \-d 1.2.3.5 \-m l2tp
-+\-\-tid 43 \-\-sid 42 \-j DROP
-+
--- 
-1.7.0.4
+* Two cleanups for the nf_conntrack_acct infrastructure, introducing
+  a new structure to encapsulate conntrack counters, from Holger
+  Eitzenberger.
+
+* Fix missing verdict in SCTP support for IPVS, from Daniel Borkmann.
+
+* Skip checksum recalculation in SCTP support for IPVS, also from
+  Daniel Borkmann.
+
+* Fix behavioural change in xt_socket after IP early demux, from
+  Florian Westphal.
+
+* Fix bogus large memory allocation in the bitmap port set type in ipset,
+  from Jozsef Kadlecsik.
+
+* Fix possible compilation issues in the hash netnet set type in ipset,
+  also from Jozsef Kadlecsik.
+
+* Define constants to identify netlink callback data in ipset dumps,
+  again from Jozsef Kadlecsik.
+
+* Use sock_gen_put() in xt_socket to replace xt_socket_put_sk,
+  from Eric Dumazet.
+
+* Improvements for the SH scheduler in IPVS, from Alexander Frolkin.
+
+* Remove extra delay due to unneeded rcu barrier in IPVS net namespace
+  cleanup path, from Julian Anastasov.
+
+* Save some cycles in ip6t_REJECT by skipping checksum validation in
+  packets leaving from our stack, from Stanislav Fomichev.
+
+* Fix IPVS_CMD_ATTR_MAX definition in IPVS, larger that required, from
+  Julian Anastasov.
+
+You can pull these changes from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 58308451e91974267e1f4a618346055342019e02:
+
+  Merge branch 'master' of git://git.kernel.org/pub/scm/linux/kernel/git/jkirsher/net-next (2013-10-10 15:29:44 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to 4542fa4727f5f83faf9e1f28f35be0b9a2317aec:
+
+  netfilter: ctnetlink: account both directions in one step (2013-11-03 21:49:32 +0100)
+
+----------------------------------------------------------------
+Alexander Frolkin (1):
+      ipvs: improved SH fallback strategy
+
+Daniel Borkmann (2):
+      net: ipvs: sctp: add missing verdict assignments in sctp_conn_schedule
+      net: ipvs: sctp: do not recalc sctp csum when ports didn't change
+
+Eric Dumazet (1):
+      netfilter: xt_socket: use sock_gen_put()
+
+Florian Westphal (1):
+      bridge: netfilter: orphan skb before invoking ip netfilter hooks
+
+Gao feng (6):
+      netfilter: ipt_CLUSTERIP: make proc directory per net namespace
+      netfilter: ipt_CLUSTERIP: make clusterip_list per net namespace
+      netfilter: ipt_CLUSTERIP: make clusterip_lock per net namespace
+      netfilter: ipt_CLUSTERIP: add parameter net in clusterip_config_find_get
+      netfilter: ipt_CLUSTERIP: create proc entry under proper ipt_CLUSTERIP directory
+      netfilter: ipt_CLUSTERIP: use proper net namespace to operate CLUSTERIP
+
+Holger Eitzenberger (2):
+      netfilter: introduce nf_conn_acct structure
+      netfilter: ctnetlink: account both directions in one step
+
+Jozsef Kadlecsik (3):
+      netfilter: ipset: Use netlink callback dump args only
+      netfilter: ipset: The unnamed union initialization may lead to compilation error
+      netfilter:ipset: Fix memory allocation for bitmap:port
+
+Julian Anastasov (2):
+      ipvs: fix the IPVS_CMD_ATTR_MAX definition
+      ipvs: avoid rcu_barrier during netns cleanup
+
+Michael Opdenacker (1):
+      netfilter: ipset: remove duplicate define
+
+Stanislav Fomichev (1):
+      netfilter: ip6t_REJECT: skip checksum verification for outgoing ipv6 packets
+
+ include/linux/netfilter/ipset/ip_set.h       |   10 +++
+ include/net/ip_vs.h                          |    6 ++
+ include/net/netfilter/nf_conntrack_acct.h    |   10 ++-
+ include/net/netfilter/nf_conntrack_extend.h  |    2 +-
+ include/uapi/linux/ip_vs.h                   |    2 +-
+ net/bridge/br_netfilter.c                    |    2 +
+ net/ipv4/netfilter/ipt_CLUSTERIP.c           |  110 ++++++++++++++++++--------
+ net/ipv6/netfilter/ip6t_REJECT.c             |    7 +-
+ net/netfilter/ipset/ip_set_bitmap_gen.h      |   11 +--
+ net/netfilter/ipset/ip_set_bitmap_port.c     |    2 +-
+ net/netfilter/ipset/ip_set_core.c            |   70 ++++++++--------
+ net/netfilter/ipset/ip_set_hash_gen.h        |   21 ++---
+ net/netfilter/ipset/ip_set_hash_netnet.c     |   22 +++---
+ net/netfilter/ipset/ip_set_hash_netportnet.c |   22 +++---
+ net/netfilter/ipset/ip_set_list_set.c        |   11 +--
+ net/netfilter/ipvs/ip_vs_ctl.c               |    6 +-
+ net/netfilter/ipvs/ip_vs_lblc.c              |    2 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c             |    2 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c        |   48 +++++++++--
+ net/netfilter/ipvs/ip_vs_sh.c                |   39 ++++++---
+ net/netfilter/nf_conntrack_acct.c            |   12 +--
+ net/netfilter/nf_conntrack_core.c            |   16 ++--
+ net/netfilter/nf_conntrack_netlink.c         |   51 ++++++------
+ net/netfilter/xt_connbytes.c                 |    6 +-
+ net/netfilter/xt_socket.c                    |   13 +--
+ 25 files changed, 305 insertions(+), 198 deletions(-)
 
