@@ -1,78 +1,96 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch net-next 2/3] netfilter: ip6_tables: use reasm skb for
- matching
-Date: Tue, 5 Nov 2013 13:41:19 +0000
-Message-ID: <20131105134118.GA5818@macbook.localnet>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [patch net-next 3/3] fix skb_morph to preserve skb->sk and
+ skb->destructor pointers
+Date: Tue, 05 Nov 2013 06:06:12 -0800
+Message-ID: <1383660372.4291.134.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1383649333-6321-1-git-send-email-jiri@resnulli.us>
- <1383649333-6321-3-git-send-email-jiri@resnulli.us>
- <20131105133205.GC15370@breakpoint.cc>
+	 <1383649333-6321-4-git-send-email-jiri@resnulli.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jiri Pirko <jiri@resnulli.us>, netdev@vger.kernel.org,
-	davem@davemloft.net, pablo@netfilter.org,
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, mleitner@redhat.com,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com,
 	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
 	horms@verge.net.au, ja@ssi.bg, edumazet@google.com,
 	pshelar@nicira.com, jasowang@redhat.com,
-	alexander.h.duyck@intel.com, coreteam@netfilter.org
-To: Florian Westphal <fw@strlen.de>
+	alexander.h.duyck@intel.com, coreteam@netfilter.org, fw@strlen.de
+To: Jiri Pirko <jiri@resnulli.us>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47984 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638Ab3KENl1 (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:43634 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755137Ab3KEOGP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Nov 2013 08:41:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20131105133205.GC15370@breakpoint.cc>
+	Tue, 5 Nov 2013 09:06:15 -0500
+In-Reply-To: <1383649333-6321-4-git-send-email-jiri@resnulli.us>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 05, 2013 at 02:32:05PM +0100, Florian Westphal wrote:
-> Jiri Pirko <jiri@resnulli.us> wrote:
-> > This patch fixes for example following situation:
-> > On HOSTA do:
-> > ip6tables -I INPUT -p icmpv6 -j DROP
-> > ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
+On Tue, 2013-11-05 at 12:02 +0100, Jiri Pirko wrote:
+> Currently __skb_clone sets skb->sk and skb->destructor to NULL. This is
+> not right for skb_morph use case because skb->sk may be previously
+> set (e. g. by xt_TPROXY).
 > 
-> untested:
-> 
-> -A INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
-> -A INPUT -p icmpv6 -m conntrack --ctstatus CONFIRMED -j ACCEPT
-> -A INPUT -p icmpv6 -j DROP
-> 
-> > and on HOSTB you do:
-> > ping6 HOSTA -s2000    (MTU is 1500)
-> > 
-> > Incoming echo requests will be filtered out on HOSTA. This issue does
-> > not occur with smaller packets than MTU (where fragmentation does not happen).
-> 
-> Patrick, any reason not to kill the special-casing (ct has assigned helper or
-> unconfirmed conntrack) in __ipv6_conntrack_in() ?
-> 
-> This should make ipv6 frag behaviour consistent; right now its rather
-> confusing from ruleset point of view, especially the first packet
-> of a connection is always seen as reassembled.
-> 
-> So with Jiris rules
-> 
-> -A INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
-> -A INPUT -p icmpv6 -j DROP
-> 
-> ping6 -s $bignum works for the first packet but not for subsequent ones
-> which is quite irritating.
+> Also, during skb_morph the destructor should not be called. It might be
+> previously set, e. g. by xt_TPROXY to sock_edemux, and that would cause
+> put sk while skb is still in flight.
 
-Well, the reason was to avoid unnecessary work doing refragmentation
-unless really required. I know its rather complicated, but IPv6 has
-always required treating fragments manually or using conntrack state.
+truesize alert. You should add some documentation that skb_morph()
+must not be used in transmit path.
 
-I'm not objecting to changing this, but the patches as they are are
-not the way to go. First, moving nfct_frag to struct sk_buff seems
-like a real waste of space for this quite rare case. Also, we can't
-just use the reassembled packet in ip6tables, when modifying it we
-will still output the unchanged fragments. An last of all, we'll be
-executing the rules on the reassembled packet multiple times, one
-for each fragment.
+Its not clear to be how this can happen.
 
-So if someone wants to change this, simply *only* pass the reassembled
-packet through the netfilter hooks and drop the fragments, as in IPv4.
+skb_morph() being used only from ipv4 defrag (or ipv6 reassembly).
+
+Maybe the problem could be fixed by doing this defrag _before_ setting
+skb->sk ?
+
+Also, I would prefer you find a way to put all this logic inside
+skb_morph() instead of adding such complexity in this already complex
+code, I fear the compiler will generate slower code with your patch on
+fast path.
+
+Maybe something as simple as following (untested) patch ?
+
+Note that the truesize concern might need some care.
+
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 3735fad5616e..afabfd6ef341 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -793,18 +793,28 @@ static struct sk_buff *__skb_clone(struct sk_buff *n, struct sk_buff *skb)
+ 
+ /**
+  *	skb_morph	-	morph one skb into another
+- *	@dst: the skb to receive the contents
++ *	@skb: the skb to receive the contents
+  *	@src: the skb to supply the contents
+  *
+  *	This is identical to skb_clone except that the target skb is
+- *	supplied by the user.
++ *	supplied by the user, and that we keep target skb destructor in place,
++ *	meaning this can not be used in transmit path, as skb->truesize might
++ *	change.
+  *
+  *	The target skb is returned upon exit.
+  */
+-struct sk_buff *skb_morph(struct sk_buff *dst, struct sk_buff *src)
++struct sk_buff *skb_morph(struct sk_buff *skb, struct sk_buff *src)
+ {
+-	skb_release_all(dst);
+-	return __skb_clone(dst, src);
++	struct sock *save_sk = skb->sk;
++	void (*save_destructor)(struct sk_buff *) = skb->destructor;
++
++	skb->sk = NULL;
++	skb->destructor = NULL;
++	skb_release_all(skb);
++	__skb_clone(skb, src);
++	skb->sk = save_sk;
++	skb->destructor = save_destructor;
++	return skb;
+ }
+ EXPORT_SYMBOL_GPL(skb_morph);
+ 
+
+
