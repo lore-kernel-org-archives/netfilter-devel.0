@@ -1,96 +1,40 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [patch net-next 3/3] fix skb_morph to preserve skb->sk and
- skb->destructor pointers
-Date: Tue, 05 Nov 2013 06:06:12 -0800
-Message-ID: <1383660372.4291.134.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1383649333-6321-1-git-send-email-jiri@resnulli.us>
-	 <1383649333-6321-4-git-send-email-jiri@resnulli.us>
+From: Arnaldo Carvalho de Melo <acme-f8uhVLnGfZaxAyOMLChx1axOck334EZe@public.gmane.org>
+Subject: Re: [PATCH 02/10] netfilter: nf_log: prepar net namespace support
+	for nf_log
+Date: Tue, 5 Nov 2013 11:14:55 -0300
+Message-ID: <20131105141455.GB22912@ghostprotocols.net>
+References: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com>
+	<1360223390-15589-2-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com,
-	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
-	horms@verge.net.au, ja@ssi.bg, edumazet@google.com,
-	pshelar@nicira.com, jasowang@redhat.com,
-	alexander.h.duyck@intel.com, coreteam@netfilter.org, fw@strlen.de
-To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:43634 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755137Ab3KEOGP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Nov 2013 09:06:15 -0500
-In-Reply-To: <1383649333-6321-4-git-send-email-jiri@resnulli.us>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lve-ke3WRBg/xIg@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+To: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1360223390-15589-2-git-send-email-gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/containers/>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2013-11-05 at 12:02 +0100, Jiri Pirko wrote:
-> Currently __skb_clone sets skb->sk and skb->destructor to NULL. This is
-> not right for skb_morph use case because skb->sk may be previously
-> set (e. g. by xt_TPROXY).
-> 
-> Also, during skb_morph the destructor should not be called. It might be
-> previously set, e. g. by xt_TPROXY to sock_edemux, and that would cause
-> put sk while skb is still in flight.
+Em Thu, Feb 07, 2013 at 03:49:42PM +0800, Gao feng escreveu:
+> index 9e31269..b1e5126 100644
+> +++ b/net/netfilter/nf_log.c
+> @@ -16,7 +16,6 @@
+>  #define NF_LOG_PREFIXLEN		128
+>  #define NFLOGGER_NAME_LEN		64
+>  
+> -static const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
 
-truesize alert. You should add some documentation that skb_morph()
-must not be used in transmit path.
+This was initialized to zeros, but then got moved to struct netns_nf,
+I'm trying to figure it out if it is being zeroed somewhere, ideas?
 
-Its not clear to be how this can happen.
-
-skb_morph() being used only from ipv4 defrag (or ipv6 reassembly).
-
-Maybe the problem could be fixed by doing this defrag _before_ setting
-skb->sk ?
-
-Also, I would prefer you find a way to put all this logic inside
-skb_morph() instead of adding such complexity in this already complex
-code, I fear the compiler will generate slower code with your patch on
-fast path.
-
-Maybe something as simple as following (untested) patch ?
-
-Note that the truesize concern might need some care.
-
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 3735fad5616e..afabfd6ef341 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -793,18 +793,28 @@ static struct sk_buff *__skb_clone(struct sk_buff *n, struct sk_buff *skb)
- 
- /**
-  *	skb_morph	-	morph one skb into another
-- *	@dst: the skb to receive the contents
-+ *	@skb: the skb to receive the contents
-  *	@src: the skb to supply the contents
-  *
-  *	This is identical to skb_clone except that the target skb is
-- *	supplied by the user.
-+ *	supplied by the user, and that we keep target skb destructor in place,
-+ *	meaning this can not be used in transmit path, as skb->truesize might
-+ *	change.
-  *
-  *	The target skb is returned upon exit.
-  */
--struct sk_buff *skb_morph(struct sk_buff *dst, struct sk_buff *src)
-+struct sk_buff *skb_morph(struct sk_buff *skb, struct sk_buff *src)
- {
--	skb_release_all(dst);
--	return __skb_clone(dst, src);
-+	struct sock *save_sk = skb->sk;
-+	void (*save_destructor)(struct sk_buff *) = skb->destructor;
-+
-+	skb->sk = NULL;
-+	skb->destructor = NULL;
-+	skb_release_all(skb);
-+	__skb_clone(skb, src);
-+	skb->sk = save_sk;
-+	skb->destructor = save_destructor;
-+	return skb;
- }
- EXPORT_SYMBOL_GPL(skb_morph);
- 
-
-
+- Arnaldo
