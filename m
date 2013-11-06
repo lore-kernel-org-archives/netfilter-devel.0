@@ -1,59 +1,109 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch net-next 2/3] netfilter: ip6_tables: use reasm skb for
- matching
-Date: Tue, 5 Nov 2013 22:02:23 +0000
-Message-ID: <20131105220222.GA9115@macbook.localnet>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch net-next 1/3] move skb_nfct_reasm into skbuff.h
+Date: Wed, 6 Nov 2013 10:00:42 +0900
+Message-ID: <20131106010042.GA30468@verge.net.au>
 References: <1383649333-6321-1-git-send-email-jiri@resnulli.us>
- <1383649333-6321-3-git-send-email-jiri@resnulli.us>
- <20131105133205.GC15370@breakpoint.cc>
- <20131105134118.GA5818@macbook.localnet>
- <20131105150115.GB2438@minipsycho.orion>
- <20131105181633.GA7435@macbook.localnet>
- <20131105205520.GD2438@minipsycho.orion>
+ <1383649333-6321-2-git-send-email-jiri@resnulli.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	davem@davemloft.net, pablo@netfilter.org,
+Cc: netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, mleitner@redhat.com,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com,
 	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
-	horms@verge.net.au, ja@ssi.bg, edumazet@google.com,
-	pshelar@nicira.com, jasowang@redhat.com,
-	alexander.h.duyck@intel.com, coreteam@netfilter.org
+	ja@ssi.bg, edumazet@google.com, pshelar@nicira.com,
+	jasowang@redhat.com, alexander.h.duyck@intel.com,
+	coreteam@netfilter.org, fw@strlen.de
 To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:37610 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755373Ab3KFBAr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Nov 2013 20:00:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20131105205520.GD2438@minipsycho.orion>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1383649333-6321-2-git-send-email-jiri@resnulli.us>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 05, 2013 at 09:55:20PM +0100, Jiri Pirko wrote:
-> Tue, Nov 05, 2013 at 07:16:33PM CET, kaber@trash.net wrote:
->
-> >> I'm a bit lost. What "nfct_frag" are you reffering to here?
-> >
-> >I meant nfct_reasm of course.
+On Tue, Nov 05, 2013 at 12:02:11PM +0100, Jiri Pirko wrote:
+> Signed-off-by: Jiri Pirko <jiri@resnulli.us>
+> ---
+>  include/linux/skbuff.h          | 11 +++++++++++
+>  include/net/ip_vs.h             |  8 --------
+>  net/netfilter/ipvs/ip_vs_core.c |  1 +
+>  3 files changed, 12 insertions(+), 8 deletions(-)
+
+IPVS portion:
+
+Acked-by: Simon Horman <horms@verge.net.au>
+
+
 > 
-> The patch is not moving this to struct sk_buff. It is already there.
-
-Right again, sorry, I was replying to Florian's mail without the
-quoted patch, so I seem to have mixed up things in between :)
-
-> >> >So if someone wants to change this, simply *only* pass the reassembled
-> >> >packet through the netfilter hooks and drop the fragments, as in IPv4.
-> >> 
-> >> This is unfortunatelly not possible because in forwarding use case, the
-> >> fragments have to be send out as they come in.
-> >
-> >No, the IPv6 NAT patches fixed that, we still do proper refragmentation
-> >and we still respect the original fragment sizes, thus are not responsible
-> >for potentially exceeding the PMTU on the following path.
+> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+> index 2e153b6..ececdad 100644
+> --- a/include/linux/skbuff.h
+> +++ b/include/linux/skbuff.h
+> @@ -2606,6 +2606,17 @@ static inline void nf_conntrack_put_reasm(struct sk_buff *skb)
+>  		kfree_skb(skb);
+>  }
+>  #endif
+> +#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+> +static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
+> +{
+> +	return skb->nfct_reasm;
+> +}
+> +#else
+> +static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
+> +{
+> +	return NULL;
+> +}
+> +#endif
+>  #ifdef CONFIG_BRIDGE_NETFILTER
+>  static inline void nf_bridge_put(struct nf_bridge_info *nf_bridge)
+>  {
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index cd7275f..6dff2b6 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -119,10 +119,6 @@ struct ip_vs_iphdr {
+>  
+>  /* Dependency to module: nf_defrag_ipv6 */
+>  #if defined(CONFIG_NF_DEFRAG_IPV6) || defined(CONFIG_NF_DEFRAG_IPV6_MODULE)
+> -static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
+> -{
+> -	return skb->nfct_reasm;
+> -}
+>  static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
+>  				      int len, void *buffer,
+>  				      const struct ip_vs_iphdr *ipvsh)
+> @@ -134,10 +130,6 @@ static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
+>  	return skb_header_pointer(skb, offset, len, buffer);
+>  }
+>  #else
+> -static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
+> -{
+> -	return NULL;
+> -}
+>  static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
+>  				      int len, void *buffer,
+>  				      const struct ip_vs_iphdr *ipvsh)
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 34fda62..085c242 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -43,6 +43,7 @@
+>  #include <net/ip6_checksum.h>
+>  #include <net/netns/generic.h>		/* net_generic() */
+>  
+> +#include <linux/skbuff.h>
+>  #include <linux/netfilter.h>
+>  #include <linux/netfilter_ipv4.h>
+>  
+> -- 
+> 1.8.3.1
 > 
-> Ok. So the plan is to remove net/ipv6/netfilter/nf_conntrack_reasm.c
-> code entirely and use net/ipv6/reassembly.c code directly from
-> nf_defrag_ipv6. This would result in very similar code currently ipv4
-> has. 
-
-If its possible to use net/ipv6/reassembly.c directly, even better,
-so far I was thinking of just getting rid of the fragment replay,
-but you're most likely right that this is the proper way to do it.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
