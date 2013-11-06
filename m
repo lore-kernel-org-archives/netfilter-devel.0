@@ -1,109 +1,38 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch net-next 1/3] move skb_nfct_reasm into skbuff.h
-Date: Wed, 6 Nov 2013 10:00:42 +0900
-Message-ID: <20131106010042.GA30468@verge.net.au>
-References: <1383649333-6321-1-git-send-email-jiri@resnulli.us>
- <1383649333-6321-2-git-send-email-jiri@resnulli.us>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 02/10] netfilter: nf_log: prepar net namespace support
+ for nf_log
+Date: Wed, 06 Nov 2013 10:00:04 +0800
+Message-ID: <5279A2A4.9060405@cn.fujitsu.com>
+References: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com> <1360223390-15589-2-git-send-email-gaofeng@cn.fujitsu.com> <20131105141455.GB22912@ghostprotocols.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com,
-	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
-	ja@ssi.bg, edumazet@google.com, pshelar@nicira.com,
-	jasowang@redhat.com, alexander.h.duyck@intel.com,
-	coreteam@netfilter.org, fw@strlen.de
-To: Jiri Pirko <jiri@resnulli.us>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org, pablo@netfilter.org,
+	ebiederm@xmission.com, netdev@vger.kernel.org, lve@guap.ru
+To: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:37610 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab3KFBAr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Nov 2013 20:00:47 -0500
-Content-Disposition: inline
-In-Reply-To: <1383649333-6321-2-git-send-email-jiri@resnulli.us>
+Received: from cn.fujitsu.com ([222.73.24.84]:65243 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750830Ab3KFB7I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Nov 2013 20:59:08 -0500
+In-Reply-To: <20131105141455.GB22912@ghostprotocols.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 05, 2013 at 12:02:11PM +0100, Jiri Pirko wrote:
-> Signed-off-by: Jiri Pirko <jiri@resnulli.us>
-> ---
->  include/linux/skbuff.h          | 11 +++++++++++
->  include/net/ip_vs.h             |  8 --------
->  net/netfilter/ipvs/ip_vs_core.c |  1 +
->  3 files changed, 12 insertions(+), 8 deletions(-)
-
-IPVS portion:
-
-Acked-by: Simon Horman <horms@verge.net.au>
-
-
+On 11/05/2013 10:14 PM, Arnaldo Carvalho de Melo wrote:
+> Em Thu, Feb 07, 2013 at 03:49:42PM +0800, Gao feng escreveu:
+>> index 9e31269..b1e5126 100644
+>> +++ b/net/netfilter/nf_log.c
+>> @@ -16,7 +16,6 @@
+>>  #define NF_LOG_PREFIXLEN		128
+>>  #define NFLOGGER_NAME_LEN		64
+>>  
+>> -static const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
 > 
-> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-> index 2e153b6..ececdad 100644
-> --- a/include/linux/skbuff.h
-> +++ b/include/linux/skbuff.h
-> @@ -2606,6 +2606,17 @@ static inline void nf_conntrack_put_reasm(struct sk_buff *skb)
->  		kfree_skb(skb);
->  }
->  #endif
-> +#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
-> +static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
-> +{
-> +	return skb->nfct_reasm;
-> +}
-> +#else
-> +static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
-> +{
-> +	return NULL;
-> +}
-> +#endif
->  #ifdef CONFIG_BRIDGE_NETFILTER
->  static inline void nf_bridge_put(struct nf_bridge_info *nf_bridge)
->  {
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index cd7275f..6dff2b6 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -119,10 +119,6 @@ struct ip_vs_iphdr {
->  
->  /* Dependency to module: nf_defrag_ipv6 */
->  #if defined(CONFIG_NF_DEFRAG_IPV6) || defined(CONFIG_NF_DEFRAG_IPV6_MODULE)
-> -static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
-> -{
-> -	return skb->nfct_reasm;
-> -}
->  static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
->  				      int len, void *buffer,
->  				      const struct ip_vs_iphdr *ipvsh)
-> @@ -134,10 +130,6 @@ static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
->  	return skb_header_pointer(skb, offset, len, buffer);
->  }
->  #else
-> -static inline struct sk_buff *skb_nfct_reasm(const struct sk_buff *skb)
-> -{
-> -	return NULL;
-> -}
->  static inline void *frag_safe_skb_hp(const struct sk_buff *skb, int offset,
->  				      int len, void *buffer,
->  				      const struct ip_vs_iphdr *ipvsh)
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 34fda62..085c242 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -43,6 +43,7 @@
->  #include <net/ip6_checksum.h>
->  #include <net/netns/generic.h>		/* net_generic() */
->  
-> +#include <linux/skbuff.h>
->  #include <linux/netfilter.h>
->  #include <linux/netfilter_ipv4.h>
->  
-> -- 
-> 1.8.3.1
+> This was initialized to zeros, but then got moved to struct netns_nf,
+> I'm trying to figure it out if it is being zeroed somewhere, ideas?
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+The init_net is defined as global, so the nf_loggers of init_net is initialized to zero,
+and for un init_net, we use kmem_cache_zalloc to allocate net struct, so it is initialized to zero too.
