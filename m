@@ -1,35 +1,32 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH iptables] extensions: libxt_cluster: add note on
- arptables-jf
-Date: Wed, 6 Nov 2013 19:14:08 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1311061913240.29424@nerf07.vanv.qr>
-References: <1383562439-12113-1-git-send-email-pablo@netfilter.org> <Pine.LNX.4.64.1311041234290.13395@ask.diku.dk>
+Subject: Re: [PATCH 3/4] build: avoid inclusion of stdbool.h in C++
+Date: Wed, 6 Nov 2013 19:21:06 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1311061915230.29424@nerf07.vanv.qr>
+References: <1382963240-18760-1-git-send-email-jengelh@inai.de> <1382963240-18760-4-git-send-email-jengelh@inai.de> <20131105125729.GC29010@localhost>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:48584 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:48611 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750747Ab3KFSOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Nov 2013 13:14:10 -0500
-In-Reply-To: <Pine.LNX.4.64.1311041234290.13395@ask.diku.dk>
+	id S1753891Ab3KFSVM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Nov 2013 13:21:12 -0500
+In-Reply-To: <20131105125729.GC29010@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tuesday 2013-11-05 13:57, Pablo Neira Ayuso wrote:
 
-On Monday 2013-11-04 12:39, Jesper Dangaard Brouer wrote:
-> On Mon, 4 Nov 2013, Pablo Neira Ayuso wrote:
+>On Mon, Oct 28, 2013 at 01:27:19PM +0100, Jan Engelhardt wrote:
+>> C++ does not need this header, as it already has bool builtin.
 >
->> Gao feng reported problems while getting the cluster match working with
->> arptables. This patch adds a note in the manpage to warn about the
->> arptables-jf
->> syntax, which is different from mainstream arptables.
->
-> While on the subject of arptables_jf.  Red Hat will be replacing arptables_jf
-> with the mainstream arptables in RHEL7 and Fedora 21.
+>This works fine with g++ as is at this moment.
+>Do you plan to compile libnftables using a different compiler?
 
-And I thought it'd never happen ;)
-I still wonder why they even created the fork. There's little documentation
-about that.
+No such plans. I am indifferent to them, but some facts I collected:
+
+<stdbool.h>/<cstdbool> is explicitly documented to be a GCC extension 
+(which clang copies).
+A side effect of stdbool.h is that the (C++) keywords "bool", "false" 
+and "true" are turned into macros.
