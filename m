@@ -1,48 +1,53 @@
-From: Jiri Pirko <jiri@resnulli.us>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [patch net-next 2/3] netfilter: ip6_tables: use reasm skb for
  matching
-Date: Wed, 6 Nov 2013 15:18:45 +0100
-Message-ID: <20131106141845.GC2458@minipsycho.orion>
+Date: Wed, 6 Nov 2013 15:33:49 +0100
+Message-ID: <20131106143349.GF15370@breakpoint.cc>
 References: <1383649333-6321-1-git-send-email-jiri@resnulli.us>
  <1383649333-6321-3-git-send-email-jiri@resnulli.us>
  <20131105133205.GC15370@breakpoint.cc>
  <20131105134118.GA5818@macbook.localnet>
  <20131105150115.GB2438@minipsycho.orion>
  <20131105181633.GA7435@macbook.localnet>
+ <20131106141845.GC2458@minipsycho.orion>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	davem@davemloft.net, pablo@netfilter.org,
+Cc: Patrick McHardy <kaber@trash.net>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, davem@davemloft.net, pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
 	kadlec@blackhole.kfki.hu, mleitner@redhat.com,
 	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
 	horms@verge.net.au, ja@ssi.bg, edumazet@google.com,
 	pshelar@nicira.com, jasowang@redhat.com,
 	alexander.h.duyck@intel.com, coreteam@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jiri Pirko <jiri@resnulli.us>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:43374 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756665Ab3KFOSt (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52993 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932208Ab3KFOeK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Nov 2013 09:18:49 -0500
-Received: by mail-ee0-f54.google.com with SMTP id c50so2564593eek.41
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Nov 2013 06:18:48 -0800 (PST)
+	Wed, 6 Nov 2013 09:34:10 -0500
 Content-Disposition: inline
-In-Reply-To: <20131105181633.GA7435@macbook.localnet>
+In-Reply-To: <20131106141845.GC2458@minipsycho.orion>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> >So if someone wants to change this, simply *only* pass the reassembled
->> >packet through the netfilter hooks and drop the fragments, as in IPv4.
->> 
->> This is unfortunatelly not possible because in forwarding use case, the
->> fragments have to be send out as they come in.
->
->No, the IPv6 NAT patches fixed that, we still do proper refragmentation
->and we still respect the original fragment sizes, thus are not responsible
->for potentially exceeding the PMTU on the following path.
+Jiri Pirko <jiri@resnulli.us> wrote:
+> >> >So if someone wants to change this, simply *only* pass the reassembled
+> >> >packet through the netfilter hooks and drop the fragments, as in IPv4.
+> >> 
+> >> This is unfortunatelly not possible because in forwarding use case, the
+> >> fragments have to be send out as they come in.
+> >
+> >No, the IPv6 NAT patches fixed that, we still do proper refragmentation
+> >and we still respect the original fragment sizes, thus are not responsible
+> >for potentially exceeding the PMTU on the following path.
+> 
+> Can you please point where this is done. Where the original fragment
+> sizes are stored and in which code are they restored? Thanks.
 
-Can you please point where this is done. Where the original fragment
-sizes are stored and in which code are they restored? Thanks.
+Patrick is probably talking about
 
+commit 4cdd34084d539c758d00c5dc7bf95db2e4f2bc70
+(netfilter: nf_conntrack_ipv6: improve fragmentation handling)
+which introduces 'frag_max_size' in inet6_skb_parm struct.
