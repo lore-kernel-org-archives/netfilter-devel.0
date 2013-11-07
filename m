@@ -1,44 +1,43 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] netfilter: fix connlimit Kconfig prompt string
-Date: Wed, 06 Nov 2013 21:48:22 -0800
-Message-ID: <527B29A6.6090802@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, lailavrazda1979@gmail.com
-To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables v2 PATCH] nft: arp: inhibate -l option so only a fixed size arhln is in use
+Date: Thu,  7 Nov 2013 10:14:37 +0200
+Message-ID: <1383812077-5096-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45642 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923Ab3KGFsY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Nov 2013 00:48:24 -0500
+Received: from mga11.intel.com ([192.55.52.93]:43206 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751010Ab3KGIOl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Nov 2013 03:14:41 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+This is a temporary workaround mechanism until variable interface hardware
+address length can be handled through nftables.
 
-Under Core Netfilter Configuration, connlimit match support has
-an extra double quote at the end of it.
-
-Fixes a portion of kernel bugzilla #52671:
-  https://bugzilla.kernel.org/show_bug.cgi?id=52671
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: lailavrazda1979@gmail.com
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- net/netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/xtables-arp.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- lnx-312.orig/net/netfilter/Kconfig
-+++ lnx-312/net/netfilter/Kconfig
-@@ -857,7 +857,7 @@ config NETFILTER_XT_MATCH_CONNLABEL
- 	  connection simultaneously.
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index 18f285c..5ab0fb4 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -1145,6 +1145,13 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 				   invert);
+ 			getlength_and_mask(argv[optind - 1], &fw.arp.arhln,
+ 					   &fw.arp.arhln_mask);
++
++			if (fw.arp.arhln != 6) {
++				xtables_error(PARAMETER_PROBLEM,
++					      "Only harware address length of"
++					      " 6 is supported currently.");
++			}
++
+ 			break;
  
- config NETFILTER_XT_MATCH_CONNLIMIT
--	tristate '"connlimit" match support"'
-+	tristate '"connlimit" match support'
- 	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
- 	---help---
+ 		case 8:/* protocol length */
+-- 
+1.8.4.2
+
