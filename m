@@ -1,58 +1,116 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] tests: fix undefined symbol
-Date: Thu, 07 Nov 2013 10:39:55 +0100
-Message-ID: <20131107093955.24819.37152.stgit@nfdev.cica.es>
+From: Sergey Popovich <popovich_sergei@mail.ru>
+Subject: [PATCH 1/3] Fix all set output from list/save when set with counters in use.
+Date: Thu, 07 Nov 2013 11:40:22 +0200
+Message-ID: <2029158.eclrSoCAaG@tuxracer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:37706 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750802Ab3KGJkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Nov 2013 04:40:06 -0500
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id BD37E51ED71
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2013 09:40:02 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id uuBEcwQBsisT for <netfilter-devel@vger.kernel.org>;
-	Thu,  7 Nov 2013 10:39:57 +0100 (CET)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id CB4DC51ED6D
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2013 10:39:57 +0100 (CET)
+Received: from fallback4.mail.ru ([94.100.176.42]:36003 "EHLO
+	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691Ab3KGK4W (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Nov 2013 05:56:22 -0500
+Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
+	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id 737C01418E2
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2013 13:44:45 +0400 (MSK)
+Received: from [2a01:6d80:103:13::c3ea:4404] (port=50127 helo=tuxracer.localnet)
+	by smtp48.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
+	id 1VeM8Q-0002OQ-BR
+	for netfilter-devel@vger.kernel.org; Thu, 07 Nov 2013 13:44:18 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kill undefined and unused symbol.
+Using upstream version with counters support we have following
+output when listing all sets currently configured:
+--------------------------------------------------
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+ # ipset create test-1 hash:ip
+ # ipset create test-2 hash:ip counters
+ # ipset add test-2 192.0.2.1/32
+ # ipset create test-3 hash:ip
+ # ipset add test-3 192.0.2.1/32
+ # ipset list
+ Name: test-1
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536
+ Size in memory: 16504
+ References: 0
+ Members:
+
+ Name: test-2
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536 counters
+ Size in memory: 16616
+ References: 0
+ Members:
+ 192.0.2.1 packets 0 bytes 0
+
+ Name: test-3
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536 counters
+ Size in memory: 16520
+ References: 0
+ Members:
+ 192.0.2.1 packets 0 bytes 0
+
+Set test-3 created without counters, but displayed as with counters
+present.
+
+Restricting output to list only test-3 set we have:
+---------------------------------------------------
+  # ipset list test-3
+  Name: test-3
+  Type: hash:ip
+  Revision: 2
+  Header: family inet hashsize 1024 maxelem 65536
+  Size in memory: 16520
+  References: 0
+  Members:
+  192.0.2.1
+
+So test-3 set created correctly without counters support, but in
+all sets listing it displayed as such one with counters.
+
+It seems with commit 5a6021823aa0da24b83f8d03f46ad4202f149fa3
+(Support counters in the ipset library) we fogot to add counter
+options flags to IPSET_CREATE_FLAGS and IPSET_ADT_FLAGS defines to
+clear these flags when preparing output in callback_list() from
+lib/session.c.
+
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
 ---
- tests/nft-parsing-test.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/libipset/data.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-index e2931a6..9fa69ae 100644
---- a/tests/nft-parsing-test.c
-+++ b/tests/nft-parsing-test.c
-@@ -274,15 +274,15 @@ static int test_xml(const char *filename)
- 	fclose(fp);
+diff --git a/include/libipset/data.h b/include/libipset/data.h
+index b6e75e8..fded8bd 100644
+--- a/include/libipset/data.h
++++ b/include/libipset/data.h
+@@ -90,6 +90,9 @@ enum ipset_opt {
+ 	| IPSET_FLAG(IPSET_OPT_PROBES)	\
+ 	| IPSET_FLAG(IPSET_OPT_RESIZE)	\
+ 	| IPSET_FLAG(IPSET_OPT_SIZE)	\
++	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
++	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
++	| IPSET_FLAG(IPSET_OPT_BYTES)	\
+ 	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT))
  
- 	if (tree == NULL) {
--		printf("unable to build XML tree from file %s %s\n", filename,
--		       FAILED_STR);
-+		printf("unable to build XML tree from file "
-+		       "%s \033[31mFAILED\e[0m\n", filename);
- 		return -1;
- 	}
+ #define IPSET_ADT_FLAGS			\
+@@ -110,6 +113,9 @@ enum ipset_opt {
+ 	| IPSET_FLAG(IPSET_OPT_BEFORE) \
+ 	| IPSET_FLAG(IPSET_OPT_PHYSDEV) \
+ 	| IPSET_FLAG(IPSET_OPT_NOMATCH) \
++	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
++	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
++	| IPSET_FLAG(IPSET_OPT_BYTES)	\
+ 	| IPSET_FLAG(IPSET_OPT_ADT_COMMENT))
  
- 	xml = mxmlSaveAllocString(tree, MXML_NO_CALLBACK);
- 	if (xml == NULL) {
--		printf("unable to alloc string from XML tree from %s %s\n",
--		       filename, FAILED_STR);
-+		printf("unable to alloc string from XML tree from %s "
-+		       "\033[31mFAILED\e[0m\n", filename);
- 		return -1;
- 	}
- 
+ struct ipset_data;
+-- 
+1.7.10.4
 
