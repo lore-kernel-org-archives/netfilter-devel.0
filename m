@@ -1,116 +1,80 @@
 From: Sergey Popovich <popovich_sergei@mail.ru>
-Subject: [PATCH 1/3] Fix all set output from list/save when set with counters in use.
-Date: Thu, 07 Nov 2013 11:40:22 +0200
-Message-ID: <2029158.eclrSoCAaG@tuxracer>
+Subject: [PATCH 2/3] ipset: Fix malformed output from list/save for ICMP types in port field.
+Date: Thu, 07 Nov 2013 12:56:15 +0200
+Message-ID: <2351390.3tInbbydSl@tuxracer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fallback4.mail.ru ([94.100.176.42]:36003 "EHLO
-	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab3KGK4W (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Nov 2013 05:56:22 -0500
-Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
-	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id 737C01418E2
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Nov 2013 13:44:45 +0400 (MSK)
-Received: from [2a01:6d80:103:13::c3ea:4404] (port=50127 helo=tuxracer.localnet)
-	by smtp48.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
-	id 1VeM8Q-0002OQ-BR
-	for netfilter-devel@vger.kernel.org; Thu, 07 Nov 2013 13:44:18 +0400
+Received: from smtp46.i.mail.ru ([94.100.177.106]:40941 "EHLO smtp46.i.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751783Ab3KGLAS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Nov 2013 06:00:18 -0500
+Received: from [2a01:6d80:103:13::c3ea:4404] (port=51650 helo=tuxracer.localnet)
+	by smtp46.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
+	id 1VeNJw-0003Ou-7O
+	for netfilter-devel@vger.kernel.org; Thu, 07 Nov 2013 15:00:16 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using upstream version with counters support we have following
-output when listing all sets currently configured:
---------------------------------------------------
+Found with ipset 6.12.1, but upstream version is still affected.
 
- # ipset create test-1 hash:ip
- # ipset create test-2 hash:ip counters
- # ipset add test-2 192.0.2.1/32
- # ipset create test-3 hash:ip
- # ipset add test-3 192.0.2.1/32
- # ipset list
+Creating set of dimension three, adding elements to it and then
+displaying gives following results:
+-----------------------------------
+
+ # ipset create test-1 hash:ip,port,ip
+ # ipset add test-1 192.0.2.1,icmp:echo-request,192.0.2.1
+ # ipset add test-1 192.0.2.1,icmp:ttl-zero-during-reassembly,192.0.2.1
+ # ipset list test-1
  Name: test-1
- Type: hash:ip
- Revision: 2
+ Type: hash:ip,port,ip
  Header: family inet hashsize 1024 maxelem 65536
- Size in memory: 16504
+ Size in memory: 16608
  References: 0
  Members:
+ 192.0.2.1,icmp:ttl-zero-during-reass,192.0.2.1
+ 192.0.2.1,icmp:echo-re,192.0.2.1
 
- Name: test-2
- Type: hash:ip
- Revision: 2
- Header: family inet hashsize 1024 maxelem 65536 counters
- Size in memory: 16616
- References: 0
- Members:
- 192.0.2.1 packets 0 bytes 0
+Same results with -output save|xml.
 
- Name: test-3
- Type: hash:ip
- Revision: 2
- Header: family inet hashsize 1024 maxelem 65536 counters
- Size in memory: 16520
- References: 0
- Members:
- 192.0.2.1 packets 0 bytes 0
-
-Set test-3 created without counters, but displayed as with counters
-present.
-
-Restricting output to list only test-3 set we have:
----------------------------------------------------
-  # ipset list test-3
-  Name: test-3
-  Type: hash:ip
-  Revision: 2
-  Header: family inet hashsize 1024 maxelem 65536
-  Size in memory: 16520
-  References: 0
-  Members:
-  192.0.2.1
-
-So test-3 set created correctly without counters support, but in
-all sets listing it displayed as such one with counters.
-
-It seems with commit 5a6021823aa0da24b83f8d03f46ad4202f149fa3
-(Support counters in the ipset library) we fogot to add counter
-options flags to IPSET_CREATE_FLAGS and IPSET_ADT_FLAGS defines to
-clear these flags when preparing output in callback_list() from
-lib/session.c.
+ipset_print_proto_port() from lib/print.c returns incorrect length
+of printed string when ICMP/ICMPv6 specified in port field.
 
 Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
 ---
- include/libipset/data.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/print.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/libipset/data.h b/include/libipset/data.h
-index b6e75e8..fded8bd 100644
---- a/include/libipset/data.h
-+++ b/include/libipset/data.h
-@@ -90,6 +90,9 @@ enum ipset_opt {
- 	| IPSET_FLAG(IPSET_OPT_PROBES)	\
- 	| IPSET_FLAG(IPSET_OPT_RESIZE)	\
- 	| IPSET_FLAG(IPSET_OPT_SIZE)	\
-+	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
-+	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
-+	| IPSET_FLAG(IPSET_OPT_BYTES)	\
- 	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT))
+diff --git a/lib/print.c b/lib/print.c
+index abdfd34..6988fdf 100644
+--- a/lib/print.c
++++ b/lib/print.c
+@@ -709,18 +709,20 @@ ipset_print_proto_port(char *buf, unsigned int len,
+ 		case IPPROTO_UDPLITE:
+ 			break;
+ 		case IPPROTO_ICMP:
+-			return ipset_print_icmp(buf + offset, len, data,
++			size = ipset_print_icmp(buf + offset, len, data,
+ 						IPSET_OPT_PORT, env);
++			goto out;
+ 		case IPPROTO_ICMPV6:
+-			return ipset_print_icmpv6(buf + offset, len, data,
++			size = ipset_print_icmpv6(buf + offset, len, data,
+ 						  IPSET_OPT_PORT, env);
++			goto out;
+ 		default:
+ 			break;
+ 		}
+ 	}
+ 	size = ipset_print_port(buf + offset, len, data, IPSET_OPT_PORT, env);
++out:
+ 	SNPRINTF_FAILURE(size, len, offset);
+-
+ 	return offset;
+ }
  
- #define IPSET_ADT_FLAGS			\
-@@ -110,6 +113,9 @@ enum ipset_opt {
- 	| IPSET_FLAG(IPSET_OPT_BEFORE) \
- 	| IPSET_FLAG(IPSET_OPT_PHYSDEV) \
- 	| IPSET_FLAG(IPSET_OPT_NOMATCH) \
-+	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
-+	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
-+	| IPSET_FLAG(IPSET_OPT_BYTES)	\
- 	| IPSET_FLAG(IPSET_OPT_ADT_COMMENT))
- 
- struct ipset_data;
 -- 
 1.7.10.4
 
