@@ -1,50 +1,80 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [patch net-next 1/2] ip6_output: fragment outgoing reassembled
- skb properly
-Date: Thu, 07 Nov 2013 18:54:53 -0500 (EST)
-Message-ID: <20131107.185453.1341640661253119352.davem@davemloft.net>
-References: <1383756740-7392-1-git-send-email-jiri@resnulli.us>
-	<1383756740-7392-2-git-send-email-jiri@resnulli.us>
+From: Nikolay Martynov <mar.kolya@gmail.com>
+Subject: Re: [PATCH 1/1] ipset: fix timeout data type size
+Date: Fri, 8 Nov 2013 00:31:08 -0500
+Message-ID: <CALGY4fvAKT6r-YZjVNMjS=CeKgvQn3KnCPQ-Agyk8-jEjqqZsA@mail.gmail.com>
+References: <1383194071-25937-1-git-send-email-mar.kolya@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, mleitner@redhat.com,
-	kuznet@ms2.inr.ac.ru, jmorris@namei.org, wensong@linux-vs.org,
-	horms@verge.net.au, ja@ssi.bg, edumazet@google.com,
-	pshelar@nicira.com, jasowang@redhat.com,
-	alexander.h.duyck@intel.com, fw@strlen.de
-To: jiri@resnulli.us
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: kadlec@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:56433 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753997Ab3KGXy7 (ORCPT
+Received: from mail-vb0-f53.google.com ([209.85.212.53]:56389 "EHLO
+	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab3KHFbJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Nov 2013 18:54:59 -0500
-In-Reply-To: <1383756740-7392-2-git-send-email-jiri@resnulli.us>
+	Fri, 8 Nov 2013 00:31:09 -0500
+Received: by mail-vb0-f53.google.com with SMTP id i11so1063209vbh.40
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Nov 2013 21:31:08 -0800 (PST)
+In-Reply-To: <1383194071-25937-1-git-send-email-mar.kolya@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jiri Pirko <jiri@resnulli.us>
-Date: Wed,  6 Nov 2013 17:52:19 +0100
+Hi.
 
-> If reassembled packet would fit into outdev MTU, it is not fragmented
-> according the original frag size and it is send as single big packet.
-> 
-> The second case is if skb is gso. In that case fragmentation does not happen
-> according to the original frag size.
-> 
-> This patch fixes these.
-> 
-> Signed-off-by: Jiri Pirko <jiri@resnulli.us>
- ...
+  I've sent this patch for ipset some time ago. It fixes a bug that
+surfaces itself on some platforms (notably on mips routers running
+openwrt). Unfortunately I have not seen any feedback/response to this
+patch. Is something wrong with the proposed fix or with patch itself?
+Could you please let me know.
 
->  	if ((skb->len > ip6_skb_dst_mtu(skb) && !skb_is_gso(skb)) ||
-> -	    dst_allfrag(skb_dst(skb)))
-> +	    dst_allfrag(skb_dst(skb)) ||
-> +	    (IP6CB(skb)->frag_max_size && skb->len > IP6CB(skb)->frag_max_size))
->  		return ip6_fragment(skb, ip6_finish_output2);
+  Thanks!
 
-Jiri are you sure that you don't need to take GSO into account in the
-new part you are adding to the test?
+2013/10/31 Nikolay Martynov <mar.kolya@gmail.com>:
+> Currently it is impossible to set timeout on some architectures
+> (MIPS ar71xx at least) because timeout is parsed into long long data
+> type but used as uint32 without proper conversion. This patch fixes
+> this issue. Tested on ar71xx router.
+>
+> Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
+> ---
+>  lib/parse.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+>
+> diff --git a/lib/parse.c b/lib/parse.c
+> index 8ea8542..440ef8f 100644
+> --- a/lib/parse.c
+> +++ b/lib/parse.c
+> @@ -1292,15 +1292,20 @@ ipset_parse_timeout(struct ipset_session *session,
+>                     enum ipset_opt opt, const char *str)
+>  {
+>         int err;
+> -       unsigned long long num = 0;
+> +       unsigned long long llnum = 0;
+> +       uint32_t num = 0;
+>
+>         assert(session);
+>         assert(opt == IPSET_OPT_TIMEOUT);
+>         assert(str);
+>
+> -       err = string_to_number_ll(session, str, 0, UINT_MAX/1000, &num);
+> -       if (err == 0)
+> +       err = string_to_number_ll(session, str, 0, UINT_MAX/1000, &llnum);
+> +       if (err == 0) {
+> +               /* Timeout is expected to be 32bits wide, so we have
+> +                  to convert it here */
+> +               num = llnum;
+>                 return ipset_session_data_set(session, opt, &num);
+> +       }
+>
+>         return err;
+>  }
+> --
+> Thanks.
+> Nikolay.
+>
+
+
+
+-- 
+Martynov Nikolay.
+Email: mar.kolya@gmail.com
