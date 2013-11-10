@@ -1,137 +1,521 @@
-From: Chris Boot <bootc@bootc.net>
-Subject: Panic on 3.10.18 in nf_conntrack_sip with IPv6
-Date: Sun, 10 Nov 2013 10:55:53 +0000
-Message-ID: <527F6639.3080503@bootc.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] netfilter: introduce l2tp match extension
+Date: Sun, 10 Nov 2013 12:31:24 +0100
+Message-ID: <20131110113124.GA3989@localhost>
+References: <1383638125-2591-1-git-send-email-jchapman@katalix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: James Chapman <jchapman@katalix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kamaji.grokhost.net ([87.117.218.43]:40985 "EHLO
-	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073Ab3KJLDP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Nov 2013 06:03:15 -0500
+Received: from mail.us.es ([193.147.175.20]:43451 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751188Ab3KJLbb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 Nov 2013 06:31:31 -0500
+Content-Disposition: inline
+In-Reply-To: <1383638125-2591-1-git-send-email-jchapman@katalix.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi folks,
+On Tue, Nov 05, 2013 at 07:55:25AM +0000, James Chapman wrote:
+> Introduce an xtables add-on for matching L2TP packets. Supports L2TPv2
+> and L2TPv3 over IPv4 and IPv6. As well as filtering on L2TP tunnel-id
+> and session-id, the filtering decision can also include the L2TP
+> packet type (control or data), protocol version (2 or 3) and
+> encapsulation type (UDP or IP).
+> 
+> The most common use for this will likely be to filter L2TP data
+> packets of individual L2TP tunnels or sessions. While a u32 match can
+> be used, the L2TP protocol headers are such that field offsets differ
+> depending on bits set in the header, making rules for matching generic
+> L2TP connections cumbersome. This match extension takes care of all
+> that.
+> 
+> An iptables patch will be submitted separately.
+> 
+> Signed-off-by: James Chapman <jchapman@katalix.com>
+> 
+> ---
+> Changes in v2:
+> Added checkentry function to check args passed into kernel.
+> 
+> ---
+> :000000 100644 0000000... ba0a3ed... A	include/uapi/linux/netfilter/xt_l2tp.h
+> :100644 100644 48acec1... 12daddc... M	net/netfilter/Kconfig
+> :100644 100644 394483b... 564bf35... M	net/netfilter/Makefile
+> :000000 100644 0000000... 0c4d33b... A	net/netfilter/xt_l2tp.c
+>  include/uapi/linux/netfilter/xt_l2tp.h |   36 ++++
+>  net/netfilter/Kconfig                  |   10 +
+>  net/netfilter/Makefile                 |    1 +
+>  net/netfilter/xt_l2tp.c                |  355 ++++++++++++++++++++++++++++++++
+>  4 files changed, 402 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/xt_l2tp.h b/include/uapi/linux/netfilter/xt_l2tp.h
+> new file mode 100644
+> index 0000000..ba0a3ed
+> --- /dev/null
+> +++ b/include/uapi/linux/netfilter/xt_l2tp.h
+> @@ -0,0 +1,36 @@
+> +#ifndef _LINUX_NETFILTER_XT_L2TP_H
+> +#define _LINUX_NETFILTER_XT_L2TP_H
+> +
+> +#include <linux/types.h>
+> +
+> +enum xt_l2tp_encap {
+> +	XT_L2TP_ENCAP_UDP,
+> +	XT_L2TP_ENCAP_IP,
+> +};
+> +
+> +enum xt_l2tp_type {
+> +	XT_L2TP_TYPE_CONTROL,
+> +	XT_L2TP_TYPE_DATA,
+> +};
+> +
+> +/* L2TP matching stuff */
+> +struct xt_l2tp_info {
+> +	__u32 tid;			/* tunnel id */
+> +	__u32 sid;			/* session id */
+> +	__u8 version;			/* L2TP protocol version */
+> +	__u8 encap;			/* L2TP encapsulation type */
+> +	__u8 type;			/* L2TP packet type */
+> +	__u8 flags;			/* which fields to match */
+> +};
+> +
+> +enum {
+> +	XT_L2TP_TID	= (1 << 0),	/* match L2TP tunnel id */
+> +	XT_L2TP_SID	= (1 << 1),	/* match L2TP session id */
+> +	XT_L2TP_VERSION	= (1 << 2),	/* match L2TP protocol version */
+> +	XT_L2TP_ENCAP	= (1 << 3),	/* match L2TP encapsulation type */
+> +	XT_L2TP_TYPE	= (1 << 4),	/* match L2TP packet type */
+> +};
+> +
+> +
+> +#endif /* _LINUX_NETFILTER_XT_L2TP_H */
+> +
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 48acec1..12daddc 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -1055,6 +1055,16 @@ config NETFILTER_XT_MATCH_IPVS
+>  
+>  	  If unsure, say N.
+>  
+> +config NETFILTER_XT_MATCH_L2TP
+> +	tristate '"l2tp" match support'
+> +	depends on NETFILTER_ADVANCED
+> +	default L2TP
+> +	---help---
+> +	This option adds an "L2TP" match, which allows you to match against
+> +	L2TP protocol header fields.
+> +
+> +	To compile it as a module, choose M here. If unsure, say N.
+> +
+>  config NETFILTER_XT_MATCH_LENGTH
+>  	tristate '"length" match support'
+>  	depends on NETFILTER_ADVANCED
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 394483b..564bf35 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -135,6 +135,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_HL) += xt_hl.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_IPVS) += xt_ipvs.o
+> +obj-$(CONFIG_NETFILTER_XT_MATCH_L2TP) += xt_l2tp.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
+>  obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) += xt_mac.o
+> diff --git a/net/netfilter/xt_l2tp.c b/net/netfilter/xt_l2tp.c
+> new file mode 100644
+> index 0000000..0c4d33b
+> --- /dev/null
+> +++ b/net/netfilter/xt_l2tp.c
+> @@ -0,0 +1,355 @@
+> +/* Kernel module to match L2TP header parameters. */
+> +
+> +/* (C) 2013      James Chapman <jchapman@katalix.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> +#include <linux/module.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/if_ether.h>
+> +#include <net/ip.h>
+> +#include <linux/ipv6.h>
+> +#include <net/ipv6.h>
+> +#include <net/udp.h>
+> +#include <linux/l2tp.h>
+> +
+> +#include <linux/netfilter_ipv4.h>
+> +#include <linux/netfilter_ipv6.h>
+> +#include <linux/netfilter/xt_l2tp.h>
+> +#include <linux/netfilter/x_tables.h>
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("James Chapman <jchapman@katalix.com>");
+> +MODULE_DESCRIPTION("Xtables: L2TP header match");
+> +MODULE_ALIAS("ipt_l2tp");
+> +MODULE_ALIAS("ip6t_l2tp");
+> +
+> +/* The L2TP fields that can be matched */
+> +struct l2tp_data {
+> +	u32 tid;
+> +	u32 sid;
+> +	u8 type;
+> +	u8 version;
+> +	u8 encap;
+> +};
 
-I seem to have a pretty reliably reproducible panic on a fairly plain
-3.10.18 kernel when routing IPv6 SIP packets.
+Please, run make C=2. I guess sparse will complain about endianness
+issues.
 
-The setup is a VM server that routes IPv6 from its external interface to
-the VMs running on the host. The host is running Shorewall-generated
-ip6tables.
+> +
+> +static bool l2tp_match(const struct xt_l2tp_info *info, struct l2tp_data *data)
+> +{
+> +	pr_devel("%s: tid=%08x/%08x sid=%08x/%08x type=%d/%d encap=%d/%d ver=%d/%d\n",
+> +		 __func__,
+> +		 data->tid, (info->flags & XT_L2TP_TID) ? info->tid : 0,
+> +		 data->sid, (info->flags & XT_L2TP_SID) ? info->sid : 0,
+> +		 data->type, (info->flags & XT_L2TP_TYPE) ? info->type : 0,
+> +		 data->encap, (info->flags & XT_L2TP_ENCAP) ? info->encap : 0,
+> +		 data->version,
+> +		 (info->flags & XT_L2TP_VERSION) ? info->version : 0);
 
-All it takes for this to occur is for my Snom phone running beta IPv6
-firmware to attempt to make a call to the Asterisk instance running
-inside a VM on the host. This will take the host down and all the VMs
-running on it, so I'm a bit reluctant to keep testing this.
+Please, remove this debugging stuff.
 
-Interestingly, I have a 32-bit x86 router running the exact same kernel
-with the same modules, and passing the same packets through it doesn't
-crash that box. I'll admit the configuration isn't all that similar, but
-I thought I should mention it anyway.
+> +
+> +	if (info->flags & XT_L2TP_TYPE)
+> +		if (info->type != data->type)
 
-Any help in reproducing, diagnosing and fixing this is much appreciated.
+You can do this double branch in one single line.
 
-Panic below (sorry, I couldn't catch the first few lines):
+> +			return false;
+> +
+> +	if (info->flags & XT_L2TP_ENCAP)
+> +		if (info->encap != data->encap)
+> +			return false;
+> +
+> +	if (info->flags & XT_L2TP_VERSION)
+> +		if (info->version != data->version)
+> +			return false;
+> +
+> +	/* Check tid only for L2TPv3 control or any L2TPv2 packets */
+> +	if ((info->flags & XT_L2TP_TID) &&
+> +	    ((data->type == XT_L2TP_TYPE_CONTROL) || (data->version == 2)))
+> +		if (info->tid != data->tid)
+> +			return false;
+> +
+> +	/* Check sid only for L2TP data packets */
+> +	if ((info->flags & XT_L2TP_SID) &&
+> +	    (data->type == XT_L2TP_TYPE_DATA))
+> +		if (info->sid != data->sid)
+> +			return false;
+> +
+> +	pr_devel("%s: match\n", __func__);
+> +
+> +	return true;
+> +}
+> +
+> +/* Parse L2TP header fields when UDP encapsulation is used. Handles
+> + * L2TPv2 and L2TPv3.
+> + *
+> + * L2TPv2:
+> + *  0                   1                   2                   3
+> + *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |T|L|x|x|S|x|O|P|x|x|x|x|  Ver  |          Length (opt)         |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |           Tunnel ID           |           Session ID          |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |             Ns (opt)          |             Nr (opt)          |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |      Offset Size (opt)        |    Offset pad... (opt)
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + *
+> + * L2TPv3 control packets:
+> + *  0                   1                   2                   3
+> + *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |T|L|x|x|S|x|x|x|x|x|x|x|  Ver  |             Length            |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |                     Control Connection ID                     |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |               Ns              |               Nr              |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + *
+> + * L2TPv3 data packets:
+> + *  0                   1                   2                   3
+> + *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |T|x|x|x|x|x|x|x|x|x|x|x|  Ver  |          Reserved             |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |                           Session ID                          |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |               Cookie (optional, maximum 64 bits)...
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + *                                                                 |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + */
+> +static bool l2tp_udp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> +{
+> +	const struct xt_l2tp_info *info = par->matchinfo;
+> +	int uhlen = sizeof(struct udphdr);
+> +	int offs = par->thoff + uhlen;
+> +	bool ret;
+> +	__be16 l2tp_flags;
+> +	__be32 v3_id;
+> +	__be16 v2_tid;
+> +	__be16 v2_sid;
+> +	u16 flags;
+> +	struct l2tp_data data = { 0, };
+> +
+> +	/* We need to read 8 bytes beyond the UDP header */
+> +	if (skb_headlen(skb) < (offs + 8))
 
->  nf_nat_sip nf_nat_pptp nf_nat_proto_gre nf_nat_irc nf_nat_h323 nf_nat_ftp nf_nat_amanda nf_conntrack_sane nf_conntrack_tftp nf_conntrack_sip ts_kmp nf_conntrack_proto_udplite nf_conntrack_proto_sctp nf_conntrack_pptp nf_conntrack_proto_gre nf_conntrack_netlink nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_irc nf_conntrack_h323 nf_conntrack_amanda nf_conntrack_ftp xt_time xt_TPROXY xt_TCPMSS nf_tproxy_core xt_sctp xt_tcpmss xt_policy xt_pkttype xt_physdev xt_owner xt_NFLOG nfnetlink_log xt_NFQUEUE xt_multiport xt_mark xt_mac xt_limit xt_length xt_iprange xt_helper xt_hashlimit xt_DSCP xt_dscp xt_dccp xt_connmark xt_CLASSIFY xt_AUDIT iptable_nat nf_nat_ipv4 nf_nat ip6t_REJECT xt_tcpudp xt_state nf_conntrack_ipv6 nf_defrag_ipv6 xt_conntrack nf_conntrack_ipv4 nf_defrag_ipv4 nf
- _conntrack ip6table_raw ip6table_mangle iptable_mangle nfnetlink ip6table_filter ip6_tables iptable_filter ip_tables x_tables bridge stp llc bonding w83627ehf hwmon_vid sha1_ssse3 sha1_generic ipmi
-_poweroff ipmi_devintf ipmi_si ipmi_msghandler vhost_net tun macvtap macvlan drbd(O) libcrc32c loop coretemp kvm_intel kvm crc32_pclmul crc32c_intel ghash_clmulni_intel aesni_intel aes_x86_64 lrw gf128mul snd_pcm snd_page_alloc snd_timer glue_helper ablk_helper cryptd iTCO_wdt mperf iTCO_vendor_support snd psmouse soundcore lpc_ich serio_raw i2c_i801 pcspkr joydev evdev mfd_core processor thermal_sys button microcode ext4 crc16 jbd2 mbcache dm_mod raid1 md_mod sg sd_mod crc_t10dif usb_storage hid_generic usbhid hid igb ahci i2c_algo_bit ehci_pci i2c_core libahci ehci_hcd e1000e dca libata usbcore ptp usb_common scsi_mod pps_core
-> [  798.824659] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G           O 3.10.18-0.bootc.1-amd64 #1 bootc 3.10.18-1~bootc1
-> [  798.882711] Hardware name: Supermicro X9SCL/X9SCM/X9SCL/X9SCM, BIOS 1.1a 09/28/2011
-> [  798.913159] task: ffffffff81613400 ti: ffffffff81600000 task.ti: ffffffff81600000
-> [  798.940448] RIP: 0010:[<ffffffff812c5b22>]  [<ffffffff812c5b22>] pskb_expand_head+0x2a/0x1e1
-> [  798.968806] RSP: 0018:ffff88043fc037c0  EFLAGS: 00010202
-> [  798.996088] RAX: 0000000000000002 RBX: ffff88041ad4fb00 RCX: 0000000000000020
-> [  799.022024] RDX: 00000000000007ab RSI: 0000000000000000 RDI: ffff88041ad4fb00
-> [  799.048233] RBP: 0000000000000000 R08: 0000000000000000 R09: ffff88043fc03938
-> [  799.075704] R10: ffffffff8169b3d0 R11: 0000000000000000 R12: ffff8804190f09c0
-> [  799.416456] R13: 0000000000000028 R14: 000000000000010d R15: ffffffff81344366
-> [  799.442700] FS:  0000000000000000(0000) GS:ffff88043fc00000(0000) knlGS:0000000000000000
-> [  799.470328] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  799.494800] CR2: 000000000090f340 CR3: 000000000160c000 CR4: 00000000000407f0
-> [  799.519552] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  799.545223] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [  799.569433] Stack:
-> [  799.588302]  0000000000000030 ffff88041ad4fb00 0000000000000030 ffff8804190f09c0
-> [  799.613649]  0000000000000028 000000000000010d ffffffff81344366 ffffffff812c633a
-> [  799.636945]  0000000000000028 ffff88041ad4fb00 0000000000000030 ffff8804190f09c0
-> [  799.667011] Call Trace:
-> [  799.691674]  <IRQ> 
-> [  799.693796]  [<ffffffff81344366>] ? ip6_fragment+0x8b5/0x8b5
-> [  799.730242]  [<ffffffff812c633a>] ? __pskb_pull_tail+0x68/0x254
-> [  799.751162]  [<ffffffff81344366>] ? ip6_fragment+0x8b5/0x8b5
-> [  799.772907]  [<ffffffffa056e510>] ? sip_help_udp+0x69/0x95 [nf_conntrack_sip]
-> [  799.794260]  [<ffffffffa04744cb>] ? ipv6_helper+0xa7/0xb2 [nf_conntrack_ipv6]
-> [  799.815274]  [<ffffffff812f201a>] ? nf_iterate+0x42/0x80
-> [  799.835591]  [<ffffffff81341654>] ? __ipv6_neigh_lookup_noref+0x95/0x95
-> [  799.857404]  [<ffffffff812f20c1>] ? nf_hook_slow+0x69/0x100
-> [  799.878454]  [<ffffffff81344366>] ? ip6_fragment+0x8b5/0x8b5
-> [  799.898988]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  799.919895]  [<ffffffff813419ac>] ? nf_hook_thresh.constprop.36+0x2e/0x33
-> [  799.941898]  [<ffffffff813419ac>] ? nf_hook_thresh.constprop.36+0x2e/0x33
-> [  799.963582]  [<ffffffff81344437>] ? ip6_output+0x7a/0x83
-> [  799.983090]  [<ffffffff81343a10>] ? ip6_forward+0x5fd/0x69e
-> [  800.001437]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.019612]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.036639]  [<ffffffffa04746ac>] ? __ipv6_conntrack_in+0xc4/0x13f [nf_conntrack_ipv6]
-> [  800.057257]  [<ffffffff812f201a>] ? nf_iterate+0x42/0x80
-> [  800.075044]  [<ffffffff812f20c1>] ? nf_hook_slow+0x69/0x100
-> [  800.092089]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.108860]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.353154]  [<ffffffffa046bc5a>] ? nf_ct_frag6_output+0x9f/0xe8 [nf_defrag_ipv6]
-> [  800.371387]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.387677]  [<ffffffffa046b0bc>] ? ipv6_defrag+0xbb/0xcf [nf_defrag_ipv6]
-> [  800.406280]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.424998]  [<ffffffff812f201a>] ? nf_iterate+0x42/0x80
-> [  800.441318]  [<ffffffff812f20c1>] ? nf_hook_slow+0x69/0x100
-> [  800.457694]  [<ffffffff8134446d>] ? pskb_may_pull+0x2d/0x2d
-> [  800.474649]  [<ffffffff813445b9>] ? nf_hook_thresh.constprop.13+0x34/0x39
-> [  800.495046]  [<ffffffff81344b43>] ? ipv6_rcv+0x2bb/0x30b
-> [  800.511896]  [<ffffffff812cea5d>] ? __netif_receive_skb_core+0x437/0x4af
-> [  800.532539]  [<ffffffff812ceca1>] ? netif_receive_skb+0x42/0x73
-> [  800.551414]  [<ffffffff812cf419>] ? napi_gro_receive+0x35/0x76
-> [  800.568152]  [<ffffffffa012e20b>] ? e1000_clean_rx_irq+0x249/0x2cb [e1000e]
-> [  800.589151]  [<ffffffffa0131698>] ? e1000e_poll+0x65/0x203 [e1000e]
-> [  800.606255]  [<ffffffff810742f4>] ? ktime_get+0x5f/0x6b
-> [  800.622019]  [<ffffffff812cf1b8>] ? net_rx_action+0xa7/0x1d9
-> [  800.640555]  [<ffffffff8139238c>] ? _raw_spin_unlock_irqrestore+0xc/0xd
-> [  800.658116]  [<ffffffff812730de>] ? add_interrupt_randomness+0x39/0x16f
-> [  800.677242]  [<ffffffff8104244a>] ? __do_softirq+0xe4/0x1f9
-> [  800.696819]  [<ffffffff81398bdc>] ? call_softirq+0x1c/0x30
-> [  800.713258]  [<ffffffff8100e9ee>] ? do_softirq+0x3a/0x78
-> [  800.731145]  [<ffffffff8104262a>] ? irq_exit+0x3f/0x83
-> [  800.747466]  [<ffffffff8100e6ff>] ? do_IRQ+0x81/0x97
-> [  800.763133]  [<ffffffff8139262d>] ? common_interrupt+0x6d/0x6d
-> [  800.780351]  <EOI> 
-> [  800.782499]  [<ffffffff81078ffb>] ? clockevents_program_event+0x9a/0xb6
-> [  800.813469]  [<ffffffff812a8110>] ? arch_local_irq_enable+0x4/0x8
-> [  800.831484]  [<ffffffff812a84db>] ? cpuidle_enter_state+0x46/0xb1
-> [  800.849729]  [<ffffffff812a8615>] ? cpuidle_idle_call+0xcf/0x126
-> [  800.869185]  [<ffffffff81013b3b>] ? arch_cpu_idle+0x6/0x1a
-> [  800.885493]  [<ffffffff81073255>] ? cpu_startup_entry+0x106/0x169
-> [  800.902532]  [<ffffffff816b5d40>] ? start_kernel+0x3d7/0x3e2
-> [  800.922455]  [<ffffffff816b577f>] ? repair_env_string+0x57/0x57
-> [  800.939302]  [<ffffffff816b559a>] ? x86_64_start_kernel+0xf2/0xfd
-> [  800.956528] Code: c3 41 57 41 56 41 55 41 54 55 53 48 89 fb 55 8b 87 dc 00 00 00 89 f5 01 f0 01 c2 85 f6 79 02 0f 0b 8b 87 f4 00 00 00 ff c8 74 02 <0f> 0b 83 c2 3f 89 c8 41 89 cd 80 cc 20 83 e2 c0 f6 87 b2 00 00 
-> [  801.015687] RIP  [<ffffffff812c5b22>] pskb_expand_head+0x2a/0x1e1
-> [  801.034404]  RSP <ffff88043fc037c0>
-> [  801.049813] ---[ end trace a0ea98f51afb8cc0 ]---
-> [  801.454124] Kernel panic - not syncing: Fatal exception in interrupt
-> [  801.474385] Rebooting in 120 seconds..
+This can't be right.
 
-The O taint is due to loading LinBIT's drbd module. The crash occurs
-even without this, and also in a 3.7.10 kernel that I was using before.
+> +		return false;
+> +
+> +	/* Extract L2TP header fields. This is different for L2TPv2
+> +	 * (rfc2661) and L2TPv3 (rfc3931).
+> +	 */
+> +	if (skb_copy_bits(skb, offs, &l2tp_flags, sizeof(l2tp_flags)) < 0)
+> +		BUG();
 
-Cheers,
-Chris
+Better use skb_header_pointer(), it handles if the packet is large
+enough and it takes care of fragmentation.
 
--- 
-Chris Boot
-bootc@bootc.net
+> +	flags = ntohs(l2tp_flags);
+> +	if (flags & 0x8000)
+                    ^----^
+
+Define a constant for this to make it more readable.
+
+> +		data.type = XT_L2TP_TYPE_CONTROL;
+> +	else
+> +		data.type = XT_L2TP_TYPE_DATA;
+> +	data.version = (u8) flags & 0x000f;
+> +	data.encap = XT_L2TP_ENCAP_UDP;
+> +	if (data.version == 3) {
+> +		if (skb_copy_bits(skb, offs + 4, &v3_id, sizeof(v3_id)) < 0)
+> +			BUG();
+> +		if (data.type == XT_L2TP_TYPE_CONTROL)
+> +			data.tid = ntohl(v3_id);
+> +		else
+> +			data.sid = ntohl(v3_id);
+> +	} else if (data.version == 2) {
+> +		if (flags & 0x4000)
+> +			offs += 2;
+> +		if (skb_copy_bits(skb, offs + 2, &v2_tid, sizeof(v2_tid)) < 0)
+> +			BUG();
+> +		data.tid = (u32) ntohs(v2_tid);
+> +		if (skb_copy_bits(skb, offs + 4, &v2_sid, sizeof(v2_sid)) < 0)
+> +			BUG();
+> +		data.sid = (u32) ntohs(v2_sid);
+> +	} else
+> +		return false;
+> +
+> +	ret = l2tp_match(info, &data);
+> +
+> +	return ret;
+> +}
+> +
+> +/* Parse L2TP header fields when IP encapsulation (no UDP header).
+> + *
+> + * L2TPv3 control packets:
+> + *  0                   1                   2                   3
+> + *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |                      (32 bits of zeros)                       |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |T|L|x|x|S|x|x|x|x|x|x|x|  Ver  |             Length            |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |                     Control Connection ID                     |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |               Ns              |               Nr              |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + *
+> + * L2TPv3 data packets:
+> + *  0                   1                   2                   3
+> + *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |                           Session ID                          |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + * |               Cookie (optional, maximum 64 bits)...
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + *                                                                 |
+> + * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> + */
+> +static bool l2tp_ip_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> +{
+> +	const struct xt_l2tp_info *info = par->matchinfo;
+> +	bool ret;
+> +	__be32 v3_tid;
+> +	__be32 v3_sid;
+> +	struct l2tp_data data = { 0, };
+> +
+> +	/* We need to read 4 bytes beyond the IP header */
+> +	if (skb_headlen(skb) < (par->thoff + 4))
+> +		return false;
+> +
+> +	/* Extract L2TP header fields. This is simpler than the UDP
+> +	 * case because we don't need to handle L2TPv2 here - IP encap
+> +	 * is not used in L2TPv2.
+> +	 */
+> +	if (skb_copy_bits(skb, par->thoff, &v3_sid, sizeof(v3_sid)) < 0)
+> +		BUG();
+> +	data.sid = ntohl(v3_sid);
+> +	if (v3_sid == 0) {
+> +		data.type = XT_L2TP_TYPE_CONTROL;
+> +		if (skb_headlen(skb) < (par->thoff + 12))
+> +			return false;
+> +		if (skb_copy_bits(skb, par->thoff + 8, &v3_tid,
+> +				  sizeof(v3_tid)) < 0)
+> +			BUG();
+> +		data.tid = ntohl(v3_tid);
+> +	} else
+> +		data.type = XT_L2TP_TYPE_DATA;
+> +
+> +	data.version = 3;
+> +	data.encap = XT_L2TP_ENCAP_IP;
+> +
+> +	ret = l2tp_match(info, &data);
+> +
+> +	return ret;
+> +}
+> +
+> +static bool l2tp_mt_common(const struct sk_buff *skb, struct xt_action_param *par, u8 ipproto)
+> +{
+> +	bool ret;
+> +
+> +	/* The L2TP header is different depending on whether UDP or IP
+> +	 * encapsulation is used.
+> +	 */
+> +	switch (ipproto) {
+> +	case IPPROTO_UDP:
+> +		ret = l2tp_udp_mt(skb, par);
+> +		break;
+> +	case IPPROTO_L2TP:
+> +		ret = l2tp_ip_mt(skb, par);
+> +		break;
+> +	default:
+> +		return false;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static bool l2tp_mt4(const struct sk_buff *skb, struct xt_action_param *par)
+> +{
+> +	struct iphdr *iph = ip_hdr(skb);
+> +	u8 ipproto = iph->protocol;
+> +
+> +	return l2tp_mt_common(skb, par, ipproto);
+> +}
+> +
+> +static bool l2tp_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+> +{
+> +	struct ipv6hdr *ip6h = ipv6_hdr(skb);
+> +	u8 ipproto = ip6h->nexthdr;
+> +
+> +	return l2tp_mt_common(skb, par, ipproto);
+> +}
+> +
+> +static int l2tp_mt_check(const struct xt_mtchk_param *par)
+> +{
+> +	struct xt_l2tp_info *info = par->matchinfo;
+> +
+> +	/* Check for invalid flags */
+> +	if (info->flags & ~(XT_L2TP_TID |
+> +			    XT_L2TP_SID |
+> +			    XT_L2TP_VERSION |
+> +			    XT_L2TP_ENCAP |
+> +			    XT_L2TP_TYPE))
+> +		return -EINVAL;
+
+	if (info->flags & ~(XT_L2TP_TID | XT_L2TP_SID | XT_L2TP_VERSION |
+			    XT_L2TP_ENCAP | XT_L2TP_TYPE))
+                return -EINVAL;
+
+> +
+> +	/* At least one of tid, sid or type=control must be specified */
+> +	if ((!(info->flags & XT_L2TP_TID)) &&
+> +	    (!(info->flags & XT_L2TP_SID)) &&
+> +	    ((!(info->flags & XT_L2TP_TYPE)) || (info->type != XT_L2TP_TYPE_CONTROL)))
+> +		return -EINVAL;
+> +
+> +	/* If version 2 is specified, check that incompatible params
+> +	 * are not supplied
+> +	 */
+> +	if (info->flags & XT_L2TP_VERSION) {
+> +		if ((info->version < 2) || (info->version > 3))
+> +			return -EINVAL;
+> +
+> +		if (info->version == 2) {
+> +			if ((info->flags & XT_L2TP_TID) &&
+> +			    (info->tid > 0xffff))
+> +				return -EINVAL;
+> +			if ((info->flags & XT_L2TP_SID) &&
+> +			    (info->sid > 0xffff))
+> +				return -EINVAL;
+> +			if ((info->flags & XT_L2TP_ENCAP) &&
+> +			    (info->encap == XT_L2TP_ENCAP_IP))
+> +				return -EINVAL;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct xt_match l2tp_mt_reg[] __read_mostly = {
+> +	{
+> +		.name      = "l2tp",
+> +		.revision  = 0,
+> +		.family    = NFPROTO_IPV4,
+> +		.match     = l2tp_mt4,
+> +		.matchsize = XT_ALIGN(sizeof(struct xt_l2tp_info)),
+> +		.checkentry = l2tp_mt_check,
+> +		.hooks     = ((1 << NF_INET_PRE_ROUTING) |
+> +			      (1 << NF_INET_LOCAL_IN) |
+> +			      (1 << NF_INET_LOCAL_OUT) |
+> +			      (1 << NF_INET_FORWARD)),
+> +		.me        = THIS_MODULE,
+> +	},
+> +	{
+> +		.name      = "l2tp",
+> +		.revision  = 0,
+> +		.family    = NFPROTO_IPV6,
+> +		.match     = l2tp_mt6,
+> +		.matchsize = XT_ALIGN(sizeof(struct xt_l2tp_info)),
+> +		.checkentry = l2tp_mt_check,
+> +		.hooks     = ((1 << NF_INET_PRE_ROUTING) |
+> +			      (1 << NF_INET_LOCAL_IN) |
+> +			      (1 << NF_INET_LOCAL_OUT) |
+> +			      (1 << NF_INET_FORWARD)),
+> +		.me        = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init l2tp_mt_init(void)
+> +{
+> +	return xt_register_matches(&l2tp_mt_reg[0], ARRAY_SIZE(l2tp_mt_reg));
+> +}
+> +
+> +static void __exit l2tp_mt_exit(void)
+> +{
+> +	xt_unregister_matches(&l2tp_mt_reg[0], ARRAY_SIZE(l2tp_mt_reg));
+> +}
+> +
+> +module_init(l2tp_mt_init);
+> +module_exit(l2tp_mt_exit);
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
