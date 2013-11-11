@@ -1,292 +1,113 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH v2] tests: tests for libnftables
-Date: Mon, 11 Nov 2013 20:39:32 +0100
-Message-ID: <CAOkSjBgWRHYLtrbBtnydoXddotsGo0QptE3_-SxHa0LXMjZOYg@mail.gmail.com>
-References: <1384191143-6447-1-git-send-email-anarey@gmail.com>
+From: Alvaro Neira <alvaroneay@gmail.com>
+Subject: [libnftables PATCH 1/2] json: remove the rule flags in ruleset file
+Date: Mon, 11 Nov 2013 21:09:21 +0100
+Message-ID: <20131111200921.19419.32343.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, kernel@linuxace.com
-To: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:34461 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab3KKTjy convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:58880 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab3KKUJp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Nov 2013 14:39:54 -0500
-Received: by mail-la0-f41.google.com with SMTP id hp15so307731lab.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Nov 2013 11:39:52 -0800 (PST)
-In-Reply-To: <1384191143-6447-1-git-send-email-anarey@gmail.com>
+	Mon, 11 Nov 2013 15:09:45 -0500
+Received: by mail-wi0-f176.google.com with SMTP id m19so2710312wiv.9
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Nov 2013 12:09:44 -0800 (PST)
+Received: from [127.0.1.1] ([89.234.147.219])
+        by mx.google.com with ESMTPSA id fr4sm37403842wib.0.2013.11.11.12.09.41
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 11 Nov 2013 12:09:43 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11 November 2013 18:32, Ana Rey <anarey@gmail.com> wrote:
-> Makefile and tests files for libnftables.
->
-> In this patch, I create a initial object 'a' and I set a testing valu=
-es. Then,
-> I convert this object in a Netlink message.
->
-> From this Netlink message, I parse that (through nft_table_nlmsg_pars=
-e
-> function) in 'b' objetc.
->
-> Thus, we make sure that object transformations are correct.
-> ---
-> v2: fix writing erorres in messages that I unintentionally added in v=
-1 that
-> were spotted by Phil Oester.
->
-> Fix a multiline comment error. The nft-ruleset-test is not included
-> in this patch, also, I delete it in the tests/test-script.sh. Those e=
-rrors were
-> spotted by Arturo Borrero.
->
+=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-Hi Ana, thanks for the update.
+This patch fix the unconsistence of this file with the
+commit 2cba09966c77e946f6f32e860a368a0c5a9830a0
 
-I've been testing your patch. Some comments below.
+rule: remove NFT_RULE_ATTR_FLAGS
 
-> diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-t=
-est.c
-> new file mode 100644
-> index 0000000..46823d8
-> --- /dev/null
-> +++ b/tests/nft-expr_bitwise-test.c
-> @@ -0,0 +1,104 @@
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <string.h>
-> +
-> +#include <netinet/in.h>
-> +#include <netinet/ip.h>
-> +#include <linux/netfilter/nf_tables.h>
-> +#include <libmnl/libmnl.h>
-> +#include <libnftables/rule.h>
-> +#include <libnftables/expr.h>
-> +
-> +static void die(const char *msg)
-> +{
-> +       printf("\033[31mERROR:\e[0m %s\n", msg);
-> +       exit(EXIT_FAILURE);
-> +}
-> +
-> +static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
-> +                             struct nft_rule_expr *rule_b)
-> +{
-> +       uint32_t maska =3D NULL;
-> +       uint32_t maskb =3D NULL;
-> +       uint32_t xora =3D NULL;
-> +       uint32_t xorb =3D NULL;
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ tests/jsonfiles/64-ruleset.json |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I think those initialization are unnecessary. Also, my compiler says:
+diff --git a/tests/jsonfiles/64-ruleset.json b/tests/jsonfiles/64-rules=
+et.json
+index a1baec8..533d7fa 100644
+--- a/tests/jsonfiles/64-ruleset.json
++++ b/tests/jsonfiles/64-ruleset.json
+@@ -1,2 +1,2 @@
+-{"nftables":[{"table":{"name":"filter","family":"ip","flags":0}},{"tab=
+le":{"name":"filter2","family":"ip6","flags":0}},{"chain":{"name":"inpu=
+t","handle":1,"bytes":10681449,"packets":16216,"family":"ip","table":"f=
+ilter","use":0,"type":"filter","hooknum":"input","prio":0,"policy":"acc=
+ept"}},{"chain":{"name":"forward","handle":2,"bytes":0,"packets":0,"fam=
+ily":"ip","table":"filter","use":0,"type":"filter","hooknum":"forward",=
+"prio":0,"policy":"accept"}},{"chain":{"name":"output","handle":3,"byte=
+s":2375830,"packets":15184,"family":"ip","table":"filter","use":0,"type=
+":"filter","hooknum":"output","prio":0,"policy":"accept"}},{"chain":{"n=
+ame":"chain1","handle":4,"bytes":0,"packets":0,"family":"ip","table":"f=
+ilter","use":0}},{"set":{"name":"set0","table":"filter","flags":3,"fami=
+ly":"ip","key_type":12,"key_len":2}},{"rule":{"family":"ip","table":"fi=
+lter","chain":"output","handle":6,"flags":0,"expr":[{"type":"payload","=
+dreg":1,"offset":16,"len":4,"base":"link"},{"type":"cmp","sreg":1,"op":=
+"eq","cmpdata":{"data_reg":{"type":"value","len":4,"data0":"0x0100a8c0"=
+}}},{"type":"counter","pkts":0,"bytes":0},{"type":"immediate","dreg":0,=
+"immediatedata":{"data_reg":{"type":"verdict","verdict":"drop"}}}]}},{"=
+rule":{"family":"ip","table":"filter","chain":"output","handle":9,"flag=
+s":0,"expr":[{"type":"payload","dreg":1,"offset":9,"len":1,"base":"link=
+"},{"type":"cmp","sreg":1,"op":"eq","cmpdata":{"data_reg":{"type":"valu=
+e","len":1,"data0":"0x00000006"}}},{"type":"payload","dreg":1,"offset":=
+2,"len":2,"base":"link"},{"type":"cmp","sreg":1,"op":"eq","cmpdata":{"d=
+ata_reg":{"type":"value","len":2,"data0":"0x00001600"}}},{"type":"count=
+er","pkts":0,"bytes":0}]}},{"rule":{"family":"ip","table":"filter","cha=
+in":"output","handle":10,"flags":0,"expr":[{"type":"payload","dreg":1,"=
+offset":16,"len":4,"base":"link"},{"type":"cmp","sreg":1,"op":"eq","cmp=
+data":{"data_reg":{"type":"value","len":4,"data0":"0x0100a8c0"}}},{"typ=
+e":"counter","pkts":0,"bytes":0}]}},{"rule":{"family":"ip","table":"fil=
+ter","chain":"output","handle":11,"flags":0,"expr":[{"type":"payload","=
+dreg":1,"offset":16,"len":4,"base":"link"},{"type":"cmp","sreg":1,"op":=
+"eq","cmpdata":{"data_reg":{"type":"value","len":4,"data0":"0x0100a8c0"=
+}}},{"type":"counter","pkts":0,"bytes":0},{"type":"immediate","dreg":0,=
+"immediatedata":{"data_reg":{"type":"verdict","verdict":"drop"}}}]}}]}
++{"nftables":[{"table":{"name":"filter","family":"ip","flags":0}},{"tab=
+le":{"name":"filter2","family":"ip6","flags":0}},{"chain":{"name":"inpu=
+t","handle":1,"bytes":10681449,"packets":16216,"family":"ip","table":"f=
+ilter","use":0,"type":"filter","hooknum":"input","prio":0,"policy":"acc=
+ept"}},{"chain":{"name":"forward","handle":2,"bytes":0,"packets":0,"fam=
+ily":"ip","table":"filter","use":0,"type":"filter","hooknum":"forward",=
+"prio":0,"policy":"accept"}},{"chain":{"name":"output","handle":3,"byte=
+s":2375830,"packets":15184,"family":"ip","table":"filter","use":0,"type=
+":"filter","hooknum":"output","prio":0,"policy":"accept"}},{"chain":{"n=
+ame":"chain1","handle":4,"bytes":0,"packets":0,"family":"ip","table":"f=
+ilter","use":0}},{"set":{"name":"set0","table":"filter","flags":3,"fami=
+ly":"ip","key_type":12,"key_len":2}},{"rule":{"family":"ip","table":"fi=
+lter","chain":"output","handle":6,"expr":[{"type":"payload","dreg":1,"o=
+ffset":16,"len":4,"base":"link"},{"type":"cmp","sreg":1,"op":"eq","cmpd=
+ata":{"data_reg":{"type":"value","len":4,"data0":"0x0100a8c0"}}},{"type=
+":"counter","pkts":0,"bytes":0},{"type":"immediate","dreg":0,"immediate=
+data":{"data_reg":{"type":"verdict","verdict":"drop"}}}]}},{"rule":{"fa=
+mily":"ip","table":"filter","chain":"output","handle":9,"expr":[{"type"=
+:"payload","dreg":1,"offset":9,"len":1,"base":"link"},{"type":"cmp","sr=
+eg":1,"op":"eq","cmpdata":{"data_reg":{"type":"value","len":1,"data0":"=
+0x00000006"}}},{"type":"payload","dreg":1,"offset":2,"len":2,"base":"li=
+nk"},{"type":"cmp","sreg":1,"op":"eq","cmpdata":{"data_reg":{"type":"va=
+lue","len":2,"data0":"0x00001600"}}},{"type":"counter","pkts":0,"bytes"=
+:0}]}},{"rule":{"family":"ip","table":"filter","chain":"output","handle=
+":10,"expr":[{"type":"payload","dreg":1,"offset":16,"len":4,"base":"lin=
+k"},{"type":"cmp","sreg":1,"op":"eq","cmpdata":{"data_reg":{"type":"val=
+ue","len":4,"data0":"0x0100a8c0"}}},{"type":"counter","pkts":0,"bytes":=
+0}]}},{"rule":{"family":"ip","table":"filter","chain":"output","handle"=
+:11,"expr":[{"type":"payload","dreg":1,"offset":16,"len":4,"base":"link=
+"},{"type":"cmp","sreg":1,"op":"eq","cmpdata":{"data_reg":{"type":"valu=
+e","len":4,"data0":"0x0100a8c0"}}},{"type":"counter","pkts":0,"bytes":0=
+},{"type":"immediate","dreg":0,"immediatedata":{"data_reg":{"type":"ver=
+dict","verdict":"drop"}}}]}}]}
+=20
 
-nft-expr_bitwise-test.c: In function =91cmp_nft_rule_expr=92:
-nft-expr_bitwise-test.c:21:19: warning: initialization makes integer
-from pointer without a cast [enabled by default]
-nft-expr_bitwise-test.c:22:19: warning: initialization makes integer
-from pointer without a cast [enabled by default]
-nft-expr_bitwise-test.c:23:18: warning: initialization makes integer
-from pointer without a cast [enabled by default]
-nft-expr_bitwise-test.c:24:18: warning: initialization makes integer
-from pointer without a cast [enabled by default]
-
-Same in nft-expr_cmp-test.c
-
-> diff --git a/tests/nft-expr_match-test.c b/tests/nft-expr_match-test.=
-c
-> new file mode 100644
-> index 0000000..9a8b634
-> --- /dev/null
-> +++ b/tests/nft-expr_match-test.c
-> @@ -0,0 +1,105 @@
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <string.h>
-> +
-> +#include <arpa/inet.h>
-> +#include <netinet/in.h>
-> +#include <netinet/ip.h>
-> +#include <linux/netfilter/nf_tables.h>
-> +#include <linux/netfilter/xt_iprange.h>
-> +#include <linux/netfilter_ipv4/ipt_LOG.h>
-
-In file included from nft-expr_match-test.c:10:0:
-/usr/include/linux/netfilter_ipv4/ipt_LOG.h:4:2: warning: #warning
-"Please update iptables, this file will be removed soon!" [-Wcpp]
-
-Should we ignore this warning?
-
-Also found in nft-expr_target-test.c
-
-> diff --git a/tests/nft-expr_target-test.c b/tests/nft-expr_target-tes=
-t.c
-> new file mode 100644
-> index 0000000..756ab2d
-> --- /dev/null
-> +++ b/tests/nft-expr_target-test.c
-> @@ -0,0 +1,112 @@
-> +#include <stdio.h>
-> +#include <stdlib.h>
-> +#include <string.h>
-> +
-> +#include <netinet/in.h>
-> +#include <netinet/ip.h>
-> +#include <linux/netfilter/nf_tables.h>
-> +#include <linux/netfilter/xt_iprange.h>
-> +#include <linux/netfilter_ipv4/ipt_LOG.h>
-> +#include <libmnl/libmnl.h>
-> +#include <libnftables/rule.h>
-> +#include <libnftables/expr.h>
-> +
-> +static void die(const char *msg)
-> +{
-> +       printf("\033[31mERROR:\e[0m %s\n", msg);
-> +       exit(EXIT_FAILURE);
-> +}
-> +
-> +static void die2(const char *msg, uint32_t a, uint32_t b)
-> +{
-> +       printf("\033[31mERROR:\e[0m %s size a: %d b: %d \n",msg, a, b=
-);
-> +       exit(EXIT_FAILURE);
-> +}
-> +
-> +static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
-> +                             struct nft_rule_expr *rule_b)
-> +{
-> +       uint32_t lena, lenb;
-> +
-> +       if (strcmp(nft_rule_expr_get_str(rule_a, NFT_EXPR_TG_NAME),
-> +                  nft_rule_expr_get_str(rule_b, NFT_EXPR_TG_NAME)) !=
-=3D 0)
-> +               die("Expr TG_NAME mismatches");
-> +
-> +       if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_TG_REV) !=3D
-> +           nft_rule_expr_get_u32(rule_b, NFT_EXPR_TG_REV))
-> +               die("Expr TG_REV mismatches");
-> +
-> +       nft_rule_expr_get(rule_a, NFT_EXPR_TG_INFO, &lena);
-> +       nft_rule_expr_get(rule_b, NFT_EXPR_TG_INFO, &lenb);
-> +
-> +       /* TODO =BFBUG? */
-> +       if (lena !=3D lenb)
-> +               die2("Expr TG_DATA size mismatches", lena, lenb);
-> +}
-> +
-
-When I run the test:
-
-root@debian:/home/aborrero/git/libnftables/tests# ./test-script.sh
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-chain-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_bitwise-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_byteorder-test: =
-OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_cmp-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_counter-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_ct-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_exthdr-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_immediate-test: =
-OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_limit-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_log-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_lookup-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_match-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_meta-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_nat-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-expr_payload-test: OK
-ERROR: Expr TG_DATA size mismatches size a: 32 b: 36
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-rule-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-set-test: OK
-/home/aborrero/git/libnftables/tests/.libs/lt-nft-table-test: OK
-
-I guess the error above is the bug you spotted.
-
-> +int main(int argc, char *argv[])
-> +{
-> +       struct nft_rule *a, *b;
-> +       struct nft_rule_expr *ex;
-> +       struct nlmsghdr *nlh;
-> +       struct ipt_log_info *info;
-> +       char buf[4096];
-> +       struct nft_rule_expr_iter *iter_a, *iter_b;
-> +       struct nft_rule_expr *rule_a, *rule_b;
-> +
-> +       a =3D nft_rule_alloc();
-> +       b =3D nft_rule_alloc();
-> +       if (a =3D=3D NULL || b =3D=3D NULL)
-> +               die("OOM");
-> +
-> +       ex =3D nft_rule_expr_alloc("target");
-> +       if (ex =3D=3D NULL)
-> +               die("OOM");
-> +       nft_rule_expr_set(ex, NFT_EXPR_TG_NAME, "LOG", strlen("LOG"))=
-;
-> +       nft_rule_expr_set_u32(ex, NFT_EXPR_TG_REV, 0x12345678);
-> +
-> +       info =3D calloc(1, sizeof(struct ipt_log_info));
-> +       if (info =3D=3D NULL)
-> +               die("OOM");
-> +       sprintf(info->prefix, "test: ");
-> +       info->prefix[sizeof(info->prefix)-1] =3D '\0';
-> +       info->logflags =3D 0x0f;
-> +       info->level =3D 5;
-> +       nft_rule_expr_set(ex, NFT_EXPR_TG_INFO, info, sizeof(*info));
-> +
-> +       nft_rule_add_expr(a, ex);
-> +
-> +       nlh =3D nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INE=
-T, 0, 1234);
-> +       nft_rule_nlmsg_build_payload(nlh, a);
-> +
-> +       if (nft_rule_nlmsg_parse(nlh, b) < 0)
-> +               die("parsing problems");
-> +
-> +       iter_a =3D nft_rule_expr_iter_create(a);
-> +       iter_b =3D nft_rule_expr_iter_create(b);
-> +       if (iter_a =3D=3D NULL || iter_b =3D=3D NULL)
-> +               die("OOM");
-> +
-> +       rule_a =3D nft_rule_expr_iter_next(iter_a);
-> +       rule_b =3D nft_rule_expr_iter_next(iter_b);
-> +       if (rule_a =3D=3D NULL || rule_b =3D=3D NULL)
-> +               die("OOM");
-> +
-> +       cmp_nft_rule_expr(rule_a, rule_b);
-> +
-> +       if (nft_rule_expr_iter_next(iter_a) !=3D NULL ||
-> +           nft_rule_expr_iter_next(iter_b) !=3D NULL)
-> +               die("More 1 expr.");
-> +
-> +       nft_rule_expr_iter_destroy(iter_a);
-> +       nft_rule_expr_iter_destroy(iter_b);
-> +       nft_rule_free(a);
-> +       nft_rule_free(b);
-> +       /* BUG: leak memory
-> +          =3D=3D28351=3D=3D HEAP SUMMARY:
-> +        * =3D=3D28351=3D=3D     in use at exit: 436 bytes in 8 block=
-s
-> +        * =3D=3D28351=3D=3D   total heap usage: 8 allocs, 0 frees, 4=
-36 bytes allocated
-> +       */
-
-Do you think the leak is in nft_rule_expr_iter_destroy()?
-
-=3D=3D1860=3D=3D 16 bytes in 1 blocks are definitely lost in loss recor=
-d 2 of 8
-=3D=3D1860=3D=3D    at 0x4C272B8: calloc (vg_replace_malloc.c:566)
-=3D=3D1860=3D=3D    by 0x4E388D2: nft_rule_expr_iter_create (rule.c:860=
-)
-=3D=3D1860=3D=3D    by 0x400D6F: main (nft-expr_target-test.c:85)
-
-Also, I think the comment itself is not in good format (sorry for
-being repetitive).
-
-Regards
---=20
-Arturo Borrero Gonz=E1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
