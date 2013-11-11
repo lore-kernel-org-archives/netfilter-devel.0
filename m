@@ -1,47 +1,61 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/3] ipset: Fix malformed output from list/save for ICMP
- types in port field.
-Date: Mon, 11 Nov 2013 22:35:41 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1311112235160.8236@blackhole.kfki.hu>
-References: <2351390.3tInbbydSl@tuxracer>
+Subject: Re: [PATCH 3/3] ipset: Follow manual page behavior for SET target
+ on list:set
+Date: Mon, 11 Nov 2013 22:38:52 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1311112238240.8236@blackhole.kfki.hu>
+References: <2035028.3MjN3UaUgL@tuxracer>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Sergey Popovich <popovich_sergei@mail.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:57318 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:54599 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832Ab3KKVfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Nov 2013 16:35:43 -0500
-In-Reply-To: <2351390.3tInbbydSl@tuxracer>
+	id S1751527Ab3KKVix (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Nov 2013 16:38:53 -0500
+In-Reply-To: <2035028.3MjN3UaUgL@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Thu, 7 Nov 2013, Sergey Popovich wrote:
 
-> Found with ipset 6.12.1, but upstream version is still affected.
+> ipset(8) for list:set says:
+>   The match will try to find a matching entry in the sets and the
+>   target will try to add an entry to the first set to which it can
+>   be added.
 > 
-> Creating set of dimension three, adding elements to it and then
-> displaying gives following results:
-> -----------------------------------
+> However real behavior is bit differ from described. Consider example:
 > 
->  # ipset create test-1 hash:ip,port,ip
->  # ipset add test-1 192.0.2.1,icmp:echo-request,192.0.2.1
->  # ipset add test-1 192.0.2.1,icmp:ttl-zero-during-reassembly,192.0.2.1
->  # ipset list test-1
->  Name: test-1
->  Type: hash:ip,port,ip
->  Header: family inet hashsize 1024 maxelem 65536
->  Size in memory: 16608
->  References: 0
->  Members:
->  192.0.2.1,icmp:ttl-zero-during-reass,192.0.2.1
->  192.0.2.1,icmp:echo-re,192.0.2.1
+>  # ipset create test-1-v4 hash:ip family inet
+>  # ipset create test-1-v6 hash:ip family inet6
+>  # ipset create test-1 list:set
+>  # ipset add test-1 test-1-v4
+>  # ipset add test-1 test-1-v6
 > 
-> Same results with -output save|xml.
+>  # iptables  -A INPUT -p tcp --destination-port 25 -j SET --add-set test-1 src
+>  # ip6tables -A INPUT -p tcp --destination-port 25 -j SET --add-set test-1 src
 > 
-> ipset_print_proto_port() from lib/print.c returns incorrect length
-> of printed string when ICMP/ICMPv6 specified in port field.
+> And then when iptables/ip6tables rule matches packet IPSET target
+> tries to add src from packet to the list:set test-1 where first
+> entry is test-1-v4 and the second one is test-1-v6.
+> 
+> For IPv4, as it first entry in test-1 src added to test-1-v4
+> correctly, but for IPv6 src not added!
+> 
+> Placing test-1-v6 to the first element of list:set makes behavior
+> correct for IPv6, but brokes for IPv4.
+> 
+> This is due to result, returned from ip_set_add() and ip_set_del() from
+> net/netfilter/ipset/ip_set_core.c when set in list:set equires more
+> parameters than given or address families do not match (which is this
+> case).
+> 
+> It seems wrong returning 0 from ip_set_add() and ip_set_del() in
+> this case, as 0 should be returned only when an element successfuly
+> added/deleted to/from the set, contrary to ip_set_test() which
+> returns 0 when no entry exists and >0 when entry found in set.
+> 
+> Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
 
 Patch is applied, thanks.
 
