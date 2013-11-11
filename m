@@ -1,118 +1,49 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/3] Fix all set output from list/save when set with
- counters in use.
-Date: Mon, 11 Nov 2013 22:31:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1311112230150.8236@blackhole.kfki.hu>
-References: <2029158.eclrSoCAaG@tuxracer>
+Subject: Re: [PATCH 2/3] ipset: Fix malformed output from list/save for ICMP
+ types in port field.
+Date: Mon, 11 Nov 2013 22:35:41 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1311112235160.8236@blackhole.kfki.hu>
+References: <2351390.3tInbbydSl@tuxracer>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Sergey Popovich <popovich_sergei@mail.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:40081 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:57318 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768Ab3KKVbz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Nov 2013 16:31:55 -0500
-In-Reply-To: <2029158.eclrSoCAaG@tuxracer>
+	id S1751832Ab3KKVfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Nov 2013 16:35:43 -0500
+In-Reply-To: <2351390.3tInbbydSl@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Thu, 7 Nov 2013, Sergey Popovich wrote:
 
-> Using upstream version with counters support we have following
-> output when listing all sets currently configured:
-> --------------------------------------------------
+> Found with ipset 6.12.1, but upstream version is still affected.
 > 
->  # ipset create test-1 hash:ip
->  # ipset create test-2 hash:ip counters
->  # ipset add test-2 192.0.2.1/32
->  # ipset create test-3 hash:ip
->  # ipset add test-3 192.0.2.1/32
->  # ipset list
+> Creating set of dimension three, adding elements to it and then
+> displaying gives following results:
+> -----------------------------------
+> 
+>  # ipset create test-1 hash:ip,port,ip
+>  # ipset add test-1 192.0.2.1,icmp:echo-request,192.0.2.1
+>  # ipset add test-1 192.0.2.1,icmp:ttl-zero-during-reassembly,192.0.2.1
+>  # ipset list test-1
 >  Name: test-1
->  Type: hash:ip
->  Revision: 2
+>  Type: hash:ip,port,ip
 >  Header: family inet hashsize 1024 maxelem 65536
->  Size in memory: 16504
+>  Size in memory: 16608
 >  References: 0
 >  Members:
+>  192.0.2.1,icmp:ttl-zero-during-reass,192.0.2.1
+>  192.0.2.1,icmp:echo-re,192.0.2.1
 > 
->  Name: test-2
->  Type: hash:ip
->  Revision: 2
->  Header: family inet hashsize 1024 maxelem 65536 counters
->  Size in memory: 16616
->  References: 0
->  Members:
->  192.0.2.1 packets 0 bytes 0
+> Same results with -output save|xml.
 > 
->  Name: test-3
->  Type: hash:ip
->  Revision: 2
->  Header: family inet hashsize 1024 maxelem 65536 counters
->  Size in memory: 16520
->  References: 0
->  Members:
->  192.0.2.1 packets 0 bytes 0
-> 
-> Set test-3 created without counters, but displayed as with counters
-> present.
-> 
-> Restricting output to list only test-3 set we have:
-> ---------------------------------------------------
->   # ipset list test-3
->   Name: test-3
->   Type: hash:ip
->   Revision: 2
->   Header: family inet hashsize 1024 maxelem 65536
->   Size in memory: 16520
->   References: 0
->   Members:
->   192.0.2.1
-> 
-> So test-3 set created correctly without counters support, but in
-> all sets listing it displayed as such one with counters.
-> 
-> It seems with commit 5a6021823aa0da24b83f8d03f46ad4202f149fa3
-> (Support counters in the ipset library) we fogot to add counter
-> options flags to IPSET_CREATE_FLAGS and IPSET_ADT_FLAGS defines to
-> clear these flags when preparing output in callback_list() from
-> lib/session.c.
-> 
-> Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
-> ---
->  include/libipset/data.h |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/include/libipset/data.h b/include/libipset/data.h
-> index b6e75e8..fded8bd 100644
-> --- a/include/libipset/data.h
-> +++ b/include/libipset/data.h
-> @@ -90,6 +90,9 @@ enum ipset_opt {
->  	| IPSET_FLAG(IPSET_OPT_PROBES)	\
->  	| IPSET_FLAG(IPSET_OPT_RESIZE)	\
->  	| IPSET_FLAG(IPSET_OPT_SIZE)	\
-> +	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
-> +	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
-> +	| IPSET_FLAG(IPSET_OPT_BYTES)	\
->  	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT))
+> ipset_print_proto_port() from lib/print.c returns incorrect length
+> of printed string when ICMP/ICMPv6 specified in port field.
 
-There's no need to add IPSET_OPT_PACKETS and IPSET_OPT_BYTES to the CREATE 
-option flags, and
-  
->  #define IPSET_ADT_FLAGS			\
-> @@ -110,6 +113,9 @@ enum ipset_opt {
->  	| IPSET_FLAG(IPSET_OPT_BEFORE) \
->  	| IPSET_FLAG(IPSET_OPT_PHYSDEV) \
->  	| IPSET_FLAG(IPSET_OPT_NOMATCH) \
-> +	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
-> +	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
-> +	| IPSET_FLAG(IPSET_OPT_BYTES)	\
->  	| IPSET_FLAG(IPSET_OPT_ADT_COMMENT))
-
-similarly, IPSET_OPT_COUNTERS is not required at the ADT option flags.
-
-Please resubmit the patch with these changes. Thanks.
+Patch is applied, thanks.
 
 Best regards,
 Jozsef
