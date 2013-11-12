@@ -1,67 +1,115 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] add hash:ip,mark data type to ipset
-Date: Tue, 12 Nov 2013 08:54:14 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1311120851460.9471@blackhole.kfki.hu>
-References: <1383146590-4626-1-git-send-email-vytas.dauksa@smoothwall.net> <alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu>
+From: Sergey Popovich <popovich_sergei@mail.ru>
+Subject: [PATCH 1/3 v2] Fix all set output from list/save when set with counters in use.
+Date: Tue, 12 Nov 2013 12:30:56 +0200
+Message-ID: <2840394.lsSE8FCu3c@tuxracer>
+References: <2029158.eclrSoCAaG@tuxracer>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:53765 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752615Ab3KLHyS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Nov 2013 02:54:18 -0500
-In-Reply-To: <alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu>
+Received: from theta.smtp.skif.com.ua ([91.90.18.2]:47809 "EHLO
+	theta.smtp.skif.com.ua" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328Ab3KLLJY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Nov 2013 06:09:24 -0500
+Received: from tuxracer.localnet (tuxracer.skif.com.ua [195.234.68.4])
+	(Authenticated sender: sergey_kv_ua@skif.net.ua)
+	by smtp.skif.com.ua (Postfix) with ESMTPSA id D691E892E1
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Nov 2013 12:34:52 +0200 (EET)
+In-Reply-To: <2029158.eclrSoCAaG@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 11 Nov 2013, Jozsef Kadlecsik wrote:
+Using upstream version with counters support we have following
+output when listing all sets currently configured:
+--------------------------------------------------
 
-> On Wed, 30 Oct 2013, Vytas Dauksa wrote:
-> 
-> > Introduce packet mark support with new ip,mark hash set. This includes
-> > userspace and kernelspace code, hash:ip,mark set tests and updates man
-> > page.
-> 
-> Please give an example which demonstrates the usefulness of the set type.
-> 
-> See my comments below about the code.
-[...]
-> > +/* Member elements */
-> > +struct hash_ipmark4_elem {
-> > +	__be32 ip;
-> > +	__be32 mark;
-> 
-> Mark is in host order, so __u32 is more appropriate.
-> 
-> > +};
-> > +
-> > +/* Common functions */
-> > +
-> > +static inline bool
-> > +hash_ipmark4_data_equal(const struct hash_ipmark4_elem *ip1,
-> > +			const struct hash_ipmark4_elem *ip2,
-> > +			u32 *multi)
-> > +{
-> > +	return ip1->ip == ip2->ip &&
-> > +	       ip1->mark == ip2->mark;
-> > +}
-> > +
-> > +static bool
-> > +hash_ipmark4_data_list(struct sk_buff *skb,
-> > +		       const struct hash_ipmark4_elem *data)
-> > +{
-> > +	if (nla_put_ipaddr4(skb, IPSET_ATTR_IP, data->ip) ||
-> > +	    nla_put_net32(skb, IPSET_ATTR_MARK, data->mark))
+ # ipset create test-1 hash:ip
+ # ipset create test-2 hash:ip counters
+ # ipset add test-2 192.0.2.1/32
+ # ipset create test-3 hash:ip
+ # ipset add test-3 192.0.2.1/32
+ # ipset list
+ Name: test-1
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536
+ Size in memory: 16504
+ References: 0
+ Members:
 
-Here a htonl conversion is required for data->mark if mark is stored in 
-host order.
+ Name: test-2
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536 counters
+ Size in memory: 16616
+ References: 0
+ Members:
+ 192.0.2.1 packets 0 bytes 0
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ Name: test-3
+ Type: hash:ip
+ Revision: 2
+ Header: family inet hashsize 1024 maxelem 65536 counters
+ Size in memory: 16520
+ References: 0
+ Members:
+ 192.0.2.1 packets 0 bytes 0
+
+Set test-3 created without counters, but displayed as with counters
+present.
+
+Restricting output to list only test-3 set we have:
+---------------------------------------------------
+  # ipset list test-3
+  Name: test-3
+  Type: hash:ip
+  Revision: 2
+  Header: family inet hashsize 1024 maxelem 65536
+  Size in memory: 16520
+  References: 0
+  Members:
+  192.0.2.1
+
+So test-3 set created correctly without counters support, but in
+all sets listing it displayed as such one with counters.
+
+It seems with commit 5a6021823aa0da24b83f8d03f46ad4202f149fa3
+(Support counters in the ipset library) we fogot to add counter
+options flags to IPSET_CREATE_FLAGS and IPSET_ADT_FLAGS defines to
+clear these flags when preparing output in callback_list() from
+lib/session.c.
+
+v2: Remove IPSET_OPT_BYTES, IPSET_PAKETS from CREATE and
+    IPSET_OPT_COUNTERS from ADT.
+
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
+---
+ include/libipset/data.h |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/libipset/data.h b/include/libipset/data.h
+index b6e75e8..cbf30cc 100644
+--- a/include/libipset/data.h
++++ b/include/libipset/data.h
+@@ -90,6 +90,7 @@ enum ipset_opt {
+ 	| IPSET_FLAG(IPSET_OPT_PROBES)	\
+ 	| IPSET_FLAG(IPSET_OPT_RESIZE)	\
+ 	| IPSET_FLAG(IPSET_OPT_SIZE)	\
++	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
+ 	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT))
+ 
+ #define IPSET_ADT_FLAGS			\
+@@ -110,6 +111,8 @@ enum ipset_opt {
+ 	| IPSET_FLAG(IPSET_OPT_BEFORE) \
+ 	| IPSET_FLAG(IPSET_OPT_PHYSDEV) \
+ 	| IPSET_FLAG(IPSET_OPT_NOMATCH) \
++	| IPSET_FLAG(IPSET_OPT_PACKETS)	\
++	| IPSET_FLAG(IPSET_OPT_BYTES)	\
+ 	| IPSET_FLAG(IPSET_OPT_ADT_COMMENT))
+ 
+ struct ipset_data;
+-- 
+1.7.10.4
+
