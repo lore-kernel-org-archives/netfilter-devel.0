@@ -1,63 +1,62 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 3/3] ipset: Follow manual page behavior for SET target
- on list:set
-Date: Mon, 11 Nov 2013 22:38:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1311112238240.8236@blackhole.kfki.hu>
-References: <2035028.3MjN3UaUgL@tuxracer>
+Subject: Re: [PATCH] add hash:ip,mark data type to ipset
+Date: Tue, 12 Nov 2013 08:54:14 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1311120851460.9471@blackhole.kfki.hu>
+References: <1383146590-4626-1-git-send-email-vytas.dauksa@smoothwall.net> <alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Sergey Popovich <popovich_sergei@mail.ru>
+To: Vytas Dauksa <vytas.dauksa@smoothwall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:54599 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:53765 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751527Ab3KKVix (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Nov 2013 16:38:53 -0500
-In-Reply-To: <2035028.3MjN3UaUgL@tuxracer>
+	id S1752615Ab3KLHyS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Nov 2013 02:54:18 -0500
+In-Reply-To: <alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 7 Nov 2013, Sergey Popovich wrote:
+On Mon, 11 Nov 2013, Jozsef Kadlecsik wrote:
 
-> ipset(8) for list:set says:
->   The match will try to find a matching entry in the sets and the
->   target will try to add an entry to the first set to which it can
->   be added.
+> On Wed, 30 Oct 2013, Vytas Dauksa wrote:
 > 
-> However real behavior is bit differ from described. Consider example:
+> > Introduce packet mark support with new ip,mark hash set. This includes
+> > userspace and kernelspace code, hash:ip,mark set tests and updates man
+> > page.
 > 
->  # ipset create test-1-v4 hash:ip family inet
->  # ipset create test-1-v6 hash:ip family inet6
->  # ipset create test-1 list:set
->  # ipset add test-1 test-1-v4
->  # ipset add test-1 test-1-v6
+> Please give an example which demonstrates the usefulness of the set type.
 > 
->  # iptables  -A INPUT -p tcp --destination-port 25 -j SET --add-set test-1 src
->  # ip6tables -A INPUT -p tcp --destination-port 25 -j SET --add-set test-1 src
+> See my comments below about the code.
+[...]
+> > +/* Member elements */
+> > +struct hash_ipmark4_elem {
+> > +	__be32 ip;
+> > +	__be32 mark;
 > 
-> And then when iptables/ip6tables rule matches packet IPSET target
-> tries to add src from packet to the list:set test-1 where first
-> entry is test-1-v4 and the second one is test-1-v6.
+> Mark is in host order, so __u32 is more appropriate.
 > 
-> For IPv4, as it first entry in test-1 src added to test-1-v4
-> correctly, but for IPv6 src not added!
-> 
-> Placing test-1-v6 to the first element of list:set makes behavior
-> correct for IPv6, but brokes for IPv4.
-> 
-> This is due to result, returned from ip_set_add() and ip_set_del() from
-> net/netfilter/ipset/ip_set_core.c when set in list:set equires more
-> parameters than given or address families do not match (which is this
-> case).
-> 
-> It seems wrong returning 0 from ip_set_add() and ip_set_del() in
-> this case, as 0 should be returned only when an element successfuly
-> added/deleted to/from the set, contrary to ip_set_test() which
-> returns 0 when no entry exists and >0 when entry found in set.
-> 
-> Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
+> > +};
+> > +
+> > +/* Common functions */
+> > +
+> > +static inline bool
+> > +hash_ipmark4_data_equal(const struct hash_ipmark4_elem *ip1,
+> > +			const struct hash_ipmark4_elem *ip2,
+> > +			u32 *multi)
+> > +{
+> > +	return ip1->ip == ip2->ip &&
+> > +	       ip1->mark == ip2->mark;
+> > +}
+> > +
+> > +static bool
+> > +hash_ipmark4_data_list(struct sk_buff *skb,
+> > +		       const struct hash_ipmark4_elem *data)
+> > +{
+> > +	if (nla_put_ipaddr4(skb, IPSET_ATTR_IP, data->ip) ||
+> > +	    nla_put_net32(skb, IPSET_ATTR_MARK, data->mark))
 
-Patch is applied, thanks.
+Here a htonl conversion is required for data->mark if mark is stored in 
+host order.
 
 Best regards,
 Jozsef
