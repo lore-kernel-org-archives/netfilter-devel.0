@@ -1,60 +1,164 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 2/2] json: Refactor of exporting and parsing
- support flags
-Date: Thu, 14 Nov 2013 00:46:44 +0100
-Message-ID: <20131113234643.GB28009@localhost>
-References: <20131111200921.19419.32343.stgit@Ph0enix>
- <20131111200935.19419.8227.stgit@Ph0enix>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [PATCH] arptables: Add man pages for arptables-{save,restore}
+Date: Thu, 14 Nov 2013 13:14:12 +0100
+Message-ID: <20131114121412.20830.46585.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira <alvaroneay@gmail.com>
+To: bdschuym@pandora.be
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47182 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:56968 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781Ab3KMXqs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Nov 2013 18:46:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20131111200935.19419.8227.stgit@Ph0enix>
+	id S1753415Ab3KNMOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Nov 2013 07:14:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 11, 2013 at 09:09:35PM +0100, Alvaro Neira wrote:
-> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
->=20
-> Remove the different flag definition for using the snprinf
-> and parsing support and create a new flags for joining in
-> general flags.
->
-> Now for printing or parsing tables or chains, we needed to use:
-> 	NFT_TABLE_O_JSON
-> 	NFT_TABLE_O_XML
-> 	NFT_CHAIN_O_JSON
-> 	NFT_CHAIN_O_XML
-> 	NFT_CHAIN_PARSE_JSON
-> 	NFT_TABLE_PARSE_JSON
-> 	NFT_CHAIN_PARSE_XML
->         NFT_TABLE_PARSE_XML
->=20
-> Now for exporting and parsing rules and chains, we only use:
-> 	NFT_FORMAT_JSON
-> 	NFT_FORMAT_XML
-> 	NFT_PARSE_FORMAT_JSON
-> 	NFT_PARSE_FORMAT_XML
+Also fixed up the Makefile to install these man pages.
 
-These names are too long. I mangled your patch to use:
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+---
+ userspace/arptables/Makefile            |   15 +++++++----
+ userspace/arptables/arptables-restore.8 |   41 +++++++++++++++++++++++++++++++
+ userspace/arptables/arptables-save.8    |   37 ++++++++++++++++++++++++++++
+ 3 files changed, 87 insertions(+), 6 deletions(-)
+ create mode 100644 userspace/arptables/arptables-restore.8
+ create mode 100644 userspace/arptables/arptables-save.8
 
-NFT_OUTPUT_[XML|JSON]
-NFT_PARSE_[XML|JSON]
+diff --git a/userspace/arptables/Makefile b/userspace/arptables/Makefile
+index 38158d9..0cf780a 100644
+--- a/userspace/arptables/Makefile
++++ b/userspace/arptables/Makefile
+@@ -5,11 +5,13 @@ KERNEL_DIR:=./
+ PREFIX:=/usr/local
+ LIBDIR:=$(PREFIX)/lib
+ BINDIR:=$(PREFIX)/sbin
+-MANDIR:=$(PREFIX)/man
++MANDIR:=$(PREFIX)/man/man8
+ INITDIR:=/etc/rc.d/init.d
+ SYSCONFIGDIR:=/etc/sysconfig
+ DESTDIR:=
+ 
++MANS = arptables.8 arptables-save.8 arptables-restore.8
++
+ COPT_FLAGS:=-O2
+ CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include/ -Iinclude/ -DARPTABLES_VERSION=\"$(ARPTABLES_VERSION)\" #-g -DDEBUG #-pg # -DARPTC_DEBUG
+ 
+@@ -36,10 +38,6 @@ libarptc/libarptc.a: libarptc/libarptc.o
+ arptables: arptables-standalone.o arptables.o libarptc/libarptc.o $(EXT_OBJS)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+ 
+-$(DESTDIR)$(MANDIR)/man8/arptables.8: arptables.8
+-	mkdir -p $(@D)
+-	install -m 0644 $< $@
+-
+ $(DESTDIR)$(BINDIR)/arptables: arptables
+ 	mkdir -p $(DESTDIR)$(BINDIR)
+ 	install -m 0755 $< $@
+@@ -57,8 +55,13 @@ scripts: arptables-save arptables-restore arptables.sysv
+ 	if test -d $(DESTDIR)$(INITDIR); then install -m 0755 arptables.sysv_ $(DESTDIR)$(INITDIR)/arptables; fi
+ 	rm -f arptables-save_ arptables-restore_ arptables.sysv_
+ 
++.PHONY: install-man
++install-man: $(MANS)
++	[ -d "$(DESTDIR)$(MANDIR)" ] || mkdir -p "$(DESTDIR)$(MANDIR)"
++	install -m 0644 $^ $(DESTDIR)$(MANDIR)/
++
+ .PHONY: install
+-install: $(DESTDIR)$(MANDIR)/man8/arptables.8 $(DESTDIR)$(BINDIR)/arptables scripts
++install: install-man $(DESTDIR)$(BINDIR)/arptables scripts
+ 
+ .PHONY: clean
+ clean:
+diff --git a/userspace/arptables/arptables-restore.8 b/userspace/arptables/arptables-restore.8
+new file mode 100644
+index 0000000..4f2f623
+--- /dev/null
++++ b/userspace/arptables/arptables-restore.8
+@@ -0,0 +1,41 @@
++.TH ARPTABLES-RESTORE 8 "Nov 07, 2013" "" ""
++.\"
++.\" Man page written by Jesper Dangaard Brouer <brouer@redhat.com> based on a
++.\" Man page written by Harald Welte <laforge@gnumonks.org>
++.\" It is based on the iptables-restore man page.
++.\"
++.\"	This program is free software; you can redistribute it and/or modify
++.\"	it under the terms of the GNU General Public License as published by
++.\"	the Free Software Foundation; either version 2 of the License, or
++.\"	(at your option) any later version.
++.\"
++.\"	This program is distributed in the hope that it will be useful,
++.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
++.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++.\"	GNU General Public License for more details.
++.\"
++.\"	You should have received a copy of the GNU General Public License
++.\"	along with this program; if not, write to the Free Software
++.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++.\"
++.\"
++.SH NAME
++arptables-restore \(em Restore ARP Tables
++.SH SYNOPSIS
++\fBarptables\-restore
++.SH DESCRIPTION
++.PP
++.B arptables-restore
++is used to restore ARP Tables from data specified on STDIN or
++via a file as first argument.
++Use I/O redirection provided by your shell to read from a file
++.TP
++.B arptables-restore
++flushes (deletes) all previous contents of the respective ARP Table.
++.SH BUGS
++None known as of arptables-0.0.4 release
++.SH AUTHOR
++Jesper Dangaard Brouer <brouer@redhat.com>
++.SH SEE ALSO
++\fBarptables\-save\fP(8), \fBarptables\fP(8)
++.PP
+diff --git a/userspace/arptables/arptables-save.8 b/userspace/arptables/arptables-save.8
+new file mode 100644
+index 0000000..34791a9
+--- /dev/null
++++ b/userspace/arptables/arptables-save.8
+@@ -0,0 +1,37 @@
++.TH ARPTABLES-SAVE 8 "Nov 07, 2013" "" ""
++.\"
++.\" Man page written by Jesper Dangaard Brouer <brouer@redhat.com> based on a
++.\" Man page written by Harald Welte <laforge@gnumonks.org>
++.\" It is based on the iptables-save man page.
++.\"
++.\"	This program is free software; you can redistribute it and/or modify
++.\"	it under the terms of the GNU General Public License as published by
++.\"	the Free Software Foundation; either version 2 of the License, or
++.\"	(at your option) any later version.
++.\"
++.\"	This program is distributed in the hope that it will be useful,
++.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
++.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++.\"	GNU General Public License for more details.
++.\"
++.\"	You should have received a copy of the GNU General Public License
++.\"	along with this program; if not, write to the Free Software
++.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++.\"
++.\"
++.SH NAME
++arptables-save \(em dump arptables rules to stdout
++.SH SYNOPSIS
++\fBarptables\-save
++.SH DESCRIPTION
++.PP
++.B arptables-save
++is used to dump the contents of an ARP Table in easily parseable format
++to STDOUT. Use I/O-redirection provided by your shell to write to a file.
++.SH BUGS
++None known as of arptables-0.0.4 release
++.SH AUTHOR
++Jesper Dangaard Brouer <brouer@redhat.com>
++.SH SEE ALSO
++\fBarptables\-restore\fP(8), \fBarptables\fP(8)
++.PP
 
-instead.
-
-I have also reworked the patch descriptions, it says "json: " but this
-is not only related to it. Fixed and applied, thanks for working on thi=
-s.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
