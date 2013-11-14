@@ -1,41 +1,45 @@
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [PATCH] arptables: Add man pages for arptables-{save,restore}
-Date: Thu, 14 Nov 2013 13:14:12 +0100
-Message-ID: <20131114121412.20830.46585.stgit@localhost>
+Subject: [PATCH V2] arptables: Add man pages for arptables-{save,restore}
+Date: Thu, 14 Nov 2013 14:05:31 +0100
+Message-ID: <20131114130448.23243.44905.stgit@localhost>
+References: <20131114121412.20830.46585.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: bdschuym@pandora.be
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56968 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16949 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415Ab3KNMOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Nov 2013 07:14:17 -0500
+	id S1753559Ab3KNNFg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Nov 2013 08:05:36 -0500
+In-Reply-To: <20131114121412.20830.46585.stgit@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Also fixed up the Makefile to install these man pages.
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+
 ---
- userspace/arptables/Makefile            |   15 +++++++----
+V2: Don't add man8 to $MANDIR as it can be user redefined
+
+ userspace/arptables/Makefile            |   14 +++++++----
  userspace/arptables/arptables-restore.8 |   41 +++++++++++++++++++++++++++++++
  userspace/arptables/arptables-save.8    |   37 ++++++++++++++++++++++++++++
- 3 files changed, 87 insertions(+), 6 deletions(-)
+ 3 files changed, 87 insertions(+), 5 deletions(-)
  create mode 100644 userspace/arptables/arptables-restore.8
  create mode 100644 userspace/arptables/arptables-save.8
 
 diff --git a/userspace/arptables/Makefile b/userspace/arptables/Makefile
-index 38158d9..0cf780a 100644
+index 38158d9..7bead0d 100644
 --- a/userspace/arptables/Makefile
 +++ b/userspace/arptables/Makefile
-@@ -5,11 +5,13 @@ KERNEL_DIR:=./
- PREFIX:=/usr/local
+@@ -6,10 +6,13 @@ PREFIX:=/usr/local
  LIBDIR:=$(PREFIX)/lib
  BINDIR:=$(PREFIX)/sbin
--MANDIR:=$(PREFIX)/man
-+MANDIR:=$(PREFIX)/man/man8
+ MANDIR:=$(PREFIX)/man
++man8dir=$(MANDIR)/man8
  INITDIR:=/etc/rc.d/init.d
  SYSCONFIGDIR:=/etc/sysconfig
  DESTDIR:=
@@ -45,7 +49,7 @@ index 38158d9..0cf780a 100644
  COPT_FLAGS:=-O2
  CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KERNEL_DIR)/include/ -Iinclude/ -DARPTABLES_VERSION=\"$(ARPTABLES_VERSION)\" #-g -DDEBUG #-pg # -DARPTC_DEBUG
  
-@@ -36,10 +38,6 @@ libarptc/libarptc.a: libarptc/libarptc.o
+@@ -36,10 +39,6 @@ libarptc/libarptc.a: libarptc/libarptc.o
  arptables: arptables-standalone.o arptables.o libarptc/libarptc.o $(EXT_OBJS)
  	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
  
@@ -56,14 +60,14 @@ index 38158d9..0cf780a 100644
  $(DESTDIR)$(BINDIR)/arptables: arptables
  	mkdir -p $(DESTDIR)$(BINDIR)
  	install -m 0755 $< $@
-@@ -57,8 +55,13 @@ scripts: arptables-save arptables-restore arptables.sysv
+@@ -57,8 +56,13 @@ scripts: arptables-save arptables-restore arptables.sysv
  	if test -d $(DESTDIR)$(INITDIR); then install -m 0755 arptables.sysv_ $(DESTDIR)$(INITDIR)/arptables; fi
  	rm -f arptables-save_ arptables-restore_ arptables.sysv_
  
 +.PHONY: install-man
 +install-man: $(MANS)
-+	[ -d "$(DESTDIR)$(MANDIR)" ] || mkdir -p "$(DESTDIR)$(MANDIR)"
-+	install -m 0644 $^ $(DESTDIR)$(MANDIR)/
++	[ -d "$(DESTDIR)$(man8dir)" ] || mkdir -p "$(DESTDIR)$(man8dir)"
++	install -m 0644 $^ $(DESTDIR)$(man8dir)/
 +
  .PHONY: install
 -install: $(DESTDIR)$(MANDIR)/man8/arptables.8 $(DESTDIR)$(BINDIR)/arptables scripts
