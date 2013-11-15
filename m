@@ -1,20 +1,20 @@
 From: "Dawid Stawiarski - nazwa.pl" <dawid.stawiarski@netart.pl>
-Subject: linux 3.12 - snat problem with ftp helper
-Date: Fri, 15 Nov 2013 14:07:04 +0100
-Message-ID: <52861C78.10607@netart.pl>
+Subject: linux 3.12 regression - snat problem with ftp helper
+Date: Fri, 15 Nov 2013 14:48:08 +0100
+Message-ID: <52862618.4030202@netart.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.netart.pl ([85.128.128.50]:55502 "EHLO mail.netart.pl"
+Received: from mail.netart.pl ([85.128.128.50]:43972 "EHLO mail.netart.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752216Ab3KON3G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:29:06 -0500
+	id S1752981Ab3KONsJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 08:48:09 -0500
 Received: from [10.110.10.37] ([10.110.10.37])
 	(authenticated bits=0)
-	by mail.netart.pl (8.13.8/8.13.8) with ESMTP id rAFD74w4007529
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 14:07:05 +0100
+	by mail.netart.pl (8.13.8/8.13.8) with ESMTP id rAFDm8gf018736
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 14:48:08 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -48,4 +48,5 @@ public IP) - however the packet has incorrect sequence number (should
 have 41).
 the ftp server responds with SACK but the host resets the connection.
 
+cheers,
 Dawid Stawiarski
