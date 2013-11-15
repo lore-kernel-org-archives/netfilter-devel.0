@@ -1,10 +1,11 @@
 From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
-Date: Fri, 15 Nov 2013 14:18:35 +0100
-Message-ID: <1384521515.14295.2.camel@jlt4.sipsolutions.net>
+Date: Fri, 15 Nov 2013 14:23:14 +0100
+Message-ID: <1384521794.14295.5.camel@jlt4.sipsolutions.net>
 References: <1384420486-8713-1-git-send-email-johannes@sipsolutions.net>
 	 <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>
 	 <20131114.171204.1979806323628158355.davem@davemloft.net>
+	 <1384521515.14295.2.camel@jlt4.sipsolutions.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -13,63 +14,39 @@ Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
 	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from s3.sipsolutions.net ([144.76.43.152]:53006 "EHLO
+Received: from s3.sipsolutions.net ([144.76.43.152]:53020 "EHLO
 	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018Ab3KONSr (ORCPT
+	with ESMTP id S1751046Ab3KONXT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:18:47 -0500
-In-Reply-To: <20131114.171204.1979806323628158355.davem@davemloft.net>
+	Fri, 15 Nov 2013 08:23:19 -0500
+In-Reply-To: <1384521515.14295.2.camel@jlt4.sipsolutions.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2013-11-14 at 17:12 -0500, David Miller wrote:
-> From: Johannes Berg <johannes@sipsolutions.net>
-> Date: Thu, 14 Nov 2013 17:14:38 +0100
-> 
-> > As before - reduce the complexity and data/code size of genetlink ops
-> > by making them an array rather than a linked list. Most users already
-> > use an array thanks to genl_register_family_with_ops(), so convert the
-> > remaining ones allowing us to get rid of the list head in each op.
-> > 
-> > Also make them const, this just makes sense at that point and the security
-> > people like making function pointers const as well :-)
-> 
-> I have to say, this is an absolutely fantastic space usage and
-> complexity improvement.
+On Fri, 2013-11-15 at 14:18 +0100, Johannes Berg wrote:
 
-:-)
+> I've been eyeing the multicast groups as well
 
-FWIW, we can also clean up the two registration functions now and make
-it just a single one (actually we could have done that before as well,
-passing NULL for ops, but hey, now it's even easier). I'll send a patch
-for that.
+Of course, there are also *much* fewer mcast groups, so the saving isn't
+nearly as big. But we still have some oddball code to register them all,
+basically
 
-I've been eyeing the multicast groups as well, but the code using them
-is nicer if it's not an array. With an array, you'd have to do something
-like
+	err = register_mc_group();
+	if (err)
+		goto unregister_family;
 
-send_event(&my_mcast_groups[1]);
+(since we have to register the family first, afaict)
 
-instead of
+sometimes a few of those back to back, and it'd be nicer on the users if
+that just went away and was
 
-send_event(&my_foo_mcast_group);
+	family.mcast_groups = my_groups;
+	family.n_mcast_groups = ARRAY_SIZE(my_groups);
+	family.ops = my_ops;
+	family.n_ops = ARRAY_SIZE(my_ops);
+	return genl_register_family(&family);
 
-which is a bit odd.
-
-We could instead register an array of pointers to the groups:
-
-static const struct mcast_group *my_groups[] = {
-	&my_foo_mcast_group,
-	...
-};
-
-and pass this to the family - that'd still be less space (one pointer
-for each group rather than two in a linked list) and still allow all
-groups and this array to be const, but it's not quite as big a
-saving ...
-
-Thoughts?
+since nobody uses them dynamically anyway, afaict.
 
 johannes
-
 
