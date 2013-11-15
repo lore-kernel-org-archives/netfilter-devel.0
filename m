@@ -1,40 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nft] build: relax compilation not to break on warning
-Date: Fri, 15 Nov 2013 10:06:05 +0100
-Message-ID: <1384506365-4342-2-git-send-email-pablo@netfilter.org>
-References: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
+Date: Fri, 15 Nov 2013 14:18:35 +0100
+Message-ID: <1384521515.14295.2.camel@jlt4.sipsolutions.net>
+References: <1384420486-8713-1-git-send-email-johannes@sipsolutions.net>
+	 <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>
+	 <20131114.171204.1979806323628158355.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
+	bsingharora@gmail.com, netfilter-devel@vger.kernel.org,
+	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49646 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754451Ab3KOJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 04:06:13 -0500
-In-Reply-To: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
+Received: from s3.sipsolutions.net ([144.76.43.152]:53006 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018Ab3KONSr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 08:18:47 -0500
+In-Reply-To: <20131114.171204.1979806323628158355.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove -Werror, as bison and flex generate unclean code that may
-break compilation.
+On Thu, 2013-11-14 at 17:12 -0500, David Miller wrote:
+> From: Johannes Berg <johannes@sipsolutions.net>
+> Date: Thu, 14 Nov 2013 17:14:38 +0100
+> 
+> > As before - reduce the complexity and data/code size of genetlink ops
+> > by making them an array rather than a linked list. Most users already
+> > use an array thanks to genl_register_family_with_ops(), so convert the
+> > remaining ones allowing us to get rid of the list head in each op.
+> > 
+> > Also make them const, this just makes sense at that point and the security
+> > people like making function pointers const as well :-)
+> 
+> I have to say, this is an absolutely fantastic space usage and
+> complexity improvement.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- Makefile.defs.in |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+:-)
 
-diff --git a/Makefile.defs.in b/Makefile.defs.in
-index 545c4ee..502f374 100644
---- a/Makefile.defs.in
-+++ b/Makefile.defs.in
-@@ -28,7 +28,7 @@ CFLAGS		+= -include config.h
- CFLAGS		+= -Iinclude
- CFLAGS		+= -fno-strict-aliasing
- 
--CFLAGS		+= -Wall -Werror
-+CFLAGS		+= -Wall
- CFLAGS		+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
- CFLAGS		+= -Wdeclaration-after-statement -Wsign-compare -Winit-self
- CFLAGS		+= -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute
--- 
-1.7.10.4
+FWIW, we can also clean up the two registration functions now and make
+it just a single one (actually we could have done that before as well,
+passing NULL for ops, but hey, now it's even easier). I'll send a patch
+for that.
+
+I've been eyeing the multicast groups as well, but the code using them
+is nicer if it's not an array. With an array, you'd have to do something
+like
+
+send_event(&my_mcast_groups[1]);
+
+instead of
+
+send_event(&my_foo_mcast_group);
+
+which is a bit odd.
+
+We could instead register an array of pointers to the groups:
+
+static const struct mcast_group *my_groups[] = {
+	&my_foo_mcast_group,
+	...
+};
+
+and pass this to the family - that'd still be less space (one pointer
+for each group rather than two in a linked list) and still allow all
+groups and this array to be const, but it's not quite as big a
+saving ...
+
+Thoughts?
+
+johannes
+
 
