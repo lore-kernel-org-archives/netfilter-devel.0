@@ -1,49 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2 nft] parser: fix warning on deprecated directive in bison
-Date: Fri, 15 Nov 2013 10:06:04 +0100
-Message-ID: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 2/2 nft] build: relax compilation not to break on warning
+Date: Fri, 15 Nov 2013 10:06:05 +0100
+Message-ID: <1384506365-4342-2-git-send-email-pablo@netfilter.org>
+References: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49639 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49646 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753514Ab3KOJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754451Ab3KOJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 15 Nov 2013 04:06:13 -0500
+In-Reply-To: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-src/parser.y:93.1-13: warning: deprecated directive, use =E2=80=98%name=
--prefix=E2=80=99 [-Wdeprecated]
- %name-prefix=3D"nft_"
- ^^^^^^^^^^^^^
-Reported-by: Anatol Pomozov <anatol.pomozov@gmail.com>
+Remove -Werror, as bison and flex generate unclean code that may
+break compilation.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser.y |    2 +-
+ Makefile.defs.in |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/parser.y b/src/parser.y
-index cfe1e86..a49e5c2 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -90,7 +90,7 @@ static void location_update(struct location *loc, str=
-uct location *rhs, int n)
-=20
- /* Declaration section */
-=20
--%name-prefix=3D"nft_"
-+%name-prefix "nft_"
- %debug
- %pure-parser
- %parse-param		{ void *scanner }
---=20
+diff --git a/Makefile.defs.in b/Makefile.defs.in
+index 545c4ee..502f374 100644
+--- a/Makefile.defs.in
++++ b/Makefile.defs.in
+@@ -28,7 +28,7 @@ CFLAGS		+= -include config.h
+ CFLAGS		+= -Iinclude
+ CFLAGS		+= -fno-strict-aliasing
+ 
+-CFLAGS		+= -Wall -Werror
++CFLAGS		+= -Wall
+ CFLAGS		+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+ CFLAGS		+= -Wdeclaration-after-statement -Wsign-compare -Winit-self
+ CFLAGS		+= -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
