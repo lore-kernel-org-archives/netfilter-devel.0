@@ -1,67 +1,106 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
-Date: Fri, 15 Nov 2013 09:45:22 -0500
-Message-ID: <52863382.2060309@mojatatu.com>
-References: <1384420486-8713-1-git-send-email-johannes@sipsolutions.net>	 <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>	 <20131114.171204.1979806323628158355.davem@davemloft.net>	 <1384521515.14295.2.camel@jlt4.sipsolutions.net> <1384521794.14295.5.camel@jlt4.sipsolutions.net>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [RFC PATCH net-next] net: reorder struct netns_ct for better
+	cache-line usage
+Date: Fri, 15 Nov 2013 15:57:53 +0100
+Message-ID: <20131115145459.17641.35021.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
-	bsingharora@gmail.com, netfilter-devel@vger.kernel.org,
-	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
-To: Johannes Berg <johannes@sipsolutions.net>,
-	David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:45609 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750Ab3KOOpb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 09:45:31 -0500
-Received: by mail-ie0-f174.google.com with SMTP id ar20so4819609iec.33
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 06:45:31 -0800 (PST)
-In-Reply-To: <1384521794.14295.5.camel@jlt4.sipsolutions.net>
+Received: from mx1.redhat.com ([209.132.183.28]:46990 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751527Ab3KOO6A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 09:58:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Reorder struct netns_ct so that atomic_t "count" changes don't
+slowdown users of read mostly fields.
 
-Are we killing APIs that are already used?
-At least that patches that Dave sucked in do. Out of tree
-users dont matter?
+This is based on Eric Dumazet's proposed patch:
+ "netfilter: conntrack: remove the central spinlock"
+ http://thread.gmane.org/gmane.linux.network/268758/focus=47306
 
-cheers,
-jamal
+The tricky part of cache-aligning this structure, that it is getting
+inlined in struct net (include/net/net_namespace.h), thus changes to
+other netns_xxx structures affects our alignment.
 
-On 11/15/13 08:23, Johannes Berg wrote:
-> On Fri, 2013-11-15 at 14:18 +0100, Johannes Berg wrote:
->
->> I've been eyeing the multicast groups as well
->
-> Of course, there are also *much* fewer mcast groups, so the saving isn't
-> nearly as big. But we still have some oddball code to register them all,
-> basically
->
-> 	err = register_mc_group();
-> 	if (err)
-> 		goto unregister_family;
->
-> (since we have to register the family first, afaict)
->
-> sometimes a few of those back to back, and it'd be nicer on the users if
-> that just went away and was
->
-> 	family.mcast_groups = my_groups;
-> 	family.n_mcast_groups = ARRAY_SIZE(my_groups);
-> 	family.ops = my_ops;
-> 	family.n_ops = ARRAY_SIZE(my_ops);
-> 	return genl_register_family(&family);
->
-> since nobody uses them dynamically anyway, afaict.
->
-> johannes
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Eric's original patch contained an ambiguity on 32-bit regarding
+alignment in struct net.  This patch also takes 32-bit into account,
+and in case of changed (struct net) alignment sysctl_xxx entries have
+been ordered according to how often they are accessed.
+
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Reviewed-by: Jiri Benc <jbenc@redhat.com>
+---
+Yes, I know it's not the time to submit this patch, but
+I just want to let Eric know that I'm planning on extracting
+part of his proposed patch, which have been stalled for months.
+I'll resubmit once net-next/nf-next opens for changes again.
+
+
+ include/net/netns/conntrack.h |   33 +++++++++++++++++----------------
+ 1 files changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index c9c0c53..fbcc7fa 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -65,6 +65,23 @@ struct nf_ip_net {
+ struct netns_ct {
+ 	atomic_t		count;
+ 	unsigned int		expect_count;
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header	*sysctl_header;
++	struct ctl_table_header	*acct_sysctl_header;
++	struct ctl_table_header	*tstamp_sysctl_header;
++	struct ctl_table_header	*event_sysctl_header;
++	struct ctl_table_header	*helper_sysctl_header;
++#endif
++	char			*slabname;
++	unsigned int		sysctl_log_invalid; /* Log invalid packets */
++	unsigned int		sysctl_events_retry_timeout;
++	int			sysctl_events;
++	int			sysctl_acct;
++	int			sysctl_auto_assign_helper;
++	bool			auto_assign_helper_warned;
++	int			sysctl_tstamp;
++	int			sysctl_checksum;
++
+ 	unsigned int		htable_size;
+ 	struct kmem_cache	*nf_conntrack_cachep;
+ 	struct hlist_nulls_head	*hash;
+@@ -75,14 +92,6 @@ struct netns_ct {
+ 	struct ip_conntrack_stat __percpu *stat;
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
+ 	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
+-	int			sysctl_events;
+-	unsigned int		sysctl_events_retry_timeout;
+-	int			sysctl_acct;
+-	int			sysctl_tstamp;
+-	int			sysctl_checksum;
+-	unsigned int		sysctl_log_invalid; /* Log invalid packets */
+-	int			sysctl_auto_assign_helper;
+-	bool			auto_assign_helper_warned;
+ 	struct nf_ip_net	nf_ct_proto;
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+ 	unsigned int		labels_used;
+@@ -92,13 +101,5 @@ struct netns_ct {
+ 	struct hlist_head	*nat_bysource;
+ 	unsigned int		nat_htable_size;
+ #endif
+-#ifdef CONFIG_SYSCTL
+-	struct ctl_table_header	*sysctl_header;
+-	struct ctl_table_header	*acct_sysctl_header;
+-	struct ctl_table_header	*tstamp_sysctl_header;
+-	struct ctl_table_header	*event_sysctl_header;
+-	struct ctl_table_header	*helper_sysctl_header;
+-#endif
+-	char			*slabname;
+ };
+ #endif
 
