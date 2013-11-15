@@ -1,55 +1,66 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [RFC PATCH net-next] net: reorder struct netns_ct for better
- cache-line usage
-Date: Fri, 15 Nov 2013 08:17:21 -0800
-Message-ID: <1384532241.28716.66.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <20131115145459.17641.35021.stgit@dragon>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: linux 3.12 regression - snat problem with ftp helper
+Date: Fri, 15 Nov 2013 12:09:29 -0800
+Message-ID: <20131115200928.GA11322@home>
+References: <52862618.4030202@netart.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
+Cc: netfilter-devel@vger.kernel.org
+To: "Dawid Stawiarski - nazwa.pl" <dawid.stawiarski@netart.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:62059 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654Ab3KOQR1 (ORCPT
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:51113 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303Ab3KOUJb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 11:17:27 -0500
-In-Reply-To: <20131115145459.17641.35021.stgit@dragon>
+	Fri, 15 Nov 2013 15:09:31 -0500
+Received: by mail-pd0-f179.google.com with SMTP id r10so982814pdi.24
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 12:09:30 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <52862618.4030202@netart.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2013-11-15 at 15:57 +0100, Jesper Dangaard Brouer wrote:
-> Reorder struct netns_ct so that atomic_t "count" changes don't
-> slowdown users of read mostly fields.
+
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Nov 15, 2013 at 02:48:08PM +0100, Dawid Stawiarski - nazwa.pl wrote:
+> hello,
 > 
-> This is based on Eric Dumazet's proposed patch:
->  "netfilter: conntrack: remove the central spinlock"
->  http://thread.gmane.org/gmane.linux.network/268758/focus=47306
+> after upgrade to mainline kernel v. 3.12 our machines are not able
+> to connect to ftp service (from inside of the lxc containters).
+> Mainline kernel 3.11.8 works fine.
 > 
-> The tricky part of cache-aligning this structure, that it is getting
-> inlined in struct net (include/net/net_namespace.h), thus changes to
-> other netns_xxx structures affects our alignment.
-> 
-> Eric's original patch contained an ambiguity on 32-bit regarding
-> alignment in struct net.  This patch also takes 32-bit into account,
-> and in case of changed (struct net) alignment sysctl_xxx entries have
-> been ordered according to how often they are accessed.
-> 
-> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> Reviewed-by: Jiri Benc <jbenc@redhat.com>
-> ---
-> Yes, I know it's not the time to submit this patch, but
-> I just want to let Eric know that I'm planning on extracting
-> part of his proposed patch, which have been stalled for months.
-> I'll resubmit once net-next/nf-next opens for changes again.
+> in packet 8 host sends rewriten PORT command (with changed private
+> to public IP) - however the packet has incorrect sequence number
+> (should have 41).
+> the ftp server responds with SACK but the host resets the connection.
 
-I have no plan working on conntrack in the near future.
+Does the attached patch solve the problem for you?
 
-I cannot really cope with a 3 months response time to a patch.
-
-Feel free to grab and continue the work, thanks !
+Phil
 
 
 
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-seqadj
+
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index 5f9bfd0..17c1bcb 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -41,8 +41,8 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 	spin_lock_bh(&ct->lock);
+ 	this_way = &seqadj->seq[dir];
+ 	if (this_way->offset_before == this_way->offset_after ||
+-	    before(this_way->correction_pos, seq)) {
+-		this_way->correction_pos = seq;
++	    before(this_way->correction_pos, ntohl(seq))) {
++		this_way->correction_pos = ntohl(seq);
+ 		this_way->offset_before	 = this_way->offset_after;
+ 		this_way->offset_after	+= off;
+ 	}
+
+--pf9I7BMVVzbSWLtt--
