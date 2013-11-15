@@ -1,74 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] build: fix make distcheck
-Date: Fri, 15 Nov 2013 15:23:41 +0100
-Message-ID: <1384525421-7063-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
+Date: Fri, 15 Nov 2013 09:45:22 -0500
+Message-ID: <52863382.2060309@mojatatu.com>
+References: <1384420486-8713-1-git-send-email-johannes@sipsolutions.net>	 <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>	 <20131114.171204.1979806323628158355.davem@davemloft.net>	 <1384521515.14295.2.camel@jlt4.sipsolutions.net> <1384521794.14295.5.camel@jlt4.sipsolutions.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
+	bsingharora@gmail.com, netfilter-devel@vger.kernel.org,
+	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
+To: Johannes Berg <johannes@sipsolutions.net>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55012 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751595Ab3KOOYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 09:24:07 -0500
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:45609 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750Ab3KOOpb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 09:45:31 -0500
+Received: by mail-ie0-f174.google.com with SMTP id ar20so4819609iec.33
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 06:45:31 -0800 (PST)
+In-Reply-To: <1384521794.14295.5.camel@jlt4.sipsolutions.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix missing files that were not included in the tarball
-that distcheck generates.
 
-This also includes AC_EXEEXT, otherwise configure complains about
-undefined CHECK_GCC_FVISIBILITY.
+Are we killing APIs that are already used?
+At least that patches that Dave sucked in do. Out of tree
+users dont matter?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- Makefile.am                         |    2 +-
- configure.ac                        |    1 +
- include/linux/netfilter/Makefile.am |    2 +-
- src/Makefile.am                     |    2 ++
- 4 files changed, 5 insertions(+), 2 deletions(-)
+cheers,
+jamal
 
-diff --git a/Makefile.am b/Makefile.am
-index d5f6e40..83f176d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -3,7 +3,7 @@ include $(top_srcdir)/Make_global.am
- ACLOCAL_AMFLAGS = -I m4
- 
- SUBDIRS = src include examples tests
--DIST_SUBDIRS = src include examples
-+DIST_SUBDIRS = src include examples tests
- 
- pkgconfigdir = $(libdir)/pkgconfig
- pkgconfig_DATA = libnftables.pc
-diff --git a/configure.ac b/configure.ac
-index 4758a49..b023755 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -30,6 +30,7 @@ AS_IF([test "x$with_json_parsing" = "xyes"], [
- ])
- AC_PROG_CC
- AM_PROG_CC_C_O
-+AC_EXEEXT
- AC_DISABLE_STATIC
- LT_INIT
- CHECK_GCC_FVISIBILITY
-diff --git a/include/linux/netfilter/Makefile.am b/include/linux/netfilter/Makefile.am
-index 51fb1ae..442463c 100644
---- a/include/linux/netfilter/Makefile.am
-+++ b/include/linux/netfilter/Makefile.am
-@@ -1 +1 @@
--noinst_HEADERS = nfnetlink.h nf_tables.h
-+noinst_HEADERS = nfnetlink.h nf_tables.h nf_tables_compat.h
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 5f64db2..48d5d2d 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -32,5 +32,7 @@ libnftables_la_SOURCES = utils.c		\
- 			 expr/payload.c		\
- 			 expr/reject.c		\
- 			 expr/target.c		\
-+			 expr/data_reg.h	\
- 			 libnftables.map	\
-+			 expr_ops.h		\
- 			 internal.h
--- 
-1.7.10.4
+On 11/15/13 08:23, Johannes Berg wrote:
+> On Fri, 2013-11-15 at 14:18 +0100, Johannes Berg wrote:
+>
+>> I've been eyeing the multicast groups as well
+>
+> Of course, there are also *much* fewer mcast groups, so the saving isn't
+> nearly as big. But we still have some oddball code to register them all,
+> basically
+>
+> 	err = register_mc_group();
+> 	if (err)
+> 		goto unregister_family;
+>
+> (since we have to register the family first, afaict)
+>
+> sometimes a few of those back to back, and it'd be nicer on the users if
+> that just went away and was
+>
+> 	family.mcast_groups = my_groups;
+> 	family.n_mcast_groups = ARRAY_SIZE(my_groups);
+> 	family.ops = my_ops;
+> 	family.n_ops = ARRAY_SIZE(my_ops);
+> 	return genl_register_family(&family);
+>
+> since nobody uses them dynamically anyway, afaict.
+>
+> johannes
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
