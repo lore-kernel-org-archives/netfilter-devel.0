@@ -1,103 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftables] expr: fix leak in target and match expressions
-Date: Thu, 14 Nov 2013 23:29:11 +0100
-Message-ID: <1384468151-6887-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/2 nft] parser: fix warning on deprecated directive in bison
+Date: Fri, 15 Nov 2013 10:06:04 +0100
+Message-ID: <1384506365-4342-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41300 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49639 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754824Ab3KNW3S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Nov 2013 17:29:18 -0500
+	id S1753514Ab3KOJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 04:06:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Release internal data area for match and target expressions.
-
-==30104== 68 bytes in 1 blocks are definitely lost in loss record 1 of 1
-==30104==    at 0x4C2B514: calloc (vg_replace_malloc.c:593)
-==30104==    by 0x400C2F: main (nft-expr_match-test.c:65)
-
-Reported-by: Ana Rey Botello <anarey@gmail.com>
+src/parser.y:93.1-13: warning: deprecated directive, use =E2=80=98%name=
+-prefix=E2=80=99 [-Wdeprecated]
+ %name-prefix=3D"nft_"
+ ^^^^^^^^^^^^^
+Reported-by: Anatol Pomozov <anatol.pomozov@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/expr.c        |    3 +++
- src/expr/match.c  |    8 ++++++++
- src/expr/target.c |    8 ++++++++
- src/expr_ops.h    |    1 +
- 4 files changed, 20 insertions(+)
+ src/parser.y |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/expr.c b/src/expr.c
-index 2605029..aeb717e 100644
---- a/src/expr.c
-+++ b/src/expr.c
-@@ -49,6 +49,9 @@ EXPORT_SYMBOL(nft_rule_expr_alloc);
- 
- void nft_rule_expr_free(struct nft_rule_expr *expr)
- {
-+	if (expr->ops->free)
-+		expr->ops->free(expr);
-+
- 	xfree(expr);
- }
- EXPORT_SYMBOL(nft_rule_expr_free);
-diff --git a/src/expr/match.c b/src/expr/match.c
-index db2b987..5d02ee7 100644
---- a/src/expr/match.c
-+++ b/src/expr/match.c
-@@ -258,10 +258,18 @@ nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
- 	return -1;
- }
- 
-+static void nft_rule_expr_match_free(struct nft_rule_expr *e)
-+{
-+	struct nft_expr_match *match = nft_expr_data(e);
-+
-+	xfree(match->data);
-+}
-+
- struct expr_ops expr_ops_match = {
- 	.name		= "match",
- 	.alloc_len	= sizeof(struct nft_expr_match),
- 	.max_attr	= NFTA_MATCH_MAX,
-+	.free		= nft_rule_expr_match_free,
- 	.set		= nft_rule_expr_match_set,
- 	.get		= nft_rule_expr_match_get,
- 	.parse		= nft_rule_expr_match_parse,
-diff --git a/src/expr/target.c b/src/expr/target.c
-index 7994bcd..20bf2af 100644
---- a/src/expr/target.c
-+++ b/src/expr/target.c
-@@ -260,10 +260,18 @@ nft_rule_expr_target_snprintf(char *buf, size_t len, uint32_t type,
- 	return -1;
- }
- 
-+static void nft_rule_expr_target_free(struct nft_rule_expr *e)
-+{
-+	struct nft_expr_target *target = nft_expr_data(e);
-+
-+	xfree(target->data);
-+}
-+
- struct expr_ops expr_ops_target = {
- 	.name		= "target",
- 	.alloc_len	= sizeof(struct nft_expr_target),
- 	.max_attr	= NFTA_TARGET_MAX,
-+	.free		= nft_rule_expr_target_free,
- 	.set		= nft_rule_expr_target_set,
- 	.get		= nft_rule_expr_target_get,
- 	.parse		= nft_rule_expr_target_parse,
-diff --git a/src/expr_ops.h b/src/expr_ops.h
-index becc85a..26e0b82 100644
---- a/src/expr_ops.h
-+++ b/src/expr_ops.h
-@@ -23,6 +23,7 @@ struct expr_ops {
- 	const char *name;
- 	uint32_t alloc_len;
- 	int	max_attr;
-+	void	(*free)(struct nft_rule_expr *e);
- 	int	(*set)(struct nft_rule_expr *e, uint16_t type, const void *data, uint32_t data_len);
- 	const void *(*get)(const struct nft_rule_expr *e, uint16_t type, uint32_t *data_len);
- 	int 	(*parse)(struct nft_rule_expr *e, struct nlattr *attr);
--- 
+diff --git a/src/parser.y b/src/parser.y
+index cfe1e86..a49e5c2 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -90,7 +90,7 @@ static void location_update(struct location *loc, str=
+uct location *rhs, int n)
+=20
+ /* Declaration section */
+=20
+-%name-prefix=3D"nft_"
++%name-prefix "nft_"
+ %debug
+ %pure-parser
+ %parse-param		{ void *scanner }
+--=20
 1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
