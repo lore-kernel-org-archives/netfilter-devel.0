@@ -1,52 +1,54 @@
-From: "Dawid Stawiarski - nazwa.pl" <dawid.stawiarski@netart.pl>
-Subject: linux 3.12 regression - snat problem with ftp helper
-Date: Fri, 15 Nov 2013 14:48:08 +0100
-Message-ID: <52862618.4030202@netart.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] expr: match: fix wrong flag setting in nft_rule_expr_match_parse
+Date: Fri, 15 Nov 2013 15:19:45 +0100
+Message-ID: <1384525185-6675-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.netart.pl ([85.128.128.50]:43972 "EHLO mail.netart.pl"
+Received: from mail.us.es ([193.147.175.20]:54328 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752981Ab3KONsJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 08:48:09 -0500
-Received: from [10.110.10.37] ([10.110.10.37])
-	(authenticated bits=0)
-	by mail.netart.pl (8.13.8/8.13.8) with ESMTP id rAFDm8gf018736
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 14:48:08 +0100
+	id S1751275Ab3KOOTy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Nov 2013 09:19:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hello,
+Expression flags were incorrectly set. It should not manifest in any
+bug as NFTA_MATCH_* and NFT_EXPR_MT_* are overlapping. Still incorrect
+from the semantic side.
 
-after upgrade to mainline kernel v. 3.12 our machines are not able to 
-connect to ftp service (from inside of the lxc containters). Mainline 
-kernel 3.11.8 works fine.
+Reported-by: Ana Rey Botello <anarey@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/expr/match.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Containters use private IP class and are SNATed on host machine to one 
-IP address.
+diff --git a/src/expr/match.c b/src/expr/match.c
+index 5d02ee7..c7863b8 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -140,12 +140,12 @@ static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *att
+ 			 mnl_attr_get_str(tb[NFTA_MATCH_NAME]));
+ 
+ 		match->name[XT_EXTENSION_MAXNAMELEN-1] = '\0';
+-		e->flags |= (1 << NFTA_MATCH_NAME);
++		e->flags |= (1 << NFT_EXPR_MT_NAME);
+ 	}
+ 
+ 	if (tb[NFTA_MATCH_REV]) {
+ 		match->rev = ntohl(mnl_attr_get_u32(tb[NFTA_MATCH_REV]));
+-		e->flags |= (1 << NFTA_MATCH_REV);
++		e->flags |= (1 << NFT_EXPR_MT_REV);
+ 	}
+ 
+ 	if (tb[NFTA_MATCH_INFO]) {
+@@ -164,7 +164,7 @@ static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *att
+ 		match->data = match_data;
+ 		match->data_len = len;
+ 
+-		e->flags |= (1 << NFTA_MATCH_INFO);
++		e->flags |= (1 << NFT_EXPR_MT_INFO);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.10.4
 
-this is part of the session captured with tcpdump when the problem occurs:
-
-1 B.21 > A.59236: Flags [P.], seq 23:60, ack 17, win 1120, length 37
-2 A.59236 > B.21: Flags [P.], seq 17:33, ack 60, win 58, length 16
-3 B.21 > A.59236: Flags [.], ack 33, win 1120, length 0
-4 B.21 > A.59236: Flags [P.], seq 60:90, ack 33, win 1120, length 30
-5 B.21: Flags [P.], seq 33:41, ack 90, win 58, length 8
-6 B.21 > A.59236: Flags [.], ack 41, win 1120, length 0
-7 B.21 > A.59236: Flags [P.], seq 90:109, ack 41, win 1120, length 19
-8 A.59236 > B.21: Flags [P.], seq 42:70, ack 109, win 58, length 28
-9 B.21 > A.59236: Flags [.], ack 41, win 1120, options [nop,nop,sack 1 
-{42:70}], length 0
-10 A.59236 > B.21: Flags [R], seq 4097123445, win 0, length 0
-11 A.59236 > B.21: Flags [P.], seq 42:70, ack 109, win 58, length 28
-12 B.21 > A.59236: Flags [R], seq 2304960165, win 0, length 0
-
-in packet 8 host sends rewriten PORT command (with changed private to 
-public IP) - however the packet has incorrect sequence number (should 
-have 41).
-the ftp server responds with SACK but the host resets the connection.
-
-cheers,
-Dawid Stawiarski
