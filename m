@@ -1,66 +1,44 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: linux 3.12 regression - snat problem with ftp helper
-Date: Fri, 15 Nov 2013 12:09:29 -0800
-Message-ID: <20131115200928.GA11322@home>
-References: <52862618.4030202@netart.pl>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
+Date: Fri, 15 Nov 2013 20:53:13 -0500 (EST)
+Message-ID: <20131115.205313.1543711974325231353.davem@davemloft.net>
+References: <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>
+	<20131114.171204.1979806323628158355.davem@davemloft.net>
+	<1384521515.14295.2.camel@jlt4.sipsolutions.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
-Cc: netfilter-devel@vger.kernel.org
-To: "Dawid Stawiarski - nazwa.pl" <dawid.stawiarski@netart.pl>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
+	bsingharora@gmail.com, netfilter-devel@vger.kernel.org,
+	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
+To: johannes@sipsolutions.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:51113 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303Ab3KOUJb (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:32777 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab3KPBxO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Nov 2013 15:09:31 -0500
-Received: by mail-pd0-f179.google.com with SMTP id r10so982814pdi.24
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Nov 2013 12:09:30 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <52862618.4030202@netart.pl>
+	Fri, 15 Nov 2013 20:53:14 -0500
+In-Reply-To: <1384521515.14295.2.camel@jlt4.sipsolutions.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Johannes Berg <johannes@sipsolutions.net>
+Date: Fri, 15 Nov 2013 14:18:35 +0100
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Nov 15, 2013 at 02:48:08PM +0100, Dawid Stawiarski - nazwa.pl wrote:
-> hello,
+> We could instead register an array of pointers to the groups:
 > 
-> after upgrade to mainline kernel v. 3.12 our machines are not able
-> to connect to ftp service (from inside of the lxc containters).
-> Mainline kernel 3.11.8 works fine.
+> static const struct mcast_group *my_groups[] = {
+> 	&my_foo_mcast_group,
+> 	...
+> };
 > 
-> in packet 8 host sends rewriten PORT command (with changed private
-> to public IP) - however the packet has incorrect sequence number
-> (should have 41).
-> the ftp server responds with SACK but the host resets the connection.
+> and pass this to the family - that'd still be less space (one pointer
+> for each group rather than two in a linked list) and still allow all
+> groups and this array to be const, but it's not quite as big a
+> saving ...
+> 
+> Thoughts?
 
-Does the attached patch solve the problem for you?
-
-Phil
-
-
-
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-seqadj
-
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index 5f9bfd0..17c1bcb 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -41,8 +41,8 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 	spin_lock_bh(&ct->lock);
- 	this_way = &seqadj->seq[dir];
- 	if (this_way->offset_before == this_way->offset_after ||
--	    before(this_way->correction_pos, seq)) {
--		this_way->correction_pos = seq;
-+	    before(this_way->correction_pos, ntohl(seq))) {
-+		this_way->correction_pos = ntohl(seq);
- 		this_way->offset_before	 = this_way->offset_after;
- 		this_way->offset_after	+= off;
- 	}
-
---pf9I7BMVVzbSWLtt--
+This idea sounds fine.  I don't even thing the array indexing is
+odd, especially if we can have named mnenomics for the indices
+or similar.
