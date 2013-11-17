@@ -1,31 +1,40 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: nftables: use automake & pkgconfig
-Date: Sun, 17 Nov 2013 21:39:46 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1311172139280.3883@nerf07.vanv.qr>
-References: <1382280491-9921-1-git-send-email-jengelh@inai.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Eric Leblond <eric@regit.org>
+Subject: [nftables PATCH 1/3] expression: fix indent
+Date: Mon, 18 Nov 2013 00:54:43 +0100
+Message-ID: <1384732485-12944-2-git-send-email-eric@regit.org>
+References: <DUB109-W87FE1E5161E5C42ED6593AE1F80@phx.gbl>
+ <1384732485-12944-1-git-send-email-eric@regit.org>
+Cc: eric@regit.org
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	Alex Chapman <ajchapman88@hotmail.co.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:34161 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752029Ab3KQUjv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Nov 2013 15:39:51 -0500
-In-Reply-To: <1382280491-9921-1-git-send-email-jengelh@inai.de>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:42591 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750Ab3KRARp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 Nov 2013 19:17:45 -0500
+In-Reply-To: <1384732485-12944-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ src/expression.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Sunday 2013-10-20 16:48, Jan Engelhardt wrote:
->are available in the git repository at:
->
->  git://git.inai.de/nftables master
->
->for you to fetch changes up to af2a890f6fa39d09240b85811a430b51b88a866e:
->Jan Engelhardt (3):
->      build: remove unused checks
->      build: rename conflicting parser.h instances
->      build: use automake and pkgconfig
+diff --git a/src/expression.c b/src/expression.c
+index 8cf3f62..71154cc 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -156,7 +156,7 @@ static void verdict_expr_clone(struct expr *new, const struct expr *expr)
+ 
+ static void verdict_expr_destroy(struct expr *expr)
+ {
+-        xfree(expr->chain);
++	xfree(expr->chain);
+ }
+ 
+ static const struct expr_ops verdict_expr_ops = {
+-- 
+1.8.4.3
 
-Any verdict on these?
