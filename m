@@ -1,56 +1,47 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] netfilter: byte order issue in nf_ct_seqadj_set
-Date: Sat, 16 Nov 2013 20:37:46 -0800
-Message-ID: <20131117043745.GA12111@home>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [PATCH 0/9] genetlink: reduce ops size and complexity (v2)
+Date: Sun, 17 Nov 2013 10:12:04 +0100
+Message-ID: <1384679524.14795.7.camel@jlt4.sipsolutions.net>
+References: <1384445687-30948-1-git-send-email-johannes@sipsolutions.net>
+	 <20131114.171204.1979806323628158355.davem@davemloft.net>
+	 <1384521515.14295.2.camel@jlt4.sipsolutions.net>
+	 <20131115.205313.1543711974325231353.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="M9NhX3UHpAaciwkO"
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:65509 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732Ab3KQEhq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Nov 2013 23:37:46 -0500
-Received: by mail-pb0-f52.google.com with SMTP id wy17so4109158pbc.11
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Nov 2013 20:37:46 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-wimax@intel.com,
+	bsingharora@gmail.com, netfilter-devel@vger.kernel.org,
+	alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20131115.205313.1543711974325231353.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 2013-11-15 at 20:53 -0500, David Miller wrote:
 
---M9NhX3UHpAaciwkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> > We could instead register an array of pointers to the groups:
+> > 
+> > static const struct mcast_group *my_groups[] = {
+> >       &my_foo_mcast_group,
+> >       ...
+> > };
+> > 
+> > and pass this to the family - that'd still be less space (one pointer
+> > for each group rather than two in a linked list) and still allow all
+> > groups and this array to be const, but it's not quite as big a
+> > saving ...
+> > 
+> > Thoughts?
+> 
+> This idea sounds fine.  I don't even thing the array indexing is
+> odd, especially if we can have named mnenomics for the indices
+> or similar.
 
-In commit 41d73ec053d2, sequence number adjustments were moved to a separate
-file.  Unfortunately, a necessary ntohl call was removed when the call to 
-adjust_tcp_sequence was collapsed into nf_ct_seqadj_set.  As reported by
-Dawid Stawiarsk, this broke the FTP NAT helper.  Add back the byte order
-conversions.
+I posted something yesterday, but forgot to reply here - basically as
+you'll see in the patches, I decided that we should pass the
+family/group array index instead of passing the global group identifier
+- this will also prevent new users of the APIs from abusing them like
+quota/dropmonitor unfortunately did.
 
-Fixes: 41d73ec053d2 ("netfilter: nf_conntrack: make sequence number adjustments usuable without NAT")
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
---M9NhX3UHpAaciwkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-seqadj
-
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index 5f9bfd0..17c1bcb 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -41,8 +41,8 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 	spin_lock_bh(&ct->lock);
- 	this_way = &seqadj->seq[dir];
- 	if (this_way->offset_before == this_way->offset_after ||
--	    before(this_way->correction_pos, seq)) {
--		this_way->correction_pos = seq;
-+	    before(this_way->correction_pos, ntohl(seq))) {
-+		this_way->correction_pos = ntohl(seq);
- 		this_way->offset_before	 = this_way->offset_after;
- 		this_way->offset_after	+= off;
- 	}
-
---M9NhX3UHpAaciwkO--
+johannes
