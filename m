@@ -1,52 +1,58 @@
-From: Chris Boot <bootc@bootc.net>
-Subject: [PATCH] ulogd: ulogd_inppkt_NFLOG: close nflog handle after unbinding
-Date: Mon, 18 Nov 2013 11:09:14 +0000
-Message-ID: <1384772954-20144-1-git-send-email-bootc@bootc.net>
-Cc: Chris Boot <bootc@bootc.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH iptables-nftables] nft: fix inversion of built-in selectors
+Date: Mon, 18 Nov 2013 13:55:48 +0100
+Message-ID: <1384779348-18868-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kamaji.grokhost.net ([87.117.218.43]:40252 "EHLO
-	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab3KRLJh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Nov 2013 06:09:37 -0500
+Received: from mail.us.es ([193.147.175.20]:41737 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751848Ab3KRMz5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:55:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The nflog handle is closed, and then nflog_unbind_pf() is called on it, which
-triggers an assertion failure within libnfnetlink. This patch simply moves
-the nflog_close() just after the nflog_unbind_pf() calls.
+(0ab045f xtables: fix missing ipt_entry for MASQUERADE target) broke
+inversion of built-in selectors, such as -s, -d, etc.
 
-Signed-off-by: Chris Boot <bootc@bootc.net>
+We need to refresh the invflags if -p is used or set it for first
+time if -p is not used, otherwise inversion is ignored.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+ iptables/nft-ipv4.c |    4 ++++
+ iptables/nft-ipv6.c |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-The below information is included in the Debian patch file (Debian's DEP-3
-patch tagging guidelines):
-
-Author: Chris Boot <debian@bootc.net>
-Bug: https://bugzilla.netfilter.org/show_bug.cgi?id=871
-Bug-Debian: http://bugs.debian.org/729055
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/1250520
-Forwarded: https://bugzilla.netfilter.org/attachment.cgi?id=425
-Last-Update: 2013-11-15
-
-Regards,
-Chris
-
---- ulogd2-2.0.2.orig/input/packet/ulogd_inppkt_NFLOG.c
-+++ ulogd2-2.0.2/input/packet/ulogd_inppkt_NFLOG.c
-@@ -618,12 +618,12 @@ static int start(struct ulogd_pluginstan
- 	return 0;
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 2ac823f..1afe8b6 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -343,6 +343,10 @@ static void nft_ipv4_post_parse(int command,
+ 				struct xtables_args *args)
+ {
+ 	cs->fw.ip.flags = args->flags;
++	/* We already set invflags in proto_parse, but we need to refresh it
++	 * to include new parsed options.
++	 */
++	cs->fw.ip.invflags = args->invflags;
  
- out_bind:
--	nflog_close(ui->nful_h);
- 	if (group_ce(upi->config_kset).u.value == 0) {
- 		nflog_unbind_pf(ui->nful_h, AF_INET);
- 		nflog_unbind_pf(ui->nful_h, AF_INET6);
- 		nflog_unbind_pf(ui->nful_h, AF_BRIDGE);
- 	}
-+	nflog_close(ui->nful_h);
- out_handle:
- 	free(ui->nfulog_buf);
- out_buf:
+ 	strncpy(cs->fw.ip.iniface, args->iniface, IFNAMSIZ);
+ 	memcpy(cs->fw.ip.iniface_mask,
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index b02d952..f30cec6 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -264,6 +264,10 @@ static void nft_ipv6_post_parse(int command, struct iptables_command_state *cs,
+ 		args->flags |= IP6T_F_PROTO;
+ 
+ 	cs->fw6.ipv6.flags = args->flags;
++	/* We already set invflags in proto_parse, but we need to refresh it
++	 * to include new parsed options.
++	 */
++	cs->fw6.ipv6.invflags = args->invflags;
+ 
+ 	strncpy(cs->fw6.ipv6.iniface, args->iniface, IFNAMSIZ);
+ 	memcpy(cs->fw6.ipv6.iniface_mask,
+-- 
+1.7.10.4
+
