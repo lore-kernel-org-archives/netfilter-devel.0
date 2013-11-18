@@ -1,75 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_conntrack: decrement global counter after object release
-Date: Mon, 18 Nov 2013 14:08:19 +0100
-Message-ID: <1384780099-29407-1-git-send-email-pablo@netfilter.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] nftables: delete debian/
+Date: Mon, 18 Nov 2013 14:15:21 +0100
+Message-ID: <20131118131521.GA31481@localhost>
+References: <20131114154438.9679.72477.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46893 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49107 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751699Ab3KRNIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Nov 2013 08:08:35 -0500
+	id S1751185Ab3KRNPa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Nov 2013 08:15:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20131114154438.9679.72477.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_conntrack_free() decrements our counter (net->ct.count)
-before releasing the conntrack object. That counter is used in the
-nf_conntrack_cleanup_net_list path to check if it's time to
-kmem_cache_destroy our cache of conntrack objects. I think we have
-a race there that should be easier to trigger (although still hard)
-with CONFIG_DEBUG_OBJECTS_FREE as object releases become slowier
-according to the following splat:
+On Thu, Nov 14, 2013 at 04:44:38PM +0100, Arturo Borrero Gonzalez wrote:
+> The data there is quite old (2008-2009) and seem unmaintained.
+> Some files like 'control' and 'rules' are inaccurate or completely wrong.
+> 
+> Also, the debian/ dir makes harder for Debian folks to build a package
+> for this tool. I think its better to give them the job.
+> 
+> As the very first release of nftables seems to be nearer than ever, lets do
+> some house-cleaning.
 
-[ 1136.321305] WARNING: CPU: 2 PID: 2483 at lib/debugobjects.c:260
-debug_print_object+0x83/0xa0()
-[ 1136.321311] ODEBUG: free active (active state 0) object type:
-timer_list hint: delayed_work_timer_fn+0x0/0x20
-...
-[ 1136.321390] Call Trace:
-[ 1136.321398]  [<ffffffff8160d4a2>] dump_stack+0x45/0x56
-[ 1136.321405]  [<ffffffff810514e8>] warn_slowpath_common+0x78/0xa0
-[ 1136.321410]  [<ffffffff81051557>] warn_slowpath_fmt+0x47/0x50
-[ 1136.321414]  [<ffffffff812f8883>] debug_print_object+0x83/0xa0
-[ 1136.321420]  [<ffffffff8106aa90>] ? execute_in_process_context+0x90/0x90
-[ 1136.321424]  [<ffffffff812f99fb>] debug_check_no_obj_freed+0x20b/0x250
-[ 1136.321429]  [<ffffffff8112e7f2>] ? kmem_cache_destroy+0x92/0x100
-[ 1136.321433]  [<ffffffff8115d945>] kmem_cache_free+0x125/0x210
-[ 1136.321436]  [<ffffffff8112e7f2>] kmem_cache_destroy+0x92/0x100
-[ 1136.321443]  [<ffffffffa046b806>] nf_conntrack_cleanup_net_list+0x126/0x160 [nf_conntrack]
-[ 1136.321449]  [<ffffffffa046c43d>] nf_conntrack_pernet_exit+0x6d/0x80 [nf_conntrack]
-[ 1136.321453]  [<ffffffff81511cc3>] ops_exit_list.isra.3+0x53/0x60
-[ 1136.321457]  [<ffffffff815124f0>] cleanup_net+0x100/0x1b0
-[ 1136.321460]  [<ffffffff8106b31e>] process_one_work+0x18e/0x430
-[ 1136.321463]  [<ffffffff8106bf49>] worker_thread+0x119/0x390
-[ 1136.321467]  [<ffffffff8106be30>] ? manage_workers.isra.23+0x2a0/0x2a0
-[ 1136.321470]  [<ffffffff8107210b>] kthread+0xbb/0xc0
-[ 1136.321472]  [<ffffffff81072050>] ? kthread_create_on_node+0x110/0x110
-[ 1136.321477]  [<ffffffff8161b8fc>] ret_from_fork+0x7c/0xb0
-[ 1136.321479]  [<ffffffff81072050>] ? kthread_create_on_node+0x110/0x110
-[ 1136.321481] ---[ end trace 25f53c192da70825 ]---
-
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e22d950..43549eb 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -764,9 +764,10 @@ void nf_conntrack_free(struct nf_conn *ct)
- 	struct net *net = nf_ct_net(ct);
- 
- 	nf_ct_ext_destroy(ct);
--	atomic_dec(&net->ct.count);
- 	nf_ct_ext_free(ct);
- 	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
-+	smp_mb__before_atomic_dec();
-+	atomic_dec(&net->ct.count);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_free);
- 
--- 
-1.7.10.4
-
+Indeed. I remember we already discussed this many times before with
+debian devs. Applied, thanks Arturo.
