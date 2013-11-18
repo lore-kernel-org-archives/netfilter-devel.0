@@ -1,58 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH iptables-nftables] nft: fix inversion of built-in selectors
-Date: Mon, 18 Nov 2013 13:55:48 +0100
-Message-ID: <1384779348-18868-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_compat: fix error path in nft_parse_compat()
+Date: Mon, 18 Nov 2013 13:58:05 +0100
+Message-ID: <1384779485-19279-1-git-send-email-pablo@netfilter.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41737 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42846 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848Ab3KRMz5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:55:57 -0500
+	id S1751297Ab3KRM6M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:58:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(0ab045f xtables: fix missing ipt_entry for MASQUERADE target) broke
-inversion of built-in selectors, such as -s, -d, etc.
+The patch 0ca743a55991: "netfilter: nf_tables: add compatibility
+layer for x_tables", leads to the following Smatch
 
-We need to refresh the invflags if -p is used or set it for first
-time if -p is not used, otherwise inversion is ignored.
+ warning: "net/netfilter/nft_compat.c:140 nft_parse_compat()
+          warn: signedness bug returning '(-34)'"
 
+This nft_parse_compat function returns error codes but the return
+type is u8 so the error codes are transformed into small positive
+values. The callers don't check the return.
+
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft-ipv4.c |    4 ++++
- iptables/nft-ipv6.c |    4 ++++
- 2 files changed, 8 insertions(+)
+ net/netfilter/nft_compat.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 2ac823f..1afe8b6 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -343,6 +343,10 @@ static void nft_ipv4_post_parse(int command,
- 				struct xtables_args *args)
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index a82667c..da0c1f4 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -128,7 +128,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
+ 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+-static u8 nft_parse_compat(const struct nlattr *attr, bool *inv)
++static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
  {
- 	cs->fw.ip.flags = args->flags;
-+	/* We already set invflags in proto_parse, but we need to refresh it
-+	 * to include new parsed options.
-+	 */
-+	cs->fw.ip.invflags = args->invflags;
+ 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
+ 	u32 flags;
+@@ -148,7 +148,8 @@ static u8 nft_parse_compat(const struct nlattr *attr, bool *inv)
+ 	if (flags & NFT_RULE_COMPAT_F_INV)
+ 		*inv = true;
  
- 	strncpy(cs->fw.ip.iniface, args->iniface, IFNAMSIZ);
- 	memcpy(cs->fw.ip.iniface_mask,
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index b02d952..f30cec6 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -264,6 +264,10 @@ static void nft_ipv6_post_parse(int command, struct iptables_command_state *cs,
- 		args->flags |= IP6T_F_PROTO;
+-	return ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
++	*proto = ntohl(nla_get_be32(tb[NFTA_RULE_COMPAT_PROTO]));
++	return 0;
+ }
  
- 	cs->fw6.ipv6.flags = args->flags;
-+	/* We already set invflags in proto_parse, but we need to refresh it
-+	 * to include new parsed options.
-+	 */
-+	cs->fw6.ipv6.invflags = args->invflags;
+ static int
+@@ -166,8 +167,11 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
  
- 	strncpy(cs->fw6.ipv6.iniface, args->iniface, IFNAMSIZ);
- 	memcpy(cs->fw6.ipv6.iniface_mask,
+ 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
+ 
+-	if (ctx->nla[NFTA_RULE_COMPAT])
+-		proto = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &inv);
++	if (ctx->nla[NFTA_RULE_COMPAT]) {
++		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
++		if (ret < 0)
++			goto err;
++	}
+ 
+ 	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+ 
+@@ -356,8 +360,11 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 
+ 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
+ 
+-	if (ctx->nla[NFTA_RULE_COMPAT])
+-		proto = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &inv);
++	if (ctx->nla[NFTA_RULE_COMPAT]) {
++		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
++		if (ret < 0)
++			goto err;
++	}
+ 
+ 	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
+ 
 -- 
 1.7.10.4
 
