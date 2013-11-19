@@ -1,33 +1,30 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: ipv6 fragmentation-related panic in netfilter
-Date: Tue, 19 Nov 2013 13:40:32 +0100
-Message-ID: <20131119124032.GS16541@order.stressinduktion.org>
-References: <2060a7d2-c307-4e30-b1d4-0bd26c904d6f@gmail.com> <20131101084529.GL31491@secunet.com> <20131101092536.GA17499@macbook.localnet> <19807032.ebUJct12DE@h2o.as.studentenwerk.mhn.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: synproxy: send mss option to backend
+Date: Tue, 19 Nov 2013 15:35:24 +0100
+Message-ID: <20131119143524.GA7370@localhost>
+References: <1384439731-16296-1-git-send-email-mph@one.com>
+ <1384439731-16296-2-git-send-email-mph@one.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: Patrick McHardy <kaber@trash.net>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Tomas Hlavacek <tmshlvck@gmail.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Wolfgang Walter <linux@stwm.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: brouer@redhat.com, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Martin Topholm <mph@one.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60625 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752344Ab3KSOfb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Nov 2013 09:35:31 -0500
 Content-Disposition: inline
-In-Reply-To: <19807032.ebUJct12DE@h2o.as.studentenwerk.mhn.de>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1384439731-16296-2-git-send-email-mph@one.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 19, 2013 at 12:11:24PM +0100, Wolfgang Walter wrote:
-> Are there patches available? I can crash my 3.12 kernel easily doing
+On Thu, Nov 14, 2013 at 03:35:30PM +0100, Martin Topholm wrote:
+> When the synproxy_parse_options is called on the client ack the mss
+> option will not be present. Consequently mss wont be included in the
+> backend syn packet, which falls back to 536 bytes mss.
 > 
-> 	fping -p 20 -l -b 4000 bla
-> 
-> 3.11.x does not expose this problem.
+> Therefore XT_SYNPROXY_OPT_MSS is explicitly flagged when recovering mss
+> value from cookie.
 
-Yes, see here:
-
-http://patchwork.ozlabs.org/patch/288967/
-http://patchwork.ozlabs.org/patch/288970/
-
-Greetings,
-
-  Hannes
+Applied, thanks Martin.
