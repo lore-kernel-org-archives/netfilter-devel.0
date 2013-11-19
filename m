@@ -1,76 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] build: remove unused checks
-Date: Tue, 19 Nov 2013 21:24:45 +0100
-Message-ID: <20131119202445.GA4929@localhost>
+Subject: Re: [PATCH 2/3] build: rename conflicting parser.h instances
+Date: Tue, 19 Nov 2013 21:25:34 +0100
+Message-ID: <20131119202534.GB4929@localhost>
 References: <1382280491-9921-1-git-send-email-jengelh@inai.de>
- <1382280491-9921-2-git-send-email-jengelh@inai.de>
+ <1382280491-9921-3-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44705 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44777 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788Ab3KSUYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Nov 2013 15:24:53 -0500
+	id S1751788Ab3KSUZi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Nov 2013 15:25:38 -0500
 Content-Disposition: inline
-In-Reply-To: <1382280491-9921-2-git-send-email-jengelh@inai.de>
+In-Reply-To: <1382280491-9921-3-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 20, 2013 at 04:48:09PM +0200, Jan Engelhardt wrote:
-> The result of these checks was never evaluated, so remove them.
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
-> ---
->  configure.ac | 31 -------------------------------
->  1 file changed, 31 deletions(-)
-> 
-> diff --git a/configure.ac b/configure.ac
-> index 811d7e2..b850451 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -21,7 +21,6 @@ AC_SUBST([CONFIG_DEBUG])
->  
->  # Checks for programs.
->  AC_PROG_CC
-> -AC_PROG_MKDIR_P
->  AC_PROG_INSTALL
->  
->  AC_CHECK_PROG(CONFIG_MAN, docbook2x-man, y, n)
-> @@ -61,36 +60,6 @@ AC_CHECK_LIB([gmp], [__gmpz_init], ,
->  AC_CHECK_LIB([readline], [readline], ,
->  	     AC_MSG_ERROR([No suitable version of libreadline found]))
->  
-> -# Checks for header files.
-> -AC_HEADER_STDC
-> -AC_HEADER_ASSERT
-> -AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h libintl.h limits.h malloc.h \
-> -		  netdb.h netinet/in.h netinet/ip.h netinet/ip6.h \
-> -		  netinet/tcp.h netinet/udp.h netinet/ip_icmp.h \
-> -		  stddef.h stdint.h stdlib.h string.h unistd.h], ,
-> -		 AC_MSG_ERROR([Header file not found]))
-> -# Checks for typedefs, structures, and compiler characteristics.
-> -AC_HEADER_STDBOOL
-> -AC_C_CONST
-> -AC_C_INLINE
-> -AC_TYPE_OFF_T
-> -AC_TYPE_SIZE_T
-> -AC_TYPE_UID_T
-> -AC_TYPE_INT8_T
-> -AC_TYPE_INT16_T
-> -AC_TYPE_INT32_T
-> -AC_TYPE_INT64_T
-> -AC_TYPE_UINT8_T
-> -AC_TYPE_UINT16_T
-> -AC_TYPE_UINT32_T
-> -AC_TYPE_UINT64_T
-> -# Checks for library functions.
-> -AC_FUNC_MALLOC
-> -AC_FUNC_REALLOC
->
-> -AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
-> -
+On Sun, Oct 20, 2013 at 04:48:10PM +0200, Jan Engelhardt wrote:
+> If -I. is on the command line, #include <parser.h> becomes ./parser.h
+> instead of ../include/parser.h.
 
-These still generate information that is included in the config.log. I
-don't want to get rid of this at this stage.
+What use case are you trying to handle with this?
