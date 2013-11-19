@@ -1,74 +1,65 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] ulogd: ulogd_inppkt_NFLOG: close nflog handle after
- unbinding
-Date: Mon, 18 Nov 2013 23:32:12 +0100
-Message-ID: <1384813932.7983.7.camel@tiger2>
-References: <1384772954-20144-1-git-send-email-bootc@bootc.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nftables PATCH] listing: only display wanted chain
+Date: Tue, 19 Nov 2013 10:26:02 +0100
+Message-ID: <CAOkSjBim5j=bfuu8NdzXA6ctMpE-Q6w90dB3Ltj0+wJjBX1AAg@mail.gmail.com>
+References: <1384760421-4238-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Boot <bootc@bootc.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:51769 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab3KRWcW (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:63175 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab3KSJ0Y convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Nov 2013 17:32:22 -0500
-In-Reply-To: <1384772954-20144-1-git-send-email-bootc@bootc.net>
+	Tue, 19 Nov 2013 04:26:24 -0500
+Received: by mail-la0-f50.google.com with SMTP id el20so5765458lab.23
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2013 01:26:23 -0800 (PST)
+In-Reply-To: <1384760421-4238-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On 18 November 2013 08:40, Eric Leblond <eric@regit.org> wrote:
+> When specifying a chain to list, all created chains were displayed
+> with a void content:
+>
+>  # nft list chain filter
+>  table ip filter {
+>         chain input {
+>         }
+>
+>         chain new {
+>                  counter packets 17971 bytes 2380637 accept
+>                  counter packets 0 bytes 0 accept
+>         }
+>   }
+>
+> With the attached patch, only the asked chain is displayed:
+>
+>   # nft list chain filter
+>   table ip filter {
+>         chain new {
+>                  counter packets 17971 bytes 2380637 accept # handle =
+36
+>                  counter packets 0 bytes 0 accept # handle 40
+>         }
+>   }
+>
+> Signed-off-by: Eric Leblond <eric@regit.org>
 
-On Mon, 2013-11-18 at 11:09 +0000, Chris Boot wrote:
-> The nflog handle is closed, and then nflog_unbind_pf() is called on it, which
-> triggers an assertion failure within libnfnetlink. This patch simply moves
-> the nflog_close() just after the nflog_unbind_pf() calls.
-> 
-> Signed-off-by: Chris Boot <bootc@bootc.net>
+Hi all,
 
-Thanks a lot applied.
+I've been testing this patch and works fine for me.
+I think the old behaviour was a bit odd.
 
-BR,
-
-> ---
-> 
-> The below information is included in the Debian patch file (Debian's DEP-3
-> patch tagging guidelines):
-> 
-> Author: Chris Boot <debian@bootc.net>
-> Bug: https://bugzilla.netfilter.org/show_bug.cgi?id=871
-> Bug-Debian: http://bugs.debian.org/729055
-> Bug-Ubuntu: https://bugs.launchpad.net/bugs/1250520
-> Forwarded: https://bugzilla.netfilter.org/attachment.cgi?id=425
-> Last-Update: 2013-11-15
-> 
-> Regards,
-> Chris
-> 
-> --- ulogd2-2.0.2.orig/input/packet/ulogd_inppkt_NFLOG.c
-> +++ ulogd2-2.0.2/input/packet/ulogd_inppkt_NFLOG.c
-> @@ -618,12 +618,12 @@ static int start(struct ulogd_pluginstan
->  	return 0;
->  
->  out_bind:
-> -	nflog_close(ui->nful_h);
->  	if (group_ce(upi->config_kset).u.value == 0) {
->  		nflog_unbind_pf(ui->nful_h, AF_INET);
->  		nflog_unbind_pf(ui->nful_h, AF_INET6);
->  		nflog_unbind_pf(ui->nful_h, AF_BRIDGE);
->  	}
-> +	nflog_close(ui->nful_h);
->  out_handle:
->  	free(ui->nfulog_buf);
->  out_buf:
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
-
+Thanks Eric.
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
