@@ -1,45 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: bugfix: fix regression bug in ebt_ip6 which resulted in ebtables
- IPv6 src/dst fields not being zeroed
-Date: Tue, 19 Nov 2013 15:38:07 +0100
-Message-ID: <20131119143807.GA7403@localhost>
-References: <527AB6D0.8090605@uolinc.com>
- <528A7E44.5080909@pandora.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Luis Fernando Cornachioni Estrozi <lestrozi@uolinc.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] src: expr: log: fixed error in nft_rule_expr_log_build
+Date: Tue, 19 Nov 2013 17:56:18 +0100
+Message-ID: <1384880178-32530-1-git-send-email-anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33067 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752278Ab3KSOiO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Nov 2013 09:38:14 -0500
-Content-Disposition: inline
-In-Reply-To: <528A7E44.5080909@pandora.be>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:35711 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab3KSQ7L (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Nov 2013 11:59:11 -0500
+Received: by mail-wg0-f47.google.com with SMTP id y10so7799999wgg.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Nov 2013 08:59:10 -0800 (PST)
+Received: from tuxhiba.colubris.lan (250.Red-80-33-69.staticIP.rima-tde.net. [80.33.69.250])
+        by mx.google.com with ESMTPSA id gb1sm6593531wic.0.2013.11.19.08.59.09
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 19 Nov 2013 08:59:09 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 18, 2013 at 09:53:24PM +0100, Bart De Schuymer wrote:
-> Luis Fernando Cornachioni Estrozi schreef op 6/11/2013 22:39:
-> >fix regression bug in ebt_ip6 which resulted in ebtables IPv6 src/ds=
-t
-> >fields not being zeroed
+If I run my automatic unit test of libnftable, It shows:
+"ERROR: Expr NFT_EXPR_LOG_PREFIX mismatches"
+a: test
+b: test
 
-I think the problem is that IPv6 src/dst matching was broken.
+The problem was in nft_rule_expr_log_build function.
 
-> >Signed-off-by: Lu=EDs Fernando Cornachioni Estrozi <lestrozi@uolinc.=
-com>
-> Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+With the attached patch, we use "mnl_attr_put_strz" in instead of
+"mnl_attr_put_str".
+---
+ src/expr/log.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This patch does not apply at all, it seems that it was probably
-mangled by Luis Fernando's MUA.
+diff --git a/src/expr/log.c b/src/expr/log.c
+index 495c1bd..76657a9 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -119,7 +119,7 @@ nft_rule_expr_log_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 	struct nft_expr_log *log = nft_expr_data(e);
+ 
+ 	if (e->flags & (1 << NFT_EXPR_LOG_PREFIX))
+-		mnl_attr_put_str(nlh, NFTA_LOG_PREFIX, log->prefix);
++		mnl_attr_put_strz(nlh, NFTA_LOG_PREFIX, log->prefix);
+ 	if (e->flags & (1 << NFT_EXPR_LOG_GROUP))
+ 		mnl_attr_put_u16(nlh, NFTA_LOG_GROUP, htons(log->group));
+ 	if (e->flags & (1 << NFT_EXPR_LOG_SNAPLEN))
+-- 
+1.8.4.rc3
 
-I have fixed and applied this patch. Please, next time make sure your
-patch applies cleanly, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
