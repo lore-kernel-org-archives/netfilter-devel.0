@@ -1,48 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: ipv6 fragmentation-related panic in netfilter
-Date: Wed, 20 Nov 2013 15:43:33 -0500 (EST)
-Message-ID: <20131120.154333.863504215748882182.davem@davemloft.net>
-References: <19807032.ebUJct12DE@h2o.as.studentenwerk.mhn.de>
-	<20131119124032.GS16541@order.stressinduktion.org>
-	<3998760.5g9L5dp08X@h2o.as.studentenwerk.mhn.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] include: table: chain: added set and get for u8 values
+ in chain and table.
+Date: Wed, 20 Nov 2013 23:57:04 +0100
+Message-ID: <20131120225704.GA17786@localhost>
+References: <1384862516-3518-1-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: hannes@stressinduktion.org, kaber@trash.net,
-	steffen.klassert@secunet.com, tmshlvck@gmail.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: linux@stwm.de
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:36915 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755030Ab3KTUng (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Nov 2013 15:43:36 -0500
-In-Reply-To: <3998760.5g9L5dp08X@h2o.as.studentenwerk.mhn.de>
+Received: from mail.us.es ([193.147.175.20]:46230 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751409Ab3KTW5L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Nov 2013 17:57:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1384862516-3518-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Wolfgang Walter <linux@stwm.de>
-Date: Tue, 19 Nov 2013 23:27:40 +0100
+On Tue, Nov 19, 2013 at 01:01:56PM +0100, Ana Rey wrote:
+> I need it to allocate and show some values for chain and table.
+> I missed it doing the tests of libnftables.
 
-> Am Dienstag, 19. November 2013, 13:40:32 schrieb Hannes Frederic Sowa:
->> Yes, see here:
->> 
->> http://patchwork.ozlabs.org/patch/288967/
->> http://patchwork.ozlabs.org/patch/288970/
->> 
-> 
-> This fixed it. The second patch did not cleanly apply to 3.12 due to
-> formatting changes or because some functions in 3.12 get
-> 
-> 	unsigned int hooknum
-> 
-> instead of
-> 
-> 	const struct nf_hook_ops *ops
-> 
-> I hopefully got it right:at least it works and no crashes any more :-).
-> 
-> I hope both patches go into stable soon.
-
-They are both queued up.
+Applied, thanks Ana.
