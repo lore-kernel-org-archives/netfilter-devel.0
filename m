@@ -1,34 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH v4] tests: tests for libnftables
-Date: Wed, 20 Nov 2013 23:59:02 +0100
-Message-ID: <20131120225902.GB17786@localhost>
-References: <1384946592-6109-1-git-send-email-anarey@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46407 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959Ab3KTW7L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Nov 2013 17:59:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1384946592-6109-1-git-send-email-anarey@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH 1/7] netfilter: fix connlimit Kconfig prompt string
+Date: Thu, 21 Nov 2013 10:05:22 +0100
+Message-ID: <1385024728-4057-2-git-send-email-pablo@netfilter.org>
+References: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 20, 2013 at 12:23:12PM +0100, Ana Rey wrote:
-> Makefile and tests files for libnftables.
-> 
-> In this patch, I create a initial object 'a' and I set a testing values. Then,
-> I convert this object in a Netlink message.
-> 
-> From this Netlink message, I parse that (through nft_table_nlmsg_parse
-> function) in 'b' objetc.
-> 
-> Thus, we make sure that object transformations are correct.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-I have renamed the 'die' functions to 'print_err' as your tests don't
-seem to die anymore if we hit a problem, no problem it was fast :).
+Under Core Netfilter Configuration, connlimit match support has
+an extra double quote at the end of it.
 
-Applied, good job Ana.
+Fixes a portion of kernel bugzilla #52671:
+  https://bugzilla.kernel.org/show_bug.cgi?id=52671
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: lailavrazda1979@gmail.com
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 48acec1..c3398cd 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -909,7 +909,7 @@ config NETFILTER_XT_MATCH_CONNLABEL
+ 	  connection simultaneously.
+ 
+ config NETFILTER_XT_MATCH_CONNLIMIT
+-	tristate '"connlimit" match support"'
++	tristate '"connlimit" match support'
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+-- 
+1.7.10.4
