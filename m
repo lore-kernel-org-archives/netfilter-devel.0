@@ -1,60 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/7] netfilter: synproxy: send mss option to backend
-Date: Thu, 21 Nov 2013 10:05:23 +0100
-Message-ID: <1385024728-4057-3-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] netfilter fixes for net
+Date: Thu, 21 Nov 2013 12:45:07 -0500 (EST)
+Message-ID: <20131121.124507.111045558003717369.davem@davemloft.net>
 References: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34743 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752615Ab3KUJGD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Nov 2013 04:06:03 -0500
+Received: from shards.monkeyblade.net ([149.20.54.216]:43248 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754587Ab3KURpK convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Nov 2013 12:45:10 -0500
 In-Reply-To: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Martin Topholm <mph@one.com>
+=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 21 Nov 2013 10:05:21 +0100
 
-When the synproxy_parse_options is called on the client ack the mss
-option will not be present. Consequently mss wont be included in the
-backend syn packet, which falls back to 536 bytes mss.
+> The following patchset contains fixes for your net tree, they are:
+>=20
+> * Remove extra quote from connlimit configuration in Kconfig, from
+>   Randy Dunlap.
+>=20
+> * Fix missing mss option in syn packets sent to the backend in our
+>   new synproxy target, from Martin Topholm.
+>=20
+> * Use window scale announced by client when sending the forged
+>   syn to the backend, from Martin Topholm.
+>=20
+> * Fix IPv6 address comparison in ebtables, from Lu=EDs Fernando
+>   Cornachioni Estrozi.
+>=20
+> * Fix wrong endianess in sequence adjustment which breaks helpers
+>   in NAT configurations, from Phil Oester.
+>=20
+> * Fix the error path handling of nft_compat, from me.
+>=20
+> * Make sure the global conntrack counter is decremented after the
+>   object has been released, also from me.
 
-Therefore XT_SYNPROXY_OPT_MSS is explicitly flagged when recovering mss
-value from cookie.
-
-Signed-off-by: Martin Topholm <mph@one.com>
-Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ipt_SYNPROXY.c  |    1 +
- net/ipv6/netfilter/ip6t_SYNPROXY.c |    1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 01cffea..f13bd91 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -244,6 +244,7 @@ synproxy_recv_client_ack(const struct synproxy_net *snet,
- 
- 	this_cpu_inc(snet->stats->cookie_valid);
- 	opts->mss = mss;
-+	opts->options |= XT_SYNPROXY_OPT_MSS;
- 
- 	if (opts->options & XT_SYNPROXY_OPT_TIMESTAMP)
- 		synproxy_check_timestamp_cookie(opts);
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index bf9f612..f78f41a 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -259,6 +259,7 @@ synproxy_recv_client_ack(const struct synproxy_net *snet,
- 
- 	this_cpu_inc(snet->stats->cookie_valid);
- 	opts->mss = mss;
-+	opts->options |= XT_SYNPROXY_OPT_MSS;
- 
- 	if (opts->options & XT_SYNPROXY_OPT_TIMESTAMP)
- 		synproxy_check_timestamp_cookie(opts);
--- 
-1.7.10.4
-
+Pulled, thanks a lot Pablo.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
