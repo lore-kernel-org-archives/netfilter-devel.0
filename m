@@ -1,106 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.4.21 release
-Date: Fri, 22 Nov 2013 13:12:32 +0100
-Message-ID: <20131122121232.GA5698@localhost>
+From: Eric Leblond <eric@regit.org>
+Subject: [ANNOUNCE] ulogd 2.0.3 release
+Date: Fri, 22 Nov 2013 14:04:20 +0100
+Message-ID: <1385125460.5297.132.camel@tiger2>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-weiKAKPefre4hNoE1v2g"
 Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
 	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45726 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752132Ab3KVMMi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Nov 2013 07:12:38 -0500
-Content-Disposition: inline
+Received: from ks28632.kimsufi.com ([91.121.96.152]:55054 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755346Ab3KVNEd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Nov 2013 08:04:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-weiKAKPefre4hNoE1v2g
+Content-Type: multipart/mixed; boundary="=-B8Deui24OajgKTqJD+wr"
+
+
+--=-B8Deui24OajgKTqJD+wr
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
 The Netfilter project proudly presents:
 
-        iptables 1.4.21
+        ulogd 2.0.3
 
-iptables is the userspace command line program used to configure the
-Linux packet filtering ruleset. It is targeted towards system administrators.
-Since Network Address Translation is also configured from the packet filter
-ruleset, iptables is used for this, too. The iptables package also includes
-ip6tables. ip6tables is used for configuring the IPv6 packet filter.
+ulogd is a userspace logging daemon for netfilter/iptables related
+logging. This includes per-packet logging of security violations,
+per-packet logging for accounting, per-flow logging and flexible
+user-defined accounting.
 
-This release includes fixes and a couple of new features:
-
-* --nowildcard option for xt_socket, available since Linux kernel 3.11,
-  from Eric Dumazet.
-
-* SYNPROXY support, available since Linux kernel 3.12, from Patrick McHardy.
+ulogd 2.0.3 features major improvements in the database output:
+      * Optional backlog system to avoid event loss in case of database
+        downtime
+      * Optional running mode where acquisition is made in one thread
+        and queries to databases are made in separate threads=20
 
 See ChangeLog that comes attached to this email for more details.
 
+Thanks to Chris Boot, Ilya Tumaykin, Ulrich Weber and Victor Julien for
+their contributions to this release of ulogd.
+
 You can download it from:
 
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
+http://www.netfilter.org/projects/ulogd/downloads.html
+ftp://ftp.netfilter.org/pub/ulogd/
 
 Have fun!
+--=20
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.4.21.txt"
+--=-B8Deui24OajgKTqJD+wr
+Content-Disposition: attachment; filename="changes-ulogd-2.0.3.txt"
+Content-Type: text/plain; name="changes-ulogd-2.0.3.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-Eric Dumazet (1):
-      xt_socket: add --nowildcard flag
-
-Florian Westphal (3):
-      extensions: libxt_socket: update man page
-      doc: add libnetfilter_queue pointer to libxt_NFQUEUE.man
-      doc: merge ip6table man pages into ipv4 ones
-
-Jozsef Kadlecsik (1):
-      extensions: libxt_set, libxt_SET: check the set family too
-
-Kevin Cernekee (1):
-      ip6tables: Use consistent exit code for EAGAIN
-
-Laurence J. Lane (8):
-      iptables: libxt_hashlimit.man: correct address
-      iptables: libxt_conntrack.man extraneous commas
-      iptables: libip(6)t_REJECT.man default icmp types
-      iptables: iptables-xm1.1 correct man section
-      iptables: libxt_recent.{c,man} dead URL
-      iptables: libxt_string.man add examples
-      extensions: libxt_LOG: use generic syslog reference in manpage
-      iptables: extensions/GNUMakefile.in use CPPFLAGS
-
-Lutz Jaenicke (1):
-      iptables: correctly reference generated file
-
-Pablo Neira Ayuso (7):
-      Merge branch 'stable-1.4.20'
-      Merge branch 'stable-1.4.20'
-      ip[6]tables: fix incorrect alignment in commands_v_options
-      build: add software version to manpage first line at configure stage
-      extensions: libxt_cluster: add note on arptables-jf
-      utils: nfsynproxy: fix error while compiling the BPF filter
-      iptables 1.4.21 release
-
-Patrick McHardy (2):
-      extensions: add SYNPROXY extension
-      utils: add nfsynproxy tool
-
-Phil Oester (4):
-      iptables: state match incompatibilty across versions
-      libxtables: xtables_ipmask_to_numeric incorrect with non-CIDR masks
-      iptables: improve chain name validation
-      iptables: spurious error in load_extension
-
-stephen hemminger (1):
-      xtables: trivial spelling fix
+Q2hyaXMgQm9vdCAoMyk6DQogICAgICB1bG9nZDogUGVyZm9ybSBuaWNlKCkgYmVmb3JlIGdpdmlu
+ZyB1cCByb290DQogICAgICB1bG9nZDogSW1wbGVtZW50IFBJRCBmaWxlIHdyaXRpbmcNCiAgICAg
+IHVsb2dkOiB1bG9nZF9pbnBwa3RfTkZMT0c6IGNsb3NlIG5mbG9nIGhhbmRsZSBhZnRlciB1bmJp
+bmRpbmcNCg0KRXJpYyBMZWJsb25kICgxNyk6DQogICAgICBuZmN0OiB1c2UgdGltZXN0YW1wIG9m
+IGNvbm50cmFjayBvYmplY3QuDQogICAgICB1bG9nZDogY2hhbmdlIHZlcmJvc2l0eSBvZiBhIG1l
+c3NhZ2UNCiAgICAgIHVsb2dkOiBkaXNwbGF5IHN0YWNrIGR1cmluZyBjb25maWd1cmF0aW9uDQog
+ICAgICBwb3N0Z3Jlc3FsOiBhZGQgc2FuaXR5IGNoZWNraW5nDQogICAgICBteXNxbDogYWRkIHNh
+bml0eSBjaGVja2luZw0KICAgICAgc3FsaXRlMzogYWRkIHNhbml0eSBjaGVja2luZw0KICAgICAg
+ZGI6IHN0b3JlIGRhdGEgaW4gbWVtb3J5IGR1cmluZyBkYXRhYmFzZSBkb3dudGltZQ0KICAgICAg
+ZGI6IHN1cHByZXNzIGZpZWxkIGluIGRiIHN0cnVjdHVyZQ0KICAgICAgZGI6IHVzZSBvZmZzZXQg
+aW5zdGVhZCBvZiBkaXJlY3QgcG9pbnRlci4NCiAgICAgIGRiOiBhZGQgcmluZyBidWZmZXIgZm9y
+IERCIHF1ZXJ5DQogICAgICBkYjogZGlzYWJsZSBTSUdIVVAgaWYgcmluZyBidWZmZXIgaXMgdXNl
+ZC4NCiAgICAgIGRiOiBkYiByaW5nIGhhcyBwcmVjZWRlbmNlIG92ZXIgYmFja2xvZy4NCiAgICAg
+IEltcHJvdmUgcGlkIGZpbGUgaGFuZGxpbmcuDQogICAgICBwZ3NxbDogYWRkIHZhciB0byBzcGVj
+aWZ5IGFyYml0cmFyeSBjb25uIHBhcmFtcw0KICAgICAgdWxvZ2QuY29uZjogYWRkIG1pc3Npbmcg
+cXVvdGUuDQogICAgICB1bG9nZDogdXNlIGRhZW1vbigpIGZ1bmN0aW9uDQogICAgICBTZXQgcmVs
+ZWFzZSBudW1iZXIgdG8gMi4wLjMuDQoNCklseWEgVHVtYXlraW4gKDEpOg0KICAgICAgRml4IGF1
+dG9tYWdpYyBzdXBwb3J0IG9mIGRiaSwgcGNhcCBhbmQgc3FsaXRlMw0KDQpQYWJsbyBOZWlyYSBB
+eXVzbyAoMik6DQogICAgICB1bG9nZDogY2xvc2UgbG9nZmlsZSBkZXNjcmlwdGlvbiBpbiB0aGUg
+ZXhpdCBwYXRoIG9mIHBhcmVudCBwcm9jZXNzDQogICAgICBSZXZlcnQgInVsb2dkOiBjbG9zZSBs
+b2dmaWxlIGRlc2NyaXB0aW9uIGluIHRoZSBleGl0IHBhdGggb2YgcGFyZW50IHByb2Nlc3MiDQoN
+ClVscmljaCBXZWJlciAoMSk6DQogICAgICBuZmN0OiBtYWtlIE5GQ1QgcGFja2V0IGNvdW50ZXIv
+bGVuZ3RoIDY0IGJpdA0KDQpWaWN0b3IgSnVsaWVuICgxKToNCiAgICAgIEV4ZWMgbGlibW5sIGNv
+bmZpZyBjaGVjayBvbmx5IGlmIG5mYWNjdCBpcyBlbmFibGVkDQoNCg==
 
 
---Qxx1br4bt0+wmkIi--
+--=-B8Deui24OajgKTqJD+wr--
+
+--=-weiKAKPefre4hNoE1v2g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iEYEABECAAYFAlKPVlQACgkQnxA7CdMWjzLQhwCcCVYKQ/3ojfUMzvT/RdBr1/lz
+7U4AnRtYAoqFTrBWijPYRl8jFHhJ1u7C
+=napV
+-----END PGP SIGNATURE-----
+
+--=-weiKAKPefre4hNoE1v2g--
+
