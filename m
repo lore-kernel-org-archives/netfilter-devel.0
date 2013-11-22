@@ -1,108 +1,46 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [ANNOUNCE] ulogd 2.0.3 release
-Date: Fri, 22 Nov 2013 14:04:20 +0100
-Message-ID: <1385125460.5297.132.camel@tiger2>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 4/7] netfilter: fix wrong byte order in nf_ct_seqadj_set
+ internal information
+Date: Fri, 22 Nov 2013 21:16:50 +0400
+Message-ID: <528F9182.7020205@cogentembedded.com>
+References: <1385024728-4057-1-git-send-email-pablo@netfilter.org> <1385024728-4057-5-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-weiKAKPefre4hNoE1v2g"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:55054 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755346Ab3KVNEd (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:52428 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755881Ab3KVRRE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Nov 2013 08:04:33 -0500
+	Fri, 22 Nov 2013 12:17:04 -0500
+Received: by mail-lb0-f178.google.com with SMTP id c11so1169465lbj.23
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Nov 2013 09:17:03 -0800 (PST)
+In-Reply-To: <1385024728-4057-5-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello.
 
---=-weiKAKPefre4hNoE1v2g
-Content-Type: multipart/mixed; boundary="=-B8Deui24OajgKTqJD+wr"
+On 21-11-2013 13:05, Pablo Neira Ayuso wrote:
 
+> From: Phil Oester <kernel@linuxace.com>
 
---=-B8Deui24OajgKTqJD+wr
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> In commit 41d73ec053d2, sequence number adjustments were moved to a
 
-Hi!
+    Please also specify that commit's summary line in parens.
 
-The Netfilter project proudly presents:
+> separate file. Unfortunately, the sequence numbers that are stored
+> in the nf_ct_seqadj structure are expressed in host byte order. The
+> necessary ntohl call was removed when the call to adjust_tcp_sequence
+> was collapsed into nf_ct_seqadj_set. This broke the FTP NAT helper.
+> Fix it by adding back the byte order conversions.
 
-        ulogd 2.0.3
+> Reported-by: Dawid Stawiarski <dawid.stawiarski@netart.pl>
+> Signed-off-by: Phil Oester <kernel@linuxace.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-ulogd is a userspace logging daemon for netfilter/iptables related
-logging. This includes per-packet logging of security violations,
-per-packet logging for accounting, per-flow logging and flexible
-user-defined accounting.
-
-ulogd 2.0.3 features major improvements in the database output:
-      * Optional backlog system to avoid event loss in case of database
-        downtime
-      * Optional running mode where acquisition is made in one thread
-        and queries to databases are made in separate threads=20
-
-See ChangeLog that comes attached to this email for more details.
-
-Thanks to Chris Boot, Ilya Tumaykin, Ulrich Weber and Victor Julien for
-their contributions to this release of ulogd.
-
-You can download it from:
-
-http://www.netfilter.org/projects/ulogd/downloads.html
-ftp://ftp.netfilter.org/pub/ulogd/
-
-Have fun!
---=20
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
-
---=-B8Deui24OajgKTqJD+wr
-Content-Disposition: attachment; filename="changes-ulogd-2.0.3.txt"
-Content-Type: text/plain; name="changes-ulogd-2.0.3.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-Q2hyaXMgQm9vdCAoMyk6DQogICAgICB1bG9nZDogUGVyZm9ybSBuaWNlKCkgYmVmb3JlIGdpdmlu
-ZyB1cCByb290DQogICAgICB1bG9nZDogSW1wbGVtZW50IFBJRCBmaWxlIHdyaXRpbmcNCiAgICAg
-IHVsb2dkOiB1bG9nZF9pbnBwa3RfTkZMT0c6IGNsb3NlIG5mbG9nIGhhbmRsZSBhZnRlciB1bmJp
-bmRpbmcNCg0KRXJpYyBMZWJsb25kICgxNyk6DQogICAgICBuZmN0OiB1c2UgdGltZXN0YW1wIG9m
-IGNvbm50cmFjayBvYmplY3QuDQogICAgICB1bG9nZDogY2hhbmdlIHZlcmJvc2l0eSBvZiBhIG1l
-c3NhZ2UNCiAgICAgIHVsb2dkOiBkaXNwbGF5IHN0YWNrIGR1cmluZyBjb25maWd1cmF0aW9uDQog
-ICAgICBwb3N0Z3Jlc3FsOiBhZGQgc2FuaXR5IGNoZWNraW5nDQogICAgICBteXNxbDogYWRkIHNh
-bml0eSBjaGVja2luZw0KICAgICAgc3FsaXRlMzogYWRkIHNhbml0eSBjaGVja2luZw0KICAgICAg
-ZGI6IHN0b3JlIGRhdGEgaW4gbWVtb3J5IGR1cmluZyBkYXRhYmFzZSBkb3dudGltZQ0KICAgICAg
-ZGI6IHN1cHByZXNzIGZpZWxkIGluIGRiIHN0cnVjdHVyZQ0KICAgICAgZGI6IHVzZSBvZmZzZXQg
-aW5zdGVhZCBvZiBkaXJlY3QgcG9pbnRlci4NCiAgICAgIGRiOiBhZGQgcmluZyBidWZmZXIgZm9y
-IERCIHF1ZXJ5DQogICAgICBkYjogZGlzYWJsZSBTSUdIVVAgaWYgcmluZyBidWZmZXIgaXMgdXNl
-ZC4NCiAgICAgIGRiOiBkYiByaW5nIGhhcyBwcmVjZWRlbmNlIG92ZXIgYmFja2xvZy4NCiAgICAg
-IEltcHJvdmUgcGlkIGZpbGUgaGFuZGxpbmcuDQogICAgICBwZ3NxbDogYWRkIHZhciB0byBzcGVj
-aWZ5IGFyYml0cmFyeSBjb25uIHBhcmFtcw0KICAgICAgdWxvZ2QuY29uZjogYWRkIG1pc3Npbmcg
-cXVvdGUuDQogICAgICB1bG9nZDogdXNlIGRhZW1vbigpIGZ1bmN0aW9uDQogICAgICBTZXQgcmVs
-ZWFzZSBudW1iZXIgdG8gMi4wLjMuDQoNCklseWEgVHVtYXlraW4gKDEpOg0KICAgICAgRml4IGF1
-dG9tYWdpYyBzdXBwb3J0IG9mIGRiaSwgcGNhcCBhbmQgc3FsaXRlMw0KDQpQYWJsbyBOZWlyYSBB
-eXVzbyAoMik6DQogICAgICB1bG9nZDogY2xvc2UgbG9nZmlsZSBkZXNjcmlwdGlvbiBpbiB0aGUg
-ZXhpdCBwYXRoIG9mIHBhcmVudCBwcm9jZXNzDQogICAgICBSZXZlcnQgInVsb2dkOiBjbG9zZSBs
-b2dmaWxlIGRlc2NyaXB0aW9uIGluIHRoZSBleGl0IHBhdGggb2YgcGFyZW50IHByb2Nlc3MiDQoN
-ClVscmljaCBXZWJlciAoMSk6DQogICAgICBuZmN0OiBtYWtlIE5GQ1QgcGFja2V0IGNvdW50ZXIv
-bGVuZ3RoIDY0IGJpdA0KDQpWaWN0b3IgSnVsaWVuICgxKToNCiAgICAgIEV4ZWMgbGlibW5sIGNv
-bmZpZyBjaGVjayBvbmx5IGlmIG5mYWNjdCBpcyBlbmFibGVkDQoNCg==
-
-
---=-B8Deui24OajgKTqJD+wr--
-
---=-weiKAKPefre4hNoE1v2g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iEYEABECAAYFAlKPVlQACgkQnxA7CdMWjzLQhwCcCVYKQ/3ojfUMzvT/RdBr1/lz
-7U4AnRtYAoqFTrBWijPYRl8jFHhJ1u7C
-=napV
------END PGP SIGNATURE-----
-
---=-weiKAKPefre4hNoE1v2g--
+WBR, Sergei
 
