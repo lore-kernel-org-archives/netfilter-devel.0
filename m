@@ -1,51 +1,106 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/7] netfilter fixes for net
-Date: Thu, 21 Nov 2013 12:45:07 -0500 (EST)
-Message-ID: <20131121.124507.111045558003717369.davem@davemloft.net>
-References: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] iptables 1.4.21 release
+Date: Fri, 22 Nov 2013 13:12:32 +0100
+Message-ID: <20131122121232.GA5698@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:43248 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587Ab3KURpK convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Nov 2013 12:45:10 -0500
-In-Reply-To: <1385024728-4057-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:45726 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752132Ab3KVMMi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Nov 2013 07:12:38 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 21 Nov 2013 10:05:21 +0100
 
-> The following patchset contains fixes for your net tree, they are:
->=20
-> * Remove extra quote from connlimit configuration in Kconfig, from
->   Randy Dunlap.
->=20
-> * Fix missing mss option in syn packets sent to the backend in our
->   new synproxy target, from Martin Topholm.
->=20
-> * Use window scale announced by client when sending the forged
->   syn to the backend, from Martin Topholm.
->=20
-> * Fix IPv6 address comparison in ebtables, from Lu=EDs Fernando
->   Cornachioni Estrozi.
->=20
-> * Fix wrong endianess in sequence adjustment which breaks helpers
->   in NAT configurations, from Phil Oester.
->=20
-> * Fix the error path handling of nft_compat, from me.
->=20
-> * Make sure the global conntrack counter is decremented after the
->   object has been released, also from me.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Pulled, thanks a lot Pablo.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi!
+
+The Netfilter project proudly presents:
+
+        iptables 1.4.21
+
+iptables is the userspace command line program used to configure the
+Linux packet filtering ruleset. It is targeted towards system administrators.
+Since Network Address Translation is also configured from the packet filter
+ruleset, iptables is used for this, too. The iptables package also includes
+ip6tables. ip6tables is used for configuring the IPv6 packet filter.
+
+This release includes fixes and a couple of new features:
+
+* --nowildcard option for xt_socket, available since Linux kernel 3.11,
+  from Eric Dumazet.
+
+* SYNPROXY support, available since Linux kernel 3.12, from Patrick McHardy.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+
+Have fun!
+
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-iptables-1.4.21.txt"
+
+Eric Dumazet (1):
+      xt_socket: add --nowildcard flag
+
+Florian Westphal (3):
+      extensions: libxt_socket: update man page
+      doc: add libnetfilter_queue pointer to libxt_NFQUEUE.man
+      doc: merge ip6table man pages into ipv4 ones
+
+Jozsef Kadlecsik (1):
+      extensions: libxt_set, libxt_SET: check the set family too
+
+Kevin Cernekee (1):
+      ip6tables: Use consistent exit code for EAGAIN
+
+Laurence J. Lane (8):
+      iptables: libxt_hashlimit.man: correct address
+      iptables: libxt_conntrack.man extraneous commas
+      iptables: libip(6)t_REJECT.man default icmp types
+      iptables: iptables-xm1.1 correct man section
+      iptables: libxt_recent.{c,man} dead URL
+      iptables: libxt_string.man add examples
+      extensions: libxt_LOG: use generic syslog reference in manpage
+      iptables: extensions/GNUMakefile.in use CPPFLAGS
+
+Lutz Jaenicke (1):
+      iptables: correctly reference generated file
+
+Pablo Neira Ayuso (7):
+      Merge branch 'stable-1.4.20'
+      Merge branch 'stable-1.4.20'
+      ip[6]tables: fix incorrect alignment in commands_v_options
+      build: add software version to manpage first line at configure stage
+      extensions: libxt_cluster: add note on arptables-jf
+      utils: nfsynproxy: fix error while compiling the BPF filter
+      iptables 1.4.21 release
+
+Patrick McHardy (2):
+      extensions: add SYNPROXY extension
+      utils: add nfsynproxy tool
+
+Phil Oester (4):
+      iptables: state match incompatibilty across versions
+      libxtables: xtables_ipmask_to_numeric incorrect with non-CIDR masks
+      iptables: improve chain name validation
+      iptables: spurious error in load_extension
+
+stephen hemminger (1):
+      xtables: trivial spelling fix
+
+
+--Qxx1br4bt0+wmkIi--
