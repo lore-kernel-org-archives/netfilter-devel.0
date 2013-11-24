@@ -1,66 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables 1/2] datatype: fix missing nul-terminator in string_type_print
-Date: Mon, 25 Nov 2013 00:05:29 +0100
-Message-ID: <1385334329-3969-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: loki@lokis-chaos.de
+Subject: [PATCH nftables 2/2] netlink: improve rule deletion per chain
+Date: Mon, 25 Nov 2013 00:08:16 +0100
+Message-ID: <1385334496-3544-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42448 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42658 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751723Ab3KXXFm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Nov 2013 18:05:42 -0500
+	id S1751744Ab3KXXIZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Nov 2013 18:08:25 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Berger reported that he is seeing garbage after some
-valid string values, eg.
+With this patch, nft asks the kernel for deleting all rules in a chain.
+This replaces the current behaviour that requires to dump all the rules,
+then iterate over that list to delete one by one, which is prone to races
+and slowier.
 
-fwtest01 ~ # nft -i
-nft> table filter
-nft> add chain filter input
-nft> add rule filter input meta iifname "lo" accept
-nft> list table filter
-table ip filter {
-        chain input {
-                 meta iifname "lo=EF=BF=BD.=EF=BF=BD" accept
-        }
-=2E..
+After this patch, the following two commands are equivalent:
 
-The buffer that the string datatype was allocating did not include
-room for the nul-terminator. This patch fixes bugzilla report #872:
+ nft flush chain filter input
+ nft delete rule filter input
 
-https://bugzilla.netfilter.org/show_bug.cgi?id=3D872
-
-Reported-by: Thomas Berger <loki@lokis-chaos.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/datatype.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ src/netlink.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index 4c5a70f..2e5788d 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -256,9 +256,10 @@ const struct datatype integer_type =3D {
- static void string_type_print(const struct expr *expr)
+diff --git a/src/netlink.c b/src/netlink.c
+index 15cba79..533634a 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -645,7 +645,7 @@ int netlink_list_chain(struct netlink_ctx *ctx, const struct handle *h,
+ int netlink_flush_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 			const struct location *loc)
  {
- 	unsigned int len =3D div_round_up(expr->len, BITS_PER_BYTE);
--	char data[len];
-+	char data[len+1];
-=20
- 	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
-+	data[len] =3D '\0';
- 	printf("\"%s\"", data);
+-	return netlink_flush_rules(ctx, h, loc);
++	return netlink_del_rule_batch(ctx, h, loc);
  }
-=20
---=20
+ 
+ int netlink_add_table(struct netlink_ctx *ctx, const struct handle *h,
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
