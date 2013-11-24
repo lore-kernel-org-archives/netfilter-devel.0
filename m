@@ -1,151 +1,381 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftables 1/2] include: fix possible clash in ifdef namespace
-Date: Mon, 25 Nov 2013 00:01:58 +0100
-Message-ID: <1385334119-3857-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH libnftables 2/2] src: consolidate netlink build header function
+Date: Mon, 25 Nov 2013 00:01:59 +0100
+Message-ID: <1385334119-3857-2-git-send-email-pablo@netfilter.org>
+References: <1385334119-3857-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42155 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42160 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751760Ab3KXXCK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Nov 2013 18:02:10 -0500
+	id S1751704Ab3KXXCL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Nov 2013 18:02:11 -0500
+In-Reply-To: <1385334119-3857-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use _LIBNFTABLES_ prefix to avoid possible clash with headers that
-are defined in other libraries that may be used by third party
-applications.
+Add new function nft_nlmsg_build_hdr which consolidates all existing
+functions to build headers per object. They basically look the same.
+This patch still provides aliases for consistency in the naming
+approach.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftables/chain.h   |    6 +++---
- include/libnftables/common.h  |    4 ++--
- include/libnftables/expr.h    |    6 +++---
- include/libnftables/rule.h    |    6 +++---
- include/libnftables/ruleset.h |    6 +++---
- include/libnftables/set.h     |    6 +++---
- include/libnftables/table.h   |    6 +++---
- 7 files changed, 20 insertions(+), 20 deletions(-)
+ include/libnftables/chain.h  |    2 +-
+ include/libnftables/common.h |    4 ++++
+ include/libnftables/rule.h   |    2 +-
+ include/libnftables/set.h    |    4 ++--
+ include/libnftables/table.h  |    2 +-
+ src/Makefile.am              |    1 +
+ src/chain.c                  |   21 ---------------------
+ src/common.c                 |   36 ++++++++++++++++++++++++++++++++++++
+ src/libnftables.map          |    7 ++-----
+ src/rule.c                   |   21 ---------------------
+ src/set.c                    |   21 ---------------------
+ src/set_elem.c               |   21 ---------------------
+ src/table.c                  |   21 ---------------------
+ 13 files changed, 48 insertions(+), 115 deletions(-)
+ create mode 100644 src/common.c
 
 diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
-index 7dee88a..fff47d3 100644
+index fff47d3..8b4eab9 100644
 --- a/include/libnftables/chain.h
 +++ b/include/libnftables/chain.h
-@@ -1,5 +1,5 @@
--#ifndef _CHAIN_H_
--#define _CHAIN_H_
-+#ifndef _LIBNFTABLES_CHAIN_H_
-+#define _LIBNFTABLES_CHAIN_H_
+@@ -55,7 +55,7 @@ int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type, const char *d
+ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *t, uint32_t type, uint32_t flags);
+ int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type, uint32_t flags);
  
- #include <stdio.h>
- #include <stdint.h>
-@@ -79,4 +79,4 @@ void nft_chain_list_iter_destroy(struct nft_chain_list_iter *iter);
- } /* extern "C" */
- #endif
+-struct nlmsghdr *nft_chain_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
++#define nft_chain_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *t);
  
--#endif /* _CHAIN_H_ */
-+#endif /* _LIBNFTABLES_CHAIN_H_ */
+ struct nft_chain_list;
 diff --git a/include/libnftables/common.h b/include/libnftables/common.h
-index d19a84b..2283d72 100644
+index 2283d72..9cd92b2 100644
 --- a/include/libnftables/common.h
 +++ b/include/libnftables/common.h
-@@ -1,5 +1,5 @@
--#ifndef _COMMON_H_
--#define _COMMON_H_
-+#ifndef _LIBNFTABLES_COMMON_H_
-+#define _LIBNFTABLES_COMMON_H_
- 
- enum nft_output_type {
- 	NFT_OUTPUT_DEFAULT	= 0,
-diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
-index 81e224c..54de186 100644
---- a/include/libnftables/expr.h
-+++ b/include/libnftables/expr.h
-@@ -1,5 +1,5 @@
--#ifndef _RULE_EXPR_H_
--#define _RULE_EXPR_H_
-+#ifndef _LIBNFTABLES_RULE_EXPR_H_
-+#define _LIBNFTABLES_RULE_EXPR_H_
- 
- #include <stdint.h>
- #include <stdbool.h>
-@@ -147,4 +147,4 @@ enum {
- } /* extern "C" */
+@@ -13,4 +13,8 @@ enum nft_parse_type {
+ 	NFT_PARSE_JSON,
+ 	NFT_PARSE_MAX,
+ };
++
++struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
++				     uint16_t type, uint32_t seq);
++
  #endif
- 
--#endif
-+#endif /* _LIBNFTABLES_RULE_EXPR_H_ */
 diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
-index 4957a2a..d1d75e1 100644
+index d1d75e1..86dbc17 100644
 --- a/include/libnftables/rule.h
 +++ b/include/libnftables/rule.h
-@@ -1,5 +1,5 @@
--#ifndef _RULE_H_
--#define _RULE_H_
-+#ifndef _LIBNFTABLES_RULE_H_
-+#define _LIBNFTABLES_RULE_H_
+@@ -51,7 +51,7 @@ int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type, const char *dat
+ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *t, uint32_t type, uint32_t flags);
+ int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type, uint32_t flags);
  
- #include <stdio.h>
- #include <stdint.h>
-@@ -85,4 +85,4 @@ void nft_rule_list_iter_destroy(struct nft_rule_list_iter *iter);
- } /* extern "C" */
- #endif
+-struct nlmsghdr *nft_rule_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
++#define nft_rule_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ int nft_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_rule *t);
  
--#endif /* _RULE_H_ */
-+#endif /* _LIBNFTABLES_RULE_H_ */
-diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
-index 71ef3b1..1ec3059 100644
---- a/include/libnftables/ruleset.h
-+++ b/include/libnftables/ruleset.h
-@@ -1,5 +1,5 @@
--#ifndef _RULESET_H_
--#define _RULESET_H_
-+#ifndef _LIBNFTABLES_RULESET_H_
-+#define _LIBNFTABLES_RULESET_H_
- 
- #include <stdio.h>
- 
-@@ -38,4 +38,4 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type, u
- } /* extern "C" */
- #endif
- 
--#endif /* _RULESET_H_ */
-+#endif /* _LIBNFTABLES_RULESET_H_ */
+ int nft_rule_expr_foreach(struct nft_rule *r,
 diff --git a/include/libnftables/set.h b/include/libnftables/set.h
-index d378049..d91bd42 100644
+index d91bd42..13ac857 100644
 --- a/include/libnftables/set.h
 +++ b/include/libnftables/set.h
-@@ -1,5 +1,5 @@
--#ifndef _NFT_SET_H_
--#define _NFT_SET_H_
-+#ifndef _LIBNFTABLES_SET_H_
-+#define _LIBNFTABLES_SET_H_
+@@ -36,7 +36,7 @@ uint32_t nft_set_attr_get_u32(struct nft_set *s, uint16_t attr);
  
- #include <stdio.h>
- #include <stdint.h>
-@@ -110,4 +110,4 @@ struct nft_set_elem *nft_set_elems_iter_cur(struct nft_set_elems_iter *iter);
- struct nft_set_elem *nft_set_elems_iter_next(struct nft_set_elems_iter *iter);
- void nft_set_elems_iter_destroy(struct nft_set_elems_iter *iter);
+ struct nlmsghdr;
  
--#endif
-+#endif /* _LIBNFTABLES_SET_H_ */
+-struct nlmsghdr *nft_set_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
++#define nft_set_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ void nft_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s);
+ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
+ int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s);
+@@ -92,7 +92,7 @@ uint32_t nft_set_elem_attr_get_u32(struct nft_set_elem *s, uint16_t attr);
+ 
+ bool nft_set_elem_attr_is_set(const struct nft_set_elem *s, uint16_t attr);
+ 
+-struct nlmsghdr *nft_set_elem_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
++#define nft_set_elem_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ void nft_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s);
+ void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set_elem *e);
+ 
 diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index 9228cec..87481e4 100644
+index 87481e4..be60da9 100644
 --- a/include/libnftables/table.h
 +++ b/include/libnftables/table.h
-@@ -1,5 +1,5 @@
--#ifndef _TABLE_H_
--#define _TABLE_H_
-+#ifndef _LIBNFTABLES_TABLE_H_
-+#define _LIBNFTABLES_TABLE_H_
+@@ -43,7 +43,7 @@ int nft_table_parse(struct nft_table *t, enum nft_parse_type type, const char *d
+ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t, uint32_t type, uint32_t flags);
+ int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type, uint32_t flags);
  
- #include <stdio.h>
- #include <stdint.h>
-@@ -67,4 +67,4 @@ void nft_table_list_iter_destroy(struct nft_table_list_iter *iter);
- } /* extern "C" */
- #endif
+-struct nlmsghdr *nft_table_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family, uint16_t type, uint32_t seq);
++#define nft_table_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ int nft_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_table *t);
  
--#endif /* _TABLE_H_ */
-+#endif /* _LIBNFTABLES_TABLE_H_ */
+ struct nft_table_list;
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 48d5d2d..83ab658 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -5,6 +5,7 @@ libnftables_la_LIBADD = ${LIBMNL_LIBS} ${LIBXML_LIBS} ${LIBJSON_LIBS}
+ libnftables_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftables.map \
+ 			 -version-info $(LIBVERSION)
+ libnftables_la_SOURCES = utils.c		\
++			 common.c		\
+ 			 table.c		\
+ 			 chain.c		\
+ 			 rule.c			\
+diff --git a/src/chain.c b/src/chain.c
+index 0145d32..a0004b5 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -285,27 +285,6 @@ uint8_t nft_chain_attr_get_u8(struct nft_chain *c, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nft_chain_attr_get_u8);
+ 
+-struct nlmsghdr *
+-nft_chain_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+-			  uint16_t type, uint32_t seq)
+-{
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfh;
+-
+-	nlh = mnl_nlmsg_put_header(buf);
+-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+-	nlh->nlmsg_seq = seq;
+-
+-	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+-	nfh->nfgen_family = family;
+-	nfh->version = NFNETLINK_V0;
+-	nfh->res_id = 0;
+-
+-	return nlh;
+-}
+-EXPORT_SYMBOL(nft_chain_nlmsg_build_hdr);
+-
+ void nft_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_chain *c)
+ {
+ 	if (c->flags & (1 << NFT_CHAIN_ATTR_TABLE))
+diff --git a/src/common.c b/src/common.c
+new file mode 100644
+index 0000000..f03e730
+--- /dev/null
++++ b/src/common.c
+@@ -0,0 +1,36 @@
++/*
++ * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/netlink.h>
++#include <linux/netfilter/nfnetlink.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftables/common.h>
++
++#include "internal.h"
++
++struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
++				     uint16_t type, uint32_t seq)
++{
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfh;
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
++	nlh->nlmsg_flags = NLM_F_REQUEST | type;
++	nlh->nlmsg_seq = seq;
++
++	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
++	nfh->nfgen_family = family;
++	nfh->version = NFNETLINK_V0;
++	nfh->res_id = 0;
++
++	return nlh;
++}
++EXPORT_SYMBOL(nft_nlmsg_build_hdr);
+diff --git a/src/libnftables.map b/src/libnftables.map
+index 3bdfeda..7dc9aee 100644
+--- a/src/libnftables.map
++++ b/src/libnftables.map
+@@ -15,7 +15,6 @@ global:
+   nft_table_parse;
+   nft_table_snprintf;
+   nft_table_fprintf;
+-  nft_table_nlmsg_build_hdr;
+   nft_table_nlmsg_build_payload;
+   nft_table_nlmsg_parse;
+   nft_table_list_alloc;
+@@ -48,7 +47,6 @@ global:
+   nft_chain_parse;
+   nft_chain_snprintf;
+   nft_chain_fprintf;
+-  nft_chain_nlmsg_build_hdr;
+   nft_chain_nlmsg_build_payload;
+   nft_chain_nlmsg_parse;
+   nft_chain_list_alloc;
+@@ -78,7 +76,6 @@ global:
+   nft_rule_parse;
+   nft_rule_snprintf;
+   nft_rule_fprintf;
+-  nft_rule_nlmsg_build_hdr;
+   nft_rule_nlmsg_build_payload;
+   nft_rule_nlmsg_parse;
+   nft_rule_add_expr;
+@@ -128,7 +125,6 @@ global:
+   nft_set_attr_get;
+   nft_set_attr_get_str;
+   nft_set_attr_get_u32;
+-  nft_set_nlmsg_build_hdr;
+   nft_set_nlmsg_build_payload;
+   nft_set_nlmsg_parse;
+   nft_set_parse;
+@@ -160,7 +156,6 @@ global:
+   nft_set_elem_attr_get;
+   nft_set_elem_attr_get_str;
+   nft_set_elem_attr_get_u32;
+-  nft_set_elem_nlmsg_build_hdr;
+   nft_set_elem_nlmsg_build_payload;
+   nft_set_elem_nlmsg_parse;
+   nft_set_elem_parse;
+@@ -187,5 +182,7 @@ global:
+   nft_ruleset_snprintf;
+   nft_ruleset_fprintf;
+ 
++  nft_nlmsg_build_hdr;
++
+ local: *;
+ };
+diff --git a/src/rule.c b/src/rule.c
+index 4f70dab..280350a 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -220,27 +220,6 @@ uint8_t nft_rule_attr_get_u8(const struct nft_rule *r, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nft_rule_attr_get_u8);
+ 
+-struct nlmsghdr *
+-nft_rule_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+-			  uint16_t type, uint32_t seq)
+-{
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfh;
+-
+-	nlh = mnl_nlmsg_put_header(buf);
+-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+-	nlh->nlmsg_seq = seq;
+-
+-	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+-	nfh->nfgen_family = family;
+-	nfh->version = NFNETLINK_V0;
+-	nfh->res_id = 0;
+-
+-	return nlh;
+-}
+-EXPORT_SYMBOL(nft_rule_nlmsg_build_hdr);
+-
+ void nft_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_rule *r)
+ {
+ 	struct nft_rule_expr *expr;
+diff --git a/src/set.c b/src/set.c
+index ba39c43..c5204cc 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -188,27 +188,6 @@ uint32_t nft_set_attr_get_u32(struct nft_set *s, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nft_set_attr_get_u32);
+ 
+-struct nlmsghdr *
+-nft_set_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+-			uint16_t type, uint32_t seq)
+-{
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfh;
+-
+-	nlh = mnl_nlmsg_put_header(buf);
+-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+-	nlh->nlmsg_seq = seq;
+-
+-	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+-	nfh->nfgen_family = family;
+-	nfh->version = NFNETLINK_V0;
+-	nfh->res_id = 0;
+-
+-	return nlh;
+-}
+-EXPORT_SYMBOL(nft_set_nlmsg_build_hdr);
+-
+ void nft_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s)
+ {
+ 	if (s->flags & (1 << NFT_SET_ATTR_TABLE))
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 297328f..fce9c1d 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -158,27 +158,6 @@ uint32_t nft_set_elem_attr_get_u32(struct nft_set_elem *s, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nft_set_elem_attr_get_u32);
+ 
+-struct nlmsghdr *
+-nft_set_elem_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+-			     uint16_t type, uint32_t seq)
+-{
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfh;
+-
+-	nlh = mnl_nlmsg_put_header(buf);
+-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+-	nlh->nlmsg_seq = seq;
+-
+-	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+-	nfh->nfgen_family = family;
+-	nfh->version = NFNETLINK_V0;
+-	nfh->res_id = 0;
+-
+-	return nlh;
+-}
+-EXPORT_SYMBOL(nft_set_elem_nlmsg_build_hdr);
+-
+ void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
+ 				      struct nft_set_elem *e)
+ {
+diff --git a/src/table.c b/src/table.c
+index cf24cae..9e20768 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -152,27 +152,6 @@ const char *nft_table_attr_get_str(struct nft_table *t, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nft_table_attr_get_str);
+ 
+-struct nlmsghdr *
+-nft_table_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+-			  uint16_t type, uint32_t seq)
+-{
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfh;
+-
+-	nlh = mnl_nlmsg_put_header(buf);
+-	nlh->nlmsg_type = (NFNL_SUBSYS_NFTABLES << 8) | cmd;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | type;
+-	nlh->nlmsg_seq = seq;
+-
+-	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
+-	nfh->nfgen_family = family;
+-	nfh->version = NFNETLINK_V0;
+-	nfh->res_id = 0;
+-
+-	return nlh;
+-}
+-EXPORT_SYMBOL(nft_table_nlmsg_build_hdr);
+-
+ void nft_table_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_table *t)
+ {
+ 	if (t->flags & (1 << NFT_TABLE_ATTR_NAME))
 -- 
 1.7.10.4
 
