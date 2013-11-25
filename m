@@ -1,35 +1,25 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: ip_set_hash_netnet.c:62: possible typo ?
-Date: Mon, 25 Nov 2013 12:58:19 -0800
-Message-ID: <20131125205818.GA20219@home>
-References: <DUB118-W3449F030E13F8088A847CC9CED0@phx.gbl>
- <alpine.DEB.2.10.1311252149230.5977@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: netfilter: ipset: fix incorret comparison in
+ hash_netnet4_data_equal()
+Date: Mon, 25 Nov 2013 22:45:11 +0100
+Message-ID: <20131125214511.GA10043@localhost>
+References: <20131114154101.GA22625@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Binderman <dcb314@hotmail.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:64917 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398Ab3KYU6X (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Nov 2013 15:58:23 -0500
-Received: by mail-pb0-f46.google.com with SMTP id md12so6564674pbc.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Nov 2013 12:58:23 -0800 (PST)
+Cc: netdev@vger.kernel.org, oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa,
+	netfilter-devel@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1311252149230.5977@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20131114154101.GA22625@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 25, 2013 at 09:50:27PM +0100, Jozsef Kadlecsik wrote:
-> Yes, you are completely right. I'm going to check why the testsuite did 
-> not catch it.
+On Thu, Nov 14, 2013 at 10:41:01AM -0500, Dave Jones wrote:
+> Both sides of the comparison are the same, looks like a cut-and-paste error.
+> 
+> Spotted by Coverity.
 
-FYI, seems this was already reported earlier this month:
+Applied, thanks Dave.
 
-    marc.info/?l=linux-netdev&m=138444371526170&w=2
-
-Guess it got missed.
-
-Phil
+Please, cc netfilter-devel for netfilter patches next time.
