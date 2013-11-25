@@ -1,44 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables 2/2] netlink: improve rule deletion per chain
-Date: Mon, 25 Nov 2013 00:08:16 +0100
-Message-ID: <1385334496-3544-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: David Binderman <dcb314@hotmail.com>
+Subject: ip_set_hash_netnet.c:62: possible typo ?
+Date: Mon, 25 Nov 2013 19:19:55 +0000
+Message-ID: <DUB118-W3449F030E13F8088A847CC9CED0@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42658 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751744Ab3KXXIZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Nov 2013 18:08:25 -0500
+Received: from dub0-omc1-s5.dub0.hotmail.com ([157.55.0.204]:19413 "EHLO
+	dub0-omc1-s5.dub0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751507Ab3KYT0H convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Nov 2013 14:26:07 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With this patch, nft asks the kernel for deleting all rules in a chain.
-This replaces the current behaviour that requires to dump all the rules,
-then iterate over that list to delete one by one, which is prone to races
-and slowier.
+Hello there,
 
-After this patch, the following two commands are equivalent:
+I just ran the static analyser "cppcheck" over the source
+code of linux-3.13-rc1. It said
 
- nft flush chain filter input
- nft delete rule filter input
+[linux-3.13-rc1/net/netfilter/ipset/ip_set_hash_netnet.c:62] -> [linux-=
+3.13-rc1/net/netfilter/ipset/ip_set_hash_netnet.c:62]: (style) Same exp=
+ression on both sides of '=3D=3D'.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/netlink.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Source code is
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 15cba79..533634a 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -645,7 +645,7 @@ int netlink_list_chain(struct netlink_ctx *ctx, const struct handle *h,
- int netlink_flush_chain(struct netlink_ctx *ctx, const struct handle *h,
- 			const struct location *loc)
- {
--	return netlink_flush_rules(ctx, h, loc);
-+	return netlink_del_rule_batch(ctx, h, loc);
- }
- 
- int netlink_add_table(struct netlink_ctx *ctx, const struct handle *h,
--- 
-1.7.10.4
+static inline bool
+hash_netnet4_data_equal(const struct hash_netnet4_elem *ip1,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 const struct hash_netnet4_elem *ip=
+2,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 u32 *multi)
+{
+=A0=A0=A0 return ip1->ipcmp =3D=3D ip2->ipcmp &&
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ip2->ccmp =3D=3D ip2->ccmp;
+}
 
+Maybe=20
+
+static inline bool
+hash_netnet4_data_equal(const struct hash_netnet4_elem *ip1,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 const struct hash_netnet4_elem *ip=
+2,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 u32 *multi)
+{
+=A0=A0=A0 return ip1->ipcmp =3D=3D ip2->ipcmp &&
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ip1->ccmp =3D=3D ip2->ccmp;
+}
+
+would be better code ?
+
+Regards
+
+David Binderman 		 	   		  --
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
