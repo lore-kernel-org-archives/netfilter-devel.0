@@ -1,8 +1,8 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: netfilter: active obj WARN when cleaning up
-Date: Wed, 27 Nov 2013 13:32:31 +0000
-Message-ID: <20131127133231.GO16735@n2100.arm.linux.org.uk>
-References: <522B25B5.6000808@oracle.com> <5294F27D.4000108@oracle.com> <20131126230709.GA10948@localhost> <alpine.DEB.2.02.1311271106090.30673@ionos.tec.linutronix.de> <20131127113939.GL16735@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1311271409280.30673@ionos.tec.linutronix.de>
+Date: Wed, 27 Nov 2013 13:40:16 +0000
+Message-ID: <20131127134015.GA6011@n2100.arm.linux.org.uk>
+References: <522B25B5.6000808@oracle.com> <5294F27D.4000108@oracle.com> <20131126230709.GA10948@localhost> <alpine.DEB.2.02.1311271106090.30673@ionos.tec.linutronix.de> <20131127113939.GL16735@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1311271409280.30673@ionos.tec.linutronix.de> <20131127133231.GO16735@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -15,33 +15,50 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Christoph Lameter <cl@linux-foundation.org>,
 	Greg KH <greg@kroah.com>
 To: Thomas Gleixner <tglx@linutronix.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43574 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab3K0Nkj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Nov 2013 08:40:39 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1311271409280.30673@ionos.tec.linutronix.de>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20131127133231.GO16735@n2100.arm.linux.org.uk>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 27, 2013 at 02:29:41PM +0100, Thomas Gleixner wrote:
-> Though the kobject is the only thing which has a delayed work embedded
-> inside struct kmem_cache. And the debug object splat points at the
-> kmem_cache_free() of the struct kmem_cache itself. That's why I
-> assumed the wreckage around that place. And indeed:
+On Wed, Nov 27, 2013 at 01:32:31PM +0000, Russell King - ARM Linux wrote:
+> On Wed, Nov 27, 2013 at 02:29:41PM +0100, Thomas Gleixner wrote:
+> > Though the kobject is the only thing which has a delayed work embedded
+> > inside struct kmem_cache. And the debug object splat points at the
+> > kmem_cache_free() of the struct kmem_cache itself. That's why I
+> > assumed the wreckage around that place. And indeed:
+> > 
+> > kmem_cache_destroy(s)
+> >     __kmem_cache_shutdown(s)
+> >       sysfs_slab_remove(s)
+> >         ....
+> > 	kobject_put(&s->kobj)
+> >            kref_put(&kobj->kref, kobject_release);
+> > 	     kobject_release(kref)
+> >     	       #ifdef CONFIG_DEBUG_KOBJECT_RELEASE
+> > 	         schedule_delayed_work(&kobj->release)
+> > 	       #else
+> > 	        kobject_cleanup(kobj)
+> > 	       #endif
+> > 
+> > So in the CONFIG_DEBUG_KOBJECT_RELEASE=y case, schedule_delayed_work()
+> > _IS_ called which arms the timer. debugobjects catches the attempt to
+> > free struct kmem_cache which contains the armed timer.
 > 
-> kmem_cache_destroy(s)
->     __kmem_cache_shutdown(s)
->       sysfs_slab_remove(s)
->         ....
-> 	kobject_put(&s->kobj)
->            kref_put(&kobj->kref, kobject_release);
-> 	     kobject_release(kref)
->     	       #ifdef CONFIG_DEBUG_KOBJECT_RELEASE
-> 	         schedule_delayed_work(&kobj->release)
-> 	       #else
-> 	        kobject_cleanup(kobj)
-> 	       #endif
-> 
-> So in the CONFIG_DEBUG_KOBJECT_RELEASE=y case, schedule_delayed_work()
-> _IS_ called which arms the timer. debugobjects catches the attempt to
-> free struct kmem_cache which contains the armed timer.
+> You fail to show where the free is in the above path.
 
-You fail to show where the free is in the above path.
+Right, there's a kmem_cache_free(kmem_cache, s); by the slob code
+after the above sequence, which is The Bug(tm).
+
+As I said, a kobject has its own lifetime.  If you embed that into
+another structure, that structure inherits the lifetime of the kobject,
+which is from the point at which it's created to the point at which the
+kobject's release function is called.
+
+So no, the code here is buggy.  The kobject debugging has yet again
+found a violation of the kobject lifetime rules.  slub needs fixing.
