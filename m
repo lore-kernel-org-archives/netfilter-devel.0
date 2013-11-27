@@ -1,136 +1,74 @@
-From: Sergey Popovich <popovich_sergei@mail.ru>
-Subject: netfilter: xt_hashlimit: fix proc entry leak in netns destroy path
-Date: Wed, 27 Nov 2013 08:42:09 +0200
-Message-ID: <4921954.LHAAuZqxp3@tuxracer>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: netfilter: active obj WARN when cleaning up
+Date: Wed, 27 Nov 2013 11:45:17 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1311271106090.30673@ionos.tec.linutronix.de>
+References: <522B25B5.6000808@oracle.com> <5294F27D.4000108@oracle.com> <20131126230709.GA10948@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp33.i.mail.ru ([94.100.177.93]:57671 "EHLO smtp33.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751367Ab3K0Gq4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Nov 2013 01:46:56 -0500
-Received: from [2a01:6d80:103:13::c3ea:4404] (port=52953 helo=tuxracer.localnet)
-	by smtp33.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
-	id 1VlYti-0003YE-Jq
-	for netfilter-devel@vger.kernel.org; Wed, 27 Nov 2013 10:46:54 +0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sasha Levin <sasha.levin@oracle.com>, Patrick McHardy <kaber@trash.net>,
+    kadlec@blackhole.kfki.hu, "David S. Miller" <davem@davemloft.net>,
+    netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+    netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+    linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
+    Christoph Lameter <cl@linux-foundation.org>, Greg KH <greg@kroah.com>,
+    Russell King <linux@arm.linux.org.uk>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20131126230709.GA10948@localhost>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-commit 32263dd1b43378b4f7d7796ed713f77e95f27e8a
-Author: Vitaly E. Lavrov <>
-Date:   Mon Dec 24 14:42:17 2012 +0100
+On Wed, 27 Nov 2013, Pablo Neira Ayuso wrote:
 
-    netfilter: xt_hashlimit: fix namespace destroy path
+> On Tue, Nov 26, 2013 at 02:11:57PM -0500, Sasha Levin wrote:
+> > Ping? I still see this warning.
+> 
+> Did your test include patch 0c3c6c00c6?
 
-Takes into account fact, that hashlimit_net_exit() called right before
-hashlimit_mt_destroy() and fixes destroy path for netns.
-
-However using xt_hashlimit for IPv4 and IPv6 together produces following 
-output
-on netconsole from one of our servers on netns destroy:
-
- Pid: 9499, comm: kworker/u:0 Tainted: G        WC O 3.2.0-5-netctl-amd64-
-core2
- Call Trace:
-  [<ffffffff8104708d>] ? warn_slowpath_common+0x78/0x8c
-  [<ffffffff81047139>] ? warn_slowpath_fmt+0x45/0x4a
-  [<ffffffff81144a99>] ? remove_proc_entry+0xd8/0x22e
-  [<ffffffff810ebbaa>] ? kfree+0x5b/0x6c
-  [<ffffffffa043c501>] ? hashlimit_net_exit+0x45/0x8d [xt_hashlimit]
-  [<ffffffff8128ab30>] ? ops_exit_list+0x1c/0x44
-  [<ffffffff8128b28e>] ? cleanup_net+0xf1/0x180
-  [<ffffffff810369fc>] ? should_resched+0x5/0x23
-  [<ffffffff8105b8f9>] ? process_one_work+0x161/0x269
-  [<ffffffff8105aea5>] ? cwq_activate_delayed_work+0x3c/0x48
-  [<ffffffff8105c8c2>] ? worker_thread+0xc2/0x145
-  [<ffffffff8105c800>] ? manage_workers.isra.25+0x15b/0x15b
-  [<ffffffff8105fa01>] ? kthread+0x76/0x7e
-  [<ffffffff813581f4>] ? kernel_thread_helper+0x4/0x10
-  [<ffffffff8105f98b>] ? kthread_worker_fn+0x139/0x139
-  [<ffffffff813581f0>] ? gs_change+0x13/0x13
- ---[ end trace d8c3cc0ad163ef79 ]---
- ------------[ cut here ]------------
- WARNING: at 
-/usr/src/linux-3.2.52/debian/build/source_netctl/fs/proc/generic.c:849
- remove_proc_entry+0x217/0x22e()
- Hardware name:
- remove_proc_entry: removing non-empty directory 'net/ip6t_hashlimit', leaking
-at least 'IN-REJECT'
-
-This is due to lack of removal net/ip6t_hashlimit/* entries in
-hashlimit_proc_net_exit().
-
-Found and tested with custom build 3.2.x and backported commits
-32263dd1b (netfilter: xt_hashlimit: fix namespace destroy path) and
-commit 665e205c1 (netfilter: xt_recent: fix namespace destroy path),
-which seems not currently in linux-stable (at least for 3.2.x series).
-
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
----
- net/netfilter/xt_hashlimit.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 9ff035c..a3910fc 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -325,21 +325,24 @@ static void htable_gc(unsigned long htlong)
- 	add_timer(&ht->timer);
- }
+And how is that patch supposed to help?
  
--static void htable_destroy(struct xt_hashlimit_htable *hinfo)
-+static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
- {
- 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(hinfo->net);
- 	struct proc_dir_entry *parent;
- 
--	del_timer_sync(&hinfo->timer);
--
- 	if (hinfo->family == NFPROTO_IPV4)
- 		parent = hashlimit_net->ipt_hashlimit;
- 	else
- 		parent = hashlimit_net->ip6t_hashlimit;
- 
--	if(parent != NULL)
-+	if (parent != NULL)
- 		remove_proc_entry(hinfo->name, parent);
-+}
- 
-+static void htable_destroy(struct xt_hashlimit_htable *hinfo)
-+{
-+	del_timer_sync(&hinfo->timer);
-+	htable_remove_proc_entry(hinfo);
- 	htable_selective_cleanup(hinfo, select_all);
- 	kfree(hinfo->name);
- 	vfree(hinfo);
-@@ -883,21 +886,15 @@ static int __net_init hashlimit_proc_net_init(struct net 
-*net)
- static void __net_exit hashlimit_proc_net_exit(struct net *net)
- {
- 	struct xt_hashlimit_htable *hinfo;
--	struct proc_dir_entry *pde;
- 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
- 
--	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
--	 * that the parent xt_recent proc entry is is empty before trying to
--	 * remove it.
-+	/* hashlimit_net_exit() is called before hashlimit_mt_destroy().
-+	 * Make sure that the parent ipt_hashlimit and ip6t_hashlimit proc
-+	 * entries is empty before trying to remove it.
- 	 */
- 	mutex_lock(&hashlimit_mutex);
--	pde = hashlimit_net->ipt_hashlimit;
--	if (pde == NULL)
--		pde = hashlimit_net->ip6t_hashlimit;
--
- 	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node)
--		remove_proc_entry(hinfo->name, pde);
--
-+		htable_remove_proc_entry(hinfo);
- 	hashlimit_net->ipt_hashlimit = NULL;
- 	hashlimit_net->ip6t_hashlimit = NULL;
- 	mutex_unlock(&hashlimit_mutex);
--- 
-1.8.3.4
+> > >[  418.312449] WARNING: CPU: 6 PID: 4178 at lib/debugobjects.c:260 debug_print_object+0x8d/0xb0()
+> > >[  418.313243] ODEBUG: free active (active state 0) object type: timer_list hint:
+> > >delayed_work_timer_fn+0x0/0x20
+
+> > >[  418.321101]  [<ffffffff812874d7>] kmem_cache_free+0x197/0x340
+> > >[  418.321101]  [<ffffffff81249e76>] kmem_cache_destroy+0x86/0xe0
+> > >[  418.321101]  [<ffffffff83d5d681>] nf_conntrack_cleanup_net_list+0x131/0x170
+
+The debug code detects an active timer, which itself is part of a
+delayed work struct. The call comes from kmem_cache_destroy().
+
+         kmem_cache_free(kmem_cache, s);
+
+So debug object says: s contains an active timer. s is the kmem_cache
+which is destroyed from nf_conntrack_cleanup_net_list.
+
+Now struct kmem_cache has in case of SLUB:
+
+    struct kobject kobj;    /* For sysfs */
+
+and struct kobject has:
+
+#ifdef CONFIG_DEBUG_KOBJECT_RELEASE
+    struct delayed_work     release;
+#endif
+
+So this is the thing you want to look at:
+
+commit c817a67ec (kobject: delayed kobject release: help find buggy
+drivers) added that delayed work thing.
+
+I fear that does not work for kobjects which are embedded into
+something else.
+
+Handing off to rmk, mm and kobject folks.
+
+Thanks,
+
+	tglx
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
