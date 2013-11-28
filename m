@@ -1,41 +1,26 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: /proc and/or /sys file to know if ip_tables is there?
-Date: Thu, 28 Nov 2013 08:10:53 -0800
-Message-ID: <20131128161053.GA21908@home>
-References: <52971A7C.7000505@linux.intel.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH iptables] iptables/ip(6)tables-save.c: remove dlfcn.h
+ include
+Date: Thu, 28 Nov 2013 23:43:00 +0100
+Message-ID: <20131128224300.GC2067@breakpoint.cc>
+References: <1385558472-17365-1-git-send-email-gustavo@zacarias.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Gustavo Zacarias <gustavo@zacarias.com.ar>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:50898 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754705Ab3K1QK4 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40251 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750875Ab3K1WnD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Nov 2013 11:10:56 -0500
-Received: by mail-pb0-f49.google.com with SMTP id jt11so12666705pbb.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2013 08:10:56 -0800 (PST)
+	Thu, 28 Nov 2013 17:43:03 -0500
 Content-Disposition: inline
-In-Reply-To: <52971A7C.7000505@linux.intel.com>
+In-Reply-To: <1385558472-17365-1-git-send-email-gustavo@zacarias.com.ar>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 28, 2013 at 12:27:08PM +0200, Tomasz Bursztyka wrote:
-> Hi,
-> 
-> I need to know reliably at runtime whether or not ip_tables is
-> either currently loaded as a module or built-in the kernel.
-> 
-> Testing for /sys/module/ip_tables solves the first issue, but in
-> case of built-in it's not usable.
-> 
-> I could check for ip_tables_* symbols in /proc/kallsyms but I guess
-> it's not a nice way.
-> 
-> Any other proper way?
+Gustavo Zacarias <gustavo@zacarias.com.ar> wrote:
+> It's not required and breaks on static-only uClibc builds which don't
+> have the header file.
 
-[ -f /proc/net/ip_tables_names ]
-
-Although built in components will show up in /sys/module/ also.
-
-Phil
+Applied, thanks.
