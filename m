@@ -1,69 +1,48 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 1/2] tests: fix deprecation warning xt_LOG
-Date: Thu, 28 Nov 2013 12:30:10 +0100
-Message-ID: <20131128113010.11152.61271.stgit@nfdev.cica.es>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [RFC nftables kernel PATCH] netfilter: nf_tables: fix nft_meta_target
+ module
+Date: Thu, 28 Nov 2013 14:33:51 +0200
+Message-ID: <5297382F.60707@linux.intel.com>
+References: <20131128111557.6154.40370.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:34074 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758544Ab3K1LaO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Nov 2013 06:30:14 -0500
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 695CA51ED8F
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2013 11:30:12 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 7rjFb+B9O4k6 for <netfilter-devel@vger.kernel.org>;
-	Thu, 28 Nov 2013 12:30:12 +0100 (CET)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 27C7651ED76
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Nov 2013 12:30:11 +0100 (CET)
+Received: from mga11.intel.com ([192.55.52.93]:24675 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977Ab3K1Mdx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Nov 2013 07:33:53 -0500
+In-Reply-To: <20131128111557.6154.40370.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This fix the warning:
+Hi Arturo,
 
-In file included from nft-expr_target-test.c:19:0:
-/usr/include/linux/netfilter_ipv4/ipt_LOG.h:4:2: warning:
-#warning "Please update iptables, this file will be removed soon!" [-Wcpp]
+Minor stuff:
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- tests/nft-expr_target-test.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> + * @NFT_META_TARGET_MARK: to stablish packet mark (skb->mark)
 
-diff --git a/tests/nft-expr_target-test.c b/tests/nft-expr_target-test.c
-index 3d0368f..7bde348 100644
---- a/tests/nft-expr_target-test.c
-+++ b/tests/nft-expr_target-test.c
-@@ -16,7 +16,7 @@
- #include <netinet/ip.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/xt_iprange.h>
--#include <linux/netfilter_ipv4/ipt_LOG.h>
-+#include <linux/netfilter/xt_LOG.h>
- #include <libmnl/libmnl.h>
- #include <libnftables/rule.h>
- #include <libnftables/expr.h>
-@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
- 	struct nft_rule *a, *b;
- 	struct nft_rule_expr *ex;
- 	struct nlmsghdr *nlh;
--	struct ipt_log_info *info;
-+	struct xt_log_info *info;
- 	char buf[4096];
- 	struct nft_rule_expr_iter *iter_a, *iter_b;
- 	struct nft_rule_expr *rule_a, *rule_b;
-@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
- 	nft_rule_expr_set(ex, NFT_EXPR_TG_NAME, "test", strlen("test"));
- 	nft_rule_expr_set_u32(ex, NFT_EXPR_TG_REV, 0x12345678);
- 
--	info = calloc(1, sizeof(struct ipt_log_info));
-+	info = calloc(1, sizeof(struct xt_log_info));
- 	if (info == NULL)
- 		print_err("OOM");
- 	sprintf(info->prefix, "test: ");
+to 'e'stablish
 
+Why not reusing existing NFT_META_* keys?
+It would just raise an error if not priority/mark/nftrace/secmark, as it 
+does currently.
+Worth to keep that as it is imho, no need to duplicate.
+
+Besides that, any other name that would be more relevant than meta_target?
+Target is already a critical in-use keyword in netfilter, so it's not 
+clear enough.
+All expression have a short, one-word based name, which is nice.
+
+
+Anyway, doesn't it work already: if you create an immediate expression 
+(to load the value you want, at default dreg 0 aka NFT_REG_VERDICT) and 
+a meta expression without the NFTA_META_DREG set? (didn't try myself)
+
+If not maybe there is a shorter way to fix this, instead of creating a 
+full new expression. Looks like it was the original plan.
+
+
+Tomasz
