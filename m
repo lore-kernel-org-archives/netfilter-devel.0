@@ -1,44 +1,55 @@
-From: =?ISO-8859-1?Q?Bj=F8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Strange behaviour when listing in interactive mode
-Date: Fri, 29 Nov 2013 18:00:58 +0100
-Message-ID: <CAJO99TmsBrdOwMCMCwfZHmKTB-2NSF9R09sWmCwKDPEXL2u0qQ@mail.gmail.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] nftables: segfault in top scope define
+Date: Fri, 29 Nov 2013 12:30:04 -0800
+Message-ID: <20131129203003.GA22533@home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="a8Wt8u1KmwUX3Y2C"
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:56022 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200Ab3K2RBA (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:36826 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754802Ab3K2UaG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Nov 2013 12:01:00 -0500
-Received: by mail-lb0-f177.google.com with SMTP id w7so7090417lbi.36
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Nov 2013 09:00:58 -0800 (PST)
+	Fri, 29 Nov 2013 15:30:06 -0500
+Received: by mail-pb0-f54.google.com with SMTP id un15so15066596pbc.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Nov 2013 12:30:06 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If I add a map, say:
 
-add map filter ipv4_map { type ipv4_address => verdict; }
-add element filter ipv4_map { 10.0.0.1 => accept }
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-..
+Nftables segfaults if a symbol is added in top_scope, because of a missing
+init_list_head.  Trivial example:
 
-every time I "list table filter", a extra ipv4_map element map appears:
+    define ip_set = {192.168.1.2, 192.168.2.3}
+    add rule filter output ip daddr $ip_set counter
 
-the 3rd time I list, I see this:
+This closes netfilter bugzilla #877.
 
-    map ipv4_map {
-        type ipv4_address => verdict
-        elements = { 10.0.0.1 => accept}
-    }
-    map ipv4_map {
-        type ipv4_address => verdict
-        elements = { 10.0.0.1 => accept}
-    }
-    map ipv4_map {
-        type ipv4_address => verdict
-        elements = { 10.0.0.1 => accept}
-    }
+Reported-by: Anandraj M <anandrm@gmail.com>
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 
--- 
-Bj(/)rnar
+
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-nft-top_scope
+
+diff --git a/src/parser.y b/src/parser.y
+index a49e5c2..c6f8c9d 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -32,6 +32,7 @@ void parser_init(struct parser_state *state, struct list_head *msgs)
+ {
+ 	memset(state, 0, sizeof(*state));
+ 	init_list_head(&state->cmds);
++	init_list_head(&state->top_scope.symbols);
+ 	state->msgs = msgs;
+ 	state->scopes[0] = scope_init(&state->top_scope, NULL);
+ }
+
+--a8Wt8u1KmwUX3Y2C--
