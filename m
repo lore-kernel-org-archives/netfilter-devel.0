@@ -1,41 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 1/2] tests: fix deprecation warning xt_LOG
-Date: Sat, 30 Nov 2013 22:32:30 +0100
-Message-ID: <20131130213230.GB25362@localhost>
-References: <20131128113010.11152.61271.stgit@nfdev.cica.es>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [RFC][PATCH] nftables: add slash to chain syntax
+Date: Sat, 30 Nov 2013 15:20:23 -0800
+Message-ID: <20131130232022.GA23206@home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53528 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750817Ab3K3Vcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Nov 2013 16:32:35 -0500
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:53937 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab3K3XUX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Nov 2013 18:20:23 -0500
+Received: by mail-pd0-f180.google.com with SMTP id q10so15659584pdj.39
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2013 15:20:23 -0800 (PST)
+Received: from home (cpe-98-154-84-14.socal.res.rr.com. [98.154.84.14])
+        by mx.google.com with ESMTPSA id tu6sm111604259pbc.41.2013.11.30.15.20.21
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Sat, 30 Nov 2013 15:20:22 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20131128113010.11152.61271.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 28, 2013 at 12:30:10PM +0100, Arturo Borrero Gonzalez wrote:
-> This fix the warning:
-> 
-> In file included from nft-expr_target-test.c:19:0:
-> /usr/include/linux/netfilter_ipv4/ipt_LOG.h:4:2: warning:
-> #warning "Please update iptables, this file will be removed soon!" [-Wcpp]
+The current syntax when handling chains seems counterintuitive to me.  I would
+expect that "add chain" would have the name of the chain directly after the
+keyword "chain".  But instead, the name of the table is there, with the chain
+after.  I think a better syntax might be this:
 
-Applied. I have also included a copy of xt_LOG.h to avoid breaking the
-compilation of the library if that header is missing in the system.
-It's not installed and it's just a few extra bytes in the tree.
+        add chain <table>/<chain>
 
-BTW, I remember that Eric asked to remove the compat part (LOG and
-iprange) that is included in the nft-rule-add example some time ago.
-Back then, we had no automated tests and it was providing a simple way
-to make sure that xtables compat stuff was still working over
-nftables. Now, I think it's better if we just include native nftables
-instructions there not to get people confused.
+which seems clearer to me.  And it has the added benefit of following the
+"everything is a file" paradigm.  Who knows - maybe someday we can add a sysfs
+interface for nftables, and this will fit nicely within a tree:
 
-Would you rework the nft-rule-add.c to add a simple nftables rule
-using native instructions?
+        nftables
+          tables
+            chains
+              rules
 
-Thanks.
+Thoughts?  Attached patch is a general proof of concept.
+
+Phil
+
