@@ -1,29 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nftables: add 'delete map' syntax
-Date: Sat, 30 Nov 2013 21:54:03 +0100
-Message-ID: <20131130205403.GD8306@localhost>
-References: <20131130204121.GA23143@home>
+Subject: Re: [libnftables PATCH 2/2] tests: extend test-script to also tests
+ parsing
+Date: Sat, 30 Nov 2013 22:07:59 +0100
+Message-ID: <20131130210759.GA25362@localhost>
+References: <20131128113010.11152.61271.stgit@nfdev.cica.es>
+ <20131128113016.11152.36686.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51298 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52029 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124Ab3K3UyI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Nov 2013 15:54:08 -0500
+	id S1751242Ab3K3VIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Nov 2013 16:08:05 -0500
 Content-Disposition: inline
-In-Reply-To: <20131130204121.GA23143@home>
+In-Reply-To: <20131128113016.11152.36686.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Nov 30, 2013 at 12:41:21PM -0800, Phil Oester wrote:
-> Creating a map is done via "add map".  However, to delete a map requires using
-> "delete set", which is confusing.  Add the appropriate synonym to parser.  
-> The downside to this is that one can now delete a set with "delete map", but
-> this seems a minor issue.  It could of course be fixed by adding a new
-> CMD_OBJ_MAP.
-> 
-> This closes netfilter bugzilla #879.
+On Thu, Nov 28, 2013 at 12:30:16PM +0100, Arturo Borrero Gonzalez wrote:
+> Lets test the XML/JSON parsing with test-script.sh.
 
-Applied this fix as well. Thanks.
+Good, we have to make sure that new stuff also passes these tests.
+
+Applied, thanks Arturo.
