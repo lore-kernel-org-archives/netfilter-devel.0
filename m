@@ -1,57 +1,60 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] nftables: missing set cleanup in do_command_list
-Date: Sat, 30 Nov 2013 12:15:52 -0800
-Message-ID: <20131130201551.GA23089@home>
+Subject: [PATCH] nftables: add 'delete map' syntax
+Date: Sat, 30 Nov 2013 12:41:21 -0800
+Message-ID: <20131130204121.GA23143@home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
+Content-Type: multipart/mixed; boundary="huq684BweRXVnRxX"
 Content-Transfer-Encoding: 8bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:62852 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab3K3UPx (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:57480 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499Ab3K3UlX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Nov 2013 15:15:53 -0500
-Received: by mail-pb0-f48.google.com with SMTP id md12so16121746pbc.7
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2013 12:15:53 -0800 (PST)
+	Sat, 30 Nov 2013 15:41:23 -0500
+Received: by mail-pd0-f172.google.com with SMTP id g10so15600846pdj.17
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Nov 2013 12:41:22 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---WIyZ46R2i8wDzkSu
+--huq684BweRXVnRxX
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 
-When listing a table in interactive mode, the set list is not cleaned up.  Thus
-the number of displayed sets grows with each successive listing.  Attached
-patch adds the necessary list cleanup to do_command_list.
+Creating a map is done via "add map".  However, to delete a map requires using
+"delete set", which is confusing.  Add the appropriate synonym to parser.  
+The downside to this is that one can now delete a set with "delete map", but
+this seems a minor issue.  It could of course be fixed by adding a new
+CMD_OBJ_MAP.
+
+This closes netfilter bugzilla #879.
 
 Reported-by: Bjørnar Ness <bjornar.ness@gmail.com>
 Signed-off-by: Phil Oester <kernel@linuxace.com>
 
 
---WIyZ46R2i8wDzkSu
+--huq684BweRXVnRxX
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-nft-set_free
+Content-Disposition: attachment; filename=patch-nft-map_delete
 
-diff --git a/src/rule.c b/src/rule.c
-index 39a66d7..ec8b6a4 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -665,6 +665,11 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		chain_free(chain);
- 	}
- 
-+	list_for_each_entry_safe(set, nset, &table->sets, list) {
-+		list_del(&set->list);
-+		set_free(set);
-+	}
-+
- 	return 0;
- }
- 
+diff --git a/src/parser.y b/src/parser.y
+index a49e5c2..c736240 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -604,6 +604,10 @@ delete_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	MAP		set_spec
++			{
++				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
++			}
+ 			|	ELEMENT		set_spec	set_expr
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SETELEM, &$2, &@$, $3);
 
---WIyZ46R2i8wDzkSu--
+--huq684BweRXVnRxX--
