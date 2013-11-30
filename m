@@ -1,301 +1,155 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 2/2] netfilter: nft: add queue module
-Date: Sat, 30 Nov 2013 11:56:18 +0100
-Message-ID: <1385808978-19833-2-git-send-email-eric@regit.org>
+Subject: [libnftables PATCH 2/2] test: add tests for expr queue
+Date: Sat, 30 Nov 2013 11:57:22 +0100
+Message-ID: <1385809042-20049-2-git-send-email-eric@regit.org>
 References: <1385808722.4321.19.camel@ice-age2.regit.org>
- <1385808978-19833-1-git-send-email-eric@regit.org>
+ <1385809042-20049-1-git-send-email-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:38765 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:38776 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab3K3K4j (ORCPT
+	with ESMTP id S1751119Ab3K3K5i (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Nov 2013 05:56:39 -0500
-In-Reply-To: <1385808978-19833-1-git-send-email-eric@regit.org>
+	Sat, 30 Nov 2013 05:57:38 -0500
+In-Reply-To: <1385809042-20049-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new nft module named "nft_queue" which is a
-nftables target sending packet to nfnetlink_queue subsystem. It has
-the same level of functionnality as is iptables ancestor and share
-some code with it.
-
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  21 ++++
- net/netfilter/Kconfig                    |   9 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_queue.c                | 189 +++++++++++++++++++++++++++++++
- 4 files changed, 220 insertions(+)
- create mode 100644 net/netfilter/nft_queue.c
+ tests/Makefile.am           |  4 ++
+ tests/nft-expr_queue-test.c | 99 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+ create mode 100644 tests/nft-expr_queue-test.c
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index fbfd229..ffcb685 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -658,6 +658,26 @@ enum nft_log_attributes {
- #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 362eeac..576bf73 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -19,6 +19,7 @@ check_PROGRAMS = 	nft-parsing-test		\
+ 			nft-expr_meta-test		\
+ 			nft-expr_nat-test		\
+ 			nft-expr_payload-test		\
++			nft-expr_queue-test		\
+ 			nft-expr_reject-test		\
+ 			nft-expr_target-test
  
- /**
-+ * enum nft_queue_attributes - nf_tables queue expression netlink attributes
-+ *
-+ * @NFTA_QUEUE_NUM: netlink queue to send messages to (NLA_U16)
-+ * @NFTA_QUEUE_TOTAL: number of queues to load balance packets on (NLA_U16)
-+ * @NFTA_QUEUE_FLAGS: various flags (NLA_U16)
-+ */
-+enum nft_queue_attributes {
-+	NFTA_QUEUE_UNSPEC,
-+	NFTA_QUEUE_NUM,
-+	NFTA_QUEUE_TOTAL,
-+	NFTA_QUEUE_FLAGS,
-+	__NFTA_QUEUE_MAX
-+};
-+#define NFTA_QUEUE_MAX		(__NFTA_QUEUE_MAX - 1)
-+
-+#define NFT_QUEUE_FLAG_BYPASS		0x01 /* for compatibility with v2 */
-+#define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
-+#define NFT_QUEUE_FLAG_MASK		0x03
-+
-+/**
-  * enum nft_reject_types - nf_tables reject expression reject types
-  *
-  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
-@@ -682,6 +702,7 @@ enum nft_reject_attributes {
- };
- #define NFTA_REJECT_MAX		(__NFTA_REJECT_MAX - 1)
+@@ -79,6 +80,9 @@ nft_expr_nat_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
+ nft_expr_payload_test_SOURCES = nft-expr_payload-test.c
+ nft_expr_payload_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
  
++nft_expr_queue_test_SOURCES = nft-expr_queue-test.c
++nft_expr_queue_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
 +
- /**
-  * enum nft_nat_types - nf_tables nat expression NAT types
-  *
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c3398cd..cf0872d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -456,6 +456,15 @@ config NFT_NAT
- 	depends on NF_NAT
- 	tristate "Netfilter nf_tables nat module"
+ nft_expr_reject_test_SOURCES = nft-expr_reject-test.c
+ nft_expr_reject_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
  
-+config NFT_QUEUE
-+	depends on NF_TABLES
-+	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_NETLINK_QUEUE
-+	tristate "Netfilter nf_tables queue module"
-+	help
-+	  This is required if you intend to use nfnetlink queue
-+	  on more than the default queue 0 or with the other features
-+
- config NFT_COMPAT
- 	depends on NF_TABLES
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 394483b..e763746 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -76,6 +76,7 @@ obj-$(CONFIG_NFT_META)		+= nft_meta.o
- obj-$(CONFIG_NFT_CT)		+= nft_ct.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
-+obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
- #nf_tables-objs			+= nft_meta_target.o
- obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
- obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
-diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+diff --git a/tests/nft-expr_queue-test.c b/tests/nft-expr_queue-test.c
 new file mode 100644
-index 0000000..3f7cdd1
+index 0000000..eb741f4
 --- /dev/null
-+++ b/net/netfilter/nft_queue.c
-@@ -0,0 +1,189 @@
++++ b/tests/nft-expr_queue-test.c
+@@ -0,0 +1,99 @@
 +/*
-+ * Copyright (c) 2013 Eric Leblond <eric@regit.org>
++ * (C) 2013 by Eric Leblond <eric@regit.org>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Based on test framework by Ana Rey Botello <anarey@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
 +
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/jhash.h>
-+
-+#include <linux/jhash.h>
-+#include <linux/netfilter.h>
++#include <netinet/in.h>
++#include <netinet/ip.h>
 +#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
++#include <linux/netfilter/xt_iprange.h>
++#include <libmnl/libmnl.h>
++#include <libnftables/rule.h>
++#include <libnftables/expr.h>
 +
-+struct nft_queue {
-+	u16			queuenum;
-+	u16			queues_total;
-+	u16			flags;
-+	int			family;
-+};
++static int test_ok = 1;
 +
-+static u32 jhash_initval __read_mostly;
-+
-+static u32 hash_v4(const struct sk_buff *skb)
++static void print_err(const char *msg)
 +{
-+	const struct iphdr *iph = ip_hdr(skb);
-+
-+	/* packets in either direction go into same queue */
-+	if ((__force u32)iph->saddr < (__force u32)iph->daddr)
-+		return jhash_3words((__force u32)iph->saddr,
-+			(__force u32)iph->daddr, iph->protocol, jhash_initval);
-+
-+	return jhash_3words((__force u32)iph->daddr,
-+			(__force u32)iph->saddr, iph->protocol, jhash_initval);
++	test_ok = 0;
++	printf("\033[31mERROR:\e[0m %s\n", msg);
 +}
 +
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+static u32 hash_v6(const struct sk_buff *skb)
++static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
++			      struct nft_rule_expr *rule_b)
 +{
-+	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-+	u32 a, b, c;
-+
-+	if ((__force u32)ip6h->saddr.s6_addr32[3] <
-+	    (__force u32)ip6h->daddr.s6_addr32[3]) {
-+		a = (__force u32) ip6h->saddr.s6_addr32[3];
-+		b = (__force u32) ip6h->daddr.s6_addr32[3];
-+	} else {
-+		b = (__force u32) ip6h->saddr.s6_addr32[3];
-+		a = (__force u32) ip6h->daddr.s6_addr32[3];
-+	}
-+
-+	if ((__force u32)ip6h->saddr.s6_addr32[1] <
-+	    (__force u32)ip6h->daddr.s6_addr32[1])
-+		c = (__force u32) ip6h->saddr.s6_addr32[1];
-+	else
-+		c = (__force u32) ip6h->daddr.s6_addr32[1];
-+
-+	return jhash_3words(a, b, c, jhash_initval);
-+}
-+#endif
-+
-+static u32
-+nfqueue_hash(const struct nft_pktinfo *pkt, const struct nft_queue *priv)
-+{
-+	u32 queue = priv->queuenum;
-+
-+	if (priv->family == AF_INET)
-+		queue += ((u64) hash_v4(pkt->skb) * priv->queues_total) >> 32;
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+	else if (priv->family == AF_INET6)
-+		queue += ((u64) hash_v6(pkt->skb) * priv->queues_total) >> 32;
-+#endif
-+
-+	return queue;
++	if (nft_rule_expr_get_u16(rule_a, NFT_EXPR_QUEUE_NUM) !=
++	    nft_rule_expr_get_u16(rule_b, NFT_EXPR_QUEUE_NUM))
++		print_err("Expr NFT_EXPR_QUEUE_NUM mismatches");
++	if (nft_rule_expr_get_u16(rule_a, NFT_EXPR_QUEUE_TOTAL) !=
++	    nft_rule_expr_get_u16(rule_b, NFT_EXPR_QUEUE_TOTAL))
++		print_err("Expr NFT_EXPR_QUEUE_TOTAL mismatches");
 +}
 +
-+static void nft_queue_eval(const struct nft_expr *expr,
-+			      struct nft_data data[NFT_REG_MAX + 1],
-+			      const struct nft_pktinfo *pkt)
++int main(int argc, char *argv[])
 +{
-+	struct nft_queue *priv = nft_expr_priv(expr);
-+	u32 queue = priv->queuenum;
-+	u32 ret;
++	struct nft_rule *a, *b;
++	struct nft_rule_expr *ex;
++	struct nlmsghdr *nlh;
++	char buf[4096];
++	struct nft_rule_expr_iter *iter_a, *iter_b;
++	struct nft_rule_expr *rule_a, *rule_b;
 +
-+	if (priv->queues_total > 1) {
-+		if (priv->flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
-+			int cpu = smp_processor_id();
++	a = nft_rule_alloc();
++	b = nft_rule_alloc();
++	if (a == NULL || b == NULL)
++		print_err("OOM");
++	ex = nft_rule_expr_alloc("queue");
++	if (ex == NULL)
++		print_err("OOM");
 +
-+			queue = priv->queuenum + cpu % priv->queues_total;
-+		} else
-+			queue = nfqueue_hash(pkt, priv);
-+	}
++	nft_rule_expr_set_u16(ex, NFT_EXPR_QUEUE_NUM, 0x123);
++	nft_rule_expr_set_u16(ex, NFT_EXPR_QUEUE_TOTAL, 0x2);
++	nft_rule_expr_set_u16(ex, NFT_EXPR_QUEUE_FLAGS, 0x2);
 +
-+	ret = NF_QUEUE_NR(queue);
-+	if (priv->flags & NFT_QUEUE_FLAG_BYPASS)
-+		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
++	nft_rule_add_expr(a, ex);
 +
-+	data[NFT_REG_VERDICT].verdict = ret;
++	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
++	nft_rule_nlmsg_build_payload(nlh, a);
++
++	if (nft_rule_nlmsg_parse(nlh, b) < 0)
++		print_err("parsing problems");
++
++	iter_a = nft_rule_expr_iter_create(a);
++	iter_b = nft_rule_expr_iter_create(b);
++	if (iter_a == NULL || iter_b == NULL)
++		print_err("OOM");
++
++	rule_a = nft_rule_expr_iter_next(iter_a);
++	rule_b = nft_rule_expr_iter_next(iter_b);
++	if (rule_a == NULL || rule_b == NULL)
++		print_err("OOM");
++
++	cmp_nft_rule_expr(rule_a, rule_b);
++
++	if (nft_rule_expr_iter_next(iter_a) != NULL ||
++	    nft_rule_expr_iter_next(iter_b) != NULL)
++		print_err("More 1 expr.");
++
++	nft_rule_expr_iter_destroy(iter_a);
++	nft_rule_expr_iter_destroy(iter_b);
++	nft_rule_free(a);
++	nft_rule_free(b);
++
++	if (!test_ok)
++		exit(EXIT_FAILURE);
++
++	printf("%s: \033[32mOK\e[0m\n", argv[0]);
++	return EXIT_SUCCESS;
 +}
-+
-+static const struct nla_policy nft_queue_policy[NFTA_QUEUE_MAX + 1] = {
-+	[NFTA_QUEUE_NUM]		= { .type = NLA_U16 },
-+	[NFTA_QUEUE_TOTAL]		= { .type = NLA_U16 },
-+	[NFTA_QUEUE_FLAGS]		= { .type = NLA_U16 },
-+};
-+
-+static int nft_queue_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
-+{
-+	struct nft_queue *priv = nft_expr_priv(expr);
-+
-+	priv->family = ctx->afi->family;
-+
-+	if (tb[NFTA_QUEUE_NUM] == NULL)
-+		return -EINVAL;
-+	priv->queuenum = ntohs(nla_get_be16(tb[NFTA_QUEUE_NUM]));
-+
-+	if (tb[NFTA_QUEUE_TOTAL] != NULL)
-+		priv->queues_total = ntohs(nla_get_be16(tb[NFTA_QUEUE_TOTAL]));
-+	if (tb[NFTA_QUEUE_FLAGS] != NULL) {
-+		priv->flags = ntohs(nla_get_be16(tb[NFTA_QUEUE_FLAGS]));
-+		if (priv->flags & ~NFT_QUEUE_FLAG_MASK)
-+			return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int nft_queue_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_queue *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be16(skb, NFTA_QUEUE_NUM, htons(priv->queuenum)))
-+		goto nla_put_failure;
-+
-+	if (nla_put_be16(skb, NFTA_QUEUE_TOTAL, htons(priv->queues_total)))
-+		goto nla_put_failure;
-+
-+	if (nla_put_be16(skb, NFTA_QUEUE_FLAGS, htons(priv->flags)))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_queue_type;
-+static const struct nft_expr_ops nft_queue_ops = {
-+	.type		= &nft_queue_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_queue)),
-+	.eval		= nft_queue_eval,
-+	.init		= nft_queue_init,
-+	.dump		= nft_queue_dump,
-+};
-+
-+static struct nft_expr_type nft_queue_type __read_mostly = {
-+	.name		= "queue",
-+	.ops		= &nft_queue_ops,
-+	.policy		= nft_queue_policy,
-+	.maxattr	= NFTA_QUEUE_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_queue_module_init(void)
-+{
-+	return nft_register_expr(&nft_queue_type);
-+}
-+
-+static void __exit nft_queue_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_queue_type);
-+}
-+
-+module_init(nft_queue_module_init);
-+module_exit(nft_queue_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
-+MODULE_ALIAS_NFT_EXPR("queue");
 -- 
 1.8.4.4
 
