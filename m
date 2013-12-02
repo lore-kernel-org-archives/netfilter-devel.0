@@ -1,57 +1,35 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] iptables: nft: fix memory leaks in nft_fini
-Date: Mon,  2 Dec 2013 11:45:14 +0100
-Message-ID: <1385981114-3131-1-git-send-email-anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH 2/2] netfilter: nft: add queue module
+Date: Mon, 02 Dec 2013 13:03:18 +0200
+Message-ID: <529C68F6.70002@linux.intel.com>
+References: <1385808722.4321.19.camel@ice-age2.regit.org>	 <1385808978-19833-1-git-send-email-eric@regit.org>	 <1385808978-19833-2-git-send-email-eric@regit.org>	 <529C2B33.9020205@linux.intel.com> <1385976728.19102.7.camel@ice-age2.regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:50443 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198Ab3LBKsH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Dec 2013 05:48:07 -0500
-Received: by mail-wg0-f44.google.com with SMTP id a1so9868536wgh.23
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2013 02:48:06 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:5515 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753198Ab3LBLD3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Dec 2013 06:03:29 -0500
+In-Reply-To: <1385976728.19102.7.camel@ice-age2.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Those errors are shown with valgrind tool:
+Hi Eric,
 
-valgrind --leak-check=full xtables -A INPUT -i eth0 -p tcp --dport 80
+>> Why not declaring them in an enum, as for nft_rule_compat_flags,
+>> >nft_set_flags or nft_set_elem_flags?
+> Simple answer: It was not an enum in the original NFQUEUE code;)
+>
+> Real answer: We have only two values, third one is a mask. So it may be
+> a bit overkill to use an enum here.
 
-==12554== 40 bytes in 1 blocks are still reachable in loss record 1 of 10
-==12554==    at 0x4C2935B: malloc (vg_replace_malloc.c:270)
-==12554==    by 0x574D755: mnl_nlmsg_batch_start (nlmsg.c:447)
-==12554==    by 0x416520: nft_action (nft.c:2281)
-==12554==    by 0x41355E: xtables_main (xtables-standalone.c:75)
-==12554==    by 0x5B87994: (below main) (libc-start.c:260)
+I understand, but this would be diverging from what has been the "rule" 
+so far.
+It's a minor detail I agree.
 
-==12554== 135,168 bytes in 1 blocks are still reachable in loss record 9 of 10
-==12554==    at 0x4C2935B: malloc (vg_replace_malloc.c:270)
-==12554==    by 0x415A24: mnl_nft_batch_alloc (nft.c:102)
-==12554==    by 0x416520: nft_action (nft.c:2281)
-==12554==    by 0x41355E: xtables_main (xtables-standalone.c:75)
-==12554==    by 0x5B87994: (below main) (libc-start.c:260)
+Btw, nft_set_elem_flags owns only one value ^^
 
-These objects are allocated from nft_init but they were not released
-appropriately in the exit path.
----
- iptables/nft.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 0599beb..a015947 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -618,6 +618,8 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
- void nft_fini(struct nft_handle *h)
- {
- 	mnl_socket_close(h->nl);
-+	free(mnl_nlmsg_batch_head(h->batch));
-+	mnl_nlmsg_batch_stop(h->batch);
- }
- 
- int nft_table_add(struct nft_handle *h, const struct nft_table *t)
--- 
-1.8.4.rc3
-
+Tomasz
