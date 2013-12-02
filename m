@@ -1,58 +1,49 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] xtables-standalone: call nft_fini in the error path
-Date: Mon,  2 Dec 2013 11:43:25 +0100
-Message-ID: <1385981005-2843-1-git-send-email-anarey@gmail.com>
+Subject: [PATCH] xtables: fix memory leak in command_jump
+Date: Mon,  2 Dec 2013 11:44:19 +0100
+Message-ID: <1385981059-2923-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:54031 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254Ab3LBKqW (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:47536 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753254Ab3LBKrM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Dec 2013 05:46:22 -0500
-Received: by mail-wg0-f49.google.com with SMTP id x12so11482964wgg.28
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2013 02:46:21 -0800 (PST)
+	Mon, 2 Dec 2013 05:47:12 -0500
+Received: by mail-wi0-f177.google.com with SMTP id cc10so4550550wib.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Dec 2013 02:47:11 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This error is shown with valgrind tools:
+This error is shown with valgrind tool:
 
-valgrind --leak-check=full xtables -A INPUT -i eth0 -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+valgrind --leak-check=full xtables -A INPUT -i eth0 -p tcp --dport 80
 
-==7377== 16 bytes in 1 blocks are still reachable in loss record 1 of 14
+==7377==
+==7377== 40 bytes in 1 blocks are still reachable in loss record 4 of 14
 ==7377==    at 0x4C2B514: calloc (vg_replace_malloc.c:593)
-==7377==    by 0x574CC76: mnl_socket_open (socket.c:117)
-==7377==    by 0x417495: nft_init (nft.c:598)
-==7377==    by 0x4134C2: xtables_main (xtables-standalone.c:64)
+==7377==    by 0x52448C8: xtables_calloc (xtables.c:272)
+==7377==    by 0x41487B: do_commandx (xtables.c:618)
+==7377==    by 0x4134DC: xtables_main (xtables-standalone.c:72)
 ==7377==    by 0x5B87994: (below main) (libc-start.c:260)
-
-This patch calls nft_fini to release the objects that have been allocated in
-nft_init. This function was not used so far.
+==7377==
 ---
- iptables/xtables-standalone.c | 3 +++
- 1 file changed, 3 insertions(+)
+ iptables/xtables.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/iptables/xtables-standalone.c b/iptables/xtables-standalone.c
-index cb685d6..c9f8e15 100644
---- a/iptables/xtables-standalone.c
-+++ b/iptables/xtables-standalone.c
-@@ -66,6 +66,7 @@ xtables_main(int argc, char *argv[])
- 				xtables_globals.program_name,
- 				xtables_globals.program_version,
- 				strerror(errno));
-+		nft_fini(&h);
- 		exit(EXIT_FAILURE);
- 	}
- 
-@@ -73,6 +74,8 @@ xtables_main(int argc, char *argv[])
- 	if (ret)
- 		ret = nft_commit(&h);
- 
-+	nft_fini(&h);
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index c49b4a2..b5fff8c 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -638,6 +638,8 @@ static void command_jump(struct iptables_command_state *cs)
+ 		opts = xtables_merge_options(xtables_globals.orig_opts, opts,
+ 					     cs->target->extra_opts,
+ 					     &cs->target->option_offset);
++	free(cs->target->t);
 +
- 	if (!ret) {
- 		if (errno == EINVAL) {
- 			fprintf(stderr, "iptables: %s. "
+ 	if (opts == NULL)
+ 		xtables_error(OTHER_PROBLEM, "can't alloc memory!");
+ }
 -- 
 1.8.4.rc3
 
