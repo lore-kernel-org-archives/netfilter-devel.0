@@ -1,65 +1,53 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: Re: [PATCH] xtables: fix memory leak in command_jump
-Date: Tue, 3 Dec 2013 18:53:21 +0100
-Message-ID: <CAD7o0siZ4v30vjyuJ0Y40UcZm8=_4UpFm-pBTB0bE7aRV3GeVw@mail.gmail.com>
-References: <1385981059-2923-1-git-send-email-anarey@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] add hash:ip,mark data type to ipset
+Date: Tue, 3 Dec 2013 20:15:37 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1312032006500.32285@blackhole.kfki.hu>
+References: <1383146590-4626-1-git-send-email-vytas.dauksa@smoothwall.net> <alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu> <CACUMwTmRbK=tMMNhGe3BmhS4Fm76njtDPE=ez8TvO0HHBJ-bww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Vytas Dauksa <vytas.dauksa@smoothwall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:63951 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754303Ab3LCRxo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Dec 2013 12:53:44 -0500
-Received: by mail-vc0-f170.google.com with SMTP id ht10so10363489vcb.29
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Dec 2013 09:53:43 -0800 (PST)
-In-Reply-To: <1385981059-2923-1-git-send-email-anarey@gmail.com>
+Received: from smtp1.kfki.hu ([148.6.0.26]:41533 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753548Ab3LCTPk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Dec 2013 14:15:40 -0500
+In-Reply-To: <CACUMwTmRbK=tMMNhGe3BmhS4Fm76njtDPE=ez8TvO0HHBJ-bww@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2013/12/2 Ana Rey <anarey@gmail.com>:
-> This error is shown with valgrind tool:
->
-> valgrind --leak-check=full xtables -A INPUT -i eth0 -p tcp --dport 80
->
-> ==7377==
-> ==7377== 40 bytes in 1 blocks are still reachable in loss record 4 of 14
-> ==7377==    at 0x4C2B514: calloc (vg_replace_malloc.c:593)
-> ==7377==    by 0x52448C8: xtables_calloc (xtables.c:272)
-> ==7377==    by 0x41487B: do_commandx (xtables.c:618)
-> ==7377==    by 0x4134DC: xtables_main (xtables-standalone.c:72)
-> ==7377==    by 0x5B87994: (below main) (libc-start.c:260)
-> ==7377==
+Hy Vytas,
 
-Please, withdraw this patch, I detected a problem in it.
+On Wed, 20 Nov 2013, Vytas Dauksa wrote:
 
+> The intended use is similar to the ip:port type, but for protocols which don't use
+> a predictable port number. Instead of port number it matches a firewall mark
+> determined by a layer 7 filtering program like opendpi, which will be called
+> by an earlier iptables rule.
 
+OK, I see.
+ 
+> I wasn't sure if it's best to set mark on individual entry within a set or for
+> whole set with or without mask.
+> What are your views on it? For now it's set on individual entries without mask.
 
-> ---
->  iptables/xtables.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/iptables/xtables.c b/iptables/xtables.c
-> index c49b4a2..b5fff8c 100644
-> --- a/iptables/xtables.c
-> +++ b/iptables/xtables.c
-> @@ -638,6 +638,8 @@ static void command_jump(struct iptables_command_state *cs)
->                 opts = xtables_merge_options(xtables_globals.orig_opts, opts,
->                                              cs->target->extra_opts,
->                                              &cs->target->option_offset);
-> +       free(cs->target->t);
-> +
->         if (opts == NULL)
->                 xtables_error(OTHER_PROBLEM, "can't alloc memory!");
->  }
-> --
-> 1.8.4.rc3
->
+I think mark value and mask pair per element would be more useful and 
+flexible than a mark value alone. The "mark" match uses value[/mask], so 
+the same should be used here too.
 
+There's one thing I spotted in your patch, in both *_uadt function:
 
++       e.mark = htonl(nla_get_u32(tb[IPSET_ATTR_MARK]));
 
--- 
-Ana Rey (@anaRB)
-http://www.anarey.info
-http://about.me/anarey
+The value is passed in network order back and forth, so it should be at 
+both places:
+
++       e.mark = ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
