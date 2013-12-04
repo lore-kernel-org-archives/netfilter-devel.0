@@ -1,29 +1,45 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC nftables kernel PATCH] netfilter: nf_tables: fix nft_meta_target
- module
-Date: Wed, 04 Dec 2013 15:30:44 +0200
-Message-ID: <529F2E84.3080002@linux.intel.com>
-References: <20131128111557.6154.40370.stgit@nfdev.cica.es> <5297382F.60707@linux.intel.com> <CAOkSjBj+XER8sn1eakaTDyDJPUn=t50WFYLE8zF4uP7Ef9TTOA@mail.gmail.com> <529745ED.5050201@linux.intel.com> <20131204132119.GA13212@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC][PATCH] nftables: add slash to chain syntax
+Date: Wed, 4 Dec 2013 15:05:47 +0100
+Message-ID: <20131204140547.GA9643@localhost>
+References: <20131130232022.GA23206@home>
+ <20131130232248.GA23209@home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60835 "EHLO mga11.intel.com"
+Received: from mail.us.es ([193.147.175.20]:35394 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932320Ab3LDNbJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Dec 2013 08:31:09 -0500
-In-Reply-To: <20131204132119.GA13212@localhost>
+	id S1755768Ab3LDOFv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Dec 2013 09:05:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20131130232248.GA23209@home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Sat, Nov 30, 2013 at 03:22:48PM -0800, Phil Oester wrote:
+> <v2: attach the patch this time...>
+> 
+> The current syntax when handling chains seems counterintuitive to me.  I would
+> expect that "add chain" would have the name of the chain directly after the
+> keyword "chain".  But instead, the name of the table is there, with the chain
+> after.  I think a better syntax might be this:
+> 
+>         add chain <table>/<chain>
 
-> We would also save having two kernel modules.
+Frankly, I prefer to leave the syntax as is in that regard.
 
-Good point indeed.
+But there are a couple of syntax aspect that would be worth discussing
+before this is set in stone, eg. the `=>' in verdict maps.
 
-Tomasz
+The > symbol in the bash shell, if not escaped, results in a
+redirection. We could replace it by ':', so the maps will look like:
+
+add rule ip filter OUTPUT tcp dport vmap { \
+        22 : jump chain1, \
+        23 : jump chain2, \
+}
+
+Just in case we consider it worth to make it easier to run nft
+commands from the bash shell.
