@@ -1,47 +1,49 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [RFC][PATCH] nftables: add slash to chain syntax
-Date: Wed, 4 Dec 2013 16:16:21 +0100
-Message-ID: <CAOkSjBhfM+r-Jc8wvExEvUGYEHWDBTDBf-c4_e9-v4RfmjQJZQ@mail.gmail.com>
-References: <20131130232022.GA23206@home> <20131130232248.GA23209@home> <20131204140547.GA9643@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Phil Oester <kernel@linuxace.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Shawn Landden <shawn@churchofgit.com>
+Subject: [PATCH] netlink: do not SIGSEGV when socket() fails
+Date: Wed,  4 Dec 2013 11:12:20 -0800
+Message-ID: <1386184340-74134-1-git-send-email-shawn@churchofgit.com>
+Cc: Shawn Landden <shawn@churchofgit.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:61461 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932254Ab3LDPQn convert rfc822-to-8bit (ORCPT
+Received: from frostfang.bitronictech.net ([198.20.106.155]:35606 "EHLO
+	www.churchofgit.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1755958Ab3LDTMn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Dec 2013 10:16:43 -0500
-Received: by mail-lb0-f169.google.com with SMTP id y6so9445793lbh.14
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Dec 2013 07:16:41 -0800 (PST)
-In-Reply-To: <20131204140547.GA9643@localhost>
+	Wed, 4 Dec 2013 14:12:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4 December 2013 15:05, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> The > symbol in the bash shell, if not escaped, results in a
-> redirection. We could replace it by ':', so the maps will look like:
->
-> add rule ip filter OUTPUT tcp dport vmap { \
->         22 : jump chain1, \
->         23 : jump chain2, \
-> }
->
-> Just in case we consider it worth to make it easier to run nft
-> commands from the bash shell.
+---
+ src/netlink.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-I totally like this approach.
+diff --git a/src/netlink.c b/src/netlink.c
+index 533634a..664487d 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -33,8 +33,11 @@ static struct mnl_socket *nf_sock;
+ static void __init netlink_open_sock(void)
+ {
+ 	nf_sock = mnl_socket_open(NETLINK_NETFILTER);
+-	if (nf_sock == NULL)
++	if (nf_sock == NULL) {
++                fprintf(fdopen(STDERR_FILENO, "a"), "Could not open AF_NETLINK socket: %s\n",
++                                        strerror(errno));
+ 		memory_allocation_error();
++        }
+ 
+ 	fcntl(mnl_socket_get_fd(nf_sock), F_SETFL, O_NONBLOCK);
+ 	mnl_batch_init();
+@@ -42,7 +45,8 @@ static void __init netlink_open_sock(void)
+ 
+ static void __exit netlink_close_sock(void)
+ {
+-	mnl_socket_close(nf_sock);
++        if (nf_sock)
++                mnl_socket_close(nf_sock);
+ }
+ 
+ int netlink_io_error(struct netlink_ctx *ctx, const struct location *loc,
+-- 
+1.8.5.1
 
-Why not to ease the life of bash users? I guess they are many :-)
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
