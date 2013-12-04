@@ -1,49 +1,35 @@
 From: Shawn Landden <shawn@churchofgit.com>
-Subject: [PATCH] netlink: do not SIGSEGV when socket() fails
-Date: Wed,  4 Dec 2013 11:12:20 -0800
-Message-ID: <1386184340-74134-1-git-send-email-shawn@churchofgit.com>
+Subject: [PATCH] libmnl: docs were wrong
+Date: Wed,  4 Dec 2013 11:06:28 -0800
+Message-ID: <1386183988-66330-1-git-send-email-shawn@churchofgit.com>
 Cc: Shawn Landden <shawn@churchofgit.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from frostfang.bitronictech.net ([198.20.106.155]:35606 "EHLO
+Received: from frostfang.bitronictech.net ([198.20.106.155]:35607 "EHLO
 	www.churchofgit.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1755958Ab3LDTMn (ORCPT
+	with ESMTP id S933010Ab3LDTP1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Dec 2013 14:12:43 -0500
+	Wed, 4 Dec 2013 14:15:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 ---
- src/netlink.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ src/socket.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 533634a..664487d 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -33,8 +33,11 @@ static struct mnl_socket *nf_sock;
- static void __init netlink_open_sock(void)
- {
- 	nf_sock = mnl_socket_open(NETLINK_NETFILTER);
--	if (nf_sock == NULL)
-+	if (nf_sock == NULL) {
-+                fprintf(fdopen(STDERR_FILENO, "a"), "Could not open AF_NETLINK socket: %s\n",
-+                                        strerror(errno));
- 		memory_allocation_error();
-+        }
- 
- 	fcntl(mnl_socket_get_fd(nf_sock), F_SETFL, O_NONBLOCK);
- 	mnl_batch_init();
-@@ -42,7 +45,8 @@ static void __init netlink_open_sock(void)
- 
- static void __exit netlink_close_sock(void)
- {
--	mnl_socket_close(nf_sock);
-+        if (nf_sock)
-+                mnl_socket_close(nf_sock);
- }
- 
- int netlink_io_error(struct netlink_ctx *ctx, const struct location *loc,
+diff --git a/src/socket.c b/src/socket.c
+index 6d54563..676a08a 100644
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -107,7 +107,7 @@ EXPORT_SYMBOL(mnl_socket_get_portid);
+  * mnl_socket_open - open a netlink socket
+  * \param bus the netlink socket bus ID (see NETLINK_* constants)
+  *
+- * On error, it returns -1 and errno is appropriately set. Otherwise, it
++ * On error, it returns NULL and errno is appropriately set. Otherwise, it
+  * returns a valid pointer to the mnl_socket structure.
+  */
+ struct mnl_socket *mnl_socket_open(int bus)
 -- 
 1.8.5.1
 
