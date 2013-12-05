@@ -1,27 +1,55 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCHv3 0/3] add nft_queue module
-Date: Thu,  5 Dec 2013 22:31:25 +0100
-Message-ID: <1386279088-4895-1-git-send-email-eric@regit.org>
+Subject: [PATCHv3 1/3] netfilter: nft: fix issue with verdict support
+Date: Thu,  5 Dec 2013 22:31:26 +0100
+Message-ID: <1386279088-4895-2-git-send-email-eric@regit.org>
 References: <20131205170955.GA8663@localhost>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+ <1386279088-4895-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+	Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:58638 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:58646 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877Ab3LEVbp (ORCPT
+	with ESMTP id S1750877Ab3LEVbx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 16:31:45 -0500
-In-Reply-To: <20131205170955.GA8663@localhost>
+	Thu, 5 Dec 2013 16:31:53 -0500
+In-Reply-To: <1386279088-4895-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The test on verdict was simply done on the value of the verdict
+which is not correct as far as queue is concern. In fact, the test
+of verdict test must be done with respect to the verdict mask for
+verdicts which are not internal to nftables.
 
-Hello,
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ net/netfilter/nf_tables_core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-This patch is a rework of previous patchset which fix comments
-sent by Pablo. Code commons to xf_NFQUEUE and nft_queue has been
-put in a common header. Other minor points have been fixed to.
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index cb9e685..e8fcc34 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -164,7 +164,7 @@ next_rule:
+ 		break;
+ 	}
+ 
+-	switch (data[NFT_REG_VERDICT].verdict) {
++	switch (data[NFT_REG_VERDICT].verdict & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_DROP:
+ 	case NF_QUEUE:
+@@ -172,6 +172,9 @@ next_rule:
+ 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
+ 
+ 		return data[NFT_REG_VERDICT].verdict;
++	}
++
++	switch (data[NFT_REG_VERDICT].verdict) {
+ 	case NFT_JUMP:
+ 		if (unlikely(pkt->skb->nf_trace))
+ 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
+-- 
+1.8.5
 
-BR,
---
-Eric
