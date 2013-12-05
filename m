@@ -1,57 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] netfilter: nft: add queue module
-Date: Thu, 5 Dec 2013 18:09:55 +0100
-Message-ID: <20131205170955.GA8663@localhost>
-References: <20131130122657.GG2067@breakpoint.cc>
- <1385824444-4506-1-git-send-email-eric@regit.org>
- <20131204110021.GA11380@localhost>
- <1386161263.9597.23.camel@ice-age2.regit.org>
+Subject: Re: [PATCH net-next] netfilter: add IPComp extension match support
+Date: Thu, 5 Dec 2013 19:34:02 +0100
+Message-ID: <20131205183402.GA8949@localhost>
+References: <1385607204-27650-1-git-send-email-fan.du@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Cc: steffen.klassert@secunet.com, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Fan Du <fan.du@windriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44327 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58825 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830Ab3LERKE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 12:10:04 -0500
+	id S1756918Ab3LESeI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Dec 2013 13:34:08 -0500
 Content-Disposition: inline
-In-Reply-To: <1386161263.9597.23.camel@ice-age2.regit.org>
+In-Reply-To: <1385607204-27650-1-git-send-email-fan.du@windriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+Hi,
 
-On Wed, Dec 04, 2013 at 01:47:43PM +0100, Eric Leblond wrote:
-[...]
-> > > +static u32
-> > > +nfqueue_hash(const struct nft_pktinfo *pkt, const struct nft_queue *priv)
-> > > +{
-> > > +	u32 queue = priv->queuenum;
-> > > +
-> > > +	if (priv->family == AF_INET)
-> > > +		queue += ((u64) hash_v4(pkt->skb) * priv->queues_total) >> 32;
-> > > +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> > > +	else if (priv->family == AF_INET6)
-> > > +		queue += ((u64) hash_v6(pkt->skb) * priv->queues_total) >> 32;
-> > > +#endif
-> > > +
-> > > +	return queue;
-> > > +}
-> > 
-> > to there, it looks very similar to NFQUEUE. You can move these
-> > functions to net/netfilter/nf_queue.h. You'll have to inline them and
-> > add the jhash_initval parameter. You'll need an initial patch to
-> > prepare this change and adapt xt_NFQUEUE.c
+On Thu, Nov 28, 2013 at 10:53:24AM +0800, Fan Du wrote:
+> With this plugin, user could specify IPComp tagged with certain 
+> CPI that host not interested will be DROPped or any other action.
 > 
-> I'm ok with the two hash functions but the nfqueue_hash the second
-> argument is different. Do you want me to introduce a new common
-> structure for xt_NFQUEUE and nft_queue ?
+> For example:
+> iptables -A INPUT -p 108 -m ipcomp --ipcompspi 0x87 -j DROP
+> 
+> Then input IPComp packet with CPI equates 0x87 will not reach
+> upper layer anymore.
 
-My suggestion is to add something like:
+I think that, with a little bit more work, you can add support for
+IPv6 as well. From RFC 3173:
 
-static inline u32 nfqueue_hash(const struct sk_buff *skb, u16 queuenum,
-                               u16 queues_total, u8 family)
+"In the IPv6 context, IPComp is viewed as an end-to-end payload, and
+MUST NOT apply to hop-by-hop, routing, and fragmentation extension
+headers.
 
-that can be used by both, it will also be defined in
-net/netfilter/nf_queue.h
+You can perform that IPv6-specific handling to skip these extension
+headers and reach the IPComp header by means of the ipv6_find_hdr()
+helper function.
+
+BTW, please post the iptables userspace part as well.
