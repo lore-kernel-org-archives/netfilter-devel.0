@@ -1,44 +1,43 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: libmnl [PATCH 3/5] examples: use mnl_nlmsg_get_payload()
-Date: Thu, 5 Dec 2013 19:16:48 +0900
-Message-ID: <CAGCkEt0U7wEmzWWK+TiqDjaEjcMEA1VyYQyCFoqUfYy20u4rfg@mail.gmail.com>
+Subject: libmnl [PATCH 4/5] document: mnl_socket_open
+Date: Thu, 5 Dec 2013 19:17:03 +0900
+Message-ID: <CAGCkEt2ic1mGERXRz__T8mgN-oARuS_37vAY55W8evaozqQcdA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:49306 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887Ab3LEKQt (ORCPT
+Received: from mail-qe0-f50.google.com ([209.85.128.50]:56862 "EHLO
+	mail-qe0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab3LEKRF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 05:16:49 -0500
-Received: by mail-qc0-f178.google.com with SMTP id i17so4601797qcy.23
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Dec 2013 02:16:48 -0800 (PST)
+	Thu, 5 Dec 2013 05:17:05 -0500
+Received: by mail-qe0-f50.google.com with SMTP id 1so14965038qec.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Dec 2013 02:17:03 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-Date: Mon, 25 Nov 2013 15:36:28 +0900
-Subject: [PATCH 3/5] examples: use mnl_nlmsg_get_payload()
+Date: Thu, 28 Nov 2013 08:23:35 +0900
+Subject: [PATCH 4/5] document: mnl_socket_open
 
-not increment (nlmsghdr) pointer
+fix return value on error
 ---
- examples/netfilter/nfct-create-batch.c |    2 +-
+ src/socket.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/examples/netfilter/nfct-create-batch.c
-b/examples/netfilter/nfct-create-batch.c
-index 40cd2f6..a232991 100644
---- a/examples/netfilter/nfct-create-batch.c
-+++ b/examples/netfilter/nfct-create-batch.c
-@@ -67,7 +67,7 @@ static void put_msg(char *buf, uint16_t i, int seq)
-
- static int cb_err(const struct nlmsghdr *nlh, void *data)
- {
--       struct nlmsgerr *err = (void *)(nlh + 1);
-+       struct nlmsgerr *err = (void *)mnl_nlmsg_get_payload(nlh);
-        if (err->error != 0)
-                printf("message with seq %u has failed: %s\n",
-                        nlh->nlmsg_seq, strerror(-err->error));
+diff --git a/src/socket.c b/src/socket.c
+index 6d54563..676a08a 100644
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -107,7 +107,7 @@ EXPORT_SYMBOL(mnl_socket_get_portid);
+  * mnl_socket_open - open a netlink socket
+  * \param bus the netlink socket bus ID (see NETLINK_* constants)
+  *
+- * On error, it returns -1 and errno is appropriately set. Otherwise, it
++ * On error, it returns NULL and errno is appropriately set. Otherwise, it
+  * returns a valid pointer to the mnl_socket structure.
+  */
+ struct mnl_socket *mnl_socket_open(int bus)
 --
 1.7.10.4
