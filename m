@@ -1,74 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Merging iptables-nftables into iptables
-Date: Thu, 5 Dec 2013 22:54:47 +0100
-Message-ID: <20131205215447.GA4367@localhost>
-References: <20131204114834.GA13280@localhost>
- <CAOkSjBj5z7x+15Dmw-EWtqiBWfv4h+DBO0s7KNeZgkgrZP4g+w@mail.gmail.com>
- <20131205082409.GB4557@localhost>
- <52A0ED02.40603@pandora.be>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: libmnl [PATCH 2/5] examples: fix trivial error message
+Date: Fri, 6 Dec 2013 07:42:48 +0900
+Message-ID: <CAGCkEt1QXK=4OAN-e2f9_BQALFp-SOFT+=ZpjjcP-eVECUBiFA@mail.gmail.com>
+References: <CAGCkEt1+dni9L0-5OYsPnoOhBZGB6XaRSQ9T_GKifSE4pwC_PQ@mail.gmail.com>
+	<20131205142746.GH2767@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53365 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751867Ab3LEVzA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 16:55:00 -0500
-Content-Disposition: inline
-In-Reply-To: <52A0ED02.40603@pandora.be>
+Received: from mail-qa0-f45.google.com ([209.85.216.45]:37278 "EHLO
+	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab3LEWmt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Dec 2013 17:42:49 -0500
+Received: by mail-qa0-f45.google.com with SMTP id o15so53602qap.18
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Dec 2013 14:42:49 -0800 (PST)
+In-Reply-To: <20131205142746.GH2767@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Bart,
+ Hello Florian
 
-On Thu, Dec 05, 2013 at 10:15:46PM +0100, Bart De Schuymer wrote:
-> Pablo Neira Ayuso schreef op 5/12/2013 9:24:
-> >On Wed, Dec 04, 2013 at 04:11:18PM +0100, Arturo Borrero Gonzalez wrote:
-> >>On 4 December 2013 12:48, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>>Hi,
-> >>>
-> >>>The iptables-nftables tree [1] currently stores the iptables over
-> >>>nftables compatibility support. This allows you to run iptables
-> >>>commands using the nftables kernel infrastructure.
-> >>>
-> >>>JFYI, my plan is to merge the iptables-nftables into iptables at some
-> >>>point of this week given that it contains stuff that is scheduled for
-> >>>3.13.  After that merge, the iptables-nftables will be disabled.
-> >>>
-> >>>[1] http://git.netfilter.org/iptables-nftables/
-> >>Could you give some hints about releases of userspace stuff?
-> >>(libnftables, nft, new iptables...)
-> >>
-> >>Is 3.13 a deadline for releases?
-> >The initial release of the userspace libraries and tools will happen
-> >by when the Linux kernel 3.13 is released, that should happen by the
-> >beginning of 2014.
-> >
-> >The nftables compatibility layer (the so-called iptables-nftables)
-> >will be included in regular iptables releases, since it will be part
-> >of that package.
-> 
-> Nice to see this progress. What are the plans/obstacles (if any?)
-> for migrating ebtables/arptables to nftables?
+Thank you for your revewing and replying.
 
-We already have a working compatibility layer for iptables, ip6tables
-and arptables.
+> Something corrupted the patch formattig, breaking long lines,
+> converting tabs/spaces, etc:
 
-Regarding arptables, there's still one limitation that we have to
-resolve as it only allows EUI-64 addresses (which should be the most
-common case), the arptables kernel code seems to support variable
-length hardware addresses up to 128 bytes long IIRC. Tomasz has been
-working on that for a while.
-
-Regarding ebtables, Giuseppe Longo have several patches to bootstrap
-the ebtables compatibility, so it's work in progress.
-
-In any case, we will still need the native {arp,eb,ip,ip6}tables tools
-for a while, those will co-exist with the compatibility tools. At some
-point in the future, distributors may decide to switch to the
-compatibility tools transparently, the idea is that users won't notice
-any change from the syntax point of view and they won't be forced to
-drop their scripts.
+Sorry to trouble you. I will resend those in a few days including
+`Signed-off-by' tag.
