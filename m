@@ -1,55 +1,239 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCHv3 1/3] netfilter: nft: fix issue with verdict support
-Date: Thu,  5 Dec 2013 22:31:26 +0100
-Message-ID: <1386279088-4895-2-git-send-email-eric@regit.org>
+Subject: [PATCHv3 3/3] netfilter: nft: add queue module
+Date: Thu,  5 Dec 2013 22:31:28 +0100
+Message-ID: <1386279088-4895-4-git-send-email-eric@regit.org>
 References: <20131205170955.GA8663@localhost>
  <1386279088-4895-1-git-send-email-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
 	Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:58646 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:58654 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877Ab3LEVbx (ORCPT
+	with ESMTP id S1752861Ab3LEVbz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 16:31:53 -0500
+	Thu, 5 Dec 2013 16:31:55 -0500
 In-Reply-To: <1386279088-4895-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The test on verdict was simply done on the value of the verdict
-which is not correct as far as queue is concern. In fact, the test
-of verdict test must be done with respect to the verdict mask for
-verdicts which are not internal to nftables.
+This patch adds a new nft module named "nft_queue" which is a
+nftables target sending packet to nfnetlink_queue subsystem. It has
+the same level of functionnality as is iptables ancestor and share
+some code with it.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- net/netfilter/nf_tables_core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h |  20 +++++
+ net/netfilter/Kconfig                    |   9 +++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_queue.c                | 134 +++++++++++++++++++++++++++++++
+ 4 files changed, 164 insertions(+)
+ create mode 100644 net/netfilter/nft_queue.c
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index cb9e685..e8fcc34 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -164,7 +164,7 @@ next_rule:
- 		break;
- 	}
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index fbfd229..256d36b 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -658,6 +658,26 @@ enum nft_log_attributes {
+ #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
  
--	switch (data[NFT_REG_VERDICT].verdict) {
-+	switch (data[NFT_REG_VERDICT].verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_DROP:
- 	case NF_QUEUE:
-@@ -172,6 +172,9 @@ next_rule:
- 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
+ /**
++ * enum nft_queue_attributes - nf_tables queue expression netlink attributes
++ *
++ * @NFTA_QUEUE_NUM: netlink queue to send messages to (NLA_U16)
++ * @NFTA_QUEUE_TOTAL: number of queues to load balance packets on (NLA_U16)
++ * @NFTA_QUEUE_FLAGS: various flags (NLA_U16)
++ */
++enum nft_queue_attributes {
++	NFTA_QUEUE_UNSPEC,
++	NFTA_QUEUE_NUM,
++	NFTA_QUEUE_TOTAL,
++	NFTA_QUEUE_FLAGS,
++	__NFTA_QUEUE_MAX
++};
++#define NFTA_QUEUE_MAX		(__NFTA_QUEUE_MAX - 1)
++
++#define NFT_QUEUE_FLAG_BYPASS		0x01 /* for compatibility with v2 */
++#define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
++#define NFT_QUEUE_FLAG_MASK		0x03
++
++/**
+  * enum nft_reject_types - nf_tables reject expression reject types
+  *
+  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index c3398cd..cf0872d 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -456,6 +456,15 @@ config NFT_NAT
+ 	depends on NF_NAT
+ 	tristate "Netfilter nf_tables nat module"
  
- 		return data[NFT_REG_VERDICT].verdict;
++config NFT_QUEUE
++	depends on NF_TABLES
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_NETLINK_QUEUE
++	tristate "Netfilter nf_tables queue module"
++	help
++	  This is required if you intend to use nfnetlink queue
++	  on more than the default queue 0 or with the other features
++
+ config NFT_COMPAT
+ 	depends on NF_TABLES
+ 	depends on NETFILTER_XTABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 394483b..e763746 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -76,6 +76,7 @@ obj-$(CONFIG_NFT_META)		+= nft_meta.o
+ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+ obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
++obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ #nf_tables-objs			+= nft_meta_target.o
+ obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
+ obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
+diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+new file mode 100644
+index 0000000..416a765
+--- /dev/null
++++ b/net/netfilter/nft_queue.c
+@@ -0,0 +1,134 @@
++/*
++ * Copyright (c) 2013 Eric Leblond <eric@regit.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Development of this code partly funded by OISF
++ * (http://www.openinfosecfoundation.org/)
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++
++#include <linux/jhash.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++
++#include "nf_queue.h"
++
++struct nft_queue {
++	u16			queuenum;
++	u16			queues_total;
++	u16			flags;
++	u8			family;
++};
++
++static void nft_queue_eval(const struct nft_expr *expr,
++			      struct nft_data data[NFT_REG_MAX + 1],
++			      const struct nft_pktinfo *pkt)
++{
++	struct nft_queue *priv = nft_expr_priv(expr);
++	u32 queue = priv->queuenum;
++	u32 ret;
++
++	if (priv->queues_total > 1) {
++		if (priv->flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
++			int cpu = smp_processor_id();
++
++			queue = priv->queuenum + cpu % priv->queues_total;
++		} else
++			queue = nfqueue_hash(pkt->skb, queue,
++					     priv->queues_total, priv->family);
 +	}
 +
-+	switch (data[NFT_REG_VERDICT].verdict) {
- 	case NFT_JUMP:
- 		if (unlikely(pkt->skb->nf_trace))
- 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
++	ret = NF_QUEUE_NR(queue);
++	if (priv->flags & NFT_QUEUE_FLAG_BYPASS)
++		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
++
++	data[NFT_REG_VERDICT].verdict = ret;
++}
++
++static const struct nla_policy nft_queue_policy[NFTA_QUEUE_MAX + 1] = {
++	[NFTA_QUEUE_NUM]	= { .type = NLA_U16 },
++	[NFTA_QUEUE_TOTAL]	= { .type = NLA_U16 },
++	[NFTA_QUEUE_FLAGS]	= { .type = NLA_U16 },
++};
++
++static int nft_queue_init(const struct nft_ctx *ctx,
++			   const struct nft_expr *expr,
++			   const struct nlattr * const tb[])
++{
++	struct nft_queue *priv = nft_expr_priv(expr);
++
++	init_hashrandom();
++
++	priv->family = ctx->afi->family;
++
++	if (tb[NFTA_QUEUE_NUM] == NULL)
++		return -EINVAL;
++	priv->queuenum = ntohs(nla_get_be16(tb[NFTA_QUEUE_NUM]));
++
++	if (tb[NFTA_QUEUE_TOTAL] != NULL)
++		priv->queues_total = ntohs(nla_get_be16(tb[NFTA_QUEUE_TOTAL]));
++	if (tb[NFTA_QUEUE_FLAGS] != NULL) {
++		priv->flags = ntohs(nla_get_be16(tb[NFTA_QUEUE_FLAGS]));
++		if (priv->flags & ~NFT_QUEUE_FLAG_MASK)
++			return -EINVAL;
++	}
++	return 0;
++}
++
++static int nft_queue_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_queue *priv = nft_expr_priv(expr);
++
++	if (nla_put_be16(skb, NFTA_QUEUE_NUM, htons(priv->queuenum)) ||
++	    nla_put_be16(skb, NFTA_QUEUE_TOTAL, htons(priv->queues_total)) ||
++	    nla_put_be16(skb, NFTA_QUEUE_FLAGS, htons(priv->flags)))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_queue_type;
++static const struct nft_expr_ops nft_queue_ops = {
++	.type		= &nft_queue_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_queue)),
++	.eval		= nft_queue_eval,
++	.init		= nft_queue_init,
++	.dump		= nft_queue_dump,
++};
++
++static struct nft_expr_type nft_queue_type __read_mostly = {
++	.name		= "queue",
++	.ops		= &nft_queue_ops,
++	.policy		= nft_queue_policy,
++	.maxattr	= NFTA_QUEUE_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_queue_module_init(void)
++{
++	return nft_register_expr(&nft_queue_type);
++}
++
++static void __exit nft_queue_module_exit(void)
++{
++	nft_unregister_expr(&nft_queue_type);
++}
++
++module_init(nft_queue_module_init);
++module_exit(nft_queue_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
++MODULE_ALIAS_NFT_EXPR("queue");
 -- 
 1.8.5
 
