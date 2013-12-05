@@ -1,54 +1,27 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Merging iptables-nftables into iptables
-Date: Thu, 05 Dec 2013 22:15:46 +0100
-Message-ID: <52A0ED02.40603@pandora.be>
-References: <20131204114834.GA13280@localhost> <CAOkSjBj5z7x+15Dmw-EWtqiBWfv4h+DBO0s7KNeZgkgrZP4g+w@mail.gmail.com> <20131205082409.GB4557@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCHv3 0/3] add nft_queue module
+Date: Thu,  5 Dec 2013 22:31:25 +0100
+Message-ID: <1386279088-4895-1-git-send-email-eric@regit.org>
+References: <20131205170955.GA8663@localhost>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:54877 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751352Ab3LEVPx (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:58638 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877Ab3LEVbp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 16:15:53 -0500
-In-Reply-To: <20131205082409.GB4557@localhost>
+	Thu, 5 Dec 2013 16:31:45 -0500
+In-Reply-To: <20131205170955.GA8663@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso schreef op 5/12/2013 9:24:
-> On Wed, Dec 04, 2013 at 04:11:18PM +0100, Arturo Borrero Gonzalez wrote:
->> On 4 December 2013 12:48, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>> Hi,
->>>
->>> The iptables-nftables tree [1] currently stores the iptables over
->>> nftables compatibility support. This allows you to run iptables
->>> commands using the nftables kernel infrastructure.
->>>
->>> JFYI, my plan is to merge the iptables-nftables into iptables at some
->>> point of this week given that it contains stuff that is scheduled for
->>> 3.13.  After that merge, the iptables-nftables will be disabled.
->>>
->>> [1] http://git.netfilter.org/iptables-nftables/
->> Could you give some hints about releases of userspace stuff?
->> (libnftables, nft, new iptables...)
->>
->> Is 3.13 a deadline for releases?
-> The initial release of the userspace libraries and tools will happen
-> by when the Linux kernel 3.13 is released, that should happen by the
-> beginning of 2014.
->
-> The nftables compatibility layer (the so-called iptables-nftables)
-> will be included in regular iptables releases, since it will be part
-> of that package.
 
-Nice to see this progress. What are the plans/obstacles (if any?) for 
-migrating ebtables/arptables to nftables?
+Hello,
 
-cheers,
-Bart
+This patch is a rework of previous patchset which fix comments
+sent by Pablo. Code commons to xf_NFQUEUE and nft_queue has been
+put in a common header. Other minor points have been fixed to.
 
+BR,
+--
+Eric
