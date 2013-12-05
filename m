@@ -1,44 +1,80 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] netfilter: add IPComp extension match support
-Date: Thu, 5 Dec 2013 19:34:02 +0100
-Message-ID: <20131205183402.GA8949@localhost>
-References: <1385607204-27650-1-git-send-email-fan.du@windriver.com>
+Subject: Re: netfilter: xt_hashlimit: fix proc entry leak in netns destroy
+ path
+Date: Thu, 5 Dec 2013 19:45:19 +0100
+Message-ID: <20131205184519.GA9603@localhost>
+References: <4921954.LHAAuZqxp3@tuxracer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: steffen.klassert@secunet.com, kaber@trash.net,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Fan Du <fan.du@windriver.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Sergey Popovich <popovich_sergei@mail.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58825 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60370 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756918Ab3LESeI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 13:34:08 -0500
+	id S1757212Ab3LESp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Dec 2013 13:45:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1385607204-27650-1-git-send-email-fan.du@windriver.com>
+In-Reply-To: <4921954.LHAAuZqxp3@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Thu, Nov 28, 2013 at 10:53:24AM +0800, Fan Du wrote:
-> With this plugin, user could specify IPComp tagged with certain 
-> CPI that host not interested will be DROPped or any other action.
+On Wed, Nov 27, 2013 at 08:42:09AM +0200, Sergey Popovich wrote:
+> commit 32263dd1b43378b4f7d7796ed713f77e95f27e8a
+> Author: Vitaly E. Lavrov <>
+> Date:   Mon Dec 24 14:42:17 2012 +0100
 > 
-> For example:
-> iptables -A INPUT -p 108 -m ipcomp --ipcompspi 0x87 -j DROP
+>     netfilter: xt_hashlimit: fix namespace destroy path
 > 
-> Then input IPComp packet with CPI equates 0x87 will not reach
-> upper layer anymore.
+> Takes into account fact, that hashlimit_net_exit() called right before
+> hashlimit_mt_destroy() and fixes destroy path for netns.
+> 
+> However using xt_hashlimit for IPv4 and IPv6 together produces following 
+> output
+> on netconsole from one of our servers on netns destroy:
+> 
+>  Pid: 9499, comm: kworker/u:0 Tainted: G        WC O 3.2.0-5-netctl-amd64-
+> core2
+>  Call Trace:
+>   [<ffffffff8104708d>] ? warn_slowpath_common+0x78/0x8c
+>   [<ffffffff81047139>] ? warn_slowpath_fmt+0x45/0x4a
+>   [<ffffffff81144a99>] ? remove_proc_entry+0xd8/0x22e
+>   [<ffffffff810ebbaa>] ? kfree+0x5b/0x6c
+>   [<ffffffffa043c501>] ? hashlimit_net_exit+0x45/0x8d [xt_hashlimit]
+>   [<ffffffff8128ab30>] ? ops_exit_list+0x1c/0x44
+>   [<ffffffff8128b28e>] ? cleanup_net+0xf1/0x180
+>   [<ffffffff810369fc>] ? should_resched+0x5/0x23
+>   [<ffffffff8105b8f9>] ? process_one_work+0x161/0x269
+>   [<ffffffff8105aea5>] ? cwq_activate_delayed_work+0x3c/0x48
+>   [<ffffffff8105c8c2>] ? worker_thread+0xc2/0x145
+>   [<ffffffff8105c800>] ? manage_workers.isra.25+0x15b/0x15b
+>   [<ffffffff8105fa01>] ? kthread+0x76/0x7e
+>   [<ffffffff813581f4>] ? kernel_thread_helper+0x4/0x10
+>   [<ffffffff8105f98b>] ? kthread_worker_fn+0x139/0x139
+>   [<ffffffff813581f0>] ? gs_change+0x13/0x13
+>  ---[ end trace d8c3cc0ad163ef79 ]---
+>  ------------[ cut here ]------------
+>  WARNING: at 
+> /usr/src/linux-3.2.52/debian/build/source_netctl/fs/proc/generic.c:849
+>  remove_proc_entry+0x217/0x22e()
+>  Hardware name:
+>  remove_proc_entry: removing non-empty directory 'net/ip6t_hashlimit', leaking
+> at least 'IN-REJECT'
+> 
+> This is due to lack of removal net/ip6t_hashlimit/* entries in
+> hashlimit_proc_net_exit().
+> 
+> Found and tested with custom build 3.2.x and backported commits
+> 32263dd1b (netfilter: xt_hashlimit: fix namespace destroy path) and
+> commit 665e205c1 (netfilter: xt_recent: fix namespace destroy path),
+> which seems not currently in linux-stable (at least for 3.2.x series).
 
-I think that, with a little bit more work, you can add support for
-IPv6 as well. From RFC 3173:
+Thanks for your fix, but this does not apply.
 
-"In the IPv6 context, IPComp is viewed as an end-to-end payload, and
-MUST NOT apply to hop-by-hop, routing, and fragmentation extension
-headers.
+patch -p1 < netfilter-xt_hashlimit-fix-proc-entry-leak-in-netns-destroy-path.patch
+patching file net/netfilter/xt_hashlimit.c
+patch: **** malformed patch at line 103: *net)
 
-You can perform that IPv6-specific handling to skip these extension
-headers and reach the IPComp header by means of the ipv6_find_hdr()
-helper function.
+Could you resend me a patch via git-format-patch that applies cleanly
+via git-am?
 
-BTW, please post the iptables userspace part as well.
+Thanks.
