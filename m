@@ -1,80 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: netfilter: xt_hashlimit: fix proc entry leak in netns destroy
- path
-Date: Thu, 5 Dec 2013 19:45:19 +0100
-Message-ID: <20131205184519.GA9603@localhost>
-References: <4921954.LHAAuZqxp3@tuxracer>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: Merging iptables-nftables into iptables
+Date: Thu, 05 Dec 2013 22:15:46 +0100
+Message-ID: <52A0ED02.40603@pandora.be>
+References: <20131204114834.GA13280@localhost> <CAOkSjBj5z7x+15Dmw-EWtqiBWfv4h+DBO0s7KNeZgkgrZP4g+w@mail.gmail.com> <20131205082409.GB4557@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Sergey Popovich <popovich_sergei@mail.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60370 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757212Ab3LESp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 13:45:28 -0500
-Content-Disposition: inline
-In-Reply-To: <4921954.LHAAuZqxp3@tuxracer>
+Received: from gerard.telenet-ops.be ([195.130.132.48]:54877 "EHLO
+	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352Ab3LEVPx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Dec 2013 16:15:53 -0500
+In-Reply-To: <20131205082409.GB4557@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 27, 2013 at 08:42:09AM +0200, Sergey Popovich wrote:
-> commit 32263dd1b43378b4f7d7796ed713f77e95f27e8a
-> Author: Vitaly E. Lavrov <>
-> Date:   Mon Dec 24 14:42:17 2012 +0100
-> 
->     netfilter: xt_hashlimit: fix namespace destroy path
-> 
-> Takes into account fact, that hashlimit_net_exit() called right before
-> hashlimit_mt_destroy() and fixes destroy path for netns.
-> 
-> However using xt_hashlimit for IPv4 and IPv6 together produces following 
-> output
-> on netconsole from one of our servers on netns destroy:
-> 
->  Pid: 9499, comm: kworker/u:0 Tainted: G        WC O 3.2.0-5-netctl-amd64-
-> core2
->  Call Trace:
->   [<ffffffff8104708d>] ? warn_slowpath_common+0x78/0x8c
->   [<ffffffff81047139>] ? warn_slowpath_fmt+0x45/0x4a
->   [<ffffffff81144a99>] ? remove_proc_entry+0xd8/0x22e
->   [<ffffffff810ebbaa>] ? kfree+0x5b/0x6c
->   [<ffffffffa043c501>] ? hashlimit_net_exit+0x45/0x8d [xt_hashlimit]
->   [<ffffffff8128ab30>] ? ops_exit_list+0x1c/0x44
->   [<ffffffff8128b28e>] ? cleanup_net+0xf1/0x180
->   [<ffffffff810369fc>] ? should_resched+0x5/0x23
->   [<ffffffff8105b8f9>] ? process_one_work+0x161/0x269
->   [<ffffffff8105aea5>] ? cwq_activate_delayed_work+0x3c/0x48
->   [<ffffffff8105c8c2>] ? worker_thread+0xc2/0x145
->   [<ffffffff8105c800>] ? manage_workers.isra.25+0x15b/0x15b
->   [<ffffffff8105fa01>] ? kthread+0x76/0x7e
->   [<ffffffff813581f4>] ? kernel_thread_helper+0x4/0x10
->   [<ffffffff8105f98b>] ? kthread_worker_fn+0x139/0x139
->   [<ffffffff813581f0>] ? gs_change+0x13/0x13
->  ---[ end trace d8c3cc0ad163ef79 ]---
->  ------------[ cut here ]------------
->  WARNING: at 
-> /usr/src/linux-3.2.52/debian/build/source_netctl/fs/proc/generic.c:849
->  remove_proc_entry+0x217/0x22e()
->  Hardware name:
->  remove_proc_entry: removing non-empty directory 'net/ip6t_hashlimit', leaking
-> at least 'IN-REJECT'
-> 
-> This is due to lack of removal net/ip6t_hashlimit/* entries in
-> hashlimit_proc_net_exit().
-> 
-> Found and tested with custom build 3.2.x and backported commits
-> 32263dd1b (netfilter: xt_hashlimit: fix namespace destroy path) and
-> commit 665e205c1 (netfilter: xt_recent: fix namespace destroy path),
-> which seems not currently in linux-stable (at least for 3.2.x series).
+Pablo Neira Ayuso schreef op 5/12/2013 9:24:
+> On Wed, Dec 04, 2013 at 04:11:18PM +0100, Arturo Borrero Gonzalez wrote:
+>> On 4 December 2013 12:48, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>> Hi,
+>>>
+>>> The iptables-nftables tree [1] currently stores the iptables over
+>>> nftables compatibility support. This allows you to run iptables
+>>> commands using the nftables kernel infrastructure.
+>>>
+>>> JFYI, my plan is to merge the iptables-nftables into iptables at some
+>>> point of this week given that it contains stuff that is scheduled for
+>>> 3.13.  After that merge, the iptables-nftables will be disabled.
+>>>
+>>> [1] http://git.netfilter.org/iptables-nftables/
+>> Could you give some hints about releases of userspace stuff?
+>> (libnftables, nft, new iptables...)
+>>
+>> Is 3.13 a deadline for releases?
+> The initial release of the userspace libraries and tools will happen
+> by when the Linux kernel 3.13 is released, that should happen by the
+> beginning of 2014.
+>
+> The nftables compatibility layer (the so-called iptables-nftables)
+> will be included in regular iptables releases, since it will be part
+> of that package.
 
-Thanks for your fix, but this does not apply.
+Nice to see this progress. What are the plans/obstacles (if any?) for 
+migrating ebtables/arptables to nftables?
 
-patch -p1 < netfilter-xt_hashlimit-fix-proc-entry-leak-in-netns-destroy-path.patch
-patching file net/netfilter/xt_hashlimit.c
-patch: **** malformed patch at line 103: *net)
+cheers,
+Bart
 
-Could you resend me a patch via git-format-patch that applies cleanly
-via git-am?
-
-Thanks.
