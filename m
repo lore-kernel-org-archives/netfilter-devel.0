@@ -1,32 +1,28 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: libmnl [PATCH 2/5] examples: fix trivial error message
-Date: Fri, 6 Dec 2013 07:42:48 +0900
-Message-ID: <CAGCkEt1QXK=4OAN-e2f9_BQALFp-SOFT+=ZpjjcP-eVECUBiFA@mail.gmail.com>
-References: <CAGCkEt1+dni9L0-5OYsPnoOhBZGB6XaRSQ9T_GKifSE4pwC_PQ@mail.gmail.com>
-	<20131205142746.GH2767@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCHv4 0/3] add nft_queue module
+Date: Fri,  6 Dec 2013 00:24:10 +0100
+Message-ID: <1386285853-464-1-git-send-email-eric@regit.org>
+References: <20131205214133.GA4307@localhost>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f45.google.com ([209.85.216.45]:37278 "EHLO
-	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920Ab3LEWmt (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:59301 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752754Ab3LEXYd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 17:42:49 -0500
-Received: by mail-qa0-f45.google.com with SMTP id o15so53602qap.18
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Dec 2013 14:42:49 -0800 (PST)
-In-Reply-To: <20131205142746.GH2767@breakpoint.cc>
+	Thu, 5 Dec 2013 18:24:33 -0500
+In-Reply-To: <20131205214133.GA4307@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Hello Florian
 
-Thank you for your revewing and replying.
+Hello,
 
-> Something corrupted the patch formattig, breaking long lines,
-> converting tabs/spaces, etc:
+OK, here's a new version not adding a useless file when putting
+reusable code in a header.
 
-Sorry to trouble you. I will resend those in a few days including
-`Signed-off-by' tag.
+Sorry for missing that.
+
+BR,
+--
+Eric
