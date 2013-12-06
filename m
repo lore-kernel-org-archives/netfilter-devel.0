@@ -1,136 +1,65 @@
-From: Sergey Popovich <popovich_sergei@mail.ru>
-Subject: netfilter: xt_hashlimit: fix proc entry leak in netns destroy path
-Date: Fri, 06 Dec 2013 10:57:19 +0200
-Message-ID: <1420070.tCgfU14zqt@tuxracer>
-References: <4921954.LHAAuZqxp3@tuxracer>
+From: Fan Du <fan.du@windriver.com>
+Subject: Re: [PATCH net-next] netfilter: add IPComp extension match support
+Date: Fri, 6 Dec 2013 17:56:09 +0800
+Message-ID: <52A19F39.3030702@windriver.com>
+References: <1385607204-27650-1-git-send-email-fan.du@windriver.com> <20131205183402.GA8949@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <steffen.klassert@secunet.com>, <kaber@trash.net>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp42.i.mail.ru ([94.100.177.102]:36439 "EHLO smtp42.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752891Ab3LFJCj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Dec 2013 04:02:39 -0500
-Received: from [2a01:6d80:103:13::c3ea:4404] (port=32854 helo=tuxracer.localnet)
-	by smtp42.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
-	id 1VorIw-00025L-Ca
-	for netfilter-devel@vger.kernel.org; Fri, 06 Dec 2013 13:02:37 +0400
-In-Reply-To: <4921954.LHAAuZqxp3@tuxracer>
+Received: from mail.windriver.com ([147.11.1.11]:51868 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757607Ab3LFJ4O (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Dec 2013 04:56:14 -0500
+In-Reply-To: <20131205183402.GA8949@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 32263dd1b43378b4f7d7796ed713f77e95f27e8a
-Author: Vitaly E. Lavrov <>
-Date:   Mon Dec 24 14:42:17 2012 +0100
 
-    netfilter: xt_hashlimit: fix namespace destroy path
 
-Takes into account fact, that hashlimit_net_exit() called right before
-hashlimit_mt_destroy() and fixes destroy path for netns.
+On 2013=E5=B9=B412=E6=9C=8806=E6=97=A5 02:34, Pablo Neira Ayuso wrote:
+> Hi,
+>
+> On Thu, Nov 28, 2013 at 10:53:24AM +0800, Fan Du wrote:
+>> With this plugin, user could specify IPComp tagged with certain
+>> CPI that host not interested will be DROPped or any other action.
+>>
+>> For example:
+>> iptables -A INPUT -p 108 -m ipcomp --ipcompspi 0x87 -j DROP
+>>
+>> Then input IPComp packet with CPI equates 0x87 will not reach
+>> upper layer anymore.
+>
+> I think that, with a little bit more work, you can add support for
+> IPv6 as well. From RFC 3173:
+>
+> "In the IPv6 context, IPComp is viewed as an end-to-end payload, and
+> MUST NOT apply to hop-by-hop, routing, and fragmentation extension
+> headers.
+>
+> You can perform that IPv6-specific handling to skip these extension
+> headers and reach the IPComp header by means of the ipv6_find_hdr()
+> helper function.
+>
+> BTW, please post the iptables userspace part as well.
 
-However using xt_hashlimit for IPv4 and IPv6 together produces following
-output on netconsole from one of our servers on netns destroy:
+Thanks for your attention, Pablo.
+I will try to finish your request this weekend, hopefully post the whol=
+e
+patch set in early next week.
 
- Pid: 9499, comm: kworker/u:0 Tainted: G        WC O 3.2.0-5-netctl-amd64-core2
- Call Trace:
-  [<ffffffff8104708d>] ? warn_slowpath_common+0x78/0x8c
-  [<ffffffff81047139>] ? warn_slowpath_fmt+0x45/0x4a
-  [<ffffffff81144a99>] ? remove_proc_entry+0xd8/0x22e
-  [<ffffffff810ebbaa>] ? kfree+0x5b/0x6c
-  [<ffffffffa043c501>] ? hashlimit_net_exit+0x45/0x8d [xt_hashlimit]
-  [<ffffffff8128ab30>] ? ops_exit_list+0x1c/0x44
-  [<ffffffff8128b28e>] ? cleanup_net+0xf1/0x180
-  [<ffffffff810369fc>] ? should_resched+0x5/0x23
-  [<ffffffff8105b8f9>] ? process_one_work+0x161/0x269
-  [<ffffffff8105aea5>] ? cwq_activate_delayed_work+0x3c/0x48
-  [<ffffffff8105c8c2>] ? worker_thread+0xc2/0x145
-  [<ffffffff8105c800>] ? manage_workers.isra.25+0x15b/0x15b
-  [<ffffffff8105fa01>] ? kthread+0x76/0x7e
-  [<ffffffff813581f4>] ? kernel_thread_helper+0x4/0x10
-  [<ffffffff8105f98b>] ? kthread_worker_fn+0x139/0x139
-  [<ffffffff813581f0>] ? gs_change+0x13/0x13
- ---[ end trace d8c3cc0ad163ef79 ]---
- ------------[ cut here ]------------
- WARNING: at /usr/src/linux-3.2.52/debian/build/source_netctl/fs/proc/generic.c:849
- remove_proc_entry+0x217/0x22e()
- Hardware name:
- remove_proc_entry: removing non-empty directory 'net/ip6t_hashlimit', leaking at least 'IN-REJECT'
+--=20
+=E6=B5=AE=E6=B2=89=E9=9A=8F=E6=B5=AA=E5=8F=AA=E8=AE=B0=E4=BB=8A=E6=9C=9D=
+=E7=AC=91
 
-This is due to lack of removal net/ip6t_hashlimit/* entries in
-hashlimit_proc_net_exit().
-
-Found and tested with custom build 3.2.x and backported commits
-32263dd1b (netfilter: xt_hashlimit: fix namespace destroy path) and
-commit 665e205c1 (netfilter: xt_recent: fix namespace destroy path),
-which seems not currently in linux-stable (at least for 3.2.x series).
-
-  v2: Fix malformed patch format due to MUA line wrapping.
-
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
----
- net/netfilter/xt_hashlimit.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 9ff035c..a3910fc 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -325,21 +325,24 @@ static void htable_gc(unsigned long htlong)
- 	add_timer(&ht->timer);
- }
- 
--static void htable_destroy(struct xt_hashlimit_htable *hinfo)
-+static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
- {
- 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(hinfo->net);
- 	struct proc_dir_entry *parent;
- 
--	del_timer_sync(&hinfo->timer);
--
- 	if (hinfo->family == NFPROTO_IPV4)
- 		parent = hashlimit_net->ipt_hashlimit;
- 	else
- 		parent = hashlimit_net->ip6t_hashlimit;
- 
--	if(parent != NULL)
-+	if (parent != NULL)
- 		remove_proc_entry(hinfo->name, parent);
-+}
- 
-+static void htable_destroy(struct xt_hashlimit_htable *hinfo)
-+{
-+	del_timer_sync(&hinfo->timer);
-+	htable_remove_proc_entry(hinfo);
- 	htable_selective_cleanup(hinfo, select_all);
- 	kfree(hinfo->name);
- 	vfree(hinfo);
-@@ -883,21 +886,15 @@ static int __net_init hashlimit_proc_net_init(struct net *net)
- static void __net_exit hashlimit_proc_net_exit(struct net *net)
- {
- 	struct xt_hashlimit_htable *hinfo;
--	struct proc_dir_entry *pde;
- 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
- 
--	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
--	 * that the parent xt_recent proc entry is is empty before trying to
--	 * remove it.
-+	/* hashlimit_net_exit() is called before hashlimit_mt_destroy().
-+	 * Make sure that the parent ipt_hashlimit and ip6t_hashlimit proc
-+	 * entries is empty before trying to remove it.
- 	 */
- 	mutex_lock(&hashlimit_mutex);
--	pde = hashlimit_net->ipt_hashlimit;
--	if (pde == NULL)
--		pde = hashlimit_net->ip6t_hashlimit;
--
- 	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node)
--		remove_proc_entry(hinfo->name, pde);
--
-+		htable_remove_proc_entry(hinfo);
- 	hashlimit_net->ipt_hashlimit = NULL;
- 	hashlimit_net->ip6t_hashlimit = NULL;
- 	mutex_unlock(&hashlimit_mutex);
--- 
-1.8.3.4
-
+--fan fan
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
