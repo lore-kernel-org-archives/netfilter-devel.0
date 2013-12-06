@@ -1,96 +1,136 @@
-From: Vincent Li <vincent.mc.li@gmail.com>
-Subject: xtables-addons compiling warning/error Kernels below 3.7 not
- supported on ubuntu running mainline kernel
-Date: Thu, 5 Dec 2013 16:14:15 -0800
-Message-ID: <CAK3+h2w-qq1suyE8_oL0o0EFH076Vx9TLhAYOi-VfUJtR9jhww@mail.gmail.com>
+From: Sergey Popovich <popovich_sergei@mail.ru>
+Subject: netfilter: xt_hashlimit: fix proc entry leak in netns destroy path
+Date: Fri, 06 Dec 2013 10:57:19 +0200
+Message-ID: <1420070.tCgfU14zqt@tuxracer>
+References: <4921954.LHAAuZqxp3@tuxracer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:37155 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181Ab3LFAOP convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Dec 2013 19:14:15 -0500
-Received: by mail-ob0-f170.google.com with SMTP id wp18so18832857obc.29
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Dec 2013 16:14:15 -0800 (PST)
+Received: from smtp42.i.mail.ru ([94.100.177.102]:36439 "EHLO smtp42.i.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752891Ab3LFJCj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Dec 2013 04:02:39 -0500
+Received: from [2a01:6d80:103:13::c3ea:4404] (port=32854 helo=tuxracer.localnet)
+	by smtp42.i.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
+	id 1VorIw-00025L-Ca
+	for netfilter-devel@vger.kernel.org; Fri, 06 Dec 2013 13:02:37 +0400
+In-Reply-To: <4921954.LHAAuZqxp3@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+commit 32263dd1b43378b4f7d7796ed713f77e95f27e8a
+Author: Vitaly E. Lavrov <>
+Date:   Mon Dec 24 14:42:17 2012 +0100
 
-I am running mainline git kernel according to link instruction
-https://wiki.ubuntu.com/KernelTeam/GitKernelBuild
+    netfilter: xt_hashlimit: fix namespace destroy path
 
-I also git cloned the xtables-addons and get compiling error as below:
+Takes into account fact, that hashlimit_net_exit() called right before
+hashlimit_mt_destroy() and fixes destroy path for netns.
 
-if [ -n "/lib/modules/3.13.0-rc2-custom/build" ]; then make -C
-/lib/modules/3.13.0-rc2-custom/build
-M=3D/usr/src/xtables-addons/extensions modules; fi;
-make[3]: Entering directory `/usr/src/linux-headers-3.13.0-rc2-custom'
-  CC [M]  /usr/src/xtables-addons/extensions/compat_xtables.o
-  CC [M]  /usr/src/xtables-addons/extensions/xt_CHAOS.o
-In file included from /usr/src/xtables-addons/extensions/xt_CHAOS.c:24:
-/usr/src/xtables-addons/extensions/compat_xtables.h:12:3: warning:
-#warning Kernels below 3.7 not supported.
-In file included from /usr/src/xtables-addons/extensions/xt_CHAOS.c:24:
-/usr/src/xtables-addons/extensions/compat_xtables.h:59: error:
-redefinition of =91file_inode=92
-include/linux/fs.h:2290: note: previous definition of =91file_inode=92 =
-was here
-/usr/src/xtables-addons/extensions/compat_xtables.h:67: error: static
-declaration of =91proc_set_user=92 follows non-static declaration
-include/linux/proc_fs.h:38: note: previous declaration of
-=91proc_set_user=92 was here
-/usr/src/xtables-addons/extensions/compat_xtables.h: In function
-=91proc_set_user=92:
-/usr/src/xtables-addons/extensions/compat_xtables.h:69: error:
-dereferencing pointer to incomplete type
-/usr/src/xtables-addons/extensions/compat_xtables.h:70: error:
-dereferencing pointer to incomplete type
-/usr/src/xtables-addons/extensions/compat_xtables.h: At top level:
-/usr/src/xtables-addons/extensions/compat_xtables.h:73: error:
-conflicting types for =91PDE_DATA=92
-include/linux/proc_fs.h:39: note: previous declaration of =91PDE_DATA=92=
- was here
-/usr/src/xtables-addons/extensions/compat_xtables.h: In function =91PDE=
-_DATA=92:
-/usr/src/xtables-addons/extensions/compat_xtables.h:75: error:
-implicit declaration of function =91PDE=92
-/usr/src/xtables-addons/extensions/compat_xtables.h:75: error: invalid
-type argument of =91->=92 (have =91int=92)
-/usr/src/xtables-addons/extensions/compat_xtables.h: At top level:
-/usr/src/xtables-addons/extensions/compat_xtables.h:78: error: static
-declaration of =91proc_remove=92 follows non-static declaration
-include/linux/proc_fs.h:41: note: previous declaration of =91proc_remov=
-e=92 was here
-/usr/src/xtables-addons/extensions/compat_xtables.h: In function =91pro=
-c_remove=92:
-/usr/src/xtables-addons/extensions/compat_xtables.h:81: error:
-dereferencing pointer to incomplete type
-/usr/src/xtables-addons/extensions/compat_xtables.h:81: error:
-dereferencing pointer to incomplete type
-make[4]: *** [/usr/src/xtables-addons/extensions/xt_CHAOS.o] Error 1
-make[3]: *** [_module_/usr/src/xtables-addons/extensions] Error 2
-make[3]: Leaving directory `/usr/src/linux-headers-3.13.0-rc2-custom'
-make[2]: *** [modules] Error 2
-make[2]: Leaving directory `/usr/src/xtables-addons/extensions'
-make[1]: *** [all-recursive] Error 1
-make[1]: Leaving directory `/usr/src/xtables-addons'
-make: *** [all] Error 2
+However using xt_hashlimit for IPv4 and IPv6 together produces following
+output on netconsole from one of our servers on netns destroy:
 
-root@vincent-hp:/usr/src/xtables-addons# uname -a
-Linux vincent-hp 3.13.0-rc2-custom #27 SMP Wed Dec 4 15:22:08 PST 2013
-i686 GNU/Linux
+ Pid: 9499, comm: kworker/u:0 Tainted: G        WC O 3.2.0-5-netctl-amd64-core2
+ Call Trace:
+  [<ffffffff8104708d>] ? warn_slowpath_common+0x78/0x8c
+  [<ffffffff81047139>] ? warn_slowpath_fmt+0x45/0x4a
+  [<ffffffff81144a99>] ? remove_proc_entry+0xd8/0x22e
+  [<ffffffff810ebbaa>] ? kfree+0x5b/0x6c
+  [<ffffffffa043c501>] ? hashlimit_net_exit+0x45/0x8d [xt_hashlimit]
+  [<ffffffff8128ab30>] ? ops_exit_list+0x1c/0x44
+  [<ffffffff8128b28e>] ? cleanup_net+0xf1/0x180
+  [<ffffffff810369fc>] ? should_resched+0x5/0x23
+  [<ffffffff8105b8f9>] ? process_one_work+0x161/0x269
+  [<ffffffff8105aea5>] ? cwq_activate_delayed_work+0x3c/0x48
+  [<ffffffff8105c8c2>] ? worker_thread+0xc2/0x145
+  [<ffffffff8105c800>] ? manage_workers.isra.25+0x15b/0x15b
+  [<ffffffff8105fa01>] ? kthread+0x76/0x7e
+  [<ffffffff813581f4>] ? kernel_thread_helper+0x4/0x10
+  [<ffffffff8105f98b>] ? kthread_worker_fn+0x139/0x139
+  [<ffffffff813581f0>] ? gs_change+0x13/0x13
+ ---[ end trace d8c3cc0ad163ef79 ]---
+ ------------[ cut here ]------------
+ WARNING: at /usr/src/linux-3.2.52/debian/build/source_netctl/fs/proc/generic.c:849
+ remove_proc_entry+0x217/0x22e()
+ Hardware name:
+ remove_proc_entry: removing non-empty directory 'net/ip6t_hashlimit', leaking at least 'IN-REJECT'
 
+This is due to lack of removal net/ip6t_hashlimit/* entries in
+hashlimit_proc_net_exit().
 
-I have no problem compiling the xtables-addons on centos6.4 running
-mainline git kernel, any idea would help. thanks
+Found and tested with custom build 3.2.x and backported commits
+32263dd1b (netfilter: xt_hashlimit: fix namespace destroy path) and
+commit 665e205c1 (netfilter: xt_recent: fix namespace destroy path),
+which seems not currently in linux-stable (at least for 3.2.x series).
 
-Vincent
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  v2: Fix malformed patch format due to MUA line wrapping.
+
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
+---
+ net/netfilter/xt_hashlimit.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 9ff035c..a3910fc 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -325,21 +325,24 @@ static void htable_gc(unsigned long htlong)
+ 	add_timer(&ht->timer);
+ }
+ 
+-static void htable_destroy(struct xt_hashlimit_htable *hinfo)
++static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
+ {
+ 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(hinfo->net);
+ 	struct proc_dir_entry *parent;
+ 
+-	del_timer_sync(&hinfo->timer);
+-
+ 	if (hinfo->family == NFPROTO_IPV4)
+ 		parent = hashlimit_net->ipt_hashlimit;
+ 	else
+ 		parent = hashlimit_net->ip6t_hashlimit;
+ 
+-	if(parent != NULL)
++	if (parent != NULL)
+ 		remove_proc_entry(hinfo->name, parent);
++}
+ 
++static void htable_destroy(struct xt_hashlimit_htable *hinfo)
++{
++	del_timer_sync(&hinfo->timer);
++	htable_remove_proc_entry(hinfo);
+ 	htable_selective_cleanup(hinfo, select_all);
+ 	kfree(hinfo->name);
+ 	vfree(hinfo);
+@@ -883,21 +886,15 @@ static int __net_init hashlimit_proc_net_init(struct net *net)
+ static void __net_exit hashlimit_proc_net_exit(struct net *net)
+ {
+ 	struct xt_hashlimit_htable *hinfo;
+-	struct proc_dir_entry *pde;
+ 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 
+-	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
+-	 * that the parent xt_recent proc entry is is empty before trying to
+-	 * remove it.
++	/* hashlimit_net_exit() is called before hashlimit_mt_destroy().
++	 * Make sure that the parent ipt_hashlimit and ip6t_hashlimit proc
++	 * entries is empty before trying to remove it.
+ 	 */
+ 	mutex_lock(&hashlimit_mutex);
+-	pde = hashlimit_net->ipt_hashlimit;
+-	if (pde == NULL)
+-		pde = hashlimit_net->ip6t_hashlimit;
+-
+ 	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node)
+-		remove_proc_entry(hinfo->name, pde);
+-
++		htable_remove_proc_entry(hinfo);
+ 	hashlimit_net->ipt_hashlimit = NULL;
+ 	hashlimit_net->ip6t_hashlimit = NULL;
+ 	mutex_unlock(&hashlimit_mutex);
+-- 
+1.8.3.4
+
