@@ -1,34 +1,44 @@
-From: "Partnership Request" <postmaster@unimetro.ed.ao>
-Subject: Profitable & Important
-Date: Sat, 7 Dec 2013 15:30:21 -0200
-Message-ID: <d8b617ce7412aa7ec861d156ccc4ca13.squirrel@41.221.245.42>
-Reply-To: wa60shu@qq.com
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: netfilter: ipset: fix incorret comparison in
+ hash_netnet4_data_equal()
+Date: Sat, 7 Dec 2013 20:53:52 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1312072052580.11375@blackhole.kfki.hu>
+References: <20131114154101.GA22625@redhat.com> <20131125214511.GA10043@localhost> <19530135.WLZhKuFLxq@gentoovm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Dave Jones <davej@redhat.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.unimetro.ed.ao ([41.221.245.42]:13453 "EHLO
-	mail.unimetro.ed.ao" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755576Ab3LGTme (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Dec 2013 14:42:34 -0500
+Received: from smtp-in.kfki.hu ([148.6.0.25]:39181 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755576Ab3LGTxz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Dec 2013 14:53:55 -0500
+In-Reply-To: <19530135.WLZhKuFLxq@gentoovm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 7 Dec 2013, Oliver wrote:
 
-Good day,
+> On Monday 25 November 2013 22:45:11 Pablo Neira Ayuso wrote:
+> > On Thu, Nov 14, 2013 at 10:41:01AM -0500, Dave Jones wrote:
+> > > Both sides of the comparison are the same, looks like a cut-and-paste
+> > > error.
+> 
+> Just a typo unfortunately.
+> 
+> The change should definitely make its way into mainline before 3.13 gets 
+> released - is it on track to be pulled into davem's net tree or should I 
+> get that sorted out myself?
 
-I have a business proposal which will be of
-great benefit to you. Contact me for details
-through:
+I'm going to submit the patch to Pablo at the beginning of next week, so 
+it'll follow the normal track.
 
-Email: wa60shu@qq.com
-
-I await your prompt response.
-
-Thanks.
-wa60shu@qq.com
-
-
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
