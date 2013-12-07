@@ -1,63 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: fix missing rules flushing per
- table
-Date: Sat, 7 Dec 2013 23:36:37 +0100
-Message-ID: <20131207223637.GB4050@localhost>
-References: <1386331159-4104-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCHv4 2/3] netfilter: xt_NFQUEUE: separate reusable code
+Date: Sat, 7 Dec 2013 23:56:38 +0100
+Message-ID: <20131207225638.GA4313@localhost>
+References: <20131205214133.GA4307@localhost>
+ <1386285853-464-1-git-send-email-eric@regit.org>
+ <1386285853-464-3-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42127 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42817 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753637Ab3LGWgm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Dec 2013 17:36:42 -0500
+	id S1754446Ab3LGW4n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Dec 2013 17:56:43 -0500
 Content-Disposition: inline
-In-Reply-To: <1386331159-4104-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1386285853-464-3-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 06, 2013 at 12:59:19PM +0100, Pablo Neira Ayuso wrote:
-> This patch allows you to atomically remove all rules stored in
-> a table via the NFT_MSG_DELRULE command. You only need to indicate
-> the specific table and no chain to flush all rules stored in that
-> table.
-
-I'm going to apply this with a minor change.
-
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Fri, Dec 06, 2013 at 12:24:12AM +0100, Eric Leblond wrote:
+> This patch prepares the adding of nft_queue module by putting
+> reusable code into a header file.
+> 
+> Signed-off-by: Eric Leblond <eric@regit.org>
 > ---
-> I already indicated this in october:
+>  include/net/netfilter/nf_queue.h | 63 +++++++++++++++++++++++++++++++++
+>  net/netfilter/xt_NFQUEUE.c       | 75 +++++-----------------------------------
+>  2 files changed, 71 insertions(+), 67 deletions(-)
 > 
-> http://patchwork.ozlabs.org/patch/280192/
-> 
-> but this probably got lost. I'm going to submit to qualify this as fix
-> otherwise we won't have sane table flushing in the first nftables release.
-> 
->  net/netfilter/nf_tables_api.c |   46 +++++++++++++++++++++++++++++------------
->  1 file changed, 33 insertions(+), 13 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index dcddc49..237b49a 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -1717,6 +1717,19 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
->  	return -ENOENT;
->  }
+> diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+> index c1d5b3e..0a71ab0 100644
+> --- a/include/net/netfilter/nf_queue.h
+> +++ b/include/net/netfilter/nf_queue.h
+
+This header file is also used by net/netfilter/nfnetlink_queue_core,
+then...
+
+> @@ -1,6 +1,10 @@
+>  #ifndef _NF_QUEUE_H
+>  #define _NF_QUEUE_H
 >  
-> +static int nf_table_delrule_by_chain(struct nft_ctx *ctx)
-> +{
-> +	struct nft_rule *rule, *tmp;
-> +	int err;
+> +#include <linux/ip.h>
+> +#include <linux/ipv6.h>
+> +#include <linux/jhash.h>
 > +
-> +	list_for_each_entry_safe(rule, tmp, &ctx->chain->rules, list) {
+>  /* Each queued (to userspace) skbuff has one of these. */
+>  struct nf_queue_entry {
+>  	struct list_head	list;
+> @@ -33,4 +37,63 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+>  bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
+>  void nf_queue_entry_release_refs(struct nf_queue_entry *entry);
+>  
+> +static u32 jhash_initval __read_mostly;
 
-We don't need _safe here, as the rule is deleted in the commit path,
-here it is just tagged as scheduled to be removed.
+This variable will be also reserved in that module as well. I have
+fixed this by adding a jhash_initval parameter to init_hashrandom,
+hash_v4, hash_v6 and nfqueue_hash.
 
-> +		err = nf_tables_delrule_one(ctx, rule);
-> +		if (err < 0)
-> +			return err;
-> +	}
-> +	return 0;
-> +}
+Please, no need to send a new patchset, check my nftables tree and
+tell if you find any issue, otherwise I'll pull these changes to
+nf-next. Thanks.
