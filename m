@@ -1,69 +1,40 @@
-From: Vincent Li <vincent.mc.li@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
 Subject: Re: xtables-addons compiling warning/error Kernels below 3.7 not
  supported on ubuntu running mainline kernel
-Date: Fri, 6 Dec 2013 15:11:08 -0800
-Message-ID: <CAK3+h2yFKh7NQqU_o-8Ow5v6LvUAtTaaJe93Paf1kuxiRdA9Aw@mail.gmail.com>
-References: <CAK3+h2w-qq1suyE8_oL0o0EFH076Vx9TLhAYOi-VfUJtR9jhww@mail.gmail.com>
-	<alpine.LSU.2.11.1312061836360.1933@nerf07.vanv.qr>
-	<CAK3+h2zYCdB6yfMuZE9Zv56zFdsw6a4S3p3NvOqNfjEjF87aog@mail.gmail.com>
-	<alpine.LSU.2.11.1312062131420.18525@nerf07.vanv.qr>
-	<CAK3+h2wOgK9OU57DraSF8TWeJub3iOH_8tJmtPcuYxLRH6U+Rg@mail.gmail.com>
+Date: Sat, 7 Dec 2013 01:27:58 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1312070126450.22122@nerf07.vanv.qr>
+References: <CAK3+h2w-qq1suyE8_oL0o0EFH076Vx9TLhAYOi-VfUJtR9jhww@mail.gmail.com> <alpine.LSU.2.11.1312061836360.1933@nerf07.vanv.qr> <CAK3+h2zYCdB6yfMuZE9Zv56zFdsw6a4S3p3NvOqNfjEjF87aog@mail.gmail.com> <alpine.LSU.2.11.1312062131420.18525@nerf07.vanv.qr>
+ <CAK3+h2wOgK9OU57DraSF8TWeJub3iOH_8tJmtPcuYxLRH6U+Rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Vincent Li <vincent.mc.li@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:39983 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758958Ab3LFXLI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Dec 2013 18:11:08 -0500
-Received: by mail-oa0-f47.google.com with SMTP id k1so1556081oag.34
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Dec 2013 15:11:08 -0800 (PST)
+Received: from ares07.inai.de ([5.9.24.206]:36768 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752729Ab3LGA2B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Dec 2013 19:28:01 -0500
 In-Reply-To: <CAK3+h2wOgK9OU57DraSF8TWeJub3iOH_8tJmtPcuYxLRH6U+Rg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-if I comment out all the LINUX_KERNEL_CODE check in compat_xtables.h,
-it compiles fine.
 
-On Fri, Dec 6, 2013 at 2:22 PM, Vincent Li <vincent.mc.li@gmail.com> wrote:
-> maybe LINUX_VERSION_CODE is from the original ubuntu header
-> /usr/include/linux/version.h ? here is the diff
+On Friday 2013-12-06 23:22, Vincent Li wrote:
+
+>maybe LINUX_VERSION_CODE is from the original ubuntu header
+>/usr/include/linux/version.h ? here is the diff
 >
->
-> root@vincent-hp:/home/vincent/xtables-addons# diff -u
-> /usr/include/linux/version.h
-> /usr/src/linux-headers-3.13.0-rc2-custom/include/linux/version.h
-> --- /usr/include/linux/version.h        2013-12-04 16:12:56.391368993 -0800
-> +++ /usr/src/linux-headers-3.13.0-rc2-custom/include/linux/version.h
->  2013-10-11 12:58:33.000000000 -0700
-> @@ -1,2 +1,2 @@
-> -#define LINUX_VERSION_CODE 132640
-> +#define LINUX_VERSION_CODE 132645
->  #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
->
-> I tried to symbolic link  the /usr/include/linux/version.h to
-> /usr/src/linux-headers-3.13.0-rc2-custom/include/linux/version.h.
-> didn't help.
->
->
->
-> On Fri, Dec 6, 2013 at 12:34 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->>
->> On Friday 2013-12-06 19:37, Vincent Li wrote:
->>>checking kernel version that we will build against... 3.13.0.0 in
->>>/lib/modules/3.13.0-rc2-custom/build
->>>>>
->>>>>if [ -n "/lib/modules/3.13.0-rc2-custom/build" ]; then make -C
->>>>>/lib/modules/3.13.0-rc2-custom/build
->>>>>M=/usr/src/xtables-addons/extensions modules; fi;
->>>>>make[3]: Entering directory `/usr/src/linux-headers-3.13.0-rc2-custom'
->>>>>  CC [M]  /usr/src/xtables-addons/extensions/compat_xtables.o
->>>>>  CC [M]  /usr/src/xtables-addons/extensions/xt_CHAOS.o
->>>>>In file included from /usr/src/xtables-addons/extensions/xt_CHAOS.c:24:
->>>>>/usr/src/xtables-addons/extensions/compat_xtables.h:12:3: warning:
->>>>>#warning Kernels below 3.7 not supported.
->>
->> I have no explanation for why your LINUX_VERSION_CODE evaluates
->> to something < 3.7 despite /build having 3.13 in its Makefiles.
+>root@vincent-hp:/home/vincent/xtables-addons# diff -u
+>/usr/include/linux/version.h
+>/usr/src/linux-headers-3.13.0-rc2-custom/include/linux/version.h
+>--- /usr/include/linux/version.h        2013-12-04 16:12:56.391368993 -0800
+>+++ /usr/src/linux-headers-3.13.0-rc2-custom/include/linux/version.h
+> 2013-10-11 12:58:33.000000000 -0700
+>@@ -1,2 +1,2 @@
+>-#define LINUX_VERSION_CODE 132640
+>+#define LINUX_VERSION_CODE 132645
+> #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
+
+You see your problem: 132645 is 0x20625,
+so your /usr/src/linux-headers-3.13.0-rc2-custom
+is some 2.6.25, not 3.13.
