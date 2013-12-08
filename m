@@ -1,57 +1,37 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: netfilter: ipset: fix incorret comparison in
- hash_netnet4_data_equal()
-Date: Sun, 8 Dec 2013 10:31:29 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1312081030450.12477@blackhole.kfki.hu>
-References: <20131114154101.GA22625@redhat.com> <20131125214511.GA10043@localhost> <19530135.WLZhKuFLxq@gentoovm> <alpine.DEB.2.10.1312072052580.11375@blackhole.kfki.hu> <20131207223436.GA3927@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ipt_SYNPROXY: kernel panic caused by nullpointer dereference
+Date: Sun, 8 Dec 2013 11:01:46 +0100
+Message-ID: <20131208100146.GA3840@localhost>
+References: <e9d26e1c009f406b1bb5a893aebc7771.squirrel@webmail.interwerk.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
-	Dave Jones <davej@redhat.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: "Nicki P." <xastx@gmx.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:57786 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:51352 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab3LHJbc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Dec 2013 04:31:32 -0500
-In-Reply-To: <20131207223436.GA3927@localhost>
+	id S1754173Ab3LHKBv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Dec 2013 05:01:51 -0500
+Content-Disposition: inline
+In-Reply-To: <e9d26e1c009f406b1bb5a893aebc7771.squirrel@webmail.interwerk.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 7 Dec 2013, Pablo Neira Ayuso wrote:
+On Sun, Dec 08, 2013 at 08:16:00AM +0100, Nicki P. wrote:
+> hi,
+> 
+> when activating ipt_SYNPROXY with:
+> iptables -t raw -A PREROUTING -p tcp -d 1.2.3.4 --dport 80 --tcp-flags
+> SYN,ACK,RST,FIN SYN -j SYNPROXY
+>
+> and sending a SYN packet to port 80:
+> hping3 -S -d 64 1.2.3.4 -p 80
+> 
+> I get kernel panic:
+> http://goo.gl/L6dCz6
+>
+> I'm using kernel v3.12.2 and iptables v1.4.21. Am I doing something wrong,
+> or is it a bug?
 
-> On Sat, Dec 07, 2013 at 08:53:52PM +0100, Jozsef Kadlecsik wrote:
-> > On Sat, 7 Dec 2013, Oliver wrote:
-> > 
-> > > On Monday 25 November 2013 22:45:11 Pablo Neira Ayuso wrote:
-> > > > On Thu, Nov 14, 2013 at 10:41:01AM -0500, Dave Jones wrote:
-> > > > > Both sides of the comparison are the same, looks like a cut-and-paste
-> > > > > error.
-> > > 
-> > > Just a typo unfortunately.
-> > > 
-> > > The change should definitely make its way into mainline before 3.13 gets 
-> > > released - is it on track to be pulled into davem's net tree or should I 
-> > > get that sorted out myself?
-> > 
-> > I'm going to submit the patch to Pablo at the beginning of next week, so 
-> > it'll follow the normal track.
-> 
-> JFYI, I applied this already:
-> 
-> http://www.spinics.net/lists/netfilter-devel/msg29031.html
-> 
-> If unsure, please check my tree:
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/pablo/nf.git/
-
-Great, thanks indeed!
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+You have to run this from the INPUT/FORWARD chain, SYNPROXY needs the
+routing information to work.
