@@ -1,85 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_SYNPROXY: kernel panic caused by nullpointer dereference
-Date: Sun, 8 Dec 2013 16:52:31 +0000
-Message-ID: <20131208165231.GA1564@macbook.localnet>
-References: <e9d26e1c009f406b1bb5a893aebc7771.squirrel@webmail.interwerk.de>
- <20131208100146.GA3840@localhost>
+From: Hani Benhabiles <kroosec@gmail.com>
+Subject: [PATCH iptables] libxtables: Call ipaddr_to_network before
+ ipaddr_to_host.
+Date: Mon, 9 Dec 2013 21:02:23 +0100
+Message-ID: <20131209200223.GC2970@Inspiron-3521>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "Nicki P." <xastx@gmx.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65231 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754768Ab3LHQwf (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:37794 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753229Ab3LIUCj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Dec 2013 11:52:35 -0500
+	Mon, 9 Dec 2013 15:02:39 -0500
+Received: by mail-we0-f180.google.com with SMTP id t61so3956622wes.39
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Dec 2013 12:02:38 -0800 (PST)
+Received: from Inspiron-3521 ([41.103.24.16])
+        by mx.google.com with ESMTPSA id bk7sm27800524wib.10.2013.12.09.12.02.28
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Mon, 09 Dec 2013 12:02:36 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20131208100146.GA3840@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 08, 2013 at 11:01:46AM +0100, Pablo Neira Ayuso wrote:
-> On Sun, Dec 08, 2013 at 08:16:00AM +0100, Nicki P. wrote:
-> > hi,
-> > 
-> > when activating ipt_SYNPROXY with:
-> > iptables -t raw -A PREROUTING -p tcp -d 1.2.3.4 --dport 80 --tcp-flags
-> > SYN,ACK,RST,FIN SYN -j SYNPROXY
-> >
-> > and sending a SYN packet to port 80:
-> > hping3 -S -d 64 1.2.3.4 -p 80
-> > 
-> > I get kernel panic:
-> > http://goo.gl/L6dCz6
-> >
-> > I'm using kernel v3.12.2 and iptables v1.4.21. Am I doing something wrong,
-> > or is it a bug?
-> 
-> You have to run this from the INPUT/FORWARD chain, SYNPROXY needs the
-> routing information to work.
+Call ipaddr_to_network before ipaddr_to_host.
 
-Let's fix that:
+This saves waiting for a reverse DNS lookup query when the entry is present in
+/etc/networks. This also follows the same order as in rules creation.
 
->From e5b31e75df3c3f9629900016a95336c04165d13f Mon Sep 17 00:00:00 2001
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 8 Dec 2013 16:49:36 +0000
-Subject: [PATCH] netfilter: SYNPROXY target: restrict to INPUT/FORWARD
-
-Fix a crash in synproxy_send_tcp() when using the SYNPROXY target in the
-PREROUTING chain caused by missing routing information.
-
-Reported-by: Nicki P. <xastx@gmx.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Hani Benhabiles <kroosec@gmail.com>
 ---
- net/ipv4/netfilter/ipt_SYNPROXY.c  | 1 +
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 1 +
- 2 files changed, 2 insertions(+)
+ libxtables/xtables.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index f13bd91..a313c3f 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -423,6 +423,7 @@ static void synproxy_tg4_destroy(const struct xt_tgdtor_param *par)
- static struct xt_target synproxy_tg4_reg __read_mostly = {
- 	.name		= "SYNPROXY",
- 	.family		= NFPROTO_IPV4,
-+	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD),
- 	.target		= synproxy_tg4,
- 	.targetsize	= sizeof(struct xt_synproxy_info),
- 	.checkentry	= synproxy_tg4_check,
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index f78f41a..a0d1727 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -446,6 +446,7 @@ static void synproxy_tg6_destroy(const struct xt_tgdtor_param *par)
- static struct xt_target synproxy_tg6_reg __read_mostly = {
- 	.name		= "SYNPROXY",
- 	.family		= NFPROTO_IPV6,
-+	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD),
- 	.target		= synproxy_tg6,
- 	.targetsize	= sizeof(struct xt_synproxy_info),
- 	.checkentry	= synproxy_tg6_check,
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index fb60c01..bb25262 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -1207,8 +1207,8 @@ const char *xtables_ipaddr_to_anyname(const struct in_addr *addr)
+ {
+ 	const char *name;
+ 
+-	if ((name = ipaddr_to_host(addr)) != NULL ||
+-	    (name = ipaddr_to_network(addr)) != NULL)
++	if ((name = ipaddr_to_network(addr)) != NULL ||
++	    (name = ipaddr_to_host(addr)) != NULL)
+ 		return name;
+ 
+ 	return xtables_ipaddr_to_numeric(addr);
 -- 
-1.8.3.1
+1.8.3.2
 
