@@ -1,41 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for net
-Date: Mon, 09 Dec 2013 20:43:59 -0500 (EST)
-Message-ID: <20131209.204359.870819413394556150.davem@davemloft.net>
-References: <1386458010-4615-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 1/2] expr: add support for nfnetlink queue
+Date: Tue, 10 Dec 2013 11:03:10 +0100
+Message-ID: <20131210100310.GA4780@localhost>
+References: <1385808722.4321.19.camel@ice-age2.regit.org>
+ <1385809042-20049-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:44924 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab3LJBoB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Dec 2013 20:44:01 -0500
-In-Reply-To: <1386458010-4615-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:36910 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750887Ab3LJKDX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Dec 2013 05:03:23 -0500
+Content-Disposition: inline
+In-Reply-To: <1385809042-20049-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sun,  8 Dec 2013 00:13:27 +0100
+On Sat, Nov 30, 2013 at 11:57:21AM +0100, Eric Leblond wrote:
+> This patch adds a support of the queue target.
 
-> The following patchset contains three Netfilter fixes for your net tree,
-> they are:
-> 
-> * fix incorrect comparison in the new netnet hash ipset type, from
->   Dave Jones.
-> 
-> * fix splat in hashlimit due to missing removal of the content of its
->   proc entry in netnamespaces, from Sergey Popovich.
-> 
-> * fix missing rule flushing operation by table in nf_tables. Table
->   flushing was already discussed back in October but this got lost and
->   no patch has hit the tree to address this issue so far, from me.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+Applied these two libnftables patches to the next-3.14 branch:
 
-Pulled, thanks Pablo.
+http://git.netfilter.org/libnftables/log/?h=next-3.14
+
+Will merge this to master once 3.13 is out as this feature is
+scheduled for 3.14.
