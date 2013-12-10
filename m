@@ -1,44 +1,55 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCHv4 0/3] add nft_queue module
-Date: Tue, 10 Dec 2013 11:09:31 +0100
-Message-ID: <1386670171.5788.39.camel@ice-age2.regit.org>
-References: <20131205214133.GA4307@localhost>
-	 <1386285853-464-1-git-send-email-eric@regit.org>
-	 <20131207225748.GB4313@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: [PATCH ulogd] ulogd: use AC_SEARCH_LIBS for libpthread
+Date: Tue, 10 Dec 2013 09:24:12 -0300
+Message-ID: <1386678252-6853-1-git-send-email-gustavo@zacarias.com.ar>
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:39514 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215Ab3LJKJd (ORCPT
+Received: from loknar.toptech.com.ar ([78.46.79.162]:57850 "EHLO
+	loknar.toptech.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277Ab3LJMYZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Dec 2013 05:09:33 -0500
-In-Reply-To: <20131207225748.GB4313@localhost>
+	Tue, 10 Dec 2013 07:24:25 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Some uClibc-based toolchains lack threading support, so use
+AC_SEARCH_LIB instead of AC_CHECK_LIB to check for libpthread
+availability and link conditionally if found since it's only used for
+the database backends.
 
-On Sat, 2013-12-07 at 23:57 +0100, Pablo Neira Ayuso wrote:
-> On Fri, Dec 06, 2013 at 12:24:10AM +0100, Eric Leblond wrote:
-> > 
-> > Hello,
-> > 
-> > OK, here's a new version not adding a useless file when putting
-> > reusable code in a header.
-> 
-> Applied with changes, please check:
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git
-> 
-> and let me know if you have any concern with my changes. Thanks.
+Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+---
+ configure.ac    | 3 ++-
+ src/Makefile.am | 4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-Good for me. Thanks a lot for the review and fixes.
-
-BR,
+diff --git a/configure.ac b/configure.ac
+index 7f5ffa9..5e45aaa 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -39,7 +39,8 @@ AC_CHECK_FUNCS(socket strerror)
+ regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter"
+ AC_SUBST([regular_CFLAGS])
+ 
+-AC_CHECK_LIB(pthread, pthread_create)
++AC_SEARCH_LIBS([pthread_create], [pthread], [libpthread_LIBS="$LIBS"; LIBS=""])
++AC_SUBST([libpthread_LIBS])
+ 
+ dnl Check for the right nfnetlink version
+ PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 1097468..998e776 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -7,5 +7,5 @@ AM_CFLAGS = ${regular_CFLAGS}
+ sbin_PROGRAMS = ulogd
+ 
+ ulogd_SOURCES = ulogd.c select.c timer.c rbtree.c conffile.c hash.c addr.c
+-ulogd_LDADD   = ${libdl_LIBS}
+-ulogd_LDFLAGS = -export-dynamic -lpthread
++ulogd_LDADD   = ${libdl_LIBS} ${libpthread_LIBS}
++ulogd_LDFLAGS = -export-dynamic
 -- 
-Eric Leblond <eric@regit.org>
+1.8.3.2
 
