@@ -1,45 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH -next 0/3] seq_printf/puts/putc: Start to convert to
- return void
-Date: Wed, 11 Dec 2013 00:20:40 -0500 (EST)
-Message-ID: <20131211.002040.1061939246483044835.davem@davemloft.net>
-References: <cover.1386738050.git.joe@perches.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH ulogd] ulogd: use AC_SEARCH_LIBS for libpthread
+Date: Wed, 11 Dec 2013 09:03:12 +0100
+Message-ID: <1386748992.4710.6.camel@ice-age2.regit.org>
+References: <1386678252-6853-1-git-send-email-gustavo@zacarias.com.ar>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: viro@zeniv.linux.org.uk, keescook@chromium.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	b.a.t.m.a.n@lists.open-mesh.org
-To: joe@perches.com
+Cc: netfilter-devel@vger.kernel.org
+To: Gustavo Zacarias <gustavo@zacarias.com.ar>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:54579 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774Ab3LKFUm (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:47869 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743Ab3LKID1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Dec 2013 00:20:42 -0500
-In-Reply-To: <cover.1386738050.git.joe@perches.com>
+	Wed, 11 Dec 2013 03:03:27 -0500
+In-Reply-To: <1386678252-6853-1-git-send-email-gustavo@zacarias.com.ar>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joe Perches <joe@perches.com>
-Date: Tue, 10 Dec 2013 21:12:41 -0800
+Hello,
 
-> Many uses of the return value of seq_printf/seq_puts/seq_putc are
-> incorrect.  Many assume that the return value is the number of
-> chars emitted into a buffer like printf/puts/putc.
-> 
-> It would be better to make the return value of these functions void
-> to avoid these misuses.
-> 
-> Start to do so.
-> Convert seq_overflow to a public function from a static function.
-> 
-> Remove the return uses of seq_printf/seq_puts/seq_putc from net.
-> Add a seq_overflow function call instead.
+On Tue, 2013-12-10 at 09:24 -0300, Gustavo Zacarias wrote:
+> Some uClibc-based toolchains lack threading support, so use
+> AC_SEARCH_LIB instead of AC_CHECK_LIB to check for libpthread
+> availability and link conditionally if found since it's only used for
+> the database backends.
 
-I'm fine with this going in whatever tree is appropriate for
-the seq_overflow un-static change:
+Thanks a lot. Patch pushed to git.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+BR,
+
+> Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+> ---
+>  configure.ac    | 3 ++-
+>  src/Makefile.am | 4 ++--
+>  2 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 7f5ffa9..5e45aaa 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -39,7 +39,8 @@ AC_CHECK_FUNCS(socket strerror)
+>  regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter"
+>  AC_SUBST([regular_CFLAGS])
+>  
+> -AC_CHECK_LIB(pthread, pthread_create)
+> +AC_SEARCH_LIBS([pthread_create], [pthread], [libpthread_LIBS="$LIBS"; LIBS=""])
+> +AC_SUBST([libpthread_LIBS])
+>  
+>  dnl Check for the right nfnetlink version
+>  PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
+> diff --git a/src/Makefile.am b/src/Makefile.am
+> index 1097468..998e776 100644
+> --- a/src/Makefile.am
+> +++ b/src/Makefile.am
+> @@ -7,5 +7,5 @@ AM_CFLAGS = ${regular_CFLAGS}
+>  sbin_PROGRAMS = ulogd
+>  
+>  ulogd_SOURCES = ulogd.c select.c timer.c rbtree.c conffile.c hash.c addr.c
+> -ulogd_LDADD   = ${libdl_LIBS}
+> -ulogd_LDFLAGS = -export-dynamic -lpthread
+> +ulogd_LDADD   = ${libdl_LIBS} ${libpthread_LIBS}
+> +ulogd_LDFLAGS = -export-dynamic
+
+-- 
+Eric Leblond <eric@regit.org>
+
