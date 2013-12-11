@@ -1,53 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ipt_SYNPROXY: kernel panic caused by nullpointer dereference
-Date: Wed, 11 Dec 2013 11:33:04 +0100
-Message-ID: <20131211103304.GA7540@localhost>
-References: <e9d26e1c009f406b1bb5a893aebc7771.squirrel@webmail.interwerk.de>
- <20131208100146.GA3840@localhost>
- <20131208165231.GA1564@macbook.localnet>
+From: "medialy" <medialy@gmail.com>
+Subject: why counters in nf_conntrack not set in centos 6.x?
+Date: Wed, 11 Dec 2013 23:05:01 +0800
+Message-ID: <52A87F08.5040509@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Nicki P." <xastx@gmx.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60626 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab3LKKdL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Dec 2013 05:33:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20131208165231.GA1564@macbook.localnet>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:65342 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466Ab3LKPFA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Dec 2013 10:05:00 -0500
+Received: by mail-pd0-f181.google.com with SMTP id p10so9618109pdj.26
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Dec 2013 07:05:00 -0800 (PST)
+Received: from xt530x ([114.250.227.176])
+        by mx.google.com with ESMTPSA id e2sm12872456pbq.20.2013.12.11.07.04.58
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 11 Dec 2013 07:04:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 08, 2013 at 04:52:31PM +0000, Patrick McHardy wrote:
-> On Sun, Dec 08, 2013 at 11:01:46AM +0100, Pablo Neira Ayuso wrote:
-> > On Sun, Dec 08, 2013 at 08:16:00AM +0100, Nicki P. wrote:
-> > > hi,
-> > > 
-> > > when activating ipt_SYNPROXY with:
-> > > iptables -t raw -A PREROUTING -p tcp -d 1.2.3.4 --dport 80 --tcp-flags
-> > > SYN,ACK,RST,FIN SYN -j SYNPROXY
-> > >
-> > > and sending a SYN packet to port 80:
-> > > hping3 -S -d 64 1.2.3.4 -p 80
-> > > 
-> > > I get kernel panic:
-> > > http://goo.gl/L6dCz6
-> > >
-> > > I'm using kernel v3.12.2 and iptables v1.4.21. Am I doing something wrong,
-> > > or is it a bug?
-> > 
-> > You have to run this from the INPUT/FORWARD chain, SYNPROXY needs the
-> > routing information to work.
-> 
-> Let's fix that:
-> 
-> From e5b31e75df3c3f9629900016a95336c04165d13f Mon Sep 17 00:00:00 2001
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sun, 8 Dec 2013 16:49:36 +0000
-> Subject: [PATCH] netfilter: SYNPROXY target: restrict to INPUT/FORWARD
-> 
-> Fix a crash in synproxy_send_tcp() when using the SYNPROXY target in the
-> PREROUTING chain caused by missing routing information.
-
-Applied, thanks Patrick!
+DQpBbiBhcHBsaWNhdGlvbiBiYXNlZCBvbiBsaWJuZXRmaWx0ZXJfY29ubnRyYWNrIGFuZCBsaWJu
+Zm5ldGxpbmsgZmFpbGVkIHRvIGdldCBjb3VudGVycyBpbiBDZW50T1MgNi54LCANCmJ1dCBpdCB3
+b3JrcyB3b3JrcyBmaW5lIHdpdGggdGhlIHNhbWUgY29kZSBpbiBDZW50T1MgNS54LiBIb3cgdG8g
+ZW5hYmxlIHRoZSBjb3VudGVyIGZ1bmN0aW9uYWxpdHk/DQpTYW1wbGUgY29kZToNCg0KaGFuZGxl
+X2Nvbm50cmFja18gPSBuZmN0X29wZW4oQ09OTlRSQUNLLCBORl9ORVRMSU5LX0NPTk5UUkFDS19E
+RVNUUk9ZKTsNCm5mY3RfY2FsbGJhY2tfcmVnaXN0ZXIoaGFuZGxlX2Nvbm50cmFja18sIE5GQ1Rf
+VF9BTEwsIGNvbm50cmFja19jYWxsYmFjaywgTlVMTCk7DQoNCnN0YXRpYyBpbnQgY29ubnRyYWNr
+X2NhbGxiYWNrKGVudW0gbmZfY29ubnRyYWNrX21zZ190eXBlIHR5cGUsIHN0cnVjdCBuZl9jb25u
+dHJhY2sqIGN0LCB2b2lkKiBkYXRhKQ0Kew0KICAgIHN0cnVjdCBfX25mY3RfY291bnRlcnMgb3Jp
+Z19jb3VudGVyID0gY3QtPmNvdW50ZXJzW19fRElSX09SSUddOw0KICAgIHN0cnVjdCBfX25mY3Rf
+Y291bnRlcnMgcmVwbF9jb3VudGVyID0gY3QtPmNvdW50ZXJzW19fRElSX1JFUExdOw0KICAgIC8v
+aW4gQ2VudE9TIDYueCwgb3JpZ19jb3VudGVyLnBhY2tldHMsb3JpZ19jb3VudGVyLmJ5dGVzLHJl
+cGxfY291bnRlci5wYWNrZXRzIGFuZCByZXBsX2NvdW50ZXIuYnl0ZXMgYXJlIG5vdCBzZXQoemVy
+bykNCn0NCg0KT1MgYW5kIGxpYnJhcnkgdmVyc2lvbjoNCkNlbnRPUyA2LjQgeDg2XzY0DQpsaWJu
+Zm5ldGxpbmstMS4wLjANCmxpYm5ldGZpbHRlcl9jb25udHJhY2stMC4wLjEwMA==
