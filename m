@@ -1,39 +1,54 @@
-From: "medialy" <medialy@gmail.com>
-Subject: why counters in nf_conntrack not set in centos 6.x?
-Date: Wed, 11 Dec 2013 23:05:01 +0800
-Message-ID: <52A87F08.5040509@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+From: mathieu.poirier@linaro.org
+Subject: [PATCH 0/1] Add quota capabilities to nfacct
+Date: Wed, 11 Dec 2013 09:53:17 -0700
+Message-ID: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	john.stultz@linaro.org, jpa@google.com, mathieu.poirier@linaro.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:65342 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab3LKPFA (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:38824 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809Ab3LKQx2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Dec 2013 10:05:00 -0500
-Received: by mail-pd0-f181.google.com with SMTP id p10so9618109pdj.26
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Dec 2013 07:05:00 -0800 (PST)
-Received: from xt530x ([114.250.227.176])
-        by mx.google.com with ESMTPSA id e2sm12872456pbq.20.2013.12.11.07.04.58
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 11 Dec 2013 07:04:59 -0800 (PST)
+	Wed, 11 Dec 2013 11:53:28 -0500
+Received: by mail-pb0-f51.google.com with SMTP id up15so10345360pbc.38
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Dec 2013 08:53:27 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpBbiBhcHBsaWNhdGlvbiBiYXNlZCBvbiBsaWJuZXRmaWx0ZXJfY29ubnRyYWNrIGFuZCBsaWJu
-Zm5ldGxpbmsgZmFpbGVkIHRvIGdldCBjb3VudGVycyBpbiBDZW50T1MgNi54LCANCmJ1dCBpdCB3
-b3JrcyB3b3JrcyBmaW5lIHdpdGggdGhlIHNhbWUgY29kZSBpbiBDZW50T1MgNS54LiBIb3cgdG8g
-ZW5hYmxlIHRoZSBjb3VudGVyIGZ1bmN0aW9uYWxpdHk/DQpTYW1wbGUgY29kZToNCg0KaGFuZGxl
-X2Nvbm50cmFja18gPSBuZmN0X29wZW4oQ09OTlRSQUNLLCBORl9ORVRMSU5LX0NPTk5UUkFDS19E
-RVNUUk9ZKTsNCm5mY3RfY2FsbGJhY2tfcmVnaXN0ZXIoaGFuZGxlX2Nvbm50cmFja18sIE5GQ1Rf
-VF9BTEwsIGNvbm50cmFja19jYWxsYmFjaywgTlVMTCk7DQoNCnN0YXRpYyBpbnQgY29ubnRyYWNr
-X2NhbGxiYWNrKGVudW0gbmZfY29ubnRyYWNrX21zZ190eXBlIHR5cGUsIHN0cnVjdCBuZl9jb25u
-dHJhY2sqIGN0LCB2b2lkKiBkYXRhKQ0Kew0KICAgIHN0cnVjdCBfX25mY3RfY291bnRlcnMgb3Jp
-Z19jb3VudGVyID0gY3QtPmNvdW50ZXJzW19fRElSX09SSUddOw0KICAgIHN0cnVjdCBfX25mY3Rf
-Y291bnRlcnMgcmVwbF9jb3VudGVyID0gY3QtPmNvdW50ZXJzW19fRElSX1JFUExdOw0KICAgIC8v
-aW4gQ2VudE9TIDYueCwgb3JpZ19jb3VudGVyLnBhY2tldHMsb3JpZ19jb3VudGVyLmJ5dGVzLHJl
-cGxfY291bnRlci5wYWNrZXRzIGFuZCByZXBsX2NvdW50ZXIuYnl0ZXMgYXJlIG5vdCBzZXQoemVy
-bykNCn0NCg0KT1MgYW5kIGxpYnJhcnkgdmVyc2lvbjoNCkNlbnRPUyA2LjQgeDg2XzY0DQpsaWJu
-Zm5ldGxpbmstMS4wLjANCmxpYm5ldGZpbHRlcl9jb25udHJhY2stMC4wLjEwMA==
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+
+Good day,
+
+This patch adds the possibility of setting a packet or byte quota
+to a nfacct object.  The feature follows the same logic as xtables
+addons' xt_quota2 module.
+
+For examble, to prevent sending more than 1000 icmp packets one would 
+write:
+
+iptables -I OUTPUT -p icmp -m nfacct --nfacct-name icmp-limit --packets ! --quota 1000 --jump REJECT
+
+Of course, this implies that nfacct object 'icmp-limit' has been created using the nfacct utility.
+
+Enhancement to iptables can be found here:
+https://git.linaro.org/people/mathieu.poirier/iptables.git/commitdiff/deaf71950eec74d3ad596d1d744247e58c542c67?hp=76e230e41947576efb96e86e605bb84015cdb287
+
+Best regards,
+Mathieu
+
+Mathieu Poirier (1):
+  netfilter: xtables: add quota support to nfacct
+
+ include/linux/netfilter/nfnetlink_acct.h      |  4 ++
+ include/uapi/linux/netfilter/nfnetlink.h      |  2 +
+ include/uapi/linux/netfilter/nfnetlink_acct.h |  1 +
+ include/uapi/linux/netfilter/xt_nfacct.h      | 11 +++++
+ net/netfilter/Kconfig                         |  3 +-
+ net/netfilter/nfnetlink_acct.c                | 15 ++++++-
+ net/netfilter/xt_nfacct.c                     | 65 ++++++++++++++++++++++++++-
+ 7 files changed, 97 insertions(+), 4 deletions(-)
+
+-- 
+1.8.1.2
+
