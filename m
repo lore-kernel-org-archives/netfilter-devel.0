@@ -1,45 +1,34 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [libnftables PATCH 2/2] table: Add support for NFTA_TABLE_USE nftables attribute
-Date: Thu, 12 Dec 2013 15:00:44 +0200
-Message-ID: <1386853244-16783-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [nftables-kernel PATCH] netfilter: nf_tables: Expose the table's chain usage to the netlink API
+Date: Thu, 12 Dec 2013 15:00:42 +0200
+Message-ID: <1386853244-16783-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1386853244-16783-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga03.intel.com ([143.182.124.21]:31068 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568Ab3LLNA4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Dec 2013 08:00:56 -0500
+	id S1751535Ab3LLNAx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Dec 2013 08:00:53 -0500
 In-Reply-To: <1386853244-16783-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds support for table's attribute "use" which let us know about
-how many chains are in the table, if any.
+User space can therefore know whether a table is in use or not, and by
+how many chains.
+
+Suggested by Pablo Neira Ayuso.
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- include/libnftables/table.h         |  1 +
- include/linux/netfilter/nf_tables.h |  2 ++
- src/table.c                         | 35 +++++++++++++++++++++++++++++------
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nf_tables_api.c            | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/include/libnftables/table.h b/include/libnftables/table.h
-index be60da9..1d2be07 100644
---- a/include/libnftables/table.h
-+++ b/include/libnftables/table.h
-@@ -21,6 +21,7 @@ enum {
- 	NFT_TABLE_ATTR_NAME	= 0,
- 	NFT_TABLE_ATTR_FAMILY,
- 	NFT_TABLE_ATTR_FLAGS,
-+	NFT_TABLE_ATTR_USE,
- };
- 
- bool nft_table_attr_is_set(const struct nft_table *t, uint16_t attr);
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
 index 256d36b..b25481e 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
 @@ -110,11 +110,13 @@ enum nft_table_flags {
   *
   * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
@@ -54,105 +43,20 @@ index 256d36b..b25481e 100644
  	__NFTA_TABLE_MAX
  };
  #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
-diff --git a/src/table.c b/src/table.c
-index 9e20768..ecc57a6 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -31,6 +31,7 @@ struct nft_table {
- 	const char	*name;
- 	uint8_t		family;
- 	uint32_t	table_flags;
-+	uint32_t	use;
- 	uint32_t	flags;
- };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index dcddc49..604512d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -180,7 +180,8 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	nfmsg->res_id		= 0;
  
-@@ -70,6 +71,9 @@ void nft_table_attr_unset(struct nft_table *t, uint16_t attr)
- 	case NFT_TABLE_ATTR_FLAGS:
- 	case NFT_TABLE_ATTR_FAMILY:
- 		break;
-+	case NFT_TABLE_ATTR_USE:
-+		/* Cannot be unset, ignoring it */
-+		return;
- 	}
- 	t->flags &= ~(1 << attr);
- }
-@@ -93,6 +97,9 @@ void nft_table_attr_set(struct nft_table *t, uint16_t attr, const void *data)
- 		t->family = *((uint8_t *)data);
- 		t->flags |= (1 << NFT_TABLE_ATTR_FAMILY);
- 		break;
-+	case NFT_TABLE_ATTR_USE:
-+		/* Cannot be unset, ignoring it */
-+		break;
- 	}
- }
- EXPORT_SYMBOL(nft_table_attr_set);
-@@ -127,6 +134,8 @@ const void *nft_table_attr_get(struct nft_table *t, uint16_t attr)
- 		return &t->table_flags;
- 	case NFT_TABLE_ATTR_FAMILY:
- 		return &t->family;
-+	case NFT_TABLE_ATTR_USE:
-+		return &t->use;
- 	}
- 	return NULL;
- }
-@@ -182,6 +191,12 @@ static int nft_table_parse_attr_cb(const struct nlattr *attr, void *data)
- 			return MNL_CB_ERROR;
- 		}
- 		break;
-+	case NFTA_TABLE_USE:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-+			perror("mnl_attr_validate");
-+			return MNL_CB_ERROR;
-+		}
-+		break;
- 	}
+ 	if (nla_put_string(skb, NFTA_TABLE_NAME, table->name) ||
+-	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)))
++	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)) ||
++	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)))
+ 		goto nla_put_failure;
  
- 	tb[type] = attr;
-@@ -202,6 +217,10 @@ int nft_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_table *t)
- 		t->table_flags = ntohl(mnl_attr_get_u32(tb[NFTA_TABLE_FLAGS]));
- 		t->flags |= (1 << NFT_TABLE_ATTR_FLAGS);
- 	}
-+	if (tb[NFTA_TABLE_USE]) {
-+		t->use = ntohl(mnl_attr_get_u32(tb[NFTA_TABLE_USE]));
-+		t->flags |= (1 << NFT_TABLE_ATTR_USE);
-+	}
- 
- 	t->family = nfg->nfgen_family;
- 	t->flags |= (1 << NFT_TABLE_ATTR_FAMILY);
-@@ -344,23 +363,27 @@ static int nft_table_snprintf_json(char *buf, size_t size, struct nft_table *t)
- 			"{\"table\":{"
- 			"\"name\":\"%s\","
- 			"\"family\":\"%s\","
--			"\"flags\":%d"
-+			"\"flags\":%d,"
-+			"\"use\":%d"
- 			"}"
- 			"}" ,
--			t->name, nft_family2str(t->family), t->table_flags);
-+			t->name, nft_family2str(t->family),
-+			t->table_flags, t->use);
- }
- 
- static int nft_table_snprintf_xml(char *buf, size_t size, struct nft_table *t)
- {
- 	return snprintf(buf, size, "<table><name>%s</name><family>%s</family>"
--			"<flags>%d</flags></table>",
--			t->name, nft_family2str(t->family), t->table_flags);
-+			"<flags>%d</flags><use%d</use></table>",
-+			t->name, nft_family2str(t->family),
-+			t->table_flags, t->use);
- }
- 
- static int nft_table_snprintf_default(char *buf, size_t size, struct nft_table *t)
- {
--	return snprintf(buf, size, "table %s %s flags %x",
--			t->name, nft_family2str(t->family), t->table_flags);
-+	return snprintf(buf, size, "table %s %s flags %x use %d",
-+			t->name, nft_family2str(t->family),
-+			t->table_flags, t->use);
- }
- 
- int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
+ 	return nlmsg_end(skb, nlh);
 -- 
 1.8.4.4
 
