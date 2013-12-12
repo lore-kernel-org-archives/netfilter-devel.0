@@ -1,41 +1,27 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH] netfilter: nft: fix endianness in dump function
-Date: Thu, 12 Dec 2013 08:51:59 +0100
-Message-ID: <1386834719-29204-2-git-send-email-eric@regit.org>
-References: <1386834719-29204-1-git-send-email-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH 2/2] netfilter: nft: reject support for IPv6 and TCP reset
+Date: Thu, 12 Dec 2013 09:55:14 +0200
+Message-ID: <52A96BE2.2030906@linux.intel.com>
+References: <1386722554-4827-1-git-send-email-eric@regit.org> <1386834281-28347-1-git-send-email-eric@regit.org> <1386834281-28347-3-git-send-email-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:56360 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab3LLHwW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Dec 2013 02:52:22 -0500
-In-Reply-To: <1386834719-29204-1-git-send-email-eric@regit.org>
+Received: from mga02.intel.com ([134.134.136.20]:55763 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751390Ab3LLHzR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Dec 2013 02:55:17 -0500
+In-Reply-To: <1386834281-28347-3-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The dump function in nft_reject_ipv4 was not converting a u32
-field to network order before sending it to userspace.
+Hi Eric,
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- net/ipv4/netfilter/nft_reject_ipv4.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index fff5ba1..4a5e94a 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -72,7 +72,7 @@ static int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_reject *priv = nft_expr_priv(expr);
- 
--	if (nla_put_be32(skb, NFTA_REJECT_TYPE, priv->type))
-+	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
- 		goto nla_put_failure;
- 
- 	switch (priv->type) {
--- 
-1.8.5.1
+Isn't it NF_TABLES_IPV6 instead?
 
+
+Tomasz
