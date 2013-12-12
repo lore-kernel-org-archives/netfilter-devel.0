@@ -1,369 +1,702 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 2/2] netfilter: nft: reject support for IPv6 and TCP reset
-Date: Thu, 12 Dec 2013 08:44:41 +0100
-Message-ID: <1386834281-28347-3-git-send-email-eric@regit.org>
+Subject: [PATCH 1/2] netfilter: REJECT: separate reusable code
+Date: Thu, 12 Dec 2013 08:44:40 +0100
+Message-ID: <1386834281-28347-2-git-send-email-eric@regit.org>
 References: <1386722554-4827-1-git-send-email-eric@regit.org>
  <1386834281-28347-1-git-send-email-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:56303 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:56299 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541Ab3LLHpE (ORCPT
+	with ESMTP id S1751464Ab3LLHpD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Dec 2013 02:45:04 -0500
+	Thu, 12 Dec 2013 02:45:03 -0500
 In-Reply-To: <1386834281-28347-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch moves nft_reject_ipv4 to nft_reject and adds support
-for IPv6 protocol. This patch uses functions included in nf_reject.h
-to implement reject by TCP reset.
+This patch prepares the addition of TCP reset support in
+the nft_reject module by moving reusable code into a header
+file.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- net/ipv4/netfilter/Kconfig           |   4 -
- net/ipv4/netfilter/Makefile          |   1 -
- net/ipv4/netfilter/nft_reject_ipv4.c | 123 ------------------------------
- net/netfilter/Kconfig                |   4 +
- net/netfilter/Makefile               |   1 +
- net/netfilter/nft_reject.c           | 143 +++++++++++++++++++++++++++++++++++
- 6 files changed, 148 insertions(+), 128 deletions(-)
- delete mode 100644 net/ipv4/netfilter/nft_reject_ipv4.c
- create mode 100644 net/netfilter/nft_reject.c
+ include/net/netfilter/nf_reject.h | 297 ++++++++++++++++++++++++++++++++++++++
+ net/ipv4/netfilter/ipt_REJECT.c   | 124 +---------------
+ net/ipv6/netfilter/ip6t_REJECT.c  | 177 +----------------------
+ 3 files changed, 307 insertions(+), 291 deletions(-)
+ create mode 100644 include/net/netfilter/nf_reject.h
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 40d5607..9d3d69a 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -40,10 +40,6 @@ config NF_TABLES_IPV4
- 	depends on NF_TABLES
- 	tristate "IPv4 nf_tables support"
- 
--config NFT_REJECT_IPV4
--	depends on NF_TABLES_IPV4
--	tristate "nf_tables IPv4 reject support"
--
- config NFT_CHAIN_ROUTE_IPV4
- 	depends on NF_TABLES_IPV4
- 	tristate "IPv4 nf_tables route chain support"
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 19df72b..c16be9d 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -28,7 +28,6 @@ obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
- obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
- 
- obj-$(CONFIG_NF_TABLES_IPV4) += nf_tables_ipv4.o
--obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
- obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV4) += nft_chain_route_ipv4.o
- obj-$(CONFIG_NFT_CHAIN_NAT_IPV4) += nft_chain_nat_ipv4.o
- obj-$(CONFIG_NF_TABLES_ARP) += nf_tables_arp.o
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-deleted file mode 100644
-index fff5ba1..0000000
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ /dev/null
-@@ -1,123 +0,0 @@
--/*
-- * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * Development of this code funded by Astaro AG (http://www.astaro.com/)
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/netlink.h>
--#include <linux/netfilter.h>
--#include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
--#include <net/icmp.h>
--
--struct nft_reject {
--	enum nft_reject_types	type:8;
--	u8			icmp_code;
--};
--
--static void nft_reject_eval(const struct nft_expr *expr,
--			      struct nft_data data[NFT_REG_MAX + 1],
--			      const struct nft_pktinfo *pkt)
--{
--	struct nft_reject *priv = nft_expr_priv(expr);
--
--	switch (priv->type) {
--	case NFT_REJECT_ICMP_UNREACH:
--		icmp_send(pkt->skb, ICMP_DEST_UNREACH, priv->icmp_code, 0);
--		break;
--	case NFT_REJECT_TCP_RST:
--		break;
--	}
--
--	data[NFT_REG_VERDICT].verdict = NF_DROP;
--}
--
--static const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
--	[NFTA_REJECT_TYPE]		= { .type = NLA_U32 },
--	[NFTA_REJECT_ICMP_CODE]		= { .type = NLA_U8 },
--};
--
--static int nft_reject_init(const struct nft_ctx *ctx,
--			   const struct nft_expr *expr,
--			   const struct nlattr * const tb[])
--{
--	struct nft_reject *priv = nft_expr_priv(expr);
--
--	if (tb[NFTA_REJECT_TYPE] == NULL)
--		return -EINVAL;
--
--	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
--	switch (priv->type) {
--	case NFT_REJECT_ICMP_UNREACH:
--		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
--			return -EINVAL;
--		priv->icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
--	case NFT_REJECT_TCP_RST:
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr)
--{
--	const struct nft_reject *priv = nft_expr_priv(expr);
--
--	if (nla_put_be32(skb, NFTA_REJECT_TYPE, priv->type))
--		goto nla_put_failure;
--
--	switch (priv->type) {
--	case NFT_REJECT_ICMP_UNREACH:
--		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
--			goto nla_put_failure;
--		break;
--	}
--
--	return 0;
--
--nla_put_failure:
--	return -1;
--}
--
--static struct nft_expr_type nft_reject_type;
--static const struct nft_expr_ops nft_reject_ops = {
--	.type		= &nft_reject_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
--	.eval		= nft_reject_eval,
--	.init		= nft_reject_init,
--	.dump		= nft_reject_dump,
--};
--
--static struct nft_expr_type nft_reject_type __read_mostly = {
--	.name		= "reject",
--	.ops		= &nft_reject_ops,
--	.policy		= nft_reject_policy,
--	.maxattr	= NFTA_REJECT_MAX,
--	.owner		= THIS_MODULE,
--};
--
--static int __init nft_reject_module_init(void)
--{
--	return nft_register_expr(&nft_reject_type);
--}
--
--static void __exit nft_reject_module_exit(void)
--{
--	nft_unregister_expr(&nft_reject_type);
--}
--
--module_init(nft_reject_module_init);
--module_exit(nft_reject_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_EXPR("reject");
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 5263605..9482822 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -465,6 +465,10 @@ config NFT_QUEUE
- 	  This is required if you intend to use the userspace queueing
- 	  infrastructure (also known as NFQUEUE) from nftables.
- 
-+config NFT_REJECT
-+	depends on NF_TABLES
-+	tristate "nf_tables reject support"
-+
- config NFT_COMPAT
- 	depends on NF_TABLES
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index e763746..ba578f6 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
- obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
-+obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- #nf_tables-objs			+= nft_meta_target.o
- obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
- obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
 new file mode 100644
-index 0000000..f7f30a1
+index 0000000..0bb089a
 --- /dev/null
-+++ b/net/netfilter/nft_reject.c
-@@ -0,0 +1,143 @@
-+/*
-+ * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Development of this code funded by Astaro AG (http://www.astaro.com/)
-+ */
++++ b/include/net/netfilter/nf_reject.h
+@@ -0,0 +1,297 @@
++#ifndef _NF_REJECT_H
++#define _NF_REJECT_H
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/icmp.h>
++#include <net/ip.h>
++#include <net/tcp.h>
++#include <net/route.h>
++#include <net/dst.h>
++
 +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
 +#include <net/ipv6.h>
++#include <net/ip6_route.h>
++#include <linux/netfilter_ipv6.h>
 +#endif
 +
++static inline void send_unreach(struct sk_buff *skb_in, int code)
++{
++	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
++}
++
++/* Send RST reply */
++static inline void send_reset(struct sk_buff *oldskb, int hook)
++{
++	struct sk_buff *nskb;
++	const struct iphdr *oiph;
++	struct iphdr *niph;
++	const struct tcphdr *oth;
++	struct tcphdr _otcph, *tcph;
++
++	/* IP header checks: fragment. */
++	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
++		return;
++
++	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
++				 sizeof(_otcph), &_otcph);
++	if (oth == NULL)
++		return;
++
++	/* No RST for RST. */
++	if (oth->rst)
++		return;
++
++	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
++		return;
++
++	/* Check checksum */
++	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
++		return;
++	oiph = ip_hdr(oldskb);
++
++	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
++			 LL_MAX_HEADER, GFP_ATOMIC);
++	if (!nskb)
++		return;
++
++	skb_reserve(nskb, LL_MAX_HEADER);
++
++	skb_reset_network_header(nskb);
++	niph = (struct iphdr *)skb_put(nskb, sizeof(struct iphdr));
++	niph->version	= 4;
++	niph->ihl	= sizeof(struct iphdr) / 4;
++	niph->tos	= 0;
++	niph->id	= 0;
++	niph->frag_off	= htons(IP_DF);
++	niph->protocol	= IPPROTO_TCP;
++	niph->check	= 0;
++	niph->saddr	= oiph->daddr;
++	niph->daddr	= oiph->saddr;
++
++	skb_reset_transport_header(nskb);
++	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
++	memset(tcph, 0, sizeof(*tcph));
++	tcph->source	= oth->dest;
++	tcph->dest	= oth->source;
++	tcph->doff	= sizeof(struct tcphdr) / 4;
++
++	if (oth->ack)
++		tcph->seq = oth->ack_seq;
++	else {
++		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
++				      oldskb->len - ip_hdrlen(oldskb) -
++				      (oth->doff << 2));
++		tcph->ack = 1;
++	}
++
++	tcph->rst	= 1;
++	tcph->check = ~tcp_v4_check(sizeof(struct tcphdr), niph->saddr,
++				    niph->daddr, 0);
++	nskb->ip_summed = CHECKSUM_PARTIAL;
++	nskb->csum_start = (unsigned char *)tcph - nskb->head;
++	nskb->csum_offset = offsetof(struct tcphdr, check);
++
++	/* ip_route_me_harder expects skb->dst to be set */
++	skb_dst_set_noref(nskb, skb_dst(oldskb));
++
++	nskb->protocol = htons(ETH_P_IP);
++	if (ip_route_me_harder(nskb, RTN_UNSPEC))
++		goto free_nskb;
++
++	niph->ttl	= ip4_dst_hoplimit(skb_dst(nskb));
++
++	/* "Never happens" */
++	if (nskb->len > dst_mtu(skb_dst(nskb)))
++		goto free_nskb;
++
++	nf_ct_attach(nskb, oldskb);
++
++#ifdef CONFIG_BRIDGE_NETFILTER
++	/* If we use ip_local_out for bridged traffic, the MAC source on
++	 * the RST will be ours, instead of the destination's.  This confuses
++	 * some routers/firewalls, and they drop the packet.  So we need to
++	 * build the eth header using the original destination's MAC as the
++	 * source, and send the RST packet directly.
++	 */
++	if (oldskb->nf_bridge) {
++		struct ethhdr *oeth = eth_hdr(oldskb);
++		nskb->dev = oldskb->nf_bridge->physindev;
++		niph->tot_len = htons(nskb->len);
++		ip_send_check(niph);
++		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
++				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
++			goto free_nskb;
++		dev_queue_xmit(nskb);
++	} else
++#endif
++		ip_local_out(nskb);
++
++	return;
++
++ free_nskb:
++	kfree_skb(nskb);
++}
++
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++
++static inline void
++send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
++	     unsigned int hooknum)
++{
++	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
++		skb_in->dev = net->loopback_dev;
++
++	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
++}
++
++/* Send RST reply */
++static inline void send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
++{
++	struct sk_buff *nskb;
++	struct tcphdr otcph, *tcph;
++	unsigned int otcplen, hh_len;
++	int tcphoff, needs_ack;
++	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
++	struct ipv6hdr *ip6h;
++#define DEFAULT_TOS_VALUE	0x0U
++	const __u8 tclass = DEFAULT_TOS_VALUE;
++	struct dst_entry *dst = NULL;
++	u8 proto;
++	__be16 frag_off;
++	struct flowi6 fl6;
++
++	if ((!(ipv6_addr_type(&oip6h->saddr) & IPV6_ADDR_UNICAST)) ||
++	    (!(ipv6_addr_type(&oip6h->daddr) & IPV6_ADDR_UNICAST))) {
++		pr_debug("addr is not unicast.\n");
++		return;
++	}
++
++	proto = oip6h->nexthdr;
++	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data), &proto, &frag_off);
++
++	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
++		pr_debug("Cannot get TCP header.\n");
++		return;
++	}
++
++	otcplen = oldskb->len - tcphoff;
++
++	/* IP header checks: fragment, too short. */
++	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
++		pr_debug("proto(%d) != IPPROTO_TCP, "
++			 "or too short. otcplen = %d\n",
++			 proto, otcplen);
++		return;
++	}
++
++	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
++		BUG();
++
++	/* No RST for RST. */
++	if (otcph.rst) {
++		pr_debug("RST is set\n");
++		return;
++	}
++
++	/* Check checksum. */
++	if (nf_ip6_checksum(oldskb, hook, tcphoff, IPPROTO_TCP)) {
++		pr_debug("TCP checksum is invalid\n");
++		return;
++	}
++
++	memset(&fl6, 0, sizeof(fl6));
++	fl6.flowi6_proto = IPPROTO_TCP;
++	fl6.saddr = oip6h->daddr;
++	fl6.daddr = oip6h->saddr;
++	fl6.fl6_sport = otcph.dest;
++	fl6.fl6_dport = otcph.source;
++	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
++	dst = ip6_route_output(net, NULL, &fl6);
++	if (dst == NULL || dst->error) {
++		dst_release(dst);
++		return;
++	}
++	dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), NULL, 0);
++	if (IS_ERR(dst))
++		return;
++
++	hh_len = (dst->dev->hard_header_len + 15)&~15;
++	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
++			 + sizeof(struct tcphdr) + dst->trailer_len,
++			 GFP_ATOMIC);
++
++	if (!nskb) {
++		net_dbg_ratelimited("cannot alloc skb\n");
++		dst_release(dst);
++		return;
++	}
++
++	skb_dst_set(nskb, dst);
++
++	skb_reserve(nskb, hh_len + dst->header_len);
++
++	skb_put(nskb, sizeof(struct ipv6hdr));
++	skb_reset_network_header(nskb);
++	ip6h = ipv6_hdr(nskb);
++	ip6_flow_hdr(ip6h, tclass, 0);
++	ip6h->hop_limit = ip6_dst_hoplimit(dst);
++	ip6h->nexthdr = IPPROTO_TCP;
++	ip6h->saddr = oip6h->daddr;
++	ip6h->daddr = oip6h->saddr;
++
++	skb_reset_transport_header(nskb);
++	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
++	/* Truncate to length (no data) */
++	tcph->doff = sizeof(struct tcphdr)/4;
++	tcph->source = otcph.dest;
++	tcph->dest = otcph.source;
++
++	if (otcph.ack) {
++		needs_ack = 0;
++		tcph->seq = otcph.ack_seq;
++		tcph->ack_seq = 0;
++	} else {
++		needs_ack = 1;
++		tcph->ack_seq = htonl(ntohl(otcph.seq) + otcph.syn + otcph.fin
++				      + otcplen - (otcph.doff<<2));
++		tcph->seq = 0;
++	}
++
++	/* Reset flags */
++	((u_int8_t *)tcph)[13] = 0;
++	tcph->rst = 1;
++	tcph->ack = needs_ack;
++	tcph->window = 0;
++	tcph->urg_ptr = 0;
++	tcph->check = 0;
++
++	/* Adjust TCP checksum */
++	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
++				      &ipv6_hdr(nskb)->daddr,
++				      sizeof(struct tcphdr), IPPROTO_TCP,
++				      csum_partial(tcph,
++						   sizeof(struct tcphdr), 0));
++
++	nf_ct_attach(nskb, oldskb);
++
++#ifdef CONFIG_BRIDGE_NETFILTER
++	/* If we use ip6_local_out for bridged traffic, the MAC source on
++	 * the RST will be ours, instead of the destination's.  This confuses
++	 * some routers/firewalls, and they drop the packet.  So we need to
++	 * build the eth header using the original destination's MAC as the
++	 * source, and send the RST packet directly.
++	 */
++	if (oldskb->nf_bridge) {
++		struct ethhdr *oeth = eth_hdr(oldskb);
++		nskb->dev = oldskb->nf_bridge->physindev;
++		nskb->protocol = htons(ETH_P_IPV6);
++		ip6h->payload_len = htons(sizeof(struct tcphdr));
++		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
++				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
++			return;
++		dev_queue_xmit(nskb);
++	} else
++#endif
++		ip6_local_out(nskb);
++}
++
++#endif /* CONFIG_IP6_NF_IPTABLES */
++#endif /* _NF_REJECT_H */
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index b969131..f40305f 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -17,10 +17,6 @@
+ #include <linux/udp.h>
+ #include <linux/icmp.h>
+ #include <net/icmp.h>
+-#include <net/ip.h>
+-#include <net/tcp.h>
+-#include <net/route.h>
+-#include <net/dst.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
+@@ -28,128 +24,12 @@
+ #include <linux/netfilter_bridge.h>
+ #endif
+ 
 +#include <net/netfilter/nf_reject.h>
 +
-+struct nft_reject {
-+	enum nft_reject_types	type:8;
-+	u8			icmp_code;
-+	u8			family;
-+};
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+ MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv4");
+ 
+-/* Send RST reply */
+-static void send_reset(struct sk_buff *oldskb, int hook)
+-{
+-	struct sk_buff *nskb;
+-	const struct iphdr *oiph;
+-	struct iphdr *niph;
+-	const struct tcphdr *oth;
+-	struct tcphdr _otcph, *tcph;
+-
+-	/* IP header checks: fragment. */
+-	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
+-		return;
+-
+-	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
+-				 sizeof(_otcph), &_otcph);
+-	if (oth == NULL)
+-		return;
+-
+-	/* No RST for RST. */
+-	if (oth->rst)
+-		return;
+-
+-	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+-		return;
+-
+-	/* Check checksum */
+-	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
+-		return;
+-	oiph = ip_hdr(oldskb);
+-
+-	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
+-			 LL_MAX_HEADER, GFP_ATOMIC);
+-	if (!nskb)
+-		return;
+-
+-	skb_reserve(nskb, LL_MAX_HEADER);
+-
+-	skb_reset_network_header(nskb);
+-	niph = (struct iphdr *)skb_put(nskb, sizeof(struct iphdr));
+-	niph->version	= 4;
+-	niph->ihl	= sizeof(struct iphdr) / 4;
+-	niph->tos	= 0;
+-	niph->id	= 0;
+-	niph->frag_off	= htons(IP_DF);
+-	niph->protocol	= IPPROTO_TCP;
+-	niph->check	= 0;
+-	niph->saddr	= oiph->daddr;
+-	niph->daddr	= oiph->saddr;
+-
+-	skb_reset_transport_header(nskb);
+-	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
+-	memset(tcph, 0, sizeof(*tcph));
+-	tcph->source	= oth->dest;
+-	tcph->dest	= oth->source;
+-	tcph->doff	= sizeof(struct tcphdr) / 4;
+-
+-	if (oth->ack)
+-		tcph->seq = oth->ack_seq;
+-	else {
+-		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
+-				      oldskb->len - ip_hdrlen(oldskb) -
+-				      (oth->doff << 2));
+-		tcph->ack = 1;
+-	}
+-
+-	tcph->rst	= 1;
+-	tcph->check = ~tcp_v4_check(sizeof(struct tcphdr), niph->saddr,
+-				    niph->daddr, 0);
+-	nskb->ip_summed = CHECKSUM_PARTIAL;
+-	nskb->csum_start = (unsigned char *)tcph - nskb->head;
+-	nskb->csum_offset = offsetof(struct tcphdr, check);
+-
+-	/* ip_route_me_harder expects skb->dst to be set */
+-	skb_dst_set_noref(nskb, skb_dst(oldskb));
+-
+-	nskb->protocol = htons(ETH_P_IP);
+-	if (ip_route_me_harder(nskb, RTN_UNSPEC))
+-		goto free_nskb;
+-
+-	niph->ttl	= ip4_dst_hoplimit(skb_dst(nskb));
+-
+-	/* "Never happens" */
+-	if (nskb->len > dst_mtu(skb_dst(nskb)))
+-		goto free_nskb;
+-
+-	nf_ct_attach(nskb, oldskb);
+-
+-#ifdef CONFIG_BRIDGE_NETFILTER
+-	/* If we use ip_local_out for bridged traffic, the MAC source on
+-	 * the RST will be ours, instead of the destination's.  This confuses
+-	 * some routers/firewalls, and they drop the packet.  So we need to
+-	 * build the eth header using the original destination's MAC as the
+-	 * source, and send the RST packet directly.
+-	 */
+-	if (oldskb->nf_bridge) {
+-		struct ethhdr *oeth = eth_hdr(oldskb);
+-		nskb->dev = oldskb->nf_bridge->physindev;
+-		niph->tot_len = htons(nskb->len);
+-		ip_send_check(niph);
+-		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+-				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
+-			goto free_nskb;
+-		dev_queue_xmit(nskb);
+-	} else
+-#endif
+-		ip_local_out(nskb);
+-
+-	return;
+-
+- free_nskb:
+-	kfree_skb(nskb);
+-}
+-
+-static inline void send_unreach(struct sk_buff *skb_in, int code)
+-{
+-	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+-}
+-
+ static unsigned int
+ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index da00a2e..3461c3c 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -23,181 +23,20 @@
+ #include <linux/skbuff.h>
+ #include <linux/icmpv6.h>
+ #include <linux/netdevice.h>
+-#include <net/ipv6.h>
+-#include <net/tcp.h>
+ #include <net/icmp.h>
+ #include <net/ip6_checksum.h>
+ #include <net/ip6_fib.h>
+-#include <net/ip6_route.h>
+ #include <net/flow.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_REJECT.h>
+ 
++#include <net/netfilter/nf_reject.h>
 +
-+static void nft_reject_eval(const struct nft_expr *expr,
-+			      struct nft_data data[NFT_REG_MAX + 1],
-+			      const struct nft_pktinfo *pkt)
-+{
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
-+
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+		if (priv->family == NFPROTO_IPV4)
-+			send_unreach(pkt->skb, priv->icmp_code);
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+		else if (priv->family == NFPROTO_IPV6)
-+			send_unreach6(net, pkt->skb, priv->icmp_code,
-+				      pkt->hooknum);
-+#endif
-+		break;
-+	case NFT_REJECT_TCP_RST:
-+		if (priv->family == NFPROTO_IPV4)
-+			send_reset(pkt->skb, pkt->hooknum);
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+		else if (priv->family == NFPROTO_IPV6)
-+			send_reset6(net, pkt->skb, pkt->hooknum);
-+#endif
-+		break;
-+	}
-+
-+	data[NFT_REG_VERDICT].verdict = NF_DROP;
-+}
-+
-+static const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
-+	[NFTA_REJECT_TYPE]		= { .type = NLA_U32 },
-+	[NFTA_REJECT_ICMP_CODE]		= { .type = NLA_U8 },
-+};
-+
-+static int nft_reject_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
-+{
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+
-+	if (tb[NFTA_REJECT_TYPE] == NULL)
-+		return -EINVAL;
-+
-+	priv->family = ctx->afi->family;
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
-+			return -EINVAL;
-+		priv->icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
-+	case NFT_REJECT_TCP_RST:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_reject *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
-+		goto nla_put_failure;
-+
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
-+			goto nla_put_failure;
-+		break;
-+	}
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_reject_type;
-+static const struct nft_expr_ops nft_reject_ops = {
-+	.type		= &nft_reject_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
-+	.eval		= nft_reject_eval,
-+	.init		= nft_reject_init,
-+	.dump		= nft_reject_dump,
-+};
-+
-+static struct nft_expr_type nft_reject_type __read_mostly = {
-+	.name		= "reject",
-+	.ops		= &nft_reject_ops,
-+	.policy		= nft_reject_policy,
-+	.maxattr	= NFTA_REJECT_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_reject_module_init(void)
-+{
-+	return nft_register_expr(&nft_reject_type);
-+}
-+
-+static void __exit nft_reject_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_reject_type);
-+}
-+
-+module_init(nft_reject_module_init);
-+module_exit(nft_reject_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_ALIAS_NFT_EXPR("reject");
+ MODULE_AUTHOR("Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>");
+ MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv6");
+ MODULE_LICENSE("GPL");
+ 
+-/* Send RST reply */
+-static void send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+-{
+-	struct sk_buff *nskb;
+-	struct tcphdr otcph, *tcph;
+-	unsigned int otcplen, hh_len;
+-	int tcphoff, needs_ack;
+-	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
+-	struct ipv6hdr *ip6h;
+-#define DEFAULT_TOS_VALUE	0x0U
+-	const __u8 tclass = DEFAULT_TOS_VALUE;
+-	struct dst_entry *dst = NULL;
+-	u8 proto;
+-	__be16 frag_off;
+-	struct flowi6 fl6;
+-
+-	if ((!(ipv6_addr_type(&oip6h->saddr) & IPV6_ADDR_UNICAST)) ||
+-	    (!(ipv6_addr_type(&oip6h->daddr) & IPV6_ADDR_UNICAST))) {
+-		pr_debug("addr is not unicast.\n");
+-		return;
+-	}
+-
+-	proto = oip6h->nexthdr;
+-	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data), &proto, &frag_off);
+-
+-	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
+-		pr_debug("Cannot get TCP header.\n");
+-		return;
+-	}
+-
+-	otcplen = oldskb->len - tcphoff;
+-
+-	/* IP header checks: fragment, too short. */
+-	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
+-		pr_debug("proto(%d) != IPPROTO_TCP, "
+-			 "or too short. otcplen = %d\n",
+-			 proto, otcplen);
+-		return;
+-	}
+-
+-	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
+-		BUG();
+-
+-	/* No RST for RST. */
+-	if (otcph.rst) {
+-		pr_debug("RST is set\n");
+-		return;
+-	}
+-
+-	/* Check checksum. */
+-	if (nf_ip6_checksum(oldskb, hook, tcphoff, IPPROTO_TCP)) {
+-		pr_debug("TCP checksum is invalid\n");
+-		return;
+-	}
+-
+-	memset(&fl6, 0, sizeof(fl6));
+-	fl6.flowi6_proto = IPPROTO_TCP;
+-	fl6.saddr = oip6h->daddr;
+-	fl6.daddr = oip6h->saddr;
+-	fl6.fl6_sport = otcph.dest;
+-	fl6.fl6_dport = otcph.source;
+-	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
+-	dst = ip6_route_output(net, NULL, &fl6);
+-	if (dst == NULL || dst->error) {
+-		dst_release(dst);
+-		return;
+-	}
+-	dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), NULL, 0);
+-	if (IS_ERR(dst))
+-		return;
+-
+-	hh_len = (dst->dev->hard_header_len + 15)&~15;
+-	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
+-			 + sizeof(struct tcphdr) + dst->trailer_len,
+-			 GFP_ATOMIC);
+-
+-	if (!nskb) {
+-		net_dbg_ratelimited("cannot alloc skb\n");
+-		dst_release(dst);
+-		return;
+-	}
+-
+-	skb_dst_set(nskb, dst);
+-
+-	skb_reserve(nskb, hh_len + dst->header_len);
+-
+-	skb_put(nskb, sizeof(struct ipv6hdr));
+-	skb_reset_network_header(nskb);
+-	ip6h = ipv6_hdr(nskb);
+-	ip6_flow_hdr(ip6h, tclass, 0);
+-	ip6h->hop_limit = ip6_dst_hoplimit(dst);
+-	ip6h->nexthdr = IPPROTO_TCP;
+-	ip6h->saddr = oip6h->daddr;
+-	ip6h->daddr = oip6h->saddr;
+-
+-	skb_reset_transport_header(nskb);
+-	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
+-	/* Truncate to length (no data) */
+-	tcph->doff = sizeof(struct tcphdr)/4;
+-	tcph->source = otcph.dest;
+-	tcph->dest = otcph.source;
+-
+-	if (otcph.ack) {
+-		needs_ack = 0;
+-		tcph->seq = otcph.ack_seq;
+-		tcph->ack_seq = 0;
+-	} else {
+-		needs_ack = 1;
+-		tcph->ack_seq = htonl(ntohl(otcph.seq) + otcph.syn + otcph.fin
+-				      + otcplen - (otcph.doff<<2));
+-		tcph->seq = 0;
+-	}
+-
+-	/* Reset flags */
+-	((u_int8_t *)tcph)[13] = 0;
+-	tcph->rst = 1;
+-	tcph->ack = needs_ack;
+-	tcph->window = 0;
+-	tcph->urg_ptr = 0;
+-	tcph->check = 0;
+-
+-	/* Adjust TCP checksum */
+-	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
+-				      &ipv6_hdr(nskb)->daddr,
+-				      sizeof(struct tcphdr), IPPROTO_TCP,
+-				      csum_partial(tcph,
+-						   sizeof(struct tcphdr), 0));
+-
+-	nf_ct_attach(nskb, oldskb);
+-
+-#ifdef CONFIG_BRIDGE_NETFILTER
+-	/* If we use ip6_local_out for bridged traffic, the MAC source on
+-	 * the RST will be ours, instead of the destination's.  This confuses
+-	 * some routers/firewalls, and they drop the packet.  So we need to
+-	 * build the eth header using the original destination's MAC as the
+-	 * source, and send the RST packet directly.
+-	 */
+-	if (oldskb->nf_bridge) {
+-		struct ethhdr *oeth = eth_hdr(oldskb);
+-		nskb->dev = oldskb->nf_bridge->physindev;
+-		nskb->protocol = htons(ETH_P_IPV6);
+-		ip6h->payload_len = htons(sizeof(struct tcphdr));
+-		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
+-				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
+-			return;
+-		dev_queue_xmit(nskb);
+-	} else
+-#endif
+-		ip6_local_out(nskb);
+-}
+-
+-static inline void
+-send_unreach(struct net *net, struct sk_buff *skb_in, unsigned char code,
+-	     unsigned int hooknum)
+-{
+-	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+-		skb_in->dev = net->loopback_dev;
+-
+-	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+-}
+ 
+ static unsigned int
+ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+@@ -208,25 +47,25 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	pr_debug("%s: medium point\n", __func__);
+ 	switch (reject->with) {
+ 	case IP6T_ICMP6_NO_ROUTE:
+-		send_unreach(net, skb, ICMPV6_NOROUTE, par->hooknum);
++		send_unreach6(net, skb, ICMPV6_NOROUTE, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ADM_PROHIBITED:
+-		send_unreach(net, skb, ICMPV6_ADM_PROHIBITED, par->hooknum);
++		send_unreach6(net, skb, ICMPV6_ADM_PROHIBITED, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_NOT_NEIGHBOUR:
+-		send_unreach(net, skb, ICMPV6_NOT_NEIGHBOUR, par->hooknum);
++		send_unreach6(net, skb, ICMPV6_NOT_NEIGHBOUR, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ADDR_UNREACH:
+-		send_unreach(net, skb, ICMPV6_ADDR_UNREACH, par->hooknum);
++		send_unreach6(net, skb, ICMPV6_ADDR_UNREACH, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_PORT_UNREACH:
+-		send_unreach(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
++		send_unreach6(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ECHOREPLY:
+ 		/* Do nothing */
+ 		break;
+ 	case IP6T_TCP_RESET:
+-		send_reset(net, skb, par->hooknum);
++		send_reset6(net, skb, par->hooknum);
+ 		break;
+ 	default:
+ 		net_info_ratelimited("case %u not handled yet\n", reject->with);
 -- 
 1.8.5.1
 
