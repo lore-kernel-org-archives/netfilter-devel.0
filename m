@@ -1,68 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/2] netfilter fixes for net
-Date: Fri, 13 Dec 2013 19:24:57 +0100
-Message-ID: <1386959099-24582-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH -stable-3.12] netfilter: fix wrong byte order in nf_ct_seqadj_set internal information
+Date: Fri, 13 Dec 2013 19:28:23 +0100
+Message-ID: <1386959303-24665-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50143 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753289Ab3LMS2e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Dec 2013 13:28:34 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+From: Phil Oester <kernel@linuxace.com>
 
-The following patchset contains two Netfilter fixes for your net
-tree, they are:
+[ mainstream commit 23dfe136e2bf8d9ea1095704c535368a9bc721da ]
 
-* Fix endianness in nft_reject, the NFTA_REJECT_TYPE netlink attributes
-  was not converted to network byte order as needed by all nfnetlink
-  subsystems, from Eric Leblond.
+In commit 41d73ec053d2, sequence number adjustments were moved to a
+separate file. Unfortunately, the sequence numbers that are stored
+in the nf_ct_seqadj structure are expressed in host byte order. The
+necessary ntohl call was removed when the call to adjust_tcp_sequence
+was collapsed into nf_ct_seqadj_set. This broke the FTP NAT helper.
+Fix it by adding back the byte order conversions.
 
-* Restrict SYNPROXY target to INPUT and FORWARD chains, this avoid a
-  possible crash due to misconfigurations, from Patrick McHardy.
+Reported-by: Dawid Stawiarski <dawid.stawiarski@netart.pl>
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_seqadj.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 8afdd99a1315e759de04ad6e2344f0c5f17ecb1b:
-
-  udp: ipv4: fix an use after free in __udp4_lib_rcv() (2013-12-10 22:58:40 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-for you to fetch changes up to a3adadf3018102c24754e0b53a5515c40fbaff4a:
-
-  netfilter: nft_reject: fix endianness in dump function (2013-12-12 09:37:39 +0100)
-
-----------------------------------------------------------------
-Eric Leblond (1):
-      netfilter: nft_reject: fix endianness in dump function
-
-Patrick McHardy (1):
-      netfilter: SYNPROXY target: restrict to INPUT/FORWARD
-
- net/ipv4/netfilter/ipt_SYNPROXY.c    |    1 +
- net/ipv4/netfilter/nft_reject_ipv4.c |    2 +-
- net/ipv6/netfilter/ip6t_SYNPROXY.c   |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
-
-
-Eric Leblond (1):
-  netfilter: nft_reject: fix endianness in dump function
-
-Patrick McHardy (1):
-  netfilter: SYNPROXY target: restrict to INPUT/FORWARD
-
- net/ipv4/netfilter/ipt_SYNPROXY.c    |    1 +
- net/ipv4/netfilter/nft_reject_ipv4.c |    2 +-
- net/ipv6/netfilter/ip6t_SYNPROXY.c   |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
-
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index 5f9bfd0..17c1bcb 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -41,8 +41,8 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 	spin_lock_bh(&ct->lock);
+ 	this_way = &seqadj->seq[dir];
+ 	if (this_way->offset_before == this_way->offset_after ||
+-	    before(this_way->correction_pos, seq)) {
+-		this_way->correction_pos = seq;
++	    before(this_way->correction_pos, ntohl(seq))) {
++		this_way->correction_pos = ntohl(seq);
+ 		this_way->offset_before	 = this_way->offset_after;
+ 		this_way->offset_after	+= off;
+ 	}
 -- 
 1.7.10.4
+
