@@ -1,117 +1,89 @@
-From: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH] netfilter: Kill unreplied conntracks by ICMP errors
-Date: Sun, 15 Dec 2013 07:57:02 +0100
-Message-ID: <2247276.HWz9edslhi@gentoovm>
-References: <1386861575-121885-1-git-send-email-xiaosuo@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: xiaosuo@gmail.xom
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:53909 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824Ab3LOG6H (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Dec 2013 01:58:07 -0500
-In-Reply-To: <1386861575-121885-1-git-send-email-xiaosuo@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH] nfnetlink_log: unset nf_loggers for net namespace when unload nfnetlink_log
+Date: Mon, 16 Dec 2013 14:59:22 +0800
+Message-ID: <1387177162-2725-1-git-send-email-gaofeng@cn.fujitsu.com>
+References: <20131214101042.5626c785@gandalf.local.home>
+Cc: pablo@netfilter.org, netdev@vger.kernel.org, lclaudio@uudg.org,
+	williams@redhat.com, Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20131214101042.5626c785@gandalf.local.home>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 12 December 2013 10:19:34 Changli Gao wrote:
-> Think about the following scenario:
-> 
-> +--------+      +-------+      +----------+
-> 
-> | Server +------+ NAT 1 +------| Client 1 |
-> 
-> +---+----+      +-------+      +----------+
-> 
->     |           +-------+      +----------+
-> 
->     +-----------+ NAT 2 +------| Client 2 |
->                 +-------+      +----------+
-> 
-> The following UDP punching steps are used to to establish a direct session
-> between Client 1 and Client 2 with the help from Server.
-> 
-> 1. Client 1 sends a UDP packet to Server, and Server learned the public IP
-> and port of Client 1.
-> 2. Client 2 sends a UDP packet to Server, and Server learned the public IP
-> and port of Client 2.
-> 3. Server tells Client 1 the public IP and port of Client 2.
-> 4. Server tells Client 2 the public IP and port of Client 1.
-> 5. Client 1 sends UDP packets to the public IP and port of Client 2.
-> 6. Client 2 sends UDP packets to the public IP and port of Client 1.
-> 
-> If both NAT 1 and NAT 2 are Cone NAT, Client 1 and Client 2 can communicate
-> with each other directly.
-> 
-> Linux tries its best to be a Port Restricted NAT. But there is a race
-> condition between 5 and 6.
-> 
-> Suppose the packet from Client 1 to the public IP and port of Client 2
-> reaches NAT 2 before the packet from Client 2 to the public IP and port of
-> Client 1, and it belongs to a new session to NAT 2 itself since there isn't
-> any corresponding conntrack in NAT 2, and it is likely that port isn't
-> opened at NAT 2, so at last, a Port Unreachable ICMP packet will be
-> delivered to Client 1.
+Steven Rostedt and Arnaldo Carvalho de Melo reported a panic
+when access the files /proc/sys/net/netfilter/nf_log/*.
 
-I don't think that's universally the case; whether or not a port unreachable 
-happens is going to depend on the configured behaviour; it may very well just 
-silently drop the packet.
+This problem will occur when we do
+echo nfnetlink_log > /proc/sys/net/netfilter/nf_log/any_file
+,rmmod nfnetlink_log, and then access the files.
 
-> 
-> Then, the packet from Client 2 to the public IP and port of Client 1 reaches
-> NAT 2, and NAT 2 fails to use the same public IP and port of the packet
-> sent to Server as the source IP and port, because the corresponding tuple
-> is in use, at last, NAT 2 has to allocate a new pair of IP and port.
-> 
-> One and simplest solution is killing unreplied conntracks by ICMP errors.
-> 
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> ---
->  net/ipv4/netfilter/nf_conntrack_proto_icmp.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-> b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c index a338dad..6210820
-> 100644
-> --- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-> +++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-> @@ -135,6 +135,7 @@ icmp_error_message(struct net *net, struct nf_conn
-> *tmpl, struct sk_buff *skb, const struct nf_conntrack_l4proto *innerproto;
->  	const struct nf_conntrack_tuple_hash *h;
->  	u16 zone = tmpl ? nf_ct_zone(tmpl) : NF_CT_DEFAULT_ZONE;
-> +	struct nf_conn *ct;
-> 
->  	NF_CT_ASSERT(skb->nfct == NULL);
-> 
-> @@ -169,8 +170,12 @@ icmp_error_message(struct net *net, struct nf_conn
-> *tmpl, struct sk_buff *skb, if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
->  		*ctinfo += IP_CT_IS_REPLY;
-> 
-> +	ct = nf_ct_tuplehash_to_ctrack(h);
-> +	if (!test_bit(IPS_SEEN_REPLY, &ct->status))
-> +		nf_ct_kill_acct(ct, *ctinfo, skb);
-> +
-Perhaps I'm mistaken here so please correct me if so:
+Since the nf_loggers of netns hasn't been unset, it will point
+to the memory that has been freed.
 
-Firstly, I don't see why this is necessary as once the client does hole punch, 
-the conntrack entry should still be good to go providing the other end is 
-adhering to the port it's supposed to use. UDP is unreliable so an application 
-shouldn't be expecting perfect delivery; once Client B finally does their 
-initial transmit, a retransmit on the part of Client A should succeed without 
-any special behaviour on the part of Netfilter.
+This bug is introduced by commit 9368a53c471b42a1bd99117d590ce2ccdc8dc3c2
+"netfilter: nfnetlink_log: add net namespace support for nfnetlink_log"
 
-Secondly; I see this as a great opportunity for a DoS attack if someone can 
-spam ICMP errors down the pipe at you.
->  	/* Update skb to refer to this connection */
-> -	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
-> +	skb->nfct = &ct->ct_general;
->  	skb->nfctinfo = *ctinfo;
->  	return NF_ACCEPT;
->  }
+[17261.822047] BUG: unable to handle kernel paging request at ffffffffa0d49090
+[17261.822056] IP: [<ffffffff8157aba0>] nf_log_proc_dostring+0xf0/0x1d0
+[17261.822065] PGD 1c0f067 PUD 1c10063 PMD 2a8615067 PTE 0
+[17261.822071] Oops: 0000 [#1] SMP
+[17261.822076] Modules linked in: nfnetlink netlink_diag af_packet_diag udp_diag tcp_diag inet_diag unix_diag vhost_net vhost macvtap macvlan ipheth fuse xt_CHECKSUM tun bnep bluetooth rfkill nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6t_REJECT xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw nvidia(POF) coretemp kvm_intel kvm crc32c_intel drm iTCO_wdt iTCO_vendor_support e1000e snd_hda_codec_hdmi lpc_ich ptp pps_core mfd_core mei_me mei shpchp snd_hda_codec_realtek snd_hda_intel snd_hda_cod
+ ec snd_hwdep
+[17261.822140]  snd_seq snd_seq_device snd_pcm serio_raw microcode i7core_edac i2c_i801 edac_core i2c_core snd_page_alloc snd_timer snd soundcore tpm_tis tpm tpm_bios acpi_cpufreq mperf uinput binfmt_misc wmi [last unloaded: nfnetlink_log]
+[17261.822164] CPU: 0 PID: 28872 Comm: cat Tainted: PF          O 3.11.6-200.fc19.x86_64 #1
+[17261.822167] Hardware name: LENOVO ThinkCentre M8200T/  , BIOS 5JKT51AUS 11/02/2010
+[17261.822171] task: ffff880223de2620 ti: ffff880274d3e000 task.ti: ffff880274d3e000
+[17261.822173] RIP: 0010:[<ffffffff8157aba0>]  [<ffffffff8157aba0>] nf_log_proc_dostring+0xf0/0x1d0
+[17261.822179] RSP: 0018:ffff880274d3fe28  EFLAGS: 00010282
+[17261.822182] RAX: ffffffffa0d49080 RBX: ffffffff81fd7d60 RCX: ffff880274d3fec0
+[17261.822185] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff81cc1f00
+[17261.822187] RBP: ffff880274d3fea0 R08: ffff880274d3ff50 R09: 0000000000000000
+[17261.822190] R10: 0000000000000002 R11: 0000000000000246 R12: 0000000000000004
+[17261.822192] R13: ffffffff81cbdfc0 R14: 0000000002009000 R15: ffff8802b0ed8000
+[17261.822196] FS:  00007f8a9cd53740(0000) GS:ffff8802bfc00000(0000) knlGS:0000000000000000
+[17261.822199] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[17261.822202] CR2: ffffffffa0d49090 CR3: 00000001dae7a000 CR4: 00000000000027e0
+[17261.822205] DR0: 00000000000000a0 DR1: 0000000000000000 DR2: 0000000000000003
+[17261.822208] DR3: 00000000000000b0 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[17261.822209] Stack:
+[17261.822211]  ffff880274d3ff50 ffff880274d3fec0 0000000074d3fe50 ffff880274d3fe50
+[17261.822217]  ffffffff81297b98 ffff880274d3fe68 ffffffff8106fa09 ffffffff81fd7d60
+[17261.822222]  ffff880274d3fe80 ffffffff8163d25f 0000000027c6e5aa 0000000000000000
+[17261.822226] Call Trace:
+[17261.822235]  [<ffffffff81297b98>] ? security_capable+0x18/0x20
+[17261.822240]  [<ffffffff8106fa09>] ? ns_capable+0x29/0x50
+[17261.822247]  [<ffffffff8163d25f>] ? net_ctl_permissions+0x1f/0x90
+[17261.822254]  [<ffffffff81216613>] proc_sys_call_handler+0xb3/0xc0
+[17261.822258]  [<ffffffff81216651>] proc_sys_read+0x11/0x20
+[17261.822265]  [<ffffffff811a80de>] vfs_read+0x9e/0x170
+[17261.822270]  [<ffffffff811a8c09>] SyS_read+0x49/0xa0
+[17261.822276]  [<ffffffff810e6496>] ? __audit_syscall_exit+0x1f6/0x2a0
+[17261.822283]  [<ffffffff81656e99>] system_call_fastpath+0x16/0x1b
+[17261.822285] Code: cc 81 4d 63 e4 4c 89 45 88 48 89 4d 90 e8 19 03 0d 00 4b 8b 84 e5 28 08 00 00 48 8b 4d 90 4c 8b 45 88 48 85 c0 0f 84 a8 00 00 00 <48> 8b 40 10 48 89 43 08 48 89 df 4c 89 f2 31 f6 e8 4b 35 af ff
+[17261.822329] RIP  [<ffffffff8157aba0>] nf_log_proc_dostring+0xf0/0x1d0
+[17261.822334]  RSP <ffff880274d3fe28>
+[17261.822336] CR2: ffffffffa0d49090
+[17261.822340] ---[ end trace a14ce54c0897a90d ]---
 
-Regards,
-Oliver.
+Reported-by: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nfnetlink_log.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 3c4b69e..a155d19 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1053,6 +1053,7 @@ static void __net_exit nfnl_log_net_exit(struct net *net)
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ #endif
++	nf_log_unset(net, &nfulnl_logger);
+ }
+ 
+ static struct pernet_operations nfnl_log_net_ops = {
+-- 
+1.8.3.1
