@@ -1,27 +1,61 @@
-From: annstokes99 <annstokes99999@libero.it>
-Subject: Hello dear
-Date: Tue, 17 Dec 2013 00:30:46 +0100 (CET)
-Message-ID: <1406372664.5938731387236646040.JavaMail.actor@webmail15>
-Reply-To: ann55u@yahoo.fr
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [net PATCH 0/2] Fixing OOPSes in seqadj code
+Date: Tue, 17 Dec 2013 10:36:37 +0900
+Message-ID: <20131217013637.GI27171@verge.net.au>
+References: <20131213214023.14478.74738.stgit@dragon>
+ <20131216160840.22853.39918.stgit@dragon>
+ <alpine.LFD.2.11.1312162308120.2063@ja.home.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from outrelay02.libero.it ([212.52.84.102]:39336 "EHLO
-	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753Ab3LPXbx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Dec 2013 18:31:53 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.11.1312162308120.2063@ja.home.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello dear
-I will be very happy to be your friend.
-My name is miss. Ann Stokes. Please i will like you to
-write me through my email address ( ann55u@yahoo.fr ) .
-I will send my pictures to you and also tell you more about
-myself when i receive your email.
-I will be waiting for your mail in my mail box.
-Your new friend.
-Ann
+On Mon, Dec 16, 2013 at 11:11:51PM +0200, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Mon, 16 Dec 2013, Jesper Dangaard Brouer wrote:
+> 
+> > The following series address issues with netfilter conntrack sequence
+> > number adjustments, introduced with commit 41d73ec053d2 (netfilter:
+> > nf_conntrack: make sequence number adjustments usuable without NAT).
+> > 
+> >  Patch1: give us a WARN splash when using seqadj incorrectly
+> > 
+> >  Patch2: fixes a wrong usage of seqadj in IPVS code
+> 
+> 	Both patches look good to me,
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> > I'm not sure, which maintainer will take these fixes?!?
+> 
+> 	I think, Simon can take them, if there are no
+> objections...
+
+I have no objections.
+I'll wait a day to see if anyone else does.
+
+> 
+> > Jesper Dangaard Brouer (2):
+> >       ipvs: correct usage/allocation of seqadj ext in ipvs
+> >       netfilter: WARN about wrong usage of sequence number adjustments
+> > 
+> > 
+> >  net/netfilter/ipvs/ip_vs_nfct.c     |    6 ++++++
+> >  net/netfilter/nf_conntrack_seqadj.c |    5 +++++
+> >  2 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
