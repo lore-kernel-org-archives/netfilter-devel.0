@@ -1,61 +1,67 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [net PATCH 0/2] Fixing OOPSes in seqadj code
-Date: Tue, 17 Dec 2013 10:36:37 +0900
-Message-ID: <20131217013637.GI27171@verge.net.au>
-References: <20131213214023.14478.74738.stgit@dragon>
- <20131216160840.22853.39918.stgit@dragon>
- <alpine.LFD.2.11.1312162308120.2063@ja.home.ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: Kill unreplied conntracks by ICMP errors
+Date: Tue, 17 Dec 2013 14:01:17 +0100
+Message-ID: <20131217130117.GA8852@localhost>
+References: <1386861575-121885-1-git-send-email-xiaosuo@gmail.com>
+ <2247276.HWz9edslhi@gentoovm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: xiaosuo@gmail.xom, netfilter-devel@vger.kernel.org
+To: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57980 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753573Ab3LQNBc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Dec 2013 08:01:32 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1312162308120.2063@ja.home.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <2247276.HWz9edslhi@gentoovm>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 16, 2013 at 11:11:51PM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 16 Dec 2013, Jesper Dangaard Brouer wrote:
-> 
-> > The following series address issues with netfilter conntrack sequence
-> > number adjustments, introduced with commit 41d73ec053d2 (netfilter:
-> > nf_conntrack: make sequence number adjustments usuable without NAT).
+On Sun, Dec 15, 2013 at 07:57:02AM +0100, Oliver wrote:
+> On Thursday 12 December 2013 10:19:34 Changli Gao wrote:
+> > Think about the following scenario:
 > > 
-> >  Patch1: give us a WARN splash when using seqadj incorrectly
+> > +--------+      +-------+      +----------+
 > > 
-> >  Patch2: fixes a wrong usage of seqadj in IPVS code
+> > | Server +------+ NAT 1 +------| Client 1 |
+> > 
+> > +---+----+      +-------+      +----------+
+> > 
+> >     |           +-------+      +----------+
+> > 
+> >     +-----------+ NAT 2 +------| Client 2 |
+> >                 +-------+      +----------+
+> > 
+> > The following UDP punching steps are used to to establish a direct session
+> > between Client 1 and Client 2 with the help from Server.
+> > 
+> > 1. Client 1 sends a UDP packet to Server, and Server learned the public IP
+> > and port of Client 1.
+> > 2. Client 2 sends a UDP packet to Server, and Server learned the public IP
+> > and port of Client 2.
+> > 3. Server tells Client 1 the public IP and port of Client 2.
+> > 4. Server tells Client 2 the public IP and port of Client 1.
+> > 5. Client 1 sends UDP packets to the public IP and port of Client 2.
+> > 6. Client 2 sends UDP packets to the public IP and port of Client 1.
+> > 
+> > If both NAT 1 and NAT 2 are Cone NAT, Client 1 and Client 2 can communicate
+> > with each other directly.
+> > 
+> > Linux tries its best to be a Port Restricted NAT. But there is a race
+> > condition between 5 and 6.
+> > 
+> > Suppose the packet from Client 1 to the public IP and port of Client 2
+> > reaches NAT 2 before the packet from Client 2 to the public IP and port of
+> > Client 1, and it belongs to a new session to NAT 2 itself since there isn't
+> > any corresponding conntrack in NAT 2, and it is likely that port isn't
+> > opened at NAT 2, so at last, a Port Unreachable ICMP packet will be
+> > delivered to Client 1.
 > 
-> 	Both patches look good to me,
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> > I'm not sure, which maintainer will take these fixes?!?
-> 
-> 	I think, Simon can take them, if there are no
-> objections...
+> I don't think that's universally the case; whether or not a port unreachable 
+> happens is going to depend on the configured behaviour; it may very well just 
+> silently drop the packet.
 
-I have no objections.
-I'll wait a day to see if anyone else does.
-
-> 
-> > Jesper Dangaard Brouer (2):
-> >       ipvs: correct usage/allocation of seqadj ext in ipvs
-> >       netfilter: WARN about wrong usage of sequence number adjustments
-> > 
-> > 
-> >  net/netfilter/ipvs/ip_vs_nfct.c     |    6 ++++++
-> >  net/netfilter/nf_conntrack_seqadj.c |    5 +++++
-> >  2 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+Indeed. You can configure those two NATs to make them more
+hole-punching friendly by dropping UDP packets to local closed ports,
+so that conntrack entry won't be created.
