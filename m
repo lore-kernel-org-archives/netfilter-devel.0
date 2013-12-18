@@ -1,194 +1,355 @@
-From: Fan Du <fan.du@windriver.com>
-Subject: [PATCHv2 iptables] iptables: Add IPv4/6 IPcomp match support
-Date: Wed, 18 Dec 2013 11:27:22 +0800
-Message-ID: <1387337242-28865-1-git-send-email-fan.du@windriver.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Wed, 18 Dec 2013 10:53:22 +0100
+Message-ID: <20131218095322.GA4740@localhost>
+References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+ <1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <davem@davemloft.net>, <netfilter-devel@vger.kernel.org>,
-	<netdev@vger.kernel.org>
-To: <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	john.stultz@linaro.org, jpa@google.com
+To: mathieu.poirier@linaro.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch enables user to set iptables ACTIONs for IPcomp
-flow specified by its SPI value.
+Hi Mathieu,
 
-For example:
-iptables  -A OUTPUT -p 108 -m ipcomp --ipcompspi 0x12 -j DROP
-ip6tables -A OUTPUT -p 108 -m ipcomp --ipcompspi 0x12 -j DROP
+On Wed, Dec 11, 2013 at 09:53:18AM -0700, mathieu.poirier@linaro.org wrote:
+> From: Mathieu Poirier <mathieu.poirier@linaro.org>
+> 
+> Adding packet and byte quota support.  Once a quota has been
+> reached a noticifaction is sent to user space that includes
+> the name of the accounting object along with the current byte
+> and packet count.
+> 
+> Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> ---
+>  include/linux/netfilter/nfnetlink_acct.h      |  4 ++
+>  include/uapi/linux/netfilter/nfnetlink.h      |  2 +
+>  include/uapi/linux/netfilter/nfnetlink_acct.h |  1 +
+>  include/uapi/linux/netfilter/xt_nfacct.h      | 11 +++++
+>  net/netfilter/Kconfig                         |  3 +-
+>  net/netfilter/nfnetlink_acct.c                | 15 ++++++-
+>  net/netfilter/xt_nfacct.c                     | 65 ++++++++++++++++++++++++++-
+>  7 files changed, 97 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+> index bb4bbc9..46a9dda 100644
+> --- a/include/linux/netfilter/nfnetlink_acct.h
+> +++ b/include/linux/netfilter/nfnetlink_acct.h
+> @@ -9,5 +9,9 @@ struct nf_acct;
+>  extern struct nf_acct *nfnl_acct_find_get(const char *filter_name);
+>  extern void nfnl_acct_put(struct nf_acct *acct);
+>  extern void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
+> +extern u64 nfnl_acct_get_pkts(struct nf_acct *acct);
+> +extern u64 nfnl_acct_get_bytes(struct nf_acct *acct);
+> +extern int nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
+> +				u32 type, int event, struct nf_acct *acct);
+>  
+>  #endif /* _NFNL_ACCT_H */
+> diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
+> index 4a4efaf..e7e5851 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink.h
+> @@ -18,6 +18,8 @@ enum nfnetlink_groups {
+>  #define NFNLGRP_CONNTRACK_EXP_UPDATE	NFNLGRP_CONNTRACK_EXP_UPDATE
+>  	NFNLGRP_CONNTRACK_EXP_DESTROY,
+>  #define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
+> +	NFNLGRP_CONNTRACK_QUOTA,
+> +#define NFNLGRP_CONNTRACK_QUOTA		NFNLGRP_CONNTRACK_QUOTA
 
-IPcomp packet with spi as 0x12 will be dropped.
+Use NFNLGRP_ACCT_QUOTA, this has nothing to do with conntrack.
 
-Signed-off-by: Fan Du <fan.du@windriver.com>
----
-v2:
-  Consolidate libipt_ipcomp.c and libip6t_ipcomp.c into one libxt_ipcomp.c
----
- extensions/libxt_ipcomp.c           |  116 +++++++++++++++++++++++++++++++++++
- extensions/libxt_ipcomp.c.man       |    7 +++
- include/linux/netfilter/xt_ipcomp.h |   16 +++++
- 3 files changed, 139 insertions(+)
- create mode 100644 extensions/libxt_ipcomp.c
- create mode 100644 extensions/libxt_ipcomp.c.man
- create mode 100644 include/linux/netfilter/xt_ipcomp.h
+>  	__NFNLGRP_MAX,
+>  };
+>  #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
+> diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
+> index c7b6269..ae8ea0a 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink_acct.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
+> @@ -19,6 +19,7 @@ enum nfnl_acct_type {
+>  	NFACCT_PKTS,
+>  	NFACCT_BYTES,
+>  	NFACCT_USE,
+> +	NFACCT_QUOTA,
+>  	__NFACCT_MAX
+>  };
+>  #define NFACCT_MAX (__NFACCT_MAX - 1)
+> diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
+> index 3e19c8a..c2e49a6 100644
+> --- a/include/uapi/linux/netfilter/xt_nfacct.h
+> +++ b/include/uapi/linux/netfilter/xt_nfacct.h
+> @@ -3,11 +3,22 @@
+>  
+>  #include <linux/netfilter/nfnetlink_acct.h>
+>  
+> +enum xt_quota_flags {
+> +	XT_QUOTA_INVERT    = 1 << 0,
 
-diff --git a/extensions/libxt_ipcomp.c b/extensions/libxt_ipcomp.c
-new file mode 100644
-index 0000000..1753fc3
---- /dev/null
-+++ b/extensions/libxt_ipcomp.c
-@@ -0,0 +1,116 @@
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter/xt_ipcomp.h>
-+
-+enum {
-+	O_compSPI = 0,
-+	O_compRES,
-+};
-+
-+static void comp_help(void)
-+{
-+	printf(
-+"comp match options:\n"
-+"[!] --ipcompspi spi[:spi]\n"
-+"				match spi (range)\n");
-+}
-+
-+static const struct xt_option_entry comp_opts[] = {
-+	{.name = "ipcompspi", .id = O_compSPI, .type = XTTYPE_UINT32RC,
-+	 .flags = XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(struct ipt_comp, spis)},
-+	{.name = "compres", .id = O_compRES, .type = XTTYPE_NONE},
-+	XTOPT_TABLEEND,
-+};
-+#undef s
-+
-+static void comp_parse(struct xt_option_call *cb)
-+{
-+	struct ipt_comp *compinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_compSPI:
-+		if (cb->nvals == 1)
-+			compinfo->spis[1] = compinfo->spis[0];
-+		if (cb->invert)
-+			compinfo->invflags |= IPT_IPCOMP_INV_SPI;
-+		break;
-+	case O_compRES:
-+		compinfo->hdrres = 1;
-+		break;
-+	}
-+}
-+
-+static void
-+print_spis(const char *name, uint32_t min, uint32_t max,
-+	    int invert)
-+{
-+	const char *inv = invert ? "!" : "";
-+
-+	if (min != 0 || max != 0xFFFFFFFF || invert) {
-+		if (min == max)
-+			printf("%s:%s%u", name, inv, min);
-+		else
-+			printf("%ss:%s%u:%u", name, inv, min, max);
-+	}
-+}
-+
-+static void comp_print(const void *ip, const struct xt_entry_match *match,
-+                     int numeric)
-+{
-+	const struct ipt_comp *comp = (struct ipt_comp *)match->data;
-+
-+	printf(" comp ");
-+	print_spis("spi", comp->spis[0], comp->spis[1],
-+		    comp->invflags & IPT_IPCOMP_INV_SPI);
-+
-+	if (comp->hdrres)
-+		printf(" reserved");
-+
-+	if (comp->invflags & ~IPT_IPCOMP_INV_MASK)
-+		printf(" Unknown invflags: 0x%X",
-+		       comp->invflags & ~IPT_IPCOMP_INV_MASK);
-+}
-+
-+static void comp_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct ipt_comp *compinfo = (struct ipt_comp *)match->data;
-+
-+	if (!(compinfo->spis[0] == 0
-+	    && compinfo->spis[1] == 0xFFFFFFFF)) {
-+		printf("%s --ipcompspi ",
-+			(compinfo->invflags & IPT_IPCOMP_INV_SPI) ? " !" : "");
-+		if (compinfo->spis[0]
-+		    != compinfo->spis[1])
-+			printf("%u:%u",
-+			       compinfo->spis[0],
-+			       compinfo->spis[1]);
-+		else
-+			printf("%u",
-+			       compinfo->spis[0]);
-+	}
-+
-+	if (compinfo->hdrres != 0 )
-+		printf(" --compres");
-+}
-+
-+static struct xtables_match comp_mt_reg = {
-+	.name          = "ipcomp",
-+	.version       = XTABLES_VERSION,
-+	.family        = NFPROTO_UNSPEC,
-+	.size          = XT_ALIGN(sizeof(struct ipt_comp)),
-+	.userspacesize = XT_ALIGN(sizeof(struct ipt_comp)),
-+	.help          = comp_help,
-+	.print         = comp_print,
-+	.save          = comp_save,
-+	.x6_parse      = comp_parse,
-+	.x6_options    = comp_opts,
-+};
-+
-+void
-+_init(void)
-+{
-+	xtables_register_match(&comp_mt_reg);
-+};
-+
-diff --git a/extensions/libxt_ipcomp.c.man b/extensions/libxt_ipcomp.c.man
-new file mode 100644
-index 0000000..f3b17d2
---- /dev/null
-+++ b/extensions/libxt_ipcomp.c.man
-@@ -0,0 +1,7 @@
-+This module matches the parameters in IPcomp header of IPsec packets.
-+.TP
-+[\fB!\fP] \fB\-\-ipcompspi\fP \fIspi\fP[\fB:\fP\fIspi\fP]
-+Matches IPcomp header CPI value.
-+.TP
-+\fB\-\-compres\fP
-+Matches if the reserved field is filled with zero.
-diff --git a/include/linux/netfilter/xt_ipcomp.h b/include/linux/netfilter/xt_ipcomp.h
-new file mode 100644
-index 0000000..5e4abb3
---- /dev/null
-+++ b/include/linux/netfilter/xt_ipcomp.h
-@@ -0,0 +1,16 @@
-+#ifndef _IPT_COMP_H
-+#define _IPT_COMP_H
-+
-+#include <linux/types.h>
-+
-+struct ipt_comp {
-+	__u32 spis[2];	/* Security Parameter Index */
-+	__u8 invflags;	/* Inverse flags */
-+	__u8 hdrres;	/* Test of the Reserved Filed */
-+};
-+
-+/* Values for "invflags" field in struct ipt_comp. */
-+#define IPT_IPCOMP_INV_SPI	0x01	/* Invert the sense of spi. */
-+#define IPT_IPCOMP_INV_MASK	0x01	/* All possible flags. */
-+
-+#endif /*_IPT_COMP_H*/
--- 
-1.7.9.5
+I don't understand the interaction of invert and the event delivery.
+
+> +	XT_QUOTA_PACKET    = 1 << 1,
+> +	XT_QUOTA_QUOTA	   = 1 << 2,
+
+XT_QUOTA_QUOTA ? :-)
+
+I suggest XT_NFACCT_QUOTA_PKTS and XT_NFACCT_QUOTA_BYTES.
+
+> +};
+> +
+>  struct nf_acct;
+> +struct nf_acct_quota;
+>  
+>  struct xt_nfacct_match_info {
+>  	char		name[NFACCT_NAME_MAX];
+>  	struct nf_acct	*nfacct;
+> +
+
+You cannot add new field to this structure like this since it would
+break backward compatibility. You have to add a v1 revision of this
+structure, see net/netfilter/xt_NFQUEUE.c for instance on how to user
+the iptables revision infrastructure.
+
+> +	u_int8_t flags;
+
+Better use __u32 for these flags to fill the hole.
+
+> +	aligned_u64 quota;
+
+Use __aligned_u64.
+
+> +	struct nf_acct_quota	*priv;
+
+This has to look like this:
+
+/* Used internally by the kernel */
+struct nf_acct_quota *priv __attribute__((aligned(8)));
+
+But see below, I have a proposal to avoid this private area.
+
+>  };
+>  
+>  #endif /* _XT_NFACCT_MATCH_H */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 6e839b6..aa635d8 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -1056,7 +1056,8 @@ config NETFILTER_XT_MATCH_NFACCT
+>  	select NETFILTER_NETLINK_ACCT
+>  	help
+>  	  This option allows you to use the extended accounting through
+> -	  nfnetlink_acct.
+> +	  nfnetlink_acct.  It is also possible to add quotas at the
+> +	  packet and byte level.
+>  
+>  	  To compile it as a module, choose M here.  If unsure, say N.
+>  
+> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+> index c7b6d46..20f1dad 100644
+> --- a/net/netfilter/nfnetlink_acct.c
+> +++ b/net/netfilter/nfnetlink_acct.c
+> @@ -92,7 +92,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+>  	return 0;
+>  }
+>  
+> -static int
+> +int
+>  nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+>  		   int event, struct nf_acct *acct)
+>  {
+> @@ -134,6 +134,7 @@ nla_put_failure:
+>  	nlmsg_cancel(skb, nlh);
+>  	return -1;
+>  }
+> +EXPORT_SYMBOL_GPL(nfnl_acct_fill_info);
+>  
+>  static int
+>  nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+> @@ -336,6 +337,18 @@ void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct)
+>  }
+>  EXPORT_SYMBOL_GPL(nfnl_acct_update);
+>  
+> +u64 nfnl_acct_get_pkts(struct nf_acct *nfacct)
+> +{
+> +	return atomic64_read(&nfacct->pkts);
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_acct_get_pkts);
+> +
+> +u64 nfnl_acct_get_bytes(struct nf_acct *nfacct)
+> +{
+> +	return atomic64_read(&nfacct->bytes);
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_acct_get_bytes);
+
+I think you can move the definition of struct nf_acct to
+include/net/netfilter/nfnetlink_acct.h, so we don't need these
+two exported symbols.
+
+> +
+>  static int __init nfnl_acct_init(void)
+>  {
+>  	int ret;
+> diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+> index b3be0ef..6ed807c 100644
+> --- a/net/netfilter/xt_nfacct.c
+> +++ b/net/netfilter/xt_nfacct.c
+> @@ -8,10 +8,14 @@
+>   */
+>  #include <linux/module.h>
+>  #include <linux/skbuff.h>
+> +#include <linux/spinlock.h>
+>  
+> +#include <net/netlink.h>
+>  #include <linux/netfilter/x_tables.h>
+>  #include <linux/netfilter/nfnetlink_acct.h>
+> +#include <linux/netfilter/nfnetlink.h>
+>  #include <linux/netfilter/xt_nfacct.h>
+> +#include <linux/netfilter_ipv4/ipt_ULOG.h>
+>  
+>  MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+>  MODULE_DESCRIPTION("Xtables: match for the extended accounting infrastructure");
+> @@ -19,13 +23,62 @@ MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("ipt_nfacct");
+>  MODULE_ALIAS("ip6t_nfacct");
+>  
+> +struct nf_acct_quota {
+> +	spinlock_t lock;
+
+A spinlock to protect a boolean is rather expensive.
+
+> +	bool quota_reached; /* true if quota has been reached. */
+
+I think you can avoid this private area (including the spinlock) by
+storing a copy of the packet/byte counter before calling
+nfnl_acct_update(). Then if you note that old packet/byte counter was
+below quota but new is overquota, then you have to send an event, ie.
+
+        old_pkts = atomic64_read(info->nfacct->pkts);
+        new_pkts = nfnl_acct_update(skb, info->nfacct, info->flags);
+        if (old_pkts < info->quota && new_pkts > info->quota)
+                send event
+
+There's still one problem with this approach since it is racy, as it
+may send several events, so you can refine it with:
+
+        if (old_pkts < info->quota && new_pkts > info->quota
+            && old_pkts + 1 == new_pkts)
+                send event
+
+You will need two different functions depending on the quota mode
+(packet or bytes), and you will also need to modify nfnl_acct_update()
+to return the new number of packets or bytes (depending on the flags),
+you can use atomic_add_return and atomic_inc_return respectively to
+retrieve the new (updated) value.
+
+> +};
+> +
+> +static void nfacct_quota_log(struct nf_acct *cur,
+> +			const struct sk_buff *skb)
+
+Define this nfacct_quota_event function in nfnetlink_acct and export
+it, thus, you don't need to export nfnl_acct_fill_info().
+
+> +{
+> +	int ret;
+> +	struct sk_buff *skb2;
+> +
+> +	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+                                             ^
+This is called from interrupt context as well (input packets), this
+has to be GFP_ATOMIC.
+
+> +	if (skb2 == NULL) {
+> +		pr_err("nfacct_quota_log: nlmsg_new failed\n");
+
+Please, remove the error message.
+
+> +		return;
+> +	}
+> +
+> +	ret = nfnl_acct_fill_info(skb2, 0, 0, NFACCT_QUOTA,
+> +						NFNL_MSG_ACCT_NEW, cur);
+                                  ^-------------
+                                       wrong coding style
+
+> +
+> +	if (ret <= 0) {
+> +		kfree_skb(skb2);
+> +		pr_err("nfacct_quota_log: nfnl_acct_fill_info failed\n");
+
+remove this as well.
+
+> +		return;
+> +	}
+> +
+> +	netlink_broadcast(init_net.nfnl, skb2, 0,
+> +					 NFNLGRP_CONNTRACK_QUOTA, GFP_ATOMIC);
+
+wrong coding style:
+
+        netlink_broadcast(init_net.nfnl, skb2, 0,
+                          NFNLGRP_CONNTRACK_QUOTA, GFP_ATOMIC);
+
+> +}
+> +
+>  static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+> -	const struct xt_nfacct_match_info *info = par->targinfo;
+> +	u64 val;
+> +	struct xt_nfacct_match_info *info = (void *) par->targinfo;
+> +	bool ret = info->flags & XT_QUOTA_INVERT;
+>  
+>  	nfnl_acct_update(skb, info->nfacct);
+>  
+> -	return true;
+> +	if (info->flags & XT_QUOTA_QUOTA) {
+> +		spin_lock_bh(&info->priv->lock);
+> +		val = (info->flags & XT_QUOTA_PACKET) ?
+> +				nfnl_acct_get_pkts(info->nfacct) :
+> +				nfnl_acct_get_bytes(info->nfacct);
+> +		if (val <= info->quota) {
+> +			ret = !ret;
+> +			info->priv->quota_reached = false;
+> +		} else {
+> +			if (!info->priv->quota_reached) {
+> +				info->priv->quota_reached = true;
+> +				nfacct_quota_log(info->nfacct, skb);
+> +			}
+> +		}
+> +		spin_unlock_bh(&info->priv->lock);
+> +	}
+> +
+> +	return ret;
+>  }
+>  
+>  static int
+> @@ -40,7 +93,14 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+>  			"does not exists\n", info->name);
+>  		return -ENOENT;
+>  	}
+> +
+>  	info->nfacct = nfacct;
+> +
+> +	if ((info->flags & XT_QUOTA_QUOTA) && !info->priv) {
+> +		info->priv =  kmalloc(sizeof(struct nf_acct_quota), GFP_KERNEL);
+
+You always have to check the return value of kmalloc, the allocation
+may fail.
+
+> +		spin_lock_init(&info->priv->lock);
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> @@ -50,6 +110,7 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
+>  	const struct xt_nfacct_match_info *info = par->matchinfo;
+>  
+>  	nfnl_acct_put(info->nfacct);
+> +	kfree(info->priv);
+>  }
+>  
+>  static struct xt_match nfacct_mt_reg __read_mostly = {
