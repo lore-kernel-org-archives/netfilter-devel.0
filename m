@@ -1,70 +1,67 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/2] netfilter_queue: enable UID/GID socket info retrieval
-Date: Wed, 18 Dec 2013 22:24:30 +0100
-Message-ID: <20131218212430.GD15863@breakpoint.cc>
-References: <1387389844-5263-1-git-send-email-valentina.giusti@bmw-carit.de>
- <1387389844-5263-2-git-send-email-valentina.giusti@bmw-carit.de>
+From: Fan Du <fan.du@windriver.com>
+Subject: Re: [PATCH net-next 0/2] netfilter: IPv4/v6 IPcomp match support
+Date: Thu, 19 Dec 2013 11:30:09 +0800
+Message-ID: <52B26841.40800@windriver.com>
+References: <1386937082-30412-1-git-send-email-fan.du@windriver.com> <20131217130555.GA8874@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	eric.dumazet@gmail.com, tgraf@redhat.com, jpa@google.com,
-	pablo@netfilter.org, davem@davemloft.net,
-	daniel.wagner@bmw-carit.de
-To: valentina.giusti@bmw-carit.de
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1387389844-5263-2-git-send-email-valentina.giusti@bmw-carit.de>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <davem@davemloft.net>, <steffen.klassert@secunet.com>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail1.windriver.com ([147.11.146.13]:48832 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab3LSDaW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Dec 2013 22:30:22 -0500
+In-Reply-To: <20131217130555.GA8874@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-valentina.giusti@bmw-carit.de <valentina.giusti@bmw-carit.de> wrote:
-> From: Valentina Giusti <valentina.giusti@bmw-carit.de>
-> 
-> Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388 (udp: 
-> ipv4: Add udp early demux) it is now possible to get UID and GID socket info
-> also for incoming TCP and UDP connections. Having this info available, it
-> is convenient to let NFQUEUE retrieve it in order to improve and refine the
-> traffic analysis in userspace.
 
-No objections from me, except a few comments below.
 
-> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-> index 21258cf..7257ddb 100644
-> --- a/net/netfilter/nfnetlink_queue_core.c
-> +++ b/net/netfilter/nfnetlink_queue_core.c
-> @@ -328,7 +328,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-[..]
->  	if (entskb->tstamp.tv64)
->  		size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
-> @@ -484,6 +486,25 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  			goto nla_put_failure;
->  	}
->  
-> +	if (entskb->sk) {
-> +		struct sock *sk = entskb->sk;
-> +		if (sk && sk->sk_state != TCP_TIME_WAIT) {
-> +			read_lock_bh(&sk->sk_callback_lock);
+On 2013=E5=B9=B412=E6=9C=8817=E6=97=A5 21:05, Pablo Neira Ayuso wrote:
+> On Fri, Dec 13, 2013 at 08:18:00PM +0800, Fan Du wrote:
+>> Hi,
+>>
+>> This patchset adds IPv4/v6 IPComp 'match' plugin to enables user set=
+ting
+>> ACTONs for IPcomp flows sepecified with SPI value.
+>>
+>> Corresponding iptables patchset will be sent here after soon.
+>>
+>> Fan Du (2):
+>>    netfilter: add IPv4 IPComp extension match support
+>>    netfilter: add IPv6 IPComp extension match support
+>
+> This looks good, but I have to ask you to merge those two modules int=
+o
+> one single xt_ipcomp, they are fairly small and we can save the
+> overhead of having two different modules. Moreover, at quick glance I
+> don't see any dependency with IPv4/IPv6 exported symbols that may
+> cause ifdef pollution.
+>
+> Please, see net/netfilter/xt_tcpudp.c as reference to rework this.
+> Thanks.
+>
 
-nfqnl_build_packet_message is already a huge function, I think it
-might be useful to add a small helper function for this,
-e.g.  'nfqnl_skinfo_put(skb, entskb->sk)' or something like that.
+I noticed netfilter ipv4/v6 AH support also has split implementation,
+so far, by my understanding, it's fairly enough to consolidate those
+two implementations into one as well, as IPv4/6 AH head format are
+identical.
 
-Also, it might be a good idea to only dump the sk info
-on userspace request (not sure how expensive the readlock is
-compared to the nfqueue cost...), see NFQA_CFG_F_CONNTRACK flag for
-instance.
+If you don't mind or it won't break anything internal for netfilter,
+I plan to combine them into one piece.
 
-> +			if (sk->sk_socket && sk->sk_socket->file) {
-> +				struct file *file = sk->sk_socket->file;
-> +				const struct cred *cred = file->f_cred;
-> +				if (nla_put_u32(skb, NFQA_UID,
+--=20
+=E6=B5=AE=E6=B2=89=E9=9A=8F=E6=B5=AA=E5=8F=AA=E8=AE=B0=E4=BB=8A=E6=9C=9D=
+=E7=AC=91
 
-nla_put_be32
-
-> +				    htonl(cred->fsuid)))
-> +					goto nla_put_failure;
-
-careful - the sk_callback_lock was taken.
-
-Cheers,
-Florian
+--fan
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
