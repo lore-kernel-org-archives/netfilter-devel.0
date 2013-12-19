@@ -1,31 +1,62 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: BUG ip6tables and helper
-Date: Thu, 19 Dec 2013 12:30:26 +0100
-Message-ID: <20131219113026.GA6047@breakpoint.cc>
-References: <20131122121232.GA5698@localhost>
- <b036229675020e020b2d1832e1251eec@ausics.net>
+Subject: Re: [PATCH v2 1/2] netfilter_queue: enable UID/GID socket info
+ retrieval
+Date: Thu, 19 Dec 2013 12:43:40 +0100
+Message-ID: <20131219114340.GB6047@breakpoint.cc>
+References: <1387451007-14363-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <1387451007-14363-2-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Noel Butler <noel.butler@ausics.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	fw@strlen.de, eric.dumazet@gmail.com, tgraf@redhat.com,
+	jpa@google.com, pablo@netfilter.org, davem@davemloft.net,
+	daniel.wagner@bmw-carit.de,
+	Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
+To: valentina.giusti@bmw-carit.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60948 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:32773 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689Ab3LSLa3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751926Ab3LSLnn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Dec 2013 06:30:29 -0500
+	Thu, 19 Dec 2013 06:43:43 -0500
 Content-Disposition: inline
-In-Reply-To: <b036229675020e020b2d1832e1251eec@ausics.net>
+In-Reply-To: <1387451007-14363-2-git-send-email-valentina.giusti@bmw-carit.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Noel Butler <noel.butler@ausics.net> wrote:
-> Bug with ip6tables and helpers
+valentina.giusti@bmw-carit.de <valentina.giusti@bmw-carit.de> wrote:
+> From: Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
 > 
-> -j CT --helper irc
-> 
-> ip6tables: No chain/target/match by that name.
-> 
-> This *does* work with iptables
+> Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388 (udp: ipv4:
+> Add udp early demux) it is now possible to parse UID and GID socket info
+> also for incoming TCP and UDP connections. Having this info available, it
+> is convenient to let NFQUEUE parse it in order to improve and refine the
+> traffic analysis in userspace.
 
-Yes, nf_conntrack_irc is ipv4 only at this time.
+> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+> index 21258cf..2cdef07 100644
+> --- a/net/netfilter/nfnetlink_queue_core.c
+> +++ b/net/netfilter/nfnetlink_queue_core.c
+> @@ -297,6 +297,29 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
+>  	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) : 0;
+>  }
+>  
+> +static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
+> +{
+> +	const struct cred *cred;
+> +
+> +	if (sk && sk->sk_state != TCP_TIME_WAIT) {
+[..]
+> +	if ((queue->flags & NFQA_CFG_F_UID_GID) && entskb->sk)
+> +		if (nfqnl_put_sk_uidgid(skb, entskb->sk))
+> +			goto nla_put_failure;
+
+Minor nit: sk is tested for non-null twice.  Suggestion:
+
+if ((queue->flags & NFQA_CFG_F_UID_GID) &&
+     nfqnl_put_sk_uidgid(skb, entskb->sk))
+          goto nla_put_failure;
+
+I don't think its necessary to resubmit the patch though, thus:
+
+Reviewed-by: Florian Westphal <fw@strlen.de>
