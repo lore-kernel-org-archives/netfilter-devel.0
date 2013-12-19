@@ -1,87 +1,173 @@
-From: Valentina Giusti <valentina.giusti@bmw-carit.de>
-Subject: Re: [PATCH 1/2] netfilter_queue: enable UID/GID socket info retrieval
-Date: Thu, 19 Dec 2013 09:59:33 +0100
-Message-ID: <52B2B575.1050709@bmw-carit.de>
-References: <1387389844-5263-1-git-send-email-valentina.giusti@bmw-carit.de> <1387389844-5263-2-git-send-email-valentina.giusti@bmw-carit.de> <20131218212430.GD15863@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<eric.dumazet@gmail.com>, <tgraf@redhat.com>, <jpa@google.com>,
-	<pablo@netfilter.org>, <davem@davemloft.net>,
-	<daniel.wagner@bmw-carit.de>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:34793 "EHLO
-	mail.bmw-carit.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828Ab3LSJFB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Dec 2013 04:05:01 -0500
-In-Reply-To: <20131218212430.GD15863@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: valentina.giusti@bmw-carit.de
+Subject: [PATCH v2 2/2] libnetfilter_queue: add support for UID/GID socket info
+Date: Thu, 19 Dec 2013 12:03:27 +0100
+Message-ID: <1387451007-14363-3-git-send-email-valentina.giusti@bmw-carit.de>
+References: <1387451007-14363-1-git-send-email-valentina.giusti@bmw-carit.de>
+Cc: netdev@vger.kernel.org, fw@strlen.de, eric.dumazet@gmail.com,
+	tgraf@redhat.com, jpa@google.com, pablo@netfilter.org,
+	davem@davemloft.net, daniel.wagner@bmw-carit.de,
+	Valentina Giusti <Valentina.Giusti@bmw-carit.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1387451007-14363-1-git-send-email-valentina.giusti@bmw-carit.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Florian,
+From: Valentina Giusti <Valentina.Giusti@bmw-carit.de>
 
-thank you very much for your review.
+With this patch libnetfilter_queue is able to parse UID/GID
+socket information.
 
-On 12/18/2013 10:24 PM, Florian Westphal wrote:
-> valentina.giusti@bmw-carit.de <valentina.giusti@bmw-carit.de> wrote:
->> From: Valentina Giusti <valentina.giusti@bmw-carit.de>
->>
->> Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388 (udp:
->> ipv4: Add udp early demux) it is now possible to get UID and GID socket info
->> also for incoming TCP and UDP connections. Having this info available, it
->> is convenient to let NFQUEUE retrieve it in order to improve and refine the
->> traffic analysis in userspace.
-> No objections from me, except a few comments below.
->
->> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
->> index 21258cf..7257ddb 100644
->> --- a/net/netfilter/nfnetlink_queue_core.c
->> +++ b/net/netfilter/nfnetlink_queue_core.c
->> @@ -328,7 +328,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-> [..]
->>   	if (entskb->tstamp.tv64)
->>   		size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
->> @@ -484,6 +486,25 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->>   			goto nla_put_failure;
->>   	}
->>   
->> +	if (entskb->sk) {
->> +		struct sock *sk = entskb->sk;
->> +		if (sk && sk->sk_state != TCP_TIME_WAIT) {
->> +			read_lock_bh(&sk->sk_callback_lock);
-> nfqnl_build_packet_message is already a huge function, I think it
-> might be useful to add a small helper function for this,
-> e.g.  'nfqnl_skinfo_put(skb, entskb->sk)' or something like that.
->
-> Also, it might be a good idea to only dump the sk info
-> on userspace request (not sure how expensive the readlock is
-> compared to the nfqueue cost...), see NFQA_CFG_F_CONNTRACK flag for
-> instance.
+Signed-off-by: Valentina Giusti <Valentina.Giusti@bmw-carit.de>
+---
+ include/libnetfilter_queue/libnetfilter_queue.h    |  4 ++++
+ include/libnetfilter_queue/linux_nfnetlink_queue.h |  5 +++-
+ include/linux/netfilter/nfnetlink_queue.h          |  6 ++++-
+ src/libnetfilter_queue.c                           | 28 ++++++++++++++++++++++
+ src/nlmsg.c                                        |  2 ++
+ 5 files changed, 43 insertions(+), 2 deletions(-)
 
-I was actually wondering if there could be a better solution instead of 
-always sending UID/GID to userspace, thanks for your suggestion.
-
->> +			if (sk->sk_socket && sk->sk_socket->file) {
->> +				struct file *file = sk->sk_socket->file;
->> +				const struct cred *cred = file->f_cred;
->> +				if (nla_put_u32(skb, NFQA_UID,
-> nla_put_be32
->
->> +				    htonl(cred->fsuid)))
->> +					goto nla_put_failure;
-> careful - the sk_callback_lock was taken.
-
-Sorry, I totally overlooked this one.
-I will send soon a new patchset that addresses all your comments.
-
---
-BR,
-Val
-
->
-> Cheers,
-> Florian
-
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index b9f16e2..b4e2679 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -103,6 +103,8 @@ extern u_int32_t nfq_get_indev(struct nfq_data *nfad);
+ extern u_int32_t nfq_get_physindev(struct nfq_data *nfad);
+ extern u_int32_t nfq_get_outdev(struct nfq_data *nfad);
+ extern u_int32_t nfq_get_physoutdev(struct nfq_data *nfad);
++extern u_int32_t nfq_get_uid(struct nfq_data *nfad);
++extern u_int32_t nfq_get_gid(struct nfq_data *nfad);
+ 
+ extern int nfq_get_indev_name(struct nlif_handle *nlif_handle,
+ 			      struct nfq_data *nfad, char *name);
+@@ -125,6 +127,8 @@ enum {
+ 	NFQ_XML_PHYSDEV	= (1 << 3),
+ 	NFQ_XML_PAYLOAD	= (1 << 4),
+ 	NFQ_XML_TIME	= (1 << 5),
++	NFQ_XML_UID	= (1 << 6),
++	NFQ_XML_GID	= (1 << 7),
+ 	NFQ_XML_ALL	= ~0U,
+ };
+ 
+diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+index 81a485b..884ab0e 100644
+--- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
++++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+@@ -50,6 +50,8 @@ enum nfqnl_attr_type {
+ 	NFQA_CAP_LEN,                   /* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,                  /* __u32 skb meta information */
+ 
++	NFQA_UID,			/* __u32 sk uid */
++	NFQA_GID,			/* __u32 sk gid */
+ 	__NFQA_MAX
+ };
+ #define NFQA_MAX (__NFQA_MAX - 1)
+@@ -101,7 +103,8 @@ enum nfqnl_attr_config {
+ #define NFQA_CFG_F_FAIL_OPEN		(1 << 0)
+ #define NFQA_CFG_F_CONNTRACK		(1 << 1)
+ #define NFQA_CFG_F_GSO			(1 << 2)
+-#define NFQA_CFG_F_MAX			(1 << 3)
++#define NFQA_CFG_F_UID_GID		(1 << 3)
++#define NFQA_CFG_F_MAX			(1 << 4)
+ 
+ /* flags for NFQA_SKB_INFO */
+ /* packet appears to have wrong checksums, but they are ok */
+diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
+index a2308ae..22f5d45 100644
+--- a/include/linux/netfilter/nfnetlink_queue.h
++++ b/include/linux/netfilter/nfnetlink_queue.h
+@@ -46,6 +46,9 @@ enum nfqnl_attr_type {
+ 	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,			/* __u32 skb meta information */
++	NFQA_EXP,			/* nf_conntrack_netlink.h */
++	NFQA_UID,			/* __u32 sk uid */
++	NFQA_GID,			/* __u32 sk gid */
+ 
+ 	__NFQA_MAX
+ };
+@@ -98,7 +101,8 @@ enum nfqnl_attr_config {
+ #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
+ #define NFQA_CFG_F_CONNTRACK			(1 << 1)
+ #define NFQA_CFG_F_GSO				(1 << 2)
+-#define NFQA_CFG_F_MAX				(1 << 3)
++#define NFQA_CFG_F_UID_GID			(1 << 3)
++#define NFQA_CFG_F_MAX				(1 << 4)
+ 
+ /* flags for NFQA_SKB_INFO */
+ /* packet appears to have wrong checksums, but they are ok */
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index fa8efe7..bf1266b 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -668,6 +668,9 @@ EXPORT_SYMBOL(nfq_set_mode);
+  *  if this bit is set, the layer 3/4 checksums of the packet appear incorrect,
+  *  but are not (because they will be corrected later by the kernel).
+  *
++ *  - NFQA_CFG_F_UID_GID: the kernel will dump UID and GID of the socket to
++ *  which each packet belongs.
++ *
+  * Here's a little code snippet to show how to use this API:
+  * \verbatim
+ 	uint32_t flags = NFQA_CFG_F_FAIL_OPEN;
+@@ -1180,6 +1183,18 @@ struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
+ }
+ EXPORT_SYMBOL(nfq_get_packet_hw);
+ 
++uint32_t nfq_get_uid(struct nfq_data *nfad)
++{
++	return ntohl(nfnl_get_data(nfad->data, NFQA_UID, u_int32_t));
++}
++EXPORT_SYMBOL(nfq_get_uid);
++
++uint32_t nfq_get_gid(struct nfq_data *nfad)
++{
++	return ntohl(nfnl_get_data(nfad->data, NFQA_GID, u_int32_t));
++}
++EXPORT_SYMBOL(nfq_get_gid);
++
+ /**
+  * nfq_get_payload - get payload 
+  * \param nfad Netlink packet data handle passed to callback function
+@@ -1250,6 +1265,7 @@ int nfq_snprintf_xml(char *buf, size_t rem, struct nfq_data *tb, int flags)
+ 	struct nfqnl_msg_packet_hdr *ph;
+ 	struct nfqnl_msg_packet_hw *hwph;
+ 	u_int32_t mark, ifi;
++	u_int32_t uid, gid;
+ 	int size, offset = 0, len = 0, ret;
+ 	unsigned char *data;
+ 
+@@ -1365,6 +1381,18 @@ int nfq_snprintf_xml(char *buf, size_t rem, struct nfq_data *tb, int flags)
+ 		SNPRINTF_FAILURE(size, rem, offset, len);
+ 	}
+ 
++	uid = nfq_get_uid(tb);
++	if (uid && (flags & NFQ_XML_UID)) {
++		size = snprintf(buf + offset, rem, "<uid>%u</uid>", uid);
++		SNPRINTF_FAILURE(size, rem, offset, len);
++	}
++
++	gid = nfq_get_gid(tb);
++	if (gid && (flags & NFQ_XML_GID)) {
++		size = snprintf(buf + offset, rem, "<gid>%u</gid>", gid);
++		SNPRINTF_FAILURE(size, rem, offset, len);
++	}
++
+ 	ret = nfq_get_payload(tb, &data);
+ 	if (ret >= 0 && (flags & NFQ_XML_PAYLOAD)) {
+ 		int i;
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index e7a30e0..81e170e 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -134,6 +134,8 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	case NFQA_IFINDEX_PHYSOUTDEV:
+ 	case NFQA_CAP_LEN:
+ 	case NFQA_SKB_INFO:
++	case NFQA_UID:
++	case NFQA_GID:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			return MNL_CB_ERROR;
+ 		break;
+-- 
+1.8.5.1
