@@ -1,91 +1,134 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: netfilter: active obj WARN when cleaning up
-Date: Thu, 19 Dec 2013 15:20:55 +0100
-Message-ID: <52B300C7.7090808@acm.org>
-References: <20131127233415.GB19270@kroah.com> <00000142b4282aaf-913f5e4c-314c-4351-9d24-615e66928157-000000@email.amazonses.com> <20131202164039.GA19937@kroah.com> <00000142b4514eb5-2e8f675d-0ecc-423b-9906-58c5f383089b-000000@email.amazonses.com> <20131202172615.GA4722@kroah.com> <00000142b4aeca89-186fc179-92b8-492f-956c-38a7c196d187-000000@email.amazonses.com> <20131202190814.GA2267@kroah.com> <00000142b4d4360c-5755af87-b9b0-4847-b5fa-7a9dd13b49c5-000000@email.amazonses.com> <20131202212235.GA1297@kroah.com> <00000142b54f6694-c51e81b1-f1a2-483b-a1ce-a2d4cb6b155c-000000@email.amazonses.com> <20131202222208.GB13034@kroah.com> <00000142b90da700-19f6b465-ff15-4b2b-9bcd-b91d71958b7f-000000@email.amazonses.com> <52B0ABB6.8090205@oracle.com> <52B2E2B9.1040706@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Gleixner <tglx@linutronix.de>,
- Russell King - ARM Linux <linux@arm.linux.org.uk>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Patrick McHardy <kaber@trash.net>,
- kadlec@blackhole.kfki.hu, "David S. Miller" <davem@davemloft.net>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
- linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-To: Sasha Levin <sasha.levin@oracle.com>,
- Christoph Lameter <cl@linux.com>,
- Greg KH <greg@kroah.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <52B2E2B9.1040706@acm.org>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH next 1/2] net: netfilter: avoid get_random_bytes calls
+Date: Thu, 19 Dec 2013 18:25:14 +0100
+Message-ID: <1387473915-26753-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34810 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753700Ab3LSR2R (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Dec 2013 12:28:17 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/19/13 13:12, Bart Van Assche wrote:
-> On 12/17/13 20:53, Sasha Levin wrote:
->> I'm still seeing warnings with this patch applied:
->>
->> [   24.900482] WARNING: CPU: 12 PID: 3654 at lib/debugobjects.c:260
->> debug_print_object+0x8d/0xb0()
->> [   24.900482] ODEBUG: free active (active state 0) object type:
->> timer_list hint: delayed_work_timer_fn+0x0/0x20
->> [   24.900482] Modules linked in:
->> [   24.900482] CPU: 12 PID: 3654 Comm: kworker/12:1 Tainted: G       
->> W    3.13.0-rc4-n
->> ext-20131217-sasha-00013-ga878504-dirty #4149
->> [   24.900482] Workqueue: events kobject_delayed_cleanup
->> [   24.900482]  0000000000000104 ffff8804f429bae8 ffffffff8439501c
->> ffffffff8555a92c
->> [   24.900482]  ffff8804f429bb38 ffff8804f429bb28 ffffffff8112f8ac
->> ffff8804f429bb58
->> [   24.900482]  ffffffff856a9413 ffff880826333530 ffffffff85c68c40
->> ffffffff8801bb58
->> [   24.900482] Call Trace:
->> [   24.900482]  [<ffffffff8439501c>] dump_stack+0x52/0x7f
->> [   24.900482]  [<ffffffff8112f8ac>] warn_slowpath_common+0x8c/0xc0
->> [   24.900482]  [<ffffffff8112f996>] warn_slowpath_fmt+0x46/0x50
->> [   24.900482]  [<ffffffff81adb50d>] debug_print_object+0x8d/0xb0
->> [   24.900482]  [<ffffffff81153090>] ? __queue_work+0x3f0/0x3f0
->> [   24.900482]  [<ffffffff81adbd15>] __debug_check_no_obj_freed+0xa5/0x220
->> [   24.900482]  [<ffffffff832b1acb>] ? rtc_device_release+0x2b/0x40
->> [   24.900482]  [<ffffffff832b1acb>] ? rtc_device_release+0x2b/0x40
->> [   24.900482]  [<ffffffff81adbea5>] debug_check_no_obj_freed+0x15/0x20
->> [   24.900482]  [<ffffffff812ad54f>] kfree+0x21f/0x2e0
->> [   24.900482]  [<ffffffff832b1acb>] rtc_device_release+0x2b/0x40
->> [   24.900482]  [<ffffffff8207efd5>] device_release+0x65/0xc0
->> [   24.900482]  [<ffffffff81ab05e5>] kobject_cleanup+0x145/0x190
->> [   24.900482]  [<ffffffff81ab063d>] kobject_delayed_cleanup+0xd/0x10
->> [   24.900482]  [<ffffffff81153a60>] process_one_work+0x320/0x530
->> [   24.900482]  [<ffffffff81153940>] ? process_one_work+0x200/0x530
->> [   24.900482]  [<ffffffff81155fe5>] worker_thread+0x215/0x350
->> [   24.900482]  [<ffffffff81155dd0>] ? manage_workers+0x180/0x180
->> [   24.900482]  [<ffffffff8115c9c5>] kthread+0x105/0x110
->> [   24.900482]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
->> [   24.900482]  [<ffffffff843a5e7c>] ret_from_fork+0x7c/0xb0
->> [   24.900482]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
->> [   24.900482] ---[ end trace 45529ebf79b2573e ]---
-> 
-> Can anyone tell me whether the patch below makes sense ?
-> 
-> [ ... ]
+All these users need an initial seed value for jhash, prandom is
+perfectly fine.  This avoids draining the entropy pool where
+its not strictly required.
 
-(replying to my own e-mail)
+nfnetlink_log did not use the random value at all.
 
-Please ignore the patch in the previous e-mail - it did not make sense.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Did not convert NFQUEUE since Eric Leblond already sent patches for it.
 
-Regarding the warning above: the "delayed_work_timer_fn+0x0/0x20" hint
-probably indicates an attempt to free a delayed_work structure that is
-embedded in struct rtc_device and that is still scheduled. It's
-unfortunate that debug_check_no_obj_freed() does not print the address
-of the offending object and the argument passed to kfree(). That
-information would allow to compute the offset of the embedded
-delayed_work structure make it easier to figure out what's going on.
+ net/netfilter/nfnetlink_log.c | 8 --------
+ net/netfilter/nft_hash.c      | 2 +-
+ net/netfilter/xt_RATEEST.c    | 2 +-
+ net/netfilter/xt_connlimit.c  | 2 +-
+ net/netfilter/xt_hashlimit.c  | 2 +-
+ net/netfilter/xt_recent.c     | 2 +-
+ 6 files changed, 5 insertions(+), 13 deletions(-)
 
-Bart.
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 3c4b69e..7d4254b 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -28,8 +28,6 @@
+ #include <linux/proc_fs.h>
+ #include <linux/security.h>
+ #include <linux/list.h>
+-#include <linux/jhash.h>
+-#include <linux/random.h>
+ #include <linux/slab.h>
+ #include <net/sock.h>
+ #include <net/netfilter/nf_log.h>
+@@ -75,7 +73,6 @@ struct nfulnl_instance {
+ };
+ 
+ #define INSTANCE_BUCKETS	16
+-static unsigned int hash_init;
+ 
+ static int nfnl_log_net_id __read_mostly;
+ 
+@@ -1066,11 +1063,6 @@ static int __init nfnetlink_log_init(void)
+ {
+ 	int status = -ENOMEM;
+ 
+-	/* it's not really all that important to have a random value, so
+-	 * we can do this from the init function, even if there hasn't
+-	 * been that much entropy yet */
+-	get_random_bytes(&hash_init, sizeof(hash_init));
+-
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+ 	if (status < 0) {
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 3d3f8fc..6aae699 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -164,7 +164,7 @@ static int nft_hash_init(const struct nft_set *set,
+ 	unsigned int cnt, i;
+ 
+ 	if (unlikely(!nft_hash_rnd_initted)) {
+-		get_random_bytes(&nft_hash_rnd, 4);
++		nft_hash_rnd = prandom_u32();
+ 		nft_hash_rnd_initted = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 370adf6..190854b 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -100,7 +100,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 	int ret;
+ 
+ 	if (unlikely(!rnd_inited)) {
+-		get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
++		jhash_rnd = prandom_u32();
+ 		rnd_inited = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index c40b269..7671e82 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -229,7 +229,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		u_int32_t rand;
+ 
+ 		do {
+-			get_random_bytes(&rand, sizeof(rand));
++			rand = prandom_u32();
+ 		} while (!rand);
+ 		cmpxchg(&connlimit_rnd, 0, rand);
+ 	}
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 9ff035c..a83a35c 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -177,7 +177,7 @@ dsthash_alloc_init(struct xt_hashlimit_htable *ht,
+ 	/* initialize hash with random val at the time we allocate
+ 	 * the first hashtable entry */
+ 	if (unlikely(!ht->rnd_initialized)) {
+-		get_random_bytes(&ht->rnd, sizeof(ht->rnd));
++		ht->rnd = prandom_u32();
+ 		ht->rnd_initialized = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 1e657cf..bfdc29f 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -334,7 +334,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+ 	size_t sz;
+ 
+ 	if (unlikely(!hash_rnd_inited)) {
+-		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
++		hash_rnd = prandom_u32();
+ 		hash_rnd_inited = true;
+ 	}
+ 	if (info->check_set & ~XT_RECENT_VALID_FLAGS) {
+-- 
+1.8.1.5
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
