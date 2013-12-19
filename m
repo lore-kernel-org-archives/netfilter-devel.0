@@ -1,91 +1,131 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: netfilter: active obj WARN when cleaning up
-Date: Thu, 19 Dec 2013 13:12:41 +0100
-Message-ID: <52B2E2B9.1040706@acm.org>
-References: <20131127233415.GB19270@kroah.com> <00000142b4282aaf-913f5e4c-314c-4351-9d24-615e66928157-000000@email.amazonses.com> <20131202164039.GA19937@kroah.com> <00000142b4514eb5-2e8f675d-0ecc-423b-9906-58c5f383089b-000000@email.amazonses.com> <20131202172615.GA4722@kroah.com> <00000142b4aeca89-186fc179-92b8-492f-956c-38a7c196d187-000000@email.amazonses.com> <20131202190814.GA2267@kroah.com> <00000142b4d4360c-5755af87-b9b0-4847-b5fa-7a9dd13b49c5-000000@email.amazonses.com> <20131202212235.GA1297@kroah.com> <00000142b54f6694-c51e81b1-f1a2-483b-a1ce-a2d4cb6b155c-000000@email.amazonses.com> <20131202222208.GB13034@kroah.com> <00000142b90da700-19f6b465-ff15-4b2b-9bcd-b91d71958b7f-000000@email.amazonses.com> <52B0ABB6.8090205@oracle.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: [PATCH] nf-nat: don't use per destination incrementing ports in nat random mode
+Date: Thu, 19 Dec 2013 14:40:07 +0100
+Message-ID: <20131219134007.GA24118@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Gleixner <tglx@linutronix.de>,
- Russell King - ARM Linux <linux@arm.linux.org.uk>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Patrick McHardy <kaber@trash.net>,
- kadlec@blackhole.kfki.hu, "David S. Miller" <davem@davemloft.net>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
- linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-To: Sasha Levin <sasha.levin@oracle.com>,
- Christoph Lameter <cl@linux.com>,
- Greg KH <greg@kroah.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <52B0ABB6.8090205@oracle.com>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Cc: netdev@vger.kernel.org, dborkman@redhat.com, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from order.stressinduktion.org ([87.106.68.36]:39585 "EHLO
+	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753369Ab3LSNkI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Dec 2013 08:40:08 -0500
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/17/13 20:53, Sasha Levin wrote:
-> I'm still seeing warnings with this patch applied:
-> 
-> [   24.900482] WARNING: CPU: 12 PID: 3654 at lib/debugobjects.c:260
-> debug_print_object+
-> 0x8d/0xb0()
-> [   24.900482] ODEBUG: free active (active state 0) object type:
-> timer_list hint: delay
-> ed_work_timer_fn+0x0/0x20
-> [   24.900482] Modules linked in:
-> [   24.900482] CPU: 12 PID: 3654 Comm: kworker/12:1 Tainted: G       
-> W    3.13.0-rc4-n
-> ext-20131217-sasha-00013-ga878504-dirty #4149
-> [   24.900482] Workqueue: events kobject_delayed_cleanup
-> [   24.900482]  0000000000000104 ffff8804f429bae8 ffffffff8439501c
-> ffffffff8555a92c
-> [   24.900482]  ffff8804f429bb38 ffff8804f429bb28 ffffffff8112f8ac
-> ffff8804f429bb58
-> [   24.900482]  ffffffff856a9413 ffff880826333530 ffffffff85c68c40
-> ffffffff8801bb58
-> [   24.900482] Call Trace:
-> [   24.900482]  [<ffffffff8439501c>] dump_stack+0x52/0x7f
-> [   24.900482]  [<ffffffff8112f8ac>] warn_slowpath_common+0x8c/0xc0
-> [   24.900482]  [<ffffffff8112f996>] warn_slowpath_fmt+0x46/0x50
-> [   24.900482]  [<ffffffff81adb50d>] debug_print_object+0x8d/0xb0
-> [   24.900482]  [<ffffffff81153090>] ? __queue_work+0x3f0/0x3f0
-> [   24.900482]  [<ffffffff81adbd15>] __debug_check_no_obj_freed+0xa5/0x220
-> [   24.900482]  [<ffffffff832b1acb>] ? rtc_device_release+0x2b/0x40
-> [   24.900482]  [<ffffffff832b1acb>] ? rtc_device_release+0x2b/0x40
-> [   24.900482]  [<ffffffff81adbea5>] debug_check_no_obj_freed+0x15/0x20
-> [   24.900482]  [<ffffffff812ad54f>] kfree+0x21f/0x2e0
-> [   24.900482]  [<ffffffff832b1acb>] rtc_device_release+0x2b/0x40
-> [   24.900482]  [<ffffffff8207efd5>] device_release+0x65/0xc0
-> [   24.900482]  [<ffffffff81ab05e5>] kobject_cleanup+0x145/0x190
-> [   24.900482]  [<ffffffff81ab063d>] kobject_delayed_cleanup+0xd/0x10
-> [   24.900482]  [<ffffffff81153a60>] process_one_work+0x320/0x530
-> [   24.900482]  [<ffffffff81153940>] ? process_one_work+0x200/0x530
-> [   24.900482]  [<ffffffff81155fe5>] worker_thread+0x215/0x350
-> [   24.900482]  [<ffffffff81155dd0>] ? manage_workers+0x180/0x180
-> [   24.900482]  [<ffffffff8115c9c5>] kthread+0x105/0x110
-> [   24.900482]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
-> [   24.900482]  [<ffffffff843a5e7c>] ret_from_fork+0x7c/0xb0
-> [   24.900482]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
-> [   24.900482] ---[ end trace 45529ebf79b2573e ]---
+Don't use per destination incrementing port allocation
+in NF_NAT_RANGE_PROTO_RANDOM mode as advised in
+<https://sites.google.com/site/hayashulman/files/NIC-derandomisation.pdf>.
 
-Can anyone tell me whether the patch below makes sense ? Please note
-that I'm not familiar with the timer subsystem.
+This is especially important for UDP/DNS.
 
-diff --git a/kernel/timer.c b/kernel/timer.c
-index accfd24..828b666 100644
---- a/kernel/timer.c
-+++ b/kernel/timer.c
-@@ -969,6 +969,8 @@ int del_timer(struct timer_list *timer)
-                base = lock_timer_base(timer, &flags);
-                ret = detach_if_pending(timer, base, true);
-                spin_unlock_irqrestore(&base->lock, flags);
-+       } else {
-+               debug_deactivate(timer);
-        }
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Daniel Borkmann <dborkman@redhat.com>
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+---
+ include/net/netfilter/nf_nat_l3proto.h   | 2 --
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 8 --------
+ net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 8 --------
+ net/netfilter/nf_nat_proto_common.c      | 4 +---
+ 4 files changed, 1 insertion(+), 21 deletions(-)
 
-        return ret;
+diff --git a/include/net/netfilter/nf_nat_l3proto.h b/include/net/netfilter/nf_nat_l3proto.h
+index 5a2919b..e4ed045 100644
+--- a/include/net/netfilter/nf_nat_l3proto.h
++++ b/include/net/netfilter/nf_nat_l3proto.h
+@@ -8,8 +8,6 @@ struct nf_nat_l3proto {
+ 	bool	(*in_range)(const struct nf_conntrack_tuple *t,
+ 			    const struct nf_nat_range *range);
+ 
+-	u32 	(*secure_port)(const struct nf_conntrack_tuple *t, __be16);
+-
+ 	bool	(*manip_pkt)(struct sk_buff *skb,
+ 			     unsigned int iphdroff,
+ 			     const struct nf_nat_l4proto *l4proto,
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index d8b2e14..f50d820 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -15,7 +15,6 @@
+ #include <linux/icmp.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+-#include <net/secure_seq.h>
+ #include <net/checksum.h>
+ #include <net/route.h>
+ #include <net/ip.h>
+@@ -69,12 +68,6 @@ static bool nf_nat_ipv4_in_range(const struct nf_conntrack_tuple *t,
+ 	       ntohl(t->src.u3.ip) <= ntohl(range->max_addr.ip);
+ }
+ 
+-static u32 nf_nat_ipv4_secure_port(const struct nf_conntrack_tuple *t,
+-				   __be16 dport)
+-{
+-	return secure_ipv4_port_ephemeral(t->src.u3.ip, t->dst.u3.ip, dport);
+-}
+-
+ static bool nf_nat_ipv4_manip_pkt(struct sk_buff *skb,
+ 				  unsigned int iphdroff,
+ 				  const struct nf_nat_l4proto *l4proto,
+@@ -173,7 +166,6 @@ static int nf_nat_ipv4_nlattr_to_range(struct nlattr *tb[],
+ static const struct nf_nat_l3proto nf_nat_l3proto_ipv4 = {
+ 	.l3proto		= NFPROTO_IPV4,
+ 	.in_range		= nf_nat_ipv4_in_range,
+-	.secure_port		= nf_nat_ipv4_secure_port,
+ 	.manip_pkt		= nf_nat_ipv4_manip_pkt,
+ 	.csum_update		= nf_nat_ipv4_csum_update,
+ 	.csum_recalc		= nf_nat_ipv4_csum_recalc,
+diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+index abfe75a..9e5b3a0 100644
+--- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+@@ -13,7 +13,6 @@
+ #include <linux/ipv6.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv6.h>
+-#include <net/secure_seq.h>
+ #include <net/checksum.h>
+ #include <net/ip6_checksum.h>
+ #include <net/ip6_route.h>
+@@ -68,12 +67,6 @@ static bool nf_nat_ipv6_in_range(const struct nf_conntrack_tuple *t,
+ 	       ipv6_addr_cmp(&t->src.u3.in6, &range->max_addr.in6) <= 0;
+ }
+ 
+-static u32 nf_nat_ipv6_secure_port(const struct nf_conntrack_tuple *t,
+-				   __be16 dport)
+-{
+-	return secure_ipv6_port_ephemeral(t->src.u3.ip6, t->dst.u3.ip6, dport);
+-}
+-
+ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
+ 				  unsigned int iphdroff,
+ 				  const struct nf_nat_l4proto *l4proto,
+@@ -178,7 +171,6 @@ static int nf_nat_ipv6_nlattr_to_range(struct nlattr *tb[],
+ 
+ static const struct nf_nat_l3proto nf_nat_l3proto_ipv6 = {
+ 	.l3proto		= NFPROTO_IPV6,
+-	.secure_port		= nf_nat_ipv6_secure_port,
+ 	.in_range		= nf_nat_ipv6_in_range,
+ 	.manip_pkt		= nf_nat_ipv6_manip_pkt,
+ 	.csum_update		= nf_nat_ipv6_csum_update,
+diff --git a/net/netfilter/nf_nat_proto_common.c b/net/netfilter/nf_nat_proto_common.c
+index 9baaf73..1d13101 100644
+--- a/net/netfilter/nf_nat_proto_common.c
++++ b/net/netfilter/nf_nat_proto_common.c
+@@ -75,9 +75,7 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 	}
+ 
+ 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
+-		off = l3proto->secure_port(tuple, maniptype == NF_NAT_MANIP_SRC
+-						  ? tuple->dst.u.all
+-						  : tuple->src.u.all);
++		off = prandom_u32();
+ 	else
+ 		off = *rover;
+ 
+-- 
+1.8.3.1
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
