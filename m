@@ -1,67 +1,42 @@
-From: Fan Du <fan.du@windriver.com>
-Subject: Re: [PATCH net-next 0/2] netfilter: IPv4/v6 IPcomp match support
-Date: Thu, 19 Dec 2013 11:30:09 +0800
-Message-ID: <52B26841.40800@windriver.com>
-References: <1386937082-30412-1-git-send-email-fan.du@windriver.com> <20131217130555.GA8874@localhost>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: Kill unreplied conntracks by ICMP errors
+Date: Thu, 19 Dec 2013 12:29:02 +0800
+Message-ID: <CABa6K_HEpVyE5uppsUKWGowJ_aiqSggZwgc5A0eVD7P-yjcbgg@mail.gmail.com>
+References: <1386861575-121885-1-git-send-email-xiaosuo@gmail.com>
+ <2247276.HWz9edslhi@gentoovm> <20131217130117.GA8852@localhost>
+ <CABa6K_EoH23P8OYEDRhA4ihgKeZ-0OtW4gU0CcRLh2jDk3=8OA@mail.gmail.com> <20131217165821.GA13951@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <davem@davemloft.net>, <steffen.klassert@secunet.com>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Oliver <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
+	xiaosuo@gmail.xom,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.windriver.com ([147.11.146.13]:48832 "EHLO
-	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab3LSDaW (ORCPT
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:49319 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866Ab3LSEgv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Dec 2013 22:30:22 -0500
-In-Reply-To: <20131217130555.GA8874@localhost>
+	Wed, 18 Dec 2013 23:36:51 -0500
+Received: by mail-ig0-f182.google.com with SMTP id c10so3012449igq.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Dec 2013 20:36:50 -0800 (PST)
+In-Reply-To: <20131217165821.GA13951@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-On 2013=E5=B9=B412=E6=9C=8817=E6=97=A5 21:05, Pablo Neira Ayuso wrote:
-> On Fri, Dec 13, 2013 at 08:18:00PM +0800, Fan Du wrote:
->> Hi,
->>
->> This patchset adds IPv4/v6 IPComp 'match' plugin to enables user set=
-ting
->> ACTONs for IPcomp flows sepecified with SPI value.
->>
->> Corresponding iptables patchset will be sent here after soon.
->>
->> Fan Du (2):
->>    netfilter: add IPv4 IPComp extension match support
->>    netfilter: add IPv6 IPComp extension match support
+On Wed, Dec 18, 2013 at 12:58 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
-> This looks good, but I have to ask you to merge those two modules int=
-o
-> one single xt_ipcomp, they are fairly small and we can save the
-> overhead of having two different modules. Moreover, at quick glance I
-> don't see any dependency with IPv4/IPv6 exported symbols that may
-> cause ifdef pollution.
->
-> Please, see net/netfilter/xt_tcpudp.c as reference to rework this.
-> Thanks.
->
+> With this patch, an ICMP destination unreachable - fragmentation
+> needed coming after a big UDP packet will trigger the removal of the
+> UDP conntrack entry, that should not happen.
 
-I noticed netfilter ipv4/v6 AH support also has split implementation,
-so far, by my understanding, it's fairly enough to consolidate those
-two implementations into one as well, as IPv4/6 AH head format are
-identical.
+I don't think this is a problem, as the conntrack is unreplied and the
+original packet is dropped. That means the no virtual circuit is setup
+along the path, so why do we keep the partial circuit? And the later
+restranmitted packet will set up a new conntrack in anyway.
 
-If you don't mind or it won't break anything internal for netfilter,
-I plan to combine them into one piece.
+Thanks.
 
---=20
-=E6=B5=AE=E6=B2=89=E9=9A=8F=E6=B5=AA=E5=8F=AA=E8=AE=B0=E4=BB=8A=E6=9C=9D=
-=E7=AC=91
-
---fan
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
