@@ -1,47 +1,111 @@
-From: Valentina Giusti <valentina.giusti@bmw-carit.de>
-Subject: Re: [PATCH v3 1/2] netfilter_queue: enable UID/GID socket info retrieval
-Date: Fri, 20 Dec 2013 16:10:18 +0100
-Message-ID: <52B45DDA.5050504@bmw-carit.de>
-References: <1387542820-16319-1-git-send-email-valentina.giusti@bmw-carit.de> <1387542820-16319-2-git-send-email-valentina.giusti@bmw-carit.de> <20131220140959.GA29632@breakpoint.cc> <52B45504.20608@bmw-carit.de> <20131220150324.GB29632@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<jpa@google.com>, <pablo@netfilter.org>,
-	<daniel.wagner@bmw-carit.de>
-To: Florian Westphal <fw@strlen.de>
+From: valentina.giusti@bmw-carit.de
+Subject: [PATCH v4 1/2] netfilter_queue: enable UID/GID socket info retrieval
+Date: Fri, 20 Dec 2013 17:28:53 +0100
+Message-ID: <1387556934-7372-2-git-send-email-valentina.giusti@bmw-carit.de>
+References: <1387556934-7372-1-git-send-email-valentina.giusti@bmw-carit.de>
+Cc: netdev@vger.kernel.org, jpa@google.com, pablo@netfilter.org,
+	fw@strnel.de, daniel.wagner@bmw-carit.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20131220150324.GB29632@breakpoint.cc>
+In-Reply-To: <1387556934-7372-1-git-send-email-valentina.giusti@bmw-carit.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 12/20/2013 04:03 PM, Florian Westphal wrote:
-> Valentina Giusti <valentina.giusti@bmw-carit.de> wrote:
->>> I think this should be 'return 0'?
->> I put return -1 because I think that if userspace has requested to
->> receive UID and GID, then it should be dumped only packets that have
->> that information available.
->> Are you suggesting that it should be otherwise?
->
-> Yes, doing that doesn't make sense to me.
-> And it is inconsitent:
-> Packets without socket information are queued normally
-> in your patch, but suddently if its a timewait socket
-> its an error?
->
-> Why would we want timewait packets to NOT be queued?
-> vs. for example forwarded packets?
->
-> Userspace can test for presence of the attributes, i.e.
-> no NFQA_UID attribute -> no socket present, or lack of uid
-> information.
->
-> If you have a counter-example?
->
+From: Valentina Giusti <valentina.giusti@bmw-carit.de>
 
-Sorry no, I think you are right, thanks for the explanation. Should I 
-resend the patch or is it a change small enough that can be done when 
-applied? Unless there are still other comments, ofc.
+Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388 (udp: ipv4:
+Add udp early demux) it is now possible to parse UID and GID socket info
+also for incoming TCP and UDP connections. Having this info available, it
+is convenient to let NFQUEUE parse it in order to improve and refine the
+traffic analysis in userspace.
 
-Thanks,
-- Val
+Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
+---
+ include/uapi/linux/netfilter/nfnetlink_queue.h |  5 +++-
+ net/netfilter/nfnetlink_queue_core.c           | 34 ++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index 0132bad..8dd819e 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -47,6 +47,8 @@ enum nfqnl_attr_type {
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,			/* __u32 skb meta information */
+ 	NFQA_EXP,			/* nf_conntrack_netlink.h */
++	NFQA_UID,			/* __u32 sk uid */
++	NFQA_GID,			/* __u32 sk gid */
+ 
+ 	__NFQA_MAX
+ };
+@@ -99,7 +101,8 @@ enum nfqnl_attr_config {
+ #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
+ #define NFQA_CFG_F_CONNTRACK			(1 << 1)
+ #define NFQA_CFG_F_GSO				(1 << 2)
+-#define NFQA_CFG_F_MAX				(1 << 3)
++#define NFQA_CFG_F_UID_GID			(1 << 3)
++#define NFQA_CFG_F_MAX				(1 << 4)
+ 
+ /* flags for NFQA_SKB_INFO */
+ /* packet appears to have wrong checksums, but they are ok */
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 21258cf..267ac36 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -297,6 +297,32 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
+ 	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) : 0;
+ }
+ 
++static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
++{
++	const struct cred *cred;
++
++	if (sk->sk_state == TCP_TIME_WAIT)
++		return 0;
++
++	read_lock_bh(&sk->sk_callback_lock);
++	if (sk->sk_socket && sk->sk_socket->file) {
++		cred = sk->sk_socket->file->f_cred;
++		if (nla_put_be32(skb, NFQA_UID,
++		    htonl(from_kuid_munged(&init_user_ns, cred->fsuid))))
++			goto nla_put_failure;
++		if (nla_put_be32(skb, NFQA_GID,
++		    htonl(from_kgid_munged(&init_user_ns, cred->fsgid))))
++			goto nla_put_failure;
++	}
++	read_unlock_bh(&sk->sk_callback_lock);
++
++	return 0;
++
++nla_put_failure:
++	read_unlock_bh(&sk->sk_callback_lock);
++	return -1;
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -372,6 +398,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	if (queue->flags & NFQA_CFG_F_CONNTRACK)
+ 		ct = nfqnl_ct_get(entskb, &size, &ctinfo);
+ 
++	if (queue->flags & NFQA_CFG_F_UID_GID)
++		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
++			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
++
+ 	skb = nfnetlink_alloc_skb(net, size, queue->peer_portid,
+ 				  GFP_ATOMIC);
+ 	if (!skb)
+@@ -484,6 +514,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			goto nla_put_failure;
+ 	}
+ 
++	if ((queue->flags & NFQA_CFG_F_UID_GID) && entskb->sk)
++		if (nfqnl_put_sk_uidgid(skb, entskb->sk))
++			goto nla_put_failure;
++
+ 	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
+ 		goto nla_put_failure;
+ 
+-- 
+1.8.5.1
