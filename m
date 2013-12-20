@@ -1,32 +1,26 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 1/2] netfilter_queue: enable UID/GID socket info
- retrieval
-Date: Fri, 20 Dec 2013 13:06:38 +0100
-Message-ID: <20131220120638.GA5229@breakpoint.cc>
-References: <1387451007-14363-1-git-send-email-valentina.giusti@bmw-carit.de>
- <1387451007-14363-2-git-send-email-valentina.giusti@bmw-carit.de>
- <20131220092638.GA9122@localhost>
- <20131220092926.GA9275@localhost>
- <52B4277E.3030607@bmw-carit.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	daniel.wagner@bmw-carit.de
-To: Valentina Giusti <valentina.giusti@bmw-carit.de>
+From: valentina.giusti@bmw-carit.de
+Subject: [PATCH v3 0/2] Add UID/GID info to NFQUEUE
+Date: Fri, 20 Dec 2013 13:33:38 +0100
+Message-ID: <1387542820-16319-1-git-send-email-valentina.giusti@bmw-carit.de>
+Cc: netdev@vger.kernel.org, fw@strlen.de, jpa@google.com,
+	pablo@netfilter.org, daniel.wagner@bmw-carit.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38586 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755547Ab3LTMGk (ORCPT
+Received: from mail.bmw-carit.de ([62.245.222.98]:51309 "EHLO
+	linuxmail.bmw-carit.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756064Ab3LTMdm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Dec 2013 07:06:40 -0500
-Content-Disposition: inline
-In-Reply-To: <52B4277E.3030607@bmw-carit.de>
+	Fri, 20 Dec 2013 07:33:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Valentina Giusti <valentina.giusti@bmw-carit.de> wrote:
-> Just to be on the safe side, I am testing my patches against the
-> nf-next tree, branch master. Is that correct?
+From: Valentina Giusti <valentina.giusti@bmw-carit.de>
 
-Yes, thats correct.
+Hi,
+I have tested this patchset against the nf-next tree and run make C=2 to
+make sure it doesn't add sparse errors or warnings.
+Hopefully I did it right this time ;)
+
+--
+BR,
+Val
