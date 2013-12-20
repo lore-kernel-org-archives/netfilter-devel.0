@@ -1,51 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next v2] nf-nat: don't use per destination incrementing
- ports in nat random mode
-Date: Fri, 20 Dec 2013 09:01:18 +0100
-Message-ID: <20131220080118.GA4234@localhost>
-References: <20131219134007.GA24118@order.stressinduktion.org>
- <52B37F6B.9010105@redhat.com>
- <20131220004822.GC32129@order.stressinduktion.org>
+Subject: Re: [PATCH net-next 0/2] netfilter: IPv4/v6 IPcomp match support
+Date: Fri, 20 Dec 2013 10:04:19 +0100
+Message-ID: <20131220090419.GA5661@localhost>
+References: <1386937082-30412-1-git-send-email-fan.du@windriver.com>
+ <20131217130555.GA8874@localhost>
+ <52B26841.40800@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Daniel Borkmann <dborkman@redhat.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, steffen.klassert@secunet.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Fan Du <fan.du@windriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51058 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39222 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753874Ab3LTIBX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Dec 2013 03:01:23 -0500
+	id S1754754Ab3LTJE2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Dec 2013 04:04:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20131220004822.GC32129@order.stressinduktion.org>
+In-Reply-To: <52B26841.40800@windriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 20, 2013 at 01:48:22AM +0100, Hannes Frederic Sowa wrote:
-> We currently use prandom_u32 for allocation of ports in tcp bind(0)
-> and udp code. In case of plain SNAT we try to keep the ports as is or
-> increment on collision.
-> 
-> SNAT --random mode does use per-destination incrementing port
-> allocation. As a recent paper pointed out that this mode of port
-> allocation makes it possible an attacker to find the randomly
-> allocated ports. So NF_NAT_RANGE_PROTO_RANDOM actually weakens the port
-> randomization in regard to the attack in this paper.
-> 
-> You can find details in this paper:
-> <https://sites.google.com/site/hayashulman/files/NIC-derandomisation.pdf>.
-> 
-> The idea is to send burts of packets to a socket to overflow its receive
-> queue and measure the latency to detect a possible retransmit when the
-> port is found. Because of increasing ports to given destination and port
-> further allocations can be predicted.
-> 
-> So switch NF_NAT_RANGE_PROTO_RANDOM to prandom_u32, too.
+On Thu, Dec 19, 2013 at 11:30:09AM +0800, Fan Du wrote:
+>=20
+>=20
+> On 2013=E5=B9=B412=E6=9C=8817=E6=97=A5 21:05, Pablo Neira Ayuso wrote=
+:
+> >On Fri, Dec 13, 2013 at 08:18:00PM +0800, Fan Du wrote:
+> >>Hi,
+> >>
+> >>This patchset adds IPv4/v6 IPComp 'match' plugin to enables user se=
+tting
+> >>ACTONs for IPcomp flows sepecified with SPI value.
+> >>
+> >>Corresponding iptables patchset will be sent here after soon.
+> >>
+> >>Fan Du (2):
+> >>   netfilter: add IPv4 IPComp extension match support
+> >>   netfilter: add IPv6 IPComp extension match support
+> >
+> >This looks good, but I have to ask you to merge those two modules in=
+to
+> >one single xt_ipcomp, they are fairly small and we can save the
+> >overhead of having two different modules. Moreover, at quick glance =
+I
+> >don't see any dependency with IPv4/IPv6 exported symbols that may
+> >cause ifdef pollution.
+> >
+> >Please, see net/netfilter/xt_tcpudp.c as reference to rework this.
+> >Thanks.
+> >
+>=20
+> I noticed netfilter ipv4/v6 AH support also has split implementation,
+> so far, by my understanding, it's fairly enough to consolidate those
+> two implementations into one as well, as IPv4/6 AH head format are
+> identical.
+>
+> If you don't mind or it won't break anything internal for netfilter,
+> I plan to combine them into one piece.
 
-I think that we should be a bit more conservative and add a new option
-for this and document this new behaviour, so the user can select what
-approach is better according to their needs.
+We can merge those two, but you'll have to handle dependencies with
+IPv6 core via ifdefs and Kconfig to avoid problems.
 
-There are protocols that rely on consecutive port allocation to work,
-eg. RTP/RCTP, I'm afraid that this full randomization approach will
-break them.
+AH is not the last header, so we still have to use ipv6_find_hdr() to
+find the good header instead of par->thoff. Note that the ip6_tables
+sets par->thoff to the last IPv6 extension header.
+
+This rises some concerns regarding your ipcomp, I think that if you
+use this with ah and esp, the ordering of the headers is
+ah+ipcomp+esp, right? In that case, you need to use ipv6_find_hdr()
+since par->thoff would point to the esp header.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
