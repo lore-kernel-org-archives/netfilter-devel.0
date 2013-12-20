@@ -1,111 +1,159 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
-Date: Fri, 20 Dec 2013 13:34:00 -0700
-Message-ID: <CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
-References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
-	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
-	<20131218095322.GA4740@localhost>
-	<CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
-	<20131219194339.GA4561@localhost>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: [PATCH v2 -next] netfilter: don't use per-destination incrementing ports in nat random mode
+Date: Fri, 20 Dec 2013 22:40:29 +0100
+Message-ID: <20131220214029.GB14073@order.stressinduktion.org>
+References: <20131219134007.GA24118@order.stressinduktion.org> <52B37F6B.9010105@redhat.com> <20131220004822.GC32129@order.stressinduktion.org> <20131220080118.GA4234@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	John Stultz <john.stultz@linaro.org>,
-	JP Abgrall <jpa@google.com>
+Content-Type: text/plain; charset=utf-8
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	kaber@trash.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ve0-f172.google.com ([209.85.128.172]:38544 "EHLO
-	mail-ve0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296Ab3LTUeB (ORCPT
+Received: from order.stressinduktion.org ([87.106.68.36]:43508 "EHLO
+	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757Ab3LTVkb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Dec 2013 15:34:01 -0500
-Received: by mail-ve0-f172.google.com with SMTP id jw12so1802410veb.31
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Dec 2013 12:34:01 -0800 (PST)
-In-Reply-To: <20131219194339.GA4561@localhost>
+	Fri, 20 Dec 2013 16:40:31 -0500
+Content-Disposition: inline
+In-Reply-To: <20131220080118.GA4234@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19 December 2013 12:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Dec 19, 2013 at 10:20:56AM -0700, Mathieu Poirier wrote:
->>      >       NFNLGRP_CONNTRACK_EXP_DESTROY,
->>      >  #define NFNLGRP_CONNTRACK_EXP_DESTROY
->>      NFNLGRP_CONNTRACK_EXP_DESTROY
->>      > +     NFNLGRP_CONNTRACK_QUOTA,
->>      > +#define NFNLGRP_CONNTRACK_QUOTA
->>      NFNLGRP_CONNTRACK_QUOTA
->>      Use NFNLGRP_ACCT_QUOTA, this has nothing to do with conntrack.
->>
->>    Please confirm that you suggest to create a
->>    "enum nfnl_acct_groups{}"
->>    in include/uapi/linux/netfilter/nfnetlink_acct.h, the same way as
->>    above?
->
-> No. I just mean that you rename that since it this has nothing to do
-> with conntrack.
->
->>      >       __NFNLGRP_MAX,
->>      >  };
->>      >  #define NFNLGRP_MAX  (__NFNLGRP_MAX - 1)
->>      > diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h
->>      b/include/uapi/linux/netfilter/nfnetlink_acct.h
->>      > index c7b6269..ae8ea0a 100644
->>      > --- a/include/uapi/linux/netfilter/nfnetlink_acct.h
->>      > +++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
->>      > @@ -19,6 +19,7 @@ enum nfnl_acct_type {
->>      >       NFACCT_PKTS,
->>      >       NFACCT_BYTES,
->>      >       NFACCT_USE,
->>      > +     NFACCT_QUOTA,
->>      >       __NFACCT_MAX
->>      >  };
->>      >  #define NFACCT_MAX (__NFACCT_MAX - 1)
->>      > diff --git a/include/uapi/linux/netfilter/xt_nfacct.h
->>      b/include/uapi/linux/netfilter/xt_nfacct.h
->>      > index 3e19c8a..c2e49a6 100644
->>      > --- a/include/uapi/linux/netfilter/xt_nfacct.h
->>      > +++ b/include/uapi/linux/netfilter/xt_nfacct.h
->>      > @@ -3,11 +3,22 @@
->>      >
->>      >  #include <linux/netfilter/nfnetlink_acct.h>
->>      >
->>      > +enum xt_quota_flags {
->>      > +     XT_QUOTA_INVERT    = 1 << 0,
->>      I don't understand the interaction of invert and the event delivery.
->>
->>    It was added for flexibility [...]
->
-> I mean: This is currently broken in your patch, it is always
-> delivering an event when the quota is reached, no matter if invert is
-> set or not.
->
->>      > +     XT_QUOTA_PACKET    = 1 << 1,
->>      > +     XT_QUOTA_QUOTA     = 1 << 2,
->>      XT_QUOTA_QUOTA ? :-)
->>
->>    Yes - quotas are not mandatory [...]
->
-> I'm just proposing a plain rename:
->
-> s/XT_QUOTA_PACKET/XT_NFACCT_QUOTA_PKTS
-> s/XT_QUOTA_QUOTA/XT_NFACCT_QUOTA_BYTES
->
-> XT_QUOTA refers to the xt_quota match, which is a different iptables
-> match extensions.
->
-> Thinking again on the event delivery, I think it's better if the
-> nfacct match using the new --quota does not deliver the event itself.
-> You can use libnetfilter_queue instead, eg.
->
->         iptables -I INPUT -p icmp \
->                  -m nfacct icmp --quota 12345 --mode bytes --match-once \
->                  -j NFLOG --nflog-prefix "icmp: " --nflog-group 34
->
-> The --once parameter tells to match only if you just crossed the quota
-> limit (so the event is sent once). The idea is to use nflog to deliver
-> the event, which is way more flexible as it includes useful
-> information.
+From: Daniel Borkmann <dborkman@redhat.com>
 
-I'm not against the idea as it is less code for me to write.  Is this
-"--match-one" thing already available?  If not I'll come up with it.
-Just to be clear, if "--match-one" isn't specified a message is sent
-each time we try to send a packets and the quota has been reached.
+We currently use prandom_u32() for allocation of ports in tcp bind(0)
+and udp code. In case of plain SNAT we try to keep the ports as is
+or increment on collision.
+
+SNAT --random mode does use per-destination incrementing port
+allocation. As a recent paper pointed out in [1] that this mode of
+port allocation makes it possible to an attacker to find the randomly
+allocated ports through a timing side-channel in a socket overloading
+attack conducted through an off-path attacker.
+
+So, NF_NAT_RANGE_PROTO_RANDOM actually weakens the port randomization
+in regard to the attack described in this paper. As we need to keep
+compatibility, add another flag called NF_NAT_RANGE_PROTO_RANDOM_FULLY
+that would replace the NF_NAT_RANGE_PROTO_RANDOM hash-based port
+selection algorithm with a simple prandom_u32() in order to mitigate
+this attack vector. Note that the lfsr113's internal state is
+periodically reseeded by the kernel through a local secure entropy
+source.
+
+More details can be found in [1], the basic idea is to send bursts
+of packets to a socket to overflow its receive queue and measure
+the latency to detect a possible retransmit when the port is found.
+Because of increasing ports to given destination and port, further
+allocations can be predicted. This information could then be used by
+an attacker for e.g. for cache-poisoning, NS pinning, and degradation
+of service attacks against DNS servers [1]:
+
+  The best defense against the poisoning attacks is to properly
+  deploy and validate DNSSEC; DNSSEC provides security not only
+  against off-path attacker but even against MitM attacker. We hope
+  that our results will help motivate administrators to adopt DNSSEC.
+  However, full DNSSEC deployment make take significant time, and
+  until that happens, we recommend short-term, non-cryptographic
+  defenses. We recommend to support full port randomisation,
+  according to practices recommended in [2], and to avoid
+  per-destination sequential port allocation, which we show may be
+  vulnerable to derandomisation attacks.
+
+Joint work between Hannes Frederic Sowa and Daniel Borkmann.
+
+ [1] https://sites.google.com/site/hayashulman/files/NIC-derandomisation.pdf
+ [2] http://arxiv.org/pdf/1205.5190v1.pdf
+
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+---
+
+Daniel will follow-up with the user-space changes tomorrow.
+
+ include/uapi/linux/netfilter/nf_nat.h | 12 ++++++++----
+ net/netfilter/nf_nat_core.c           |  4 ++--
+ net/netfilter/nf_nat_proto_common.c   | 10 ++++++----
+ 3 files changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
+index bf0cc37..1ad3659 100644
+--- a/include/uapi/linux/netfilter/nf_nat.h
++++ b/include/uapi/linux/netfilter/nf_nat.h
+@@ -4,10 +4,14 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+ 
+-#define NF_NAT_RANGE_MAP_IPS		1
+-#define NF_NAT_RANGE_PROTO_SPECIFIED	2
+-#define NF_NAT_RANGE_PROTO_RANDOM	4
+-#define NF_NAT_RANGE_PERSISTENT		8
++#define NF_NAT_RANGE_MAP_IPS			(1 << 0)
++#define NF_NAT_RANGE_PROTO_SPECIFIED		(1 << 1)
++#define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
++#define NF_NAT_RANGE_PERSISTENT			(1 << 3)
++#define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
++
++#define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
++	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+ 
+ struct nf_nat_ipv4_range {
+ 	unsigned int			flags;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 63a8154..d3f5cd6 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -315,7 +315,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	 * manips not an issue.
+ 	 */
+ 	if (maniptype == NF_NAT_MANIP_SRC &&
+-	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM)) {
++	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+ 		if (in_range(l3proto, l4proto, orig_tuple, range)) {
+ 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+@@ -339,7 +339,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	 */
+ 
+ 	/* Only bother mapping if it's not already in range and unique */
+-	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM)) {
++	if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
+ 			if (l4proto->in_range(tuple, maniptype,
+ 					      &range->min_proto,
+diff --git a/net/netfilter/nf_nat_proto_common.c b/net/netfilter/nf_nat_proto_common.c
+index 9baaf73..83a72a2 100644
+--- a/net/netfilter/nf_nat_proto_common.c
++++ b/net/netfilter/nf_nat_proto_common.c
+@@ -74,22 +74,24 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+ 		range_size = ntohs(range->max_proto.all) - min + 1;
+ 	}
+ 
+-	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
++	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM) {
+ 		off = l3proto->secure_port(tuple, maniptype == NF_NAT_MANIP_SRC
+ 						  ? tuple->dst.u.all
+ 						  : tuple->src.u.all);
+-	else
++	} else if (range->flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
++		off = prandom_u32();
++	} else {
+ 		off = *rover;
++	}
+ 
+ 	for (i = 0; ; ++off) {
+ 		*portptr = htons(min + off % range_size);
+ 		if (++i != range_size && nf_nat_used_tuple(tuple, ct))
+ 			continue;
+-		if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM))
++		if (!(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL))
+ 			*rover = off;
+ 		return;
+ 	}
+-	return;
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_l4proto_unique_tuple);
+ 
+-- 
+1.8.3.1
+
