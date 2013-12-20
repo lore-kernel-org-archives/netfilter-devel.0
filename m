@@ -1,114 +1,56 @@
-From: Valentina Giusti <valentina.giusti@bmw-carit.de>
-Subject: Re: [PATCH v2 1/2] netfilter_queue: enable UID/GID socket info retrieval
-Date: Fri, 20 Dec 2013 12:18:22 +0100
-Message-ID: <52B4277E.3030607@bmw-carit.de>
-References: <1387451007-14363-1-git-send-email-valentina.giusti@bmw-carit.de> <1387451007-14363-2-git-send-email-valentina.giusti@bmw-carit.de> <20131220092638.GA9122@localhost> <20131220092926.GA9275@localhost>
-Reply-To: Valentina Giusti <Valentina.Giusti@bmw-carit.de>
+From: Chen Weilong <chenweilong@huawei.com>
+Subject: [patch net-next 5/7] ipv4: ERROR: do not initialise globals to 0 or NULL
+Date: Fri, 20 Dec 2013 19:57:08 +0800
+Message-ID: <1387540630-11052-6-git-send-email-chenweilong@huawei.com>
+References: <1387540630-11052-1-git-send-email-chenweilong@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	fw@strlen.de, eric.dumazet@gmail.com, tgraf@redhat.com,
-	jpa@google.com, davem@davemloft.net, daniel.wagner@bmw-carit.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20131220092926.GA9275@localhost>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<netfilter@vger.kernel.org>
+To: <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>, <jmorris@namei.org>,
+	<yoshfuji@linux-ipv6.org>, <kaber@trash.net>,
+	<steffen.klassert@secunet.com>, <herbert@gondor.apana.org.au>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:49959 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932072Ab3LTL55 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Dec 2013 06:57:57 -0500
+In-Reply-To: <1387540630-11052-1-git-send-email-chenweilong@huawei.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+From: Weilong Chen <chenweilong@huawei.com>
 
-On 12/20/2013 10:29 AM, Pablo Neira Ayuso wrote:
-> On Fri, Dec 20, 2013 at 10:26:38AM +0100, Pablo Neira Ayuso wrote:
->> Hi,
->>
->> On Thu, Dec 19, 2013 at 12:03:26PM +0100, valentina.giusti@bmw-carit=
-=2Ede wrote:
->>> From: Valentina Giusti <valentina.giusti@oss.bmw-carit.de>
->>>
->>> Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b38=
-8 (udp: ipv4:
->>> Add udp early demux) it is now possible to parse UID and GID socket=
- info
->>> also for incoming TCP and UDP connections. Having this info availab=
-le, it
->>> is convenient to let NFQUEUE parse it in order to improve and refin=
-e the
->>> traffic analysis in userspace.
->>>
->>> Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
->>> ---
->>>   include/uapi/linux/netfilter/nfnetlink_queue.h |  5 ++++-
->>>   net/netfilter/nfnetlink_queue_core.c           | 31 +++++++++++++=
-+++++++++++++
->>>   2 files changed, 35 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/inclu=
-de/uapi/linux/netfilter/nfnetlink_queue.h
->>> index 0132bad..8dd819e 100644
->>> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
->>> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
->>> @@ -47,6 +47,8 @@ enum nfqnl_attr_type {
->>>   	NFQA_CAP_LEN,			/* __u32 length of captured packet */
->>>   	NFQA_SKB_INFO,			/* __u32 skb meta information */
->>>   	NFQA_EXP,			/* nf_conntrack_netlink.h */
->>> +	NFQA_UID,			/* __u32 sk uid */
->>> +	NFQA_GID,			/* __u32 sk gid */
->>>  =20
->>>   	__NFQA_MAX
->>>   };
->>> @@ -99,7 +101,8 @@ enum nfqnl_attr_config {
->>>   #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
->>>   #define NFQA_CFG_F_CONNTRACK			(1 << 1)
->>>   #define NFQA_CFG_F_GSO				(1 << 2)
->>> -#define NFQA_CFG_F_MAX				(1 << 3)
->>> +#define NFQA_CFG_F_UID_GID			(1 << 3)
->>> +#define NFQA_CFG_F_MAX				(1 << 4)
->>>  =20
->>>   /* flags for NFQA_SKB_INFO */
->>>   /* packet appears to have wrong checksums, but they are ok */
->>> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/n=
-fnetlink_queue_core.c
->>> index 21258cf..2cdef07 100644
->>> --- a/net/netfilter/nfnetlink_queue_core.c
->>> +++ b/net/netfilter/nfnetlink_queue_core.c
->>> @@ -297,6 +297,29 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, s=
-truct sk_buff *packet,
->>>   	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) =
-: 0;
->>>   }
->>>  =20
->>> +static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *s=
-k)
->>> +{
->>> +	const struct cred *cred;
->>> +
->>> +	if (sk && sk->sk_state !=3D TCP_TIME_WAIT) {
->>> +		read_lock_bh(&sk->sk_callback_lock);
->>> +		if (sk->sk_socket && sk->sk_socket->file) {
->>> +			cred =3D sk->sk_socket->file->f_cred;
->>> +			if (nla_put_u32(skb, NFQA_UID, htonl(cred->fsuid)))
->> I'm hitting this compilation error here:
->>
->> net/netfilter/nfnetlink_queue_core.c: In function =E2=80=98nfqnl_put=
-_sk_uidgid=E2=80=99:
->> net/netfilter/nfnetlink_queue_core.c:308:4: error: aggregate value u=
-sed where an integer was expected
->>
->> It seems that in recent kernels you have to use:
->>
->>          from_kuid_munged(&init_user_ns, cred->fsuid);
->>
->> to retrieve the integer that represents the uid.
->>
->> Please,
-> sorry, I left this sentence incomplete, I was telling... Please, test
-> your patches with current git trees :-). Thanks.
 
-Just to be on the safe side, I am testing my patches against the nf-nex=
-t=20
-tree, branch master. Is that correct?
+Signed-off-by: Weilong Chen <chenweilong@huawei.com>
+---
+ net/ipv4/tcp_probe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
-Val
+diff --git a/net/ipv4/tcp_probe.c b/net/ipv4/tcp_probe.c
+index 8b97d71..1f2d376 100644
+--- a/net/ipv4/tcp_probe.c
++++ b/net/ipv4/tcp_probe.c
+@@ -38,7 +38,7 @@ MODULE_DESCRIPTION("TCP cwnd snooper");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION("1.1");
+ 
+-static int port __read_mostly = 0;
++static int port __read_mostly;
+ MODULE_PARM_DESC(port, "Port to match (0=all)");
+ module_param(port, int, 0);
+ 
+@@ -46,7 +46,7 @@ static unsigned int bufsize __read_mostly = 4096;
+ MODULE_PARM_DESC(bufsize, "Log buffer size in packets (4096)");
+ module_param(bufsize, uint, 0);
+ 
+-static unsigned int fwmark __read_mostly = 0;
++static unsigned int fwmark __read_mostly;
+ MODULE_PARM_DESC(fwmark, "skb mark to match (0=no mark)");
+ module_param(fwmark, uint, 0);
+ 
+-- 
+1.7.12
+
+
