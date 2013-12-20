@@ -1,73 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nf_conntrack_timestamp: Fix BUG_ON after netns deletion
-Date: Fri, 20 Dec 2013 14:59:35 +0100
-Message-ID: <20131220135935.GA21047@localhost>
-References: <1387546914-24958-1-git-send-email-helmut.schaa@googlemail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 1/2] netfilter_queue: enable UID/GID socket info
+ retrieval
+Date: Fri, 20 Dec 2013 15:09:59 +0100
+Message-ID: <20131220140959.GA29632@breakpoint.cc>
+References: <1387542820-16319-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <1387542820-16319-2-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu
-To: Helmut Schaa <helmut.schaa@googlemail.com>
+	fw@strlen.de, jpa@google.com, pablo@netfilter.org,
+	daniel.wagner@bmw-carit.de
+To: valentina.giusti@bmw-carit.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56827 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030193Ab3LTN7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Dec 2013 08:59:44 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39043 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1161004Ab3LTOKD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Dec 2013 09:10:03 -0500
 Content-Disposition: inline
-In-Reply-To: <1387546914-24958-1-git-send-email-helmut.schaa@googlemail.com>
+In-Reply-To: <1387542820-16319-2-git-send-email-valentina.giusti@bmw-carit.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 20, 2013 at 02:41:54PM +0100, Helmut Schaa wrote:
-> When having nf_conntrack_timestamp enabled deleting a netns can lead
-> to the following BUG being triggered:
-> 
-> [63836.660000] Kernel bug detected[#1]:
-> [63836.660000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.10.18 #14
-> [63836.660000] task: 802d9420 ti: 802d2000 task.ti: 802d2000
-> [63836.660000] $ 0   : 00000000 00000000 00000000 00000000
-> [63836.660000] $ 4   : 00000001 00000004 00000020 00000020
-> [63836.660000] $ 8   : 00000000 80064910 00000000 00000000
-> [63836.660000] $12   : 0bff0002 00000001 00000000 0a0a0abe
-> [63836.660000] $16   : 802e70a0 85f29d80 00000000 00000004
-> [63836.660000] $20   : 85fb62a0 00000002 802d3bc0 85fb62a0
-> [63836.660000] $24   : 00000000 87138110
-> [63836.660000] $28   : 802d2000 802d3b40 00000014 871327cc
-> [63836.660000] Hi    : 000005ff
-> [63836.660000] Lo    : f2edd000
-> [63836.660000] epc   : 87138794 __nf_ct_ext_add_length+0xe8/0x1ec [nf_conntrack]
-> [63836.660000]     Not tainted
-> [63836.660000] ra    : 871327cc nf_conntrack_in+0x31c/0x7b8 [nf_conntrack]
-> [63836.660000] Status: 1100d403 KERNEL EXL IE
-> [63836.660000] Cause : 00800034
-> [63836.660000] PrId  : 0001974c (MIPS 74Kc)
-> [63836.660000] Modules linked in: ath9k ath9k_common pppoe ppp_async iptable_nat ath9k_hw ath pppox ppp_generic nf_nat_ipv4 nf_conntrack_ipv4 mac80211 ipt_MASQUERADE cfg80211 xt_time xt_tcpudp xt_state xt_quota xt_policy xt_pkttype xt_owner xt_nat xt_multiport xt_mark xh
-> [63836.660000] Process swapper (pid: 0, threadinfo=802d2000, task=802d9420, tls=00000000)
-> [63836.660000] Stack : 802e70a0 871323d4 00000005 87080234 802e70a0 86d2a840 00000000 00000000
-> [63836.660000] Call Trace:
-> [63836.660000] [<87138794>] __nf_ct_ext_add_length+0xe8/0x1ec [nf_conntrack]
-> [63836.660000] [<871327cc>] nf_conntrack_in+0x31c/0x7b8 [nf_conntrack]
-> [63836.660000] [<801ff63c>] nf_iterate+0x90/0xec
-> [63836.660000] [<801ff730>] nf_hook_slow+0x98/0x164
-> [63836.660000] [<80205968>] ip_rcv+0x3e8/0x40c
-> [63836.660000] [<801d9754>] __netif_receive_skb_core+0x624/0x6a4
-> [63836.660000] [<801da124>] process_backlog+0xa4/0x16c
-> [63836.660000] [<801d9bb4>] net_rx_action+0x10c/0x1e0
-> [63836.660000] [<8007c5a4>] __do_softirq+0xd0/0x1bc
-> [63836.660000] [<8007c730>] do_softirq+0x48/0x68
-> [63836.660000] [<8007c964>] irq_exit+0x54/0x70
-> [63836.660000] [<80060830>] ret_from_irq+0x0/0x4
-> [63836.660000] [<8006a9f8>] r4k_wait_irqoff+0x18/0x1c
-> [63836.660000] [<8009cfb8>] cpu_startup_entry+0xa4/0x104
-> [63836.660000] [<802eb918>] start_kernel+0x394/0x3ac
-> [63836.660000]
-> [63836.660000]
-> Code: 00821021  8c420000  2c440001 <00040336> 90440011  92350010  90560010  2485ffff  02a5a821
-> [63837.040000] ---[ end trace ebf660c3ce3b55e7 ]---
-> [63837.050000] Kernel panic - not syncing: Fatal exception in interrupt
-> [63837.050000] Rebooting in 3 seconds..
-> 
-> Fix this by not unregistering the conntrack extension in the per-netns
-> cleanup code.
+valentina.giusti@bmw-carit.de <valentina.giusti@bmw-carit.de> wrote:
+> --- a/net/netfilter/nfnetlink_queue_core.c
+> +++ b/net/netfilter/nfnetlink_queue_core.c
+> @@ -297,6 +297,32 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
+>  	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) : 0;
+>  }
+>  
+> +static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
+> +{
+> +	const struct cred *cred;
+> +
+> +	if (sk->sk_state == TCP_TIME_WAIT)
+> +		return -1;
 
-Applied, thanks.
+I think this should be 'return 0'?
