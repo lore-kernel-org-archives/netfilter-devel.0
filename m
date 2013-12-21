@@ -1,50 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
-Date: Sat, 21 Dec 2013 09:55:09 +0100
-Message-ID: <20131221085509.GA4230@localhost>
-References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
- <1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
- <20131218095322.GA4740@localhost>
- <CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
- <20131219194339.GA4561@localhost>
- <CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] libnetfilter_queue: add support for UID/GID
+ socket info
+Date: Sat, 21 Dec 2013 12:38:04 +0100
+Message-ID: <20131221113804.GA17964@localhost>
+References: <1387556934-7372-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <1387556934-7372-3-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	John Stultz <john.stultz@linaro.org>,
-	JP Abgrall <jpa@google.com>
-To: Mathieu Poirier <mathieu.poirier@linaro.org>
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	jpa@google.com, fw@strnel.de, daniel.wagner@bmw-carit.de
+To: valentina.giusti@bmw-carit.de
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
+In-Reply-To: <1387556934-7372-3-git-send-email-valentina.giusti@bmw-carit.de>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 20, 2013 at 01:34:00PM -0700, Mathieu Poirier wrote:
-> On 19 December 2013 12:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Hi,
+
+On Fri, Dec 20, 2013 at 05:28:54PM +0100, valentina.giusti@bmw-carit.de wrote:
 [...]
-> > Thinking again on the event delivery, I think it's better if the
-> > nfacct match using the new --quota does not deliver the event itself.
-> > You can use libnetfilter_queue instead, eg.
-> >
-> >         iptables -I INPUT -p icmp \
-> >                  -m nfacct icmp --quota 12345 --mode bytes --match-once \
-> >                  -j NFLOG --nflog-prefix "icmp: " --nflog-group 34
-> >
-> > The --once parameter tells to match only if you just crossed the quota
-> > limit (so the event is sent once). The idea is to use nflog to deliver
-> > the event, which is way more flexible as it includes useful
-> > information.
-> 
-> I'm not against the idea as it is less code for me to write.  Is this
-> "--match-one" thing already available?  If not I'll come up with it.
+> diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+> index 81a485b..884ab0e 100644
+> --- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
+> +++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
+> @@ -50,6 +50,8 @@ enum nfqnl_attr_type {
+>  	NFQA_CAP_LEN,                   /* __u32 length of captured packet */
+>  	NFQA_SKB_INFO,                  /* __u32 skb meta information */
+>  
+> +	NFQA_UID,			/* __u32 sk uid */
+> +	NFQA_GID,			/* __u32 sk gid */
 
-The --match-once that I propose is specific to nfacct, so you need to
-add a new flag to indicate this matching mode and return true only
-once for that rule.
+This update is wrong. See below the reason why.
 
-> Just to be clear, if "--match-one" isn't specified a message is sent
-> each time we try to send a packets and the quota has been reached.
+>  	__NFQA_MAX
+>  };
+>  #define NFQA_MAX (__NFQA_MAX - 1)
+> @@ -101,7 +103,8 @@ enum nfqnl_attr_config {
+>  #define NFQA_CFG_F_FAIL_OPEN		(1 << 0)
+>  #define NFQA_CFG_F_CONNTRACK		(1 << 1)
+>  #define NFQA_CFG_F_GSO			(1 << 2)
+> -#define NFQA_CFG_F_MAX			(1 << 3)
+> +#define NFQA_CFG_F_UID_GID		(1 << 3)
+> +#define NFQA_CFG_F_MAX			(1 << 4)
+>  
+>  /* flags for NFQA_SKB_INFO */
+>  /* packet appears to have wrong checksums, but they are ok */
+> diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
+> index a2308ae..22f5d45 100644
+> --- a/include/linux/netfilter/nfnetlink_queue.h
+> +++ b/include/linux/netfilter/nfnetlink_queue.h
+> @@ -46,6 +46,9 @@ enum nfqnl_attr_type {
+>  	NFQA_CT_INFO,			/* enum ip_conntrack_info */
+>  	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+>  	NFQA_SKB_INFO,			/* __u32 skb meta information */
+> +	NFQA_EXP,			/* nf_conntrack_netlink.h */
+> +	NFQA_UID,			/* __u32 sk uid */
+> +	NFQA_GID,			/* __u32 sk gid */
 
-Exactly, in the example I provided above, if no --match-once is
-specified, you will get a log message per packet over quota.
+You have manually updated libnetfilter_queue/linux_nfnetlink_queue.h,
+but you forgot to include NFQA_EXP. The result is that your
+nfq_get_uid() returns the NFQA_EXP attribute and nfq_get_gid() returns
+the NFQA_UID attribute.
+
+You should have noticed it with a simple run of utils/nfqnl_test run
+and a couple of printf to test it. I'm afraid that you're not giving
+sufficient testing to your patches.
+
+Fix it and resubmit, thanks.
