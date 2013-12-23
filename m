@@ -1,147 +1,131 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: [PATCH iptables-nftables v3] iptables: add libxt_cgroup frontend
-Date: Mon, 23 Dec 2013 18:46:29 +0100
-Message-ID: <1387820789-10355-1-git-send-email-dborkman@redhat.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Sasikanth babu <sasikanth.v19@gmail.com>
+Subject: Re: IPV6: kernel panic in net filter and ipv6 path while doing
+ interface up and down continuously with ipv6 traffic
+Date: Mon, 23 Dec 2013 23:44:50 +0530
+Message-ID: <CAOJFanWSarYPDhn4JastGkCAqoMiqS9cVAYJ_aZ1nd1idy7Q9w@mail.gmail.com>
+References: <CAOJFanX-YC7s9LEzifqryboqY98Enz4ZnGahYOLuix3hLpT_8Q@mail.gmail.com>
+	<866aa834-3ee6-4e54-9233-ce43db37c326@email.android.com>
+	<CAOJFanUS8Zfi2t6PCiip4Gp_xUBRMC8xzbvt1WU9e7Bq-+ybgg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
+To: Shawn Wilson <ag4ve.us@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65507 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932209Ab3LWRqd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Dec 2013 12:46:33 -0500
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:62777 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab3LWSOv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Dec 2013 13:14:51 -0500
+In-Reply-To: <CAOJFanUS8Zfi2t6PCiip4Gp_xUBRMC8xzbvt1WU9e7Bq-+ybgg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the user space extension/frontend for process matching
-based on cgroups from the kernel patch entitled "netfilter: xtables:
-lightweight process control group matching".
+Adding to last mail the panics were observed If I remove  V6 IP
+address and while packets are still flowing.
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
----
- v1->v2:
-  - no changes
- v2->v3:
-  - rebased into iptables-nftables tree
-
- extensions/libxt_cgroup.c           | 67 +++++++++++++++++++++++++++++++++++++
- extensions/libxt_cgroup.man         | 15 +++++++++
- include/linux/netfilter/xt_cgroup.h | 11 ++++++
- 3 files changed, 93 insertions(+)
- create mode 100644 extensions/libxt_cgroup.c
- create mode 100644 extensions/libxt_cgroup.man
- create mode 100644 include/linux/netfilter/xt_cgroup.h
-
-diff --git a/extensions/libxt_cgroup.c b/extensions/libxt_cgroup.c
-new file mode 100644
-index 0000000..e304e33
---- /dev/null
-+++ b/extensions/libxt_cgroup.c
-@@ -0,0 +1,67 @@
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter/xt_cgroup.h>
-+
-+enum {
-+	O_CGROUP = 0,
-+};
-+
-+static void cgroup_help(void)
-+{
-+	printf(
-+"cgroup match options:\n"
-+"[!] --cgroup fwid  Match cgroup fwid\n");
-+}
-+
-+static const struct xt_option_entry cgroup_opts[] = {
-+	{
-+		.name = "cgroup",
-+		.id = O_CGROUP,
-+		.type = XTTYPE_UINT32,
-+		.flags = XTOPT_INVERT | XTOPT_MAND | XTOPT_PUT,
-+		XTOPT_POINTER(struct xt_cgroup_info, id)
-+	},
-+	XTOPT_TABLEEND,
-+};
-+
-+static void cgroup_parse(struct xt_option_call *cb)
-+{
-+	struct xt_cgroup_info *cgroupinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	if (cb->invert)
-+		cgroupinfo->invert = true;
-+}
-+
-+static void
-+cgroup_print(const void *ip, const struct xt_entry_match *match, int numeric)
-+{
-+	const struct xt_cgroup_info *info = (void *) match->data;
-+
-+	printf(" cgroup %s%u", info->invert ? "! ":"", info->id);
-+}
-+
-+static void cgroup_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_cgroup_info *info = (void *) match->data;
-+
-+	printf("%s --cgroup %u", info->invert ? " !" : "", info->id);
-+}
-+
-+static struct xtables_match cgroup_match = {
-+	.family		= NFPROTO_UNSPEC,
-+	.name		= "cgroup",
-+	.version	= XTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_cgroup_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_cgroup_info)),
-+	.help		= cgroup_help,
-+	.print		= cgroup_print,
-+	.save		= cgroup_save,
-+	.x6_parse	= cgroup_parse,
-+	.x6_options	= cgroup_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&cgroup_match);
-+}
-diff --git a/extensions/libxt_cgroup.man b/extensions/libxt_cgroup.man
-new file mode 100644
-index 0000000..456a031
---- /dev/null
-+++ b/extensions/libxt_cgroup.man
-@@ -0,0 +1,15 @@
-+.TP
-+[\fB!\fP] \fB\-\-cgroup\fP \fIfwid\fP
-+Match corresponding cgroup for this packet.
-+
-+Can be used to assign particular firewall policies for aggregated
-+task/jobs on the system. This allows for more fine-grained firewall
-+policies that only match for a subset of the system's processes.
-+fwid is the maker set through the net_cls cgroup's id.
-+.PP
-+Example:
-+.PP
-+iptables \-A OUTPUT \-p tcp \-\-sport 80 \-m cgroup ! \-\-cgroup 1
-+\-j DROP
-+.PP
-+Available since Linux 3.14.
-diff --git a/include/linux/netfilter/xt_cgroup.h b/include/linux/netfilter/xt_cgroup.h
-new file mode 100644
-index 0000000..943d3a0
---- /dev/null
-+++ b/include/linux/netfilter/xt_cgroup.h
-@@ -0,0 +1,11 @@
-+#ifndef _XT_CGROUP_H
-+#define _XT_CGROUP_H
-+
-+#include <linux/types.h>
-+
-+struct xt_cgroup_info {
-+	__u32 id;
-+	__u32 invert;
-+};
-+
-+#endif /* _XT_CGROUP_H */
--- 
-1.8.3.1
-
+On Mon, Dec 23, 2013 at 2:48 PM, Sasikanth babu <sasikanth.v19@gmail.com> wrote:
+> Panic 1
+>
+>    While sending IPv6 user traffic did interface down and up.
+>
+> Panic 2
+>
+>    While testing IPv6 ND did interface down and up.
+>
+> Observed these panics 2/3 times.
+>
+> On Mon, Dec 23, 2013 at 2:34 PM, Shawn Wilson <ag4ve.us@gmail.com> wrote:
+>> How do you replicate it?
+>>
+>> Sasikanth babu <sasikanth.v19@gmail.com> wrote:
+>>>Hi,
+>>>
+>>>Any suggestions/idea about this panic. is it related IPv6 or netfilter.
+>>>
+>>>I looked out for the patches and verified the kernel commit messages I
+>>>could not find anything related to this panic.
+>>>
+>>>Any suggestions?
+>>>
+>>>Thanks in advance
+>>>
+>>>Kernel : 2.6.34.10
+>>>arch:   Mips
+>>>
+>>>
+>>>[ 7078.035218] Oops[#1]:
+>>>[ 7078.037492] Cpu 0
+>>>[ 7078.039416] $ 0   : 0000000000000000 000000000000000c
+>>>a8000000e2f3f000 0000000100000060
+>>>[ 7078.047482] $ 4   : 00000000ffffff00 0000000000000000
+>>>0000000000000020 0000000000000160
+>>>[ 7078.055546] $ 8   : 0000000000000100 000000000000000c
+>>>0000000060300000 ffffffff80000000
+>>>[ 7078.063611] $12   : 0000000000000018 ffffffff8055d950
+>>>ffffffff806c2318 0000000000000000
+>>>[ 7078.071677] $16   : a800000195fda500 a80000043fe44600
+>>>0000000000000000 0000000000000001
+>>>[ 7078.079742] $20   : 0000000000000000 a800000195fda100
+>>>0000000000000001 ffffffff81221f70
+>>>[ 7078.087807] $24   : 2000000000000000 ffffffff8077fb38
+>>>[ 7078.095872] $28   : a8000003bd5bc000 a8000003bd5bf8a0
+>>>a8000003bd5bf9d0 ffffffff8077f9a0
+>>>[ 7078.103937] Hi    : 0000000000000000
+>>>[ 7078.107511] Lo    : 0000000000000420
+>>>[ 7078.111095] epc   : ffffffff8077fa28 ip6_pkt_drop+0x110/0x1e0
+>>>[ 7078.116841]     Not tainted
+>>>[ 7078.119636] ra    : ffffffff8077f9a0 ip6_pkt_drop+0x88/0x1e0
+>>>[ 7078.125295] Status: 10108ce3    KX SX UX KERNEL EXL IE
+>>>[ 7078.130605] Cause : 00800008
+>>>[ 7078.133485] BadVA : 0000000100000068
+>>>[ 7078.137060] PrId  : 000d910a (Cavium Octeon II)
+>>>[ 7078.141590] Modules linked in: ip_tables iptable_filter
+>>>iptable_mangle ip6_tables ip6table_filter ip6table_mangle mloopback
+>>>bonding bfpga octeon_pow_ether nfnetlink nfnetlink_queue xt_DSCP
+>>>xt_NFQUEUE [last unloaded: scsi_wait_scan]
+>>>[ 7078.162303] Process wamgr (pid: 1087, threadinfo=a8000003bd5bc000,
+>>>task=a80000043edc5400, tls=000000555d1192b0)
+>>>[ 7078.172391] Stack : 0000000000000004 a800000195fda500
+>>>a800000195f83000 a800000195fda500
+>>>[ 7078.180270]         a80000043fda2900 ffffffff806fda9c
+>>>ffffffff81116f18 a800000188cfe010
+>>>[ 7078.188335]         0000000000000001 a80000018aa9e414
+>>>a80000043fda2940 a8000003bd5bf960
+>>>[ 7078.196399]         a800000195f83000 ffffffffc00add20
+>>>0020000000000000 a80000018aa9e400
+>>>[ 7078.204463]         a800000195fda100 a80000018aa9e400
+>>>a800000195fda100 ffffffffc00ae788
+>>>[ 7078.212527]         ffffffffc00ae8b8 a8000003bd5bf9d0
+>>>a800000195fda100 ffffffffc00a43bc
+>>>[ 7078.220592]         0000000000000000 0000000000000000
+>>>a80000018aa9e414 0000000000000000
+>>>[ 7078.228656]         0000000000000000 0000000000000000
+>>>0000000000000000 0000000000000000
+>>>[ 7078.236720]         0000000000000000 0000000000000000
+>>>0000000000000000 a8000003bd5bf930
+>>>[ 7078.244784]         ffffffff803b0c68 00000000ffffff01
+>>>a80000018aa9e414 0000000000000020
+>>>[ 7078.252848]         ...
+>>>[ 7078.255502] Call Trace:
+>>>[ 7078.257951] [<ffffffff8077fa28>] ip6_pkt_drop+0x110/0x1e0
+>>>[ 7078.263353] [<ffffffff806fda9c>] nf_reinject+0x9c/0x180
+>>>[ 7078.268585] [<ffffffffc00add20>] nfqnl_recv_verdict+0x2a8/0x368
+>>>[nfnetlink_queue]
+>>>[ 7078.276074] [<ffffffffc00a43bc>] nfnetlink_rcv_msg+0x21c/0x320
+>>>[nfnetlink]
+>>>[ 7078.282950]
+>>>[ 7078.284440]
+>>>[ 7078.284442] Code: 000528f8  7ca2120a  0083182d <dc630008> 00c3302d
+>>>00c2302d  dcc20000  64420001  081dfe53
+>>>[ 7078.295797] Disabling lock debugging due to kernel taint
+>>>[ 7078.301148] Kernel panic - not syncing: Fatal exception in interrupt
+>>>[ 7088.034346] INFO: RCU detected CPU 0 stall (t=2500 jiffies)
+>>>[ 7118.034349] INFO: RCU detected CPU 0 stall (t=10000 jiffies)
+>>>[ 7148.034347] INFO: RCU detected CPU 0 stall (t=17500 jiffies)
+>>>[ 7178.034346] INFO: RCU detected CPU 0 stall (t=25000 jiffies)
+>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe netfilter" in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
