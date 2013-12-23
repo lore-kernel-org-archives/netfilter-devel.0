@@ -1,28 +1,83 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: iptc_handle : where is header and structure info for iptc_handle
- ?
-Date: Mon, 23 Dec 2013 00:38:11 +0100
-Message-ID: <20131222233811.GD29632@breakpoint.cc>
-References: <52B68042.5030807@gmail.com>
+From: chenweilong <chenweilong@huawei.com>
+Subject: Re: [patch net-next 6/7] ipv4: ERROR: code indent should use tabs
+ where possible
+Date: Mon, 23 Dec 2013 10:11:40 +0800
+Message-ID: <52B79BDC.4060107@huawei.com>
+References: <1387540630-11052-1-git-send-email-chenweilong@huawei.com>	 <1387540630-11052-7-git-send-email-chenweilong@huawei.com> <1387561986.1549.9.camel@bwh-desktop.uk.level5networks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "hanasaki@gmail.com" <hanasaki@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>, <jmorris@namei.org>,
+	<yoshfuji@linux-ipv6.org>, <kaber@trash.net>,
+	<steffen.klassert@secunet.com>, <herbert@gondor.apana.org.au>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<netfilter@vger.kernel.org>
+To: Ben Hutchings <bhutchings@solarflare.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43927 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756807Ab3LVXiM (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:43555 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756788Ab3LWCM1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Dec 2013 18:38:12 -0500
-Content-Disposition: inline
-In-Reply-To: <52B68042.5030807@gmail.com>
+	Sun, 22 Dec 2013 21:12:27 -0500
+In-Reply-To: <1387561986.1549.9.camel@bwh-desktop.uk.level5networks.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hanasaki@gmail.com <hanasaki@gmail.com> wrote:
-> Running a build of 3.12 with iptables and looking for the header
-> file with the full structure of the "iptc_handle" without success.
-> Any tips?
+On 2013/12/21 1:53, Ben Hutchings wrote:
+> On Fri, 2013-12-20 at 19:57 +0800, Chen Weilong wrote:
+>> From: Weilong Chen <chenweilong@huawei.com>
+>>
+>>
+>> Signed-off-by: Weilong Chen <chenweilong@huawei.com>
+>> ---
+>>  net/ipv4/cipso_ipv4.c      | 6 +++---
+>>  net/ipv4/sysctl_net_ipv4.c | 2 +-
+>>  net/ipv4/xfrm4_mode_beet.c | 2 +-
+>>  3 files changed, 5 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/net/ipv4/cipso_ipv4.c b/net/ipv4/cipso_ipv4.c
+>> index 4b59b6e..081f51a 100644
+>> --- a/net/ipv4/cipso_ipv4.c
+>> +++ b/net/ipv4/cipso_ipv4.c
+>> @@ -1336,7 +1336,7 @@ static int cipso_v4_parsetag_rbm(const struct cipso_v4_doi *doi_def,
+>>  
+>>  	if (tag_len > 4) {
+>>  		secattr->attr.mls.cat =
+>> -		                       netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>> +				       netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>>  		if (secattr->attr.mls.cat == NULL)
+>>  			return -ENOMEM;
+>>  
+>> @@ -1432,7 +1432,7 @@ static int cipso_v4_parsetag_enum(const struct cipso_v4_doi *doi_def,
+>>  
+>>  	if (tag_len > 4) {
+>>  		secattr->attr.mls.cat =
+>> -			               netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>> +				       netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>>  		if (secattr->attr.mls.cat == NULL)
+>>  			return -ENOMEM;
+>>  
+>> @@ -1527,7 +1527,7 @@ static int cipso_v4_parsetag_rng(const struct cipso_v4_doi *doi_def,
+>>  
+>>  	if (tag_len > 4) {
+>>  		secattr->attr.mls.cat =
+>> -			               netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>> +				       netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+>>  		if (secattr->attr.mls.cat == NULL)
+>>  			return -ENOMEM;
+>>  
+> [...]
+> 
+> These lines are still excessively indented (one extra tab is enough),
+> and could just be appended to the lines above them:
+> 
+> 		secattr->attr.mls.cat = netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+> 
+> (exactly 80 columns long).
+> 
+> Ben.
+> 
+OK,
+That's very good,
+Thanks!
 
-There is no such header.  The structure is private to libiptc,
-'struct xtc_handle' in libiptc directory in iptables source code.
