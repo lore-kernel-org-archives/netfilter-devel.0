@@ -1,7 +1,7 @@
 From: Chen Weilong <chenweilong@huawei.com>
-Subject: [resend patch net-next v3 2/7] ipv4: fix checkpatch error "space prohibited"
-Date: Mon, 23 Dec 2013 14:37:27 +0800
-Message-ID: <1387780652-16232-3-git-send-email-chenweilong@huawei.com>
+Subject: [resend patch net-next v3 6/7] ipv4: ERROR: code indent should use tabs where possible
+Date: Mon, 23 Dec 2013 14:37:31 +0800
+Message-ID: <1387780652-16232-7-git-send-email-chenweilong@huawei.com>
 References: <1387780652-16232-1-git-send-email-chenweilong@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,87 +19,70 @@ From: Weilong Chen <chenweilong@huawei.com>
 
 Signed-off-by: Weilong Chen <chenweilong@huawei.com>
 ---
- net/ipv4/inetpeer.c                    |  4 ++--
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 12 ++++++------
- net/ipv4/syncookies.c                  |  2 +-
- net/ipv4/tcp_yeah.c                    |  4 ++--
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ net/ipv4/cipso_ipv4.c      | 9 +++------
+ net/ipv4/sysctl_net_ipv4.c | 2 +-
+ net/ipv4/xfrm4_mode_beet.c | 2 +-
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/net/ipv4/inetpeer.c b/net/ipv4/inetpeer.c
-index 33d5537..d047c88 100644
---- a/net/ipv4/inetpeer.c
-+++ b/net/ipv4/inetpeer.c
-@@ -227,7 +227,7 @@ static int addr_compare(const struct inetpeer_addr *a,
- 	stackptr = _stack;					\
- 	*stackptr++ = &_base->root;				\
- 	for (u = rcu_deref_locked(_base->root, _base);		\
--	     u != peer_avl_empty; ) {				\
-+	     u != peer_avl_empty;) {				\
- 		int cmp = addr_compare(_daddr, &u->daddr);	\
- 		if (cmp == 0)					\
- 			break;					\
-@@ -282,7 +282,7 @@ static struct inet_peer *lookup_rcu(const struct inetpeer_addr *daddr,
- 	*stackptr++ = &start->avl_left;				\
- 	v = &start->avl_left;					\
- 	for (u = rcu_deref_locked(*v, base);			\
--	     u->avl_right != peer_avl_empty_rcu; ) {		\
-+	     u->avl_right != peer_avl_empty_rcu;) {		\
- 		v = &u->avl_right;				\
- 		*stackptr++ = v;				\
- 		u = rcu_deref_locked(*v, base);			\
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index 61a9422..d551e31 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -461,14 +461,14 @@ static unsigned char asn1_oid_decode(struct asn1_ctx *ctx,
- 	}
+diff --git a/net/ipv4/cipso_ipv4.c b/net/ipv4/cipso_ipv4.c
+index 4b59b6e..69e77c8 100644
+--- a/net/ipv4/cipso_ipv4.c
++++ b/net/ipv4/cipso_ipv4.c
+@@ -1335,8 +1335,7 @@ static int cipso_v4_parsetag_rbm(const struct cipso_v4_doi *doi_def,
+ 	secattr->flags |= NETLBL_SECATTR_MLS_LVL;
  
- 	if (subid < 40) {
--		optr [0] = 0;
--		optr [1] = subid;
-+		optr[0] = 0;
-+		optr[1] = subid;
- 	} else if (subid < 80) {
--		optr [0] = 1;
--		optr [1] = subid - 40;
-+		optr[0] = 1;
-+		optr[1] = subid - 40;
- 	} else {
--		optr [0] = 2;
--		optr [1] = subid - 80;
-+		optr[0] = 2;
-+		optr[1] = subid - 80;
- 	}
+ 	if (tag_len > 4) {
+-		secattr->attr.mls.cat =
+-		                       netlbl_secattr_catmap_alloc(GFP_ATOMIC);
++		secattr->attr.mls.cat = netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+ 		if (secattr->attr.mls.cat == NULL)
+ 			return -ENOMEM;
  
- 	*len = 2;
-diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
-index b95331e..f2ed13c 100644
---- a/net/ipv4/syncookies.c
-+++ b/net/ipv4/syncookies.c
-@@ -121,7 +121,7 @@ static __u32 check_tcp_syn_cookie(__u32 cookie, __be32 saddr, __be32 daddr,
- 	cookie -= cookie_hash(saddr, daddr, sport, dport, 0, 0) + sseq;
+@@ -1431,8 +1430,7 @@ static int cipso_v4_parsetag_enum(const struct cipso_v4_doi *doi_def,
+ 	secattr->flags |= NETLBL_SECATTR_MLS_LVL;
  
- 	/* Cookie is now reduced to (count * 2^24) ^ (hash % 2^24) */
--	diff = (count - (cookie >> COOKIEBITS)) & ((__u32) - 1 >> COOKIEBITS);
-+	diff = (count - (cookie >> COOKIEBITS)) & ((__u32) -1 >> COOKIEBITS);
- 	if (diff >= MAX_SYNCOOKIE_AGE)
- 		return (__u32)-1;
+ 	if (tag_len > 4) {
+-		secattr->attr.mls.cat =
+-			               netlbl_secattr_catmap_alloc(GFP_ATOMIC);
++		secattr->attr.mls.cat = netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+ 		if (secattr->attr.mls.cat == NULL)
+ 			return -ENOMEM;
  
-diff --git a/net/ipv4/tcp_yeah.c b/net/ipv4/tcp_yeah.c
-index a347a07..20cfaab 100644
---- a/net/ipv4/tcp_yeah.c
-+++ b/net/ipv4/tcp_yeah.c
-@@ -214,9 +214,9 @@ static u32 tcp_yeah_ssthresh(struct sock *sk) {
- 	if (yeah->doing_reno_now < TCP_YEAH_RHO) {
- 		reduction = yeah->lastQ;
+@@ -1526,8 +1524,7 @@ static int cipso_v4_parsetag_rng(const struct cipso_v4_doi *doi_def,
+ 	secattr->flags |= NETLBL_SECATTR_MLS_LVL;
  
--		reduction = min( reduction, max(tp->snd_cwnd>>1, 2U) );
-+		reduction = min(reduction, max(tp->snd_cwnd>>1, 2U));
+ 	if (tag_len > 4) {
+-		secattr->attr.mls.cat =
+-			               netlbl_secattr_catmap_alloc(GFP_ATOMIC);
++		secattr->attr.mls.cat = netlbl_secattr_catmap_alloc(GFP_ATOMIC);
+ 		if (secattr->attr.mls.cat == NULL)
+ 			return -ENOMEM;
  
--		reduction = max( reduction, tp->snd_cwnd >> TCP_YEAH_DELTA);
-+		reduction = max(reduction, tp->snd_cwnd >> TCP_YEAH_DELTA);
- 	} else
- 		reduction = max(tp->snd_cwnd>>1, 2U);
+diff --git a/net/ipv4/sysctl_net_ipv4.c b/net/ipv4/sysctl_net_ipv4.c
+index d7b63a6..1d2480a 100644
+--- a/net/ipv4/sysctl_net_ipv4.c
++++ b/net/ipv4/sysctl_net_ipv4.c
+@@ -700,7 +700,7 @@ static struct ctl_table ipv4_table[] = {
+ 		.mode           = 0644,
+ 		.proc_handler   = proc_dointvec
+ 	},
+-        {
++	{
+ 		.procname       = "tcp_thin_dupack",
+ 		.data           = &sysctl_tcp_thin_dupack,
+ 		.maxlen         = sizeof(int),
+diff --git a/net/ipv4/xfrm4_mode_beet.c b/net/ipv4/xfrm4_mode_beet.c
+index e3db3f9..71acd00 100644
+--- a/net/ipv4/xfrm4_mode_beet.c
++++ b/net/ipv4/xfrm4_mode_beet.c
+@@ -48,7 +48,7 @@ static int xfrm4_beet_output(struct xfrm_state *x, struct sk_buff *skb)
+ 		hdrlen += IPV4_BEET_PHMAXLEN - (optlen & 4);
  
+ 	skb_set_network_header(skb, -x->props.header_len -
+-			            hdrlen + (XFRM_MODE_SKB_CB(skb)->ihl - sizeof(*top_iph)));
++				    hdrlen + (XFRM_MODE_SKB_CB(skb)->ihl - sizeof(*top_iph)));
+ 	if (x->sel.family != AF_INET6)
+ 		skb->network_header += IPV4_BEET_PHMAXLEN;
+ 	skb->mac_header = skb->network_header +
 -- 
 1.7.12
