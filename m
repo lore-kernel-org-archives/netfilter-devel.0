@@ -1,102 +1,48 @@
-From: Sasikanth babu <sasikanth.v19@gmail.com>
-Subject: IPV6: kernel panic in net filter and ipv6 path while doing interface
- up and down continuously with ipv6 traffic
-Date: Mon, 23 Dec 2013 11:50:54 +0530
-Message-ID: <CAOJFanX-YC7s9LEzifqryboqY98Enz4ZnGahYOLuix3hLpT_8Q@mail.gmail.com>
+From: chenweilong <chenweilong@huawei.com>
+Subject: Re: [patch net-next v3 0/7] fix checkpatch errors
+Date: Mon, 23 Dec 2013 14:35:16 +0800
+Message-ID: <52B7D9A4.5000909@huawei.com>
+References: <1387778246-15300-1-git-send-email-chenweilong@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:40771 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab3LWGUz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Dec 2013 01:20:55 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<netfilter@vger.kernel.org>
+To: <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>, <jmorris@namei.org>,
+	<yoshfuji@linux-ipv6.org>, <kaber@trash.net>,
+	<steffen.klassert@secunet.com>, <herbert@gondor.apana.org.au>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1387778246-15300-1-git-send-email-chenweilong@huawei.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
-Any suggestions/idea about this panic. is it related IPv6 or netfilter.
-
-I looked out for the patches and verified the kernel commit messages I
-could not find anything related to this panic.
-
-Any suggestions?
-
-Thanks in advance
-
-Kernel : 2.6.34.10
-arch:   Mips
-
-
-[ 7078.035218] Oops[#1]:
-[ 7078.037492] Cpu 0
-[ 7078.039416] $ 0   : 0000000000000000 000000000000000c
-a8000000e2f3f000 0000000100000060
-[ 7078.047482] $ 4   : 00000000ffffff00 0000000000000000
-0000000000000020 0000000000000160
-[ 7078.055546] $ 8   : 0000000000000100 000000000000000c
-0000000060300000 ffffffff80000000
-[ 7078.063611] $12   : 0000000000000018 ffffffff8055d950
-ffffffff806c2318 0000000000000000
-[ 7078.071677] $16   : a800000195fda500 a80000043fe44600
-0000000000000000 0000000000000001
-[ 7078.079742] $20   : 0000000000000000 a800000195fda100
-0000000000000001 ffffffff81221f70
-[ 7078.087807] $24   : 2000000000000000 ffffffff8077fb38
-[ 7078.095872] $28   : a8000003bd5bc000 a8000003bd5bf8a0
-a8000003bd5bf9d0 ffffffff8077f9a0
-[ 7078.103937] Hi    : 0000000000000000
-[ 7078.107511] Lo    : 0000000000000420
-[ 7078.111095] epc   : ffffffff8077fa28 ip6_pkt_drop+0x110/0x1e0
-[ 7078.116841]     Not tainted
-[ 7078.119636] ra    : ffffffff8077f9a0 ip6_pkt_drop+0x88/0x1e0
-[ 7078.125295] Status: 10108ce3    KX SX UX KERNEL EXL IE
-[ 7078.130605] Cause : 00800008
-[ 7078.133485] BadVA : 0000000100000068
-[ 7078.137060] PrId  : 000d910a (Cavium Octeon II)
-[ 7078.141590] Modules linked in: ip_tables iptable_filter
-iptable_mangle ip6_tables ip6table_filter ip6table_mangle mloopback
-bonding bfpga octeon_pow_ether nfnetlink nfnetlink_queue xt_DSCP
-xt_NFQUEUE [last unloaded: scsi_wait_scan]
-[ 7078.162303] Process wamgr (pid: 1087, threadinfo=a8000003bd5bc000,
-task=a80000043edc5400, tls=000000555d1192b0)
-[ 7078.172391] Stack : 0000000000000004 a800000195fda500
-a800000195f83000 a800000195fda500
-[ 7078.180270]         a80000043fda2900 ffffffff806fda9c
-ffffffff81116f18 a800000188cfe010
-[ 7078.188335]         0000000000000001 a80000018aa9e414
-a80000043fda2940 a8000003bd5bf960
-[ 7078.196399]         a800000195f83000 ffffffffc00add20
-0020000000000000 a80000018aa9e400
-[ 7078.204463]         a800000195fda100 a80000018aa9e400
-a800000195fda100 ffffffffc00ae788
-[ 7078.212527]         ffffffffc00ae8b8 a8000003bd5bf9d0
-a800000195fda100 ffffffffc00a43bc
-[ 7078.220592]         0000000000000000 0000000000000000
-a80000018aa9e414 0000000000000000
-[ 7078.228656]         0000000000000000 0000000000000000
-0000000000000000 0000000000000000
-[ 7078.236720]         0000000000000000 0000000000000000
-0000000000000000 a8000003bd5bf930
-[ 7078.244784]         ffffffff803b0c68 00000000ffffff01
-a80000018aa9e414 0000000000000020
-[ 7078.252848]         ...
-[ 7078.255502] Call Trace:
-[ 7078.257951] [<ffffffff8077fa28>] ip6_pkt_drop+0x110/0x1e0
-[ 7078.263353] [<ffffffff806fda9c>] nf_reinject+0x9c/0x180
-[ 7078.268585] [<ffffffffc00add20>] nfqnl_recv_verdict+0x2a8/0x368
-[nfnetlink_queue]
-[ 7078.276074] [<ffffffffc00a43bc>] nfnetlink_rcv_msg+0x21c/0x320 [nfnetlink]
-[ 7078.282950]
-[ 7078.284440]
-[ 7078.284442] Code: 000528f8  7ca2120a  0083182d <dc630008> 00c3302d
-00c2302d  dcc20000  64420001  081dfe53
-[ 7078.295797] Disabling lock debugging due to kernel taint
-[ 7078.301148] Kernel panic - not syncing: Fatal exception in interrupt
-[ 7088.034346] INFO: RCU detected CPU 0 stall (t=2500 jiffies)
-[ 7118.034349] INFO: RCU detected CPU 0 stall (t=10000 jiffies)
-[ 7148.034347] INFO: RCU detected CPU 0 stall (t=17500 jiffies)
-[ 7178.034346] INFO: RCU detected CPU 0 stall (t=25000 jiffies)
+On 2013/12/23 13:57, Chen Weilong wrote:
+> From: Weilong Chen <chenweilong@huawei.com>
+> 
+> 
+> Weilong Chen (7):
+>   ipv4: do clean up with spaces
+>   ipv4: fix checkpatch error "space prohibited XXX"
+>   ipv4: fix checkpatch error with foo * bar
+>   ipv4: fix all space errors in file igmp.c
+>   ipv4: ERROR: do not initialise globals to 0 or NULL
+>   ipv4: ERROR: code indent should use tabs where possible
+>   ipv4: ipv4: Cleanup the comments in tcp_yeah.c
+> 
+>  net/ipv4/cipso_ipv4.c                  |  9 ++---
+>  net/ipv4/igmp.c                        | 70 +++++++++++++++++-----------------
+>  net/ipv4/inetpeer.c                    |  4 +-
+>  net/ipv4/ip_options.c                  | 12 +++---
+>  net/ipv4/netfilter/nf_nat_snmp_basic.c | 12 +++---
+>  net/ipv4/syncookies.c                  |  2 +-
+>  net/ipv4/sysctl_net_ipv4.c             |  2 +-
+>  net/ipv4/tcp_input.c                   |  4 +-
+>  net/ipv4/tcp_ipv4.c                    |  2 +-
+>  net/ipv4/tcp_probe.c                   |  4 +-
+>  net/ipv4/tcp_yeah.c                    | 20 +++++-----
+>  net/ipv4/xfrm4_mode_beet.c             |  2 +-
+>  12 files changed, 70 insertions(+), 73 deletions(-)
+> 
+There was an error occurred when send these patches.
+Please ignore this patch set.
+I will resend them.
