@@ -1,105 +1,49 @@
-From: Fan Du <fan.du@windriver.com>
-Subject: Re: [PATCH net-next 0/2] netfilter: IPv4/v6 IPcomp match support
-Date: Tue, 24 Dec 2013 14:19:57 +0800
-Message-ID: <52B9278D.4020905@windriver.com>
-References: <1386937082-30412-1-git-send-email-fan.du@windriver.com> <20131217130555.GA8874@localhost> <52B26841.40800@windriver.com> <20131220090419.GA5661@localhost> <52B40C01.7070406@windriver.com> <20131223121337.GA5373@localhost>
+From: Ed W <lists@wildgooses.com>
+Subject: Re: [PATCHv2] iptables: link against libnetfilter_conntrack
+Date: Tue, 24 Dec 2013 16:00:49 +0000
+Message-ID: <52B9AFB1.5070903@wildgooses.com>
+References: <1376411824-22311-1-git-send-email-gustavo@zacarias.com.ar> <alpine.LSU.2.10.9.1308132051420.22862@nerf07.vanv.qr> <20130823200346.GC5311@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <davem@davemloft.net>, <steffen.klassert@secunet.com>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:56538 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914Ab3LXGUV (ORCPT
+Received: from mail1.nippynetworks.com ([91.220.24.129]:53102 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab3LXQKz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Dec 2013 01:20:21 -0500
-In-Reply-To: <20131223121337.GA5373@localhost>
+	Tue, 24 Dec 2013 11:10:55 -0500
+In-Reply-To: <20130823200346.GC5311@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-On 2013=E5=B9=B412=E6=9C=8823=E6=97=A5 20:13, Pablo Neira Ayuso wrote:
-> Hi,
+On 23/08/2013 21:03, Florian Westphal wrote:
+> Jan Engelhardt <jengelh@inai.de> wrote:
+>> On Tuesday 2013-08-13 18:37, Gustavo Zacarias wrote:
+>>> diff --git a/iptables/Makefile.am b/iptables/Makefile.am
+>>> index a4246eb..6390b7c 100644
+>>> --- a/iptables/Makefile.am
+>>> +++ b/iptables/Makefile.am
+>>> @@ -21,6 +21,9 @@ xtables_multi_SOURCES += ip6tables-save.c ip6tables-restore.c \
+>>> xtables_multi_CFLAGS  += -DENABLE_IPV6
+>>> xtables_multi_LDADD   += ../libiptc/libip6tc.la ../extensions/libext6.a
+>>> endif
+>>> +if HAVE_LIBNETFILTER_CONNTRACK
+>>> +xtables_multi_LDADD += @libnetfilter_conntrack_LIBS@
+>>> +endif
+>>> xtables_multi_SOURCES += xshared.c
+>>> xtables_multi_LDADD   += ../libxtables/libxtables.la -lm
+>> The righteous patch would be something like the following.
+> [..]
 >
-> On Fri, Dec 20, 2013 at 05:21:05PM +0800, Fan Du wrote:
-> [...]
->>> AH is not the last header, so we still have to use ipv6_find_hdr() =
-to
->>> find the good header instead of par->thoff. Note that the ip6_table=
-s
->>> sets par->thoff to the last IPv6 extension header.
->>
->> I'm quite new to the internal of netfiler, especially about this par=
-t.
->> I will take a look at the code later.
->>
->>> This rises some concerns regarding your ipcomp, I think that if you
->>> use this with ah and esp, the ordering of the headers is
->>> ah+ipcomp+esp, right?
->>
->> This depends on the user land configuration of encapsulation order.
->> It can be one of the three types only(ah, esp, ipcomp), the most com=
-monly
->> used is ah(outer)+esp(inner).
->>
->> I barely see ipcomp used in production, but I remember RFC says ipco=
-mp
->> should be done first before esp, because after encryption in esp, th=
-e data
->> is polluted, i.e., not suitable for compressed anymore(I'm not sure =
-the
->> details theory behind this statement.)
->
-> In that case we have to use ipv6_find_hdr(..., IPPROTO_IPCOMP, ...),
-> since par->thoff will point to the last header which is esp. After
-> this change, the ipcomp ipv6 match will look very similar to what you
-> have in ah_mt6(...) in net/ipv6/netfilter/ip6t_ah.c. Please, rework
-> that in your ipcomp match patch and resend. Thanks.
->
+> Applied to stable-1.4.20, thanks everyone.
 
-Hi Pablo
+I don't see this patch in release 1.4.21 ?  Can you please confirm (and 
+pull code to master if necessary)
 
-I think we don't need to rework this patch set back to v1 by using ipv6=
-_find_hdr
-for IPv6 part, because IPcomp shared the same characteristic as esp, th=
-at's hiding
-upper layer protocol.
+Thanks
 
-=46or a packet encapsulated in order of ah->esp->ah->original packet, a=
-s you said
-par->thoff is set at esp, that's why netfilter esp has a unified implem=
-entation
-in net/netfilter/xt_esp.c, because it's always the last parse header ne=
-tfilter
-can reach.
+Ed W
 
-The same rule apply with IPcomp, for example,
-(1) ah->ipcomp->original packet
-          ^par->thoff
-(2) ipcomp->ah->original packet
-       ^par->thoff
-
-Both cases (1) and (2) par->thoff can only point into IPcomp header, so=
- in such
-circumstance, a unified implementation for both IPv4/6 is feasible, and=
- I have
-tested (2) in such implementation, it works anyway.
-
-IMO, a unified implementation suggested by you previous is ok for this =
-round review.
-
-
---=20
-=E6=B5=AE=E6=B2=89=E9=9A=8F=E6=B5=AA=E5=8F=AA=E8=AE=B0=E4=BB=8A=E6=9C=9D=
-=E7=AC=91
-
---fan
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
