@@ -1,74 +1,81 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] files: replace interpreter during installation
-Date: Tue, 24 Dec 2013 02:21:09 +0100
-Message-ID: <20131224012109.21061.76735.stgit@nfdev.cica.es>
+From: <remoteshaman.com@gmail.com>
+Subject: [xtables-addons-1.47.1] compilation failed - compat_xtables.c:633: error: too few arguments to function ipv6_find_hdr
+Date: Tue, 24 Dec 2013 07:35:47 +0200
+Message-ID: <41F4D5ABA9054FE4A2A4ED721C046297@torbaf407ff5ef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	format=flowed;
+	charset="koi8-r";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:50511 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752817Ab3LXBVS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Dec 2013 20:21:18 -0500
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:35382 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750714Ab3LXFf5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Dec 2013 00:35:57 -0500
+Received: by mail-ea0-f179.google.com with SMTP id r15so2708843ead.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Dec 2013 21:35:56 -0800 (PST)
+Received: from torbaf407ff5ef ([195.5.1.100])
+        by mx.google.com with ESMTPSA id e43sm51715736eep.7.2013.12.23.21.35.54
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Mon, 23 Dec 2013 21:35:54 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Many systems (for example Debian) don't recognice `#!nft -f' as a
-valid interpreter.
+Hello!
 
-A short way to handle this is to provide the full path to the interpreter
-in the shebang.
-That is what this patch does: update the shebang's path during installation.
+compilation failed in CentOS: 2.6.32-431.1.2.0.1.el6.x86_64 - 
+compat_xtables.c:633: error: too few arguments to function ipv6_find_hdr
+```
+# ./configure
+# make
+make  all-recursive
+make[1]: Entering directory `/usr/local/src/xtables-addons-1.47.1'
+Making all in extensions
+make[2]: Entering directory
+`/usr/local/src/xtables-addons-1.47.1/extensions'
+Xtables-addons 1.47.1 - Linux 2.6.32-431.1.2.0.1.el6.x86_64
+if [ -n "/lib/modules/2.6.32-431.1.2.0.1.el6.x86_64/build" ]; then make -C
+/lib/
+modules/2.6.32-431.1.2.0.1.el6.x86_64/build
+M=/usr/local/src/xtables-addons-1.47
+.1/extensions modules; fi;
+make[3]: Entering directory `/usr/src/kernels/2.6.32-431.1.2.0.1.el6.x86_64'
+  CC [M]  /usr/local/src/xtables-addons-1.47.1/extensions/compat_xtables.o
+/usr/local/src/xtables-addons-1.47.1/extensions/compat_xtables.c: In
+function 'x
+tnu_ipv6_find_hdr':
+/usr/local/src/xtables-addons-1.47.1/extensions/compat_xtables.c:633: error:
+too
+ few arguments to function 'ipv6_find_hdr'
+make[4]: ***
+[/usr/local/src/xtables-addons-1.47.1/extensions/compat_xtables.o]
+Error 1
+make[3]: *** [_module_/usr/local/src/xtables-addons-1.47.1/extensions] Error
+2
+make[3]: Leaving directory `/usr/src/kernels/2.6.32-431.1.2.0.1.el6.x86_64'
+make[2]: *** [modules] Error 2
+make[2]: Leaving directory `/usr/local/src/xtables-addons-1.47.1/extensions'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/usr/local/src/xtables-addons-1.47.1'
+make: *** [all] Error 2
+```
+# diff /usr/src/kernels/2.6.32-358.23.2.el6.x86_64/include/li
+nux/netfilter_ipv6/ip6_tables.h
+/usr/src/kernels/2.6.32-431.1.2.0.1.el6.x86_64/i
+nclude/linux/netfilter_ipv6/ip6_tables.h
+320,322d319
+< /* find specified header and get offset to it */
+< extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+<                        int target, unsigned short *fragoff);
+```
+[PATCH] netfilter: move ipv6_find_hdr to net/ipv6/netfilter.c and rename it 
+www.spinics.net/lists/netfilter-devel/msg24187.html
 
-For example, if you are installing under /usr/local, the shebang becomes:
- #!/usr/local/sbin/nft -f
+how to compile xtables-addons-1.47.1?;(
 
-If using --prefix=/, then:
- #!/sbin/nft -f
-
-NOTE: If the shebang in source files are changed in a future, this sed script
-should be updated as well.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- Makefile.defs.in  |    1 +
- configure.ac      |    1 +
- files/Makefile.in |    1 +
- 3 files changed, 3 insertions(+)
-
-diff --git a/Makefile.defs.in b/Makefile.defs.in
-index 502f374..3fee9c2 100644
---- a/Makefile.defs.in
-+++ b/Makefile.defs.in
-@@ -5,6 +5,7 @@ LEX		= @LEX@
- YACC		= @YACC@
- MKDIR_P		= @MKDIR_P@
- INSTALL		= @INSTALL@
-+SED		= @SED@
- 
- PACKAGE_TARNAME	= @PACKAGE_TARNAME@
- 
-diff --git a/configure.ac b/configure.ac
-index 811d7e2..ca14d83 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -23,6 +23,7 @@ AC_SUBST([CONFIG_DEBUG])
- AC_PROG_CC
- AC_PROG_MKDIR_P
- AC_PROG_INSTALL
-+AC_PROG_SED
- 
- AC_CHECK_PROG(CONFIG_MAN, docbook2x-man, y, n)
- if test "$CONFIG_MAN" != "y"
-diff --git a/files/Makefile.in b/files/Makefile.in
-index cd67c37..563383b 100644
---- a/files/Makefile.in
-+++ b/files/Makefile.in
-@@ -2,3 +2,4 @@ install:
- 	@echo -e "  INSTALL\tfiles"
- 	$(MKDIR_P) $(DESTDIR)/$(confdir)
- 	$(INSTALL) -m 755 -o root -g root $(SUBDIR)nftables/* $(DESTDIR)/$(confdir)/
-+	$(SED) -i "s~#\! nft~#\!@sbindir@/nft~" $(DESTDIR)/$(confdir)/*
+Thanks!
 
