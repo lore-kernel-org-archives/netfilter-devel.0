@@ -1,49 +1,42 @@
-From: Ed W <lists@wildgooses.com>
-Subject: Re: [PATCHv2] iptables: link against libnetfilter_conntrack
-Date: Tue, 24 Dec 2013 16:00:49 +0000
-Message-ID: <52B9AFB1.5070903@wildgooses.com>
-References: <1376411824-22311-1-git-send-email-gustavo@zacarias.com.ar> <alpine.LSU.2.10.9.1308132051420.22862@nerf07.vanv.qr> <20130823200346.GC5311@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next 0/2] netfilter: IPv4/v6 IPcomp match support
+Date: Tue, 24 Dec 2013 19:16:14 +0100
+Message-ID: <20131224181614.GA26270@localhost>
+References: <1386937082-30412-1-git-send-email-fan.du@windriver.com>
+ <20131217130555.GA8874@localhost>
+ <52B26841.40800@windriver.com>
+ <20131220090419.GA5661@localhost>
+ <52B40C01.7070406@windriver.com>
+ <20131223121337.GA5373@localhost>
+ <52B9278D.4020905@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.nippynetworks.com ([91.220.24.129]:53102 "EHLO
-	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab3LXQKz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Dec 2013 11:10:55 -0500
-In-Reply-To: <20130823200346.GC5311@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, steffen.klassert@secunet.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Fan Du <fan.du@windriver.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52B9278D.4020905@windriver.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 23/08/2013 21:03, Florian Westphal wrote:
-> Jan Engelhardt <jengelh@inai.de> wrote:
->> On Tuesday 2013-08-13 18:37, Gustavo Zacarias wrote:
->>> diff --git a/iptables/Makefile.am b/iptables/Makefile.am
->>> index a4246eb..6390b7c 100644
->>> --- a/iptables/Makefile.am
->>> +++ b/iptables/Makefile.am
->>> @@ -21,6 +21,9 @@ xtables_multi_SOURCES += ip6tables-save.c ip6tables-restore.c \
->>> xtables_multi_CFLAGS  += -DENABLE_IPV6
->>> xtables_multi_LDADD   += ../libiptc/libip6tc.la ../extensions/libext6.a
->>> endif
->>> +if HAVE_LIBNETFILTER_CONNTRACK
->>> +xtables_multi_LDADD += @libnetfilter_conntrack_LIBS@
->>> +endif
->>> xtables_multi_SOURCES += xshared.c
->>> xtables_multi_LDADD   += ../libxtables/libxtables.la -lm
->> The righteous patch would be something like the following.
-> [..]
->
-> Applied to stable-1.4.20, thanks everyone.
+On Tue, Dec 24, 2013 at 02:19:57PM +0800, Fan Du wrote:
+> For a packet encapsulated in order of ah->esp->ah->original packet, as you said
+> par->thoff is set at esp, that's why netfilter esp has a unified implementation
+> in net/netfilter/xt_esp.c, because it's always the last parse header netfilter
+> can reach.
+> 
+> The same rule apply with IPcomp, for example,
+> (1) ah->ipcomp->original packet
+>          ^par->thoff
+> (2) ipcomp->ah->original packet
+>       ^par->thoff
+> 
+> Both cases (1) and (2) par->thoff can only point into IPcomp header, so in such
+> circumstance, a unified implementation for both IPv4/6 is feasible, and I have
+> tested (2) in such implementation, it works anyway.
+> 
+> IMO, a unified implementation suggested by you previous is ok for this round review.
 
-I don't see this patch in release 1.4.21 ?  Can you please confirm (and 
-pull code to master if necessary)
-
-Thanks
-
-Ed W
-
+Your right, I forgot the fact that ipcomp "hides" what it
+encapsulates, so it's basically the last header we can see.
