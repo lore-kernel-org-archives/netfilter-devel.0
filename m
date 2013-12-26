@@ -1,276 +1,199 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft kernel PATCH v3] netfilter: nf_tables: nft_meta module get/set
-	ops
-Date: Thu, 26 Dec 2013 16:38:01 +0100
-Message-ID: <20131226153533.25423.80213.stgit@nfdev.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: dump sets in all existing families
+Date: Thu, 26 Dec 2013 16:49:03 +0100
+Message-ID: <1388072943-22115-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48146 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753355Ab3LZPiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Dec 2013 10:38:11 -0500
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id BF96D51ED10
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Dec 2013 15:38:08 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id QpxfAcU7L47d for <netfilter-devel@vger.kernel.org>;
-	Thu, 26 Dec 2013 16:38:03 +0100 (CET)
-Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
-	by smtp.cica.es (Postfix) with ESMTP id 3E0EC51ED13
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Dec 2013 16:38:03 +0100 (CET)
+Received: from mail.us.es ([193.147.175.20]:56743 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753363Ab3LZPtS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Dec 2013 10:49:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds kernel support for the meta expression in get/set flavour.
-The set operation indicates that a given packet has to be set with a property,
-currently one of mark, priority, nftrace.
-The get op is what was currently working: evaluate the given packet property.
+This patch allows you to dump all sets available in all of
+the registered families. This allows you to use NFPROTO_UNSPEC
+to dump all existing sets, similarly to other existing table,
+chain and rule operations.
 
-In case of nftrace, the value is always 1. Such behaviour is copied
-from net/netfilter/xt_TRACE.c
+This patch is based on original patch from Arturo Borrero
+Gonz=C3=A1lez.
 
-NFTA_META_DREG and NFTA_META_SREG attributes are mutually exclusives.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v1: initial release of the patch
-v2: address comments from Tomasz in the kernel side: respect the order of the
-    enums. Also, other cleanups.
-v3: use a nftables register to set the given packet value. Drop secmark.
+ net/netfilter/nf_tables_api.c |   87 +++++++++++++++++++++++++++++++++=
++++-----
+ 1 file changed, 78 insertions(+), 9 deletions(-)
 
- include/uapi/linux/netfilter/nf_tables.h |    2 
- net/netfilter/nft_meta.c                 |  149 +++++++++++++++++++++++++-----
- 2 files changed, 125 insertions(+), 26 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 256d36b..2c38a54 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -553,11 +553,13 @@ enum nft_meta_keys {
-  *
-  * @NFTA_META_DREG: destination register (NLA_U32)
-  * @NFTA_META_KEY: meta data item to load (NLA_U32: nft_meta_keys)
-+ * @NFTA_META_SREG: source register (NLA_U32)
-  */
- enum nft_meta_attributes {
- 	NFTA_META_UNSPEC,
- 	NFTA_META_DREG,
- 	NFTA_META_KEY,
-+	NFTA_META_SREG,
- 	__NFTA_META_MAX
- };
- #define NFTA_META_MAX		(__NFTA_META_MAX - 1)
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 8c28220..7008247 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -21,12 +21,15 @@
- 
- struct nft_meta {
- 	enum nft_meta_keys	key:8;
--	enum nft_registers	dreg:8;
-+	union {
-+		enum nft_registers	dreg:8;
-+		enum nft_registers	sreg:8;
-+	};
- };
- 
--static void nft_meta_eval(const struct nft_expr *expr,
--			  struct nft_data data[NFT_REG_MAX + 1],
--			  const struct nft_pktinfo *pkt)
-+static void nft_meta_get_eval(const struct nft_expr *expr,
-+			      struct nft_data data[NFT_REG_MAX + 1],
-+			      const struct nft_pktinfo *pkt)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
+i.c
+index 1058db4..adcdd0d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1904,12 +1904,14 @@ static int nft_ctx_init_from_setattr(struct nft=
+_ctx *ctx,
  {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
-@@ -132,23 +135,50 @@ err:
- 	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
+ 	struct net *net =3D sock_net(skb->sk);
+ 	const struct nfgenmsg *nfmsg =3D nlmsg_data(nlh);
+-	const struct nft_af_info *afi;
++	const struct nft_af_info *afi =3D NULL;
+ 	const struct nft_table *table =3D NULL;
+=20
+-	afi =3D nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
+-	if (IS_ERR(afi))
+-		return PTR_ERR(afi);
++	if (nfmsg->nfgen_family !=3D NFPROTO_UNSPEC) {
++		afi =3D nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
++		if (IS_ERR(afi))
++			return PTR_ERR(afi);
++	}
+=20
+ 	if (nla[NFTA_SET_TABLE] !=3D NULL) {
+ 		table =3D nf_tables_table_lookup(afi, nla[NFTA_SET_TABLE]);
+@@ -2075,8 +2077,8 @@ done:
+ 	return skb->len;
  }
- 
-+static void nft_meta_set_eval(const struct nft_expr *expr,
-+			      struct nft_data data[NFT_REG_MAX + 1],
-+			      const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_meta *meta = nft_expr_priv(expr);
-+	struct sk_buff *skb = pkt->skb;
-+	u32 value = data[meta->sreg].data[0];
-+
-+	switch (meta->key) {
-+	case NFT_META_MARK:
-+		skb->mark = value;
-+		break;
-+	case NFT_META_PRIORITY:
-+		skb->priority = value;
-+		break;
-+	case NFT_META_NFTRACE:
-+		skb->nf_trace = 1;
-+		break;
-+	default:
-+		WARN_ON(1);
-+	}
-+}
-+
- static const struct nla_policy nft_meta_policy[NFTA_META_MAX + 1] = {
- 	[NFTA_META_DREG]	= { .type = NLA_U32 },
- 	[NFTA_META_KEY]		= { .type = NLA_U32 },
-+	[NFTA_META_SREG]	= { .type = NLA_U32 },
- };
- 
--static int nft_meta_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
--			 const struct nlattr * const tb[])
-+static int nft_meta_init_validate_set(uint32_t key)
+=20
+-static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff=
+ *skb,
+-				   struct netlink_callback *cb)
++static int nf_tables_dump_sets_family(struct nft_ctx *ctx, struct sk_b=
+uff *skb,
++				      struct netlink_callback *cb)
  {
--	struct nft_meta *priv = nft_expr_priv(expr);
--	int err;
--
--	if (tb[NFTA_META_DREG] == NULL ||
--	    tb[NFTA_META_KEY] == NULL)
--		return -EINVAL;
-+	switch (key) {
-+	case NFT_META_MARK:
-+	case NFT_META_PRIORITY:
-+	case NFT_META_NFTRACE:
-+		return 0;
-+	default:
-+		return -1;
-+	}
-+}
- 
--	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
--	switch (priv->key) {
-+static int nft_meta_init_validate_get(uint32_t key)
+ 	const struct nft_set *set;
+ 	unsigned int idx, s_idx =3D cb->args[0];
+@@ -2114,6 +2116,61 @@ done:
+ 	return skb->len;
+ }
+=20
++static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff=
+ *skb,
++				   struct netlink_callback *cb)
 +{
-+	switch (key) {
- 	case NFT_META_LEN:
- 	case NFT_META_PROTOCOL:
- 	case NFT_META_PRIORITY:
-@@ -167,26 +197,66 @@ static int nft_meta_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- #ifdef CONFIG_NETWORK_SECMARK
- 	case NFT_META_SECMARK:
- #endif
--		break;
-+		return 0;
- 	default:
--		return -EOPNOTSUPP;
-+		return -1;
++	const struct nft_set *set;
++	unsigned int idx, s_idx =3D cb->args[0];
++	const struct nft_af_info *afi;
++	struct nft_table *table, *cur_table =3D (struct nft_table *)cb->args[=
+2];
++	struct net *net =3D sock_net(skb->sk);
++	int cur_family =3D cb->args[3];
++
++	if (cb->args[1])
++		return skb->len;
++
++	list_for_each_entry(afi, &net->nft.af_info, list) {
++		if (cur_family) {
++			if (afi->family !=3D cur_family)
++				continue;
++
++			cur_family =3D 0;
++		}
++
++		list_for_each_entry(table, &afi->tables, list) {
++			if (cur_table) {
++				if (cur_table !=3D table)
++					continue;
++
++				cur_table =3D NULL;
++			}
++
++			ctx->table =3D table;
++			ctx->afi =3D afi;
++			idx =3D 0;
++			list_for_each_entry(set, &ctx->table->sets, list) {
++				if (idx < s_idx)
++					goto cont;
++				if (nf_tables_fill_set(skb, ctx, set,
++						       NFT_MSG_NEWSET,
++						       NLM_F_MULTI) < 0) {
++					cb->args[0] =3D idx;
++					cb->args[2] =3D (unsigned long) table;
++					cb->args[3] =3D afi->family;
++					goto done;
++				}
++cont:
++				idx++;
++			}
++			if (s_idx)
++				s_idx =3D 0;
++		}
++	}
++	cb->args[1] =3D 1;
++done:
++	return skb->len;
++}
++
+ static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_cal=
+lback *cb)
+ {
+ 	const struct nfgenmsg *nfmsg =3D nlmsg_data(cb->nlh);
+@@ -2130,9 +2187,12 @@ static int nf_tables_dump_sets(struct sk_buff *s=
+kb, struct netlink_callback *cb)
+ 	if (err < 0)
+ 		return err;
+=20
+-	if (ctx.table =3D=3D NULL)
+-		ret =3D nf_tables_dump_sets_all(&ctx, skb, cb);
+-	else
++	if (ctx.table =3D=3D NULL) {
++		if (ctx.afi =3D=3D NULL)
++			ret =3D nf_tables_dump_sets_all(&ctx, skb, cb);
++		else
++			ret =3D nf_tables_dump_sets_family(&ctx, skb, cb);
++	} else
+ 		ret =3D nf_tables_dump_sets_table(&ctx, skb, cb);
+=20
+ 	return ret;
+@@ -2145,6 +2205,7 @@ static int nf_tables_getset(struct sock *nlsk, st=
+ruct sk_buff *skb,
+ 	const struct nft_set *set;
+ 	struct nft_ctx ctx;
+ 	struct sk_buff *skb2;
++	const struct nfgenmsg *nfmsg =3D nlmsg_data(nlh);
+ 	int err;
+=20
+ 	/* Verify existance before starting dump */
+@@ -2159,6 +2220,10 @@ static int nf_tables_getset(struct sock *nlsk, s=
+truct sk_buff *skb,
+ 		return netlink_dump_start(nlsk, skb, nlh, &c);
  	}
- 
--	priv->dreg = ntohl(nla_get_be32(tb[NFTA_META_DREG]));
--	err = nft_validate_output_register(priv->dreg);
--	if (err < 0)
--		return err;
--	return nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
- }
- 
--static int nft_meta_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static int nft_meta_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+			 const struct nlattr * const tb[])
-+{
-+	struct nft_meta *priv = nft_expr_priv(expr);
-+	int err;
+=20
++	/* Only accept unspec with dump */
++	if (nfmsg->nfgen_family =3D=3D NFPROTO_UNSPEC)
++		return -EAFNOSUPPORT;
 +
-+	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
-+
-+	if (tb[NFTA_META_DREG]) {
-+		if (nft_meta_init_validate_get(priv->key) != 0)
-+			return -EOPNOTSUPP;
-+
-+		priv->dreg = ntohl(nla_get_be32(tb[NFTA_META_DREG]));
-+		err = nft_validate_output_register(priv->dreg);
-+		if (err < 0)
-+			return err;
-+		return nft_validate_data_load(ctx, priv->dreg, NULL,
-+					      NFT_DATA_VALUE);
-+	}
-+
-+	if (nft_meta_init_validate_set(priv->key) != 0)
-+		return -EOPNOTSUPP;
-+
-+	priv->sreg = ntohl(nla_get_be32(tb[NFTA_META_SREG]));
-+
-+	return 0;
-+}
-+
-+static int nft_meta_get_dump(struct sk_buff *skb,
-+			     const struct nft_expr *expr)
+ 	set =3D nf_tables_set_lookup(ctx.table, nla[NFTA_SET_NAME]);
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
+@@ -2328,6 +2393,7 @@ static int nf_tables_delset(struct sock *nlsk, st=
+ruct sk_buff *skb,
+ 			    const struct nlmsghdr *nlh,
+ 			    const struct nlattr * const nla[])
  {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 
-+	if (nla_put_be32(skb, NFTA_META_KEY, htonl(priv->key)))
-+		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_META_DREG, htonl(priv->dreg)))
- 		goto nla_put_failure;
-+	return 0;
++	const struct nfgenmsg *nfmsg =3D nlmsg_data(nlh);
+ 	struct nft_set *set;
+ 	struct nft_ctx ctx;
+ 	int err;
+@@ -2339,6 +2405,9 @@ static int nf_tables_delset(struct sock *nlsk, st=
+ruct sk_buff *skb,
+ 	if (err < 0)
+ 		return err;
+=20
++	if (nfmsg->nfgen_family =3D=3D NFPROTO_UNSPEC)
++		return -EAFNOSUPPORT;
 +
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static int nft_meta_set_dump(struct sk_buff *skb,
-+			     const struct nft_expr *expr)
-+{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
-+
- 	if (nla_put_be32(skb, NFTA_META_KEY, htonl(priv->key)))
- 		goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_META_SREG, htonl(priv->sreg)))
-+		goto nla_put_failure;
-+
- 	return 0;
- 
- nla_put_failure:
-@@ -194,17 +264,44 @@ nla_put_failure:
- }
- 
- static struct nft_expr_type nft_meta_type;
--static const struct nft_expr_ops nft_meta_ops = {
-+static const struct nft_expr_ops nft_meta_get_ops = {
- 	.type		= &nft_meta_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
--	.eval		= nft_meta_eval,
-+	.eval		= nft_meta_get_eval,
- 	.init		= nft_meta_init,
--	.dump		= nft_meta_dump,
-+	.dump		= nft_meta_get_dump,
- };
- 
-+static const struct nft_expr_ops nft_meta_set_ops = {
-+	.type		= &nft_meta_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
-+	.eval		= nft_meta_set_eval,
-+	.init		= nft_meta_init,
-+	.dump		= nft_meta_set_dump,
-+};
-+
-+static const struct nft_expr_ops *
-+nft_meta_select_ops(const struct nft_ctx *ctx,
-+		    const struct nlattr * const tb[])
-+{
-+	if (!tb[NFTA_META_KEY])
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_META_DREG] && tb[NFTA_META_SREG])
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_META_DREG])
-+		return &nft_meta_get_ops;
-+
-+	if (tb[NFTA_META_SREG])
-+		return &nft_meta_set_ops;
-+
-+	return ERR_PTR(-EINVAL);
-+}
-+
- static struct nft_expr_type nft_meta_type __read_mostly = {
- 	.name		= "meta",
--	.ops		= &nft_meta_ops,
-+	.select_ops	= &nft_meta_select_ops,
- 	.policy		= nft_meta_policy,
- 	.maxattr	= NFTA_META_MAX,
- 	.owner		= THIS_MODULE,
+ 	set =3D nf_tables_set_lookup(ctx.table, nla[NFTA_SET_NAME]);
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
+--=20
+1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
