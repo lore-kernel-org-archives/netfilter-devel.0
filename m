@@ -1,122 +1,109 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH 1/2] netfilter: REJECT: separate reusable code
-Date: Fri, 27 Dec 2013 15:51:32 +0100
-Message-ID: <1388155892.6117.7.camel@ice-age2.regit.org>
-References: <1386722554-4827-1-git-send-email-eric@regit.org>
-	 <1386834281-28347-1-git-send-email-eric@regit.org>
-	 <1386834281-28347-2-git-send-email-eric@regit.org>
-	 <20131220095059.GA13371@localhost>
+From: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+Subject: Fwd: [PATCH] add hash:ip,mark data type to ipset
+Date: Fri, 27 Dec 2013 15:20:58 +0000
+Message-ID: <CACUMwTkwxuXn3g5jxy07m0-=hoQtKViTu6nyT7jtQe52DcDtJg@mail.gmail.com>
+References: <1383146590-4626-1-git-send-email-vytas.dauksa@smoothwall.net>
+	<alpine.DEB.2.10.1311112106200.8236@blackhole.kfki.hu>
+	<CACUMwTmRbK=tMMNhGe3BmhS4Fm76njtDPE=ez8TvO0HHBJ-bww@mail.gmail.com>
+	<alpine.DEB.2.10.1312032006500.32285@blackhole.kfki.hu>
+	<CACUMwTm3ed8eJPszf_f0iTop+vYeyGVX7_RHFc6su6z3hf_+Cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:39377 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753537Ab3L0Ovi (ORCPT
+Received: from exprod7og103.obsmtp.com ([64.18.2.159]:38527 "HELO
+	exprod7og103.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753604Ab3L0PVA convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Dec 2013 09:51:38 -0500
-In-Reply-To: <20131220095059.GA13371@localhost>
+	Fri, 27 Dec 2013 10:21:00 -0500
+Received: by mail-wg0-f42.google.com with SMTP id a1so12295745wgh.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Dec 2013 07:20:58 -0800 (PST)
+In-Reply-To: <CACUMwTm3ed8eJPszf_f0iTop+vYeyGVX7_RHFc6su6z3hf_+Cg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+thank you once again for review, few comments bellow, patches can be fo=
+und:
 
-On Fri, 2013-12-20 at 10:50 +0100, Pablo Neira Ayuso wrote:
-> Hi Eric,
-> 
-> Some comments on this patch.
-> 
-> On Thu, Dec 12, 2013 at 08:44:40AM +0100, Eric Leblond wrote:
-> > This patch prepares the addition of TCP reset support in
-> > the nft_reject module by moving reusable code into a header
-> > file.
-> > 
-> > Signed-off-by: Eric Leblond <eric@regit.org>
-> > ---
-> >  include/net/netfilter/nf_reject.h | 297 ++++++++++++++++++++++++++++++++++++++
-> >  net/ipv4/netfilter/ipt_REJECT.c   | 124 +---------------
-> >  net/ipv6/netfilter/ip6t_REJECT.c  | 177 +----------------------
-> >  3 files changed, 307 insertions(+), 291 deletions(-)
-> >  create mode 100644 include/net/netfilter/nf_reject.h
-> > 
-> > diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
-> > new file mode 100644
-> > index 0000000..0bb089a
-> > --- /dev/null
-> > +++ b/include/net/netfilter/nf_reject.h
-> > @@ -0,0 +1,297 @@
-> > +#ifndef _NF_REJECT_H
-> > +#define _NF_REJECT_H
-> > +
-> > +#include <net/ip.h>
-> > +#include <net/tcp.h>
-> > +#include <net/route.h>
-> > +#include <net/dst.h>
-> > +
-> > +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> > +#include <net/ipv6.h>
-> > +#include <net/ip6_route.h>
-> > +#include <linux/netfilter_ipv6.h>
-> > +#endif
-> > +
-> > +static inline void send_unreach(struct sk_buff *skb_in, int code)
-> > +{
-> > +	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
-> > +}
-> > +
-> > +/* Send RST reply */
-> > +static inline void send_reset(struct sk_buff *oldskb, int hook)
-> 
-> I think that this function is too large to use the inline approach
-> that we have used in nft_queue. I've been considering moving this
-> common code to a different module and export these symbols but I
-> don't find a nice way to make it.
-> 
-> So my suggestion is to have two different include files:
-> 
-> include/net/netfilter/ipv4/nf_reject.h, that contains:
-> 
->         static inline void send_unreach(...
->         static void send_reset(...
-> 
-> that you can include from ipt_REJECT and nft_reject.
-> 
-> And include/net/netfilter/ipv6/nf_reject.h, that contains:
-> 
->         static inline void send_unreach6(...
->         static void send_reset6(...
-> 
-> that you can include from ip6t_REJECT and nft_reject.
-> 
-> While at it, it is probably good to prepend the prefix nf_ to those
-> functions.
-> 
-> Let me know if you have any concern with this approach.
+[PATCH 0/1] add hash:ip,mark data type to ipset -
+http://marc.info/?l=3Dnetfilter-devel&m=3D138728893302103&w=3D2
 
-I've implemented this but there is a corner case that I don't like: if
-IPv6 is build as module then nft reject should be build as module too.
-Putting a dependency on IPv6 to nft reject is not working as IPv4 only
-setup will not be possible.
-So I only see two solutions:
-     1. We make IPv6 to be dependent of nft reject IPv6 (I don"t think
-        this is a good choice)
-     2. We keep two separate versions of the nft reject module (IPv4 and
-        IPv6) to avoid this problem (not satisfying solution).
+[PATCH 1/1] add markmask for hash:ip,mark data type -
+http://marc.info/?l=3Dnetfilter-devel&m=3D138728893302104&w=3D2
 
-Do you have a better idea ?
+On 3 December 2013 19:15, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> w=
+rote:
+>
+> > The intended use is similar to the ip:port type, but for protocols =
+which don't use
+> > a predictable port number. Instead of port number it matches a fire=
+wall mark
+> > determined by a layer 7 filtering program like opendpi, which will =
+be called
+> > by an earlier iptables rule.
+>
+> OK, I see.
+>
+> > I wasn't sure if it's best to set mark on individual entry within a=
+ set or for
+> > whole set with or without mask.
+> > What are your views on it? For now it's set on individual entries w=
+ithout mask.
+>
+> I think mark value and mask pair per element would be more useful and
+> flexible than a mark value alone. The "mark" match uses value[/mask],=
+ so
+> the same should be used here too.
+>
 
-I'm in favor of 2. as I think that it is a bit too much to act on IPv6
-configuration value.
+mark[/mask] has limitation that packet marks don't have precedence
+like ip netmask ( with most specific networks first ), so overlapping
+marks can't exist in the same set. Constantly parsing them, might
+introduce performance issues.
+Therefore, I implemented mark mask per set ( the same way as netmask
+is implemented in hash:ip ).
 
-FYI the build message is:
-net/built-in.o: In function `nft_reject_eval':
-:(.text+0x2774a): undefined reference to `nf_ip6_checksum'
-:(.text+0x27792): undefined reference to `ip6_route_output'
+A simple use case:
+user is interested in the first 11 bits of mark. User specifies
+markmask when creating set:
+ipset create mytest hash:ip,mark markmask 0xffe00000
 
+Thereafter, each time an entry is added to the set, it will perform
+bitwise AND using markmask value before mark is stored:
+ipset add mytest 1.1.1.1,0xf0345678
 
-BR,
--- 
-Eric Leblond <eric@regit.org>
+which results to 1.1.1.1,0xf0200000 being stored.
 
+However, if user is interested in all 32 bits, user should either
+specify markmask as 0xffffffff or leave it blank, as markmask defaults
+to 0xffffffff.
+
+I believe this is more clear and useful than markmask per entry.
+
+> There's one thing I spotted in your patch, in both *_uadt function:
+>
+> +       e.mark =3D htonl(nla_get_u32(tb[IPSET_ATTR_MARK]));
+>
+> The value is passed in network order back and forth, so it should be =
+at
+> both places:
+>
+> +       e.mark =3D ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
+>
+
+=46ixed
+
+--=20
+Vytas Dauksa
+Junior Developer
+vytas.dauksa@smoothwall.net
+
+Smoothwall Ltd
+Phone: +44 (0=AD) 8701 999500
+www.smoothwall.net
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
