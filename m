@@ -1,75 +1,33 @@
-From: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH nf-next v3] netfilter: xtables: lightweight process control
- group matching
-Date: Fri, 27 Dec 2013 09:05:37 +0100
-Message-ID: <52BD34D1.1040708@redhat.com>
-References: <cover.1387815795.git.dborkman@redhat.com> <7d845623366ba0d435d5c82bf318455871929e90.1387815795.git.dborkman@redhat.com> <52BCF04B.3070908@huawei.com>
+From: Alex Wei <alex.kern.mentor@gmail.com>
+Subject: nf_tables_api.c:nf_tables_update cause oops
+Date: Fri, 27 Dec 2013 17:33:08 +0800
+Message-ID: <CAFyS_9uJDMEvOnWzmif7ZFmDFCUTDeixPZEr2Co2F_GUb24gNA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
-Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52BCF04B.3070908-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ea0-f196.google.com ([209.85.215.196]:59487 "EHLO
+	mail-ea0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754179Ab3L0JdJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Dec 2013 04:33:09 -0500
+Received: by mail-ea0-f196.google.com with SMTP id q10so1872653ead.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Dec 2013 01:33:08 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/27/2013 04:13 AM, Li Zefan wrote:
-> On 2013/12/24 1:41, Daniel Borkmann wrote:
->> It would be useful e.g. in a server or desktop environment to have
->> a facility in the notion of fine-grained "per application" or "per
->> application group" firewall policies. Probably, users in the mobile,
->> embedded area (e.g. Android based) with different security policy
->> requirements for application groups could have great benefit from
->> that as well. For example, with a little bit of configuration effort,
->> an admin could whitelist well-known applications, and thus block
->> otherwise unwanted "hard-to-track" applications like [1] from a
->> user's machine. Blocking is just one example, but it is not limited
->> to that, meaning we can have much different scenarios/policies that
->> netfilter allows us than just blocking, e.g. fine grained settings
->> where applications are allowed to connect/send traffic to, application
->> traffic marking/conntracking, application-specific packet mangling,
->> and so on.
->>
->> Implementation of PID-based matching would not be appropriate
->> as they frequently change, and child tracking would make that
->> even more complex and ugly. Cgroups would be a perfect candidate
->> for accomplishing that as they associate a set of tasks with a
->> set of parameters for one or more subsystems, in our case the
->> netfilter subsystem, which, of course, can be combined with other
->> cgroup subsystems into something more complex if needed.
->>
->> As mentioned, to overcome this constraint, such processes could
->> be placed into one or multiple cgroups where different fine-grained
->> rules can be defined depending on the application scenario, while
->> e.g. everything else that is not part of that could be dropped (or
->> vice versa), thus making life harder for unwanted processes to
->> communicate to the outside world. So, we make use of cgroups here
->> to track jobs and limit their resources in terms of iptables
->> policies; in other words, limiting, tracking, etc what they are
->> allowed to communicate.
->>
->> In our case we're working on outgoing traffic based on which local
->> socket that originated from. Also, one doesn't even need to have
->> an a-prio knowledge of the application internals regarding their
->> particular use of ports or protocols. Matching is *extremly*
->> lightweight as we just test for the sk_classid marker of sockets,
->> originating from net_cls. net_cls and netfilter do not contradict
->> each other; in fact, each construct can live as standalone or they
->> can be used in combination with each other, which is perfectly fine,
->> plus it serves Tejun's requirement to not introduce a new cgroups
->> subsystem. Through this, we result in a very minimal and efficient
->> module, and don't add anything except netfilter code.
->>
-> 
-> I'd suggest splitting cls_cgroup code into 2 parts. The first part
-> is to manage cgroupfs and classid, and should be put into net/core/
-> and add a new config like NET_CGROUP_CLASSID for it. The second part
-> is specific cls_cgroup code.
+Hi,
+When I do these operations:
 
-Sure, if this is wished, I'd do this as a follow-up as it doesn't affect
-any of this code in netfilter here.
+#nft add table table1
+#nft add chain table1 chain1
+#nft-table-upd ip table1 dormant
 
-Thanks,
-Daniel
+there is a oops. the nft-table-upd program is from libnftables/examples.
+
+When we active or disactive a table, I think we should judge whether
+the chain of the table is a base-chain or not first, right?
+
+Best wishes.
+
+Alex Wei
