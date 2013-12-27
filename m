@@ -1,70 +1,44 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH net-next] netfilter: xtables make functions local
-Date: Fri, 27 Dec 2013 12:09:37 -0800
-Message-ID: <20131227120937.702bc383@nehalam.linuxnetplumber.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: fix wrong datatype in nft_validate_data_load()
+Date: Sat, 28 Dec 2013 00:59:38 +0100
+Message-ID: <1388188778-7590-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50899 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754924Ab3L0X7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Dec 2013 18:59:48 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-A couple of functions only used in x_tables, don't need to be global
+This patch fixes dictionary mappings, eg.
 
-Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+ add rule ip filter input meta mark set tcp dport map { 22 => 1, 23 => 2, }
 
+The kernel was returning -EINVAL in nft_validate_data_load() since
+the type of the set element data that is passed was the real userspace
+datatype instead of NFT_DATA_VALUE.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/x_tables.h |    2 --
- net/netfilter/x_tables.c           |    6 ++----
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/netfilter/x_tables.h	2013-12-24 15:14:54.502174551 -0800
-+++ b/include/linux/netfilter/x_tables.h	2013-12-24 15:16:01.889269178 -0800
-@@ -255,8 +255,6 @@ struct xt_table_info *xt_replace_table(s
- 				       struct xt_table_info *newinfo,
- 				       int *error);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b2624ed..d80480e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2434,7 +2434,9 @@ static int nf_tables_bind_check_setelem(const struct nft_ctx *ctx,
+ 	enum nft_registers dreg;
  
--struct xt_match *xt_find_match(u8 af, const char *name, u8 revision);
--struct xt_target *xt_find_target(u8 af, const char *name, u8 revision);
- struct xt_match *xt_request_find_match(u8 af, const char *name, u8 revision);
- struct xt_target *xt_request_find_target(u8 af, const char *name, u8 revision);
- int xt_find_revision(u8 af, const char *name, u8 revision, int target,
---- a/net/netfilter/x_tables.c	2013-12-24 15:14:54.502174551 -0800
-+++ b/net/netfilter/x_tables.c	2013-12-24 15:16:01.889269178 -0800
-@@ -189,7 +189,7 @@ EXPORT_SYMBOL(xt_unregister_matches);
-  */
- 
- /* Find match, grabs ref.  Returns ERR_PTR() on error. */
--struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
-+static struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
- {
- 	struct xt_match *m;
- 	int err = -ENOENT;
-@@ -216,7 +216,6 @@ struct xt_match *xt_find_match(u8 af, co
- 
- 	return ERR_PTR(err);
+ 	dreg = nft_type_to_reg(set->dtype);
+-	return nft_validate_data_load(ctx, dreg, &elem->data, set->dtype);
++	return nft_validate_data_load(ctx, dreg, &elem->data,
++				      set->dtype == NFT_DATA_VERDICT ?
++				      NFT_DATA_VERDICT : NFT_DATA_VALUE);
  }
--EXPORT_SYMBOL(xt_find_match);
  
- struct xt_match *
- xt_request_find_match(uint8_t nfproto, const char *name, uint8_t revision)
-@@ -234,7 +233,7 @@ xt_request_find_match(uint8_t nfproto, c
- EXPORT_SYMBOL_GPL(xt_request_find_match);
- 
- /* Find target, grabs ref.  Returns ERR_PTR() on error. */
--struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
-+static struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
- {
- 	struct xt_target *t;
- 	int err = -ENOENT;
-@@ -261,7 +260,6 @@ struct xt_target *xt_find_target(u8 af,
- 
- 	return ERR_PTR(err);
- }
--EXPORT_SYMBOL(xt_find_target);
- 
- struct xt_target *xt_request_find_target(u8 af, const char *name, u8 revision)
- {
+ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-- 
+1.7.10.4
+
