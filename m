@@ -1,33 +1,130 @@
-From: Alex Wei <alex.kern.mentor@gmail.com>
-Subject: nf_tables_api.c:nf_tables_update cause oops
-Date: Fri, 27 Dec 2013 17:26:07 +0800
-Message-ID: <CAFyS_9tD-T1ev1sOs7rhjxTA8bm2_3jDZPWVKWt2NfQJDr-ULg@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nf_tables_api.c:nf_tables_update cause oops
+Date: Fri, 27 Dec 2013 12:15:19 +0100
+Message-ID: <20131227111518.GA3789@localhost>
+References: <CAFyS_9uJDMEvOnWzmif7ZFmDFCUTDeixPZEr2Co2F_GUb24gNA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
+Cc: netfilter-devel@vger.kernel.org
+To: Alex Wei <alex.kern.mentor@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f196.google.com ([209.85.215.196]:47447 "EHLO
-	mail-ea0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754134Ab3L0Jm0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Dec 2013 04:42:26 -0500
-Received: by mail-ea0-f196.google.com with SMTP id q10so1875749ead.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Dec 2013 01:42:25 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:52534 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754388Ab3L0LPZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Dec 2013 06:15:25 -0500
+Content-Disposition: inline
+In-Reply-To: <CAFyS_9uJDMEvOnWzmif7ZFmDFCUTDeixPZEr2Co2F_GUb24gNA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-When I do these operations:
 
-#nft add table table1
-#nft add chain table1 chain1
-#nft-table-upd ip table1 dormant
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-there is a oops. the nft-table-upd program is from libnftables/examples.
+On Fri, Dec 27, 2013 at 05:33:08PM +0800, Alex Wei wrote:
+> Hi,
+> When I do these operations:
+> 
+> #nft add table table1
+> #nft add chain table1 chain1
+> #nft-table-upd ip table1 dormant
+> 
+> there is a oops. the nft-table-upd program is from libnftables/examples.
+> 
+> When we active or disactive a table, I think we should judge whether
+> the chain of the table is a base-chain or not first, right?
 
-When we active or disactive a table, I think we should judge whether
-the chain of the table is a base-chain or not first, right?
+Right, thanks for reporting. Fix is attached.
 
-Best wishes.
+--+HP7ph2BbKc20aGI
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-nf_tables-fix-oops-when-updating-table-wit.patch"
 
-Alex Wei
+>From 858c82cf0c6cbf63d1be65e3f1294b96226b19da Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 27 Dec 2013 10:44:23 +0100
+Subject: [PATCH] netfilter: nf_tables: fix oops when updating table with user
+ chains
+
+This patch fixes a crash while trying to deactivate a table that
+contains user chains. You can reproduce it via:
+
+% nft add table table1
+% nft add chain table1 chain1
+% nft-table-upd ip table1 dormant
+
+[  253.021026] BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+[  253.021114] IP: [<ffffffff8134cebd>] nf_register_hook+0x35/0x6f
+[  253.021167] PGD 30fa5067 PUD 30fa2067 PMD 0
+[  253.021208] Oops: 0000 [#1] SMP
+[...]
+[  253.023305] Call Trace:
+[  253.023331]  [<ffffffffa0885020>] nf_tables_newtable+0x11c/0x258 [nf_tables]
+[  253.023385]  [<ffffffffa0878592>] nfnetlink_rcv_msg+0x1f4/0x226 [nfnetlink]
+[  253.023438]  [<ffffffffa0878418>] ? nfnetlink_rcv_msg+0x7a/0x226 [nfnetlink]
+[  253.023491]  [<ffffffffa087839e>] ? nfnetlink_bind+0x45/0x45 [nfnetlink]
+[  253.023542]  [<ffffffff8134b47e>] netlink_rcv_skb+0x3c/0x88
+[  253.023586]  [<ffffffffa0878973>] nfnetlink_rcv+0x3af/0x3e4 [nfnetlink]
+[  253.023638]  [<ffffffff813fb0d4>] ? _raw_read_unlock+0x22/0x34
+[  253.023683]  [<ffffffff8134af17>] netlink_unicast+0xe2/0x161
+[  253.023727]  [<ffffffff8134b29a>] netlink_sendmsg+0x304/0x332
+[  253.023773]  [<ffffffff8130d250>] __sock_sendmsg_nosec+0x25/0x27
+[  253.023820]  [<ffffffff8130fb93>] sock_sendmsg+0x5a/0x7b
+[  253.023861]  [<ffffffff8130d5d5>] ? copy_from_user+0x2a/0x2c
+[  253.023905]  [<ffffffff8131066f>] ? move_addr_to_kernel+0x35/0x60
+[  253.023952]  [<ffffffff813107b3>] SYSC_sendto+0x119/0x15c
+[  253.023995]  [<ffffffff81401107>] ? sysret_check+0x1b/0x56
+[  253.024039]  [<ffffffff8108dc30>] ? trace_hardirqs_on_caller+0x140/0x1db
+[  253.024090]  [<ffffffff8120164e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+[  253.024141]  [<ffffffff81310caf>] SyS_sendto+0x9/0xb
+[  253.026219]  [<ffffffff814010e2>] system_call_fastpath+0x16/0x1b
+
+Reported-by: Alex Wei <alex.kern.mentor@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index adcdd0d..b2624ed 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -313,6 +313,9 @@ static int nf_tables_table_enable(struct nft_table *table)
+ 	int err, i = 0;
+ 
+ 	list_for_each_entry(chain, &table->chains, list) {
++		if (!(chain->flags & NFT_BASE_CHAIN))
++			continue;
++
+ 		err = nf_register_hook(&nft_base_chain(chain)->ops);
+ 		if (err < 0)
+ 			goto err;
+@@ -322,6 +325,9 @@ static int nf_tables_table_enable(struct nft_table *table)
+ 	return 0;
+ err:
+ 	list_for_each_entry(chain, &table->chains, list) {
++		if (!(chain->flags & NFT_BASE_CHAIN))
++			continue;
++
+ 		if (i-- <= 0)
+ 			break;
+ 
+@@ -334,8 +340,10 @@ static int nf_tables_table_disable(struct nft_table *table)
+ {
+ 	struct nft_chain *chain;
+ 
+-	list_for_each_entry(chain, &table->chains, list)
+-		nf_unregister_hook(&nft_base_chain(chain)->ops);
++	list_for_each_entry(chain, &table->chains, list) {
++		if (chain->flags & NFT_BASE_CHAIN)
++			nf_unregister_hook(&nft_base_chain(chain)->ops);
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
+
+--+HP7ph2BbKc20aGI--
