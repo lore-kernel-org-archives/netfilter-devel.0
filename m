@@ -1,63 +1,75 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next] ipvs: Remove unused variable ret from sync_thread_master()
-Date: Fri, 27 Dec 2013 12:46:12 +0900
-Message-ID: <1388115972-11861-2-git-send-email-horms@verge.net.au>
-References: <1388115972-11861-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1388115972-11861-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH nf-next v3] netfilter: xtables: lightweight process control
+ group matching
+Date: Fri, 27 Dec 2013 09:05:37 +0100
+Message-ID: <52BD34D1.1040708@redhat.com>
+References: <cover.1387815795.git.dborkman@redhat.com> <7d845623366ba0d435d5c82bf318455871929e90.1387815795.git.dborkman@redhat.com> <52BCF04B.3070908@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52BCF04B.3070908-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+On 12/27/2013 04:13 AM, Li Zefan wrote:
+> On 2013/12/24 1:41, Daniel Borkmann wrote:
+>> It would be useful e.g. in a server or desktop environment to have
+>> a facility in the notion of fine-grained "per application" or "per
+>> application group" firewall policies. Probably, users in the mobile,
+>> embedded area (e.g. Android based) with different security policy
+>> requirements for application groups could have great benefit from
+>> that as well. For example, with a little bit of configuration effort,
+>> an admin could whitelist well-known applications, and thus block
+>> otherwise unwanted "hard-to-track" applications like [1] from a
+>> user's machine. Blocking is just one example, but it is not limited
+>> to that, meaning we can have much different scenarios/policies that
+>> netfilter allows us than just blocking, e.g. fine grained settings
+>> where applications are allowed to connect/send traffic to, application
+>> traffic marking/conntracking, application-specific packet mangling,
+>> and so on.
+>>
+>> Implementation of PID-based matching would not be appropriate
+>> as they frequently change, and child tracking would make that
+>> even more complex and ugly. Cgroups would be a perfect candidate
+>> for accomplishing that as they associate a set of tasks with a
+>> set of parameters for one or more subsystems, in our case the
+>> netfilter subsystem, which, of course, can be combined with other
+>> cgroup subsystems into something more complex if needed.
+>>
+>> As mentioned, to overcome this constraint, such processes could
+>> be placed into one or multiple cgroups where different fine-grained
+>> rules can be defined depending on the application scenario, while
+>> e.g. everything else that is not part of that could be dropped (or
+>> vice versa), thus making life harder for unwanted processes to
+>> communicate to the outside world. So, we make use of cgroups here
+>> to track jobs and limit their resources in terms of iptables
+>> policies; in other words, limiting, tracking, etc what they are
+>> allowed to communicate.
+>>
+>> In our case we're working on outgoing traffic based on which local
+>> socket that originated from. Also, one doesn't even need to have
+>> an a-prio knowledge of the application internals regarding their
+>> particular use of ports or protocols. Matching is *extremly*
+>> lightweight as we just test for the sk_classid marker of sockets,
+>> originating from net_cls. net_cls and netfilter do not contradict
+>> each other; in fact, each construct can live as standalone or they
+>> can be used in combination with each other, which is perfectly fine,
+>> plus it serves Tejun's requirement to not introduce a new cgroups
+>> subsystem. Through this, we result in a very minimal and efficient
+>> module, and don't add anything except netfilter code.
+>>
+> 
+> I'd suggest splitting cls_cgroup code into 2 parts. The first part
+> is to manage cgroupfs and classid, and should be put into net/core/
+> and add a new config like NET_CGROUP_CLASSID for it. The second part
+> is specific cls_cgroup code.
 
-net/netfilter/ipvs/ip_vs_sync.c: In function 'sync_thread_master':
-net/netfilter/ipvs/ip_vs_sync.c:1640:8: warning: unused variable 'ret' [-Wunused-variable]
+Sure, if this is wished, I'd do this as a follow-up as it doesn't affect
+any of this code in netfilter here.
 
-Commit 35a2af94c7ce7130ca292c68b1d27fcfdb648f6b ("sched/wait: Make the
-__wait_event*() interface more friendly") changed how the interruption
-state is returned. However, sync_thread_master() ignores this state,
-now causing a compile warning.
-
-According to Julian Anastasov <ja@ssi.bg>, this behavior is OK:
-
-    "Yes, your patch looks ok to me. In the past we used ssleep() but IPVS
-     users were confused why IPVS threads increase the load average. So, we
-     switched to _interruptible calls and later the socket polling was
-     added."
-
-Document this, as requested by Peter Zijlstra, to avoid precious developers
-disappearing in this pitfall in the future.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_sync.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index f63c238..db80126 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1637,7 +1637,10 @@ static int sync_thread_master(void *data)
- 			continue;
- 		}
- 		while (ip_vs_send_sync_msg(tinfo->sock, sb->mesg) < 0) {
--			int ret = __wait_event_interruptible(*sk_sleep(sk),
-+			/* (Ab)use interruptible sleep to avoid increasing
-+			 * the load avg.
-+			 */
-+			__wait_event_interruptible(*sk_sleep(sk),
- 						   sock_writeable(sk) ||
- 						   kthread_should_stop());
- 			if (unlikely(kthread_should_stop()))
--- 
-1.8.4
-
+Thanks,
+Daniel
