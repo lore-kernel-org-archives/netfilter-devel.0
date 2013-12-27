@@ -1,74 +1,54 @@
-From: Li Zefan <lizefan@huawei.com>
-Subject: Re: [PATCH nf-next v3] netfilter: xtables: lightweight process control
- group matching
-Date: Fri, 27 Dec 2013 11:13:15 +0800
-Message-ID: <52BCF04B.3070908@huawei.com>
-References: <cover.1387815795.git.dborkman@redhat.com> <7d845623366ba0d435d5c82bf318455871929e90.1387815795.git.dborkman@redhat.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [net PATCH 0/2] Fixing OOPSes in seqadj code
+Date: Fri, 27 Dec 2013 12:23:27 +0900
+Message-ID: <20131227032326.GC3795@verge.net.au>
+References: <20131213214023.14478.74738.stgit@dragon>
+ <20131216160840.22853.39918.stgit@dragon>
+ <alpine.LFD.2.11.1312162308120.2063@ja.home.ssi.bg>
+ <20131217013637.GI27171@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 7bit
-Cc: <pablo@netfilter.org>, <netfilter-devel@vger.kernel.org>,
-	Tejun Heo <tj@kernel.org>, <cgroups@vger.kernel.org>
-To: Daniel Borkmann <dborkman@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:58598 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754060Ab3L0DNt (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:59433 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754125Ab3L0DX3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Dec 2013 22:13:49 -0500
-In-Reply-To: <7d845623366ba0d435d5c82bf318455871929e90.1387815795.git.dborkman@redhat.com>
+	Thu, 26 Dec 2013 22:23:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20131217013637.GI27171@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2013/12/24 1:41, Daniel Borkmann wrote:
-> It would be useful e.g. in a server or desktop environment to have
-> a facility in the notion of fine-grained "per application" or "per
-> application group" firewall policies. Probably, users in the mobile,
-> embedded area (e.g. Android based) with different security policy
-> requirements for application groups could have great benefit from
-> that as well. For example, with a little bit of configuration effort,
-> an admin could whitelist well-known applications, and thus block
-> otherwise unwanted "hard-to-track" applications like [1] from a
-> user's machine. Blocking is just one example, but it is not limited
-> to that, meaning we can have much different scenarios/policies that
-> netfilter allows us than just blocking, e.g. fine grained settings
-> where applications are allowed to connect/send traffic to, application
-> traffic marking/conntracking, application-specific packet mangling,
-> and so on.
+On Tue, Dec 17, 2013 at 10:36:37AM +0900, Simon Horman wrote:
+> On Mon, Dec 16, 2013 at 11:11:51PM +0200, Julian Anastasov wrote:
+> > 
+> > 	Hello,
+> > 
+> > On Mon, 16 Dec 2013, Jesper Dangaard Brouer wrote:
+> > 
+> > > The following series address issues with netfilter conntrack sequence
+> > > number adjustments, introduced with commit 41d73ec053d2 (netfilter:
+> > > nf_conntrack: make sequence number adjustments usuable without NAT).
+> > > 
+> > >  Patch1: give us a WARN splash when using seqadj incorrectly
+> > > 
+> > >  Patch2: fixes a wrong usage of seqadj in IPVS code
+> > 
+> > 	Both patches look good to me,
+> > 
+> > Acked-by: Julian Anastasov <ja@ssi.bg>
+> > 
+> > > I'm not sure, which maintainer will take these fixes?!?
+> > 
+> > 	I think, Simon can take them, if there are no
+> > objections...
 > 
-> Implementation of PID-based matching would not be appropriate
-> as they frequently change, and child tracking would make that
-> even more complex and ugly. Cgroups would be a perfect candidate
-> for accomplishing that as they associate a set of tasks with a
-> set of parameters for one or more subsystems, in our case the
-> netfilter subsystem, which, of course, can be combined with other
-> cgroup subsystems into something more complex if needed.
-> 
-> As mentioned, to overcome this constraint, such processes could
-> be placed into one or multiple cgroups where different fine-grained
-> rules can be defined depending on the application scenario, while
-> e.g. everything else that is not part of that could be dropped (or
-> vice versa), thus making life harder for unwanted processes to
-> communicate to the outside world. So, we make use of cgroups here
-> to track jobs and limit their resources in terms of iptables
-> policies; in other words, limiting, tracking, etc what they are
-> allowed to communicate.
-> 
-> In our case we're working on outgoing traffic based on which local
-> socket that originated from. Also, one doesn't even need to have
-> an a-prio knowledge of the application internals regarding their
-> particular use of ports or protocols. Matching is *extremly*
-> lightweight as we just test for the sk_classid marker of sockets,
-> originating from net_cls. net_cls and netfilter do not contradict
-> each other; in fact, each construct can live as standalone or they
-> can be used in combination with each other, which is perfectly fine,
-> plus it serves Tejun's requirement to not introduce a new cgroups
-> subsystem. Through this, we result in a very minimal and efficient
-> module, and don't add anything except netfilter code.
-> 
+> I have no objections.
+> I'll wait a day to see if anyone else does.
 
-I'd suggest splitting cls_cgroup code into 2 parts. The first part
-is to manage cgroupfs and classid, and should be put into net/core/
-and add a new config like NET_CGROUP_CLASSID for it. The second part
-is specific cls_cgroup code.
-
+It was much more than a day but I have taken these changes now.
