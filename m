@@ -1,130 +1,122 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nf_tables_api.c:nf_tables_update cause oops
-Date: Fri, 27 Dec 2013 12:15:19 +0100
-Message-ID: <20131227111518.GA3789@localhost>
-References: <CAFyS_9uJDMEvOnWzmif7ZFmDFCUTDeixPZEr2Co2F_GUb24gNA@mail.gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH 1/2] netfilter: REJECT: separate reusable code
+Date: Fri, 27 Dec 2013 15:51:32 +0100
+Message-ID: <1388155892.6117.7.camel@ice-age2.regit.org>
+References: <1386722554-4827-1-git-send-email-eric@regit.org>
+	 <1386834281-28347-1-git-send-email-eric@regit.org>
+	 <1386834281-28347-2-git-send-email-eric@regit.org>
+	 <20131220095059.GA13371@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Alex Wei <alex.kern.mentor@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52534 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754388Ab3L0LPZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Dec 2013 06:15:25 -0500
-Content-Disposition: inline
-In-Reply-To: <CAFyS_9uJDMEvOnWzmif7ZFmDFCUTDeixPZEr2Co2F_GUb24gNA@mail.gmail.com>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:39377 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537Ab3L0Ovi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Dec 2013 09:51:38 -0500
+In-Reply-To: <20131220095059.GA13371@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello Pablo,
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Dec 27, 2013 at 05:33:08PM +0800, Alex Wei wrote:
-> Hi,
-> When I do these operations:
+On Fri, 2013-12-20 at 10:50 +0100, Pablo Neira Ayuso wrote:
+> Hi Eric,
 > 
-> #nft add table table1
-> #nft add chain table1 chain1
-> #nft-table-upd ip table1 dormant
+> Some comments on this patch.
 > 
-> there is a oops. the nft-table-upd program is from libnftables/examples.
+> On Thu, Dec 12, 2013 at 08:44:40AM +0100, Eric Leblond wrote:
+> > This patch prepares the addition of TCP reset support in
+> > the nft_reject module by moving reusable code into a header
+> > file.
+> > 
+> > Signed-off-by: Eric Leblond <eric@regit.org>
+> > ---
+> >  include/net/netfilter/nf_reject.h | 297 ++++++++++++++++++++++++++++++++++++++
+> >  net/ipv4/netfilter/ipt_REJECT.c   | 124 +---------------
+> >  net/ipv6/netfilter/ip6t_REJECT.c  | 177 +----------------------
+> >  3 files changed, 307 insertions(+), 291 deletions(-)
+> >  create mode 100644 include/net/netfilter/nf_reject.h
+> > 
+> > diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
+> > new file mode 100644
+> > index 0000000..0bb089a
+> > --- /dev/null
+> > +++ b/include/net/netfilter/nf_reject.h
+> > @@ -0,0 +1,297 @@
+> > +#ifndef _NF_REJECT_H
+> > +#define _NF_REJECT_H
+> > +
+> > +#include <net/ip.h>
+> > +#include <net/tcp.h>
+> > +#include <net/route.h>
+> > +#include <net/dst.h>
+> > +
+> > +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+> > +#include <net/ipv6.h>
+> > +#include <net/ip6_route.h>
+> > +#include <linux/netfilter_ipv6.h>
+> > +#endif
+> > +
+> > +static inline void send_unreach(struct sk_buff *skb_in, int code)
+> > +{
+> > +	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+> > +}
+> > +
+> > +/* Send RST reply */
+> > +static inline void send_reset(struct sk_buff *oldskb, int hook)
 > 
-> When we active or disactive a table, I think we should judge whether
-> the chain of the table is a base-chain or not first, right?
+> I think that this function is too large to use the inline approach
+> that we have used in nft_queue. I've been considering moving this
+> common code to a different module and export these symbols but I
+> don't find a nice way to make it.
+> 
+> So my suggestion is to have two different include files:
+> 
+> include/net/netfilter/ipv4/nf_reject.h, that contains:
+> 
+>         static inline void send_unreach(...
+>         static void send_reset(...
+> 
+> that you can include from ipt_REJECT and nft_reject.
+> 
+> And include/net/netfilter/ipv6/nf_reject.h, that contains:
+> 
+>         static inline void send_unreach6(...
+>         static void send_reset6(...
+> 
+> that you can include from ip6t_REJECT and nft_reject.
+> 
+> While at it, it is probably good to prepend the prefix nf_ to those
+> functions.
+> 
+> Let me know if you have any concern with this approach.
 
-Right, thanks for reporting. Fix is attached.
+I've implemented this but there is a corner case that I don't like: if
+IPv6 is build as module then nft reject should be build as module too.
+Putting a dependency on IPv6 to nft reject is not working as IPv4 only
+setup will not be possible.
+So I only see two solutions:
+     1. We make IPv6 to be dependent of nft reject IPv6 (I don"t think
+        this is a good choice)
+     2. We keep two separate versions of the nft reject module (IPv4 and
+        IPv6) to avoid this problem (not satisfying solution).
 
---+HP7ph2BbKc20aGI
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-nf_tables-fix-oops-when-updating-table-wit.patch"
+Do you have a better idea ?
 
->From 858c82cf0c6cbf63d1be65e3f1294b96226b19da Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 27 Dec 2013 10:44:23 +0100
-Subject: [PATCH] netfilter: nf_tables: fix oops when updating table with user
- chains
+I'm in favor of 2. as I think that it is a bit too much to act on IPv6
+configuration value.
 
-This patch fixes a crash while trying to deactivate a table that
-contains user chains. You can reproduce it via:
+FYI the build message is:
+net/built-in.o: In function `nft_reject_eval':
+:(.text+0x2774a): undefined reference to `nf_ip6_checksum'
+:(.text+0x27792): undefined reference to `ip6_route_output'
 
-% nft add table table1
-% nft add chain table1 chain1
-% nft-table-upd ip table1 dormant
 
-[  253.021026] BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-[  253.021114] IP: [<ffffffff8134cebd>] nf_register_hook+0x35/0x6f
-[  253.021167] PGD 30fa5067 PUD 30fa2067 PMD 0
-[  253.021208] Oops: 0000 [#1] SMP
-[...]
-[  253.023305] Call Trace:
-[  253.023331]  [<ffffffffa0885020>] nf_tables_newtable+0x11c/0x258 [nf_tables]
-[  253.023385]  [<ffffffffa0878592>] nfnetlink_rcv_msg+0x1f4/0x226 [nfnetlink]
-[  253.023438]  [<ffffffffa0878418>] ? nfnetlink_rcv_msg+0x7a/0x226 [nfnetlink]
-[  253.023491]  [<ffffffffa087839e>] ? nfnetlink_bind+0x45/0x45 [nfnetlink]
-[  253.023542]  [<ffffffff8134b47e>] netlink_rcv_skb+0x3c/0x88
-[  253.023586]  [<ffffffffa0878973>] nfnetlink_rcv+0x3af/0x3e4 [nfnetlink]
-[  253.023638]  [<ffffffff813fb0d4>] ? _raw_read_unlock+0x22/0x34
-[  253.023683]  [<ffffffff8134af17>] netlink_unicast+0xe2/0x161
-[  253.023727]  [<ffffffff8134b29a>] netlink_sendmsg+0x304/0x332
-[  253.023773]  [<ffffffff8130d250>] __sock_sendmsg_nosec+0x25/0x27
-[  253.023820]  [<ffffffff8130fb93>] sock_sendmsg+0x5a/0x7b
-[  253.023861]  [<ffffffff8130d5d5>] ? copy_from_user+0x2a/0x2c
-[  253.023905]  [<ffffffff8131066f>] ? move_addr_to_kernel+0x35/0x60
-[  253.023952]  [<ffffffff813107b3>] SYSC_sendto+0x119/0x15c
-[  253.023995]  [<ffffffff81401107>] ? sysret_check+0x1b/0x56
-[  253.024039]  [<ffffffff8108dc30>] ? trace_hardirqs_on_caller+0x140/0x1db
-[  253.024090]  [<ffffffff8120164e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-[  253.024141]  [<ffffffff81310caf>] SyS_sendto+0x9/0xb
-[  253.026219]  [<ffffffff814010e2>] system_call_fastpath+0x16/0x1b
-
-Reported-by: Alex Wei <alex.kern.mentor@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index adcdd0d..b2624ed 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -313,6 +313,9 @@ static int nf_tables_table_enable(struct nft_table *table)
- 	int err, i = 0;
- 
- 	list_for_each_entry(chain, &table->chains, list) {
-+		if (!(chain->flags & NFT_BASE_CHAIN))
-+			continue;
-+
- 		err = nf_register_hook(&nft_base_chain(chain)->ops);
- 		if (err < 0)
- 			goto err;
-@@ -322,6 +325,9 @@ static int nf_tables_table_enable(struct nft_table *table)
- 	return 0;
- err:
- 	list_for_each_entry(chain, &table->chains, list) {
-+		if (!(chain->flags & NFT_BASE_CHAIN))
-+			continue;
-+
- 		if (i-- <= 0)
- 			break;
- 
-@@ -334,8 +340,10 @@ static int nf_tables_table_disable(struct nft_table *table)
- {
- 	struct nft_chain *chain;
- 
--	list_for_each_entry(chain, &table->chains, list)
--		nf_unregister_hook(&nft_base_chain(chain)->ops);
-+	list_for_each_entry(chain, &table->chains, list) {
-+		if (chain->flags & NFT_BASE_CHAIN)
-+			nf_unregister_hook(&nft_base_chain(chain)->ops);
-+	}
- 
- 	return 0;
- }
+BR,
 -- 
-1.7.10.4
+Eric Leblond <eric@regit.org>
 
-
---+HP7ph2BbKc20aGI--
