@@ -1,86 +1,101 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: Re: [PATCH nf-next v3] netfilter: xtables: lightweight process control
- group matching
-Date: Sat, 28 Dec 2013 19:37:55 +0100
-Message-ID: <52BF1A83.7060706@redhat.com>
-References: <cover.1387815795.git.dborkman@redhat.com> <7d845623366ba0d435d5c82bf318455871929e90.1387815795.git.dborkman@redhat.com> <52BCF04B.3070908@huawei.com> <52BD34D1.1040708@redhat.com> <52BE2A79.6040504@huawei.com> <52BE8936.6000001@redhat.com> <52BE8F50.4080005@redhat.com> <52BE97DC.5090807@huawei.com> <52BF12CA.80406@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org
-To: Li Zefan <lizefan@huawei.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/8] Netfilter/IPVS fixes for net
+Date: Sat, 28 Dec 2013 23:02:59 +0100
+Message-ID: <1388268187-11569-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27455 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:43852 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750874Ab3L1SiQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Dec 2013 13:38:16 -0500
-In-Reply-To: <52BF12CA.80406@redhat.com>
+	id S1751363Ab3L1WDV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Dec 2013 17:03:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/28/2013 07:04 PM, Daniel Borkmann wrote:
-> On 12/28/2013 10:20 AM, Li Zefan wrote:
->> On 2013/12/28 16:44, Daniel Borkmann wrote:
->>> On 12/28/2013 09:17 AM, Daniel Borkmann wrote:
->>>> On 12/28/2013 02:33 AM, Li Zefan wrote:
->>>>> On 2013/12/27 16:05, Daniel Borkmann wrote:
->>>>>> On 12/27/2013 04:13 AM, Li Zefan wrote:
->>>> ...
->>>>>>> I'd suggest splitting cls_cgroup code into 2 parts. The first part
->>>>>>> is to manage cgroupfs and classid, and should be put into net/core/
->>>>>>> and add a new config like NET_CGROUP_CLASSID for it. The second part
->>>>>>> is specific cls_cgroup code.
->>>>>>
->>>>>> Sure, if this is wished, I'd do this as a follow-up as it doesn't affect
->>>>>> any of this code in netfilter here.
->>>>>
->>>>> We should clean up the code before introducing a new feature, not the
->>>>> other way.
->>>>
->>>> Hehe, quite honestly, I think this is YOUR opinion of a "cleanup", which
->>>> makes the code actually more complicated, and it's not strictly needed.
->>>>
->>>> If you are so desperate about this separation, fine, I will do this, but
->>>> again, I don't think it's *strictly* required for this.
->>>
->>
->> Currently we have:
->>
->> 	cls_cgroup
->>
->> With your patch, it's changed to:
->>
->>                                  __  cls_cgroup
->>                                /
->> 	net_cgroup_classid -
->>                                \ __  netfilter_cgroup
->>
->> The code should be re-organized.
->>
->>> Thinking about this further a bit, with this separation into net/core/, you
->>> would need another Kconfig, where people choose between built-in or
->>> module (or none).
->>
->> Just disable module support for net_cgroup_classid. I never like the cgroup
->> feature that allows modular subsystems. It will be just about 100 lines of
->> code, so we gain little by making it modular. Futhermore with this change,
->> we can simplify include/linux/cls_cgroup.h
->>
->> Moreoever cls_cgroup is the only modular cgroup subsystem, so I may even remove
->> this feature from cgroup core after the change to cls_cgroup.
+Hi David,
 
-Btw, if you plan to remove modular support at some point in time, there's still
-netprio_cgroup on todo.
+This patchset contains four nf_tables fixes, one IPVS fix due to
+missing updates in the interaction with the new sedadj conntrack
+extension that was added to support the netfilter synproxy code,
+and a couple of one-liners to fix netnamespace netfilter issues.
+More specifically, they are:
 
-> Ok, will send a v4 with this change included, thanks.
-> 
->>> With built-in you would disallow people to load/unload the
->>> cgroup part during runtime. With the module, you would introduce a module
->>> dependency _for each_, even if you only want to use net_cls, which sort of
->>> is not what we want from a simple "cleanup".
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+* Fix ipv6_find_hdr() call without offset being explicitly initialized
+  in nft_exthdr, as required by that function, from Daniel Borkmann.
+
+* Fix oops in nfnetlink_log when using netns and unloading the kernel
+  module, from Gao feng.
+
+* Fix BUG_ON in nf_ct_timestamp extension after netns is destroyed,
+  from Helmut Schaa.
+
+* Fix crash in IPVS due to missing sequence adjustment extension being
+  allocated in the conntrack, from Jesper Dangaard Brouer.
+
+* Add bugtrap to spot a warning in case you deference sequence adjustment
+  conntrack area when not available, this should help to catch similar
+  invalid dereferences in the Netfilter tree, also from Jesper.
+
+* Fix incomple dumping of sets in nf_tables when retrieving by family,
+  from me.
+
+* Fix oops when updating the table state (dormant <-> active) and having
+  user (not base ) chains, from me.
+
+* Fix wrong validation in set element data that results in returning
+  -EINVAL when using the nf_tables dictionary feature with mappings,
+  also from me.
+
+We don't usually have this amount of fixes by this time (as we're already
+in -rc5 of the development cycle), although half of them are related to
+nf_tables which is a relatively new thing, and I also belive that holidays
+have also delayed the flight of bugfixes to mainstream a bit.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+Thanks!
+
+P.S: Have a nice entrance to new year.
+
+----------------------------------------------------------------
+
+The following changes since commit a7c12639bdf571a09578aed626875848d209d24f:
+
+  Merge branch 'qlcnic' (2013-12-17 16:25:24 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 2ee0d3c80fdb7974cfa1c7e25b5048e9fcaf69b6:
+
+  netfilter: nf_tables: fix wrong datatype in nft_validate_data_load() (2013-12-28 22:32:28 +0100)
+
+----------------------------------------------------------------
+Daniel Borkmann (1):
+      netfilter: nft_exthdr: call ipv6_find_hdr() with explicitly initialized offset
+
+Gao feng (1):
+      netfilter: nfnetlink_log: unset nf_loggers for netns when unloading module
+
+Helmut Schaa (1):
+      netfilter: nf_ct_timestamp: Fix BUG_ON after netns deletion
+
+Jesper Dangaard Brouer (2):
+      netfilter: WARN about wrong usage of sequence number adjustments
+      ipvs: correct usage/allocation of seqadj ext in ipvs
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: fix dumping with large number of sets
+      netfilter: nf_tables: fix oops when updating table with user chains
+      netfilter: nf_tables: fix wrong datatype in nft_validate_data_load()
+
+ net/netfilter/ipvs/ip_vs_nfct.c        |    6 ++++++
+ net/netfilter/nf_conntrack_seqadj.c    |    5 +++++
+ net/netfilter/nf_conntrack_timestamp.c |    1 -
+ net/netfilter/nf_tables_api.c          |   26 ++++++++++++++++++++------
+ net/netfilter/nfnetlink_log.c          |    1 +
+ net/netfilter/nft_exthdr.c             |    2 +-
+ 6 files changed, 33 insertions(+), 8 deletions(-)
