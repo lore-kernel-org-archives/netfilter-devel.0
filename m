@@ -1,48 +1,53 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 1/2] netfilter: nft: select NFNETLINK
-Date: Sun, 29 Dec 2013 11:01:29 +0100
-Message-ID: <1388311290-18366-2-git-send-email-eric@regit.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] netfilter: nft: explicit dependency to IPv6
+Date: Sun, 29 Dec 2013 12:00:55 +0100
+Message-ID: <20131229110055.GA3808@localhost>
 References: <1388311290-18366-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+ <1388311290-18366-3-git-send-email-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:53078 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751271Ab3L2KBx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Dec 2013 05:01:53 -0500
-In-Reply-To: <1388311290-18366-1-git-send-email-eric@regit.org>
+Received: from mail.us.es ([193.147.175.20]:55487 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751545Ab3L2LBB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Dec 2013 06:01:01 -0500
+Content-Disposition: inline
+In-Reply-To: <1388311290-18366-3-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In Kconfig, nft is set as depending on NFNETLINK so building nft as a
-module or inside kernel is depending of the state of NFNETLINK inside
-the kernel config. If someone wants to build nftables inside the
-kernel, it is necessary to also build NFNETLINK inside the kernel.
-But NFNETLINK can not be set in the menu so it is necessary to toggle
-an external value such as logging or nfacct to have a switch of
-NFNETLINK to kernel build.
-This patch change the dependency to a select inside Kconfig to be able
-to set the build of nftables as modules or inside kernel independently.
+Hi Eric,
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- net/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Sun, Dec 29, 2013 at 11:01:30AM +0100, Eric Leblond wrote:
+> nftables IPv6 tables could be selected independently of other
+> Netfilter component so it needs to be dependent of IPv6.
+> 
+> Signed-off-by: Eric Leblond <eric@regit.org>
+> ---
+>  net/ipv6/netfilter/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+> index 7702f9e..36c71da 100644
+> --- a/net/ipv6/netfilter/Kconfig
+> +++ b/net/ipv6/netfilter/Kconfig
+> @@ -27,6 +27,7 @@ config NF_CONNTRACK_IPV6
+>  
+>  config NF_TABLES_IPV6
+>  	depends on NF_TABLES
+> +	depends on INET && IPV6
+>  	tristate "IPv6 nf_tables support"
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 4371c98..01f9f64 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -414,7 +414,7 @@ config NETFILTER_SYNPROXY
- endif # NF_CONNTRACK
- 
- config NF_TABLES
--	depends on NETFILTER_NETLINK
-+	select NETFILTER_NETLINK
- 	tristate "Netfilter nf_tables support"
- 
- config NFT_EXTHDR
--- 
-1.8.5.2
+We already have this dependency in the parent menu
 
+ #
+ # IP netfilter configuration
+ #
+
+ menu "IPv6: Netfilter Configuration"
+         depends on INET && IPV6 && NETFILTER
+
+So I think that should be enough, let me know if you're noticing any
+problem. Thanks.
