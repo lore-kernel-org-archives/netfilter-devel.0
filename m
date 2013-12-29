@@ -1,379 +1,64 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nftables PATCHv2] Add support for queue target
-Date: Sun, 29 Dec 2013 19:28:10 +0100
-Message-ID: <1388341690-15377-2-git-send-email-eric@regit.org>
-References: <1385809076-20160-1-git-send-email-eric@regit.org>
- <1388341690-15377-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:55783 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273Ab3L2S22 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Dec 2013 13:28:28 -0500
-In-Reply-To: <1388341690-15377-1-git-send-email-eric@regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Sun, 29 Dec 2013 14:53:15 -0700
+Message-ID: <CANLsYkx32_sUzZvy697Vhyu7cBUaoYtB__FNTvdhwWDguLmT2Q@mail.gmail.com>
+References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
+	<20131218095322.GA4740@localhost>
+	<CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
+	<20131219194339.GA4561@localhost>
+	<CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
+	<20131221085509.GA4230@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>,
+	JP Abgrall <jpa@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20131221085509.GA4230@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds support for the queue target. It is now possible
-to specify rule sending packet to a given queue and using
-load balancing:
-  nft add rule filter output queue num 3 total 2 options fanout
+On 21 December 2013 01:55, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Dec 20, 2013 at 01:34:00PM -0700, Mathieu Poirier wrote:
+>> On 19 December 2013 12:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> [...]
+>> > Thinking again on the event delivery, I think it's better if the
+>> > nfacct match using the new --quota does not deliver the event itself.
+>> > You can use libnetfilter_queue instead, eg.
+>> >
+>> >         iptables -I INPUT -p icmp \
+>> >                  -m nfacct icmp --quota 12345 --mode bytes --match-once \
+>> >                  -j NFLOG --nflog-prefix "icmp: " --nflog-group 34
+>> >
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- include/linux/netfilter/nf_tables.h | 20 +++++++++++
- include/statement.h                 | 11 ++++++
- src/evaluate.c                      |  2 ++
- src/netlink_delinearize.c           | 15 +++++++++
- src/netlink_linearize.c             | 22 ++++++++++++
- src/parser.y                        | 67 ++++++++++++++++++++++++++++++++++---
- src/scanner.l                       |  8 ++++-
- src/statement.c                     | 31 +++++++++++++++++
- 8 files changed, 170 insertions(+), 6 deletions(-)
+Thinking further on this...
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index a236cc3..1d5a925 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -587,6 +587,26 @@ enum nft_log_attributes {
- #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
- 
- /**
-+ * enum nft_queue_attributes - nf_tables queue expression netlink attributes
-+ *
-+ * @NFTA_QUEUE_NUM: netlink group to send messages to (NLA_U32)
-+ * @NFTA_QUEUE_TOTAL: prefix to prepend to log messages (NLA_STRING)
-+ * @NFTA_QUEUE_FLAGS: length of payload to include in netlink message (NLA_U32)
-+ */
-+enum nft_queue_attributes {
-+	NFTA_QUEUE_UNSPEC,
-+	NFTA_QUEUE_NUM,
-+	NFTA_QUEUE_TOTAL,
-+	NFTA_QUEUE_FLAGS,
-+	__NFTA_QUEUE_MAX
-+};
-+#define NFTA_QUEUE_MAX		(__NFTA_QUEUE_MAX - 1)
-+
-+#define NFT_QUEUE_FLAG_BYPASS		0x01 /* for compatibility with v2 */
-+#define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
-+#define NFT_QUEUE_FLAG_MASK		0x03
-+
-+/**
-  * enum nft_reject_types - nf_tables reject expression reject types
-  *
-  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
-diff --git a/include/statement.h b/include/statement.h
-index 6ecbb18..14a66df 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -59,6 +59,14 @@ struct nat_stmt {
- 
- extern struct stmt *nat_stmt_alloc(const struct location *loc);
- 
-+struct queue_stmt {
-+	uint16_t		queuenum;
-+	uint16_t		queues_total;
-+	uint16_t		flags;
-+};
-+
-+extern struct stmt *queue_stmt_alloc(const struct location *loc);
-+
- /**
-  * enum stmt_types - statement types
-  *
-@@ -71,6 +79,7 @@ extern struct stmt *nat_stmt_alloc(const struct location *loc);
-  * @STMT_LOG:		log statement
-  * @STMT_REJECT:	REJECT statement
-  * @STMT_NAT:		NAT statement
-+ * @STMT_QUEUE:		QUEUE statement
-  */
- enum stmt_types {
- 	STMT_INVALID,
-@@ -82,6 +91,7 @@ enum stmt_types {
- 	STMT_LOG,
- 	STMT_REJECT,
- 	STMT_NAT,
-+	STMT_QUEUE,
- };
- 
- /**
-@@ -127,6 +137,7 @@ struct stmt {
- 		struct limit_stmt	limit;
- 		struct reject_stmt	reject;
- 		struct nat_stmt		nat;
-+		struct queue_stmt	queue;
- 	};
- };
- 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 94fee64..d4f8339 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1174,6 +1174,8 @@ static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- 		return stmt_evaluate_reject(ctx, stmt);
- 	case STMT_NAT:
- 		return stmt_evaluate_nat(ctx, stmt);
-+	case STMT_QUEUE:
-+		return 0;
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
- 	}
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index d1d35f8..b771da5 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -508,6 +508,20 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
- 
-+static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
-+			      const struct location *loc,
-+			      const struct nft_rule_expr *nle)
-+{
-+	struct stmt *stmt;
-+
-+	stmt = queue_stmt_alloc(loc);
-+	stmt->queue.queuenum = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
-+	stmt->queue.queues_total =
-+		nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
-+	stmt->queue.flags = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_FLAGS);
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
- static const struct {
- 	const char	*name;
- 	void		(*parse)(struct netlink_parse_ctx *ctx,
-@@ -528,6 +542,7 @@ static const struct {
- 	{ .name = "limit",	.parse = netlink_parse_limit },
- 	{ .name = "reject",	.parse = netlink_parse_reject },
- 	{ .name = "nat",	.parse = netlink_parse_nat },
-+	{ .name = "queue",	.parse = netlink_parse_queue },
- };
- 
- static const struct input_descriptor indesc_netlink = {
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 0ac0218..9ae9bb7 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -636,6 +636,26 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
- 
-+static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
-+				 const struct stmt *stmt)
-+{
-+	struct nft_rule_expr *nle;
-+
-+	nle = alloc_nft_expr("queue");
-+
-+	nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_NUM,
-+			      stmt->queue.queuenum);
-+	if (stmt->queue.queues_total) {
-+		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_TOTAL,
-+				      stmt->queue.queues_total);
-+	}
-+	if (stmt->queue.flags) {
-+		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_FLAGS,
-+				      stmt->queue.flags);
-+	}
-+	nft_rule_add_expr(ctx->nlr, nle);
-+}
-+
- static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 			     const struct stmt *stmt)
- {
-@@ -656,6 +676,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_reject_stmt(ctx, stmt);
- 	case STMT_NAT:
- 		return netlink_gen_nat_stmt(ctx, stmt);
-+	case STMT_QUEUE:
-+		return netlink_gen_queue_stmt(ctx, stmt);
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
- 	}
-diff --git a/src/parser.y b/src/parser.y
-index 26e71e3..9320f2d 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -180,7 +180,6 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token JUMP			"jump"
- %token GOTO			"goto"
- %token RETURN			"return"
--%token QUEUE			"queue"
- 
- %token <val> NUM		"number"
- %token <string> STRING		"string"
-@@ -330,6 +329,13 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token SNAT			"snat"
- %token DNAT			"dnat"
- 
-+%token QUEUE			"queue"
-+%token QUEUENUM			"num"
-+%token QUEUETOTAL		"total"
-+%token QUEUEBYPASS		"bypass"
-+%token QUEUECPUFANOUT		"fanout"
-+%token OPTIONS			"options"
-+
- %token POSITION			"position"
- 
- %type <string>			identifier string
-@@ -377,6 +383,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { stmt_free($$); }	reject_stmt
- %type <stmt>			nat_stmt nat_stmt_alloc
- %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc
-+%type <stmt>			queue_stmt queue_stmt_alloc
-+%destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
-+%type <val>			queue_flags queue_flag
- 
- %type <expr>			symbol_expr verdict_expr integer_expr
- %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr
-@@ -927,6 +936,7 @@ stmt			:	verdict_stmt
- 			|	limit_stmt
- 			|	reject_stmt
- 			|	nat_stmt
-+			|	queue_stmt
- 			;
- 
- verdict_stmt		:	verdict_expr
-@@ -1051,6 +1061,57 @@ nat_stmt_args		:	expr
- 			}
- 			;
- 
-+queue_stmt		:	queue_stmt_alloc
-+			|	queue_stmt_alloc		queue_args
-+			;
-+
-+queue_stmt_alloc		:	QUEUE
-+			{
-+				$$ = queue_stmt_alloc(&@$);
-+			}
-+			;
-+
-+queue_args		:	queue_arg
-+			{
-+				$<stmt>$	= $<stmt>0;
-+			}
-+			|	queue_args	queue_arg
-+			;
-+
-+queue_arg		:	QUEUENUM		NUM
-+			{
-+				$<stmt>0->queue.queuenum	 = $2;
-+			}
-+			|	QUEUETOTAL		NUM
-+			{
-+				$<stmt>0->queue.queues_total	 = $2;
-+			}
-+			|	OPTIONS		queue_flags
-+			{
-+				$<stmt>0->queue.flags		 = $2;
-+			}
-+			;
-+
-+queue_flags		:	queue_flag
-+			{
-+				$$ = $1;
-+			}
-+			|	queue_flags	COMMA	queue_flag
-+			{
-+				$$ |= $1 | $3;
-+			}
-+			;
-+
-+queue_flag		:	QUEUEBYPASS
-+			{
-+				$$ = NFT_QUEUE_FLAG_BYPASS;
-+			}
-+			|	QUEUECPUFANOUT
-+			{
-+				$$ = NFT_QUEUE_FLAG_CPU_FANOUT;
-+			}
-+			;
-+
- match_stmt		:	relational_expr
- 			{
- 				$$ = expr_stmt_alloc(&@$, $1);
-@@ -1287,10 +1348,6 @@ verdict_expr		:	ACCEPT
- 			{
- 				$$ = verdict_expr_alloc(&@$, NF_DROP, NULL);
- 			}
--			|	QUEUE
--			{
--				$$ = verdict_expr_alloc(&@$, NF_QUEUE, NULL);
--			}
- 			|	CONTINUE
- 			{
- 				$$ = verdict_expr_alloc(&@$, NFT_CONTINUE, NULL);
-diff --git a/src/scanner.l b/src/scanner.l
-index cee6aa6..8c4f25d 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -234,7 +234,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "jump"			{ return JUMP; }
- "goto"			{ return GOTO; }
- "return"		{ return RETURN; }
--"queue"			{ return QUEUE; }
- 
- "add"			{ return ADD; }
- "insert"		{ return INSERT; }
-@@ -255,6 +254,13 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "snaplen"		{ return SNAPLEN; }
- "queue-threshold"	{ return QUEUE_THRESHOLD; }
- 
-+"queue"			{ return QUEUE;}
-+"num"			{ return QUEUENUM;}
-+"total"			{ return QUEUETOTAL;}
-+"bypass"		{ return QUEUEBYPASS;}
-+"fanout"		{ return QUEUECPUFANOUT;}
-+"options"		{ return OPTIONS;}
-+
- "limit"			{ return LIMIT; }
- "rate"			{ return RATE; }
- 
-diff --git a/src/statement.c b/src/statement.c
-index d18e034..3fdd9e2 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -172,6 +172,37 @@ struct stmt *limit_stmt_alloc(const struct location *loc)
- 	return stmt_alloc(loc, &limit_stmt_ops);
- }
- 
-+static void queue_stmt_print(const struct stmt *stmt)
-+{
-+	int one = 0;
-+
-+	printf("queue num %u total %u",
-+		stmt->queue.queuenum, stmt->queue.queues_total);
-+	if (stmt->queue.flags)
-+		printf(" options ");
-+	if (stmt->queue.flags & NFT_QUEUE_FLAG_BYPASS) {
-+		printf("bypass");
-+		one = 1;
-+	}
-+	if (stmt->queue.flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
-+		if (one)
-+			printf (",");
-+		printf("fanout");
-+	}
-+
-+}
-+
-+static const struct stmt_ops queue_stmt_ops = {
-+	.type		= STMT_QUEUE,
-+	.name		= "queue",
-+	.print		= queue_stmt_print,
-+};
-+
-+struct stmt *queue_stmt_alloc(const struct location *loc)
-+{
-+	return stmt_alloc(loc, &queue_stmt_ops);
-+}
-+
- static void reject_stmt_print(const struct stmt *stmt)
- {
- 	printf("reject");
--- 
-1.8.5.2
+Unless I'm missing something the above only specifies when to log
+quota transgression, hence introducing the need to write yet another
+rule do explicitly deal with the packet.  My previous solution logged
+quota excess _and_ dealt with the packet.
 
+Using ' nfulnl_log_packet()' (if even possible) would seem hackish to me.
+
+Can you suggest anything that would unite our two vision?
+
+
+>> > The --once parameter tells to match only if you just crossed the quota
+>> > limit (so the event is sent once). The idea is to use nflog to deliver
+>> > the event, which is way more flexible as it includes useful
+>> > information.
+>>
+>> I'm not against the idea as it is less code for me to write.  Is this
+>> "--match-one" thing already available?  If not I'll come up with it.
+>
+> The --match-once that I propose is specific to nfacct, so you need to
+> add a new flag to indicate this matching mode and return true only
+> once for that rule.
+>
+>> Just to be clear, if "--match-one" isn't specified a message is sent
+>> each time we try to send a packets and the quota has been reached.
+>
+> Exactly, in the example I provided above, if no --match-once is
+> specified, you will get a log message per packet over quota.
