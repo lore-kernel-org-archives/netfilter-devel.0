@@ -1,32 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] netfilter: nft: select NFNETLINK
-Date: Mon, 30 Dec 2013 18:18:50 +0100
-Message-ID: <20131230171850.GC21208@localhost>
-References: <1388311290-18366-1-git-send-email-eric@regit.org>
- <1388311290-18366-2-git-send-email-eric@regit.org>
+Subject: Re: [PATCH net-next] netfilter: xtables make functions local
+Date: Mon, 30 Dec 2013 18:19:42 +0100
+Message-ID: <20131230171942.GA21263@localhost>
+References: <20131227120937.702bc383@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36841 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36912 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756051Ab3L3RSz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Dec 2013 12:18:55 -0500
+	id S1756341Ab3L3RTr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Dec 2013 12:19:47 -0500
 Content-Disposition: inline
-In-Reply-To: <1388311290-18366-2-git-send-email-eric@regit.org>
+In-Reply-To: <20131227120937.702bc383@nehalam.linuxnetplumber.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 29, 2013 at 11:01:29AM +0100, Eric Leblond wrote:
-> In Kconfig, nft is set as depending on NFNETLINK so building nft as a
-> module or inside kernel is depending of the state of NFNETLINK inside
-> the kernel config. If someone wants to build nftables inside the
-> kernel, it is necessary to also build NFNETLINK inside the kernel.
-> But NFNETLINK can not be set in the menu so it is necessary to toggle
-> an external value such as logging or nfacct to have a switch of
-> NFNETLINK to kernel build.
-> This patch change the dependency to a select inside Kconfig to be able
-> to set the build of nftables as modules or inside kernel independently.
+On Fri, Dec 27, 2013 at 12:09:37PM -0800, Stephen Hemminger wrote:
+> A couple of functions only used in x_tables, don't need to be global
 
-Applied, thanks Eric.
+Applied, thanks stephen.
