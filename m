@@ -1,122 +1,189 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: [PATCH] netfilter: Remove some backward-compat Kconfig symbols
-Date: Mon, 30 Dec 2013 00:43:51 +0100
-Message-ID: <1388360631.2900.36.camel@deadeye.wl.decadent.org.uk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-M3wHBS0+OvmMa6ARZwmL"
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: add help information to new nf_tables Kconfig options
+Date: Mon, 30 Dec 2013 15:03:54 +0100
+Message-ID: <1388412234-10364-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:58379 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752699Ab3L2XoF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Dec 2013 18:44:05 -0500
-Received: from [151.217.234.213] (helo=deadeye.wl.decadent.org.uk)
-	by shadbolt.decadent.org.uk with esmtps (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <ben@decadent.org.uk>)
-	id 1VxQ1Z-0002F7-FQ
-	for netfilter-devel@vger.kernel.org; Sun, 29 Dec 2013 23:44:01 +0000
-Received: from ben by deadeye.wl.decadent.org.uk with local (Exim 4.82)
-	(envelope-from <ben@decadent.org.uk>)
-	id 1VxQ1Y-0002uV-M3
-	for netfilter-devel@vger.kernel.org; Mon, 30 Dec 2013 00:44:00 +0100
+Received: from mail.us.es ([193.147.175.20]:46897 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755705Ab3L3OEF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Dec 2013 09:04:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---=-M3wHBS0+OvmMa6ARZwmL
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Since Linux 3.4 or earlier, CONFIG_IP_NF_MATCH_ECN,
-CONFIG_IP_NF_MATCH_TTL, CONFIG_IP_NF_TARGET_TTL have just selected the
-xtables replacements for these symbols.  They should not be needed
-any more.
-
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/Kconfig | 27 ---------------------------
- 1 file changed, 27 deletions(-)
+ net/ipv4/netfilter/Kconfig |   18 ++++++++++++++++++
+ net/ipv6/netfilter/Kconfig |   12 ++++++++++++
+ net/netfilter/Kconfig      |   38 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 68 insertions(+)
 
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 1657e39b..a6cedb0 100644
+index 40d5607..0cb82fa 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -60,15 +60,6 @@ config IP_NF_MATCH_AH
-=20
- 	  To compile it as a module, choose M here.  If unsure, say N.
-=20
--config IP_NF_MATCH_ECN
--	tristate '"ecn" match support'
--	depends on NETFILTER_ADVANCED
--	select NETFILTER_XT_MATCH_ECN
--	---help---
--	This is a backwards-compat option for the user's convenience
--	(e.g. when running oldconfig). It selects
--	CONFIG_NETFILTER_XT_MATCH_ECN.
--
- config IP_NF_MATCH_RPFILTER
- 	tristate '"rpfilter" reverse path filter match support'
- 	depends on NETFILTER_ADVANCED && (IP_NF_MANGLE || IP_NF_RAW)
-@@ -79,15 +70,6 @@ config IP_NF_MATCH_RPFILTER
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 	  The module will be called ipt_rpfilter.
-=20
--config IP_NF_MATCH_TTL
--	tristate '"ttl" match support'
--	depends on NETFILTER_ADVANCED
--	select NETFILTER_XT_MATCH_HL
--	---help---
--	This is a backwards-compat option for the user's convenience
--	(e.g. when running oldconfig). It selects
--	CONFIG_NETFILTER_XT_MATCH_HL.
--
- # `filter', generic and specific targets
- config IP_NF_FILTER
- 	tristate "Packet filtering"
-@@ -268,15 +250,6 @@ config IP_NF_TARGET_ECN
-=20
- 	  To compile it as a module, choose M here.  If unsure, say N.
-=20
--config IP_NF_TARGET_TTL
--	tristate '"TTL" target support'
--	depends on NETFILTER_ADVANCED && IP_NF_MANGLE
--	select NETFILTER_XT_TARGET_HL
--	---help---
--	This is a backwards-compatible option for the user's convenience
--	(e.g. when running oldconfig). It selects
--	CONFIG_NETFILTER_XT_TARGET_HL.
--
- # raw + specific targets
- config IP_NF_RAW
- 	tristate  'raw table support (required for NOTRACK/TRACE)'
+@@ -39,23 +39,41 @@ config NF_CONNTRACK_PROC_COMPAT
+ config NF_TABLES_IPV4
+ 	depends on NF_TABLES
+ 	tristate "IPv4 nf_tables support"
++	help
++	  This option enables the IPv4 support for nf_tables.
+ 
+ config NFT_REJECT_IPV4
+ 	depends on NF_TABLES_IPV4
+ 	tristate "nf_tables IPv4 reject support"
++	help
++	  This option adds the "reject" expression that you can use to
++	  explicitly deny and notify via TCP reset/ICMP informational errors
++	  unallowed traffic.
+ 
+ config NFT_CHAIN_ROUTE_IPV4
+ 	depends on NF_TABLES_IPV4
+ 	tristate "IPv4 nf_tables route chain support"
++	help
++	  This option enables the "route" chain for IPv4 in nf_tables. This
++	  chain type is used to force packet re-routing after mangling header
++	  fields such as the source, destination, type of service and
++	  the packet mark.
+ 
+ config NFT_CHAIN_NAT_IPV4
+ 	depends on NF_TABLES_IPV4
+ 	depends on NF_NAT_IPV4 && NFT_NAT
+ 	tristate "IPv4 nf_tables nat chain support"
++	help
++	  This option enables the "nat" chain for IPv4 in nf_tables. This
++	  chain type is used to perform Network Address Translation (NAT)
++	  packet transformations such as the source, destination address and
++	  source and destination ports.
+ 
+ config NF_TABLES_ARP
+ 	depends on NF_TABLES
+ 	tristate "ARP nf_tables support"
++	help
++	  This option enables the ARP support for nf_tables.
+ 
+ config IP_NF_IPTABLES
+ 	tristate "IP tables support (required for filtering/masq/NAT)"
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 7702f9e..35750df 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -28,15 +28,27 @@ config NF_CONNTRACK_IPV6
+ config NF_TABLES_IPV6
+ 	depends on NF_TABLES
+ 	tristate "IPv6 nf_tables support"
++	help
++	  This option enables the IPv6 support for nf_tables.
+ 
+ config NFT_CHAIN_ROUTE_IPV6
+ 	depends on NF_TABLES_IPV6
+ 	tristate "IPv6 nf_tables route chain support"
++	help
++	  This option enables the "route" chain for IPv6 in nf_tables. This
++	  chain type is used to force packet re-routing after mangling header
++	  fields such as the source, destination, flowlabel, hop-limit and
++	  the packet mark.
+ 
+ config NFT_CHAIN_NAT_IPV6
+ 	depends on NF_TABLES_IPV6
+ 	depends on NF_NAT_IPV6 && NFT_NAT
+ 	tristate "IPv6 nf_tables nat chain support"
++	help
++	  This option enables the "nat" chain for IPv6 in nf_tables. This
++	  chain type is used to perform Network Address Translation (NAT)
++	  packet transformations such as the source, destination address and
++	  source and destination ports.
+ 
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 01f9f64..22c19d2 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -416,45 +416,83 @@ endif # NF_CONNTRACK
+ config NF_TABLES
+ 	select NETFILTER_NETLINK
+ 	tristate "Netfilter nf_tables support"
++	help
++	  nftables is the new packet classification framework that intends to
++	  replace the existing {ip,ip6,arp,eb}_tables infrastructure. It
++	  provides a pseudo-state machine with an extensible instruction-set
++	  (also known as expressions) that the userspace 'nft' utility
++	  (http://www.netfilter.org/projects/nftables) uses to build the
++	  rule-set. It also comes with the generic set infrastructure that
++	  allows you to construct mappings between matchings and actions
++	  for performance lookups.
++
++	  To compile it as a module, choose M here.
+ 
+ config NFT_EXTHDR
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables IPv6 exthdr module"
++	help
++	  This option adds the "exthdr" expression that you can use to match
++	  IPv6 extension headers.
+ 
+ config NFT_META
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables meta module"
++	help
++	  This option adds the "meta" expression that you can use to match and
++	  to set packet metainformation such as the packet mark.
+ 
+ config NFT_CT
+ 	depends on NF_TABLES
+ 	depends on NF_CONNTRACK
+ 	tristate "Netfilter nf_tables conntrack module"
++	help
++	  This option adds the "meta" expression that you can use to match
++	  connection tracking information such as the flow state.
+ 
+ config NFT_RBTREE
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables rbtree set module"
++	help
++	  This option adds the "rbtree" set type (Red Black tree) that is used
++	  to build interval-based sets.
+ 
+ config NFT_HASH
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables hash set module"
++	help
++	  This option adds the "hash" set type that is used to build one-way
++	  mappings between matchings and actions.
+ 
+ config NFT_COUNTER
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables counter module"
++	help
++	  This option adds the "counter" expression that you can use to
++	  include packet and byte counters in a rule.
+ 
+ config NFT_LOG
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables log module"
++	help
++	  This option adds the "log" expression that you can use to log
++	  packets matching some criteria.
+ 
+ config NFT_LIMIT
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables limit module"
++	help
++	  This option adds the "limit" expression that you can use to
++	  ratelimit rule matchings.
+ 
+ config NFT_NAT
+ 	depends on NF_TABLES
+ 	depends on NF_CONNTRACK
+ 	depends on NF_NAT
+ 	tristate "Netfilter nf_tables nat module"
++	help
++	  This option adds the "nat" expression that you can use to perform
++	  typical Network Address Translation (NAT) packet transformations.
+ 
+ config NFT_QUEUE
+ 	depends on NF_TABLES
+-- 
+1.7.10.4
 
---=20
-Ben Hutchings
-Logic doesn't apply to the real world. - Marvin Minsky
-
---=-M3wHBS0+OvmMa6ARZwmL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIVAwUAUsCzt+e/yOyVhhEJAQrDHhAAmqwdCajiPUOoOgWx/YVT5kM2RhMxlCK+
-wvLvcHutwH5xVKcYgiJ42S78JD4NyQq2pZr2iIwQuYS1d9Ojg3RqcrdNbzZOHS7e
-KV9Omvzb7EgvMpRhmY/Of0IFXSfyzFc+nGOiRt0g7jynKNzIsV5piK9f+H+CtbM5
-MnMkCg5uVwkaE0fbBV3NqOBxpdmWSxf1+EfOZrafQ2Rhop+sAhS7LlsA5thU40ls
-H1uXMvsJcFIMxHX+q+iguLapnnqV094YCMUXbi2L+11iH+cSRkaLABQfU22UAqk/
-zgGmy2d+80ugXc9w16WyJ62OkzYFi3mfSayRVVkDam6h77I0czDFJ8xSoUxaW5Jm
-GyuhLExqyyP2cIgDduKIm2i9QFgPGG8cTM6dckI/6vukJRfFiD6bM7ntQrv3g3Fk
-XXPn/RarLSmltJvpAbliJ+OqkRgIHkgvGGN5QM7plVKyBo41klMjr/WRkRh5I9CR
-mAeGF3liS5a9M2FzwHi7kaQbPvnwon28SZNvnMj8i6atxxW63osFaNl8BsIttinD
-GuKlPJxryOEItsBCfSM84RtaZUpt+KtYwmrRswRZ/Dp3tXBtoQbLxxRAoUMj5IrN
-5iU4N7qh6ZpdaUr1nG4iKynE0+mycjUiB2/ZMMB24b3ocPEsw8x1qXINQib3bzSG
-kkWWawEG8cg=
-=8hwl
------END PGP SIGNATURE-----
-
---=-M3wHBS0+OvmMa6ARZwmL--
