@@ -1,63 +1,47 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
-Date: Mon, 30 Dec 2013 15:17:20 -0700
-Message-ID: <CANLsYkxr2eRyz0aWDD8OMJDf2YWpwg3SOBpEhoopfy6N+kzfWg@mail.gmail.com>
-References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
-	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
-	<20131218095322.GA4740@localhost>
-	<CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
-	<20131219194339.GA4561@localhost>
-	<CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
-	<20131221085509.GA4230@localhost>
-	<CANLsYkx32_sUzZvy697Vhyu7cBUaoYtB__FNTvdhwWDguLmT2Q@mail.gmail.com>
-	<20131230173655.GA21288@localhost>
-	<CANLsYkx34A97NwJyFb05MT=zneT8ET=Nyz7HTGEDWHhGAZP_-Q@mail.gmail.com>
-	<20131230214653.GP29632@breakpoint.cc>
+From: JP Abgrall <jpa@google.com>
+Subject: Re: [PATCH 0/2] Add UID/GID info to NFQUEUE
+Date: Mon, 30 Dec 2013 14:39:30 -0800
+Message-ID: <CAKP4w2SuiJej0pWF_=V0XoMuTxxPN5Do--1=wVTDxp4koNLt5w@mail.gmail.com>
+References: <1387389844-5263-1-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	John Stultz <john.stultz@linaro.org>,
-	JP Abgrall <jpa@google.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20131230214653.GP29632@breakpoint.cc>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	eric.dumazet@gmail.com, tgraf@redhat.com,
+	Pablo Neira Ayuso <pablo@netfilter.org>, davem@davemloft.net,
+	daniel.wagner@bmw-carit.de
+To: valentina.giusti@bmw-carit.de
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1387389844-5263-1-git-send-email-valentina.giusti@bmw-carit.de>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey Florian - I think that is an acceptable compromise.  The LOG chain
-and rules are extra but it is setup only once and as such scale well.
+On Wed, Dec 18, 2013 at 10:04 AM,  <valentina.giusti@bmw-carit.de> wrote:
+> At the Linux Plumbers Conference 2013, there have been quite interesting
+> discussions on the topic of network statistics, and it was proposed that it
+> would make more sense to use NFQUEUE for this purpose, letting therefore
+> userspace use the UID/GID information for application-based statistics purposes.
+> This way the UID and GID information of the incoming TCP and UDP traffic is not
+> "wasted" and can be used for more refined statistics.
 
-Thank you for that,
-Mathieu
+Some things to keep in mind when doing these changes...
+For mobile devices, having the UID/GID is not sufficient when services
+are involved (download manager, http service, ...).
+Currently, Android's xt_qtaguid netfilter module supports the notion
+of "delegation" which is achieved by having the service "tag" a socket
+(tracked internally based on the struct sock address), via the file
+descriptor, with a UID of who should be blamed for the statistics.
+It would be nice if NFQUEUE presented/tracked some data related to the
+socket that could be used to that effect.
+This tagging of the socket needs to have the following properties:
+ - a socket can stay open and be re-tagged (happens when pools are
+used or when a stream can be used for multiple reasons).
+ - a socket can be tagged with a different UID only if the current
+UID/GID/pcap allows for it.
+ - an app can have multiple sockets, each one belonging to different
+UIDs (so no UID to UID mapping).
+There are a few more, but those can be managed outside of the NFQUEUE changes.
 
-On 30 December 2013 14:46, Florian Westphal <fw@strlen.de> wrote:
-> Mathieu Poirier <mathieu.poirier@linaro.org> wrote:
->> Upon reaching the limit of 10000 byte of http traffic, any outgoing
->> http packets will be dropped and a single broadcast message will be
->> sent to user space.  That is because the match explicitly takes care
->> of sending the notification.
->>
->> With your proposal:
->>
->> iptables -I OUTPUT -p http \
->>          -m nfacct --nfacct-name http-limit --quota 10000 --match-once \
->>          -j NFLOG --nflog-prefix "http: " --nflog-group 34
->>
->> will log the quota reached event but won't prevent further http
->> traffic from going out.  One could instinctively add another rule
->> right after the above one, something like:
->>
->> iptables -I OUTPUT -p http \
->>          -m nfacct --nfacct-name http-limit --quota 10000 \
->>          -j REJECT
->>
->> but that won't work either because the packet/byte could will be
->> incremented twice.
->
-> The usual workaround is to create custom chains to deal with this,
-> i.e.
-> iptables -N LOG_DROP_HTTP
-> iptables -A LOG_DROP_HTTP -j NFLOG --nflog-prefix "http: " --nflog-group 34
-> iptables -A LOG_DROP_HTTP -j REJECT
-> iptables -I OUTPUT -p http -m nfacct ... -j LOG_DROP_HTTP
+Concerning the comment about TCP_TIMEWAIT in some other thread: the sk
+is not a "struct sock" but "struct inet_timewait_sock" which is
+missing fields. So beware when manipulating it. xt_qtaguid had to
+ignore those struct sock.
