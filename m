@@ -1,51 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] libxtables: Call ipaddr_to_network before
- ipaddr_to_host.
-Date: Mon, 30 Dec 2013 18:46:03 +0100
-Message-ID: <20131230174603.GA21372@localhost>
-References: <20131209200223.GC2970@Inspiron-3521>
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Mon, 30 Dec 2013 10:56:28 -0700
+Message-ID: <CANLsYkx34A97NwJyFb05MT=zneT8ET=Nyz7HTGEDWHhGAZP_-Q@mail.gmail.com>
+References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
+	<20131218095322.GA4740@localhost>
+	<CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
+	<20131219194339.GA4561@localhost>
+	<CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
+	<20131221085509.GA4230@localhost>
+	<CANLsYkx32_sUzZvy697Vhyu7cBUaoYtB__FNTvdhwWDguLmT2Q@mail.gmail.com>
+	<20131230173655.GA21288@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Hani Benhabiles <kroosec@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39249 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755867Ab3L3RqH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Dec 2013 12:46:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20131209200223.GC2970@Inspiron-3521>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>,
+	JP Abgrall <jpa@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20131230173655.GA21288@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 09, 2013 at 09:02:23PM +0100, Hani Benhabiles wrote:
-> Call ipaddr_to_network before ipaddr_to_host.
-> 
-> This saves waiting for a reverse DNS lookup query when the entry is present in
-> /etc/networks. This also follows the same order as in rules creation.
+On 30 December 2013 10:36, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sun, Dec 29, 2013 at 02:53:15PM -0700, Mathieu Poirier wrote:
+>> On 21 December 2013 01:55, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > On Fri, Dec 20, 2013 at 01:34:00PM -0700, Mathieu Poirier wrote:
+>> >> On 19 December 2013 12:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > [...]
+>> >> > Thinking again on the event delivery, I think it's better if the
+>> >> > nfacct match using the new --quota does not deliver the event itself.
+>> >> > You can use libnetfilter_queue instead, eg.
+>> >> >
+>> >> >         iptables -I INPUT -p icmp \
+>> >> >                  -m nfacct icmp --quota 12345 --mode bytes --match-once \
+>> >> >                  -j NFLOG --nflog-prefix "icmp: " --nflog-group 34
+>> >> >
+>>
+>> Thinking further on this...
+>>
+>> Unless I'm missing something the above only specifies when to log
+>> quota transgression, hence introducing the need to write yet another
+>> rule do explicitly deal with the packet.  My previous solution logged
+>> quota excess _and_ dealt with the packet.
+>
+> What kind of "deal with the packet" you need to make in case you
+> reach the quota? Please, elaborate your use case with hypothetical
+> (iptables) examples so I can help better.
 
-This saves time and it makes sense to me to check local file before
-name resolution via network, but...
+Apologies for not expressing myself clearly.
 
-> Signed-off-by: Hani Benhabiles <kroosec@gmail.com>
-> ---
->  libxtables/xtables.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-> index fb60c01..bb25262 100644
-> --- a/libxtables/xtables.c
-> +++ b/libxtables/xtables.c
-> @@ -1207,8 +1207,8 @@ const char *xtables_ipaddr_to_anyname(const struct in_addr *addr)
->  {
->  	const char *name;
->  
-> -	if ((name = ipaddr_to_host(addr)) != NULL ||
-> -	    (name = ipaddr_to_network(addr)) != NULL)
-> +	if ((name = ipaddr_to_network(addr)) != NULL ||
-> +	    (name = ipaddr_to_host(addr)) != NULL)
+iptables -I OUTPUT -p http \
+        -m nfacct --nfacct-name icmp-limit --quota 10000 -j REJECT
 
-My only concern is the remote case in which you may have a network
-name that overlaps with some existing host name, in that case the
-expected output different.
+Upon reaching the limit of 10000 byte of http traffic, any outgoing
+http packets will be dropped and a single broadcast message will be
+sent to user space.  That is because the match explicitly takes care
+of sending the notification.
 
+With your proposal:
+
+iptables -I OUTPUT -p http \
+         -m nfacct --nfacct-name http-limit --quota 10000 --match-once \
+         -j NFLOG --nflog-prefix "http: " --nflog-group 34
+
+will log the quota reached event but won't prevent further http
+traffic from going out.  One could instinctively add another rule
+right after the above one, something like:
+
+iptables -I OUTPUT -p http \
+         -m nfacct --nfacct-name http-limit --quota 10000 \
+         -j REJECT
+
+but that won't work either because the packet/byte could will be
+incremented twice.
+
+>
+>> Using ' nfulnl_log_packet()' (if even possible) would seem hackish to me.
+>
+> That don't like that choice either.
