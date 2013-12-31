@@ -1,72 +1,27 @@
-From: Hani Benhabiles <kroosec@gmail.com>
-Subject: Re: [PATCH iptables] libxtables: Call ipaddr_to_network before
- ipaddr_to_host.
-Date: Tue, 31 Dec 2013 18:50:48 +0100
-Message-ID: <20131231175048.GA11575@Inspiron-3521>
-References: <20131209200223.GC2970@Inspiron-3521>
- <20131230174603.GA21372@localhost>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH nf-next v5 0/3] xtables socket classid matching
+Date: Tue, 31 Dec 2013 13:17:00 -0500 (EST)
+Message-ID: <20131231.131700.1443330390939211403.davem@davemloft.net>
+References: <1388338032-14713-1-git-send-email-dborkman@redhat.com>
+	<20131231140459.GA4238@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:52332 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753897Ab3LaRu7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Dec 2013 12:50:59 -0500
-Received: by mail-ee0-f48.google.com with SMTP id e49so5522403eek.21
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Dec 2013 09:50:58 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20131230174603.GA21372@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131231140459.GA4238@localhost>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Date: Tue, 31 Dec 2013 15:04:59 +0100
 
-On Mon, Dec 30, 2013 at 06:46:03PM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Dec 09, 2013 at 09:02:23PM +0100, Hani Benhabiles wrote:
-> > Call ipaddr_to_network before ipaddr_to_host.
-> > 
-> > This saves waiting for a reverse DNS lookup query when the entry is present in
-> > /etc/networks. This also follows the same order as in rules creation.
+> Hi,
 > 
-> This saves time and it makes sense to me to check local file before
-> name resolution via network, but...
-> 
-> > Signed-off-by: Hani Benhabiles <kroosec@gmail.com>
-> > ---
-> >  libxtables/xtables.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-> > index fb60c01..bb25262 100644
-> > --- a/libxtables/xtables.c
-> > +++ b/libxtables/xtables.c
-> > @@ -1207,8 +1207,8 @@ const char *xtables_ipaddr_to_anyname(const struct in_addr *addr)
-> >  {
-> >  	const char *name;
-> >  
-> > -	if ((name = ipaddr_to_host(addr)) != NULL ||
-> > -	    (name = ipaddr_to_network(addr)) != NULL)
-> > +	if ((name = ipaddr_to_network(addr)) != NULL ||
-> > +	    (name = ipaddr_to_host(addr)) != NULL)
-> 
-> My only concern is the remote case in which you may have a network
-> name that overlaps with some existing host name, in that case the
-> expected output different.
-> 
+> @David: This patchset that Daniel sent me contains changes for
+> /net/core/ stuff, let me know how you want me to handle this or if you
+> please to apply this directly yourself.
 
-This is already the case in rules creation. In xtables.c:ipparse_hostnetwork()
-we have network_to_ipaddr() call prior to host_to_ipaddr().
-
-I believe that a consistent behaviour for users is important ie. either network
-names or host names should come first in both resolving and reverse resolving.
-
-Maybe be consistent, and make host names a priority in rules creation, then ?
-However, I believe networks should come first, mainly due to the potential
-time/bandwidth save.
-
-Regards,
-
-Hani.
+You can take it in via your tree, thanks.
