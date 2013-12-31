@@ -1,55 +1,90 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: [PATCH nf-next] netfilter: fix type in parsing in nf_tables_set_alloc_name
-Date: Tue, 31 Dec 2013 12:40:05 +0100
-Message-ID: <1388490005-6771-1-git-send-email-dborkman@redhat.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57276 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630Ab3LaLkN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Dec 2013 06:40:13 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: Re: [PATCH nf-next v5 0/3] xtables socket classid matching
+Date: Tue, 31 Dec 2013 15:04:59 +0100
+Message-ID: <20131231140459.GA4238@localhost>
+References: <1388338032-14713-1-git-send-email-dborkman@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1388338032-14713-1-git-send-email-dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-In nf_tables_set_alloc_name(), we are trying to find a new, unused
-name for our new set and interate through the list of present sets.
-As far as I can see, we're using format string %d to parse already
-present names in order to mark their presence in a bitmap, so that
-we can later on find the first 0 in that map to assign the new set
-name to. We should rather use a temporary variable of type int to
-store the result of sscanf() to, and for making sanity checks on.
+Hi,
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
----
- I think this is not really critical, and can go through nf-next.
- Pablo, if you think otherwise, feel free to apply it to nf-net.
+@David: This patchset that Daniel sent me contains changes for
+/net/core/ stuff, let me know how you want me to handle this or if you
+please to apply this directly yourself.
 
- net/netfilter/nf_tables_api.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Thanks!
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f93b7d0..937c34c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1973,11 +1973,14 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 			return -ENOMEM;
- 
- 		list_for_each_entry(i, &ctx->table->sets, list) {
--			if (!sscanf(i->name, name, &n))
-+			int tmp;
-+
-+			if (!sscanf(i->name, name, &tmp))
- 				continue;
--			if (n < 0 || n > BITS_PER_LONG * PAGE_SIZE)
-+			if (tmp < 0 || tmp > BITS_PER_LONG * PAGE_SIZE)
- 				continue;
--			set_bit(n, inuse);
-+
-+			set_bit(tmp, inuse);
- 		}
- 
- 		n = find_first_zero_bit(inuse, BITS_PER_LONG * PAGE_SIZE);
--- 
-1.7.11.7
-
+On Sun, Dec 29, 2013 at 06:27:09PM +0100, Daniel Borkmann wrote:
+> The main patch is patch 3, please refer to the detailled description
+> there. Patch 1 has been requested by cgroups people to have as a
+> cleanup. While at it, I've also added a minor, trivial cleanup in
+> patch 2 for consistency reasons.
+> 
+> Changelog:
+> 
+> * v4->v5:
+>   - Fixed typo in patch 1, sorry for that, rest unchanged.
+> * v3->v4:
+>   - Patch 3 is unchanged from previous version (only minor Kconfig update)
+>   - Added patch 1 upon request, and while at it also patch 2
+> * v2->v3:
+>   - After discussions w/ Tejun, let's not add any cgroups code here,
+>     thus we _only_ add code in netfilter area, nowhere else, that's
+>     even more simple and cleaner than proposed.
+> * v1->v2:
+>   - Updated commit message, rebased
+>   - Applied Gao Feng's feedback
+> 
+> Previous discussions, design considerations etc can be found in:
+> 
+>   - v1: http://patchwork.ozlabs.org/patch/280687/
+>   - v1/alt: http://patchwork.ozlabs.org/patch/282477/
+>   - v2: http://patchwork.ozlabs.org/patch/284582/
+>   - v3: http://patchwork.ozlabs.org/patch/304825/
+> 
+> Pablo, please find the unchanged user space part in [1].
+> 
+> Thanks !
+> 
+>  [1] http://patchwork.ozlabs.org/patch/304826/
+> 
+> Daniel Borkmann (3):
+>   net: net_cls: move cgroupfs classid handling into core
+>   net: netprio: rename config to be more consistent with cgroup configs
+>   netfilter: xtables: lightweight process control group matching
+> 
+>  Documentation/cgroups/net_cls.txt        |   5 ++
+>  include/linux/cgroup_subsys.h            |   4 +-
+>  include/linux/netdevice.h                |   2 +-
+>  include/net/cls_cgroup.h                 |  40 ++++-------
+>  include/net/netprio_cgroup.h             |  18 ++---
+>  include/net/sock.h                       |   2 +-
+>  include/uapi/linux/netfilter/Kbuild      |   1 +
+>  include/uapi/linux/netfilter/xt_cgroup.h |  11 +++
+>  net/Kconfig                              |  11 ++-
+>  net/core/Makefile                        |   3 +-
+>  net/core/dev.c                           |   2 +-
+>  net/core/netclassid_cgroup.c             | 120 +++++++++++++++++++++++++++++++
+>  net/core/sock.c                          |  14 +---
+>  net/netfilter/Kconfig                    |  10 +++
+>  net/netfilter/Makefile                   |   1 +
+>  net/netfilter/xt_cgroup.c                |  71 ++++++++++++++++++
+>  net/sched/Kconfig                        |   1 +
+>  net/sched/cls_cgroup.c                   | 111 +---------------------------
+>  18 files changed, 256 insertions(+), 171 deletions(-)
+>  create mode 100644 include/uapi/linux/netfilter/xt_cgroup.h
+>  create mode 100644 net/core/netclassid_cgroup.c
+>  create mode 100644 net/netfilter/xt_cgroup.c
+> 
+> -- 
+> 1.8.3.1
+> 
