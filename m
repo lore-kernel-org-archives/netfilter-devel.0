@@ -1,21 +1,21 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_nat: fix buffer overflow in IRC NAT
- helper
-Date: Tue, 31 Dec 2013 18:35:45 +0100
-Message-ID: <20131231173545.GA4004@localhost>
-References: <1388503719-17766-1-git-send-email-dborkman@redhat.com>
- <20131231172952.GA3857@localhost>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [PATCH nf] netfilter: nf_nat: fix buffer overflow in IRC NAT helper
+Date: Tue, 31 Dec 2013 18:42:49 +0100
+Message-ID: <20131231174249.GA31490@order.stressinduktion.org>
+References: <1388503719-17766-1-git-send-email-dborkman@redhat.com> <20131231172952.GA3857@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset=utf-8
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	netfilter-devel@vger.kernel.org,
 	Harald Welte <laforge@gnumonks.org>,
 	Noel Butler <noel.butler@ausics.net>
-To: Daniel Borkmann <dborkman@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40184 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753915Ab3LaRfw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Dec 2013 12:35:52 -0500
+Received: from order.stressinduktion.org ([87.106.68.36]:60610 "EHLO
+	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652Ab3LaRmv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 Dec 2013 12:42:51 -0500
 Content-Disposition: inline
 In-Reply-To: <20131231172952.GA3857@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -54,6 +54,15 @@ On Tue, Dec 31, 2013 at 06:29:52PM +0100, Pablo Neira Ayuso wrote:
 > 
 > Thanks Daniel.
 > 
-> No need for red blinking light on...
+> No need for red blinking light on, we never really had complete IPv6
+> support for IRC in mainline. There's an untested patch I posted, I was
+> waiting for Noel's feedback to decide what to do with it.
 
-Oh well, this also affects IPv4. Will pass this to master. Thanks.
+Just as a quick note: irssi seems to have at least some support for
+IPv6 DCC. In case this didn't work at all until now, I don't see a problem
+removing it for now and maybe bring it back later.
+
+Greetings,
+
+  Hannes
+
