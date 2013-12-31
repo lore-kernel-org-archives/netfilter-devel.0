@@ -1,68 +1,72 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH nf] netfilter: nf_nat: fix buffer overflow in IRC NAT helper
-Date: Tue, 31 Dec 2013 18:42:49 +0100
-Message-ID: <20131231174249.GA31490@order.stressinduktion.org>
-References: <1388503719-17766-1-git-send-email-dborkman@redhat.com> <20131231172952.GA3857@localhost>
+From: Hani Benhabiles <kroosec@gmail.com>
+Subject: Re: [PATCH iptables] libxtables: Call ipaddr_to_network before
+ ipaddr_to_host.
+Date: Tue, 31 Dec 2013 18:50:48 +0100
+Message-ID: <20131231175048.GA11575@Inspiron-3521>
+References: <20131209200223.GC2970@Inspiron-3521>
+ <20131230174603.GA21372@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: Daniel Borkmann <dborkman@redhat.com>,
-	netfilter-devel@vger.kernel.org,
-	Harald Welte <laforge@gnumonks.org>,
-	Noel Butler <noel.butler@ausics.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from order.stressinduktion.org ([87.106.68.36]:60610 "EHLO
-	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652Ab3LaRmv (ORCPT
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:52332 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897Ab3LaRu7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Dec 2013 12:42:51 -0500
+	Tue, 31 Dec 2013 12:50:59 -0500
+Received: by mail-ee0-f48.google.com with SMTP id e49so5522403eek.21
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Dec 2013 09:50:58 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20131231172952.GA3857@localhost>
+In-Reply-To: <20131230174603.GA21372@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 31, 2013 at 06:29:52PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Dec 31, 2013 at 04:28:39PM +0100, Daniel Borkmann wrote:
-> > Commit 5901b6be885e attempted to introduce IPv6 support into
-> > IRC NAT helper. By doing so, the following code seemed to be removed
-> > by accident:
+Hi Pablo,
+
+On Mon, Dec 30, 2013 at 06:46:03PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Dec 09, 2013 at 09:02:23PM +0100, Hani Benhabiles wrote:
+> > Call ipaddr_to_network before ipaddr_to_host.
 > > 
-> >   ip = ntohl(exp->master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip);
-> >   sprintf(buffer, "%u %u", ip, port);
-> >   pr_debug("nf_nat_irc: inserting '%s' == %pI4, port %u\n", buffer, &ip, port);
-> > 
-> > This leads to the fact that buffer[] was left uninitialized and
-> > contained some stack value. When we call nf_nat_mangle_tcp_packet(),
-> > we call strlen(buffer) on excatly this uninitialized buffer. If we
-> > are unlucky and the skb has enough tailroom, we overwrite resp. leak
-> > contents with values that sit on our stack into the packet and send
-> > that out to the receiver.
-> > 
-> > Since the rather informal DCC spec [1] does not seem to specify
-> > IPv6 support right now, we log such occurences so that admins can
-> > act accordingly, and drop the packet. I've looked into XChat source,
-> > and IPv6 is not supported there: addresses are in u32 and print
-> > via %u format string.
-> > 
-> > Therefore, restore old behaviour as in IPv4, use snprintf(), and
-> > log IPv6 packets for now (maybe if there's consensus one day, we
-> > can still add support here). By this, we can safely use strlen(buffer)
-> > in nf_nat_mangle_tcp_packet() and prevent a buffer overflow. Also
-> > simplify some code as we now have ct variable anyway.
-> > 
-> >   [1] http://www.irchelp.org/irchelp/rfc/ctcpspec.html
+> > This saves waiting for a reverse DNS lookup query when the entry is present in
+> > /etc/networks. This also follows the same order as in rules creation.
 > 
-> Thanks Daniel.
+> This saves time and it makes sense to me to check local file before
+> name resolution via network, but...
 > 
-> No need for red blinking light on, we never really had complete IPv6
-> support for IRC in mainline. There's an untested patch I posted, I was
-> waiting for Noel's feedback to decide what to do with it.
+> > Signed-off-by: Hani Benhabiles <kroosec@gmail.com>
+> > ---
+> >  libxtables/xtables.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+> > index fb60c01..bb25262 100644
+> > --- a/libxtables/xtables.c
+> > +++ b/libxtables/xtables.c
+> > @@ -1207,8 +1207,8 @@ const char *xtables_ipaddr_to_anyname(const struct in_addr *addr)
+> >  {
+> >  	const char *name;
+> >  
+> > -	if ((name = ipaddr_to_host(addr)) != NULL ||
+> > -	    (name = ipaddr_to_network(addr)) != NULL)
+> > +	if ((name = ipaddr_to_network(addr)) != NULL ||
+> > +	    (name = ipaddr_to_host(addr)) != NULL)
+> 
+> My only concern is the remote case in which you may have a network
+> name that overlaps with some existing host name, in that case the
+> expected output different.
+> 
 
-Just as a quick note: irssi seems to have at least some support for
-IPv6 DCC. In case this didn't work at all until now, I don't see a problem
-removing it for now and maybe bring it back later.
+This is already the case in rules creation. In xtables.c:ipparse_hostnetwork()
+we have network_to_ipaddr() call prior to host_to_ipaddr().
 
-Greetings,
+I believe that a consistent behaviour for users is important ie. either network
+names or host names should come first in both resolving and reverse resolving.
 
-  Hannes
+Maybe be consistent, and make host names a priority in rules creation, then ?
+However, I believe networks should come first, mainly due to the potential
+time/bandwidth save.
 
+Regards,
+
+Hani.
