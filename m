@@ -1,115 +1,166 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v4] netfilter: introduce l2tp match extension
-Date: Thu, 2 Jan 2014 21:59:07 +0100
-Message-ID: <20140102205907.GA4598@localhost>
-References: <1386857622-17389-1-git-send-email-jchapman@katalix.com>
- <20140102205713.GA3758@localhost>
+From: Vincent Li <vincent.mc.li@gmail.com>
+Subject: How to test netfilter SYNPROXY target properly?
+Date: Thu, 2 Jan 2014 15:30:21 -0800
+Message-ID: <CAK3+h2wX3PvcMyNhYWYTnxyQyr9YN_2Mzr21gD4OrpF2P6+TcQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
-Cc: netfilter-devel@vger.kernel.org
-To: James Chapman <jchapman@katalix.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42371 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752701AbaABU7L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jan 2014 15:59:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20140102205713.GA3758@localhost>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:53894 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbaABXaV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jan 2014 18:30:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I should have put this question in user list instead of dev list, but
+I couldn't find any user based documentation on how to test the
+SYNPROXY target other than the message in the SYNPROXY patch series.
+so here is my setup:
 
-On Thu, Jan 02, 2014 at 09:57:13PM +0100, Pablo Neira Ayuso wrote:
-[...]
-> I'm testing this with the last userspace iptables patch that you
-> posted [1]. I'm using the example in the manpage:
-> 
-> # iptables -A INPUT -s 1.2.3.4 -m l2tp --tid 42
-> iptables: Invalid argument. Run `dmesg' for more information.
-> # dmesg
-> ...
-> [  490.827569] xt_l2tp: missing encapsulation
-> 
-> The error message is added by the patch I made on top of your last
-> kernel patch (find it attached, feel free to merge it to your next v5).
+---packet flow
 
-Forgot attachment, here it comes.
+client 10.1.72.99 (vlan 1101)  <->Linux with SYNPROXY rule - 10.1.72.9
+(vlan 1101) 10.2.72.139 (vlan 1102) <->server 10.2.72.99
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="for-james.patch"
+---configuration
 
-diff --git a/net/netfilter/xt_l2tp.c b/net/netfilter/xt_l2tp.c
-index d4ec208..f2104aa 100644
---- a/net/netfilter/xt_l2tp.c
-+++ b/net/netfilter/xt_l2tp.c
-@@ -221,33 +221,45 @@ static int l2tp_mt_check(const struct xt_mtchk_param *par)
- 
- 	/* Check for invalid flags */
- 	if (info->flags & ~(XT_L2TP_TID | XT_L2TP_SID | XT_L2TP_VERSION |
--			    XT_L2TP_ENCAP | XT_L2TP_TYPE))
-+			    XT_L2TP_ENCAP | XT_L2TP_TYPE)) {
-+		pr_info("unknown flags: %x\n", info->flags);
- 		return -EINVAL;
-+	}
- 
- 	/* At least one of tid, sid or type=control must be specified */
- 	if ((!(info->flags & XT_L2TP_TID)) &&
- 	    (!(info->flags & XT_L2TP_SID)) &&
- 	    ((!(info->flags & XT_L2TP_TYPE)) ||
--	     (info->type != XT_L2TP_TYPE_CONTROL)))
-+	     (info->type != XT_L2TP_TYPE_CONTROL))) {
-+		pr_info("invalid flags combination: %x\n", info->flags);
- 		return -EINVAL;
-+	}
- 
- 	/* If version 2 is specified, check that incompatible params
- 	 * are not supplied
- 	 */
- 	if (info->flags & XT_L2TP_VERSION) {
--		if ((info->version < 2) || (info->version > 3))
-+		if ((info->version < 2) || (info->version > 3)) {
-+			pr_info("wrong L2TP version: %u\n", info->version);
- 			return -EINVAL;
-+		}
- 
- 		if (info->version == 2) {
- 			if ((info->flags & XT_L2TP_TID) &&
--			    (info->tid > 0xffff))
-+			    (info->tid > 0xffff)) {
-+				pr_info("tid > 0xffff: %u\n", info->tid);
- 				return -EINVAL;
-+			}
- 			if ((info->flags & XT_L2TP_SID) &&
--			    (info->sid > 0xffff))
-+			    (info->sid > 0xffff)) {
-+				pr_info("sid > 0xffff: %u\n", info->sid);
- 				return -EINVAL;
-+			}
- 			if ((info->flags & XT_L2TP_ENCAP) &&
--			    (info->encap == XT_L2TP_ENCAP_IP))
-+			    (info->encap == XT_L2TP_ENCAP_IP)) {
-+				pr_info("v2 doesn't support IP mode\n");
- 				return -EINVAL;
-+			}
- 
- 			/* Force UDP encap */
- 			info->encap = XT_L2TP_ENCAP_UDP;
-@@ -256,8 +268,10 @@ static int l2tp_mt_check(const struct xt_mtchk_param *par)
- 	}
- 
- 	/* Encap must be specified */
--	if (!(info->flags & XT_L2TP_ENCAP))
-+	if (!(info->flags & XT_L2TP_ENCAP)) {
-+		pr_info("missing encapsulation\n");
- 		return -EINVAL;
-+	}
- 
- 	return 0;
- }
+Linux with SYNPROXY iptables rules:
 
---lrZ03NoBR/3+SXJZ--
+
+# Define network interfaces
+EXTIF="eth1.1101"
+INTIF="eth1.1102"
+#
+# Flushing out existing iptables entries
+iptables -P INPUT ACCEPT
+iptables -F INPUT
+iptables -P OUTPUT ACCEPT
+iptables -F OUTPUT
+iptables -P FORWARD ACCEPT
+iptables -F FORWARD
+iptables -t nat -F
+#
+# Allow all outbound traffic and only allow established and related
+connections back in
+iptables -A FORWARD -i $EXTIF -o $INTIF -m state --state
+ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i $INTIF -o $EXTIF -j ACCEPT
+iptables -A FORWARD -j LOG
+#
+# Masquerade NAT functionality on $EXTIF
+iptables -t nat -A POSTROUTING -o $EXTIF -j MASQUERADE
+#
+# Allows ssh inbound connections
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+#
+# Allows lo interface to work
+iptables -A INPUT -i lo -j ACCEPT
+#
+# Default DROP
+iptables -A INPUT -i $EXTIF -j DROP
+
+########simple firewall router/nat
+
+#####netfilter SYNPROXY iptable rule
+/usr/local/sbin/iptables -t raw -A PREROUTING -i $EXTIF -p tcp --dport
+80 --syn -j NOTRACK
+/usr/local/sbin/iptables -A INPUT -i $EXTIF -p tcp --dport 80 -m state
+--state UNTRACKED,INVALID -j SYNPROXY --sack-perm --timestamp --mss
+1460 --wscale 5
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+
+Linux with SYNPROXY interfaces:
+
+eth1.1101 Link encap:Ethernet  HWaddr 00:15:60:0e:3d:09
+          inet addr:10.1.72.9  Bcast:10.1.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::215:60ff:fe0e:3d09/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:15835 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:32 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:723297 (723.2 KB)  TX bytes:5542 (5.5 KB)
+
+eth1.1102 Link encap:Ethernet  HWaddr 00:15:60:0e:3d:09
+          inet addr:10.2.72.139  Bcast:10.2.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::215:60ff:fe0e:3d09/64 Scope:Link
+          inet6 addr: fd5a:7195:e993:0:10:2:72:139/112 Scope:Global
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:10077 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:60 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:480391 (480.3 KB)  TX bytes:7849 (7.8 KB)
+
+tcp_syncookies are turned on
+
+root@vincent-hp:/home/vincent/linux# cat /proc/sys/net/ipv4/tcp_syncookies
+1
+
+
+---test steps
+
+1 from client, run curl to send HTTP request to server
+
+#curl http://10.2.72.99
+
+2, run tcpdump on Linux with SYNPROXY target setup
+
+root@vincent-hp:~# tcpdump -nn -i eth1 port 80
+
+15:03:21.737643 vlan 1101, p 0, IP 10.1.72.99.43015 > 10.2.72.99.80:
+Flags [S], seq 1709811771, win 5840, options [mss 1460,sackOK,TS val
+1529239892 ecr 0,nop,wscale 5], length 0
+15:03:21.737702 vlan 1102, p 0, IP 10.1.72.99.43015 > 10.2.72.99.80:
+Flags [S], seq 1709811771, win 5840, options [mss 1460,sackOK,TS val
+1529239892 ecr 0,nop,wscale 5], length 0
+15:03:21.738161 vlan 1102, p 0, IP 10.2.72.99.80 > 10.1.72.99.43015:
+Flags [S.], seq 3989558297, ack 1709811772, win 5792, options [mss
+1460,sackOK,TS val 17487273 ecr 1529239892,nop,wscale 5], length 0
+15:03:21.738180 vlan 1101, p 0, IP 10.2.72.99.80 > 10.1.72.99.43015:
+Flags [S.], seq 3989558297, ack 1709811772, win 5792, options [mss
+1460,sackOK,TS val 17487273 ecr 1529239892,nop,wscale 5], length 0
+15:03:21.741240 vlan 1101, p 0, IP 10.1.72.99.43015 > 10.2.72.99.80:
+Flags [.], ack 1, win 183, options [nop,nop,TS val 1529239892 ecr
+17487273], length 0
+15:03:21.741271 vlan 1102, p 0, IP 10.1.72.99.43015 > 10.2.72.99.80:
+Flags [.], ack 1, win 183, options [nop,nop,TS val 1529239892 ecr
+17487273], length 0
+
+my understanding is that from tcpdump, I should see SYN, SYN+ACK, ACK
+between client and SYNPROXY unit on vlan 1101, if the syn cookie from
+client is valid, then SYNPROXY unit will send SYN to server on vlan
+1102, but the tcpdump capture does not show what I understand.
+
+I also checked the /proc/net/stat/synproxy states, it is all 0
+
+root@vincent-hp:/home/vincent/linux# cat /proc/net/stat/synproxy
+entries         syn_received    cookie_invalid  cookie_valid
+cookie_retrans  conn_reopened
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+00000000        00000000        00000000        00000000
+00000000        00000000
+
+I think I might miss something and not testing the SYNPROXY properly, any clue?
+
+Regards,
+
+Vincent
