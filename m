@@ -1,33 +1,119 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 1/2] netfilter: CT: factorize reusable code
-Date: Thu,  2 Jan 2014 10:12:55 +0100
-Message-ID: <1388653976-30802-2-git-send-email-eric@regit.org>
+Subject: [PATCH 2/2] netfilter: nftables: introduce ct_set module
+Date: Thu,  2 Jan 2014 10:12:56 +0100
+Message-ID: <1388653976-30802-3-git-send-email-eric@regit.org>
 References: <1388653976-30802-1-git-send-email-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:54805 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:54809 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711AbaABJNQ (ORCPT
+	with ESMTP id S1750711AbaABJNU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jan 2014 04:13:16 -0500
+	Thu, 2 Jan 2014 04:13:20 -0500
 In-Reply-To: <1388653976-30802-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This module is a port of iptables CT target. It allows
+user to setup connection tracking for selected packets.
+
+The context is not containing information about layer 4
+so it is necessary to ask to userspace explicitely for
+which layer 4 protocol the connection template has to be
+created. This is the reason why the  NFTA_CT_SET_PROTO
+field has been introduced.
+
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- include/net/netfilter/nf_ct_set.h | 137 ++++++++++++++++++++++++++++++++++++
- net/netfilter/xt_CT.c             | 143 +++-----------------------------------
- 2 files changed, 145 insertions(+), 135 deletions(-)
- create mode 100644 include/net/netfilter/nf_ct_set.h
+ include/uapi/linux/netfilter/nf_tables.h |  36 +++++
+ net/netfilter/Kconfig                    |   5 +
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_ct_set.c               | 262 +++++++++++++++++++++++++++++++
+ 4 files changed, 304 insertions(+)
+ create mode 100644 net/netfilter/nft_ct_set.c
 
-diff --git a/include/net/netfilter/nf_ct_set.h b/include/net/netfilter/nf_ct_set.h
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index aa86a152..96bde79 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -707,6 +707,42 @@ enum nft_reject_attributes {
+ #define NFTA_REJECT_MAX		(__NFTA_REJECT_MAX - 1)
+ 
+ /**
++ * enum nft_ct_set_attributes - nf_tables ct_set expression netlink attributes
++ *
++ * @NFTA_CT_SET_PROTO: layer 4 protocol
++ * @NFTA_CT_SET_FLAGS: flags for connection as NOTRACK for example
++ * @NFTA_CT_SET_HELPER: protocol helper to link with matching connections
++ * @NFTA_CT_SET_CTEVENTS: only generate the specified conntrack events
++ * @NFTA_CT_SET_EXPEVENTS: only generate the specified expectation events
++ * @NFTA_CT_SET_ZONEID: assign packet to sone id
++ * @NFTA_CT_SET_TIMEOUT: use timeout policy for the connection
++ *
++ */
++enum nft_ct_set_attributes {
++	NFTA_CT_SET_UNSPEC,
++	NFTA_CT_SET_PROTO,
++	NFTA_CT_SET_FLAGS,
++	NFTA_CT_SET_HELPER,
++	NFTA_CT_SET_CTEVENTS,
++	NFTA_CT_SET_EXPEVENTS,
++	NFTA_CT_SET_ZONEID,
++	NFTA_CT_SET_TIMEOUT,
++	__NFTA_CT_SET_MAX
++};
++#define NFTA_CT_SET_MAX		(__NFTA_CT_SET_MAX - 1)
++
++/**
++ * enum nft_ct_set_flags - nf_tables ct_set flags
++ *
++ * @NFT_CT_SET_F_NOTRACK: do not track this connection
++ */
++enum nft_ct_set_flags {
++
++enum nft_ct_set_flags {
++	NFT_CT_SET_F_NOTRACK = 0x1,
++};
++
++/**
+  * enum nft_nat_types - nf_tables nat expression NAT types
+  *
+  * @NFT_NAT_SNAT: source NAT
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index a1dec61..448c389 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -430,6 +430,11 @@ config NFT_CT
+ 	depends on NF_CONNTRACK
+ 	tristate "Netfilter nf_tables conntrack module"
+ 
++config NFT_CT_SET
++	depends on NF_TABLES
++	depends on NF_CONNTRACK
++	tristate "Netfilter nf_tables conntrack setup module"
++
+ config NFT_RBTREE
+ 	depends on NF_TABLES
+ 	tristate "Netfilter nf_tables rbtree set module"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 39e4a7b..f50c501 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -74,6 +74,7 @@ obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
+ obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
+ obj-$(CONFIG_NFT_META)		+= nft_meta.o
+ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
++obj-$(CONFIG_NFT_CT_SET)	+= nft_ct_set.o
+ obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
+ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+diff --git a/net/netfilter/nft_ct_set.c b/net/netfilter/nft_ct_set.c
 new file mode 100644
-index 0000000..6f7d8cb
+index 0000000..93e862d
 --- /dev/null
-+++ b/include/net/netfilter/nf_ct_set.h
-@@ -0,0 +1,137 @@
++++ b/net/netfilter/nft_ct_set.c
+@@ -0,0 +1,262 @@
 +/*
 + * Copyright (c) 2014 Eric Leblond <eric@regit.org>
 + *
@@ -37,327 +123,259 @@ index 0000000..6f7d8cb
 + *
 + */
 +
-+#include <net/netfilter/nf_conntrack_l4proto.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
-+#include <net/netfilter/nf_conntrack_timeout.h>
-+#include <net/netfilter/nf_conntrack_zones.h>
-+
-+static int
-+nf_ct_set_helper(struct nf_conn *ct, const char *helper_name, u8 proto,
-+		u8 family)
-+{
-+	struct nf_conntrack_helper *helper;
-+	struct nf_conn_help *help;
-+
-+	if (!proto) {
-+		pr_info("You must specify a L4 protocol, and not use "
-+			"inversions on it.\n");
-+		return -ENOENT;
-+	}
-+
-+	helper = nf_conntrack_helper_try_module_get(helper_name, family,
-+						    proto);
-+	if (helper == NULL) {
-+		pr_info("No such helper \"%s\"\n", helper_name);
-+		return -ENOENT;
-+	}
-+
-+	help = nf_ct_helper_ext_add(ct, helper, GFP_KERNEL);
-+	if (help == NULL) {
-+		module_put(helper->me);
-+		return -ENOMEM;
-+	}
-+
-+	help->helper = helper;
-+	return 0;
-+}
-+
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+static void __nf_ct_tg_timeout_put(struct ctnl_timeout *timeout)
-+{
-+	typeof(nf_ct_timeout_put_hook) timeout_put;
-+
-+	timeout_put = rcu_dereference(nf_ct_timeout_put_hook);
-+	if (timeout_put)
-+		timeout_put(timeout);
-+}
-+#endif
-+
-+static int
-+nf_ct_set_timeout(struct nf_conn *ct, u8 proto, u8 family,
-+		  const char *timeout_name)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+	typeof(nf_ct_timeout_find_get_hook) timeout_find_get;
-+	struct ctnl_timeout *timeout;
-+	struct nf_conn_timeout *timeout_ext;
-+	struct nf_conntrack_l4proto *l4proto;
-+	int ret = 0;
-+
-+	rcu_read_lock();
-+	timeout_find_get = rcu_dereference(nf_ct_timeout_find_get_hook);
-+	if (timeout_find_get == NULL) {
-+		ret = -ENOENT;
-+		pr_info("Timeout policy base is empty\n");
-+		goto out;
-+	}
-+
-+	if (!proto) {
-+		ret = -EINVAL;
-+		pr_info("You must specify a L4 protocol, and not use "
-+			"inversions on it.\n");
-+		goto out;
-+	}
-+
-+	timeout = timeout_find_get(timeout_name);
-+	if (timeout == NULL) {
-+		ret = -ENOENT;
-+		pr_info("No such timeout policy \"%s\"\n", timeout_name);
-+		goto out;
-+	}
-+
-+	if (timeout->l3num != family) {
-+		ret = -EINVAL;
-+		pr_info("Timeout policy `%s' can only be used by L3 protocol "
-+			"number %d\n", timeout_name, timeout->l3num);
-+		goto err_put_timeout;
-+	}
-+	/* Make sure the timeout policy matches any existing protocol tracker,
-+	 * otherwise default to generic.
-+	 */
-+	l4proto = __nf_ct_l4proto_find(family, proto);
-+	if (timeout->l4proto->l4proto != l4proto->l4proto) {
-+		ret = -EINVAL;
-+		pr_info("Timeout policy `%s' can only be used by L4 protocol "
-+			"number %d\n",
-+			timeout_name, timeout->l4proto->l4proto);
-+		goto err_put_timeout;
-+	}
-+	timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
-+	if (timeout_ext == NULL)
-+		ret = -ENOMEM;
-+
-+err_put_timeout:
-+	__nf_ct_tg_timeout_put(timeout);
-+out:
-+	rcu_read_unlock();
-+	return ret;
-+#else
-+	return -EOPNOTSUPP;
-+#endif
-+}
-+
-+static void nf_ct_destroy_timeout(struct nf_conn *ct)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+	struct nf_conn_timeout *timeout_ext;
-+	typeof(nf_ct_timeout_put_hook) timeout_put;
-+
-+	rcu_read_lock();
-+	timeout_put = rcu_dereference(nf_ct_timeout_put_hook);
-+
-+	if (timeout_put) {
-+		timeout_ext = nf_ct_timeout_find(ct);
-+		if (timeout_ext)
-+			timeout_put(timeout_ext->timeout);
-+	}
-+	rcu_read_unlock();
-+#endif
-+}
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 5929be6..e4190bc 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -14,11 +14,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_CT.h>
- #include <net/netfilter/nf_conntrack.h>
--#include <net/netfilter/nf_conntrack_l4proto.h>
--#include <net/netfilter/nf_conntrack_helper.h>
--#include <net/netfilter/nf_conntrack_ecache.h>
--#include <net/netfilter/nf_conntrack_timeout.h>
--#include <net/netfilter/nf_conntrack_zones.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/rculist_nulls.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_conntrack.h>
 +#include <net/netfilter/nf_ct_set.h>
- 
- static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
- {
-@@ -72,121 +68,13 @@ static u8 xt_ct_find_proto(const struct xt_tgchk_param *par)
- 		return 0;
- }
- 
--static int
--xt_ct_set_helper(struct nf_conn *ct, const char *helper_name,
--		 const struct xt_tgchk_param *par)
--{
--	struct nf_conntrack_helper *helper;
--	struct nf_conn_help *help;
--	u8 proto;
--
--	proto = xt_ct_find_proto(par);
--	if (!proto) {
--		pr_info("You must specify a L4 protocol, and not use "
--			"inversions on it.\n");
--		return -ENOENT;
--	}
--
--	helper = nf_conntrack_helper_try_module_get(helper_name, par->family,
--						    proto);
--	if (helper == NULL) {
--		pr_info("No such helper \"%s\"\n", helper_name);
--		return -ENOENT;
--	}
--
--	help = nf_ct_helper_ext_add(ct, helper, GFP_KERNEL);
--	if (help == NULL) {
--		module_put(helper->me);
--		return -ENOMEM;
--	}
--
--	help->helper = helper;
--	return 0;
--}
--
--#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
--static void __xt_ct_tg_timeout_put(struct ctnl_timeout *timeout)
--{
--	typeof(nf_ct_timeout_put_hook) timeout_put;
--
--	timeout_put = rcu_dereference(nf_ct_timeout_put_hook);
--	if (timeout_put)
--		timeout_put(timeout);
--}
--#endif
--
--static int
--xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
--		  const char *timeout_name)
--{
--#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
--	typeof(nf_ct_timeout_find_get_hook) timeout_find_get;
--	struct ctnl_timeout *timeout;
--	struct nf_conn_timeout *timeout_ext;
--	struct nf_conntrack_l4proto *l4proto;
--	int ret = 0;
--	u8 proto;
--
--	rcu_read_lock();
--	timeout_find_get = rcu_dereference(nf_ct_timeout_find_get_hook);
--	if (timeout_find_get == NULL) {
--		ret = -ENOENT;
--		pr_info("Timeout policy base is empty\n");
--		goto out;
--	}
--
--	proto = xt_ct_find_proto(par);
--	if (!proto) {
--		ret = -EINVAL;
--		pr_info("You must specify a L4 protocol, and not use "
--			"inversions on it.\n");
--		goto out;
--	}
--
--	timeout = timeout_find_get(timeout_name);
--	if (timeout == NULL) {
--		ret = -ENOENT;
--		pr_info("No such timeout policy \"%s\"\n", timeout_name);
--		goto out;
--	}
--
--	if (timeout->l3num != par->family) {
--		ret = -EINVAL;
--		pr_info("Timeout policy `%s' can only be used by L3 protocol "
--			"number %d\n", timeout_name, timeout->l3num);
--		goto err_put_timeout;
--	}
--	/* Make sure the timeout policy matches any existing protocol tracker,
--	 * otherwise default to generic.
--	 */
--	l4proto = __nf_ct_l4proto_find(par->family, proto);
--	if (timeout->l4proto->l4proto != l4proto->l4proto) {
--		ret = -EINVAL;
--		pr_info("Timeout policy `%s' can only be used by L4 protocol "
--			"number %d\n",
--			timeout_name, timeout->l4proto->l4proto);
--		goto err_put_timeout;
--	}
--	timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
--	if (timeout_ext == NULL)
--		ret = -ENOMEM;
--
--err_put_timeout:
--	__xt_ct_tg_timeout_put(timeout);
--out:
--	rcu_read_unlock();
--	return ret;
--#else
--	return -EOPNOTSUPP;
--#endif
--}
--
- static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 			  struct xt_ct_target_info_v1 *info)
- {
- 	struct nf_conntrack_tuple t;
- 	struct nf_conn *ct;
- 	int ret = -EOPNOTSUPP;
-+	u8 proto = 0;
- 
- 	if (info->flags & XT_CT_NOTRACK) {
- 		ct = NULL;
-@@ -217,13 +105,16 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 	}
- 
- 	if (info->helper[0]) {
--		ret = xt_ct_set_helper(ct, info->helper, par);
-+		proto = xt_ct_find_proto(par);
-+		ret = nf_ct_set_helper(ct, info->helper, proto, par->family);
- 		if (ret < 0)
- 			goto err3;
- 	}
- 
- 	if (info->timeout[0]) {
--		ret = xt_ct_set_timeout(ct, par, info->timeout);
-+		if (!proto)
-+			proto = xt_ct_find_proto(par);
-+		ret = nf_ct_set_timeout(ct, proto, par->family, info->timeout);
- 		if (ret < 0)
- 			goto err3;
- 	}
-@@ -291,24 +182,6 @@ static int xt_ct_tg_check_v2(const struct xt_tgchk_param *par)
- 	return xt_ct_tg_check(par, par->targinfo);
- }
- 
--static void xt_ct_destroy_timeout(struct nf_conn *ct)
--{
--#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
--	struct nf_conn_timeout *timeout_ext;
--	typeof(nf_ct_timeout_put_hook) timeout_put;
--
--	rcu_read_lock();
--	timeout_put = rcu_dereference(nf_ct_timeout_put_hook);
--
--	if (timeout_put) {
--		timeout_ext = nf_ct_timeout_find(ct);
--		if (timeout_ext)
--			timeout_put(timeout_ext->timeout);
--	}
--	rcu_read_unlock();
--#endif
--}
--
- static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 			     struct xt_ct_target_info_v1 *info)
- {
-@@ -322,7 +195,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 
- 		nf_ct_l3proto_module_put(par->family);
- 
--		xt_ct_destroy_timeout(ct);
++
++struct nft_ct_set {
++	__u16	flags;
++	__u16	zoneid;
++	__u32	ct_events;
++	__u32	exp_events;
++	char	*helper;
++	char	*timeout;
++
++	/* Used internally by the kernel */
++	struct nf_conn	*ct __attribute__((aligned(8)));
++	__u16	proto;
++};
++
++static void nft_ct_set_eval(const struct nft_expr *expr,
++			   struct nft_data data[NFT_REG_MAX + 1],
++			   const struct nft_pktinfo *pkt)
++{
++	struct nft_ct_set *priv = nft_expr_priv(expr);
++	struct nf_conn *ct;
++
++	if (pkt->skb->nfct != NULL)
++		return;
++
++	if (priv->flags & NFT_CT_SET_F_NOTRACK)
++		ct = nf_ct_untracked_get();
++	else
++		ct = priv->ct;
++
++	atomic_inc(&ct->ct_general.use);
++	pkt->skb->nfct = &ct->ct_general;
++	pkt->skb->nfctinfo = IP_CT_NEW;
++}
++
++static const struct nla_policy nft_ct_set_policy[NFTA_CT_SET_MAX + 1] = {
++	[NFTA_CT_SET_FLAGS]	= { .type = NLA_U16 },
++	[NFTA_CT_SET_HELPER]	= { .type = NLA_STRING },
++	[NFTA_CT_SET_CTEVENTS]	= { .type = NLA_U32 },
++	[NFTA_CT_SET_EXPEVENTS]	= { .type = NLA_U32 },
++	[NFTA_CT_SET_ZONEID]	= { .type = NLA_U16 },
++	[NFTA_CT_SET_TIMEOUT]	= { .type = NLA_STRING },
++};
++
++static int nft_ct_set_init(const struct nft_ctx *ctx,
++			   const struct nft_expr *expr,
++			   const struct nlattr * const tb[])
++{
++	struct nft_ct_set *priv = nft_expr_priv(expr);
++	const struct nlattr *nla;
++	struct nf_conntrack_tuple t;
++	struct nf_conn *ct;
++	int ret = -EOPNOTSUPP;
++
++
++	if (tb[NFTA_CT_SET_PROTO] != NULL)
++		priv->proto = ntohs(nla_get_be16(tb[NFTA_CT_SET_PROTO]));
++	else
++		return -EINVAL;
++
++	if (tb[NFTA_CT_SET_FLAGS] != NULL)
++		priv->flags = ntohs(nla_get_be16(tb[NFTA_CT_SET_FLAGS]));
++
++	if (priv->flags & NFT_CT_SET_F_NOTRACK) {
++		ct = NULL;
++		goto out;
++	}
++
++	if (tb[NFTA_CT_SET_HELPER] != NULL) {
++		nla = tb[NFTA_CT_SET_HELPER];
++		priv->helper = kmalloc(nla_len(nla) + 1, GFP_KERNEL);
++		if (priv->helper == NULL)
++			return -ENOMEM;
++		nla_strlcpy(priv->helper, nla, nla_len(nla) + 1);
++	}
++
++	if (tb[NFTA_CT_SET_CTEVENTS] != NULL)
++		priv->ct_events = ntohl(nla_get_be32(tb[NFTA_CT_SET_CTEVENTS]));
++
++	if (tb[NFTA_CT_SET_EXPEVENTS] != NULL)
++		priv->exp_events =
++			ntohl(nla_get_be32(tb[NFTA_CT_SET_EXPEVENTS]));
++
++	if (tb[NFTA_CT_SET_ZONEID] != NULL) {
++#ifndef CONFIG_NF_CONNTRACK_ZONES
++		goto err1;
++#endif
++		priv->zoneid = ntohs(nla_get_be16(tb[NFTA_CT_SET_ZONEID]));
++	}
++
++	if (tb[NFTA_CT_SET_TIMEOUT] != NULL) {
++#ifndef CONFIG_NF_CONNTRACK_TIMEOUT
++		goto err1;
++#endif
++		nla = tb[NFTA_CT_SET_TIMEOUT];
++		priv->timeout = kmalloc(nla_len(nla) + 1, GFP_KERNEL);
++		if (priv->timeout == NULL) {
++			ret = -ENOMEM;
++			goto err1;
++		}
++		nla_strlcpy(priv->timeout, nla, nla_len(nla) + 1);
++	}
++
++	ret = nf_ct_l3proto_try_module_get(ctx->afi->family);
++	if (ret < 0)
++		goto err1;
++
++	memset(&t, 0, sizeof(t));
++	ct = nf_conntrack_alloc(ctx->net, priv->zoneid, &t, &t, GFP_KERNEL);
++	ret = PTR_ERR(ct);
++	if (IS_ERR(ct))
++		goto err2;
++
++	ret = 0;
++	if ((priv->ct_events || priv->exp_events) &&
++	    !nf_ct_ecache_ext_add(ct, priv->ct_events, priv->exp_events,
++				  GFP_KERNEL)) {
++		ret = -EINVAL;
++		goto err3;
++	}
++
++	if (priv->helper) {
++		ret = nf_ct_set_helper(ct, priv->helper, priv->proto,
++				       ctx->afi->family);
++		if (ret < 0)
++			goto err3;
++	}
++
++	if (priv->timeout) {
++		ret = nf_ct_set_timeout(ct, priv->proto, ctx->afi->family,
++					priv->timeout);
++		if (ret < 0)
++			goto err3;
++	}
++
++	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
++	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
++
++	/* Overload tuple linked list to put us in template list. */
++	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
++				 &ctx->net->ct.tmpl);
++
++out:
++	priv->ct = ct;
++	return 0;
++
++err3:
++	nf_conntrack_free(ct);
++err2:
++	nf_ct_l3proto_module_put(ctx->afi->family);
++
++err1:
++	if (priv->helper)
++		kfree(priv->helper);
++	if (priv->timeout)
++		kfree(priv->timeout);
++	return ret;
++}
++
++static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_ct_set *priv = nft_expr_priv(expr);
++
++	if (nla_put_be16(skb, NFTA_CT_SET_FLAGS, htons(priv->flags)) ||
++	    nla_put_be16(skb, NFTA_CT_SET_ZONEID, htons(priv->zoneid)) ||
++	    nla_put_be16(skb, NFTA_CT_SET_PROTO, htons(priv->proto)) ||
++	    nla_put_be32(skb, NFTA_CT_SET_CTEVENTS, htons(priv->ct_events)) ||
++	    nla_put_be32(skb, NFTA_CT_SET_EXPEVENTS, htons(priv->exp_events)))
++		goto nla_put_failure;
++	if (priv->helper)
++		if (nla_put_string(skb, NFTA_CT_SET_HELPER, priv->helper))
++			goto nla_put_failure;
++	if (priv->timeout)
++		if (nla_put_string(skb, NFTA_CT_SET_TIMEOUT, priv->timeout))
++			goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++
++static void nft_ct_set_destroy(const struct nft_expr *expr) {
++	struct nft_ct_set *priv = nft_expr_priv(expr);
++	struct nf_conn_help *help;
++	struct nf_conn *ct = NULL;
++
++	if (priv->helper)
++		kfree(priv->helper);
++
++	if (priv->timeout)
++		kfree(priv->timeout);
++
++	ct = priv->ct;
++	if (ct) {
++		help = nfct_help(ct);
++		if (help)
++			module_put(help->helper->me);
++
++		/* FIXME */
++#if 0
++		nf_ct_l3proto_module_put(par->family);
++#endif
++
 +		nf_ct_destroy_timeout(ct);
- 		nf_ct_put(info->ct);
- 	}
- }
++		nf_ct_put(priv->ct);
++	}
++}
++
++static struct nft_expr_type nft_ct_set_type;
++static const struct nft_expr_ops nft_ct_set_ops = {
++	.type		= &nft_ct_set_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct_set)),
++	.eval		= nft_ct_set_eval,
++	.init		= nft_ct_set_init,
++	.dump		= nft_ct_set_dump,
++	.destroy	= nft_ct_set_destroy,
++};
++
++static struct nft_expr_type nft_ct_set_type __read_mostly = {
++	.name		= "ct_set",
++	.ops		= &nft_ct_set_ops,
++	.policy		= nft_ct_set_policy,
++	.maxattr	= NFTA_CT_SET_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_ct_set_module_init(void)
++{
++	return nft_register_expr(&nft_ct_set_type);
++}
++
++static void __exit nft_ct_set_module_exit(void)
++{
++	nft_unregister_expr(&nft_ct_set_type);
++}
++
++module_init(nft_ct_set_module_init);
++module_exit(nft_ct_set_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
++MODULE_ALIAS_NFT_EXPR("ct_set");
 -- 
 1.8.5.2
 
