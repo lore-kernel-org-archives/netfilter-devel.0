@@ -1,29 +1,30 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: Re: [PATCH nf-next v5 0/3] xtables socket classid matching
-Date: Fri, 3 Jan 2014 23:56:13 +0100
-Message-ID: <20140103225613.GA18418@localhost>
-References: <1388338032-14713-1-git-send-email-dborkman@redhat.com>
- <52C264F6.7050602@huawei.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: fix type in parsing in
+ nf_tables_set_alloc_name
+Date: Sat, 4 Jan 2014 00:02:47 +0100
+Message-ID: <20140103230247.GA6283@localhost>
+References: <1388490005-6771-1-git-send-email-dborkman@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <dborkman@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38289 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753385AbaACXC4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jan 2014 18:02:56 -0500
 Content-Disposition: inline
-In-Reply-To: <52C264F6.7050602-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1388490005-6771-1-git-send-email-dborkman@redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 31, 2013 at 02:32:22PM +0800, Li Zefan wrote:
-> On 2013/12/30 1:27, Daniel Borkmann wrote:
-> > The main patch is patch 3, please refer to the detailled description
-> > there. Patch 1 has been requested by cgroups people to have as a
-> > cleanup. While at it, I've also added a minor, trivial cleanup in
-> > patch 2 for consistency reasons.
-> > 
-> 
-> Looks good to me.
+On Tue, Dec 31, 2013 at 12:40:05PM +0100, Daniel Borkmann wrote:
+> In nf_tables_set_alloc_name(), we are trying to find a new, unused
+> name for our new set and interate through the list of present sets.
+> As far as I can see, we're using format string %d to parse already
+> present names in order to mark their presence in a bitmap, so that
+> we can later on find the first 0 in that map to assign the new set
+> name to. We should rather use a temporary variable of type int to
+> store the result of sscanf() to, and for making sanity checks on.
 
-Series applied, thanks.
+Applied, thanks.
