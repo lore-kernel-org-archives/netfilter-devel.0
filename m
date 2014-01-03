@@ -1,92 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v5] netfilter: introduce l2tp match extension
-Date: Fri, 3 Jan 2014 16:16:52 +0100
-Message-ID: <20140103151652.GA4496@localhost>
-References: <1388757711-13712-1-git-send-email-jchapman@katalix.com>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Fri, 3 Jan 2014 16:54:10 +0100
+Message-ID: <20140103155410.GA13894@localhost>
+References: <CANLsYkxMzdFCpJ3456PPd8KsEPi-U70kJDqGv8c3BhCsKY8RiQ@mail.gmail.com>
+ <20131219194339.GA4561@localhost>
+ <CANLsYkzoa0E6T8ZGYmKHSPdFyGkLeQw8_dsB_NAJx9YA2qD8uw@mail.gmail.com>
+ <20131221085509.GA4230@localhost>
+ <CANLsYkx32_sUzZvy697Vhyu7cBUaoYtB__FNTvdhwWDguLmT2Q@mail.gmail.com>
+ <20131230173655.GA21288@localhost>
+ <CANLsYkx34A97NwJyFb05MT=zneT8ET=Nyz7HTGEDWHhGAZP_-Q@mail.gmail.com>
+ <20131230214653.GP29632@breakpoint.cc>
+ <CANLsYkxr2eRyz0aWDD8OMJDf2YWpwg3SOBpEhoopfy6N+kzfWg@mail.gmail.com>
+ <CANLsYkzRPDQsKFDsHTZKDOLmX=_yhBa3FBCbuY1-Uy2TG3jYQg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: James Chapman <jchapman@katalix.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59933 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751931AbaACPQ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jan 2014 10:16:59 -0500
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, John Stultz <john.stultz@linaro.org>,
+	JP Abgrall <jpa@google.com>
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1388757711-13712-1-git-send-email-jchapman@katalix.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CANLsYkzRPDQsKFDsHTZKDOLmX=_yhBa3FBCbuY1-Uy2TG3jYQg@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 03, 2014 at 02:01:51PM +0000, James Chapman wrote:
-> Introduce an xtables add-on for matching L2TP packets. Supports L2TPv2
-> and L2TPv3 over IPv4 and IPv6. As well as filtering on L2TP tunnel-id
-> and session-id, the filtering decision can also include the L2TP
-> packet type (control or data), protocol version (2 or 3) and
-> encapsulation type (UDP or IP).
+On Mon, Dec 30, 2013 at 04:14:21PM -0700, Mathieu Poirier wrote:
+> On 30 December 2013 15:17, Mathieu Poirier <mathieu.poirier@linaro.org> wrote:
+> > Hey Florian - I think that is an acceptable compromise.  The LOG chain
+> > and rules are extra but it is setup only once and as such scale well.
+> >
+> > Thank you for that,
+> > Mathieu
+> >
+> > On 30 December 2013 14:46, Florian Westphal <fw@strlen.de> wrote:
+> >> Mathieu Poirier <mathieu.poirier@linaro.org> wrote:
+> >>> Upon reaching the limit of 10000 byte of http traffic, any outgoing
+> >>> http packets will be dropped and a single broadcast message will be
+> >>> sent to user space.  That is because the match explicitly takes care
+> >>> of sending the notification.
+> >>>
+> >>> With your proposal:
+> >>>
+> >>> iptables -I OUTPUT -p http \
+> >>>          -m nfacct --nfacct-name http-limit --quota 10000 --match-once \
+> >>>          -j NFLOG --nflog-prefix "http: " --nflog-group 34
+> >>>
+> >>> will log the quota reached event but won't prevent further http
+> >>> traffic from going out.  One could instinctively add another rule
+> >>> right after the above one, something like:
+> >>>
+> >>> iptables -I OUTPUT -p http \
+> >>>          -m nfacct --nfacct-name http-limit --quota 10000 \
+> >>>          -j REJECT
+> >>>
+> >>> but that won't work either because the packet/byte could will be
+> >>> incremented twice.
+> >>
+> >> The usual workaround is to create custom chains to deal with this,
+> >> i.e.
+> >> iptables -N LOG_DROP_HTTP
+> >> iptables -A LOG_DROP_HTTP -j NFLOG --nflog-prefix "http: " --nflog-group 34
+> >> iptables -A LOG_DROP_HTTP -j REJECT
+> >> iptables -I OUTPUT -p http -m nfacct ... -j LOG_DROP_HTTP
 > 
-> The most common use for this will likely be to filter L2TP data
-> packets of individual L2TP tunnels or sessions. While a u32 match can
-> be used, the L2TP protocol headers are such that field offsets differ
-> depending on bits set in the header, making rules for matching generic
-> L2TP connections cumbersome. This match extension takes care of all
-> that.
-> 
-> An iptables patch will be submitted separately.
-> 
-> Signed-off-by: James Chapman <jchapman@katalix.com>
-> 
-> ---
-> Changes in v2:
-> Address comments from Patrick McHardy:-
-> - Added checkentry function to check args passed into kernel.
-> 
-> Changes in v3:
-> Address comments from Pablo Neira Ayuso:-
-> - Remove debug code.
-> - Avoid multiple nested if statements when they are unnecessary.
-> - Fix data access to use skb_header_pointer() properly.
-> - Use #defines for L2TP packet header bit definitions.
-> - Improve comments to clarify how variations in L2TP header field
->   locations are handled when parsing header fields.
-> 
-> Changes in v4:
-> Address comments from Pablo Neira Ayuso:-
-> - Remove packet layout diagrams which are c&p'd from the RFCs.
-> - Use ip6_find_hdr() to get the IP protocol inside IPv6
->   packets. After this change, the common match code path thru
->   l2tp_mt_common() was not useful so has been removed and
->   l2tp_mt_udp() or l2tp_mt_ip() is called directly instead.
-> - Require encap to be specified
-> 
-> Changes in v5:
-> Address comments from Pablo Neira Ayuso:-
-> - Add log messages to help users identify kernel parameter problems.
-> - Do not modify the info struct when checking parameters. Don't try to
->   derive encap from other parameters if it isn't specified. Instead,
->   just require that it is specified.
-> 
-> Is there a way in checkentry() to check that a UDP match has also been
-> specified, for the case when L2TP UDP encap is being used? This would
-> ensure that specific UDP ports are matched.
+> I may have spoken too quickly.  With this solution a log message is
+> sent every time a packet over quota is received, something we
+> definitely want to avoid.  I was able to cover that case when sending
+> a notification from the match function.
 
-Yes. See net/netfilter/xt_ecn.c for instance. In your case, this
-should look like:
-
-        const struct ipt_ip *ip = par->entryinfo;
-
-        switch (ip->proto) {
-        case IPPROTO_UDP:
-                ...
-                break;
-        case IPPROTO_L2TP:
-                ...
-                break;
-        }
-
-Note that par->entryinfo layout depends on ipv4/ipv6, so you'll need a
-checkentry() function for each layer 3 family.
-
-That ip->proto field is set via -p option.
-
-I think this can also be used to remove the --encap option as -p would
-specify the encapsulation type.
+Then, keep your code to send netlink notifications, I don't find any
+better solution at this moment.
