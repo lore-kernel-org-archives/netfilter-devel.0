@@ -1,40 +1,77 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: How to get pid of packet sender from NFQUEUE?
-Date: Fri, 03 Jan 2014 09:12:54 +0100
-Message-ID: <1388736774.19005.3.camel@tiger2>
-References: <CAKiFbu9h1an38XXeNDy1ivcEz1vZHaqK+ekmQVXZLUChpJ3pBQ@mail.gmail.com>
+From: James Chapman <jchapman@katalix.com>
+Subject: Re: [PATCH v4] netfilter: introduce l2tp match extension
+Date: Fri, 03 Jan 2014 10:04:46 +0000
+Message-ID: <52C68B3E.30402@katalix.com>
+References: <1386857622-17389-1-git-send-email-jchapman@katalix.com> <20140102205713.GA3758@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Mehran Kholdi <semekh.dev@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:34694 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbaACINH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jan 2014 03:13:07 -0500
-In-Reply-To: <CAKiFbu9h1an38XXeNDy1ivcEz1vZHaqK+ekmQVXZLUChpJ3pBQ@mail.gmail.com>
+Received: from katalix.com ([82.103.140.233]:46396 "EHLO bert.katalix.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750841AbaACKEv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jan 2014 05:04:51 -0500
+In-Reply-To: <20140102205713.GA3758@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On 02/01/14 20:57, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> On Thu, Dec 12, 2013 at 02:13:42PM +0000, James Chapman wrote:
 
-On Fri, 2014-01-03 at 03:52 +0330, Mehran Kholdi wrote:
-> So, I've got my code in userland (using netfilter_queue) that tries to
-> handle packets according to different attributes (sort of a firewall).
-> Is it possible to get the pid of sender program?
-> I'm aware that it is possible to apply pid-based rules with iptables
-> directly, but how could I access that property in the NFQUEUE?
+> I'm testing this with the last userspace iptables patch that you
+> posted [1]. I'm using the example in the manpage:
+> 
+> # iptables -A INPUT -s 1.2.3.4 -m l2tp --tid 42
+> iptables: Invalid argument. Run `dmesg' for more information.
+> # dmesg
+> ...
+> [  490.827569] xt_l2tp: missing encapsulation
 
-You can't for now. Patches to access to UID GID have been made available
-recently:
-http://www.spinics.net/lists/netfilter-devel/msg29355.html
+By bad. I made the encap type a required param to the kernel as a result
+of previous comments and updated the iptables patch to enforce this, but
+I didn't submit the updated iptables patch.
 
-I don't think it should be too complex to propose the same for PID.
+> Note that changing the info data area from the kernel side is
+> problematic in iptables, eg.
+> 
+> # iptables -A INPUT -s 1.2.3.4/32 -m l2tp --tid 42 --pversion 2
+> # iptables -D INPUT -s 1.2.3.4/32 -m l2tp --tid 42 --pversion 2
+> iptables: Bad rule (does a matching rule exist in that chain?).
+>
+> Userspace needs to get exactly what it passes, no changes are allowed.
+> I think you need explicit option passing to indicate the behaviour you
+> want.
+> 
+>> +		}
+>> +	}
+>> +
+>> +	/* Encap must be specified */
+>> +	if (!(info->flags & XT_L2TP_ENCAP))
+>> +		return -EINVAL;
+>> +
+>> +	return 0;
+>> +}
+> 
+> Please, review this logic in the _check() function and send me a v5,
+> including a refreshed iptables version.
 
-BR,
--- 
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
+On reflection, having the kernel derive an encap_type if the version is
+set 2 is unnecessary - it is better to have the iptables command parser
+do this and just have the kernel reject the request if encap_type is not
+specified, rather than trying to fake it as being set to udp itself when
+version is 2.
+
+> 
+> It would be great if you can include a list of iptables commands using
+> your l2tp match that you have used to validate this in the next round.
+> Thanks.
+
+Will do. Thanks.
+
+> [1] http://patchwork.ozlabs.org/patch/288411/
+> 
 
