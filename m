@@ -1,67 +1,74 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
-Date: Fri, 3 Jan 2014 13:38:45 -0700
-Message-ID: <CANLsYkyA-DT3jWeYJUJG-6rNTDcfv22BrjfBBAaaL4qHu+H+PA@mail.gmail.com>
-References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
-	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
-	<20131218095322.GA4740@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2 -next] netfilter: don't use per-destination
+ incrementing ports in nat random mode
+Date: Fri, 3 Jan 2014 23:52:36 +0100
+Message-ID: <20140103225236.GA18357@localhost>
+References: <20131219134007.GA24118@order.stressinduktion.org>
+ <52B37F6B.9010105@redhat.com>
+ <20131220004822.GC32129@order.stressinduktion.org>
+ <20131220080118.GA4234@localhost>
+ <20131220214029.GB14073@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	John Stultz <john.stultz@linaro.org>,
-	JP Abgrall <jpa@google.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: Daniel Borkmann <dborkman@redhat.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vb0-f47.google.com ([209.85.212.47]:64148 "EHLO
-	mail-vb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbaACUiq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jan 2014 15:38:46 -0500
-Received: by mail-vb0-f47.google.com with SMTP id m10so1876949vbh.34
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jan 2014 12:38:45 -0800 (PST)
-In-Reply-To: <20131218095322.GA4740@localhost>
+Received: from mail.us.es ([193.147.175.20]:37786 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753385AbaACWwp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jan 2014 17:52:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20131220214029.GB14073@order.stressinduktion.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-...
+On Fri, Dec 20, 2013 at 10:40:29PM +0100, Hannes Frederic Sowa wrote:
+> From: Daniel Borkmann <dborkman@redhat.com>
+> 
+> We currently use prandom_u32() for allocation of ports in tcp bind(0)
+> and udp code. In case of plain SNAT we try to keep the ports as is
+> or increment on collision.
+> 
+> SNAT --random mode does use per-destination incrementing port
+> allocation. As a recent paper pointed out in [1] that this mode of
+> port allocation makes it possible to an attacker to find the randomly
+> allocated ports through a timing side-channel in a socket overloading
+> attack conducted through an off-path attacker.
+> 
+> So, NF_NAT_RANGE_PROTO_RANDOM actually weakens the port randomization
+> in regard to the attack described in this paper. As we need to keep
+> compatibility, add another flag called NF_NAT_RANGE_PROTO_RANDOM_FULLY
+> that would replace the NF_NAT_RANGE_PROTO_RANDOM hash-based port
+> selection algorithm with a simple prandom_u32() in order to mitigate
+> this attack vector. Note that the lfsr113's internal state is
+> periodically reseeded by the kernel through a local secure entropy
+> source.
+> 
+> More details can be found in [1], the basic idea is to send bursts
+> of packets to a socket to overflow its receive queue and measure
+> the latency to detect a possible retransmit when the port is found.
+> Because of increasing ports to given destination and port, further
+> allocations can be predicted. This information could then be used by
+> an attacker for e.g. for cache-poisoning, NS pinning, and degradation
+> of service attacks against DNS servers [1]:
+> 
+>   The best defense against the poisoning attacks is to properly
+>   deploy and validate DNSSEC; DNSSEC provides security not only
+>   against off-path attacker but even against MitM attacker. We hope
+>   that our results will help motivate administrators to adopt DNSSEC.
+>   However, full DNSSEC deployment make take significant time, and
+>   until that happens, we recommend short-term, non-cryptographic
+>   defenses. We recommend to support full port randomisation,
+>   according to practices recommended in [2], and to avoid
+>   per-destination sequential port allocation, which we show may be
+>   vulnerable to derandomisation attacks.
+> 
+> Joint work between Hannes Frederic Sowa and Daniel Borkmann.
 
-> I think you can avoid this private area (including the spinlock) by
-> storing a copy of the packet/byte counter before calling
-> nfnl_acct_update(). Then if you note that old packet/byte counter was
-> below quota but new is overquota, then you have to send an event, ie.
->
->         old_pkts = atomic64_read(info->nfacct->pkts);
->         new_pkts = nfnl_acct_update(skb, info->nfacct, info->flags);
->         if (old_pkts < info->quota && new_pkts > info->quota)
->                 send event
->
-> There's still one problem with this approach since it is racy, as it
-> may send several events, so you can refine it with:
->
->         if (old_pkts < info->quota && new_pkts > info->quota
->             && old_pkts + 1 == new_pkts)
->                 send event
->
-> You will need two different functions depending on the quota mode
-> (packet or bytes), and you will also need to modify nfnl_acct_update()
-> to return the new number of packets or bytes (depending on the flags),
-> you can use atomic_add_return and atomic_inc_return respectively to
-> retrieve the new (updated) value.
+Applied, thanks.
 
-Now that we've dealt with the logging issue we can concentrate on the
-above suggestion that tries to avoid using a spinlock.  It works well
-in packet mode but not so much in byte mode.
-
-Whether working in byte or packet mode the solution is using packets
-to determine who will send the notification.  When dealing with bytes
-identifying which packet made the byte count go over quota is of prime
-importance.  The problem is that the upgrade of packet and bytes in
-"nfnl_acct_update()" is not atomic to the caller - there is always a
-possibility that the thread will lose the CPU between incrementing
-packet and bytes.  This could eventually lead to erroneous arithmetic
-and an imprecise recognition of a quota attainment.
-
-No matter how I turn things around in my head we need a spinlock -
-either in nfnl_acct_update() or in the match function of xt_nfacct.c.
-
-Comments are welcomed.
+I have renamed the title of this patch to: "add full port
+randomization support" which I though a bit more descriptive with the
+final patch that has settled down, just in case you look for it in the
+nf-next tree.
