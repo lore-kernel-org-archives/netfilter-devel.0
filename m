@@ -1,114 +1,306 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 6/6] netfilter: nft_meta: add l4proto support
-Date: Fri,  3 Jan 2014 12:16:18 +0000
-Message-ID: <1388751378-23272-7-git-send-email-kaber@trash.net>
+Subject: [PATCH 3/6] netfilter: nf_tables: add support for multi family tables
+Date: Fri,  3 Jan 2014 12:16:15 +0000
+Message-ID: <1388751378-23272-4-git-send-email-kaber@trash.net>
 References: <1388751378-23272-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from stinky.trash.net ([213.144.137.162]:56525 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbaACMQ2 (ORCPT
+	with ESMTP id S1751698AbaACMQ1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jan 2014 07:16:28 -0500
+	Fri, 3 Jan 2014 07:16:27 -0500
 In-Reply-To: <1388751378-23272-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For L3-proto independant rules we need to get at the L4 protocol value
-directly. Add it to the nft_pktinfo struct and use the meta expression
-to retrieve it.
+Add support to register chains to multiple hooks for different address
+families for mixed IPv4/IPv6 tables.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h        | 1 +
- include/net/netfilter/nf_tables_ipv4.h   | 3 ++-
- include/net/netfilter/nf_tables_ipv6.h   | 1 +
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nft_meta.c                 | 4 ++++
- 5 files changed, 10 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h       |  9 +++++-
+ net/bridge/netfilter/nf_tables_bridge.c |  1 +
+ net/ipv4/netfilter/nf_tables_arp.c      |  1 +
+ net/ipv4/netfilter/nf_tables_ipv4.c     |  1 +
+ net/ipv6/netfilter/nf_tables_ipv6.c     |  1 +
+ net/netfilter/nf_tables_api.c           | 49 +++++++++++++++++++--------------
+ net/netfilter/nft_compat.c              |  8 +++---
+ 7 files changed, 45 insertions(+), 25 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f066f25..5d2b703 100644
+index c9e6316..f066f25 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -16,6 +16,7 @@ struct nft_pktinfo {
- 	const struct nf_hook_ops	*ops;
- 	u8				nhoff;
- 	u8				thoff;
-+	u8				tprot;
- 	/* for x_tables compatibility */
- 	struct xt_action_param		xt;
+@@ -422,6 +422,8 @@ struct nft_stats {
+ 	u64 pkts;
  };
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index f7b3a66..cba143f 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -15,8 +15,9 @@ nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
  
- 	nft_set_pktinfo(pkt, ops, skb, in, out);
++#define NFT_HOOK_OPS_MAX		2
++
+ /**
+  *	struct nft_base_chain - nf_tables base chain
+  *
+@@ -432,7 +434,7 @@ struct nft_stats {
+  *	@chain: the chain
+  */
+ struct nft_base_chain {
+-	struct nf_hook_ops		ops;
++	struct nf_hook_ops		ops[NFT_HOOK_OPS_MAX];
+ 	enum nft_chain_type		type;
+ 	u8				policy;
+ 	struct nft_stats __percpu	*stats;
+@@ -476,6 +478,8 @@ struct nft_table {
+  *	@nhooks: number of hooks in this family
+  *	@owner: module owner
+  *	@tables: used internally
++ *	@nops: number of hook ops in this family
++ *	@hook_ops_init: initialization function for chain hook ops
+  *	@hooks: hookfn overrides for packet validation
+  */
+ struct nft_af_info {
+@@ -484,6 +488,9 @@ struct nft_af_info {
+ 	unsigned int			nhooks;
+ 	struct module			*owner;
+ 	struct list_head		tables;
++	unsigned int			nops;
++	void				(*hook_ops_init)(struct nf_hook_ops *,
++							 unsigned int);
+ 	nf_hookfn			*hooks[NF_MAX_HOOKS];
+ };
  
--	pkt->xt.thoff = ip_hdrlen(pkt->skb);
- 	ip = ip_hdr(pkt->skb);
-+	pkt->tprot = ip->protocol;
-+	pkt->xt.thoff = ip_hdrlen(pkt->skb);
- 	pkt->xt.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index c5fdd9a..003c1e9 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -32,6 +32,7 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
+ 	.family		= NFPROTO_BRIDGE,
+ 	.nhooks		= NF_BR_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
++	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
+ 		[NF_BR_FORWARD]		= nft_do_chain_bridge,
+diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
+index 31bb778..36d27fc 100644
+--- a/net/ipv4/netfilter/nf_tables_arp.c
++++ b/net/ipv4/netfilter/nf_tables_arp.c
+@@ -32,6 +32,7 @@ static struct nft_af_info nft_af_arp __read_mostly = {
+ 	.family		= NFPROTO_ARP,
+ 	.nhooks		= NF_ARP_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
++	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_ARP_IN]		= nft_do_chain_arp,
+ 		[NF_ARP_OUT]		= nft_do_chain_arp,
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index ed7e15a..177c3bc 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -52,6 +52,7 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
++	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+ 		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index 54a2bcd..642280e 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -51,6 +51,7 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
++	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
+ 		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0dda328..e4c4089 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -306,7 +306,8 @@ err:
+ 	return err;
  }
  
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index 3d8ae48..74d9761 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -21,6 +21,7 @@ nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
- 	if (protohdr < 0)
- 		return -1;
+-static int nf_tables_table_enable(struct nft_table *table)
++static int nf_tables_table_enable(const struct nft_af_info *afi,
++				  struct nft_table *table)
+ {
+ 	struct nft_chain *chain;
+ 	int err, i = 0;
+@@ -315,7 +316,7 @@ static int nf_tables_table_enable(struct nft_table *table)
+ 		if (!(chain->flags & NFT_BASE_CHAIN))
+ 			continue;
  
-+	pkt->tprot = protohdr;
- 	pkt->xt.thoff = thoff;
- 	pkt->xt.fragoff = frag_off;
+-		err = nf_register_hook(&nft_base_chain(chain)->ops);
++		err = nf_register_hooks(nft_base_chain(chain)->ops, afi->nops);
+ 		if (err < 0)
+ 			goto err;
  
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 7ec92a9..d557a2c 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -530,6 +530,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_RTCLASSID: realm value of packet's route (skb->dst->tclassid)
-  * @NFT_META_SECMARK: packet secmark (skb->secmark)
-  * @NFT_META_NFPROTO: netfilter protocol
-+ * @NFT_META_L4PROTO: layer 4 protocol number
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -548,6 +549,7 @@ enum nft_meta_keys {
- 	NFT_META_RTCLASSID,
- 	NFT_META_SECMARK,
- 	NFT_META_NFPROTO,
-+	NFT_META_L4PROTO,
- };
+@@ -330,18 +331,20 @@ err:
+ 		if (i-- <= 0)
+ 			break;
  
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 06a4f30..62d8de3 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -43,6 +43,9 @@ static void nft_meta_eval(const struct nft_expr *expr,
- 	case NFT_META_NFPROTO:
- 		dest->data[0] = pkt->ops->pf;
- 		break;
-+	case NFT_META_L4PROTO:
-+		dest->data[0] = pkt->tprot;
-+		break;
- 	case NFT_META_PRIORITY:
- 		dest->data[0] = skb->priority;
- 		break;
-@@ -155,6 +158,7 @@ static int nft_meta_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	case NFT_META_LEN:
- 	case NFT_META_PROTOCOL:
- 	case NFT_META_NFPROTO:
-+	case NFT_META_L4PROTO:
- 	case NFT_META_PRIORITY:
- 	case NFT_META_MARK:
- 	case NFT_META_IIF:
+-		nf_unregister_hook(&nft_base_chain(chain)->ops);
++		nf_unregister_hooks(nft_base_chain(chain)->ops, afi->nops);
+ 	}
+ 	return err;
+ }
+ 
+-static int nf_tables_table_disable(struct nft_table *table)
++static int nf_tables_table_disable(const struct nft_af_info *afi,
++				   struct nft_table *table)
+ {
+ 	struct nft_chain *chain;
+ 
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		if (chain->flags & NFT_BASE_CHAIN)
+-			nf_unregister_hook(&nft_base_chain(chain)->ops);
++			nf_unregister_hooks(nft_base_chain(chain)->ops,
++					    afi->nops);
+ 	}
+ 
+ 	return 0;
+@@ -364,12 +367,12 @@ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 		if ((flags & NFT_TABLE_F_DORMANT) &&
+ 		    !(table->flags & NFT_TABLE_F_DORMANT)) {
+-			ret = nf_tables_table_disable(table);
++			ret = nf_tables_table_disable(afi, table);
+ 			if (ret >= 0)
+ 				table->flags |= NFT_TABLE_F_DORMANT;
+ 		} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 			   table->flags & NFT_TABLE_F_DORMANT) {
+-			ret = nf_tables_table_enable(table);
++			ret = nf_tables_table_enable(afi, table);
+ 			if (ret >= 0)
+ 				table->flags &= ~NFT_TABLE_F_DORMANT;
+ 		}
+@@ -597,7 +600,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 
+ 	if (chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain = nft_base_chain(chain);
+-		const struct nf_hook_ops *ops = &basechain->ops;
++		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 		struct nlattr *nest;
+ 
+ 		nest = nla_nest_start(skb, NFTA_CHAIN_HOOK);
+@@ -831,6 +834,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
+ 	u64 handle = 0;
++	unsigned int i;
+ 	int err;
+ 	bool create;
+ 
+@@ -903,7 +907,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+ 		struct nf_hook_ops *ops;
+ 		nf_hookfn *hookfn;
+-		u32 hooknum;
++		u32 hooknum, priority;
+ 		int type = NFT_CHAIN_T_DEFAULT;
+ 
+ 		if (nla[NFTA_CHAIN_TYPE]) {
+@@ -925,6 +929,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		hooknum = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
+ 		if (hooknum >= afi->nhooks)
+ 			return -EINVAL;
++		priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+ 
+ 		if (!(chain_type[family][type]->hook_mask & (1 << hooknum)))
+ 			return -EOPNOTSUPP;
+@@ -937,15 +942,19 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		basechain->type = type;
+ 		chain = &basechain->chain;
+ 
+-		ops = &basechain->ops;
+-		ops->pf		= family;
+-		ops->owner	= afi->owner;
+-		ops->hooknum	= ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
+-		ops->priority	= ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+-		ops->priv	= chain;
+-		ops->hook	= afi->hooks[ops->hooknum];
+-		if (hookfn)
+-			ops->hook = hookfn;
++		for (i = 0; i < afi->nops; i++) {
++			ops = &basechain->ops[i];
++			ops->pf		= family;
++			ops->owner	= afi->owner;
++			ops->hooknum	= hooknum;
++			ops->priority	= priority;
++			ops->priv	= chain;
++			ops->hook	= afi->hooks[ops->hooknum];
++			if (hookfn)
++				ops->hook = hookfn;
++			if (afi->hook_ops_init)
++				afi->hook_ops_init(ops, i);
++		}
+ 
+ 		chain->flags |= NFT_BASE_CHAIN;
+ 
+@@ -992,7 +1001,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    chain->flags & NFT_BASE_CHAIN) {
+-		err = nf_register_hook(&nft_base_chain(chain)->ops);
++		err = nf_register_hooks(nft_base_chain(chain)->ops, afi->nops);
+ 		if (err < 0) {
+ 			free_percpu(basechain->stats);
+ 			kfree(basechain);
+@@ -1051,7 +1060,7 @@ static int nf_tables_delchain(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    chain->flags & NFT_BASE_CHAIN)
+-		nf_unregister_hook(&nft_base_chain(chain)->ops);
++		nf_unregister_hooks(nft_base_chain(chain)->ops, afi->nops);
+ 
+ 	nf_tables_chain_notify(skb, nlh, table, chain, NFT_MSG_DELCHAIN,
+ 			       family);
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index da0c1f4..82cb823 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -92,7 +92,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops;
++		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		par->hook_mask = 1 << ops->hooknum;
+ 	}
+@@ -253,7 +253,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops;
++		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (hook_mask & target->hooks)
+@@ -323,7 +323,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops;
++		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		par->hook_mask = 1 << ops->hooknum;
+ 	}
+@@ -449,7 +449,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops;
++		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (hook_mask & match->hooks)
 -- 
 1.8.4.2
 
