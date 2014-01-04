@@ -1,32 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] iptables: snat: add randomize-full support
-Date: Sat, 4 Jan 2014 00:43:32 +0100
-Message-ID: <20140103234332.GA27882@localhost>
-References: <20131219134007.GA24118@order.stressinduktion.org>
- <52B37F6B.9010105@redhat.com>
- <20131220004822.GC32129@order.stressinduktion.org>
- <20131220080118.GA4234@localhost>
- <20131220214029.GB14073@order.stressinduktion.org>
- <20131222031538.GJ14073@order.stressinduktion.org>
+Subject: Re: [nftables PATCHv2] Add support for queue target
+Date: Sat, 4 Jan 2014 01:09:24 +0100
+Message-ID: <20140104000924.GA28468@localhost>
+References: <1385809076-20160-1-git-send-email-eric@regit.org>
+ <1388341690-15377-1-git-send-email-eric@regit.org>
+ <1388341690-15377-2-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Daniel Borkmann <dborkman@redhat.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41238 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754364AbaADAJ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jan 2014 19:09:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20131222031538.GJ14073@order.stressinduktion.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1388341690-15377-2-git-send-email-eric@regit.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 22, 2013 at 04:15:38AM +0100, Hannes Frederic Sowa wrote:
-> From: Daniel Borkmann <dborkman@redhat.com>
-> 
-> This patch provides the user space part for dnat in order to make
-> randomize-full support available in {ip,nf}tables. It allows for
-> enabling full port randomization that was motivated in [1] and
-> introduced to the kernel in [2].
-> 
-> Joint work between Hannes Frederic Sowa and Daniel Borkmann.
+On Sun, Dec 29, 2013 at 07:28:10PM +0100, Eric Leblond wrote:
+> This patch adds support for the queue target. It is now possible
+> to specify rule sending packet to a given queue and using
+> load balancing:
+>
+>   nft add rule filter output queue num 3 total 2 options fanout
 
-Applied to iptables-next, thanks.
+Enqueued this to 3.14, thanks Eric!
