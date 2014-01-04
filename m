@@ -1,40 +1,75 @@
-From: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH nf-next v5 0/3] xtables socket classid matching
-Date: Sat, 04 Jan 2014 15:48:50 +0100
-Message-ID: <52C81F52.5080904@redhat.com>
-References: <1388338032-14713-1-git-send-email-dborkman@redhat.com> <52C264F6.7050602@huawei.com> <20140103225613.GA18418@localhost> <52C7D76A.3020106@redhat.com> <20140104144642.GA4010@localhost>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH] extensions: libxt_set: Add missing hyphen to --bytes-eq synopsis
+ in manpage
+Date: Sat, 04 Jan 2014 16:57:46 +0100
+Message-ID: <52C82F7A.8040308@chello.at>
+Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------040001020009060802080609"
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fep12.mx.upcmail.net ([62.179.121.32]:36302 "EHLO
+	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754373AbaADQMv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Jan 2014 11:12:51 -0500
+Received: from edge01.upcmail.net ([192.168.13.236])
+          by viefep18-int.chello.at
+          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
+          id <20140104155625.YCWL29288.viefep18-int.chello.at@edge01.upcmail.net>
+          for <netfilter-devel@vger.kernel.org>;
+          Sat, 4 Jan 2014 16:56:25 +0100
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------040001020009060802080609
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140104144642.GA4010@localhost>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
 
-On 01/04/2014 03:46 PM, Pablo Neira Ayuso wrote:
-> On Sat, Jan 04, 2014 at 10:42:02AM +0100, Daniel Borkmann wrote:
->> On 01/03/2014 11:56 PM, Pablo Neira Ayuso wrote:
->>> On Tue, Dec 31, 2013 at 02:32:22PM +0800, Li Zefan wrote:
->>>> On 2013/12/30 1:27, Daniel Borkmann wrote:
->>>>> The main patch is patch 3, please refer to the detailled description
->>>>> there. Patch 1 has been requested by cgroups people to have as a
->>>>> cleanup. While at it, I've also added a minor, trivial cleanup in
->>>>> patch 2 for consistency reasons.
->>>>>
->>>>
->>>> Looks good to me.
->>>
->>> Series applied, thanks.
->>
->> Thanks a lot Pablo, as mentioned in [1], the _unchanged_ user space
->> part is available in [2].
->>
->> Let me know if you want me to resend it, or if you would like to
->> take it from there.
->
-> No need to. I have applied that patch to iptables-next, thanks.
+Hello,
 
-Awesome, thanks Pablo!
+small fix which adds a missing hyphen in the manpage.
+
+Good day!
+
+Mart
+
+--------------040001020009060802080609
+Content-Type: text/plain; charset=windows-1252;
+ name="extensions-libxt_set-Add-missing-hyphen-to-bytes-eq-syno.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="extensions-libxt_set-Add-missing-hyphen-to-bytes-eq-syno.pat";
+ filename*1="ch"
+
+>From fb7aa04245e1c709d5f9c1811780eb90a71f50cc Mon Sep 17 00:00:00 2001
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Date: Sat, 4 Jan 2014 16:41:49 +0100
+Subject: [PATCH] extensions: libxt_set: Add missing hyphen to --bytes-eq synopsis.
+
+
+Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
+---
+ extensions/libxt_set.man |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/extensions/libxt_set.man b/extensions/libxt_set.man
+index 7012ef2..dbc1586 100644
+--- a/extensions/libxt_set.man
++++ b/extensions/libxt_set.man
+@@ -43,7 +43,7 @@ packet counter of the element is less than the given value as well.
+ If the packet is matched an element in the set, match only if the
+ packet counter of the element is greater than the given value as well.
+ .TP
+-[\fB!\fP] \fB\-bytes\-eq\fP \fIvalue\fP
++[\fB!\fP] \fB\-\-bytes\-eq\fP \fIvalue\fP
+ If the packet is matched an element in the set, match only if the
+ byte counter of the element matches the given value too.
+ .TP
+-- 
+1.7.2.5
+
+
+--------------040001020009060802080609--
