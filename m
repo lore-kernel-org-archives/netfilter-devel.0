@@ -1,77 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] src: add support for listing the entire ruleset
-Date: Sat, 4 Jan 2014 02:30:51 +0100
-Message-ID: <20140104013051.GA5504@localhost>
-References: <20131231184002.25829.99216.stgit@nfdev.cica.es>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Sat, 4 Jan 2014 03:32:39 +0100
+Message-ID: <20140104023239.GA5972@localhost>
+References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+ <1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
+ <20131218095322.GA4740@localhost>
+ <CANLsYkyA-DT3jWeYJUJG-6rNTDcfv22BrjfBBAaaL4qHu+H+PA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44699 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754493AbaADBa5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jan 2014 20:30:57 -0500
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>,
+	JP Abgrall <jpa@google.com>
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131231184002.25829.99216.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CANLsYkyA-DT3jWeYJUJG-6rNTDcfv22BrjfBBAaaL4qHu+H+PA@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Arturo,
+On Fri, Jan 03, 2014 at 01:38:45PM -0700, Mathieu Poirier wrote:
+> ...
+> 
+> > I think you can avoid this private area (including the spinlock) by
+> > storing a copy of the packet/byte counter before calling
+> > nfnl_acct_update(). Then if you note that old packet/byte counter was
+> > below quota but new is overquota, then you have to send an event, ie.
+> >
+> >         old_pkts = atomic64_read(info->nfacct->pkts);
+> >         new_pkts = nfnl_acct_update(skb, info->nfacct, info->flags);
+> >         if (old_pkts < info->quota && new_pkts > info->quota)
+> >                 send event
+> >
+> > There's still one problem with this approach since it is racy, as it
+> > may send several events, so you can refine it with:
+> >
+> >         if (old_pkts < info->quota && new_pkts > info->quota
+> >             && old_pkts + 1 == new_pkts)
+> >                 send event
+> >
+> > You will need two different functions depending on the quota mode
+> > (packet or bytes), and you will also need to modify nfnl_acct_update()
+> > to return the new number of packets or bytes (depending on the flags),
+> > you can use atomic_add_return and atomic_inc_return respectively to
+> > retrieve the new (updated) value.
+> 
+> Now that we've dealt with the logging issue we can concentrate on the
+> above suggestion that tries to avoid using a spinlock.  It works well
+> in packet mode but not so much in byte mode.
+>
+> Whether working in byte or packet mode the solution is using packets
+> to determine who will send the notification.  When dealing with bytes
+> identifying which packet made the byte count go over quota is of prime
+> importance.  The problem is that the upgrade of packet and bytes in
+> "nfnl_acct_update()" is not atomic to the caller - there is always a
+> possibility that the thread will lose the CPU between incrementing
+> packet and bytes.  This could eventually lead to erroneous arithmetic
+> and an imprecise recognition of a quota attainment.
 
-On Tue, Dec 31, 2013 at 07:40:02PM +0100, Arturo Borrero Gonzalez wrote:
-> This patch add the following operation:
-> 
->  :~# nft list ruleset [xml|json]
-> 
-> With this, you can backup your current ruleset in 3 formats:
->  * nft standar/default
->  * xml
->  * json
+In the input and forwarding path, packets run in bh context, so that
+won't happen.  That may only happen in the output path in process
+context. However, I don't understand how this may lead to "erroneous
+arithmetic" in the "quota attainment" yet, you have to elaborate your
+concerns/scenario more specifically.
 
-This feature is nice, I prefer if we use the following syntax:
-
-nft export <xml|json>
-
-So you can implement:
-
-nft import <xml|json> filename
-
-with the new nft_*_parse_file() function that you posted.
-
-> The XML/JSON output is provided raw by libnftables, thus without format.
-> In case of XML, you can give format with the `xmllint' tool from libxml2-tools:
->  :~# nft list ruleset xml | xmllint --format -
-> In case of JSON, you can use `json_pp' from perl standar package:
->  :~# nft list ruleset json | json_pp
-> 
-> Exporting your ruleset gives the possibility of a later import. In default
-> nft format, the workflow is as follow:
-> 
->  :~# nft list ruleset > ruleset.nft
->  :~# nft -f ruleset.nft
-> 
-> In XML/JSON format, the import operation is currently under development.
-> 
-> About this implementation:
-> 
-> By now, `struct netlink_ctx' can't handle a complete ruleset, so the ruleset
-> listing operation is done as follow.
-> 
-> if XML/JSON:
->  * Obtain the ruleset from the kernel, 4 queries (one per object type),
->    using NFPROTO_UNSPEC. Note that this requires sets to be fetched with
->    NFPROTO_UNSPECT. This is an incoming kernel patch.
->  * Call libnftables's nft_ruleset_fprintf() directly.
-> 
-> if default nft format:
->  * Obtain tables from kernel, using NFPROTO_UNSPEC (one netlink query).
->  * Iterate these obtained tables calling recursively do_command_list(). This is
->    done by filling a temporal netlink_ctx, and using it as an index.
->  * Proceed normally as when listing one single table (several netlink queries).
-> 
-> I would prefer to have just one path to print the ruleset, but I can't avoid
-> modifying netlink_ctx, and seems a major change to me.
-
-This patch looks relatively small and non-intrusive to the nft
-internal structure, I think this is the way to go.
+> No matter how I turn things around in my head we need a spinlock -
+> either in nfnl_acct_update() or in the match function of xt_nfacct.c.
