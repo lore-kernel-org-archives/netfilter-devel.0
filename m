@@ -1,88 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH 0/6] netfilter: nf_tables: add mixed IPv4/IPv6 table
- support
-Date: Sun, 5 Jan 2014 21:02:40 +0000
-Message-ID: <20140105210237.GA7802@macbook.localnet>
-References: <1388751378-23272-1-git-send-email-kaber@trash.net>
- <20140105203925.GA4064@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/3 nftables RFC] set infrastructure updates
+Date: Sun,  5 Jan 2014 22:18:45 +0100
+Message-ID: <1388956728-6754-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47329 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbaAEVDB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 16:03:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20140105203925.GA4064@localhost>
+Received: from mail.us.es ([193.147.175.20]:52010 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751894AbaAEVS7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 16:18:59 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jan 05, 2014 at 09:39:25PM +0100, Pablo Neira Ayuso wrote:
-> Hi Patrick!
-> 
-> On Fri, Jan 03, 2014 at 12:16:12PM +0000, Patrick McHardy wrote:
-> > The following patches add support for mixed IPv4/IPv6 tables to nftables.
-> > 
-> > The first patch fixes the chain type override logic so chain types override
-> > the AF defaults instead of the other way around. The second patch adds a
-> > pointer to the nf_hook_ops struct to nft_pktinfo for a later patch which
-> > uses ops->pf to match the actual AF of the packet instead of the dummy
-> > NFPROTO_INET value. The third patch changes the chain and hook registration
-> > logic to support multiple hook registrations. The nf_tables AF modules can
-> > provide a callback function to override defaults. The fourth patch finally
-> > adds a new "inet" family, which basically only initializes the hook
-> > functions to the IPv4 and IPv6 specific ones and registers a dummy filter
-> > chain type for NFPROTO_INET. Patches 5 and 6 add support for matching on
-> > the netfilter hook family and the L4 protocol number to the meta match.
-> > 
-> > With all this in place, we can create AF-specific rules and AF-independant
-> > rules that only match on the L4 protocol header and above in the inet table:
-> > 
-> > table inet filter {
-> >         chain input {
-> >                  type filter hook input priority 0;
-> >         }
-> > 
-> > 	chain forward {
-> >                  type filter hook forward priority 0;
-> >         }
-> > 
-> > 	chain output {
-> >                  type filter hook output priority 0;
-> >                  ip protocol tcp tcp dport 1234 counter packets 2 bytes 120
-> >                  ip6 nexthdr tcp tcp dport 1234 counter packets 2 bytes 160
-> >                  tcp dport 1234 counter packets 4 bytes 280
-> > 	}
-> > }
-> > 
-> > Userspace needs a bit of polishing but will most likely follow in a few
-> > hours.
-> > 
-> > Comments welcome.
-> 
-> This patchset looks pretty good, I think there is some clashing with
-> recent Arturo's work to set meta information, please see this patch.
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/commit/?id=e035b77ac7be430a5fef8c9c23f60b6b50ec81c5
-> 
-> But that I can manually resolve that.
-> 
-> We'll also need route and mangle chains for the new inet family type,
-> but that's also easy to add.
+Hi,
 
-Well, route is certainly fine. If you mean nat (we don't have mangle),
-I'll leave that to the future since the AF-specific stuff still needs a
-bit of thought.
+The following patchset contains three updates for the set
+infrastructure in nf_tables, they are:
 
-> Let me know if I can give you a hand with the userspace patch, you can
-> post a tentative RFC before polishing if you like.
+1) Fix suboptimal set selection. In my testbed, all anonymous/constant sets
+   are being created via the rb-tree set type, which is not optimal. To
+   resolve this problem I have added a priority field, so in case that we
+   find several set types that are suitable for the features that are
+   requested. As a result, the hash is prefered to the rb-tree set type
+   whenever possible.
 
-Actually its already finished, I just generalized it a bit to solve a
-couple of related problems wrt. protocol contexts. Final patchsets will
-come tommorrow.
+2) Limit maximum number of elements per sets: Currently we have no way to set
+   this limit. This adds two new netlink attributes, one to set the maximum
+   number of elements and another to return the current number of elements
+   per sets. The default maximum size is set to 1024, thus, the hashtable
+   array consumes 16 KBytes in x86_64.
 
-Cheers,
-Patrick
+3) Calculate the number of buckets in the hash set based on the maximum
+   number of elements to achieve a load factor of .75. For anonymous/constant
+   sets, the maximum element number that nft specifies is exactly the amount
+   of elements that the set contains to optimize memory consumption.
+
+In this direction, by adding more specific set descriptions (via a new netlink
+attributes that contains configuration information specified by the user) it
+should be possible to allow space-time trade-offs for named sets.
+
+Pablo Neira Ayuso (3):
+  netfilter: nf_tables: fix suboptimal set selection
+  netfilter: nf_tables: limit maximum number of elements
+  netfilter: nft_hash: use set->maxelems to calculate number of buckets
+
+ include/net/netfilter/nf_tables.h        |   17 +++++++++++++++++
+ include/uapi/linux/netfilter/nf_tables.h |    4 ++++
+ net/netfilter/nf_tables_api.c            |   25 ++++++++++++++++++++-----
+ net/netfilter/nft_hash.c                 |    5 ++---
+ net/netfilter/nft_rbtree.c               |    1 +
+ 5 files changed, 44 insertions(+), 8 deletions(-)
+
+-- 
+1.7.10.4
+
