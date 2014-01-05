@@ -1,226 +1,124 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/12] netfilter: add IPv4/6 IPComp extension match support
-Date: Mon,  6 Jan 2014 00:09:30 +0100
-Message-ID: <1388963378-4903-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 08/12] netfilter: nf_conntrack: remove dead code
+Date: Mon,  6 Jan 2014 00:09:34 +0100
+Message-ID: <1388963378-4903-9-git-send-email-pablo@netfilter.org>
 References: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55977 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55971 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018AbaAEXKD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 18:10:03 -0500
+	id S1751805AbaAEXKC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 18:10:02 -0500
 In-Reply-To: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "fan.du" <fan.du@windriver.com>
+From: stephen hemminger <stephen@networkplumber.org>
 
-With this plugin, user could specify IPComp tagged with certain
-CPI that host not interested will be DROPped or any other action.
+The following code is not used in current upstream code.
+Some of this seems to be old hooks, other might be used by some
+out of tree module (which I don't care about breaking), and
+the need_ipv4_conntrack was used by old NAT code but no longer
+called.
 
-For example:
-iptables  -A INPUT -p 108 -m ipcomp --ipcompspi 0x87 -j DROP
-ip6tables -A INPUT -p 108 -m ipcomp --ipcompspi 0x87 -j DROP
-
-Then input IPComp packet with CPI equates 0x87 will not reach
-upper layer anymore.
-
-Signed-off-by: Fan Du <fan.du@windriver.com>
+Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/Kbuild      |    1 +
- include/uapi/linux/netfilter/xt_ipcomp.h |   16 +++++
- net/netfilter/Kconfig                    |    9 +++
- net/netfilter/Makefile                   |    1 +
- net/netfilter/xt_ipcomp.c                |  111 ++++++++++++++++++++++++++++++
- 5 files changed, 138 insertions(+)
- create mode 100644 include/uapi/linux/netfilter/xt_ipcomp.h
- create mode 100644 net/netfilter/xt_ipcomp.c
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |    2 --
+ include/net/netfilter/nf_conntrack_l3proto.h   |    1 -
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 ------
+ net/netfilter/nf_conntrack_core.c              |   15 ---------------
+ net/netfilter/nf_conntrack_proto.c             |    6 ------
+ 5 files changed, 30 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-index 17c3af2..91be8ce 100644
---- a/include/uapi/linux/netfilter/Kbuild
-+++ b/include/uapi/linux/netfilter/Kbuild
-@@ -54,6 +54,7 @@ header-y += xt_ecn.h
- header-y += xt_esp.h
- header-y += xt_hashlimit.h
- header-y += xt_helper.h
-+header-y += xt_ipcomp.h
- header-y += xt_iprange.h
- header-y += xt_ipvs.h
- header-y += xt_length.h
-diff --git a/include/uapi/linux/netfilter/xt_ipcomp.h b/include/uapi/linux/netfilter/xt_ipcomp.h
-new file mode 100644
-index 0000000..45c7e40
---- /dev/null
-+++ b/include/uapi/linux/netfilter/xt_ipcomp.h
-@@ -0,0 +1,16 @@
-+#ifndef _XT_IPCOMP_H
-+#define _XT_IPCOMP_H
-+
-+#include <linux/types.h>
-+
-+struct xt_ipcomp {
-+	__u32 spis[2];	/* Security Parameter Index */
-+	__u8 invflags;	/* Inverse flags */
-+	__u8 hdrres;	/* Test of the Reserved Filed */
-+};
-+
-+/* Values for "invflags" field in struct xt_ipcomp. */
-+#define XT_IPCOMP_INV_SPI	0x01	/* Invert the sense of spi. */
-+#define XT_IPCOMP_INV_MASK	0x01	/* All possible flags. */
-+
-+#endif /*_XT_IPCOMP_H*/
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c3398cd..6d8e48b 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -1035,6 +1035,15 @@ config NETFILTER_XT_MATCH_HL
- 	in the IPv6 header, or the time-to-live field in the IPv4
- 	header of the packet.
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 6c3d12e..981c327 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -19,6 +19,4 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp;
+ int nf_conntrack_ipv4_compat_init(void);
+ void nf_conntrack_ipv4_compat_fini(void);
  
-+config NETFILTER_XT_MATCH_IPCOMP
-+	tristate '"ipcomp" match support'
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This match extension allows you to match a range of CPIs(16 bits)
-+	  inside IPComp header of IPSec packets.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_MATCH_IPRANGE
- 	tristate '"iprange" address range match support'
- 	depends on NETFILTER_ADVANCED
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 394483b..398cd70 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -133,6 +133,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += xt_esp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HL) += xt_hl.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_IPCOMP) += xt_ipcomp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_IPVS) += xt_ipvs.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
-diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
-new file mode 100644
-index 0000000..a4c7561
---- /dev/null
-+++ b/net/netfilter/xt_ipcomp.c
-@@ -0,0 +1,111 @@
-+/*  Kernel module to match IPComp parameters for IPv4 and IPv6
-+ *
-+ *  Copyright (C) 2013 WindRiver
-+ *
-+ *  Author:
-+ *  Fan Du <fan.du@windriver.com>
-+ *
-+ *  Based on:
-+ *  net/netfilter/xt_esp.c
-+ *
-+ *  This program is free software; you can redistribute it and/or
-+ *  modify it under the terms of the GNU General Public License
-+ *  as published by the Free Software Foundation; either version
-+ *  2 of the License, or (at your option) any later version.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/in.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ip.h>
-+
-+#include <linux/netfilter/xt_ipcomp.h>
-+#include <linux/netfilter/x_tables.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Fan Du <fan.du@windriver.com>");
-+MODULE_DESCRIPTION("Xtables: IPv4/6 IPsec-IPComp SPI match");
-+
-+/* Returns 1 if the spi is matched by the range, 0 otherwise */
-+static inline bool
-+spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
-+{
-+	bool r;
-+	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
-+		 invert ? '!' : ' ', min, spi, max);
-+	r = (spi >= min && spi <= max) ^ invert;
-+	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
-+	return r;
-+}
-+
-+static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	struct ip_comp_hdr _comphdr;
-+	const struct ip_comp_hdr *chdr;
-+	const struct xt_ipcomp *compinfo = par->matchinfo;
-+
-+	/* Must not be a fragment. */
-+	if (par->fragoff != 0)
-+		return false;
-+
-+	chdr = skb_header_pointer(skb, par->thoff, sizeof(_comphdr), &_comphdr);
-+	if (chdr == NULL) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		pr_debug("Dropping evil IPComp tinygram.\n");
-+		par->hotdrop = true;
-+		return 0;
-+	}
-+
-+	return spi_match(compinfo->spis[0], compinfo->spis[1],
-+			 ntohl(chdr->cpi << 16),
-+			 !!(compinfo->invflags & XT_IPCOMP_INV_SPI));
-+}
-+
-+static int comp_mt_check(const struct xt_mtchk_param *par)
-+{
-+	const struct xt_ipcomp *compinfo = par->matchinfo;
-+
-+	/* Must specify no unknown invflags */
-+	if (compinfo->invflags & ~XT_IPCOMP_INV_MASK) {
-+		pr_err("unknown flags %X\n", compinfo->invflags);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static struct xt_match comp_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "ipcomp",
-+		.family		= NFPROTO_IPV4,
-+		.match		= comp_mt,
-+		.matchsize	= sizeof(struct xt_ipcomp),
-+		.proto		= IPPROTO_COMP,
-+		.checkentry	= comp_mt_check,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "ipcomp",
-+		.family		= NFPROTO_IPV6,
-+		.match		= comp_mt,
-+		.matchsize	= sizeof(struct xt_ipcomp),
-+		.proto		= IPPROTO_COMP,
-+		.checkentry	= comp_mt_check,
-+		.me		= THIS_MODULE,
-+	},
-+};
-+
-+static int __init comp_mt_init(void)
-+{
-+	return xt_register_matches(comp_mt_reg, ARRAY_SIZE(comp_mt_reg));
-+}
-+
-+static void __exit comp_mt_exit(void)
-+{
-+	xt_unregister_matches(comp_mt_reg, ARRAY_SIZE(comp_mt_reg));
-+}
-+
-+module_init(comp_mt_init);
-+module_exit(comp_mt_exit);
+-void need_ipv4_conntrack(void);
+-
+ #endif /*_NF_CONNTRACK_IPV4_H*/
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 3efab70..adc1fa3 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -87,7 +87,6 @@ int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto);
+ void nf_ct_l3proto_unregister(struct nf_conntrack_l3proto *proto);
+ 
+ struct nf_conntrack_l3proto *nf_ct_l3proto_find_get(u_int16_t l3proto);
+-void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p);
+ 
+ /* Existing built-in protocols */
+ extern struct nf_conntrack_l3proto nf_conntrack_l3proto_generic;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index ecd8bec..8127dc8 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -548,9 +548,3 @@ static void __exit nf_conntrack_l3proto_ipv4_fini(void)
+ 
+ module_init(nf_conntrack_l3proto_ipv4_init);
+ module_exit(nf_conntrack_l3proto_ipv4_fini);
+-
+-void need_ipv4_conntrack(void)
+-{
+-	return;
+-}
+-EXPORT_SYMBOL_GPL(need_ipv4_conntrack);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 43549eb..8824ed0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -60,12 +60,6 @@ int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
+ 				      const struct nlattr *attr) __read_mostly;
+ EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
+ 
+-int (*nf_nat_seq_adjust_hook)(struct sk_buff *skb,
+-			      struct nf_conn *ct,
+-			      enum ip_conntrack_info ctinfo,
+-			      unsigned int protoff);
+-EXPORT_SYMBOL_GPL(nf_nat_seq_adjust_hook);
+-
+ DEFINE_SPINLOCK(nf_conntrack_lock);
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ 
+@@ -361,15 +355,6 @@ begin:
+ 	return NULL;
+ }
+ 
+-struct nf_conntrack_tuple_hash *
+-__nf_conntrack_find(struct net *net, u16 zone,
+-		    const struct nf_conntrack_tuple *tuple)
+-{
+-	return ____nf_conntrack_find(net, zone, tuple,
+-				     hash_conntrack_raw(tuple, zone));
+-}
+-EXPORT_SYMBOL_GPL(__nf_conntrack_find);
+-
+ /* Find a connection corresponding to a tuple. */
+ static struct nf_conntrack_tuple_hash *
+ __nf_conntrack_find_get(struct net *net, u16 zone,
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index ce30041..b65d586 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -92,12 +92,6 @@ nf_ct_l3proto_find_get(u_int16_t l3proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l3proto_find_get);
+ 
+-void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p)
+-{
+-	module_put(p->me);
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_l3proto_put);
+-
+ int
+ nf_ct_l3proto_try_module_get(unsigned short l3proto)
+ {
 -- 
 1.7.10.4
 
