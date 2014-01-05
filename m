@@ -1,59 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] netfilter: nf_tables: fix suboptimal set selection
-Date: Sun, 5 Jan 2014 23:11:05 +0100
-Message-ID: <20140105221105.GA4387@localhost>
+Subject: Re: [PATCH 3/3] netfilter: nft_hash: use set->maxelems to calculate
+ number of buckets
+Date: Sun, 5 Jan 2014 23:12:11 +0100
+Message-ID: <20140105221211.GB4387@localhost>
 References: <1388956728-6754-1-git-send-email-pablo@netfilter.org>
- <1388956728-6754-2-git-send-email-pablo@netfilter.org>
- <20140105212406.GA13624@macbook.localnet>
- <20140105213403.GA4158@localhost>
- <20140105214531.GA18624@macbook.localnet>
+ <1388956728-6754-4-git-send-email-pablo@netfilter.org>
+ <20140105214744.GA18655@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53733 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53770 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335AbaAEWLP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 17:11:15 -0500
+	id S1751640AbaAEWMP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 17:12:15 -0500
 Content-Disposition: inline
-In-Reply-To: <20140105214531.GA18624@macbook.localnet>
+In-Reply-To: <20140105214744.GA18655@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jan 05, 2014 at 09:45:31PM +0000, Patrick McHardy wrote:
-> On Sun, Jan 05, 2014 at 10:34:03PM +0100, Pablo Neira Ayuso wrote:
-> > On Sun, Jan 05, 2014 at 09:28:35PM +0000, Patrick McHardy wrote:
-> > > On Sun, Jan 05, 2014 at 10:18:46PM +0100, Pablo Neira Ayuso wrote:
-> > > > The rb-tree is currently used for simple sets and maps with no
-> > > > intervals which is suboptimal. Fix it by adding the weight field
-> > > > to each existing set implementation, this value allows to select
-> > > > the best candidate in case that several set types can be used.
-> > > 
-> > > Ohh, lets do this properly. This is one point why I was opposed to a
-> > > merge at this stage, lets not paper over this but fix this how it
-> > > was intended. I'll work on that after finishing the inet family.
-> > > Until then no harm is done, just some memory waste.
-> > 
-> > Please, elaborate your plans on this.
+On Sun, Jan 05, 2014 at 09:47:44PM +0000, Patrick McHardy wrote:
+> On Sun, Jan 05, 2014 at 10:18:48PM +0100, Pablo Neira Ayuso wrote:
+> > Use set->maxelems to calculate the number of buckets that holds a
+> > load factor of 0.75.
 > 
-> Well, the selection should happen based on the set contents, not on
-> some static weight. Basically we have memory usage and performance
-> as measurable weights, and both depend on the contents of the set,
-> so we need an abstrace description of those.
+> This patch is perfectly fine of course.
 
-I agree on that the more information we provide to the kernel, the
-best decision regarding the set type and its configuration will be
-made.
-
-This simple weight thing that this patch adds is just a way to
-break a tie in case two sets provides the features that are needed
-(this is the only description information that we have at this moment
-from userspace). I think for simple sets (with no intervals) hash
-should be prefered to rb-trees.
-
-But if bitmap sets come into place, the selection between hash and
-bitmaps cannot be done by this weight this patch adds, as we need more
-information on the set elements to make the right choice. That I can
-think, we need the distance between the two elements that are further
-from each other to calculate the memory consumption at least.
+Thanks. So I guess you're fine with 2/3 as well which is needed by
+this patch.
