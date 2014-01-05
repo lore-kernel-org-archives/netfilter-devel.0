@@ -1,125 +1,136 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/12] netfilter/IPVS updates for net-next
-Date: Mon,  6 Jan 2014 00:09:26 +0100
-Message-ID: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 01/12] netfilter: avoid get_random_bytes calls
+Date: Mon,  6 Jan 2014 00:09:27 +0100
+Message-ID: <1388963378-4903-2-git-send-email-pablo@netfilter.org>
+References: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55953 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55958 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751405AbaAEXJy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 18:09:54 -0500
+	id S1751405AbaAEXJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 18:09:57 -0500
+In-Reply-To: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter updates for your net-next tree,
-they are:
+All these users need an initial seed value for jhash, prandom is
+perfectly fine.  This avoids draining the entropy pool where
+its not strictly required.
 
-* Add full port randomization support. Some crazy researchers found a way
-  to reconstruct the secure ephemeral ports that are allocated in random mode
-  by sending off-path bursts of UDP packets to overrun the socket buffer of
-  the DNS resolver to trigger retransmissions, then if the timing for the
-  DNS resolution done by a client is larger than usual, then they conclude
-  that the port that received the burst of UDP packets is the one that was
-  opened. It seems a bit aggressive method to me but it seems to work for
-  them. As a result, Daniel Borkmann and Hannes Frederic Sowa came up with a
-  new NAT mode to fully randomize ports using prandom.
+nfnetlink_log did not use the random value at all.
 
-* Add a new classifier to x_tables based on the socket net_cls set via
-  cgroups. These includes two patches to prepare the field as requested by
-  Zefan Li. Also from Daniel Borkmann.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_log.c |    8 --------
+ net/netfilter/nft_hash.c      |    2 +-
+ net/netfilter/xt_RATEEST.c    |    2 +-
+ net/netfilter/xt_connlimit.c  |    2 +-
+ net/netfilter/xt_hashlimit.c  |    2 +-
+ net/netfilter/xt_recent.c     |    2 +-
+ 6 files changed, 5 insertions(+), 13 deletions(-)
 
-* Use prandom instead of get_random_bytes in several locations of the
-  netfilter code, from Florian Westphal.
-
-* Allow to use the CTA_MARK_MASK in ctnetlink when mangling the conntrack
-  mark, also from Florian Westphal.
-
-* Fix compilation warning due to unused variable in IPVS, from Geert
-  Uytterhoeven.
-
-* Add support for UID/GID via nfnetlink_queue, from Valentina Giusti.
-
-* Add IPComp extension to x_tables, from Fan Du.
-
-You can pull these changes from:
-
-Daniel Borkmann (4):
-  netfilter: nf_nat: add full port randomization support
-  net: net_cls: move cgroupfs classid handling into core
-  net: netprio: rename config to be more consistent with cgroup configs
-  netfilter: x_tables: lightweight process control group matching
-
-Eric Leblond (1):
-  netfilter: xt_CT: fix error value in xt_ct_tg_check()
-
-Florian Westphal (2):
-  netfilter: avoid get_random_bytes calls
-  netfilter: ctnetlink: honor CTA_MARK_MASK when setting ctmark
-
-Geert Uytterhoeven (1):
-  ipvs: Remove unused variable ret from sync_thread_master()
-
-Valentina Giusti (1):
-  netfilter: nfnetlink_queue: enable UID/GID socket info retrieval
-
-fan.du (1):
-  netfilter: add IPv4/6 IPComp extension match support
-
-stephen hemminger (2):
-  netfilter: ipset: remove unused code
-  netfilter: nf_conntrack: remove dead code
-
- Documentation/cgroups/net_cls.txt              |    5 +
- include/linux/cgroup_subsys.h                  |    4 +-
- include/linux/netdevice.h                      |    2 +-
- include/linux/netfilter/ipset/ip_set.h         |    1 -
- include/net/cls_cgroup.h                       |   40 +++-----
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h |    2 -
- include/net/netfilter/nf_conntrack_l3proto.h   |    1 -
- include/net/netprio_cgroup.h                   |   18 ++--
- include/net/sock.h                             |    2 +-
- include/uapi/linux/netfilter/Kbuild            |    2 +
- include/uapi/linux/netfilter/nf_nat.h          |   12 ++-
- include/uapi/linux/netfilter/nfnetlink_queue.h |    5 +-
- include/uapi/linux/netfilter/xt_cgroup.h       |   11 +++
- include/uapi/linux/netfilter/xt_ipcomp.h       |   16 ++++
- net/Kconfig                                    |   11 ++-
- net/core/Makefile                              |    3 +-
- net/core/dev.c                                 |    2 +-
- net/core/netclassid_cgroup.c                   |  120 ++++++++++++++++++++++++
- net/core/sock.c                                |   14 +--
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 --
- net/netfilter/Kconfig                          |   19 ++++
- net/netfilter/Makefile                         |    2 +
- net/netfilter/ipset/ip_set_core.c              |   28 ------
- net/netfilter/ipvs/ip_vs_sync.c                |    5 +-
- net/netfilter/nf_conntrack_core.c              |   15 ---
- net/netfilter/nf_conntrack_netlink.c           |   12 ++-
- net/netfilter/nf_conntrack_proto.c             |    6 --
- net/netfilter/nf_nat_core.c                    |    4 +-
- net/netfilter/nf_nat_proto_common.c            |   10 +-
- net/netfilter/nfnetlink_log.c                  |    8 --
- net/netfilter/nfnetlink_queue_core.c           |   34 +++++++
- net/netfilter/nft_hash.c                       |    2 +-
- net/netfilter/xt_CT.c                          |    4 +-
- net/netfilter/xt_RATEEST.c                     |    2 +-
- net/netfilter/xt_cgroup.c                      |   71 ++++++++++++++
- net/netfilter/xt_connlimit.c                   |    2 +-
- net/netfilter/xt_hashlimit.c                   |    2 +-
- net/netfilter/xt_ipcomp.c                      |  111 ++++++++++++++++++++++
- net/netfilter/xt_recent.c                      |    2 +-
- net/sched/Kconfig                              |    1 +
- net/sched/cls_cgroup.c                         |  111 +---------------------
- 41 files changed, 470 insertions(+), 258 deletions(-)
- create mode 100644 include/uapi/linux/netfilter/xt_cgroup.h
- create mode 100644 include/uapi/linux/netfilter/xt_ipcomp.h
- create mode 100644 net/core/netclassid_cgroup.c
- create mode 100644 net/netfilter/xt_cgroup.c
- create mode 100644 net/netfilter/xt_ipcomp.c
-
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 3c4b69e..7d4254b 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -28,8 +28,6 @@
+ #include <linux/proc_fs.h>
+ #include <linux/security.h>
+ #include <linux/list.h>
+-#include <linux/jhash.h>
+-#include <linux/random.h>
+ #include <linux/slab.h>
+ #include <net/sock.h>
+ #include <net/netfilter/nf_log.h>
+@@ -75,7 +73,6 @@ struct nfulnl_instance {
+ };
+ 
+ #define INSTANCE_BUCKETS	16
+-static unsigned int hash_init;
+ 
+ static int nfnl_log_net_id __read_mostly;
+ 
+@@ -1066,11 +1063,6 @@ static int __init nfnetlink_log_init(void)
+ {
+ 	int status = -ENOMEM;
+ 
+-	/* it's not really all that important to have a random value, so
+-	 * we can do this from the init function, even if there hasn't
+-	 * been that much entropy yet */
+-	get_random_bytes(&hash_init, sizeof(hash_init));
+-
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+ 	if (status < 0) {
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 3d3f8fc..6aae699 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -164,7 +164,7 @@ static int nft_hash_init(const struct nft_set *set,
+ 	unsigned int cnt, i;
+ 
+ 	if (unlikely(!nft_hash_rnd_initted)) {
+-		get_random_bytes(&nft_hash_rnd, 4);
++		nft_hash_rnd = prandom_u32();
+ 		nft_hash_rnd_initted = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 370adf6..190854b 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -100,7 +100,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 	int ret;
+ 
+ 	if (unlikely(!rnd_inited)) {
+-		get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
++		jhash_rnd = prandom_u32();
+ 		rnd_inited = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index c40b269..7671e82 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -229,7 +229,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		u_int32_t rand;
+ 
+ 		do {
+-			get_random_bytes(&rand, sizeof(rand));
++			rand = prandom_u32();
+ 		} while (!rand);
+ 		cmpxchg(&connlimit_rnd, 0, rand);
+ 	}
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 9ff035c..a83a35c 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -177,7 +177,7 @@ dsthash_alloc_init(struct xt_hashlimit_htable *ht,
+ 	/* initialize hash with random val at the time we allocate
+ 	 * the first hashtable entry */
+ 	if (unlikely(!ht->rnd_initialized)) {
+-		get_random_bytes(&ht->rnd, sizeof(ht->rnd));
++		ht->rnd = prandom_u32();
+ 		ht->rnd_initialized = true;
+ 	}
+ 
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 1e657cf..bfdc29f 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -334,7 +334,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+ 	size_t sz;
+ 
+ 	if (unlikely(!hash_rnd_inited)) {
+-		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
++		hash_rnd = prandom_u32();
+ 		hash_rnd_inited = true;
+ 	}
+ 	if (info->check_set & ~XT_RECENT_VALID_FLAGS) {
 -- 
 1.7.10.4
 
