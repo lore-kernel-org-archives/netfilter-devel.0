@@ -1,136 +1,116 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/12] netfilter: avoid get_random_bytes calls
-Date: Mon,  6 Jan 2014 00:09:27 +0100
-Message-ID: <1388963378-4903-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 03/12] netfilter: nfnetlink_queue: enable UID/GID socket info retrieval
+Date: Mon,  6 Jan 2014 00:09:29 +0100
+Message-ID: <1388963378-4903-4-git-send-email-pablo@netfilter.org>
 References: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55958 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55963 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751405AbaAEXJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 18:09:57 -0500
+	id S1751805AbaAEXKA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 18:10:00 -0500
 In-Reply-To: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: Valentina Giusti <valentina.giusti@bmw-carit.de>
 
-All these users need an initial seed value for jhash, prandom is
-perfectly fine.  This avoids draining the entropy pool where
-its not strictly required.
+Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388
+(udp: ipv4: Add udp early demux) it is now possible to parse UID and
+GID socket info also for incoming TCP and UDP connections. Having
+this info available, it is convenient to let NFQUEUE parse it in
+order to improve and refine the traffic analysis in userspace.
 
-nfnetlink_log did not use the random value at all.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_log.c |    8 --------
- net/netfilter/nft_hash.c      |    2 +-
- net/netfilter/xt_RATEEST.c    |    2 +-
- net/netfilter/xt_connlimit.c  |    2 +-
- net/netfilter/xt_hashlimit.c  |    2 +-
- net/netfilter/xt_recent.c     |    2 +-
- 6 files changed, 5 insertions(+), 13 deletions(-)
+ include/uapi/linux/netfilter/nfnetlink_queue.h |    5 +++-
+ net/netfilter/nfnetlink_queue_core.c           |   34 ++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 3c4b69e..7d4254b 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -28,8 +28,6 @@
- #include <linux/proc_fs.h>
- #include <linux/security.h>
- #include <linux/list.h>
--#include <linux/jhash.h>
--#include <linux/random.h>
- #include <linux/slab.h>
- #include <net/sock.h>
- #include <net/netfilter/nf_log.h>
-@@ -75,7 +73,6 @@ struct nfulnl_instance {
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index 0132bad..8dd819e 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -47,6 +47,8 @@ enum nfqnl_attr_type {
+ 	NFQA_CAP_LEN,			/* __u32 length of captured packet */
+ 	NFQA_SKB_INFO,			/* __u32 skb meta information */
+ 	NFQA_EXP,			/* nf_conntrack_netlink.h */
++	NFQA_UID,			/* __u32 sk uid */
++	NFQA_GID,			/* __u32 sk gid */
+ 
+ 	__NFQA_MAX
  };
+@@ -99,7 +101,8 @@ enum nfqnl_attr_config {
+ #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
+ #define NFQA_CFG_F_CONNTRACK			(1 << 1)
+ #define NFQA_CFG_F_GSO				(1 << 2)
+-#define NFQA_CFG_F_MAX				(1 << 3)
++#define NFQA_CFG_F_UID_GID			(1 << 3)
++#define NFQA_CFG_F_MAX				(1 << 4)
  
- #define INSTANCE_BUCKETS	16
--static unsigned int hash_init;
+ /* flags for NFQA_SKB_INFO */
+ /* packet appears to have wrong checksums, but they are ok */
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 21258cf..d3cf12b 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -297,6 +297,31 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
+ 	return flags ? nla_put_be32(nlskb, NFQA_SKB_INFO, htonl(flags)) : 0;
+ }
  
- static int nfnl_log_net_id __read_mostly;
++static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
++{
++	const struct cred *cred;
++
++	if (sk->sk_state == TCP_TIME_WAIT)
++		return 0;
++
++	read_lock_bh(&sk->sk_callback_lock);
++	if (sk->sk_socket && sk->sk_socket->file) {
++		cred = sk->sk_socket->file->f_cred;
++		if (nla_put_be32(skb, NFQA_UID,
++		    htonl(from_kuid_munged(&init_user_ns, cred->fsuid))))
++			goto nla_put_failure;
++		if (nla_put_be32(skb, NFQA_GID,
++		    htonl(from_kgid_munged(&init_user_ns, cred->fsgid))))
++			goto nla_put_failure;
++	}
++	read_unlock_bh(&sk->sk_callback_lock);
++	return 0;
++
++nla_put_failure:
++	read_unlock_bh(&sk->sk_callback_lock);
++	return -1;
++}
++
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -372,6 +397,11 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	if (queue->flags & NFQA_CFG_F_CONNTRACK)
+ 		ct = nfqnl_ct_get(entskb, &size, &ctinfo);
  
-@@ -1066,11 +1063,6 @@ static int __init nfnetlink_log_init(void)
- {
- 	int status = -ENOMEM;
- 
--	/* it's not really all that important to have a random value, so
--	 * we can do this from the init function, even if there hasn't
--	 * been that much entropy yet */
--	get_random_bytes(&hash_init, sizeof(hash_init));
--
- 	netlink_register_notifier(&nfulnl_rtnl_notifier);
- 	status = nfnetlink_subsys_register(&nfulnl_subsys);
- 	if (status < 0) {
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 3d3f8fc..6aae699 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -164,7 +164,7 @@ static int nft_hash_init(const struct nft_set *set,
- 	unsigned int cnt, i;
- 
- 	if (unlikely(!nft_hash_rnd_initted)) {
--		get_random_bytes(&nft_hash_rnd, 4);
-+		nft_hash_rnd = prandom_u32();
- 		nft_hash_rnd_initted = true;
++	if (queue->flags & NFQA_CFG_F_UID_GID) {
++		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
++			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
++	}
++
+ 	skb = nfnetlink_alloc_skb(net, size, queue->peer_portid,
+ 				  GFP_ATOMIC);
+ 	if (!skb)
+@@ -484,6 +514,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			goto nla_put_failure;
  	}
  
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 370adf6..190854b 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -100,7 +100,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 	int ret;
++	if ((queue->flags & NFQA_CFG_F_UID_GID) && entskb->sk &&
++	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
++		goto nla_put_failure;
++
+ 	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
+ 		goto nla_put_failure;
  
- 	if (unlikely(!rnd_inited)) {
--		get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
-+		jhash_rnd = prandom_u32();
- 		rnd_inited = true;
- 	}
- 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index c40b269..7671e82 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -229,7 +229,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 		u_int32_t rand;
- 
- 		do {
--			get_random_bytes(&rand, sizeof(rand));
-+			rand = prandom_u32();
- 		} while (!rand);
- 		cmpxchg(&connlimit_rnd, 0, rand);
- 	}
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 9ff035c..a83a35c 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -177,7 +177,7 @@ dsthash_alloc_init(struct xt_hashlimit_htable *ht,
- 	/* initialize hash with random val at the time we allocate
- 	 * the first hashtable entry */
- 	if (unlikely(!ht->rnd_initialized)) {
--		get_random_bytes(&ht->rnd, sizeof(ht->rnd));
-+		ht->rnd = prandom_u32();
- 		ht->rnd_initialized = true;
- 	}
- 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 1e657cf..bfdc29f 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -334,7 +334,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 	size_t sz;
- 
- 	if (unlikely(!hash_rnd_inited)) {
--		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
-+		hash_rnd = prandom_u32();
- 		hash_rnd_inited = true;
- 	}
- 	if (info->check_set & ~XT_RECENT_VALID_FLAGS) {
 -- 
 1.7.10.4
 
