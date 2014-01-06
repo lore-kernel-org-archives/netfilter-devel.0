@@ -1,41 +1,48 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH libnftables] Add support for nft_connmark
-Date: Mon, 6 Jan 2014 22:07:33 +0100
-Message-ID: <CAKfDRXixbM+P3Xri81Tqs_wKx_TJwJR_jFvz=STPVdiwRj1icg@mail.gmail.com>
-References: <1389011367-11489-1-git-send-email-kristian.evensen@gmail.com>
-	<CAOkSjBiBuEGqxeboPWHyxk_fKwqDL5ZE0Zx5JLjkQv9M8ahM1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH] netfilter: nftables: fix warning in nft_reject
+Date: Mon,  6 Jan 2014 22:19:14 +0100
+Message-ID: <1389043154-28415-1-git-send-email-eric@regit.org>
+References: <52cb0425.bwwhbZOarZlZjGHg%fengguang.wu@intel.com>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:49449 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706AbaAFVHe (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:34385 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755702AbaAFVT6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 16:07:34 -0500
-Received: by mail-pb0-f49.google.com with SMTP id jt11so18724434pbb.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 13:07:33 -0800 (PST)
-In-Reply-To: <CAOkSjBiBuEGqxeboPWHyxk_fKwqDL5ZE0Zx5JLjkQv9M8ahM1g@mail.gmail.com>
+	Mon, 6 Jan 2014 16:19:58 -0500
+In-Reply-To: <52cb0425.bwwhbZOarZlZjGHg%fengguang.wu@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Arturo,
+The 0-day testing from Fenguang Wu issued the following warning:
+ net/netfilter/nft_reject.c: In function 'nft_reject_eval':
+ >> net/netfilter/nft_reject.c:37:14: warning: unused variable 'net' [-Wunused-variable]
+      struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
 
-On Mon, Jan 6, 2014 at 1:41 PM, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
->
-> Hi Kristian,
->
-> you can use the union if you want, see [0] about the situation in XML
-> and [1] in JSON.
->
-> Regards.
->
-> [0] http://git.netfilter.org/libnftables/tree/src/expr/meta.c?h=next-3.14#n236
-> [1] http://git.netfilter.org/libnftables/tree/src/expr/meta.c?h=next-3.14#n195
+This is due to the fact that if IPv6 is not build the variable is
+indeed unused.
 
-Thank you very much for references, good to know for next time :)
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ net/netfilter/nft_reject.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
--Kristian
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index 0d690d4..c65fbd8 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -34,7 +34,9 @@ static void nft_reject_eval(const struct nft_expr *expr,
+ 			      const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_reject *priv = nft_expr_priv(expr);
++#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+ 	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
++#endif
+ 
+ 	switch (priv->type) {
+ 	case NFT_REJECT_ICMP_UNREACH:
+-- 
+1.8.5.2
+
