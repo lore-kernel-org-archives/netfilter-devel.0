@@ -1,64 +1,69 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH netfilter: nft] Add the connmark meta_key
-Date: Mon, 6 Jan 2014 17:15:23 +0000
-Message-ID: <20140106171523.GC23002@macbook.localnet>
-References: <1389027476-16837-1-git-send-email-kristian.evensen@gmail.com>
- <20140106170523.GA9894@breakpoint.cc>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: release conntrack from rcu
+ callback
+Date: Mon, 6 Jan 2014 21:21:30 +0400
+Message-ID: <20140106172130.GA2360@moon>
+References: <1389023672-14351-1-git-send-email-avagin@openvz.org>
+ <20140106170235.GJ28854@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Kristian Evensen <kristian.evensen@gmail.com>,
-	netfilter-devel@vger.kernel.org
+Cc: Andrey Vagin <avagin@openvz.org>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55481 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbaAFRP1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 12:15:27 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140106170523.GA9894@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20140106170235.GJ28854@breakpoint.cc>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 06, 2014 at 06:05:23PM +0100, Florian Westphal wrote:
-> Kristian Evensen <kristian.evensen@gmail.com> wrote:
-> > From: Kristian Evensen <kristian.evensen@gmail.com>
-> > 
-> > This patch enables connmark to be set/retrieved using meta
-> > expressions/statements.
-> > 
-> > Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
-> > ---
-> >  include/uapi/linux/netfilter/nf_tables.h |  2 ++
-> >  net/netfilter/nft_meta.c                 | 34 ++++++++++++++++++++++++++++++++
-> >  2 files changed, 36 insertions(+)
-> > 
-> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> > index aa86a152..05eaeb9 100644
-> > --- a/include/uapi/linux/netfilter/nf_tables.h
-> > +++ b/include/uapi/linux/netfilter/nf_tables.h
-> > @@ -531,6 +531,7 @@ enum nft_exthdr_attributes {
-> >   * @NFT_META_NFTRACE: packet nftrace bit
-> >   * @NFT_META_RTCLASSID: realm value of packet's route (skb->dst->tclassid)
-> >   * @NFT_META_SECMARK: packet secmark (skb->secmark)
-> > + * @NFT_META_CONNMARK: used to get/set the connection mark
-> >   */
-> >  enum nft_meta_keys {
-> >  	NFT_META_LEN,
-> > @@ -548,6 +549,7 @@ enum nft_meta_keys {
-> >  	NFT_META_NFTRACE,
-> >  	NFT_META_RTCLASSID,
-> >  	NFT_META_SECMARK,
-> > +	NFT_META_CONNMARK,
-> >  };
+On Mon, Jan 06, 2014 at 06:02:35PM +0100, Florian Westphal wrote:
 > 
-> This looks wrong, meta is for packet properties.
-> You should probably use NFT_CT_MARK from nft_ct_keys enum.
+> Can you elaborate?
+> Yes, nf_ct_is_dying(ct) might be called for the wrong conntrack.
+> 
+> But, in case we _think_ that its the right one we call
+> nf_ct_tuple_equal() to verify we indeed found the right one:
+> 
+>        h = ____nf_conntrack_find(net, zone, tuple, hash);
+>        if (h) { // might be released right now, but page won't go away (SLAB_BY_RCU)
+>                 ct = nf_ct_tuplehash_to_ctrack(h);
+>                 if (unlikely(nf_ct_is_dying(ct) ||
+>                              !atomic_inc_not_zero(&ct->ct_general.use)))
+> 			// which means we should hit this path (0 ref).
+>                         h = NULL;
+>                 else {
+> 			// otherwise, it cannot go away from under us, since
+> 			// we own a reference now.
+>                         if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+>                                      nf_ct_zone(ct) != zone)) {
+> 			// if we get here, the entry got recycled on other cpu
+> 			// for a different tuple, we can bail out and drop
+> 			// the reference safely and re-try the lookup
+>                                 nf_ct_put(ct);
+>                                 goto begin;
+>                         }
+>                 }
 
-Well, actually the ct expression already supports connmark, as does userspace.
+I think tuple may match if
 
-#ifdef CONFIG_NF_CONNTRACK_MARK
-        case NFT_CT_MARK:
-                dest->data[0] = ct->mark;
-                return;
-#endif
+task 1                  task 2                  task 3
+                        nf_conntrack_find_get
+                         ____nf_conntrack_find
+destroy_conntrack
+ hlist_nulls_del_rcu
+ nf_conntrack_free
+ kmem_cache_free
+                                                __nf_conntrack_alloc
+                                                 kmem_cache_alloc
+                         if (nf_ct_is_dying(ct))
+
+						data is not yet cleaned
+
+                                                 memset(&ct->tuplehash[IP_CT_DIR_MAX],
+
+No? Or there something obvious I'm missing?
