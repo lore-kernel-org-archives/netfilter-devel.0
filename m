@@ -1,58 +1,45 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH netfilter: nft] add connmark module
-Date: Mon, 6 Jan 2014 17:05:12 +0100
-Message-ID: <CAKfDRXjPFpnw14ZAdNLNdPTnC8N7qRf1FYiBU3ocGwP_VPR57w@mail.gmail.com>
-References: <1389011352-11449-1-git-send-email-kristian.evensen@gmail.com>
-	<20140106124227.GA7743@localhost>
-	<CAKfDRXisUL5yBbU3bZfo52GxU96BamC75vPWsFvOYg7u8Jhs1w@mail.gmail.com>
-	<20140106124944.GA7830@localhost>
-	<CAKfDRXiAoruPm8H9moqyfZ4KDdvVJaHCeC_N7UAq+PFETsQmkg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36348 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754733AbaAFQFN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 11:05:13 -0500
-Received: by mail-pa0-f53.google.com with SMTP id hz1so18672288pad.40
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 08:05:13 -0800 (PST)
-In-Reply-To: <CAKfDRXiAoruPm8H9moqyfZ4KDdvVJaHCeC_N7UAq+PFETsQmkg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net-next] netfilter: nfnetlink_queue: fix compilation problem due missing header
+Date: Mon,  6 Jan 2014 17:34:49 +0100
+Message-ID: <1389026089-4917-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello again,
+In 08c0cad ("netfilter: nfnetlink_queue: enable UID/GID socket info
+retrieval"), the header that defines TCP_TIME_WAIT.
 
-On Mon, Jan 6, 2014 at 4:19 PM, Kristian Evensen
-<kristian.evensen@gmail.com> wrote:
-> Hello again,
->
-> On Mon, Jan 6, 2014 at 1:49 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>
->> I think one single NFT_META_CONNMARK with the get/set variants should
->> be enough to implement the save, restore and set operations that
->> xt_connmark provides.
->>
->> * restore:
->>         reg1 = get(NFT_META_CONNMARK)
->>         set(NFT_META_MARK, reg1)
->>
->> * save:
->>         reg1 = get(NFT_META_MARK)
->>         set(NFT_META_CONNMARK, reg1)
->>
->> * set:
->>         reg1 = immediate(value)
->>         set(NFT_META_CONNMARK, reg1)
+net/netfilter/nfnetlink_queue_core.c: In function 'nfqnl_put_sk_uidgid':
+net/netfilter/nfnetlink_queue_core.c:304:35: error: 'TCP_TIME_WAIT' undeclared (first use in this function)
+net/netfilter/nfnetlink_queue_core.c:304:35: note: each undeclared identifier is reported only once for each function it appears in make[3]: *** [net/netfilter/nfnetlink_queue_core.o] Error 1
 
-Please ignore my previous email. As often happens, the answer popped
-up right after I clicked on send. I did not think properly through how
-variables work and are used in nftables, and see now that the
-functionality of restore/save can be implemented using only the
-get/set operations.
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Hi David,
 
-Thank you very much for the help, the patch is coming soon.
+Please, put this patch into net-next. It seems this compilation problem is
+depending on the .config selections as I didn't reproducible when testing the
+patches.
 
--Kristian
+Thanks!
+
+ net/netfilter/nfnetlink_queue_core.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index d3cf12b..ce20bd8 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -32,6 +32,7 @@
+ #include <net/netfilter/nf_queue.h>
+ #include <net/netns/generic.h>
+ #include <net/netfilter/nfnetlink_queue.h>
++#include <net/tcp_states.h>
+ 
+ #include <linux/atomic.h>
+ 
+-- 
+1.7.10.4
