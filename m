@@ -1,38 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] netfilter/IPVS updates for net-next
-Date: Sun, 05 Jan 2014 20:20:32 -0500 (EST)
-Message-ID: <20140105.202032.522302270986090958.davem@davemloft.net>
-References: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [net PATCH] netfilter: only warn once on wrong seqadj usage
+Date: Mon, 6 Jan 2014 08:32:39 +0100
+Message-ID: <20140106083239.7811ac9e@redhat.com>
+References: <20140104130944.28481.30891.stgit@dragon>
+	<20140104131648.GA18176@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53465 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbaAFBUh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 20:20:37 -0500
-In-Reply-To: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Daniel Borkmann <dborkman@redhat.com>,
+	Flavio Leitner <fbl@redhat.com>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20140104131648.GA18176@macbook.localnet>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  6 Jan 2014 00:09:26 +0100
+On Sat, 4 Jan 2014 13:16:48 +0000
+Patrick McHardy <kaber@trash.net> wrote:
 
-> You can pull these changes from:
+> On Sat, Jan 04, 2014 at 02:10:43PM +0100, Jesper Dangaard Brouer wrote:
+> > Avoid potentially spamming the kernel log with WARN splash messages
+> > when catching wrong usage of seqadj, by simply using WARN_ONCE.
+> > 
+> > This is a followup to commit db12cf274353 (netfilter: WARN about
+> > wrong usage of sequence number adjustments)
+> > 
+> > Suggested-by: Flavio Leitner <fbl@redhat.com>
+> > Suggested-by: Daniel Borkmann <dborkman@redhat.com>
+> > Suggested-by: Florian Westphal <fw@strlen.de>
+> > Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > ---
+> > Nitpick found by internal RedHat review process ;-)
+> > 
+> >  net/netfilter/nf_conntrack_seqadj.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+> > index b2d38da..f6e2ae9 100644
+> > --- a/net/netfilter/nf_conntrack_seqadj.c
+> > +++ b/net/netfilter/nf_conntrack_seqadj.c
+> > @@ -37,7 +37,7 @@ int nf_ct_seqadj_set(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+> >  		return 0;
+> >  
+> >  	if (unlikely(!seqadj)) {
+> > -		WARN(1, "Wrong seqadj usage, missing nfct_seqadj_ext_add()\n");
+> > +		WARN_ONCE(1, "Missing nfct_seqadj_ext_add() setup call\n");
+> >  		return 0;
 > 
-> Daniel Borkmann (4):
- ...
+> I missed the patch that added the WARN. Since when do we add runtime checks
+> for API misuse instead of simply letting it crash?
 
-I assume you meant to say:
+We changed an existing API which broke IPVS. And I think we still have
+a use-case in IPVS, which can hit this case/bug, thus I added a stack
+dump warning (instead of crashing), so I can catch this use-case and
+fix it later.
 
-	git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-as the URL rather than just a blank line :-)
-
-Pulled, thanks a lot.  But please address the feedback you received
-wrt. secrets protecting hashes.
-
-Thanks.
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
