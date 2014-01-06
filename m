@@ -1,38 +1,32 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH netfilter: nft] add connmark module
-Date: Mon, 6 Jan 2014 14:11:02 +0100
-Message-ID: <CAKfDRXi1SmJDP_ZpD19KL3KRfrxn7bqDedJCJtO9urZZeJCSfQ@mail.gmail.com>
-References: <1389011352-11449-1-git-send-email-kristian.evensen@gmail.com>
-	<20140106124227.GA7743@localhost>
-	<CAKfDRXisUL5yBbU3bZfo52GxU96BamC75vPWsFvOYg7u8Jhs1w@mail.gmail.com>
-	<20140106124944.GA7830@localhost>
-	<CAKfDRXi1UYX120_ndw_hCNVyB2X+TEAOiUTamG3ZNw-vBruv9A@mail.gmail.com>
-	<20140106130919.GA8238@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nf_conntrack: fix skb_header_pointer API
+ usages in DCCP
+Date: Mon, 6 Jan 2014 14:14:32 +0100
+Message-ID: <20140106131432.GA8362@localhost>
+References: <1388966274-9532-1-git-send-email-dborkman@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Daniel Borkmann <dborkman@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:33286 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751822AbaAFNLG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 08:11:06 -0500
-Received: by mail-pb0-f49.google.com with SMTP id jt11so18234910pbb.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 05:11:02 -0800 (PST)
-In-Reply-To: <20140106130919.GA8238@localhost>
+Received: from mail.us.es ([193.147.175.20]:57522 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751376AbaAFNOg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jan 2014 08:14:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1388966274-9532-1-git-send-email-dborkman@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 6, 2014 at 2:09 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Please, check the bitwise expression (net/netfilter/nft_bitwise.c), it
-> provides an instruction to perform bitwise operations.
+On Mon, Jan 06, 2014 at 12:57:54AM +0100, Daniel Borkmann wrote:
+> Some occurences in the netfilter tree use skb_header_pointer() in
+> the following way ...
+> 
+>   struct dccp_hdr _dh, *dh;
+>   ...
+>   skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
 
-Great, thanks for me letting me know.
+I see, we're not crashing because *dh is 4 bytes at worst case, which
+matches with the size of the dccp_hdr header.
 
-> P.S: Please, don't top post:
-> http://www.netfilter.org/mailinglists.html#list-rules
-
-Sorry about that :)
-
--Kristian
+Applied, thanks.
