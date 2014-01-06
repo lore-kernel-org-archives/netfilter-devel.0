@@ -1,50 +1,40 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH v2] parsing: add interface to parse from file
-Date: Mon, 6 Jan 2014 13:06:04 +0100
-Message-ID: <CAOkSjBgJDk_06xvJjX+X4SaThuGZk5NRNGhxkOpATAyUKXrRoA@mail.gmail.com>
-References: <20140103123145.27058.77216.stgit@nfdev.cica.es> <20140104011333.GA5250@localhost>
+Subject: Re: [libnftables PATCH v2] examples: add nft-ruleset-get
+Date: Mon, 6 Jan 2014 13:12:16 +0100
+Message-ID: <CAOkSjBjRuQK9BL4NQe16odixW78-EnvkiRkUm_rUPncUxzJ=dQ@mail.gmail.com>
+References: <20131223141507.6481.39666.stgit@nfdev.cica.es>
+ <20140104005303.GA5037@localhost> <CAOkSjBjneHWTth=u+4mf9xXPyQ4+GCVq+WcyZiBwYean8N6GhQ@mail.gmail.com>
+ <20140106120619.GA4122@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Alvaro Neira <alvaroneay@gmail.com>
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:41068 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844AbaAFMG0 convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:47449 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162AbaAFMMh convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 07:06:26 -0500
-Received: by mail-lb0-f181.google.com with SMTP id q8so9693418lbi.40
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 04:06:24 -0800 (PST)
-In-Reply-To: <20140104011333.GA5250@localhost>
+	Mon, 6 Jan 2014 07:12:37 -0500
+Received: by mail-lb0-f173.google.com with SMTP id z5so9907185lbh.32
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 04:12:36 -0800 (PST)
+In-Reply-To: <20140106120619.GA4122@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4 January 2014 02:13, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> In this case, I'd like to see something like a changeset composed of
-> three patches.
+On 6 January 2014 13:06, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> It's there, the one at the HEAD:
+>
+> http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/commit=
+/?id=3Dc9c8e485978a308c8a359140da187d55120f8fee
 >
 
-Ok!
+i'm buying glasses B-)
 
->
-> perhaps you can call all this function _parse_file(...) instead.
->
+thanks
 
-of course.
-
->
-> Alvaro's patch is also changing the internal.h file. You need to
-> coordinate since you're working on the parsing infrastructure at the
-> same time to avoid clashing on this, otherwise the patch coming later
-> won't apply and one of you will have to rework it.
-
-I think Alvaro's patch should come first, as he was already working on
-this previous to my patch.
-
-I will wait until alvaro's one is applied to make the refresh.
 --=20
 Arturo Borrero Gonz=E1lez
 --
