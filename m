@@ -1,40 +1,120 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH netfilter: nft] Add the connmark meta_key
-Date: Mon, 6 Jan 2014 20:54:05 +0000
-Message-ID: <20140106205405.GA3236@macbook.localnet>
-References: <1389027476-16837-1-git-send-email-kristian.evensen@gmail.com>
- <20140106170523.GA9894@breakpoint.cc>
- <20140106171523.GC23002@macbook.localnet>
- <CAKfDRXir46pGb8-YpdW54RMgkdB11YEmqR_VNMJd3CTJKEo6TQ@mail.gmail.com>
- <20140106181928.GA19666@macbook.localnet>
- <CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
+From: Andrew Vagin <avagin@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: release conntrack from rcu
+ callback
+Date: Tue, 7 Jan 2014 00:54:15 +0400
+Message-ID: <20140106205414.GA19788@gmail.com>
+References: <1389023672-14351-1-git-send-email-avagin@openvz.org>
+ <20140106170235.GJ28854@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Content-Type: text/plain; charset=koi8-r
+Cc: Andrey Vagin <avagin@openvz.org>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56933 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754928AbaAFUyQ (ORCPT
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:51111 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979AbaAFU6f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 15:54:16 -0500
+	Mon, 6 Jan 2014 15:58:35 -0500
 Content-Disposition: inline
-In-Reply-To: <CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
+In-Reply-To: <20140106170235.GJ28854@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 06, 2014 at 08:25:39PM +0100, Kristian Evensen wrote:
-> On Mon, Jan 6, 2014 at 7:19 PM, Patrick McHardy <kaber@trash.net> wrote:
-> >
-> > Not sure what you're trying to achieve, we already support the connmark
-> > in the ct expression:
-> >
-> > nft filter output ct mark 0x1 ...
+On Mon, Jan 06, 2014 at 06:02:35PM +0100, Florian Westphal wrote:
+> Andrey Vagin <avagin@openvz.org> wrote:
+> > Lets look at destroy_conntrack:
+> > 
+> > hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+> > ...
+> > nf_conntrack_free(ct)
+> > 	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+> > 
+> > The hash is protected by rcu, so readers look up conntracks without
+> > locks.
+> > A conntrack is removed from the hash, but in this moment a few readers
+> > still can use the conntrack, so if we call kmem_cache_free now, all
+> > readers will read released object.
+> > 
+> > Bellow you can find more tricky race condition of three tasks.
+> > 
+> > task 1			task 2			task 3
+> > 			nf_conntrack_find_get
+> > 			 ____nf_conntrack_find
+> > destroy_conntrack
+> >  hlist_nulls_del_rcu
+> >  nf_conntrack_free
+> >  kmem_cache_free
+> > 						__nf_conntrack_alloc
+> > 						 kmem_cache_alloc
+> > 						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
+> > 			 if (nf_ct_is_dying(ct))
+> > 
+> > In this case the task 2 will not understand, that it uses a wrong
+> > conntrack.
 > 
-> What I want to achieve is to have functionality similar to connmark
-> --save-mark, so that we can also set the connmark.
+> Can you elaborate?
+> Yes, nf_ct_is_dying(ct) might be called for the wrong conntrack.
+> 
+> But, in case we _think_ that its the right one we call
+> nf_ct_tuple_equal() to verify we indeed found the right one:
 
-I see. We need a meta statement for this in userspace and corresponding
-support for the kernel. I thought we'd had an example how to do this in
-the meta expression, but apparently this is wrong. I'll add it for the
-meta expression during the next days so you have a reference.
+Ok. task3 creates a new contrack and nf_ct_tuple_equal() returns true on
+it. Looks like it's possible. In this case we have two threads with one
+unitialized contrack. It's really bad, because the code supposes that
+conntrack can not be initialized in two threads concurrently. For
+example BUG can be triggered from nf_nat_setup_info():
+
+BUG_ON(nf_nat_initialized(ct, maniptype));
+
+
+> 
+>        h = ____nf_conntrack_find(net, zone, tuple, hash);
+>        if (h) { // might be released right now, but page won't go away (SLAB_BY_RCU)
+
+I did not take SLAB_BY_RCU into account. Thank you. But it doesn't say,
+that we don't have the race condition here. It explains why we don't
+have really bad situations, when a completely wrong contract is
+used. We always use a "right" conntrack, but sometimes it is
+uninitialized and here is a problem.
+
+The race window is tiny, because usually we check that conntrack is not
+initialized and only then we execute its initialization. We don't hold
+any locks in these moments.
+
+Task2					| Task3
+if (!nf_nat_initialized(ct))		|
+					| if (!nf_nat_initialized(ct)
+ alloc_null_binding			|
+					|  alloc_null_binding
+  nf_nat_setup_info			|
+   ct->status |= IPS_SRC_NAT_DONE	|
+					|   nf_nat_setup_info
+					|    BUG_ON(nf_nat_initialized(ct));
+
+>                 ct = nf_ct_tuplehash_to_ctrack(h);
+>                 if (unlikely(nf_ct_is_dying(ct) ||
+>                              !atomic_inc_not_zero(&ct->ct_general.use)))
+> 			// which means we should hit this path (0 ref).
+>                         h = NULL;
+>                 else {
+> 			// otherwise, it cannot go away from under us, since
+> 			// we own a reference now.
+>                         if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+>                                      nf_ct_zone(ct) != zone)) {
+> 			// if we get here, the entry got recycled on other cpu
+> 			// for a different tuple, we can bail out and drop
+> 			// the reference safely and re-try the lookup
+>                                 nf_ct_put(ct);
+>                                 goto begin;
+>                         }
+>                 }
+
+Thanks,
+Andrey
