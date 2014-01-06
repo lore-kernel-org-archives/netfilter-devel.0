@@ -1,99 +1,323 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 04/12] proto: add helper function to update protocol context
-Date: Mon,  6 Jan 2014 17:27:19 +0000
-Message-ID: <1389029247-27697-5-git-send-email-kaber@trash.net>
+Subject: [PATCH 07/12] include: resync nftables.h with kernel
+Date: Mon,  6 Jan 2014 17:27:22 +0000
+Message-ID: <1389029247-27697-8-git-send-email-kaber@trash.net>
 References: <1389029247-27697-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55582 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55588 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755856AbaAFR1i (ORCPT
+	with ESMTP id S1755869AbaAFR1k (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 12:27:38 -0500
+	Mon, 6 Jan 2014 12:27:40 -0500
 In-Reply-To: <1389029247-27697-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a helper function which is to be used to update the protocol update.
-
-Signed-off-by: Patrick McHardy <ksber@trash.net<
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/proto.h |  3 +++
- src/meta.c      |  3 +--
- src/payload.c   |  3 +--
- src/proto.c     | 16 ++++++++++++++++
- 4 files changed, 21 insertions(+), 4 deletions(-)
+ include/linux/netfilter.h           |  22 ++++++--
+ include/linux/netfilter/nf_tables.h | 106 +++++++++++++++++++++++++++++++-----
+ 2 files changed, 108 insertions(+), 20 deletions(-)
 
-diff --git a/include/proto.h b/include/proto.h
-index 037ef09..de58d4c 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -122,6 +122,9 @@ struct proto_ctx {
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 2eb00b6..be0bc18 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -3,6 +3,8 @@
+ 
+ #include <linux/types.h>
+ 
++#include <linux/sysctl.h>
++
+ 
+ /* Responses from hook functions. */
+ #define NF_DROP 0
+@@ -14,14 +16,20 @@
+ #define NF_MAX_VERDICT NF_STOP
+ 
+ /* we overload the higher bits for encoding auxiliary data such as the queue
+- * number. Not nice, but better than additional function arguments. */
+-#define NF_VERDICT_MASK 0x0000ffff
+-#define NF_VERDICT_BITS 16
++ * number or errno values. Not nice, but better than additional function
++ * arguments. */
++#define NF_VERDICT_MASK 0x000000ff
++
++/* extra verdict flags have mask 0x0000ff00 */
++#define NF_VERDICT_FLAG_QUEUE_BYPASS	0x00008000
+ 
++/* queue number (NF_QUEUE) or errno (NF_DROP) */
+ #define NF_VERDICT_QMASK 0xffff0000
+ #define NF_VERDICT_QBITS 16
+ 
+-#define NF_QUEUE_NR(x) ((((x) << NF_VERDICT_BITS) & NF_VERDICT_QMASK) | NF_QUEUE)
++#define NF_QUEUE_NR(x) ((((x) << 16) & NF_VERDICT_QMASK) | NF_QUEUE)
++
++#define NF_DROP_ERR(x) (((-x) << 16) | NF_DROP)
+ 
+ /* only for userspace compatibility */
+ /* Generic cache responses from hook functions.
+@@ -29,6 +37,9 @@
+ #define NFC_UNKNOWN 0x4000
+ #define NFC_ALTERED 0x8000
+ 
++/* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
++#define NF_VERDICT_BITS 16
++
+ enum nf_inet_hooks {
+ 	NF_INET_PRE_ROUTING,
+ 	NF_INET_LOCAL_IN,
+@@ -40,6 +51,7 @@ enum nf_inet_hooks {
+ 
+ enum {
+ 	NFPROTO_UNSPEC =  0,
++	NFPROTO_INET   =  1,
+ 	NFPROTO_IPV4   =  2,
+ 	NFPROTO_ARP    =  3,
+ 	NFPROTO_BRIDGE =  7,
+@@ -56,4 +68,4 @@ union nf_inet_addr {
+ 	struct in6_addr	in6;
  };
  
- extern void proto_ctx_init(struct proto_ctx *ctx, unsigned int family);
-+extern void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
-+			     const struct location *loc,
-+			     const struct proto_desc *desc);
- extern const struct proto_desc *proto_find_upper(const struct proto_desc *base,
- 						 unsigned int num);
- extern int proto_find_num(const struct proto_desc *base,
-diff --git a/src/meta.c b/src/meta.c
-index 9173c30..e0ae950 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -367,8 +367,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 	if (desc == NULL)
- 		desc = &proto_unknown;
- 
--	ctx->protocol[PROTO_BASE_LL_HDR].location = expr->location;
--	ctx->protocol[PROTO_BASE_LL_HDR].desc	  = desc;
-+	proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
- }
- 
- static const struct expr_ops meta_expr_ops = {
-diff --git a/src/payload.c b/src/payload.c
-index 426adc3..0ef3c79 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -69,8 +69,7 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
- 	base = ctx->protocol[left->payload.base].desc;
- 	desc = proto_find_upper(base, mpz_get_uint32(right->value));
- 
--	ctx->protocol[left->payload.base + 1].location = expr->location;
--	ctx->protocol[left->payload.base + 1].desc = desc;
-+	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc);
- }
- 
- static const struct expr_ops payload_expr_ops = {
-diff --git a/src/proto.c b/src/proto.c
-index c6428e4..f611c97 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -143,6 +143,22 @@ void proto_ctx_init(struct proto_ctx *ctx, unsigned int family)
- 	ctx->protocol[h->base].desc = h->desc;
- }
+-#endif /*__LINUX_NETFILTER_H*/
++#endif /* __LINUX_NETFILTER_H */
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index a236cc3..d557a2c 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -32,6 +32,25 @@ enum nft_verdicts {
+ 	NFT_RETURN	= -5,
+ };
  
 +/**
-+ * proto_ctx_update: update protocol context for given protocol base
++ * enum nf_tables_msg_types - nf_tables netlink message types
 + *
-+ * @ctx:	protocol context
-+ * @base:	protocol base
-+ * @loc:	location of the relational expression definiting the context
-+ * @desc:	protocol description for the given layer
++ * @NFT_MSG_NEWTABLE: create a new table (enum nft_table_attributes)
++ * @NFT_MSG_GETTABLE: get a table (enum nft_table_attributes)
++ * @NFT_MSG_DELTABLE: delete a table (enum nft_table_attributes)
++ * @NFT_MSG_NEWCHAIN: create a new chain (enum nft_chain_attributes)
++ * @NFT_MSG_GETCHAIN: get a chain (enum nft_chain_attributes)
++ * @NFT_MSG_DELCHAIN: delete a chain (enum nft_chain_attributes)
++ * @NFT_MSG_NEWRULE: create a new rule (enum nft_rule_attributes)
++ * @NFT_MSG_GETRULE: get a rule (enum nft_rule_attributes)
++ * @NFT_MSG_DELRULE: delete a rule (enum nft_rule_attributes)
++ * @NFT_MSG_NEWSET: create a new set (enum nft_set_attributes)
++ * @NFT_MSG_GETSET: get a set (enum nft_set_attributes)
++ * @NFT_MSG_DELSET: delete a set (enum nft_set_attributes)
++ * @NFT_MSG_NEWSETELEM: create a new set element (enum nft_set_elem_attributes)
++ * @NFT_MSG_GETSETELEM: get a set element (enum nft_set_elem_attributes)
++ * @NFT_MSG_DELSETELEM: delete a set element (enum nft_set_elem_attributes)
 + */
-+void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
-+		      const struct location *loc,
-+		      const struct proto_desc *desc)
-+{
-+	ctx->protocol[base].location	= *loc;
-+	ctx->protocol[base].desc	= desc;
-+}
-+
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
- 			   offsetof(__type, __member) * 8,		\
+ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWTABLE,
+ 	NFT_MSG_GETTABLE,
+@@ -48,8 +67,6 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWSETELEM,
+ 	NFT_MSG_GETSETELEM,
+ 	NFT_MSG_DELSETELEM,
+-	NFT_MSG_COMMIT,
+-	NFT_MSG_ABORT,
+ 	NFT_MSG_MAX,
+ };
+ 
+@@ -92,6 +109,7 @@ enum nft_table_flags {
+  * enum nft_table_attributes - nf_tables table netlink attributes
+  *
+  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
++ * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
+  */
+ enum nft_table_attributes {
+ 	NFTA_TABLE_UNSPEC,
+@@ -105,8 +123,13 @@ enum nft_table_attributes {
+  * enum nft_chain_attributes - nf_tables chain netlink attributes
+  *
+  * @NFTA_CHAIN_TABLE: name of the table containing the chain (NLA_STRING)
++ * @NFTA_CHAIN_HANDLE: numeric handle of the chain (NLA_U64)
+  * @NFTA_CHAIN_NAME: name of the chain (NLA_STRING)
+  * @NFTA_CHAIN_HOOK: hook specification for basechains (NLA_NESTED: nft_hook_attributes)
++ * @NFTA_CHAIN_POLICY: numeric policy of the chain (NLA_U32)
++ * @NFTA_CHAIN_USE: number of references to this chain (NLA_U32)
++ * @NFTA_CHAIN_TYPE: type name of the string (NLA_NUL_STRING)
++ * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
+  */
+ enum nft_chain_attributes {
+ 	NFTA_CHAIN_UNSPEC,
+@@ -122,18 +145,15 @@ enum nft_chain_attributes {
+ };
+ #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
+ 
+-enum {
+-	NFT_RULE_F_COMMIT	= (1 << 0),
+-	NFT_RULE_F_MASK		= NFT_RULE_F_COMMIT,
+-};
+-
+ /**
+  * enum nft_rule_attributes - nf_tables rule netlink attributes
+  *
+  * @NFTA_RULE_TABLE: name of the table containing the rule (NLA_STRING)
+  * @NFTA_RULE_CHAIN: name of the chain containing the rule (NLA_STRING)
+- * @NFTA_RULE_HANDLE: numeric handle of the rule (NLA_U16)
++ * @NFTA_RULE_HANDLE: numeric handle of the rule (NLA_U64)
+  * @NFTA_RULE_EXPRESSIONS: list of expressions (NLA_NESTED: nft_expr_attributes)
++ * @NFTA_RULE_COMPAT: compatibility specifications of the rule (NLA_NESTED: nft_rule_compat_attributes)
++ * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
+  */
+ enum nft_rule_attributes {
+ 	NFTA_RULE_UNSPEC,
+@@ -141,17 +161,28 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_CHAIN,
+ 	NFTA_RULE_HANDLE,
+ 	NFTA_RULE_EXPRESSIONS,
+-	NFTA_RULE_FLAGS,
+ 	NFTA_RULE_COMPAT,
++	NFTA_RULE_POSITION,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+ 
++/**
++ * enum nft_rule_compat_flags - nf_tables rule compat flags
++ *
++ * @NFT_RULE_COMPAT_F_INV: invert the check result
++ */
+ enum nft_rule_compat_flags {
+ 	NFT_RULE_COMPAT_F_INV	= (1 << 1),
+ 	NFT_RULE_COMPAT_F_MASK	= NFT_RULE_COMPAT_F_INV,
+ };
+ 
++/**
++ * enum nft_rule_compat_attributes - nf_tables rule compat attributes
++ *
++ * @NFTA_RULE_COMPAT_PROTO: numerice value of handled protocol (NLA_U32)
++ * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags (NLA_U32)
++ */
+ enum nft_rule_compat_attributes {
+ 	NFTA_RULE_COMPAT_UNSPEC,
+ 	NFTA_RULE_COMPAT_PROTO,
+@@ -349,11 +380,26 @@ enum nft_bitwise_attributes {
+ };
+ #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
+ 
++/**
++ * enum nft_byteorder_ops - nf_tables byteorder operators
++ *
++ * @NFT_BYTEORDER_NTOH: network to host operator
++ * @NFT_BYTEORDER_HTON: host to network opertaor
++ */
+ enum nft_byteorder_ops {
+ 	NFT_BYTEORDER_NTOH,
+ 	NFT_BYTEORDER_HTON,
+ };
+ 
++/**
++ * enum nft_byteorder_attributes - nf_tables byteorder expression netlink attributes
++ *
++ * @NFTA_BYTEORDER_SREG: source register (NLA_U32: nft_registers)
++ * @NFTA_BYTEORDER_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_BYTEORDER_OP: operator (NLA_U32: enum nft_byteorder_ops)
++ * @NFTA_BYTEORDER_LEN: length of the data (NLA_U32)
++ * @NFTA_BYTEORDER_SIZE: data size in bytes (NLA_U32: 2 or 4)
++ */
+ enum nft_byteorder_attributes {
+ 	NFTA_BYTEORDER_UNSPEC,
+ 	NFTA_BYTEORDER_SREG,
+@@ -365,6 +411,16 @@ enum nft_byteorder_attributes {
+ };
+ #define NFTA_BYTEORDER_MAX	(__NFTA_BYTEORDER_MAX - 1)
+ 
++/**
++ * enum nft_cmp_ops - nf_tables relational operator
++ *
++ * @NFT_CMP_EQ: equal
++ * @NFT_CMP_NEQ: not equal
++ * @NFT_CMP_LT: less than
++ * @NFT_CMP_LTE: less than or equal to
++ * @NFT_CMP_GT: greater than
++ * @NFT_CMP_GTE: greater than or equal to
++ */
+ enum nft_cmp_ops {
+ 	NFT_CMP_EQ,
+ 	NFT_CMP_NEQ,
+@@ -390,6 +446,13 @@ enum nft_cmp_attributes {
+ };
+ #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
+ 
++/**
++ * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
++ *
++ * @NFTA_LOOKUP_SET: name of the set where to look for (NLA_STRING)
++ * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
++ * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
++ */
+ enum nft_lookup_attributes {
+ 	NFTA_LOOKUP_UNSPEC,
+ 	NFTA_LOOKUP_SET,
+@@ -430,6 +493,14 @@ enum nft_payload_attributes {
+ };
+ #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
+ 
++/**
++ * enum nft_exthdr_attributes - nf_tables IPv6 extension header expression netlink attributes
++ *
++ * @NFTA_EXTHDR_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_EXTHDR_TYPE: extension header type (NLA_U8)
++ * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
++ * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
++ */
+ enum nft_exthdr_attributes {
+ 	NFTA_EXTHDR_UNSPEC,
+ 	NFTA_EXTHDR_DREG,
+@@ -458,6 +529,8 @@ enum nft_exthdr_attributes {
+  * @NFT_META_NFTRACE: packet nftrace bit
+  * @NFT_META_RTCLASSID: realm value of packet's route (skb->dst->tclassid)
+  * @NFT_META_SECMARK: packet secmark (skb->secmark)
++ * @NFT_META_NFPROTO: netfilter protocol
++ * @NFT_META_L4PROTO: layer 4 protocol number
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -475,6 +548,8 @@ enum nft_meta_keys {
+ 	NFT_META_NFTRACE,
+ 	NFT_META_RTCLASSID,
+ 	NFT_META_SECMARK,
++	NFT_META_NFPROTO,
++	NFT_META_L4PROTO,
+ };
+ 
+ /**
+@@ -544,12 +619,12 @@ enum nft_ct_attributes {
+  * enum nft_limit_attributes - nf_tables limit expression netlink attributes
+  *
+  * @NFTA_LIMIT_RATE: refill rate (NLA_U64)
+- * @NFTA_LIMIT_DEPTH: bucket depth (NLA_U64)
++ * @NFTA_LIMIT_UNIT: refill unit (NLA_U64)
+  */
+ enum nft_limit_attributes {
+ 	NFTA_LIMIT_UNSPEC,
+ 	NFTA_LIMIT_RATE,
+-	NFTA_LIMIT_DEPTH,
++	NFTA_LIMIT_UNIT,
+ 	__NFTA_LIMIT_MAX
+ };
+ #define NFTA_LIMIT_MAX		(__NFTA_LIMIT_MAX - 1)
+@@ -626,10 +701,11 @@ enum nft_nat_types {
+  * enum nft_nat_attributes - nf_tables nat expression netlink attributes
+  *
+  * @NFTA_NAT_TYPE: NAT type (NLA_U32: nft_nat_types)
+- * @NFTA_NAT_ADDR_MIN: source register of address range start (NLA_U32: nft_registers)
+- * @NFTA_NAT_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+- * @NFTA_NAT_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+- * @NFTA_NAT_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
++ * @NFTA_NAT_FAMILY: NAT family (NLA_U32)
++ * @NFTA_NAT_REG_ADDR_MIN: source register of address range start (NLA_U32: nft_registers)
++ * @NFTA_NAT_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
++ * @NFTA_NAT_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
++ * @NFTA_NAT_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
+  */
+ enum nft_nat_attributes {
+ 	NFTA_NAT_UNSPEC,
 -- 
 1.8.4.2
 
