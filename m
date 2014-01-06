@@ -1,48 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 03/12] netfilter: nfnetlink_queue: enable UID/GID socket
- info retrieval
-Date: Mon, 6 Jan 2014 17:36:49 +0100
-Message-ID: <20140106163649.GA4910@localhost>
-References: <1388963586-5049-1-git-send-email-pablo@netfilter.org>
- <1388963586-5049-4-git-send-email-pablo@netfilter.org>
- <1389022353.12212.176.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH net-next] netfilter: nfnetlink_queue: fix compilation
+ problem due missing header
+Date: Mon, 06 Jan 2014 08:52:41 -0800
+Message-ID: <1389027161.12212.181.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1389026089-4917-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Valentina Giusti <valentina.giusti@bmw-carit.de>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43592 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751446AbaAFQg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 11:36:56 -0500
-Content-Disposition: inline
-In-Reply-To: <1389022353.12212.176.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1389026089-4917-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 06, 2014 at 07:32:33AM -0800, Eric Dumazet wrote:
-> On Mon, 2014-01-06 at 00:12 +0100, Pablo Neira Ayuso wrote:
-> > From: Valentina Giusti <valentina.giusti@bmw-carit.de>
-> > 
-> > Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388
-> > (udp: ipv4: Add udp early demux) it is now possible to parse UID and
-> > GID socket info also for incoming TCP and UDP connections. Having
-> > this info available, it is convenient to let NFQUEUE parse it in
-> > order to improve and refine the traffic analysis in userspace.
-> > 
-> > Signed-off-by: Valentina Giusti <valentina.giusti@bmw-carit.de>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-[...]
+On Mon, 2014-01-06 at 17:34 +0100, Pablo Neira Ayuso wrote:
+> In 08c0cad ("netfilter: nfnetlink_queue: enable UID/GID socket info
+> retrieval"), the header that defines TCP_TIME_WAIT.
+> 
 > net/netfilter/nfnetlink_queue_core.c: In function 'nfqnl_put_sk_uidgid':
 > net/netfilter/nfnetlink_queue_core.c:304:35: error: 'TCP_TIME_WAIT' undeclared (first use in this function)
-> net/netfilter/nfnetlink_queue_core.c:304:35: note: each undeclared identifier is reported only once for each function it appears in
-> make[3]: *** [net/netfilter/nfnetlink_queue_core.o] Error 1
+> net/netfilter/nfnetlink_queue_core.c:304:35: note: each undeclared identifier is reported only once for each function it appears in make[3]: *** [net/netfilter/nfnetlink_queue_core.o] Error 1
 > 
-> Fix is obvious (#include <net/tcp_states.h>), but I have to run...
+> Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
 
-Just sent this patch to David, thanks for reporting.
+Tested-by: Eric Dumazet <edumazet@google.com>
 
-http://patchwork.ozlabs.org/patch/307367/
+Thanks Pablo !
