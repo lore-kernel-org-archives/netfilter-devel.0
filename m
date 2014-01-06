@@ -1,50 +1,71 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH v2] examples: add nft-ruleset-get
-Date: Mon, 6 Jan 2014 12:53:24 +0100
-Message-ID: <CAOkSjBjneHWTth=u+4mf9xXPyQ4+GCVq+WcyZiBwYean8N6GhQ@mail.gmail.com>
-References: <20131223141507.6481.39666.stgit@nfdev.cica.es> <20140104005303.GA5037@localhost>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 01/12] netfilter: avoid get_random_bytes calls
+Date: Mon, 6 Jan 2014 12:54:36 +0100
+Message-ID: <20140106115436.GE28854@breakpoint.cc>
+References: <1388963586-5049-1-git-send-email-pablo@netfilter.org>
+ <1388963586-5049-2-git-send-email-pablo@netfilter.org>
+ <20140105234157.GB29910@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:50371 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057AbaAFLxq convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50104 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753162AbaAFLym (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 06:53:46 -0500
-Received: by mail-la0-f46.google.com with SMTP id eh20so9833493lab.33
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 03:53:45 -0800 (PST)
-In-Reply-To: <20140104005303.GA5037@localhost>
+	Mon, 6 Jan 2014 06:54:42 -0500
+Content-Disposition: inline
+In-Reply-To: <20140105234157.GB29910@order.stressinduktion.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4 January 2014 01:53, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Dec 23, 2013 at 03:18:22PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> This example prints the ruleset, using the ruleset API of nftables.
->>
->> The kernel patch [b63108a] (netfilter: nf_tables: allow to dump sets=
- with
->> NFPROTO_UNSPEC) is required.
->
-> Updated this to point to c9c8e48 ("netfilter: nf_tables: dump sets in
-> all existing families").
->
-> Applied to -next, thanks Arturo.
+Hannes Frederic Sowa <hannes@stressinduktion.org> wrote:
+> On Mon, Jan 06, 2014 at 12:12:55AM +0100, Pablo Neira Ayuso wrote:
+> > From: Florian Westphal <fw@strlen.de>
+> > 
+> > All these users need an initial seed value for jhash, prandom is
+> > perfectly fine.  This avoids draining the entropy pool where
+> > its not strictly required.
+> 
+> Secrets protecting hash tables should be rather strong.
 
-I don't see the kernel patch applied [0].
+Yes, which is why e.g. conntrack hash is not converted.
 
-Have you applied it, or have plans to do so? If applied, please, could
-you point me to the right tree?
+> prandom_u32() has two seeding points at boot-up. One is at late_initcall.
 
-[0] http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/log/
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes.  None of these locations are executed via initcalls, they are all
+in _checkentry (i.e., run when userspace iptables inserts a rule using
+the target/match), except hashlimit where its delayed until the first
+address is stored (so its even later).
+
+> Thanks to parallel boot-up this gets executed fairly early. The other one is
+> when the RNG nonblocking pool is fully initialized. Only after this point we
+> can assume prandom_u32() returns truely random values. In between, only
+> get_random_bytes or net_get_random_once are safe for use.
+
+Can you elaborate?  If entropy estimate is really really low
+(because we're booting up), why would get_random_bytes() be a better
+choice [ i understand net_get_random_once() is for delaying
+the actual random_bytes call until a later point in time where we've
+hopefully collected more entropy ]
+
+> To get the impression when prandom_u32 gets truely seeded, watch out
+> for the message "random: nonblocking pool is initialized" in dmesg. ;)
+
+It happens very very early on my machine, even before / is remounted
+rw.  I would be more interested in what happens on small embedded
+boxes...
+
+> Hmm, some of them look like good candidates for net_get_random_once. I don't
+> see such a problem with draining entropy pool, especially as they don't run
+> that early and they don't request so many random bits.
+
+I specifically did not use net_get_random_once once because checkentry is
+not a hotpath.
+
+I don't see why get_random_bytes use increases the security margin, especially
+considering none of these hashes have periodic run-time rehashing?
+
+But sure, if you think this change is a problem, Pablo can just revert it.
