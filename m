@@ -1,35 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [net PATCH] netfilter: only warn once on wrong seqadj usage
-Date: Mon, 6 Jan 2014 14:23:55 +0100
-Message-ID: <20140106132355.GA8798@localhost>
-References: <20140104130944.28481.30891.stgit@dragon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Flavio Leitner <fbl@redhat.com>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58043 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990AbaAFNYA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 08:24:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20140104130944.28481.30891.stgit@dragon>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH 01/13] netfilter: nf_tables: fix issue with verdict support
+Date: Mon,  6 Jan 2014 14:46:30 +0100
+Message-ID: <1389016002-9116-2-git-send-email-pablo@netfilter.org>
+References: <1389016002-9116-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1389016002-9116-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 04, 2014 at 02:10:43PM +0100, Jesper Dangaard Brouer wrote:
-> Avoid potentially spamming the kernel log with WARN splash messages
-> when catching wrong usage of seqadj, by simply using WARN_ONCE.
-> 
-> This is a followup to commit db12cf274353 (netfilter: WARN about
-> wrong usage of sequence number adjustments)
-> 
-> Suggested-by: Flavio Leitner <fbl@redhat.com>
-> Suggested-by: Daniel Borkmann <dborkman@redhat.com>
-> Suggested-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+From: Eric Leblond <eric@regit.org>
 
-Applied, thanks Jesper.
+The test on verdict was simply done on the value of the verdict
+which is not correct as far as queue is concern. In fact, the test
+of verdict test must be done with respect to the verdict mask for
+verdicts which are not internal to nftables.
+
+Signed-off-by: Eric Leblond <eric@regit.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_core.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index cb9e685..e8fcc34 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -164,7 +164,7 @@ next_rule:
+ 		break;
+ 	}
+ 
+-	switch (data[NFT_REG_VERDICT].verdict) {
++	switch (data[NFT_REG_VERDICT].verdict & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+ 	case NF_DROP:
+ 	case NF_QUEUE:
+@@ -172,6 +172,9 @@ next_rule:
+ 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
+ 
+ 		return data[NFT_REG_VERDICT].verdict;
++	}
++
++	switch (data[NFT_REG_VERDICT].verdict) {
+ 	case NFT_JUMP:
+ 		if (unlikely(pkt->skb->nf_trace))
+ 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
+-- 
+1.7.10.4
