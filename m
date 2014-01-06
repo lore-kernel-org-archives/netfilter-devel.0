@@ -1,49 +1,38 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: [PATCH nf-next] netfilter: nf_log: use %s format string for buffer
-Date: Mon,  6 Jan 2014 01:04:16 +0100
-Message-ID: <1388966656-12414-1-git-send-email-dborkman@redhat.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] netfilter/IPVS updates for net-next
+Date: Sun, 05 Jan 2014 20:20:32 -0500 (EST)
+Message-ID: <20140105.202032.522302270986090958.davem@davemloft.net>
+References: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41278 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbaAFAEV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jan 2014 19:04:21 -0500
+Received: from shards.monkeyblade.net ([149.20.54.216]:53465 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064AbaAFBUh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jan 2014 20:20:37 -0500
+In-Reply-To: <1388963378-4903-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Some invocations of nf_log_packet() use arg buffer directly instead of
-"%s" format string with follow-up buffer pointer. Currently, these two
-usages are not really critical, but we should fix this up nevertheless
-so that we don't run into trouble if that changes one day.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  6 Jan 2014 00:09:26 +0100
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
----
- net/netfilter/nf_conntrack_proto_dccp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> You can pull these changes from:
+> 
+> Daniel Borkmann (4):
+ ...
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index a99b6c3..3841268 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -457,7 +457,7 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- out_invalid:
- 	if (LOG_INVALID(net, IPPROTO_DCCP))
- 		nf_log_packet(net, nf_ct_l3num(ct), 0, skb, NULL, NULL,
--			      NULL, msg);
-+			      NULL, "%s", msg);
- 	return false;
- }
- 
-@@ -614,7 +614,7 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
- 
- out_invalid:
- 	if (LOG_INVALID(net, IPPROTO_DCCP))
--		nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL, msg);
-+		nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL, "%s", msg);
- 	return -NF_ACCEPT;
- }
- 
--- 
-1.7.11.7
+I assume you meant to say:
 
+	git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+as the URL rather than just a blank line :-)
+
+Pulled, thanks a lot.  But please address the feedback you received
+wrt. secrets protecting hashes.
+
+Thanks.
