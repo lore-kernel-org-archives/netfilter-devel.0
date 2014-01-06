@@ -1,67 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 03/12] netfilter: nfnetlink_queue: enable UID/GID
- socket info retrieval
-Date: Mon, 06 Jan 2014 13:36:33 -0500 (EST)
-Message-ID: <20140106.133633.333909371095279469.davem@davemloft.net>
-References: <1388963586-5049-1-git-send-email-pablo@netfilter.org>
-	<1388963586-5049-4-git-send-email-pablo@netfilter.org>
-	<1389022353.12212.176.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Re: [PATCH netfilter: nft] Add the connmark meta_key
+Date: Mon, 6 Jan 2014 20:25:39 +0100
+Message-ID: <CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
+References: <1389027476-16837-1-git-send-email-kristian.evensen@gmail.com>
+	<20140106170523.GA9894@breakpoint.cc>
+	<20140106171523.GC23002@macbook.localnet>
+	<CAKfDRXir46pGb8-YpdW54RMgkdB11YEmqR_VNMJd3CTJKEo6TQ@mail.gmail.com>
+	<20140106181928.GA19666@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, valentina.giusti@bmw-carit.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: eric.dumazet@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:33150 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755101AbaAFSgf (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:62458 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755273AbaAFTZk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 13:36:35 -0500
-In-Reply-To: <1389022353.12212.176.camel@edumazet-glaptop2.roam.corp.google.com>
+	Mon, 6 Jan 2014 14:25:40 -0500
+Received: by mail-pb0-f41.google.com with SMTP id jt11so18997826pbb.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 11:25:39 -0800 (PST)
+In-Reply-To: <20140106181928.GA19666@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Mon, 06 Jan 2014 07:32:33 -0800
+On Mon, Jan 6, 2014 at 7:19 PM, Patrick McHardy <kaber@trash.net> wrote:
+>
+> Not sure what you're trying to achieve, we already support the connmark
+> in the ct expression:
+>
+> nft filter output ct mark 0x1 ...
 
-> net/netfilter/nfnetlink_queue_core.c: In function 'nfqnl_put_sk_uidgid':
-> net/netfilter/nfnetlink_queue_core.c:304:35: error: 'TCP_TIME_WAIT' undeclared (first use in this function)
-> net/netfilter/nfnetlink_queue_core.c:304:35: note: each undeclared identifier is reported only once for each function it appears in
-> make[3]: *** [net/netfilter/nfnetlink_queue_core.o] Error 1
-> 
-> Fix is obvious (#include <net/tcp_states.h>), but I have to run...
+What I want to achieve is to have functionality similar to connmark
+--save-mark, so that we can also set the connmark.
 
-I just committed the following:
-
-====================
-[PATCH] netfilter: Fix build failure in nfnetlink_queue_core.c.
-
-net/netfilter/nfnetlink_queue_core.c: In function 'nfqnl_put_sk_uidgid':
-net/netfilter/nfnetlink_queue_core.c:304:35: error: 'TCP_TIME_WAIT' undeclared (first use in this function)
-net/netfilter/nfnetlink_queue_core.c:304:35: note: each undeclared identifier is reported only once for each function it appears in
-make[3]: *** [net/netfilter/nfnetlink_queue_core.o] Error 1
-
-Just a missing include of net/tcp_states.h
-
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- net/netfilter/nfnetlink_queue_core.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index d3cf12b..b5e1f82 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -29,6 +29,7 @@
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/list.h>
- #include <net/sock.h>
-+#include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
- #include <net/netns/generic.h>
- #include <net/netfilter/nfnetlink_queue.h>
--- 
-1.7.11.7
-
+-Kristian
