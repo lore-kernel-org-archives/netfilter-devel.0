@@ -1,60 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH v2] examples: add nft-ruleset-get
-Date: Mon, 6 Jan 2014 13:06:19 +0100
-Message-ID: <20140106120619.GA4122@localhost>
-References: <20131223141507.6481.39666.stgit@nfdev.cica.es>
- <20140104005303.GA5037@localhost>
- <CAOkSjBjneHWTth=u+4mf9xXPyQ4+GCVq+WcyZiBwYean8N6GhQ@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH v2] parsing: add interface to parse from file
+Date: Mon, 6 Jan 2014 13:06:04 +0100
+Message-ID: <CAOkSjBgJDk_06xvJjX+X4SaThuGZk5NRNGhxkOpATAyUKXrRoA@mail.gmail.com>
+References: <20140103123145.27058.77216.stgit@nfdev.cica.es> <20140104011333.GA5250@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+	<netfilter-devel@vger.kernel.org>,
+	Alvaro Neira <alvaroneay@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51776 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753844AbaAFMGY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 07:06:24 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjneHWTth=u+4mf9xXPyQ4+GCVq+WcyZiBwYean8N6GhQ@mail.gmail.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:41068 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753844AbaAFMG0 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jan 2014 07:06:26 -0500
+Received: by mail-lb0-f181.google.com with SMTP id q8so9693418lbi.40
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 04:06:24 -0800 (PST)
+In-Reply-To: <20140104011333.GA5250@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 06, 2014 at 12:53:24PM +0100, Arturo Borrero Gonzalez wrote=
-:
-> On 4 January 2014 01:53, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> > On Mon, Dec 23, 2013 at 03:18:22PM +0100, Arturo Borrero Gonzalez w=
-rote:
-> >> This example prints the ruleset, using the ruleset API of nftables=
-=2E
-> >>
-> >> The kernel patch [b63108a] (netfilter: nf_tables: allow to dump se=
-ts with
-> >> NFPROTO_UNSPEC) is required.
-> >
-> > Updated this to point to c9c8e48 ("netfilter: nf_tables: dump sets =
-in
-> > all existing families").
-> >
-> > Applied to -next, thanks Arturo.
->=20
-> I don't see the kernel patch applied [0].
->=20
-> Have you applied it, or have plans to do so? If applied, please, coul=
-d
-> you point me to the right tree?
+On 4 January 2014 02:13, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> In this case, I'd like to see something like a changeset composed of
+> three patches.
+>
 
-It's there, the one at the HEAD:
+Ok!
 
-http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/commit/?=
-id=3Dc9c8e485978a308c8a359140da187d55120f8fee
+>
+> perhaps you can call all this function _parse_file(...) instead.
+>
 
-> [0] http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/lo=
-g/
-> --=20
-> Arturo Borrero Gonz=E1lez
+of course.
+
+>
+> Alvaro's patch is also changing the internal.h file. You need to
+> coordinate since you're working on the parsing infrastructure at the
+> same time to avoid clashing on this, otherwise the patch coming later
+> won't apply and one of you will have to rework it.
+
+I think Alvaro's patch should come first, as he was already working on
+this previous to my patch.
+
+I will wait until alvaro's one is applied to make the refresh.
+--=20
+Arturo Borrero Gonz=E1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
