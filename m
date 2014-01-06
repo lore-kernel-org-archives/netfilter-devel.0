@@ -1,59 +1,60 @@
 From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: [PATCH libnftables] Add support for nft_connmark
-Date: Mon,  6 Jan 2014 13:29:27 +0100
-Message-ID: <1389011367-11489-1-git-send-email-kristian.evensen@gmail.com>
+Subject: [PATCH nftables] Add support for connmark target
+Date: Mon,  6 Jan 2014 13:29:44 +0100
+Message-ID: <1389011384-11530-1-git-send-email-kristian.evensen@gmail.com>
 Cc: Kristian Evensen <kristian.evensen@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:46186 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbaAFM3g (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:34973 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262AbaAFM3x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 07:29:36 -0500
-Received: by mail-ee0-f51.google.com with SMTP id b15so7834141eek.24
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 04:29:35 -0800 (PST)
+	Mon, 6 Jan 2014 07:29:53 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c41so7840078eek.8
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 04:29:52 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Kristian Evensen <kristian.evensen@gmail.com>
 
-This patch adds support for the connmark target.
+This patch adds support for the connmark target. The syntax is the same as for
+iptables' xt_CONNMARK. In order to simplify the initial implementation, I have
+not added any of the mnemonics. Also, as tables are now created by user-space, I
+have not limited where the different connmark modes can be used.
+
+Usage-examples
+
+To set mark:
+nft add rule filter output ip protocol icmp connmark set-xmark 0x1
+nft add rule filter output ip protocol icmp connmark set-xmark 0x1/0x2
+
+To restore mark:
+nft add rule filter prerouting ip protocol icmp connmark restore-mark
+nft add rule filter prerouting ip protocol icmp connmark restore-mark mask 0x2
+
+To save mark:
+nft add rule filter postrouting ip protocol icmp connmark save-mark
+nft add rule filter postrouting ip protocol icmp connmark save-mark nfmask 0x1
+nft add rule filter postrouting ip protocol icmp connmark save-mark ctmask 0x2
+nft add rule filter postrouting ip protocol icmp connmark save-mark nfmask 0x1 ctmask 0x2
 
 Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
 ---
- include/libnftables/expr.h          |   7 +
- include/linux/netfilter/nf_tables.h |  35 ++++
- src/Makefile.am                     |   1 +
- src/expr/connmark.c                 | 316 ++++++++++++++++++++++++++++++++++++
- tests/Makefile.am                   |   4 +
- tests/nft-expr_connmark-test.c      | 206 +++++++++++++++++++++++
- 6 files changed, 569 insertions(+)
- create mode 100644 src/expr/connmark.c
- create mode 100644 tests/nft-expr_connmark-test.c
+ include/linux/netfilter/nf_tables.h | 35 +++++++++++++++++++
+ include/statement.h                 | 14 ++++++++
+ src/evaluate.c                      |  2 ++
+ src/netlink_delinearize.c           | 26 ++++++++++++++
+ src/netlink_linearize.c             | 29 +++++++++++++++-
+ src/parser.y                        | 69 +++++++++++++++++++++++++++++++++++++
+ src/scanner.l                       |  8 +++++
+ src/statement.c                     | 38 ++++++++++++++++++++
+ 8 files changed, 220 insertions(+), 1 deletion(-)
 
-diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
-index 25455e4..efa3715 100644
---- a/include/libnftables/expr.h
-+++ b/include/libnftables/expr.h
-@@ -149,6 +149,13 @@ enum {
- 	NFT_EXPR_QUEUE_TOTAL,
- 	NFT_EXPR_QUEUE_FLAGS,
- };
-+
-+enum {
-+	NFT_EXPR_CONNMARK_MODE = NFT_RULE_EXPR_ATTR_BASE,
-+	NFT_EXPR_CONNMARK_CTMARK,
-+	NFT_EXPR_CONNMARK_CTMASK,
-+	NFT_EXPR_CONNMARK_NFMASK,
-+};
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index e08f80e..46126fb 100644
+index 1d5a925..a3fb603 100644
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -603,6 +603,41 @@ enum nft_queue_attributes {
+@@ -607,6 +607,41 @@ enum nft_queue_attributes {
  #define NFT_QUEUE_FLAG_MASK		0x03
  
  /**
@@ -95,574 +96,332 @@ index e08f80e..46126fb 100644
   * enum nft_reject_types - nf_tables reject expression reject types
   *
   * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 441e96e..811e061 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -19,6 +19,7 @@ libnftables_la_SOURCES = utils.c		\
- 			 expr/bitwise.c		\
- 			 expr/byteorder.c	\
- 			 expr/cmp.c		\
-+			 expr/connmark.c	\
- 			 expr/counter.c		\
- 			 expr/ct.c		\
- 			 expr/data_reg.c	\
-diff --git a/src/expr/connmark.c b/src/expr/connmark.c
-new file mode 100644
-index 0000000..42ff348
---- /dev/null
-+++ b/src/expr/connmark.c
-@@ -0,0 +1,316 @@
-+/*
-+ * (C) 2013 by Kristian Evensen <kristian.evensen@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <arpa/inet.h>
-+#include <errno.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include "internal.h"
-+#include <libmnl/libmnl.h>
-+#include <libnftables/expr.h>
-+#include <libnftables/rule.h>
-+#include "expr_ops.h"
-+
-+/* Even though nfmask and ctmark is mutually exclusive, do not use union here.
-+ * The user can provide incorrect json/xml input containing both values. */
-+struct nft_expr_connmark {
-+	uint32_t		ctmark;
-+	uint32_t		ctmask;
-+	uint32_t		nfmask;
+diff --git a/include/statement.h b/include/statement.h
+index 14a66df..823e1eb 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -67,6 +67,17 @@ struct queue_stmt {
+ 
+ extern struct stmt *queue_stmt_alloc(const struct location *loc);
+ 
++struct connmark_stmt {
++	uint32_t                ctmask;
++	union{
++		uint32_t                ctmark;
++		uint32_t                nfmask;
++	};
 +	uint8_t			mode;
 +};
 +
-+static int nft_rule_expr_connmark_set(struct nft_rule_expr *e, uint16_t type,
-+				      const void *data, uint32_t data_len)
-+{
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
++extern struct stmt *connmark_stmt_alloc(const struct location *loc);
 +
-+	switch (type) {
-+	case NFT_EXPR_CONNMARK_MODE:
-+		connmark->mode = *((uint8_t *) data);
-+		break;
-+	case NFT_EXPR_CONNMARK_CTMARK:
-+		connmark->ctmark = *((uint32_t *) data);
-+		break;
-+	case NFT_EXPR_CONNMARK_CTMASK:
-+		connmark->ctmask = *((uint32_t *) data);
-+		break;
-+	case NFT_EXPR_CONNMARK_NFMASK:
-+		connmark->nfmask = *((uint32_t *) data);
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static const void *
-+nft_rule_expr_connmark_get(const struct nft_rule_expr *e, uint16_t type,
-+			 uint32_t *data_len)
-+{
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
-+
-+	switch (type) {
-+	case NFT_EXPR_CONNMARK_MODE:
-+		*data_len = sizeof(connmark->mode);
-+		return &connmark->mode;
-+	case NFT_EXPR_CONNMARK_CTMARK:
-+		*data_len = sizeof(connmark->ctmark);
-+		return &connmark->ctmark;
-+	case NFT_EXPR_CONNMARK_CTMASK:
-+		*data_len = sizeof(connmark->ctmask);
-+		return &connmark->ctmask;
-+	case NFT_EXPR_CONNMARK_NFMASK:
-+		*data_len = sizeof(connmark->nfmask);
-+		return &connmark->nfmask;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int nft_rule_expr_connmark_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_CONNMARK_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch (type) {
-+	case NFTA_CONNMARK_CTMARK:
-+	case NFTA_CONNMARK_CTMASK:
-+	case NFTA_CONNMARK_NFMASK:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-+			perror("mnl_attr_validate");
-+			return MNL_CB_ERROR;
-+		}
-+		break;
-+	case NFTA_CONNMARK_MODE:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0) {
-+			perror("mnl_attr_validate");
-+			return MNL_CB_ERROR;
-+		}
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+
-+	return MNL_CB_OK;
-+}
-+
-+static void
-+nft_rule_expr_connmark_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
-+{
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_CONNMARK_MODE))
-+		mnl_attr_put_u8(nlh, NFTA_CONNMARK_MODE, connmark->mode);
-+	if (e->flags & (1 << NFT_EXPR_CONNMARK_CTMARK))
-+		mnl_attr_put_u32(nlh, NFTA_CONNMARK_CTMARK,
-+				 htonl(connmark->ctmark));
-+	if (e->flags & (1 << NFT_EXPR_CONNMARK_CTMASK))
-+		mnl_attr_put_u32(nlh, NFTA_CONNMARK_CTMASK,
-+				 htonl(connmark->ctmask));
-+	if (e->flags & (1 << NFT_EXPR_CONNMARK_NFMASK))
-+		mnl_attr_put_u32(nlh, NFTA_CONNMARK_NFMASK,
-+				 htonl(connmark->nfmask));
-+}
-+
-+static int
-+nft_rule_expr_connmark_parse(struct nft_rule_expr *e, struct nlattr *attr)
-+{
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
-+	struct nlattr *tb[NFTA_CONNMARK_MAX+1] = {};
-+
-+	if (mnl_attr_parse_nested(attr, nft_rule_expr_connmark_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_CONNMARK_MODE]) {
-+		connmark->mode = mnl_attr_get_u8(tb[NFTA_CONNMARK_MODE]);
-+		e->flags |= (1 << NFT_EXPR_CONNMARK_MODE);
-+	}
-+
-+	if (tb[NFTA_CONNMARK_CTMARK]) {
-+		connmark->ctmark =
-+			ntohl(mnl_attr_get_u32(tb[NFTA_CONNMARK_CTMARK]));
-+		e->flags |= (1 << NFT_EXPR_CONNMARK_CTMARK);
-+	}
-+
-+	if (tb[NFTA_CONNMARK_CTMASK]) {
-+		connmark->ctmask =
-+			ntohl(mnl_attr_get_u32(tb[NFTA_CONNMARK_CTMASK]));
-+		e->flags |= (1 << NFT_EXPR_CONNMARK_CTMASK);
-+	}
-+
-+	if (tb[NFTA_CONNMARK_NFMASK]) {
-+		connmark->nfmask =
-+			ntohl(mnl_attr_get_u32(tb[NFTA_CONNMARK_NFMASK]));
-+		e->flags |= (1 << NFT_EXPR_CONNMARK_NFMASK);
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+nft_rule_expr_connmark_json_parse(struct nft_rule_expr *e, json_t *root)
-+{
-+#ifdef JSON_PARSING
-+	uint32_t ctmark;
-+	uint32_t ctmask;
-+	uint32_t nfmask;
-+	uint8_t mode;
-+
-+	printf("Json parsing\n");
-+	if (nft_jansson_parse_val(root, "ctmark", NFT_TYPE_U32, &ctmark) < 0)
-+		return -1;
-+
-+	nft_rule_expr_set_u32(e, NFT_EXPR_CONNMARK_CTMARK, ctmark);
-+
-+	if (nft_jansson_parse_val(root, "ctmask", NFT_TYPE_U32, &ctmask) < 0)
-+		return -1;
-+
-+	nft_rule_expr_set_u32(e, NFT_EXPR_CONNMARK_CTMASK, ctmask);
-+
-+	if (nft_jansson_parse_val(root, "nfmask", NFT_TYPE_U32, &nfmask) < 0)
-+		return -1;
-+
-+	nft_rule_expr_set_u32(e, NFT_EXPR_CONNMARK_NFMASK, nfmask);
-+
-+	if (nft_jansson_parse_val(root, "mode", NFT_TYPE_U8, &mode) < 0)
-+		return -1;
-+
-+	nft_rule_expr_set_u8(e, NFT_EXPR_CONNMARK, mode);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int
-+nft_rule_expr_connmark_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree)
-+{
-+#ifdef XML_PARSING
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
-+
-+	if (nft_mxml_num_parse(tree, "ctmark", MXML_DESCEND_FIRST, BASE_DEC,
-+			       &connmark->ctmark, NFT_TYPE_U32, NFT_XML_MAND) != 0)
-+		return -1;
-+
-+	e->flags |= (1 << NFT_EXPR_CONNMARK_CTMARK);
-+
-+	if (nft_mxml_num_parse(tree, "ctmask", MXML_DESCEND_FIRST, BASE_DEC,
-+			       &connmark->ctmask, NFT_TYPE_U32, NFT_XML_MAND) != 0)
-+		return -1;
-+
-+	e->flags |= (1 << NFT_EXPR_CONNMARK_CTMASK);
-+
-+	if (nft_mxml_num_parse(tree, "nfmask", MXML_DESCEND_FIRST, BASE_DEC,
-+			       &connmark->nfmask, NFT_TYPE_U32, NFT_XML_MAND) != 0)
-+		return -1;
-+
-+	e->flags |= (1 << NFT_EXPR_CONNMARK_NFMASK);
-+
-+	if (nft_mxml_num_parse(tree, "mode", MXML_DESCEND_FIRST, BASE_DEC,
-+			       &connmark->mode, NFT_TYPE_U8, NFT_XML_MAND) != 0)
-+		return -1;
-+
-+	e->flags |= (1 << NFT_EXPR_CONNMARK_MODE);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int
-+nft_rule_expr_connmark_snprintf(char *buf, size_t len, uint32_t type,
-+			      uint32_t flags, struct nft_rule_expr *e)
-+{
-+	struct nft_expr_connmark *connmark = nft_expr_data(e);
-+
-+	switch (type) {
-+	case NFT_OUTPUT_DEFAULT:
-+		if (connmark->mode == NFT_CONNMARK_SAVE)
-+			return snprintf(buf, len,
-+					"save-mark nfmask 0x%x ctmask 0x%x",
-+					connmark->nfmask, connmark->ctmask);
-+		else if (connmark->mode == NFT_CONNMARK_RESTORE)
-+			return snprintf(buf, len,
-+					"restore-mark nfmask 0x%x ctmask 0x%x",
-+					connmark->nfmask, connmark->ctmask);
-+		else if (connmark->mode == NFT_CONNMARK_SET)
-+			return snprintf(buf, len,
-+					"set-xmark 0x%x/0x%x",
-+					connmark->ctmark, connmark->ctmask);
-+		break;
-+	case NFT_OUTPUT_XML:
-+		if (connmark->mode == NFT_CONNMARK_SAVE ||
-+		    connmark->mode == NFT_CONNMARK_RESTORE)
-+			return snprintf(buf, len, "<mode>%u</mode>"
-+						  "<ctmask>0x%x</ctmask>"
-+						  "<nfmask>0x%x</nfmask>",
-+						  connmark->mode,
-+						  connmark->ctmask,
-+						  connmark->nfmask);
-+		else if (connmark->mode == NFT_CONNMARK_SET)
-+			return snprintf(buf, len, "<mode>%u</mode>"
-+						  "<ctmark>0x%x</ctmark>"
-+						  "<ctmask>0x%x</ctmask>",
-+						  connmark->mode,
-+						  connmark->ctmark,
-+						  connmark->ctmask);
-+
-+	case NFT_OUTPUT_JSON:
-+		if (connmark->mode == NFT_CONNMARK_SAVE ||
-+		    connmark->mode == NFT_CONNMARK_RESTORE)
-+			return snprintf(buf, len, "\"mode\":%u,"
-+						  "\"ctmask\":0x%x,"
-+						  "\"nfmask\":0x%x,",
-+						  connmark->mode,
-+						  connmark->ctmask,
-+						  connmark->nfmask);
-+		else if (connmark->mode == NFT_CONNMARK_SET)
-+			return snprintf(buf, len, "\"mode\":%u,"
-+						  "\"ctmark\":0x%x,"
-+						  "\"ctmask\":0x%x,",
-+						  connmark->mode,
-+						  connmark->ctmark,
-+						  connmark->ctmask);
-+
-+	default:
-+		break;
-+	}
-+
-+	return -1;
-+}
-+
-+struct expr_ops expr_ops_connmark = {
-+	.name		= "connmark",
-+	.alloc_len	= sizeof(struct nft_expr_connmark),
-+	.max_attr	= NFTA_CONNMARK_MAX,
-+	.set		= nft_rule_expr_connmark_set,
-+	.get		= nft_rule_expr_connmark_get,
-+	.parse		= nft_rule_expr_connmark_parse,
-+	.build		= nft_rule_expr_connmark_build,
-+	.snprintf	= nft_rule_expr_connmark_snprintf,
-+	.xml_parse	= nft_rule_expr_connmark_xml_parse,
-+	.json_parse	= nft_rule_expr_connmark_json_parse,
-+};
-+
-+static void __init expr_connmark_init(void)
-+{
-+	nft_expr_ops_register(&expr_ops_connmark);
-+}
-diff --git a/tests/Makefile.am b/tests/Makefile.am
-index 576bf73..225bb2a 100644
---- a/tests/Makefile.am
-+++ b/tests/Makefile.am
-@@ -9,6 +9,7 @@ check_PROGRAMS = 	nft-parsing-test		\
- 			nft-expr_byteorder-test		\
- 			nft-expr_counter-test		\
- 			nft-expr_cmp-test		\
-+			nft-expr_connmark-test		\
- 			nft-expr_ct-test		\
- 			nft-expr_exthdr-test		\
- 			nft-expr_immediate-test		\
-@@ -47,6 +48,9 @@ nft_expr_byteorder_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
- nft_expr_cmp_test_SOURCES = nft-expr_cmp-test.c
- nft_expr_cmp_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
+ /**
+  * enum stmt_types - statement types
+  *
+@@ -80,6 +91,7 @@ extern struct stmt *queue_stmt_alloc(const struct location *loc);
+  * @STMT_REJECT:	REJECT statement
+  * @STMT_NAT:		NAT statement
+  * @STMT_QUEUE:		QUEUE statement
++ * @STMT_CONNMARK:  CONNMARK statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -92,6 +104,7 @@ enum stmt_types {
+ 	STMT_REJECT,
+ 	STMT_NAT,
+ 	STMT_QUEUE,
++	STMT_CONNMARK,
+ };
  
-+nft_expr_connmark_test_SOURCES = nft-expr_connmark-test.c
-+nft_expr_connmark_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS} ${LIBJSON_LIBS}
-+
- nft_expr_counter_test_SOURCES = nft-expr_counter-test.c
- nft_expr_counter_test_LDADD = ../src/libnftables.la ${LIBMNL_LIBS}
+ /**
+@@ -138,6 +151,7 @@ struct stmt {
+ 		struct reject_stmt	reject;
+ 		struct nat_stmt		nat;
+ 		struct queue_stmt	queue;
++		struct connmark_stmt	connmark;
+ 	};
+ };
  
-diff --git a/tests/nft-expr_connmark-test.c b/tests/nft-expr_connmark-test.c
-new file mode 100644
-index 0000000..cf26510
---- /dev/null
-+++ b/tests/nft-expr_connmark-test.c
-@@ -0,0 +1,206 @@
-+/*
-+ * (C) 2013 by Eric Leblond <eric@regit.org>
-+ *
-+ * Based on test framework by Ana Rey Botello <anarey@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include <netinet/in.h>
-+#include <netinet/ip.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <linux/netfilter/xt_iprange.h>
-+#include <libmnl/libmnl.h>
-+#include <libnftables/rule.h>
-+#include <libnftables/expr.h>
-+
-+static int test_ok = 1;
-+
-+static void print_err(const char *msg)
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d4f8339..9f47c12 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1176,6 +1176,8 @@ static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return stmt_evaluate_nat(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return 0;
++	case STMT_CONNMARK:
++		return 0;
+ 	default:
+ 		BUG("unknown statement type %s\n", stmt->ops->name);
+ 	}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index b771da5..ec6328e 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -522,6 +522,31 @@ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
+ }
+ 
++static void netlink_parse_connmark(struct netlink_parse_ctx *ctx,
++			      const struct location *loc,
++			      const struct nft_rule_expr *nle)
 +{
-+	test_ok = 0;
-+	printf("\033[31mERROR:\e[0m %s\n", msg);
-+}
++	struct stmt *stmt;
 +
-+static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
-+			      struct nft_rule_expr *rule_b)
-+{
-+	uint8_t mode = nft_rule_expr_get_u8(rule_a, NFT_EXPR_CONNMARK_MODE);
++	stmt = connmark_stmt_alloc(loc);
++	stmt->connmark.mode = nft_rule_expr_get_u8(nle, NFT_EXPR_CONNMARK_MODE);
++	stmt->connmark.ctmask = nft_rule_expr_get_u32(nle,
++						      NFT_EXPR_CONNMARK_CTMASK);
 +
-+	if (nft_rule_expr_get_u8(rule_a, NFT_EXPR_CONNMARK_MODE) !=
-+	    nft_rule_expr_get_u8(rule_b, NFT_EXPR_CONNMARK_MODE))
-+		print_err("Expr NFT_EXPR_CONNMARK_MODE mismatch");
-+	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_CONNMARK_CTMASK) !=
-+	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_CONNMARK_CTMASK))
-+		print_err("Expr NFT_EXPR_CONNMARK_MODE mismatch");
-+
-+	switch (mode) {
++	switch (stmt->connmark.mode) {
 +	case NFT_CONNMARK_SAVE:
 +	case NFT_CONNMARK_RESTORE:
-+		if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_CONNMARK_NFMASK) !=
-+		    nft_rule_expr_get_u32(rule_b, NFT_EXPR_CONNMARK_NFMASK))
-+			print_err("Expr NFT_EXPR_CONNMARK_NFMASK mistmatch");
++		stmt->connmark.nfmask =
++			nft_rule_expr_get_u32(nle, NFT_EXPR_CONNMARK_NFMASK);
 +		break;
 +	case NFT_CONNMARK_SET:
-+		if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_CONNMARK_CTMARK) !=
-+		    nft_rule_expr_get_u32(rule_b, NFT_EXPR_CONNMARK_CTMARK))
-+			print_err("Expr NFT_EXPR_CONNMARK_CTMARK mismatch");
++		stmt->connmark.ctmark =
++			nft_rule_expr_get_u32(nle, NFT_EXPR_CONNMARK_CTMARK);
++		break;
++	}
++
++	list_add_tail(&stmt->list, &ctx->rule->stmts);
++}
+ static const struct {
+ 	const char	*name;
+ 	void		(*parse)(struct netlink_parse_ctx *ctx,
+@@ -543,6 +568,7 @@ static const struct {
+ 	{ .name = "reject",	.parse = netlink_parse_reject },
+ 	{ .name = "nat",	.parse = netlink_parse_nat },
+ 	{ .name = "queue",	.parse = netlink_parse_queue },
++	{ .name = "connmark",	.parse = netlink_parse_connmark },
+ };
+ 
+ static const struct input_descriptor indesc_netlink = {
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 9ae9bb7..401a268 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -637,7 +637,7 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
+ }
+ 
+ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+-				 const struct stmt *stmt)
++				   const struct stmt *stmt)
+ {
+ 	struct nft_rule_expr *nle;
+ 
+@@ -656,6 +656,31 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+ 
++static void netlink_gen_connmark_stmt(struct netlink_linearize_ctx *ctx,
++				      const struct stmt *stmt){
++	struct nft_rule_expr *nle;
++
++	nle = alloc_nft_expr("connmark");
++	nft_rule_expr_set_u8(nle, NFT_EXPR_CONNMARK_MODE, stmt->connmark.mode);
++	nft_rule_expr_set_u32(nle, NFT_EXPR_CONNMARK_CTMASK,
++			      stmt->connmark.ctmask);
++
++	/* The conntrack modes makes use of different information */
++	switch (stmt->connmark.mode) {
++	case NFT_CONNMARK_SAVE:
++	case NFT_CONNMARK_RESTORE:
++		nft_rule_expr_set_u32(nle, NFT_EXPR_CONNMARK_NFMASK,
++				      stmt->connmark.nfmask);
++		break;
++	case NFT_CONNMARK_SET:
++		nft_rule_expr_set_u32(nle, NFT_EXPR_CONNMARK_CTMARK,
++				      stmt->connmark.ctmark);
++		break;
++	}
++
++	nft_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 			     const struct stmt *stmt)
+ {
+@@ -678,6 +703,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_nat_stmt(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return netlink_gen_queue_stmt(ctx, stmt);
++	case STMT_CONNMARK:
++		return netlink_gen_connmark_stmt(ctx, stmt);
+ 	default:
+ 		BUG("unknown statement type %s\n", stmt->ops->name);
+ 	}
+diff --git a/src/parser.y b/src/parser.y
+index 9320f2d..224a098 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -336,6 +336,14 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token QUEUECPUFANOUT		"fanout"
+ %token OPTIONS			"options"
+ 
++%token CONNMARK         "connmark"
++%token CONNMARKSAVE     "save-mark"
++%token CONNMARKRESTORE  "restore-mark"
++%token CONNMARKSET      "set-xmark"
++%token CONNMARKCTMASK   "ctmask"
++%token CONNMARKNFMASK   "nfmask"
++%token CONNMARKMASK     "mask"
++
+ %token POSITION			"position"
+ 
+ %type <string>			identifier string
+@@ -386,6 +394,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <stmt>			queue_stmt queue_stmt_alloc
+ %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
+ %type <val>			queue_flags queue_flag
++%type <stmt>			connmark_stmt connmark_stmt_alloc
++%destructor { stmt_free($$); }	connmark_stmt connmark_stmt_alloc
+ 
+ %type <expr>			symbol_expr verdict_expr integer_expr
+ %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr
+@@ -937,6 +947,7 @@ stmt			:	verdict_stmt
+ 			|	reject_stmt
+ 			|	nat_stmt
+ 			|	queue_stmt
++			|	connmark_stmt
+ 			;
+ 
+ verdict_stmt		:	verdict_expr
+@@ -1112,6 +1123,64 @@ queue_flag		:	QUEUEBYPASS
+ 			}
+ 			;
+ 
++connmark_stmt		:	connmark_stmt_alloc	connmark_arg
++			;
++connmark_stmt_alloc	:	CONNMARK
++			{
++				$$ = connmark_stmt_alloc(&@$);
++				$$->connmark.ctmask = NFT_CONNMARK_DEFAULT_MASK;
++				$$->connmark.nfmask = NFT_CONNMARK_DEFAULT_MASK;
++			}
++			;
++connmark_arg		:	CONNMARKSET	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SET;
++				$<stmt>0->connmark.ctmark	= $2;
++			}
++			|	CONNMARKSET	NUM	SLASH	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SET;
++				$<stmt>0->connmark.ctmark	= $2;
++				$<stmt>0->connmark.ctmask	= $4;
++			}
++			|	CONNMARKSAVE
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SAVE;
++			}
++			|	CONNMARKSAVE	CONNMARKNFMASK	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SAVE;
++				$<stmt>0->connmark.nfmask	= $3;
++			}
++			|	CONNMARKSAVE	CONNMARKCTMASK	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SAVE;
++				$<stmt>0->connmark.ctmask	= $3;
++			}
++			|	CONNMARKSAVE	CONNMARKCTMASK	NUM	CONNMARKNFMASK	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SAVE;
++				$<stmt>0->connmark.ctmask	= $3;
++				$<stmt>0->connmark.nfmask	= $5;
++			}
++			|	CONNMARKSAVE    CONNMARKNFMASK	NUM	CONNMARKCTMASK	NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_SAVE;
++				$<stmt>0->connmark.nfmask	= $3;
++				$<stmt>0->connmark.ctmask	= $5;
++			}
++			|	CONNMARKRESTORE
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_RESTORE;
++			}
++			|	CONNMARKRESTORE     CONNMARKMASK   NUM
++			{
++				$<stmt>0->connmark.mode		= NFT_CONNMARK_RESTORE;
++				$<stmt>0->connmark.ctmask	= $3;
++				$<stmt>0->connmark.nfmask	= $3;
++			}
++			;
++
+ match_stmt		:	relational_expr
+ 			{
+ 				$$ = expr_stmt_alloc(&@$, $1);
+diff --git a/src/scanner.l b/src/scanner.l
+index 8c4f25d..c836d09 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -261,6 +261,14 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "fanout"		{ return QUEUECPUFANOUT;}
+ "options"		{ return OPTIONS;}
+ 
++"connmark"		{ return CONNMARK;}
++"save-mark"		{ return CONNMARKSAVE;}
++"restore-mark"		{ return CONNMARKRESTORE;}
++"set-xmark"		{ return CONNMARKSET;}
++"mask"			{ return CONNMARKMASK;}
++"ctmask"		{ return CONNMARKCTMASK;}
++"nfmask"		{ return CONNMARKNFMASK;}
++
+ "limit"			{ return LIMIT; }
+ "rate"			{ return RATE; }
+ 
+diff --git a/src/statement.c b/src/statement.c
+index 3fdd9e2..737e66a 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -203,6 +203,44 @@ struct stmt *queue_stmt_alloc(const struct location *loc)
+ 	return stmt_alloc(loc, &queue_stmt_ops);
+ }
+ 
++static void connmark_stmt_print(const struct stmt *stmt)
++{
++	printf("connmark");
++
++	switch (stmt->connmark.mode) {
++	case NFT_CONNMARK_SAVE:
++		printf(" save-mark");
++		if (stmt->connmark.nfmask != NFT_CONNMARK_DEFAULT_MASK)
++			printf(" nfmask 0x%x", stmt->connmark.nfmask);
++		if (stmt->connmark.ctmask != NFT_CONNMARK_DEFAULT_MASK)
++			printf(" ctmask 0x%x", stmt->connmark.ctmask);
++		break;
++	case NFT_CONNMARK_RESTORE:
++		printf(" restore-mark");
++		/* both nfmask and ctmask is set to the value of restore-mark
++		 * mask  */
++		if (stmt->connmark.nfmask != NFT_CONNMARK_DEFAULT_MASK)
++			printf(" mask 0x%x", stmt->connmark.nfmask);
++		break;
++	case NFT_CONNMARK_SET:
++		printf(" set-xmark 0x%x", stmt->connmark.ctmark);
++		if (stmt->connmark.ctmask != NFT_CONNMARK_DEFAULT_MASK)
++			printf("/0x%x", stmt->connmark.ctmask);
 +		break;
 +	}
 +}
 +
-+static void test_connmark_cmp(char *expression, char *cmd, struct nft_rule *a,
-+		struct nft_rule *b){
-+	struct nft_rule_expr_iter *iter_a, *iter_b;
-+	struct nft_rule_expr *rule_a, *rule_b;
++static const struct stmt_ops connmark_stmt_ops = {
++	.type       = STMT_CONNMARK,
++	.name       = "connmark",
++	.print      = connmark_stmt_print,
++};
 +
-+	iter_a = nft_rule_expr_iter_create(a);
-+	iter_b = nft_rule_expr_iter_create(b);
-+	if (iter_a == NULL || iter_b == NULL)
-+		print_err("OOM");
-+
-+	rule_a = nft_rule_expr_iter_next(iter_a);
-+	rule_b = nft_rule_expr_iter_next(iter_b);
-+	if (rule_a == NULL || rule_b == NULL)
-+		print_err("OOM");
-+
-+	cmp_nft_rule_expr(rule_a, rule_b);
-+
-+	if (nft_rule_expr_iter_next(iter_a) != NULL ||
-+	    nft_rule_expr_iter_next(iter_b) != NULL)
-+		print_err("More than one expression");
-+
-+	nft_rule_expr_iter_destroy(iter_a);
-+	nft_rule_expr_iter_destroy(iter_b);
-+
-+	if (test_ok)
-+		printf("%s %s: \033[32mOK\e[0m\n", expression, cmd);
-+
-+}
-+
-+static void test_connmark_set(char *expression)
++struct stmt *connmark_stmt_alloc(const struct location *loc)
 +{
-+	struct nft_rule *a, *b;
-+	struct nft_rule_expr *ex;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+
-+	a = nft_rule_alloc();
-+	b = nft_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("OOM");
-+	ex = nft_rule_expr_alloc("connmark");
-+	if (ex == NULL)
-+		print_err("OOM");
-+
-+	nft_rule_expr_set_u8(ex, NFT_EXPR_CONNMARK_MODE, NFT_CONNMARK_SET);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_CTMARK, 0x1);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_CTMASK, 0x2);
-+
-+	nft_rule_add_expr(a, ex);
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nft_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nft_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	test_connmark_cmp("connmark", "set-xmark", a, b);
-+
-+	nft_rule_free(a);
-+	nft_rule_free(b);
++	return stmt_alloc(loc, &connmark_stmt_ops);
 +}
 +
-+static void test_connmark_restore(char *expression)
-+{
-+	struct nft_rule *a, *b;
-+	struct nft_rule_expr *ex;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+
-+	a = nft_rule_alloc();
-+	b = nft_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("OOM");
-+	ex = nft_rule_expr_alloc("connmark");
-+	if (ex == NULL)
-+		print_err("OOM");
-+
-+	nft_rule_expr_set_u8(ex, NFT_EXPR_CONNMARK_MODE,
-+			     NFT_CONNMARK_RESTORE);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_CTMASK, 0x2);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_NFMASK, 0x2);
-+
-+	nft_rule_add_expr(a, ex);
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nft_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nft_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	test_connmark_cmp("connmark", "restore-mark", a, b);
-+
-+	nft_rule_free(a);
-+	nft_rule_free(b);
-+}
-+
-+static void test_connmark_save(char *expression)
-+{
-+	struct nft_rule *a, *b;
-+	struct nft_rule_expr *ex;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+
-+	a = nft_rule_alloc();
-+	b = nft_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("OOM");
-+	ex = nft_rule_expr_alloc("connmark");
-+	if (ex == NULL)
-+		print_err("OOM");
-+
-+	nft_rule_expr_set_u8(ex, NFT_EXPR_CONNMARK_MODE,
-+			     NFT_CONNMARK_SAVE);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_CTMASK, 0x1);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_CONNMARK_NFMASK, 0x2);
-+
-+	nft_rule_add_expr(a, ex);
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nft_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nft_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	test_connmark_cmp("connmark", "save-mark", a, b);
-+
-+	nft_rule_free(a);
-+	nft_rule_free(b);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int retval = EXIT_SUCCESS;
-+
-+	test_connmark_set(argv[0]);
-+	/* Only return success if no test cases fail  */
-+	if (!test_ok)
-+		retval = EXIT_FAILURE;
-+	test_ok = 1;
-+	test_connmark_restore(argv[0]);
-+	if (!test_ok)
-+		retval = EXIT_FAILURE;
-+	test_ok = 1;
-+	test_connmark_save(argv[0]);
-+	if (!test_ok)
-+		retval = EXIT_FAILURE;
-+
-+
-+	return retval;
-+}
+ static void reject_stmt_print(const struct stmt *stmt)
+ {
+ 	printf("reject");
 -- 
 1.8.3.2
 
