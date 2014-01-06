@@ -1,40 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables] netfilter: nft_reject: fix compilation warning if NF_TABLES_IPV6 is disabled
-Date: Mon,  6 Jan 2014 21:09:16 +0100
-Message-ID: <1389038956-5125-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH netfilter: nft] Add the connmark meta_key
+Date: Mon, 6 Jan 2014 20:54:05 +0000
+Message-ID: <20140106205405.GA3236@macbook.localnet>
+References: <1389027476-16837-1-git-send-email-kristian.evensen@gmail.com>
+ <20140106170523.GA9894@breakpoint.cc>
+ <20140106171523.GC23002@macbook.localnet>
+ <CAKfDRXir46pGb8-YpdW54RMgkdB11YEmqR_VNMJd3CTJKEo6TQ@mail.gmail.com>
+ <20140106181928.GA19666@macbook.localnet>
+ <CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Kristian Evensen <kristian.evensen@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59109 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754806AbaAFUJY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 15:09:24 -0500
+Received: from stinky.trash.net ([213.144.137.162]:56933 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754928AbaAFUyQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jan 2014 15:54:16 -0500
+Content-Disposition: inline
+In-Reply-To: <CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-net/netfilter/nft_reject.c: In function 'nft_reject_eval':
-net/netfilter/nft_reject.c:37:14: warning: unused variable 'net' [-Wunused-variable]
+On Mon, Jan 06, 2014 at 08:25:39PM +0100, Kristian Evensen wrote:
+> On Mon, Jan 6, 2014 at 7:19 PM, Patrick McHardy <kaber@trash.net> wrote:
+> >
+> > Not sure what you're trying to achieve, we already support the connmark
+> > in the ct expression:
+> >
+> > nft filter output ct mark 0x1 ...
+> 
+> What I want to achieve is to have functionality similar to connmark
+> --save-mark, so that we can also set the connmark.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_reject.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index 0d690d4..7ae63cd 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -34,8 +34,9 @@ static void nft_reject_eval(const struct nft_expr *expr,
- 			      const struct nft_pktinfo *pkt)
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
-+#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
- 	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
--
-+#endif
- 	switch (priv->type) {
- 	case NFT_REJECT_ICMP_UNREACH:
- 		if (priv->family == NFPROTO_IPV4)
--- 
-1.7.10.4
-
+I see. We need a meta statement for this in userspace and corresponding
+support for the kernel. I thought we'd had an example how to do this in
+the meta expression, but apparently this is wrong. I'll add it for the
+meta expression during the next days so you have a reference.
