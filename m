@@ -1,45 +1,41 @@
 From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH netfilter: nft] Add the connmark meta_key
-Date: Mon, 6 Jan 2014 22:00:42 +0100
-Message-ID: <CAKfDRXihd_+pwiKc5G9Zv35i5POeXC3wyu2DDvunntpz11VMaA@mail.gmail.com>
-References: <1389027476-16837-1-git-send-email-kristian.evensen@gmail.com>
-	<20140106170523.GA9894@breakpoint.cc>
-	<20140106171523.GC23002@macbook.localnet>
-	<CAKfDRXir46pGb8-YpdW54RMgkdB11YEmqR_VNMJd3CTJKEo6TQ@mail.gmail.com>
-	<20140106181928.GA19666@macbook.localnet>
-	<CAKfDRXgPaCic9=qxSc5G=QvoX7xti3z8ii94ysBLwRrm4hDy3Q@mail.gmail.com>
-	<20140106205405.GA3236@macbook.localnet>
+Subject: Re: [PATCH libnftables] Add support for nft_connmark
+Date: Mon, 6 Jan 2014 22:07:33 +0100
+Message-ID: <CAKfDRXixbM+P3Xri81Tqs_wKx_TJwJR_jFvz=STPVdiwRj1icg@mail.gmail.com>
+References: <1389011367-11489-1-git-send-email-kristian.evensen@gmail.com>
+	<CAOkSjBiBuEGqxeboPWHyxk_fKwqDL5ZE0Zx5JLjkQv9M8ahM1g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:58565 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756284AbaAFVAm (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:49449 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754706AbaAFVHe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 16:00:42 -0500
-Received: by mail-pb0-f41.google.com with SMTP id jt11so19102105pbb.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 13:00:42 -0800 (PST)
-In-Reply-To: <20140106205405.GA3236@macbook.localnet>
+	Mon, 6 Jan 2014 16:07:34 -0500
+Received: by mail-pb0-f49.google.com with SMTP id jt11so18724434pbb.8
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jan 2014 13:07:33 -0800 (PST)
+In-Reply-To: <CAOkSjBiBuEGqxeboPWHyxk_fKwqDL5ZE0Zx5JLjkQv9M8ahM1g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Arturo,
 
-On Mon, Jan 6, 2014 at 9:54 PM, Patrick McHardy <kaber@trash.net> wrote:
-> I see. We need a meta statement for this in userspace and corresponding
-> support for the kernel. I thought we'd had an example how to do this in
-> the meta expression, but apparently this is wrong. I'll add it for the
-> meta expression during the next days so you have a reference.
+On Mon, Jan 6, 2014 at 1:41 PM, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+>
+> Hi Kristian,
+>
+> you can use the union if you want, see [0] about the situation in XML
+> and [1] in JSON.
+>
+> Regards.
+>
+> [0] http://git.netfilter.org/libnftables/tree/src/expr/meta.c?h=next-3.14#n236
+> [1] http://git.netfilter.org/libnftables/tree/src/expr/meta.c?h=next-3.14#n195
 
-I am not sure if I understand you correctly, but meta set is already
-there. My plan was to use nft_meta (and the related parts in
-nftables/libnftables) as a reference for how to add set and add
-support for something like:
-
-nft filter postrouting ct mark set "meta mark"
-
-Or is there something I dont see/understand?
+Thank you very much for references, good to know for next time :)
 
 -Kristian
