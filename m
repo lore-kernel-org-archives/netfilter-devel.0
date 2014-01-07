@@ -1,52 +1,35 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 1/6] mxml: add error reference of the top node
-Date: Tue, 07 Jan 2014 12:47:16 +0100
-Message-ID: <20140107114716.12841.65206.stgit@nfdev.cica.es>
-References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:56522 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751697AbaAGMsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 07:48:05 -0500
-In-Reply-To: <20140107114518.12841.35778.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: valentina.giusti@bmw-carit.de
+Subject: [PATCH 0/2] libnetfilter_queue: add support for UID/GID socket info
+Date: Tue,  7 Jan 2014 14:30:18 +0100
+Message-ID: <1389101420-16557-1-git-send-email-valentina.giusti@bmw-carit.de>
+References: <20131221113804.GA17964@localhost>
+Cc: netdev@vger.kernel.org, fw@strlen.de, daniel.wagner@bmw-carit.de
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20131221113804.GA17964@localhost>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We know the top node we are building. Let the user also know it.
+From: Valentina Giusti <Valentina.Giusti@bmw-carit.de>
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
+This patchset contains the following changes:
+* re-implemented nfq_get_uid and nfq_get_gid as suggested by Pablo Neira Ayuso
+* corrected enum nfqnl_attr_type in linux_nfnetlink_queue.h
+* added a test for the aforementioned new APIs in utils/nfqnl_test.c
 
-diff --git a/src/mxml.c b/src/mxml.c
-index bd09bb3..bc0f084 100644
---- a/src/mxml.c
-+++ b/src/mxml.c
-@@ -30,16 +30,19 @@ mxml_node_t *nft_mxml_build_tree(const char *xml, const char *treename,
- 	tree = mxmlLoadString(NULL, xml, MXML_OPAQUE_CALLBACK);
- 	if (tree == NULL) {
- 		err->error = NFT_PARSE_EBADINPUT;
--		err->line = 0;
--		err->column = 0;
- 		goto err;
- 	}
- 
- 	if (strcmp(tree->value.opaque, treename) == 0)
- 		return tree;
- 
-+	err->error = NFT_PARSE_EMISSINGNODE;
-+	err->node_name = treename;
-+
- 	mxmlDelete(tree);
- err:
-+	err->line = 0;
-+	err->column = 0;
- 	errno = EINVAL;
- 	return NULL;
- }
+Best Regards,
 
+Valentina Giusti (2):
+  src: add support for UID/GID socket info
+  utils: add test for nfq_get_uid and nfq_get_gid
+
+ include/libnetfilter_queue/libnetfilter_queue.h    |  4 ++
+ include/libnetfilter_queue/linux_nfnetlink_queue.h |  6 ++-
+ include/linux/netfilter/nfnetlink_queue.h          |  6 ++-
+ src/libnetfilter_queue.c                           | 60 ++++++++++++++++++++++
+ src/nlmsg.c                                        |  2 +
+ utils/nfqnl_test.c                                 | 14 ++++-
+ 6 files changed, 89 insertions(+), 3 deletions(-)
+
+-- 
+1.8.5.1
