@@ -1,40 +1,50 @@
 From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: [PATCH netfilter: nft] netfilter: nf_tables Add set op to nft_ct module
-Date: Tue,  7 Jan 2014 16:15:19 +0100
-Message-ID: <1389107719-24280-1-git-send-email-kristian.evensen@gmail.com>
+Subject: [PATCH libnftables] Add support for ct set
+Date: Tue,  7 Jan 2014 16:15:38 +0100
+Message-ID: <1389107738-24320-1-git-send-email-kristian.evensen@gmail.com>
 Cc: Kristian Evensen <kristian.evensen@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:52883 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaAGPP1 (ORCPT
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:60117 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaAGPPv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 10:15:27 -0500
-Received: by mail-ee0-f51.google.com with SMTP id b15so140213eek.10
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2014 07:15:26 -0800 (PST)
+	Tue, 7 Jan 2014 10:15:51 -0500
+Received: by mail-ea0-f180.google.com with SMTP id f15so272589eak.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2014 07:15:49 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Kristian Evensen <kristian.evensen@gmail.com>
 
-This patch adds kernel support for setting properties of tracked connections.
-Currently, only connmark is supported. One use-case for this feature is to
-provide the same functionality as -j CONNMARK --save-mark in iptables.
-
-Some restructuring was needed to implement the set op. The new structure follows
-that of nft_meta.
+This patch adds userspace support for setting properties of tracked connections.
+Currently, the connection mark is supported. This can be used to implemented the
+same functionality as iptables -j CONNMARK --save-mark.
 
 Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   2 +
- net/netfilter/nft_ct.c                   | 161 +++++++++++++++++++++++++------
- 2 files changed, 132 insertions(+), 31 deletions(-)
+ include/libnftables/expr.h          |   1 +
+ include/linux/netfilter/nf_tables.h |   2 +
+ src/expr/ct.c                       | 118 ++++++++++++++++++++++++++++--------
+ 3 files changed, 96 insertions(+), 25 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index aa86a152..ead57b1 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -605,12 +605,14 @@ enum nft_ct_keys {
+diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
+index 25455e4..653bbb0 100644
+--- a/include/libnftables/expr.h
++++ b/include/libnftables/expr.h
+@@ -124,6 +124,7 @@ enum {
+ 	NFT_EXPR_CT_DREG	= NFT_RULE_EXPR_ATTR_BASE,
+ 	NFT_EXPR_CT_KEY,
+ 	NFT_EXPR_CT_DIR,
++	NFT_EXPR_CT_SREG,
+ };
+ 
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index e08f80e..1b6362c 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -526,12 +526,14 @@ enum nft_ct_keys {
   * @NFTA_CT_DREG: destination register (NLA_U32)
   * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
   * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
@@ -49,236 +59,218 @@ index aa86a152..ead57b1 100644
  	__NFTA_CT_MAX
  };
  #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 955f4e6..814c4fa 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -18,17 +18,21 @@
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
- #include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index 46e3cef..a509216 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -24,7 +24,10 @@
  
- struct nft_ct {
- 	enum nft_ct_keys	key:8;
- 	enum ip_conntrack_dir	dir:8;
--	enum nft_registers	dreg:8;
+ struct nft_expr_ct {
+ 	enum nft_ct_keys        key;
+-	uint32_t		dreg;	/* enum nft_registers */
 +	union{
-+		enum nft_registers	dreg:8;
-+		enum nft_registers	sreg:8;
++		uint32_t		dreg;	/* enum nft_registers */
++		uint32_t		sreg;	/* enum nft_registers */
 +	};
- 	uint8_t			family;
+ 	uint8_t			dir;
  };
  
--static void nft_ct_eval(const struct nft_expr *expr,
--			struct nft_data data[NFT_REG_MAX + 1],
--			const struct nft_pktinfo *pkt)
-+static void nft_ct_get_eval(const struct nft_expr *expr,
-+			    struct nft_data data[NFT_REG_MAX + 1],
-+			    const struct nft_pktinfo *pkt)
- {
- 	const struct nft_ct *priv = nft_expr_priv(expr);
- 	struct nft_data *dest = &data[priv->dreg];
-@@ -123,24 +127,43 @@ err:
- 	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
+@@ -51,6 +54,9 @@ nft_rule_expr_ct_set(struct nft_rule_expr *e, uint16_t type,
+ 	case NFT_EXPR_CT_DREG:
+ 		ct->dreg = *((uint32_t *)data);
+ 		break;
++	case NFT_EXPR_CT_SREG:
++		ct->sreg = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -73,6 +79,9 @@ nft_rule_expr_ct_get(const struct nft_rule_expr *e, uint16_t type,
+ 	case NFT_EXPR_CT_DREG:
+ 		*data_len = sizeof(ct->dreg);
+ 		return &ct->dreg;
++	case NFT_EXPR_CT_SREG:
++		*data_len = sizeof(ct->sreg);
++		return &ct->sreg;
+ 	}
+ 	return NULL;
+ }
+@@ -88,6 +97,7 @@ static int nft_rule_expr_ct_cb(const struct nlattr *attr, void *data)
+ 	switch(type) {
+ 	case NFTA_CT_KEY:
+ 	case NFTA_CT_DREG:
++	case NFTA_CT_SREG:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
+ 			perror("mnl_attr_validate");
+ 			return MNL_CB_ERROR;
+@@ -116,6 +126,8 @@ nft_rule_expr_ct_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 		mnl_attr_put_u32(nlh, NFTA_CT_DREG, htonl(ct->dreg));
+ 	if (e->flags & (1 << NFT_EXPR_CT_DIR))
+ 		mnl_attr_put_u8(nlh, NFTA_CT_DIRECTION, ct->dir);
++	if (e->flags & (1 << NFT_EXPR_CT_SREG))
++		mnl_attr_put_u32(nlh, NFTA_CT_SREG, htonl(ct->sreg));
  }
  
-+static void nft_ct_set_eval(const struct nft_expr *expr,
-+			    struct nft_data data[NFT_REG_MAX + 1],
-+			    const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_ct *priv = nft_expr_priv(expr);
-+	struct sk_buff *skb = pkt->skb;
-+	u32 value = data[priv->sreg].data[0];
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+
-+	if (ct == NULL)
-+		return;
-+
-+	switch (priv->key) {
-+#ifdef CONFIG_NF_CONNTRACK_MARK
-+	case NFT_CT_MARK:
-+		ct->mark = value;
-+		nf_conntrack_event_cache(IPCT_MARK, ct);
-+		break;
-+#endif
+ static int
+@@ -131,14 +143,17 @@ nft_rule_expr_ct_parse(struct nft_rule_expr *e, struct nlattr *attr)
+ 		ct->key = ntohl(mnl_attr_get_u32(tb[NFTA_CT_KEY]));
+ 		e->flags |= (1 << NFT_EXPR_CT_KEY);
+ 	}
+-	if (tb[NFTA_CT_DREG]) {
+-		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
+-		e->flags |= (1 << NFT_EXPR_CT_DREG);
+-	}
+ 	if (tb[NFTA_CT_DIRECTION]) {
+ 		ct->dir = mnl_attr_get_u8(tb[NFTA_CT_DIRECTION]);
+ 		e->flags |= (1 << NFT_EXPR_CT_DIR);
+ 	}
++	if (tb[NFTA_CT_DREG]) {
++		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
++		e->flags |= (1 << NFT_EXPR_CT_DREG);
++	} else if (tb[NFTA_CT_SREG]) {
++		ct->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_SREG]));
++		e->flags |= (1 << NFT_EXPR_CT_SREG);
 +	}
+ 
+ 	return 0;
+ }
+@@ -186,10 +201,17 @@ static int nft_rule_expr_ct_json_parse(struct nft_rule_expr *e, json_t *root)
+ 	uint8_t dir;
+ 	int key;
+ 
+-	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) < 0)
+-		return -1;
++	if (nft_jansson_node_exist(root, "dreg")) {
++		if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) < 0)
++			return -1;
++
++		nft_rule_expr_set_u32(e, NFT_EXPR_CT_DREG, reg);
++	} else if (nft_jansson_node_exist(root, "sreg")) {
++		if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg) < 0)
++			return -1;
+ 
+-	nft_rule_expr_set_u32(e, NFT_EXPR_CT_DREG, reg);
++		nft_rule_expr_set_u32(e, NFT_EXPR_CT_SREG, reg);
++	}
+ 
+ 	if (nft_jansson_node_exist(root, "key")) {
+ 		key_str = nft_jansson_parse_str(root, "key");
+@@ -235,11 +257,17 @@ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree
+ 	uint8_t dir;
+ 
+ 	reg = nft_mxml_reg_parse(tree, "dreg", MXML_DESCEND_FIRST);
+-	if (reg < 0)
+-		return -1;
++	if (reg >= 0) {
++		ct->dreg = reg;
++		e->flags |= (1 << NFT_EXPR_CT_DREG);
++	} else {
++		reg = nft_mxml_reg_parse(tree, "sreg", MXML_DESCEND_FIRST);
++		if (reg < 0)
++			return -1;
+ 
+-	ct->dreg = reg;
+-	e->flags |= (1 << NFT_EXPR_CT_DREG);
++		ct->sreg = reg;
++		e->flags |= (1 << NFT_EXPR_CT_SREG);
++	}
+ 
+ 	key_str = nft_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
+ 				     NFT_XML_MAND);
+@@ -274,13 +302,60 @@ err:
+ }
+ 
+ static int
+-nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
++nft_rule_expr_ct_snprintf_default(char *buf, size_t size,
++				  struct nft_rule_expr *e)
++{
++	struct nft_expr_ct *ct = nft_expr_data(e);
++
++	if (e->flags & (1 << NFT_EXPR_CT_SREG))
++		return snprintf(buf, size, "set %s with reg %u ",
++				ctkey2str(ct->key), ct->sreg);
++
++	return snprintf(buf, size, "load %s => reg %u dir %u ",
++			ctkey2str(ct->key), ct->dreg, ct->dir);
 +}
 +
- static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
- 	[NFTA_CT_DREG]		= { .type = NLA_U32 },
- 	[NFTA_CT_KEY]		= { .type = NLA_U32 },
- 	[NFTA_CT_DIRECTION]	= { .type = NLA_U8 },
-+	[NFTA_CT_SREG]		= { .type = NLA_U32 },
- };
- 
--static int nft_ct_init(const struct nft_ctx *ctx,
--		       const struct nft_expr *expr,
--		       const struct nlattr * const tb[])
-+static int nft_ct_init_validate_get(const struct nft_expr *expr,
-+				    const struct nlattr * const tb[])
++static int
++nft_rule_expr_ct_snprintf_xml(char *buf, size_t size, struct nft_rule_expr *e)
  {
- 	struct nft_ct *priv = nft_expr_priv(expr);
--	int err;
--
--	if (tb[NFTA_CT_DREG] == NULL ||
--	    tb[NFTA_CT_KEY] == NULL)
--		return -EINVAL;
+ 	int ret, len = size, offset = 0;
+ 	struct nft_expr_ct *ct = nft_expr_data(e);
  
--	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
- 	if (tb[NFTA_CT_DIRECTION] != NULL) {
- 		priv->dir = nla_get_u8(tb[NFTA_CT_DIRECTION]);
- 		switch (priv->dir) {
-@@ -179,24 +202,56 @@ static int nft_ct_init(const struct nft_ctx *ctx,
- 		return -EOPNOTSUPP;
+-	ret = snprintf(buf, len, "\"dreg\":%u", ct->dreg);
+-	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	if (e->flags & (1 << NFT_EXPR_CT_DREG)) {
++		ret = snprintf(buf, len, "<dreg>%u</dreg>", ct->dreg);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	} else if (e->flags & (1 << NFT_EXPR_CT_SREG)) {
++		ret = snprintf(buf, len, "<sreg>%u</sreg>", ct->sreg);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
++		ret = snprintf(buf+offset, len, "<key>%s</key>",
++			       ctkey2str(ct->key));
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
++		ret = snprintf(buf+offset, len, "<dir>%u</dir>", ct->dir);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int
++nft_rule_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
++{
++	int ret, len = size, offset = 0;
++	struct nft_expr_ct *ct = nft_expr_data(e);
++
++	if (e->flags & (1 << NFT_EXPR_CT_DREG)) {
++		ret = snprintf(buf, len, "\"dreg\":%u", ct->dreg);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	} else if (e->flags & (1 << NFT_EXPR_CT_SREG)) {
++		ret = snprintf(buf, len, "\"sreg:\":%u", ct->sreg);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
+ 
+ 	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
+ 		ret = snprintf(buf+offset, len, ",\"key\":\"%s\"",
+@@ -294,26 +369,19 @@ nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
  	}
  
--	err = nf_ct_l3proto_try_module_get(ctx->afi->family);
--	if (err < 0)
--		return err;
-+	return 0;
-+}
-+
-+static int nft_ct_init_validate_set(uint32_t key) {
-+	switch (key) {
-+	case NFT_CT_MARK:
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nft_ct_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+		       const struct nlattr * const tb[])
-+{
-+	struct nft_ct *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
- 	priv->family = ctx->afi->family;
- 
--	priv->dreg = ntohl(nla_get_be32(tb[NFTA_CT_DREG]));
--	err = nft_validate_output_register(priv->dreg);
--	if (err < 0)
--		goto err1;
-+	if (tb[NFTA_CT_DREG]) {
-+		err = nft_ct_init_validate_get(expr, tb);
-+		if (err < 0)
-+			return err;
-+
-+		priv->dreg = ntohl(nla_get_be32(tb[NFTA_CT_DREG]));
-+		err = nft_validate_output_register(priv->dreg);
-+		if (err < 0)
-+			return err;
-+
-+		err = nft_validate_data_load(ctx, priv->dreg, NULL,
-+					     NFT_DATA_VALUE);
-+		if (err < 0)
-+			return err;
-+	} else {
-+		err = nft_ct_init_validate_set(priv->key);
-+		if (err < 0)
-+			return err;
-+
-+		priv->sreg = ntohl(nla_get_be32(tb[NFTA_CT_SREG]));
-+	}
- 
--	err = nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
-+	err = nf_ct_l3proto_try_module_get(ctx->afi->family);
- 	if (err < 0)
--		goto err1;
--	return 0;
-+		return err;
- 
--err1:
--	nf_ct_l3proto_module_put(ctx->afi->family);
--	return err;
-+	return 0;
+ 	return offset;
+-
  }
  
- static void nft_ct_destroy(const struct nft_expr *expr)
-@@ -206,7 +261,7 @@ static void nft_ct_destroy(const struct nft_expr *expr)
- 	nf_ct_l3proto_module_put(priv->family);
- }
- 
--static int nft_ct_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ static int
+ nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
+ 			    uint32_t flags, struct nft_rule_expr *e)
  {
- 	const struct nft_ct *priv = nft_expr_priv(expr);
- 
-@@ -222,19 +277,63 @@ nla_put_failure:
- 	return -1;
- }
- 
-+static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_ct *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be32(skb, NFTA_CT_SREG, htonl(priv->sreg)))
-+		goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_CT_KEY, htonl(priv->key)))
-+		goto nla_put_failure;
-+	if (nla_put_u8(skb, NFTA_CT_DIRECTION, priv->dir))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
- static struct nft_expr_type nft_ct_type;
--static const struct nft_expr_ops nft_ct_ops = {
-+static const struct nft_expr_ops nft_ct_get_ops = {
-+	.type		= &nft_ct_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
-+	.eval		= nft_ct_get_eval,
-+	.init		= nft_ct_init,
-+	.destroy	= nft_ct_destroy,
-+	.dump		= nft_ct_get_dump,
-+};
-+
-+static const struct nft_expr_ops nft_ct_set_ops = {
- 	.type		= &nft_ct_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
--	.eval		= nft_ct_eval,
-+	.eval		= nft_ct_set_eval,
- 	.init		= nft_ct_init,
- 	.destroy	= nft_ct_destroy,
--	.dump		= nft_ct_dump,
-+	.dump		= nft_ct_set_dump,
- };
- 
-+static const struct nft_expr_ops *
-+nft_ct_select_ops(const struct nft_ctx *ctx,
-+		    const struct nlattr * const tb[])
-+{
-+	if (tb[NFTA_CT_KEY] == NULL)
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_CT_DREG] && tb[NFTA_CT_SREG])
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_CT_DREG])
-+		return &nft_ct_get_ops;
-+
-+	if (tb[NFTA_CT_SREG])
-+		return &nft_ct_set_ops;
-+
-+	return ERR_PTR(-EINVAL);
-+}
-+
- static struct nft_expr_type nft_ct_type __read_mostly = {
- 	.name		= "ct",
--	.ops		= &nft_ct_ops,
-+	.select_ops	= &nft_ct_select_ops,
- 	.policy		= nft_ct_policy,
- 	.maxattr	= NFTA_CT_MAX,
- 	.owner		= THIS_MODULE,
+-	struct nft_expr_ct *ct = nft_expr_data(e);
+-
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return snprintf(buf, len, "load %s => reg %u dir %u ",
+-				ctkey2str(ct->key), ct->dreg, ct->dir);
++		return nft_rule_expr_ct_snprintf_default(buf, len, e);
+ 	case NFT_OUTPUT_XML:
+-		return snprintf(buf, len, "<dreg>%u</dreg>"
+-					  "<key>%s</key>"
+-					  "<dir>%u</dir>",
+-				ct->dreg, ctkey2str(ct->key), ct->dir);
++		return nft_rule_expr_ct_snprintf_xml(buf, len, e);
+ 	case NFT_OUTPUT_JSON:
+-		return nft_expr_ct_snprintf_json(buf, len, e);
++		return nft_rule_expr_ct_snprintf_json(buf, len, e);
+ 	default:
+ 		break;
+ 	}
 -- 
 1.8.3.2
 
