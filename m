@@ -1,276 +1,293 @@
 From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: [PATCH libnftables] Add support for ct set
-Date: Tue,  7 Jan 2014 16:15:38 +0100
-Message-ID: <1389107738-24320-1-git-send-email-kristian.evensen@gmail.com>
+Subject: [PATCH nftables] Add support for setting ct keys
+Date: Tue,  7 Jan 2014 16:15:58 +0100
+Message-ID: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
 Cc: Kristian Evensen <kristian.evensen@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:60117 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaAGPPv (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:45545 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114AbaAGPQG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 10:15:51 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f15so272589eak.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2014 07:15:49 -0800 (PST)
+	Tue, 7 Jan 2014 10:16:06 -0500
+Received: by mail-ee0-f50.google.com with SMTP id c41so142125eek.9
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2014 07:16:05 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Kristian Evensen <kristian.evensen@gmail.com>
 
-This patch adds userspace support for setting properties of tracked connections.
-Currently, the connection mark is supported. This can be used to implemented the
-same functionality as iptables -j CONNMARK --save-mark.
+This patch adds the possibility to set ct keys using nft. Currently, the
+connection mark is supported. This functionality enables creating rules
+performing the same action as iptables -j CONNMARK --save-mark. For example:
+
+table ip filter {
+	chain postrouting {
+		type filter hook postrouting priority 0;
+		ip protocol icmp ip daddr 8.8.8.8 ct mark set meta mark
+	}
+}
 
 Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
 ---
- include/libnftables/expr.h          |   1 +
- include/linux/netfilter/nf_tables.h |   2 +
- src/expr/ct.c                       | 118 ++++++++++++++++++++++++++++--------
- 3 files changed, 96 insertions(+), 25 deletions(-)
+ include/statement.h       | 14 ++++++++++++++
+ src/ct.c                  | 25 +++++++++++++++++++++++++
+ src/evaluate.c            | 11 +++++++++++
+ src/netlink_delinearize.c | 37 ++++++++++++++++++++++++++++++++++---
+ src/netlink_linearize.c   | 18 ++++++++++++++++++
+ src/parser.y              |  9 +++++++++
+ 6 files changed, 111 insertions(+), 3 deletions(-)
 
-diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
-index 25455e4..653bbb0 100644
---- a/include/libnftables/expr.h
-+++ b/include/libnftables/expr.h
-@@ -124,6 +124,7 @@ enum {
- 	NFT_EXPR_CT_DREG	= NFT_RULE_EXPR_ATTR_BASE,
- 	NFT_EXPR_CT_KEY,
- 	NFT_EXPR_CT_DIR,
-+	NFT_EXPR_CT_SREG,
- };
+diff --git a/include/statement.h b/include/statement.h
+index 14a66df..896b972 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -67,6 +67,17 @@ struct queue_stmt {
  
- enum {
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index e08f80e..1b6362c 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -526,12 +526,14 @@ enum nft_ct_keys {
-  * @NFTA_CT_DREG: destination register (NLA_U32)
-  * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
-  * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
-+ * @NFTA_CT_SREG: source register (NLA_U32)
+ extern struct stmt *queue_stmt_alloc(const struct location *loc);
+ 
++#include <ct.h>
++struct ct_stmt {
++	enum nft_ct_keys		key;
++	const struct ct_template	*tmpl;
++	struct expr			*expr;
++};
++
++extern struct stmt *ct_stmt_alloc(const struct location *loc,
++				  enum nft_ct_keys key,
++				  struct expr *expr);
++
+ /**
+  * enum stmt_types - statement types
+  *
+@@ -80,6 +91,7 @@ extern struct stmt *queue_stmt_alloc(const struct location *loc);
+  * @STMT_REJECT:	REJECT statement
+  * @STMT_NAT:		NAT statement
+  * @STMT_QUEUE:		QUEUE statement
++ * @STMT_CT:		conntrack statement
   */
- enum nft_ct_attributes {
- 	NFTA_CT_UNSPEC,
- 	NFTA_CT_DREG,
- 	NFTA_CT_KEY,
- 	NFTA_CT_DIRECTION,
-+	NFTA_CT_SREG,
- 	__NFTA_CT_MAX
- };
- #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index 46e3cef..a509216 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -24,7 +24,10 @@
- 
- struct nft_expr_ct {
- 	enum nft_ct_keys        key;
--	uint32_t		dreg;	/* enum nft_registers */
-+	union{
-+		uint32_t		dreg;	/* enum nft_registers */
-+		uint32_t		sreg;	/* enum nft_registers */
-+	};
- 	uint8_t			dir;
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -92,6 +104,7 @@ enum stmt_types {
+ 	STMT_REJECT,
+ 	STMT_NAT,
+ 	STMT_QUEUE,
++	STMT_CT,
  };
  
-@@ -51,6 +54,9 @@ nft_rule_expr_ct_set(struct nft_rule_expr *e, uint16_t type,
- 	case NFT_EXPR_CT_DREG:
- 		ct->dreg = *((uint32_t *)data);
- 		break;
-+	case NFT_EXPR_CT_SREG:
-+		ct->sreg = *((uint32_t *)data);
-+		break;
- 	default:
- 		return -1;
- 	}
-@@ -73,6 +79,9 @@ nft_rule_expr_ct_get(const struct nft_rule_expr *e, uint16_t type,
- 	case NFT_EXPR_CT_DREG:
- 		*data_len = sizeof(ct->dreg);
- 		return &ct->dreg;
-+	case NFT_EXPR_CT_SREG:
-+		*data_len = sizeof(ct->sreg);
-+		return &ct->sreg;
- 	}
- 	return NULL;
- }
-@@ -88,6 +97,7 @@ static int nft_rule_expr_ct_cb(const struct nlattr *attr, void *data)
- 	switch(type) {
- 	case NFTA_CT_KEY:
- 	case NFTA_CT_DREG:
-+	case NFTA_CT_SREG:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
- 			perror("mnl_attr_validate");
- 			return MNL_CB_ERROR;
-@@ -116,6 +126,8 @@ nft_rule_expr_ct_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
- 		mnl_attr_put_u32(nlh, NFTA_CT_DREG, htonl(ct->dreg));
- 	if (e->flags & (1 << NFT_EXPR_CT_DIR))
- 		mnl_attr_put_u8(nlh, NFTA_CT_DIRECTION, ct->dir);
-+	if (e->flags & (1 << NFT_EXPR_CT_SREG))
-+		mnl_attr_put_u32(nlh, NFTA_CT_SREG, htonl(ct->sreg));
+ /**
+@@ -138,6 +151,7 @@ struct stmt {
+ 		struct reject_stmt	reject;
+ 		struct nat_stmt		nat;
+ 		struct queue_stmt	queue;
++		struct ct_stmt		ct;
+ 	};
+ };
+ 
+diff --git a/src/ct.c b/src/ct.c
+index e5ca593..8bbed08 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -24,6 +24,7 @@
+ #include <datatype.h>
+ #include <ct.h>
+ #include <utils.h>
++#include <statement.h>
+ 
+ static const struct symbol_table ct_state_tbl = {
+ 	.symbols	= {
+@@ -157,6 +158,30 @@ struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key)
+ 	return expr;
  }
  
- static int
-@@ -131,14 +143,17 @@ nft_rule_expr_ct_parse(struct nft_rule_expr *e, struct nlattr *attr)
- 		ct->key = ntohl(mnl_attr_get_u32(tb[NFTA_CT_KEY]));
- 		e->flags |= (1 << NFT_EXPR_CT_KEY);
- 	}
--	if (tb[NFTA_CT_DREG]) {
--		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
--		e->flags |= (1 << NFT_EXPR_CT_DREG);
--	}
- 	if (tb[NFTA_CT_DIRECTION]) {
- 		ct->dir = mnl_attr_get_u8(tb[NFTA_CT_DIRECTION]);
- 		e->flags |= (1 << NFT_EXPR_CT_DIR);
- 	}
-+	if (tb[NFTA_CT_DREG]) {
-+		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
-+		e->flags |= (1 << NFT_EXPR_CT_DREG);
-+	} else if (tb[NFTA_CT_SREG]) {
-+		ct->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_SREG]));
-+		e->flags |= (1 << NFT_EXPR_CT_SREG);
-+	}
- 
++static void ct_stmt_print(const struct stmt *stmt)
++{
++	printf("ct %s set ", ct_templates[stmt->ct.key].token);
++	expr_print(stmt->ct.expr);
++}
++
++static const struct stmt_ops ct_stmt_ops = {
++	.type		= STMT_CT,
++	.name		= "ct",
++	.print		= ct_stmt_print,
++};
++
++struct stmt *ct_stmt_alloc(const struct location *loc, enum nft_ct_keys key,
++			     struct expr *expr)
++{
++	struct stmt *stmt;
++
++	stmt = stmt_alloc(loc, &ct_stmt_ops);
++	stmt->ct.key	= key;
++	stmt->ct.tmpl	= &ct_templates[key];
++	stmt->ct.expr	= expr;
++	return stmt;
++}
++
+ static void __init ct_init(void)
+ {
+ 	datatype_register(&ct_state_type);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d4f8339..3549ec7 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1149,6 +1149,15 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
  	return 0;
  }
-@@ -186,10 +201,17 @@ static int nft_rule_expr_ct_json_parse(struct nft_rule_expr *e, json_t *root)
- 	uint8_t dir;
- 	int key;
  
--	if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) < 0)
--		return -1;
-+	if (nft_jansson_node_exist(root, "dreg")) {
-+		if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg) < 0)
-+			return -1;
-+
-+		nft_rule_expr_set_u32(e, NFT_EXPR_CT_DREG, reg);
-+	} else if (nft_jansson_node_exist(root, "sreg")) {
-+		if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg) < 0)
-+			return -1;
- 
--	nft_rule_expr_set_u32(e, NFT_EXPR_CT_DREG, reg);
-+		nft_rule_expr_set_u32(e, NFT_EXPR_CT_SREG, reg);
-+	}
- 
- 	if (nft_jansson_node_exist(root, "key")) {
- 		key_str = nft_jansson_parse_str(root, "key");
-@@ -235,11 +257,17 @@ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree
- 	uint8_t dir;
- 
- 	reg = nft_mxml_reg_parse(tree, "dreg", MXML_DESCEND_FIRST);
--	if (reg < 0)
--		return -1;
-+	if (reg >= 0) {
-+		ct->dreg = reg;
-+		e->flags |= (1 << NFT_EXPR_CT_DREG);
-+	} else {
-+		reg = nft_mxml_reg_parse(tree, "sreg", MXML_DESCEND_FIRST);
-+		if (reg < 0)
-+			return -1;
- 
--	ct->dreg = reg;
--	e->flags |= (1 << NFT_EXPR_CT_DREG);
-+		ct->sreg = reg;
-+		e->flags |= (1 << NFT_EXPR_CT_SREG);
-+	}
- 
- 	key_str = nft_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
- 				     NFT_XML_MAND);
-@@ -274,13 +302,60 @@ err:
- }
- 
- static int
--nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
-+nft_rule_expr_ct_snprintf_default(char *buf, size_t size,
-+				  struct nft_rule_expr *e)
++static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
 +{
-+	struct nft_expr_ct *ct = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_SREG))
-+		return snprintf(buf, size, "set %s with reg %u ",
-+				ctkey2str(ct->key), ct->sreg);
-+
-+	return snprintf(buf, size, "load %s => reg %u dir %u ",
-+			ctkey2str(ct->key), ct->dreg, ct->dir);
++	expr_set_context(&ctx->ectx, stmt->ct.tmpl->dtype,
++			 stmt->ct.tmpl->len);
++	if (expr_evaluate(ctx, &stmt->ct.expr) < 0)
++		return -1;
++	return 0;
 +}
 +
-+static int
-+nft_rule_expr_ct_snprintf_xml(char *buf, size_t size, struct nft_rule_expr *e)
+ static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
  {
- 	int ret, len = size, offset = 0;
- 	struct nft_expr_ct *ct = nft_expr_data(e);
- 
--	ret = snprintf(buf, len, "\"dreg\":%u", ct->dreg);
--	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	if (e->flags & (1 << NFT_EXPR_CT_DREG)) {
-+		ret = snprintf(buf, len, "<dreg>%u</dreg>", ct->dreg);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	} else if (e->flags & (1 << NFT_EXPR_CT_SREG)) {
-+		ret = snprintf(buf, len, "<sreg>%u</sreg>", ct->sreg);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
-+		ret = snprintf(buf+offset, len, "<key>%s</key>",
-+			       ctkey2str(ct->key));
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
-+		ret = snprintf(buf+offset, len, "<dir>%u</dir>", ct->dir);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+}
-+
-+static int
-+nft_rule_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
-+{
-+	int ret, len = size, offset = 0;
-+	struct nft_expr_ct *ct = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_CT_DREG)) {
-+		ret = snprintf(buf, len, "\"dreg\":%u", ct->dreg);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	} else if (e->flags & (1 << NFT_EXPR_CT_SREG)) {
-+		ret = snprintf(buf, len, "\"sreg:\":%u", ct->sreg);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
- 
- 	if (e->flags & (1 << NFT_EXPR_CT_KEY)) {
- 		ret = snprintf(buf+offset, len, ",\"key\":\"%s\"",
-@@ -294,26 +369,19 @@ nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
- 	}
- 
- 	return offset;
--
- }
- 
- static int
- nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
- 			    uint32_t flags, struct nft_rule_expr *e)
- {
--	struct nft_expr_ct *ct = nft_expr_data(e);
--
- 	switch(type) {
- 	case NFT_OUTPUT_DEFAULT:
--		return snprintf(buf, len, "load %s => reg %u dir %u ",
--				ctkey2str(ct->key), ct->dreg, ct->dir);
-+		return nft_rule_expr_ct_snprintf_default(buf, len, e);
- 	case NFT_OUTPUT_XML:
--		return snprintf(buf, len, "<dreg>%u</dreg>"
--					  "<key>%s</key>"
--					  "<dir>%u</dir>",
--				ct->dreg, ctkey2str(ct->key), ct->dir);
-+		return nft_rule_expr_ct_snprintf_xml(buf, len, e);
- 	case NFT_OUTPUT_JSON:
--		return nft_expr_ct_snprintf_json(buf, len, e);
-+		return nft_rule_expr_ct_snprintf_json(buf, len, e);
+ #ifdef DEBUG
+@@ -1176,6 +1185,8 @@ static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return stmt_evaluate_nat(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return 0;
++	case STMT_CT:
++		return stmt_evaluate_ct(ctx, stmt);
  	default:
- 		break;
+ 		BUG("unknown statement type %s\n", stmt->ops->name);
  	}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index b771da5..1b19d00 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -365,9 +365,26 @@ static void netlink_parse_meta(struct netlink_parse_ctx *ctx,
+ 		netlink_parse_meta_sreg(ctx, loc, nle);
+ }
+ 
+-static void netlink_parse_ct(struct netlink_parse_ctx *ctx,
+-			     const struct location *loc,
+-			     const struct nft_rule_expr *nle)
++static void netlink_parse_ct_sreg(struct netlink_parse_ctx *ctx,
++				  const struct location *loc,
++				  const struct nft_rule_expr *nle)
++{
++	struct stmt *stmt;
++	struct expr *expr;
++
++	expr = netlink_get_register(ctx, loc,
++				    nft_rule_expr_get_u32(nle, NFT_EXPR_CT_SREG));
++	stmt = ct_stmt_alloc(loc,
++			     nft_rule_expr_get_u32(nle, NFT_EXPR_CT_KEY),
++			     expr);
++	expr_set_type(expr, stmt->ct.tmpl->dtype, stmt->ct.tmpl->byteorder);
++
++	list_add_tail(&stmt->list, &ctx->rule->stmts);
++}
++
++static void netlink_parse_ct_dreg(struct netlink_parse_ctx *ctx,
++				  const struct location *loc,
++				  const struct nft_rule_expr *nle)
+ {
+ 	struct expr *expr;
+ 
+@@ -377,6 +394,16 @@ static void netlink_parse_ct(struct netlink_parse_ctx *ctx,
+ 			     expr);
+ }
+ 
++static void netlink_parse_ct(struct netlink_parse_ctx *ctx,
++			     const struct location *loc,
++			     const struct nft_rule_expr *nle)
++{
++	if (nft_rule_expr_is_set(nle, NFT_EXPR_CT_DREG))
++		netlink_parse_ct_dreg(ctx, loc, nle);
++	else
++		netlink_parse_ct_sreg(ctx, loc, nle);
++}
++
+ static void netlink_parse_counter(struct netlink_parse_ctx *ctx,
+ 				  const struct location *loc,
+ 				  const struct nft_rule_expr *nle)
+@@ -832,6 +859,10 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 			if (stmt->meta.expr != NULL)
+ 				expr_postprocess(&rctx, stmt, &stmt->meta.expr);
+ 			break;
++		case STMT_CT:
++			if (stmt->ct.expr != NULL)
++				expr_postprocess(&rctx, stmt, &stmt->ct.expr);
++			break;
+ 		case STMT_NAT:
+ 			if (stmt->nat.addr != NULL)
+ 				expr_postprocess(&rctx, stmt, &stmt->nat.addr);
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 9ae9bb7..5a65997 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -656,6 +656,22 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+ 
++static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
++				  const struct stmt *stmt)
++{
++	struct nft_rule_expr *nle;
++	enum nft_registers sreg;
++
++	sreg = get_register(ctx);
++	netlink_gen_expr(ctx, stmt->ct.expr, sreg);
++	release_register(ctx);
++
++	nle = alloc_nft_expr("ct");
++	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_SREG, sreg);
++	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_KEY, stmt->ct.key);
++	nft_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 			     const struct stmt *stmt)
+ {
+@@ -678,6 +694,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_nat_stmt(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return netlink_gen_queue_stmt(ctx, stmt);
++	case STMT_CT:
++		return netlink_gen_ct_stmt(ctx, stmt);
+ 	default:
+ 		BUG("unknown statement type %s\n", stmt->ops->name);
+ 	}
+diff --git a/src/parser.y b/src/parser.y
+index 9320f2d..2781fe2 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -372,6 +372,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { stmt_free($$); }	stmt match_stmt verdict_stmt
+ %type <stmt>			counter_stmt counter_stmt_alloc
+ %destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc
++%type <stmt>			ct_stmt
++%destructor { stmt_free($$); }	ct_stmt
+ %type <stmt>			meta_stmt
+ %destructor { stmt_free($$); }	meta_stmt
+ %type <stmt>			log_stmt log_stmt_alloc
+@@ -937,6 +939,7 @@ stmt			:	verdict_stmt
+ 			|	reject_stmt
+ 			|	nat_stmt
+ 			|	queue_stmt
++			|	ct_stmt
+ 			;
+ 
+ verdict_stmt		:	verdict_expr
+@@ -1416,6 +1419,12 @@ ct_key			:	STATE		{ $$ = NFT_CT_STATE; }
+ 			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
+ 			;
+ 
++ct_stmt			:	CT	ct_key		SET	expr
++			{
++				$$ = ct_stmt_alloc(&@$, $2, $4);
++			}
++			;
++
+ payload_expr		:	payload_raw_expr
+ 			|	eth_hdr_expr
+ 			|	vlan_hdr_expr
 -- 
 1.8.3.2
 
