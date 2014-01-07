@@ -1,132 +1,54 @@
-From: Sam Liddicott <sam@liddicott.com>
-Subject: Patches to xtables-addons xt_quota2
-Date: Tue, 7 Jan 2014 18:56:53 +0000
-Message-ID: <CAOj-5WAsU-WxdKbP1ijmhRGAO=u204ZyGM5PZNcrsJoOB1hsug@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=047d7bb03c848f9c3904ef65f04f
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] netfilter fixes for net
+Date: Tue,  7 Jan 2014 23:13:37 +0100
+Message-ID: <1389132819-9697-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:45940 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766AbaAGS4y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 13:56:54 -0500
-Received: by mail-qa0-f49.google.com with SMTP id k4so910702qaq.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jan 2014 10:56:53 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:56493 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752707AbaAGWNq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jan 2014 17:13:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---047d7bb03c848f9c3904ef65f04f
-Content-Type: text/plain; charset=UTF-8
+Hi David,
 
-0001,0002 fix bugs, 0003 adds new feature of incremental changes to quota files.
+The following patchset contains two patches:
 
-They apply to HEAD of xtables-addons on sourceforge
+* fix the IRC NAT helper which was broken when adding (incomplete) IPv6
+  support, from Daniel Borkmann.
 
-These patches should be self explanatory but may need some review as I
-have tried to preserve existing style rather than refactor but you may
-prefer to refactor. There was also some confusion on locking in the
-increment support patch and I'm not sure if I have it right.
+* Refine the previous bugtrap that Jesper added to catch problems for the
+  usage of the sequence adjustment extension in IPVs in Dec 16th, it may
+  spam messages in case of finding a real bug.
 
-Sam
+I know it's fairly late, so please let me know if you prefer that I pass
+you these via net-next.
 
---047d7bb03c848f9c3904ef65f04f
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-Remove-trailing-junk-which-MIGHT-have-a-digit-in-it.patch"
-Content-Disposition: attachment;
-	filename="0002-Remove-trailing-junk-which-MIGHT-have-a-digit-in-it.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hq5ih2ek0
+Thanks!
 
-RnJvbSBlNzI0NjVkNjY4MTRiOWM0YWM3ZGU3ZWQ1YzI3M2ZiZWZkOTFkNTUxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW0gTGlkZGljb3R0IDxzYW1AbGlkZGljb3R0LmNvbT4KRGF0
-ZTogVHVlLCA3IEphbiAyMDE0IDA5OjIxOjUzIC0wODAwClN1YmplY3Q6IFtQQVRDSCAyLzNdIFJl
-bW92ZSB0cmFpbGluZyBqdW5rIHdoaWNoIE1JR0hUIGhhdmUgYSBkaWdpdCBpbiBpdCEKCgpTaWdu
-ZWQtb2ZmLWJ5OiBTYW0gTGlkZGljb3R0IDxzYW1AbGlkZGljb3R0LmNvbT4KLS0tCiBleHRlbnNp
-b25zL3h0X3F1b3RhMi5jIHwgMiArKwogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQoK
-ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMveHRfcXVvdGEyLmMgYi9leHRlbnNpb25zL3h0X3F1b3Rh
-Mi5jCmluZGV4IGFhMDAyMDcuLmYxYjY0ZDAgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMveHRfcXVv
-dGEyLmMKKysrIGIvZXh0ZW5zaW9ucy94dF9xdW90YTIuYwpAQCAtNzYsNiArNzYsOCBAQCBxdW90
-YV9wcm9jX3dyaXRlKHN0cnVjdCBmaWxlICpmaWxlLCBjb25zdCBjaGFyIF9fdXNlciAqaW5wdXQs
-CiAJaWYgKGNvcHlfZnJvbV91c2VyKGJ1ZiwgaW5wdXQsIHNpemUpICE9IDApCiAJCXJldHVybiAt
-RUZBVUxUOwogCWJ1ZltzaXplb2YoYnVmKS0xXSA9ICdcMCc7CisJaWYgKHNpemUgPCBzaXplb2Yo
-YnVmKSkKKwkJYnVmW3NpemVdPTA7CiAKIAlzcGluX2xvY2tfYmgoJmUtPmxvY2spOwogCWUtPnF1
-b3RhID0gc2ltcGxlX3N0cnRvdWxsKGJ1ZiwgTlVMTCwgMCk7Ci0tIAoxLjguMS4yCgo=
---047d7bb03c848f9c3904ef65f04f
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-Fix-2-bugs-when-not-in-grow-mode.patch"
-Content-Disposition: attachment;
-	filename="0001-Fix-2-bugs-when-not-in-grow-mode.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hq5ih2f91
+----------------------------------------------------------------
 
-RnJvbSA1YTc5ODY3ODQzMzA2ZGI5ZmVjOWZiNDIzYzA5YTJiMmIwMTAxNDgzIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW0gTGlkZGljb3R0IDxzYW1AbGlkZGljb3R0LmNvbT4KRGF0
-ZTogVHVlLCA3IEphbiAyMDE0IDA5OjExOjA3IC0wODAwClN1YmplY3Q6IFtQQVRDSCAxLzNdIEZp
-eCAyIGJ1Z3Mgd2hlbiBub3QgaW4gZ3JvdyBtb2RlCgoxLiBYVF9RVU9UQV9OT19DSEFOR0Ugc2hv
-dWxkIG5vdCBhbHRlciBxdW90YSB0byB6ZXJvIGV2ZXIKMi4gWFRfUVVPVEFfUEFDS0VUIHNob3Vs
-ZCBub3QgYmUgc2V0IHRvIHplcm8gYmFzZWQgb24gc2tiLT5sZW4KClNpZ25lZC1vZmYtYnk6IFNh
-bSBMaWRkaWNvdHQgPHNhbUBsaWRkaWNvdHQuY29tPgotLS0KIGV4dGVuc2lvbnMveHRfcXVvdGEy
-LmMgfCA1ICsrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
-cygtKQoKZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMveHRfcXVvdGEyLmMgYi9leHRlbnNpb25zL3h0
-X3F1b3RhMi5jCmluZGV4IGZmOTFmY2IuLmFhMDAyMDcgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMv
-eHRfcXVvdGEyLmMKKysrIGIvZXh0ZW5zaW9ucy94dF9xdW90YTIuYwpAQCAtMjE5LDEzICsyMTks
-MTQgQEAgcXVvdGFfbXQyKGNvbnN0IHN0cnVjdCBza19idWZmICpza2IsIHN0cnVjdCB4dF9hY3Rp
-b25fcGFyYW0gKnBhcikKIAkJfQogCQlyZXQgPSB0cnVlOwogCX0gZWxzZSB7Ci0JCWlmIChlLT5x
-dW90YSA+PSBza2ItPmxlbikgeworCQlpZiAoZS0+cXVvdGEgPj0gKChxLT5mbGFncyAmIFhUX1FV
-T1RBX1BBQ0tFVCkgPyAxIDogc2tiLT5sZW4pKSB7CiAJCQlpZiAoIShxLT5mbGFncyAmIFhUX1FV
-T1RBX05PX0NIQU5HRSkpCiAJCQkJZS0+cXVvdGEgLT0gKHEtPmZsYWdzICYgWFRfUVVPVEFfUEFD
-S0VUKSA/IDEgOiBza2ItPmxlbjsKIAkJCXJldCA9ICFyZXQ7CiAJCX0gZWxzZSB7CiAJCQkvKiB3
-ZSBkbyBub3QgYWxsb3cgZXZlbiBzbWFsbCBwYWNrZXRzIGZyb20gbm93IG9uICovCi0JCQllLT5x
-dW90YSA9IDA7CisJCQlpZiAoIShxLT5mbGFncyAmIFhUX1FVT1RBX05PX0NIQU5HRSkpCisJCQkJ
-ZS0+cXVvdGEgPSAwOwogCQl9CiAJCXEtPnF1b3RhID0gZS0+cXVvdGE7CiAJfQotLSAKMS44LjEu
-MgoK
---047d7bb03c848f9c3904ef65f04f
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0003-Allow-incremental-value-to-be-written-to-quota-proc-.patch"
-Content-Disposition: attachment;
-	filename="0003-Allow-incremental-value-to-be-written-to-quota-proc-.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hq5ih2fi2
+The following changes since commit f35f76ee76df008131bbe01a2297de0c55ee2297:
 
-RnJvbSBmNDU2YjllYmJhNjc2MWU4YjAxM2Y5MGY3YzQ2YWM4MTQ5MTkzMTFiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW0gTGlkZGljb3R0IDxzYW1AbGlkZGljb3R0LmNvbT4KRGF0
-ZTogVHVlLCA3IEphbiAyMDE0IDA5OjQ4OjE5IC0wODAwClN1YmplY3Q6IFtQQVRDSCAzLzNdIEFs
-bG93IGluY3JlbWVudGFsIHZhbHVlIHRvIGJlIHdyaXR0ZW4gdG8gcXVvdGEgcHJvYyBmaWxlCgpB
-cyB3ZWxsIGFzIHdyaXRpbmcgYWJzb2x1dGUgbnVtZXJpYyB2YWx1ZXMgdG8gdGhlIHF1b3RhIGZp
-bGUgeW91CmNhbiBhbHNvIHdyaXRlIG51bWJlcnMgcHJlY2VkZWQgYnkgYSArIHNpZ24gb3IgYSAt
-IHNpZ24KZS5nLgogICszMAp3b3VsZCBpbmNyZWFzZSB0aGUgcXVvdGEgYnkgMzAKICArLTIwCndv
-dWxkIGluY3JlYXNlIHRoZSBxdW90YSBieSBuZWdhdGl2ZSAyMCB3aGljaCBpcyB0aGUgc2FtZSBh
-cyBkZWNyZWFzZQpieSAyMAoKICAtNQp3b3VsZCBkZWNyZWFzZSB0aGUgcXVvdGEgYnkgNQoKU2ln
-bmVkLW9mZi1ieTogU2FtIExpZGRpY290dCA8c2FtQGxpZGRpY290dC5jb20+Ci0tLQogZXh0ZW5z
-aW9ucy94dF9xdW90YTIuYyB8IDM1ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0t
-CiAxIGZpbGUgY2hhbmdlZCwgMzEgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9leHRlbnNpb25zL3h0X3F1b3RhMi5jIGIvZXh0ZW5zaW9ucy94dF9xdW90YTIuYwpp
-bmRleCBmMWI2NGQwLi4xNzExMjYwIDEwMDY0NAotLS0gYS9leHRlbnNpb25zL3h0X3F1b3RhMi5j
-CisrKyBiL2V4dGVuc2lvbnMveHRfcXVvdGEyLmMKQEAgLTY5LDcgKzY5LDggQEAgcXVvdGFfcHJv
-Y193cml0ZShzdHJ1Y3QgZmlsZSAqZmlsZSwgY29uc3QgY2hhciBfX3VzZXIgKmlucHV0LAogICAg
-ICAgICAgICAgICAgICBzaXplX3Qgc2l6ZSwgbG9mZl90ICpsb2ZmKQogewogCXN0cnVjdCB4dF9x
-dW90YV9jb3VudGVyICplID0gUERFX0RBVEEoZmlsZV9pbm9kZShmaWxlKSk7Ci0JY2hhciBidWZb
-c2l6ZW9mKCIxODQ0Njc0NDA3MzcwOTU1MTYxNiIpXTsKKwljaGFyIGJ1ZltzaXplb2YoIistMTg0
-NDY3NDQwNzM3MDk1NTE2MTYiKV07CisJY2hhciAqYyA9IGJ1ZjsKIAogCWlmIChzaXplID4gc2l6
-ZW9mKGJ1ZikpCiAJCXNpemUgPSBzaXplb2YoYnVmKTsKQEAgLTc5LDkgKzgwLDM1IEBAIHF1b3Rh
-X3Byb2Nfd3JpdGUoc3RydWN0IGZpbGUgKmZpbGUsIGNvbnN0IGNoYXIgX191c2VyICppbnB1dCwK
-IAlpZiAoc2l6ZSA8IHNpemVvZihidWYpKQogCQlidWZbc2l6ZV09MDsKIAotCXNwaW5fbG9ja19i
-aCgmZS0+bG9jayk7Ci0JZS0+cXVvdGEgPSBzaW1wbGVfc3RydG91bGwoYnVmLCBOVUxMLCAwKTsK
-LQlzcGluX3VubG9ja19iaCgmZS0+bG9jayk7CisJd2hpbGUgKGlzc3BhY2UoKmMpKQorCQljKys7
-CisKKwlpZiAoc2l6ZSAtIChjIC0gYnVmKSA8IDEpIC8qIG1pbiBzdHJpbmcgbGVuZ3RoICovCisJ
-CXJldHVybiBjIC0gYnVmOworCisJaWYgKCpjID09ICcrJykgeyBwcmludGsoS0VSTl9FUlIgIisr
-K1xuIik7CisJCWludDY0X3QgdGVtcCA9IHNpbXBsZV9zdHJ0b2xsKGMrMSwgTlVMTCwgMCk7CisJ
-CXNwaW5fbG9ja19iaCgmZS0+bG9jayk7CisJCS8qIERvbid0IGxldCBxdW90YSBiZWNvbWUgbmVn
-YXRpdmUgaWYgdG1wIGlzIHZlcnkgbmVnYXRpdmUgKi8KKwkJaWYgKHRlbXAgPiAwIHx8IC10ZW1w
-IDwgZS0+cXVvdGEpCisJCQllLT5xdW90YSArPSB0ZW1wOworCQllbHNlCisJCQllLT5xdW90YSA9
-IDA7CisJCXNwaW5fdW5sb2NrX2JoKCZlLT5sb2NrKTsKKwl9IGVsc2UgaWYgKCpjID09ICctJykg
-eyBwcmludGsoS0VSTl9FUlIgIi0tLVxuIik7CisJCWludDY0X3QgdGVtcCA9IHNpbXBsZV9zdHJ0
-b2xsKGMrMSwgTlVMTCwgMCk7CisJCXNwaW5fbG9ja19iaCgmZS0+bG9jayk7CisJCS8qIERvbid0
-IGxldCBxdW90YSBiZWNvbWUgbmVnYXRpdmUgaWYgdG1wIGlzIHZlcnkgYmlnICovCisJCWlmICh0
-ZW1wIDwgMCB8fCB0ZW1wIDwgZS0+cXVvdGEpCisJCQllLT5xdW90YSAtPSB0ZW1wOworCQllbHNl
-CisJCQllLT5xdW90YSA9IDA7CisJCXNwaW5fdW5sb2NrX2JoKCZlLT5sb2NrKTsKKwl9IGVsc2Ug
-eyBwcmludGsoS0VSTl9FUlIgIj09PVxuIik7CisJCXNwaW5fbG9ja19iaCgmZS0+bG9jayk7CisJ
-CWUtPnF1b3RhID0gc2ltcGxlX3N0cnRvdWxsKGJ1ZiwgTlVMTCwgMCk7CisJCXNwaW5fdW5sb2Nr
-X2JoKCZlLT5sb2NrKTsKKwl9CiAJcmV0dXJuIHNpemU7CiB9CiAKLS0gCjEuOC4xLjIKCg==
---047d7bb03c848f9c3904ef65f04f--
+  xen-netback: Include header for vmalloc (2014-01-05 20:34:36 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to f2661adc0c134d890d84c32d7cb54a2b4d1f0a5f:
+
+  netfilter: only warn once on wrong seqadj usage (2014-01-06 14:23:17 +0100)
+
+----------------------------------------------------------------
+Daniel Borkmann (1):
+      netfilter: nf_nat: fix access to uninitialized buffer in IRC NAT helper
+
+Jesper Dangaard Brouer (1):
+      netfilter: only warn once on wrong seqadj usage
+
+ net/netfilter/nf_conntrack_seqadj.c |    2 +-
+ net/netfilter/nf_nat_irc.c          |   32 +++++++++++++++++++++++++++-----
+ 2 files changed, 28 insertions(+), 6 deletions(-)
