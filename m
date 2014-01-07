@@ -1,45 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: A conntrack, which is added via ctnetlink, can provoke a race
- condition
-Date: Tue, 7 Jan 2014 13:32:00 +0100
-Message-ID: <20140107123200.GE9894@breakpoint.cc>
-References: <CANaxB-wntm+Vu5z0k9bRYLvPX3ezFZSEQkGPGH3AVYDT5DrOKw@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH 1/6] mxml: add error reference of the top node
+Date: Tue, 07 Jan 2014 12:47:16 +0100
+Message-ID: <20140107114716.12841.65206.stgit@nfdev.cica.es>
+References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, vvs@openvz.org,
-	Cyrill Gorcunov <gorcunov@openvz.org>,
-	Florian Westphal <fw@strlen.de>
-To: Andrey Wagin <avagin@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55160 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851AbaAGMcE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 07:32:04 -0500
-Content-Disposition: inline
-In-Reply-To: <CANaxB-wntm+Vu5z0k9bRYLvPX3ezFZSEQkGPGH3AVYDT5DrOKw@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:56522 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751697AbaAGMsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jan 2014 07:48:05 -0500
+In-Reply-To: <20140107114518.12841.35778.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrey Wagin <avagin@gmail.com> wrote:
-> When a conntrack is created  by kernel, it is initialized (sets
-> IPS_{DST,SRC}_NAT_DONE_BIT bits in nf_nat_setup_info) and only then it
-> is added in hashes (__nf_conntrack_hash_insert), so one conntract
-> can't be initialized from a few threads concurrently.
-> 
-> ctnetlink can add an uninitialized conntrack (w/o
-> IPS_{DST,SRC}_NAT_DONE_BIT) in hashes, then a few threads can look up
-> this conntrack and start initialize it concurrently. It's dangerous,
-> because BUG can be triggered from  nf_nat_setup_info.
+We know the top node we are building. Let the user also know it.
 
-Good catch.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ 0 files changed
 
-I don't see a good solution at the moment.
+diff --git a/src/mxml.c b/src/mxml.c
+index bd09bb3..bc0f084 100644
+--- a/src/mxml.c
++++ b/src/mxml.c
+@@ -30,16 +30,19 @@ mxml_node_t *nft_mxml_build_tree(const char *xml, const char *treename,
+ 	tree = mxmlLoadString(NULL, xml, MXML_OPAQUE_CALLBACK);
+ 	if (tree == NULL) {
+ 		err->error = NFT_PARSE_EBADINPUT;
+-		err->line = 0;
+-		err->column = 0;
+ 		goto err;
+ 	}
+ 
+ 	if (strcmp(tree->value.opaque, treename) == 0)
+ 		return tree;
+ 
++	err->error = NFT_PARSE_EMISSINGNODE;
++	err->node_name = treename;
++
+ 	mxmlDelete(tree);
+ err:
++	err->line = 0;
++	err->column = 0;
+ 	errno = EINVAL;
+ 	return NULL;
+ }
 
-We can force null bindings if no nat transformation is specified
-from userspace.  But this would mean that rules specified in the nat
-table are not evaluated anymore when the first packet arrives.
-
-The only other solution is see is full serialization
-via ct->lock.
