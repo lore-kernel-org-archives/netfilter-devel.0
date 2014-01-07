@@ -1,66 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH v2] src: new error reporting approach for
- XML/JSON parsers
-Date: Tue, 7 Jan 2014 00:35:53 +0100
-Message-ID: <20140106233553.GA25742@localhost>
-References: <20140105235114.3752.26544.stgit@Ph0enix>
- <20140106122344.GA7589@localhost>
- <CAOkSjBgQt_=obGONgOUmOM+yCXJ7bxK3f1-ZYSmP2089DzddmA@mail.gmail.com>
+From: Valentina Giusti <valentina.giusti@bmw-carit.de>
+Subject: Re: [PATCH v4 1/2] netfilter_queue: enable UID/GID socket info retrieval
+Date: Tue, 7 Jan 2014 09:11:50 +0100
+Message-ID: <52CBB6C6.7020404@bmw-carit.de>
+References: <1387556934-7372-1-git-send-email-valentina.giusti@bmw-carit.de> <1387556934-7372-2-git-send-email-valentina.giusti@bmw-carit.de> <20131223142118.GA4803@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Alvaro Neira <alvaroneay@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<jpa@google.com>, <fw@strnel.de>, <daniel.wagner@bmw-carit.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44727 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933182AbaAFXf7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jan 2014 18:35:59 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBgQt_=obGONgOUmOM+yCXJ7bxK3f1-ZYSmP2089DzddmA@mail.gmail.com>
+Received: from mail.bmw-carit.de ([62.245.222.98]:36212 "EHLO
+	mail.bmw-carit.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484AbaAGIMD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jan 2014 03:12:03 -0500
+In-Reply-To: <20131223142118.GA4803@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 06, 2014 at 11:46:46PM +0100, Arturo Borrero Gonzalez wrote=
-:
-> On 6 January 2014 13:23, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> > On Mon, Jan 06, 2014 at 12:51:14AM +0100, Alvaro Neira wrote:
-> >> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
-> >>
-> >> I have added a new structure for reporting some errors in parser
-> >> that we can't cover with errno.
-> >>
-> >> In this patch, we have three errors that we can't cover with errno=
-:
-> >>
-> >> NFT_PARSE_EBADINPUT : Bad XML/JSON format in the input
-> >> NFT_PARSE_EMISSINGNODE : Missing node in our input
-> >> NFT_PARSE_EBADTYPE : Wrong type value in a node
-> >
-> > This looks good. Applied, thanks Alvaro.
->=20
-> Hi Pablo,
->=20
-> I don't see this applied:
->=20
-> ~/libnftables$ git pull --rebase
-> Current branch master is up to date.
-> ~/libnftables$ gldoc
-> * b4a0d19 (HEAD, origin/master, origin/HEAD, master) src: rename the
-> parameter tag to node_name in jansson function
-> * 24e08e5 build: properly handle --without-{xml,json}-parsing
-> * 2307124 include: update netlink.h to 3.13
-> [...]
+On 12/23/2013 03:21 PM, Pablo Neira Ayuso wrote:
+> On Fri, Dec 20, 2013 at 05:28:53PM +0100, valentina.giusti@bmw-carit.de wrote:
+>> From: Valentina Giusti <valentina.giusti@bmw-carit.de>
+>>
+>> Thanks to commits 41063e9 (ipv4: Early TCP socket demux) and 421b388 (udp: ipv4:
+>> Add udp early demux) it is now possible to parse UID and GID socket info
+>> also for incoming TCP and UDP connections. Having this info available, it
+>> is convenient to let NFQUEUE parse it in order to improve and refine the
+>> traffic analysis in userspace.
+>
+> Applied the kernel patch, wait for a new patch for libnetfilter_queue. Thanks.
+>
 
-=46orgot to push it, here it is:
+Hi Pablo,
 
-http://git.netfilter.org/libnftables/commit/?id=3De87d2f9ef8a4a298de551=
-4b30ec2d43d3c90a644
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks for applying the kernel patch and also for the comments on the 
+userspace patch, I'll send a new patch that addresses them ASAP.
+Sorry for the delay, I was away during the past 2 weeks.
+
+BR,
+- Val
+
