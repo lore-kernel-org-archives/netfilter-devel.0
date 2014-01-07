@@ -1,117 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2] netfilter: nf_nat: fix access to uninitialized buffer in IRC NAT helper
-Date: Tue,  7 Jan 2014 23:13:38 +0100
-Message-ID: <1389132819-9697-2-git-send-email-pablo@netfilter.org>
-References: <1389132819-9697-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [RFC PATCH 0/6] netfilter: nf_tables: add mixed IPv4/IPv6 table
+ support
+Date: Wed, 8 Jan 2014 00:03:20 +0100
+Message-ID: <20140107230320.GA16008@localhost>
+References: <1388751378-23272-1-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56496 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33154 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752707AbaAGWNs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 17:13:48 -0500
-In-Reply-To: <1389132819-9697-1-git-send-email-pablo@netfilter.org>
+	id S1753875AbaAGXD2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jan 2014 18:03:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1388751378-23272-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Daniel Borkmann <dborkman@redhat.com>
+On Fri, Jan 03, 2014 at 12:16:12PM +0000, Patrick McHardy wrote:
+> The following patches add support for mixed IPv4/IPv6 tables to nftables.
+> 
+> The first patch fixes the chain type override logic so chain types override
+> the AF defaults instead of the other way around. The second patch adds a
+> pointer to the nf_hook_ops struct to nft_pktinfo for a later patch which
+> uses ops->pf to match the actual AF of the packet instead of the dummy
+> NFPROTO_INET value. The third patch changes the chain and hook registration
+> logic to support multiple hook registrations. The nf_tables AF modules can
+> provide a callback function to override defaults. The fourth patch finally
+> adds a new "inet" family, which basically only initializes the hook
+> functions to the IPv4 and IPv6 specific ones and registers a dummy filter
+> chain type for NFPROTO_INET. Patches 5 and 6 add support for matching on
+> the netfilter hook family and the L4 protocol number to the meta match.
+> 
+> With all this in place, we can create AF-specific rules and AF-independant
+> rules that only match on the L4 protocol header and above in the inet table:
+> 
+> table inet filter {
+>         chain input {
+>                  type filter hook input priority 0;
+>         }
+> 
+> 	chain forward {
+>                  type filter hook forward priority 0;
+>         }
+> 
+> 	chain output {
+>                  type filter hook output priority 0;
+>                  ip protocol tcp tcp dport 1234 counter packets 2 bytes 120
+>                  ip6 nexthdr tcp tcp dport 1234 counter packets 2 bytes 160
+>                  tcp dport 1234 counter packets 4 bytes 280
+> 	}
+> }
+> 
+> Userspace needs a bit of polishing but will most likely follow in a few
+> hours.
 
-Commit 5901b6be885e attempted to introduce IPv6 support into
-IRC NAT helper. By doing so, the following code seemed to be removed
-by accident:
-
-  ip = ntohl(exp->master->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip);
-  sprintf(buffer, "%u %u", ip, port);
-  pr_debug("nf_nat_irc: inserting '%s' == %pI4, port %u\n", buffer, &ip, port);
-
-This leads to the fact that buffer[] was left uninitialized and
-contained some stack value. When we call nf_nat_mangle_tcp_packet(),
-we call strlen(buffer) on excatly this uninitialized buffer. If we
-are unlucky and the skb has enough tailroom, we overwrite resp. leak
-contents with values that sit on our stack into the packet and send
-that out to the receiver.
-
-Since the rather informal DCC spec [1] does not seem to specify
-IPv6 support right now, we log such occurences so that admins can
-act accordingly, and drop the packet. I've looked into XChat source,
-and IPv6 is not supported there: addresses are in u32 and print
-via %u format string.
-
-Therefore, restore old behaviour as in IPv4, use snprintf(). The
-IRC helper does not support IPv6 by now. By this, we can safely use
-strlen(buffer) in nf_nat_mangle_tcp_packet() and prevent a buffer
-overflow. Also simplify some code as we now have ct variable anyway.
-
-  [1] http://www.irchelp.org/irchelp/rfc/ctcpspec.html
-
-Fixes: 5901b6be885e ("netfilter: nf_nat: support IPv6 in IRC NAT helper")
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-Cc: Harald Welte <laforge@gnumonks.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_irc.c |   32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
-index f02b360..1fb2258 100644
---- a/net/netfilter/nf_nat_irc.c
-+++ b/net/netfilter/nf_nat_irc.c
-@@ -34,10 +34,14 @@ static unsigned int help(struct sk_buff *skb,
- 			 struct nf_conntrack_expect *exp)
- {
- 	char buffer[sizeof("4294967296 65635")];
-+	struct nf_conn *ct = exp->master;
-+	union nf_inet_addr newaddr;
- 	u_int16_t port;
- 	unsigned int ret;
- 
- 	/* Reply comes from server. */
-+	newaddr = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3;
-+
- 	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
- 	exp->dir = IP_CT_DIR_REPLY;
- 	exp->expectfn = nf_nat_follow_master;
-@@ -57,17 +61,35 @@ static unsigned int help(struct sk_buff *skb,
- 	}
- 
- 	if (port == 0) {
--		nf_ct_helper_log(skb, exp->master, "all ports in use");
-+		nf_ct_helper_log(skb, ct, "all ports in use");
- 		return NF_DROP;
- 	}
- 
--	ret = nf_nat_mangle_tcp_packet(skb, exp->master, ctinfo,
--				       protoff, matchoff, matchlen, buffer,
--				       strlen(buffer));
-+	/* strlen("\1DCC CHAT chat AAAAAAAA P\1\n")=27
-+	 * strlen("\1DCC SCHAT chat AAAAAAAA P\1\n")=28
-+	 * strlen("\1DCC SEND F AAAAAAAA P S\1\n")=26
-+	 * strlen("\1DCC MOVE F AAAAAAAA P S\1\n")=26
-+	 * strlen("\1DCC TSEND F AAAAAAAA P S\1\n")=27
-+	 *
-+	 * AAAAAAAAA: bound addr (1.0.0.0==16777216, min 8 digits,
-+	 *                        255.255.255.255==4294967296, 10 digits)
-+	 * P:         bound port (min 1 d, max 5d (65635))
-+	 * F:         filename   (min 1 d )
-+	 * S:         size       (min 1 d )
-+	 * 0x01, \n:  terminators
-+	 */
-+	/* AAA = "us", ie. where server normally talks to. */
-+	snprintf(buffer, sizeof(buffer), "%u %u", ntohl(newaddr.ip), port);
-+	pr_debug("nf_nat_irc: inserting '%s' == %pI4, port %u\n",
-+		 buffer, &newaddr.ip, port);
-+
-+	ret = nf_nat_mangle_tcp_packet(skb, ct, ctinfo, protoff, matchoff,
-+				       matchlen, buffer, strlen(buffer));
- 	if (ret != NF_ACCEPT) {
--		nf_ct_helper_log(skb, exp->master, "cannot mangle packet");
-+		nf_ct_helper_log(skb, ct, "cannot mangle packet");
- 		nf_ct_unexpect_related(exp);
- 	}
-+
- 	return ret;
- }
- 
--- 
-1.7.10.4
-
+Series applied, thanks Patrick!
