@@ -1,36 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] netfilter fixes for net
-Date: Tue, 07 Jan 2014 18:38:54 -0500 (EST)
-Message-ID: <20140107.183854.1098172581398083314.davem@davemloft.net>
-References: <1389132819-9697-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] src: add support for UID/GID socket info
+Date: Wed, 8 Jan 2014 00:42:22 +0100
+Message-ID: <20140107234222.GA17986@localhost>
+References: <20131221113804.GA17964@localhost>
+ <1389101420-16557-1-git-send-email-valentina.giusti@bmw-carit.de>
+ <1389101420-16557-2-git-send-email-valentina.giusti@bmw-carit.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	fw@strlen.de, daniel.wagner@bmw-carit.de
+To: valentina.giusti@bmw-carit.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:45958 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbaAGXi7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jan 2014 18:38:59 -0500
-In-Reply-To: <1389132819-9697-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:36353 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754032AbaAGXm3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jan 2014 18:42:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1389101420-16557-2-git-send-email-valentina.giusti@bmw-carit.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  7 Jan 2014 23:13:37 +0100
+On Tue, Jan 07, 2014 at 02:30:19PM +0100, valentina.giusti@bmw-carit.de wrote:
+> From: Valentina Giusti <Valentina.Giusti@bmw-carit.de>
+> 
+> With this patch libnetfilter_queue is able to parse UID/GID
+> socket information.
 
-> The following patchset contains two patches:
-> 
-> * fix the IRC NAT helper which was broken when adding (incomplete) IPv6
->   support, from Daniel Borkmann.
-> 
-> * Refine the previous bugtrap that Jesper added to catch problems for the
->   usage of the sequence adjustment extension in IPVs in Dec 16th, it may
->   spam messages in case of finding a real bug.
-> 
-> I know it's fairly late, so please let me know if you prefer that I pass
-> you these via net-next.
-
-These look fine, thanks Pablo.
+applied, thanks.
