@@ -1,132 +1,120 @@
-From: Andrey Vagin <avagin@openvz.org>
-Subject: [PATCH] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get (v2)
-Date: Wed,  8 Jan 2014 17:17:31 +0400
-Message-ID: <1389187051-7794-1-git-send-email-avagin@openvz.org>
-References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
-Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	vvs@openvz.org, Andrey Vagin <avagin@openvz.org>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1389090711-15843-1-git-send-email-avagin@openvz.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 4/6] internal: add a selector for parsing ops
+Date: Wed, 8 Jan 2014 14:36:55 +0100
+Message-ID: <20140108133655.GA25887@localhost>
+References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
+ <20140107114732.12841.11957.stgit@nfdev.cica.es>
+ <20140107232919.GD16894@localhost>
+ <CAOkSjBiOw10oK4stjz48yqF63+Y_8-hOoH-uUh4FqO2e7P2DVA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52168 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755388AbaAHNhI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jan 2014 08:37:08 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBiOw10oK4stjz48yqF63+Y_8-hOoH-uUh4FqO2e7P2DVA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Lets look at destroy_conntrack:
+On Wed, Jan 08, 2014 at 01:31:44PM +0100, Arturo Borrero Gonzalez wrote:
+> On 8 January 2014 00:29, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > You should pass a callback function instead, eg.
+> >
+> > static int nft_chain_json_parse(struct nft_chain *c, const char *json,
+> >                                 struct nft_parse_err *err,
+> >                                 json_t *(*jsonbuilder)(const void *input_data,
+> >                                                        const char *treename,
+> >                                                        struct nft_parse_err *e))
+> 
+> Ok.
+> 
+> > But I don't understand yet what you save (in terms of lines of code)
+> > by using this aproach.
+> 
+> I avoid doing something like:
+> 
+> nft_*_parse() {
+> switch (type)
+>  if XML return xml_parse()
+>  if JSON return json_parse()
+> }
+> 
+> nft_*_parse_file() {
+> switch (type)
+>  if XML return xml_parse_file()
+>  if JSON return json_parse_file()
+> }
+> 
+> We double the format switch, and also two functions per format are
+> needed to do build and parsing.
+> Total = 6 functions heavily duplicating code.
+> 
+> With my approach, we have 1 function that decides which format to
+> parse, and a one function per format to build and do parsing.
+> Total = 3 functions, no duplicate code.
 
-hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-...
-nf_conntrack_free(ct)
-	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+I guess this is saving you code, but I think this abstraction needs to
+be refined, your functions:
 
-net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
+* nft_mxml_do_build_tree
+* nft_mxml_do_build_tree_file
 
-The hash is protected by rcu, so readers look up conntracks without
-locks.
-A conntrack is removed from the hash, but in this moment a few readers
-still can use the conntrack. Then this conntrack is released and another
-thread creates conntrack with the same address and the equal tuple.
-After this a reader starts to validate the conntrack:
-* It's not dying, because a new conntrack was created
-* nf_ct_tuple_equal() returns true.
+look almost the same, only difference is mxmlLoadString / mxmlLoadFile.
 
-But this conntrack is not initialized yet, so it can not be used by two
-threads concurrently. In this case BUG_ON may be triggered from
-nf_nat_setup_info().
+I really think you can save more code and make this look better if you
+rework the internal nft_*_json_parse functions to receive the xml/json
+trees, eg.
 
-Florian Westphal suggested to check the confirm bit too. I think it's
-right.
+static int nft_set_json_parse(struct nft_set *s, json_t tree
+                              struct nft_parse_err *err)
+{
+        ...
+}
 
-task 1			task 2			task 3
-			nf_conntrack_find_get
-			 ____nf_conntrack_find
-destroy_conntrack
- hlist_nulls_del_rcu
- nf_conntrack_free
- kmem_cache_free
-						__nf_conntrack_alloc
-						 kmem_cache_alloc
-						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
-			 if (nf_ct_is_dying(ct))
-			 if (!nf_ct_tuple_equal()
+So you nft_set_do_parse() creates the tree and pass it to it.
 
-I'm not sure, that I have ever seen this race condition in a real life.
-Currently we are investigating a bug, which is reproduced on a few node.
-In our case one conntrack is initialized from a few tasks concurrently,
-we don't have any other explanation for this.
+You can also add an enum like:
 
-<2>[46267.083061] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:322!
-...
-<4>[46267.083951] RIP: 0010:[<ffffffffa01e00a4>]  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590 [nf_nat]
-...
-<4>[46267.085549] Call Trace:
-<4>[46267.085622]  [<ffffffffa023421b>] alloc_null_binding+0x5b/0xa0 [iptable_nat]
-<4>[46267.085697]  [<ffffffffa02342bc>] nf_nat_rule_find+0x5c/0x80 [iptable_nat]
-<4>[46267.085770]  [<ffffffffa0234521>] nf_nat_fn+0x111/0x260 [iptable_nat]
-<4>[46267.085843]  [<ffffffffa0234798>] nf_nat_out+0x48/0xd0 [iptable_nat]
-<4>[46267.085919]  [<ffffffff814841b9>] nf_iterate+0x69/0xb0
-<4>[46267.085991]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
-<4>[46267.086063]  [<ffffffff81484374>] nf_hook_slow+0x74/0x110
-<4>[46267.086133]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
-<4>[46267.086207]  [<ffffffff814b5890>] ? dst_output+0x0/0x20
-<4>[46267.086277]  [<ffffffff81495204>] ip_output+0xa4/0xc0
-<4>[46267.086346]  [<ffffffff814b65a4>] raw_sendmsg+0x8b4/0x910
-<4>[46267.086419]  [<ffffffff814c10fa>] inet_sendmsg+0x4a/0xb0
-<4>[46267.086491]  [<ffffffff814459aa>] ? sock_update_classid+0x3a/0x50
-<4>[46267.086562]  [<ffffffff81444d67>] sock_sendmsg+0x117/0x140
-<4>[46267.086638]  [<ffffffff8151997b>] ? _spin_unlock_bh+0x1b/0x20
-<4>[46267.086712]  [<ffffffff8109d370>] ? autoremove_wake_function+0x0/0x40
-<4>[46267.086785]  [<ffffffff81495e80>] ? do_ip_setsockopt+0x90/0xd80
-<4>[46267.086858]  [<ffffffff8100be0e>] ? call_function_interrupt+0xe/0x20
-<4>[46267.086936]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
-<4>[46267.087006]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
-<4>[46267.087081]  [<ffffffff8118f2e8>] ? kmem_cache_alloc+0xd8/0x1e0
-<4>[46267.087151]  [<ffffffff81445599>] sys_sendto+0x139/0x190
-<4>[46267.087229]  [<ffffffff81448c0d>] ? sock_setsockopt+0x16d/0x6f0
-<4>[46267.087303]  [<ffffffff810efa47>] ? audit_syscall_entry+0x1d7/0x200
-<4>[46267.087378]  [<ffffffff810ef795>] ? __audit_syscall_exit+0x265/0x290
-<4>[46267.087454]  [<ffffffff81474885>] ? compat_sys_setsockopt+0x75/0x210
-<4>[46267.087531]  [<ffffffff81474b5f>] compat_sys_socketcall+0x13f/0x210
-<4>[46267.087607]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
-<4>[46267.087676] Code: 91 20 e2 01 75 29 48 89 de 4c 89 f7 e8 56 fa ff ff 85 c0 0f 84 68 fc ff ff 0f b6 4d c6 41 8b 45 00 e9 4d fb ff ff e8 7c 19 e9 e0 <0f> 0b eb fe f6 05 17 91 20 e2 80 74 ce 80 3d 5f 2e 00 00 00 74
-<1>[46267.088023] RIP  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590
+enum {
+        NFT_PARSE_BUFFER,
+        NFT_PARSE_FILE,
+};
 
-v2: move nf_ct_is_confirmed into the unlikely() annotation
+json_t *nft_json_build_tree(uint32_t type, void *data)
+{
+        json_t *tree;
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
----
- net/netfilter/nf_conntrack_core.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+        switch (type) {
+        case NFT_PARSE_BUFFER:
+                tree = nft_json_build_tree(data, ...);
+                break;
+        case NFT_PARSE_FILE:
+                tree = nft_json_build_tree_file(data, ...);
+                break;
+        }
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 43549eb..403f634 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -387,8 +387,12 @@ begin:
- 			     !atomic_inc_not_zero(&ct->ct_general.use)))
- 			h = NULL;
- 		else {
-+			/* A conntrack can be recreated with the equal tuple,
-+			 * so we need to check that the conntrack is initialized
-+			 */
- 			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
--				     nf_ct_zone(ct) != zone)) {
-+				     nf_ct_zone(ct) != zone ||
-+				     !nf_ct_is_confirmed(ct))) {
- 				nf_ct_put(ct);
- 				goto begin;
- 			}
--- 
-1.8.4.2
+        return tree;
+}
+
+that you can pass this enum to nft_set_do_parse() to indicate how the
+tree need to be build, eg.
+
+statiuc int nft_set_do_parse(..., uint32_t format)
+{
+        switch (format) {
+        ...
+        case NFT_PARSE_JSON:
+                tree = nft_json_build_tree(type, data);
+                break;
+        ...
+        }
+        ...
+}
+
+Where data is the file descriptor / buffer area.
