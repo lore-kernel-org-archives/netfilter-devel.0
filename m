@@ -1,171 +1,132 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 12/12] meta: add l4proto support
-Date: Wed,  8 Jan 2014 13:09:03 +0000
-Message-ID: <1389186543-6919-13-git-send-email-kaber@trash.net>
-References: <1389186543-6919-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40205 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756010AbaAHNJY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:09:24 -0500
-In-Reply-To: <1389186543-6919-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andrey Vagin <avagin@openvz.org>
+Subject: [PATCH] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get (v2)
+Date: Wed,  8 Jan 2014 17:17:31 +0400
+Message-ID: <1389187051-7794-1-git-send-email-avagin@openvz.org>
+References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Andrey Vagin <avagin@openvz.org>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add support for the meta l4proto type. This is used in the inet table to
-match on the transport layer protocol without requiring the network layer
-protocol to be known, allowing to use transport header matches that apply
-to both IPv4 and IPv6.
+Lets look at destroy_conntrack:
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+...
+nf_conntrack_free(ct)
+	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+
+net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
+
+The hash is protected by rcu, so readers look up conntracks without
+locks.
+A conntrack is removed from the hash, but in this moment a few readers
+still can use the conntrack. Then this conntrack is released and another
+thread creates conntrack with the same address and the equal tuple.
+After this a reader starts to validate the conntrack:
+* It's not dying, because a new conntrack was created
+* nf_ct_tuple_equal() returns true.
+
+But this conntrack is not initialized yet, so it can not be used by two
+threads concurrently. In this case BUG_ON may be triggered from
+nf_nat_setup_info().
+
+Florian Westphal suggested to check the confirm bit too. I think it's
+right.
+
+task 1			task 2			task 3
+			nf_conntrack_find_get
+			 ____nf_conntrack_find
+destroy_conntrack
+ hlist_nulls_del_rcu
+ nf_conntrack_free
+ kmem_cache_free
+						__nf_conntrack_alloc
+						 kmem_cache_alloc
+						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
+			 if (nf_ct_is_dying(ct))
+			 if (!nf_ct_tuple_equal()
+
+I'm not sure, that I have ever seen this race condition in a real life.
+Currently we are investigating a bug, which is reproduced on a few node.
+In our case one conntrack is initialized from a few tasks concurrently,
+we don't have any other explanation for this.
+
+<2>[46267.083061] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:322!
+...
+<4>[46267.083951] RIP: 0010:[<ffffffffa01e00a4>]  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590 [nf_nat]
+...
+<4>[46267.085549] Call Trace:
+<4>[46267.085622]  [<ffffffffa023421b>] alloc_null_binding+0x5b/0xa0 [iptable_nat]
+<4>[46267.085697]  [<ffffffffa02342bc>] nf_nat_rule_find+0x5c/0x80 [iptable_nat]
+<4>[46267.085770]  [<ffffffffa0234521>] nf_nat_fn+0x111/0x260 [iptable_nat]
+<4>[46267.085843]  [<ffffffffa0234798>] nf_nat_out+0x48/0xd0 [iptable_nat]
+<4>[46267.085919]  [<ffffffff814841b9>] nf_iterate+0x69/0xb0
+<4>[46267.085991]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086063]  [<ffffffff81484374>] nf_hook_slow+0x74/0x110
+<4>[46267.086133]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086207]  [<ffffffff814b5890>] ? dst_output+0x0/0x20
+<4>[46267.086277]  [<ffffffff81495204>] ip_output+0xa4/0xc0
+<4>[46267.086346]  [<ffffffff814b65a4>] raw_sendmsg+0x8b4/0x910
+<4>[46267.086419]  [<ffffffff814c10fa>] inet_sendmsg+0x4a/0xb0
+<4>[46267.086491]  [<ffffffff814459aa>] ? sock_update_classid+0x3a/0x50
+<4>[46267.086562]  [<ffffffff81444d67>] sock_sendmsg+0x117/0x140
+<4>[46267.086638]  [<ffffffff8151997b>] ? _spin_unlock_bh+0x1b/0x20
+<4>[46267.086712]  [<ffffffff8109d370>] ? autoremove_wake_function+0x0/0x40
+<4>[46267.086785]  [<ffffffff81495e80>] ? do_ip_setsockopt+0x90/0xd80
+<4>[46267.086858]  [<ffffffff8100be0e>] ? call_function_interrupt+0xe/0x20
+<4>[46267.086936]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087006]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087081]  [<ffffffff8118f2e8>] ? kmem_cache_alloc+0xd8/0x1e0
+<4>[46267.087151]  [<ffffffff81445599>] sys_sendto+0x139/0x190
+<4>[46267.087229]  [<ffffffff81448c0d>] ? sock_setsockopt+0x16d/0x6f0
+<4>[46267.087303]  [<ffffffff810efa47>] ? audit_syscall_entry+0x1d7/0x200
+<4>[46267.087378]  [<ffffffff810ef795>] ? __audit_syscall_exit+0x265/0x290
+<4>[46267.087454]  [<ffffffff81474885>] ? compat_sys_setsockopt+0x75/0x210
+<4>[46267.087531]  [<ffffffff81474b5f>] compat_sys_socketcall+0x13f/0x210
+<4>[46267.087607]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
+<4>[46267.087676] Code: 91 20 e2 01 75 29 48 89 de 4c 89 f7 e8 56 fa ff ff 85 c0 0f 84 68 fc ff ff 0f b6 4d c6 41 8b 45 00 e9 4d fb ff ff e8 7c 19 e9 e0 <0f> 0b eb fe f6 05 17 91 20 e2 80 74 ce 80 3d 5f 2e 00 00 00 74
+<1>[46267.088023] RIP  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590
+
+v2: move nf_ct_is_confirmed into the unlikely() annotation
+
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
 ---
- include/proto.h |  1 +
- src/meta.c      | 14 ++++++++++++++
- src/parser.y    |  2 ++
- src/payload.c   |  6 ++++++
- src/proto.c     | 25 +++++++++++++++++++++++++
- src/scanner.l   |  1 +
- 6 files changed, 49 insertions(+)
+ net/netfilter/nf_conntrack_core.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/include/proto.h b/include/proto.h
-index 772f9ed..bd3701e 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -291,6 +291,7 @@ extern const struct proto_desc proto_ip;
- extern const struct proto_desc proto_ip6;
- 
- extern const struct proto_desc proto_inet;
-+extern const struct proto_desc proto_inet_service;
- 
- extern const struct proto_desc proto_arp;
- 
-diff --git a/src/meta.c b/src/meta.c
-index 1286569..d7b024b 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -303,6 +303,8 @@ static const struct meta_template meta_templates[] = {
- 						2 * 8, BYTEORDER_BIG_ENDIAN),
- 	[NFT_META_NFPROTO]	= META_TEMPLATE("nfproto",   &nfproto_type,
- 						1 * 8, BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_L4PROTO]	= META_TEMPLATE("l4proto",   &inet_protocol_type,
-+						1 * 8, BYTEORDER_HOST_ENDIAN),
- 	[NFT_META_PRIORITY]	= META_TEMPLATE("priority",  &tchandle_type,
- 						4 * 8, BYTEORDER_HOST_ENDIAN),
- 	[NFT_META_MARK]		= META_TEMPLATE("mark",      &mark_type,
-@@ -378,6 +380,14 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 
- 		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, &expr->location, desc);
- 		break;
-+	case NFT_META_L4PROTO:
-+		desc = proto_find_upper(&proto_inet_service,
-+					mpz_get_uint8(right->value));
-+		if (desc == NULL)
-+			desc = &proto_unknown;
-+
-+		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR, &expr->location, desc);
-+		break;
- 	default:
- 		break;
- 	}
-@@ -408,6 +418,10 @@ struct expr *meta_expr_alloc(const struct location *loc, enum nft_meta_keys key)
- 		expr->flags |= EXPR_F_PROTOCOL;
- 		expr->meta.base = PROTO_BASE_LL_HDR;
- 		break;
-+	case NFT_META_L4PROTO:
-+		expr->flags |= EXPR_F_PROTOCOL;
-+		expr->meta.base = PROTO_BASE_NETWORK_HDR;
-+		break;
- 	default:
- 		break;
- 	}
-diff --git a/src/parser.y b/src/parser.y
-index aed00c7..7c18875 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -282,6 +282,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- %token META			"meta"
- %token NFPROTO			"nfproto"
-+%token L4PROTO			"l4proto"
- %token MARK			"mark"
- %token IIF			"iif"
- %token IIFNAME			"iifname"
-@@ -1378,6 +1379,7 @@ meta_expr		:	META	meta_key
- 
- meta_key		:	LENGTH		{ $$ = NFT_META_LEN; }
- 			|	NFPROTO		{ $$ = NFT_META_NFPROTO; }
-+			|	L4PROTO		{ $$ = NFT_META_L4PROTO; }
- 			|	PROTOCOL	{ $$ = NFT_META_PROTOCOL; }
- 			|	PRIORITY	{ $$ = NFT_META_PRIORITY; }
- 			|	MARK		{ $$ = NFT_META_MARK; }
-diff --git a/src/payload.c b/src/payload.c
-index ac441d4..a312e07 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -174,6 +174,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 	}
- 
- 	desc = ctx->pctx.protocol[expr->payload.base - 1].desc;
-+	/* Special case for mixed IPv4/IPv6 tables: use meta L4 proto */
-+	if (desc == NULL &&
-+	    ctx->pctx.family == NFPROTO_INET &&
-+	    expr->payload.base == PROTO_BASE_TRANSPORT_HDR)
-+		desc = &proto_inet_service;
-+
- 	if (desc == NULL)
- 		return expr_error(ctx, expr,
- 				  "ambiguous payload specification: "
-diff --git a/src/proto.c b/src/proto.c
-index 81fe6cf..56fb793 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -626,6 +626,31 @@ const struct proto_desc proto_inet = {
- };
- 
- /*
-+ * Dummy protocol for cases where the network layer protocol isn't known
-+ * (IPv4 or IPv6), The higher layer protocols are the protocols common to
-+ * both.
-+ */
-+
-+const struct proto_desc proto_inet_service = {
-+	.name		= "inet-service",
-+	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.protocol_key	= 0,
-+	.protocols	= {
-+		PROTO_LINK(IPPROTO_ESP,		&proto_esp),
-+		PROTO_LINK(IPPROTO_AH,		&proto_ah),
-+		PROTO_LINK(IPPROTO_COMP,	&proto_comp),
-+		PROTO_LINK(IPPROTO_UDP,		&proto_udp),
-+		PROTO_LINK(IPPROTO_UDPLITE,	&proto_udplite),
-+		PROTO_LINK(IPPROTO_TCP,		&proto_tcp),
-+		PROTO_LINK(IPPROTO_DCCP,	&proto_dccp),
-+		PROTO_LINK(IPPROTO_SCTP,	&proto_sctp),
-+	},
-+	.templates	= {
-+		[0]	= PROTO_META_TEMPLATE("l4proto", &inet_protocol_type, NFT_META_L4PROTO, 8),
-+	},
-+};
-+
-+/*
-  * ARP
-  */
- 
-diff --git a/src/scanner.l b/src/scanner.l
-index 9541eb0..0b8abac 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -372,6 +372,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 
- "meta"			{ return META; }
- "nfproto"		{ return NFPROTO; }
-+"l4proto"		{ return L4PROTO; }
- "mark"			{ return MARK; }
- "iif"			{ return IIF; }
- "iifname"		{ return IIFNAME; }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 43549eb..403f634 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -387,8 +387,12 @@ begin:
+ 			     !atomic_inc_not_zero(&ct->ct_general.use)))
+ 			h = NULL;
+ 		else {
++			/* A conntrack can be recreated with the equal tuple,
++			 * so we need to check that the conntrack is initialized
++			 */
+ 			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+-				     nf_ct_zone(ct) != zone)) {
++				     nf_ct_zone(ct) != zone ||
++				     !nf_ct_is_confirmed(ct))) {
+ 				nf_ct_put(ct);
+ 				goto begin;
+ 			}
 -- 
 1.8.4.2
-
