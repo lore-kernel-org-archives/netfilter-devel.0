@@ -1,49 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/3] netfilter: nf_conntrack_dccp: use %s format string for buffer
-Date: Wed,  8 Jan 2014 20:13:23 +0100
-Message-ID: <1389208404-3956-3-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] Netfilter updates for net-next
+Date: Wed, 08 Jan 2014 15:05:20 -0500 (EST)
+Message-ID: <20140108.150520.477424270812121491.davem@davemloft.net>
 References: <1389208404-3956-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1389208404-3956-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Daniel Borkmann <dborkman@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  8 Jan 2014 20:13:21 +0100
 
-Some invocations of nf_log_packet() use arg buffer directly instead of
-"%s" format string with follow-up buffer pointer. Currently, these two
-usages are not really critical, but we should fix this up nevertheless
-so that we don't run into trouble if that changes one day.
+> The following patchset contains three Netfilter updates, they are:
+> 
+> * Fix wrong usage of skb_header_pointer in the DCCP protocol helper that
+>   has been there for quite some time. It was resulting in copying the dccp
+>   header to a pointer allocated in the stack. Fortunately, this pointer
+>   provides room for the dccp header is 4 bytes long, so no crashes have been
+>   reported so far. From Daniel Borkmann.
+> 
+> * Use format string to print in the invocation of nf_log_packet(), again
+>   in the DCCP helper. Also from Daniel Borkmann.
+> 
+> * Revert "netfilter: avoid get_random_bytes call" as prandom32 does not
+>   guarantee enough entropy when being calling this at boot time, that may
+>   happen when reloading the rule.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_proto_dccp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index a99b6c3..3841268 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -457,7 +457,7 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- out_invalid:
- 	if (LOG_INVALID(net, IPPROTO_DCCP))
- 		nf_log_packet(net, nf_ct_l3num(ct), 0, skb, NULL, NULL,
--			      NULL, msg);
-+			      NULL, "%s", msg);
- 	return false;
- }
- 
-@@ -614,7 +614,7 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
- 
- out_invalid:
- 	if (LOG_INVALID(net, IPPROTO_DCCP))
--		nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL, msg);
-+		nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL, "%s", msg);
- 	return -NF_ACCEPT;
- }
- 
--- 
-1.7.10.4
+Pulled, thanks Pablo.
