@@ -1,71 +1,85 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH 4/6] internal: add a selector for parsing ops
-Date: Wed, 8 Jan 2014 13:31:44 +0100
-Message-ID: <CAOkSjBiOw10oK4stjz48yqF63+Y_8-hOoH-uUh4FqO2e7P2DVA@mail.gmail.com>
-References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
- <20140107114732.12841.11957.stgit@nfdev.cica.es> <20140107232919.GD16894@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 00/12] nftables: generic protocol contexts, "inet" family
+Date: Wed,  8 Jan 2014 13:08:51 +0000
+Message-ID: <1389186543-6919-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:59469 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755546AbaAHMcG convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40180 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751AbaAHNJK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 07:32:06 -0500
-Received: by mail-la0-f50.google.com with SMTP id el20so1071328lab.37
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2014 04:32:05 -0800 (PST)
-In-Reply-To: <20140107232919.GD16894@localhost>
+	Wed, 8 Jan 2014 08:09:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 8 January 2014 00:29, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> You should pass a callback function instead, eg.
->
-> static int nft_chain_json_parse(struct nft_chain *c, const char *json=
-,
->                                 struct nft_parse_err *err,
->                                 json_t *(*jsonbuilder)(const void *in=
-put_data,
->                                                        const char *tr=
-eename,
->                                                        struct nft_par=
-se_err *e))
+The following patches implement the necessary support for the mixed IPv4/IPv6
+"inet" family. The patchset consists of two major parts:
 
-Ok.
+- introduction of generic protocol contexts
+- support for the inet family and nfproto/l4proto meta expression types
 
-> But I don't understand yet what you save (in terms of lines of code)
-> by using this aproach.
+The generic protocol contexts are a generalization of the payload contexts.
+Since not only the payload expression, but also the ct and meta expression
+can imply higher or lower layer protocols, the context tracking is
+generalized. A small patch for the ct expression for context dependant
+parsing of ct-src, ct-dst, ct-proto-src and ct-proto-dst is also included.
 
-I avoid doing something like:
+Support for the inet family mainly consist of adding a mapping for the
+parser and netlink support for "inet" <-> NFPROTO_INET and adding support
+for the meta nfproto and l4proto types.
 
-nft_*_parse() {
-switch (type)
- if XML return xml_parse()
- if JSON return json_parse()
-}
+With this in place, we can create rules like:
 
-nft_*_parse_file() {
-switch (type)
- if XML return xml_parse_file()
- if JSON return json_parse_file()
-}
+inet filter output tcp dport ssh counter
 
-We double the format switch, and also two functions per format are
-needed to do build and parsing.
-Total =3D 6 functions heavily duplicating code.
+to match on ssh traffic for both IPv4 and IPv6.
 
-With my approach, we have 1 function that decides which format to
-parse, and a one function per format to build and do parsing.
-Total =3D 3 functions, no duplicate code.
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+inet filter output nfproto ipv4 tcp dport ssh
+
+to match on ssh traffic for only IPv4.
+
+Sets etc. have been verified to work as expected.
+
+I've rebased the patches on the next-3.14 branch and will push them to
+the nftables tree shortly.
+
+Patrick McHardy (12):
+      expr: replace PAYLOAD_PROTOCOL_EXPR by generic flag
+      nftables: generic procotol contexts
+      expr: add protocol context update callback
+      proto: add helper function to update protocol context
+      proto: add debugging for protocol context updates
+      ct expr: protocol context updates and dynamic typing
+      include: resync nftables.h with kernel
+      nftables: add support for the "inet" family
+      netlink_delinearize: remove implied meta expressions
+      proto: add support for meta templates
+      meta: add nfproto support
+      meta: add l4proto support
+
+ include/ct.h                        |   1 +
+ include/datatype.h                  |   3 +
+ include/expression.h                |  18 +-
+ include/exthdr.h                    |   6 +-
+ include/linux/netfilter.h           |  22 +-
+ include/linux/netfilter/nf_tables.h | 116 ++++-
+ include/nftables.h                  |   1 +
+ include/payload.h                   | 288 +-----------
+ include/proto.h                     | 304 +++++++++++++
+ include/rule.h                      |   2 +-
+ src/Makefile.in                     |   1 +
+ src/ct.c                            |  58 +++
+ src/datatype.c                      |  18 +
+ src/evaluate.c                      |  47 +-
+ src/exthdr.c                        |  26 +-
+ src/main.c                          |   6 +-
+ src/meta.c                          |  70 +++
+ src/netlink_delinearize.c           |  43 +-
+ src/parser.y                        |  43 +-
+ src/payload.c                       | 855 +++---------------------------------
+ src/proto.c                         | 814 ++++++++++++++++++++++++++++++++++
+ src/rule.c                          |   3 +
+ src/scanner.l                       |   4 +
+ 23 files changed, 1581 insertions(+), 1168 deletions(-)
+
