@@ -1,40 +1,39 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH 6/6] tests: update tests with nft_*_parse_file()
-Date: Wed, 8 Jan 2014 13:21:56 +0100
-Message-ID: <CAOkSjBiQ4AbeD3dpR+4h+aO7PeMX6FGym1CxNu0xuMuVz82k4g@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 3/6] internal: rework parsing symbol logic
+Date: Wed, 8 Jan 2014 13:25:28 +0100
+Message-ID: <20140108122528.GA25406@localhost>
 References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
- <20140107114742.12841.61774.stgit@nfdev.cica.es> <20140107233219.GE16894@localhost>
+ <20140107114726.12841.59406.stgit@nfdev.cica.es>
+ <20140107231813.GC16894@localhost>
+ <CAOkSjBibj-66qf2mr=26d1GPfASJFjb+9Bbyv2LOsi3rUkuyYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:39140 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755441AbaAHMWS convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 07:22:18 -0500
-Received: by mail-la0-f43.google.com with SMTP id n7so1094030lam.30
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2014 04:22:16 -0800 (PST)
-In-Reply-To: <20140107233219.GE16894@localhost>
+Received: from mail.us.es ([193.147.175.20]:60041 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755610AbaAHMZd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jan 2014 07:25:33 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBibj-66qf2mr=26d1GPfASJFjb+9Bbyv2LOsi3rUkuyYw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 8 January 2014 00:32, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> This was fine in an early stage, but now that you have the ruleset
-> API, we should provide a nft_ruleset_parse_file(...) function that do
-> all this for you. As a side effect, the test will be simplified.
->
+On Wed, Jan 08, 2014 at 01:20:51PM +0100, Arturo Borrero Gonzalez wrote:
+> On 8 January 2014 00:18, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > We don't save any ifdef.
+> 
+> Well, we need at least one ifdef per format. I don't see how we can
+> get rid of them.
+> 
+> This patch just condensates the logic to one single point, also adding
+> the void definition, which is good for other patches in the series.
 
-good point. I will rework this.
+OK, then you have to include in the description that it simplifies
+follow-up patches and in what way.
 
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But I also rised some concerns on the follow-up patches that you have
+to address.
