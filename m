@@ -1,120 +1,91 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH 4/6] internal: add a selector for parsing ops
-Date: Wed, 8 Jan 2014 14:36:55 +0100
-Message-ID: <20140108133655.GA25887@localhost>
-References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
- <20140107114732.12841.11957.stgit@nfdev.cica.es>
- <20140107232919.GD16894@localhost>
- <CAOkSjBiOw10oK4stjz48yqF63+Y_8-hOoH-uUh4FqO2e7P2DVA@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get
+Date: Wed, 08 Jan 2014 05:42:16 -0800
+Message-ID: <1389188536.26646.84.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+	 <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20140107152520.GF9894@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52168 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755388AbaAHNhI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:37:08 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBiOw10oK4stjz48yqF63+Y_8-hOoH-uUh4FqO2e7P2DVA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Andrey Vagin <avagin@openvz.org>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140107152520.GF9894@breakpoint.cc>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 08, 2014 at 01:31:44PM +0100, Arturo Borrero Gonzalez wrote:
-> On 8 January 2014 00:29, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > You should pass a callback function instead, eg.
-> >
-> > static int nft_chain_json_parse(struct nft_chain *c, const char *json,
-> >                                 struct nft_parse_err *err,
-> >                                 json_t *(*jsonbuilder)(const void *input_data,
-> >                                                        const char *treename,
-> >                                                        struct nft_parse_err *e))
+On Tue, 2014-01-07 at 16:25 +0100, Florian Westphal wrote:
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > > index 43549eb..7a34bb2 100644
+> > > --- a/net/netfilter/nf_conntrack_core.c
+> > > +++ b/net/netfilter/nf_conntrack_core.c
+> > > @@ -387,8 +387,12 @@ begin:
+> > >  			     !atomic_inc_not_zero(&ct->ct_general.use)))
+> > >  			h = NULL;
+> > >  		else {
+> > > +			/* A conntrack can be recreated with the equal tuple,
+> > > +			 * so we need to check that the conntrack is initialized
+> > > +			 */
+> > >  			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+> > > -				     nf_ct_zone(ct) != zone)) {
+> > > +				     nf_ct_zone(ct) != zone) ||
+> > > +				     !nf_ct_is_confirmed(ct)) {
+> > >  				nf_ct_put(ct);
+> > >  				goto begin;
+> > >  			}
+> > 
+> > I do not think this is the right way to fix this problem (if said
+> > problem is confirmed)
+> > 
+> > Remember the rule about SLAB_DESTROY_BY_RCU :
+> > 
+> > When a struct is freed, then reused, its important to set the its refcnt
+> > (from 0 to 1) only when the structure is fully ready for use.
+> > 
+> > If a lookup finds a structure which is not yet setup, the
+> > atomic_inc_not_zero() will fail.
 > 
-> Ok.
+> Indeed.  But, the structure itself might be ready (or rather,
+> can be ready since the allocation side will set the refcount to one
+> after doing the initial work, such as zapping old ->status flags and
+> setting tuple information).
 > 
-> > But I don't understand yet what you save (in terms of lines of code)
-> > by using this aproach.
+> The problem is with nat extension area stored in the ct->ext area.
+> This extension area is preallocated but the snat/dnat action
+> information is only set up after the ct (or rather, the skb that grabbed
+> a reference to the nf_conn entry) traverses nat pre/postrouting.
 > 
-> I avoid doing something like:
+> This will also set up a null-binding when no matching SNAT/DNAT/MASQERUADE
+> rule existed.
 > 
-> nft_*_parse() {
-> switch (type)
->  if XML return xml_parse()
->  if JSON return json_parse()
-> }
+> The manipulations of the skb->nfct->ext nat area are performed without
+> a lock.  Concurrent access is supposedly impossible as the conntrack
+> should not (yet) be in the hash table.
 > 
-> nft_*_parse_file() {
-> switch (type)
->  if XML return xml_parse_file()
->  if JSON return json_parse_file()
-> }
+> The confirmed bit is set right before we insert the conntrack into
+> the hash table (after we traversed rules, ct is ready to be
+> 'published').
 > 
-> We double the format switch, and also two functions per format are
-> needed to do build and parsing.
-> Total = 6 functions heavily duplicating code.
+> i.e. when the confirmed bit is NOT set we should not be 'seeing' the nf_conn
+> struct when we perform the lookup, as it should still be sitting on the
+> 'unconfirmed' list, being invisible to readers.
 > 
-> With my approach, we have 1 function that decides which format to
-> parse, and a one function per format to build and do parsing.
-> Total = 3 functions, no duplicate code.
+> Does that explanation make sense to you?
+> 
+> Thanks for looking into this.
 
-I guess this is saving you code, but I think this abstraction needs to
-be refined, your functions:
+Still, this patch adds a loop. And maybe an infinite one if confirmed
+bit is set from an context that was interrupted by this one.
 
-* nft_mxml_do_build_tree
-* nft_mxml_do_build_tree_file
-
-look almost the same, only difference is mxmlLoadString / mxmlLoadFile.
-
-I really think you can save more code and make this look better if you
-rework the internal nft_*_json_parse functions to receive the xml/json
-trees, eg.
-
-static int nft_set_json_parse(struct nft_set *s, json_t tree
-                              struct nft_parse_err *err)
-{
-        ...
-}
-
-So you nft_set_do_parse() creates the tree and pass it to it.
-
-You can also add an enum like:
-
-enum {
-        NFT_PARSE_BUFFER,
-        NFT_PARSE_FILE,
-};
-
-json_t *nft_json_build_tree(uint32_t type, void *data)
-{
-        json_t *tree;
-
-        switch (type) {
-        case NFT_PARSE_BUFFER:
-                tree = nft_json_build_tree(data, ...);
-                break;
-        case NFT_PARSE_FILE:
-                tree = nft_json_build_tree_file(data, ...);
-                break;
-        }
-
-        return tree;
-}
-
-that you can pass this enum to nft_set_do_parse() to indicate how the
-tree need to be build, eg.
-
-statiuc int nft_set_do_parse(..., uint32_t format)
-{
-        switch (format) {
-        ...
-        case NFT_PARSE_JSON:
-                tree = nft_json_build_tree(type, data);
-                break;
-        ...
-        }
-        ...
-}
-
-Where data is the file descriptor / buffer area.
+If you need to test the confirmed bit, then you also need to test it
+before taking the refcount.
