@@ -1,193 +1,99 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 06/12] ct expr: protocol context updates and dynamic typing
-Date: Wed,  8 Jan 2014 13:08:57 +0000
-Message-ID: <1389186543-6919-7-git-send-email-kaber@trash.net>
+Subject: [PATCH 04/12] proto: add helper function to update protocol context
+Date: Wed,  8 Jan 2014 13:08:55 +0000
+Message-ID: <1389186543-6919-5-git-send-email-kaber@trash.net>
 References: <1389186543-6919-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40194 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40190 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755112AbaAHNJS (ORCPT
+	with ESMTP id S1755739AbaAHNJP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:09:18 -0500
+	Wed, 8 Jan 2014 08:09:15 -0500
 In-Reply-To: <1389186543-6919-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Include the protocols defined through relational ct expressions in the
-protocol context and use the protocol context to dynamically determine
-the types of network and transport layer ct expression types.
+Add a helper function which is to be used to update the protocol update.
 
-Before:
-
-$ nft filter output ct proto-dst ssh
-<cmdline>:1:28-30: Error: Can't parse symbolic invalid expressions
-filter output ct proto-dst ssh
-                           ^^^
-$ nft filter output ip protocol tcp ct proto-dst ssh
-<cmdline>:1:44-46: Error: Can't parse symbolic invalid expressions
-filter output ip protocol tcp ct proto-dst ssh
-                                           ^^^
-$ nft filter output ct protocol tcp ct proto-dst ssh
-<cmdline>:1:44-46: Error: Can't parse symbolic invalid expressions
-filter output ct protocol tcp ct proto-dst ssh
-                                           ^^^
-After:
-
-$ nft filter output ct proto-dst ssh
-<cmdline>:1:28-30: Error: Can't parse symbolic invalid expressions
-filter output ct proto-dst ssh
-                           ^^^
-$ nft filter output ip protocol tcp ct proto-dst ssh
-$ nft filter output ct protocol tcp ct proto-dst ssh
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Patrick McHardy <ksber@trash.net<
 ---
- include/ct.h   |  1 +
- src/ct.c       | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/evaluate.c | 16 +++++++++++++++-
- 3 files changed, 74 insertions(+), 1 deletion(-)
+ include/proto.h |  3 +++
+ src/meta.c      |  3 +--
+ src/payload.c   |  3 +--
+ src/proto.c     | 16 ++++++++++++++++
+ 4 files changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/include/ct.h b/include/ct.h
-index 67718c8..64366ab 100644
---- a/include/ct.h
-+++ b/include/ct.h
-@@ -25,5 +25,6 @@ struct ct_template {
- 
- extern struct expr *ct_expr_alloc(const struct location *loc,
- 				  enum nft_ct_keys key);
-+extern void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr);
- 
- #endif /* NFTABLES_CT_H */
-diff --git a/src/ct.c b/src/ct.c
-index e5ca593..b8f7632 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -23,6 +23,7 @@
- #include <expression.h>
- #include <datatype.h>
- #include <ct.h>
-+#include <gmputil.h>
- #include <utils.h>
- 
- static const struct symbol_table ct_state_tbl = {
-@@ -139,11 +140,32 @@ static void ct_expr_clone(struct expr *new, const struct expr *expr)
- 	new->ct.key = expr->ct.key;
- }
- 
-+static void ct_expr_pctx_update(struct proto_ctx *ctx, const struct expr *expr)
-+{
-+	const struct expr *left = expr->left, *right = expr->right;
-+	const struct proto_desc *base, *desc;
-+
-+	assert(expr->op == OP_EQ);
-+
-+	switch (left->ct.key) {
-+	case NFT_CT_PROTOCOL:
-+		base = ctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		desc = proto_find_upper(base, mpz_get_uint32(right->value));
-+
-+		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR,
-+				 &expr->location, desc);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static const struct expr_ops ct_expr_ops = {
- 	.type		= EXPR_CT,
- 	.name		= "ct",
- 	.print		= ct_expr_print,
- 	.clone		= ct_expr_clone,
-+	.pctx_update	= ct_expr_pctx_update,
+diff --git a/include/proto.h b/include/proto.h
+index 037ef09..de58d4c 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -122,6 +122,9 @@ struct proto_ctx {
  };
  
- struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key)
-@@ -154,9 +176,45 @@ struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key)
- 	expr = expr_alloc(loc, &ct_expr_ops, tmpl->dtype,
- 			  tmpl->byteorder, tmpl->len);
- 	expr->ct.key = key;
-+
-+	switch (key) {
-+	case NFT_CT_PROTOCOL:
-+		expr->flags = EXPR_F_PROTOCOL;
-+		break;
-+	default:
-+		break;
-+	}
-+
- 	return expr;
+ extern void proto_ctx_init(struct proto_ctx *ctx, unsigned int family);
++extern void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
++			     const struct location *loc,
++			     const struct proto_desc *desc);
+ extern const struct proto_desc *proto_find_upper(const struct proto_desc *base,
+ 						 unsigned int num);
+ extern int proto_find_num(const struct proto_desc *base,
+diff --git a/src/meta.c b/src/meta.c
+index 9173c30..e0ae950 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -367,8 +367,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
+ 	if (desc == NULL)
+ 		desc = &proto_unknown;
+ 
+-	ctx->protocol[PROTO_BASE_LL_HDR].location = expr->location;
+-	ctx->protocol[PROTO_BASE_LL_HDR].desc	  = desc;
++	proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
  }
  
-+void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
-+{
-+	const struct proto_desc *desc;
-+
-+	switch (expr->ct.key) {
-+	case NFT_CT_SRC:
-+	case NFT_CT_DST:
-+		desc = ctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (desc == &proto_ip)
-+			expr->dtype = &ipaddr_type;
-+		else if (desc == &proto_ip6)
-+			expr->dtype = &ip6addr_type;
-+
-+		expr->len = expr->dtype->size;
-+		break;
-+	case NFT_CT_PROTO_SRC:
-+	case NFT_CT_PROTO_DST:
-+		desc = ctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
-+		if (desc == NULL)
-+			break;
-+		expr->dtype = &inet_service_type;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static void __init ct_init(void)
- {
- 	datatype_register(&ct_state_type);
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 3fe9da4..257c67e 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -290,6 +290,19 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
+ static const struct expr_ops meta_expr_ops = {
+diff --git a/src/payload.c b/src/payload.c
+index 426adc3..0ef3c79 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -69,8 +69,7 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
+ 	base = ctx->protocol[left->payload.base].desc;
+ 	desc = proto_find_upper(base, mpz_get_uint32(right->value));
+ 
+-	ctx->protocol[left->payload.base + 1].location = expr->location;
+-	ctx->protocol[left->payload.base + 1].desc = desc;
++	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc);
  }
  
- /*
-+ * CT expression: update the protocol dependant types bases on the protocol
-+ * context.
+ static const struct expr_ops payload_expr_ops = {
+diff --git a/src/proto.c b/src/proto.c
+index c6428e4..f611c97 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -143,6 +143,22 @@ void proto_ctx_init(struct proto_ctx *ctx, unsigned int family)
+ 	ctx->protocol[h->base].desc = h->desc;
+ }
+ 
++/**
++ * proto_ctx_update: update protocol context for given protocol base
++ *
++ * @ctx:	protocol context
++ * @base:	protocol base
++ * @loc:	location of the relational expression definiting the context
++ * @desc:	protocol description for the given layer
 + */
-+static int expr_evaluate_ct(struct eval_ctx *ctx, struct expr **expr)
++void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
++		      const struct location *loc,
++		      const struct proto_desc *desc)
 +{
-+	struct expr *ct = *expr;
-+
-+	ct_expr_update_type(&ctx->pctx, ct);
-+
-+	return expr_evaluate_primary(ctx, expr);
++	ctx->protocol[base].location	= *loc;
++	ctx->protocol[base].desc	= desc;
 +}
 +
-+/*
-  * Prefix expression: the argument must be a constant value of integer base
-  * type; the prefix length must be less than or equal to the type width.
-  */
-@@ -1042,10 +1055,11 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	case EXPR_VERDICT:
- 	case EXPR_EXTHDR:
- 	case EXPR_META:
--	case EXPR_CT:
- 		return expr_evaluate_primary(ctx, expr);
- 	case EXPR_PAYLOAD:
- 		return expr_evaluate_payload(ctx, expr);
-+	case EXPR_CT:
-+		return expr_evaluate_ct(ctx, expr);
- 	case EXPR_PREFIX:
- 		return expr_evaluate_prefix(ctx, expr);
- 	case EXPR_RANGE:
+ #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
+ 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
+ 			   offsetof(__type, __member) * 8,		\
 -- 
 1.8.4.2
 
