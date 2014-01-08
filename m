@@ -1,99 +1,101 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 04/12] proto: add helper function to update protocol context
-Date: Wed,  8 Jan 2014 13:08:55 +0000
-Message-ID: <1389186543-6919-5-git-send-email-kaber@trash.net>
+Subject: [PATCH 08/12] nftables: add support for the "inet" family
+Date: Wed,  8 Jan 2014 13:08:59 +0000
+Message-ID: <1389186543-6919-9-git-send-email-kaber@trash.net>
 References: <1389186543-6919-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40190 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40194 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755739AbaAHNJP (ORCPT
+	with ESMTP id S1756010AbaAHNJT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 08:09:15 -0500
+	Wed, 8 Jan 2014 08:09:19 -0500
 In-Reply-To: <1389186543-6919-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a helper function which is to be used to update the protocol update.
+Add support for the mixed IPv4/IPv6 "inet" family. This mainly consist
+of adding the "inet" <-> NFPROTO_INET mapping in the parser and netlink
+support functions.
 
-Signed-off-by: Patrick McHardy <ksber@trash.net<
+Additionally add the definitions for the inet filter table.
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/proto.h |  3 +++
- src/meta.c      |  3 +--
- src/payload.c   |  3 +--
- src/proto.c     | 16 ++++++++++++++++
- 4 files changed, 21 insertions(+), 4 deletions(-)
+ src/evaluate.c | 1 +
+ src/parser.y   | 3 +++
+ src/rule.c     | 3 +++
+ src/scanner.l  | 2 ++
+ 4 files changed, 9 insertions(+)
 
-diff --git a/include/proto.h b/include/proto.h
-index 037ef09..de58d4c 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -122,6 +122,9 @@ struct proto_ctx {
- };
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 257c67e..4ca3294 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1273,6 +1273,7 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
+ 	case NFPROTO_IPV4:
+ 	case NFPROTO_BRIDGE:
+ 	case NFPROTO_IPV6:
++	case NFPROTO_INET:
+ 		/* These families have overlapping values for each hook */
+ 		if (!strcmp(hook, "prerouting"))
+ 			return NF_INET_PRE_ROUTING;
+diff --git a/src/parser.y b/src/parser.y
+index 7778d50..1907333 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -166,6 +166,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token MAP			"map"
+ %token HANDLE			"handle"
  
- extern void proto_ctx_init(struct proto_ctx *ctx, unsigned int family);
-+extern void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
-+			     const struct location *loc,
-+			     const struct proto_desc *desc);
- extern const struct proto_desc *proto_find_upper(const struct proto_desc *base,
- 						 unsigned int num);
- extern int proto_find_num(const struct proto_desc *base,
-diff --git a/src/meta.c b/src/meta.c
-index 9173c30..e0ae950 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -367,8 +367,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 	if (desc == NULL)
- 		desc = &proto_unknown;
- 
--	ctx->protocol[PROTO_BASE_LL_HDR].location = expr->location;
--	ctx->protocol[PROTO_BASE_LL_HDR].desc	  = desc;
-+	proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
- }
- 
- static const struct expr_ops meta_expr_ops = {
-diff --git a/src/payload.c b/src/payload.c
-index 426adc3..0ef3c79 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -69,8 +69,7 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
- 	base = ctx->protocol[left->payload.base].desc;
- 	desc = proto_find_upper(base, mpz_get_uint32(right->value));
- 
--	ctx->protocol[left->payload.base + 1].location = expr->location;
--	ctx->protocol[left->payload.base + 1].desc = desc;
-+	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc);
- }
- 
- static const struct expr_ops payload_expr_ops = {
-diff --git a/src/proto.c b/src/proto.c
-index c6428e4..f611c97 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -143,6 +143,22 @@ void proto_ctx_init(struct proto_ctx *ctx, unsigned int family)
- 	ctx->protocol[h->base].desc = h->desc;
- }
- 
-+/**
-+ * proto_ctx_update: update protocol context for given protocol base
-+ *
-+ * @ctx:	protocol context
-+ * @base:	protocol base
-+ * @loc:	location of the relational expression definiting the context
-+ * @desc:	protocol description for the given layer
-+ */
-+void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
-+		      const struct location *loc,
-+		      const struct proto_desc *desc)
-+{
-+	ctx->protocol[base].location	= *loc;
-+	ctx->protocol[base].desc	= desc;
-+}
++%token INET			"inet"
 +
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
- 			   offsetof(__type, __member) * 8,		\
+ %token ADD			"add"
+ %token INSERT			"insert"
+ %token DELETE			"delete"
+@@ -827,6 +829,7 @@ string			:	STRING
+ family_spec		:	/* empty */	{ $$ = NFPROTO_IPV4; }
+ 			|	IP		{ $$ = NFPROTO_IPV4; }
+ 			|	IP6		{ $$ = NFPROTO_IPV6; }
++			|	INET		{ $$ = NFPROTO_INET; }
+ 			|	ARP		{ $$ = NFPROTO_ARP; }
+ 			|	BRIDGE		{ $$ = NFPROTO_BRIDGE; }
+ 			;
+diff --git a/src/rule.c b/src/rule.c
+index ec8b6a4..a16c2de 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -276,6 +276,8 @@ static const char *family2str(unsigned int family)
+ 			return "ip";
+ 		case NFPROTO_IPV6:
+ 			return "ip6";
++		case NFPROTO_INET:
++			return "inet";
+ 		case NFPROTO_ARP:
+ 			return "arp";
+ 		case NFPROTO_BRIDGE:
+@@ -292,6 +294,7 @@ static const char *hooknum2str(unsigned int family, unsigned int hooknum)
+ 	case NFPROTO_IPV4:
+ 	case NFPROTO_BRIDGE:
+ 	case NFPROTO_IPV6:
++	case NFPROTO_INET:
+ 		switch (hooknum) {
+ 		case NF_INET_PRE_ROUTING:
+ 			return "prerouting";
+diff --git a/src/scanner.l b/src/scanner.l
+index 8c4f25d..f075f82 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -235,6 +235,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "goto"			{ return GOTO; }
+ "return"		{ return RETURN; }
+ 
++"inet"			{ return INET; }
++
+ "add"			{ return ADD; }
+ "insert"		{ return INSERT; }
+ "delete"		{ return DELETE; }
 -- 
 1.8.4.2
 
