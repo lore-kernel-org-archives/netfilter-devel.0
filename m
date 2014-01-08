@@ -1,37 +1,40 @@
-From: Sam Liddicott <sam@liddicott.com>
-Subject: Re: Patches to xtables-addons xt_quota2
-Date: Wed, 8 Jan 2014 10:12:35 +0000
-Message-ID: <CAOj-5WD_+rGGZXA7X1FaMVUgkRJAPbpgwy6Ax1YnQDBpRbtPPA@mail.gmail.com>
-References: <CAOj-5WAsU-WxdKbP1ijmhRGAO=u204ZyGM5PZNcrsJoOB1hsug@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH 3/6] internal: rework parsing symbol logic
+Date: Wed, 8 Jan 2014 13:20:51 +0100
+Message-ID: <CAOkSjBibj-66qf2mr=26d1GPfASJFjb+9Bbyv2LOsi3rUkuyYw@mail.gmail.com>
+References: <20140107114518.12841.35778.stgit@nfdev.cica.es>
+ <20140107114726.12841.59406.stgit@nfdev.cica.es> <20140107231813.GC16894@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:55997 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932AbaAHKMg (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:41080 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756136AbaAHMVN convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 05:12:36 -0500
-Received: by mail-qc0-f181.google.com with SMTP id e9so1070183qcy.40
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2014 02:12:35 -0800 (PST)
-In-Reply-To: <CAOj-5WAsU-WxdKbP1ijmhRGAO=u204ZyGM5PZNcrsJoOB1hsug@mail.gmail.com>
+	Wed, 8 Jan 2014 07:21:13 -0500
+Received: by mail-lb0-f178.google.com with SMTP id c11so1209025lbj.23
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2014 04:21:12 -0800 (PST)
+In-Reply-To: <20140107231813.GC16894@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Because of a diversion in my private tree patch 3 did not compile due
-to missing include directive. I'm doing a merge request via
-sourceforge for one that does.
+On 8 January 2014 00:18, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> We don't save any ifdef.
 
-Sam
+Well, we need at least one ifdef per format. I don't see how we can
+get rid of them.
 
-On Tue, Jan 7, 2014 at 6:56 PM, Sam Liddicott <sam@liddicott.com> wrote:
-> 0001,0002 fix bugs, 0003 adds new feature of incremental changes to quota files.
->
-> They apply to HEAD of xtables-addons on sourceforge
->
-> These patches should be self explanatory but may need some review as I
-> have tried to preserve existing style rather than refactor but you may
-> prefer to refactor. There was also some confusion on locking in the
-> increment support patch and I'm not sure if I have it right.
->
-> Sam
+This patch just condensates the logic to one single point, also adding
+the void definition, which is good for other patches in the series.
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
