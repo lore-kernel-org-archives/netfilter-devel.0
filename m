@@ -1,41 +1,53 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] add markmask for hash:ip,mark data type
-Date: Wed, 8 Jan 2014 22:22:54 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1401082213110.27937@blackhole.kfki.hu>
-References: <alpine.DEB.2.10.1312032006500.32285 () blackhole ! kfki ! hu> <1387288904-26456-1-git-send-email-vytas.dauksa@smoothwall.net> <1387288904-26456-2-git-send-email-vytas.dauksa@smoothwall.net>
+From: "Dr. Musa Hamed" <drmusahamed01@gmail.com>
+Subject: I have a very lucrative Business
+Date: Wed, 8 Jan 2014 22:09:26 +0100
+Message-ID: <CALS90i_uRjZ62tmjAJxJQQAo9UGHzUYnuRV1mCELr6JVeJb-dw__19893.4640190148$1389217120$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+Content-Type: text/plain; charset=ISO-8859-1
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:44287 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668AbaAHVW5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jan 2014 16:22:57 -0500
-In-Reply-To: <1387288904-26456-2-git-send-email-vytas.dauksa@smoothwall.net>
+Received: from mail-we0-f194.google.com ([74.125.82.194]:62364 "EHLO
+	mail-we0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757841AbaAHViZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jan 2014 16:38:25 -0500
+Received: by mail-we0-f194.google.com with SMTP id t60so85328wes.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jan 2014 13:38:24 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 17 Dec 2013, Vytas Dauksa wrote:
+ATTN: Dear,
 
-> Introduce packet mark mask for hash:ip,mark data type. This allows to
-> set mark bit filter for the ip set.
+I am Dr. Musa Hamed Executive Director of the Bank of Africa
+Plc B.O.A,Cotonou Benin Rep. I have a very lucrative Business proposal
+worth of 21,500,000.00 USD.
 
-Why it's important that the kernel should mask the mark value, when the 
-user could add the intended value directly? The only case where it's 
-required when entries added/deleted by the SET target. It's more natural 
-for me if the markmask value has a meaning and effect for kernel side 
-add/del operations only, and ignored for user add/del/test and kernel 
-tests. What's your opinion?
+An Iraqi named Hamadi Hashem a business man made a fixed deposit of
+21,500,000.00 USD . Upon maturity several notices was sent to him,
+even during the war,eleven years ago (2003) up till this date. Again
+after the war another notification was sent and still no response came
+from him. it has been found out that Hamadi Hashem and his family had
+been killed during the war in bomb blast that hit their home at
+Mukaradeeb where his personal oil well was. I am prepared to split the
+funds with you 50%:50%.By placing you as the NEXT OF KIN to his
+deposit.
 
-A small thing, but I'd prefer if the mark value were printed/saved in hex 
-instead of decimal, similarly to iptables. Better introduce a new print 
-function for it.
+Should you be interested in doing this deal with me, please send me
+the following information:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+(1) Your Name
+(2) Resident Address
+(3) Your Occupation
+(4) Your Phone Number
+(5) Date of Birth
+(6) Resident Country
+
+And I will prefer you to reach me privately and securely on my personal
+email address: dr.musahamed30@yahoo.fr
+Tel: +229-988-400-97
+
+I will provide you with further information as soon as I hear
+positively from you.
+
+Regards,
+Dr. Musa Hamed
