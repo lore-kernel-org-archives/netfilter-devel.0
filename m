@@ -1,92 +1,74 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Wed, 08 Jan 2014 09:31:27 -0800
-Message-ID: <1389202287.26646.95.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
-	 <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140107152520.GF9894@breakpoint.cc>
-	 <1389188536.26646.84.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140108140444.GH9894@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Andrey Vagin <avagin@openvz.org>, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	vvs@openvz.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140108140444.GH9894@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/3] netfilter: nf_conntrack_dccp: fix skb_header_pointer API usages
+Date: Wed,  8 Jan 2014 20:13:24 +0100
+Message-ID: <1389208404-3956-4-git-send-email-pablo@netfilter.org>
+References: <1389208404-3956-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54781 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756008AbaAHTNq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jan 2014 14:13:46 -0500
+In-Reply-To: <1389208404-3956-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2014-01-08 at 15:04 +0100, Florian Westphal wrote:
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > > This will also set up a null-binding when no matching SNAT/DNAT/MASQERUADE
-> > > rule existed.
-> > > 
-> > > The manipulations of the skb->nfct->ext nat area are performed without
-> > > a lock.  Concurrent access is supposedly impossible as the conntrack
-> > > should not (yet) be in the hash table.
-> > > 
-> > > The confirmed bit is set right before we insert the conntrack into
-> > > the hash table (after we traversed rules, ct is ready to be
-> > > 'published').
-> > > 
-> > > i.e. when the confirmed bit is NOT set we should not be 'seeing' the nf_conn
-> > > struct when we perform the lookup, as it should still be sitting on the
-> > > 'unconfirmed' list, being invisible to readers.
-> > > 
-> > > Does that explanation make sense to you?
-> > > 
-> > > Thanks for looking into this.
-> > 
-> > Still, this patch adds a loop. And maybe an infinite one if confirmed
-> > bit is set from an context that was interrupted by this one.
-> 
-> Hmm.  There should be at most one retry.
-> 
-> The confirmed bit should always be set here.
+From: Daniel Borkmann <dborkman@redhat.com>
 
-So why are you testing it ?
+Some occurences in the netfilter tree use skb_header_pointer() in
+the following way ...
 
-> If it isn't then this conntrack shouldn't be in the hash table, i.e.
-> when we re-try we should find the same conntrack again with the bit set.
+  struct dccp_hdr _dh, *dh;
+  ...
+  skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
 
-Where is this guaranteed ? The invariant is the refcnt being taken.
+... where dh itself is a pointer that is being passed as the copy
+buffer. Instead, we need to use &_dh as the forth argument so that
+we're copying the data into an actual buffer that sits on the stack.
 
-> 
-> Asuming the other cpu git interrupted after setting confirmed
-> bit but before inserting it into the hash table, then our re-try
-> should not be able find a matching entry.
-> 
-> Maybe I am missing something, but I don't see how we could (upon
-> retry) find the very same entry again with the bit still not set.
-> 
-> > If you need to test the confirmed bit, then you also need to test it
-> > before taking the refcount.
-> 
-> I don't think that would make sense, because it should always be
-> set (inserting conntrack into hash table without confirmed set is
-> illegal, and it is never unset again).
-> 
-> [ when allocating a new conntrack, ct->status is zeroed, which also
->   clears the flag.  This happens just before we set the new objects
->   refcount to 1 ]
+Currently, we probably could overwrite memory on the stack (e.g.
+with a possibly mal-formed DCCP packet), but unintentionally, as
+we only want the buffer to be placed into _dh variable.
 
+Fixes: 2bc780499aa3 ("[NETFILTER]: nf_conntrack: add DCCP protocol support")
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_proto_dccp.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I did this RCU conversion, so I think I know what I am talking about.
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 3841268..cb372f9 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -428,7 +428,7 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 	const char *msg;
+ 	u_int8_t state;
+ 
+-	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
++	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+ 	BUG_ON(dh == NULL);
+ 
+ 	state = dccp_state_table[CT_DCCP_ROLE_CLIENT][dh->dccph_type][CT_DCCP_NONE];
+@@ -486,7 +486,7 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+ 	u_int8_t type, old_state, new_state;
+ 	enum ct_dccp_roles role;
+ 
+-	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
++	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+ 	BUG_ON(dh == NULL);
+ 	type = dh->dccph_type;
+ 
+@@ -577,7 +577,7 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
+ 	unsigned int cscov;
+ 	const char *msg;
+ 
+-	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &dh);
++	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+ 	if (dh == NULL) {
+ 		msg = "nf_ct_dccp: short packet ";
+ 		goto out_invalid;
+-- 
+1.7.10.4
 
-The entry should not be put into hash table (or refcnt set to 1),
-if its not ready. It is that simple.
-
-We need to address this problem without adding an extra test and
-possible loop for the lookups.
-
-Whole point of RCU is to make lookups fast, by possibly making the
-writers doing all the needed logic.
