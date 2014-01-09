@@ -1,13 +1,13 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftables next-3.14] src: fix compilation due to missing NFPROTO_INET definition
-Date: Fri, 10 Jan 2014 00:15:30 +0100
-Message-ID: <1389309330-7997-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH libnftables next-3.14 v2] src: fix compilation due to missing NFPROTO_INET definition
+Date: Fri, 10 Jan 2014 00:27:00 +0100
+Message-ID: <1389310020-12628-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45763 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46585 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814AbaAIXPt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 18:15:49 -0500
+	id S1752476AbaAIX1I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 18:27:08 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -18,10 +18,14 @@ old kernel headers in the system.
 chain.c: In function 'nft_hooknum2str':
 chain.c:53:7: error: 'NFPROTO_INET' undeclared (first use in this function)
 
+This required to reorder and remove unneeded headers in src/expr/data_reg.c
+to avoid a compilation warning due to redefinition of __visible.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  include/linux/netfilter.h |   73 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+ src/expr/data_reg.c       |    7 ++---
+ 2 files changed, 76 insertions(+), 4 deletions(-)
  create mode 100644 include/linux/netfilter.h
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
@@ -103,6 +107,28 @@ index 0000000..ef1b1f8
 +};
 +
 +#endif /* _UAPI__LINUX_NETFILTER_H */
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 76231af..a198c67 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -18,14 +18,13 @@
+ #include <netinet/in.h>
+ 
+ #include <libmnl/libmnl.h>
+-#include <linux/netfilter.h>
+-#include <linux/netfilter/nf_tables.h>
+ #include <libnftables/expr.h>
+ #include <libnftables/rule.h>
+-#include "expr_ops.h"
+-#include "data_reg.h"
+ #include "internal.h"
+ 
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
+ #ifdef JSON_PARSING
+ static int nft_data_reg_verdict_json_parse(union nft_data_reg *reg, json_t *data)
+ {
 -- 
 1.7.10.4
 
