@@ -1,68 +1,97 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Thu, 9 Jan 2014 22:26:47 +0100
-Message-ID: <20140109212647.GB29458@breakpoint.cc>
+From: Andrey Wagin <avagin@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+Date: Fri, 10 Jan 2014 01:46:10 +0400
+Message-ID: <CANaxB-zmYUVZO=wb-FXZ52S-SqvFFhFUu2AnbUYHm4Zhg78eEg@mail.gmail.com>
 References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
- <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
- <20140107152520.GF9894@breakpoint.cc>
- <20140109203206.GA26348@paralelels.com>
- <20140109205622.GA29458@breakpoint.cc>
- <20140109210749.GA29440@paralelels.com>
+	<1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
+	<20140109052454.GA16743@gmail.com>
+	<1389281025.31367.35.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Andrey Vagin <avagin@openvz.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, vvs@openvz.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	vvs@openvz.org, Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	"David S. Miller" <davem@davemloft.net>,
 	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Andrew Vagin <avagin@parallels.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140109210749.GA29440@paralelels.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qe0-f45.google.com ([209.85.128.45]:51809 "EHLO
+	mail-qe0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756516AbaAIVqL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 16:46:11 -0500
+In-Reply-To: <1389281025.31367.35.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrew Vagin <avagin@parallels.com> wrote:
-> On Thu, Jan 09, 2014 at 09:56:22PM +0100, Florian Westphal wrote:
-> > Andrew Vagin <avagin@parallels.com> wrote:
-> > > Can we allocate conntrack with zero ct_general.use and increment it at
-> > > the first time before inserting the conntrack into the hash table?
-> > > When conntrack is allocated it is attached exclusively to one skb.
-> > > It must be destroyed with skb, if it has not been confirmed, so we
-> > > don't need refcnt on this stage.
-> > > 
-> > > I found only one place, where a reference counter of unconfirmed
-> > > conntract can incremented. It's ctnetlink_dump_table().
-> > 
-> > What about skb_clone, etc?  They will also increment the refcnt
-> > if a conntrack entry is attached to the skb.
-> 
-> We can not attach an unconfirmed conntrack to a few skb, because
+2014/1/9 Eric Dumazet <eric.dumazet@gmail.com>:
+> On Thu, 2014-01-09 at 09:24 +0400, Andrew Vagin wrote:
+>
+>> I have one more question. Looks like I found another problem.
+>>
+>> init_conntrack:
+>>         hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+>>                       &net->ct.unconfirmed);
+>>
+>> __nf_conntrack_hash_insert:
+>>       hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+>>                  &net->ct.hash[hash]);
+>>
+>> We use one hlist_nulls_node to add a conntrack into two different lists.
+>> As far as I understand, it's unacceptable in case of
+>> SLAB_DESTROY_BY_RCU.
+>
+> I guess you missed :
+>
+> net/netfilter/nf_conntrack_core.c:1598: INIT_HLIST_NULLS_HEAD(&net->ct.unconfirmed, UNCONFIRMED_NULLS_VAL);
 
-s/few/new/?
+but we can look up something suitable and return this value, but it
+will be unconfirmed. Ok, I see. This situation is fixed by this patch
+too.
 
-> nf_nat_setup_info can be executed concurrently for the same conntrack.
-> 
-> How do we avoid this race condition for cloned skb-s?
+I don't understand the result of your discussion with Florian.  Here
+are a few states of conntracts: it can be used and it's initialized.
+The sign of the first state is non-zero refcnt and the sign of the
+second state is the confirmed bit.
 
-Simple, the assumption is that only one cpu owns the nfct, so it does
-not matter if the skb is cloned in between, as there are no parallel
-users.
+In the first state conntrack is attached to skb and inserted in the
+unconfirmed list. In this state the use count can be incremented in
+ctnetlink_dump_list() and skb_clone().
 
-The only possibility (that I know of) to violate this is to create
-a bridge, enable call-iptables sysctl, add -j NFQUEUE rules and then
-wait for packets that need to be forwarded to several recipients,
-e.g. multicast traffic.
+In the second state conntrack may be attached to a few skb-s and
+inserted to net->ct.hash.
 
-see
-http://marc.info/?l=netfilter-devel&m=131471083501656&w=2
+I have read all emails again and I can't understand when this patch
+doesn't work.  Maybe you could give a sequence of actions? Thanks.
 
-or search 'netfilter: nat: work around shared nfct struct in bridge
-case'
+>
+>
+>>
+>> Lets imagine that we have two threads. The first one enumerates objects
+>> from a first list, the second one recreates an object and insert it in a
+>> second list.  If a first thread in this moment stays on the object, it
+>> can read "next", when it's in the second list, so it will continue
+>> to enumerate objects from the second list. It is not what we want, isn't
+>> it?
+>>
+>> cpu1                          cpu2
+>>                               hlist_nulls_for_each_entry_rcu(ct)
+>> destroy_conntrack
+>>  kmem_cache_free
+>>
+>> init_conntrack
+>>  hlist_nulls_add_head_rcu
+>>                               ct = ct->next
+>>
+>
+> This will be fine.
+>
+> I think we even have a counter to count number of occurrence of this
+> rare event. (I personally never read a non null search_restart value)
+>
+>  NF_CT_STAT_INC(net, search_restart);
+
+Thank you for explanation.
