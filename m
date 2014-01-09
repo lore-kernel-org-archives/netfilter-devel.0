@@ -1,62 +1,52 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] add markmask for hash:ip,mark data type
-Date: Thu, 9 Jan 2014 22:02:16 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1401092159240.30009@blackhole.kfki.hu>
-References: <1387288904-26456-1-git-send-email-vytas.dauksa@smoothwall.net> <1387288904-26456-2-git-send-email-vytas.dauksa@smoothwall.net> <alpine.DEB.2.10.1401082213110.27937@blackhole.kfki.hu>
- <CACUMwTnn3HyOT5S431viY0s=qoLasFsuv=i7HMQPPC9is745Kw@mail.gmail.com>
+From: Andrew Vagin <avagin@parallels.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get
+Date: Fri, 10 Jan 2014 01:07:49 +0400
+Message-ID: <20140109210749.GA29440@paralelels.com>
+References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+ <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20140107152520.GF9894@breakpoint.cc>
+ <20140109203206.GA26348@paralelels.com>
+ <20140109205622.GA29458@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+Content-Type: text/plain; charset="koi8-r"
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Andrey Vagin <avagin@openvz.org>,
+	<netfilter-devel@vger.kernel.org>, <netfilter@vger.kernel.org>,
+	<coreteam@netfilter.org>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <vvs@openvz.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	"Cyrill Gorcunov" <gorcunov@openvz.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:36744 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752543AbaAIVCU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 16:02:20 -0500
-In-Reply-To: <CACUMwTnn3HyOT5S431viY0s=qoLasFsuv=i7HMQPPC9is745Kw@mail.gmail.com>
+Received: from relay.parallels.com ([195.214.232.42]:57106 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752543AbaAIVHy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 16:07:54 -0500
+Content-Disposition: inline
+In-Reply-To: <20140109205622.GA29458@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 9 Jan 2014, Vytas Dauksa wrote:
+On Thu, Jan 09, 2014 at 09:56:22PM +0100, Florian Westphal wrote:
+> Andrew Vagin <avagin@parallels.com> wrote:
+> > Can we allocate conntrack with zero ct_general.use and increment it at
+> > the first time before inserting the conntrack into the hash table?
+> > When conntrack is allocated it is attached exclusively to one skb.
+> > It must be destroyed with skb, if it has not been confirmed, so we
+> > don't need refcnt on this stage.
+> > 
+> > I found only one place, where a reference counter of unconfirmed
+> > conntract can incremented. It's ctnetlink_dump_table().
+> 
+> What about skb_clone, etc?  They will also increment the refcnt
+> if a conntrack entry is attached to the skb.
 
-> > Why it's important that the kernel should mask the mark value, when the
-> > user could add the intended value directly? The only case where it's
-> > required when entries added/deleted by the SET target. It's more natural
-> > for me if the markmask value has a meaning and effect for kernel side
-> > add/del operations only, and ignored for user add/del/test and kernel
-> > tests. What's your opinion?
-> 
-> The kernel must apply the mask at test time - that's the whole reason
-> for it. In our use case the desired mask is 0xff000000, because those
-> bits identify the protocol, and the other bits are for an unrelated purpose.
-> Because the other bits could be set to anything, without a mask there
-> might have to be 2^24 entries for the other possible values.
-> 
-> If the kernel applies a mask on test, but values added by the user aren't
-> masked, those entries would never match. It seems clearer to mask them
-> at add time, so that the user gets sensible errors; for instance, adding two
-> different values which mask to the same thing will give the same error as
-> adding the same value twice.
-> 
-> Another option we discounted was that each entry could have its own
-> mask. This didn't make sense because they're not strictly ordered like
-> netmasks, so multiple entries could be equally applicable, and no hashing
-> is possible. If 12000000/ff000000 and 00340000/00ff0000 are in the set,
-> but one is nomatch, and a packet has mark 12345678, which entry should
-> take effect?
+We can not attach an unconfirmed conntrack to a few skb, because
+nf_nat_setup_info can be executed concurrently for the same conntrack.
 
-I see - good arguments, keep the original operations then.
- 
-> > A small thing, but I'd prefer if the mark value were printed/saved in hex
-> > instead of decimal, similarly to iptables. Better introduce a new print
-> > function for it.
-> 
-> Sure, will implement this on Friday
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+How do we avoid this race condition for cloned skb-s?
