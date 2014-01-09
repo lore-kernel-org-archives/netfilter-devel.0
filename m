@@ -1,71 +1,66 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Thu, 09 Jan 2014 07:23:45 -0800
-Message-ID: <1389281025.31367.35.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
-	 <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140109052454.GA16743@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH 1/3] parsing: rework and generalize the
+ build/parse system
+Date: Thu, 9 Jan 2014 17:57:29 +0100
+Message-ID: <20140109165729.GA15460@localhost>
+References: <20140109111906.32565.65222.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, Andrey Vagin <avagin@openvz.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, vvs@openvz.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Andrew Vagin <avagin@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140109052454.GA16743@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50208 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751705AbaAIQ5g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 11:57:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20140109111906.32565.65222.stgit@nfdev.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2014-01-09 at 09:24 +0400, Andrew Vagin wrote:
+On Thu, Jan 09, 2014 at 12:19:06PM +0100, Arturo Borrero Gonzalez wrote:
+> The intention behind this patch is to allow adding more input sources in the
+> near future.
 
-> I have one more question. Looks like I found another problem.
+This looks more simple and easier to read which is what I needed,
+thanks. Applied with minor glitches, see below.
+
+> For this to happen without duplicating many code, we need to generalize
+> the build/parse system.
 > 
-> init_conntrack:
->         hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
->                       &net->ct.unconfirmed);
+> The path flow is now as follow:
+>  * API func: here we decide what kind of input we have.
+> 	nft_table_parse()
 > 
-> __nf_conntrack_hash_insert:
-> 	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
-> 		   &net->ct.hash[hash]);
+>  * Common function to decide what format to parse (JSON/XML).
+> 	nft_table_do_parse()
 > 
-> We use one hlist_nulls_node to add a conntrack into two different lists.
-> As far as I understand, it's unacceptable in case of
-> SLAB_DESTROY_BY_RCU.
-
-I guess you missed :
-
-net/netfilter/nf_conntrack_core.c:1598: INIT_HLIST_NULLS_HEAD(&net->ct.unconfirmed, UNCONFIRMED_NULLS_VAL);
-
-
+>  * Common function per format to order the build of the tree and launch the
+>    parsing:
+> 	nft_table_xml_parse()
+> 	nft_table_json_parse()
 > 
-> Lets imagine that we have two threads. The first one enumerates objects
-> from a first list, the second one recreates an object and insert it in a
-> second list.  If a first thread in this moment stays on the object, it
-> can read "next", when it's in the second list, so it will continue
-> to enumerate objects from the second list. It is not what we want, isn't
-> it?
+>  * Common function per format to build the tree (here more builders can be
+>    easily implemented):
+> 	nft_mxml_build_tree()
+> 	nft_jansson_create_root()
 > 
-> cpu1				cpu2
-> 				hlist_nulls_for_each_entry_rcu(ct)
-> destroy_conntrack
->  kmem_cache_free
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  0 files changed
 > 
-> init_conntrack
->  hlist_nulls_add_head_rcu
-> 				ct = ct->next
-> 
+> diff --git a/src/chain.c b/src/chain.c
+> index a4ddb06..a7a6d99 100644
+> --- a/src/chain.c
+> +++ b/src/chain.c
+> @@ -591,14 +591,14 @@ err:
+>  }
+>  #endif
+>  
+> -static int nft_chain_json_parse(struct nft_chain *c, const char *json,
+> -				struct nft_parse_err *err)
+> +static int nft_chain_json_parse(struct nft_chain *c, const void *json,
+> +				struct nft_parse_err *err, uint32_t buildsrc)
 
-This will be fine.
-
-I think we even have a counter to count number of occurrence of this
-rare event. (I personally never read a non null search_restart value)
-
- NF_CT_STAT_INC(net, search_restart); 
+Comestical: I have added enum nft_parse_input, I think this improves
+readability instead of buildsrc.
