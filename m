@@ -1,186 +1,234 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 04/13] netfilter: nf_tables: fix chain type module reference handling
-Date: Thu,  9 Jan 2014 18:42:34 +0000
-Message-ID: <1389292963-4089-5-git-send-email-kaber@trash.net>
+Subject: [PATCH 07/13] netfilter: nf_tables: constify chain type definitions and pointers
+Date: Thu,  9 Jan 2014 18:42:37 +0000
+Message-ID: <1389292963-4089-8-git-send-email-kaber@trash.net>
 References: <1389292963-4089-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51683 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51685 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870AbaAISnR (ORCPT
+	with ESMTP id S1756940AbaAISnT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 13:43:17 -0500
+	Thu, 9 Jan 2014 13:43:19 -0500
 In-Reply-To: <1389292963-4089-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The chain type module reference handling makes no sense at all: we take
-a reference immediately when the module is registered, preventing the
-module from ever being unloaded.
-
-Fix by taking a reference when we're actually creating a chain of the
-chain type and release the reference when destroying the chain.
-
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 45 +++++++++++++++++++++------------------
- 2 files changed, 25 insertions(+), 22 deletions(-)
+ include/net/netfilter/nf_tables.h         |  6 +++---
+ net/bridge/netfilter/nf_tables_bridge.c   |  2 +-
+ net/ipv4/netfilter/nf_tables_arp.c        |  2 +-
+ net/ipv4/netfilter/nf_tables_ipv4.c       |  2 +-
+ net/ipv4/netfilter/nft_chain_nat_ipv4.c   |  2 +-
+ net/ipv4/netfilter/nft_chain_route_ipv4.c |  2 +-
+ net/ipv6/netfilter/nf_tables_ipv6.c       |  2 +-
+ net/ipv6/netfilter/nft_chain_nat_ipv6.c   |  2 +-
+ net/ipv6/netfilter/nft_chain_route_ipv6.c |  2 +-
+ net/netfilter/nf_tables_api.c             | 14 +++++++-------
+ net/netfilter/nf_tables_inet.c            |  2 +-
+ 11 files changed, 19 insertions(+), 19 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 5d2b703..e9b9786 100644
+index e9b9786..d3f7053 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
 @@ -436,7 +436,7 @@ struct nft_stats {
   */
  struct nft_base_chain {
  	struct nf_hook_ops		ops[NFT_HOOK_OPS_MAX];
--	enum nft_chain_type		type;
-+	struct nf_chain_type		*type;
+-	struct nf_chain_type		*type;
++	const struct nf_chain_type	*type;
  	u8				policy;
  	struct nft_stats __percpu	*stats;
  	struct nft_chain		chain;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 290472c..d913fb0 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -126,27 +126,29 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
+@@ -507,8 +507,8 @@ struct nf_chain_type {
+ 	int			family;
+ };
  
- static struct nf_chain_type *chain_type[AF_MAX][NFT_CHAIN_T_MAX];
+-int nft_register_chain_type(struct nf_chain_type *);
+-void nft_unregister_chain_type(struct nf_chain_type *);
++int nft_register_chain_type(const struct nf_chain_type *);
++void nft_unregister_chain_type(const struct nf_chain_type *);
  
--static int __nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
-+static struct nf_chain_type *
-+__nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
- {
- 	int i;
+ int nft_register_expr(struct nft_expr_type *);
+ void nft_unregister_expr(struct nft_expr_type *);
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index f97222e..283658d 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -68,7 +68,7 @@ static struct pernet_operations nf_tables_bridge_net_ops = {
+ 	.exit	= nf_tables_bridge_exit_net,
+ };
  
--	for (i=0; i<NFT_CHAIN_T_MAX; i++) {
-+	for (i = 0; i < NFT_CHAIN_T_MAX; i++) {
- 		if (chain_type[family][i] != NULL &&
- 		    !nla_strcmp(nla, chain_type[family][i]->name))
--			return i;
-+			return chain_type[family][i];
- 	}
--	return -1;
-+	return NULL;
+-static struct nf_chain_type filter_bridge = {
++static const struct nf_chain_type filter_bridge = {
+ 	.family		= NFPROTO_BRIDGE,
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
+diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
+index 228df00..8af01a5 100644
+--- a/net/ipv4/netfilter/nf_tables_arp.c
++++ b/net/ipv4/netfilter/nf_tables_arp.c
+@@ -68,7 +68,7 @@ static struct pernet_operations nf_tables_arp_net_ops = {
+ 	.exit   = nf_tables_arp_exit_net,
+ };
+ 
+-static struct nf_chain_type filter_arp = {
++static const struct nf_chain_type filter_arp = {
+ 	.family		= NFPROTO_ARP,
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index d6fc1b4..cec7805 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -91,7 +91,7 @@ static struct pernet_operations nf_tables_ipv4_net_ops = {
+ 	.exit	= nf_tables_ipv4_exit_net,
+ };
+ 
+-static struct nf_chain_type filter_ipv4 = {
++static const struct nf_chain_type filter_ipv4 = {
+ 	.family		= NFPROTO_IPV4,
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
+diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+index cf2c792..9e535c2 100644
+--- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+@@ -164,7 +164,7 @@ static unsigned int nf_nat_output(const struct nf_hook_ops *ops,
+ 	return ret;
  }
  
--static int nf_tables_chain_type_lookup(const struct nft_af_info *afi,
--				       const struct nlattr *nla,
--				       bool autoload)
-+static struct nf_chain_type *
-+nf_tables_chain_type_lookup(const struct nft_af_info *afi,
-+			    const struct nlattr *nla,
-+			    bool autoload)
+-static struct nf_chain_type nft_chain_nat_ipv4 = {
++static const struct nf_chain_type nft_chain_nat_ipv4 = {
+ 	.family		= NFPROTO_IPV4,
+ 	.name		= "nat",
+ 	.type		= NFT_CHAIN_T_NAT,
+diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
+index 4e6bf9a..2dd2eea 100644
+--- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_route_ipv4.c
+@@ -61,7 +61,7 @@ static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
+ 	return ret;
+ }
+ 
+-static struct nf_chain_type nft_chain_route_ipv4 = {
++static const struct nf_chain_type nft_chain_route_ipv4 = {
+ 	.family		= NFPROTO_IPV4,
+ 	.name		= "route",
+ 	.type		= NFT_CHAIN_T_ROUTE,
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index a340276..758a32b 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -90,7 +90,7 @@ static struct pernet_operations nf_tables_ipv6_net_ops = {
+ 	.exit	= nf_tables_ipv6_exit_net,
+ };
+ 
+-static struct nf_chain_type filter_ipv6 = {
++static const struct nf_chain_type filter_ipv6 = {
+ 	.family		= NFPROTO_IPV6,
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
+diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+index e86dcd7..efd1d57 100644
+--- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
++++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+@@ -170,7 +170,7 @@ static unsigned int nf_nat_ipv6_output(const struct nf_hook_ops *ops,
+ 	return ret;
+ }
+ 
+-static struct nf_chain_type nft_chain_nat_ipv6 = {
++static const struct nf_chain_type nft_chain_nat_ipv6 = {
+ 	.family		= NFPROTO_IPV6,
+ 	.name		= "nat",
+ 	.type		= NFT_CHAIN_T_NAT,
+diff --git a/net/ipv6/netfilter/nft_chain_route_ipv6.c b/net/ipv6/netfilter/nft_chain_route_ipv6.c
+index 3fe40f0..3620f88 100644
+--- a/net/ipv6/netfilter/nft_chain_route_ipv6.c
++++ b/net/ipv6/netfilter/nft_chain_route_ipv6.c
+@@ -59,7 +59,7 @@ static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
+ 	return ret;
+ }
+ 
+-static struct nf_chain_type nft_chain_route_ipv6 = {
++static const struct nf_chain_type nft_chain_route_ipv6 = {
+ 	.family		= NFPROTO_IPV6,
+ 	.name		= "route",
+ 	.type		= NFT_CHAIN_T_ROUTE,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7d6a226..acdd9d6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -124,9 +124,9 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
+ 	return ++table->hgenerator;
+ }
+ 
+-static struct nf_chain_type *chain_type[AF_MAX][NFT_CHAIN_T_MAX];
++static const struct nf_chain_type *chain_type[AF_MAX][NFT_CHAIN_T_MAX];
+ 
+-static struct nf_chain_type *
++static const struct nf_chain_type *
+ __nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
  {
--	int type;
-+	struct nf_chain_type *type;
+ 	int i;
+@@ -139,12 +139,12 @@ __nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
+ 	return NULL;
+ }
+ 
+-static struct nf_chain_type *
++static const struct nf_chain_type *
+ nf_tables_chain_type_lookup(const struct nft_af_info *afi,
+ 			    const struct nlattr *nla,
+ 			    bool autoload)
+ {
+-	struct nf_chain_type *type;
++	const struct nf_chain_type *type;
  
  	type = __nf_tables_chain_type_lookup(afi->family, nla);
- #ifdef CONFIG_MODULES
--	if (type < 0 && autoload) {
-+	if (type == NULL && autoload) {
- 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- 		request_module("nft-chain-%u-%*.s", afi->family,
- 			       nla_len(nla)-1, (const char *)nla_data(nla));
-@@ -478,10 +480,6 @@ int nft_register_chain_type(struct nf_chain_type *ctype)
- 		err = -EBUSY;
- 		goto out;
- 	}
--
--	if (!try_module_get(ctype->me))
--		goto out;
--
- 	chain_type[ctype->family][ctype->type] = ctype;
- out:
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
-@@ -493,7 +491,6 @@ void nft_unregister_chain_type(struct nf_chain_type *ctype)
+ 	if (type != NULL)
+@@ -475,7 +475,7 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
+ 	return 0;
+ }
+ 
+-int nft_register_chain_type(struct nf_chain_type *ctype)
++int nft_register_chain_type(const struct nf_chain_type *ctype)
+ {
+ 	int err = 0;
+ 
+@@ -491,7 +491,7 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(nft_register_chain_type);
+ 
+-void nft_unregister_chain_type(struct nf_chain_type *ctype)
++void nft_unregister_chain_type(const struct nf_chain_type *ctype)
  {
  	nfnl_lock(NFNL_SUBSYS_NFTABLES);
  	chain_type[ctype->family][ctype->type] = NULL;
--	module_put(ctype->me);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_unregister_chain_type);
-@@ -617,9 +614,8 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, u32 portid, u32 seq,
- 				 htonl(basechain->policy)))
- 			goto nla_put_failure;
- 
--		if (nla_put_string(skb, NFTA_CHAIN_TYPE,
--			chain_type[ops->pf][nft_base_chain(chain)->type]->name))
--				goto nla_put_failure;
-+		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
-+			goto nla_put_failure;
- 
- 		if (nft_dump_stats(skb, nft_base_chain(chain)->stats))
- 			goto nla_put_failure;
-@@ -900,16 +896,17 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+@@ -900,7 +900,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
  		return -EOVERFLOW;
  
  	if (nla[NFTA_CHAIN_HOOK]) {
-+		struct nf_chain_type *type;
+-		struct nf_chain_type *type;
++		const struct nf_chain_type *type;
  		struct nf_hook_ops *ops;
  		nf_hookfn *hookfn;
  		u32 hooknum, priority;
--		int type = NFT_CHAIN_T_DEFAULT;
+diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
+index 280d3a2..ee29ba2 100644
+--- a/net/netfilter/nf_tables_inet.c
++++ b/net/netfilter/nf_tables_inet.c
+@@ -66,7 +66,7 @@ static struct pernet_operations nf_tables_inet_net_ops = {
+ 	.exit	= nf_tables_inet_exit_net,
+ };
  
-+		type = chain_type[family][NFT_CHAIN_T_DEFAULT];
- 		if (nla[NFTA_CHAIN_TYPE]) {
- 			type = nf_tables_chain_type_lookup(afi,
- 							   nla[NFTA_CHAIN_TYPE],
- 							   create);
--			if (type < 0)
-+			if (type == NULL)
- 				return -ENOENT;
- 		}
- 
-@@ -926,9 +923,11 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 			return -EINVAL;
- 		priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
- 
--		if (!(chain_type[family][type]->hook_mask & (1 << hooknum)))
-+		if (!(type->hook_mask & (1 << hooknum)))
- 			return -EOPNOTSUPP;
--		hookfn = chain_type[family][type]->fn[hooknum];
-+		if (!try_module_get(type->me))
-+			return -ENOENT;
-+		hookfn = type->fn[hooknum];
- 
- 		basechain = kzalloc(sizeof(*basechain), GFP_KERNEL);
- 		if (basechain == NULL)
-@@ -938,6 +937,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 			err = nf_tables_counters(basechain,
- 						 nla[NFTA_CHAIN_COUNTERS]);
- 			if (err < 0) {
-+				module_put(type->me);
- 				kfree(basechain);
- 				return err;
- 			}
-@@ -946,6 +946,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 
- 			newstats = alloc_percpu(struct nft_stats);
- 			if (newstats == NULL) {
-+				module_put(type->me);
- 				kfree(basechain);
- 				return -ENOMEM;
- 			}
-@@ -987,6 +988,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 	    chain->flags & NFT_BASE_CHAIN) {
- 		err = nf_register_hooks(nft_base_chain(chain)->ops, afi->nops);
- 		if (err < 0) {
-+			module_put(basechain->type->me);
- 			free_percpu(basechain->stats);
- 			kfree(basechain);
- 			return err;
-@@ -1007,6 +1009,7 @@ static void nf_tables_rcu_chain_destroy(struct rcu_head *head)
- 	BUG_ON(chain->use > 0);
- 
- 	if (chain->flags & NFT_BASE_CHAIN) {
-+		module_put(nft_base_chain(chain)->type->me);
- 		free_percpu(nft_base_chain(chain)->stats);
- 		kfree(nft_base_chain(chain));
- 	} else
+-static struct nf_chain_type filter_inet = {
++static const struct nf_chain_type filter_inet = {
+ 	.family		= NFPROTO_INET,
+ 	.name		= "filter",
+ 	.type		= NFT_CHAIN_T_DEFAULT,
 -- 
 1.8.4.2
 
