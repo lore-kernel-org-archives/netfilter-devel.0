@@ -1,48 +1,71 @@
-From: Sam Liddicott <sam@liddicott.com>
-Subject: Re: Patches to xtables-addons xt_quota2
-Date: Thu, 9 Jan 2014 13:35:11 +0000
-Message-ID: <CAOj-5WApVv8Q8BOzHewhoWJ_H=1EA6GwUUsQEqR-kwvB6iMpMg@mail.gmail.com>
-References: <CAOj-5WAsU-WxdKbP1ijmhRGAO=u204ZyGM5PZNcrsJoOB1hsug@mail.gmail.com>
-	<alpine.LSU.2.11.1401091004570.32765@nerf08.vanv.qr>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get
+Date: Thu, 09 Jan 2014 07:23:45 -0800
+Message-ID: <1389281025.31367.35.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+	 <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20140109052454.GA16743@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qe0-f53.google.com ([209.85.128.53]:33651 "EHLO
-	mail-qe0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067AbaAINfN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 08:35:13 -0500
-Received: by mail-qe0-f53.google.com with SMTP id t7so3055303qeb.26
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jan 2014 05:35:12 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.11.1401091004570.32765@nerf08.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, Andrey Vagin <avagin@openvz.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, vvs@openvz.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Andrew Vagin <avagin@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140109052454.GA16743@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-True, it doesn't fix all problems. I don't mind if you strip that part
-before applying.
+On Thu, 2014-01-09 at 09:24 +0400, Andrew Vagin wrote:
 
-Sam
+> I have one more question. Looks like I found another problem.
+> 
+> init_conntrack:
+>         hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+>                       &net->ct.unconfirmed);
+> 
+> __nf_conntrack_hash_insert:
+> 	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+> 		   &net->ct.hash[hash]);
+> 
+> We use one hlist_nulls_node to add a conntrack into two different lists.
+> As far as I understand, it's unacceptable in case of
+> SLAB_DESTROY_BY_RCU.
 
-On Thu, Jan 9, 2014 at 9:07 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->
-> On Tuesday 2014-01-07 19:56, Sam Liddicott wrote:
->>[0003]
->>@@ -79,9 +80,35 @@ quota_proc_write(struct file *file, const char __user *input,
->>       if (size < sizeof(buf))
->>               buf[size]=0;
->>
->>-      spin_lock_bh(&e->lock);
->>-      e->quota = simple_strtoull(buf, NULL, 0);
->>-      spin_unlock_bh(&e->lock);
->>+      while (isspace(*c))
->>+              c++;
->>+
->>+      if (size - (c - buf) < 1) /* min string length */
->>+              return c - buf;
->
-> Because @input is copied to @buf and that is size-limited, a string like
->  "                  +-123"
-> would be recognizd as -12 rather than -123. So, don't bother with
-> spaces at all.
+I guess you missed :
+
+net/netfilter/nf_conntrack_core.c:1598: INIT_HLIST_NULLS_HEAD(&net->ct.unconfirmed, UNCONFIRMED_NULLS_VAL);
+
+
+> 
+> Lets imagine that we have two threads. The first one enumerates objects
+> from a first list, the second one recreates an object and insert it in a
+> second list.  If a first thread in this moment stays on the object, it
+> can read "next", when it's in the second list, so it will continue
+> to enumerate objects from the second list. It is not what we want, isn't
+> it?
+> 
+> cpu1				cpu2
+> 				hlist_nulls_for_each_entry_rcu(ct)
+> destroy_conntrack
+>  kmem_cache_free
+> 
+> init_conntrack
+>  hlist_nulls_add_head_rcu
+> 				ct = ct->next
+> 
+
+This will be fine.
+
+I think we even have a counter to count number of occurrence of this
+rare event. (I personally never read a non null search_restart value)
+
+ NF_CT_STAT_INC(net, search_restart); 
