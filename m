@@ -1,98 +1,38 @@
-From: Andrew Vagin <avagin@parallels.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Fri, 10 Jan 2014 00:32:07 +0400
-Message-ID: <20140109203206.GA26348@paralelels.com>
-References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
- <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
- <20140107152520.GF9894@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v6] netfilter: introduce l2tp match extension
+Date: Thu, 9 Jan 2014 21:45:47 +0100
+Message-ID: <20140109204547.GA18522@localhost>
+References: <1389003428-29683-1-git-send-email-jchapman@katalix.com>
+ <20140109195211.GA26947@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="koi8-r"
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Andrey Vagin <avagin@openvz.org>,
-	<netfilter-devel@vger.kernel.org>, <netfilter@vger.kernel.org>,
-	<coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <vvs@openvz.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: James Chapman <jchapman@katalix.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60620 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757415AbaAIUp4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 15:45:56 -0500
 Content-Disposition: inline
-In-Reply-To: <20140107152520.GF9894@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20140109195211.GA26947@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 07, 2014 at 04:25:20PM +0100, Florian Westphal wrote:
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > > index 43549eb..7a34bb2 100644
-> > > --- a/net/netfilter/nf_conntrack_core.c
-> > > +++ b/net/netfilter/nf_conntrack_core.c
-> > > @@ -387,8 +387,12 @@ begin:
-> > >  			     !atomic_inc_not_zero(&ct->ct_general.use)))
-> > >  			h = NULL;
-> > >  		else {
-> > > +			/* A conntrack can be recreated with the equal tuple,
-> > > +			 * so we need to check that the conntrack is initialized
-> > > +			 */
-> > >  			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
-> > > -				     nf_ct_zone(ct) != zone)) {
-> > > +				     nf_ct_zone(ct) != zone) ||
-> > > +				     !nf_ct_is_confirmed(ct)) {
-> > >  				nf_ct_put(ct);
-> > >  				goto begin;
-> > >  			}
-> > 
-> > I do not think this is the right way to fix this problem (if said
-> > problem is confirmed)
-> > 
-> > Remember the rule about SLAB_DESTROY_BY_RCU :
-> > 
-> > When a struct is freed, then reused, its important to set the its refcnt
-> > (from 0 to 1) only when the structure is fully ready for use.
-> > 
-> > If a lookup finds a structure which is not yet setup, the
-> > atomic_inc_not_zero() will fail.
-> 
-> Indeed.  But, the structure itself might be ready (or rather,
-> can be ready since the allocation side will set the refcount to one
-> after doing the initial work, such as zapping old ->status flags and
-> setting tuple information).
-> 
-> The problem is with nat extension area stored in the ct->ext area.
-> This extension area is preallocated but the snat/dnat action
-> information is only set up after the ct (or rather, the skb that grabbed
-> a reference to the nf_conn entry) traverses nat pre/postrouting.
-> 
-> This will also set up a null-binding when no matching SNAT/DNAT/MASQERUADE
-> rule existed.
-> 
-> The manipulations of the skb->nfct->ext nat area are performed without
-> a lock.  Concurrent access is supposedly impossible as the conntrack
-> should not (yet) be in the hash table.
-> 
-> The confirmed bit is set right before we insert the conntrack into
-> the hash table (after we traversed rules, ct is ready to be
-> 'published').
+More minor changes I have done here:
 
-Can we allocate conntrack with zero ct_general.use and increment it at
-the first time before inserting the conntrack into the hash table?
-When conntrack is allocated it is attached exclusively to one skb.
-It must be destroyed with skb, if it has not been confirmed, so we
-don't need refcnt on this stage.
+On Thu, Jan 09, 2014 at 08:52:11PM +0100, Pablo Neira Ayuso wrote:
+> > - Add IS_ENABLED(CONFIG_IPV6) around IPv6 code.
 
-I found only one place, where a reference counter of unconfirmed
-conntract can incremented. It's ctnetlink_dump_table(). Probably we
-can find a way, how to fix it.
+Changed this to use IS_ENABLED(CONFIG_IP6_NF_IPTABLES).
 
-> 
-> i.e. when the confirmed bit is NOT set we should not be 'seeing' the nf_conn
-> struct when we perform the lookup, as it should still be sitting on the
-> 'unconfirmed' list, being invisible to readers.
-> 
-> Does that explanation make sense to you?
-> 
-> Thanks for looking into this.
+> > ---
+> > :000000 100644 0000000... be65e0b... A	include/uapi/linux/netfilter/xt_l2tp.h
+> > :100644 100644 c3398cd... a32c8ce... M	net/netfilter/Kconfig
+> > :100644 100644 394483b... 564bf35... M	net/netfilter/Makefile
+> > :000000 100644 0000000... 48f1211... A	net/netfilter/xt_l2tp.c
+> >  include/uapi/linux/netfilter/xt_l2tp.h |   29 +++
+> >  net/netfilter/Kconfig                  |   10 +
+> >  net/netfilter/Makefile                 |    1 +
+> >  net/netfilter/xt_l2tp.c                |  392 ++++++++++++++++++++++++++++++++
+
+Added missing change in include/uapi/linux/netfilter/Kbuild.
