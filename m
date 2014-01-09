@@ -1,595 +1,303 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 1/3] parsing: rework and generalize the
-	build/parse system
-Date: Thu, 09 Jan 2014 12:19:06 +0100
-Message-ID: <20140109111906.32565.65222.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH 2/3] parsing: add interface to parse from file
+Date: Thu, 09 Jan 2014 12:19:12 +0100
+Message-ID: <20140109111912.32565.7315.stgit@nfdev.cica.es>
+References: <20140109111906.32565.65222.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:42309 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:42313 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755229AbaAILTO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 06:19:14 -0500
+	id S1751110AbaAILTQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 06:19:16 -0500
+In-Reply-To: <20140109111906.32565.65222.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The intention behind this patch is to allow adding more input sources in the
-near future.
-For this to happen without duplicating many code, we need to generalize
-the build/parse system.
+This patch adds API interfaces to parse nft objects from a given stream.
+I found this useful in `nft', where I'm trying to parse XML/JSON from a file.
 
-The path flow is now as follow:
- * API func: here we decide what kind of input we have.
-	nft_table_parse()
-
- * Common function to decide what format to parse (JSON/XML).
-	nft_table_do_parse()
-
- * Common function per format to order the build of the tree and launch the
-   parsing:
-	nft_table_xml_parse()
-	nft_table_json_parse()
-
- * Common function per format to build the tree (here more builders can be
-   easily implemented):
-	nft_mxml_build_tree()
-	nft_jansson_create_root()
+In addition to the API functions, a new builder is added to handle a file.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
  0 files changed
 
+diff --git a/include/libnftables/chain.h b/include/libnftables/chain.h
+index dec1a77..d213bf1 100644
+--- a/include/libnftables/chain.h
++++ b/include/libnftables/chain.h
+@@ -53,6 +53,8 @@ void nft_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_chain
+ 
+ int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type,
+ 		    const char *data, struct nft_parse_err *err);
++int nft_chain_parse_file(struct nft_chain *c, enum nft_parse_type type,
++			 FILE *fp, struct nft_parse_err *err);
+ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *t, uint32_t type, uint32_t flags);
+ int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type, uint32_t flags);
+ 
+diff --git a/include/libnftables/rule.h b/include/libnftables/rule.h
+index 1510203..48b9974 100644
+--- a/include/libnftables/rule.h
++++ b/include/libnftables/rule.h
+@@ -49,6 +49,8 @@ void nft_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_rule *t);
+ 
+ int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type,
+ 		   const char *data, struct nft_parse_err *err);
++int nft_rule_parse_file(struct nft_rule *r, enum nft_parse_type type,
++			FILE *fp, struct nft_parse_err *err);
+ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *t, uint32_t type, uint32_t flags);
+ int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type, uint32_t flags);
+ 
+diff --git a/include/libnftables/ruleset.h b/include/libnftables/ruleset.h
+index b523346..f916fba 100644
+--- a/include/libnftables/ruleset.h
++++ b/include/libnftables/ruleset.h
+@@ -32,6 +32,8 @@ const void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr);
+ 
+ int nft_ruleset_parse(struct nft_ruleset *rs, enum nft_parse_type type,
+ 		      const char *data, struct nft_parse_err *err);
++int nft_ruleset_parse_file(struct nft_ruleset *rs, enum nft_parse_type type,
++			   FILE *fp, struct nft_parse_err *err);
+ int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
+ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type, uint32_t flags);
+ 
+diff --git a/include/libnftables/set.h b/include/libnftables/set.h
+index 9711729..c4b1ff6 100644
+--- a/include/libnftables/set.h
++++ b/include/libnftables/set.h
+@@ -62,6 +62,8 @@ void nft_set_list_iter_destroy(struct nft_set_list_iter *iter);
+ 
+ int nft_set_parse(struct nft_set *s, enum nft_parse_type type,
+ 		  const char *data, struct nft_parse_err *err);
++int nft_set_parse_file(struct nft_set *s, enum nft_parse_type type,
++		       FILE *fp, struct nft_parse_err *err);
+ 
+ /*
+  * Set elements
+@@ -101,6 +103,8 @@ int nft_set_elem_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set_elem *s)
+ 
+ int nft_set_elem_parse(struct nft_set_elem *e, enum nft_parse_type type,
+ 		       const char *data, struct nft_parse_err *err);
++int nft_set_elem_parse_file(struct nft_set_elem *e, enum nft_parse_type type,
++			    FILE *fp, struct nft_parse_err *err);
+ int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *s, uint32_t type, uint32_t flags);
+ int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type, uint32_t flags);
+ 
+diff --git a/include/libnftables/table.h b/include/libnftables/table.h
+index 80f2349..64fbf88 100644
+--- a/include/libnftables/table.h
++++ b/include/libnftables/table.h
+@@ -41,6 +41,8 @@ void nft_table_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_table
+ 
+ int nft_table_parse(struct nft_table *t, enum nft_parse_type type,
+ 		    const char *data, struct nft_parse_err *err);
++int nft_table_parse_file(struct nft_table *t, enum nft_parse_type type,
++			 FILE *fp, struct nft_parse_err *err);
+ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t, uint32_t type, uint32_t flags);
+ int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type, uint32_t flags);
+ 
 diff --git a/src/chain.c b/src/chain.c
-index a4ddb06..a7a6d99 100644
+index a7a6d99..e43744e 100644
 --- a/src/chain.c
 +++ b/src/chain.c
-@@ -591,14 +591,14 @@ err:
+@@ -758,6 +758,13 @@ int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_chain_json_parse(struct nft_chain *c, const char *json,
--				struct nft_parse_err *err)
-+static int nft_chain_json_parse(struct nft_chain *c, const void *json,
-+				struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *tree;
- 	json_error_t error;
- 
--	tree = nft_jansson_create_root(json, &error, err);
-+	tree = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -708,12 +708,12 @@ int nft_mxml_chain_parse(mxml_node_t *tree, struct nft_chain *c,
- }
- #endif
- 
--static int nft_chain_xml_parse(struct nft_chain *c, const char *xml,
--			       struct nft_parse_err *err)
-+static int nft_chain_xml_parse(struct nft_chain *c, const void *xml,
-+			       struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	int ret;
--	mxml_node_t *tree = nft_mxml_build_tree(xml, "chain", err);
-+	mxml_node_t *tree = nft_mxml_build_tree(xml, "chain", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -726,18 +726,19 @@ static int nft_chain_xml_parse(struct nft_chain *c, const char *xml,
- #endif
- }
- 
--int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type,
--		    const char *data, struct nft_parse_err *err)
-+static int nft_chain_do_parse(struct nft_chain *c, enum nft_parse_type type,
-+			      const void *data, struct nft_parse_err *err,
-+			      uint32_t buildsrc)
- {
- 	int ret;
- 	struct nft_parse_err perr;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_chain_xml_parse(c, data, &perr);
-+		ret = nft_chain_xml_parse(c, data, &perr, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_chain_json_parse(c, data, &perr);
-+		ret = nft_chain_json_parse(c, data, &perr, buildsrc);
- 		break;
- 	default:
- 		ret = -1;
-@@ -750,6 +751,11 @@ int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type,
- 
- 	return ret;
- }
-+int nft_chain_parse(struct nft_chain *c, enum nft_parse_type type,
-+		    const char *data, struct nft_parse_err *err)
-+{
-+	return nft_chain_do_parse(c, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_chain_parse);
  
++int nft_chain_parse_file(struct nft_chain *c, enum nft_parse_type type,
++			 FILE *fp, struct nft_parse_err *err)
++{
++	return nft_chain_do_parse(c, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_chain_parse_file);
++
  static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
+ {
+ 	int ret, len = size, offset = 0;
 diff --git a/src/internal.h b/src/internal.h
-index 5fef6d6..8850736 100644
+index 8850736..bf22b72 100644
 --- a/src/internal.h
 +++ b/src/internal.h
-@@ -38,12 +38,16 @@ struct nft_parse_err {
- 	const char *node_name;
+@@ -40,6 +40,7 @@ struct nft_parse_err {
+ 
+ enum {
+ 	NFT_PARSE_BUFFER,
++	NFT_PARSE_FILE,
  };
  
-+enum {
-+	NFT_PARSE_BUFFER,
-+};
-+
  #ifdef XML_PARSING
- #include <mxml.h>
- #define NFT_XML_MAND 0
- #define NFT_XML_OPT (1 << 0)
--mxml_node_t *nft_mxml_build_tree(const char *xml, const char *treename,
--				 struct nft_parse_err *err);
-+mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
-+				 struct nft_parse_err *err, uint32_t buildsrc);
- struct nft_rule_expr *nft_mxml_expr_parse(mxml_node_t *node,
- 					  struct nft_parse_err *err);
- int nft_mxml_reg_parse(mxml_node_t *tree, const char *reg_name, uint32_t flags,
-@@ -88,8 +92,8 @@ int nft_jansson_parse_val(json_t *root, const char *node_name, int type,
- const char *nft_jansson_parse_str(json_t *root, const char *node_name,
- 				  struct nft_parse_err *err);
- bool nft_jansson_node_exist(json_t *root, const char *node_name);
--json_t *nft_jansson_create_root(const char *json, json_error_t *error,
--				struct nft_parse_err *err);
-+json_t *nft_jansson_create_root(const void *json, json_error_t *error,
-+				struct nft_parse_err *err, uint32_t buildsrc);
- json_t *nft_jansson_get_node(json_t *root, const char *node_name,
- 			     struct nft_parse_err *err);
- void nft_jansson_free_root(json_t *root);
 diff --git a/src/jansson.c b/src/jansson.c
-index e62116b..cb6212b 100644
+index cb6212b..1d6e739 100644
 --- a/src/jansson.c
 +++ b/src/jansson.c
-@@ -89,22 +89,31 @@ bool nft_jansson_node_exist(json_t *root, const char *node_name)
- 	return json_object_get(root, node_name) != NULL;
- }
- 
--json_t *nft_jansson_create_root(const char *json, json_error_t *error,
--				struct nft_parse_err *err)
-+json_t *nft_jansson_create_root(const void *json, json_error_t *error,
-+				struct nft_parse_err *err, uint32_t buildsrc)
- {
- 	json_t *root;
- 
--	root = json_loadb(json, strlen(json), 0, error);
-+	switch (buildsrc) {
-+	case NFT_PARSE_BUFFER:
-+		root = json_loadb(json, strlen(json), 0, error);
+@@ -98,6 +98,9 @@ json_t *nft_jansson_create_root(const void *json, json_error_t *error,
+ 	case NFT_PARSE_BUFFER:
+ 		root = json_loadb(json, strlen(json), 0, error);
+ 		break;
++	case NFT_PARSE_FILE:
++		root = json_loadf((FILE *)json, 0, error);
 +		break;
-+	default:
-+		goto err;
-+	}
-+
- 	if (root == NULL) {
- 		err->error = NFT_PARSE_EBADINPUT;
- 		err->line = error->line;
- 		err->column = error->column;
- 		err->node_name = error->source;
--		errno = EINVAL;
--		return NULL;
-+		goto err;
+ 	default:
+ 		goto err;
  	}
+diff --git a/src/libnftables.map b/src/libnftables.map
+index be5c783..faf0913 100644
+--- a/src/libnftables.map
++++ b/src/libnftables.map
+@@ -13,6 +13,7 @@ global:
+   nft_table_attr_get_u32;
+   nft_table_attr_get_str;
+   nft_table_parse;
++  nft_table_parse_file;
+   nft_table_snprintf;
+   nft_table_fprintf;
+   nft_table_nlmsg_build_payload;
+@@ -45,6 +46,7 @@ global:
+   nft_chain_attr_get_u64;
+   nft_chain_attr_get_str;
+   nft_chain_parse;
++  nft_chain_parse_file;
+   nft_chain_snprintf;
+   nft_chain_fprintf;
+   nft_chain_nlmsg_build_payload;
+@@ -74,6 +76,7 @@ global:
+   nft_rule_attr_get_u64;
+   nft_rule_attr_get_str;
+   nft_rule_parse;
++  nft_rule_parse_file;
+   nft_rule_snprintf;
+   nft_rule_fprintf;
+   nft_rule_nlmsg_build_payload;
+@@ -128,6 +131,7 @@ global:
+   nft_set_nlmsg_build_payload;
+   nft_set_nlmsg_parse;
+   nft_set_parse;
++  nft_set_parse_file;
+   nft_set_snprintf;
+   nft_set_fprintf;
  
- 	return root;
-+err:
-+	errno = EINVAL;
-+	return NULL;
- }
+@@ -159,6 +163,7 @@ global:
+   nft_set_elem_nlmsg_build_payload;
+   nft_set_elem_nlmsg_parse;
+   nft_set_elem_parse;
++  nft_set_elem_parse_file;
+   nft_set_elem_snprintf;
+   nft_set_elem_fprinf;
  
- json_t *nft_jansson_get_node(json_t *root, const char *node_name,
+@@ -179,6 +184,7 @@ global:
+   nft_ruleset_attr_set;
+   nft_ruleset_attr_get;
+   nft_ruleset_parse;
++  nft_ruleset_parse_file;
+   nft_ruleset_snprintf;
+   nft_ruleset_fprintf;
+ 
 diff --git a/src/mxml.c b/src/mxml.c
-index bc0f084..e4151ae 100644
+index e4151ae..06cea56 100644
 --- a/src/mxml.c
 +++ b/src/mxml.c
-@@ -22,12 +22,19 @@
- #include <libnftables/set.h>
- 
- #ifdef XML_PARSING
--mxml_node_t *nft_mxml_build_tree(const char *xml, const char *treename,
--				 struct nft_parse_err *err)
-+mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
-+				 struct nft_parse_err *err, uint32_t buildsrc)
- {
- 	mxml_node_t *tree;
- 
--	tree = mxmlLoadString(NULL, xml, MXML_OPAQUE_CALLBACK);
-+	switch (buildsrc) {
-+	case NFT_PARSE_BUFFER:
-+		tree = mxmlLoadString(NULL, data, MXML_OPAQUE_CALLBACK);
+@@ -31,6 +31,9 @@ mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
+ 	case NFT_PARSE_BUFFER:
+ 		tree = mxmlLoadString(NULL, data, MXML_OPAQUE_CALLBACK);
+ 		break;
++	case NFT_PARSE_FILE:
++		tree = mxmlLoadFile(NULL, (FILE *)data, MXML_OPAQUE_CALLBACK);
 +		break;
-+	default:
-+		goto err;
-+	}
-+
- 	if (tree == NULL) {
- 		err->error = NFT_PARSE_EBADINPUT;
+ 	default:
  		goto err;
+ 	}
 diff --git a/src/rule.c b/src/rule.c
-index 2e35aba..0eabd45 100644
+index 0eabd45..60e2280 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -526,14 +526,14 @@ err:
+@@ -676,6 +676,13 @@ int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_rule_json_parse(struct nft_rule *r, const char *json,
--			       struct nft_parse_err *err)
-+static int nft_rule_json_parse(struct nft_rule *r, const void *json,
-+			       struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *tree;
- 	json_error_t error;
- 
--	tree = nft_jansson_create_root(json, &error, err);
-+	tree = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -627,12 +627,12 @@ int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
- }
- #endif
- 
--static int nft_rule_xml_parse(struct nft_rule *r, const char *xml,
--			      struct nft_parse_err *err)
-+static int nft_rule_xml_parse(struct nft_rule *r, const void *xml,
-+			      struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	int ret;
--	mxml_node_t *tree = nft_mxml_build_tree(xml, "rule", err);
-+	mxml_node_t *tree = nft_mxml_build_tree(xml, "rule", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -645,18 +645,19 @@ static int nft_rule_xml_parse(struct nft_rule *r, const char *xml,
- #endif
- }
- 
--int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type,
--		   const char *data, struct nft_parse_err *err)
-+static int nft_rule_do_parse(struct nft_rule *r, enum nft_parse_type type,
-+			     const void *data, struct nft_parse_err *err,
-+			     uint32_t buildsrc)
- {
- 	int ret;
- 	struct nft_parse_err perr;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_rule_xml_parse(r, data, &perr);
-+		ret = nft_rule_xml_parse(r, data, &perr, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_rule_json_parse(r, data, &perr);
-+		ret = nft_rule_json_parse(r, data, &perr, buildsrc);
- 		break;
- 	default:
- 		ret = -1;
-@@ -668,6 +669,11 @@ int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type,
- 
- 	return ret;
- }
-+int nft_rule_parse(struct nft_rule *r, enum nft_parse_type type,
-+		   const char *data, struct nft_parse_err *err)
-+{
-+	return nft_rule_do_parse(r, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_rule_parse);
  
++int nft_rule_parse_file(struct nft_rule *r, enum nft_parse_type type,
++			FILE *fp, struct nft_parse_err *err)
++{
++	return nft_rule_do_parse(r, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_rule_parse_file);
++
  static int nft_rule_snprintf_json(char *buf, size_t size, struct nft_rule *r,
+ 					 uint32_t type, uint32_t flags)
+ {
 diff --git a/src/ruleset.c b/src/ruleset.c
-index a12efa9..9ca15c2 100644
+index 9ca15c2..1fb26a4 100644
 --- a/src/ruleset.c
 +++ b/src/ruleset.c
-@@ -330,14 +330,14 @@ err:
- 
- #endif
- 
--static int nft_ruleset_json_parse(struct nft_ruleset *rs, const char *json,
--				  struct nft_parse_err *err)
-+static int nft_ruleset_json_parse(struct nft_ruleset *rs, const void *json,
-+				  struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *root, *array;
- 	json_error_t error;
- 
--	root = nft_jansson_create_root(json, &error, err);
-+	root = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (root == NULL)
- 		return -1;
- 
-@@ -534,13 +534,13 @@ err_free:
+@@ -597,6 +597,13 @@ int nft_ruleset_parse(struct nft_ruleset *r, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_ruleset_xml_parse(struct nft_ruleset *rs, const char *xml,
--				 struct nft_parse_err *err)
-+static int nft_ruleset_xml_parse(struct nft_ruleset *rs, const void *xml,
-+				 struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	mxml_node_t *tree;
- 
--	tree = nft_mxml_build_tree(xml, "nftables", err);
-+	tree = nft_mxml_build_tree(xml, "nftables", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -567,17 +567,19 @@ err:
- #endif
- }
- 
--int nft_ruleset_parse(struct nft_ruleset *r, enum nft_parse_type type,
--		      const char *data, struct nft_parse_err *err)
-+static int
-+nft_ruleset_do_parse(struct nft_ruleset *r, enum nft_parse_type type,
-+		     const void *data, struct nft_parse_err *err,
-+		     uint32_t buildsrc)
- {
- 	int ret;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_ruleset_xml_parse(r, data, err);
-+		ret = nft_ruleset_xml_parse(r, data, err, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_ruleset_json_parse(r, data, err);
-+		ret = nft_ruleset_json_parse(r, data, err, buildsrc);
- 		break;
- 	default:
- 		ret = -1;
-@@ -587,6 +589,12 @@ int nft_ruleset_parse(struct nft_ruleset *r, enum nft_parse_type type,
- 
- 	return ret;
- }
-+
-+int nft_ruleset_parse(struct nft_ruleset *r, enum nft_parse_type type,
-+		      const char *data, struct nft_parse_err *err)
-+{
-+	return nft_ruleset_do_parse(r, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_ruleset_parse);
  
++int nft_ruleset_parse_file(struct nft_ruleset *rs, enum nft_parse_type type,
++			   FILE *fp, struct nft_parse_err *err)
++{
++	return nft_ruleset_do_parse(rs, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_ruleset_parse_file);
++
  static const char *nft_ruleset_o_opentag(uint32_t type)
+ {
+ 	switch (type) {
 diff --git a/src/set.c b/src/set.c
-index 9317b9c..009128b 100644
+index 009128b..406af85 100644
 --- a/src/set.c
 +++ b/src/set.c
-@@ -375,14 +375,14 @@ err:
+@@ -533,6 +533,13 @@ int nft_set_parse(struct nft_set *s, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_set_json_parse(struct nft_set *s, const char *json,
--			      struct nft_parse_err *err)
-+static int nft_set_json_parse(struct nft_set *s, const void *json,
-+			      struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *tree;
- 	json_error_t error;
- 
--	tree = nft_jansson_create_root(json, &error, err);
-+	tree = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -483,12 +483,12 @@ int nft_mxml_set_parse(mxml_node_t *tree, struct nft_set *s,
- }
- #endif
- 
--static int nft_set_xml_parse(struct nft_set *s, const char *xml,
--			     struct nft_parse_err *err)
-+static int nft_set_xml_parse(struct nft_set *s, const void *xml,
-+			     struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	int ret;
--	mxml_node_t *tree = nft_mxml_build_tree(xml, "set", err);
-+	mxml_node_t *tree = nft_mxml_build_tree(xml, "set", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -501,18 +501,19 @@ static int nft_set_xml_parse(struct nft_set *s, const char *xml,
- #endif
- }
- 
--int nft_set_parse(struct nft_set *s, enum nft_parse_type type,
--		  const char *data, struct nft_parse_err *err)
-+static int nft_set_do_parse(struct nft_set *s, enum nft_parse_type type,
-+			    const void *data, struct nft_parse_err *err,
-+			    uint32_t buildsrc)
- {
- 	int ret;
- 	struct nft_parse_err perr;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_set_xml_parse(s, data, &perr);
-+		ret = nft_set_xml_parse(s, data, &perr, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_set_json_parse(s, data, &perr);
-+		ret = nft_set_json_parse(s, data, &perr, buildsrc);
- 		break;
- 	default:
- 		ret = -1;
-@@ -525,6 +526,11 @@ int nft_set_parse(struct nft_set *s, enum nft_parse_type type,
- 
- 	return ret;
- }
-+int nft_set_parse(struct nft_set *s, enum nft_parse_type type,
-+		  const char *data, struct nft_parse_err *err)
-+{
-+	return nft_set_do_parse(s, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_set_parse);
  
++int nft_set_parse_file(struct nft_set *s, enum nft_parse_type type,
++		       FILE *fp, struct nft_parse_err *err)
++{
++	return nft_set_do_parse(s, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_set_parse_file);
++
  static int nft_set_snprintf_json(char *buf, size_t size, struct nft_set *s,
+ 				  uint32_t type, uint32_t flags)
+ {
 diff --git a/src/set_elem.c b/src/set_elem.c
-index 14bf6f4..7b18cc4 100644
+index 7b18cc4..fb67c4a 100644
 --- a/src/set_elem.c
 +++ b/src/set_elem.c
-@@ -394,14 +394,14 @@ int nft_mxml_set_elem_parse(mxml_node_t *tree, struct nft_set_elem *e,
+@@ -461,6 +461,13 @@ int nft_set_elem_parse(struct nft_set_elem *e, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_set_elem_xml_parse(struct nft_set_elem *e, const char *xml,
--				  struct nft_parse_err *err)
-+static int nft_set_elem_xml_parse(struct nft_set_elem *e, const void *xml,
-+				  struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	mxml_node_t *tree;
- 	int ret;
- 
--	tree = nft_mxml_build_tree(xml, "set_elem", err);
-+	tree = nft_mxml_build_tree(xml, "set_elem", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -415,13 +415,13 @@ static int nft_set_elem_xml_parse(struct nft_set_elem *e, const char *xml,
- }
- 
- static int nft_set_elem_json_parse(struct nft_set_elem *e, const void *json,
--				   struct nft_parse_err *err)
-+				   struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *tree;
- 	json_error_t error;
- 
--	tree = nft_jansson_create_root(json, &error, err);
-+	tree = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -432,17 +432,19 @@ static int nft_set_elem_json_parse(struct nft_set_elem *e, const void *json,
- #endif
- }
- 
--int nft_set_elem_parse(struct nft_set_elem *e,
--		       enum nft_parse_type type, const char *data,
--		       struct nft_parse_err *err) {
-+static int
-+nft_set_elem_do_parse(struct nft_set_elem *e, enum nft_parse_type type,
-+		      const void *data, struct nft_parse_err *err,
-+		      uint32_t buildsrc)
-+{
- 	int ret;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_set_elem_xml_parse(e, data, err);
-+		ret = nft_set_elem_xml_parse(e, data, err, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_set_elem_json_parse(e, data, err);
-+		ret = nft_set_elem_json_parse(e, data, err, buildsrc);
- 		break;
- 	default:
- 		errno = EOPNOTSUPP;
-@@ -452,6 +454,11 @@ int nft_set_elem_parse(struct nft_set_elem *e,
- 
- 	return ret;
- }
-+int nft_set_elem_parse(struct nft_set_elem *e, enum nft_parse_type type,
-+		       const char *data, struct nft_parse_err *err)
-+{
-+	return nft_set_elem_do_parse(e, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_set_elem_parse);
  
++int nft_set_elem_parse_file(struct nft_set_elem *e, enum nft_parse_type type,
++			    FILE *fp, struct nft_parse_err *err)
++{
++	return nft_set_elem_do_parse(e, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_set_elem_parse_file);
++
  static int nft_set_elem_snprintf_json(char *buf, size_t size,
+ 				      struct nft_set_elem *e, uint32_t flags)
+ {
 diff --git a/src/table.c b/src/table.c
-index 9b5f5c9..8e4d17b 100644
+index 8e4d17b..6e7625e 100644
 --- a/src/table.c
 +++ b/src/table.c
-@@ -247,12 +247,12 @@ int nft_mxml_table_parse(mxml_node_t *tree, struct nft_table *t,
+@@ -353,6 +353,13 @@ int nft_table_parse(struct nft_table *t, enum nft_parse_type type,
  }
- #endif
- 
--static int nft_table_xml_parse(struct nft_table *t, const char *xml,
--			       struct nft_parse_err *err)
-+static int nft_table_xml_parse(struct nft_table *t, const void *data,
-+			       struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef XML_PARSING
- 	int ret;
--	mxml_node_t *tree = nft_mxml_build_tree(xml, "table", err);
-+	mxml_node_t *tree = nft_mxml_build_tree(data, "table", err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -302,14 +302,14 @@ err:
- }
- #endif
- 
--static int nft_table_json_parse(struct nft_table *t, const char *json,
--				struct nft_parse_err *err)
-+static int nft_table_json_parse(struct nft_table *t, const void *json,
-+				struct nft_parse_err *err, uint32_t buildsrc)
- {
- #ifdef JSON_PARSING
- 	json_t *tree;
- 	json_error_t error;
- 
--	tree = nft_jansson_create_root(json, &error, err);
-+	tree = nft_jansson_create_root(json, &error, err, buildsrc);
- 	if (tree == NULL)
- 		return -1;
- 
-@@ -320,18 +320,19 @@ static int nft_table_json_parse(struct nft_table *t, const char *json,
- #endif
- }
- 
--int nft_table_parse(struct nft_table *t, enum nft_parse_type type,
--		    const char *data, struct nft_parse_err *err)
-+static int nft_table_do_parse(struct nft_table *t, enum nft_parse_type type,
-+			      const void *data, struct nft_parse_err *err,
-+			      uint32_t buildsrc)
- {
- 	int ret;
- 	struct nft_parse_err perr;
- 
- 	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_table_xml_parse(t, data, &perr);
-+		ret = nft_table_xml_parse(t, data, &perr, buildsrc);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_table_json_parse(t, data, &perr);
-+		ret = nft_table_json_parse(t, data, &perr, buildsrc);
- 		break;
- 	default:
- 		ret = -1;
-@@ -344,6 +345,12 @@ int nft_table_parse(struct nft_table *t, enum nft_parse_type type,
- 
- 	return ret;
- }
-+
-+int nft_table_parse(struct nft_table *t, enum nft_parse_type type,
-+		    const char *data, struct nft_parse_err *err)
-+{
-+	return nft_table_do_parse(t, type, data, err, NFT_PARSE_BUFFER);
-+}
  EXPORT_SYMBOL(nft_table_parse);
  
++int nft_table_parse_file(struct nft_table *t, enum nft_parse_type type,
++			 FILE *fp, struct nft_parse_err *err)
++{
++	return nft_table_do_parse(t, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_table_parse_file);
++
  static int nft_table_snprintf_json(char *buf, size_t size, struct nft_table *t)
+ {
+ 	return snprintf(buf, size,
 
