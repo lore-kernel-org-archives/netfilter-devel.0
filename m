@@ -1,38 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v6] netfilter: introduce l2tp match extension
-Date: Thu, 9 Jan 2014 21:45:47 +0100
-Message-ID: <20140109204547.GA18522@localhost>
-References: <1389003428-29683-1-git-send-email-jchapman@katalix.com>
- <20140109195211.GA26947@localhost>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get
+Date: Thu, 9 Jan 2014 21:56:22 +0100
+Message-ID: <20140109205622.GA29458@breakpoint.cc>
+References: <1389090711-15843-1-git-send-email-avagin@openvz.org>
+ <1389107305.26646.20.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20140107152520.GF9894@breakpoint.cc>
+ <20140109203206.GA26348@paralelels.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: James Chapman <jchapman@katalix.com>
+Cc: Florian Westphal <fw@strlen.de>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Andrey Vagin <avagin@openvz.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, vvs@openvz.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Andrew Vagin <avagin@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60620 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757415AbaAIUp4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jan 2014 15:45:56 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37014 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756189AbaAIU42 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 15:56:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20140109195211.GA26947@localhost>
+In-Reply-To: <20140109203206.GA26348@paralelels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-More minor changes I have done here:
+Andrew Vagin <avagin@parallels.com> wrote:
+> Can we allocate conntrack with zero ct_general.use and increment it at
+> the first time before inserting the conntrack into the hash table?
+> When conntrack is allocated it is attached exclusively to one skb.
+> It must be destroyed with skb, if it has not been confirmed, so we
+> don't need refcnt on this stage.
+> 
+> I found only one place, where a reference counter of unconfirmed
+> conntract can incremented. It's ctnetlink_dump_table().
 
-On Thu, Jan 09, 2014 at 08:52:11PM +0100, Pablo Neira Ayuso wrote:
-> > - Add IS_ENABLED(CONFIG_IPV6) around IPv6 code.
-
-Changed this to use IS_ENABLED(CONFIG_IP6_NF_IPTABLES).
-
-> > ---
-> > :000000 100644 0000000... be65e0b... A	include/uapi/linux/netfilter/xt_l2tp.h
-> > :100644 100644 c3398cd... a32c8ce... M	net/netfilter/Kconfig
-> > :100644 100644 394483b... 564bf35... M	net/netfilter/Makefile
-> > :000000 100644 0000000... 48f1211... A	net/netfilter/xt_l2tp.c
-> >  include/uapi/linux/netfilter/xt_l2tp.h |   29 +++
-> >  net/netfilter/Kconfig                  |   10 +
-> >  net/netfilter/Makefile                 |    1 +
-> >  net/netfilter/xt_l2tp.c                |  392 ++++++++++++++++++++++++++++++++
-
-Added missing change in include/uapi/linux/netfilter/Kbuild.
+What about skb_clone, etc?  They will also increment the refcnt
+if a conntrack entry is attached to the skb.
