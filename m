@@ -1,76 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH libnftables] Add support for ct set
-Date: Fri, 10 Jan 2014 18:06:25 +0000
-Message-ID: <20140110180625.GA4002@macbook.localnet>
-References: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
- <20140110131406.GA8088@macbook.localnet>
- <CAKfDRXgDZSnQ-cvpDTbea45ZTeFOMu_PThEp1kL-qNeQzVKrQw@mail.gmail.com>
- <20140110132703.GA8224@macbook.localnet>
- <CAKfDRXi5v27Tiazb78rA6v7YrAFqXz+kMEZgeE9jJb1whwnYvQ@mail.gmail.com>
- <20140110134342.GA8720@macbook.localnet>
- <20140110135435.GA18191@localhost>
- <20140110135800.GA8854@macbook.localnet>
- <20140110143252.GA3879@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Kristian Evensen <kristian.evensen@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter updates for net-next
+Date: Fri, 10 Jan 2014 19:55:57 +0100
+Message-ID: <1389380158-8754-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61087 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbaAJSG3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 13:06:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20140110143252.GA3879@localhost>
+Received: from mail.us.es ([193.147.175.20]:51831 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757244AbaAJS4W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jan 2014 13:56:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 10, 2014 at 03:32:52PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Jan 10, 2014 at 01:58:01PM +0000, Patrick McHardy wrote:
-> > On Fri, Jan 10, 2014 at 02:54:35PM +0100, Pablo Neira Ayuso wrote:
-> > > On Fri, Jan 10, 2014 at 01:43:43PM +0000, Patrick McHardy wrote:
-> > > > On Fri, Jan 10, 2014 at 02:33:06PM +0100, Kristian Evensen wrote:
-> > > > > Hi,
-> > > > > 
-> > > > > On Fri, Jan 10, 2014 at 2:27 PM, Patrick McHardy <kaber@trash.net> wrote:
-> > > > > > No, I'm refering to the (ab)use of the expression. Anything not returning
-> > > > > > data is not an expression but a statement.
-> > > > > 
-> > > > > Ok, then I follow :) I followed the naming in meta, but I agree. What
-> > > > > would be a good naming convetion? I thought of something like
-> > > > > nft_expr_stmt_*. It is a bit clumsy, but it is at least clear that the
-> > > > > struct can be used to represent both an expression and a statement.
-> > > > 
-> > > > nft_ct_stmt? This is what we use in nftables f.i. in case of meta.
-> > > 
-> > > Perhaps nft_ct_instr? So we can identify this as the nftables
-> > > instruction-set.
-> > 
-> > Well, expressions also belong to the instruction set. A statement is
-> > is one (more specific) case of an instruction, as are expressions.
-> > Why introduce new terminology that isn't used anywhere else so far
-> > if statement is the exact description of what this is and is already
-> > used by nftables.
-> 
-> So are you proposing to add a new object for statements in
-> libnftables? That will require a new infrastructure which would be
-> very similar to what we have in the current expressions.
+Hi David,
 
-Well, the infrastructure should be pretty small. In fact you could
-probably map everything to expressions internally (although I don't
-think adding new infrastructure would be much effort), I would just
-rather not create an API that confuses fundamental types.
+This batch contains one single patch with the l2tp match
+for xtables, from James Chapman.
 
-> To that extend, that would also require a new infrastructure in the
-> kernel so we also have statements there. I think one of the good
-> things of the nf_tables kernel side is that we didn't make any
-> distinction between matches/targets (or call it
-> expressions/statements).
+You can pull these changes from:
 
-In the kernel that was deliberate and is only internal to the kernel
-(well, and libraries and so on). I considered it, but I think in the
-kernel its more important to keep the code base and APIs as small 
-as possible.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+Thanks!
+
+----------------------------------------------------------------
+
+You can pull these changes from:
+
+The following changes since commit d0eb1f7e66dd53355746cd6a8e7e56c465dc6cde:
+
+  ip_tunnel: fix sparse non static symbol warning (2014-01-09 14:31:47 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to 74f77a6b2b1c98d3f14364dccdd2353b99ecfeda:
+
+  netfilter: introduce l2tp match extension (2014-01-09 21:36:39 +0100)
+
+----------------------------------------------------------------
+James Chapman (1):
+      netfilter: introduce l2tp match extension
+
+ include/uapi/linux/netfilter/Kbuild    |    1 +
+ include/uapi/linux/netfilter/xt_l2tp.h |   27 +++
+ net/netfilter/Kconfig                  |   10 +
+ net/netfilter/Makefile                 |    1 +
+ net/netfilter/xt_l2tp.c                |  354 ++++++++++++++++++++++++++++++++
+ 5 files changed, 393 insertions(+)
+ create mode 100644 include/uapi/linux/netfilter/xt_l2tp.h
+ create mode 100644 net/netfilter/xt_l2tp.c
+
