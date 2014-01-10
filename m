@@ -1,45 +1,38 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH libnftables] Add support for ct set
-Date: Fri, 10 Jan 2014 15:03:40 +0100
-Message-ID: <CAKfDRXgcfZW9cNYb4T-f1OAXc1h7XdW1fHHBSZCWeDJ5G6Y7dA@mail.gmail.com>
-References: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
-	<20140110131406.GA8088@macbook.localnet>
-	<CAKfDRXgDZSnQ-cvpDTbea45ZTeFOMu_PThEp1kL-qNeQzVKrQw@mail.gmail.com>
-	<20140110132703.GA8224@macbook.localnet>
-	<CAKfDRXi5v27Tiazb78rA6v7YrAFqXz+kMEZgeE9jJb1whwnYvQ@mail.gmail.com>
-	<20140110134342.GA8720@macbook.localnet>
-	<20140110135235.GA8797@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: fix missing byteorder conversion in policy
+Date: Fri, 10 Jan 2014 15:14:20 +0100
+Message-ID: <1389363260-3680-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:43055 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbaAJODl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 09:03:41 -0500
-Received: by mail-pb0-f52.google.com with SMTP id uo5so4493378pbc.39
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 06:03:40 -0800 (PST)
-In-Reply-To: <20140110135235.GA8797@macbook.localnet>
+Received: from mail.us.es ([193.147.175.20]:38362 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751780AbaAJOO2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jan 2014 09:14:28 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+When fetching the policy attribute, the byteorder conversion was
+missing, breaking the chain policy setting.
 
-On Fri, Jan 10, 2014 at 2:52 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Just to be clear, I'm not only talking about the naming, a statement
-> is something fundamentally different. Every expression has a value,
-> which a statement doesn't have. Therefore every expression has a
-> a value, destination register, byteorder, ..., all of which don't
-> apply to statements. This is why we have an entire separate class
-> for this in nftables, and this is what I'm also proposing for
-> libnftables.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the clarification and I agree. "ct set" is already part of
-ct_stmt in nftables, but I was unsure of how to transfer this to
-libnftables. I therefor decided to follow meta and store sreg in
-nf_expr_ct.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 36add31..117bbaa 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -859,7 +859,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		    nla[NFTA_CHAIN_HOOK] == NULL)
+ 			return -EOPNOTSUPP;
+ 
+-		policy = nla_get_be32(nla[NFTA_CHAIN_POLICY]);
++		policy = ntohl(nla_get_be32(nla[NFTA_CHAIN_POLICY]));
+ 		switch (policy) {
+ 		case NF_DROP:
+ 		case NF_ACCEPT:
+-- 
+1.7.10.4
 
--Kristian
