@@ -1,49 +1,76 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH libnftables v2] Add support for ct set
-Date: Fri, 10 Jan 2014 12:42:36 +0100
-Message-ID: <CAOkSjBgW0nNs-V+V47-KEnu0GWPc2U0rNc30waRNXExgUwWtoA@mail.gmail.com>
-References: <1389170211-7024-1-git-send-email-kristian.evensen@gmail.com>
- <20140110005015.GA18032@localhost> <CAKfDRXg_Ks3uPY6T9vr0pa_OgMT7ZrxdnGPTqxOvfFjoznMUeA@mail.gmail.com>
- <20140110103758.GA4732@localhost> <CAOkSjBjFnfRhQ+3seVLx_i-JrzdQwcefD_U_COByX=EidOoXBw@mail.gmail.com>
- <CAKfDRXgGAGfa95kxDgH5A2ybyre+e4E0+5bGmrRryofHt__JJQ@mail.gmail.com>
+Subject: [libnftables PATCH next-3.14] expr: fix registers datatypes
+Date: Fri, 10 Jan 2014 13:07:51 +0100
+Message-ID: <20140110120751.9047.7872.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:57536 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbaAJLnE convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 06:43:04 -0500
-Received: by mail-la0-f48.google.com with SMTP id n7so3068932lam.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 03:42:58 -0800 (PST)
-In-Reply-To: <CAKfDRXgGAGfa95kxDgH5A2ybyre+e4E0+5bGmrRryofHt__JJQ@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:47835 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751062AbaAJMH5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jan 2014 07:07:57 -0500
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id BB0D351ED65
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 12:07:54 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id cFBByE-BgFsU for <netfilter-devel@vger.kernel.org>;
+	Fri, 10 Jan 2014 13:07:54 +0100 (CET)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 8610851ED6B
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 13:07:54 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10 January 2014 12:37, Kristian Evensen <kristian.evensen@gmail.com>=
- wrote:
-> Hi,
->
-> On Fri, Jan 10, 2014 at 12:06 PM, Arturo Borrero Gonzalez
-> <arturo.borrero.glez@gmail.com> wrote:
->> Should I patch all and switch to enum nft_registers?
->
-> I can do ct.c as a part of reworking the ct set-patch.
->
+Registers datatypes must be enum nft_registers.
 
-Good, I'll handle the others.
+Pablo Neira says:
+<< From the kernel representation point of view, it doesn't make any
+sense to have set both sreg and dreg, but we should not make such
+assumption from userspace. If the user sets both sreg and dreg, it's
+wrong and the kernel should reply -EINVAL so the user knows that it
+has to fix its userspace code. This requires a bit more memory in
+userspace, but we don't have the memory restrictions that we have in
+kernelspace, so a bit more consumption won't harm. >>
 
-thanks.
+So, while at it, delete the meta expr union for registers.
 
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/expr/cmp.c  |    2 +-
+ src/expr/meta.c |    6 ++----
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index 246f22f..ab244ac 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -26,7 +26,7 @@
+ 
+ struct nft_expr_cmp {
+ 	union nft_data_reg	data;
+-	uint8_t			sreg;	/* enum nft_registers */
++	enum nft_registers	sreg;
+ 	uint8_t			op;	/* enum nft_cmp_ops */
+ };
+ 
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 490d64a..7fd0af1 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -28,10 +28,8 @@
+ 
+ struct nft_expr_meta {
+ 	uint8_t			key;	/* enum nft_meta_keys */
+-	union {
+-		uint8_t		dreg;	/* enum nft_registers */
+-		uint8_t		sreg;   /* enum nft_registers */
+-	};
++	enum nft_registers	dreg;
++	enum nft_registers	sreg;
+ };
+ 
+ static int
+
