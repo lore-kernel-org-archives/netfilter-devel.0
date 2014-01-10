@@ -1,387 +1,161 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 02/23] netfilter: nf_tables: make chain types override the default AF functions
-Date: Fri, 10 Jan 2014 01:35:21 +0100
-Message-ID: <1389314142-17969-3-git-send-email-pablo@netfilter.org>
-References: <1389314142-17969-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1389314142-17969-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [PATCH libnftables v2] Add support for ct set
+Date: Fri, 10 Jan 2014 01:50:15 +0100
+Message-ID: <20140110005015.GA18032@localhost>
+References: <1389170211-7024-1-git-send-email-kristian.evensen@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Kristian Evensen <kristian.evensen@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52552 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756776AbaAJAuU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jan 2014 19:50:20 -0500
+Content-Disposition: inline
+In-Reply-To: <1389170211-7024-1-git-send-email-kristian.evensen@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+On Wed, Jan 08, 2014 at 09:36:51AM +0100, Kristian Evensen wrote:
+> From: Kristian Evensen <kristian.evensen@gmail.com>
+> 
+> This patch adds userspace support for setting properties of tracked connections.
+> Currently, the connection mark is supported. This can be used to implemented the
+> same functionality as iptables -j CONNMARK --save-mark.
 
-Currently the AF-specific hook functions override the chain-type specific
-hook functions. That doesn't make too much sense since the chain types
-are a special case of the AF-specific hooks.
+This applies cleanly to libnftables, but I need to request you some
+changes.
 
-Make the AF-specific hook functions the default and make the optional
-chain type hooks override them.
+> v1->v2:
+> - Fixed a style error.
+> - Improved error handling. Fail if neither sreg nor dreg is set (was already
+>   present when parsing XML).
+> 
+> Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
+> ---
+>  include/libnftables/expr.h          |   1 +
+>  include/linux/netfilter/nf_tables.h |   2 +
+>  src/expr/ct.c                       | 122 ++++++++++++++++++++++++++++--------
+>  3 files changed, 100 insertions(+), 25 deletions(-)
+> 
+> diff --git a/include/libnftables/expr.h b/include/libnftables/expr.h
+> index 25455e4..653bbb0 100644
+> --- a/include/libnftables/expr.h
+> +++ b/include/libnftables/expr.h
+> @@ -124,6 +124,7 @@ enum {
+>  	NFT_EXPR_CT_DREG	= NFT_RULE_EXPR_ATTR_BASE,
+>  	NFT_EXPR_CT_KEY,
+>  	NFT_EXPR_CT_DIR,
+> +	NFT_EXPR_CT_SREG,
+>  };
+>  
+>  enum {
+> diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+> index e08f80e..1b6362c 100644
+> --- a/include/linux/netfilter/nf_tables.h
+> +++ b/include/linux/netfilter/nf_tables.h
+> @@ -526,12 +526,14 @@ enum nft_ct_keys {
+>   * @NFTA_CT_DREG: destination register (NLA_U32)
+>   * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
+>   * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
+> + * @NFTA_CT_SREG: source register (NLA_U32)
+>   */
+>  enum nft_ct_attributes {
+>  	NFTA_CT_UNSPEC,
+>  	NFTA_CT_DREG,
+>  	NFTA_CT_KEY,
+>  	NFTA_CT_DIRECTION,
+> +	NFTA_CT_SREG,
+>  	__NFTA_CT_MAX
+>  };
+>  #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
+> diff --git a/src/expr/ct.c b/src/expr/ct.c
+> index 46e3cef..00de64b 100644
+> --- a/src/expr/ct.c
+> +++ b/src/expr/ct.c
+> @@ -24,7 +24,10 @@
+>  
+>  struct nft_expr_ct {
+>  	enum nft_ct_keys        key;
+> -	uint32_t		dreg;	/* enum nft_registers */
+> +	union {
+> +		uint32_t		dreg;	/* enum nft_registers */
+> +		uint32_t		sreg;	/* enum nft_registers */
+> +	};
 
-As a side effect, the necessary code restructuring reduces the code size,
-f.i. in case of nf_tables_ipv4.o:
+I know you have based this patch on the meta/set support, which does
+exactly this thing, but I think we have to have two different fields
+sreg and dreg (so remove the union), the reason is explain below.
 
-  nf_tables_ipv4_init_net   |  -24
-  nft_do_chain_ipv4         | -113
- 2 functions changed, 137 bytes removed, diff: -137
+>  	uint8_t			dir;
+>  };
+>  
+> @@ -51,6 +54,9 @@ nft_rule_expr_ct_set(struct nft_rule_expr *e, uint16_t type,
+>  	case NFT_EXPR_CT_DREG:
+>  		ct->dreg = *((uint32_t *)data);
+>  		break;
+> +	case NFT_EXPR_CT_SREG:
+> +		ct->sreg = *((uint32_t *)data);
+> +		break;
+>  	default:
+>  		return -1;
+>  	}
+> @@ -73,6 +79,9 @@ nft_rule_expr_ct_get(const struct nft_rule_expr *e, uint16_t type,
+>  	case NFT_EXPR_CT_DREG:
+>  		*data_len = sizeof(ct->dreg);
+>  		return &ct->dreg;
+> +	case NFT_EXPR_CT_SREG:
+> +		*data_len = sizeof(ct->sreg);
+> +		return &ct->sreg;
+>  	}
+>  	return NULL;
+>  }
+> @@ -88,6 +97,7 @@ static int nft_rule_expr_ct_cb(const struct nlattr *attr, void *data)
+>  	switch(type) {
+>  	case NFTA_CT_KEY:
+>  	case NFTA_CT_DREG:
+> +	case NFTA_CT_SREG:
+>  		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
+>  			perror("mnl_attr_validate");
+>  			return MNL_CB_ERROR;
+> @@ -116,6 +126,8 @@ nft_rule_expr_ct_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+>  		mnl_attr_put_u32(nlh, NFTA_CT_DREG, htonl(ct->dreg));
+>  	if (e->flags & (1 << NFT_EXPR_CT_DIR))
+>  		mnl_attr_put_u8(nlh, NFTA_CT_DIRECTION, ct->dir);
+> +	if (e->flags & (1 << NFT_EXPR_CT_SREG))
+> +		mnl_attr_put_u32(nlh, NFTA_CT_SREG, htonl(ct->sreg));
+>  }
+>  
+>  static int
+> @@ -131,14 +143,19 @@ nft_rule_expr_ct_parse(struct nft_rule_expr *e, struct nlattr *attr)
+>  		ct->key = ntohl(mnl_attr_get_u32(tb[NFTA_CT_KEY]));
+>  		e->flags |= (1 << NFT_EXPR_CT_KEY);
+>  	}
+> -	if (tb[NFTA_CT_DREG]) {
+> -		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
+> -		e->flags |= (1 << NFT_EXPR_CT_DREG);
+> -	}
+>  	if (tb[NFTA_CT_DIRECTION]) {
+>  		ct->dir = mnl_attr_get_u8(tb[NFTA_CT_DIRECTION]);
+>  		e->flags |= (1 << NFT_EXPR_CT_DIR);
+>  	}
+> +	if (tb[NFTA_CT_DREG]) {
+> +		ct->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_DREG]));
+> +		e->flags |= (1 << NFT_EXPR_CT_DREG);
+> +	} else if (tb[NFTA_CT_SREG]) {
+> +		ct->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_CT_SREG]));
+> +		e->flags |= (1 << NFT_EXPR_CT_SREG);
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/nf_tables_bridge.c |   38 ++++++++++++------------
- net/ipv4/netfilter/nf_tables_arp.c      |   38 ++++++++++++------------
- net/ipv4/netfilter/nf_tables_ipv4.c     |   43 ++++++++++++---------------
- net/ipv6/netfilter/nf_tables_ipv6.c     |   48 +++++++++++++------------------
- net/netfilter/nf_tables_api.c           |   10 +++----
- 5 files changed, 81 insertions(+), 96 deletions(-)
+I would like to avoid this sort of obscure behaviour. I know that,
+from the kernel representation point of view, it doesn't make any
+sense to have set both sreg and dreg, but we should not make such
+assumption from userspace. If the user sets both sreg and dreg, it's
+wrong and the kernel should reply -EINVAL so the user knows that it
+has to fix its userspace code. This requires a bit more memory in
+userspace, but we don't have the memory restrictions that we have in
+kernelspace, so a bit more consumption won't harm.
 
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index cf54b22..c5fdd9a 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -14,10 +14,29 @@
- #include <linux/netfilter_bridge.h>
- #include <net/netfilter/nf_tables.h>
- 
-+static unsigned int
-+nft_do_chain_bridge(const struct nf_hook_ops *ops,
-+		    struct sk_buff *skb,
-+		    const struct net_device *in,
-+		    const struct net_device *out,
-+		    int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	nft_set_pktinfo(&pkt, ops, skb, in, out);
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static struct nft_af_info nft_af_bridge __read_mostly = {
- 	.family		= NFPROTO_BRIDGE,
- 	.nhooks		= NF_BR_NUMHOOKS,
- 	.owner		= THIS_MODULE,
-+	.hooks		= {
-+		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
-+		[NF_BR_FORWARD]		= nft_do_chain_bridge,
-+		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
-+	},
- };
- 
- static int nf_tables_bridge_init_net(struct net *net)
-@@ -48,20 +67,6 @@ static struct pernet_operations nf_tables_bridge_net_ops = {
- 	.exit	= nf_tables_bridge_exit_net,
- };
- 
--static unsigned int
--nft_do_chain_bridge(const struct nf_hook_ops *ops,
--		    struct sk_buff *skb,
--		    const struct net_device *in,
--		    const struct net_device *out,
--		    int (*okfn)(struct sk_buff *))
--{
--	struct nft_pktinfo pkt;
--
--	nft_set_pktinfo(&pkt, ops, skb, in, out);
--
--	return nft_do_chain_pktinfo(&pkt, ops);
--}
--
- static struct nf_chain_type filter_bridge = {
- 	.family		= NFPROTO_BRIDGE,
- 	.name		= "filter",
-@@ -69,11 +74,6 @@ static struct nf_chain_type filter_bridge = {
- 	.hook_mask	= (1 << NF_BR_LOCAL_IN) |
- 			  (1 << NF_BR_FORWARD) |
- 			  (1 << NF_BR_LOCAL_OUT),
--	.fn		= {
--		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
--		[NF_BR_FORWARD]		= nft_do_chain_bridge,
--		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
--	},
- };
- 
- static int __init nf_tables_bridge_init(void)
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index 3e67ef1..31bb778 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -14,10 +14,29 @@
- #include <linux/netfilter_arp.h>
- #include <net/netfilter/nf_tables.h>
- 
-+static unsigned int
-+nft_do_chain_arp(const struct nf_hook_ops *ops,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	nft_set_pktinfo(&pkt, ops, skb, in, out);
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static struct nft_af_info nft_af_arp __read_mostly = {
- 	.family		= NFPROTO_ARP,
- 	.nhooks		= NF_ARP_NUMHOOKS,
- 	.owner		= THIS_MODULE,
-+	.hooks		= {
-+		[NF_ARP_IN]		= nft_do_chain_arp,
-+		[NF_ARP_OUT]		= nft_do_chain_arp,
-+		[NF_ARP_FORWARD]	= nft_do_chain_arp,
-+	},
- };
- 
- static int nf_tables_arp_init_net(struct net *net)
-@@ -48,20 +67,6 @@ static struct pernet_operations nf_tables_arp_net_ops = {
- 	.exit   = nf_tables_arp_exit_net,
- };
- 
--static unsigned int
--nft_do_chain_arp(const struct nf_hook_ops *ops,
--		  struct sk_buff *skb,
--		  const struct net_device *in,
--		  const struct net_device *out,
--		  int (*okfn)(struct sk_buff *))
--{
--	struct nft_pktinfo pkt;
--
--	nft_set_pktinfo(&pkt, ops, skb, in, out);
--
--	return nft_do_chain_pktinfo(&pkt, ops);
--}
--
- static struct nf_chain_type filter_arp = {
- 	.family		= NFPROTO_ARP,
- 	.name		= "filter",
-@@ -69,11 +74,6 @@ static struct nf_chain_type filter_arp = {
- 	.hook_mask	= (1 << NF_ARP_IN) |
- 			  (1 << NF_ARP_OUT) |
- 			  (1 << NF_ARP_FORWARD),
--	.fn		= {
--		[NF_ARP_IN]		= nft_do_chain_arp,
--		[NF_ARP_OUT]		= nft_do_chain_arp,
--		[NF_ARP_FORWARD]	= nft_do_chain_arp,
--	},
- };
- 
- static int __init nf_tables_arp_init(void)
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index 0f4cbfe..ed7e15a 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -18,14 +18,25 @@
- #include <net/ip.h>
- #include <net/netfilter/nf_tables_ipv4.h>
- 
-+static unsigned int nft_do_chain_ipv4(const struct nf_hook_ops *ops,
-+				      struct sk_buff *skb,
-+				      const struct net_device *in,
-+				      const struct net_device *out,
-+				      int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
- 				    struct sk_buff *skb,
- 				    const struct net_device *in,
- 				    const struct net_device *out,
- 				    int (*okfn)(struct sk_buff *))
- {
--	struct nft_pktinfo pkt;
--
- 	if (unlikely(skb->len < sizeof(struct iphdr) ||
- 		     ip_hdr(skb)->ihl < sizeof(struct iphdr) / 4)) {
- 		if (net_ratelimit())
-@@ -33,9 +44,8 @@ static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
- 				"packet\n");
- 		return NF_ACCEPT;
- 	}
--	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
- 
--	return nft_do_chain_pktinfo(&pkt, ops);
-+	return nft_do_chain_ipv4(ops, skb, in, out, okfn);
- }
- 
- static struct nft_af_info nft_af_ipv4 __read_mostly = {
-@@ -43,7 +53,11 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
- 	.nhooks		= NF_INET_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- 	.hooks		= {
-+		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
- 		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
-+		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
-+		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
-+		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
- 	},
- };
- 
-@@ -75,20 +89,6 @@ static struct pernet_operations nf_tables_ipv4_net_ops = {
- 	.exit	= nf_tables_ipv4_exit_net,
- };
- 
--static unsigned int
--nft_do_chain_ipv4(const struct nf_hook_ops *ops,
--		  struct sk_buff *skb,
--		  const struct net_device *in,
--		  const struct net_device *out,
--		  int (*okfn)(struct sk_buff *))
--{
--	struct nft_pktinfo pkt;
--
--	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
--
--	return nft_do_chain_pktinfo(&pkt, ops);
--}
--
- static struct nf_chain_type filter_ipv4 = {
- 	.family		= NFPROTO_IPV4,
- 	.name		= "filter",
-@@ -98,13 +98,6 @@ static struct nf_chain_type filter_ipv4 = {
- 			  (1 << NF_INET_FORWARD) |
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
--	.fn		= {
--		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
--		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
--		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
--		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
--		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
--	},
- };
- 
- static int __init nf_tables_ipv4_init(void)
-diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
-index d77db8a..54a2bcd 100644
---- a/net/ipv6/netfilter/nf_tables_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tables_ipv6.c
-@@ -16,24 +16,35 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_ipv6.h>
- 
-+static unsigned int nft_do_chain_ipv6(const struct nf_hook_ops *ops,
-+				      struct sk_buff *skb,
-+				      const struct net_device *in,
-+				      const struct net_device *out,
-+				      int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	/* malformed packet, drop it */
-+	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
-+		return NF_DROP;
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static unsigned int nft_ipv6_output(const struct nf_hook_ops *ops,
- 				    struct sk_buff *skb,
- 				    const struct net_device *in,
- 				    const struct net_device *out,
- 				    int (*okfn)(struct sk_buff *))
- {
--	struct nft_pktinfo pkt;
--
- 	if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
- 		if (net_ratelimit())
- 			pr_info("nf_tables_ipv6: ignoring short SOCK_RAW "
- 				"packet\n");
- 		return NF_ACCEPT;
- 	}
--	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
--		return NF_DROP;
- 
--	return nft_do_chain_pktinfo(&pkt, ops);
-+	return nft_do_chain_ipv6(ops, skb, in, out, okfn);
- }
- 
- static struct nft_af_info nft_af_ipv6 __read_mostly = {
-@@ -41,7 +52,11 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
- 	.nhooks		= NF_INET_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- 	.hooks		= {
-+		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
- 		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
-+		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
-+		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
-+		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
- 	},
- };
- 
-@@ -73,22 +88,6 @@ static struct pernet_operations nf_tables_ipv6_net_ops = {
- 	.exit	= nf_tables_ipv6_exit_net,
- };
- 
--static unsigned int
--nft_do_chain_ipv6(const struct nf_hook_ops *ops,
--		  struct sk_buff *skb,
--		  const struct net_device *in,
--		  const struct net_device *out,
--		  int (*okfn)(struct sk_buff *))
--{
--	struct nft_pktinfo pkt;
--
--	/* malformed packet, drop it */
--	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
--		return NF_DROP;
--
--	return nft_do_chain_pktinfo(&pkt, ops);
--}
--
- static struct nf_chain_type filter_ipv6 = {
- 	.family		= NFPROTO_IPV6,
- 	.name		= "filter",
-@@ -98,13 +97,6 @@ static struct nf_chain_type filter_ipv6 = {
- 			  (1 << NF_INET_FORWARD) |
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
--	.fn		= {
--		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
--		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
--		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
--		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
--		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
--	},
- };
- 
- static int __init nf_tables_ipv6_init(void)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1fcef1e..d568626 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -927,9 +927,9 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 		if (hooknum >= afi->nhooks)
- 			return -EINVAL;
- 
--		hookfn = chain_type[family][type]->fn[hooknum];
--		if (hookfn == NULL)
-+		if (!(chain_type[family][type]->hook_mask & (1 << hooknum)))
- 			return -EOPNOTSUPP;
-+		hookfn = chain_type[family][type]->fn[hooknum];
- 
- 		basechain = kzalloc(sizeof(*basechain), GFP_KERNEL);
- 		if (basechain == NULL)
-@@ -944,9 +944,9 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 		ops->hooknum	= ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
- 		ops->priority	= ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
- 		ops->priv	= chain;
--		ops->hook       = hookfn;
--		if (afi->hooks[ops->hooknum])
--			ops->hook = afi->hooks[ops->hooknum];
-+		ops->hook	= afi->hooks[ops->hooknum];
-+		if (hookfn)
-+			ops->hook = hookfn;
- 
- 		chain->flags |= NFT_BASE_CHAIN;
- 
--- 
-1.7.10.4
+Please, rework this. It would be good to rework the meta/set part
+available in libnftables next-3.14. If you cannot make it, let me know
+and I'll schedule time to fix that. Thanks.
