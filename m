@@ -1,41 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Kristian Evensen <kristian.evensen@gmail.com>
 Subject: Re: [PATCH libnftables] Add support for ct set
-Date: Fri, 10 Jan 2014 13:14:06 +0000
-Message-ID: <20140110131406.GA8088@macbook.localnet>
+Date: Fri, 10 Jan 2014 14:19:42 +0100
+Message-ID: <CAKfDRXgDZSnQ-cvpDTbea45ZTeFOMu_PThEp1kL-qNeQzVKrQw@mail.gmail.com>
 References: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
+	<20140110131406.GA8088@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59115 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877AbaAJNOL (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:37299 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877AbaAJNTn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 08:14:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
+	Fri, 10 Jan 2014 08:19:43 -0500
+Received: by mail-pd0-f174.google.com with SMTP id x10so4588404pdj.33
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 05:19:42 -0800 (PST)
+In-Reply-To: <20140110131406.GA8088@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 10, 2014 at 02:10:25PM +0100, Kristian Evensen wrote:
->  #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
-> diff --git a/src/expr/ct.c b/src/expr/ct.c
-> index 46e3cef..02a073e 100644
-> --- a/src/expr/ct.c
-> +++ b/src/expr/ct.c
-> @@ -24,7 +24,8 @@
->  
->  struct nft_expr_ct {
->  	enum nft_ct_keys        key;
-> -	uint32_t		dreg;	/* enum nft_registers */
-> +	enum nft_registers	dreg;
-> +	enum nft_registers	sreg;
->  	uint8_t			dir;
->  };
+Hi,
 
+On Fri, Jan 10, 2014 at 2:14 PM, Patrick McHardy <kaber@trash.net> wrote:
+> nftables uses statements for things that don't return a value. I think
+> it would make sense to keep this consistent. An "set" expression (aka
+> statement) can never be used in a match, so its something fundamentally
+> different than an expression.
 
-nftables uses statements for things that don't return a value. I think
-it would make sense to keep this consistent. An "set" expression (aka
-statement) can never be used in a match, so its something fundamentally
-different than an expression.
+Are you discussing the removal of the union?
+
+-Kristian
