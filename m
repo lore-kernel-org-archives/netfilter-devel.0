@@ -1,43 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Subject: Re: [PATCH libnftables v2] Add support for ct set
-Date: Fri, 10 Jan 2014 11:37:58 +0100
-Message-ID: <20140110103758.GA4732@localhost>
+Date: Fri, 10 Jan 2014 12:06:29 +0100
+Message-ID: <CAOkSjBjFnfRhQ+3seVLx_i-JrzdQwcefD_U_COByX=EidOoXBw@mail.gmail.com>
 References: <1389170211-7024-1-git-send-email-kristian.evensen@gmail.com>
- <20140110005015.GA18032@localhost>
- <CAKfDRXg_Ks3uPY6T9vr0pa_OgMT7ZrxdnGPTqxOvfFjoznMUeA@mail.gmail.com>
+ <20140110005015.GA18032@localhost> <CAKfDRXg_Ks3uPY6T9vr0pa_OgMT7ZrxdnGPTqxOvfFjoznMUeA@mail.gmail.com>
+ <20140110103758.GA4732@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Kristian Evensen <kristian.evensen@gmail.com>,
+	Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Kristian Evensen <kristian.evensen@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58494 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756695AbaAJKiN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 05:38:13 -0500
-Content-Disposition: inline
-In-Reply-To: <CAKfDRXg_Ks3uPY6T9vr0pa_OgMT7ZrxdnGPTqxOvfFjoznMUeA@mail.gmail.com>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:60791 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092AbaAJLGv convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jan 2014 06:06:51 -0500
+Received: by mail-la0-f42.google.com with SMTP id ec20so3124678lab.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Jan 2014 03:06:50 -0800 (PST)
+In-Reply-To: <20140110103758.GA4732@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 10, 2014 at 09:26:12AM +0100, Kristian Evensen wrote:
-> Hi Pablo,
-> 
-> On Fri, Jan 10, 2014 at 1:50 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Please, rework this. It would be good to rework the meta/set part
-> > available in libnftables next-3.14. If you cannot make it, let me know
-> > and I'll schedule time to fix that. Thanks.
-> 
-> Thank you for your feedback, I will try to rework the patch today and
-> if not, then over the weekend.
-> 
-> Btw, during development I noticed that the dreg in ct (in libnftables)
-> is store as a uint32, while meta uses a uint8 for dreg/sreg. I use a
-> uint32 for sreg to be consistent with what is already there, but after
-> looking more into the code this seems not be needed as kernel
-> sreg/dreg is only 8 bits wide. Should I change the storage type for
-> sreg/dreg at the same time, or does it qualify as obscure behavior
-> too?
+On 10 January 2014 11:37, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+>
+> That's inconsistent and needs to be fixed. My suggestion is to fix it
+> by using u32 for registers. Thanks.
 
-That's inconsistent and needs to be fixed. My suggestion is to fix it
-by using u32 for registers. Thanks.
+cmp [0] also uses uint8_t for a register.
+
+Also, others [1] use 'enum nft_registers'.
+
+Should I patch all and switch to enum nft_registers?
+
+regards
+
+[0] http://git.netfilter.org/libnftables/tree/src/expr/cmp.c#n29
+[1] http://git.netfilter.org/libnftables/tree/src/expr/immediate.c#n27
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
