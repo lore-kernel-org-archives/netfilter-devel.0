@@ -1,7 +1,7 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH libnftables] Add support for ct set
-Date: Fri, 10 Jan 2014 13:52:36 +0000
-Message-ID: <20140110135235.GA8797@macbook.localnet>
+Date: Fri, 10 Jan 2014 14:54:35 +0100
+Message-ID: <20140110135435.GA18191@localhost>
 References: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
  <20140110131406.GA8088@macbook.localnet>
  <CAKfDRXgDZSnQ-cvpDTbea45ZTeFOMu_PThEp1kL-qNeQzVKrQw@mail.gmail.com>
@@ -10,15 +10,15 @@ References: <1389359425-6837-1-git-send-email-kristian.evensen@gmail.com>
  <20140110134342.GA8720@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
+Cc: Kristian Evensen <kristian.evensen@gmail.com>,
+	Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Kristian Evensen <kristian.evensen@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59345 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbaAJNwk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jan 2014 08:52:40 -0500
+Received: from mail.us.es ([193.147.175.20]:34131 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753322AbaAJNym (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jan 2014 08:54:42 -0500
 Content-Disposition: inline
 In-Reply-To: <20140110134342.GA8720@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,10 +39,5 @@ On Fri, Jan 10, 2014 at 01:43:43PM +0000, Patrick McHardy wrote:
 > 
 > nft_ct_stmt? This is what we use in nftables f.i. in case of meta.
 
-Just to be clear, I'm not only talking about the naming, a statement
-is something fundamentally different. Every expression has a value,
-which a statement doesn't have. Therefore every expression has a
-a value, destination register, byteorder, ..., all of which don't
-apply to statements. This is why we have an entire separate class
-for this in nftables, and this is what I'm also proposing for
-libnftables.
+Perhaps nft_ct_instr? So we can identify this as the nftables
+instruction-set.
