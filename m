@@ -1,166 +1,106 @@
-From: Andrey Vagin <avagin@openvz.org>
-Subject: [PATCH] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get (v3)
-Date: Sun, 12 Jan 2014 21:50:33 +0400
-Message-ID: <1389549033-23523-1-git-send-email-avagin@openvz.org>
-References: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
-Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	vvs@openvz.org, Andrey Vagin <avagin@openvz.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [RFC nft PATCH] syntax: replace '=>' with '=:'
+Date: Sun, 12 Jan 2014 20:41:33 +0100
+Message-ID: <20140112194132.7369.3907.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:46156 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751192AbaALTlp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 12 Jan 2014 14:41:45 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Lets look at destroy_conntrack:
+Almost all shell uses the '>' character as a key for redirecting
+stdout/stderr to a file.
+So, using it in the syntax means that the administrator is forced to scape the
+character, or look for other workaround.
 
-hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-...
-nf_conntrack_free(ct)
-	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+With this patch, '=>' is replaced with '=:', thus avoiding such situation.
 
-net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
-
-The hash is protected by rcu, so readers look up conntracks without
-locks.
-A conntrack is removed from the hash, but in this moment a few readers
-still can use the conntrack. Then this conntrack is released and another
-thread creates conntrack with the same address and the equal tuple.
-After this a reader starts to validate the conntrack:
-* It's not dying, because a new conntrack was created
-* nf_ct_tuple_equal() returns true.
-
-But this conntrack is not initialized yet, so it can not be used by two
-threads concurrently. In this case BUG_ON may be triggered from
-nf_nat_setup_info().
-
-Florian Westphal suggested to check the confirm bit too. I think it's
-right.
-
-task 1			task 2			task 3
-			nf_conntrack_find_get
-			 ____nf_conntrack_find
-destroy_conntrack
- hlist_nulls_del_rcu
- nf_conntrack_free
- kmem_cache_free
-						__nf_conntrack_alloc
-						 kmem_cache_alloc
-						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
-			 if (nf_ct_is_dying(ct))
-			 if (!nf_ct_tuple_equal()
-
-I'm not sure, that I have ever seen this race condition in a real life.
-Currently we are investigating a bug, which is reproduced on a few nodes.
-In our case one conntrack is initialized from a few tasks concurrently,
-we don't have any other explanation for this.
-
-<2>[46267.083061] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:322!
-...
-<4>[46267.083951] RIP: 0010:[<ffffffffa01e00a4>]  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590 [nf_nat]
-...
-<4>[46267.085549] Call Trace:
-<4>[46267.085622]  [<ffffffffa023421b>] alloc_null_binding+0x5b/0xa0 [iptable_nat]
-<4>[46267.085697]  [<ffffffffa02342bc>] nf_nat_rule_find+0x5c/0x80 [iptable_nat]
-<4>[46267.085770]  [<ffffffffa0234521>] nf_nat_fn+0x111/0x260 [iptable_nat]
-<4>[46267.085843]  [<ffffffffa0234798>] nf_nat_out+0x48/0xd0 [iptable_nat]
-<4>[46267.085919]  [<ffffffff814841b9>] nf_iterate+0x69/0xb0
-<4>[46267.085991]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
-<4>[46267.086063]  [<ffffffff81484374>] nf_hook_slow+0x74/0x110
-<4>[46267.086133]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
-<4>[46267.086207]  [<ffffffff814b5890>] ? dst_output+0x0/0x20
-<4>[46267.086277]  [<ffffffff81495204>] ip_output+0xa4/0xc0
-<4>[46267.086346]  [<ffffffff814b65a4>] raw_sendmsg+0x8b4/0x910
-<4>[46267.086419]  [<ffffffff814c10fa>] inet_sendmsg+0x4a/0xb0
-<4>[46267.086491]  [<ffffffff814459aa>] ? sock_update_classid+0x3a/0x50
-<4>[46267.086562]  [<ffffffff81444d67>] sock_sendmsg+0x117/0x140
-<4>[46267.086638]  [<ffffffff8151997b>] ? _spin_unlock_bh+0x1b/0x20
-<4>[46267.086712]  [<ffffffff8109d370>] ? autoremove_wake_function+0x0/0x40
-<4>[46267.086785]  [<ffffffff81495e80>] ? do_ip_setsockopt+0x90/0xd80
-<4>[46267.086858]  [<ffffffff8100be0e>] ? call_function_interrupt+0xe/0x20
-<4>[46267.086936]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
-<4>[46267.087006]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
-<4>[46267.087081]  [<ffffffff8118f2e8>] ? kmem_cache_alloc+0xd8/0x1e0
-<4>[46267.087151]  [<ffffffff81445599>] sys_sendto+0x139/0x190
-<4>[46267.087229]  [<ffffffff81448c0d>] ? sock_setsockopt+0x16d/0x6f0
-<4>[46267.087303]  [<ffffffff810efa47>] ? audit_syscall_entry+0x1d7/0x200
-<4>[46267.087378]  [<ffffffff810ef795>] ? __audit_syscall_exit+0x265/0x290
-<4>[46267.087454]  [<ffffffff81474885>] ? compat_sys_setsockopt+0x75/0x210
-<4>[46267.087531]  [<ffffffff81474b5f>] compat_sys_socketcall+0x13f/0x210
-<4>[46267.087607]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
-<4>[46267.087676] Code: 91 20 e2 01 75 29 48 89 de 4c 89 f7 e8 56 fa ff ff 85 c0 0f 84 68 fc ff ff 0f b6 4d c6 41 8b 45 00 e9 4d fb ff ff e8 7c 19 e9 e0 <0f> 0b eb fe f6 05 17 91 20 e2 80 74 ce 80 3d 5f 2e 00 00 00 74
-<1>[46267.088023] RIP  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590
-
-v2: move nf_ct_is_confirmed into the unlikely() annotation
-v3: Eric suggested to fix refcnt, so that it becomes zero before adding
-    in a hash, but we can't find a way how to do that. Another way is to
-    interpret the confirm bit as part of a search key and check it in
-    ____nf_conntrack_find() too.
-
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/nf_conntrack_core.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ src/expression.c |    2 +-
+ src/parser.y     |    7 ++++---
+ src/rule.c       |    2 +-
+ src/scanner.l    |    1 +
+ 4 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 43549eb..af6ad2e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -318,6 +318,21 @@ static void death_by_timeout(unsigned long ul_conntrack)
- 	nf_ct_delete((struct nf_conn *)ul_conntrack, 0, 0);
+diff --git a/src/expression.c b/src/expression.c
+index 71154cc..b9df9ac 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -642,7 +642,7 @@ struct expr *set_expr_alloc(const struct location *loc)
+ static void mapping_expr_print(const struct expr *expr)
+ {
+ 	expr_print(expr->left);
+-	printf(" => ");
++	printf(" =: ");
+ 	expr_print(expr->right);
  }
  
-+static inline bool
-+nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
-+			const struct nf_conntrack_tuple *tuple,
-+			u16 zone)
-+{
-+	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+
-+	/* A conntrack can be recreated with the equal tuple,
-+	 * so we need to check that the conntrack is confirmed
-+	 */
-+	return nf_ct_tuple_equal(tuple, &h->tuple) &&
-+		nf_ct_zone(ct) == zone &&
-+		nf_ct_is_confirmed(ct);
-+}
-+
- /*
-  * Warning :
-  * - Caller must take a reference on returned object
-@@ -339,8 +354,7 @@ ____nf_conntrack_find(struct net *net, u16 zone,
- 	local_bh_disable();
- begin:
- 	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[bucket], hnnode) {
--		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
--		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
-+		if (nf_ct_key_equal(h, tuple, zone)) {
- 			NF_CT_STAT_INC(net, found);
- 			local_bh_enable();
- 			return h;
-@@ -387,8 +401,7 @@ begin:
- 			     !atomic_inc_not_zero(&ct->ct_general.use)))
- 			h = NULL;
- 		else {
--			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
--				     nf_ct_zone(ct) != zone)) {
-+			if (unlikely(!nf_ct_key_equal(h, tuple, zone))) {
- 				nf_ct_put(ct);
- 				goto begin;
+diff --git a/src/parser.y b/src/parser.y
+index 26e71e3..577aba1 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -150,6 +150,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token DASH			"-"
+ %token AT			"@"
+ %token ARROW			"=>"
++%token MAP_SIGN			"=:"
+ %token VMAP			"vmap"
+ 
+ %token INCLUDE			"include"
+@@ -751,7 +752,7 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			|	map_block	common_block
+ 			|	map_block	stmt_seperator
+ 			|	map_block	TYPE
+-						identifier	ARROW	identifier
++						identifier	MAP_SIGN	identifier
+ 						stmt_seperator
+ 			{
+ 				$1->keytype = datatype_lookup_byname($3);
+@@ -1243,11 +1244,11 @@ set_list_member_expr	:	opt_newline	expr	opt_newline
+ 			{
+ 				$$ = $2;
  			}
--- 
-1.8.4.2
+-			|	opt_newline	map_lhs_expr	ARROW	concat_expr	opt_newline
++			|	opt_newline	map_lhs_expr	MAP_SIGN	concat_expr	opt_newline
+ 			{
+ 				$$ = mapping_expr_alloc(&@$, $2, $4);
+ 			}
+-			|	opt_newline	map_lhs_expr	ARROW	verdict_expr	opt_newline
++			|	opt_newline	map_lhs_expr	MAP_SIGN	verdict_expr	opt_newline
+ 			{
+ 				$$ = mapping_expr_alloc(&@$, $2, $4);
+ 			}
+diff --git a/src/rule.c b/src/rule.c
+index ec8b6a4..b593624 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -96,7 +96,7 @@ void set_print(const struct set *set)
+ 
+ 	printf("\t\ttype %s", set->keytype->name);
+ 	if (set->flags & SET_F_MAP)
+-		printf(" => %s", set->datatype->name);
++		printf(" =: %s", set->datatype->name);
+ 	printf("\n");
+ 
+ 	if (set->flags & SET_F_ANONYMOUS)
+diff --git a/src/scanner.l b/src/scanner.l
+index cee6aa6..14470cf 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -210,6 +210,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "$"			{ return '$'; }
+ "="			{ return '='; }
+ "=>"			{ return ARROW; }
++"=:"			{ return MAP_SIGN; }
+ "vmap"			{ return VMAP; }
+ 
+ "include"		{ return INCLUDE; }
+
