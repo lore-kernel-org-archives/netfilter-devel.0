@@ -1,72 +1,63 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get (v3)
-Date: Sun, 12 Jan 2014 12:21:14 -0800
-Message-ID: <1389558074.31367.187.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <1389549033-23523-1-git-send-email-avagin@openvz.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [RFC nft PATCH] syntax: replace '=>' with '=:'
+Date: Sun, 12 Jan 2014 21:28:21 +0100
+Message-ID: <CAOkSjBiSMubzv=eTou5O7W9mW_h=w77-iaMcCNCGMECLCQn2Hg@mail.gmail.com>
+References: <20140112194132.7369.3907.stgit@nfdev.cica.es> <20140112201742.GC13545@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, vvs@openvz.org,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Andrey Vagin <avagin@openvz.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:41053 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbaALUVQ (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:51890 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbaALU2n convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Jan 2014 15:21:16 -0500
-In-Reply-To: <1389549033-23523-1-git-send-email-avagin@openvz.org>
+	Sun, 12 Jan 2014 15:28:43 -0500
+Received: by mail-la0-f45.google.com with SMTP id b8so2833678lan.4
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jan 2014 12:28:42 -0800 (PST)
+In-Reply-To: <20140112201742.GC13545@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2014-01-12 at 21:50 +0400, Andrey Vagin wrote:
-> Lets look at destroy_conntrack:
-> 
-> hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
-> ...
-> nf_conntrack_free(ct)
-> 	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
-> 
-> net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
-> 
-> The hash is protected by rcu, so readers look up conntracks without
-> locks.
-> A conntrack is removed from the hash, but in this moment a few readers
-> still can use the conntrack. Then this conntrack is released and another
-> thread creates conntrack with the same address and the equal tuple.
-> After this a reader starts to validate the conntrack:
-> * It's not dying, because a new conntrack was created
-> * nf_ct_tuple_equal() returns true.
-...
+On 12 January 2014 21:17, Patrick McHardy <kaber@trash.net> wrote:
+> On Sun, Jan 12, 2014 at 08:41:33PM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> Almost all shell uses the '>' character as a key for redirecting
+>> stdout/stderr to a file.
+>> So, using it in the syntax means that the administrator is forced to=
+ scape the
+>> character, or look for other workaround.
+>>
+>> With this patch, '=3D>' is replaced with '=3D:', thus avoiding such =
+situation.
+>
+> I'm not opposed to this, but I like (despite the shell problematic) t=
+he =3D>
+> syntax better, so I'd suggest to just add an alternative syntax.
+>
+> As further simplification, why not simply use ':'?
 
+Well, I also like using just ':'
 
-> v2: move nf_ct_is_confirmed into the unlikely() annotation
-> v3: Eric suggested to fix refcnt, so that it becomes zero before adding
->     in a hash, but we can't find a way how to do that. Another way is to
->     interpret the confirm bit as part of a search key and check it in
->     ____nf_conntrack_find() too.
-> 
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Cc: Florian Westphal <fw@strlen.de>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Patrick McHardy <kaber@trash.net>
-> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-> Signed-off-by: Andrey Vagin <avagin@openvz.org>
-> ---
+But maybe we clash with IPv6 addresses in some cases:
 
-Acked-by: Eric Dumazet <edumazet@google.com>
+nft add rule ip6 filter input ip6 saddr vmap { ::1 : accept , ::2 : dro=
+p }
+nft add rule ip6 filter input ip6 saddr vmap { ::1:accept , ::2:drop }
 
-Thanks Andrey !
+nft add rule ip6 filter input meta dnat set tcp dport map { 80 : ::1,
+8888 : ::2 }
+nft add rule ip6 filter input meta dnat set tcp dport map { 80:::1, 888=
+8:::2 }
 
-
+what do you think?
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
