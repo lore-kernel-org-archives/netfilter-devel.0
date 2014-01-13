@@ -1,80 +1,68 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH] files: replace interpreter during installation
-Date: Mon, 13 Jan 2014 09:39:13 +0000
-Message-ID: <20140113093912.GA14898@macbook.localnet>
-References: <20140113091623.10582.14579.stgit@nfdev.cica.es>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: nftables: improve build system
+Date: Mon, 13 Jan 2014 10:47:24 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1401131035120.16954@nerf08.vanv.qr>
+References: <1389604070-12068-1-git-send-email-jengelh@inai.de> <20140113091250.GB14601@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55470 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbaAMJjR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:39:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20140113091623.10582.14579.stgit@nfdev.cica.es>
+Received: from ares08.inai.de ([46.4.84.70]:60841 "EHLO ares08.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750955AbaAMJrZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 04:47:25 -0500
+In-Reply-To: <20140113091250.GB14601@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 13, 2014 at 10:16:23AM +0100, Arturo Borrero Gonzalez wrote:
-> Many systems (for example Debian) don't recognice `#!nft -f' as a
-> valid interpreter.
-> 
-> A short way to handle this is to provide the full path to the interpreter
-> in the shebang.
-> That is what this patch does: update the shebang's path during installation.
-> 
-> For example, if you are installing under /usr/local, the shebang becomes:
->  #!/usr/local/sbin/nft -f
-> 
-> If using --prefix=/, then:
->  #!/sbin/nft -f
-> 
-> NOTE: If the shebang in source files are changed in a future, this sed script
-> should be updated as well.
 
-I think we should use .in files instead and perform variable substition.
+On Monday 2014-01-13 10:12, Patrick McHardy wrote:
+>
+>>       build: remove unused checks
+>
+>Why aren't we instead evaluating the results?
 
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  Makefile.defs.in  |    1 +
->  configure.ac      |    1 +
->  files/Makefile.in |    1 +
->  3 files changed, 3 insertions(+)
-> 
-> diff --git a/Makefile.defs.in b/Makefile.defs.in
-> index 502f374..3fee9c2 100644
-> --- a/Makefile.defs.in
-> +++ b/Makefile.defs.in
-> @@ -5,6 +5,7 @@ LEX		= @LEX@
->  YACC		= @YACC@
->  MKDIR_P		= @MKDIR_P@
->  INSTALL		= @INSTALL@
-> +SED		= @SED@
->  
->  PACKAGE_TARNAME	= @PACKAGE_TARNAME@
->  
-> diff --git a/configure.ac b/configure.ac
-> index 811d7e2..ca14d83 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -23,6 +23,7 @@ AC_SUBST([CONFIG_DEBUG])
->  AC_PROG_CC
->  AC_PROG_MKDIR_P
->  AC_PROG_INSTALL
-> +AC_PROG_SED
->  
->  AC_CHECK_PROG(CONFIG_MAN, docbook2x-man, y, n)
->  if test "$CONFIG_MAN" != "y"
-> diff --git a/files/Makefile.in b/files/Makefile.in
-> index c3643df..dc237e2 100644
-> --- a/files/Makefile.in
-> +++ b/files/Makefile.in
-> @@ -2,3 +2,4 @@ install:
->  	@echo -e "  INSTALL\tfiles"
->  	$(MKDIR_P) $(DESTDIR)/$(confdir)
->  	$(INSTALL) -m 755 -p $(SUBDIR)nftables/* $(DESTDIR)/$(confdir)/
-> +	$(SED) -i "s~#\! nft~#\!@sbindir@/nft~" $(DESTDIR)/$(confdir)/*
+I don't know - I did not write those lines in the first place. A
+reasonable hypothesis is that this is just old boilerplate copied
+from somewhere else rather than actually looking for what the
+commands executed by make really need.
+
+=46urthermore, like a lot of NF software, it is tied to Linux where the
+existence of arpa/inet.h, fcntl.h, malloc(3), and so on is
+pretty much guaranteed.
+
+The only point to check for absence of stdint.h is when at the same
+time, the code provides alternative ways to get what it needs (like a
+hand-crafted typedef unsigned char uint8_t) - which are not present
+either. So checking for stdint.h is rather useless.
+
+>>       build: rename conflicting parser.h instances
+>
+>The changelog mentions something about -I but no further explanation a=
+bout
+>why this change is done and the effects.
+
+How so? Commit says:
+
+	If -I. is on the command line =E2=80=A6
+
+and -I. is on the command line with autoconf (more precisely,
+-I${srcdir} -I${builddir} -I${path_to_config_h} is).
+
+	=E2=80=A6 #include <parser.h> becomes (=3Dmatches) ./parser.h
+	instead of ../include/parser.h.
+
+Basically you never ever want to have a header with the same include
+path. Even #include <regex.h> is prone to ambiguity if you had
+-I/usr/include/boost (which you should not of course, but people
+do all kinds of weird things sometimes), suddenly matching
+/usr/include/boost/regex.h instead of /usr/include/regex.h.
+
+It's all about distributions, and it takes a regular packager to know.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
