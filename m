@@ -1,66 +1,50 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: nftables: improve build system
-Date: Mon, 13 Jan 2014 10:47:24 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1401131035120.16954@nerf08.vanv.qr>
-References: <1389604070-12068-1-git-send-email-jengelh@inai.de> <20140113091250.GB14601@macbook.localnet>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH] files: replace interpreter during installation
+Date: Mon, 13 Jan 2014 10:49:51 +0100
+Message-ID: <CAOkSjBgTH=De81npZv_6P6B3rxJxt_0DW6yzK=pzp8uD03TpjA@mail.gmail.com>
+References: <20140113091623.10582.14579.stgit@nfdev.cica.es> <20140113093912.GA14898@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:60841 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750955AbaAMJrZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:47:25 -0500
-In-Reply-To: <20140113091250.GB14601@macbook.localnet>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:48550 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbaAMJuM convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 04:50:12 -0500
+Received: by mail-la0-f48.google.com with SMTP id er20so658023lab.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2014 01:50:11 -0800 (PST)
+In-Reply-To: <20140113093912.GA14898@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Monday 2014-01-13 10:12, Patrick McHardy wrote:
+On 13 January 2014 10:39, Patrick McHardy <kaber@trash.net> wrote:
 >
->>       build: remove unused checks
+> I think we should use .in files instead and perform variable substiti=
+on.
 >
->Why aren't we instead evaluating the results?
 
-I don't know - I did not write those lines in the first place. A
-reasonable hypothesis is that this is just old boilerplate copied
-from somewhere else rather than actually looking for what the
-commands executed by make really need.
+Could you please elaborate this?
 
-=46urthermore, like a lot of NF software, it is tied to Linux where the
-existence of arpa/inet.h, fcntl.h, malloc(3), and so on is
-pretty much guaranteed.
+I have understood:
 
-The only point to check for absence of stdint.h is when at the same
-time, the code provides alternative ways to get what it needs (like a
-hand-crafted typedef unsigned char uint8_t) - which are not present
-either. So checking for stdint.h is rather useless.
+Use a variable in files/nftables/*, like:
+<<
+$shebang
 
->>       build: rename conflicting parser.h instances
->
->The changelog mentions something about -I but no further explanation a=
-bout
->why this change is done and the effects.
+table filter {
+[...]
 
-How so? Commit says:
+>>
 
-	If -I. is on the command line =E2=80=A6
+And replace during install. Is this true?
 
-and -I. is on the command line with autoconf (more precisely,
--I${srcdir} -I${builddir} -I${path_to_config_h} is).
-
-	=E2=80=A6 #include <parser.h> becomes (=3Dmatches) ./parser.h
-	instead of ../include/parser.h.
-
-Basically you never ever want to have a header with the same include
-path. Even #include <regex.h> is prone to ambiguity if you had
--I/usr/include/boost (which you should not of course, but people
-do all kinds of weird things sometimes), suddenly matching
-/usr/include/boost/regex.h instead of /usr/include/regex.h.
-
-It's all about distributions, and it takes a regular packager to know.
+regards
+--=20
+Arturo Borrero Gonz=E1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
