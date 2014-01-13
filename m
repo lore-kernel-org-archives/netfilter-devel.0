@@ -1,87 +1,107 @@
-From: Kevin Fenzi <kevin@scrye.com>
-Subject: Re: nftables/libnftables packages for Fedora
-Date: Mon, 13 Jan 2014 12:18:36 -0700
-Message-ID: <20140113121836.0d4b1595@voldemort.scrye.com>
-References: <20140112134024.2475a4f2@voldemort.scrye.com>
- <alpine.LSU.2.11.1401130953150.14789@nerf08.vanv.qr>
- <20140113090942.GA14601@macbook.localnet>
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [PATCH 1/1] netfilter: xtables: add quota support to nfacct
+Date: Mon, 13 Jan 2014 14:50:55 -0700
+Message-ID: <CANLsYky3y-h++c06j8VimWYXSv767MAqUgd0wHridATkKKcpng@mail.gmail.com>
+References: <1386780798-24374-1-git-send-email-mathieu.poirier@linaro.org>
+	<1386780798-24374-2-git-send-email-mathieu.poirier@linaro.org>
+	<20131218095322.GA4740@localhost>
+	<CANLsYkyA-DT3jWeYJUJG-6rNTDcfv22BrjfBBAaaL4qHu+H+PA@mail.gmail.com>
+	<20140104023239.GA5972@localhost>
+	<CANLsYkw4UhBGpUcvO9qqqvgz8j00=E6zojMxxXCsPQhStQtGXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/i4ltqNgIbfc4GEuMJyEa.cC"; protocol="application/pgp-signature"
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 75-148-32-185-Colorado.hfc.comcastbusiness.net ([75.148.32.185]:37159
-	"EHLO mail.scrye.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666AbaAMTSj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 14:18:39 -0500
-In-Reply-To: <20140113090942.GA14601@macbook.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>,
+	JP Abgrall <jpa@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <CANLsYkw4UhBGpUcvO9qqqvgz8j00=E6zojMxxXCsPQhStQtGXg@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
---Sig_/i4ltqNgIbfc4GEuMJyEa.cC
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+I haven't heard back from my last post in which I detailed a scenario
+where a race condition may occur on the output path.  Do you need more
+information?  Is there something you'd like me to be more specific on?
 
-On Mon, 13 Jan 2014 09:09:43 +0000
-Patrick McHardy <kaber@trash.net> wrote:
+Thanks,
+Mathieu
 
-> On Mon, Jan 13, 2014 at 09:54:22AM +0100, Jan Engelhardt wrote:
-> >=20
-> > On Sunday 2014-01-12 21:40, Kevin Fenzi wrote:
-> > >
-> > >1. Completely minor, but noted in review of both packages that the
-> > >COPYING file has the old fsf address in it. Would be great if you
-> > >could update to the new one.=20
-> > >https://fedoraproject.org/wiki/Common_Rpmlint_issues#incorrect-fsf-add=
-ress
-> >=20
-> > No, best remove the address, because you really don't want to be
-> > updating all the time.
->=20
-> "All the time" seems slightly exagerated. But the "updated" license
-> linked in the wiki is exactly the same version we're using, the
-> address hasn't been changed:
->=20
-> http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-
-It has:=20
-
-- Copyright (C) 1989, 1991 Free Software Foundation, Inc.
--                          675 Mass Ave, Cambridge, MA 02139, USA
-+ Copyright (C) 1989, 1991 Free Software Foundation, Inc.,
-+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-... and a few other diffs like saying <yeah> instead of 19xx and Lesser
-GNU Public License instead of Library, etc.=20
-
-FSF moved buildings a few years ago... as far as I know they don't plan
-to move again, and it's only happened once. The GPLv3 COPYING file I
-note doesn't have any physical address in it. ;)=20
-
-kevin
-
---Sig_/i4ltqNgIbfc4GEuMJyEa.cC
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCgAGBQJS1DwMAAoJEEs3sNgP+7teU0sP/1ChsCyGQjkrcKGgUBKs2Uyf
-TyLhXIk92orbyfB8HZ/6Ov31xW63bwXGT0579Gt2lUrqMzU5XwxPDngKiRaLdT/h
-K16FxVA9bSbNcU+xVbPqJP6DhR91o+7IO7g6OBZ4yEc2MaS5kW+qaRnnyNadyuPw
-df9qExbGhWhxb0mQqU5uOA1o1RsZDboo9hBzhGL+G/7/BpXn/jywJV4bRcnOBjw1
-Z6eTtUZFd+NKYeqX+SYbZhRQiQT/Xmmf7m6juwrMtnr6x0EEWntUuvyYbE0mAMzg
-Y4l85JnMfsP/aMpSz2YJ+8VCy4ABroZtHhWF0qwAIk7IGc5qYncpL8rS9Vs2tQdA
-ENyjrphvy0EzhoOq+FYjDCG747z4NoFh5Jc3yXtcZOOED04+NQVC5o5/QIu9E2p2
-UO9F0syiZhUBugGtVacSxuQTuegeeLDqNuMIn8gPlJ8vM7rn1LKNBM/uAsjOlVSM
-DgbW81cQ5SRAILoDu4EHTJE1YrJtUvlmfwmzYMwRxnzANJg5kzyVBL6GVMIBXcTT
-q1wtgcey1tA3LugVyVQYSwWx+ZmENwsaqieasOmdvONE00JFH+9SGx4+QTDcZPS9
-VLVYG6MYLuRuUvos0E49i06iE8Gpj8rp5YDsjot/1BPlTfOlufsDWUY7zMJrZEB5
-9UaZt1zABy2P4yMeJTLn
-=TNCj
------END PGP SIGNATURE-----
-
---Sig_/i4ltqNgIbfc4GEuMJyEa.cC--
+On 6 January 2014 09:31, Mathieu Poirier <mathieu.poirier@linaro.org> wrote:
+> On 3 January 2014 19:32, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> On Fri, Jan 03, 2014 at 01:38:45PM -0700, Mathieu Poirier wrote:
+>>> ...
+>>>
+>>> > I think you can avoid this private area (including the spinlock) by
+>>> > storing a copy of the packet/byte counter before calling
+>>> > nfnl_acct_update(). Then if you note that old packet/byte counter was
+>>> > below quota but new is overquota, then you have to send an event, ie.
+>>> >
+>>> >         old_pkts = atomic64_read(info->nfacct->pkts);
+>>> >         new_pkts = nfnl_acct_update(skb, info->nfacct, info->flags);
+>>> >         if (old_pkts < info->quota && new_pkts > info->quota)
+>>> >                 send event
+>>> >
+>>> > There's still one problem with this approach since it is racy, as it
+>>> > may send several events, so you can refine it with:
+>>> >
+>>> >         if (old_pkts < info->quota && new_pkts > info->quota
+>>> >             && old_pkts + 1 == new_pkts)
+>>> >                 send event
+>>> >
+>>> > You will need two different functions depending on the quota mode
+>>> > (packet or bytes), and you will also need to modify nfnl_acct_update()
+>>> > to return the new number of packets or bytes (depending on the flags),
+>>> > you can use atomic_add_return and atomic_inc_return respectively to
+>>> > retrieve the new (updated) value.
+>>>
+>>> Now that we've dealt with the logging issue we can concentrate on the
+>>> above suggestion that tries to avoid using a spinlock.  It works well
+>>> in packet mode but not so much in byte mode.
+>>>
+>>> Whether working in byte or packet mode the solution is using packets
+>>> to determine who will send the notification.  When dealing with bytes
+>>> identifying which packet made the byte count go over quota is of prime
+>>> importance.  The problem is that the upgrade of packet and bytes in
+>>> "nfnl_acct_update()" is not atomic to the caller - there is always a
+>>> possibility that the thread will lose the CPU between incrementing
+>>> packet and bytes.  This could eventually lead to erroneous arithmetic
+>>> and an imprecise recognition of a quota attainment.
+>>
+>> In the input and forwarding path, packets run in bh context, so that
+>> won't happen.  That may only happen in the output path in process
+>> context. However, I don't understand how this may lead to "erroneous
+>> arithmetic" in the "quota attainment" yet, you have to elaborate your
+>> concerns/scenario more specifically.
+>
+> Given the following snippet:
+>
+>  1        old_bytes = atomic64_read(nfacct->bytes);
+>  2        old_packets = atomic64_read(nfacct->pkts);
+>  3        new_bytes = nfnl_acct_update(skb, info->nfacct, info->flags);
+>  4        new_packets = atomic64_read(nfacct->pkts);
+>
+> 1. I think we have a problem between line 1 and 2.  Process A could be
+> interrupted after line 1, process B upgrading both nfacct->bytes and
+> nfacct->pkts and Process A resuming, setting bad metrics from the
+> start.  This can be remedied by reading packets, then bytes and
+> packets again, repeating the process until both packet count are
+> equal.
+>
+> 2. I think we need to modify nfnl_acct_update() to take a byte and
+> packet count rather than a flags.  That way both could be upgraded
+> within the function.
+>
+> 3. After line 3 we have our new byte count and let's assume at that
+> point old_packets is 100.  At that very moment the process (let's call
+> it A) is suspended and the same code gets to run on another CPU in the
+> system (process B), making nfacct->pkts == 101.  When process A
+> resumes it will increment nfacct->pkts, making it 102, which will not
+> be equal to old_packets + 1.  Here Process B will end up sending the
+> notification when in fact it should be process A.
+>
+> My paranoia may come from a lack of understanding of how packets are
+> processed in the system.
+>
+>>
+>>> No matter how I turn things around in my head we need a spinlock -
+>>> either in nfnl_acct_update() or in the match function of xt_nfacct.c.
