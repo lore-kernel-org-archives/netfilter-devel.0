@@ -1,34 +1,39 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Fwd: Bug 883 - Uninitialized values in libnetfilter_log.c
-Date: Mon, 13 Jan 2014 08:02:09 -0800
-Message-ID: <20140113160208.GA17922@home>
-References: <CA+J3vcL=6i2DfpGcGpPw6WSrw7tdWn=5Y8e8q6KObDe8t_kAOA@mail.gmail.com>
- <CA+J3vcL9Shwc1cFDPPMPmcn81niNfELxqf-XtEAqTO8Bij--mQ@mail.gmail.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: Re: randconfig build error with next-20140113, in net/netfilter/nft_reject.c
+Date: Mon, 13 Jan 2014 13:12:49 -0500
+Message-ID: <CAP=VYLqWGjOnH0uw_=JDYEy2p-V5a0y3DvfuNGi600ZVPgVjRA@mail.gmail.com>
+References: <CA+r1Zhjqrmm8a9fVsjfXamCE1qQq=YBexpeU95ODi=BiSie7aA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ivan Homoliak <xhomol11@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:49654 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558AbaAMQCL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 11:02:11 -0500
-Received: by mail-pa0-f46.google.com with SMTP id rd3so2049615pab.33
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jan 2014 08:02:10 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <CA+J3vcL9Shwc1cFDPPMPmcn81niNfELxqf-XtEAqTO8Bij--mQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	"linux-next@vger.kernel.org" <linux-next@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, pablo@netfilter.org,
+	Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>
+To: Jim Davis <jim.epost@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CA+r1Zhjqrmm8a9fVsjfXamCE1qQq=YBexpeU95ODi=BiSie7aA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jan 12, 2014 at 10:14:38AM +0100, Ivan Homoliak wrote:
-> I think I found few bugs in libnetfilter_log by valgrind and ulogd.
-> See the patch in attachment.
+On Mon, Jan 13, 2014 at 8:51 AM, Jim Davis <jim.epost@gmail.com> wrote:
+> Building with the attached random configuration file,
+>
+> warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet
+> direct dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+> warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet
+> direct dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+>
+>   LD      init/built-in.o
+> net/built-in.o: In function `nft_reject_eval':
+> nft_reject.c:(.text+0x67bc1): undefined reference to `nf_ip6_checksum'
+> nft_reject.c:(.text+0x67c28): undefined reference to `ip6_route_output'
+> nft_reject.c:(.text+0x67d09): undefined reference to `ip6_dst_hoplimit'
+> make: *** [vmlinux] Error 1
 
-Hi Ivan,
+I came across the same thing independently while working on an
+unrelated netfilter patch.  Bisected and fix sent.
 
-thanks for the patch, but please send the diff in unified format,
-and include your signed-off-by.  See Documentation/SubmittingPatches
-for further information.  
-
-Phil
+http://patchwork.ozlabs.org/patch/310298/
