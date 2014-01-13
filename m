@@ -1,47 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables: improve build system
-Date: Mon, 13 Jan 2014 09:12:51 +0000
-Message-ID: <20140113091250.GB14601@macbook.localnet>
-References: <1389604070-12068-1-git-send-email-jengelh@inai.de>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] files: replace interpreter during installation
+Date: Mon, 13 Jan 2014 10:16:23 +0100
+Message-ID: <20140113091623.10582.14579.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55241 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751207AbaAMJMz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:12:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1389604070-12068-1-git-send-email-jengelh@inai.de>
+Received: from smtp3.cica.es ([150.214.5.190]:50813 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751280AbaAMJQd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 04:16:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 13, 2014 at 10:07:47AM +0100, Jan Engelhardt wrote:
-> 
-> The following changes since commit b566123b9b60aff8ef21dfa7b21f817261236b1d:
-> 
->   nftables: drop hard coded install using root user owner and group (2014-01-13 06:36:45 +0000)
-> 
-> are available in the git repository at:
-> 
->   git://git.inai.de/nftables master
-> 
-> for you to fetch changes up to 54f180f8d762259d6fe5f671e5b19cf9a5a9b683:
-> 
->   build: use automake and pkgconfig (2014-01-13 10:04:35 +0100)
+Many systems (for example Debian) don't recognice `#!nft -f' as a
+valid interpreter.
 
-I have no general objections against moving to automake/pkgconfig, but
-your changelogs leave room for improvement.
+A short way to handle this is to provide the full path to the interpreter
+in the shebang.
+That is what this patch does: update the shebang's path during installation.
 
->       build: remove unused checks
+For example, if you are installing under /usr/local, the shebang becomes:
+ #!/usr/local/sbin/nft -f
 
-Why aren't we instead evaluating the results?
+If using --prefix=/, then:
+ #!/sbin/nft -f
 
->       build: rename conflicting parser.h instances
+NOTE: If the shebang in source files are changed in a future, this sed script
+should be updated as well.
 
-The changelog mentions something about -I but no further explanation about
-why this change is done and the effects.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ Makefile.defs.in  |    1 +
+ configure.ac      |    1 +
+ files/Makefile.in |    1 +
+ 3 files changed, 3 insertions(+)
 
-I can't really comment on these changes unless I have further explanation.
+diff --git a/Makefile.defs.in b/Makefile.defs.in
+index 502f374..3fee9c2 100644
+--- a/Makefile.defs.in
++++ b/Makefile.defs.in
+@@ -5,6 +5,7 @@ LEX		= @LEX@
+ YACC		= @YACC@
+ MKDIR_P		= @MKDIR_P@
+ INSTALL		= @INSTALL@
++SED		= @SED@
+ 
+ PACKAGE_TARNAME	= @PACKAGE_TARNAME@
+ 
+diff --git a/configure.ac b/configure.ac
+index 811d7e2..ca14d83 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -23,6 +23,7 @@ AC_SUBST([CONFIG_DEBUG])
+ AC_PROG_CC
+ AC_PROG_MKDIR_P
+ AC_PROG_INSTALL
++AC_PROG_SED
+ 
+ AC_CHECK_PROG(CONFIG_MAN, docbook2x-man, y, n)
+ if test "$CONFIG_MAN" != "y"
+diff --git a/files/Makefile.in b/files/Makefile.in
+index c3643df..dc237e2 100644
+--- a/files/Makefile.in
++++ b/files/Makefile.in
+@@ -2,3 +2,4 @@ install:
+ 	@echo -e "  INSTALL\tfiles"
+ 	$(MKDIR_P) $(DESTDIR)/$(confdir)
+ 	$(INSTALL) -m 755 -p $(SUBDIR)nftables/* $(DESTDIR)/$(confdir)/
++	$(SED) -i "s~#\! nft~#\!@sbindir@/nft~" $(DESTDIR)/$(confdir)/*
+
