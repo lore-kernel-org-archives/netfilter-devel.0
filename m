@@ -1,43 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables] netfilter: nf_tables: fix unmet dependencies in nf_tables_inet
-Date: Mon, 13 Jan 2014 12:02:38 +0100
-Message-ID: <1389610958-5223-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] set: xml: data_type/data_len are optional
+Date: Mon, 13 Jan 2014 13:14:52 +0100
+Message-ID: <20140113121452.28355.87886.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40779 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbaAMLDY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 06:03:24 -0500
+Received: from smtp3.cica.es ([150.214.5.190]:58054 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751357AbaAMMSx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 07:18:53 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct dependencies (NET && NETFILTER && INET && IPV6 && NF_TABLES)
-warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct dependencies (NET && NETFILTER && INET && IPV6 && NF_TABLES)
+Don't print data_type and data_len if they aren't set.
+Also, they are optional when parsing.
 
-Fix it by replacing 'selects' by depends on' as in other NF_TABLES_*
-configuration options.
+Printing and parsing unconditionally leads to false values and other errors.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/set.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 37d2092..2421b9b 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -430,8 +430,8 @@ config NF_TABLES
+diff --git a/src/set.c b/src/set.c
+index 822a715..bee9540 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -453,16 +453,17 @@ int nft_mxml_set_parse(mxml_node_t *tree, struct nft_set *s,
+ 	s->flags |= (1 << NFT_SET_ATTR_KEY_LEN);
  
- config NF_TABLES_INET
- 	depends on NF_TABLES
--	select NF_TABLES_IPV4
--	select NF_TABLES_IPV6
-+	depends on NF_TABLES_IPV4
-+	depends on NF_TABLES_IPV6
- 	tristate "Netfilter nf_tables mixed IPv4/IPv6 tables support"
- 	help
- 	  This option enables support for a mixed IPv4/IPv6 "inet" table.
--- 
-1.7.10.4
+ 	if (nft_mxml_num_parse(tree, "data_type", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &s->data_type, NFT_TYPE_U32, NFT_XML_MAND, err) != 0)
+-		return -1;
+-
+-	s->flags |= (1 << NFT_SET_ATTR_DATA_TYPE);
++			       &s->data_type, NFT_TYPE_U32,
++			       NFT_XML_OPT, err) == 0) {
++		s->flags |= (1 << NFT_SET_ATTR_DATA_TYPE);
+ 
+-	if (nft_mxml_num_parse(tree, "data_len", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &s->data_len, NFT_TYPE_U32, NFT_XML_MAND, err) != 0)
+-		return -1;
++		if (nft_mxml_num_parse(tree, "data_len", MXML_DESCEND_FIRST,
++				       BASE_DEC, &s->data_len, NFT_TYPE_U32,
++				       NFT_XML_MAND, err) != 0)
++			return -1;
+ 
+-	s->flags |= (1 << NFT_SET_ATTR_DATA_LEN);
++		s->flags |= (1 << NFT_SET_ATTR_DATA_LEN);
++	}
+ 
+ 	for (node = mxmlFindElement(tree, tree, "set_elem", NULL,
+ 				    NULL, MXML_DESCEND);
+@@ -634,14 +635,20 @@ static int nft_set_snprintf_xml(char *buf, size_t size, struct nft_set *s,
+ 				  "<name>%s</name>"
+ 				  "<flags>%u</flags>"
+ 				  "<key_type>%u</key_type>"
+-				  "<key_len>%u</key_len>"
+-				  "<data_type>%u</data_type>"
+-				  "<data_len>%u</data_len>",
++				  "<key_len>%u</key_len>",
+ 			nft_family2str(s->family), s->table, s->name,
+-			s->set_flags, s->key_type,
+-			s->key_len, s->data_type, s->data_len);
++			s->set_flags, s->key_type, s->key_len);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	if (s->flags & (1 << NFT_SET_ATTR_DATA_TYPE) &&
++	    s->flags & (1 << NFT_SET_ATTR_DATA_LEN)) {
++		ret = snprintf(buf+offset, len, "<data_type>%u</data_type>"
++			       "<data_len>%u</data_len>",
++			       s->data_type, s->data_len);
++
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
+ 	if (!list_empty(&s->element_list)) {
+ 		list_for_each_entry(elem, &s->element_list, head) {
+ 			ret = nft_set_elem_snprintf(buf+offset, len, elem,
 
