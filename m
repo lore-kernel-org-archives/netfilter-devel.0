@@ -1,24 +1,24 @@
 From: Kevin Fenzi <kevin@scrye.com>
 Subject: Re: nftables/libnftables packages for Fedora
-Date: Sun, 12 Jan 2014 17:11:16 -0700
-Message-ID: <20140112171116.46eaf896@voldemort.scrye.com>
+Date: Sun, 12 Jan 2014 17:05:49 -0700
+Message-ID: <20140112170549.327dd807@voldemort.scrye.com>
 References: <20140112134024.2475a4f2@voldemort.scrye.com>
  <CAOkSjBhCTDCDzBLp86d1qA+xH=KMZtz2HrU3QfnZ+8AJ+qcWTg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/r+PY+sr8+zkijODjC2nQ5Gn"; protocol="application/pgp-signature"
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
+ boundary="Sig_/qMD.Uz=kta0Vz8ggx.X1Zri"; protocol="application/pgp-signature"
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from scrye.com ([75.148.32.185]:46370 "EHLO mail.scrye.com"
+Received: from scrye.com ([75.148.32.185]:46376 "EHLO mail.scrye.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899AbaAMALU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Jan 2014 19:11:20 -0500
+	id S1751016AbaAMALk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 12 Jan 2014 19:11:40 -0500
 In-Reply-To: <CAOkSjBhCTDCDzBLp86d1qA+xH=KMZtz2HrU3QfnZ+8AJ+qcWTg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/r+PY+sr8+zkijODjC2nQ5Gn
+--Sig_/qMD.Uz=kta0Vz8ggx.X1Zri
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
@@ -94,26 +94,26 @@ Excellent. Thanks.=20
 
 kevin
 
---Sig_/r+PY+sr8+zkijODjC2nQ5Gn
+--Sig_/qMD.Uz=kta0Vz8ggx.X1Zri
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBCgAGBQJS0y8lAAoJEEs3sNgP+7teyz0P/iHmipJnKE/4K2aO4JbSk71B
-qGaObQ/BOKszD5eLCT2HZ9OhuyX4cpv5I+cpHdREqmroVOfojOVchKIc27CAqkm8
-J+SAXP760UslDkgdOMJA9D4Wgh5oYIzFS1MTUcglnmTzjldb6fBvyxf0Cg6DVQVA
-fWkaZoYQ6m3CXBuItJiFXq0pXcbDvOosFPV1JlCZqTy7nJnKl2ntqd2/5zd9t91x
-fm3/yWUK4Kwt85cpfLKfupmBnPFw9Ctf4TPhdp58SHj2yMJcN8wMeQko+7a8i9Ya
-cfPxdcjgojcjgLgh0T+8AX01Rwg1xoAFYYdmr1fYtI+ZTNmuDdy73cbWrYvm/PiZ
-GPX5psTZP6PQ+shEGTTAfsIfD+3qIu80+Be19xb8yu6VVsGzF6N5MIVOP0f61lrB
-IEN6krNiEpk9/VUpScnhblWG1VvRIRp10s+eQjw2zIIujDWKiyfIiWgku6KZCrnR
-mpuZPP/wGSmOnIjlYjMomwwxySENVqNQEzBou/3YkTbzs+JMZlQ/2dW1APfFaC7i
-9ttfZ4kEnnatsUWzpi/IUSW96u0Xf9BCm45drSAXQ2FUV5dcaTDDBcEK1FnJEzhE
-jSrXp5G0xCyj1pDMCcl+NRlfTNCXaFiiYaAPzZ5kpLSwWuJsyC3QbGM5T9X0eSUq
-Yze/+3ljA4ADztRxbjEP
-=zQ1E
+iQIcBAEBCgAGBQJS0y3eAAoJEEs3sNgP+7tegIUQALfKK54iBfjsi7wNaoOFh2DR
+hnRvweufyQeNgxTvPpydco95/f3sC4cm53cmgbVWUi+24eLl1hbYYETEoxkx/PQF
+vS6NLK/bg9CvO3MOWnSohynrrhKXwXmstC4KVl0t6WPlSG3z50NRfKAxYscJTHXK
+3iCyir27N7chdDcM5drv8WN8B4bsVIhJH2mc21lKxiMKOR0DSBexnmfDgLFUuSYd
+xAi2tVWFUYVe2PSvfZckmFl6y4ExTmCSuOR4AX4qyS8+NFiNp6yGG439lUTKM0ih
+uyy2ovkuxlwVEIIkkETM6ckRC/SZcls6av12Ch0c8R5+AmkN7uApb+fZjzkIzniB
+tKW+16l1oV82ce8jcjjCPfTrWfaJp+1oMYn6hIMzhEUNdJn1kHNOA1XuOneA3Tfn
+7v12n0MIZVMwte77zBORzAKU5IPmXJJATgS2ZVRkuxhJU1rVVjlLkZf/EW2RXe0C
+nK/gA4bjimMzWB62KwtO/rNWe0+eGpbpUXzeE2W+ahEVjpewgwF2DAL7nu28HGul
+f+3fJM+xK70jHlwCPd9xunOF7rpFXt2qxzshlbdyzOgjqBWVQFArCvt48QympGnX
+BucM/55UGdiggL5WRn6fHShRn7HqPFeN28bMjFo7rXzyU9eKOoGFGOoXC8ON5Bym
+7JaozH+oW1Ccl+GDltiy
+=WHzU
 -----END PGP SIGNATURE-----
 
---Sig_/r+PY+sr8+zkijODjC2nQ5Gn--
+--Sig_/qMD.Uz=kta0Vz8ggx.X1Zri--
