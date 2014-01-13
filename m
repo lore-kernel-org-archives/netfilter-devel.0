@@ -1,81 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables: improve build system
-Date: Mon, 13 Jan 2014 09:56:46 +0000
-Message-ID: <20140113095646.GC15457@macbook.localnet>
-References: <1389604070-12068-1-git-send-email-jengelh@inai.de>
- <20140113091250.GB14601@macbook.localnet>
- <alpine.LSU.2.11.1401131035120.16954@nerf08.vanv.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC nft PATCH] syntax: replace '=>' with '=:'
+Date: Mon, 13 Jan 2014 11:44:34 +0100
+Message-ID: <20140113104434.GA4594@localhost>
+References: <20140112194132.7369.3907.stgit@nfdev.cica.es>
+ <20140112201742.GC13545@macbook.localnet>
+ <CAOkSjBiSMubzv=eTou5O7W9mW_h=w77-iaMcCNCGMECLCQn2Hg@mail.gmail.com>
+ <20140112212454.GA15677@macbook.localnet>
+ <CAOkSjBghK7xhMpQHU48siS7GGzj+RhawK3dOLGLTxopZBv1=VA@mail.gmail.com>
+ <20140112215511.GB15677@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55611 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbaAMJ5E (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:57:04 -0500
+Received: from mail.us.es ([193.147.175.20]:33706 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751246AbaAMKot (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 05:44:49 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.11.1401131035120.16954@nerf08.vanv.qr>
+In-Reply-To: <20140112215511.GB15677@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 13, 2014 at 10:47:24AM +0100, Jan Engelhardt wrote:
->=20
-> On Monday 2014-01-13 10:12, Patrick McHardy wrote:
-> >
-> >>       build: remove unused checks
-> >
-> >Why aren't we instead evaluating the results?
->=20
-> I don't know - I did not write those lines in the first place. A
-> reasonable hypothesis is that this is just old boilerplate copied
-> from somewhere else rather than actually looking for what the
-> commands executed by make really need.
+On Sun, Jan 12, 2014 at 09:55:12PM +0000, Patrick McHardy wrote:
+> > If you don't like '=:', what about:
+> > '--'
+> > '-:'
+> > '---'
+> > '--:'
+> > or
+> > ':--'
+> 
+> Neither of. Too long, and for a mapping ':' or '=>' seem a reasonable
+> choice. ':=' is more like an assignment, which doesn't fit too well.
+>
+> I'd say go for ':', if the user doesn't insert spaces and can't read
+> his own rules anymore, his fault.
 
-That was not my question. I asked why we're not evaluating *instead* of
-removing them.
-
-> Furthermore, like a lot of NF software, it is tied to Linux where the
-> existence of arpa/inet.h, fcntl.h, malloc(3), and so on is
-> pretty much guaranteed.
->=20
-> The only point to check for absence of stdint.h is when at the same
-> time, the code provides alternative ways to get what it needs (like a
-> hand-crafted typedef unsigned char uint8_t) - which are not present
-> either. So checking for stdint.h is rather useless.
->=20
-> >>       build: rename conflicting parser.h instances
-> >
-> >The changelog mentions something about -I but no further explanation=
- about
-> >why this change is done and the effects.
->=20
-> How so? Commit says:
->=20
-> 	If -I. is on the command line =E2=80=A6
->=20
-> and -I. is on the command line with autoconf (more precisely,
-> -I${srcdir} -I${builddir} -I${path_to_config_h} is).
->=20
-> 	=E2=80=A6 #include <parser.h> becomes (=3Dmatches) ./parser.h
-> 	instead of ../include/parser.h.
->=20
-> Basically you never ever want to have a header with the same include
-> path. Even #include <regex.h> is prone to ambiguity if you had
-> -I/usr/include/boost (which you should not of course, but people
-> do all kinds of weird things sometimes), suddenly matching
-> /usr/include/boost/regex.h instead of /usr/include/regex.h.
->=20
-> It's all about distributions, and it takes a regular packager to know=
-=2E
-
-Jan, the changelog simply needs a description what is wrong, why it
-is wrong and what is changed. You can't expect people to know what
-parameters autoconf uses on the command line and I guess you know that.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I like ':' is used in python dictinaries too. Erlang uses ',' as
+separator and ruby was using the '=>' that causes some troubles with
+bash if not escaped. I think there is not chance for ambiguity, but
+I'm going to make more tests and get back to you.
