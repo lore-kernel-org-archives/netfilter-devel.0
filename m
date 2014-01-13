@@ -1,35 +1,74 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: nftables/libnftables packages for Fedora
-Date: Mon, 13 Jan 2014 09:54:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1401130953150.14789@nerf08.vanv.qr>
-References: <20140112134024.2475a4f2@voldemort.scrye.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kevin Fenzi <kevin@scrye.com>
+Subject: [PATCH 1/3] build: remove unused checks
+Date: Mon, 13 Jan 2014 10:07:48 +0100
+Message-ID: <1389604070-12068-2-git-send-email-jengelh@inai.de>
+References: <1389604070-12068-1-git-send-email-jengelh@inai.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:55287 "EHLO ares08.inai.de"
+Received: from ares08.inai.de ([46.4.84.70]:56796 "EHLO ares08.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332AbaAMIyX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jan 2014 03:54:23 -0500
-In-Reply-To: <20140112134024.2475a4f2@voldemort.scrye.com>
+	id S1751259AbaAMJHw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jan 2014 04:07:52 -0500
+In-Reply-To: <1389604070-12068-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The result of these checks was never evaluated, so remove them.
 
-On Sunday 2014-01-12 21:40, Kevin Fenzi wrote:
->
->1. Completely minor, but noted in review of both packages that the
->COPYING file has the old fsf address in it. Would be great if you could
->update to the new one. 
->https://fedoraproject.org/wiki/Common_Rpmlint_issues#incorrect-fsf-address
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ configure.ac | 31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
-No, best remove the address, because you really don't want to be updating
-all the time.
+diff --git a/configure.ac b/configure.ac
+index 811d7e2..b850451 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -21,7 +21,6 @@ AC_SUBST([CONFIG_DEBUG])
+ 
+ # Checks for programs.
+ AC_PROG_CC
+-AC_PROG_MKDIR_P
+ AC_PROG_INSTALL
+ 
+ AC_CHECK_PROG(CONFIG_MAN, docbook2x-man, y, n)
+@@ -61,36 +60,6 @@ AC_CHECK_LIB([gmp], [__gmpz_init], ,
+ AC_CHECK_LIB([readline], [readline], ,
+ 	     AC_MSG_ERROR([No suitable version of libreadline found]))
+ 
+-# Checks for header files.
+-AC_HEADER_STDC
+-AC_HEADER_ASSERT
+-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h libintl.h limits.h malloc.h \
+-		  netdb.h netinet/in.h netinet/ip.h netinet/ip6.h \
+-		  netinet/tcp.h netinet/udp.h netinet/ip_icmp.h \
+-		  stddef.h stdint.h stdlib.h string.h unistd.h], ,
+-		 AC_MSG_ERROR([Header file not found]))
+-
+-# Checks for typedefs, structures, and compiler characteristics.
+-AC_HEADER_STDBOOL
+-AC_C_CONST
+-AC_C_INLINE
+-AC_TYPE_OFF_T
+-AC_TYPE_SIZE_T
+-AC_TYPE_UID_T
+-AC_TYPE_INT8_T
+-AC_TYPE_INT16_T
+-AC_TYPE_INT32_T
+-AC_TYPE_INT64_T
+-AC_TYPE_UINT8_T
+-AC_TYPE_UINT16_T
+-AC_TYPE_UINT32_T
+-AC_TYPE_UINT64_T
+-
+-# Checks for library functions.
+-AC_FUNC_MALLOC
+-AC_FUNC_REALLOC
+-AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
+-
+ AC_CONFIG_FILES([Makefile Makefile.defs Makefile.rules])
+ AC_CONFIG_FILES([src/Makefile doc/Makefile files/Makefile])
+ AC_OUTPUT
+-- 
+1.8.4
 
->3. nftables hard codes installing as root, which is no good for
->building packages (patch attached that just removes the owner/group
->setting there). 
-
-Well I sent an automake-making patch that would fix all those problems,
-but so far it has again been ignored to be merged.
