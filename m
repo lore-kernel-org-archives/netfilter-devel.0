@@ -1,60 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH] files: replace interpreter during installation
-Date: Tue, 14 Jan 2014 13:11:09 +0000
-Message-ID: <20140114131108.GC408@macbook.localnet>
-References: <20140113091623.10582.14579.stgit@nfdev.cica.es>
- <20140113093912.GA14898@macbook.localnet>
- <CAOkSjBgTH=De81npZv_6P6B3rxJxt_0DW6yzK=pzp8uD03TpjA@mail.gmail.com>
- <20140113095252.GB15457@macbook.localnet>
- <CAOkSjBjuoofax5qsT435Q3m7Ho+drY8FYAm-MWkDh8egHfwciw@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get (v3)
+Date: Tue, 14 Jan 2014 06:36:41 -0800
+Message-ID: <1389710201.31367.255.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <1389549033-23523-1-git-send-email-avagin@openvz.org>
+	 <1389558074.31367.187.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20140114105147.GA14538@paralelels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, Andrey Vagin <avagin@openvz.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, vvs@openvz.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Andrew Vagin <avagin@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34273 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbaANNLO (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:61675 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537AbaANOgl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jan 2014 08:11:14 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjuoofax5qsT435Q3m7Ho+drY8FYAm-MWkDh8egHfwciw@mail.gmail.com>
+	Tue, 14 Jan 2014 09:36:41 -0500
+In-Reply-To: <20140114105147.GA14538@paralelels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 14, 2014 at 01:48:46PM +0100, Arturo Borrero Gonzalez wrote:
-> On 13 January 2014 10:52, Patrick McHardy <kaber@trash.net> wrote:
-> > On Mon, Jan 13, 2014 at 10:49:51AM +0100, Arturo Borrero Gonzalez wrote:
-> >> On 13 January 2014 10:39, Patrick McHardy <kaber@trash.net> wrote:
-> >> >
-> >> > I think we should use .in files instead and perform variable substition.
-> >> >
-> >>
-> >> Could you please elaborate this?
-> >>
-> >> I have understood:
-> >>
-> >> Use a variable in files/nftables/*, like:
-> >> <<
-> >> $shebang
-> >>
-> >> table filter {
-> >> [...]
-> >>
-> >> >>
-> >>
-> >> And replace during install. Is this true?
-> >
-> > Use f.i. files/nftables/ipv4-filter.in and use
-> >
-> > #! ${sbindir}/nft
-> 
-> I'm OK with this.
-> 
-> But I see you pushed my patch to master [0]. Should I still work on
-> your .in approach?
+On Tue, 2014-01-14 at 14:51 +0400, Andrew Vagin wrote:
 
-Crap, that was actually a mistake, I committed it to my tree before
-I replied to your email. Sorry. Please go ahead with the alternative
-patch.
+> I think __nf_conntrack_alloc must use atomic_inc instead of
+> atomic_set. And we must be sure, that the first object from a new page is
+> zeroized.
+
+No you can not do that, and we do not need.
+
+If a new page is allocated, then you have the guarantee nobody can ever
+uses it, its content can be totally random.
+
+Only 'living' objects, the ones that were previously inserted in the
+hash table, can be found, and their refcnt must be accurate.
+
+A freed object has refcnt == 0, thats the golden rule.
+
+When the page is freed (after RCU grace period), nobody cares of refcnt
+anymore.
+
+
+
