@@ -1,19 +1,20 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/3] scanner: replace binary characters '&' '|' and '!'
  by their names
-Date: Tue, 14 Jan 2014 13:00:57 +0100
-Message-ID: <20140114120057.GA6957@localhost>
+Date: Tue, 14 Jan 2014 12:21:21 +0000
+Message-ID: <20140114122120.GA27277@macbook.localnet>
 References: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
  <1389699030-6301-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35001 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751662AbaANMCS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jan 2014 07:02:18 -0500
+Received: from stinky.trash.net ([213.144.137.162]:33891 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375AbaANMVZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jan 2014 07:21:25 -0500
 Content-Disposition: inline
 In-Reply-To: <1389699030-6301-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -24,7 +25,9 @@ On Tue, Jan 14, 2014 at 12:30:28PM +0100, Pablo Neira Ayuso wrote:
 > so let's use their names instead which are still short, eg.
 > 
 >  nft add rule filter output meta mark and 0x3 == 0x1
-> 
+
+Seems fine to me, although I'd rather have both ways of specifying them.
+
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
 >  src/scanner.l |    6 +++---
@@ -38,15 +41,6 @@ On Tue, Jan 14, 2014 at 12:30:28PM +0100, Pablo Neira Ayuso wrote:
 >  "<<"			{ return LSHIFT; }
 >  ">>"			{ return RSHIFT; }
 >  "^"			{ return CARET; }
-
-Extending this proposal:
-
-For consistency, we can also rename the caret to 'xor'.
-
-Regarding <<, we can use lshift, but that's a bit longer.
-
-We also have >, >=, < and <=. We could use gt, ge, lt, le.
-
 > -"&"			{ return AMPERSAND; }
 > -"|"			{ return '|'; }
 > -"!"			{ return NOT; }
@@ -58,8 +52,3 @@ We also have >, >=, < and <=. We could use gt, ge, lt, le.
 >  "*"			{ return ASTERISK; }
 > -- 
 > 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
