@@ -1,63 +1,87 @@
-From: Kevin Fenzi <kevin@scrye.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: nftables/libnftables packages for Fedora
-Date: Tue, 14 Jan 2014 11:28:16 -0700
-Message-ID: <20140114112816.71d061e7@voldemort.scrye.com>
+Date: Tue, 14 Jan 2014 19:34:33 +0100
+Message-ID: <20140114183433.GA15328@localhost>
 References: <20140112134024.2475a4f2@voldemort.scrye.com>
-	<alpine.LSU.2.11.1401130953150.14789@nerf08.vanv.qr>
-	<20140113090942.GA14601@macbook.localnet>
-	<20140113121836.0d4b1595@voldemort.scrye.com>
-	<20140114085532.GA23920@macbook.localnet>
+ <alpine.LSU.2.11.1401130953150.14789@nerf08.vanv.qr>
+ <20140113090942.GA14601@macbook.localnet>
+ <20140113121836.0d4b1595@voldemort.scrye.com>
+ <20140114085532.GA23920@macbook.localnet>
+ <20140114112816.71d061e7@voldemort.scrye.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/UMyEu=gpvKQX3TCC+7CzoxQ"; protocol="application/pgp-signature"
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="QKdGvSO+nmPlgiQ/"
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org
+To: Kevin Fenzi <kevin@scrye.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 75-148-32-185-Colorado.hfc.comcastbusiness.net ([75.148.32.185]:59835
-	"EHLO mail.scrye.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbaANS2c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jan 2014 13:28:32 -0500
-In-Reply-To: <20140114085532.GA23920@macbook.localnet>
+Received: from mail.us.es ([193.147.175.20]:37964 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751485AbaANSem (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jan 2014 13:34:42 -0500
+Content-Disposition: inline
+In-Reply-To: <20140114112816.71d061e7@voldemort.scrye.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/UMyEu=gpvKQX3TCC+7CzoxQ
-Content-Type: text/plain; charset=US-ASCII
+
+--QKdGvSO+nmPlgiQ/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 14 Jan 2014 08:55:33 +0000
-Patrick McHardy <kaber@trash.net> wrote:
+On Tue, Jan 14, 2014 at 11:28:16AM -0700, Kevin Fenzi wrote:
+> On Tue, 14 Jan 2014 08:55:33 +0000
+> Patrick McHardy <kaber@trash.net> wrote:
+>=20
+> > That's what we have (and always had) in nftables:
+>=20
+> Indeed, it's libnftables that has the old one.=20
 
-> That's what we have (and always had) in nftables:
+Patch attached.
 
-Indeed, it's libnftables that has the old one.=20
+--QKdGvSO+nmPlgiQ/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=x
+Content-Transfer-Encoding: quoted-printable
 
-Sorry for the confusion...=20
+diff --git a/COPYING b/COPYING
+index a43ea21..21b9363 100644
+--- a/COPYING
++++ b/COPYING
+@@ -2,7 +2,7 @@
+ 		       Version 2, June 1991
+=20
+  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
+-                          675 Mass Ave, Cambridge, MA 02139, USA
++               51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+  Everyone is permitted to copy and distribute verbatim copies
+  of this license document, but changing it is not allowed.
+=20
+@@ -278,8 +278,9 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN =
+ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGES.
+=20
+ 		     END OF TERMS AND CONDITIONS
+-=0C
+-	Appendix: How to Apply These Terms to Your New Programs
++
++
++	    How to Apply These Terms to Your New Programs
+=20
+   If you develop a new program, and you want it to be of the greatest
+ possible use to the public, the best way to achieve this is to make it
+@@ -305,7 +306,8 @@ the "copyright" line and a pointer to where the full no=
+tice is found.
+=20
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1=
+301  USA
++
+=20
+ Also add information on how to contact you by electronic and paper mail.
+=20
 
-kevin
-
-
---Sig_/UMyEu=gpvKQX3TCC+7CzoxQ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCgAGBQJS1YHBAAoJEEs3sNgP+7teubQP/0wZsW0N3gi2R9uOy6IBW7PY
-4d0C1zcx8CzUlMpffTc6Ci2XzM6wIZ++8r4Wd57BjTlCOhRlmC2VIsCqmrEN/ey7
-Qb+6uC/O8Fw4r4UTOjVlIuazmIp7XjMApWjowfwECmfA+a+FgJRptf9jeadWRTmg
-BB1wkmuXmxp1fpMNmiZr/TuOY1y0GsJRZo7jGgi0Asxyfz7hUhYdEtcRgTWZ9Z0t
-Xtk0fieqpgVOsXfo6FBQBAB18QNH3OZ88Oa9bD37qSJZhCvOrHn/nUPnwYuOcyGb
-Rr+cnmqg8KkzCvLSVoSFS+Vb2aRfVMlTR0rQgeiPLRqBHlkv/DVQM2UCJFxHRcV2
-LZykk7kaN0764gnrcc+pmfwr02mOH0qSvCzCrsSJz4ayNTQSMyRITThwViimS0oc
-m536x/FsNEBD4iAEW52gd0M7psOHDx6eC4CgkOBG6WL/gbvv6YImhmYewlmD6IWm
-ILC/Y64ffzY7c5UNnGD+tvvLhwD/9JSolXoTy//Tn1JV+7rJ3CAgThA40NOysAwF
-OJ2syEa4FvdGAAkh3+t4gCp6TrgNTwoTIGl9STUQoincNokEpl+JjwAKoVgOgX5H
-bcOu0uiRti8hSoTnNHdqoFH1FItZMRtpzNAhuYWAI4cyM7iXFwLdPrz9rxa6q6fT
-3okryUdLXwGm3EF7Ktj1
-=vZN1
------END PGP SIGNATURE-----
-
---Sig_/UMyEu=gpvKQX3TCC+7CzoxQ--
+--QKdGvSO+nmPlgiQ/--
