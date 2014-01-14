@@ -1,39 +1,44 @@
-From: Andrey Wagin <avagin@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get (v3)
-Date: Tue, 14 Jan 2014 15:10:50 +0400
-Message-ID: <CANaxB-zSkmVy+TBCa0CyReiSgubBUmyz6iUp8bxByOr7Jb9oGw@mail.gmail.com>
-References: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
-	<1389549033-23523-1-git-send-email-avagin@openvz.org>
-	<1389558074.31367.187.camel@edumazet-glaptop2.roam.corp.google.com>
-	<20140114105147.GA14538@paralelels.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] expression: fix output of verdict maps
+Date: Tue, 14 Jan 2014 12:29:51 +0100
+Message-ID: <20140114112951.GA6270@localhost>
+References: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
+ <20140113124202.GA17951@macbook.localnet>
+ <20140114090009.GB23920@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>, vvs@openvz.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Andrew Vagin <avagin@parallels.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140114105147.GA14538@paralelels.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>, f@localhost
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51721 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751329AbaANLaE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jan 2014 06:30:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20140114090009.GB23920@macbook.localnet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->
-> Eh, looks like this path is incomplete too:(
->
-> I think we can't set a reference counter for objects which is allocated
-> from a SLAB_DESTROY_BY_RCU cache. Look at the following backtrace.
->
-> cpu1                                    cpu2
-> ct = ____nf_conntrack_find()
->                                         destroy_conntrack
-> atomic_inc_not_zero(ct)
+On Tue, Jan 14, 2014 at 09:00:09AM +0000, Patrick McHardy wrote:
+> On Mon, Jan 13, 2014 at 12:42:03PM +0000, Patrick McHardy wrote:
+> > On Mon, Jan 13, 2014 at 01:39:16PM +0100, Pablo Neira Ayuso wrote:
+> > > % nft list table filter
+> > > table ip filter {
+> > > 	...
+> > > 	chain output {
+> > > 		...
+> > > 		ip saddr map { 1.1.1.1 => accept}
+> > > 	}
+> > > }
+> > > 
+> > > It displays 'map' instead of 'vmap'. Fix it by checking the mapping
+> > > type in map_expr_print().
+> > 
+> > The fix is fine of course, but even better would be to get rid of the
+> > vmap keyword IMO. IIRC it only exists because I couldn't manage to get
+> > a conflict free grammar together, but it would be worth another try.
+> 
+> Actually this works fine. Is there agreement on removing the VMAP keyword?
+> If so we should do it before the 0.099 release.
 
-ct->ct_general.use is zero after destroy_conntrack(). Sorry for the noise.
+Sure, go ahead. I like it :) and it's consistent with other data maps.
