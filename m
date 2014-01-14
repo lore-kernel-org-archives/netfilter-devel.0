@@ -1,44 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] expression: fix output of verdict maps
-Date: Tue, 14 Jan 2014 12:29:51 +0100
-Message-ID: <20140114112951.GA6270@localhost>
-References: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
- <20140113124202.GA17951@macbook.localnet>
- <20140114090009.GB23920@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>, f@localhost
+Subject: [PATCH 0/3 nft] [RFC] more syntax changes
+Date: Tue, 14 Jan 2014 12:30:27 +0100
+Message-ID: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51721 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51896 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329AbaANLaE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jan 2014 06:30:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20140114090009.GB23920@macbook.localnet>
+	id S1751503AbaANLaj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jan 2014 06:30:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 14, 2014 at 09:00:09AM +0000, Patrick McHardy wrote:
-> On Mon, Jan 13, 2014 at 12:42:03PM +0000, Patrick McHardy wrote:
-> > On Mon, Jan 13, 2014 at 01:39:16PM +0100, Pablo Neira Ayuso wrote:
-> > > % nft list table filter
-> > > table ip filter {
-> > > 	...
-> > > 	chain output {
-> > > 		...
-> > > 		ip saddr map { 1.1.1.1 => accept}
-> > > 	}
-> > > }
-> > > 
-> > > It displays 'map' instead of 'vmap'. Fix it by checking the mapping
-> > > type in map_expr_print().
-> > 
-> > The fix is fine of course, but even better would be to get rid of the
-> > vmap keyword IMO. IIRC it only exists because I couldn't manage to get
-> > a conflict free grammar together, but it would be worth another try.
-> 
-> Actually this works fine. Is there agreement on removing the VMAP keyword?
-> If so we should do it before the 0.099 release.
+Hi,
 
-Sure, go ahead. I like it :) and it's consistent with other data maps.
+The following patchset contains more small syntax and evaluation changes
+aiming to improve the interaction user <-> tool via most common shells:
+
+* iifname and oifname mask matching: very simple approach to allow matching
+  interface names via meta oifname and eth == eth.
+
+* Rename typical binary operation so we don't need to escape them in
+  bash: '&' by 'and', '|' by 'or' and '!' by 'not'. They are just a
+  few character longers and the syntax still looks nice to me.
+
+* Rename 'eth' by 'ether', to mimic tcpdump. This also skips problems with
+  a valid and simple possible iifname/oifname mask.
+
+Comments welcome. Thanks!
+
+Pablo Neira Ayuso (3):
+  scanner: replace binary characters '&' '|' and '!' by their names
+  evaluate: allow to use string with binary operations
+  scanner: rename address selector from 'eth' to 'ether'
+
+ src/evaluate.c |    3 ++-
+ src/parser.y   |    4 ++--
+ src/scanner.l  |    8 ++++----
+ 3 files changed, 8 insertions(+), 7 deletions(-)
+
+-- 
+1.7.10.4
+
