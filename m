@@ -1,65 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/3] scanner: rename address selector from 'eth' to 'ether'
-Date: Tue, 14 Jan 2014 12:30:30 +0100
-Message-ID: <1389699030-6301-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/3] scanner: replace binary characters '&' '|' and '!' by their names
+Date: Tue, 14 Jan 2014 12:30:28 +0100
+Message-ID: <1389699030-6301-2-git-send-email-pablo@netfilter.org>
 References: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51915 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51912 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751520AbaANLan (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751503AbaANLan (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 14 Jan 2014 06:30:43 -0500
 In-Reply-To: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-eth is may easily ocur when using ifname mask. This could be also
-fixed by interpreting 'eth' as a simple string in the parser but
-I think this selector also looks more similar to what we use in
-tcpdump.
+These symbol need to be escaped in bash and can lead to confusion,
+so let's use their names instead which are still short, eg.
+
+ nft add rule filter output meta mark and 0x3 == 0x1
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser.y  |    4 ++--
- src/scanner.l |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ src/scanner.l |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/src/parser.y b/src/parser.y
-index 26e71e3..461eb3f 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -193,7 +193,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- %token BRIDGE			"bridge"
- 
--%token ETH			"eth"
-+%token ETHER			"ether"
- %token SADDR			"saddr"
- %token DADDR			"daddr"
- %token TYPE			"type"
-@@ -1392,7 +1392,7 @@ payload_base_spec	:	LL_HDR		{ $$ = PAYLOAD_BASE_LL_HDR; }
- 			|	TRANSPORT_HDR	{ $$ = PAYLOAD_BASE_TRANSPORT_HDR; }
- 			;
- 
--eth_hdr_expr		:	ETH	eth_hdr_field
-+eth_hdr_expr		:	ETHER	eth_hdr_field
- 			{
- 				$$ = payload_expr_alloc(&@$, &payload_eth, $2);
- 			}
 diff --git a/src/scanner.l b/src/scanner.l
-index 2d7ac88..a4db017 100644
+index cee6aa6..2d7ac88 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -278,7 +278,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 
- "bridge"		{ return BRIDGE; }
- 
--"eth"			{ return ETH; }
-+"ether"			{ return ETHER; }
- "saddr"			{ return SADDR; }
- "daddr"			{ return DADDR; }
- "type"			{ return TYPE; }
+@@ -200,9 +200,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "<<"			{ return LSHIFT; }
+ ">>"			{ return RSHIFT; }
+ "^"			{ return CARET; }
+-"&"			{ return AMPERSAND; }
+-"|"			{ return '|'; }
+-"!"			{ return NOT; }
++"and"			{ return AMPERSAND; }
++"or"			{ return '|'; }
++"not"			{ return NOT; }
+ "/"			{ return SLASH; }
+ "-"			{ return DASH; }
+ "*"			{ return ASTERISK; }
 -- 
 1.7.10.4
 
