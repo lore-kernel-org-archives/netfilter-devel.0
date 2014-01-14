@@ -1,58 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] evaluate: allow to use string with binary operations
-Date: Tue, 14 Jan 2014 16:25:32 +0100
-Message-ID: <20140114152532.GA9059@localhost>
-References: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
- <1389699030-6301-3-git-send-email-pablo@netfilter.org>
- <20140114122251.GB27277@macbook.localnet>
+Subject: Re: [PATCH] netfilter: Add dependency on IPV6 for NF_TABLES_INET
+Date: Tue, 14 Jan 2014 16:34:54 +0100
+Message-ID: <20140114153454.GA9425@localhost>
+References: <1389636070-26312-1-git-send-email-paul.gortmaker@windriver.com>
+ <85d5725b-16f8-464a-ad88-7def74571021@email.android.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57283 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58771 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855AbaANPZh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jan 2014 10:25:37 -0500
+	id S1751342AbaANPe7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jan 2014 10:34:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20140114122251.GB27277@macbook.localnet>
+In-Reply-To: <85d5725b-16f8-464a-ad88-7def74571021@email.android.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 14, 2014 at 12:22:52PM +0000, Patrick McHardy wrote:
-> On Tue, Jan 14, 2014 at 12:30:29PM +0100, Pablo Neira Ayuso wrote:
-> > This allows us to match ifname masks, eg.
-> > 
-> > nft add rule filter output meta oifname and eth == eth counter
-> > 
-> > I've been investigating other possibility, such as adding
-> > ofiname-mask, which requires several patches and transformations
-> > to make it look binop tree, but I still think this looks like
-> > a natural way (and simple, look at the patch, it's rather small)
-> > to represent this in the nftables.
+On Tue, Jan 14, 2014 at 11:35:42AM +0000, Patrick McHardy wrote:
+> Paul Gortmaker <paul.gortmaker@windriver.com> schrieb:
+> >Commit 1d49144c0aaa61be4e3ccbef9cc5c40b0ec5f2fe ("netfilter: nf_tables:
+> >add "inet" table for IPv4/IPv6") allows creation of non-IPV6 enabled
+> >.config files that will fail to configure/link as follows:
+> >
+> >warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct
+> >dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+> >warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct
+> >dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+> >warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct
+> >dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+> >net/built-in.o: In function `nft_reject_eval':
+> >nft_reject.c:(.text+0x651e8): undefined reference to `nf_ip6_checksum'
+> >nft_reject.c:(.text+0x65270): undefined reference to `ip6_route_output'
+> >nft_reject.c:(.text+0x656c4): undefined reference to `ip6_dst_hoplimit'
+> >make: *** [vmlinux] Error 1
+> >
+> >Since the feature is to allow for a mixed IPV4 and IPV6 table, it
+> >seems sensible to make it depend on IPV6.
 > 
-> I was just going to suggest adding a shortcut for this since its exposing
-> a lot of low-level detail. The transformation should be quite easy during
-> evaluation, could you elaborate on the problems?
+> Acked-by: Patrick McHardy <kaber@trash.net>
 
-Not really a problem but a bit more specific code to handle this case.
-I started writing support for this following several approaches, but
-after looking at my patchset I thought this approach was smaller and
-it's requiring way less specific code.
+Applied, thanks.
 
-The fist of my patches here (the ones that I didn't send) replace all
-NFT_META_* references in the parser by internal META_*, eg. META_MARK,
-just to prepare the addition of META_IIFNAMEMASK and META_OIFNAMEMASK.
-Then, the follow-up patch transforms the following expression that we
-got from that looks like:
-
-              relational
-                /     \
-               /       \
-    meta oifnamemask  string
-
-to a binary op expression. These also needs some specific code in the
-delinearize path to transform the binop tree back to the expression
-above.
-
-Let me know if you have any better idea. Thanks.
+@Paul: Please, use netfilter-devel ML instead next time. The netfilter
+ML is reserved for user questions only. Thanks.
