@@ -1,37 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: libnftables set element printing, DATA_CHAIN
-Date: Wed, 15 Jan 2014 22:50:03 +0000
-Message-ID: <20140115225002.GA13700@macbook.localnet>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: linux-next: Tree for Jan 15 (netfilter: nft_reject)
+Date: Wed, 15 Jan 2014 15:39:09 -0800
+Message-ID: <52D71C1D.3020609@infradead.org>
+References: <20140115185545.497c14923814b6ecaa540d9f@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49427 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506AbaAOWuH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 17:50:07 -0500
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140115185545.497c14923814b6ecaa540d9f@canb.auug.org.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-[resending because of incorrect list address]
+On 01/14/2014 11:55 PM, Stephen Rothwell wrote:
+> Hi all,
+> 
+> This tree fails (more than usual) the powerpc allyesconfig build.
+> 
+> Changes since 20140114:
+> 
 
-I was looking at some incorrect output in netlink debugging for set elements
-and noticed a few things that seem odd:
+on x86_64:
+# CONFIG_IPV6 is not enabled.
 
-First, the regular netlink debugging seems very incomplete, it doesn't
-print verdict types, it prints [end] whether the set contains intervals
-and the set is an interval end or not and its messing up the output.
+warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
+...
+ERROR: "ip6_dst_hoplimit" [net/netfilter/nft_reject.ko] undefined!
+ERROR: "ip6_route_output" [net/netfilter/nft_reject.ko] undefined!
+ERROR: "nf_ip6_checksum" [net/netfilter/nft_reject.ko] undefined!
 
-Next I'm wondering about what DATA_CHAIN is supposed to be. I guess its
-the chain for a jump or goto verdict, This is even encoded in the
-XML and JSON output. This seems wrong to me, there is no DATA_CHAIN,
-there are JUMP or GOTO verdicts that include a chain. The specific
-verdict is also missing, so its not possible to distinguish these
-two cases.
 
-I could fix up the debugging output, but this looks like someone more
-familiar with the XML and JSON stuff should have a look at this and
-fix all of this consistently before we release it as wire format.
+
+-- 
+~Randy
