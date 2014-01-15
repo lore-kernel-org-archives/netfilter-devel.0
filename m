@@ -1,30 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] tests: xml: delete comments
-Date: Wed, 15 Jan 2014 14:12:14 +0100
-Message-ID: <20140115131214.GA22148@localhost>
-References: <20140115111218.25584.60794.stgit@nfdev.cica.es>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft] segtree: add new segtree debugging option
+Date: Wed, 15 Jan 2014 14:48:10 +0000
+Message-ID: <20140115144810.GA32750@macbook.localnet>
+References: <1389788704-21079-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54302 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889AbaAONMT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 08:12:19 -0500
+Received: from stinky.trash.net ([213.144.137.162]:45457 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbaAOOsd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jan 2014 09:48:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20140115111218.25584.60794.stgit@nfdev.cica.es>
+In-Reply-To: <1389788704-21079-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 15, 2014 at 12:12:18PM +0100, Arturo Borrero Gonzalez wrote:
-> In libmxml > 2.6, comments are not ignored when building the XML tree,
-> so these comments produce errors and test fail.
-
-Doesn't have libmxml any way to accept comments?
-
-> Delete the comment lines, so parsing test pass with libmxml 2.7 and 2.8.
+On Wed, Jan 15, 2014 at 01:25:04PM +0100, Pablo Neira Ayuso wrote:
+> Currently, nft displays the debugging information if it's compiled with
+> --enable-debug (which seems a good idea) and when intervals are used
+> in maps. Add a new option to enable debugging to segtree, so we only
+> get this information when explicitly requested.
 > 
-> By now, this is the only issue I found when working with libmxml > 2.6.
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> We need this in master to avoid inconditional display of the
+> debugging information when --enable-debug is passed at configuration
+> / compilation time. I'm aware this patch conflicts with next-3.14,
+> that conflict should be easy to resolve.
 
-Kevin mentioned a different error, please investigate it. Thanks.
+Looks good, thanks, I wanted to change this myself.
+
+A few more things about debugging, some are easy, some might be a bit more
+work:
+
+- we should use stdout for netlink rule debugging
+
+- netlink rule debugging is very very verbose since it dumps the entire
+  netlink message. I'd prefer to only have the netlink expressions
+  ([meta load ...]) and have the netlink message as another option.
+  It keeps scrolling everything off the screen.
+
+- netlink message debugging colors break in less. We should check for
+  isatty().
