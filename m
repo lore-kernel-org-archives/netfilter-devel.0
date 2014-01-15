@@ -1,55 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] expression: fix printing of binary operation
-Date: Wed, 15 Jan 2014 11:28:25 +0000
-Message-ID: <20140115112825.GE17728@macbook.localnet>
-References: <1389784167-10198-1-git-send-email-pablo@netfilter.org>
- <1389784167-10198-2-git-send-email-pablo@netfilter.org>
- <20140115112129.GB17728@macbook.localnet>
- <20140115112506.GA10697@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH 1/2 nft RFC] expression: default to print binary
+ operations using nominal representation
+Date: Wed, 15 Jan 2014 12:32:36 +0100
+Message-ID: <CAOkSjBg+on2TzybwdyaL+foReRgHZ4vA981JLZs4E0k9Dfe3aA@mail.gmail.com>
+References: <1389784167-10198-1-git-send-email-pablo@netfilter.org> <20140115111803.GA17728@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43831 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbaAOL23 (ORCPT
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:34175 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbaAOLdC convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 06:28:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20140115112506.GA10697@localhost>
+	Wed, 15 Jan 2014 06:33:02 -0500
+Received: by mail-lb0-f181.google.com with SMTP id z5so657752lbh.40
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2014 03:33:00 -0800 (PST)
+In-Reply-To: <20140115111803.GA17728@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 15, 2014 at 12:25:06PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Jan 15, 2014 at 11:21:29AM +0000, Patrick McHardy wrote:
-> > On Wed, Jan 15, 2014 at 12:09:27PM +0100, Pablo Neira Ayuso wrote:
-> > > This patch adds a special print function for the relational case in
-> > > which == is assumed, so it's not printed. It also fixes the output of
-> > > binary operations from:
-> > > 
-> > > & 0x00000003 0x00000001
-> > > 
-> > > to:
-> > > 
-> > > and 0x00000003 == 0x00000001
-> > > 
-> > > diff --git a/src/expression.c b/src/expression.c
-> > > index 6da5c10..452b0d7 100644
-> > > --- a/src/expression.c
-> > > +++ b/src/expression.c
-> > > @@ -411,7 +411,9 @@ static void binop_expr_print(const struct expr *expr)
-> > >  		printf(" %s ", expr_op_symbols[expr->op]);
-> > >  	else
-> > >  		printf(" ");
-> > > +
-> > >  	expr_print(expr->right);
-> > > +	printf(" ==");
-> > 
-> > That doesn't look right, binops can also occur outside of relational
-> > expressions. I'd suggest to special case OP_EQ and not print it by
-> > default unless the LHS is an EXPR_BINOP.
-> 
-> Indeed, this can be !=.
+On 15 January 2014 12:18, Patrick McHardy <kaber@trash.net> wrote:
+> On Wed, Jan 15, 2014 at 12:09:26PM +0100, Pablo Neira Ayuso wrote:
+>> Since b59e65c ("scanner: add aliases to symbols for easier
+>> interaction with most shells") we have nominal aliases, default to
+>> these for the output representation.
+>
+> I was thinking about this before, but didn't mention it since you
+> hadn't included it in your first patch. I'd prefer to stick to the
+> IMO more readable existing form. Since we don't support deleting
+> rules by rule specification, there should be no reason to copy and
+> paste the output to the command line again.
 
-Yep, that as well. The patch I just sent should handle it correctly.
+What about a file to be loaded with `nft -f'?
+In fact, I think most of users will end with a config file to load
+with `nft -f'.
+
+It may be annoying getting the output different to what you wrote.
+
+I think this patch means that the symbol-free syntax is the default,
+and I personally like that.
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
