@@ -1,55 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] evaluate: allow to use string with binary operations
-Date: Wed, 15 Jan 2014 16:58:49 +0100
-Message-ID: <20140115155849.GA1506@localhost>
-References: <1389699030-6301-1-git-send-email-pablo@netfilter.org>
- <1389699030-6301-3-git-send-email-pablo@netfilter.org>
- <20140114122251.GB27277@macbook.localnet>
- <20140114152532.GA9059@localhost>
- <20140114154859.GB2204@macbook.localnet>
- <20140115092943.GA4566@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH] tests: xml: delete comments
+Date: Wed, 15 Jan 2014 17:00:20 +0100
+Message-ID: <CAOkSjBjTZv0jHzPG6MPYVQU=amvGntwq1qe8FY47O704mFs5fA@mail.gmail.com>
+References: <20140115111218.25584.60794.stgit@nfdev.cica.es> <20140115131214.GA22148@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60793 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502AbaAOP6z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 10:58:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20140115092943.GA4566@localhost>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:54149 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789AbaAOQAp convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jan 2014 11:00:45 -0500
+Received: by mail-la0-f48.google.com with SMTP id er20so1549534lab.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jan 2014 08:00:42 -0800 (PST)
+In-Reply-To: <20140115131214.GA22148@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 15, 2014 at 10:29:43AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Jan 14, 2014 at 03:49:00PM +0000, Patrick McHardy wrote:
-> > Well, I think the easiest approach would be to add some code to
-> > expr_evaluate_relational() for OP_EQ for convert the LHS of a
-> > relational meta expression to LHS & RHS:
-> > 
-> >      relational (==)
-> >     /               \
-> > meta oifname       string
-> > 
-> > =>
-> > 
-> >         relational (==)
-> >        /               \
-> >     binop (&)        string
-> >   /          \
-> > meta oifname  string
-> > 
-> > The attached patch uses '*' as a trigger (and obviously won't work
-> > because the '*' is also used in the mask, but you get the idea.
-> > netlink_delinarize adjustments are missing, but it should be pretty
-> > trivial to add the corresponding code to postprocessing of relational
-> > expressions.
-> 
-> Oh yes, with that wildcard trick the thing is simplified. There was
-> some discuss on the use of '+' that seems to be possible to be used in
-> a device name. I guess '*' is safe as udev is using it in their rules.
+On 15 January 2014 14:12, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> On Wed, Jan 15, 2014 at 12:12:18PM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> In libmxml > 2.6, comments are not ignored when building the XML tre=
+e,
+>> so these comments produce errors and test fail.
+>
+> Doesn't have libmxml any way to accept comments?
 
-It seems we need to include the '*' into the string rule in flex for
-this. We already have a single '*' that is used in the parser for
-prefixes, I think that may lead to ambiguity problems.
+I explained it bad, i'm sorry.
+
+When building a XML tree, only one root node can be in place. This is
+a "feature" added in libmxml 2.7:
+
+<<<
+mxmlLoad... did not error out on XML with multiple root nodes (Bug #403=
+)
+>>>
+
+In libmxml 2.6 the second root node was ingored, not because it was a
+comment but because a bug.
+Our files had two root nodes, being comments or not.
+libmxml accept comments, but inside the root node.
+
+>
+>> Delete the comment lines, so parsing test pass with libmxml 2.7 and =
+2.8.
+>>
+>> By now, this is the only issue I found when working with libmxml > 2=
+=2E6.
+>
+> Kevin mentioned a different error, please investigate it. Thanks.
+
+The error Kevin reported is what I've fixed.
+
+Anyway, I've tested libnftables linked against libmxml 2.7 and 2.8
+with no other issues.
+
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
