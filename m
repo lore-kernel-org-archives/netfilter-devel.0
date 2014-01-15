@@ -1,42 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/3] payload: fix crash when wrong ethernet protocol type is used
-Date: Wed, 15 Jan 2014 21:30:22 +0100
-Message-ID: <1389817823-7251-2-git-send-email-pablo@netfilter.org>
-References: <1389817823-7251-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52341 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751046AbaAOUaf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 15:30:35 -0500
-In-Reply-To: <1389817823-7251-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH-next v2] netfilter: don't use module_init/exit in core IPV4 code
+Date: Wed, 15 Jan 2014 15:57:07 -0500
+Message-ID: <1389819427-20199-1-git-send-email-paul.gortmaker@windriver.com>
+References: <1389638147-30399-1-git-send-email-paul.gortmaker@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: "David S. Miller" <davem@davemloft.net>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1389638147-30399-1-git-send-email-paul.gortmaker@windriver.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-nft add rule ip filter output meta protocol xyz counter
-                                            ^^^
+The file net/ipv4/netfilter.o is created based on whether
+CONFIG_NETFILTER is set.  However that is defined as a bool, and
+hence this file with the core netfilter hooks will never be
+modular.  So using module_init as an alias for __initcall can be
+somewhat misleading.
 
-This fix is similar to 4097ad7 ("meta: fix crash when parsing
-unresolvable mark values").
+Fix this up now, so that we can relocate module_init from
+init.h into module.h in the future.  If we don't do this, we'd
+have to add module.h to obviously non-modular code, and that
+would be a worse thing.  Also add an inclusion of init.h, as
+that was previously implicit here in the netfilter.c file.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Note that direct use of __initcall is discouraged, vs. one
+of the priority categorized subgroups.  As __initcall gets
+mapped onto device_initcall, our use of subsys_initcall (which
+seems to make sense for netfilter code) will thus change this
+registration from level 6-device to level 4-subsys (i.e. slightly
+earlier).  However no observable impact of that small difference
+has been observed during testing, or is expected. (i.e. the
+location of the netfilter messages in dmesg remains unchanged
+with respect to all the other surrounding messages.)
+
+As for the module_exit, rather than replace it with __exitcall,
+we simply remove it, since it appears only UML does anything
+with those, and even for UML, there is no relevant cleanup
+to be done here.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- src/payload.c |    1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/src/payload.c b/src/payload.c
-index 86d75fa..decfcd6 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -993,6 +993,7 @@ static struct error_record *ethertype_parse(const struct expr *sym,
+[v2: Drop __exitcall stuff completely, as per Eric's suggestion
+ given for patch at  http://patchwork.ozlabs.org/patch/311164/ ]
+
+ net/ipv4/netfilter.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index c3e0adea9c27..31abf9636ba7 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -197,11 +197,4 @@ static int __init ipv4_netfilter_init(void)
  {
- 	struct error_record *erec;
- 
-+	*res = NULL;
- 	erec = sym->dtype->basetype->parse(sym, res);
- 	if (erec != NULL)
- 		return erec;
+ 	return nf_register_afinfo(&nf_ip_afinfo);
+ }
+-
+-static void __exit ipv4_netfilter_fini(void)
+-{
+-	nf_unregister_afinfo(&nf_ip_afinfo);
+-}
+-
+-module_init(ipv4_netfilter_init);
+-module_exit(ipv4_netfilter_fini);
++device_initcall(ipv4_netfilter_init);
 -- 
-1.7.10.4
-
+1.8.5.2
