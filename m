@@ -1,19 +1,20 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 2/2] expression: fix printing of binary operation
-Date: Wed, 15 Jan 2014 12:25:06 +0100
-Message-ID: <20140115112506.GA10697@localhost>
+Date: Wed, 15 Jan 2014 11:27:17 +0000
+Message-ID: <20140115112717.GC17728@macbook.localnet>
 References: <1389784167-10198-1-git-send-email-pablo@netfilter.org>
  <1389784167-10198-2-git-send-email-pablo@netfilter.org>
  <20140115112129.GB17728@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46429 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbaAOLZr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jan 2014 06:25:47 -0500
+Received: from stinky.trash.net ([213.144.137.162]:43808 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789AbaAOL1V (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jan 2014 06:27:21 -0500
 Content-Disposition: inline
 In-Reply-To: <20140115112129.GB17728@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -47,4 +48,30 @@ On Wed, Jan 15, 2014 at 11:21:29AM +0000, Patrick McHardy wrote:
 > expressions. I'd suggest to special case OP_EQ and not print it by
 > default unless the LHS is an EXPR_BINOP.
 
-Indeed, this can be !=.
+Something like this:
+
+
+diff --git a/src/expression.c b/src/expression.c
+index 71154cc..518f71c 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -356,7 +356,7 @@ const char *expr_op_symbols[] = {
+ 	[OP_XOR]	= "^",
+ 	[OP_LSHIFT]	= "<<",
+ 	[OP_RSHIFT]	= ">>",
+-	[OP_EQ]		= NULL,
++	[OP_EQ]		= "==",
+ 	[OP_NEQ]	= "!=",
+ 	[OP_LT]		= "<",
+ 	[OP_GT]		= ">",
+@@ -407,7 +407,9 @@ struct expr *unary_expr_alloc(const struct location *loc,
+ static void binop_expr_print(const struct expr *expr)
+ {
+ 	expr_print(expr->left);
+-	if (expr_op_symbols[expr->op] != NULL)
++	if (expr_op_symbols[expr->op] &&
++	    (expr->op != OP_EQ ||
++	     expr->left->ops->type == EXPR_BINOP))
+ 		printf(" %s ", expr_op_symbols[expr->op]);
+ 	else
+ 		printf(" ");
