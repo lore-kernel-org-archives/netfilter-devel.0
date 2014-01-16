@@ -1,70 +1,121 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnftables set element printing, DATA_CHAIN
-Date: Thu, 16 Jan 2014 10:40:53 +0000
-Message-ID: <20140116104053.GA28413@macbook.localnet>
-References: <20140115225002.GA13700@macbook.localnet>
- <CAOkSjBjD7VBgErC08C387u6Lgetx8m7mtBfe4khpRLWbahsHJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [PATCH 1/2] segtree: only use prefix expressions for ranges for selected datatypes
+Date: Thu, 16 Jan 2014 16:21:51 +0000
+Message-ID: <1389889312-4055-2-git-send-email-kaber@trash.net>
+References: <1389889312-4055-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54625 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57339 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520AbaAPKk5 (ORCPT
+	with ESMTP id S1751544AbaAPQV6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 05:40:57 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjD7VBgErC08C387u6Lgetx8m7mtBfe4khpRLWbahsHJA@mail.gmail.com>
+	Thu, 16 Jan 2014 11:21:58 -0500
+In-Reply-To: <1389889312-4055-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 16, 2014 at 11:30:26AM +0100, Arturo Borrero Gonzalez wrote:
-> On 15 January 2014 23:50, Patrick McHardy <kaber@trash.net> wrote:
-> > [resending because of incorrect list address]
-> >
-> > I was looking at some incorrect output in netlink debugging for set elements
-> > and noticed a few things that seem odd:
-> >
-> > First, the regular netlink debugging seems very incomplete, it doesn't
-> > print verdict types, it prints [end] whether the set contains intervals
-> > and the set is an interval end or not and its messing up the output.
-> >
-> 
-> It's true, most of the development went to the JSON/XML formats, not
-> the default one.
-> 
-> > Next I'm wondering about what DATA_CHAIN is supposed to be. I guess its
-> > the chain for a jump or goto verdict, This is even encoded in the
-> > XML and JSON output. This seems wrong to me, there is no DATA_CHAIN,
-> > there are JUMP or GOTO verdicts that include a chain. The specific
-> > verdict is also missing, so its not possible to distinguish these
-> > two cases.
-> >
-> 
-> Ok, let's fix that. Do you have a proposal?
-> 
-> This is what I think you want:
-> 
-> * a <data_reg type=value> with raw data.
-> * a <data_reg type=verdict> with a concrete verdict (eg drop accept)
-> * a <data_reg type=jump> with a chain to jump to.
-> * a <data_reg type=goto> with a chain to go to.
-> 
-> Or maybe:
-> 
-> * a <data_reg type=value> with raw data.
-> * a <data_reg type=verdict> with a concrete verdict (eg drop accept)
-> and if verdict == jump or goto, then a <chain> with the destination.
+It is uncommon to represent f.i. port number ranges as prefix expressions.
 
-Yes, this is what I think we should do.
+Introduce a datatype DTYPE_F_PREFIX flag to indicate that the preferred
+representation of a range is a prefix and use it for segtree decomposition
+to decide whether to use a range or prefix expression.
 
-> > I could fix up the debugging output, but this looks like someone more
-> > familiar with the XML and JSON stuff should have a look at this and
-> > fix all of this consistently before we release it as wire format.
-> 
-> I can handle it.
+The ipaddr, ip6addr, mark and realm datatypes are changed to include the
+DTYPE_F_PREFIX flag.
 
-Great, thanks a lot.
+This fixes completely unreadable output in cases where the ranges are
+representable as prefixes, f.i. in case of port number:
+
+{ 0/6 => jump chain1, 0/5 => jump chain2, 0/4 => continue}
+
+becomes:
+
+{ 0-1023 => jump chain1, 1024-2047 => jump chain2, 2048-4095 => continue}
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/datatype.h | 7 +++++++
+ src/datatype.c     | 3 +++
+ src/meta.c         | 1 +
+ src/segtree.c      | 4 +++-
+ 4 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/include/datatype.h b/include/datatype.h
+index 9f8b44a..9e609cf 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -85,8 +85,15 @@ enum byteorder {
+ 
+ struct expr;
+ 
++/**
++ * enum datatype_flags
++ *
++ * @DTYPE_F_ALLOC:		datatype is dynamically allocated
++ * @DTYPE_F_PREFIX:		preferred representation for ranges is a prefix
++ */
+ enum datatype_flags {
+ 	DTYPE_F_ALLOC		= (1 << 0),
++	DTYPE_F_PREFIX		= (1 << 1),
+ };
+ 
+ /**
+diff --git a/src/datatype.c b/src/datatype.c
+index e228f53..5e4aacd 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -398,6 +398,7 @@ const struct datatype ipaddr_type = {
+ 	.basetype	= &integer_type,
+ 	.print		= ipaddr_type_print,
+ 	.parse		= ipaddr_type_parse,
++	.flags		= DTYPE_F_PREFIX,
+ };
+ 
+ static void ip6addr_type_print(const struct expr *expr)
+@@ -455,6 +456,7 @@ const struct datatype ip6addr_type = {
+ 	.basetype	= &integer_type,
+ 	.print		= ip6addr_type_print,
+ 	.parse		= ip6addr_type_parse,
++	.flags		= DTYPE_F_PREFIX,
+ };
+ 
+ static void inet_protocol_type_print(const struct expr *expr)
+@@ -680,6 +682,7 @@ const struct datatype mark_type = {
+ 	.basefmt	= "0x%.8Zx",
+ 	.print		= mark_type_print,
+ 	.parse		= mark_type_parse,
++	.flags		= DTYPE_F_PREFIX,
+ };
+ 
+ static void time_type_print(const struct expr *expr)
+diff --git a/src/meta.c b/src/meta.c
+index 098728b..0a3df39 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -61,6 +61,7 @@ static const struct datatype realm_type = {
+ 	.basetype	= &integer_type,
+ 	.print		= realm_type_print,
+ 	.parse		= realm_type_parse,
++	.flags		= DTYPE_F_PREFIX,
+ };
+ 
+ static void tchandle_type_print(const struct expr *expr)
+diff --git a/src/segtree.c b/src/segtree.c
+index 5426e24..e3bca4c 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -552,7 +552,9 @@ void interval_map_decompose(struct expr *set)
+ 
+ 		if (!mpz_cmp_ui(range, 0))
+ 			compound_expr_add(set, low);
+-		else if (!range_is_prefix(range) || mpz_cmp_ui(p, 0)) {
++		else if ((!range_is_prefix(range) ||
++			  !(i->dtype->flags & DTYPE_F_PREFIX)) ||
++			 mpz_cmp_ui(p, 0)) {
+ 			struct expr *tmp;
+ 
+ 			tmp = constant_expr_alloc(&low->location, low->dtype,
+-- 
+1.8.4.2
+
