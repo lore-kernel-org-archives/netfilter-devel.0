@@ -1,65 +1,75 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] datatype: fix output of time type
-Date: Thu, 16 Jan 2014 22:14:47 +0100
-Message-ID: <1389906887-27919-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftables PATCH v2] ct: fix key and dir requirements
+Date: Thu, 16 Jan 2014 22:22:24 +0100
+Message-ID: <20140116212224.GA27510@localhost>
+References: <20140115181939.25239.19905.stgit@nfdev.cica.es>
+ <20140116180538.GA18501@localhost>
+ <CAOkSjBhOb=Z_-KDfpmRko7Vi-U4QVhYUJwkJ1FbDpLjEVD3teA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58189 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58805 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751071AbaAPVPA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 16:15:00 -0500
+	id S1750750AbaAPVW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 16:22:28 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBhOb=Z_-KDfpmRko7Vi-U4QVhYUJwkJ1FbDpLjEVD3teA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Display output in seconds, which is what we get as input.
+On Thu, Jan 16, 2014 at 09:46:17PM +0100, Arturo Borrero Gonzalez wrote:
+> On 16 January 2014 19:05, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > The kernel will complain if we pass invalid combinations, I don't want
+> > to have this early validation code in the library.
+> >
+> 
+> The problem is that as far as I've tested, the kernel  unconditionally
+> returns 'dir' [0].
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/datatype.c |   31 +------------------------------
- 1 file changed, 1 insertion(+), 30 deletions(-)
+Then I think we have to fix the kernel, it should not dump an
+attribute that we don't need. I can see that nft is currently not
+using the direction at all, so such change should not break anything.
 
-diff --git a/src/datatype.c b/src/datatype.c
-index 4594490..b8f6ca9 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -669,36 +669,7 @@ const struct datatype mark_type = {
- 
- static void time_type_print(const struct expr *expr)
- {
--	uint64_t days, hours, minutes, seconds;
--	const char *delim = "";
--
--	seconds = mpz_get_uint64(expr->value);
--
--	days = seconds / 86400;
--	seconds %= 86400;
--
--	hours = seconds / 3600;
--	seconds %= 3600;
--
--	minutes = seconds / 60;
--	seconds %= 60;
--
--	if (days > 0) {
--		printf("%s%" PRIu64 " d", delim, days);
--		delim = " ";
--	}
--	if (hours > 0) {
--		printf("%s%" PRIu64 " h", delim, hours);
--		delim = " ";
--	}
--	if (minutes > 0) {
--		printf("%s%" PRIu64 " min", delim, minutes);
--		delim = " ";
--	}
--	if (seconds > 0) {
--		printf("%s%" PRIu64 " s", delim, seconds);
--		delim = " ";
--	}
-+	printf("%"PRIu64"", mpz_get_uint64(expr->value));
- }
- 
- const struct datatype time_type = {
--- 
-1.7.10.4
+> If we print in XML/JSON the data obtained from the kernel, <dir> is
+> also printed, while it may be totally undesirable (for example, for a
+> latter parsing of that XML/JSON meant to be resended to the kernel).
+> I think we need this check, in libnftables or nft.
+> 
+> I don't see the point of allowing such a disruptive combination of attributes.
 
+I agree those combinations don't make sense, but let just the kernel
+bail out when we pass invalid combinations. Otherwise, the library
+makes internal decisions that we simply cannot change as we'll have
+3rd party userspace application relying on it. And we may want to
+extend the kernel behaviour in some way that may clash with old
+libraries. Really, we have to avoid this, it's just troubles in the
+long run.
+
+On the other hand, we should also make sure that the information that
+we get from the kernel can be reinjected without troubles. So if you
+note similar issues, please report them.
+
+> We already have similar checks in other objects to disallow invalid
+> combinations, see [1] [2].
+> 
+> What do you think?
+> 
+> >
+> > Not related to this patch, but better I prefer if you use:
+> > nft_rule_expr_set_u8(...) instead of these two lines above.
+> >
+> 
+> I agree. But I think it would be better if all ops are of the same kind.
+
+Agreed.
+
+> So I will patch all non-shorcuts ops like this all around libnftables,
+> unless you say otherwise, before this patch.
+
+That will be a large patch, I guess. I prefer if you hold on with that
+cleanup until we have released the first version which is coming soon.
+Please, focus on fixes at this stage.
