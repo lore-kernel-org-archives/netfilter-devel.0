@@ -1,93 +1,113 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: Re: [PATCH-next v2] netfilter: don't use module_init/exit in core
- IPV4 code
-Date: Thu, 16 Jan 2014 14:38:10 -0500
-Message-ID: <52D83522.9070902@windriver.com>
-References: <1389638147-30399-1-git-send-email-paul.gortmaker@windriver.com> <1389819427-20199-1-git-send-email-paul.gortmaker@windriver.com> <20140116192613.GA23133@d2.synalogic.ca>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH nftables] make set initializer parsable
+Date: Thu, 16 Jan 2014 19:39:52 +0000
+Message-ID: <20140116193951.GA19036@macbook.localnet>
+References: <20140116192249.GA18252@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: Benjamin Poirier <benjamin.poirier@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140116192613.GA23133@d2.synalogic.ca>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:58685 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbaAPTj4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 14:39:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20140116192249.GA18252@macbook.localnet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14-01-16 02:26 PM, Benjamin Poirier wrote:
-> On 2014/01/15 15:57, Paul Gortmaker wrote:
->> The file net/ipv4/netfilter.o is created based on whether
->> CONFIG_NETFILTER is set.  However that is defined as a bool, and
->> hence this file with the core netfilter hooks will never be
->> modular.  So using module_init as an alias for __initcall can be
->> somewhat misleading.
->>
->> Fix this up now, so that we can relocate module_init from
->> init.h into module.h in the future.  If we don't do this, we'd
->> have to add module.h to obviously non-modular code, and that
->> would be a worse thing.  Also add an inclusion of init.h, as
->> that was previously implicit here in the netfilter.c file.
->>
->> Note that direct use of __initcall is discouraged, vs. one
->> of the priority categorized subgroups.  As __initcall gets
->> mapped onto device_initcall, our use of subsys_initcall (which
->> seems to make sense for netfilter code) will thus change this
->> registration from level 6-device to level 4-subsys (i.e. slightly
->> earlier).  However no observable impact of that small difference
->> has been observed during testing, or is expected. (i.e. the
->> location of the netfilter messages in dmesg remains unchanged
->> with respect to all the other surrounding messages.)
->>
->> As for the module_exit, rather than replace it with __exitcall,
->> we simply remove it, since it appears only UML does anything
->> with those, and even for UML, there is no relevant cleanup
->> to be done here.
->>
->> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
->> ---
->>
->> [v2: Drop __exitcall stuff completely, as per Eric's suggestion
->>  given for patch at  http://patchwork.ozlabs.org/patch/311164/ ]
->>
->>  net/ipv4/netfilter.c | 9 +--------
->>  1 file changed, 1 insertion(+), 8 deletions(-)
->>
->> diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
->> index c3e0adea9c27..31abf9636ba7 100644
->> --- a/net/ipv4/netfilter.c
->> +++ b/net/ipv4/netfilter.c
->> @@ -197,11 +197,4 @@ static int __init ipv4_netfilter_init(void)
->>  {
->>  	return nf_register_afinfo(&nf_ip_afinfo);
->>  }
->> -
->> -static void __exit ipv4_netfilter_fini(void)
->> -{
->> -	nf_unregister_afinfo(&nf_ip_afinfo);
->> -}
->> -
->> -module_init(ipv4_netfilter_init);
->> -module_exit(ipv4_netfilter_fini);
->> +device_initcall(ipv4_netfilter_init);
-> 
-> device_ vs. subsys_initcall changed from v1 of the patch and no longer
-> matches the description I think.
+commit 92dfa9b19853c367efbb083d5ad1b7cb56ce3d8a
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Thu Jan 16 19:37:53 2014 +0000
 
-Thanks for spotting that ; not sure how I fat fingered that
-during the exitcall removal.  Trying to rush things I guess.
+    set: make set initializer parsable
+    
+    If a set contains elements, the output is not parsable since the
+    elements = { ... } is not understood by the parser. Fix this and
+    also add support for creating constant sets (which only makes sense
+    when using an initializer).
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-P.
---
-
-> 
->> -- 
->> 1.8.5.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe netdev" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/parser.y b/src/parser.y
+index eab973c..34d14ec 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -183,7 +183,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token RETURN			"return"
+ %token QUEUE			"queue"
+ 
++%token CONSTANT			"constant"
+ %token INTERVAL			"interval"
++%token ELEMENTS			"elements"
+ 
+ %token <val> NUM		"number"
+ %token <string> STRING		"string"
+@@ -747,6 +749,11 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags = $3;
+ 				$$ = $1;
+ 			}
++			|	set_block	ELEMENTS	'='		set_expr
++			{
++				$1->init = $4;
++				$$ = $1;
++			}
+ 			;
+ 
+ set_flag_list		:	set_flag_list	COMMA		set_flag
+@@ -756,7 +763,8 @@ set_flag_list		:	set_flag_list	COMMA		set_flag
+ 			|	set_flag
+ 			;
+ 
+-set_flag		:	INTERVAL	{ $$ = SET_F_INTERVAL; }
++set_flag		:	CONSTANT	{ $$ = SET_F_CONSTANT; }
++			|	INTERVAL	{ $$ = SET_F_INTERVAL; }
+ 			;
+ 
+ map_block_alloc		:	/* empty */
+@@ -794,6 +802,11 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags = $3;
+ 				$$ = $1;
+ 			}
++			|	map_block	ELEMENTS	'='		set_expr
++			{
++				$1->init = $4;
++				$$ = $1;
++			}
+ 			;
+ 
+ hook_spec		:	TYPE		STRING		HOOK		STRING		PRIORITY	NUM
+diff --git a/src/rule.c b/src/rule.c
+index f1fe355..acdddcb 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -100,8 +100,12 @@ void set_print(const struct set *set)
+ 		printf(" => %s", set->datatype->name);
+ 	printf("\n");
+ 
+-	if (set->flags & (SET_F_INTERVAL)) {
++	if (set->flags & (SET_F_CONSTANT | SET_F_INTERVAL)) {
+ 		printf("\t\tflags ");
++		if (set->flags & SET_F_CONSTANT) {
++			printf("%sconstant", delim);
++			delim = ",";
++		}
+ 		if (set->flags & SET_F_INTERVAL) {
+ 			printf("%sinterval", delim);
+ 			delim = ",";
+diff --git a/src/scanner.l b/src/scanner.l
+index f22fbe8..721b551 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -257,7 +257,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "position"		{ return POSITION; }
+ 
++"constant"		{ return CONSTANT; }
+ "interval"		{ return INTERVAL; }
++"elements"		{ return ELEMENTS; }
+ 
+ "counter"		{ return COUNTER; }
+ "packets"		{ return PACKETS; }
