@@ -1,38 +1,62 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: Tree for Jan 15 (netfilter: nft_reject)
-Date: Wed, 15 Jan 2014 15:39:09 -0800
-Message-ID: <52D71C1D.3020609@infradead.org>
-References: <20140115185545.497c14923814b6ecaa540d9f@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140115185545.497c14923814b6ecaa540d9f@canb.auug.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/3] Netfilter updates for net-next
+Date: Thu, 16 Jan 2014 10:04:50 +0100
+Message-ID: <1389863093-4530-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49782 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214AbaAPJGz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 04:06:55 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/14/2014 11:55 PM, Stephen Rothwell wrote:
-> Hi all,
-> 
-> This tree fails (more than usual) the powerpc allyesconfig build.
-> 
-> Changes since 20140114:
-> 
+Hi David,
 
-on x86_64:
-# CONFIG_IPV6 is not enabled.
+This small batch contains several Netfilter fixes for your net-next
+tree, more specifically:
 
-warning: (NF_TABLES_INET) selects NF_TABLES_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NF_TABLES)
-...
-ERROR: "ip6_dst_hoplimit" [net/netfilter/nft_reject.ko] undefined!
-ERROR: "ip6_route_output" [net/netfilter/nft_reject.ko] undefined!
-ERROR: "nf_ip6_checksum" [net/netfilter/nft_reject.ko] undefined!
+* Fix compilation warning in nft_ct in NF_CONNTRACK_MARK is not set,
+  from Kristian Evensen.
 
+* Add dependency to IPV6 for NF_TABLES_INET. This one has been reported
+  by the several robots that are testing .config combinations, from Paul
+  Gortmaker.
 
+* Fix default base chain policy setting in nf_tables, from myself.
 
--- 
-~Randy
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 11b57f90257c1d6a91cee720151b69e0c2020cf6:
+
+  xen-netback: stop vif thread spinning if frontend is unresponsive (2014-01-09 23:05:46 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git 
+
+for you to fetch changes up to 847c8e2959f7f8f1462e33c0a720c6267b984ed8:
+
+  netfilter: nft_ct: fix compilation warning if NF_CONNTRACK_MARK is not set (2014-01-15 11:00:14 +0100)
+
+----------------------------------------------------------------
+Kristian Evensen (1):
+      netfilter: nft_ct: fix compilation warning if NF_CONNTRACK_MARK is not set
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: fix missing byteorder conversion in policy
+
+Paul Gortmaker (1):
+      netfilter: Add dependency on IPV6 for NF_TABLES_INET
+
+ net/netfilter/Kconfig         |    2 +-
+ net/netfilter/nf_tables_api.c |    2 +-
+ net/netfilter/nft_ct.c        |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
