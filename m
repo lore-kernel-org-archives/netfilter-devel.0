@@ -1,68 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] expression: fix output of verdict maps
-Date: Thu, 16 Jan 2014 17:53:37 +0100
-Message-ID: <20140116165337.GA5205@localhost>
-References: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Subject: [PATCH nft] src: add new --debug=mnl option to enable libmnl debugging
+Date: Thu, 16 Jan 2014 17:56:23 +0100
+Message-ID: <1389891383-5254-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44383 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45188 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752380AbaAPQxn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 11:53:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
+	id S1752204AbaAPQ4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 11:56:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 13, 2014 at 01:39:16PM +0100, Pablo Neira Ayuso wrote:
-> % nft list table filter
-> table ip filter {
-> 	...
-> 	chain output {
-> 		...
-> 		ip saddr map { 1.1.1.1 => accept}
-> 	}
-> }
-> 
-> It displays 'map' instead of 'vmap'. Fix it by checking the mapping
-> type in map_expr_print().
+This allows you to dump the netlink message that is send via
+libmnl.
 
-Spinning over the list of pending stuff in my notepad before the
-release.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/nftables.h |    1 +
+ src/main.c         |    6 +++++-
+ src/mnl.c          |    4 ++--
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-I think it's not so bad if we keep the 'vmap' for verdict maps. This
-can just become a synonym of 'map' if we ever find the way to make it
-work without ambiguity complains from the parser.
+diff --git a/include/nftables.h b/include/nftables.h
+index f989161..b36e10a 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -18,6 +18,7 @@ enum debug_level {
+ 	DEBUG_EVALUATION	= 0x4,
+ 	DEBUG_NETLINK		= 0x8,
+ 	DEBUG_SEGTREE		= 0x10,
++	DEBUG_MNL		= 0x20,
+ };
+ 
+ #define INCLUDE_PATHS_MAX	16
+diff --git a/src/main.c b/src/main.c
+index d78eea7..3f5dd04 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -111,7 +111,7 @@ static void show_help(const char *name)
+ "  -a/--handle			Output rule handle.\n"
+ "  -I/--includepath <directory>	Add <directory> to the paths searched for include files.\n"
+ #ifdef DEBUG
+-"  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, segtree, all)\n"
++"  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, segtree, all)\n"
+ #endif
+ "\n",
+ 	name);
+@@ -139,6 +139,10 @@ static const struct {
+ 		.level		= DEBUG_NETLINK,
+ 	},
+ 	{
++		.name		= "mnl",
++		.level		= DEBUG_MNL,
++	},
++	{
+ 		.name		= "segtree",
+ 		.level		= DEBUG_SEGTREE,
+ 	},
+diff --git a/src/mnl.c b/src/mnl.c
+index a4a4c4a..1662500 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -39,7 +39,7 @@ mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
+ 	int ret;
+ 
+ #ifdef DEBUG
+-	if (debug_level & DEBUG_NETLINK)
++	if (debug_level & DEBUG_MNL)
+ 		mnl_nlmsg_fprintf(stdout, data, len, sizeof(struct nfgenmsg));
+ #endif
+ 
+@@ -207,7 +207,7 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
+ 		iov[i].iov_len = mnl_nlmsg_batch_size(batch_page->batch);
+ 		i++;
+ #ifdef DEBUG
+-		if (debug_level & DEBUG_NETLINK) {
++		if (debug_level & DEBUG_MNL) {
+ 			mnl_nlmsg_fprintf(stdout,
+ 					  mnl_nlmsg_batch_head(batch_page->batch),
+ 					  mnl_nlmsg_batch_size(batch_page->batch),
+-- 
+1.7.10.4
 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  src/expression.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/src/expression.c b/src/expression.c
-> index 71154cc..97481d0 100644
-> --- a/src/expression.c
-> +++ b/src/expression.c
-> @@ -689,7 +689,11 @@ struct expr *mapping_expr_alloc(const struct location *loc,
->  static void map_expr_print(const struct expr *expr)
->  {
->  	expr_print(expr->map);
-> -	printf(" map ");
-> +	if (expr->mappings->ops->type == EXPR_SET_REF &&
-> +	    expr->mappings->set->datatype->type == TYPE_VERDICT)
-> +		printf(" vmap ");
-> +	else
-> +		printf(" map ");
->  	expr_print(expr->mappings);
->  }
->  
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
