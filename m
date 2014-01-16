@@ -1,61 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/3] Netfilter updates for net-next
-Date: Thu, 16 Jan 2014 10:10:00 +0100
-Message-ID: <1389863400-4863-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] [RFC] netfilter: nf_conntrack: don't relase a conntrack
+ with non-zero refcnt
+Date: Thu, 16 Jan 2014 10:23:01 +0100
+Message-ID: <20140116092301.GF28205@breakpoint.cc>
+References: <1389710201.31367.255.camel@edumazet-glaptop2.roam.corp.google.com>
+ <1389720948-7883-1-git-send-email-avagin@openvz.org>
+ <20140114185329.GB28205@breakpoint.cc>
+ <20140115180844.GA3605@paralelels.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, Andrey Vagin <avagin@openvz.org>,
+	netfilter-devel@vger.kernel.org,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, vvs@openvz.org,
+	Cyrill Gorcunov <gorcunov@openvz.org>,
+	Vasiliy Averin <vvs@parallels.com>
+To: Andrew Vagin <avagin@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50997 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751257AbaAPJKj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 04:10:39 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33566 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751369AbaAPJXF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 04:23:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20140115180844.GA3605@paralelels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[ Wrong tree, very sorry for that, previous was pointing to net-next
-  instead of nftables. Resending pull request ]
+Andrew Vagin <avagin@parallels.com> wrote:
+> > I think it would be nice if we could keep it that way.
+> > If everything fails we could proably intoduce a 'larval' dummy list
+> > similar to the one used by template conntracks?
+> 
+> I'm not sure, that this is required. Could you elaborate when this can
+> be useful?
 
-Hi David,
+You can dump the lists via ctnetlink.  Its meant as a debugging aid in
+case one suspects refcnt leaks.
 
-This small batch contains several Netfilter fixes for your net-next
-tree, more specifically:
+Granted, in this situation there should be no leak since we put the newly
+allocated entry in the error case.
 
-* Fix compilation warning in nft_ct in NF_CONNTRACK_MARK is not set,
-  from Kristian Evensen.
+> Now I see only overhead, because we need to take the nf_conntrack_lock
+> lock to add conntrack in a list.
 
-* Add dependency to IPV6 for NF_TABLES_INET. This one has been reported
-  by the several robots that are testing .config combinations, from Paul
-  Gortmaker.
+True. I don't have any preference, I guess I'd just do the insertion into the
+unconfirmed list when we know we cannot track to keep the "unhashed"
+bug trap in the destroy function.
 
-* Fix default base chain policy setting in nf_tables, from myself.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nftables.git master
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 11b57f90257c1d6a91cee720151b69e0c2020cf6:
-
-  xen-netback: stop vif thread spinning if frontend is unresponsive (2014-01-09 23:05:46 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nftables.git master
-
-for you to fetch changes up to 847c8e2959f7f8f1462e33c0a720c6267b984ed8:
-
-  netfilter: nft_ct: fix compilation warning if NF_CONNTRACK_MARK is not set (2014-01-15 11:00:14 +0100)
-
-----------------------------------------------------------------
-Kristian Evensen (1):
-      netfilter: nft_ct: fix compilation warning if NF_CONNTRACK_MARK is not set
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: fix missing byteorder conversion in policy
-
-Paul Gortmaker (1):
-      netfilter: Add dependency on IPV6 for NF_TABLES_INET
-
+Pablo, any preference?
