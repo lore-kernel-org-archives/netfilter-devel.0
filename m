@@ -1,130 +1,119 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/2] segtree: fix decomposition of unclosed intervals
-Date: Thu, 16 Jan 2014 16:21:52 +0000
-Message-ID: <1389889312-4055-3-git-send-email-kaber@trash.net>
-References: <1389889312-4055-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH nft 1/3] parser: fix parsing of ethernet protocol types
+Date: Thu, 16 Jan 2014 16:28:16 +0000
+Message-ID: <20140116162816.GA4111@macbook.localnet>
+References: <1389817823-7251-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57343 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57380 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992AbaAPQV6 (ORCPT
+	with ESMTP id S1752528AbaAPQ2T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 11:21:58 -0500
-In-Reply-To: <1389889312-4055-1-git-send-email-kaber@trash.net>
+	Thu, 16 Jan 2014 11:28:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1389817823-7251-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If intervals are directly adjacent or extend to the right end of the dimension,
-they are not closed by a EXPR_F_INTERVAL_END entry. This leads to multiple
-errors when decomposing the intervals:
+On Wed, Jan 15, 2014 at 09:30:21PM +0100, Pablo Neira Ayuso wrote:
+> This allows us to use the protocol type keyword, eg.
+> 
+> nft add rule ip filter output meta protocol ip6 counte
+>                                             ^^^
 
-- the last unclosed interval is not shown at all.
+I see two problems with this patch:
 
-- if a range is unclosed and the set is a map, the starting point of the
-  next interval is set to the data, not the key, leading to nonsensical
-  output.
+- the mapping to ETH_P_* is fixed. In case of f.i. meta nfproto relational
+  expression it would have to map to NFPROTO_* values. So I think we should
+  use symbolic expressions instead of constants and leave parsing to the
+  evaluation phase-
 
-- if a prefix is unclosed, the interval is assumed to be a prefix as well
-  and the same starting point is kept. This makes sense for cases like
-  192.168.0.0/24, 192.168.0.0/16, but leads to hard to understand
-  results if the next interval is not representable as a prefix.
+- we're still using a mix of ip6 and ipv6. Lets also fix that, ideally
+  as a patch before this one.
 
-Fix this by doing two things:
+I can take care of this if you like.
 
-- add an EXPR_F_INTERVAL_END element for each unclosed interval during
-  preprocessing.
 
-- process the final unclosed interval extending to the right end of the
-  dimension, if present.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/segtree.c | 39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
-
-diff --git a/src/segtree.c b/src/segtree.c
-index e3bca4c..1a21c6c 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -509,10 +509,11 @@ static struct expr *expr_value(struct expr *expr)
- 
- void interval_map_decompose(struct expr *set)
- {
--	struct expr *ranges[set->size];
--	struct expr *i, *next, *low = NULL;
-+	struct expr *ranges[set->size * 2];
-+	struct expr *i, *next, *low = NULL, *end;
- 	unsigned int n, size;
- 	mpz_t range, p;
-+	bool interval;
- 
- 	mpz_init(range);
- 	mpz_init(p);
-@@ -520,8 +521,20 @@ void interval_map_decompose(struct expr *set)
- 	size = set->size;
- 	n = 0;
- 
-+	interval = false;
- 	list_for_each_entry_safe_reverse(i, next, &set->expressions, list) {
- 		compound_expr_remove(set, i);
-+
-+		if (i->flags & EXPR_F_INTERVAL_END)
-+			interval = false;
-+		else if (interval) {
-+			end = expr_clone(expr_value(i));
-+			end->flags |= EXPR_F_INTERVAL_END;
-+			ranges[n++] = end;
-+			size++;
-+		} else
-+			interval = true;
-+
- 		ranges[n++] = i;
- 	}
- 
-@@ -569,8 +582,6 @@ void interval_map_decompose(struct expr *set)
- 				tmp = mapping_expr_alloc(&tmp->location, tmp, low->right);
- 
- 			compound_expr_add(set, tmp);
--
--			low = expr_get(tmp->right);
- 		} else {
- 			struct expr *prefix;
- 			unsigned int prefix_len;
-@@ -578,13 +589,9 @@ void interval_map_decompose(struct expr *set)
- 			prefix_len = expr_value(i)->len - mpz_scan0(range, 0);
- 			prefix = prefix_expr_alloc(&low->location, expr_value(low),
- 						   prefix_len);
--
--			if (low->ops->type == EXPR_MAPPING) {
-+			if (low->ops->type == EXPR_MAPPING)
- 				prefix = mapping_expr_alloc(&low->location, prefix,
- 							    low->right);
--				/* Update mapping of "low" to the current mapping */
--				low->right = expr_get(i->right);
--			}
- 
- 			compound_expr_add(set, prefix);
- 		}
-@@ -595,4 +602,18 @@ void interval_map_decompose(struct expr *set)
- 		}
- 		expr_free(i);
- 	}
-+
-+	/* Unclosed interval */
-+	if (low != NULL) {
-+		i = constant_expr_alloc(&low->location, low->dtype,
-+					low->byteorder, expr_value(low)->len,
-+					NULL);
-+		mpz_init_bitmask(i->value, i->len);
-+
-+		i = range_expr_alloc(&low->location, expr_value(low), i);
-+		if (low->ops->type == EXPR_MAPPING)
-+			i = mapping_expr_alloc(&i->location, i, low->right);
-+
-+		compound_expr_add(set, i);
-+	}
- }
--- 
-1.8.4.2
-
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  src/parser.y |   29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+> 
+> diff --git a/src/parser.y b/src/parser.y
+> index 038282e..23662f7 100644
+> --- a/src/parser.y
+> +++ b/src/parser.y
+> @@ -23,6 +23,7 @@
+>  #include <expression.h>
+>  #include <utils.h>
+>  #include <parser.h>
+> +#include <if_ether.h>
+>  #include <erec.h>
+>  
+>  #include "parser.h"
+> @@ -1418,6 +1419,13 @@ vlan_hdr_expr		:	VLAN	vlan_hdr_field
+>  			{
+>  				$$ = payload_expr_alloc(&@$, &payload_vlan, $2);
+>  			}
+> +			|	VLAN
+> +			{
+> +				uint16_t data = ETH_P_8021Q;
+> +				$$ = constant_expr_alloc(&@$, &ethertype_type,
+> +							 BYTEORDER_HOST_ENDIAN,
+> +							 sizeof(data) * BITS_PER_BYTE, &data);
+> +			}
+>  			;
+>  
+>  vlan_hdr_field		:	ID		{ $$ = VLANHDR_VID; }
+> @@ -1430,6 +1438,13 @@ arp_hdr_expr		:	ARP	arp_hdr_field
+>  			{
+>  				$$ = payload_expr_alloc(&@$, &payload_arp, $2);
+>  			}
+> +			|	ARP
+> +			{
+> +				uint16_t data = ETH_P_ARP;
+> +				$$ = constant_expr_alloc(&@$, &ethertype_type,
+> +							 BYTEORDER_HOST_ENDIAN,
+> +							 sizeof(data) * BITS_PER_BYTE, &data);
+> +			}
+>  			;
+>  
+>  arp_hdr_field		:	HTYPE		{ $$ = ARPHDR_HRD; }
+> @@ -1443,6 +1458,13 @@ ip_hdr_expr		:	IP	ip_hdr_field
+>  			{
+>  				$$ = payload_expr_alloc(&@$, &payload_ip, $2);
+>  			}
+> +			|	IP
+> +			{
+> +				uint16_t data = ETH_P_IP;
+> +				$$ = constant_expr_alloc(&@$, &ethertype_type,
+> +							 BYTEORDER_HOST_ENDIAN,
+> +							 sizeof(data) * BITS_PER_BYTE, &data);
+> +			}
+>  			;
+>  
+>  ip_hdr_field		:	VERSION		{ $$ = IPHDR_VERSION; }
+> @@ -1484,6 +1506,13 @@ ip6_hdr_expr		:	IP6	ip6_hdr_field
+>  			{
+>  				$$ = payload_expr_alloc(&@$, &payload_ip6, $2);
+>  			}
+> +			|	IP6
+> +			{
+> +				uint16_t data = ETH_P_IPV6;
+> +				$$ = constant_expr_alloc(&@$, &ethertype_type,
+> +							 BYTEORDER_HOST_ENDIAN,
+> +							 sizeof(data) * BITS_PER_BYTE, &data);
+> +			}
+>  			;
+>  
+>  ip6_hdr_field		:	VERSION		{ $$ = IP6HDR_VERSION; }
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
