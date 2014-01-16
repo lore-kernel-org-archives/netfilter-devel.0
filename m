@@ -1,75 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH v2] ct: fix key and dir requirements
-Date: Thu, 16 Jan 2014 22:22:24 +0100
-Message-ID: <20140116212224.GA27510@localhost>
-References: <20140115181939.25239.19905.stgit@nfdev.cica.es>
- <20140116180538.GA18501@localhost>
- <CAOkSjBhOb=Z_-KDfpmRko7Vi-U4QVhYUJwkJ1FbDpLjEVD3teA@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft RFC] datatype: add time type parser and adapt output
+Date: Thu, 16 Jan 2014 21:23:28 +0000
+Message-ID: <5557c5b4-a620-43dc-98bb-b15cf49fee29@email.android.com>
+References: <1389906062-27409-1-git-send-email-pablo@netfilter.org> <20140116210556.GA24079@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58805 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750750AbaAPVW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 16:22:28 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBhOb=Z_-KDfpmRko7Vi-U4QVhYUJwkJ1FbDpLjEVD3teA@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:59333 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750968AbaAPVXk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 16:23:40 -0500
+In-Reply-To: <20140116210556.GA24079@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 16, 2014 at 09:46:17PM +0100, Arturo Borrero Gonzalez wrote:
-> On 16 January 2014 19:05, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > The kernel will complain if we pass invalid combinations, I don't want
-> > to have this early validation code in the library.
-> >
-> 
-> The problem is that as far as I've tested, the kernel  unconditionally
-> returns 'dir' [0].
+Patrick McHardy <kaber@trash.net> schrieb:
+>On Thu, Jan 16, 2014 at 10:01:02PM +0100, Pablo Neira Ayuso wrote:
+>> This patch allows to specify a string to indicate the time, eg.
+>> 
+>> nft add rule filter output ct expiration \"1d2h3m4s\" counter
+>> 
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>> ---
+>> An alternative to this patch is to use seconds as input/output, that
+>only
+>> needs a smaller patch to fix time_type_print().
+>
+>I think this is a much more natural way to specify relative times.
 
-Then I think we have to fix the kernel, it should not dump an
-attribute that we don't need. I can see that nft is currently not
-using the direction at all, so such change should not break anything.
+Sorry, just realized that this was very much imprecise, I meant your patch oft course.
 
-> If we print in XML/JSON the data obtained from the kernel, <dir> is
-> also printed, while it may be totally undesirable (for example, for a
-> latter parsing of that XML/JSON meant to be resended to the kernel).
-> I think we need this check, in libnftables or nft.
-> 
-> I don't see the point of allowing such a disruptive combination of attributes.
+>
+>>  include/utils.h |    4 ++
+>>  src/datatype.c  |  133
+>++++++++++++++++++++++++++++++++++++++++++++++++-------
+>>  2 files changed, 121 insertions(+), 16 deletions(-)
+>> 
+>> diff --git a/include/utils.h b/include/utils.h
+>> index 854986f..f23f8e6 100644
+>> --- a/include/utils.h
+>> +++ b/include/utils.h
+>> @@ -62,6 +62,10 @@
+>>  	(void) (&_max1 == &_max2);		\
+>>  	_max1 > _max2 ? _max1 : _max2; })
+>>  
+>> +#ifndef ARRAY_SIZE
+>> +#define ARRAY_SIZE(a) (int)(sizeof(a)/sizeof((a)[0]))
+>> +#endif
+>
+>We have array_size().
+>--
+>To unsubscribe from this list: send the line "unsubscribe
+>netfilter-devel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I agree those combinations don't make sense, but let just the kernel
-bail out when we pass invalid combinations. Otherwise, the library
-makes internal decisions that we simply cannot change as we'll have
-3rd party userspace application relying on it. And we may want to
-extend the kernel behaviour in some way that may clash with old
-libraries. Really, we have to avoid this, it's just troubles in the
-long run.
 
-On the other hand, we should also make sure that the information that
-we get from the kernel can be reinjected without troubles. So if you
-note similar issues, please report them.
-
-> We already have similar checks in other objects to disallow invalid
-> combinations, see [1] [2].
-> 
-> What do you think?
-> 
-> >
-> > Not related to this patch, but better I prefer if you use:
-> > nft_rule_expr_set_u8(...) instead of these two lines above.
-> >
-> 
-> I agree. But I think it would be better if all ops are of the same kind.
-
-Agreed.
-
-> So I will patch all non-shorcuts ops like this all around libnftables,
-> unless you say otherwise, before this patch.
-
-That will be a large patch, I guess. I prefer if you hold on with that
-cleanup until we have released the first version which is coming soon.
-Please, focus on fixes at this stage.
+-- 
+Diese Nachricht wurde von meinem Android-Mobiltelefon mit K-9 Mail gesendet.
