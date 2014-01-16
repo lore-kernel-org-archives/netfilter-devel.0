@@ -1,51 +1,68 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 1/3] parser: fix parsing of ethernet protocol types
-Date: Thu, 16 Jan 2014 16:51:59 +0000
-Message-ID: <20140116165159.GA4669@macbook.localnet>
-References: <1389817823-7251-1-git-send-email-pablo@netfilter.org>
- <20140116162816.GA4111@macbook.localnet>
- <20140116164937.GA5179@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] expression: fix output of verdict maps
+Date: Thu, 16 Jan 2014 17:53:37 +0100
+Message-ID: <20140116165337.GA5205@localhost>
+References: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57555 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370AbaAPQwE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 11:52:04 -0500
+Received: from mail.us.es ([193.147.175.20]:44383 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752380AbaAPQxn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 11:53:43 -0500
 Content-Disposition: inline
-In-Reply-To: <20140116164937.GA5179@localhost>
+In-Reply-To: <1389616756-8326-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 16, 2014 at 05:49:37PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Jan 16, 2014 at 04:28:16PM +0000, Patrick McHardy wrote:
-> > On Wed, Jan 15, 2014 at 09:30:21PM +0100, Pablo Neira Ayuso wrote:
-> > > This allows us to use the protocol type keyword, eg.
-> > > 
-> > > nft add rule ip filter output meta protocol ip6 counte
-> > >                                             ^^^
-> > 
-> > I see two problems with this patch:
-> > 
-> > - the mapping to ETH_P_* is fixed. In case of f.i. meta nfproto relational
-> >   expression it would have to map to NFPROTO_* values. So I think we should
-> >   use symbolic expressions instead of constants and leave parsing to the
-> >   evaluation phase-
+On Mon, Jan 13, 2014 at 01:39:16PM +0100, Pablo Neira Ayuso wrote:
+> % nft list table filter
+> table ip filter {
+> 	...
+> 	chain output {
+> 		...
+> 		ip saddr map { 1.1.1.1 => accept}
+> 	}
+> }
 > 
-> Yes, that change needs to be done in next-3.14 to get it working with
-> your new inet table. I was focusing to fix this in master for the
-> upcoming release.
-> 
-> > - we're still using a mix of ip6 and ipv6. Lets also fix that, ideally
-> >   as a patch before this one.
-> > 
-> > I can take care of this if you like.
-> 
-> Please, go ahead, I'm looking at more pending stuff I want to provide
-> feedback on.
+> It displays 'map' instead of 'vmap'. Fix it by checking the mapping
+> type in map_expr_print().
 
-Already done :) I'm simply going to take your entire patchset and integrate
-it with my change since they kind of depend on each other.
+Spinning over the list of pending stuff in my notepad before the
+release.
+
+I think it's not so bad if we keep the 'vmap' for verdict maps. This
+can just become a synonym of 'map' if we ever find the way to make it
+work without ambiguity complains from the parser.
+
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  src/expression.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/src/expression.c b/src/expression.c
+> index 71154cc..97481d0 100644
+> --- a/src/expression.c
+> +++ b/src/expression.c
+> @@ -689,7 +689,11 @@ struct expr *mapping_expr_alloc(const struct location *loc,
+>  static void map_expr_print(const struct expr *expr)
+>  {
+>  	expr_print(expr->map);
+> -	printf(" map ");
+> +	if (expr->mappings->ops->type == EXPR_SET_REF &&
+> +	    expr->mappings->set->datatype->type == TYPE_VERDICT)
+> +		printf(" vmap ");
+> +	else
+> +		printf(" map ");
+>  	expr_print(expr->mappings);
+>  }
+>  
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
