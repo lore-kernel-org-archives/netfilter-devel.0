@@ -1,76 +1,127 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftables PATCH v2] ct: fix key and dir requirements
-Date: Thu, 16 Jan 2014 23:46:25 +0100
-Message-ID: <CAOkSjBgfJgrwD5bD3-PWRKCG6V97eKEcF5V=ZkG3FbdeCj_TLg@mail.gmail.com>
-References: <20140115181939.25239.19905.stgit@nfdev.cica.es>
- <20140116180538.GA18501@localhost> <CAOkSjBhOb=Z_-KDfpmRko7Vi-U4QVhYUJwkJ1FbDpLjEVD3teA@mail.gmail.com>
- <20140116212224.GA27510@localhost>
+Subject: [libnftables PATCH] ct: fix dir, is optional
+Date: Fri, 17 Jan 2014 02:15:06 +0100
+Message-ID: <20140117011505.11704.46463.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:54378 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754AbaAPWqq convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 17:46:46 -0500
-Received: by mail-lb0-f179.google.com with SMTP id l4so815671lbv.38
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jan 2014 14:46:45 -0800 (PST)
-In-Reply-To: <20140116212224.GA27510@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:60394 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751310AbaAQBPS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 20:15:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16 January 2014 22:22, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> On Thu, Jan 16, 2014 at 09:46:17PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> On 16 January 2014 19:05, Pablo Neira Ayuso <pablo@netfilter.org> wr=
-ote:
->> >
->> > The kernel will complain if we pass invalid combinations, I don't =
-want
->> > to have this early validation code in the library.
->> >
->>
->> The problem is that as far as I've tested, the kernel  unconditional=
-ly
->> returns 'dir' [0].
->
-> Then I think we have to fix the kernel, it should not dump an
-> attribute that we don't need. I can see that nft is currently not
-> using the direction at all, so such change should not break anything.
->
->> If we print in XML/JSON the data obtained from the kernel, <dir> is
->> also printed, while it may be totally undesirable (for example, for =
-a
->> latter parsing of that XML/JSON meant to be resended to the kernel).
->> I think we need this check, in libnftables or nft.
->>
->> I don't see the point of allowing such a disruptive combination of a=
-ttributes.
->
-> I agree those combinations don't make sense, but let just the kernel
-> bail out when we pass invalid combinations. Otherwise, the library
-> makes internal decisions that we simply cannot change as we'll have
-> 3rd party userspace application relying on it. And we may want to
-> extend the kernel behaviour in some way that may clash with old
-> libraries. Really, we have to avoid this, it's just troubles in the
-> long run.
+The dir attribute is optional as stated in the kernel sources.
 
-OK, good to know. I delete this patch from my local repo.
+Previous to this patch, using XML/JSON to manage this expr produces some
+undefined and erroneous behaviours.
 
-I'm working in a kernel patch on top of your nftables kernel [0].
+While at it, fix also the default output format.
 
-regards.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/expr/ct.c |   63 +++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 47 insertions(+), 16 deletions(-)
 
-[0] http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index e960134..3442f06 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -258,14 +258,12 @@ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree
+ 	e->flags |= (1 << NFT_EXPR_CT_KEY);
+ 
+ 	if (nft_mxml_num_parse(tree, "dir", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &dir, NFT_TYPE_U8, NFT_XML_MAND, err) != 0)
+-		return -1;
+-
+-	if (dir != IP_CT_DIR_ORIGINAL && dir != IP_CT_DIR_REPLY)
+-		goto err;
++			       &dir, NFT_TYPE_U8, NFT_XML_OPT, err) == 0) {
++		if (dir != IP_CT_DIR_ORIGINAL && dir != IP_CT_DIR_REPLY)
++			goto err;
+ 
+-	ct->dir = dir;
+-	e->flags |= (1 << NFT_EXPR_CT_DIR);
++		nft_rule_expr_set_u8(e, NFT_EXPR_CT_DIR, dir);
++	}
+ 
+ 	return 0;
+ err:
+@@ -292,30 +290,63 @@ nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
+-	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
++	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
+ 		ret = snprintf(buf+offset, len, ",\"dir\":%u", ct->dir);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
+ 	return offset;
++}
+ 
++static int
++nft_expr_ct_snprintf_xml(char *buf, size_t size, struct nft_rule_expr *e)
++{
++	int ret, len = size, offset = 0;
++	struct nft_expr_ct *ct = nft_expr_data(e);
++
++	ret = snprintf(buf, len, "<dreg>%u</dreg>", ct->dreg);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = snprintf(buf+offset, len, "<key>%s</key>",
++		       ctkey2str(ct->key));
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
++		ret = snprintf(buf+offset, len, "<dir>%u</dir>", ct->dir);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
+ }
+ 
+ static int
+-nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
+-			    uint32_t flags, struct nft_rule_expr *e)
++nft_expr_ct_snprintf_default(char *buf, size_t size, struct nft_rule_expr *e)
+ {
++	int ret, len = size, offset = 0;
+ 	struct nft_expr_ct *ct = nft_expr_data(e);
+ 
++	ret = snprintf(buf, len, "load %s => reg %u ",
++		       ctkey2str(ct->key), ct->dreg);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
++		ret = snprintf(buf+offset, len, "dir %u ", ct->dir);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int
++nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
++			    uint32_t flags, struct nft_rule_expr *e)
++{
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return snprintf(buf, len, "load %s => reg %u dir %u ",
+-				ctkey2str(ct->key), ct->dreg, ct->dir);
++		return nft_expr_ct_snprintf_default(buf, len, e);
+ 	case NFT_OUTPUT_XML:
+-		return snprintf(buf, len, "<dreg>%u</dreg>"
+-					  "<key>%s</key>"
+-					  "<dir>%u</dir>",
+-				ct->dreg, ctkey2str(ct->key), ct->dir);
++		return nft_expr_ct_snprintf_xml(buf, len, e);
+ 	case NFT_OUTPUT_JSON:
+ 		return nft_expr_ct_snprintf_json(buf, len, e);
+ 	default:
+
