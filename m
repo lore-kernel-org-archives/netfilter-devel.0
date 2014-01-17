@@ -1,127 +1,59 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] ct: fix dir, is optional
-Date: Fri, 17 Jan 2014 02:15:06 +0100
-Message-ID: <20140117011505.11704.46463.stgit@nfdev.cica.es>
+Subject: [nftables PATCH] netfilter: nft_ct: fix unconditional dump of 'dir'
+	attr
+Date: Fri, 17 Jan 2014 02:28:45 +0100
+Message-ID: <20140117012845.2934.34608.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60394 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:48105 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751310AbaAQBPS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jan 2014 20:15:18 -0500
+	id S1751552AbaAQB2z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jan 2014 20:28:55 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The dir attribute is optional as stated in the kernel sources.
+We want to make sure that the information that we get from the kernel can be
+reinjected without troubles.
 
-Previous to this patch, using XML/JSON to manage this expr produces some
-undefined and erroneous behaviours.
+The kernel shouldn't return an attribute that is not required, or even
+prohibited.
 
-While at it, fix also the default output format.
+Dump unconditionally NFTA_CT_DIRECTION could lead an application in
+userspace to interpret that the attribute was originally set, while it was not.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/expr/ct.c |   63 +++++++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 47 insertions(+), 16 deletions(-)
+ net/netfilter/nft_ct.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/src/expr/ct.c b/src/expr/ct.c
-index e960134..3442f06 100644
---- a/src/expr/ct.c
-+++ b/src/expr/ct.c
-@@ -258,14 +258,12 @@ static int nft_rule_expr_ct_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree
- 	e->flags |= (1 << NFT_EXPR_CT_KEY);
- 
- 	if (nft_mxml_num_parse(tree, "dir", MXML_DESCEND_FIRST, BASE_DEC,
--			       &dir, NFT_TYPE_U8, NFT_XML_MAND, err) != 0)
--		return -1;
--
--	if (dir != IP_CT_DIR_ORIGINAL && dir != IP_CT_DIR_REPLY)
--		goto err;
-+			       &dir, NFT_TYPE_U8, NFT_XML_OPT, err) == 0) {
-+		if (dir != IP_CT_DIR_ORIGINAL && dir != IP_CT_DIR_REPLY)
-+			goto err;
- 
--	ct->dir = dir;
--	e->flags |= (1 << NFT_EXPR_CT_DIR);
-+		nft_rule_expr_set_u8(e, NFT_EXPR_CT_DIR, dir);
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 917052e..feaf0f3 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -311,8 +311,19 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_CT_KEY, htonl(priv->key)))
+ 		goto nla_put_failure;
+-	if (nla_put_u8(skb, NFTA_CT_DIRECTION, priv->dir))
+-		goto nla_put_failure;
++
++	switch (priv->key) {
++	case NFT_CT_PROTOCOL:
++	case NFT_CT_SRC:
++	case NFT_CT_DST:
++	case NFT_CT_PROTO_SRC:
++	case NFT_CT_PROTO_DST:
++		if (nla_put_u8(skb, NFTA_CT_DIRECTION, priv->dir))
++			goto nla_put_failure;
++	default:
++		break;
 +	}
- 
++
  	return 0;
- err:
-@@ -292,30 +290,63 @@ nft_expr_ct_snprintf_json(char *buf, size_t size, struct nft_rule_expr *e)
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
  
--	if (e->flags & (1 << NFT_EXPR_CT_DIR)) {
-+	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
- 		ret = snprintf(buf+offset, len, ",\"dir\":%u", ct->dir);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
- 	return offset;
-+}
- 
-+static int
-+nft_expr_ct_snprintf_xml(char *buf, size_t size, struct nft_rule_expr *e)
-+{
-+	int ret, len = size, offset = 0;
-+	struct nft_expr_ct *ct = nft_expr_data(e);
-+
-+	ret = snprintf(buf, len, "<dreg>%u</dreg>", ct->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = snprintf(buf+offset, len, "<key>%s</key>",
-+		       ctkey2str(ct->key));
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
-+		ret = snprintf(buf+offset, len, "<dir>%u</dir>", ct->dir);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
- }
- 
- static int
--nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
--			    uint32_t flags, struct nft_rule_expr *e)
-+nft_expr_ct_snprintf_default(char *buf, size_t size, struct nft_rule_expr *e)
- {
-+	int ret, len = size, offset = 0;
- 	struct nft_expr_ct *ct = nft_expr_data(e);
- 
-+	ret = snprintf(buf, len, "load %s => reg %u ",
-+		       ctkey2str(ct->key), ct->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+
-+	if (nft_rule_expr_is_set(e, NFT_EXPR_CT_DIR)) {
-+		ret = snprintf(buf+offset, len, "dir %u ", ct->dir);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+}
-+
-+static int
-+nft_rule_expr_ct_snprintf(char *buf, size_t len, uint32_t type,
-+			    uint32_t flags, struct nft_rule_expr *e)
-+{
- 	switch(type) {
- 	case NFT_OUTPUT_DEFAULT:
--		return snprintf(buf, len, "load %s => reg %u dir %u ",
--				ctkey2str(ct->key), ct->dreg, ct->dir);
-+		return nft_expr_ct_snprintf_default(buf, len, e);
- 	case NFT_OUTPUT_XML:
--		return snprintf(buf, len, "<dreg>%u</dreg>"
--					  "<key>%s</key>"
--					  "<dir>%u</dir>",
--				ct->dreg, ctkey2str(ct->key), ct->dir);
-+		return nft_expr_ct_snprintf_xml(buf, len, e);
- 	case NFT_OUTPUT_JSON:
- 		return nft_expr_ct_snprintf_json(buf, len, e);
- 	default:
+ nla_put_failure:
 
