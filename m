@@ -1,58 +1,69 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Fwd: Linux bridge for route
-Date: Fri, 17 Jan 2014 21:30:44 +0100
-Message-ID: <52D992F4.8070500@pandora.be>
-References: <CA+qZnSRGKiFh8FiKMpVQku7CiWCMPq47FpPwrawvTC6KBPwz7A@mail.gmail.com> <CA+qZnSQY9dpZDdULtH3GNDEbB0fgoEJ=pa4gOOtwFhrGTgj4bg@mail.gmail.com>
+From: Fan Du <fan.du@windriver.com>
+Subject: [PATCH net-next] ipcomp: Convert struct xt_ipcomp spis into 16bits
+Date: Sat, 18 Jan 2014 10:16:14 +0800
+Message-ID: <1390011374-21760-1-git-send-email-fan.du@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: tingwei liu <tingw.liu@gmail.com>, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain
+Cc: <steffen.klassert@secunet.com>, <davem@davemloft.net>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from michel.telenet-ops.be ([195.130.137.88]:58349 "EHLO
-	michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491AbaAQUfu (ORCPT
+Received: from mail1.windriver.com ([147.11.146.13]:33902 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbaARCQY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Jan 2014 15:35:50 -0500
-In-Reply-To: <CA+qZnSQY9dpZDdULtH3GNDEbB0fgoEJ=pa4gOOtwFhrGTgj4bg@mail.gmail.com>
+	Fri, 17 Jan 2014 21:16:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-tingwei liu schreef op 17/01/2014 10:14:
-> Dear all,
->
->         There is  a question has puzzled me for a long time.
->         You can find the topology from attachment.
->
->         Normal traffic is:
->
->                 PC(192.168.1.8)--->Bridge(eth0)--->Bridget(eth1)--->NAT
-> server-->switch--->Server(192.168.5.3)
->
->         Now I want the ssh traffic like this:
->                PC(182.168.1.8)--->Bridge(eth0)--->eth2--->NAT
-> server--->switch--->Server(192.168.5.3)
->
->
->        What I have done on LINUX Server:
->                #net.bridge.bridge-nf-call-iptables = 1
->                #iptables -t nat -A POSTROUTING -s 192.168.1.8 -p tcp
-> --dport 22 -j SNAT --to-source 192.168.5.2
->
->        I have find the rule matched through command "iptables -t nat
-> -nvL", but the packets doesn't sent to 192.168.5.3.
->        and "tcpdump -i eth2 tcp port 22" can not capture any packet!
+sparse warnings: (new ones prefixed by >>)
 
-You are trying to make a brouter. You don't need to set 
-net.bridge.bridge-nf-call-iptables to 1, instead you need to add an 
-ebtables rule in the BROUTING chain, see:
-http://ebtables.sourceforge.net/examples/basic.html#ex_brouter
+>> >> net/netfilter/xt_ipcomp.c:63:26: sparse: restricted __be16 degrades to integer
+>> >> net/netfilter/xt_ipcomp.c:63:26: sparse: cast to restricted __be32
 
-Something like this (in combination with your existing iptables rules):
-ebtables -t broute -A BROUTING -p ipv4 --ip-source 192.168.1.8 \
---ip-protocol tcp --ip-destination-port 22 \
--j redirect --redirect-target DROP
+Fix this by using 16bits long spi, as IPcomp CPI is only valid for 16bits.
 
-cheers,
-Bart
+Signed-off-by: Fan Du <fan.du@windriver.com>
+---
+ include/uapi/linux/netfilter/xt_ipcomp.h |    2 +-
+ net/netfilter/xt_ipcomp.c                |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/xt_ipcomp.h b/include/uapi/linux/netfilter/xt_ipcomp.h
+index 45c7e40..ca82ebb 100644
+--- a/include/uapi/linux/netfilter/xt_ipcomp.h
++++ b/include/uapi/linux/netfilter/xt_ipcomp.h
+@@ -4,7 +4,7 @@
+ #include <linux/types.h>
+ 
+ struct xt_ipcomp {
+-	__u32 spis[2];	/* Security Parameter Index */
++	__u16 spis[2];	/* Security Parameter Index */
+ 	__u8 invflags;	/* Inverse flags */
+ 	__u8 hdrres;	/* Test of the Reserved Filed */
+ };
+diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
+index a4c7561..5542cb2 100644
+--- a/net/netfilter/xt_ipcomp.c
++++ b/net/netfilter/xt_ipcomp.c
+@@ -29,7 +29,7 @@ MODULE_DESCRIPTION("Xtables: IPv4/6 IPsec-IPComp SPI match");
+ 
+ /* Returns 1 if the spi is matched by the range, 0 otherwise */
+ static inline bool
+-spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
++spi_match(u_int16_t min, u_int16_t max, u_int16_t spi, bool invert)
+ {
+ 	bool r;
+ 	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+@@ -60,7 +60,7 @@ static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
+ 
+ 	return spi_match(compinfo->spis[0], compinfo->spis[1],
+-			 ntohl(chdr->cpi << 16),
++			 ntohl(chdr->cpi),
+ 			 !!(compinfo->invflags & XT_IPCOMP_INV_SPI));
+ }
+ 
+-- 
+1.7.9.5
 
