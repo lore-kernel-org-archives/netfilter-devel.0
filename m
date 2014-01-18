@@ -1,28 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] utils: fix nft_str2verdict return value
-Date: Sat, 18 Jan 2014 21:52:02 +0100
-Message-ID: <20140118205202.GA4840@localhost>
-References: <20140118160144.20804.20179.stgit@nfdev.cica.es>
+Subject: Re: [libnftables PATCH] data_reg: fix verdict format approach
+Date: Sat, 18 Jan 2014 21:53:21 +0100
+Message-ID: <20140118205321.GB4840@localhost>
+References: <20140118163944.23453.46552.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40815 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40876 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393AbaARUwJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Jan 2014 15:52:09 -0500
+	id S1751393AbaARUxg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Jan 2014 15:53:36 -0500
 Content-Disposition: inline
-In-Reply-To: <20140118160144.20804.20179.stgit@nfdev.cica.es>
+In-Reply-To: <20140118163944.23453.46552.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jan 18, 2014 at 05:01:44PM +0100, Arturo Borrero Gonzalez wrote:
-> Some verdicts have a negative value.
+On Sat, Jan 18, 2014 at 05:39:44PM +0100, Arturo Borrero Gonzalez wrote:
+> Patrick reports that the XML/JSON formats of the data_reg object
+> are not accuarate.
 > 
-> The caller of nft_str2verdict() checking if return was < 0 clash with
-> enum nft_verdict.
+> This patch updates these formats, so they are now as follow:
 > 
-> While at it, add error reporting of invalid verdicts.
+>  * <data_reg type=value> with raw data (this doesn't change).
+>  * <data_reg type=verdict> with a concrete verdict (eg drop accept) and an
+>   optional <chain>, with destination.
 
-Good catch, applied, thanks.
+Applied.
+
+> In XML:
+> 	<data_reg type="verdict">
+                  ^------------^
+
+I think we decided time ago that we prefer elements instead of
+attributes. I would take a patch for that conversion.
