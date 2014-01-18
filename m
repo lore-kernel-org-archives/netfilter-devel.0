@@ -1,17 +1,17 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH] data_reg: fix verdict format approach
-Date: Sat, 18 Jan 2014 17:39:44 +0100
-Message-ID: <20140118163944.23453.46552.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH v2] data_reg: fix verdict format approach
+Date: Sat, 18 Jan 2014 17:56:45 +0100
+Message-ID: <20140118165454.23517.40740.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:59445 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:51240 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750933AbaARQj4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Jan 2014 11:39:56 -0500
+	id S1751004AbaARQ45 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Jan 2014 11:56:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -48,12 +48,13 @@ used in the data_reg XML/JSON parsing zone.
 While at it, I updated the error reporting stuff regarding data_reg/verdict, in
 order to leave a consistent state in the library.
 
-A JSON testfile is updated as well, as it doesn't complaing anymore with the
-format proposed in this patch.
+A JSON testfile is updated as well.
 
 Reported-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
+v2: fixed a phrase in the description.
+
  src/expr/data_reg.c         |  171 +++++++++++++++++++++++++------------------
  src/jansson.c               |   27 ++-----
  src/set_elem.c              |    6 +-
