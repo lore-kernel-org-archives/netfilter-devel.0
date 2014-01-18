@@ -1,71 +1,79 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: new xtables-addons implementation of XOR target
-Date: Sat, 18 Jan 2014 12:28:56 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1401181207260.18964@nerf08.vanv.qr>
-References: <CADb65V65-OHkHCpoqmXZgqq=h3c7sRuEdzfNbRY5TeirfP2OPQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] ipcomp: Convert struct xt_ipcomp spis into
+ 16bits
+Date: Sat, 18 Jan 2014 13:24:37 +0100
+Message-ID: <20140118122437.GA4309@localhost>
+References: <1390011374-21760-1-git-send-email-fan.du@windriver.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Andrew Smith <iamasmith.home@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:38516 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830AbaARL27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Jan 2014 06:28:59 -0500
-In-Reply-To: <CADb65V65-OHkHCpoqmXZgqq=h3c7sRuEdzfNbRY5TeirfP2OPQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: steffen.klassert@secunet.com, davem@davemloft.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Fan Du <fan.du@windriver.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1390011374-21760-1-git-send-email-fan.du@windriver.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 2014-01-18 11:25, Andrew Smith wrote:
->
->I had a requirement for some proof of concept work I was performing to
->have a very simple layer 3 obfuscation so it was useful to me and 
->perhaps others
+On Sat, Jan 18, 2014 at 10:16:14AM +0800, Fan Du wrote:
+> sparse warnings: (new ones prefixed by >>)
+> 
+> >> >> net/netfilter/xt_ipcomp.c:63:26: sparse: restricted __be16 degrades to integer
+> >> >> net/netfilter/xt_ipcomp.c:63:26: sparse: cast to restricted __be32
+> 
+> Fix this by using 16bits long spi, as IPcomp CPI is only valid for 16bits.
+> 
+> Signed-off-by: Fan Du <fan.du@windriver.com>
+> ---
+>  include/uapi/linux/netfilter/xt_ipcomp.h |    2 +-
+>  net/netfilter/xt_ipcomp.c                |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/xt_ipcomp.h b/include/uapi/linux/netfilter/xt_ipcomp.h
+> index 45c7e40..ca82ebb 100644
+> --- a/include/uapi/linux/netfilter/xt_ipcomp.h
+> +++ b/include/uapi/linux/netfilter/xt_ipcomp.h
+> @@ -4,7 +4,7 @@
+>  #include <linux/types.h>
+>  
+>  struct xt_ipcomp {
+> -	__u32 spis[2];	/* Security Parameter Index */
+> +	__u16 spis[2];	/* Security Parameter Index */
 
-If you can give more details, others could actually ascertain this 
-usefulness.
-1.47 is basically unmaintained but you can send pull requests,
-which seems also preferable given Gmail corrupts everybody's patches.
+This changes the binary interface so it break userspace (iptables
+needs to be recompiled), we're still in time to make such change as
+this is net-next stuff, but what I understand from the patch
+description is that this aims to fix a sparse warning, which is a bit
+of intrusive change.
 
->+{
->+ printf(
->+ "XOR target options:\n"
->+ "    --key <string>\n"
->+ "    --block-size <size>\n"
->+ );
->+}
->+
->+static int
->+xor_parse(int c, char **argv, int invert, unsigned int *flags,
->+                  const void *entry, struct xt_entry_target **target)
->+{
->+ struct xt_xor_info *info = (void *)(*target)->data;
->+        unsigned long v;
->+
->+ switch (c) {
->+ case 'k':
->+                if (strlen(optarg) > sizeof(info->key))
->+ xtables_error(PARAMETER_PROBLEM, "XOR: Maximum key size is
->%zu",sizeof(info->key));
->+ strncpy(info->key, optarg, sizeof(info->key));
->+                *flags |= FLAGS_KEY;
->+ return true;
->+        case 'b':
->+ if (!xtables_strtoul(optarg, NULL, &v, 1, 5))
->+ xtables_param_act(XTF_BAD_VALUE, "XOR",
->+ "--block-size", optarg);
->+                info->block_size = v;
->+                *flags |= FLAGS_BLOCK;
->+                return true;
->+ }
->+ return false;
->+}
->+static void xor_check(unsigned int flags)
->+{
->+ if (!(flags & FLAGS_KEY))
->+ xtables_error(PARAMETER_PROBLEM, "XOR: "
->+ "\"--key\" is required.");
->+ if (!(flags & FLAGS_BLOCK))
->+ xtables_error(PARAMETER_PROBLEM, "XOR: "
->+ "\"--block-size\" is required.");
->+}
+Didn't you find any way to fix this without change the layout of
+xt_ipcomp?
+
+>  	__u8 invflags;	/* Inverse flags */
+>  	__u8 hdrres;	/* Test of the Reserved Filed */
+>  };
+> diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
+> index a4c7561..5542cb2 100644
+> --- a/net/netfilter/xt_ipcomp.c
+> +++ b/net/netfilter/xt_ipcomp.c
+> @@ -29,7 +29,7 @@ MODULE_DESCRIPTION("Xtables: IPv4/6 IPsec-IPComp SPI match");
+>  
+>  /* Returns 1 if the spi is matched by the range, 0 otherwise */
+>  static inline bool
+> -spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
+> +spi_match(u_int16_t min, u_int16_t max, u_int16_t spi, bool invert)
+>  {
+>  	bool r;
+>  	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
+> @@ -60,7 +60,7 @@ static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	}
+>  
+>  	return spi_match(compinfo->spis[0], compinfo->spis[1],
+> -			 ntohl(chdr->cpi << 16),
+> +			 ntohl(chdr->cpi),
+>  			 !!(compinfo->invflags & XT_IPCOMP_INV_SPI));
+>  }
+>  
+> -- 
+> 1.7.9.5
+> 
