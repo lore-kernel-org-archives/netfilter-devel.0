@@ -1,43 +1,38 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH] build: Ensure pkg-config file provides the right informations
-Date: Mon, 20 Jan 2014 18:42:21 +0100
-Message-ID: <CAOkSjBhbDRfen1FSrQNjWD2jXaAqMM_WEtOE4t1sCfgZPrd=SQ@mail.gmail.com>
-References: <1390233381-2284-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <20140120160231.GA8016@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Anders Berggren <anders@halon.se>
+Subject: nftable atomic rule replacement/update/restore?
+Date: Mon, 20 Jan 2014 22:10:50 +0100
+Message-ID: <A2B302C7-AD8B-4239-BD8E-8E0FA29721B7@halon.se>
+Mime-Version: 1.0 (Mac OS X Mail 7.1 \(1827\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:54638 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbaATRmn convert rfc822-to-8bit (ORCPT
+Received: from mail1.hsp.halon.se ([213.80.29.50]:40106 "EHLO
+	mail1.hsp.halon.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750758AbaATVQl convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jan 2014 12:42:43 -0500
-Received: by mail-la0-f49.google.com with SMTP id y1so5696055lam.22
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2014 09:42:42 -0800 (PST)
-In-Reply-To: <20140120160231.GA8016@localhost>
+	Mon, 20 Jan 2014 16:16:41 -0500
+Received: from mail.halon.se (unknown [213.80.29.51])
+	by mail1.hsp.halon.se (Halon Mail Gateway) with ESMTP
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2014 22:10:59 +0100 (CET)
+Received: from [192.168.0.108] (c-4b9970d5.019-139-67626713.cust.bredbandsbolaget.se [213.112.153.75])
+	by mail.halon.se (Postfix) with ESMTPSA id DB3234DF02
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Jan 2014 22:10:50 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20 January 2014 17:02, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> On Mon, Jan 20, 2014 at 05:56:21PM +0200, Tomasz Bursztyka wrote:
->> It's not -lnftables anymore but -lnftnl (among other details)
->
-> Applied, thanks.
+I apologise if this isn't the appropriate mailing list. Also, congratulations on the 3.13 inclusion, and 0.99 release!
 
-@pablo
-Do you plan to tag this commit?
+After browsing the code I didn't find any atomic ruleset update/restore functionality, as described by http://marc.info/?l=netfilter-devel&m=135959066918397&w=2 and present in iptables-restore and possibly pfctl -f ...
 
-regards
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If it's not currently implemented, I would suggest something like:
+
+# nft -f myruleset
+# cat rulesetset
+table filter {
+	chain input {
+		type filter hook input priority 0;
+		ct state established accept
+		...
+
+so that the user can have a nicely formated firewall configuration file, applied by a simple command.
