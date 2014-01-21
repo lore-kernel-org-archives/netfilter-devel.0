@@ -1,37 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables add vs replace
-Date: Tue, 21 Jan 2014 17:37:23 +0000
-Message-ID: <20140121173723.GA19246@macbook.localnet>
-References: <20140121110645.GC25197@macbook.localnet>
- <20140121112700.GA21772@localhost>
- <CAOkSjBiKGk66N5Ecg8EM27osWVB1Zbn6r-rPu=o8DczjUjpKiA@mail.gmail.com>
- <20140121114524.GA27552@macbook.localnet>
- <20140121151541.GA23738@home>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft RFC PATCH v2] src: add export operation
+Date: Tue, 21 Jan 2014 21:52:44 +0100
+Message-ID: <CAOkSjBgyMo6OFEwkYVvkXMCxKH1xKd4k4yqWjz4cNJjoibh5pQ@mail.gmail.com>
+References: <20140121170109.31013.94618.stgit@nfdev.cica.es> <20140121172636.GA19175@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41364 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754607AbaAURh1 (ORCPT
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:55125 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824AbaAUUxI convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 12:37:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20140121151541.GA23738@home>
+	Tue, 21 Jan 2014 15:53:08 -0500
+Received: by mail-lb0-f172.google.com with SMTP id c11so6452935lbj.31
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jan 2014 12:53:06 -0800 (PST)
+In-Reply-To: <20140121172636.GA19175@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 21, 2014 at 07:15:42AM -0800, Phil Oester wrote:
-> On Tue, Jan 21, 2014 at 11:45:25AM +0000, Patrick McHardy wrote:
-> > I think the semantics of "flush table" should be changed though. It should
-> > kill *every* object in the table. Perhaps not the base chains, but at least
-> > all rules, non base chain and also sets.
-> 
-> +1, as current method of having to clear out a table in 2 or 3 steps is
-> a major PITA.
+On 21 January 2014 18:26, Patrick McHardy <kaber@trash.net> wrote:
+> Looks fine to me. I can apply it if you want, not sure since the impo=
+rt
+> counterpart will have to wait until we have the necessary kernel chan=
+ges
+> in place.
+>
+> Please let me know.
 
-I've added it to my TODO list. I don't insist on doing it myself though :)
+=46eel free to apply, so users can know about this [future] feature, an=
+d
+we begin using that branch of the libnftnl infrastructure.
+
+Regards.
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
