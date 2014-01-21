@@ -1,45 +1,407 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft RFC PATCH] src: add export operation
-Date: Tue, 21 Jan 2014 16:16:02 +0000
-Message-ID: <20140121161602.GA7944@macbook.localnet>
-References: <20140121140545.27264.82385.stgit@nfdev.cica.es>
- <20140121145131.GA6302@macbook.localnet>
- <CAOkSjBj4oXHhMjkCqcz-GhM74cekuH2TgkW+GUsM4KsgFAdk7Q@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft RFC PATCH v2] src: add export operation
+Date: Tue, 21 Jan 2014 18:01:54 +0100
+Message-ID: <20140121170109.31013.94618.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40778 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084AbaAUQQH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 11:16:07 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBj4oXHhMjkCqcz-GhM74cekuH2TgkW+GUsM4KsgFAdk7Q@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:46304 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754665AbaAURCF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 12:02:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 21, 2014 at 05:07:39PM +0100, Arturo Borrero Gonzalez wrote:
-> Thanks for your comments Patrick. I'm addressing all of them. Just one
-> thing below.
-> 
-> On 21 January 2014 15:51, Patrick McHardy <kaber@trash.net> wrote:
-> >>  struct cmd {
-> >>       struct list_head        list;
-> >> @@ -264,6 +267,7 @@ struct cmd {
-> >>               struct table    *table;
-> >>       };
-> >>       const void              *arg;
-> >> +     uint32_t                format;
-> >
-> > No enum defined for this?
-> >
-> 
-> In libnftables, there are two: `enum nft_parse_type' and `enum nft_output_type'.
-> 
-> I preferred just using uint32_t so we can reuse between export/import.
+This patch adds the following operation:
 
-I see. Sure, I was just wondering.
+ :~# nft export <xml|json>
+
+The XML/JSON output is provided raw by libnftnl, thus without format.
+
+In case of XML, you can give format with the `xmllint' tool from libxml2-tools:
+ :~# nft list ruleset xml | xmllint --format -
+
+In case of JSON, you can use `json_pp' from perl standar package:
+ :~# nft list ruleset json | json_pp
+
+A format field is added in struct cmd, and it will be reused in the import
+operation.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: address comments by Patrick: use CMD_OBJ_RULESET, move some includes, etc.
+
+ include/mnl.h     |    2 ++
+ include/netlink.h |    3 ++
+ include/rule.h    |    6 +++++
+ src/evaluate.c    |    1 +
+ src/mnl.c         |   64 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ src/netlink.c     |   17 ++++++++++++++
+ src/parser.y      |   23 +++++++++++++++++--
+ src/rule.c        |   20 +++++++++++++++++
+ src/scanner.l     |    4 +++
+ 9 files changed, 137 insertions(+), 3 deletions(-)
+
+diff --git a/include/mnl.h b/include/mnl.h
+index a630605..f4de27d 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -65,4 +65,6 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nft_set *nls,
+ 			   unsigned int flags);
+ int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nft_set *nls);
+ 
++struct nft_ruleset *mnl_nft_ruleset_dump(struct mnl_socket *nf_sock,
++					 uint32_t family);
+ #endif /* _NFTABLES_MNL_H_ */
+diff --git a/include/netlink.h b/include/netlink.h
+index fbaaaeb..cfd8462 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -136,4 +136,7 @@ extern int netlink_batch_send(struct list_head *err_list);
+ extern int netlink_io_error(struct netlink_ctx *ctx,
+ 			    const struct location *loc, const char *fmt, ...);
+ 
++extern struct nft_ruleset *netlink_dump_ruleset(struct netlink_ctx *ctx,
++						const struct handle *h,
++						const struct location *loc);
+ #endif /* NFTABLES_NETLINK_H */
+diff --git a/include/rule.h b/include/rule.h
+index 6ad8af3..886aadc 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -204,6 +204,7 @@ extern void set_print(const struct set *set);
+  * @CMD_LIST:		list container
+  * @CMD_FLUSH:		flush container
+  * @CMD_RENAME:		rename object
++ * @CMD_EXPORT:		export the ruleset in a given format
+  */
+ enum cmd_ops {
+ 	CMD_INVALID,
+@@ -213,6 +214,7 @@ enum cmd_ops {
+ 	CMD_LIST,
+ 	CMD_FLUSH,
+ 	CMD_RENAME,
++	CMD_EXPORT,
+ };
+ 
+ /**
+@@ -225,6 +227,7 @@ enum cmd_ops {
+  * @CMD_OBJ_RULE:	rule
+  * @CMD_OBJ_CHAIN:	chain
+  * @CMD_OBJ_TABLE:	table
++ * @CMD_OBJ_RULESET:	ruleset
+  */
+ enum cmd_obj {
+ 	CMD_OBJ_INVALID,
+@@ -234,6 +237,7 @@ enum cmd_obj {
+ 	CMD_OBJ_RULE,
+ 	CMD_OBJ_CHAIN,
+ 	CMD_OBJ_TABLE,
++	CMD_OBJ_RULESET,
+ };
+ 
+ /**
+@@ -247,6 +251,7 @@ enum cmd_obj {
+  * @seqnum:	sequence number to match netlink errors
+  * @union:	object
+  * @arg:	argument data
++ * @format:	info about the export/import format
+  */
+ struct cmd {
+ 	struct list_head	list;
+@@ -264,6 +269,7 @@ struct cmd {
+ 		struct table	*table;
+ 	};
+ 	const void		*arg;
++	uint32_t		format;
+ };
+ 
+ extern struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 21ca558..2c26d03 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1391,6 +1391,7 @@ static int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_LIST:
+ 	case CMD_FLUSH:
+ 	case CMD_RENAME:
++	case CMD_EXPORT:
+ 		return 0;
+ 	default:
+ 		BUG("invalid command operation %u\n", cmd->op);
+diff --git a/src/mnl.c b/src/mnl.c
+index b867902..30e9cc6 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -9,6 +9,8 @@
+  */
+ 
+ #include <libmnl/libmnl.h>
++#include <libnftnl/common.h>
++#include <libnftnl/ruleset.h>
+ #include <libnftnl/table.h>
+ #include <libnftnl/chain.h>
+ #include <libnftnl/rule.h>
+@@ -645,7 +647,8 @@ mnl_nft_set_dump(struct mnl_socket *nf_sock, int family, const char *table)
+ 
+ 	nlh = nft_set_nlmsg_build_hdr(buf, NFT_MSG_GETSET, family,
+ 				      NLM_F_DUMP|NLM_F_ACK, seq);
+-	nft_set_attr_set(s, NFT_SET_ATTR_TABLE, table);
++	if (table != NULL)
++		nft_set_attr_set(s, NFT_SET_ATTR_TABLE, table);
+ 	nft_set_nlmsg_build_payload(nlh, s);
+ 	nft_set_free(s);
+ 
+@@ -733,3 +736,62 @@ int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nft_set *nls)
+ 
+ 	return mnl_talk(nf_sock, nlh, nlh->nlmsg_len, set_elem_cb, nls);
+ }
++
++/*
++ * ruleset
++ */
++struct nft_ruleset *mnl_nft_ruleset_dump(struct mnl_socket *nf_sock,
++					 uint32_t family)
++{
++	struct nft_ruleset *rs;
++	struct nft_table_list *t;
++	struct nft_chain_list *c;
++	struct nft_set_list *sl;
++	struct nft_set_list_iter *i;
++	struct nft_set *s;
++	struct nft_rule_list *r;
++	int ret = 0;
++
++	rs = nft_ruleset_alloc();
++	if (rs == NULL)
++		memory_allocation_error();
++
++	t = mnl_nft_table_dump(nf_sock, family);
++	if (t != NULL)
++		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_TABLELIST, t);
++
++	c = mnl_nft_chain_dump(nf_sock, family);
++	if (c != NULL)
++		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_CHAINLIST, c);
++
++	sl = mnl_nft_set_dump(nf_sock, family, NULL);
++	if (sl != NULL) {
++		i = nft_set_list_iter_create(sl);
++		s = nft_set_list_iter_next(i);
++		while (s != NULL) {
++			ret = mnl_nft_setelem_get(nf_sock, s);
++			if (ret != 0)
++				goto out;
++
++			s = nft_set_list_iter_next(i);
++		}
++		nft_set_list_iter_destroy(i);
++
++		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_SETLIST, sl);
++	}
++
++	r = mnl_nft_rule_dump(nf_sock, family);
++	if (r != NULL)
++		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_RULELIST, r);
++
++	if (!(nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST)) &&
++	    !(nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_CHAINLIST)) &&
++	    !(nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_SETLIST)) &&
++	    !(nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_RULELIST)))
++		goto out;
++
++	return rs;
++out:
++	nft_ruleset_free(rs);
++	return NULL;
++}
+diff --git a/src/netlink.c b/src/netlink.c
+index 7f69995..e3bfc37 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -13,12 +13,15 @@
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <libmnl/libmnl.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
+ 
+ #include <libnftnl/table.h>
+ #include <libnftnl/chain.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter.h>
+ 
+ #include <nftables.h>
+ #include <netlink.h>
+@@ -1048,3 +1051,17 @@ int netlink_batch_send(struct list_head *err_list)
+ {
+ 	return mnl_batch_talk(nf_sock, err_list);
+ }
++
++struct nft_ruleset *netlink_dump_ruleset(struct netlink_ctx *ctx,
++					 const struct handle *h,
++					 const struct location *loc)
++{
++	struct nft_ruleset *rs;
++
++	rs = mnl_nft_ruleset_dump(nf_sock, h->family);
++	if (rs == NULL)
++		netlink_io_error(ctx, loc, "Could not receive ruleset: %s",
++				 strerror(errno));
++
++	return rs;
++}
+diff --git a/src/parser.y b/src/parser.y
+index 345d8d0..bb8e4d7 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -18,6 +18,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
++#include <libnftnl/common.h>
+ 
+ #include <rule.h>
+ #include <statement.h>
+@@ -173,6 +174,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token FLUSH			"flush"
+ %token RENAME			"rename"
+ %token DESCRIBE			"describe"
++%token EXPORT			"export"
+ 
+ %token ACCEPT			"accept"
+ %token DROP			"drop"
+@@ -335,14 +337,17 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ %token POSITION			"position"
+ 
++%token XML			"xml"
++%token JSON			"json"
++
+ %type <string>			identifier string
+ %destructor { xfree($$); }	identifier string
+ 
+ %type <cmd>			line
+ %destructor { cmd_free($$); }	line
+ 
+-%type <cmd>			base_cmd add_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd
+-%destructor { cmd_free($$); }	base_cmd add_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd
++%type <cmd>			base_cmd add_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd
++%destructor { cmd_free($$); }	base_cmd add_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd
+ 
+ %type <handle>			table_spec tables_spec chain_spec chain_identifier ruleid_spec
+ %destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec
+@@ -462,6 +467,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { expr_free($$); }	ct_expr
+ %type <val>			ct_key
+ 
++%type <val>			export_format
++
+ %%
+ 
+ input			:	/* empty */
+@@ -529,6 +536,7 @@ base_cmd		:	/* empty */	add_cmd		{ $$ = $1; }
+ 			|	LIST		list_cmd	{ $$ = $2; }
+ 			|	FLUSH		flush_cmd	{ $$ = $2; }
+ 			|	RENAME		rename_cmd	{ $$ = $2; }
++			|	EXPORT		export_cmd	{ $$ = $2; }
+ 			|	DESCRIBE	primary_expr
+ 			{
+ 				expr_describe($2);
+@@ -663,6 +671,14 @@ rename_cmd		:	CHAIN		chain_spec	identifier
+ 			}
+ 			;
+ 
++export_cmd		:	export_format
++			{
++				struct handle h = { .family = NFPROTO_UNSPEC };
++				$$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_RULESET, &h, &@$, NULL);
++				$$->format = $1;
++			}
++			;
++
+ table_block_alloc	:	/* empty */
+ 			{
+ 				$$ = table_alloc();
+@@ -1827,4 +1843,7 @@ mh_hdr_field		:	NEXTHDR		{ $$ = MHHDR_NEXTHDR; }
+ 			|	CHECKSUM	{ $$ = MHHDR_CHECKSUM; }
+ 			;
+ 
++export_format		: 	XML 		{ $$ = NFT_OUTPUT_XML; }
++			|	JSON		{ $$ = NFT_OUTPUT_JSON; }
++			;
+ %%
+diff --git a/src/rule.c b/src/rule.c
+index 9f6c04b..f83f545 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -18,7 +18,10 @@
+ #include <statement.h>
+ #include <rule.h>
+ #include <utils.h>
++#include <netlink.h>
+ 
++#include <libnftnl/common.h>
++#include <libnftnl/ruleset.h>
+ #include <netinet/ip.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_arp.h>
+@@ -584,6 +587,21 @@ static int do_list_sets(struct netlink_ctx *ctx, const struct location *loc,
+ 	return 0;
+ }
+ 
++static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
++{
++	struct nft_ruleset *rs = netlink_dump_ruleset(ctx, &cmd->handle,
++						      &cmd->location);
++
++	if (rs == NULL)
++		return -1;
++
++	nft_ruleset_fprintf(stdout, rs, cmd->format, 0);
++	fprintf(stdout, "\n");
++
++	nft_ruleset_free(rs);
++	return 0;
++}
++
+ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table = NULL;
+@@ -734,6 +752,8 @@ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		return do_command_flush(ctx, cmd);
+ 	case CMD_RENAME:
+ 		return do_command_rename(ctx, cmd);
++	case CMD_EXPORT:
++		return do_command_export(ctx, cmd);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+diff --git a/src/scanner.l b/src/scanner.l
+index c47e610..69f238d 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -253,6 +253,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "list"			{ return LIST; }
+ "flush"			{ return FLUSH; }
+ "rename"		{ return RENAME; }
++"export"		{ return EXPORT; }
+ 
+ "position"		{ return POSITION; }
+ 
+@@ -400,6 +401,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "proto-src"		{ return PROTO_SRC; }
+ "proto-dst"		{ return PROTO_DST; }
+ 
++"xml"			{ return XML; }
++"json"			{ return JSON; }
++
+ {addrstring}		{
+ 				yylval->string = xstrdup(yytext);
+ 				return STRING;
+
