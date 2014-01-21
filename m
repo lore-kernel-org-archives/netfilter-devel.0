@@ -1,42 +1,32 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: nftables add vs replace
-Date: Tue, 21 Jan 2014 14:17:31 +0200
-Message-ID: <52DE655B.9020105@linux.intel.com>
-References: <20140121110645.GC25197@macbook.localnet> <20140121112700.GA21772@localhost> <CAOkSjBiKGk66N5Ecg8EM27osWVB1Zbn6r-rPu=o8DczjUjpKiA@mail.gmail.com> <52DE5E10.5000403@linux.intel.com> <20140121114955.GA27718@macbook.localnet> <52DE6331.4030902@linux.intel.com> <20140121121147.GB30577@macbook.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] build: resolve build failure involving
+ linux/netlink.h
+Date: Tue, 21 Jan 2014 13:25:22 +0100
+Message-ID: <20140121122522.GA22917@localhost>
+References: <1390261922-13182-1-git-send-email-jengelh@inai.de>
+ <1390261922-13182-2-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47985 "EHLO mga02.intel.com"
+Received: from mail.us.es ([193.147.175.20]:44111 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754491AbaAUMRe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 07:17:34 -0500
-In-Reply-To: <20140121121147.GB30577@macbook.localnet>
+	id S1754276AbaAUMZ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 07:25:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1390261922-13182-2-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Jan 21, 2014 at 12:52:01AM +0100, Jan Engelhardt wrote:
+> This was seen with a sufficiently-old /usr/include/linux
+> (from Linux 2.6.32).
+> 
+> 	In file included from common.c:10:
+> 	/usr/include/linux/netlink.h:34: error: expected
+> 	specifier-qualifier-list before 'sa_family_t'
+> 
+> The solution is to include <linux/*> last of all system headers.
 
->> Actually, after your patch and Arturo's, it could be possible to
->> improve the ruleset management so
->> it would use create/add/replace accordingly.
->>
->> Though it means it would need to dump first the targeted
->> tables/chains to do so,
->> thus I am not sure how relevant is my blabbering from performance
->> point of view.
-> How would that work? Dumping rules, flushing the old ones and reinstalling
-> them is prone to race conditions.
-
-There would be no flushing involved.
-Comparing the dump vs the input ruleset you would know what to 
-remove/replace/add.
-
-But maybe there is no benefit from that anyway.
-
-Tomasz
-
+applied.
