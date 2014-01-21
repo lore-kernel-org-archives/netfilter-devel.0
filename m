@@ -1,62 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft RFC PATCH] src: add import operation
-Date: Tue, 21 Jan 2014 17:32:03 +0000
-Message-ID: <20140121173203.GA19183@macbook.localnet>
-References: <20140121170211.31038.31659.stgit@nfdev.cica.es>
- <20140121172209.GB8194@macbook.localnet>
+Subject: Re: nftables add vs replace
+Date: Tue, 21 Jan 2014 17:37:23 +0000
+Message-ID: <20140121173723.GA19246@macbook.localnet>
+References: <20140121110645.GC25197@macbook.localnet>
+ <20140121112700.GA21772@localhost>
+ <CAOkSjBiKGk66N5Ecg8EM27osWVB1Zbn6r-rPu=o8DczjUjpKiA@mail.gmail.com>
+ <20140121114524.GA27552@macbook.localnet>
+ <20140121151541.GA23738@home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41326 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41364 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754261AbaAURcH (ORCPT
+	with ESMTP id S1754607AbaAURh1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 12:32:07 -0500
+	Tue, 21 Jan 2014 12:37:27 -0500
 Content-Disposition: inline
-In-Reply-To: <20140121172209.GB8194@macbook.localnet>
+In-Reply-To: <20140121151541.GA23738@home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 21, 2014 at 05:22:09PM +0000, Patrick McHardy wrote:
-> On Tue, Jan 21, 2014 at 06:02:11PM +0100, Arturo Borrero Gonzalez wrote:
-> > The import operation reads XML/JSON data from stdin.
-> > 
-> > A basic way to test is:
-> >  % nft export json | nft import json
-> > 
-> > This operation flush the kernel ruleset before adding the one imported.
-> > 
-> > Adding data from a file:
-> >  % cat file.json | nft import json
-> >  % nft import json < file.json
+On Tue, Jan 21, 2014 at 07:15:42AM -0800, Phil Oester wrote:
+> On Tue, Jan 21, 2014 at 11:45:25AM +0000, Patrick McHardy wrote:
+> > I think the semantics of "flush table" should be changed though. It should
+> > kill *every* object in the table. Perhaps not the base chains, but at least
+> > all rules, non base chain and also sets.
 > 
-> OK I think I understand your -EBUSY problem. We're destroying the rules'
-> expressions from within the RCU callback, so its happening asynchronous.
-> You most likely don't get EBUSY when deleting the table, but when deleting
-> the set because the bindings from the lookup rules are not released yet.
-> You then will *also* get -EBUSY from table deletion.
-> 
-> Basically I see these possibilities to fix this:
-> 
-> - Use synchronize_rcu() instead of call_rcu() for rule deletion. We
->   added the call_rcu() because deletion performance was suffering
->   badly from lots of synchronize_rcu() calls. This is obviously not
->   a problem anymore with batched deletion.
-> 
-> - Use synchronize_rcu() before deleting sets. Same effect, but in case
->   someone really does unbatched deletes, it will very likely result in
->   less synchronize_rcu() calls.
+> +1, as current method of having to clear out a table in 2 or 3 steps is
+> a major PITA.
 
-Actually this one is nonsense. synchronize_rcu() doesn't guarantee that
-a scheduled RCU callback has already returned. I'd suggest to switch back
-rule deletion to use synchronize_rcu().
-
-Basically our API is currently broken since it contains a race condition.
-Userspace must be able to assume that the referenced objects can be
-removed after the DELRULE command has completed.
-
-> Regarding this patch, I don't think we should add this before we support
-> atomic replacement of tables, chains and sets as well. IOW, this needs
-> quite a bit of kernel work.
+I've added it to my TODO list. I don't insist on doing it myself though :)
