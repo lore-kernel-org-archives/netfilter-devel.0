@@ -1,32 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] build: resolve build failure involving
- linux/netlink.h
-Date: Tue, 21 Jan 2014 13:25:22 +0100
-Message-ID: <20140121122522.GA22917@localhost>
-References: <1390261922-13182-1-git-send-email-jengelh@inai.de>
- <1390261922-13182-2-git-send-email-jengelh@inai.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nftables add vs replace
+Date: Tue, 21 Jan 2014 12:25:32 +0000
+Message-ID: <20140121122532.GA30955@macbook.localnet>
+References: <20140121110645.GC25197@macbook.localnet>
+ <20140121112700.GA21772@localhost>
+ <CAOkSjBiKGk66N5Ecg8EM27osWVB1Zbn6r-rPu=o8DczjUjpKiA@mail.gmail.com>
+ <52DE5E10.5000403@linux.intel.com>
+ <20140121114955.GA27718@macbook.localnet>
+ <52DE6331.4030902@linux.intel.com>
+ <20140121121147.GB30577@macbook.localnet>
+ <52DE655B.9020105@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44111 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754276AbaAUMZ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 07:25:29 -0500
+Received: from stinky.trash.net ([213.144.137.162]:38885 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754539AbaAUMZg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 07:25:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1390261922-13182-2-git-send-email-jengelh@inai.de>
+In-Reply-To: <52DE655B.9020105@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 21, 2014 at 12:52:01AM +0100, Jan Engelhardt wrote:
-> This was seen with a sufficiently-old /usr/include/linux
-> (from Linux 2.6.32).
+On Tue, Jan 21, 2014 at 02:17:31PM +0200, Tomasz Bursztyka wrote:
 > 
-> 	In file included from common.c:10:
-> 	/usr/include/linux/netlink.h:34: error: expected
-> 	specifier-qualifier-list before 'sa_family_t'
+> >>Actually, after your patch and Arturo's, it could be possible to
+> >>improve the ruleset management so
+> >>it would use create/add/replace accordingly.
+> >>
+> >>Though it means it would need to dump first the targeted
+> >>tables/chains to do so,
+> >>thus I am not sure how relevant is my blabbering from performance
+> >>point of view.
+> >How would that work? Dumping rules, flushing the old ones and reinstalling
+> >them is prone to race conditions.
 > 
-> The solution is to include <linux/*> last of all system headers.
+> There would be no flushing involved.
+> Comparing the dump vs the input ruleset you would know what to
+> remove/replace/add.
+> 
+> But maybe there is no benefit from that anyway.
 
-applied.
+I still I don't see how this helps. Incremental updates already work,
+the two problems I see are:
+
+- create something only iff it doesn't exist: easy, not use NLM_F_EXCL
+- replace entire tables or chains: harder since the transactions need to
+  handle tables, chains and sets which they currently don't. For basechains
+  this goes down all the way to nf_register_hooks() since we need to
+  atomically replace the hooks.
+
