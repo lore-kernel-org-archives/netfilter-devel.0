@@ -1,53 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] build: fix final report after configuration
-Date: Tue, 21 Jan 2014 11:18:52 +0100
-Message-ID: <1390299532-18200-1-git-send-email-pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: nftables add vs replace
+Date: Tue, 21 Jan 2014 11:06:46 +0000
+Message-ID: <20140121110645.GC25197@macbook.localnet>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58854 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754204AbaAUKTG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 05:19:06 -0500
+Received: from stinky.trash.net ([213.144.137.162]:38277 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163AbaAULGt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 06:06:49 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If no xml/json support is explicitly enabled, the final report
-does not show "no". This patch fixes this:
+We currently only support "add table" and "add chain" with NLM_F_EXCL.
+This means we can't replace entire tables without a lot of extra effort,
+also its not possible to create tables/chains just in case they don't
+already exist.
 
-libnftnl configuration:
-  XML support:                          no
-  JSON support:                         no
+To fix this, I'd propose to add two new commands, so we have the following:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- configure.ac |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+- add: add without NLM_F_EXCL
+- create: add with NLM_F_EXCL
+- replace: replace the entire thing
 
-diff --git a/configure.ac b/configure.ac
-index 54c66fe..f95b268 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -20,12 +20,14 @@ AC_ARG_WITH([xml-parsing],
- AC_ARG_WITH([json-parsing],
- 	AS_HELP_STRING([--with-json-parsing], [JSON parsing support]))
- 
--AS_IF([test "x$with_xml_parsing" = "xyes"], [
--	PKG_CHECK_MODULES([LIBXML], [mxml >= 2.6])
--])
--AS_IF([test "x$with_json_parsing" = "xyes"], [
--	PKG_CHECK_MODULES([LIBJSON], [jansson >= 2.3])
--])
-+AS_IF([test "x$with_xml_parsing" = "xyes"],
-+	[PKG_CHECK_MODULES([LIBXML], [mxml >= 2.6])],
-+	[with_xml_parsing="no"]
-+)
-+AS_IF([test "x$with_json_parsing" = "xyes"],
-+	[PKG_CHECK_MODULES([LIBJSON], [jansson >= 2.3])],
-+	[with_json_parsing="no"]
-+)
- AC_PROG_CC
- AM_PROG_CC_C_O
- AC_EXEEXT
--- 
-1.7.10.4
+This most likely will also require updates to the transaction handling
+so we don't only process rules, but table, chain and set updates in a
+transaction.
 
+Comments?
