@@ -1,58 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables add vs replace
-Date: Tue, 21 Jan 2014 12:25:32 +0000
-Message-ID: <20140121122532.GA30955@macbook.localnet>
-References: <20140121110645.GC25197@macbook.localnet>
- <20140121112700.GA21772@localhost>
- <CAOkSjBiKGk66N5Ecg8EM27osWVB1Zbn6r-rPu=o8DczjUjpKiA@mail.gmail.com>
- <52DE5E10.5000403@linux.intel.com>
- <20140121114955.GA27718@macbook.localnet>
- <52DE6331.4030902@linux.intel.com>
- <20140121121147.GB30577@macbook.localnet>
- <52DE655B.9020105@linux.intel.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftables PATCH] include: add stdint.h to common.h
+Date: Tue, 21 Jan 2014 13:26:16 +0100
+Message-ID: <20140121122616.GA23738@localhost>
+References: <20140121120832.18045.30403.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38885 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754539AbaAUMZg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jan 2014 07:25:36 -0500
+Received: from mail.us.es ([193.147.175.20]:44388 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448AbaAUM0W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 07:26:22 -0500
 Content-Disposition: inline
-In-Reply-To: <52DE655B.9020105@linux.intel.com>
+In-Reply-To: <20140121120832.18045.30403.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 21, 2014 at 02:17:31PM +0200, Tomasz Bursztyka wrote:
-> 
-> >>Actually, after your patch and Arturo's, it could be possible to
-> >>improve the ruleset management so
-> >>it would use create/add/replace accordingly.
-> >>
-> >>Though it means it would need to dump first the targeted
-> >>tables/chains to do so,
-> >>thus I am not sure how relevant is my blabbering from performance
-> >>point of view.
-> >How would that work? Dumping rules, flushing the old ones and reinstalling
-> >them is prone to race conditions.
-> 
-> There would be no flushing involved.
-> Comparing the dump vs the input ruleset you would know what to
-> remove/replace/add.
-> 
-> But maybe there is no benefit from that anyway.
+On Tue, Jan 21, 2014 at 01:08:32PM +0100, Arturo Borrero Gonzalez wrote=
+:
+> Avoid:
+>=20
+> /usr/local/include/libnftnl/common.h:25:49: error: unknown type name =
+=E2=80=98uint16_t=E2=80=99
+> /usr/local/include/libnftnl/common.h:25:63: error: unknown type name =
+=E2=80=98uint16_t=E2=80=99
+> /usr/local/include/libnftnl/common.h:26:10: error: unknown type name =
+=E2=80=98uint16_t=E2=80=99
+> /usr/local/include/libnftnl/common.h:26:25: error: unknown type name =
+=E2=80=98uint32_t'
 
-I still I don't see how this helps. Incremental updates already work,
-the two problems I see are:
-
-- create something only iff it doesn't exist: easy, not use NLM_F_EXCL
-- replace entire tables or chains: harder since the transactions need to
-  handle tables, chains and sets which they currently don't. For basechains
-  this goes down all the way to nf_register_hooks() since we need to
-  atomically replace the hooks.
-
+Applied, thanks Arturo.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
