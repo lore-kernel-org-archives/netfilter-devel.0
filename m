@@ -1,68 +1,59 @@
-From: tingwei liu <tingw.liu@gmail.com>
-Subject: Re: Fwd: Linux bridge for route
-Date: Tue, 21 Jan 2014 09:26:44 +0800
-Message-ID: <CA+qZnSSAKdoEFJMak1kS95EJE+oHcvnKrOvLhUMGAU9vZANKVw@mail.gmail.com>
-References: <CA+qZnSRGKiFh8FiKMpVQku7CiWCMPq47FpPwrawvTC6KBPwz7A@mail.gmail.com>
-	<CA+qZnSQY9dpZDdULtH3GNDEbB0fgoEJ=pa4gOOtwFhrGTgj4bg@mail.gmail.com>
-	<52D992F4.8070500@pandora.be>
+From: "Mr.Baszm Hamza" <mariamkip1@gmail.com>
+Subject: Re: Reply Very Urgent.
+Date: Tue, 21 Jan 2014 01:32:56 -0800
+Message-ID: <CAHONF70aHrZLZWM0UyOwV4E3o9h-2-ApHJr2M90P4+sNM5mWqg__35204.481057781$1390296793$gmane$org@mail.gmail.com>
+Reply-To: rve.garvejulius12@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:55617 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513AbaAUB0p (ORCPT
+Received: from mail-bk0-f67.google.com ([209.85.214.67]:42480 "EHLO
+	mail-bk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019AbaAUJc6 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jan 2014 20:26:45 -0500
-In-Reply-To: <52D992F4.8070500@pandora.be>
+	Tue, 21 Jan 2014 04:32:58 -0500
+Received: by mail-bk0-f67.google.com with SMTP id v16so1035266bkz.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jan 2014 01:32:56 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jan 18, 2014 at 4:30 AM, Bart De Schuymer <bdschuym@pandora.be> wrote:
-> tingwei liu schreef op 17/01/2014 10:14:
->
->> Dear all,
->>
->>         There is  a question has puzzled me for a long time.
->>         You can find the topology from attachment.
->>
->>         Normal traffic is:
->>
->>                 PC(192.168.1.8)--->Bridge(eth0)--->Bridget(eth1)--->NAT
->> server-->switch--->Server(192.168.5.3)
->>
->>         Now I want the ssh traffic like this:
->>                PC(182.168.1.8)--->Bridge(eth0)--->eth2--->NAT
->> server--->switch--->Server(192.168.5.3)
->>
->>
->>        What I have done on LINUX Server:
->>                #net.bridge.bridge-nf-call-iptables = 1
->>                #iptables -t nat -A POSTROUTING -s 192.168.1.8 -p tcp
->> --dport 22 -j SNAT --to-source 192.168.5.2
->>
->>        I have find the rule matched through command "iptables -t nat
->> -nvL", but the packets doesn't sent to 192.168.5.3.
->>        and "tcpdump -i eth2 tcp port 22" can not capture any packet!
->
->
-> You are trying to make a brouter. You don't need to set
-> net.bridge.bridge-nf-call-iptables to 1, instead you need to add an ebtables
-> rule in the BROUTING chain, see:
-> http://ebtables.sourceforge.net/examples/basic.html#ex_brouter
->
-> Something like this (in combination with your existing iptables rules):
-> ebtables -t broute -A BROUTING -p ipv4 --ip-source 192.168.1.8 \
-> --ip-protocol tcp --ip-destination-port 22 \
-> -j redirect --redirect-target DROP
->
-Dear man,
-      This is bad news. It does _not_ work!
-      Is there any idea?
-Thanks for your reply!
+Dear Friend,
 
-> cheers,
-> Bart
->
+I'm happy to inform you about my success in getting the fund
+transferred under the cooperation of a new partner from China .
+Presently I=92m in China for investment projects with my own share of
+the total sum, I have limited access to internet, but I will get back
+to you as soon I finished my project. Meanwhile, I didn't forget your
+past efforts and attempts to assist me in transferring those funds
+despite that it failed us some how.
+
+
+Now contact my secretary, his name is Rve.Garvey Julius and his Email
+Address is as follows: (rve.garvejulius12@hotmail.fr) Ask him to send
+you the sum of $500,000.00 token gift which I kept for you as
+compensation for all the past efforts and attempts to assist me in
+this matter but it was decided by all Might God. I appreciated your
+efforts at that time very much. So feel free and get in touched with
+my secretary Rve.Garvey Julius  and instruct him where to send the
+amount to you.
+
+
+Please do let me know immediately you receive it so that we can share
+the joy after all the sufferness at that time. In the moment, I am
+very busy here because of the investment projects which me and the new
+partner are having at hand, finally, remember that I had forwarded
+instruction to the secretary on your behalf to receive that money, so
+feel free to get in touch with Rve.Garvey Julius and he will send the
+amount to you without any delay.
+
+Contact him through email and also call him on his cell phone +226 76 3=
+2 26 98.
+
+With best regards
+Mr.Baszm Hamza
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
