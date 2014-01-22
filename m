@@ -1,85 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables and sets
-Date: Wed, 22 Jan 2014 15:26:01 +0000
-Message-ID: <20140122152600.GB14817@macbook.localnet>
-References: <CAJO99T=OERsyTy91n=DJSceSdfxUeQVSO5JJtpMwuPyKh6MicQ@mail.gmail.com>
- <20140122144423.GA14025@macbook.localnet>
- <CAJO99T=HBk7_PJG8+SmkqA7NUDuWBvujGckBJ=R_wn0i-7MOsA@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH] files: replace interpreter during installation
+Date: Wed, 22 Jan 2014 17:45:39 +0100
+Message-ID: <CAOkSjBidi2YdLuQaqDBOTDuMVHRPCVnhJFa2zRzpyfEgbQyA8w@mail.gmail.com>
+References: <20140113091623.10582.14579.stgit@nfdev.cica.es>
+ <CAOj-5WAXqwd3eHD0bFNxa031pLcLWwXtHsOxeYbnJxFeUVMYUA@mail.gmail.com> <20140114151605.GA26466@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+Cc: Sam Liddicott <sam@liddicott.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50672 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223AbaAVP0F (ORCPT
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:38338 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659AbaAVQqB convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jan 2014 10:26:05 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJO99T=HBk7_PJG8+SmkqA7NUDuWBvujGckBJ=R_wn0i-7MOsA@mail.gmail.com>
+	Wed, 22 Jan 2014 11:46:01 -0500
+Received: by mail-lb0-f181.google.com with SMTP id z5so515400lbh.40
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jan 2014 08:45:59 -0800 (PST)
+In-Reply-To: <20140114151605.GA26466@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[ please don't drop CCs ]
+On 14 January 2014 16:16, Patrick McHardy <kaber@trash.net> wrote:
+> On Tue, Jan 14, 2014 at 03:00:14PM +0000, Sam Liddicott wrote:
+>> I realise a solution is reached, but an alternative in common use is
+>> mentioned here for completeness;
+>>
+>> #! /usr/bin/env nft -f
+>>
+>> it is commonly used to invoke interpreters whose path is unknown but
+>> which can be expected to be on the PATH
+>
+> I'm find either way. Unless there are arguments for not using env,
+> this seems like the simpler fix.
 
-On Wed, Jan 22, 2014 at 04:09:15PM +0100, Bj=F8rnar Ness wrote:
-> 2014/1/22 Patrick McHardy <kaber@trash.net>:
-> > On Wed, Jan 22, 2014 at 03:09:30PM +0100, Bj=F8rnar Ness wrote:
-> >> Is it planned (or already implemented) support for multiple value =
-vmaps?
-> >> for example {type uid, type ipv4 : verdict}
-> >
-> > We support so called concatenations, basically multiple types glued
-> > together. You can use those for exact matches. However the kernel s=
-ide
-> > is missing a few bits so far.
-> >
-> > Basically:
-> >
-> > nft add map uidmap { type uid . ipv4_address : verdict; }
-> > nft filter input uid . ip saddr @uidmap
-> > nft add element uidmap { root . localhost : drop }
->=20
-> Ok, I see.. this sortoff works, any plans to change from concat to
-> multiple types?
 
-Why? It is multiple types. The thing is if you do multidimensional
-lookups things get a lot more inefficient. For the purpose of
-equality (or membership) it doesn't make any difference.
+Using env with an additional argument (the '-f') seems to fail in my sy=
+stem.
 
-> > The combination doesn't make too much sense of course.
-> >
-> >> Also, using iptables I am doing something like this
-> >>
-> >> -A INPUT -j BLOCK
-> >> -A BLOCK -m set --match-set ignorelist src -j RETURN
-> >> -A BLOCK -m set --match-set blocklist src -j DROP
-> >>
-> >> ..to make sure ips listed in ignorelist does not get blocked..
-> >>
-> >> How would I do the same using nft?
-> >
-> > nft add set ignorelist { type ipv4_address; }
-> > nft add set blocklist { type ipv4_address; }
-> >
-> > nft filter input jump block
-> > nft filter block ip saddr @ignorelist return
-> > nft filter block ip saddr @blocklist drop
->=20
-> Could this be done in cleaner way with nft, for example
->=20
-> nft filter input ip saddr @ignorelist jump_over_next_rule_or_to_label
-> nft filter input ip saddr @blocklist drop
-> nft filter input add label jumplabel
+=3D=3D=3D8<=3D=3D=3D
+#!/usr/bin/env nft -f
+list table filter
+=3D=3D=3D8<=3D=3D=3D
 
-I guess we have different opinions what constitutes cleaner.
-We don't support jumps to rules, but it should be possible
-quite easily to change the code to support:
+% ./test
+/usr/bin/env: nft -f: No such file or directory
 
-nft filter input ip saddr !@ignorelist ip saddr @blocklist drop
-
-to put this into a single rule.
+--=20
+Arturo Borrero Gonz=E1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
