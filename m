@@ -1,77 +1,61 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 04/73] netfilter: don't use module_init/exit in core IPV4 code
-Date: Tue, 21 Jan 2014 16:22:07 -0500
-Message-ID: <1390339396-3479-5-git-send-email-paul.gortmaker@windriver.com>
-References: <1390339396-3479-1-git-send-email-paul.gortmaker@windriver.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] uapi: netfilter_arp: use __u8 instead of u_int8_t
+Date: Tue, 21 Jan 2014 18:47:32 -0800 (PST)
+Message-ID: <20140121.184732.814241116305351762.davem@davemloft.net>
+References: <1390358414-8844-1-git-send-email-vapier@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <linux-arch@vger.kernel.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: <linux-kernel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1390339396-3479-1-git-send-email-paul.gortmaker@windriver.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: vapier@gentoo.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:39404 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858AbaAVCrd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jan 2014 21:47:33 -0500
+In-Reply-To: <1390358414-8844-1-git-send-email-vapier@gentoo.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The file net/ipv4/netfilter.o is created based on whether
-CONFIG_NETFILTER is set.  However that is defined as a bool, and
-hence this file with the core netfilter hooks will never be
-modular.  So using module_init as an alias for __initcall can be
-somewhat misleading.
+From: Mike Frysinger <vapier@gentoo.org>
+Date: Tue, 21 Jan 2014 21:40:14 -0500
 
-Fix this up now, so that we can relocate module_init from
-init.h into module.h in the future.  If we don't do this, we'd
-have to add module.h to obviously non-modular code, and that
-would be a worse thing.  Also add an inclusion of init.h, as
-that was previously implicit here in the netfilter.c file.
+> Subject: [PATCH] uapi: netfilter_arp: use __u8 instead of u_int8_t
+> From:	Mike Frysinger <vapier@gentoo.org>
+> To:	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+> Date:	Tue, 21 Jan 2014 21:40:14 -0500
+> Sender:	netdev-owner@vger.kernel.org
+> X-Mailer: git-send-email 1.8.4.3
+> 
+> Similarly, the u_int8_t type is non-standard and not defined.  Change
+> it to use __u8 like the rest of the netfilter headers.
+> 
+> Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 
-Note that direct use of __initcall is discouraged, vs. one
-of the priority categorized subgroups.  As __initcall gets
-mapped onto device_initcall, our use of subsys_initcall (which
-seems to make sense for netfilter code) will thus change this
-registration from level 6-device to level 4-subsys (i.e. slightly
-earlier).  However no observable impact of that small difference
-has been observed during testing, or is expected. (i.e. the
-location of the netfilter messages in dmesg remains unchanged
-with respect to all the other surrounding messages.)
+Please send netfilter changes to netfilter-devel, CC:'d.
 
-As for the module_exit, rather than replace it with __exitcall,
-we simply remove it, since it appears only UML does anything
-with those, and even for UML, there is no relevant cleanup
-to be done here.
-
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netfilter-devel@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- net/ipv4/netfilter.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
-
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index c3e0ade..31abf96 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -197,11 +197,4 @@ static int __init ipv4_netfilter_init(void)
- {
- 	return nf_register_afinfo(&nf_ip_afinfo);
- }
--
--static void __exit ipv4_netfilter_fini(void)
--{
--	nf_unregister_afinfo(&nf_ip_afinfo);
--}
--
--module_init(ipv4_netfilter_init);
--module_exit(ipv4_netfilter_fini);
-+device_initcall(ipv4_netfilter_init);
--- 
-1.8.4.1
+> ---
+>  include/uapi/linux/netfilter_arp/arpt_mangle.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/netfilter_arp/arpt_mangle.h b/include/uapi/linux/netfilter_arp/arpt_mangle.h
+> index 250f502..8c2b16a 100644
+> --- a/include/uapi/linux/netfilter_arp/arpt_mangle.h
+> +++ b/include/uapi/linux/netfilter_arp/arpt_mangle.h
+> @@ -13,7 +13,7 @@ struct arpt_mangle
+>  	union {
+>  		struct in_addr tgt_ip;
+>  	} u_t;
+> -	u_int8_t flags;
+> +	__u8 flags;
+>  	int target;
+>  };
+>  
+> -- 
+> 1.8.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
