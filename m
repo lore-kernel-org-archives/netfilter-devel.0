@@ -1,29 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [README] bug fixes only...
-Date: Thu, 23 Jan 2014 17:56:29 -0800 (PST)
-Message-ID: <20140123.175629.1402294897531681309.davem@davemloft.net>
-References: <20140123.162408.681541949851852312.davem@davemloft.net>
-	<CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] iptables: iptables-xml segfault if missing -A
+Date: Thu, 23 Jan 2014 22:06:58 -0800
+Message-ID: <20140124060658.GA25711@home>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: cwang@twopensource.com
+Content-Type: multipart/mixed; boundary="VbJkn9YxBvnuCH5J"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:34367 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaAXB4c (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:60427 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaAXGG6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jan 2014 20:56:32 -0500
-In-Reply-To: <CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
+	Fri, 24 Jan 2014 01:06:58 -0500
+Received: by mail-pa0-f47.google.com with SMTP id kp14so2848046pab.34
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jan 2014 22:06:58 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Cong Wang <cwang@twopensource.com>
-Date: Thu, 23 Jan 2014 17:16:58 -0800
 
-> Are the patches submitted before your email still allowed to update?
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-If the feature/cleanup/optimization patch wasn't ready by now, it will
-have to wait until net-next opens back up again.
+As pointed out by Bernhard Reutner-Fischer, a malformed line fed to
+iptables-xml such as the below with a missing space after the -A:
+
+	-APOSTROUTING -d 1.1.1.1/32 -p tcp -j MASQUERADE
+
+causes a segfault.  Patch attached.
+
+This closes netfilter bugzilla #886.
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-iptables-xml
+
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 9628447..c7615ab 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -845,6 +845,11 @@ iptables_xml_main(int argc, char *argv[])
+ 			for (a = 0; a < newargc; a++)
+ 				DEBUGP("argv[%u]: %s\n", a, newargv[a]);
+ 
++			if (!chain) {
++				fprintf(stderr, "%s: line %u failed - no chain found\n",
++					prog_name, line);
++				exit(1);
++			}
+ 			needChain(chain);// Should we explicitly look for -A
+ 			do_rule(pcnt, bcnt, newargc, newargv, newargvattr);
+ 
+
+--VbJkn9YxBvnuCH5J--
