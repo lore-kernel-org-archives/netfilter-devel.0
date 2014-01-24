@@ -1,59 +1,44 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] iptables: iptables-xml segfault if missing -A
-Date: Thu, 23 Jan 2014 22:06:58 -0800
-Message-ID: <20140124060658.GA25711@home>
+From: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Subject: Re: [README] bug fixes only...
+Date: Fri, 24 Jan 2014 09:39:27 +0100
+Message-ID: <20140124083927.GA3153@minipsycho.orion>
+References: <20140123.162408.681541949851852312.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VbJkn9YxBvnuCH5J"
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:60427 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbaAXGG6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Jan 2014 01:06:58 -0500
-Received: by mail-pa0-f47.google.com with SMTP id kp14so2848046pab.34
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jan 2014 22:06:58 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-
---VbJkn9YxBvnuCH5J
 Content-Type: text/plain; charset=us-ascii
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20140123.162408.681541949851852312.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-As pointed out by Bernhard Reutner-Fischer, a malformed line fed to
-iptables-xml such as the below with a missing space after the -A:
+Fri, Jan 24, 2014 at 01:24:08AM CET, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org wrote:
+>
+>I want to see zero feature and/or cleanup patches submitted at this
+>time.
+>
+>net-next is now frozen and I'm going to let it sit for a day before
+>I try to merge it to Linus.
+>
+>Thanks for your understanding.
 
-	-APOSTROUTING -d 1.1.1.1/32 -p tcp -j MASQUERADE
+Hi Dave.
 
-causes a segfault.  Patch attached.
+Please do not forget about the patch named "rtnetlink: remove
+IFLA_BOND_SLAVE definition" which is currently in patchwork.
+It would not be good if the definition got from net-next into linus's tree.
 
-This closes netfilter bugzilla #886.
+Thanks a lot.
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+Jiri
 
-
-
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-iptables-xml
-
-diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
-index 9628447..c7615ab 100644
---- a/iptables/iptables-xml.c
-+++ b/iptables/iptables-xml.c
-@@ -845,6 +845,11 @@ iptables_xml_main(int argc, char *argv[])
- 			for (a = 0; a < newargc; a++)
- 				DEBUGP("argv[%u]: %s\n", a, newargv[a]);
- 
-+			if (!chain) {
-+				fprintf(stderr, "%s: line %u failed - no chain found\n",
-+					prog_name, line);
-+				exit(1);
-+			}
- 			needChain(chain);// Should we explicitly look for -A
- 			do_rule(pcnt, bcnt, newargc, newargv, newargvattr);
- 
-
---VbJkn9YxBvnuCH5J--
+>--
+>To unsubscribe from this list: send the line "unsubscribe netdev" in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
