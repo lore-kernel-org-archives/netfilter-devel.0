@@ -1,31 +1,30 @@
-From: Andreas Herz <andi@geekosphere.org>
-Subject: Re: nftables documentation
-Date: Fri, 24 Jan 2014 01:42:58 +0100
-Message-ID: <20140124004258.GE5409@kvmbude>
-References: <20140123233127.GA17675@macbook.localnet>
+From: Cong Wang <cwang-xCSkyg8dI+0RB7SZvlqPiA@public.gmane.org>
+Subject: Re: [README] bug fixes only...
+Date: Thu, 23 Jan 2014 17:16:58 -0800
+Message-ID: <CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
+References: <20140123.162408.681541949851852312.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.geekosphere.org ([78.47.150.211]:53990 "EHLO
-	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371AbaAXAtF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jan 2014 19:49:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20140123233127.GA17675@macbook.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140123.162408.681541949851852312.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 23/01/14 at 23:31, Patrick McHardy wrote:
-> Just a heads up to avoid duplicate work. I'm currently working on the
-> nftables documentation. I guess I should be done with the first big
-> update in two to three weeks.
+Hi, David
 
-Great.
+On Thu, Jan 23, 2014 at 4:24 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+>
+> I want to see zero feature and/or cleanup patches submitted at this
+> time.
+>
 
-Just for users or also for developers who want to contribute?
+Are the patches submitted before your email still allowed to update?
 
--- 
-Andreas Herz
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
