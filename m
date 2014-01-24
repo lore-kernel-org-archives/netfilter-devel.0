@@ -1,25 +1,35 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: [README] bug fixes only...
-Date: Thu, 23 Jan 2014 16:24:08 -0800 (PST)
-Message-ID: <20140123.162408.681541949851852312.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nftables documentation
+Date: Fri, 24 Jan 2014 00:46:58 +0000
+Message-ID: <20140124004658.GB19553@macbook.localnet>
+References: <20140123233127.GA17675@macbook.localnet>
+ <20140124004258.GE5409@kvmbude>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Andreas Herz <andi@geekosphere.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:64378 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078AbaAXArD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jan 2014 19:47:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20140124004258.GE5409@kvmbude>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Fri, Jan 24, 2014 at 01:42:58AM +0100, Andreas Herz wrote:
+> On 23/01/14 at 23:31, Patrick McHardy wrote:
+> > Just a heads up to avoid duplicate work. I'm currently working on the
+> > nftables documentation. I guess I should be done with the first big
+> > update in two to three weeks.
+> 
+> Great.
+> 
+> Just for users or also for developers who want to contribute?
 
-I want to see zero feature and/or cleanup patches submitted at this
-time.
-
-net-next is now frozen and I'm going to let it sit for a day before
-I try to merge it to Linus.
-
-Thanks for your understanding.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This will be primarily for users - a complete man page, describing all
+the features, objects, commands etc etc. I guess it might also be
+somewhat useful for developers who want to get into it since it will
+explain how everything fits together.
