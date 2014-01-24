@@ -1,48 +1,53 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [README] bug fixes only...
-Date: Fri, 24 Jan 2014 10:26:12 +0100
-Message-ID: <20140124092612.GB3153@minipsycho.orion>
-References: <20140123.162408.681541949851852312.davem@davemloft.net>
- <20140124083927.GA3153@minipsycho.orion>
- <20140124.011800.1437880947731667846.davem@davemloft.net>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [Question and PATCH] nfconntrack: clear counter at IPCTNL_MSG_CT_DELETE
+Date: Fri, 24 Jan 2014 18:45:33 +0900
+Message-ID: <CAGCkEt0rwo0+qT1BHXggHN3946yCCSEkhDrEaucqpAxVVF1s5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+Content-Type: text/plain; charset=ISO-8859-1
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:53811 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096AbaAXJ0Q (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:38606 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922AbaAXJpe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Jan 2014 04:26:16 -0500
-Received: by mail-ea0-f182.google.com with SMTP id r15so851870ead.41
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jan 2014 01:26:15 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20140124.011800.1437880947731667846.davem@davemloft.net>
+	Fri, 24 Jan 2014 04:45:34 -0500
+Received: by mail-la0-f43.google.com with SMTP id pv20so2342242lab.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jan 2014 01:45:33 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fri, Jan 24, 2014 at 10:18:00AM CET, davem@davemloft.net wrote:
->From: Jiri Pirko <jiri@resnulli.us>
->Date: Fri, 24 Jan 2014 09:39:27 +0100
->
->> Fri, Jan 24, 2014 at 01:24:08AM CET, davem@davemloft.net wrote:
->>>
->>>I want to see zero feature and/or cleanup patches submitted at this
->>>time.
->>>
->>>net-next is now frozen and I'm going to let it sit for a day before
->>>I try to merge it to Linus.
->>>
->>>Thanks for your understanding.
->> 
->> Hi Dave.
->> 
->> Please do not forget about the patch named "rtnetlink: remove
->> IFLA_BOND_SLAVE definition" which is currently in patchwork.
->> It would not be good if the definition got from net-next into linus's tree.
->
->I applied it before you wrote this. :-)
+  Hello Pablo, all
 
-Yep, your "applied" message appeared once I sent this :)
+Could we clear counter at IPCTNL_MSG_CT_DELETE?
+
+Assume we call netlink_dump() twice from
+netlink_poll() by mmaped socket. A ct entry which will be dumped at the second
+time is deleted just after the first dump, before the second dump. The delete
+event makes report its counter and mark it deleting.
+
+It seems that we can read the deleting entry at the second time and will dump
+counter value again because it loops in kernel context, Is it right?
+
+thanks,
+---
+ net/netfilter/nf_conntrack_netlink.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c
+b/net/netfilter/nf_conntrack_netlink.c
+index 08870b8..e162ab0 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -219,7 +219,7 @@ dump_counters(struct sk_buff *skb, struct
+nf_conn_acct *acct,
+        struct nlattr *nest_count;
+        u64 pkts, bytes;
+
+-       if (type == IPCTNL_MSG_CT_GET_CTRZERO) {
++       if (type == IPCTNL_MSG_CT_GET_CTRZERO || type == IPCTNL_MSG_CT_DELETE) {
+                pkts = atomic64_xchg(&counter[dir].packets, 0);
+                bytes = atomic64_xchg(&counter[dir].bytes, 0);
+        } else {
+--
+1.7.10.4
