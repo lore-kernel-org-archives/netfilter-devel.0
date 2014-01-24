@@ -1,30 +1,29 @@
-From: Cong Wang <cwang-xCSkyg8dI+0RB7SZvlqPiA@public.gmane.org>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [README] bug fixes only...
-Date: Thu, 23 Jan 2014 17:16:58 -0800
-Message-ID: <CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
+Date: Thu, 23 Jan 2014 17:56:29 -0800 (PST)
+Message-ID: <20140123.175629.1402294897531681309.davem@davemloft.net>
 References: <20140123.162408.681541949851852312.davem@davemloft.net>
+	<CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140123.162408.681541949851852312.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: cwang@twopensource.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:34367 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbaAXB4c (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jan 2014 20:56:32 -0500
+In-Reply-To: <CAHA+R7MtKK-YS8O808a_d-Qm7od+beEvsRjMpWpWZozV1sS1QA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, David
+From: Cong Wang <cwang@twopensource.com>
+Date: Thu, 23 Jan 2014 17:16:58 -0800
 
-On Thu, Jan 23, 2014 at 4:24 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
->
-> I want to see zero feature and/or cleanup patches submitted at this
-> time.
->
+> Are the patches submitted before your email still allowed to update?
 
-Are the patches submitted before your email still allowed to update?
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If the feature/cleanup/optimization patch wasn't ready by now, it will
+have to wait until net-next opens back up again.
