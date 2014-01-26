@@ -1,18 +1,18 @@
 From: Abdul Nasser <abdulnas500@justin.ddo.jp>
 Subject: Kind Regards
-Date: Sun, 26 Jan 2014 21:52:46 +0000
-Message-ID: <SECEXCHANGETvOSQeSO000040f7__42880.5475625724$1390779730$gmane$org@mail.standardelectronics.com>
+Date: Sun, 26 Jan 2014 22:31:27 +0000
+Message-ID: <SECEXCHANGEUzavtVHX00006301@mail.standardelectronics.com>
 Reply-To: s.abdulnasser@yahoo.com.hk
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 To: Recipients <abdulnas500@justin.ddo.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.standardelectronics.com ([74.92.67.124]:55038 "EHLO
+Received: from mail.standardelectronics.com ([74.92.67.124]:55337 "EHLO
 	mail.standardelectronics.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753438AbaAZXjG convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1753438AbaAZXjB convert rfc822-to-8bit
 	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Jan 2014 18:39:06 -0500
+	Sun, 26 Jan 2014 18:39:01 -0500
 Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
