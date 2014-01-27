@@ -1,66 +1,352 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RESEND v2 1/1] netfilter: xtables: add quota support to
- nfacct
-Date: Mon, 27 Jan 2014 17:44:20 +0100
-Message-ID: <20140127164420.GA8666@localhost>
-References: <1390766673-21444-1-git-send-email-mathieu.poirier@linaro.org>
- <1390766673-21444-2-git-send-email-mathieu.poirier@linaro.org>
- <20140126230231.GA29022@breakpoint.cc>
- <CANLsYkxaBuQz2-Bos+mE1YYXY9AbXX6HxLEGO9xgYGnKU9RXGA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, kaber <kaber@trash.net>,
-	kadlec <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org,
-	John Stultz <john.stultz@linaro.org>
-To: Mathieu Poirier <mathieu.poirier@linaro.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50003 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753810AbaA0Qoa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Jan 2014 11:44:30 -0500
-Content-Disposition: inline
-In-Reply-To: <CANLsYkxaBuQz2-Bos+mE1YYXY9AbXX6HxLEGO9xgYGnKU9RXGA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: mathieu.poirier@linaro.org
+Subject: [PATCH v3] netfilter: xtables: add quota support to nfacct
+Date: Mon, 27 Jan 2014 10:08:02 -0700
+Message-ID: <1390842482-2294-1-git-send-email-mathieu.poirier@linaro.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	mathieu.poirier@linaro.org, john.stultz@linaro.org
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 27, 2014 at 08:35:38AM -0700, Mathieu Poirier wrote:
-> On 26 January 2014 16:02, Florian Westphal <fw@strlen.de> wrote:
-> > mathieu.poirier@linaro.org <mathieu.poirier@linaro.org> wrote:
-> >
-> > [ removed netfilter@ from CC ]
-> >
-> >> Adding packet and byte quota support.  Once a quota has been
-> >> reached a noticifaction is sent to user space that includes
-> >> the name of the accounting object along with the current byte
-> >> and packet count.
-> >>
-> >> Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
-> >> diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
-> >> index 3e19c8a..d38104f 100644
-> >> --- a/include/uapi/linux/netfilter/xt_nfacct.h
-> >> +++ b/include/uapi/linux/netfilter/xt_nfacct.h
-> >> @@ -3,11 +3,25 @@
-> >>
-> >> +struct xt_nfacct_match_info_v1 {
-> >> +     char            name[NFACCT_NAME_MAX];
-> >> +     struct nf_acct  *nfacct;
-> >> +
-> >> +     __u32 flags;
-> >> +     __aligned_u64 quota;
-> >> +     struct nf_acct_quota    *priv;
-> >> +};
-> >
-> > I think that pointers should be aligned to 8-byte boundary, else
-> > this can cause issues with 32-bit-userspace-on-64-bit-kernel.
-> 
-> Something like  "struct nf_acct_quota    *priv __attribute__((aligned(8)));" ?
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
 
-If you follow this approach yes. I told you already:
+Adding packet and byte quota support.  Once a quota has been
+reached a noticifaction is sent to user space that includes
+the name of the accounting object along with the current byte
+and packet count.
 
-http://permalink.gmane.org/gmane.comp.security.firewalls.netfilter.devel/50191
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+---
+ include/linux/netfilter/nfnetlink_acct.h      |  11 ++-
+ include/uapi/linux/netfilter/nfnetlink.h      |   2 +
+ include/uapi/linux/netfilter/nfnetlink_acct.h |   1 +
+ include/uapi/linux/netfilter/xt_nfacct.h      |  15 ++++
+ net/netfilter/Kconfig                         |   3 +-
+ net/netfilter/nfnetlink_acct.c                |  35 ++++++---
+ net/netfilter/xt_nfacct.c                     | 108 +++++++++++++++++++++++---
+ 7 files changed, 152 insertions(+), 23 deletions(-)
 
-but for whatever reason this was ignored, so please make an effort to
-address all comments.
+diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+index b2e85e5..490b83e 100644
+--- a/include/linux/netfilter/nfnetlink_acct.h
++++ b/include/linux/netfilter/nfnetlink_acct.h
+@@ -3,11 +3,18 @@
+ 
+ #include <uapi/linux/netfilter/nfnetlink_acct.h>
+ 
+-
+-struct nf_acct;
++struct nf_acct {
++	atomic64_t		pkts;
++	atomic64_t		bytes;
++	struct list_head	head;
++	atomic_t		refcnt;
++	char			name[NFACCT_NAME_MAX];
++	struct rcu_head		rcu_head;
++};
+ 
+ struct nf_acct *nfnl_acct_find_get(const char *filter_name);
+ void nfnl_acct_put(struct nf_acct *acct);
+ void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
++void nfnl_quota_event(struct nf_acct *cur);
+ 
+ #endif /* _NFNL_ACCT_H */
+diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
+index 596ddd4..354a7e5 100644
+--- a/include/uapi/linux/netfilter/nfnetlink.h
++++ b/include/uapi/linux/netfilter/nfnetlink.h
+@@ -20,6 +20,8 @@ enum nfnetlink_groups {
+ #define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
+ 	NFNLGRP_NFTABLES,
+ #define NFNLGRP_NFTABLES                NFNLGRP_NFTABLES
++	NFNLGRP_ACCT_QUOTA,
++#define NFNLGRP_ACCT_QUOTA		NFNLGRP_ACCT_QUOTA
+ 	__NFNLGRP_MAX,
+ };
+ #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
+diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
+index c7b6269..ae8ea0a 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_acct.h
++++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
+@@ -19,6 +19,7 @@ enum nfnl_acct_type {
+ 	NFACCT_PKTS,
+ 	NFACCT_BYTES,
+ 	NFACCT_USE,
++	NFACCT_QUOTA,
+ 	__NFACCT_MAX
+ };
+ #define NFACCT_MAX (__NFACCT_MAX - 1)
+diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
+index 3e19c8a..23f536c 100644
+--- a/include/uapi/linux/netfilter/xt_nfacct.h
++++ b/include/uapi/linux/netfilter/xt_nfacct.h
+@@ -3,11 +3,26 @@
+ 
+ #include <linux/netfilter/nfnetlink_acct.h>
+ 
++enum xt_quota_flags {
++	XT_NFACCT_QUOTA_PKTS	= 1 << 0,
++	XT_NFACCT_QUOTA		= 1 << 1,
++};
++
+ struct nf_acct;
++struct nf_acct_quota;
+ 
+ struct xt_nfacct_match_info {
+ 	char		name[NFACCT_NAME_MAX];
+ 	struct nf_acct	*nfacct;
+ };
+ 
++struct xt_nfacct_match_info_v1 {
++	char		name[NFACCT_NAME_MAX];
++	struct nf_acct	*nfacct;
++
++	__u32 flags;
++	__aligned_u64 quota;
++	/* used internally by kernel */
++	struct nf_acct_quota	*priv __attribute__((aligned(8)));
++};
+ #endif /* _XT_NFACCT_MATCH_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 748f304..ce184951 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1108,7 +1108,8 @@ config NETFILTER_XT_MATCH_NFACCT
+ 	select NETFILTER_NETLINK_ACCT
+ 	help
+ 	  This option allows you to use the extended accounting through
+-	  nfnetlink_acct.
++	  nfnetlink_acct.  It is also possible to add quotas at the
++	  packet and byte level.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index c7b6d46..d825f60 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -29,15 +29,6 @@ MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastructure");
+ 
+ static LIST_HEAD(nfnl_acct_list);
+ 
+-struct nf_acct {
+-	atomic64_t		pkts;
+-	atomic64_t		bytes;
+-	struct list_head	head;
+-	atomic_t		refcnt;
+-	char			name[NFACCT_NAME_MAX];
+-	struct rcu_head		rcu_head;
+-};
+-
+ static int
+ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+@@ -92,7 +83,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 	return 0;
+ }
+ 
+-static int
++int
+ nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 		   int event, struct nf_acct *acct)
+ {
+@@ -134,6 +125,7 @@ nla_put_failure:
+ 	nlmsg_cancel(skb, nlh);
+ 	return -1;
+ }
++EXPORT_SYMBOL_GPL(nfnl_acct_fill_info);
+ 
+ static int
+ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+@@ -336,6 +328,29 @@ void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct)
+ }
+ EXPORT_SYMBOL_GPL(nfnl_acct_update);
+ 
++void
++nfnl_quota_event(struct nf_acct *cur)
++{
++	int ret;
++	struct sk_buff *skb;
++
++	skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
++	if (skb == NULL)
++		return;
++
++	ret = nfnl_acct_fill_info(skb, 0, 0, NFACCT_QUOTA,
++				 NFNL_MSG_ACCT_NEW, cur);
++
++	if (ret <= 0) {
++		kfree_skb(skb);
++		return;
++	}
++
++	netlink_broadcast(init_net.nfnl, skb, 0,
++			 NFNLGRP_ACCT_QUOTA, GFP_ATOMIC);
++}
++EXPORT_SYMBOL_GPL(nfnl_quota_event);
++
+ static int __init nfnl_acct_init(void)
+ {
+ 	int ret;
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index b3be0ef..c557620 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -8,9 +8,12 @@
+  */
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
++#include <linux/spinlock.h>
+ 
++#include <net/netlink.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/nfnetlink_acct.h>
++#include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/xt_nfacct.h>
+ 
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+@@ -19,6 +22,11 @@ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_nfacct");
+ MODULE_ALIAS("ip6t_nfacct");
+ 
++struct nf_acct_quota {
++	spinlock_t lock;
++	bool quota_reached; /* true if quota has been reached. */
++};
++
+ static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_nfacct_match_info *info = par->targinfo;
+@@ -28,6 +36,36 @@ static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return true;
+ }
+ 
++static bool
++nfacct_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	u64 val;
++	const struct xt_nfacct_match_info_v1 *info = par->matchinfo;
++	bool ret = true;
++
++	nfnl_acct_update(skb, info->nfacct);
++
++	if (info->flags & XT_NFACCT_QUOTA) {
++		spin_lock_bh(&info->priv->lock);
++		val = (info->flags & XT_NFACCT_QUOTA_PKTS) ?
++				atomic64_read(&info->nfacct->pkts) :
++				atomic64_read(&info->nfacct->bytes);
++		if (val <= info->quota) {
++			ret = !ret;
++			info->priv->quota_reached = false;
++		}
++
++		if (val >= info->quota && !info->priv->quota_reached) {
++			info->priv->quota_reached = true;
++			nfnl_quota_event(info->nfacct);
++		}
++
++		spin_unlock_bh(&info->priv->lock);
++	}
++
++	return ret;
++}
++
+ static int
+ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+ {
+@@ -44,6 +82,34 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int
++nfacct_mt_checkentry_v1(const struct xt_mtchk_param *par)
++{
++	struct xt_nfacct_match_info_v1 *info = par->matchinfo;
++	struct nf_acct *nfacct;
++
++	nfacct = nfnl_acct_find_get(info->name);
++	if (nfacct == NULL) {
++		pr_info("xt_nfacct: invalid accounting object `%s'\n",
++		       info->name);
++		return -ENOENT;
++	}
++
++	info->nfacct = nfacct;
++
++	if ((info->flags & XT_NFACCT_QUOTA) && !info->priv) {
++		info->priv =  kmalloc(sizeof(struct nf_acct_quota), GFP_KERNEL);
++		if (info->priv == NULL) {
++			nfnl_acct_put(info->nfacct);
++			return -ENOMEM;
++		}
++		spin_lock_init(&info->priv->lock);
++		info->priv->quota_reached = false;
++	}
++
++	return 0;
++}
++
+ static void
+ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
+ {
+@@ -52,24 +118,46 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
+ 	nfnl_acct_put(info->nfacct);
+ }
+ 
+-static struct xt_match nfacct_mt_reg __read_mostly = {
+-	.name       = "nfacct",
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = nfacct_mt_checkentry,
+-	.match      = nfacct_mt,
+-	.destroy    = nfacct_mt_destroy,
+-	.matchsize  = sizeof(struct xt_nfacct_match_info),
+-	.me         = THIS_MODULE,
++static void
++nfacct_mt_destroy_v1(const struct xt_mtdtor_param *par)
++{
++	const struct xt_nfacct_match_info_v1 *info = par->matchinfo;
++
++	nfnl_acct_put(info->nfacct);
++	kfree(info->priv);
++}
++
++static struct xt_match nfacct_mt_reg[] __read_mostly = {
++	{
++		.name       = "nfacct",
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry,
++		.match      = nfacct_mt,
++		.destroy    = nfacct_mt_destroy,
++		.matchsize  = sizeof(struct xt_nfacct_match_info),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "nfacct",
++		.revision   = 1,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry_v1,
++		.match      = nfacct_mt_v1,
++		.destroy    = nfacct_mt_destroy_v1,
++		.matchsize  = sizeof(struct xt_nfacct_match_info_v1),
++		.me         = THIS_MODULE,
++	},
++
+ };
+ 
+ static int __init nfacct_mt_init(void)
+ {
+-	return xt_register_match(&nfacct_mt_reg);
++	return xt_register_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ static void __exit nfacct_mt_exit(void)
+ {
+-	xt_unregister_match(&nfacct_mt_reg);
++	xt_unregister_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ module_init(nfacct_mt_init);
+-- 
+1.8.3.2
 
-Thank you.
