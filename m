@@ -1,32 +1,48 @@
-From: "Yung kim" <pawel.dobrzanski@prawo.uni.wroc.pl>
-Subject: I HAVE A PROPOSAL FOR YOU!
-Date: Tue, 28 Jan 2014 12:08:09 +0100 (CET)
-Message-ID: <4e23ac4db5c67f736eaf2d412a2219e9.squirrel__19920.2373311438$1390909306$gmane$org@prawo.uni.wroc.pl>
-Reply-To: yung.kim@qq.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)
+From: Eric Leblond <eric@regit.org>
+Subject: [ulogd RFC PATCH 0/2] New JSON output plugin
+Date: Tue, 28 Jan 2014 23:41:25 +0100
+Message-ID: <1390948887-2112-1-git-send-email-eric@regit.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx.prawo.uni.wroc.pl ([156.17.122.2]:59281 "EHLO
-	mx.prawo.uni.wroc.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513AbaA1Lld convert rfc822-to-8bit (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:56241 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923AbaA1Wlo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jan 2014 06:41:33 -0500
+	Tue, 28 Jan 2014 17:41:44 -0500
+Received: from bayen.regit.org ([81.57.69.189] helo=ice-age2.regit.org)
+	by ks28632.kimsufi.com with esmtpsa (TLS1.2:RSA_AES_128_CBC_SHA256:128)
+	(Exim 4.80)
+	(envelope-from <eric@regit.org>)
+	id 1W8HLf-0006eI-Gl
+	for netfilter-devel@vger.kernel.org; Tue, 28 Jan 2014 23:41:42 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+
+
 Hello,
 
-The Project is about the exportation of 100,000 barrels of Light Crude
-Oil daily out from Iraq to Turkey through my client's company in Iraq
-at the rate of $92.00 a barrel. This amount to $9,200,000 daily. I ask
-for your support as a foreigner to handle this business project with my
-client and you are not expected to invest in Iraq
+Here's a patchset introducing a new output plugin for ulogd. Called
+JSON, this output plugin write events in JSON format to a file. This
+format has the advantage of being easily parsed by logging system
+such as logstash (or the proprietary splunk).
 
-If yes, let me know and we will discuss this project proper.
+To ease interaction with other source events such as syslog, it is
+important to use the normalised field names. Common Information
+Model is used by splunk and seem to be used in most logstash config
+snippet. So I've decided to upgrade ulogd key to be able to store 
+the CIM key name in them.
 
-yung kim.
+Patchset statistics:
+ configure.ac                              |  12 ++
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  10 +-
+ filter/ulogd_filter_IP2STR.c              |   4 +
+ include/ulogd/ulogd.h                     |   3 +
+ output/Makefile.am                        |  10 ++
+ output/ulogd_output_JSON.c                | 254 ++++++++++++++++++++++++++++++
+ ulogd.conf.in                             |  15 ++
+ 7 files changed, 306 insertions(+), 2 deletions(-)
 
-yung.kim@qq.com
-
+BR,
+--
+Eric
