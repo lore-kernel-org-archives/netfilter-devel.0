@@ -1,25 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [BUG PATCH] Memory leak on tcp_prot slab with TPROXY and TCP
- early demux
-Date: Mon, 27 Jan 2014 16:23:18 -0800 (PST)
-Message-ID: <20140127.162318.1731809648251258860.davem@davemloft.net>
-References: <20140127093317.GU7176@imap.eitzenberger.org>
+From: "Yung kim" <pawel.dobrzanski@prawo.uni.wroc.pl>
+Subject: I HAVE A PROPOSAL FOR YOU!
+Date: Tue, 28 Jan 2014 12:08:09 +0100 (CET)
+Message-ID: <4e23ac4db5c67f736eaf2d412a2219e9.squirrel__19920.2373311438$1390909306$gmane$org@prawo.uni.wroc.pl>
+Reply-To: yung.kim@qq.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-To: holger@eitzenberger.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140127093317.GU7176@imap.eitzenberger.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx.prawo.uni.wroc.pl ([156.17.122.2]:59281 "EHLO
+	mx.prawo.uni.wroc.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513AbaA1Lld convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Jan 2014 06:41:33 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Date: Mon, 27 Jan 2014 10:33:18 +0100
+Hello,
 
-> Please have a look, there could be smarter ways of fixing that.
+The Project is about the exportation of 100,000 barrels of Light Crude
+Oil daily out from Iraq to Turkey through my client's company in Iraq
+at the rate of $92.00 a barrel. This amount to $9,200,000 daily. I ask
+for your support as a foreigner to handle this business project with my
+client and you are not expected to invest in Iraq
 
-Looks good, applied and queued up for -stable.
+If yes, let me know and we will discuss this project proper.
 
-Thanks!
+yung kim.
+
+yung.kim@qq.com
+
