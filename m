@@ -1,31 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH] netfilter: nft_ct: fix unconditional dump of
- 'dir' attr
-Date: Wed, 29 Jan 2014 20:22:34 +0100
-Message-ID: <20140129192234.GA11531@localhost>
-References: <20140117012845.2934.34608.stgit@nfdev.cica.es>
+Subject: Re: [PATCH] netfilter: nf_tables: fix oops when deleting a chain
+ with references
+Date: Wed, 29 Jan 2014 20:22:54 +0100
+Message-ID: <20140129192254.GB11531@localhost>
+References: <20140125080407.GA15949@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44575 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44621 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752079AbaA2TWt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jan 2014 14:22:49 -0500
+	id S1752871AbaA2TXA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Jan 2014 14:23:00 -0500
 Content-Disposition: inline
-In-Reply-To: <20140117012845.2934.34608.stgit@nfdev.cica.es>
+In-Reply-To: <20140125080407.GA15949@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 17, 2014 at 02:28:45AM +0100, Arturo Borrero Gonzalez wrote:
-> We want to make sure that the information that we get from the kernel can be
-> reinjected without troubles.
+On Sat, Jan 25, 2014 at 08:04:07AM +0000, Patrick McHardy wrote:
+> commit 780f57420cdac84eabec388868678ede19f7d682
+> Author: Patrick McHardy <kaber@trash.net>
+> Date:   Fri Jan 24 13:23:52 2014 +0000
 > 
-> The kernel shouldn't return an attribute that is not required, or even
-> prohibited.
+>     netfilter: nf_tables: fix oops when deleting a chain with references
 > 
-> Dump unconditionally NFTA_CT_DIRECTION could lead an application in
-> userspace to interpret that the attribute was originally set, while it was not.
+>     THe following commands trigger an oops:
+> 
+>     # nft -i
+>     nft> add table filter
+>     nft> add chain filter input { type filter hook input priority 0; }
+>     nft> add chain filter test 
+>     nft> add rule filter input jump test
+>     nft> delete chain filter test
+>     
+>     We need to check the chain use counter before allowing destruction since
+>     we might have references from sets or jump rules.
 
-Applied, thanks Arturo.
+Applied, thanks Patrick.
