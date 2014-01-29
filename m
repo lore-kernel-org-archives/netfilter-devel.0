@@ -1,52 +1,66 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [Patch resend nf] ipvs: fix AF assignment in ip_vs_conn_new()
-Date: Wed, 29 Jan 2014 15:54:37 +0100 (CET)
-Message-ID: <20140129145437.69F56E916F@unicorn.suse.cz>
-Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_conntrack: fix RCU race in
+ nf_conntrack_find_get (v3)
+Date: Wed, 29 Jan 2014 20:21:37 +0100
+Message-ID: <20140129192136.GA7151@localhost>
+References: <1389188841.26646.87.camel@edumazet-glaptop2.roam.corp.google.com>
+ <1389549033-23523-1-git-send-email-avagin@openvz.org>
+ <1389558074.31367.187.camel@edumazet-glaptop2.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrey Vagin <avagin@openvz.org>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Florian Westphal <fw@strlen.de>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: netfilter-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
+	"David S. Miller" <davem@davemloft.net>,
+	Cyrill Gorcunov <gorcunov@openvz.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1389558074.31367.187.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-If a fwmark is passed to ip_vs_conn_new(), it is passed in
-vaddr, not daddr. Therefore we should set AF to AF_UNSPEC in
-vaddr assignment (like we do in ip_vs_ct_in_get()).
+On Sun, Jan 12, 2014 at 12:21:14PM -0800, Eric Dumazet wrote:
+> On Sun, 2014-01-12 at 21:50 +0400, Andrey Vagin wrote:
+> > Lets look at destroy_conntrack:
+> > 
+> > hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+> > ...
+> > nf_conntrack_free(ct)
+> > 	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+> > 
+> > net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
+> > 
+> > The hash is protected by rcu, so readers look up conntracks without
+> > locks.
+> > A conntrack is removed from the hash, but in this moment a few readers
+> > still can use the conntrack. Then this conntrack is released and another
+> > thread creates conntrack with the same address and the equal tuple.
+> > After this a reader starts to validate the conntrack:
+> > * It's not dying, because a new conntrack was created
+> > * nf_ct_tuple_equal() returns true.
+> ...
+> 
+> 
+> > v2: move nf_ct_is_confirmed into the unlikely() annotation
+> > v3: Eric suggested to fix refcnt, so that it becomes zero before adding
+> >     in a hash, but we can't find a way how to do that. Another way is to
+> >     interpret the confirm bit as part of a search key and check it in
+> >     ____nf_conntrack_find() too.
+> > 
+> > Cc: Eric Dumazet <eric.dumazet@gmail.com>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Patrick McHardy <kaber@trash.net>
+> > Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+> > Signed-off-by: Andrey Vagin <avagin@openvz.org>
+> > ---
+> 
+> Acked-by: Eric Dumazet <edumazet@google.com>
 
-Signed-off-by: Bogdano Arendartchuk <barendartchuk@suse.com>
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
----
-(first time it didn't reach all recipients due to a malformed header)
----
- net/netfilter/ipvs/ip_vs_conn.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 59a1a85..282b39b 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -871,11 +871,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p,
- 	cp->protocol	   = p->protocol;
- 	ip_vs_addr_set(p->af, &cp->caddr, p->caddr);
- 	cp->cport	   = p->cport;
--	ip_vs_addr_set(p->af, &cp->vaddr, p->vaddr);
--	cp->vport	   = p->vport;
--	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
-+	/* proto should only be IPPROTO_IP if p->vaddr is a fwmark */
- 	ip_vs_addr_set(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
--		       &cp->daddr, daddr);
-+		       &cp->vaddr, vaddr);
-+	cp->vport	   = p->vport;
-+	ip_vs_addr_set(p->af, &cp->daddr, p->daddr);
- 	cp->dport          = dport;
- 	cp->flags	   = flags;
- 	cp->fwmark         = fwmark;
--- 
-1.8.1.4
-
+Applied, thanks everyone!
