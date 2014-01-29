@@ -1,40 +1,30 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: nftables with ipset combined types
-Date: Wed, 29 Jan 2014 12:48:04 +0100
-Message-ID: <CAOkSjBjyZh9EcbExmzpYH_WkjOfpWH2Voggy0khyWsMNcHq8MQ@mail.gmail.com>
-References: <52E8AD76.5050808@aim.com> <20140129093010.GA4332@localhost> <24843182.8UhhjTCEZr@rofl>
+From: Yung kyu kim <decha.pu@police.go.th>
+Subject: STAKEHOLDER NEEDED!!!
+Date: Wed, 29 Jan 2014 19:21:49 +0700 (ICT)
+Message-ID: <1482091352.28772.1390998109770.JavaMail.root__4769.20978767357$1391002091$gmane$org@mail.police.go.th>
+Reply-To: "2650326406@qq.com" <2650326406@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick Schaaf <netdev@bof.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:45482 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbaA2Ls0 convert rfc822-to-8bit (ORCPT
+Received: from mailfilter.police.go.th ([58.97.43.174]:41146 "EHLO
+	mailfilter.police.go.th" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716AbaA2N1m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jan 2014 06:48:26 -0500
-Received: by mail-lb0-f173.google.com with SMTP id y6so1380036lbh.32
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2014 03:48:25 -0800 (PST)
-In-Reply-To: <24843182.8UhhjTCEZr@rofl>
+	Wed, 29 Jan 2014 08:27:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 29 January 2014 12:34, Patrick Schaaf <netdev@bof.de> wrote:
->
-> If I'm not mistaken, sets in nftables are right now scoped within a t=
-able,
-> so I could not reuse them in that fashion.
->
+ Hello,
 
-AFAIK, by now this is true.
+The Project is about the exportation of 100,000 barrels of Light Crude
+Oil daily out from Iraq to Turkey through my client's company in Iraq
+at the rate of $92.00 per barrel. This amount to $9,200,000 daily. I ask
+for your support as a foreigner to handle this business project with my
+client and you are not expected to invest in Iraq
 
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If yes, let me know and we will discuss this project proper.
+
+Kim.
+Email :2784295239@qq.com
