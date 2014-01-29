@@ -1,138 +1,57 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [ulogd PATCH 1/2] store Common Information Model name in ulogd key
-Date: Tue, 28 Jan 2014 23:41:26 +0100
-Message-ID: <1390948887-2112-2-git-send-email-eric@regit.org>
-References: <1390948887-2112-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
+From: Brian Allen Vanderburg II <brianvanderburg2@aim.com>
+Subject: nftables with ipset combined types
+Date: Wed, 29 Jan 2014 02:27:50 -0500
+Message-ID: <52E8AD76.5050808@aim.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:56244 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923AbaA1Wlt (ORCPT
+Received: from omr-m08.mx.aol.com ([64.12.222.129]:56622 "EHLO
+	omr-m08.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbaA2Hcm convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jan 2014 17:41:49 -0500
-In-Reply-To: <1390948887-2112-1-git-send-email-eric@regit.org>
+	Wed, 29 Jan 2014 02:32:42 -0500
+Received: from mtaout-mcc02.mx.aol.com (mtaout-mcc02.mx.aol.com [172.26.253.78])
+	by omr-m08.mx.aol.com (Outbound Mail Relay) with ESMTP id 192D3701B7256
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2014 02:26:46 -0500 (EST)
+Received: from [192.168.1.102] (cpe-069-132-214-147.carolina.res.rr.com [69.132.214.147])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mtaout-mcc02.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id BDB81380000A9
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2014 02:26:45 -0500 (EST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds storage for CIM field name in ulogd key. This
-will be used by JSON output to interoperate with logging
-collector such as logstash or splunk.
+I use ipset for my setup to simplify certain iptables rules. I have
+rules to allow trusted networks and trusted services using two different
+sets.  The services set is a hash:net,port set, and the network set its
+a hash:net,iface set.  Is it planned to have sets that can contain
+multiple value entries in nftables?  Also, as some of my interfaces are
+dynamic, would such sets support interface names instead of indexes? 
+Something like { (10.10.1.0/24,"eth0"), (10.20.1.0/24,"tap0") }?  Or if
+not, is there a way to use the existing ipset utility with nftables?
 
-Common Information Model is an open standard that defines how managed
-elements in an IT environment are represented as a common set of objects
-and relationships between them:
- http://www.dmtf.org/standards/cim
+# Allow access to all services for traffic to/from certain networks on
+specific interfaces
+iptables -A INPUT -m set --match-set networks src,src -j ACCEPT
+iptables -A OUTPUT -m set --match-set networks dst,dst -j ACCEPT
 
-This seems to be mainly XML based but there is a JSON version of some
-aspects of the model. One of the main documentation on CIM in JSON
-format seems to be:
- http://docs.splunk.com/Documentation/PCI/2.0/DataSource/CommonInformationModelFieldReference
+# Allow access to specific services from certain networks
+iptables -A INPUT -m set --match-set services dst,src -j ACCEPT
+iptables -A OUTPUT -m set --match-set services src,dst -j ACCEPT
 
-Using the correct CIM field name allow events coming from ulogd to be
-correlated with events coming from other sources.
+# Perhaps translated to nft as
+nft filter input ip saddr + iifname @networks accept
+nft filter output ip daddr + oifname @networks accept
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- filter/raw2packet/ulogd_raw2packet_BASE.c | 10 ++++++++--
- filter/ulogd_filter_IP2STR.c              |  4 ++++
- include/ulogd/ulogd.h                     |  3 +++
- 3 files changed, 15 insertions(+), 2 deletions(-)
+nft filter input ip saddr + dport @services accept
+nft filter output ip daddr + sport @services accept
 
-diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
-index 8dfe38e..c9d5227 100644
---- a/filter/raw2packet/ulogd_raw2packet_BASE.c
-+++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
-@@ -259,6 +259,7 @@ static struct ulogd_key iphdr_rets[] = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_tcpSourcePort,
- 		},
-+		.cim_name = "src_port",
- 	},
- 	[KEY_TCP_DPORT] = {
- 		.type = ULOGD_RET_UINT16,
-@@ -268,6 +269,7 @@ static struct ulogd_key iphdr_rets[] = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_tcpDestinationPort,
- 		},
-+		.cim_name = "dest_port",
- 	},
- 	[KEY_TCP_SEQ] = {
- 		.type = ULOGD_RET_UINT32,
-@@ -368,6 +370,7 @@ static struct ulogd_key iphdr_rets[] = {
- 			.vendor = IPFIX_VENDOR_IETF, 
- 			.field_id = IPFIX_udpSourcePort,
- 		},
-+		.cim_name = "src_port",
- 	},
- 	[KEY_UDP_DPORT] = {
- 		.type = ULOGD_RET_UINT16,
-@@ -377,6 +380,7 @@ static struct ulogd_key iphdr_rets[] = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_udpDestinationPort,
- 		},
-+		.cim_name = "dest_port",
- 	},
- 	[KEY_UDP_LEN] = {
- 		.type = ULOGD_RET_UINT16,
-@@ -512,12 +516,14 @@ static struct ulogd_key iphdr_rets[] = {
- 	[KEY_SCTP_SPORT] = {
- 		.type = ULOGD_RET_UINT16,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "sctp.sport", 
-+		.name = "sctp.sport",
-+		.cim_name = "src_port",
- 	},
- 	[KEY_SCTP_DPORT] = {
- 		.type = ULOGD_RET_UINT16,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "sctp.dport", 
-+		.name = "sctp.dport",
-+		.cim_name = "dest_port",
- 	},
- 	[KEY_SCTP_CSUM] = {
- 		.type = ULOGD_RET_UINT32,
-diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
-index 44157fe..732e1ef 100644
---- a/filter/ulogd_filter_IP2STR.c
-+++ b/filter/ulogd_filter_IP2STR.c
-@@ -102,18 +102,22 @@ static struct ulogd_key ip2str_keys[] = {
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.name = "ip.saddr.str",
-+		.cim_name = "src_ip",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.name = "ip.daddr.str",
-+		.cim_name = "dest_ip",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.name = "orig.ip.saddr.str",
-+		.cim_name = "src_ip",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.name = "orig.ip.daddr.str",
-+		.cim_name = "dest_ip",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index cc2f15c..cf26a15 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -98,6 +98,9 @@ struct ulogd_key {
- 		u_int16_t	field_id;
- 	} ipfix;
- 
-+	/* Store field name for Common Information Model */
-+	char *cim_name;
-+
- 	union {
- 		/* and finally the returned value */
- 		union {
--- 
-1.9.rc1
+I have seem that this might be possible with maps, but one feature of a
+set over a map that I like seems to be I'd only have to add the matching
+information to the set, while the action such as accept, drop, or jump
+is not part of the set but is hard-coded in the added rule.
+
+Brian Vanderburg II
 
