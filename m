@@ -1,91 +1,70 @@
-From: Martin Topholm <mph@one.com>
-Subject: [PATCH] extensions: libxt_SYNPROXY: initial manual page
-Date: Thu, 30 Jan 2014 14:47:26 +0100
-Message-ID: <1391089646-6048-1-git-send-email-mph@one.com>
-Cc: fwestpha@redhat.com, jbrouer@redhat.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nftables] mnl: fix inclusion of last rule in batch page
+Date: Thu, 30 Jan 2014 16:50:46 +0100
+Message-ID: <1391097046-4177-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kontorsmtp2.one.com ([195.47.247.17]:59450 "EHLO
-	kontorsmtp2.one.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950AbaA3N4f (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jan 2014 08:56:35 -0500
+Received: from mail.us.es ([193.147.175.20]:54878 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752808AbaA3Pu4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jan 2014 10:50:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Martin Topholm <mph@one.com>
----
- extensions/libxt_SYNPROXY.man | 64 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
- create mode 100644 extensions/libxt_SYNPROXY.man
+This patch fixes the inclusion of the last rule that didn't fit
+into a batch page.
 
-diff --git a/extensions/libxt_SYNPROXY.man b/extensions/libxt_SYNPROXY.man
-new file mode 100644
-index 0000000..d10561a
---- /dev/null
-+++ b/extensions/libxt_SYNPROXY.man
-@@ -0,0 +1,64 @@
-+This target will process TCP three-way-handshake parallel in netfilter
-+context to protect either local or backend system. The netfilter system
-+will need to be inline because sequence numbers need to be translated.
-+.TP
-+\fB\-\-mss\fP \fImaximum segment size\fP
-+Maximum segment size announced to clients. This must match the backend.
-+.TP
-+\fB\-\-wscale\fP \fIwindow scale\fP
-+Window scale announced to clients. This must match the backend.
-+.TP
-+\fB\-\-sack\-perm\fP
-+Pass client selective acknowledgement option to backend (will be disabled
-+if not present).
-+.TP
-+\fB\-\-timestamps\fP
-+Pass client timestamp option to backend (will be disabled if not present,
-+also needed for selective acknowledgement and window scaling).
-+.PP
-+Example:
-+.PP
-+Determine tcp options used by backend, from an external system
-+.IP
-+tcpdump -pni eth0 -c 1 'tcp[tcpflags] == (tcp-syn|tcp-ack)'
-+.br
-+    port 80 &
-+.br
-+telnet 192.0.2.42 80
-+.br
-+18:57:24.693307 IP 192.0.2.42.80 > 192.0.2.43.48757:
-+.br
-+    Flags [S.], seq 360414582, ack 788841994, win 14480,
-+.br
-+    options [mss 1460,sackOK,
-+.br
-+    TS val 1409056151 ecr 9690221,
-+.br
-+    nop,wscale 9],
-+.br
-+    length 0
-+.PP
-+Switch tcp_loose mode off, so conntrack will mark out\-of\-flow
-+packets as state INVALID.
-+.IP
-+echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
-+.PP
-+Make SYN packets untracked
-+.IP
-+iptables \-t raw \-A PREROUTING \-i eth0 \-p tcp \-\-dport 80
-+    \-\-syn \-j CT \-\-notrack
-+.PP
-+Catch UNTRACKED (SYN packets) and INVALID (3WHS ACK packets) states
-+and send them to SYNPROXY. This rule will respond to SYN packets with
-+SYN+ACK syncookies, create ESTABLISHED for valid client response (3WHS ACK
-+packets) and drop incorrect cookies. Flags combinations not expected
-+during 3WHS will not match and continue (e.g. SYN+FIN, SYN+ACK).
-+.IP
-+iptables \-A INPUT \-i eth0 \-p tcp \-\-dport 80
-+    \-m state \-\-state UNTRACKED,INVALID \-j SYNPROXY
-+    \-\-sack\-perm \-\-timestamp \-\-mss 1460 \-\-wscale 9
-+.PP
-+Drop invalid packets, this will be out\-of\-flow packets that were not
-+matched by SYNPROXY.
-+.IP
-+iptables \-A INPUT \-i eth0 \-p tcp \-\-dport 80 \-m state \-\-state INVALID \-j DROP
+When using sets this has manifested with the -EBUSY error when deleting
+the table (it was still containing unused sets after the flush).
+
+The following command line works fine here:
+
+nft -f test ; nft flush table filter ; nft delete chain filter output; nft delete table filter
+
+Tested using this kernel patch: http://patchwork.ozlabs.org/patch/314143/
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+I originally though this was a libmnl bug in the batching infrastructure, but
+it's actually in the way nft handles batch pages.
+
+ src/mnl.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/mnl.c b/src/mnl.c
+index b867902..a38a9ae 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -19,6 +19,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ 
+ #include <mnl.h>
++#include <string.h>
+ #include <errno.h>
+ #include <utils.h>
+ #include <nftables.h>
+@@ -98,12 +99,21 @@ struct batch_page {
+ static void mnl_batch_page_add(void)
+ {
+ 	struct batch_page *batch_page;
++	struct nlmsghdr *last_nlh;
++
++	/* Get the last message not fitting in the batch */
++	last_nlh = mnl_nlmsg_batch_current(batch);
+ 
+ 	batch_page = xmalloc(sizeof(struct batch_page));
+ 	batch_page->batch = batch;
+ 	list_add_tail(&batch_page->head, &batch_page_list);
+ 	batch_num_pages++;
+ 	batch = mnl_batch_alloc();
++
++	/* Copy the last message not fitting to the new batch page */
++	memcpy(mnl_nlmsg_batch_current(batch), last_nlh, last_nlh->nlmsg_len);
++	/* No overflow may happen as this is a new empty batch page */
++	mnl_nlmsg_batch_next(batch);
+ }
+ 
+ static uint32_t mnl_batch_put(int type)
+-- 
+1.7.10.4
+
