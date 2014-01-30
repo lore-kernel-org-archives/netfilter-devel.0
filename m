@@ -1,77 +1,34 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH nf v2] ipvs: fix AF assignment in ip_vs_conn_new()
-Date: Thu, 30 Jan 2014 10:29:22 +0200 (EET)
-Message-ID: <alpine.LFD.2.11.1401301022170.1644@ja.home.ssi.bg>
-References: <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg> <20140130075020.7A903E916F@unicorn.suse.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nftables] Add support for setting ct keys
+Date: Thu, 30 Jan 2014 11:29:01 +0100
+Message-ID: <20140130102901.GA4137@localhost>
+References: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
+ <CAKfDRXjiW_hiW2CF24QepMPwx+E1oPqNp30i0NkA7TF3iN2kmg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Michal Kubecek <mkubecek@suse.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Kristian Evensen <kristian.evensen@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:59391 "EHLO ja.home.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751107AbaA3Ia4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jan 2014 03:30:56 -0500
-In-Reply-To: <20140130075020.7A903E916F@unicorn.suse.cz>
+Received: from mail.us.es ([193.147.175.20]:52422 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027AbaA3K3M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jan 2014 05:29:12 -0500
+Content-Disposition: inline
+In-Reply-To: <CAKfDRXjiW_hiW2CF24QepMPwx+E1oPqNp30i0NkA7TF3iN2kmg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-	Hello,
-
-On Thu, 30 Jan 2014, Michal Kubecek wrote:
-
-> If a fwmark is passed to ip_vs_conn_new(), it is passed in
-> vaddr, not daddr. Therefore we should set AF to AF_UNSPEC in
-> vaddr assignment (like we do in ip_vs_ct_in_get()), otherwise we
-> may copy only first 4 bytes of an IPv6 address into cp->daddr.
+On Thu, Jan 30, 2014 at 08:42:56AM +0100, Kristian Evensen wrote:
+> Hi,
 > 
-> v2: fix messed up {d,v}addr and p->{d,v}addr, add info about the
-> outcome (thanks to Julian Anastasov)
-> 
-> Signed-off-by: Bogdano Arendartchuk <barendartchuk@suse.com>
-> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+> Now that support for setting ct keys have been added to the kernel and
+> library, I wondered if there is an update on this patch?
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+libnftnl is there. The nft patch doesn't apply though.
 
-	Looks like problem comes from
-commit be8be9eccbf2d908a7e56b3f7a71105cd88da06b
-"ipvs: Fix IPv4 FWMARK virtual services" (2.6.30).
+Could you rebase on top of nftables next-3.14 branch, please?
 
-> ---
->  net/netfilter/ipvs/ip_vs_conn.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index 59a1a85..a8eb0a8 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -871,11 +871,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p,
->  	cp->protocol	   = p->protocol;
->  	ip_vs_addr_set(p->af, &cp->caddr, p->caddr);
->  	cp->cport	   = p->cport;
-> -	ip_vs_addr_set(p->af, &cp->vaddr, p->vaddr);
-> -	cp->vport	   = p->vport;
-> -	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
-> +	/* proto should only be IPPROTO_IP if p->vaddr is a fwmark */
->  	ip_vs_addr_set(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
-> -		       &cp->daddr, daddr);
-> +		       &cp->vaddr, p->vaddr);
-> +	cp->vport	   = p->vport;
-> +	ip_vs_addr_set(p->af, &cp->daddr, daddr);
->  	cp->dport          = dport;
->  	cp->flags	   = flags;
->  	cp->fwmark         = fwmark;
-> -- 
-> 1.8.1.4
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Thanks.
