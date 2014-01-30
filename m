@@ -1,28 +1,60 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH nftables] Add support for setting ct keys
-Date: Thu, 30 Jan 2014 08:42:56 +0100
-Message-ID: <CAKfDRXjiW_hiW2CF24QepMPwx+E1oPqNp30i0NkA7TF3iN2kmg@mail.gmail.com>
-References: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Kristian Evensen <kristian.evensen@gmail.com>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf v2] ipvs: fix AF assignment in ip_vs_conn_new()
+Date: Thu, 30 Jan 2014 08:50:20 +0100 (CET)
+Message-ID: <20140130075020.7A903E916F@unicorn.suse.cz>
+References: <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg>
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:55019 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbaA3Hm4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jan 2014 02:42:56 -0500
-Received: by mail-ob0-f182.google.com with SMTP id wm4so3135654obc.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2014 23:42:56 -0800 (PST)
-In-Reply-To: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:35149 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750954AbaA3HuV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jan 2014 02:50:21 -0500
+In-Reply-To: <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+If a fwmark is passed to ip_vs_conn_new(), it is passed in
+vaddr, not daddr. Therefore we should set AF to AF_UNSPEC in
+vaddr assignment (like we do in ip_vs_ct_in_get()), otherwise we
+may copy only first 4 bytes of an IPv6 address into cp->daddr.
 
-Now that support for setting ct keys have been added to the kernel and
-library, I wondered if there is an update on this patch?
+v2: fix messed up {d,v}addr and p->{d,v}addr, add info about the
+outcome (thanks to Julian Anastasov)
 
--Kristian
+Signed-off-by: Bogdano Arendartchuk <barendartchuk@suse.com>
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 59a1a85..a8eb0a8 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -871,11 +871,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p,
+ 	cp->protocol	   = p->protocol;
+ 	ip_vs_addr_set(p->af, &cp->caddr, p->caddr);
+ 	cp->cport	   = p->cport;
+-	ip_vs_addr_set(p->af, &cp->vaddr, p->vaddr);
+-	cp->vport	   = p->vport;
+-	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
++	/* proto should only be IPPROTO_IP if p->vaddr is a fwmark */
+ 	ip_vs_addr_set(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
+-		       &cp->daddr, daddr);
++		       &cp->vaddr, p->vaddr);
++	cp->vport	   = p->vport;
++	ip_vs_addr_set(p->af, &cp->daddr, daddr);
+ 	cp->dport          = dport;
+ 	cp->flags	   = flags;
+ 	cp->fwmark         = fwmark;
+-- 
+1.8.1.4
+
