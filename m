@@ -1,52 +1,28 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [Patch resend nf] ipvs: fix AF assignment in ip_vs_conn_new()
-Date: Thu, 30 Jan 2014 08:39:04 +0100
-Message-ID: <20140130073904.GA25322@unicorn.suse.cz>
-References: <20140129145437.69F56E916F@unicorn.suse.cz>
- <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Re: [PATCH nftables] Add support for setting ct keys
+Date: Thu, 30 Jan 2014 08:42:56 +0100
+Message-ID: <CAKfDRXjiW_hiW2CF24QepMPwx+E1oPqNp30i0NkA7TF3iN2kmg@mail.gmail.com>
+References: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Kristian Evensen <kristian.evensen@gmail.com>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:55019 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996AbaA3Hm4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jan 2014 02:42:56 -0500
+Received: by mail-ob0-f182.google.com with SMTP id wm4so3135654obc.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jan 2014 23:42:56 -0800 (PST)
+In-Reply-To: <1389107758-24360-1-git-send-email-kristian.evensen@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 29, 2014 at 11:24:17PM +0200, Julian Anastasov wrote:
-> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> > index 59a1a85..282b39b 100644
-> > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > @@ -871,11 +871,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p,
-> >  	cp->protocol	   = p->protocol;
-> >  	ip_vs_addr_set(p->af, &cp->caddr, p->caddr);
-> >  	cp->cport	   = p->cport;
-> > -	ip_vs_addr_set(p->af, &cp->vaddr, p->vaddr);
-> > -	cp->vport	   = p->vport;
-> > -	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
-> > +	/* proto should only be IPPROTO_IP if p->vaddr is a fwmark */
-> >  	ip_vs_addr_set(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
-> > -		       &cp->daddr, daddr);
-> > +		       &cp->vaddr, vaddr);
-> 
-> 	Patch does not compile due to vaddr and p->daddr
-> usage but you are in the right direction. Such change should
-> fix a problem where connection templates don't get full
-> IPv6 address for the real server, only the first 4 bytes
-> are copied and as result it works only for IPv4.
+Hi,
 
-Sorry for that, looks like I ran the test build after adapting to
-current code with a config which didn't actually compile this file.
-I'll send a v2 after testing a fixed version and I'll also extend the
-commit message to describe the outcome.
+Now that support for setting ct keys have been added to the kernel and
+library, I wondered if there is an update on this patch?
 
-                                                      Michal Kubecek
-
+-Kristian
