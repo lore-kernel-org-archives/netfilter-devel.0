@@ -1,107 +1,77 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH RESEND v3] netfilter: xtables: add quota support to nfacct
-Date: Sun, 2 Feb 2014 10:58:19 -0700
-Message-ID: <CANLsYkzCb=UqUoG5p4pVr-8YNfJcb25uesUZTMrwT7KuEh2LYg@mail.gmail.com>
-References: <1391292671-26466-1-git-send-email-mathieu.poirier@linaro.org>
-	<20140201225726.GF776@breakpoint.cc>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH] libxtables: Print meaninful error message for an invalid
+ MAC address string
+Date: Sun, 02 Feb 2014 19:39:01 +0100
+Message-ID: <52EE90C5.3040407@chello.at>
+Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	kadlec <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20140201225726.GF776@breakpoint.cc>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080002040106070809040208"
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fep12.mx.upcmail.net ([62.179.121.32]:32823 "EHLO
+	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaBBSi1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 2 Feb 2014 13:38:27 -0500
+Received: from edge02.upcmail.net ([192.168.13.237])
+          by viefep16-int.chello.at
+          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
+          id <20140202183728.WLSE771.viefep16-int.chello.at@edge02.upcmail.net>
+          for <netfilter-devel@vger.kernel.org>;
+          Sun, 2 Feb 2014 19:37:28 +0100
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 1 February 2014 15:57, Florian Westphal <fw@strlen.de> wrote:
-> mathieu.poirier@linaro.org <mathieu.poirier@linaro.org> wrote:
->> +struct xt_nfacct_match_info_v1 {
->> +     char            name[NFACCT_NAME_MAX];
->> +     struct nf_acct  *nfacct;
->> +
->> +     __u32 flags;
->> +     __aligned_u64 quota;
->> +     /* used internally by kernel */
->> +     struct nf_acct_quota    *priv __attribute__((aligned(8)));
->> +};
->
-> I think *nfacct pointer is also kernel internal, so it should also get
-> aligned (might also be possible to stash it in *private struct).
+This is a multi-part message in MIME format.
+--------------080002040106070809040208
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I suspect Pablo didn't change it already for a good reason and as such
-reluctant to do the modification myself.
+Hello,
 
->
->> +     if (info->flags & XT_NFACCT_QUOTA) {
->> +             spin_lock_bh(&info->priv->lock);
->> +             val = (info->flags & XT_NFACCT_QUOTA_PKTS) ?
->> +                             atomic64_read(&info->nfacct->pkts) :
->> +                             atomic64_read(&info->nfacct->bytes);
->> +             if (val <= info->quota) {
->> +                     ret = !ret;
->> +                     info->priv->quota_reached = false;
->
-> Why quota_reached = false
-> assignment?
+on usage of a malformed MAC address the error message was not descriptive.
 
-An object that has reached it's quota can always be reset from the
-userspace with:
+Best regards,
 
-$ nfacct get object_name reset
+Mart
 
-As such we need to reset the flag so that a broadcast isn't sent.
+--------------080002040106070809040208
+Content-Type: text/plain; charset=windows-1252;
+ name="libxtables-Print-meaningful-error-message-for-an-invalid.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="libxtables-Print-meaningful-error-message-for-an-invalid.pat";
+ filename*1="ch"
 
->
-> [ How is this toggled (other than transition to 'true' below)? ]
->
->> +             if (val >= info->quota && !info->priv->quota_reached) {
->> +                     info->priv->quota_reached = true;
->> +                     nfnl_quota_event(info->nfacct);
->> +             }
->> +
->> +             spin_unlock_bh(&info->priv->lock);
->> +     }
->
-> Hm.  Not sure why the lock has to be hold during all tests.  What about:
+>From e2b3628a66db473d230e83a6eb98389849e20de1 Mon Sep 17 00:00:00 2001
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Date: Sun, 2 Feb 2014 14:24:25 +0100
+Subject: [PATCH] libxtables: Print meaningful error message for an invalid MAC address string
 
-Here "info" is an object seen and shared by all processors.  If a
-process looses the CPU between the two atomic64_read, other CPUs in
-the system can grab "info" and go through the same code, leading to an
-erroneous count of byte and packets.
+If an invalid MAC address is used on the commmand line, the error message
+`ether' was not really describing the problem.
 
-To me the real problem is with the incrementation of "pkts" and
-"bytes" in function "nfnl_acct_update" - there is simply no way to
-prevent a process from loosing the CPU between the two incrementation.
- I've been assured this can't happen on the INPUT and FORWARD path but
-still waiting an answer on my scenario for the OUTPUT path.  If it
-wasn't for that I think there is a way to remove the utilisation of
-the spinlock.
+Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
+---
+ libxtables/xtoptions.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->
-> if (info->flags & XT_NFACCT_QUOTA) {
->                 val = (info->flags & XT_NFACCT_QUOTA_PKTS) ?
->                                 atomic64_read(&info->nfacct->pkts) :
->                                 atomic64_read(&info->nfacct->bytes);
->                 /* normal case: quota not reached */
->                 if (val <= info->quota)
->                         return !ret;
->
->                 /* other case: quota reached AND event sent */
->                 if (info->priv->quota_reached)
->                        return ret;
->
->                 spin_lock_bh(&info->priv->lock);
->
->                 if (!info->priv->quota_reached) {
->                         info->priv->quota_reached = true;
->                         nfnl_quota_event(info->nfacct);
->                 }
->
->                 spin_unlock_bh(&info->priv->lock);
->
-> [ could also cmpxchg instead of spinlock ]
->
-> Other than that this looks good to me.
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 78e9abd..9b4c5aa 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -802,7 +802,7 @@ static void xtopt_parse_ethermac(struct xt_option_call *cb)
+ 		       sizeof(cb->val.ethermac));
+ 	return;
+  out:
+-	xt_params->exit_err(PARAMETER_PROBLEM, "ether");
++	xt_params->exit_err(PARAMETER_PROBLEM, "Invalid MAC address specified.");
+ }
+ 
+ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+-- 
+1.7.2.5
+
+
+--------------080002040106070809040208--
