@@ -1,47 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: A conntrack, which is added via ctnetlink, can provoke a race
- condition
-Date: Mon, 3 Feb 2014 00:41:55 +0100
-Message-ID: <20140202234155.GA6616@localhost>
-References: <CANaxB-wntm+Vu5z0k9bRYLvPX3ezFZSEQkGPGH3AVYDT5DrOKw@mail.gmail.com>
- <20140107123200.GE9894@breakpoint.cc>
+Subject: Re: nftables with ipset combined types
+Date: Mon, 3 Feb 2014 00:57:34 +0100
+Message-ID: <20140202235734.GA6793@localhost>
+References: <52E8AD76.5050808@aim.com>
+ <20140129093010.GA4332@localhost>
+ <24843182.8UhhjTCEZr@rofl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Andrey Wagin <avagin@gmail.com>, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>, vvs@openvz.org,
-	Cyrill Gorcunov <gorcunov@openvz.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick Schaaf <netdev@bof.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47128 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48206 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752522AbaBBXmB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Feb 2014 18:42:01 -0500
+	id S1752028AbaBBX5k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 2 Feb 2014 18:57:40 -0500
 Content-Disposition: inline
-In-Reply-To: <20140107123200.GE9894@breakpoint.cc>
+In-Reply-To: <24843182.8UhhjTCEZr@rofl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 07, 2014 at 01:32:00PM +0100, Florian Westphal wrote:
-> Andrey Wagin <avagin@gmail.com> wrote:
-> > When a conntrack is created  by kernel, it is initialized (sets
-> > IPS_{DST,SRC}_NAT_DONE_BIT bits in nf_nat_setup_info) and only then it
-> > is added in hashes (__nf_conntrack_hash_insert), so one conntract
-> > can't be initialized from a few threads concurrently.
-> > 
-> > ctnetlink can add an uninitialized conntrack (w/o
-> > IPS_{DST,SRC}_NAT_DONE_BIT) in hashes, then a few threads can look up
-> > this conntrack and start initialize it concurrently. It's dangerous,
-> > because BUG can be triggered from  nf_nat_setup_info.
+On Wed, Jan 29, 2014 at 12:34:12PM +0100, Patrick Schaaf wrote:
+> Hi Pablo,
 > 
-> Good catch.
+> another useful feature of ipset is that the same set is usable in the
+> filter, nat, and mangle tables.
 > 
-> I don't see a good solution at the moment.
-> 
-> We can force null bindings if no nat transformation is specified
-> from userspace.  But this would mean that rules specified in the nat
-> table are not evaluated anymore when the first packet arrives.
+> If I'm not mistaken, sets in nftables are right now scoped within a table,
+> so I could not reuse them in that fashion.
 
-conntracks that are added via ctnetlink should already include the nat
-information (if any) at creation time, this is how it works with
-state-sync via conntrackd when nat is present. I think attaching the
-null binding seems like the easier solution to me.
+The table <-> set link is currently needed to check for loops if
+verdict maps are used. But AFAICS, for sets with no verdict maps using
+jump to chain, this limitation could be removed. I'll add this to my
+TODO list.
