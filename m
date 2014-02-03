@@ -1,42 +1,39 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [libnetfilter_acct PATCH] xml: fix inversion between pkt and bytes
-Date: Tue,  4 Feb 2014 00:14:00 +0100
-Message-ID: <1391469240-17592-1-git-send-email-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: nf_conntrack: don't release a conntrack with
+ non-zero refcnt
+Date: Tue, 4 Feb 2014 00:29:25 +0100
+Message-ID: <20140203232925.GA3695@breakpoint.cc>
+References: <1391465397-3856-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, avagin@parallels.com,
+	fw@strlen.de, eric.dumazet@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:55676 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaBCXOX (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33725 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753995AbaBCX33 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Feb 2014 18:14:23 -0500
+	Mon, 3 Feb 2014 18:29:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1391465397-3856-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The nfacct_snprintf_xml used to ouput accounting in XML format
-was inverting packet and bytes. This patch restores the correct
-order.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 4d1fb5d..356bef5 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -448,7 +448,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+>  			goto out;
+>  
+>  	add_timer(&ct->timeout);
+> -	nf_conntrack_get(&ct->ct_general);
+> +	smp_wmb();
+> +	/* The caller holds a reference to this object */
+> +	atomic_set(&ct->ct_general.use, 2);
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/libnetfilter_acct.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-index ba89e2d..77f58ce 100644
---- a/src/libnetfilter_acct.c
-+++ b/src/libnetfilter_acct.c
-@@ -298,8 +298,8 @@ nfacct_snprintf_xml(char *buf, size_t rem, struct nfacct *nfacct,
- 			"<pkts>%.20"PRIu64"</pkts>"
- 			"<bytes>%.20"PRIu64"</bytes>",
- 			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME),
--			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
--			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS));
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES));
- 	BUFFER_SIZE(ret, size, rem, offset);
- 
- 	if (flags & NFACCT_SNPRINTF_F_TIME) {
--- 
-1.9.rc1
-
+What happens when the skb is dropped before confirmation?
+How is skb_clone etc. solved (it increments refcnt of underlying
+conntrack object?)
