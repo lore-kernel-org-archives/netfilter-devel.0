@@ -1,49 +1,59 @@
-From: astx <astx@aws-it.at>
-Subject: Re: OOPS in nf_ct_unlink_expect_report using Polycom RealPresence
- Mobile
-Date: Mon, 03 Feb 2014 16:46:01 +0100
-Message-ID: <20140203164601.Horde.d6qSBqHukBoUna_PtOIzfA6@aws-it.at>
-References: <20140131120527.Horde.-3YzQu5S8WWBx7vuVVNdBA2@bigboss.aws-it.at>
- <20140131125014.Horde.G2TRlt-60JJ0Nl_3Y8IniQ2@bigboss.aws-it.at>
- <20140131170402.Horde.yIFUeQVjLycuS_8PGQoKmg5@aws-it.at>
- <20140203121415.GA12777@localhost>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] [RFC] netfilter: nf_conntrack: don't relase a conntrack
+ with non-zero refcnt
+Date: Mon, 03 Feb 2014 08:22:04 -0800
+Message-ID: <1391444524.28432.99.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1389710201.31367.255.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <1389720948-7883-1-git-send-email-avagin@openvz.org>
+	 <20140114185329.GB28205@breakpoint.cc>
+	 <20140115180844.GA3605@paralelels.com>
+	 <20140116092301.GF28205@breakpoint.cc> <20140202233046.GA4137@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed; DelSp=Yes
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>,
+	Andrew Vagin <avagin@parallels.com>,
+	Andrey Vagin <avagin@openvz.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	vvs@openvz.org, Cyrill Gorcunov <gorcunov@openvz.org>,
+	Vasiliy Averin <vvs@parallels.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140203121415.GA12777@localhost>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:37876 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752326AbaBCQWJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Feb 2014 11:22:09 -0500
+In-Reply-To: <20140202233046.GA4137@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Test results / tested kernel versions:
+On Mon, 2014-02-03 at 00:30 +0100, Pablo Neira Ayuso wrote:
+>          */
+>         smp_wmb();
+> -       atomic_set(&ct->ct_general.use, 1);
+> +       atomic_set(&ct->ct_general.use, 0);
+>         return ct; 
 
-3.2.54
-3.8.13
-3.10.28
+Hi Pablo !
 
-Above kernel versions without patch are dying with same error on  
-trying to start h323 connections using "Polycom RealPresence Mobile".
+I think your patch is the way to go, but might need some extra care
+with memory barriers.
 
-I can confirm that with this patch all three kernel versions are  
-pretty stable now again.
+I believe the smp_wmb() here is no longer needed.
 
-Thank you all for your fast and competent help.
+If its a newly allocated memory, no other users can access to ct,
+if its a recycled ct, content is already 0 anyway.
 
-Best Regards,
+After your patch, nf_conntrack_get(&tmpl->ct_general) should increment 
+an already non zero refcnt, so no memory barrier is needed.
 
-Toni
+But one smp_wmb() is needed right before this point :
+
+	/* The caller holds a reference to this object */
+	atomic_set(&ct->ct_general.use, 2);
+
+Thanks !
 
 
-Zitat von Pablo Neira Ayuso <pablo@netfilter.org>:
-
-> On Fri, Jan 31, 2014 at 05:04:02PM +0100, astx wrote:
->> Dear Alexey,
->>
->> seems to help. Thank you for your quick response. Kernel 3.10.28 is
->> now stable using h323 / Polycom.
->
-> Thanks, if no objection, will pass this patch to David.
