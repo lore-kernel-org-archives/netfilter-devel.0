@@ -1,165 +1,81 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 7/8] parser: evaluate commands immediately after parsing
-Date: Tue,  4 Feb 2014 08:35:19 +0000
-Message-ID: <1391502920-19186-8-git-send-email-kaber@trash.net>
-References: <1391502920-19186-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43626 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753708AbaBDIf3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Feb 2014 03:35:29 -0500
-In-Reply-To: <1391502920-19186-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH nf v2] ipvs: fix AF assignment in ip_vs_conn_new()
+Date: Tue, 4 Feb 2014 18:08:00 +0900
+Message-ID: <20140204090800.GC8144@verge.net.au>
+References: <alpine.LFD.2.11.1401292319030.1844@ja.home.ssi.bg>
+ <20140130075020.7A903E916F@unicorn.suse.cz>
+ <alpine.LFD.2.11.1401301022170.1644@ja.home.ssi.bg>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Michal Kubecek <mkubecek@suse.cz>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.11.1401301022170.1644@ja.home.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We currently do parsing and evaluation in two seperate stages. This means
-that if any error occurs during parsing, we won't evaluate the syntactical
-correct commands and detect possible evaluation errors in them.
+On Thu, Jan 30, 2014 at 10:29:22AM +0200, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Thu, 30 Jan 2014, Michal Kubecek wrote:
+> 
+> > If a fwmark is passed to ip_vs_conn_new(), it is passed in
+> > vaddr, not daddr. Therefore we should set AF to AF_UNSPEC in
+> > vaddr assignment (like we do in ip_vs_ct_in_get()), otherwise we
+> > may copy only first 4 bytes of an IPv6 address into cp->daddr.
+> > 
+> > v2: fix messed up {d,v}addr and p->{d,v}addr, add info about the
+> > outcome (thanks to Julian Anastasov)
+> > 
+> > Signed-off-by: Bogdano Arendartchuk <barendartchuk@suse.com>
+> > Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> 	Looks like problem comes from
+> commit be8be9eccbf2d908a7e56b3f7a71105cd88da06b
+> "ipvs: Fix IPv4 FWMARK virtual services" (2.6.30).
 
-In order to improve error reporting, change this to evaluate every command
-as soon as it is fully parsed.
+Thanks, I'll queue this up.
 
-With this in place, the ruleset can be fully validated and all errors
-reported in one step:
-
-tests/error.1:6:23-23: Error: syntax error, unexpected newline
-filter input tcp dport
-                      ^
-tests/error.1:7:24-26: Error: datatype mismatch, expected internet network service, expression has type Internet protocol
-filter input tcp dport tcp
-             ~~~~~~~~~ ^^^
-tests/error.1:8:24-32: Error: Right hand side of relational expression (==) must be constant
-filter input tcp dport tcp dport
-             ~~~~~~~~~~^^^^^^^^^
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/parser.h |  1 +
- include/rule.h   |  2 +-
- src/evaluate.c   | 13 +------------
- src/main.c       |  8 +-------
- src/parser.y     | 14 ++++++++++++--
- 5 files changed, 16 insertions(+), 22 deletions(-)
-
-diff --git a/include/parser.h b/include/parser.h
-index 7a1c2db..92beab2 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -26,6 +26,7 @@ struct parser_state {
- 	unsigned int			scope;
- 
- 	struct list_head		cmds;
-+	struct eval_ctx			ectx;
- };
- 
- extern void parser_init(struct parser_state *state, struct list_head *msgs);
-diff --git a/include/rule.h b/include/rule.h
-index 47dd6ab..e06444e 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -303,7 +303,7 @@ struct eval_ctx {
- 	struct proto_ctx	pctx;
- };
- 
--extern int evaluate(struct eval_ctx *ctx, struct list_head *commands);
-+extern int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd);
- 
- extern struct error_record *rule_postprocess(struct rule *rule);
- 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index a01d2a5..8e51a63 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1384,7 +1384,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	}
- }
- 
--static int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
-+int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- {
- #ifdef DEBUG
- 	if (debug_level & DEBUG_EVALUATION) {
-@@ -1411,14 +1411,3 @@ static int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 		BUG("invalid command operation %u\n", cmd->op);
- 	};
- }
--
--int evaluate(struct eval_ctx *ctx, struct list_head *commands)
--{
--	struct cmd *cmd;
--
--	list_for_each_entry(cmd, commands, list) {
--		if (cmd_evaluate(ctx, cmd) < 0)
--			return -1;
--	}
--	return 0;
--}
-diff --git a/src/main.c b/src/main.c
-index 2320a82..9d50577 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -216,18 +216,12 @@ out:
- 
- int nft_run(void *scanner, struct parser_state *state, struct list_head *msgs)
- {
--	struct eval_ctx ctx;
--	int ret = 0;
-+	int ret;
- 
- 	ret = nft_parse(scanner, state);
- 	if (ret != 0 || state->nerrs > 0)
- 		return -1;
- 
--	memset(&ctx, 0, sizeof(ctx));
--	ctx.msgs = msgs;
--	if (evaluate(&ctx, &state->cmds) < 0)
--		return -1;
--
- 	return nft_netlink(state, msgs);
- }
- 
-diff --git a/src/parser.y b/src/parser.y
-index 0dad036..cc0aed6 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -37,6 +37,7 @@ void parser_init(struct parser_state *state, struct list_head *msgs)
- 	init_list_head(&state->top_scope.symbols);
- 	state->msgs = msgs;
- 	state->scopes[0] = scope_init(&state->top_scope, NULL);
-+	state->ectx.msgs = msgs;
- }
- 
- static void yyerror(struct location *loc, void *scanner,
-@@ -492,7 +493,11 @@ input			:	/* empty */
- 			{
- 				if ($2 != NULL) {
- 					$2->location = @2;
--					list_add_tail(&$2->list, &state->cmds);
-+					if (cmd_evaluate(&state->ectx, $2) < 0) {
-+						if (++state->nerrs == max_errors)
-+							YYABORT;
-+					} else
-+						list_add_tail(&$2->list, &state->cmds);
- 				}
- 			}
- 			;
-@@ -542,7 +547,12 @@ line			:	common_block			{ $$ = NULL; }
- 				 */
- 				if ($1 != NULL) {
- 					$1->location = @1;
--					list_add_tail(&$1->list, &state->cmds);
-+
-+					if (cmd_evaluate(&state->ectx, $1) < 0) {
-+						if (++state->nerrs == max_errors)
-+							YYABORT;
-+					} else
-+						list_add_tail(&$1->list, &state->cmds);
- 				}
- 				$$ = NULL;
- 
--- 
-1.8.5.3
-
+> 
+> > ---
+> >  net/netfilter/ipvs/ip_vs_conn.c | 8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> > index 59a1a85..a8eb0a8 100644
+> > --- a/net/netfilter/ipvs/ip_vs_conn.c
+> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> > @@ -871,11 +871,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p,
+> >  	cp->protocol	   = p->protocol;
+> >  	ip_vs_addr_set(p->af, &cp->caddr, p->caddr);
+> >  	cp->cport	   = p->cport;
+> > -	ip_vs_addr_set(p->af, &cp->vaddr, p->vaddr);
+> > -	cp->vport	   = p->vport;
+> > -	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
+> > +	/* proto should only be IPPROTO_IP if p->vaddr is a fwmark */
+> >  	ip_vs_addr_set(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
+> > -		       &cp->daddr, daddr);
+> > +		       &cp->vaddr, p->vaddr);
+> > +	cp->vport	   = p->vport;
+> > +	ip_vs_addr_set(p->af, &cp->daddr, daddr);
+> >  	cp->dport          = dport;
+> >  	cp->flags	   = flags;
+> >  	cp->fwmark         = fwmark;
+> > -- 
+> > 1.8.1.4
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
