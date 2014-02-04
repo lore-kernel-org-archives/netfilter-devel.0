@@ -1,53 +1,115 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack: don't release a conntrack with
- non-zero refcnt
-Date: Tue, 4 Feb 2014 11:21:43 +0100
-Message-ID: <20140204102143.GA4711@localhost>
-References: <1391465397-3856-1-git-send-email-pablo@netfilter.org>
- <20140203232925.GA3695@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, avagin@parallels.com,
-	eric.dumazet@gmail.com
-To: Florian Westphal <fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] parser: prohibit redefinitions of symbols and verify existance on use
+Date: Tue,  4 Feb 2014 11:26:40 +0000
+Message-ID: <1391513200-31872-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54287 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752859AbaBDKVx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Feb 2014 05:21:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20140203232925.GA3695@breakpoint.cc>
+Received: from stinky.trash.net ([213.144.137.162]:45305 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079AbaBDL0u (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Feb 2014 06:26:50 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 04, 2014 at 12:29:25AM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index 4d1fb5d..356bef5 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@ -448,7 +448,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
-> >  			goto out;
-> >  
-> >  	add_timer(&ct->timeout);
-> > -	nf_conntrack_get(&ct->ct_general);
-> > +	smp_wmb();
-> > +	/* The caller holds a reference to this object */
-> > +	atomic_set(&ct->ct_general.use, 2);
-> 
-> What happens when the skb is dropped before confirmation?
+This patch fixes some incorrect behaviour of symbolic variables:
 
-If you refer to the spot above, conntracks added via ctnetlink are
-always confirmed and the refcount will become 1 after insertion into
-the hashes. In the packet path, the refcount is 1 for unconfirmed
-conntracks, so if you release the skbuff, nf_conntrack_put() is called
-and the conntrack is also released (fulfilling that refcount equals 0).
+- prohibit redefining an existing symbol
+- verify existance of a symbolic variable during parsing instead of evaluation
 
-> How is skb_clone etc. solved (it increments refcnt of underlying
-> conntrack object?)
+The second point makes sure we don't allow recursive definitions (var = $var),
+which lead to a crash due to stack exhaustion.
 
-I think this works as before, this patch is just delaying the initial
-refcount bumping to 1 to make it once the conntrack is inserted in any
-of the lists.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/parser.y            | 21 ++++++++++++++++++---
+ tests/symbolic-define.1 |  7 +++++++
+ tests/symbolic-define.2 |  7 +++++++
+ tests/symbolic-define.3 |  6 ++++++
+ 4 files changed, 38 insertions(+), 3 deletions(-)
+ create mode 100644 tests/symbolic-define.1
+ create mode 100644 tests/symbolic-define.2
+ create mode 100644 tests/symbolic-define.3
 
-Please, let me know if you still see any problematic case. Thanks.
+diff --git a/src/parser.y b/src/parser.y
+index cc0aed6..f6c9488 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -520,7 +520,15 @@ common_block		:	INCLUDE		QUOTED_STRING	stmt_seperator
+ 			}
+ 			|	DEFINE		identifier	'='	initializer_expr	stmt_seperator
+ 			{
+-				symbol_bind(current_scope(state), $2, $4);
++				struct scope *scope = current_scope(state);
++
++				if (symbol_lookup(scope, $2) != NULL) {
++					erec_queue(error(&@2, "redfinition of symbol '%s'", $2),
++						   state->msgs);
++					YYERROR;
++				}
++
++				symbol_bind(scope, $2, $4);
+ 				xfree($2);
+ 			}
+ 			|	error		stmt_seperator
+@@ -1228,9 +1236,16 @@ symbol_expr		:	string
+ 			}
+ 			|	'$'	identifier
+ 			{
++				struct scope *scope = current_scope(state);
++
++				if (symbol_lookup(scope, $2) == NULL) {
++					erec_queue(error(&@2, "unknown identifier '%s'", $2),
++						   state->msgs);
++					YYERROR;
++				}
++
+ 				$$ = symbol_expr_alloc(&@$, SYMBOL_DEFINE,
+-						       current_scope(state),
+-						       $2);
++						       scope, $2);
+ 				xfree($2);
+ 			}
+ 			|	AT	identifier
+diff --git a/tests/symbolic-define.1 b/tests/symbolic-define.1
+new file mode 100644
+index 0000000..712ef71
+--- /dev/null
++++ b/tests/symbolic-define.1
+@@ -0,0 +1,7 @@
++#! nft -f
++
++# error: variable use before definition
++define var2 = $var1
++define var1 = eth0
++
++filter input iif $var2
+diff --git a/tests/symbolic-define.2 b/tests/symbolic-define.2
+new file mode 100644
+index 0000000..cd3c23c
+--- /dev/null
++++ b/tests/symbolic-define.2
+@@ -0,0 +1,7 @@
++#! nft -f
++
++# error: redefinition of an existing variable
++define var1 = eth0
++define var1 = eth0
++
++filter input iif $var1
+diff --git a/tests/symbolic-define.3 b/tests/symbolic-define.3
+new file mode 100644
+index 0000000..ba224df
+--- /dev/null
++++ b/tests/symbolic-define.3
+@@ -0,0 +1,6 @@
++#! nft -f
++
++# error: recursive definition of a variable
++define var1 = $var1
++
++filter input iif $var1
+-- 
+1.8.5.3
+
