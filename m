@@ -1,35 +1,98 @@
-From: Florian Westphal <fw@strlen.de>
+From: Andrew Vagin <avagin@parallels.com>
 Subject: Re: [PATCH] netfilter: nf_conntrack: don't release a conntrack with
  non-zero refcnt
-Date: Tue, 4 Feb 2014 14:27:37 +0100
-Message-ID: <20140204132737.GB9881@breakpoint.cc>
+Date: Tue, 4 Feb 2014 17:53:08 +0400
+Message-ID: <20140204135308.GB3390@paralelels.com>
 References: <1391465397-3856-1-git-send-email-pablo@netfilter.org>
- <20140203232925.GA3695@breakpoint.cc>
- <20140204102143.GA4711@localhost>
- <20140204124637.GA9881@breakpoint.cc>
- <20140204131602.GA22968@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	avagin@parallels.com, eric.dumazet@gmail.com
+Content-Type: text/plain; charset="koi8-r"
+Cc: <netfilter-devel@vger.kernel.org>, <fw@strlen.de>,
+	<eric.dumazet@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35486 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753684AbaBDN1j (ORCPT
+Received: from relay.parallels.com ([195.214.232.42]:57541 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079AbaBDNxQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Feb 2014 08:27:39 -0500
+	Tue, 4 Feb 2014 08:53:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20140204131602.GA22968@localhost>
+In-Reply-To: <1391465397-3856-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I think you could just leave hash_check_insert() alone?
+On Mon, Feb 03, 2014 at 11:09:57PM +0100, Pablo Neira Ayuso wrote:
+> With this patch, the conntrack refcount is initially set to zero and
+> it is bumped once it is added to any of the list, so we fulfill
+> Eric's golden rule which is that all released objects always have a
+> refcount that equals zero.
 > 
-> hash_check_insert() is only used by ctnetlink in the creation path for
-> new conntracks.
+> Andrey Vagin reports that nf_conntrack_free can't be called for a
+> conntrack with non-zero ref-counter, because it can race with
+> nf_conntrack_find_get().
+> 
+> A conntrack slab is created with SLAB_DESTROY_BY_RCU. Non-zero
+> ref-counter says that this conntrack is used. So when we release
+> a conntrack with non-zero counter, we break this assumption.
+> 
+> CPU1                                    CPU2
+> ____nf_conntrack_find()
+>                                         nf_ct_put()
+>                                          destroy_conntrack()
+>                                         ...
+>                                         init_conntrack
+>                                          __nf_conntrack_alloc (set use = 1)
+> atomic_inc_not_zero(&ct->use) (use = 2)
+>                                          if (!l4proto->new(ct, skb, dataoff, timeouts))
+>                                           nf_conntrack_free(ct); (use = 2 !!!)
+>                                         ...
+>                                         __nf_conntrack_alloc (set use = 1)
+>  if (!nf_ct_key_equal(h, tuple, zone))
+>   nf_ct_put(ct); (use = 0)
+>    destroy_conntrack()
+>                                         /* continue to work with CT */
+> 
+> After applying the path "[PATCH] netfilter: nf_conntrack: fix RCU
+> race in nf_conntrack_find_get" another bug was triggered in
+> destroy_conntrack():
+> 
+> <4>[67096.759334] ------------[ cut here ]------------
+> <2>[67096.759353] kernel BUG at net/netfilter/nf_conntrack_core.c:211!
+> ...
+> <4>[67096.759837] Pid: 498649, comm: atdd veid: 666 Tainted: G         C ---------------    2.6.32-042stab084.18 #1 042stab084_18 /DQ45CB
+> <4>[67096.759932] RIP: 0010:[<ffffffffa03d99ac>]  [<ffffffffa03d99ac>] destroy_conntrack+0x15c/0x190 [nf_conntrack]
+> <4>[67096.760255] Call Trace:
+> <4>[67096.760255]  [<ffffffff814844a7>] nf_conntrack_destroy+0x17/0x30
+> <4>[67096.760255]  [<ffffffffa03d9bb5>] nf_conntrack_find_get+0x85/0x130 [nf_conntrack]
+> <4>[67096.760255]  [<ffffffffa03d9fb2>] nf_conntrack_in+0x352/0xb60 [nf_conntrack]
+> <4>[67096.760255]  [<ffffffffa048c771>] ipv4_conntrack_local+0x51/0x60 [nf_conntrack_ipv4]
+> <4>[67096.760255]  [<ffffffff81484419>] nf_iterate+0x69/0xb0
+> <4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
+> <4>[67096.760255]  [<ffffffff814845d4>] nf_hook_slow+0x74/0x110
+> <4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
+> <4>[67096.760255]  [<ffffffff814b66d5>] raw_sendmsg+0x775/0x910
+> <4>[67096.760255]  [<ffffffff8104c5a8>] ? flush_tlb_others_ipi+0x128/0x130
+> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
+> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
+> <4>[67096.760255]  [<ffffffff814c136a>] inet_sendmsg+0x4a/0xb0
+> <4>[67096.760255]  [<ffffffff81444e93>] ? sock_sendmsg+0x13/0x140
+> <4>[67096.760255]  [<ffffffff81444f97>] sock_sendmsg+0x117/0x140
+> <4>[67096.760255]  [<ffffffff8102e299>] ? native_smp_send_reschedule+0x49/0x60
+> <4>[67096.760255]  [<ffffffff81519beb>] ? _spin_unlock_bh+0x1b/0x20
+> <4>[67096.760255]  [<ffffffff8109d930>] ? autoremove_wake_function+0x0/0x40
+> <4>[67096.760255]  [<ffffffff814960f0>] ? do_ip_setsockopt+0x90/0xd80
+> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
+> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
+> <4>[67096.760255]  [<ffffffff814457c9>] sys_sendto+0x139/0x190
+> <4>[67096.760255]  [<ffffffff810efa77>] ? audit_syscall_entry+0x1d7/0x200
+> <4>[67096.760255]  [<ffffffff810ef7c5>] ? __audit_syscall_exit+0x265/0x290
+> <4>[67096.760255]  [<ffffffff81474daf>] compat_sys_socketcall+0x13f/0x210
+> <4>[67096.760255]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
+> 
+> Cc: Eric Dumazet <eric.dumazet@gmail.com>
+> Cc: Florian Westphal <fw@strlen.de>
+> Cc: Andrew Vagin <avagin@parallels.com>
 
-I see.  In that case I see nothing wrong with your patch.
+Acked-by: Andrew Vagin <avagin@parallels.com>
 
-Thanks for explaining!
+> Reported-by: Andrew Vagin <avagin@parallels.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
