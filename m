@@ -1,144 +1,72 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netlink: add netlink specific location
-Date: Wed,  5 Feb 2014 19:54:15 +0000
-Message-ID: <1391630055-11493-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH 0/2] xtables-eb for the compatibility layer
+Date: Wed, 05 Feb 2014 21:43:12 +0100
+Message-ID: <52F2A260.2060806@pandora.be>
+References: <1391624279-4323-1-git-send-email-giuseppelng@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Giuseppe Longo <giuseppelng@gmail.com>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59591 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbaBETyU (ORCPT
+Received: from andre.telenet-ops.be ([195.130.132.53]:54174 "EHLO
+	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbaBEUsT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Feb 2014 14:54:20 -0500
+	Wed, 5 Feb 2014 15:48:19 -0500
+In-Reply-To: <1391624279-4323-1-git-send-email-giuseppelng@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a netlink_location and use it for error messages instead of internal_location.
+Giuseppe Longo schreef op 5/02/2014 19:17:
+> Hi,
+> this patchset implements ebtables for the nftables compatibility layer.
+> I would explain some points:
+> - I didn't figure out how to replace some parts of codes, for istance:
+>    from xtables-eb.c, line 928:
+>    t = (struct ebt_u_target *)new_entry->t;
+>    if ((t->parse(c - t->option_offset, argv, argc, new_entry, &t->flags, &t->t))) {
+> 	  if (ebt_errormsg[0] != '\0')
+> 		  return -1;
+> 	  goto check_extension;
+>    }
+>
+>    /* Is it a match_option? */
+>    for (m = ebt_matches; m; m = m->next)
+> 	  if (m->parse(c - m->option_offset, argv, argc, new_entry, &m->flags, &m->m))
+> 		  break;
+>
+>    if (m != NULL) {
+> 	  if (ebt_errormsg[0] != '\0')
+> 		  return -1;
+> 	  if (m->used == 0) {
+> 		  ebt_add_match(new_entry, m);
+> 		  m->used = 1;
+> 	  }
+> 	  goto check_extension;
+>    }
+>
+> Looking at extensions, I noticed that any xtables_match/xtables_target have parse functions. Maybe I'm wrong.
 
-internal:0:0-0: Error: Could not add set: Operation not permitted
-=>
-netlink: Error: Could not add set: Operation not permitted
+The parse functions of the targets/matches/watchers will return 0 if the 
+command-line argument isn't one of their options. If the parse function 
+returns a non-zero value, the command line option belongs to that 
+target/match/watcher. So, unless you don't want support for 
+target/watcher/match command-line arguments, you will need that code.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/netlink.h         |  3 +++
- src/netlink.c             | 21 +++++++++++++++------
- src/netlink_delinearize.c |  7 +------
- 3 files changed, 19 insertions(+), 12 deletions(-)
+> Even the code from line 992 is not very clear, about final checks. I don't know if I can remove this part of code.
 
-diff --git a/include/netlink.h b/include/netlink.h
-index 84b2487..4e3f8aa 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -12,6 +12,9 @@
- 
- #include <rule.h>
- 
-+extern const struct input_descriptor indesc_netlink;
-+extern const struct location netlink_location;
-+
- /** 
-  * struct netlink_ctx
-  *
-diff --git a/src/netlink.c b/src/netlink.c
-index 98e7fc6..6e797dc 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -33,6 +33,15 @@
- 
- static struct mnl_socket *nf_sock;
- 
-+const struct input_descriptor indesc_netlink = {
-+	.name	= "netlink",
-+	.type	= INDESC_NETLINK,
-+};
-+
-+const struct location netlink_location = {
-+	.indesc	= &indesc_netlink,
-+};
-+
- static void __init netlink_open_sock(void)
- {
- 	nf_sock = mnl_socket_open(NETLINK_NETFILTER);
-@@ -55,7 +64,7 @@ int netlink_io_error(struct netlink_ctx *ctx, const struct location *loc,
- 	va_list ap;
- 
- 	if (loc == NULL)
--		loc = &internal_location;
-+		loc = &netlink_location;
- 
- 	va_start(ap, fmt);
- 	erec = erec_vcreate(EREC_ERROR, loc, fmt, ap);
-@@ -848,7 +857,7 @@ static int list_set_cb(struct nft_set *nls, void *arg)
- 	} else
- 		datatype = NULL;
- 
--	set = set_alloc(&internal_location);
-+	set = set_alloc(&netlink_location);
- 	set->handle.family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
- 	set->handle.table  =
- 		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE));
-@@ -899,7 +908,7 @@ int netlink_get_set(struct netlink_ctx *ctx, const struct handle *h,
- 					"Could not receive set from kernel: %s",
- 					strerror(errno));
- 
--	set = set_alloc(&internal_location);
-+	set = set_alloc(&netlink_location);
- 	set->handle.family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
- 	set->handle.table  =
- 		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE));
-@@ -984,7 +993,7 @@ static int list_setelem_cb(struct nft_set_elem *nlse, void *arg)
- 	if (nft_set_elem_attr_is_set(nlse, NFT_SET_ELEM_ATTR_FLAGS))
- 		flags = nft_set_elem_attr_get_u32(nlse, NFT_SET_ELEM_ATTR_FLAGS);
- 
--	expr = netlink_alloc_value(&internal_location, &nld);
-+	expr = netlink_alloc_value(&netlink_location, &nld);
- 	expr->dtype	= set->keytype;
- 	expr->byteorder	= set->keytype->byteorder;
- 	if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
-@@ -1004,7 +1013,7 @@ static int list_setelem_cb(struct nft_set_elem *nlse, void *arg)
- 		} else
- 			goto out;
- 
--		data = netlink_alloc_data(&internal_location, &nld,
-+		data = netlink_alloc_data(&netlink_location, &nld,
- 					  set->datatype->type == TYPE_VERDICT ?
- 					  NFT_REG_VERDICT : NFT_REG_1);
- 		data->dtype = set->datatype;
-@@ -1012,7 +1021,7 @@ static int list_setelem_cb(struct nft_set_elem *nlse, void *arg)
- 		if (data->byteorder == BYTEORDER_HOST_ENDIAN)
- 			mpz_switch_byteorder(data->value, data->len / BITS_PER_BYTE);
- 
--		expr = mapping_expr_alloc(&internal_location, expr, data);
-+		expr = mapping_expr_alloc(&netlink_location, expr, data);
- 	}
- out:
- 	compound_expr_add(set->init, expr);
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 59b5074..6668308 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -545,11 +545,6 @@ static const struct {
- 	{ .name = "queue",	.parse = netlink_parse_queue },
- };
- 
--static const struct input_descriptor indesc_netlink = {
--	.name = "netlink",
--	.type  = INDESC_NETLINK,
--};
--
- static int netlink_parse_expr(struct nft_rule_expr *nle, void *arg)
- {
- 	const char *type = nft_rule_expr_get_str(nle, NFT_RULE_EXPR_ATTR_NAME);
-@@ -878,7 +873,7 @@ struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
- 	if (nft_rule_attr_is_set(nlr, NFT_RULE_ATTR_POSITION))
- 		h.position = nft_rule_attr_get_u64(nlr, NFT_RULE_ATTR_POSITION);
- 
--	pctx->rule = rule_alloc(&internal_location, &h);
-+	pctx->rule = rule_alloc(&netlink_location, &h);
- 	pctx->table = table_lookup(&h);
- 	assert(pctx->table != NULL);
- 	nft_rule_expr_foreach((struct nft_rule *)nlr, netlink_parse_expr, pctx);
--- 
-1.8.5.3
+The code you commented out checks for loops in the call chain and runs 
+the final_check functions of the target/matches/watchers. As an example, 
+the ebt_ip module's final_check function makes sure the Ethernet 
+protocol is specified to be IPv4.
+I see you comment out more stuff below that. All I can tell you is that 
+it sure is required for correct behavior in the oldschool ebtables 
+program. Please take the time to figure this out (read the code 
+comments, step through the code with a debugger) because I doubt this 
+will be a smooth and stable integration process otherwise.
+
+cheers,
+Bart
+
 
