@@ -1,72 +1,39 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH 0/2] xtables-eb for the compatibility layer
-Date: Wed, 05 Feb 2014 21:43:12 +0100
-Message-ID: <52F2A260.2060806@pandora.be>
-References: <1391624279-4323-1-git-send-email-giuseppelng@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf] IPVS Fixes for v3.14
+Date: Wed, 5 Feb 2014 23:58:15 +0100
+Message-ID: <20140205225815.GA3755@localhost>
+References: <1391517261-27222-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Giuseppe Longo <giuseppelng@gmail.com>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:54174 "EHLO
-	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761AbaBEUsT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Feb 2014 15:48:19 -0500
-In-Reply-To: <1391624279-4323-1-git-send-email-giuseppelng@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1391517261-27222-1-git-send-email-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Giuseppe Longo schreef op 5/02/2014 19:17:
-> Hi,
-> this patchset implements ebtables for the nftables compatibility layer.
-> I would explain some points:
-> - I didn't figure out how to replace some parts of codes, for istance:
->    from xtables-eb.c, line 928:
->    t = (struct ebt_u_target *)new_entry->t;
->    if ((t->parse(c - t->option_offset, argv, argc, new_entry, &t->flags, &t->t))) {
-> 	  if (ebt_errormsg[0] != '\0')
-> 		  return -1;
-> 	  goto check_extension;
->    }
->
->    /* Is it a match_option? */
->    for (m = ebt_matches; m; m = m->next)
-> 	  if (m->parse(c - m->option_offset, argv, argc, new_entry, &m->flags, &m->m))
-> 		  break;
->
->    if (m != NULL) {
-> 	  if (ebt_errormsg[0] != '\0')
-> 		  return -1;
-> 	  if (m->used == 0) {
-> 		  ebt_add_match(new_entry, m);
-> 		  m->used = 1;
-> 	  }
-> 	  goto check_extension;
->    }
->
-> Looking at extensions, I noticed that any xtables_match/xtables_target have parse functions. Maybe I'm wrong.
+On Tue, Feb 04, 2014 at 09:34:20PM +0900, Simon Horman wrote:
+> Hi Pablo,
+> 
+> please consider the following fixes for IPVS for v3.14.
+> 
+> It consists of a fix for AF assingment by Michal Kubecek.
+> 
+> I believe this problem is present all the way back to v2.6.30, however, the
+> change only applies as far back as v3.10.  Please let me know if you would
+> like me to make some patches for older -stable versions.
+> 
+> 
+> The following changes since commit d922e1cb1ea17ac7f0a5c3c2be98d4bd80d055b8:
+> 
+>   net: Document promote_secondaries (2014-01-27 20:39:21 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.14
 
-The parse functions of the targets/matches/watchers will return 0 if the 
-command-line argument isn't one of their options. If the parse function 
-returns a non-zero value, the command line option belongs to that 
-target/match/watcher. So, unless you don't want support for 
-target/watcher/match command-line arguments, you will need that code.
-
-> Even the code from line 992 is not very clear, about final checks. I don't know if I can remove this part of code.
-
-The code you commented out checks for loops in the call chain and runs 
-the final_check functions of the target/matches/watchers. As an example, 
-the ebt_ip module's final_check function makes sure the Ethernet 
-protocol is specified to be IPv4.
-I see you comment out more stuff below that. All I can tell you is that 
-it sure is required for correct behavior in the oldschool ebtables 
-program. Please take the time to figure this out (read the code 
-comments, step through the code with a debugger) because I doubt this 
-will be a smooth and stable integration process otherwise.
-
-cheers,
-Bart
-
-
+Pulled, thanks Simon.
