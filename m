@@ -1,105 +1,50 @@
-From: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
-Subject: [RFC libnetfilter_log][PATCH] configure: add --without-ipulog option to disable libipulog build
-Date: Wed, 5 Feb 2014 14:18:57 +0100
-Message-ID: <1391606337-8706-1-git-send-email-Matthieu.Crapet@ingenico.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 0/5] netfilter: nf_tables fixes
+Date: Wed,  5 Feb 2014 15:03:34 +0000
+Message-ID: <1391612619-30347-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.ingenico.com ([217.108.148.240]:6052 "EHLO
-	smtp1.ingenico.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbaBENeS (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57601 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715AbaBEPDw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Feb 2014 08:34:18 -0500
+	Wed, 5 Feb 2014 10:03:52 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a compat library used for netfilter ULOG target.
-ULOG only works with IPv4. NFLOG has replaced ULOG.
+The following patches fix a couple of bugs in nf_tables:
 
-Signed-off-by: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
----
- configure.ac                         |    5 +++++
- include/libnetfilter_log/Makefile.am |    4 ++++
- src/Makefile.am                      |    6 +++++-
- utils/Makefile.am                    |    7 +++++--
- 4 files changed, 19 insertions(+), 3 deletions(-)
+- potential NULL pointer dereference when dumping sets
+- missing NFT_CT_L3PROTOCOL key in ct expression validation
+- the module dependency issues we've discussed
 
-diff --git a/configure.ac b/configure.ac
-index fe6e75f..01f6890 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -23,6 +23,11 @@ case "$host" in
- *) AC_MSG_ERROR([Linux only, dude!]);;
- esac
- 
-+AC_ARG_WITH([ipulog],
-+  AC_HELP_STRING([--without-ipulog], [don't build libipulog compat library]),
-+  [ipulog_skip=1], [ipulog_skip=0])
-+AM_CONDITIONAL([BUILD_IPULOG], [test $ipulog_skip = 0])
-+
- dnl Dependencies
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
- 
-diff --git a/include/libnetfilter_log/Makefile.am b/include/libnetfilter_log/Makefile.am
-index fe934f1..0305357 100644
---- a/include/libnetfilter_log/Makefile.am
-+++ b/include/libnetfilter_log/Makefile.am
-@@ -1,3 +1,7 @@
- 
-+if BUILD_IPULOG
- pkginclude_HEADERS = libnetfilter_log.h libipulog.h linux_nfnetlink_log.h
-+else
-+pkginclude_HEADERS = libnetfilter_log.h linux_nfnetlink_log.h
-+endif
- 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 10a66e2..33933a4 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -22,14 +22,18 @@ LIBVERSION=2:0:1
- 
- include ${top_srcdir}/Make_global.am
- 
--lib_LTLIBRARIES = libnetfilter_log.la libnetfilter_log_libipulog.la
-+lib_LTLIBRARIES = libnetfilter_log.la
- 
- libnetfilter_log_la_LDFLAGS = -Wc,-nostartfiles -lnfnetlink	\
- 			      -version-info $(LIBVERSION)
- libnetfilter_log_la_SOURCES = libnetfilter_log.c 
- libnetfilter_log_la_LIBADD  = ${LIBNFNETLINK_LIBS}
- 
-+if BUILD_IPULOG
-+lib_LTLIBRARIES += libnetfilter_log_libipulog.la
-+
- libnetfilter_log_libipulog_la_LDFLAGS = -Wc,-nostartfiles	\
- 					-version-info 1:0:0
- libnetfilter_log_libipulog_la_LIBADD = libnetfilter_log.la
- libnetfilter_log_libipulog_la_SOURCES = libipulog_compat.c
-+endif
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index ae64c90..f961b6c 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -1,12 +1,15 @@
- include ${top_srcdir}/Make_global.am
- 
--check_PROGRAMS = nfulnl_test ulog_test
-+check_PROGRAMS = nfulnl_test
- 
- nfulnl_test_SOURCES = nfulnl_test.c
- nfulnl_test_LDADD = ../src/libnetfilter_log.la
- nfulnl_test_LDFLAGS = -dynamic
- 
-+if BUILD_IPULOG
-+check_PROGRAMS += ulog_test
-+
- ulog_test_SOURCES = ulog_test.c
- ulog_test_LDADD = ../src/libnetfilter_log_libipulog.la ../src/libnetfilter_log.la
- ulog_test_LDFLAGS = -dynamic
--
-+endif
--- 
-1.7.10.4
+Please note, the last patch is *not* a new feature but part of the
+fix since NFPROTO_INET was previously also handled by nft_reject.
+I just put it into a seperate patch for easier review.
 
+Please apply, thanks.
+
+
+Patrick McHardy (5):
+      netfilter: nf_tables: fix potential oops when dumping sets
+      netfilter: nft_ct: fix missing NFT_CT_L3PROTOCOL key in validity checks
+      netfilter: nf_tables: add AF specific expression support
+      netfilter: nft_reject: split up reject module into IPv4 and IPv6 specifc parts
+      netfilter: nf_tables: add reject module for NFPROTO_INET
+
+
+ include/net/netfilter/nf_tables.h    |  5 ++
+ net/ipv4/netfilter/Kconfig           |  5 ++
+ net/ipv4/netfilter/Makefile          |  1 +
+ net/ipv4/netfilter/nft_reject_ipv4.c | 75 ++++++++++++++++++++++++++++++
+ net/ipv6/netfilter/Kconfig           |  5 ++
+ net/ipv6/netfilter/Makefile          |  1 +
+ net/ipv6/netfilter/nft_reject_ipv6.c | 76 ++++++++++++++++++++++++++++++
+ net/netfilter/Kconfig                |  6 ++-
+ net/netfilter/Makefile               |  1 +
+ net/netfilter/nf_tables_api.c        | 30 ++++++++----
+ net/netfilter/nft_ct.c               |  1 +
+ net/netfilter/nft_reject.c           | 89 ++++--------------------------------
+ net/netfilter/nft_reject_inet.c      | 63 +++++++++++++++++++++++++
+ 13 files changed, 268 insertions(+), 90 deletions(-)
