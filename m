@@ -1,77 +1,42 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [PATCH 3/3] xtables-events: prints arp rules
-Date: Thu,  6 Feb 2014 14:31:11 +0100
-Message-ID: <1391693471-7591-4-git-send-email-giuseppelng@gmail.com>
-References: <1391693471-7591-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_rbtree: fix chain use underflow with intervals and map
+Date: Thu,  6 Feb 2014 17:00:34 +0100
+Message-ID: <1391702434-4103-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:51827 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756377AbaBFNap (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Feb 2014 08:30:45 -0500
-Received: by mail-ea0-f180.google.com with SMTP id o10so908998eaj.39
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Feb 2014 05:30:44 -0800 (PST)
-In-Reply-To: <1391693471-7591-1-git-send-email-giuseppelng@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:49214 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751063AbaBFQC6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Feb 2014 11:02:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch permits to print arp rules,
-avoiding the segfault that you got currently.
+If you add a rule using intervals+map that introduces a loop, the
+error path of the rbtree set decrements the chain refcount for each
+side of the interval, leading to a chain use counter underflow.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/xtables-events.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nft_rbtree.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/xtables-events.c b/iptables/xtables-events.c
-index 408e091..7ce1d4f 100644
---- a/iptables/xtables-events.c
-+++ b/iptables/xtables-events.c
-@@ -59,7 +59,11 @@ static bool counters;
- static int rule_cb(const struct nlmsghdr *nlh, int type)
+diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+index ca0c1b2..b18e88b 100644
+--- a/net/netfilter/nft_rbtree.c
++++ b/net/netfilter/nft_rbtree.c
+@@ -69,8 +69,10 @@ static void nft_rbtree_elem_destroy(const struct nft_set *set,
+ 				    struct nft_rbtree_elem *rbe)
  {
- 	struct iptables_command_state cs = {};
-+	struct arpt_entry fw_arp = {};
-+	struct xtables_ebt_entry fw_eb = {};
- 	struct nft_rule *r;
-+	void *fw = NULL;
-+	uint8_t family;
+ 	nft_data_uninit(&rbe->key, NFT_DATA_VALUE);
+-	if (set->flags & NFT_SET_MAP)
++	if (set->flags & NFT_SET_MAP &&
++	    !(rbe->flags & NFT_SET_ELEM_INTERVAL_END))
+ 		nft_data_uninit(rbe->data, set->dtype);
++
+ 	kfree(rbe);
+ }
  
- 	r = nft_rule_alloc();
- 	if (r == NULL) {
-@@ -72,21 +76,23 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
- 		goto err_free;
- 	}
- 
--	nft_rule_to_iptables_command_state(r, &cs);
--
--	switch(nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY)) {
-+	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
-+	switch(family) {
- 	case AF_INET:
--		printf("-4 ");
--		break;
- 	case AF_INET6:
--		printf("-6 ");
-+		printf("-%c ", family == AF_INET ? '4' : '6');
-+		nft_rule_to_iptables_command_state(r, &cs);
-+		fw = &cs;
- 		break;
-+	case NFPROTO_ARP:
-+		nft_rule_to_arpt_entry(r, &fw_arp);
-+		fw = &fw_arp;
- 	default:
- 		break;
- 	}
- 
- 
--	nft_rule_print_save(&cs, r,
-+	nft_rule_print_save(fw, r,
- 			    type == NFT_MSG_NEWRULE ? NFT_RULE_APPEND :
- 						      NFT_RULE_DEL,
- 			    counters ? 0 : FMT_NOCOUNTS);
 -- 
-1.8.1.5
+1.7.10.4
 
