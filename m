@@ -1,86 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] xtables-events: prints arp rules
-Date: Fri, 7 Feb 2014 19:28:30 +0100
-Message-ID: <20140207182830.GB4853@localhost>
-References: <1391693471-7591-1-git-send-email-giuseppelng@gmail.com>
- <1391693471-7591-4-git-send-email-giuseppelng@gmail.com>
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: [PATCH 12/13] net: Include appropriate header file in
+ netfilter/nft_lookup.c
+Date: Sun, 9 Feb 2014 01:39:20 +0530
+Message-ID: <401aceca1fc3f95097624fe8433635491b39248d.1391888654.git.rashika.kheria@gmail.com>
+References: <6f029c895035908595957fb16ab445c82793c77d.1391888654.git.rashika.kheria@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	josh@joshtriplett.org
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47777 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbaBGS2l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Feb 2014 13:28:41 -0500
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:63819 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102AbaBHUJZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Feb 2014 15:09:25 -0500
 Content-Disposition: inline
-In-Reply-To: <1391693471-7591-4-git-send-email-giuseppelng@gmail.com>
+In-Reply-To: <6f029c895035908595957fb16ab445c82793c77d.1391888654.git.rashika.kheria@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 06, 2014 at 02:31:11PM +0100, Giuseppe Longo wrote:
-> This patch permits to print arp rules,
-> avoiding the segfault that you got currently.
-> 
-> Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
-> ---
->  iptables/xtables-events.c | 20 +++++++++++++-------
->  1 file changed, 13 insertions(+), 7 deletions(-)
-> 
-> diff --git a/iptables/xtables-events.c b/iptables/xtables-events.c
-> index 408e091..7ce1d4f 100644
-> --- a/iptables/xtables-events.c
-> +++ b/iptables/xtables-events.c
-> @@ -59,7 +59,11 @@ static bool counters;
->  static int rule_cb(const struct nlmsghdr *nlh, int type)
->  {
->  	struct iptables_command_state cs = {};
-> +	struct arpt_entry fw_arp = {};
-> +	struct xtables_ebt_entry fw_eb = {};
+Include appropriate header file net/netfilter/nf_tables_core.h in
+net/netfilter/nft_lookup.c because it has prototype declaration of
+functions defined in net/netfilter/nft_lookup.c.
 
-There is no ebt compat yet, please, remove this line above.
+This eliminates the following warning in net/netfilter/nft_lookup.c:
+net/netfilter/nft_lookup.c:133:12: warning: no previous prototype for =E2=
+=80=98nft_lookup_module_init=E2=80=99 [-Wmissing-prototypes]
+net/netfilter/nft_lookup.c:138:6: warning: no previous prototype for =E2=
+=80=98nft_lookup_module_exit=E2=80=99 [-Wmissing-prototypes]
 
->  	struct nft_rule *r;
-> +	void *fw = NULL;
-> +	uint8_t family;
->  
->  	r = nft_rule_alloc();
->  	if (r == NULL) {
-> @@ -72,21 +76,23 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
->  		goto err_free;
->  	}
->  
-> -	nft_rule_to_iptables_command_state(r, &cs);
-> -
-> -	switch(nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY)) {
-> +	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
-> +	switch(family) {
->  	case AF_INET:
-> -		printf("-4 ");
-> -		break;
->  	case AF_INET6:
-> -		printf("-6 ");
-> +		printf("-%c ", family == AF_INET ? '4' : '6');
-> +		nft_rule_to_iptables_command_state(r, &cs);
-> +		fw = &cs;
->  		break;
-> +	case NFPROTO_ARP:
-> +		nft_rule_to_arpt_entry(r, &fw_arp);
-> +		fw = &fw_arp;
->  	default:
->  		break;
->  	}
->  
->  
-> -	nft_rule_print_save(&cs, r,
-> +	nft_rule_print_save(fw, r,
->  			    type == NFT_MSG_NEWRULE ? NFT_RULE_APPEND :
->  						      NFT_RULE_DEL,
->  			    counters ? 0 : FMT_NOCOUNTS);
-> -- 
-> 1.8.1.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+---
+ net/netfilter/nft_lookup.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 8a6116b..bb4ef4c 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -16,6 +16,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+=20
+ struct nft_lookup {
+ 	struct nft_set			*set;
+--=20
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
