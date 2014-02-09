@@ -1,65 +1,60 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH 12/13] net: Include appropriate header file in
- netfilter/nft_lookup.c
-Date: Sat, 8 Feb 2014 12:14:54 -0800
-Message-ID: <20140208201454.GL20885@leaf>
-References: <6f029c895035908595957fb16ab445c82793c77d.1391888654.git.rashika.kheria@gmail.com>
- <401aceca1fc3f95097624fe8433635491b39248d.1391888654.git.rashika.kheria@gmail.com>
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=20v2=2012/13=5D=20net=3A=20Include=20appropriate=20header=20file=20in=20netfilter/nft=5Flookup=2Ec?=
+Date: Sun,  9 Feb 2014 22:31:42 +0530
+Message-ID: <1224796f5816c5dd1e6f5be3593f32cb17a8df58.1391955925.git.rashika.kheria@gmail.com>
+References: <6f029c895035908595957fb16ab445c82793c77d.1391955924.git.rashika.kheria@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org,
+To: linux-kernel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	"David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: Rashika Kheria <rashika.kheria@gmail.com>
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	josh@joshtriplett.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35698 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951AbaBHUPC convert rfc822-to-8bit (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:41457 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbaBIRBw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Feb 2014 15:15:02 -0500
-Content-Disposition: inline
-In-Reply-To: <401aceca1fc3f95097624fe8433635491b39248d.1391888654.git.rashika.kheria@gmail.com>
+	Sun, 9 Feb 2014 12:01:52 -0500
+In-Reply-To: <6f029c895035908595957fb16ab445c82793c77d.1391955924.git.rashika.kheria@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 09, 2014 at 01:39:20AM +0530, Rashika Kheria wrote:
-> Include appropriate header file net/netfilter/nf_tables_core.h in
-> net/netfilter/nft_lookup.c because it has prototype declaration of
-> functions defined in net/netfilter/nft_lookup.c.
->=20
-> This eliminates the following warning in net/netfilter/nft_lookup.c:
-> net/netfilter/nft_lookup.c:133:12: warning: no previous prototype for=
- =E2=80=98nft_lookup_module_init=E2=80=99 [-Wmissing-prototypes]
-> net/netfilter/nft_lookup.c:138:6: warning: no previous prototype for =
-=E2=80=98nft_lookup_module_exit=E2=80=99 [-Wmissing-prototypes]
->=20
-> Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Include appropriate header file net/netfilter/nf_tables_core.h in
+net/netfilter/nft_lookup.c because it has prototype declaration of
+functions defined in net/netfilter/nft_lookup.c.
 
+This eliminates the following warning in net/netfilter/nft_lookup.c:
+net/netfilter/nft_lookup.c:133:12: warning: no previous prototype for =E2=
+=80=98nft_lookup_module_init=E2=80=99 [-Wmissing-prototypes]
+net/netfilter/nft_lookup.c:138:6: warning: no previous prototype for =E2=
+=80=98nft_lookup_module_exit=E2=80=99 [-Wmissing-prototypes]
+
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
 Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+---
+ net/netfilter/nft_lookup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
->  net/netfilter/nft_lookup.c |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-> index 8a6116b..bb4ef4c 100644
-> --- a/net/netfilter/nft_lookup.c
-> +++ b/net/netfilter/nft_lookup.c
-> @@ -16,6 +16,7 @@
->  #include <linux/netfilter.h>
->  #include <linux/netfilter/nf_tables.h>
->  #include <net/netfilter/nf_tables.h>
-> +#include <net/netfilter/nf_tables_core.h>
-> =20
->  struct nft_lookup {
->  	struct nft_set			*set;
-> --=20
-> 1.7.9.5
->=20
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 8a6116b..bb4ef4c 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -16,6 +16,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+=20
+ struct nft_lookup {
+ 	struct nft_set			*set;
+--=20
+1.7.9.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
