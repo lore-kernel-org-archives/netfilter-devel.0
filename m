@@ -1,25 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables (nft-compat) PATCH 4/8] xtables: Add backward
- compatibility with -w option
-Date: Tue, 11 Feb 2014 12:09:23 +0100
-Message-ID: <20140211110923.GA4542@localhost>
-References: <1392115608-6733-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1392115608-6733-5-git-send-email-tomasz.bursztyka@linux.intel.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [iptables (nft-compat) PATCH 3/8] xtables: Handle family is not
+ related to Netlink family
+Date: Tue, 11 Feb 2014 13:13:17 +0200
+Message-ID: <52FA05CD.2060008@linux.intel.com>
+References: <1392115608-6733-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1392115608-6733-4-git-send-email-tomasz.bursztyka@linux.intel.com> <20140211110242.GB4299@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60543 "EHLO mail.us.es"
+Received: from mga09.intel.com ([134.134.136.24]:13394 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751994AbaBKLJa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Feb 2014 06:09:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1392115608-6733-5-git-send-email-tomasz.bursztyka@linux.intel.com>
+	id S1750807AbaBKLNU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Feb 2014 06:13:20 -0500
+In-Reply-To: <20140211110242.GB4299@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 11, 2014 at 12:46:44PM +0200, Tomasz Bursztyka wrote:
-> Just to keep aligned with iptables legacy tool.
+>> AF_INET vs NFPROTO_IPV4
+>> AF_INET6 vs NFPROTO_IPV6
+> I think we should stick to NFPROTO_*
+>
+> I can see many references to AF_ in the compat layer, you can send me
+> a patch to rename all those instead.
 
-Applied, thanks Tomasz.
+Actually we have always used AF_*
+I will do the change
+
+Tomasz
+
