@@ -1,75 +1,66 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables (nft-compat) PATCH 3/5] nft: Initialize a table only once
-Date: Tue, 11 Feb 2014 18:36:44 +0200
-Message-ID: <1392136606-10339-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables (nft-compat) PATCH 2/5] nft: A builtin chain might be created when restoring
+Date: Tue, 11 Feb 2014 18:36:43 +0200
+Message-ID: <1392136606-10339-3-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1392136606-10339-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:62651 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752516AbaBKQg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Feb 2014 11:36:58 -0500
+	id S1752524AbaBKQg5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Feb 2014 11:36:57 -0500
 In-Reply-To: <1392136606-10339-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This helps to remove some runtime overhead, especially when running
-xtables-restore.
+nft_chain_set() is directly used in xtables-restore.c, however at that
+point no builtin chains have been created yet thus the need to request
+to build it relevantly.
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- iptables/nft.c | 10 ++++++++++
- iptables/nft.h |  1 +
- 2 files changed, 11 insertions(+)
+ iptables/nft.c             | 1 +
+ iptables/nft.h             | 1 +
+ iptables/xtables-restore.c | 1 +
+ 3 files changed, 3 insertions(+)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 7031ede..ac1afa4 100644
+index 968fe8c..7031ede 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -436,6 +436,9 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 	struct nft_table *t;
- 	int ret;
- 
-+	if (_t->initialized)
-+		return 0;
-+
- 	t = nft_table_alloc();
- 	if (t == NULL)
- 		return -1;
-@@ -464,6 +467,10 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 		if (errno != EEXIST)
- 			perror("mnl-talk:nft_table_init_one");
+@@ -744,6 +744,7 @@ __nft_chain_set(struct nft_handle *h, const char *table,
  	}
-+
-+	if (ret == 0 || errno == EEXIST)
-+		_t->initialized = true;
-+
- 	return ret;
- }
  
-@@ -2441,6 +2448,9 @@ int nft_xtables_config_load(struct nft_handle *h, const char *filename,
- 	uint32_t table_family, chain_family;
- 	bool found = false;
+ 	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
++					h->restore ? NLM_F_ACK|NLM_F_CREATE :
+ 					NLM_F_ACK, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
  
-+	if (h->restore)
-+		return 0;
-+
- 	if (xtables_config_parse(filename, table_list, chain_list) < 0) {
- 		if (errno == ENOENT) {
- 			xtables_config_perror(flags,
 diff --git a/iptables/nft.h b/iptables/nft.h
-index 8b64f8b..204a23f 100644
+index 22af66e..8b64f8b 100644
 --- a/iptables/nft.h
 +++ b/iptables/nft.h
-@@ -22,6 +22,7 @@ struct builtin_chain {
- struct builtin_table {
- 	const char *name;
- 	struct builtin_chain chains[NF_INET_NUMHOOKS];
-+	bool initialized;
+@@ -34,6 +34,7 @@ struct nft_handle {
+ 	struct mnl_nlmsg_batch	*batch;
+ 	struct nft_family_ops	*ops;
+ 	struct builtin_table	*tables;
++	bool			restore;
  };
  
- struct nft_handle {
+ extern struct builtin_table xtables_ipv4[TABLES_MAX];
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 50d2935..0498abc 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -170,6 +170,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ {
+ 	struct nft_handle h = {
+ 		.family = family,
++		.restore = true,
+ 	};
+ 	char buffer[10240];
+ 	int c;
 -- 
 1.8.3.2
 
