@@ -1,49 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH ipset 1/2] lib: fix ifname 'physdev:' prefix parsing
-Date: Wed, 12 Feb 2014 10:27:19 +0100
-Message-ID: <1392197240-9389-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37573 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750963AbaBLJbH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Feb 2014 04:31:07 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] netfilter: nft_meta: fix typo "CONFIG_NET_CLS_ROUTE"
+Date: Wed, 12 Feb 2014 10:53:01 +0100
+Message-ID: <1392198781.23759.15.camel@x220>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Richard Weinberger <richard@nod.at>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-hash:net,iface supports matching on the bridge port as well,
-but userspace currently doesn't handle it correctly as it passes
-in 'physdev:eth0' instead of 'eth0'+IPSET_OPT_PHYSDEV.
+There are two checks for CONFIG_NET_CLS_ROUTE, but the corresponding
+Kconfig symbol was dropped in v2.6.39. Since the code guards access to
+dst_entry.tclassid it seems CONFIG_IP_ROUTE_CLASSID should be used
+instead.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- lib/parse.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Untested! I don't use CONFIG_NF_TABLES in my .config (yet). Besides, I
+would have no clue how to runtime test this.
 
-diff --git a/lib/parse.c b/lib/parse.c
-index f1c1f0e..4db872e 100644
---- a/lib/parse.c
-+++ b/lib/parse.c
-@@ -1753,14 +1753,15 @@ ipset_parse_iface(struct ipset_session *session,
- {
- 	struct ipset_data *data;
- 	int offset = 0, err = 0;
-+	static const char pdev_prefix[]="physdev:";
+And, yes, typo is stretching it a bit.
+
+ net/netfilter/nft_meta.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index e8254ad..425cf39 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -116,7 +116,7 @@ static void nft_meta_get_eval(const struct nft_expr *expr,
+ 				 skb->sk->sk_socket->file->f_cred->fsgid);
+ 		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
+-#ifdef CONFIG_NET_CLS_ROUTE
++#ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID: {
+ 		const struct dst_entry *dst = skb_dst(skb);
  
- 	assert(session);
- 	assert(opt == IPSET_OPT_IFACE);
- 	assert(str);
- 
- 	data = ipset_session_data(session);
--	if (STREQ(str, "physdev:")) {
--		offset = 8;
-+	if (STRNEQ(str, pdev_prefix, strlen(pdev_prefix))) {
-+		offset = strlen(pdev_prefix);
- 		err = ipset_data_set(data, IPSET_OPT_PHYSDEV, str);
- 		if (err < 0)
- 			return err;
+@@ -199,7 +199,7 @@ static int nft_meta_init_validate_get(uint32_t key)
+ 	case NFT_META_OIFTYPE:
+ 	case NFT_META_SKUID:
+ 	case NFT_META_SKGID:
+-#ifdef CONFIG_NET_CLS_ROUTE
++#ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID:
+ #endif
+ #ifdef CONFIG_NETWORK_SECMARK
 -- 
-1.8.1.5
-
+1.8.5.3
