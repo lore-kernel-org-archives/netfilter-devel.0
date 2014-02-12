@@ -1,73 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC libnetfilter_log][PATCH] configure: add --without-ipulog
- option to disable libipulog build
-Date: Wed, 12 Feb 2014 23:53:38 +0100
-Message-ID: <20140212225337.GA6744@localhost>
-References: <1391606337-8706-1-git-send-email-Matthieu.Crapet@ingenico.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: Netfilter Extension Development Queries
+Date: Wed, 12 Feb 2014 23:56:17 +0100
+Message-ID: <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
+References: <CAECcapiTOutsUuaukD7uzuXtLeJTmqua4jhzZFZZ735OQ+L9dA@mail.gmail.com>
+ <52FBEFC3.1030706@chello.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Duncan Eastoe <duncaneastoe@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: mart.frauenlob@chello.at
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49763 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754561AbaBLWxt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Feb 2014 17:53:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1391606337-8706-1-git-send-email-Matthieu.Crapet@ingenico.com>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:53645 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284AbaBLW4j convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Feb 2014 17:56:39 -0500
+Received: by mail-lb0-f172.google.com with SMTP id c11so7641025lbj.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2014 14:56:38 -0800 (PST)
+In-Reply-To: <52FBEFC3.1030706@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 05, 2014 at 02:18:57PM +0100, Matthieu Crapet wrote:
-> This is a compat library used for netfilter ULOG target.
-> ULOG only works with IPv4. NFLOG has replaced ULOG.
+On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wr=
+ote:
+>> Also, regarding the switch to nftables from iptables. Will my approa=
+ch
+>> listed above work with iptables and nftables or is a different
+>> approach required for nftables?
+>
+>
+> there is work in progress on a compat-layer:
+> http://git.netfilter.org/iptables-nftables/
+> which should transparently *translate* the syntax (if implemented in
+> nftables).
+>
 
-Applied minor glitch, thanks.
+I (personally) would bet to write the extension natively using the new
+framework.
+I'm sure it would be nice to discuss how your new feature could be
+achieved using nftables (using existing expressions or maybe new
+ones).
 
-> Signed-off-by: Matthieu Crapet <Matthieu.Crapet@ingenico.com>
-> ---
->  configure.ac                         |    5 +++++
->  include/libnetfilter_log/Makefile.am |    4 ++++
->  src/Makefile.am                      |    6 +++++-
->  utils/Makefile.am                    |    7 +++++--
->  4 files changed, 19 insertions(+), 3 deletions(-)
-> 
-> diff --git a/configure.ac b/configure.ac
-> index fe6e75f..01f6890 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -23,6 +23,11 @@ case "$host" in
->  *) AC_MSG_ERROR([Linux only, dude!]);;
->  esac
->  
-> +AC_ARG_WITH([ipulog],
-> +  AC_HELP_STRING([--without-ipulog], [don't build libipulog compat library]),
-> +  [ipulog_skip=1], [ipulog_skip=0])
-> +AM_CONDITIONAL([BUILD_IPULOG], [test $ipulog_skip = 0])
-> +
->  dnl Dependencies
->  PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
->  
-> diff --git a/include/libnetfilter_log/Makefile.am b/include/libnetfilter_log/Makefile.am
-> index fe934f1..0305357 100644
-> --- a/include/libnetfilter_log/Makefile.am
-> +++ b/include/libnetfilter_log/Makefile.am
-> @@ -1,3 +1,7 @@
->  
-> +if BUILD_IPULOG
->  pkginclude_HEADERS = libnetfilter_log.h libipulog.h linux_nfnetlink_log.h
-> +else
-> +pkginclude_HEADERS = libnetfilter_log.h linux_nfnetlink_log.h
-> +endif
-
-Just to avoid redundancy:
-
-@@ -1,3 +1,6 @@
- 
--pkginclude_HEADERS = libnetfilter_log.h libipulog.h
-linux_nfnetlink_log.h
-+pkginclude_HEADERS = libnetfilter_log.h linux_nfnetlink_log.h
- 
-+if BUILD_IPULOG
-+pkginclude_HEADERS += libipulog.h
-+endif
+regards
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
