@@ -1,18 +1,19 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH ipset 1/2] lib: fix ifname 'physdev:' prefix parsing
-Date: Thu, 13 Feb 2014 11:10:05 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1402131105220.16734@blackhole.kfki.hu>
-References: <1392197240-9389-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH ipset 2/2] lib: don't segfault when ipset_data_get returns
+ NULL
+Date: Thu, 13 Feb 2014 11:14:34 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1402131110080.16734@blackhole.kfki.hu>
+References: <1392197240-9389-1-git-send-email-fw@strlen.de> <1392197240-9389-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:57633 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:39244 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752519AbaBMKKK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 05:10:10 -0500
-In-Reply-To: <1392197240-9389-1-git-send-email-fw@strlen.de>
+	id S1752156AbaBMKOh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:14:37 -0500
+In-Reply-To: <1392197240-9389-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -20,44 +21,39 @@ Hi Florian,
 
 On Wed, 12 Feb 2014, Florian Westphal wrote:
 
-> hash:net,iface supports matching on the bridge port as well,
-> but userspace currently doesn't handle it correctly as it passes
-> in 'physdev:eth0' instead of 'eth0'+IPSET_OPT_PHYSDEV.
+> ipset_data_get returns NULL if the attribute is not available, causes when
+> running 'ipset list':
+> 
+> $ ipset -N foo hash:ip
+> $ ipset list
+> Segmentation fault (core dumped)
 
-I think the userspace does handle the case: looking at your patch, it's
-exactly the same as the original one. It is nicer, so I'm happy to apply 
-it, but the description - as far as I see - doesn't fit.
-
-Maybe your kernel is not compiled with BRIDGE_NETFILTER enabled? That's 
-required for the functionality at the kernel side.
-
+I'm unable to reproduce it. Please give me more information on the 
+environment: architecture, kernel, ipset userspace versions, compiler 
+version.
+ 
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  lib/parse.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+>  Not sure about this patch, the missing attr is IPSET_OPT_MEMSIZE.
+>  Is the kernel supposed to send it along (i am on latest nf tree)?
+
+How do you know which attr is missing? IPSET_OPT_MEMSIZE should always be
+sent by the kernel, look at mtype_head in ip_set_hash_gen.h.
+
 > 
-> diff --git a/lib/parse.c b/lib/parse.c
-> index f1c1f0e..4db872e 100644
-> --- a/lib/parse.c
-> +++ b/lib/parse.c
-> @@ -1753,14 +1753,15 @@ ipset_parse_iface(struct ipset_session *session,
->  {
->  	struct ipset_data *data;
->  	int offset = 0, err = 0;
-> +	static const char pdev_prefix[]="physdev:";
+> diff --git a/lib/print.c b/lib/print.c
+> index f81c074..9ad4bab 100644
+> --- a/lib/print.c
+> +++ b/lib/print.c
+> @@ -378,6 +378,8 @@ ipset_print_number(char *buf, unsigned int len,
+>  	assert(data);
 >  
->  	assert(session);
->  	assert(opt == IPSET_OPT_IFACE);
->  	assert(str);
->  
->  	data = ipset_session_data(session);
-> -	if (STREQ(str, "physdev:")) {
-> -		offset = 8;
-> +	if (STRNEQ(str, pdev_prefix, strlen(pdev_prefix))) {
-> +		offset = strlen(pdev_prefix);
->  		err = ipset_data_set(data, IPSET_OPT_PHYSDEV, str);
->  		if (err < 0)
->  			return err;
+>  	number = ipset_data_get(data, opt);
+> +	if (!number)
+> +		return 0;
+>  	maxsize = ipset_data_sizeof(opt, AF_INET);
+>  	D("opt: %u, maxsize %zu", opt, maxsize);
+>  	if (maxsize == sizeof(uint8_t))
 > -- 
 > 1.8.1.5
 
