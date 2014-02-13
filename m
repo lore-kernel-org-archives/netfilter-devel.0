@@ -1,69 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2 nft] scanner: fix parsing of tc handle
-Date: Thu, 13 Feb 2014 11:51:12 +0000
-Message-ID: <20140213115112.GA30397@macbook.localnet>
-References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
- <1392291672-7885-2-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH ipset] kernel: uapi: fix MARKMASK attr ABI breakage
+Date: Thu, 13 Feb 2014 12:51:26 +0100
+Message-ID: <20140213115126.GH25153@breakpoint.cc>
+References: <1392291659-27444-1-git-send-email-fw@strlen.de>
+ <20140213114725.GA8016@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38938 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754412AbaBMLvQ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43006 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754479AbaBMLv1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 06:51:16 -0500
+	Thu, 13 Feb 2014 06:51:27 -0500
 Content-Disposition: inline
-In-Reply-To: <1392291672-7885-2-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20140213114725.GA8016@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 12:41:12PM +0100, Pablo Neira Ayuso wrote:
-> hexstring:hexstring
-> hexstring:
-> :hexstring
-> ---
-> The spaces to separate the key and the action in dictionaries is very
-> important, otherwise (with this patch) the scanner misinterprets this.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Feb 13, 2014 at 12:40:59PM +0100, Florian Westphal wrote:
+> > commit 2dfb973c0dcc6d2211 (add markmask for hash:ip,mark data type)
 > 
->  # nft add filter input tcp dport vmap { 25:drop }
->  <cmdline>:1:41-43: Error: syntax error, unexpected string, expecting comma or '}'
->  add rule filter input tcp dport vmap { 25:drop }
->                                         ^^^
-> I think we can just document this, I don't see any better solution for this
-> at this moment.
+> I don't find that commit in the tree:
+> 
+> $ git show 2dfb973c0dcc6d2211
+> fatal: ambiguous argument '2dfb973c0dcc6d2211': unknown revision or
+> path not in the working tree.
+> Use '--' to separate paths from revisions
 
-Let me try if I can come up with something ...
+its in ipset.git, not in kernel.  Sorry if that was not clear.
 
-> 
->  src/scanner.l |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/src/scanner.l b/src/scanner.l
-> index e4cb398..ea61fa0 100644
-> --- a/src/scanner.l
-> +++ b/src/scanner.l
-> @@ -109,7 +109,7 @@ digit		[0-9]
->  hexdigit	[0-9a-fA-F]
->  decstring	{digit}+
->  hexstring	0[xX]{hexdigit}+
-> -range		({decstring}?:{decstring}?)
-> +priostring	{hexdigit}{0,4}:{hexdigit}{0,4}
->  letter		[a-zA-Z]
->  string		({letter})({letter}|{digit}|[/\-_\.])*
->  quotedstring	\"[^"]*\"
-> @@ -447,6 +447,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
->  				return STRING;
->  			}
->  
-> +{priostring}		{
-> +				yylval->string = xstrdup(yytext);
-> +				return STRING;
-> +			}
-> +
->  \\{newline}		{
->  				reset_pos(yyget_extra(yyscanner), yylloc);
->  			}
-> -- 
-> 1.7.10.4
+I did not find any references to MARKMASK in nf-next.git.
