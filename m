@@ -1,130 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2 nft] scanner: fix parsing of tc handle
-Date: Thu, 13 Feb 2014 14:17:09 +0000
-Message-ID: <20140213141709.GA6456@macbook.localnet>
-References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
- <1392291672-7885-2-git-send-email-pablo@netfilter.org>
- <20140213115112.GA30397@macbook.localnet>
- <20140213130102.GB4223@macbook.localnet>
- <20140213133137.GA9181@localhost>
- <20140213133638.GB5467@macbook.localnet>
+From: Daehee Kim <dahkim77@gmail.com>
+Subject: How to forward a modified packet by using libnetfilter_queue
+Date: Thu, 13 Feb 2014 14:38:13 -0600
+Message-ID: <CAHYG+ykgKDBVoDENWaM1998qy95aWz47xN4haHBPPxuTcwJPRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40071 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbaBMORO (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:54723 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277AbaBMUiN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 09:17:14 -0500
-Content-Disposition: inline
-In-Reply-To: <20140213133638.GB5467@macbook.localnet>
+	Thu, 13 Feb 2014 15:38:13 -0500
+Received: by mail-pa0-f41.google.com with SMTP id fa1so11338651pad.28
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2014 12:38:13 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 01:36:38PM +0000, Patrick McHardy wrote:
-> On Thu, Feb 13, 2014 at 02:31:37PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Feb 13, 2014 at 01:01:03PM +0000, Patrick McHardy wrote:
-> > > On Thu, Feb 13, 2014 at 11:51:12AM +0000, Patrick McHardy wrote:
-> > > 
-> > > I think we might be able to do something with flex "trailing contexts",
-> > > though I didn't manage to figure it out yet.
-> > > 
-> > > Generally it seems like using a ':' in maps might not be the best idea
-> > > after all, its used for too many other things already. This might be
-> > > the reason why I initially used =>, not sure anymore.
-> > > 
-> > > Is there a reasonable alternative to ':' with a single character?
-> > 
-> > Everything seems pretty overloaded, and I still like that python uses
-> > this for dictionaries.
-> 
-> I also thing this would be the nicest way to express this.
-> 
-> > I think even bash and gcc provide bad error reporting if one space is
-> > missing in a for/while statement or a missing bracket is left out.
-> > 
-> > Let's check if that trailing context can help us to fix it, if not,
-> > just document it.
-> 
-> I think I almost got it using:
-> 
-> {priostring}/[ \t\n:]   {
-> 
-> Only thing missing is EOF handling, IOW when the priostring is the last
-> expression on the command line (not in files) it fails.
-> 
-> I also changed priostring to:
-> 
-> priostring      ({hexdigit}{1,4}:{hexdigit}{0,4})|({hexdigit}{0,4}:{hexdigit}{1,4})
-> 
-> since it otherwise also matches a single ':'. I'll try again later, have
-> to take care of other things first.
+Hi,
 
-This is what I'm currently testing. Seems to work alright, it even
-recognizes
+I want to forward a packet modified by libnetfilter_queue.
 
-filter output meta priority { ffff:ffff:accept }
+In detail, suppose a TCP packet is delivered from host1 to host2 as followings.
 
-correctly.
+host1 ---> server --> host2
 
+Here, a server is connected both to host1 and to host2. (to two NICs)
+First, host1 sends a TCP packet for host2.
+When a packet comes into server, the server modifies the packet(header
+or payload).
+Then, the server forwards the modified packet to host2.
 
-diff --git a/src/erec.c b/src/erec.c
-index 4930085..5bb8141 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -84,6 +84,7 @@ void erec_print(FILE *f, const struct error_record *erec)
- 	case INDESC_BUFFER:
- 	case INDESC_CLI:
- 		line = indesc->data;
-+		*strchrnul(line, '\n') = '\0';
- 		break;
- 	case INDESC_FILE:
- 		memset(buf, 0, sizeof(buf));
-diff --git a/src/main.c b/src/main.c
-index 9d50577..56e2ecd 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -307,12 +307,13 @@ int main(int argc, char * const *argv)
- 		for (len = 0, i = optind; i < argc; i++)
- 			len += strlen(argv[i]) + strlen(" ");
- 
--		buf = xzalloc(len + 1);
-+		buf = xzalloc(len + 2);
- 		for (i = optind; i < argc; i++) {
- 			strcat(buf, argv[i]);
- 			if (i + 1 < argc)
- 				strcat(buf, " ");
- 		}
-+		strcat(buf, "\n");
- 		parser_init(&state, &msgs);
- 		scanner = scanner_init(&state);
- 		scanner_push_buffer(scanner, &indesc_cmdline, buf);
-diff --git a/src/scanner.l b/src/scanner.l
-index cd68534..07f0810 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -109,7 +109,7 @@ digit		[0-9]
- hexdigit	[0-9a-fA-F]
- decstring	{digit}+
- hexstring	0[xX]{hexdigit}+
--range		({decstring}?:{decstring}?)
-+priostring	({hexdigit}{1,4}:{hexdigit}{0,4})|({hexdigit}{0,4}:{hexdigit}{1,4})
- letter		[a-zA-Z]
- string		({letter})({letter}|{digit}|[/\-_\.])*
- quotedstring	\"[^"]*\"
-@@ -449,6 +449,13 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 				return STRING;
- 			}
- 
-+{priostring}/[ \t\n:]	{
-+				printf("priostring %s\n", yytext);
-+				yylval->string = xstrdup(yytext);
-+				return STRING;
-+			}
-+
-+
- \\{newline}		{
- 				reset_pos(yyget_extra(yyscanner), yylloc);
- 			}
+----------------------------------------------------------
+I know how to intercept incoming packet at a server by iptables and
+netfilter_queue, but I don't know how to forward the modified packet
+to host2.
+
+In detail, I create a NFQUEUE using iptables and I use modified
+"nfqnl_test.c" to intercept and modify a packet. Problem is how to
+forward the modified packet to an original destination of the packet
+(In above scenario, to host2)
+
+Should I add some filter rules with iptables or should I add some
+codes in "nfqnl_test.c" ?
+
+Any suggestions would be helpful for me.
+Thanks in advance.
+
+Danny
