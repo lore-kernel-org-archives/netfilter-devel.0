@@ -1,51 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH ipset] kernel: uapi: fix MARKMASK attr ABI breakage
-Date: Thu, 13 Feb 2014 13:54:44 +0100
-Message-ID: <20140213125444.GA8612@localhost>
-References: <1392291659-27444-1-git-send-email-fw@strlen.de>
- <20140213114725.GA8016@localhost>
- <20140213115126.GH25153@breakpoint.cc>
- <20140213115543.GA8226@localhost>
- <alpine.DEB.2.10.1402131311150.17323@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2 nft] scanner: fix parsing of tc handle
+Date: Thu, 13 Feb 2014 13:01:03 +0000
+Message-ID: <20140213130102.GB4223@macbook.localnet>
+References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
+ <1392291672-7885-2-git-send-email-pablo@netfilter.org>
+ <20140213115112.GA30397@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44666 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753189AbaBMMzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 07:55:09 -0500
+Received: from stinky.trash.net ([213.144.137.162]:39377 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754691AbaBMNBH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Feb 2014 08:01:07 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1402131311150.17323@blackhole.kfki.hu>
+In-Reply-To: <20140213115112.GA30397@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 01:13:39PM +0100, Jozsef Kadlecsik wrote:
-> On Thu, 13 Feb 2014, Pablo Neira Ayuso wrote:
+On Thu, Feb 13, 2014 at 11:51:12AM +0000, Patrick McHardy wrote:
+> On Thu, Feb 13, 2014 at 12:41:12PM +0100, Pablo Neira Ayuso wrote:
+> > hexstring:hexstring
+> > hexstring:
+> > :hexstring
+> > ---
+> > The spaces to separate the key and the action in dictionaries is very
+> > important, otherwise (with this patch) the scanner misinterprets this.
+> > 
+> >  # nft add filter input tcp dport vmap { 25:drop }
+> >  <cmdline>:1:41-43: Error: syntax error, unexpected string, expecting comma or '}'
+> >  add rule filter input tcp dport vmap { 25:drop }
+> >                                         ^^^
+> > I think we can just document this, I don't see any better solution for this
+> > at this moment.
 > 
-> > On Thu, Feb 13, 2014 at 12:51:26PM +0100, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > On Thu, Feb 13, 2014 at 12:40:59PM +0100, Florian Westphal wrote:
-> > > > > commit 2dfb973c0dcc6d2211 (add markmask for hash:ip,mark data type)
-> > > > 
-> > > > I don't find that commit in the tree:
-> > > > 
-> > > > $ git show 2dfb973c0dcc6d2211
-> > > > fatal: ambiguous argument '2dfb973c0dcc6d2211': unknown revision or
-> > > > path not in the working tree.
-> > > > Use '--' to separate paths from revisions
-> > > 
-> > > its in ipset.git, not in kernel.  Sorry if that was not clear.
-> > 
-> > Ah, I see.
-> > 
-> > > I did not find any references to MARKMASK in nf-next.git.
-> > 
-> > I think this is still in Jozsef's tree.
-> 
-> Yes, it's there - I'll submit the patches after Josh's forceadd patch is 
-> incorporated.
+> Let me try if I can come up with something ...
 
-No problem, I understand you needed some time to get it in good shape.
-thanks Jozsef!
+I think we might be able to do something with flex "trailing contexts",
+though I didn't manage to figure it out yet.
+
+Generally it seems like using a ':' in maps might not be the best idea
+after all, its used for too many other things already. This might be
+the reason why I initially used =>, not sure anymore.
+
+Is there a reasonable alternative to ':' with a single character?
