@@ -1,53 +1,70 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: Netfilter Extension Development Queries
-Date: Wed, 12 Feb 2014 23:56:17 +0100
-Message-ID: <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
-References: <CAECcapiTOutsUuaukD7uzuXtLeJTmqua4jhzZFZZ735OQ+L9dA@mail.gmail.com>
- <52FBEFC3.1030706@chello.at>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH ipset 1/2] lib: fix ifname 'physdev:' prefix parsing
+Date: Thu, 13 Feb 2014 11:10:05 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1402131105220.16734@blackhole.kfki.hu>
+References: <1392197240-9389-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Duncan Eastoe <duncaneastoe@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: mart.frauenlob@chello.at
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:53645 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbaBLW4j convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Feb 2014 17:56:39 -0500
-Received: by mail-lb0-f172.google.com with SMTP id c11so7641025lbj.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Feb 2014 14:56:38 -0800 (PST)
-In-Reply-To: <52FBEFC3.1030706@chello.at>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:57633 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752519AbaBMKKK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Feb 2014 05:10:10 -0500
+In-Reply-To: <1392197240-9389-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wr=
-ote:
->> Also, regarding the switch to nftables from iptables. Will my approa=
-ch
->> listed above work with iptables and nftables or is a different
->> approach required for nftables?
->
->
-> there is work in progress on a compat-layer:
-> http://git.netfilter.org/iptables-nftables/
-> which should transparently *translate* the syntax (if implemented in
-> nftables).
->
+Hi Florian,
 
-I (personally) would bet to write the extension natively using the new
-framework.
-I'm sure it would be nice to discuss how your new feature could be
-achieved using nftables (using existing expressions or maybe new
-ones).
+On Wed, 12 Feb 2014, Florian Westphal wrote:
 
-regards
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> hash:net,iface supports matching on the bridge port as well,
+> but userspace currently doesn't handle it correctly as it passes
+> in 'physdev:eth0' instead of 'eth0'+IPSET_OPT_PHYSDEV.
+
+I think the userspace does handle the case: looking at your patch, it's
+exactly the same as the original one. It is nicer, so I'm happy to apply 
+it, but the description - as far as I see - doesn't fit.
+
+Maybe your kernel is not compiled with BRIDGE_NETFILTER enabled? That's 
+required for the functionality at the kernel side.
+
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  lib/parse.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/parse.c b/lib/parse.c
+> index f1c1f0e..4db872e 100644
+> --- a/lib/parse.c
+> +++ b/lib/parse.c
+> @@ -1753,14 +1753,15 @@ ipset_parse_iface(struct ipset_session *session,
+>  {
+>  	struct ipset_data *data;
+>  	int offset = 0, err = 0;
+> +	static const char pdev_prefix[]="physdev:";
+>  
+>  	assert(session);
+>  	assert(opt == IPSET_OPT_IFACE);
+>  	assert(str);
+>  
+>  	data = ipset_session_data(session);
+> -	if (STREQ(str, "physdev:")) {
+> -		offset = 8;
+> +	if (STRNEQ(str, pdev_prefix, strlen(pdev_prefix))) {
+> +		offset = strlen(pdev_prefix);
+>  		err = ipset_data_set(data, IPSET_OPT_PHYSDEV, str);
+>  		if (err < 0)
+>  			return err;
+> -- 
+> 1.8.1.5
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
