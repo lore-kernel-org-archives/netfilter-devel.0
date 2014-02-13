@@ -1,61 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nft] scanner: fix parsing of tc handle
-Date: Thu, 13 Feb 2014 12:41:12 +0100
-Message-ID: <1392291672-7885-2-git-send-email-pablo@netfilter.org>
-References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/2 nft] meta: remove line break when printing priority
+Date: Thu, 13 Feb 2014 12:41:11 +0100
+Message-ID: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43470 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43469 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455AbaBMLlY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753162AbaBMLlY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 13 Feb 2014 06:41:24 -0500
-In-Reply-To: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hexstring:hexstring
-hexstring:
-:hexstring
+The line break is added after printing the rule.
 ---
-The spaces to separate the key and the action in dictionaries is very
-important, otherwise (with this patch) the scanner misinterprets this.
+ src/meta.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- # nft add filter input tcp dport vmap { 25:drop }
- <cmdline>:1:41-43: Error: syntax error, unexpected string, expecting comma or '}'
- add rule filter input tcp dport vmap { 25:drop }
-                                        ^^^
-I think we can just document this, I don't see any better solution for this
-at this moment.
-
- src/scanner.l |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/src/scanner.l b/src/scanner.l
-index e4cb398..ea61fa0 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -109,7 +109,7 @@ digit		[0-9]
- hexdigit	[0-9a-fA-F]
- decstring	{digit}+
- hexstring	0[xX]{hexdigit}+
--range		({decstring}?:{decstring}?)
-+priostring	{hexdigit}{0,4}:{hexdigit}{0,4}
- letter		[a-zA-Z]
- string		({letter})({letter}|{digit}|[/\-_\.])*
- quotedstring	\"[^"]*\"
-@@ -447,6 +447,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 				return STRING;
- 			}
- 
-+{priostring}		{
-+				yylval->string = xstrdup(yytext);
-+				return STRING;
-+			}
-+
- \\{newline}		{
- 				reset_pos(yyget_extra(yyscanner), yylloc);
- 			}
+diff --git a/src/meta.c b/src/meta.c
+index 0a3df39..af5c3f9 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -75,11 +75,11 @@ static void tchandle_type_print(const struct expr *expr)
+ 		printf("none\n");
+ 	default:
+ 		if (TC_H_MAJ(handle) == 0)
+-			printf(":%04x\n", TC_H_MIN(handle));
++			printf(":%04x", TC_H_MIN(handle));
+ 		else if (TC_H_MIN(handle) == 0)
+-			printf("%04x:\n", TC_H_MAJ(handle) >> 16);
++			printf("%04x:", TC_H_MAJ(handle) >> 16);
+ 		else {
+-			printf("%04x:%04x\n",
++			printf("%04x:%04x",
+ 			       TC_H_MAJ(handle) >> 16, TC_H_MIN(handle));
+ 		}
+ 		break;
 -- 
 1.7.10.4
 
