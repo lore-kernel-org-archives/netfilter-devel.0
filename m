@@ -1,49 +1,58 @@
-From: Daehee Kim <dahkim77@gmail.com>
-Subject: How to forward a modified packet by using libnetfilter_queue
-Date: Thu, 13 Feb 2014 14:38:13 -0600
-Message-ID: <CAHYG+ykgKDBVoDENWaM1998qy95aWz47xN4haHBPPxuTcwJPRw@mail.gmail.com>
+From: Duncan Eastoe <duncaneastoe@gmail.com>
+Subject: Re: Netfilter Extension Development Queries
+Date: Thu, 13 Feb 2014 20:50:44 +0000
+Message-ID: <CAECcapgTKYWT+z+TwPXv33k3Q3iJ2hC6wOr9wOuzGzVKPTF_ew@mail.gmail.com>
+References: <CAECcapiTOutsUuaukD7uzuXtLeJTmqua4jhzZFZZ735OQ+L9dA@mail.gmail.com>
+ <52FBEFC3.1030706@chello.at> <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Cc: mart.frauenlob@chello.at,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:54723 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbaBMUiN (ORCPT
+Received: from mail-ve0-f176.google.com ([209.85.128.176]:40283 "EHLO
+	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512AbaBMUvF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 15:38:13 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fa1so11338651pad.28
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2014 12:38:13 -0800 (PST)
+	Thu, 13 Feb 2014 15:51:05 -0500
+Received: by mail-ve0-f176.google.com with SMTP id jx11so1728154veb.7
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2014 12:51:04 -0800 (PST)
+In-Reply-To: <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wrote:
+> Not that I'm a developer...
+> There's only TCPOPTSTRIP in main iptables.
 
-I want to forward a packet modified by libnetfilter_queue.
+Yes, I haven't been able to find the IPV4OPTSTRIP patch anywhere. If
+it had been, it might have been good to extend it for my needs.
 
-In detail, suppose a TCP packet is delivered from host1 to host2 as followings.
+On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wrote:
+> there is work in progress on a compat-layer:
+> http://git.netfilter.org/iptables-nftables/
+> which should transparently *translate* the syntax (if implemented in
+> nftables).
 
-host1 ---> server --> host2
+Does this translate iptables rule syntax to nftables syntax or is it
+an API compatibility layer?
 
-Here, a server is connected both to host1 and to host2. (to two NICs)
-First, host1 sends a TCP packet for host2.
-When a packet comes into server, the server modifies the packet(header
-or payload).
-Then, the server forwards the modified packet to host2.
+On 12 February 2014 22:56, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> I (personally) would bet to write the extension natively using the new
+> framework.
+> I'm sure it would be nice to discuss how your new feature could be
+> achieved using nftables (using existing expressions or maybe new
+> ones).
 
-----------------------------------------------------------
-I know how to intercept incoming packet at a server by iptables and
-netfilter_queue, but I don't know how to forward the modified packet
-to host2.
+So I would be correct in saying that the Netfilter hooks/API no longer
+work with nftables?
+If so, is there any good documentation for writing extensions for
+nftables? I have found docs such as
+(http://inai.de/documents/Netfilter_Modules.pdf) for netfilter.
 
-In detail, I create a NFQUEUE using iptables and I use modified
-"nfqnl_test.c" to intercept and modify a packet. Problem is how to
-forward the modified packet to an original destination of the packet
-(In above scenario, to host2)
+Thank you both for your replies
 
-Should I add some filter rules with iptables or should I add some
-codes in "nfqnl_test.c" ?
-
-Any suggestions would be helpful for me.
-Thanks in advance.
-
-Danny
+Best regards,
+Duncan
