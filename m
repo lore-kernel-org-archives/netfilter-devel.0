@@ -1,36 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH ipset] kernel: uapi: fix MARKMASK attr ABI breakage
-Date: Thu, 13 Feb 2014 12:47:25 +0100
-Message-ID: <20140213114725.GA8016@localhost>
-References: <1392291659-27444-1-git-send-email-fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2 nft] scanner: fix parsing of tc handle
+Date: Thu, 13 Feb 2014 11:51:12 +0000
+Message-ID: <20140213115112.GA30397@macbook.localnet>
+References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
+ <1392291672-7885-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45863 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751854AbaBMLr3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 06:47:29 -0500
+Received: from stinky.trash.net ([213.144.137.162]:38938 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754412AbaBMLvQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Feb 2014 06:51:16 -0500
 Content-Disposition: inline
-In-Reply-To: <1392291659-27444-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1392291672-7885-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 12:40:59PM +0100, Florian Westphal wrote:
-> commit 2dfb973c0dcc6d2211 (add markmask for hash:ip,mark data type)
-
-I don't find that commit in the tree:
-
-$ git show 2dfb973c0dcc6d2211
-fatal: ambiguous argument '2dfb973c0dcc6d2211': unknown revision or
-path not in the working tree.
-Use '--' to separate paths from revisions
-
-> inserted IPSET_ATTR_MARKMASK in-between other enum values, i.e.
-> changing values of all further attributes.  This causes 'ipset list'
-> segfault on existing kernels since ipset no longer finds
-> IPSET_ATTR_MEMSIZE (it has a different value on kernel side).
+On Thu, Feb 13, 2014 at 12:41:12PM +0100, Pablo Neira Ayuso wrote:
+> hexstring:hexstring
+> hexstring:
+> :hexstring
+> ---
+> The spaces to separate the key and the action in dictionaries is very
+> important, otherwise (with this patch) the scanner misinterprets this.
 > 
-> Jozsef points out it should be moved below IPSET_ATTR_MARK which
-> works since there is some extra reserved space after that value.
+>  # nft add filter input tcp dport vmap { 25:drop }
+>  <cmdline>:1:41-43: Error: syntax error, unexpected string, expecting comma or '}'
+>  add rule filter input tcp dport vmap { 25:drop }
+>                                         ^^^
+> I think we can just document this, I don't see any better solution for this
+> at this moment.
+
+Let me try if I can come up with something ...
+
+> 
+>  src/scanner.l |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/src/scanner.l b/src/scanner.l
+> index e4cb398..ea61fa0 100644
+> --- a/src/scanner.l
+> +++ b/src/scanner.l
+> @@ -109,7 +109,7 @@ digit		[0-9]
+>  hexdigit	[0-9a-fA-F]
+>  decstring	{digit}+
+>  hexstring	0[xX]{hexdigit}+
+> -range		({decstring}?:{decstring}?)
+> +priostring	{hexdigit}{0,4}:{hexdigit}{0,4}
+>  letter		[a-zA-Z]
+>  string		({letter})({letter}|{digit}|[/\-_\.])*
+>  quotedstring	\"[^"]*\"
+> @@ -447,6 +447,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+>  				return STRING;
+>  			}
+>  
+> +{priostring}		{
+> +				yylval->string = xstrdup(yytext);
+> +				return STRING;
+> +			}
+> +
+>  \\{newline}		{
+>  				reset_pos(yyget_extra(yyscanner), yylloc);
+>  			}
+> -- 
+> 1.7.10.4
