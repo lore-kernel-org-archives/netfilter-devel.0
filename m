@@ -1,132 +1,272 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2 nft] scanner: fix parsing of tc handle
-Date: Fri, 14 Feb 2014 11:59:04 +0100
-Message-ID: <20140214105904.GA21451@localhost>
-References: <1392291672-7885-1-git-send-email-pablo@netfilter.org>
- <1392291672-7885-2-git-send-email-pablo@netfilter.org>
- <20140213115112.GA30397@macbook.localnet>
- <20140213130102.GB4223@macbook.localnet>
- <20140213133137.GA9181@localhost>
- <20140213133638.GB5467@macbook.localnet>
- <20140213141709.GA6456@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] netfilter: nf_tables: fix rule batch with anonymous set and module autoload
+Date: Fri, 14 Feb 2014 12:27:08 +0100
+Message-ID: <1392377228-3748-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36845 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46598 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752064AbaBNK7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Feb 2014 05:59:10 -0500
-Content-Disposition: inline
-In-Reply-To: <20140213141709.GA6456@macbook.localnet>
+	id S1751525AbaBNL1R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Feb 2014 06:27:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 02:17:09PM +0000, Patrick McHardy wrote:
-> On Thu, Feb 13, 2014 at 01:36:38PM +0000, Patrick McHardy wrote:
-> > On Thu, Feb 13, 2014 at 02:31:37PM +0100, Pablo Neira Ayuso wrote:
-> > > On Thu, Feb 13, 2014 at 01:01:03PM +0000, Patrick McHardy wrote:
-> > > > On Thu, Feb 13, 2014 at 11:51:12AM +0000, Patrick McHardy wrote:
-> > > > 
-> > > > I think we might be able to do something with flex "trailing contexts",
-> > > > though I didn't manage to figure it out yet.
-> > > > 
-> > > > Generally it seems like using a ':' in maps might not be the best idea
-> > > > after all, its used for too many other things already. This might be
-> > > > the reason why I initially used =>, not sure anymore.
-> > > > 
-> > > > Is there a reasonable alternative to ':' with a single character?
-> > > 
-> > > Everything seems pretty overloaded, and I still like that python uses
-> > > this for dictionaries.
-> > 
-> > I also thing this would be the nicest way to express this.
-> > 
-> > > I think even bash and gcc provide bad error reporting if one space is
-> > > missing in a for/while statement or a missing bracket is left out.
-> > > 
-> > > Let's check if that trailing context can help us to fix it, if not,
-> > > just document it.
-> > 
-> > I think I almost got it using:
-> > 
-> > {priostring}/[ \t\n:]   {
-> > 
-> > Only thing missing is EOF handling, IOW when the priostring is the last
-> > expression on the command line (not in files) it fails.
-> > 
-> > I also changed priostring to:
-> > 
-> > priostring      ({hexdigit}{1,4}:{hexdigit}{0,4})|({hexdigit}{0,4}:{hexdigit}{1,4})
-> > 
-> > since it otherwise also matches a single ':'. I'll try again later, have
-> > to take care of other things first.
-> 
-> This is what I'm currently testing. Seems to work alright, it even
-> recognizes
-> 
-> filter output meta priority { ffff:ffff:accept }
-> 
-> correctly.
+If some modules are missing while processing a rule batch, the updates
+are aborted to start scratch since the nfnl lock was released. If the
+rule-set contains this configuration (in this order):
 
-This patch works here after some testing. Thanks Patrick!
+ #1 rule using anonymous set
+ #2 rule requiring module autoload
 
-> diff --git a/src/erec.c b/src/erec.c
-> index 4930085..5bb8141 100644
-> --- a/src/erec.c
-> +++ b/src/erec.c
-> @@ -84,6 +84,7 @@ void erec_print(FILE *f, const struct error_record *erec)
->  	case INDESC_BUFFER:
->  	case INDESC_CLI:
->  		line = indesc->data;
-> +		*strchrnul(line, '\n') = '\0';
->  		break;
->  	case INDESC_FILE:
->  		memset(buf, 0, sizeof(buf));
-> diff --git a/src/main.c b/src/main.c
-> index 9d50577..56e2ecd 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -307,12 +307,13 @@ int main(int argc, char * const *argv)
->  		for (len = 0, i = optind; i < argc; i++)
->  			len += strlen(argv[i]) + strlen(" ");
->  
-> -		buf = xzalloc(len + 1);
-> +		buf = xzalloc(len + 2);
->  		for (i = optind; i < argc; i++) {
->  			strcat(buf, argv[i]);
->  			if (i + 1 < argc)
->  				strcat(buf, " ");
->  		}
-> +		strcat(buf, "\n");
->  		parser_init(&state, &msgs);
->  		scanner = scanner_init(&state);
->  		scanner_push_buffer(scanner, &indesc_cmdline, buf);
-> diff --git a/src/scanner.l b/src/scanner.l
-> index cd68534..07f0810 100644
-> --- a/src/scanner.l
-> +++ b/src/scanner.l
-> @@ -109,7 +109,7 @@ digit		[0-9]
->  hexdigit	[0-9a-fA-F]
->  decstring	{digit}+
->  hexstring	0[xX]{hexdigit}+
-> -range		({decstring}?:{decstring}?)
-> +priostring	({hexdigit}{1,4}:{hexdigit}{0,4})|({hexdigit}{0,4}:{hexdigit}{1,4})
->  letter		[a-zA-Z]
->  string		({letter})({letter}|{digit}|[/\-_\.])*
->  quotedstring	\"[^"]*\"
-> @@ -449,6 +449,13 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
->  				return STRING;
->  			}
->  
-> +{priostring}/[ \t\n:]	{
-> +				printf("priostring %s\n", yytext);
-> +				yylval->string = xstrdup(yytext);
-> +				return STRING;
-> +			}
-> +
-> +
->  \\{newline}		{
->  				reset_pos(yyget_extra(yyscanner), yylloc);
->  			}
+The anonymous set will be released when aborting. This patch fixes this
+by passing a context variable (autoload) that can be used to decide if
+the anonymous set has to be released or not.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+I guess we can encapsulate that autoload into a context information structure
+in the future in case any other information is needed in the rule destroy path
+to make this look nicer.
+
+I started hacking on two patches to net-next, one to include table, chains and
+set into the batch and follow up to add atomic updates for sets. @Patrick: I
+think that should not interfer with your set enhancements.
+
+ include/linux/netfilter/nfnetlink.h |    2 +-
+ include/net/netfilter/nf_tables.h   |    5 +++--
+ net/netfilter/nf_tables_api.c       |   21 +++++++++++----------
+ net/netfilter/nfnetlink.c           |    4 ++--
+ net/netfilter/nft_compat.c          |    4 ++--
+ net/netfilter/nft_ct.c              |    2 +-
+ net/netfilter/nft_immediate.c       |    2 +-
+ net/netfilter/nft_log.c             |    2 +-
+ net/netfilter/nft_lookup.c          |    4 ++--
+ 9 files changed, 24 insertions(+), 22 deletions(-)
+
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 28c7436..69febee 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -27,7 +27,7 @@ struct nfnetlink_subsystem {
+ 	__u8 cb_count;			/* number of callbacks */
+ 	const struct nfnl_callback *cb;	/* callback for individual types */
+ 	int (*commit)(struct sk_buff *skb);
+-	int (*abort)(struct sk_buff *skb);
++	int (*abort)(struct sk_buff *skb, bool autoload);
+ };
+ 
+ int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index e7e14ff..ccc4be6 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -239,7 +239,7 @@ struct nft_set_binding {
+ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 		       struct nft_set_binding *binding);
+ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-			  struct nft_set_binding *binding);
++			  struct nft_set_binding *binding, bool autoload);
+ 
+ 
+ /**
+@@ -288,7 +288,8 @@ struct nft_expr_ops {
+ 	int				(*init)(const struct nft_ctx *ctx,
+ 						const struct nft_expr *expr,
+ 						const struct nlattr * const tb[]);
+-	void				(*destroy)(const struct nft_expr *expr);
++	void				(*destroy)(const struct nft_expr *expr,
++						   bool autoload);
+ 	int				(*dump)(struct sk_buff *skb,
+ 						const struct nft_expr *expr);
+ 	int				(*validate)(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index adce01e..f92d99d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1254,10 +1254,10 @@ err1:
+ 	return err;
+ }
+ 
+-static void nf_tables_expr_destroy(struct nft_expr *expr)
++static void nf_tables_expr_destroy(struct nft_expr *expr, bool autoload)
+ {
+ 	if (expr->ops->destroy)
+-		expr->ops->destroy(expr);
++		expr->ops->destroy(expr, autoload);
+ 	module_put(expr->ops->type->owner);
+ }
+ 
+@@ -1531,7 +1531,7 @@ err:
+ 	return err;
+ }
+ 
+-static void nf_tables_rule_destroy(struct nft_rule *rule)
++static void nf_tables_rule_destroy(struct nft_rule *rule, bool autoload)
+ {
+ 	struct nft_expr *expr;
+ 
+@@ -1541,7 +1541,7 @@ static void nf_tables_rule_destroy(struct nft_rule *rule)
+ 	 */
+ 	expr = nft_expr_first(rule);
+ 	while (expr->ops && expr != nft_expr_last(rule)) {
+-		nf_tables_expr_destroy(expr);
++		nf_tables_expr_destroy(expr, autoload);
+ 		expr = nft_expr_next(expr);
+ 	}
+ 	kfree(rule);
+@@ -1709,7 +1709,7 @@ err3:
+ 		kfree(repl);
+ 	}
+ err2:
+-	nf_tables_rule_destroy(rule);
++	nf_tables_rule_destroy(rule, false);
+ err1:
+ 	for (i = 0; i < n; i++) {
+ 		if (info[i].ops != NULL)
+@@ -1840,7 +1840,7 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 
+ 	/* Now we can safely release unused old rules */
+ 	list_for_each_entry_safe(rupd, tmp, &net->nft.commit_list, list) {
+-		nf_tables_rule_destroy(rupd->rule);
++		nf_tables_rule_destroy(rupd->rule, false);
+ 		list_del(&rupd->list);
+ 		kfree(rupd);
+ 	}
+@@ -1848,7 +1848,7 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 	return 0;
+ }
+ 
+-static int nf_tables_abort(struct sk_buff *skb)
++static int nf_tables_abort(struct sk_buff *skb, bool autoload)
+ {
+ 	struct net *net = sock_net(skb->sk);
+ 	struct nft_rule_trans *rupd, *tmp;
+@@ -1869,7 +1869,7 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 	synchronize_rcu();
+ 
+ 	list_for_each_entry_safe(rupd, tmp, &net->nft.commit_list, list) {
+-		nf_tables_rule_destroy(rupd->rule);
++		nf_tables_rule_destroy(rupd->rule, autoload);
+ 		list_del(&rupd->list);
+ 		kfree(rupd);
+ 	}
+@@ -2518,11 +2518,12 @@ bind:
+ }
+ 
+ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-			  struct nft_set_binding *binding)
++			  struct nft_set_binding *binding, bool autoload)
+ {
+ 	list_del(&binding->list);
+ 
+-	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
++	if (list_empty(&set->bindings) &&
++	    set->flags & NFT_SET_ANONYMOUS && !autoload)
+ 		nf_tables_set_destroy(ctx, set);
+ }
+ 
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 046aa13..61fb987 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -325,7 +325,7 @@ replay:
+ 			 * original skb.
+ 			 */
+ 			if (err == -EAGAIN) {
+-				ss->abort(skb);
++				ss->abort(skb, true);
+ 				nfnl_unlock(subsys_id);
+ 				kfree_skb(nskb);
+ 				goto replay;
+@@ -351,7 +351,7 @@ done:
+ 	if (success && done)
+ 		ss->commit(skb);
+ 	else
+-		ss->abort(skb);
++		ss->abort(skb, false);
+ 
+ 	nfnl_unlock(subsys_id);
+ 	kfree_skb(nskb);
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 82cb823..d1e02d9 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -192,7 +192,7 @@ err:
+ }
+ 
+ static void
+-nft_target_destroy(const struct nft_expr *expr)
++nft_target_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	struct xt_target *target = expr->ops->data;
+ 
+@@ -379,7 +379,7 @@ err:
+ }
+ 
+ static void
+-nft_match_destroy(const struct nft_expr *expr)
++nft_match_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	struct xt_match *match = expr->ops->data;
+ 
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 46e2754..178d2be 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -297,7 +297,7 @@ static int nft_ct_init(const struct nft_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static void nft_ct_destroy(const struct nft_expr *expr)
++static void nft_ct_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	struct nft_ct *priv = nft_expr_priv(expr);
+ 
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index f169501..961042f 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -70,7 +70,7 @@ err1:
+ 	return err;
+ }
+ 
+-static void nft_immediate_destroy(const struct nft_expr *expr)
++static void nft_immediate_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
+ 	return nft_data_uninit(&priv->data, nft_dreg_to_type(priv->dreg));
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index 26c5154..b018eba 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -74,7 +74,7 @@ static int nft_log_init(const struct nft_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static void nft_log_destroy(const struct nft_expr *expr)
++static void nft_log_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	struct nft_log *priv = nft_expr_priv(expr);
+ 
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index bb4ef4c..c2b30c2 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -89,11 +89,11 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static void nft_lookup_destroy(const struct nft_expr *expr)
++static void nft_lookup_destroy(const struct nft_expr *expr, bool autoload)
+ {
+ 	struct nft_lookup *priv = nft_expr_priv(expr);
+ 
+-	nf_tables_unbind_set(NULL, priv->set, &priv->binding);
++	nf_tables_unbind_set(NULL, priv->set, &priv->binding, autoload);
+ }
+ 
+ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
+-- 
+1.7.10.4
+
