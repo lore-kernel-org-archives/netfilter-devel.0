@@ -1,64 +1,75 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/2] ipset: add forceadd kernel support for hash set
+Subject: Re: [PATCH 2/2] ipset: add forceadd userspace support for hash set
  types
-Date: Fri, 14 Feb 2014 11:06:38 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1402140955370.19460@blackhole.kfki.hu>
-References: <1391261452-11266-1-git-send-email-johunt@akamai.com> <1391261452-11266-2-git-send-email-johunt@akamai.com>
+Date: Fri, 14 Feb 2014 11:10:20 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1402141032310.19460@blackhole.kfki.hu>
+References: <1391261452-11266-1-git-send-email-johunt@akamai.com> <1391261452-11266-3-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:52191 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:52610 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbaBNKGn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Feb 2014 05:06:43 -0500
-In-Reply-To: <1391261452-11266-2-git-send-email-johunt@akamai.com>
+	id S1750932AbaBNKKY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Feb 2014 05:10:24 -0500
+In-Reply-To: <1391261452-11266-3-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Josh,
-
 On Sat, 1 Feb 2014, Josh Hunt wrote:
 
-> Adds a new property for hash set types, where if a set is created
-> with the 'forceadd' option and the set becomes full the next addition
-> to the set may succeed and evict a random entry from the set.
-> 
-> To keep overhead low eviction is done very simply. It checks to see
-> which bucket the new entry would be added. If the bucket's pos value
-> is non-zero (meaning there's at least one entry in the bucket) it
-> replaces the first entry in the bucket. If pos is zero, then it continues
-> down the normal add process.
-
-I think it's a great feature and the overhead is really low - I'm happy 
-to apply it. I have problem only with the implementation on how the single 
-flag is handled and passed between userspace and kernel. Please see my 
-comments below.
- 
-> This property is useful if you have a set for 'ban' lists where it may
-> not matter if you release some entries from the set early.
+> The userspace side of the forceadd changes.
 > 
 > Signed-off-by: Josh Hunt <johunt@akamai.com>
 > ---
->  kernel/include/uapi/linux/netfilter/ipset/ip_set.h |    1 +
->  kernel/net/netfilter/ipset/ip_set_hash_gen.h       |   26 ++++++++++++++++++-
->  kernel/net/netfilter/ipset/ip_set_hash_ip.c        |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipmark.c    |    3 +-
->  kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_net.c       |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |    4 ++-
->  kernel/net/netfilter/ipset/ip_set_hash_netnet.c    |    3 +-
->  kernel/net/netfilter/ipset/ip_set_hash_netport.c   |    4 ++-
->  .../net/netfilter/ipset/ip_set_hash_netportnet.c   |    4 ++-
->  12 files changed, 53 insertions(+), 12 deletions(-)
+>  include/libipset/data.h         |    4 +-
+>  include/libipset/linux_ip_set.h |    1 +
+>  include/libipset/parse.h        |    3 +
+>  lib/data.c                      |    8 ++
+>  lib/debug.c                     |    1 +
+>  lib/ipset_hash_ip.c             |  123 ++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipmark.c         |  142 ++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipport.c         |  147 ++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipportip.c       |  158 ++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipportnet.c      |  169 +++++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_net.c            |  119 +++++++++++++++++++++++++++
+>  lib/ipset_hash_netiface.c       |  125 +++++++++++++++++++++++++++++
+>  lib/ipset_hash_netnet.c         |  125 +++++++++++++++++++++++++++++
+>  lib/ipset_hash_netport.c        |  132 ++++++++++++++++++++++++++++++
+>  lib/ipset_hash_netportnet.c     |  149 ++++++++++++++++++++++++++++++++++
+>  lib/parse.c                     |   21 +++++
+>  lib/print.c                     |    4 +
+>  lib/session.c                   |    4 +
+>  src/ipset.8                     |    7 ++
+>  19 files changed, 1441 insertions(+), 1 deletions(-)
 > 
-> diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+> diff --git a/include/libipset/data.h b/include/libipset/data.h
+> index 3a26b1e..06ece1e 100644
+> --- a/include/libipset/data.h
+> +++ b/include/libipset/data.h
+> @@ -36,6 +36,7 @@ enum ipset_opt {
+>  	IPSET_OPT_PROBES,
+>  	IPSET_OPT_RESIZE,
+>  	IPSET_OPT_SIZE,
+> +	IPSET_OPT_FORCEADD,
+>  	/* Create-specific options, filled out by the kernel */
+>  	IPSET_OPT_ELEMENTS,
+>  	IPSET_OPT_REFERENCES,
+> @@ -94,7 +95,8 @@ enum ipset_opt {
+>  	| IPSET_FLAG(IPSET_OPT_RESIZE)	\
+>  	| IPSET_FLAG(IPSET_OPT_SIZE)	\
+>  	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
+> -	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT))
+> +	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT)\
+> +	| IPSET_FLAG(IPSET_OPT_FORCEADD))
+>  
+>  #define IPSET_ADT_FLAGS			\
+>  	(IPSET_FLAG(IPSET_OPT_IP)	\
+> diff --git a/include/libipset/linux_ip_set.h b/include/libipset/linux_ip_set.h
 > index c2bae85..0e1478e 100644
-> --- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-> +++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
+> --- a/include/libipset/linux_ip_set.h
+> +++ b/include/libipset/linux_ip_set.h
 > @@ -95,6 +95,7 @@ enum {
 >  	IPSET_ATTR_PROBES,
 >  	IPSET_ATTR_RESIZE,
@@ -68,115 +79,207 @@ comments below.
 >  	IPSET_ATTR_ELEMENTS,
 >  	IPSET_ATTR_REFERENCES,
 
-Do not introduce a new attribute just for a flag: there is the 
-IPSET_ATTR_CADT_FLAGS attribute for this with a lot of unused bits. So 
-please add a new flag to "enum ipset_cadt_flags" instead which is for 
-transferring the flag. In order to store it, I added the new "flags" 
-member to struct ip_set in a hole in the structure. The corresponding in 
-kernel flag should be added to "enum ipset_create_flags" by replacing 
-IPSET_CREATE_FLAG_NONE with IPSET_CREATE_FLAG_FORCEADD or something like 
-that.
+Please use "make update_includes", in order to sync linux_ip_set.h.
 
-> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> index fa259db..b4ca130 100644
-> --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -263,6 +263,7 @@ struct htype {
->  	u32 maxelem;		/* max elements in the hash */
->  	u32 elements;		/* current element (vs timeout) */
->  	u32 initval;		/* random jhash init value */
-> +	u8 forceadd;            /* if hash full, attempt to evict one on add */
-
-With the modifications above this is not needed anymore.
-
->  #ifdef IP_SET_HASH_WITH_MARKMASK
->  	u32 markmask;		/* markmask value for mark mask to store */
->  #endif
-> @@ -633,6 +634,19 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->  	bool flag_exist = flags & IPSET_FLAG_EXIST;
->  	u32 key, multi = 0;
->  
-> +        if (h->elements >= h->maxelem && h->forceadd) {
-
-Here you can check whether the in-kernel flag is set in set->flags.
-
-> +                rcu_read_lock_bh();
-> +                t = rcu_dereference_bh(h->table);
-> +                key = HKEY(value, h->initval, t->htable_bits);
-> +                n = hbucket(t,key);
-> +                if (n->pos) {
-> +                        /* Choosing the first entry in the array to replace */
-> +                        j = 0;
-> +                        goto reuse_slot;
-> +                }
-> +                rcu_read_unlock_bh();
-> +        }
-> +
->  	if (SET_WITH_TIMEOUT(set) && h->elements >= h->maxelem)
->  		/* FIXME: when set is full, we slow down here */
->  		mtype_expire(set, h, NLEN(set->family), set->dsize);
-> @@ -923,6 +937,9 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
->  		goto nla_put_failure;
->  	if (unlikely(ip_set_put_flags(skb, set)))
->  		goto nla_put_failure;
-> +        if ((h->forceadd) && nla_put_u8(skb, IPSET_ATTR_FORCEADD, htonl(h->forceadd)))
-> +                goto nla_put_failure;
+> diff --git a/include/libipset/parse.h b/include/libipset/parse.h
+> index 55981f2..93af5c3 100644
+> --- a/include/libipset/parse.h
+> +++ b/include/libipset/parse.h
+> @@ -103,6 +103,9 @@ extern int ipset_parse_elem(struct ipset_session *session,
+>  extern int ipset_call_parser(struct ipset_session *session,
+>  			     const struct ipset_arg *arg,
+>  			     const char *str);
+> +extern int ipset_parse_forceadd(struct ipset_session *session,
+> +                               enum ipset_opt opt, const char *str);
 > +
 
-As it's a flag, please remove this and extend the ip_set_put_flags
-function: when the in-kernel flag is set, set the appropriate
-new flag from enum ipset_cadt_flags in the IPSET_ATTR_CADT_FLAGS
-attribute.
+This is not needed, see below.
 
->  	ipset_nest_end(skb, nested);
->  
->  	return 0;
-> @@ -1139,9 +1156,14 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
->  				IPSET_TOKEN(HTYPE, 6_gc));
->  	}
->  
-> -	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
-> +        if (tb[IPSET_ATTR_FORCEADD])
-> +                h->forceadd = 1;
-> +        else
-> +                h->forceadd = 0;
+>  /* Compatibility parser functions */
+>  extern int ipset_parse_iptimeout(struct ipset_session *session,
+> diff --git a/lib/data.c b/lib/data.c
+> index 48ec98a..a841d7f 100644
+> --- a/lib/data.c
+> +++ b/lib/data.c
+> @@ -57,6 +57,7 @@ struct ipset_data {
+>  			uint32_t markmask;
+>  			uint32_t gc;
+>  			uint32_t size;
+> +			uint8_t forceadd;
+
+We can get rid of this too.
+
+>  			/* Filled out by kernel */
+>  			uint32_t references;
+>  			uint32_t elements;
+> @@ -309,6 +310,10 @@ ipset_data_set(struct ipset_data *data, enum ipset_opt opt, const void *value)
+>  	case IPSET_OPT_CREATE_COMMENT:
+>  		cadt_flag_type_attr(data, opt, IPSET_FLAG_WITH_COMMENT);
+>  		break;
+> +        case IPSET_OPT_FORCEADD:
+> +		data->create.forceadd = *(const uint8_t *) value;
+> +		break;
 > +
-> +	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p) forceadd %d\n",
->  		 set->name, jhash_size(t->htable_bits),
-> -		 t->htable_bits, h->maxelem, set->data, t);
-> +		 t->htable_bits, h->maxelem, set->data, t, h->forceadd);
 
-Remove these too and move the code into ip_set_elem_len (the function
-should be better named, I know): if the transport flag is set in
-the IPSET_ATTR_CADT_FLAGS attribute, set the corresponding in-kernel flag 
-in set->flags.
+Use cadt_flag_type_attr(), like just above in the 
+IPSET_OPT_CREATE_COMMENT case.
 
-That way the core handles all the flag handling and converting.
+>  	/* Create-specific options, filled out by the kernel */
+>  	case IPSET_OPT_ELEMENTS:
+>  		data->create.elements = *(const uint32_t *) value;
+> @@ -481,6 +486,9 @@ ipset_data_get(const struct ipset_data *data, enum ipset_opt opt)
+>  		return &data->create.resize;
+>  	case IPSET_OPT_SIZE:
+>  		return &data->create.size;
+> +	case IPSET_OPT_FORCEADD:
+> +		return &data->create.forceadd;
+> +
+
+Move the case to the bunch of the IPSET_OPT_CADT_FLAGS cases where just
+cadt_flags is returned.
+
+>  	/* Create-specific options, filled out by the kernel */
+>  	case IPSET_OPT_ELEMENTS:
+>  		return &data->create.elements;
+> diff --git a/lib/debug.c b/lib/debug.c
+> index 1240e22..14249e5 100644
+> --- a/lib/debug.c
+> +++ b/lib/debug.c
+> @@ -46,6 +46,7 @@ static const struct ipset_attrname createattr2name[] = {
+>  	[IPSET_ATTR_ELEMENTS]	= { .name = "ELEMENTS" },
+>  	[IPSET_ATTR_REFERENCES]	= { .name = "REFERENCES" },
+>  	[IPSET_ATTR_MEMSIZE]	= { .name = "MEMSIZE" },
+> +	[IPSET_ATTR_FORCEADD]	= { .name = "FORCEADD" },
+>  };
+
+This can also be removed.
 
 >  
->  	return 0;
+>  static const struct ipset_attrname adtattr2name[] = {
+> diff --git a/lib/ipset_hash_ip.c b/lib/ipset_hash_ip.c
+> index 45185ec..cde0781 100644
+> --- a/lib/ipset_hash_ip.c
+> +++ b/lib/ipset_hash_ip.c
+> @@ -383,10 +383,133 @@ static struct ipset_type ipset_hash_ip2 = {
+>  	.description = "comment support",
+>  };
+>  
+> +/* Parse commandline arguments */
+> +static const struct ipset_arg hash_ip_create_args3[] = {
+> +	{ .name = { "family", NULL },
+> +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
+> +	  .parse = ipset_parse_family,		.print = ipset_print_family,
+> +	},
+> +	/* Alias: family inet */
+> +	{ .name = { "-4", NULL },
+> +	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
+> +	  .parse = ipset_parse_family,
+> +	},
+> +	/* Alias: family inet6 */
+> +	{ .name = { "-6", NULL },
+> +	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_FAMILY,
+> +	  .parse = ipset_parse_family,
+> +	},
+> +	{ .name = { "hashsize", NULL },
+> +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_HASHSIZE,
+> +	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
+> +	},
+> +	{ .name = { "maxelem", NULL },
+> +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
+> +	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
+> +	},
+> +	{ .name = { "netmask", NULL },
+> +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_NETMASK,
+> +	  .parse = ipset_parse_netmask,		.print = ipset_print_number,
+> +	},
+> +	{ .name = { "timeout", NULL },
+> +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
+> +	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
+> +	},
+> +	{ .name = { "counters", NULL },
+> +	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
+> +	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
+> +	},
+> +	{ .name = { "comment", NULL },
+> +	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_CREATE_COMMENT,
+> +	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
+> +	},
+> +	{ .name = { "forceadd", NULL },
+> +	  .has_arg = IPSET_NO_ARG,              .opt = IPSET_OPT_FORCEADD,
+> +	  .parse = ipset_parse_forceadd,        .print = ipset_print_number,
+> +        },
+
+Please use ipset_parse_flag and ipset_print_flag here and in all the new 
+revisions of the hash types. Also, adjust LIBVERSION in Make_global.am 
+because of the new flag.
+
+[...]
+
+> diff --git a/lib/parse.c b/lib/parse.c
+> index f1c1f0e..1953e9e 100644
+> --- a/lib/parse.c
+> +++ b/lib/parse.c
+> @@ -1988,3 +1988,24 @@ out:
+>  	free(saved);
+>  	return ret;
 >  }
-> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_ip.c b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-> index e65fc24..6b97b91 100644
-> --- a/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-> +++ b/kernel/net/netfilter/ipset/ip_set_hash_ip.c
-> @@ -25,7 +25,8 @@
->  
->  #define IPSET_TYPE_REV_MIN	0
->  /*				1	   Counters support */
-> -#define IPSET_TYPE_REV_MAX	2	/* Comments support */
-> +/*				2	   Comments support */
-> +#define IPSET_TYPE_REV_MAX	3	/* Forceadd support */
->  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-> @@ -284,6 +285,7 @@ static struct ip_set_type hash_ip_type __read_mostly = {
->  		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
->  		[IPSET_ATTR_NETMASK]	= { .type = NLA_U8  },
->  		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-> +		[IPSET_ATTR_FORCEADD]   = { .type = NLA_U8 },
+> +
+> +/**
+> + * ipset_parse_forceadd - parse forceadd set option
+> + * @session: session structure
+> + * @opt: option kind of the data
+> + * @str: string to parse
+> + *
+> + * Parse forceadd arg
+> + * The value is stored in the data blob of the session.
+> + *
+> + * Returns 0 on success or a negative error code.
+> + */
+> +int
+> +ipset_parse_forceadd(struct ipset_session *session,
+> +		enum ipset_opt opt, const char *str)
+> +{
+> +	uint8_t force = 1;
+> +        assert(session);
+> +
+> +        return ipset_session_data_set(session, opt, &force);
+> +}
 
-The attribute can thus be removed from all hash types.
+The parser function can be removed.
+
+> diff --git a/lib/print.c b/lib/print.c
+> index f81c074..86dfa03 100644
+> --- a/lib/print.c
+> +++ b/lib/print.c
+> @@ -903,6 +903,10 @@ ipset_print_data(char *buf, unsigned int len,
+>  	case IPSET_OPT_SIZE:
+>  		size = ipset_print_number(buf, len, data, opt, env);
+>  		break;
+> +	case IPSET_OPT_FORCEADD:
+> +		size = snprintf(buf, len, "forceadd", NULL);
+> +		break;
+> +
+>  	default:
+>  		return -1;
+>  	}
+
+And this isn't needed either.
+
+> diff --git a/lib/session.c b/lib/session.c
+> index d2957a5..095cbec 100644
+> --- a/lib/session.c
+> +++ b/lib/session.c
+> @@ -413,6 +413,10 @@ static const struct ipset_attr_policy create_attrs[] = {
+>  		.type = MNL_TYPE_U32,
+>  		.opt = IPSET_OPT_MEMSIZE,
+>  	},
+> +	[IPSET_ATTR_FORCEADD] = {
+> +		.type = MNL_TYPE_U8,
+> +		.opt = IPSET_OPT_FORCEADD,
+> +	},
+>  };
+
+This can also be deleted.
 
 Best regards,
 Jozsef
