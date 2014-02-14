@@ -1,58 +1,38 @@
-From: Duncan Eastoe <duncaneastoe@gmail.com>
-Subject: Re: Netfilter Extension Development Queries
-Date: Thu, 13 Feb 2014 20:50:44 +0000
-Message-ID: <CAECcapgTKYWT+z+TwPXv33k3Q3iJ2hC6wOr9wOuzGzVKPTF_ew@mail.gmail.com>
-References: <CAECcapiTOutsUuaukD7uzuXtLeJTmqua4jhzZFZZ735OQ+L9dA@mail.gmail.com>
- <52FBEFC3.1030706@chello.at> <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH ipset] kernel: uapi: fix MARKMASK attr ABI breakage
+Date: Fri, 14 Feb 2014 09:23:07 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1402140922240.19460@blackhole.kfki.hu>
+References: <1392291659-27444-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: mart.frauenlob@chello.at,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ve0-f176.google.com ([209.85.128.176]:40283 "EHLO
-	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbaBMUvF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Feb 2014 15:51:05 -0500
-Received: by mail-ve0-f176.google.com with SMTP id jx11so1728154veb.7
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Feb 2014 12:51:04 -0800 (PST)
-In-Reply-To: <CAOkSjBhV_vXwa55v2D9cNFii8ZH-nHWS0m1SU2Y9d83GfLQ=7A@mail.gmail.com>
+Received: from smtp2.kfki.hu ([148.6.0.28]:51739 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751538AbaBNIXL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Feb 2014 03:23:11 -0500
+In-Reply-To: <1392291659-27444-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wrote:
-> Not that I'm a developer...
-> There's only TCPOPTSTRIP in main iptables.
+On Thu, 13 Feb 2014, Florian Westphal wrote:
 
-Yes, I haven't been able to find the IPV4OPTSTRIP patch anywhere. If
-it had been, it might have been good to extend it for my needs.
+> commit 2dfb973c0dcc6d2211 (add markmask for hash:ip,mark data type)
+> inserted IPSET_ATTR_MARKMASK in-between other enum values, i.e.
+> changing values of all further attributes.  This causes 'ipset list'
+> segfault on existing kernels since ipset no longer finds
+> IPSET_ATTR_MEMSIZE (it has a different value on kernel side).
+> 
+> Jozsef points out it should be moved below IPSET_ATTR_MARK which
+> works since there is some extra reserved space after that value.
 
-On 12 February 2014 23:03, Mart Frauenlob <mart.frauenlob@chello.at> wrote:
-> there is work in progress on a compat-layer:
-> http://git.netfilter.org/iptables-nftables/
-> which should transparently *translate* the syntax (if implemented in
-> nftables).
-
-Does this translate iptables rule syntax to nftables syntax or is it
-an API compatibility layer?
-
-On 12 February 2014 22:56, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> I (personally) would bet to write the extension natively using the new
-> framework.
-> I'm sure it would be nice to discuss how your new feature could be
-> achieved using nftables (using existing expressions or maybe new
-> ones).
-
-So I would be correct in saying that the Netfilter hooks/API no longer
-work with nftables?
-If so, is there any good documentation for writing extensions for
-nftables? I have found docs such as
-(http://inai.de/documents/Netfilter_Modules.pdf) for netfilter.
-
-Thank you both for your replies
+Patch is applied, thanks Florian!
 
 Best regards,
-Duncan
+Jozsef 
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
