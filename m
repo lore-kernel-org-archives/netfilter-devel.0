@@ -1,73 +1,262 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_tables: fix rule batch with anonymous set
- and module autoload
-Date: Sat, 15 Feb 2014 09:38:23 +0000
-Message-ID: <20140215093822.GB3815@macbook.localnet>
-References: <1392377228-3748-1-git-send-email-pablo@netfilter.org>
- <20140214113755.GC19082@macbook.localnet>
- <20140214123411.GA4422@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Nikolay Aleksandrov <nikolay@redhat.com>
+Subject: [RFC PATCH] netfilter: nf_tables: add new write expression
+Date: Sat, 15 Feb 2014 14:17:22 +0100
+Message-ID: <1392470242-4515-1-git-send-email-nikolay@redhat.com>
+Cc: pablo@netfilter.org, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60183 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585AbaBOJi0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Feb 2014 04:38:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20140214123411.GA4422@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:41500 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753050AbaBONRb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Feb 2014 08:17:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 14, 2014 at 01:34:11PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Feb 14, 2014 at 11:37:56AM +0000, Patrick McHardy wrote:
-> > [ sorry accidentally dropped netfilter-devel ]
-> > 
-> > On Fri, Feb 14, 2014 at 12:27:08PM +0100, Pablo Neira Ayuso wrote:
-> > > If some modules are missing while processing a rule batch, the updates
-> > > are aborted to start scratch since the nfnl lock was released. If the
-> > > rule-set contains this configuration (in this order):
-> > > 
-> > >  #1 rule using anonymous set
-> > >  #2 rule requiring module autoload
-> > > 
-> > > The anonymous set will be released when aborting. This patch fixes this
-> > > by passing a context variable (autoload) that can be used to decide if
-> > > the anonymous set has to be released or not.
-> > > 
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > > I guess we can encapsulate that autoload into a context information structure
-> > > in the future in case any other information is needed in the rule destroy path
-> > > to make this look nicer.
-> > >
-> > > I started hacking on two patches to net-next, one to include table, chains and
-> > > set into the batch and follow up to add atomic updates for sets. @Patrick: I
-> > > think that should not interfer with your set enhancements.
-> > 
-> > Wouldn't be a big problem, they're pretty much contained to newset().
-> > 
-> > Regarding this patch - I'd really prefer to just fix batches to include sets
-> > instead of changing all these function signatures just to handle this very
-> > specific case.
-> 
-> If the patch that results from adding the set into the batch support
-> is ~100 LOC, we can pass that to -stable, but if it doesn't, we'll
-> have to pass this first or tell people that they need to load all
-> modules as a workaround.
+The new "write" expression can be used to manipulate packet data.
+The parameters that it has are source register (source for the bytes
+which are to be written), offset in the packet and length to write.
+It uses a select_ops method to choose between fast ops in the cases
+length is 1,2 or 4 bytes and slow ops (i.e. using memcpy) in other
+cases.
 
-I guess we don't necessarily would have to pass it to -stable since its
-not a regression.
+Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+---
+I needed a way (other than passing the packets to user-space) to alter
+the ToS field via nftables, so I decided to make it a bit more general. I
+use it with the immediate expression to load the new ToS and then write it.
+If you find this useful I can post the libnftnl patch as well.
+Right now as you can see it continues even if the "write" wasn't successful
+which should be probably changed to NFT_BREAK for that case.
+This patch applies to Dave's net-next tree.
 
-> > I'm wondering how this will work in case of anonymous sets though, right now
-> > we need two transactions so userspace can attach the new set to the lookup
-> > expression.
-> 
-> The set definition and the elements need to be included in the lookup
-> expression for anonymous sets, can you think of any better solution?
+ include/uapi/linux/netfilter/nf_tables.h |  16 ++++
+ net/netfilter/Kconfig                    |   7 ++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_write.c                | 160 +++++++++++++++++++++++++++++++
+ 4 files changed, 184 insertions(+)
+ create mode 100644 net/netfilter/nft_write.c
 
-I think we can use some identifiers generated by userspace to tie them
-both together. Something like a unique numeric identifier (unique within
-the transaction).
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 83c985a..ac8b37b 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -745,4 +745,20 @@ enum nft_nat_attributes {
+ };
+ #define NFTA_NAT_MAX		(__NFTA_NAT_MAX - 1)
+ 
++/**
++ * enum nft_write_attributes - nf_tables write expression netlink attributes
++ *
++ * @NFTA_WRITE_SREG: source register (source for the bytes to be written)
++ * @NFTA_WRITE_OFFSET: offset into packet to write
++ * @NFTA_WRITE_WLEN: number of bytes to write
++ */
++enum nft_write_attributes {
++	NFTA_WRITE_UNSPEC,
++	NFTA_WRITE_SREG,
++	NFTA_WRITE_OFFSET,
++	NFTA_WRITE_WLEN,
++	__NFTA_WRITE_MAX
++};
++#define NFTA_WRITE_MAX	(__NFTA_WRITE_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index e9410d1..54dbff6 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -534,6 +534,13 @@ config NFT_COMPAT
+ 	  x_tables match/target extensions over the nf_tables
+ 	  framework.
+ 
++config NFT_WRITE
++	depends on NF_TABLES
++	tristate "Netfilter nf_tables write module"
++	help
++	  This option adds the "write" expression that you can use to
++	  manipulate packet data.
++
+ config NETFILTER_XTABLES
+ 	tristate "Netfilter Xtables support (required for ip_tables)"
+ 	default m if NETFILTER_ADVANCED=n
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index bffdad7..9fbedb8 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -78,6 +78,7 @@ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+ obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
+ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
++obj-$(CONFIG_NFT_WRITE)		+= nft_write.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+ obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
+ obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
+diff --git a/net/netfilter/nft_write.c b/net/netfilter/nft_write.c
+new file mode 100644
+index 0000000..2fd5608
+--- /dev/null
++++ b/net/netfilter/nft_write.c
+@@ -0,0 +1,160 @@
++/*
++ * Copyright (c) 2014 Nikolay Aleksandrov <nikolay@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_write_expr {
++	enum nft_registers      sreg:8;
++	u32			offset;
++	u8			wlen;
++};
++
++static void nft_write_eval(const struct nft_expr *expr,
++			   struct nft_data data[NFT_REG_MAX + 1],
++			   const struct nft_pktinfo *pkt)
++{
++	struct nft_write_expr *priv = nft_expr_priv(expr);
++	struct nft_data *src = &data[priv->sreg];
++
++	data[NFT_REG_VERDICT].verdict = NFT_CONTINUE;
++	if (!skb_make_writable(pkt->skb, priv->offset+priv->wlen))
++		return;
++	pr_debug("Writing at %u : 0x%x len %u\n",
++		 priv->offset, src->data[0], priv->wlen);
++	memcpy(pkt->skb->data + priv->offset, src, priv->wlen);
++}
++
++static void nft_write_fast_eval(const struct nft_expr *expr,
++				struct nft_data data[NFT_REG_MAX + 1],
++				const struct nft_pktinfo *pkt)
++{
++	struct nft_write_expr *priv = nft_expr_priv(expr);
++	struct nft_data *src = &data[priv->sreg];
++	unsigned char *ptr;
++
++	data[NFT_REG_VERDICT].verdict = NFT_CONTINUE;
++	if (!skb_make_writable(pkt->skb, priv->offset+priv->wlen))
++		return;
++	ptr = pkt->skb->data + priv->offset;
++	pr_debug("Writing at %u : 0x%x len %u\n",
++		 priv->offset, src->data[0], priv->wlen);
++	if (priv->wlen == 4)
++		*(u32 *)ptr = *(u32 *)src->data;
++	else if (priv->wlen == 2)
++		*(u16 *)ptr = *(u16 *)src->data;
++	else
++		*(u8 *)ptr = *(u8 *)src->data;
++}
++
++
++static const struct nla_policy nft_write_policy[NFTA_WRITE_MAX + 1] = {
++	[NFTA_WRITE_SREG]		= { .type = NLA_U32 },
++	[NFTA_WRITE_OFFSET]		= { .type = NLA_U32 },
++	[NFTA_WRITE_WLEN]		= { .type = NLA_U8 },
++};
++
++static int nft_write_init(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr,
++			  const struct nlattr * const tb[])
++{
++	struct nft_write_expr *priv = nft_expr_priv(expr);
++
++	priv->sreg = ntohl(nla_get_be32(tb[NFTA_WRITE_SREG]));
++	priv->wlen = nla_get_u8(tb[NFTA_WRITE_WLEN]);
++	priv->offset = ntohl(nla_get_be32(tb[NFTA_WRITE_OFFSET]));
++
++	return 0;
++}
++
++static int nft_write_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_write_expr *priv = nft_expr_priv(expr);
++
++	nla_put_be32(skb, NFTA_WRITE_SREG, htonl(priv->sreg));
++	nla_put_be32(skb, NFTA_WRITE_OFFSET, htonl(priv->offset));
++	nla_put_u8(skb, NFTA_WRITE_WLEN, priv->wlen);
++
++	return 0;
++}
++
++static struct nft_expr_type nft_write_type;
++static const struct nft_expr_ops nft_write_ops = {
++	.type		= &nft_write_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_write_expr)),
++	.eval		= nft_write_eval,
++	.init		= nft_write_init,
++	.dump		= nft_write_dump,
++};
++
++static const struct nft_expr_ops nft_write_fast_ops = {
++	.type		= &nft_write_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_write_expr)),
++	.eval		= nft_write_fast_eval,
++	.init		= nft_write_init,
++	.dump		= nft_write_dump,
++};
++
++static const struct nft_expr_ops *
++nft_write_select_ops(const struct nft_ctx *ctx,
++		     const struct nlattr * const tb[])
++{
++	enum nft_registers sreg;
++	u32 offset;
++	u8 wlen;
++	int err;
++
++	if (tb[NFTA_WRITE_OFFSET] == NULL ||
++	    tb[NFTA_WRITE_WLEN] == NULL ||
++	    tb[NFTA_WRITE_SREG] == NULL)
++		return ERR_PTR(-EINVAL);
++
++	wlen = nla_get_u8(tb[NFTA_WRITE_WLEN]);
++	if (wlen == 0 || wlen > FIELD_SIZEOF(struct nft_data, data))
++		return ERR_PTR(-EINVAL);
++	sreg = ntohl(nla_get_be32(tb[NFTA_WRITE_SREG]));
++	err = nft_validate_input_register(sreg);
++	if (err < 0)
++		return ERR_PTR(err);
++	offset = ntohl(nla_get_u32(tb[NFTA_WRITE_OFFSET]));
++
++	if (wlen != 3 && wlen <= 4 && IS_ALIGNED(offset, wlen))
++		return &nft_write_fast_ops;
++	else
++		return &nft_write_ops;
++}
++
++static struct nft_expr_type nft_write_type __read_mostly = {
++	.name		= "write",
++	.select_ops	= &nft_write_select_ops,
++	.policy		= nft_write_policy,
++	.maxattr	= NFTA_WRITE_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_write_module_init(void)
++{
++	return nft_register_expr(&nft_write_type);
++}
++
++static void __exit nft_write_module_exit(void)
++{
++	nft_unregister_expr(&nft_write_type);
++}
++
++module_init(nft_write_module_init);
++module_exit(nft_write_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Nikolay Aleksandrov <nikolay@redhat.com>");
++MODULE_ALIAS_NFT_EXPR("write");
+-- 
+1.8.4.2
+
