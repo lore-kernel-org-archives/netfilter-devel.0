@@ -1,37 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH] netfilter: nf_tables: add new write expression
-Date: Sat, 15 Feb 2014 13:43:00 +0000
-Message-ID: <d65fdb3e-2d66-4b78-8600-10f70361fcd0@email.android.com>
-References: <1392470242-4515-1-git-send-email-nikolay@redhat.com> <20140215133613.GB28751@breakpoint.cc>
+From: Bourne Without <blackhole@airpost.net>
+Subject: Re: [PATCH 0/2] ipset: forceadd support
+Date: Sat, 15 Feb 2014 16:07:45 +0100
+Message-ID: <52FF82C1.5010509@airpost.net>
+References: <1391261452-11266-1-git-send-email-johunt@akamai.com>
+Reply-To: blackhole@airpost.net
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Florian Westphal <fw@strlen.de>,
-	Nikolay Aleksandrov <nikolay@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Josh Hunt <johunt@akamai.com>, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63086 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbaBONn4 (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:52459 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753279AbaBOPGJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Feb 2014 08:43:56 -0500
-In-Reply-To: <20140215133613.GB28751@breakpoint.cc>
+	Sat, 15 Feb 2014 10:06:09 -0500
+In-Reply-To: <1391261452-11266-1-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15. Februar 2014 13:36:13 GMT+00:00, Florian Westphal <fw@strlen.de> wrote:
->Nikolay Aleksandrov <nikolay@redhat.com> wrote:
->> The new "write" expression can be used to manipulate packet data.
+On 01.02.2014 14:30, Josh Hunt wrote:
+> Forceadd is a property for hash set types and is passed in duration creation.
+> When sets with this property enabled are full each subsequent 'add' operation
+> will attempt to evict a random entry from the set. The implementation tries to
+> keep the overhead low by checking to see which bucket the new entry hashes to.
+> If that bucket has any entries it will evict the first one and add the new
+> entry.
 >
->Thanks.  This is very useful feature (needed also for TCPMSS mangling
->for instance).
+> Ex usage:
+> ipset create foo hash:ip forceadd
 >
->General question: How are/should packet checksums be handled after
->packet
->content was altered?
+> The intended usecase is for things like 'ban' lists where you may not be concerned
+> with possibly evicting something early, and more concerned with the size of
+> the hash itself.
 
-Good question indeed. I guess we need to make this dependant on the payload base and protocols involved. LuckIly in most cases we can rely on checksum offload to take care of this.
+For all who want to save time typing while testing, I've already 
+implemented the forceadd support in the ipset-bash_completion code 
+available here:
 
-Maybe we can have userspace specify the necessary parameters such as the checksum position and whether a pseudo header is used.
+
+As it's set to enable the feature from ipset v6.21+, you need to either 
+bump the ipset version, or just change line 886 in my code from:
+
+  if ((ips_version[0] == 6 && ips_version[1] >= 21)); then
+
+to:
+
+  if ((ips_version[0] == 6 && ips_version[1] >= 20)); then
+
+happy testing :)
+
+
 
