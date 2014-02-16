@@ -1,72 +1,216 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH] netfilter: nf_tables: add new write expression
-Date: Sun, 16 Feb 2014 11:00:29 +0000
-Message-ID: <20140216110029.GA29168@macbook.localnet>
-References: <1392470242-4515-1-git-send-email-nikolay@redhat.com>
- <61379b1e-8f7e-4596-badb-fd41e1657f83@email.android.com>
- <52FF6D3A.6020202@redhat.com>
- <20140216100953.GA4952@localhost>
- <20140216103621.GA28646@macbook.localnet>
- <530097A8.8010606@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC PATCH nft userspace] nft: connlabel matching support
+Date: Sun, 16 Feb 2014 12:01:52 +0100
+Message-ID: <20140216110152.GD28751@breakpoint.cc>
+References: <1392504432-20918-1-git-send-email-fw@strlen.de>
+ <20140216085319.GA26751@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Nikolay Aleksandrov <nikolay@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38876 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbaBPLAe (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52700 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751040AbaBPLB4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Feb 2014 06:00:34 -0500
+	Sun, 16 Feb 2014 06:01:56 -0500
 Content-Disposition: inline
-In-Reply-To: <530097A8.8010606@redhat.com>
+In-Reply-To: <20140216085319.GA26751@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 16, 2014 at 11:49:12AM +0100, Nikolay Aleksandrov wrote:
-> On 02/16/2014 11:36 AM, Patrick McHardy wrote:
-> >>
-> >>     netfilter: nf_tables: nft_meta module get/set ops
-> >>
-> >> That patch is similar to what you propose, but it sets the meta fields
-> >> of a packet.
+Patrick McHardy <kaber@trash.net> wrote:
+> On Sat, Feb 15, 2014 at 11:47:12PM +0100, Florian Westphal wrote:
+> > Takes advantage of the fact that the current maximum label storage area
+> > is 128 bits, i.e. it will fit into a nft register.
 > > 
-> > Actually I'd propose two different init functions, that's just not pretty.
+> > Advantages:
+> > - kernel part is very small (just copies extension storage to register)
+> > - userspace part is not huge either and very powerful since
+> >   we can operate on the entire '128 bit connlabel pseudo-register'
+> >   (f.e. "ct labels & foo|bar == foo" to match when foo is set and bar is not,
+> >    etc)
 > > 
-> Hm, okay.
-> How about something else, since I wanted to make use of the inlined payload
-> fast op, couldn't I just break the dreg/sreg in separate variables and
-> based on whether sreg is set act in the fast op (i.e. get/set based on
-> that) ? That way we can save some code duplication and keep the ops as
-> they're. (That'll work for the slow op as well actually)
-
-I don't agree to adding a set fast op. The get fast op is meant to be
-small since its the most common case and is inlined into the main loop.
-Anything added there needs a *really* good justification. Modifying
-packet data isn't a very common operation and should be kept seperate.
-
-Outside of the main loop, there's no need for a fast op as well since
-memcpy *is* fast and any optimized implementation will already do the
-same thing you do.
-
-> Also, there's a small problem for payload because the code in the
-> select_ops function:
->         if (len <= 4 && IS_ALIGNED(offset, len) && base !=
-> NFT_PAYLOAD_LL_HEADER)
->                 return &nft_payload_fast_ops;
->         else
->                 return &nft_payload_ops;
+> > Disadvantage:
+> > 
+> > - We get into trouble if kernel would ever increase the current limit
+> >   of 128 labels (its just a matter of changing #define in kernel and
+> >   making sure nf_conn extension offsets can deal with larger sizes).
 > 
-> Has a problem when the offset ends in 101b and length of 3 is used, then
-> the fast ops get selected but since that case isn't handled there, we'll
-> only load 1 byte from the offset, which is fine for loading since we can
-> just switch to 4 bytes and mask out later the unneeded byte when comparing
-> for example, but for writing it's a problem since someone might actually
-> want to write out 3 bytes. Of course one can always add 2 expressions (1
-> byte + 2 byte write) :-)
+> We need to change the kernel registers anyway to deal with concatenations
+> properly. So this will most likely not be a problem.
 
-Good catch, we should make sure the offset is a power of two since the
-fast version is only intended for well aligned loads.
+Oh.  Thats good.  One problem disappearing :-)
 
-Would you care to send a patch?
+> > - Its currently not necessarily doing what the user would think.
+> > 
+> > The latter point deserves example:
+> > 
+> > add rule filter output ct labels foo
+> > 
+> > is NOT the translation of iptables
+> > -m connlabel --label foo
+> > 
+> > The former matches only if foo and ONLY foo is set.
+> > The latter matches when foo label bit is set and doesn't care about
+> > other labels, i.e. the nft translation would be
+> > 
+> > add rule filter output ct labels & foo == foo
+> > 
+> > Thus I am not sure at the moment if this is really the right approach
+> > and if it would be better to follow the xt_connlabel model and ask kernel
+> > for the desired *bit* instead.
+> > 
+> > It could be done by adding a 'ctlabel' instruction that would check the
+> > bit given in sreg (eg. 3 would do test_bit(... 3) and BREAK if its not set.
+> 
+> Actually you can also easily do this with by just generating an equality
+> comparison in userspace. Since you're using bitmask as a base type,
+> nft automatically generates instructions to only check that bit when
+> using an *implicit* op. If you use
+> 
+> "filter output ct labels == foo" that should match only the one label.
+
+src/nft add rule filter output ct labels == foo --debug=netlink
+ip filter output 0 0
+[ ct load labels => reg 1 ]
+[ cmp eq reg 1 0x00000001 0x00000000 0x00000000 0x00000000 ]
+
+I guess I am doing something wrong in my patch.
+Let me investigate.  The behaviour you describe seems to be exactly
+what I want.
+
+> I have to admit that I don't know how connlabels are used, so I don't
+> know what the best default implicit op would be.
+
+I think it should be a bit-test to make it behave like xt_connlabels
+match.
+
+> > Something to also keep in mind is that this currently lacks write
+> > support.  In iptables this is done via
+> > '-m connlabel --label foo --set', which causes atomic set-bit operation.
+> > 
+> > For nft with current approach it would mean we would need to copy to
+> > reg, alter reg, then copy altered register back to extension area.
+> > 
+> > What do others think?
+> 
+> Sounds fine. Its a quite rare operation I assume.
+
+Yes.
+
+The iptables match performs the set operation only if the bit is not
+set to avoid the write in the common case.
+
+It should be possible to do something similar for nft.
+
+> > --- a/include/datatype.h
+> > +++ b/include/datatype.h
+> > @@ -32,6 +32,7 @@
+> >   * @TYPE_CT_STATE:	conntrack state (bitmask subtype)
+> >   * @TYPE_CT_DIR:	conntrack direction
+> >   * @TYPE_CT_STATUS:	conntrack status (bitmask subtype)
+> > + * @TYPE_CT_LABELS:	Conntrack Labels (bitmask subtype)
+> >   * @TYPE_ICMP6_TYPE:	ICMPv6 type codes (integer subtype)
+> >   */
+> >  enum datatypes {
+> > @@ -63,6 +64,7 @@ enum datatypes {
+> >  	TYPE_CT_STATE,
+> >  	TYPE_CT_DIR,
+> >  	TYPE_CT_STATUS,
+> > +	TYPE_CT_LABELS,
+> >  	TYPE_ICMP6_TYPE,
+> >  	__TYPE_MAX
+> >  };
+> 
+> Small note - we should add datatypes at the end. The kernel stores those
+> types for userspace to interpret the type of sets, so when doing an update
+> of nft, the types should still match.
+
+I was unaware of this.  Thanks for pointing it out.
+
+> > +static void ct_label_type_print(const struct expr *expr)
+> > +{
+> > +	const struct symbolic_constant *s;
+> > +	unsigned long bit = 0;
+> > +	int cnt = 0;
+> > +
+> > +	for (s = ct_label_tbl->symbols; s->identifier != NULL; s++) {
+> > +		bit = mpz_scan1(expr->value, s->value);
+> > +		if (bit < CT_LABELS_BIT_SIZE && bit == s->value) {
+> > +			if (cnt)
+> > +				printf("|");
+> 
+> This looks incorrect since it doesn't match the input format. When using
+> a bitmask base type, nft should automatically reconstruct the list as
+> comma-seperated values. So I think you don't need a print function.
+
+see below
+
+> > +static struct error_record *ct_label_type_parse(const struct expr *sym,
+> > +						struct expr **res)
+> > +{
+> > +	const struct symbolic_constant *s;
+> > +	const struct datatype *dtype;
+> > +	uint8_t data[CT_LABELS_BIT_SIZE];
+> > +	mpz_t value;
+> > +
+> > +	for (s = ct_label_tbl->symbols; s->identifier != NULL; s++) {
+> > +		if (!strcmp(sym->identifier, s->identifier))
+> > +			break;
+> > +	}
+> > +
+> > +	dtype = sym->dtype;
+> > +	if (s->identifier == NULL)
+> > +		return error(&sym->location, "Could not parse %s", dtype->desc);
+> > +
+> > +	mpz_init2(value, dtype->size);
+> > +	mpz_setbit(value, s->value);
+> > +	mpz_export_data(data, value, BYTEORDER_HOST_ENDIAN, sizeof(data));
+> > +
+> > +	*res = constant_expr_alloc(&sym->location, dtype,
+> > +				   dtype->byteorder, sizeof(data),
+> > +				   data);
+> > +	mpz_clear(value);
+> > +	return NULL;
+> > +}
+> 
+> Same here. The defaults should work fine.
+
+Hmm, I think the problem is that connlabel.conf
+maps the bit-number to names, e.g.
+
+0 foo
+1 bar
+
+But these should be parsed as (1<<$number)
+[ in iptables these values are passed to the kernel which
+  uses them as argument to test_bit and friends ].
+
+Could probably be fixed by having my own parsing
+function instead of reusing the rt_symbol_table one, but I would
+need to replace the uint64_t value in the sym table structure
+for that [need to be able to store (1<<127)]...
+
+> > +static const struct datatype ct_labels_type = {
+> > +	.type		= TYPE_CT_LABELS,
+> > +	.name		= "ct_labels",
+> > +	.desc		= "conntrack labels",
+> 
+> The type only refers to a single instance, so all should be singular.
+
+Ok
+
+> >  static void ct_expr_print(const struct expr *expr)
+> > @@ -159,4 +223,5 @@ static void __init ct_init(void)
+> >  	datatype_register(&ct_state_type);
+> >  	datatype_register(&ct_dir_type);
+> >  	datatype_register(&ct_status_type);
+> > +	ct_label_tbl = rt_symbol_table_init("/etc/xtables/connlabel.conf");
+> 
+> We're using per type init functions for symbol table initializations so
+> far (see meta.c). I'd suggest to keep this consistent.
+
+Sure, I'll change it.
+
+Thanks Patrick.
