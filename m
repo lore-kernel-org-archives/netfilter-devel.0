@@ -1,84 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: fix rule batch with anonymous set
- and module autoload
-Date: Sun, 16 Feb 2014 11:33:35 +0100
-Message-ID: <20140216103335.GA4499@localhost>
-References: <1392377228-3748-1-git-send-email-pablo@netfilter.org>
- <20140214113755.GC19082@macbook.localnet>
- <20140214123411.GA4422@localhost>
- <20140215093822.GB3815@macbook.localnet>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH] netfilter: nf_tables: add new write expression
+Date: Sun, 16 Feb 2014 10:36:22 +0000
+Message-ID: <20140216103621.GA28646@macbook.localnet>
+References: <1392470242-4515-1-git-send-email-nikolay@redhat.com>
+ <61379b1e-8f7e-4596-badb-fd41e1657f83@email.android.com>
+ <52FF6D3A.6020202@redhat.com>
+ <20140216100953.GA4952@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Nikolay Aleksandrov <nikolay@redhat.com>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46474 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751040AbaBPKdn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Feb 2014 05:33:43 -0500
+Received: from stinky.trash.net ([213.144.137.162]:38694 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040AbaBPKg0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Feb 2014 05:36:26 -0500
 Content-Disposition: inline
-In-Reply-To: <20140215093822.GB3815@macbook.localnet>
+In-Reply-To: <20140216100953.GA4952@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Feb 15, 2014 at 09:38:23AM +0000, Patrick McHardy wrote:
-> On Fri, Feb 14, 2014 at 01:34:11PM +0100, Pablo Neira Ayuso wrote:
-> > On Fri, Feb 14, 2014 at 11:37:56AM +0000, Patrick McHardy wrote:
-> > > [ sorry accidentally dropped netfilter-devel ]
+On Sun, Feb 16, 2014 at 11:09:53AM +0100, Pablo Neira Ayuso wrote:
+> On Sat, Feb 15, 2014 at 02:35:54PM +0100, Nikolay Aleksandrov wrote:
+> > On 02/15/2014 02:30 PM, Patrick McHardy wrote:
+> > > On 15. Februar 2014 13:17:22 GMT+00:00, Nikolay Aleksandrov <nikolay@redhat.com> wrote:
+> > >> The new "write" expression can be used to manipulate packet data.
+> > >> The parameters that it has are source register (source for the bytes
+> > >> which are to be written), offset in the packet and length to write.
+> > >> It uses a select_ops method to choose between fast ops in the cases
+> > >> length is 1,2 or 4 bytes and slow ops (i.e. using memcpy) in other
+> > >> cases.
+> > >>
+> > >> Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+> > >> ---
+> > >> I needed a way (other than passing the packets to user-space) to alter
+> > >> the ToS field via nftables, so I decided to make it a bit more general.
+> > >> I
+> > >> use it with the immediate expression to load the new ToS and then write
+> > >> it.
+> > >> If you find this useful I can post the libnftnl patch as well.
+> > >> Right now as you can see it continues even if the "write" wasn't
+> > >> successful
+> > >> which should be probably changed to NFT_BREAK for that case.
 > > > 
-> > > On Fri, Feb 14, 2014 at 12:27:08PM +0100, Pablo Neira Ayuso wrote:
-> > > > If some modules are missing while processing a rule batch, the updates
-> > > > are aborted to start scratch since the nfnl lock was released. If the
-> > > > rule-set contains this configuration (in this order):
-> > > > 
-> > > >  #1 rule using anonymous set
-> > > >  #2 rule requiring module autoload
-> > > > 
-> > > > The anonymous set will be released when aborting. This patch fixes this
-> > > > by passing a context variable (autoload) that can be used to decide if
-> > > > the anonymous set has to be released or not.
-> > > > 
-> > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > > ---
-> > > > I guess we can encapsulate that autoload into a context information structure
-> > > > in the future in case any other information is needed in the rule destroy path
-> > > > to make this look nicer.
-> > > >
-> > > > I started hacking on two patches to net-next, one to include table, chains and
-> > > > set into the batch and follow up to add atomic updates for sets. @Patrick: I
-> > > > think that should not interfer with your set enhancements.
+> > > Yes.
 > > > 
-> > > Wouldn't be a big problem, they're pretty much contained to newset().
+> > >> This patch applies to Dave's net-next tree.
 > > > 
-> > > Regarding this patch - I'd really prefer to just fix batches to include sets
-> > > instead of changing all these function signatures just to handle this very
-> > > specific case.
-> > 
-> > If the patch that results from adding the set into the batch support
-> > is ~100 LOC, we can pass that to -stable, but if it doesn't, we'll
-> > have to pass this first or tell people that they need to load all
-> > modules as a workaround.
+> > > I think this is a useful addition. However I prefer to put thus
+> > > into the payload expression and select the proper ops based on the
+> > > presence of sreg/dreg.
+> > > 
+> > Okay, makes sense. I'll re-write it in such form taking into consideration
+> > the other comments and will re-post after some testing.
 > 
-> I guess we don't necessarily would have to pass it to -stable since its
-> not a regression.
->
-> > > I'm wondering how this will work in case of anonymous sets though, right now
-> > > we need two transactions so userspace can attach the new set to the lookup
-> > > expression.
-> > 
-> > The set definition and the elements need to be included in the lookup
-> > expression for anonymous sets, can you think of any better solution?
+> You can use this patch as reference to make it:
 > 
-> I think we can use some identifiers generated by userspace to tie them
-> both together. Something like a unique numeric identifier (unique within
-> the transaction).
+> commit e035b77ac7be430a5fef8c9c23f60b6b50ec81c5
+> Author: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> Date:   Thu Dec 26 16:38:01 2013 +0100
+> 
+>     netfilter: nf_tables: nft_meta module get/set ops
+> 
+> That patch is similar to what you propose, but it sets the meta fields
+> of a packet.
 
-That can be done, but I don't see why we allow the creation of
-anonymous sets out of the scope of a rule since:
-
-* They can only be used by one single rule.
-* You cannot update them by adding/deleting elements.
-
-The current API allows creating an anonymous set that can be left
-unused. I think we should only allow the creation of non-anonymous
-sets via NFT_MSG_NEWSET at some point.
+Actually I'd propose two different init functions, that's just not pretty.
