@@ -1,100 +1,114 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: nftables: fix nf_trace always-on with XT_TRACE=n
-Date: Sat, 15 Feb 2014 23:48:45 +0100
-Message-ID: <1392504525-21134-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [PATCH RESEND v3] netfilter: xtables: add quota support to nfacct
+Date: Sat, 15 Feb 2014 19:38:08 -0700
+Message-ID: <CANLsYkx+H0HhymqTeZsLkosh_Cpfr1o0D-Y5M4A9zvKE=we2tA@mail.gmail.com>
+References: <1391292671-26466-1-git-send-email-mathieu.poirier@linaro.org>
+	<20140201225726.GF776@breakpoint.cc>
+	<CANLsYkzCb=UqUoG5p4pVr-8YNfJcb25uesUZTMrwT7KuEh2LYg@mail.gmail.com>
+	<20140202204012.GJ776@breakpoint.cc>
+	<CANLsYkw=vVbc_cCAHHusxHmFi2EXg3jM6baG8jV355SDeHa1Pg@mail.gmail.com>
+	<20140212103325.GA15713@localhost>
+	<CANLsYky+Zo5GG0uDiwcXBb72nZDMDnKC2Q3hSUNaj9mu=cCp6Q@mail.gmail.com>
+	<20140212221631.GA22457@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
+	kadlec <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52029 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751197AbaBOWwf (ORCPT
+Received: from mail-yh0-f47.google.com ([209.85.213.47]:59392 "EHLO
+	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503AbaBPCiJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Feb 2014 17:52:35 -0500
+	Sat, 15 Feb 2014 21:38:09 -0500
+Received: by mail-yh0-f47.google.com with SMTP id c41so12937201yho.20
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Feb 2014 18:38:08 -0800 (PST)
+In-Reply-To: <20140212221631.GA22457@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When using nftables with CONFIG_NETFILTER_XT_TARGET_TRACE=n, we get
-lots of "TRACE: filter:output:policy:1 IN=..." warnings as several
-places will leave skb->nf_trace uninitialised.
+On 12 February 2014 15:16, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Feb 12, 2014 at 09:58:28AM -0700, Mathieu Poirier wrote:
+> [...]
+>> > I can see that packet and byte counters are not in sync, but I don't
+>> > see why that should be a problem for your quota extension. Your
+>> > accounting is based on packet *OR* byte counters.
+>>
+>> If we have a filter reporting the amount of packets and bytes that
+>> have gone through a chain the least we can do is make them coherent.
+>> Otherwise the numbers simply can't be trusted.  Fixing that problem is
+>> what I've done in the 4th version of my patchset sent on Monday.
+>>
+>> > Moreover, if you inspect the result of the counter update via
+>> > atomic_inc_return / atomic_add_return, you can ensure that packets
+>> > running out of the quota limit will always match.
+>>
+>> Thanks for Florian Westphal's hint on 'cmpxchg' I came up with a match
+>> algorithm that requires no spinlock and doesn't mandate that packet
+>> count be synchronised with bytes.  Before sending it out I'd like us
+>> to reach a consensus on the above - I think the current accounting
+>> method is broken and ought to be fixed.
+>
+> I really think we should skip that spinlock with atomic64. That
+> doesn't make sense to me.
+>
+>> If the current situation is fine with you I'll simply send another
+>> version that works without counts being synchronised - but I really
+>> think we can do better.
+>
+> Given the interferences that you described, I think you can use this
+> approach to ensure that only one event is delivered:
+>
+>         if (old < info->quota && new >= info->quota &&
+>             test_and_set_bit(0, info->quota_reached))
+>                 deliver_event(...);
+>
+> On top of that, there's another problem that needs to be solved now
+> that we have a quota_reached field in the info area. This needs a
+> "database of quota objects" that are identified by a name, otherwise
+> iptables rule updates will trigger a new (unnecessary event) event
+> every time *any* new rule is added.
+>
+> If you want to test what I mean, try this:
+>
+> iptables -I INPUT -m quota --quota 1000 -j LOG --log-prefix "quota: "
+>
+> then keep an eye on /var/log/messages, ping somewhere to generate
+> traffic. You should see log messages for each packet until the quota
+> is reached.  After a couple of ICMP packets, you will see no more logs
+> since the quota has been reached.
+>
+> Now, keep monitoring /var/log/messages and add any rule, eg. iptables
+> -I INPUT. The quota matches again and you'll start seeing more log
+> messages since every rule updates "resets" the internal state of the
+> match. This is a known problem. To solve this, you have to use a
+> specific quota object with a refcnt that is identified by a name. See
+> xt_hashlimit.c for instance. Note that the quota_reached can't be
+> added to the existing nfacct object since it's a valid configuration
+> to have two rules using with different quota values that refer to the
+> same nfacct object (think of a scenario in which you want to throttle
+> to N Kbytes/s after X bytes has been consumed, then throttle to a
+> lower M Kbytes/s after X+Y bytes has been consumed).
+>
+> Thus, the iptables command for this should look like:
+>
+> iptables -I INPUT -p icmp \
+>         -m nfacct --mode packets --quota 100 --quota-name icmp-quota-100
+>
+> In _mt_check you have to look up for "icmp-quota-100" in the list of
+> quota objects to attach it to the rule. If it doesn't exist you create
+> it. In the _destroy path, you have to put the refcnt, if it reaches
+> zero, it will be released. It may sound tricky, but this will work
+> fine in practise.
+>
+> Please, take the time to digest this and let us know if you have any
+> question. Thank you.
 
-Unlike iptables tracing functionality is not conditional in nftables,
-so always copy/zero nf_trace setting when nftables is enabled.
-
-Move this into __nf_copy() helper.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/skbuff.h | 5 ++++-
- net/core/skbuff.c      | 3 ---
- net/ipv4/ip_output.c   | 3 ---
- net/ipv6/ip6_output.c  | 3 ---
- 4 files changed, 4 insertions(+), 10 deletions(-)
-
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 1f689e6..99fc8b3 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -2724,7 +2724,7 @@ static inline void nf_reset(struct sk_buff *skb)
- 
- static inline void nf_reset_trace(struct sk_buff *skb)
- {
--#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
-+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE) || defined(CONFIG_NF_TABLES)
- 	skb->nf_trace = 0;
- #endif
- }
-@@ -2741,6 +2741,9 @@ static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
- 	dst->nf_bridge  = src->nf_bridge;
- 	nf_bridge_get(src->nf_bridge);
- #endif
-+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE) || defined(CONFIG_NF_TABLES)
-+	dst->nf_trace = src->nf_trace;
-+#endif
- }
- 
- static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src)
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 8f519db..875df74 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -705,9 +705,6 @@ static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
- 	new->mark		= old->mark;
- 	new->skb_iif		= old->skb_iif;
- 	__nf_copy(new, old);
--#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
--	new->nf_trace		= old->nf_trace;
--#endif
- #ifdef CONFIG_NET_SCHED
- 	new->tc_index		= old->tc_index;
- #ifdef CONFIG_NET_CLS_ACT
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 8971780..73c6b63 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -422,9 +422,6 @@ static void ip_copy_metadata(struct sk_buff *to, struct sk_buff *from)
- 	to->tc_index = from->tc_index;
- #endif
- 	nf_copy(to, from);
--#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
--	to->nf_trace = from->nf_trace;
--#endif
- #if defined(CONFIG_IP_VS) || defined(CONFIG_IP_VS_MODULE)
- 	to->ipvs_property = from->ipvs_property;
- #endif
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index ef02b26..4cfbe0f 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -517,9 +517,6 @@ static void ip6_copy_metadata(struct sk_buff *to, struct sk_buff *from)
- 	to->tc_index = from->tc_index;
- #endif
- 	nf_copy(to, from);
--#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
--	to->nf_trace = from->nf_trace;
--#endif
- 	skb_copy_secmark(to, from);
- }
- 
--- 
-1.8.1.5
-
+I traced things a little and I understand exactly what is happening -
+I will implement the same mechanism as in hashlimit.  Since accounting
+objects can be delete from nfnetlink_acct I suggest we add a notifier
+to it.  That way objects in the database can be deleted when
+accounting objects are deleted from userspace with nfacct.  What do
+you think?
