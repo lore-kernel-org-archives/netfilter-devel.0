@@ -1,43 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH nft userspace] nft: connlabel matching support
-Date: Sun, 16 Feb 2014 11:33:17 +0000
-Message-ID: <20140216113316.GA1104@macbook.localnet>
-References: <1392504432-20918-1-git-send-email-fw@strlen.de>
- <20140216085319.GA26751@macbook.localnet>
- <20140216110152.GD28751@breakpoint.cc>
- <20140216111252.GA29491@macbook.localnet>
- <20140216112739.GF28751@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Nikolay Aleksandrov <nikolay@redhat.com>
+Subject: [PATCH] netfilter: nf_tables: check if payload offset is a power of 2
+Date: Sun, 16 Feb 2014 12:54:40 +0100
+Message-ID: <1392551680-31543-1-git-send-email-nikolay@redhat.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Nikolay Aleksandrov <nikolay@redhat.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39098 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbaBPLdU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Feb 2014 06:33:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20140216112739.GF28751@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:21068 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751697AbaBPLzB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Feb 2014 06:55:01 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 16, 2014 at 12:27:39PM +0100, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> 
-> > > Could probably be fixed by having my own parsing
-> > > function instead of reusing the rt_symbol_table one, but I would
-> > > need to replace the uint64_t value in the sym table structure
-> > > for that [need to be able to store (1<<127)]...
-> > 
-> > I see. Actually I think we could change the rt_parse_symbol function
-> > to generate bitmasks in case of basetype == bitmask_type.
-> 
-> Ok.  I'll look into this, but, as I said I would have to replace
-> uint64_t with mpz_t to get the wider range required.
+Add a check if payload's offset is a power of 2 when selecting ops.
+The fast ops were meant for well aligned offsets, also this fixes a
+small bug when using unaligned offset and length of 3 which causes
+only 1 byte to be loaded because the fast ops are chosen.
 
-Not sure if that will even work since those types have dynamic sizes.
+Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+---
+I broke the line since it was >80 chars.
+This patch applies to Dave's -net tree.
 
-If you keep your own functions (which seem to make sense), they should
-only parse and print a single value at a time, handling lists and bitmasks
-is done by the generic code - at least it should be :)
+ net/netfilter/nft_payload.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index a2aeb31..15a3dcb 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -135,7 +135,9 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 	if (len == 0 || len > FIELD_SIZEOF(struct nft_data, data))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	if (len <= 4 && IS_ALIGNED(offset, len) && base != NFT_PAYLOAD_LL_HEADER)
++	if (len <= 4 && IS_ALIGNED(offset, len) &&
++	    base != NFT_PAYLOAD_LL_HEADER &&
++	    !(offset & (offset - 1)))
+ 		return &nft_payload_fast_ops;
+ 	else
+ 		return &nft_payload_ops;
+-- 
+1.8.4.2
+
