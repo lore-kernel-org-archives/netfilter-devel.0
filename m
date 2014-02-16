@@ -1,59 +1,78 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v3] netfilter: nf_tables: check if payload length is a
- power of 2
-Date: Sun, 16 Feb 2014 16:09:55 +0000
-Message-ID: <20140216160954.GA12656@macbook.localnet>
-References: <1392555718-3607-1-git-send-email-nikolay@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC PATCH nft userspace] nft: connlabel matching support
+Date: Sun, 16 Feb 2014 17:59:57 +0100
+Message-ID: <20140216165957.GA2408@breakpoint.cc>
+References: <1392504432-20918-1-git-send-email-fw@strlen.de>
+ <20140216085319.GA26751@macbook.localnet>
+ <20140216110152.GD28751@breakpoint.cc>
+ <20140216111252.GA29491@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Nikolay Aleksandrov <nikolay@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40893 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbaBPQJ7 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53316 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752530AbaBPQ76 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Feb 2014 11:09:59 -0500
+	Sun, 16 Feb 2014 11:59:58 -0500
 Content-Disposition: inline
-In-Reply-To: <1392555718-3607-1-git-send-email-nikolay@redhat.com>
+In-Reply-To: <20140216111252.GA29491@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 16, 2014 at 02:01:58PM +0100, Nikolay Aleksandrov wrote:
-> Add a check if payload's length is a power of 2 when selecting ops.
-> The fast ops were meant for well aligned loads, also this fixes a
-> small bug when using a length of 3 with some offsets which causes
-> only 1 byte to be loaded because the fast ops are chosen.
+Patrick McHardy <kaber@trash.net> wrote:
+> Ok I misunderstood your initial problem statement. So basically what it
+> should currently do:
 > 
-> Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
-> ---
-> v3: Check the length,  not the offset.
-> v2: use is_power_of_2, and adjust order of checks as per Patrick's comment
+> ct labels foo => test whether that bit is set
+> ct labels == foo => test whether foo and only foo is set
 > 
-> Sorry for the noise, I shouldn't hurry so much. This patch applies to
-> Dave's -net tree.
+> Ok I can see the problem :)
+> 
+> The implicit op only selects FLAGCMP for EXPR_LIST (see
+> expr_evaluate_relational()). That should probably be changed to take the
+> base type into account. This also seems wrong for the ct state expression,
+> we currently use equality if only one state is specified but use a flag
+> comparison if multiple flags are specified.
 
-Thanks!
+I hacked something up to also select FLAGCMP for bitmask type.
 
-Acked-by: Patrick McHardy <kaber@trash.net>
+$ nft --debug=netlink add rule filter output ct labels foo
+ip filter output 0 0
+ [ ct load labels => reg 1 ]
+ [ bitwise reg 1 = (reg=1 & 0x00000001 0x00000000 0x00000000 0x00000000 ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
+ [ cmp neq reg 1 0x00000001 0x00000000 0x00000000 0x00000000 ]
 
-> 
->  net/netfilter/nft_payload.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-> index a2aeb31..85daa84 100644
-> --- a/net/netfilter/nft_payload.c
-> +++ b/net/netfilter/nft_payload.c
-> @@ -135,7 +135,8 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
->  	if (len == 0 || len > FIELD_SIZEOF(struct nft_data, data))
->  		return ERR_PTR(-EINVAL);
->  
-> -	if (len <= 4 && IS_ALIGNED(offset, len) && base != NFT_PAYLOAD_LL_HEADER)
-> +	if (len <= 4 && is_power_of_2(len) && IS_ALIGNED(offset, len) &&
-> +	    base != NFT_PAYLOAD_LL_HEADER)
->  		return &nft_payload_fast_ops;
->  	else
->  		return &nft_payload_ops;
-> -- 
-> 1.8.4.2
+looks better.  Still not exactly the same though.
+The cmp neq will cause it to match when the label is not set.
+
+I then tried again with vanilla master branch:
+tcp flags syn counter packets 0 bytes 0
+tcp flags fin,syn counter packets 184 bytes 24880
+
+So, same problem there: EXPR_LIST == cmp neq.  Is that intentional?
+It seems wrong to me, e.g.  "tcp flags fin,syn" will match virtually all
+tcp packets.
+
+Maybe netlink_gen_flagcmp() should generate NFT_CMP_GT i.e.:
+ [ bitwise reg 1 = (reg=1 & 0x00000012 ) ^ 0x00000000 ]
+ [ cmp gt reg 1 0x00000000 ]
+
+At least that would be what I would have expected :-}
+
+Am I wrong?
+As a side note, experimenting a bit with tcp flags:
+
+add rule filter output tcp flags & (syn|ack) == (syn|ack)
+
+works fine with current master branch.  But list shows
+
+"tcp flags & 18 == 18", i.e. no symbol translation.
+
+Shouldn't it restore the symbolic names?
+I think this is the very same problem that I had with my connlabel
+dabbling, so it would be nice if it could be solved in generic way.
+
+Thanks,
+Florian
