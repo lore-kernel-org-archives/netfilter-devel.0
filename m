@@ -1,71 +1,72 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] src: proto: fixed a rreply symbol
-Date: Mon, 17 Feb 2014 10:46:43 +0000
-Message-ID: <20140217104643.GA31632@macbook.localnet>
-References: <1392633683-5485-1-git-send-email-anarey@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V2] netfilter: ctnetlink: force null nat binding on insert
+Date: Mon, 17 Feb 2014 11:58:56 +0100
+Message-ID: <20140217105856.GA16361@localhost>
+References: <1392549343-7145-1-git-send-email-fw@strlen.de>
+ <20140217103750.GA22363@localhost>
+ <20140217104511.GB31125@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48538 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbaBQKqr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Feb 2014 05:46:47 -0500
+Received: from mail.us.es ([193.147.175.20]:37949 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750956AbaBQK7D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Feb 2014 05:59:03 -0500
 Content-Disposition: inline
-In-Reply-To: <1392633683-5485-1-git-send-email-anarey@gmail.com>
+In-Reply-To: <20140217104511.GB31125@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 17, 2014 at 11:41:23AM +0100, Ana Rey wrote:
-> There is a bug with rreply symbol. The rreply and reply symbol were the same.
-> 
-> There is a reproduction of this bug here:
-> $ sudo nft add rule arp art-t filter arp operation reply
-> $ sudo nft list table arp art-t
-> table arp art-t {
->         chain filter {
->                  type filter hook input priority 0;
->                  arp operation 512
->         }
-> }
-> 
-> $ sudo nft add rule arp art-t filter arp operation rreply
-> $ sudo nft list table arp art-t
-> table arp art-t {
->         chain filter {
->                  type filter hook input priority 0;
->                  arp operation 512  <=====
->                  arp operation 512  <=====
->         }
-> }
+On Mon, Feb 17, 2014 at 11:45:11AM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >  static int
+> > > +nfnetlink_attach_null_binding(struct nf_conn *ct,
+> > > +			      enum nf_nat_manip_type manip)
+> > > +{
+> > > +	int ret = -EAGAIN;
+> > > +	bool can_alloc;
+> > > +
+> > > +	/* This looks bogus, but its important.
+> > > +	 *
+> > > +	 * We cannot be sure that L3 NAT is available.
+> > > +	 *
+> > > +	 * If it is not, we will oops in nf_nat_setup_info when we try
+> > > +	 * to fetch the l4 nat protocol (which would be on top of the l3 one).
+> > > +	 *
+> > > +	 * Normally nf_nat_setup_info cannot be called without L3 nat
+> > > +	 * available, but this function is invoked from ctnetlink.
+> > > +	 */
+> > > +	rcu_read_lock();
+> > > +
+> > > +	can_alloc = !!__nf_nat_l3proto_find(nf_ct_l3num(ct));
+> > > +	if (can_alloc)
+> > > +		ret = __nf_nat_alloc_null_binding(ct, manip);
+> > > +
+> > > +	rcu_read_unlock();
+> > > +	return ret;
+> >
+> > I think we should always do the module autoloading for nf-nat and
+> > nf-nat-ipvX modules depending on nf_ct_l3num(ct), then return EAGAIN
+> > to give another retry. Now, this needs to happen in any case, not only
+> > when calling ctnetlink_parse_nat_setup().
+>
+> Not sure what you mean.  If we enter nf_nat_setup_info without ctnetlink
+> involvement the nf-nat protocol should already be there (else, how can
+> we end up in nf_nat_setup_info? NAT/MASQUERADE depends on nf-nat).
+>
+> What use-case did you have in mind? (or, to put it differently, where
+> do you think the module probing logic should be)?
 
-Applied, thanks.
+If __nf_nat_l3proto_find returns NULL before trying to attach the null
+binding, I think you should call the routine to autoload the modules
+before returning EAGAIN.
 
-Please remember to sign off your patches next time.
-
-> 
->  src/proto.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/proto.c b/src/proto.c
-> index cc073af..3e62f92 100644
-> --- a/src/proto.c
-> +++ b/src/proto.c
-> @@ -661,7 +661,7 @@ static const struct symbol_table arpop_tbl = {
->  		SYMBOL("request",	ARPOP_REQUEST),
->  		SYMBOL("reply",		ARPOP_REPLY),
->  		SYMBOL("rrequest",	ARPOP_RREQUEST),
-> -		SYMBOL("rreply",	ARPOP_REPLY),
-> +		SYMBOL("rreply",	ARPOP_RREPLY),
->  		SYMBOL("inrequest",	ARPOP_InREQUEST),
->  		SYMBOL("inreply",	ARPOP_InREPLY),
->  		SYMBOL("nak",		ARPOP_NAK),
-> -- 
-> 1.8.5.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        proto = __nf_nat_l3proto_find(nf_ct_l3num(ct));
+        if (proto == NULL) {
+                ... release locks
+                request_module(...);
+                ... acquire locks again
+                return -EAGAIN;
+        }
