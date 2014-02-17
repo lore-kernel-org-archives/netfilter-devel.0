@@ -1,46 +1,39 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: nftables next-3.14 merged into master
-Date: Mon, 17 Feb 2014 22:22:33 +0100
-Message-ID: <CAOkSjBiwM0zX6q51rE9ysiJ9B1YFNB=tYJNwctjvgKjgoLUt9Q@mail.gmail.com>
-References: <20140217194156.GC11041@macbook.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] netlink: meta: fix wrong type in attributes
+Date: Mon, 17 Feb 2014 23:49:00 +0100
+Message-ID: <20140217224859.GA19420@localhost>
+References: <1392652085-8225-1-git-send-email-fw@strlen.de>
+ <20140217172559.GA9866@macbook.localnet>
+ <20140217210301.GI31125@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:57712 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517AbaBQVWy convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Feb 2014 16:22:54 -0500
-Received: by mail-la0-f54.google.com with SMTP id y1so11755776lam.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Feb 2014 13:22:53 -0800 (PST)
-In-Reply-To: <20140217194156.GC11041@macbook.localnet>
+Received: from mail.us.es ([193.147.175.20]:40446 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254AbaBQWtM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Feb 2014 17:49:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20140217210301.GI31125@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17 February 2014 20:41, Patrick McHardy <kaber@trash.net> wrote:
-> Just a heads up, I've merged the next-3.14 branch into master, which =
-is
-> where things will be happening from now on. Please make sure to switc=
-h
-> branches if you're on next-3.14.
+On Mon, Feb 17, 2014 at 10:03:01PM +0100, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
+> > On Mon, Feb 17, 2014 at 04:48:05PM +0100, Florian Westphal wrote:
+> > > We segfault on 'list filter' when meta expr is used as _u8
+> > > returns invalid register 0.
+> > 
+> > This seems to only affect the master branch. Not sure how many people
+> > are using that and if its worth doing a new release. I'd rather merge
+> > the next-3.14 branch and have people use that.
+> 
+> I am now on 0545e0c13b as head but I still get segfault:
+> 
+> $ nft add rule filter output meta  mark set 42
+> $ nft list table -> segv
+> 
+> .. and my patch should still apply afaics.
 
-Something weird happened:
-
-[...]
-413eded src: proto: fixed a rreply symbol
-b621a41 src: proto: fixed a rreply symbol
-[...]
-
-The first one with no content.
-
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm going to apply your patch to master. Thanks Florian.
