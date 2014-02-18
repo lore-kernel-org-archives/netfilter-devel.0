@@ -1,54 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3 -next] netfilter: nft_ct: labels get support
-Date: Tue, 18 Feb 2014 09:58:47 +0000
-Message-ID: <20140218095847.GA12178@macbook.localnet>
-References: <1392715644-4458-1-git-send-email-fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] netlink: meta: fix wrong type in attributes
+Date: Tue, 18 Feb 2014 11:02:06 +0100
+Message-ID: <20140218100206.GA4275@localhost>
+References: <1392652085-8225-1-git-send-email-fw@strlen.de>
+ <20140217172559.GA9866@macbook.localnet>
+ <20140217210301.GI31125@breakpoint.cc>
+ <20140218012705.GA12893@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58276 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748AbaBRJ6v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Feb 2014 04:58:51 -0500
+Received: from mail.us.es ([193.147.175.20]:43716 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754030AbaBRKCP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Feb 2014 05:02:15 -0500
 Content-Disposition: inline
-In-Reply-To: <1392715644-4458-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20140218012705.GA12893@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 18, 2014 at 10:27:22AM +0100, Florian Westphal wrote:
-> Takes advantage of the fact that the number of labels is currently
-> restricted to 2**128, ie. the extension area will always fit into
-> nft register.
+On Tue, Feb 18, 2014 at 01:27:08AM +0000, Patrick McHardy wrote:
+> On Mon, Feb 17, 2014 at 10:03:01PM +0100, Florian Westphal wrote:
+> > Patrick McHardy <kaber@trash.net> wrote:
+> > > On Mon, Feb 17, 2014 at 04:48:05PM +0100, Florian Westphal wrote:
+> > > > We segfault on 'list filter' when meta expr is used as _u8
+> > > > returns invalid register 0.
+> > > 
+> > > This seems to only affect the master branch. Not sure how many people
+> > > are using that and if its worth doing a new release. I'd rather merge
+> > > the next-3.14 branch and have people use that.
+> > 
+> > I am now on 0545e0c13b as head but I still get segfault:
+> > 
+> > $ nft add rule filter output meta  mark set 42
+> > $ nft list table -> segv
+> > 
+> > .. and my patch should still apply afaics.
 > 
-> Patrick says the kernel registers need to be changed anyway to
-> deal with concatentations so we will probably not run into issues
-> when the number of labels increases in a future kernel release.
+> Right, we've fixed that for other types. Please push your patch to master.
 > 
-> +#ifdef CONFIG_NF_CONNTRACK_LABELS
-> +	case NFT_CT_LABELS: {
-> +		struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-> +		unsigned int size;
-> +
-> +		if (!labels)
-> +			goto err;
+> We should probably add a big warning to libnftnl for these cases or
+> even an assert() since its misuse of the API that leads to hard to
+> debug problems.
 
-Is that really an error? I'd expect it to be equivalent with "no labels set",
-which can also be matched on.
-
-> +		size = labels->words * sizeof(long);
-> +		if (size > sizeof(dest->data))
-> +			goto err;
-
-Can't we check that during ->init() if the number is limited anyway?
-
-> +		memcpy(dest->data, labels->bits, size);
-> +
-> +		if (size < sizeof(dest->data))
-> +			memset(((char *) dest->data) + size, 0,
-> +			       sizeof(dest->data) - size);
-> +		return;
-> +	}
-> +#endif
+Indeed. I started a patch for that here but failed to find time so far
+to finish it, it should help to catch wrong API uses.
