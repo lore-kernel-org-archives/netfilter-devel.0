@@ -1,91 +1,62 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/3 -next] netfilter: nft_ct: labels get support
-Date: Tue, 18 Feb 2014 10:27:22 +0100
-Message-ID: <1392715644-4458-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nft RFC PATCH 6/6] src: add events reporting
+Date: Tue, 18 Feb 2014 09:33:11 +0000
+Message-ID: <20140218093311.GA11507@macbook.localnet>
+References: <20140217231654.19943.18736.stgit@nfdev.cica.es>
+ <20140217231837.19943.77406.stgit@nfdev.cica.es>
+ <20140218011007.GA4456@localhost>
+ <20140218020354.GG12893@macbook.localnet>
+ <20140218092811.GA3880@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52421 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754521AbaBRJbR (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:58074 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754610AbaBRJdP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Feb 2014 04:31:17 -0500
+	Tue, 18 Feb 2014 04:33:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20140218092811.GA3880@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Takes advantage of the fact that the number of labels is currently
-restricted to 2**128, ie. the extension area will always fit into
-nft register.
+On Tue, Feb 18, 2014 at 10:28:11AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Feb 18, 2014 at 02:03:55AM +0000, Patrick McHardy wrote:
+> > On Tue, Feb 18, 2014 at 02:10:07AM +0100, Pablo Neira Ayuso wrote:
+> > > On Tue, Feb 18, 2014 at 12:18:38AM +0100, Arturo Borrero Gonzalez wrote:
+> > > > +static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+> > > > +				   struct netlink_ev_handler *evh)
+> > > > +{
+> > > > +	struct nft_table *nlt;
+> > > > +	uint32_t family;
+> > > > +	char buf[4096];
+> > > > +
+> > > > +	nlt = nft_table_alloc();
+> > > > +	if (nlt == NULL)
+> > > > +		memory_allocation_error();
+> > > > +
+> > > > +	if (nft_table_nlmsg_parse(nlh, nlt) < 0) {
+> > > > +		netlink_io_error(evh->ctx, evh->loc,
+> > > > +				"Could not parse table: %s",
+> > > > +				strerror(errno));
+> > > 
+> > > I think you should exit on parsing errors.
+> > 
+> > I'm not so sure for event reporting. We should abort reporting the current
+> > event, sure. But I don't see why we shouldn't continue listering for further
+> > events.
+> 
+> I think if we fail to parse anything it means that there's some bug
+> that need to be fixed, eg. someone changed the length of an attribute
+> so validation fails. I think stopping there should help us to get
+> people reporting problems.
 
-Patrick says the kernel registers need to be changed anyway to
-deal with concatentations so we will probably not run into issues
-when the number of labels increases in a future kernel release.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_ct.c                   | 22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 83c985a..c84c452 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -601,6 +601,7 @@ enum nft_ct_keys {
- 	NFT_CT_PROTOCOL,
- 	NFT_CT_PROTO_SRC,
- 	NFT_CT_PROTO_DST,
-+	NFT_CT_LABELS,
- };
- 
- /**
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 917052e..cb0ffd2 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -19,6 +19,7 @@
- #include <net/netfilter/nf_conntrack_tuple.h>
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_ecache.h>
-+#include <net/netfilter/nf_conntrack_labels.h>
- 
- struct nft_ct {
- 	enum nft_ct_keys	key:8;
-@@ -97,6 +98,24 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 			goto err;
- 		strncpy((char *)dest->data, helper->name, sizeof(dest->data));
- 		return;
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+	case NFT_CT_LABELS: {
-+		struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-+		unsigned int size;
-+
-+		if (!labels)
-+			goto err;
-+		size = labels->words * sizeof(long);
-+		if (size > sizeof(dest->data))
-+			goto err;
-+		memcpy(dest->data, labels->bits, size);
-+
-+		if (size < sizeof(dest->data))
-+			memset(((char *) dest->data) + size, 0,
-+			       sizeof(dest->data) - size);
-+		return;
-+	}
-+#endif
- 	}
- 
- 	tuple = &ct->tuplehash[priv->dir].tuple;
-@@ -221,6 +240,9 @@ static int nft_ct_init_validate_get(const struct nft_expr *expr,
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
- 	case NFT_CT_SECMARK:
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+	case NFT_CT_LABELS:
-+#endif
- 	case NFT_CT_EXPIRATION:
- 	case NFT_CT_HELPER:
- 		if (tb[NFTA_CT_DIRECTION] != NULL)
--- 
-1.8.1.5
-
+Well, it depends on what exactly we couldn't parse or handle. Basic things
+like table names etc. can of course trigger a fatal error. But unknown
+expression types shouldn't cause an error. Seemingly invalid ways
+epressions are linked etc should probably also not do that since they
+may simply be created by something that is not nft and we don't understand
+them. So it really depends on where the error is happening.
