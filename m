@@ -1,62 +1,149 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft RFC PATCH 6/6] src: add events reporting
-Date: Tue, 18 Feb 2014 15:21:47 +0100
-Message-ID: <CAOkSjBjrvhQ-AUwhXzydN-x4YrCNoDq3--dkG8MwzZYSgWzZZA@mail.gmail.com>
-References: <20140217231654.19943.18736.stgit@nfdev.cica.es>
- <20140217231837.19943.77406.stgit@nfdev.cica.es> <20140218011007.GA4456@localhost>
- <20140218020354.GG12893@macbook.localnet> <20140218092811.GA3880@localhost>
- <20140218093311.GA11507@macbook.localnet> <20140218094320.GA4009@localhost>
- <20140218095209.GA12005@macbook.localnet> <20140218095829.GA4173@localhost> <20140218101259.GC12496@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 -next] netfilter: nft_ct: labels get support
+Date: Tue, 18 Feb 2014 15:25:32 +0100
+Message-ID: <1392733532-18469-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:62280 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754917AbaBROWJ convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53968 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755410AbaBRO30 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:22:09 -0500
-Received: by mail-lb0-f176.google.com with SMTP id w7so12133512lbi.21
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Feb 2014 06:22:07 -0800 (PST)
-In-Reply-To: <20140218101259.GC12496@macbook.localnet>
+	Tue, 18 Feb 2014 09:29:26 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18 February 2014 11:12, Patrick McHardy <kaber@trash.net> wrote:
->
-> I'm actually not sure nft really could fail if the expression returne=
-d
-> from the kernel makes any sense at all.
+This also adds NF_CT_LABELS_MAX_SIZE so it can be re-used
+as BUILD_BUG_ON in nft_ct.
 
-I did a fast&small test.
+At this time, nft doesn't yet support writing to the label area;
+when this changes the label->words handling needs to be moved
+out of xt_connlabel.c into nf_conntrack_labels.c.
 
-What to do in the event reporting if this situation is reached?
-Non-sense rule added to the kernel:
+Also removes a useless run-time check: words cannot grow beyond
+4 (32 bit) or 2 (64bit) since xt_connlabel enforces a maximum of
+128 labels.
 
-ip filter input 0 0
-  [ cmp eq reg 1 0x00000006 ]
-  [ payload load 1b @ network header + 9 =3D> reg 1 ]
-  [ payload load 2b @ transport header + 1 =3D> reg 2 ]
-  [ counter pkts 0 bytes 0 ]
-  [ cmp eq reg 1 0x00001600 ]
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since v1:
+  - treat 'no label extension area' like 'no labels set [ this
+    is also what xt_connlabel match does ]
+  - replace run-time check on label->words length with BUILD_BUG_ON()
 
-% nft list table filter
-table ip filter {
- [...]
-}
-netlink: Error: Relational expression has no left hand side
+ include/net/netfilter/nf_conntrack_labels.h |  4 +++-
+ include/uapi/linux/netfilter/nf_tables.h    |  1 +
+ net/netfilter/nf_conntrack_netlink.c        |  5 ++---
+ net/netfilter/nft_ct.c                      | 24 ++++++++++++++++++++++++
+ 4 files changed, 30 insertions(+), 4 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index c985695..dec6336 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -7,6 +7,8 @@
+ 
+ #include <uapi/linux/netfilter/xt_connlabel.h>
+ 
++#define NF_CT_LABELS_MAX_SIZE ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
++
+ struct nf_conn_labels {
+ 	u8 words;
+ 	unsigned long bits[];
+@@ -29,7 +31,7 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+ 	u8 words;
+ 
+ 	words = ACCESS_ONCE(net->ct.label_words);
+-	if (words == 0 || WARN_ON_ONCE(words > 8))
++	if (words == 0)
+ 		return NULL;
+ 
+ 	cl_ext = nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 83c985a..c84c452 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -601,6 +601,7 @@ enum nft_ct_keys {
+ 	NFT_CT_PROTOCOL,
+ 	NFT_CT_PROTO_SRC,
+ 	NFT_CT_PROTO_DST,
++	NFT_CT_LABELS,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index bb322d0..47e9369 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -966,7 +966,6 @@ ctnetlink_parse_help(const struct nlattr *attr, char **helper_name,
+ 	return 0;
+ }
+ 
+-#define __CTA_LABELS_MAX_LENGTH ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
+ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 	[CTA_TUPLE_ORIG]	= { .type = NLA_NESTED },
+ 	[CTA_TUPLE_REPLY]	= { .type = NLA_NESTED },
+@@ -984,9 +983,9 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 	[CTA_ZONE]		= { .type = NLA_U16 },
+ 	[CTA_MARK_MASK]		= { .type = NLA_U32 },
+ 	[CTA_LABELS]		= { .type = NLA_BINARY,
+-				    .len = __CTA_LABELS_MAX_LENGTH },
++				    .len = NF_CT_LABELS_MAX_SIZE },
+ 	[CTA_LABELS_MASK]	= { .type = NLA_BINARY,
+-				    .len = __CTA_LABELS_MAX_LENGTH },
++				    .len = NF_CT_LABELS_MAX_SIZE },
+ };
+ 
+ static int
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 917052e..4ac733f 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -19,6 +19,7 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
++#include <net/netfilter/nf_conntrack_labels.h>
+ 
+ struct nft_ct {
+ 	enum nft_ct_keys	key:8;
+@@ -97,6 +98,26 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		strncpy((char *)dest->data, helper->name, sizeof(dest->data));
+ 		return;
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS: {
++		struct nf_conn_labels *labels = nf_ct_labels_find(ct);
++		unsigned int size;
++
++		if (!labels) {
++			memset(dest->data, 0, sizeof(dest->data));
++			return;
++		}
++
++		BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE > sizeof(dest->data));
++		size = labels->words * sizeof(long);
++
++		memcpy(dest->data, labels->bits, size);
++		if (size < sizeof(dest->data))
++			memset(((char *) dest->data) + size, 0,
++			       sizeof(dest->data) - size);
++		return;
++	}
++#endif
+ 	}
+ 
+ 	tuple = &ct->tuplehash[priv->dir].tuple;
+@@ -221,6 +242,9 @@ static int nft_ct_init_validate_get(const struct nft_expr *expr,
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+ 	case NFT_CT_SECMARK:
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++#endif
+ 	case NFT_CT_EXPIRATION:
+ 	case NFT_CT_HELPER:
+ 		if (tb[NFTA_CT_DIRECTION] != NULL)
+-- 
+1.8.1.5
 
-netlink: Error: Relational expression size mismatch
-
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
