@@ -1,54 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft RFC PATCH 0/6] events
-Date: Tue, 18 Feb 2014 09:24:30 +0000
-Message-ID: <20140218092429.GE10327@macbook.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft RFC PATCH 6/6] src: add events reporting
+Date: Tue, 18 Feb 2014 10:28:11 +0100
+Message-ID: <20140218092811.GA3880@localhost>
 References: <20140217231654.19943.18736.stgit@nfdev.cica.es>
- <20140218014348.GD12893@macbook.localnet>
- <CAOkSjBgi5jePNt3F1V0t=iomgNM5iVcan1hdw43kaYcKgCF0pw@mail.gmail.com>
+ <20140217231837.19943.77406.stgit@nfdev.cica.es>
+ <20140218011007.GA4456@localhost>
+ <20140218020354.GG12893@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58009 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641AbaBRJYd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Feb 2014 04:24:33 -0500
+Received: from mail.us.es ([193.147.175.20]:59547 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754652AbaBRJ2R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Feb 2014 04:28:17 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgi5jePNt3F1V0t=iomgNM5iVcan1hdw43kaYcKgCF0pw@mail.gmail.com>
+In-Reply-To: <20140218020354.GG12893@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 18, 2014 at 10:20:46AM +0100, Arturo Borrero Gonzalez wrote:
-> On 18 February 2014 02:43, Patrick McHardy <kaber@trash.net> wrote:
-> >>
-> >> Its quite simple, the syntax is:
-> >>  % nft event <all|table|chain|rule|set> [xml|json]
-> >
-> > So far we're pretty much (except for shortcuts like default "add rule")
-> > following the scheme "nft action object". "event" doesn't fit in this
-> > scheme, so I'd propose to change this to "monitor". Also I guess object
-> > specification could be optional so "all" wouldn't be needed, but that's
-> > not too important.
-> >
+On Tue, Feb 18, 2014 at 02:03:55AM +0000, Patrick McHardy wrote:
+> On Tue, Feb 18, 2014 at 02:10:07AM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Feb 18, 2014 at 12:18:38AM +0100, Arturo Borrero Gonzalez wrote:
+> > > +static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+> > > +				   struct netlink_ev_handler *evh)
+> > > +{
+> > > +	struct nft_table *nlt;
+> > > +	uint32_t family;
+> > > +	char buf[4096];
+> > > +
+> > > +	nlt = nft_table_alloc();
+> > > +	if (nlt == NULL)
+> > > +		memory_allocation_error();
+> > > +
+> > > +	if (nft_table_nlmsg_parse(nlh, nlt) < 0) {
+> > > +		netlink_io_error(evh->ctx, evh->loc,
+> > > +				"Could not parse table: %s",
+> > > +				strerror(errno));
+> > 
+> > I think you should exit on parsing errors.
 > 
-> Ok, so I propose the syntax:
-> 
->  % nft monitor [table|chain|rule|set] [new|delete] [xml|json]
+> I'm not so sure for event reporting. We should abort reporting the current
+> event, sure. But I don't see why we shouldn't continue listering for further
+> events.
 
-Looks good to me.
-
-> >> add rule ip6 filter input handle 4
-> >
-> > No expressions in the output? Why the set caching then?
-> >
-> 
-> Well, in this first approach I was unable to achieve that :-(
-> I needed some feedback (this RFC).
-> 
-> The intention is of course print out all the expressions.
-
-Great. Let me know if you need some help with that.
+I think if we fail to parse anything it means that there's some bug
+that need to be fixed, eg. someone changed the length of an attribute
+so validation fails. I think stopping there should help us to get
+people reporting problems.
