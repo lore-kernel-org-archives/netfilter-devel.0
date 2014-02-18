@@ -1,42 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Nftables HOWTO documentation updates
-Date: Tue, 18 Feb 2014 12:25:43 +0100
-Message-ID: <20140218112543.GA4799@localhost>
+From: "Dr. Pius Okagba" <renato.ardigo@alice.it>
+Subject: Dear
+Date: Tue, 18 Feb 2014 12:36:23 +0100 (CET)
+Message-ID: <14444c85341.renato.ardigo__31838.0125136629$1392723441$gmane$org@alice.it>
+Reply-To: franklinb1@barid.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp302.alice.it ([82.57.200.118]:7781 "EHLO smtp302.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755184AbaBRLg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Feb 2014 06:36:56 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-I have registered a subdomain for nftables that hosts the nftables
-user HOWTO, you can reach it via:
-
-        http://wiki.nftables.org
-
-This documentation is based on the original work from Eric Leblond's
-nftables quick HOWTO [1], so you may find that I have reused some
-examples and comments from that document in this new place.
-
-The aim of this documentation is to provide a user-oriented
-introduction to the new concepts by examples. The website doesn't look
-fancy and you probably will find typos or things that need to be
-improved and expanded, but with some extra work and time it will
-progressively get improved.
-
-The website is using a wiki, however, public edition has been
-disabled to avoid the overhead that resulting from typical wiki
-vandalism. So the plan is to provide edit access by invitation to a
-group of selected people.
-
-If you have comments, requests and suggestions to improve it, please,
-let us know. Thanks!
-
-[1] https://home.regit.org/netfilter-en/nftables-quick-howto/
-
-P.S:  I would like to thank the NLNet foundation for sponsoring this
-initial HOWTO documentation (http://www.nlnet.nl).
+Attention:
+Regarding the transaction made so far, I waited for your message as you told 
+me
+with none received. Remember, I supposed to have traveled last night 
+but the
+weather is too bad. I will be leaving to Paraguay tomorrow for estate project.
+Meanwhile, contact the Bank manager with below address, i have kept the cheque
+worth of USD2.5M. They will either mail it to you or remit it for transfer
+depending on how you want it; Here is Bank contact information:
+ 
+Name Of Manager: Mr. Franklin Barnard
+MAIL: (franklinb1@barid.com,
+okagbapius1@live.com
+Thank you
+UN Office.
