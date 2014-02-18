@@ -1,49 +1,453 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft RFC PATCH 3/6] netlink: add netlink_delinearize_set() func
-Date: Tue, 18 Feb 2014 10:11:52 +0100
-Message-ID: <CAOkSjBgWGqsG9FdSfp=R6joP_us3FSRRcFdU0cjobDLexvY4vw@mail.gmail.com>
-References: <20140217231654.19943.18736.stgit@nfdev.cica.es>
- <20140217231822.19943.3523.stgit@nfdev.cica.es> <20140218015641.GF12893@macbook.localnet>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [RFC PATCH] netfilter: nft_hash: bug fixes and resizing
+Date: Tue, 18 Feb 2014 09:16:16 +0000
+Message-ID: <20140218091615.GA10327@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, paulmck@linux.vnet.ibm.com,
+	josh@joshtriplett.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:55528 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754362AbaBRJMO convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57955 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754030AbaBRJQU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Feb 2014 04:12:14 -0500
-Received: by mail-lb0-f169.google.com with SMTP id q8so12313127lbi.28
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Feb 2014 01:12:12 -0800 (PST)
-In-Reply-To: <20140218015641.GF12893@macbook.localnet>
+	Tue, 18 Feb 2014 04:16:20 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18 February 2014 02:56, Patrick McHardy <kaber@trash.net> wrote:
->> +extern struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
->> +                                        struct nft_set *nls);
->
-> Actually delinarization so far refers to the act of converting a line=
-ar
-> instruction stream into an abstract syntax tree. This is not really a
-> good term for sets, which are still pretty much linear.
->
-> I don't have a good suggestion right now though.
+The following patch changes the buggy nftables hash set type to properly
+use RCU and support hash resizing.
 
-At first, I used something like 'nls2set', but this delinearize thing
-sounded more 'serious' :)
+The changelog pretty much describes everything important. I followed
+the algorithm description from Paul and Josh pretty closely with just
+one noteworthy change: it seems that after the final unzipping
+operation we don't need another grace period, therefore the number
+of grace periods of both publishing the new table and unzipping all
+chains is reduced to a maximum of the number of elements in the
+longest chain instead of that number + 1 for the publishing of the
+new table. See the do { } while loop in nft_hash_tbl_expand() for
+details.
 
-In think in all cases, we are converting netlink objects to the
-internal nft object. We need a name for that, no?
+I'd especially appreciate any review whether I got the algorithm right
+and didn't mess up the use of RCU_INIT_POINTER.
 
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regarding RCU_INIT_POINTER, the justification for all uses is that the
+elements have already been published and have not been changed.
+
+Thanks!
+
+
+
+>From e210c07fd8c18402d73799d76004e3a26ace47b2 Mon Sep 17 00:00:00 2001
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 18 Feb 2014 08:44:48 +0000
+Subject: [PATCH] netfilter: nft_hash: bug fixes and resizing
+
+The hash set type is very broken and was never meant to be merged in this
+state. Missing RCU synchronization on element removal, leaking chain
+refcounts when used as a verdict map, races during lookups, a fixed table
+size are probably just some of the problems. Luckily it is currently
+never chosen by the kernel when the rbtree type is also available.
+
+Rewrite it to be usable.
+
+The new implementation supports automatic hash table resizing using RCU,
+based on Paul McKenney's and Josh Triplett's algorithm "Optimized Resizing
+For RCU-Protected Hash Tables" described in [1].
+
+Resizing doesn't require a second list head in the elements, it works by
+chosing a hash function that remaps elements to a predictable set of buckets,
+only resizing by integral factors and
+
+- during expansion: linking new buckets to the old bucket that contains
+  elements for any of the new buckets, thereby creating imprecise chains,
+  then incrementally seperating the elements until the new buckets only
+  contain elements that hash directly to them.
+
+- during shrinking: linking the hash chains of all old buckets that hash
+  to the same new bucket to form a single chain.
+
+Expansion requires at most the number of elements in the longest hash chain
+grace periods, shrinking requires a single grace period.
+
+Due to the requirement of having hash chains/elements linked to multiple
+buckets during resizing, homemade single linked lists are used instead of
+the existing list helpers, that don't support this in a clean fashion.
+As a side effect, the amount of memory required per element is reduced by
+one pointer.
+
+Expansion is triggered when the load factors exceeds 75%, shrinking when
+the load factor goes below 30%. Both operations are allowed to fail and
+will be retried on the next insertion or removal if their respective
+conditions still hold.
+
+[1] http://www.google.com/patents/US20130151524
+
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nft_hash.c | 248 ++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 203 insertions(+), 45 deletions(-)
+
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 3d3f8fc..905338a 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -18,17 +18,29 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ 
++#define NFT_HASH_MIN_SIZE	4
++
+ struct nft_hash {
+-	struct hlist_head	*hash;
+-	unsigned int		hsize;
++	struct nft_hash_table __rcu	*tbl;
++};
++
++struct nft_hash_table {
++	unsigned int			size;
++	unsigned int			elements;
++	struct nft_hash_elem __rcu	*buckets[];
+ };
+ 
+ struct nft_hash_elem {
+-	struct hlist_node	hnode;
+-	struct nft_data		key;
+-	struct nft_data		data[];
++	struct nft_hash_elem __rcu	*next;
++	struct nft_data			key;
++	struct nft_data			data[];
+ };
+ 
++#define nft_hash_for_each_entry(i, head) \
++	for (i = nft_dereference(head); i != NULL; i = nft_dereference(i->next))
++#define nft_hash_for_each_entry_rcu(i, head) \
++	for (i = rcu_dereference(head); i != NULL; i = rcu_dereference(i->next))
++
+ static u32 nft_hash_rnd __read_mostly;
+ static bool nft_hash_rnd_initted __read_mostly;
+ 
+@@ -38,7 +50,7 @@ static unsigned int nft_hash_data(const struct nft_data *data,
+ 	unsigned int h;
+ 
+ 	h = jhash(data->data, len, nft_hash_rnd);
+-	return ((u64)h * hsize) >> 32;
++	return h & (hsize - 1);
+ }
+ 
+ static bool nft_hash_lookup(const struct nft_set *set,
+@@ -46,11 +58,12 @@ static bool nft_hash_lookup(const struct nft_set *set,
+ 			    struct nft_data *data)
+ {
+ 	const struct nft_hash *priv = nft_set_priv(set);
++	const struct nft_hash_table *tbl = rcu_dereference(priv->tbl);
+ 	const struct nft_hash_elem *he;
+ 	unsigned int h;
+ 
+-	h = nft_hash_data(key, priv->hsize, set->klen);
+-	hlist_for_each_entry(he, &priv->hash[h], hnode) {
++	h = nft_hash_data(key, tbl->size, set->klen);
++	nft_hash_for_each_entry_rcu(he, tbl->buckets[h]) {
+ 		if (nft_data_cmp(&he->key, key, set->klen))
+ 			continue;
+ 		if (set->flags & NFT_SET_MAP)
+@@ -60,19 +73,137 @@ static bool nft_hash_lookup(const struct nft_set *set,
+ 	return false;
+ }
+ 
+-static void nft_hash_elem_destroy(const struct nft_set *set,
+-				  struct nft_hash_elem *he)
++static struct nft_hash_table *nft_hash_tbl_alloc(unsigned int size)
+ {
+-	nft_data_uninit(&he->key, NFT_DATA_VALUE);
+-	if (set->flags & NFT_SET_MAP)
+-		nft_data_uninit(he->data, set->dtype);
+-	kfree(he);
++	struct nft_hash_table *tbl;
++
++	tbl = kzalloc(sizeof(*tbl) + size * sizeof(tbl->buckets[0]),
++		      GFP_KERNEL);
++	if (tbl == NULL)
++		return NULL;
++	tbl->size = size;
++
++	return tbl;
++}
++
++static void nft_hash_chain_unzip(const struct nft_set *set,
++				 const struct nft_hash_table *ntbl,
++				 struct nft_hash_table *tbl, unsigned int n)
++{
++	struct nft_hash_elem *he, *last, *next;
++	unsigned int h;
++
++	he = nft_dereference(tbl->buckets[n]);
++	if (he == NULL)
++		return;
++	h = nft_hash_data(&he->key, ntbl->size, set->klen);
++
++	/* Find last element of first chain hashing to bucket h */
++	last = he;
++	nft_hash_for_each_entry(he, he->next) {
++		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
++			break;
++		last = he;
++	}
++
++	/* Unlink first chain from the old table */
++	RCU_INIT_POINTER(tbl->buckets[n], last->next);
++
++	/* If end of chain reached, done */
++	if (he == NULL)
++		return;
++
++	/* First first element of second chain hashing to bucket h */
++	next = NULL;
++	nft_hash_for_each_entry(he, he->next) {
++		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
++			continue;
++		next = he;
++		break;
++	}
++
++	/* Link the two chains */
++	RCU_INIT_POINTER(last->next, next);
++}
++
++static int nft_hash_tbl_expand(const struct nft_set *set, struct nft_hash *priv)
++{
++	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
++	struct nft_hash_elem *he;
++	unsigned int i, h;
++	bool complete;
++
++	ntbl = nft_hash_tbl_alloc(tbl->size * 2);
++	if (ntbl == NULL)
++		return -ENOMEM;
++
++	/* Link new table's buckets to first element in the old table
++	 * hashing to the new bucket.
++	 */
++	for (i = 0; i < ntbl->size; i++) {
++		h = i < tbl->size ? i : i - tbl->size;
++		nft_hash_for_each_entry(he, tbl->buckets[h]) {
++			if (nft_hash_data(&he->key, ntbl->size, set->klen) != i)
++				continue;
++			RCU_INIT_POINTER(ntbl->buckets[i], he);
++			break;
++		}
++	}
++	ntbl->elements = tbl->elements;
++
++	/* Publish new table */
++	rcu_assign_pointer(priv->tbl, ntbl);
++
++	/* Unzip interleaved hash chains */
++	do {
++		/* Wait for readers to use new table/unzipped chains */
++		synchronize_rcu();
++
++		complete = true;
++		for (i = 0; i < tbl->size; i++) {
++			nft_hash_chain_unzip(set, ntbl, tbl, i);
++			if (tbl->buckets[i] != NULL)
++				complete = false;
++		}
++	} while (!complete);
++
++	kfree(tbl);
++	return 0;
++}
++
++static int nft_hash_tbl_shrink(const struct nft_set *set, struct nft_hash *priv)
++{
++	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
++	struct nft_hash_elem __rcu **pprev;
++	unsigned int i;
++
++	ntbl = nft_hash_tbl_alloc(tbl->size / 2);
++	if (ntbl == NULL)
++		return -ENOMEM;
++
++	for (i = 0; i < ntbl->size; i++) {
++		ntbl->buckets[i] = tbl->buckets[i];
++
++		for (pprev = &ntbl->buckets[i]; *pprev != NULL;
++		     pprev = &nft_dereference(*pprev)->next)
++			;
++		RCU_INIT_POINTER(*pprev, tbl->buckets[i + ntbl->size]);
++	}
++	ntbl->elements = tbl->elements;
++
++	/* Publish new table */
++	rcu_assign_pointer(priv->tbl, ntbl);
++	synchronize_rcu();
++
++	kfree(tbl);
++	return 0;
+ }
+ 
+ static int nft_hash_insert(const struct nft_set *set,
+ 			   const struct nft_set_elem *elem)
+ {
+ 	struct nft_hash *priv = nft_set_priv(set);
++	struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+ 	struct nft_hash_elem *he;
+ 	unsigned int size, h;
+ 
+@@ -91,33 +222,67 @@ static int nft_hash_insert(const struct nft_set *set,
+ 	if (set->flags & NFT_SET_MAP)
+ 		nft_data_copy(he->data, &elem->data);
+ 
+-	h = nft_hash_data(&he->key, priv->hsize, set->klen);
+-	hlist_add_head_rcu(&he->hnode, &priv->hash[h]);
++	h = nft_hash_data(&he->key, tbl->size, set->klen);
++	RCU_INIT_POINTER(he->next, tbl->buckets[h]);
++	rcu_assign_pointer(tbl->buckets[h], he);
++	tbl->elements++;
++
++	/* Expand table when exceeding 75% load */
++	if (tbl->elements * 4 / 3 > tbl->size)
++		nft_hash_tbl_expand(set, priv);
++
+ 	return 0;
+ }
+ 
++static void nft_hash_elem_destroy(const struct nft_set *set,
++				  struct nft_hash_elem *he)
++{
++	nft_data_uninit(&he->key, NFT_DATA_VALUE);
++	if (set->flags & NFT_SET_MAP)
++		nft_data_uninit(he->data, set->dtype);
++	kfree(he);
++}
++
+ static void nft_hash_remove(const struct nft_set *set,
+ 			    const struct nft_set_elem *elem)
+ {
+-	struct nft_hash_elem *he = elem->cookie;
++	struct nft_hash *priv = nft_set_priv(set);
++	struct nft_hash_table *tbl = nft_dereference(priv->tbl);
++	struct nft_hash_elem *he, __rcu **pprev;
++	unsigned int h;
+ 
+-	hlist_del_rcu(&he->hnode);
+-	kfree(he);
++	h = nft_hash_data(&elem->key, tbl->size, set->klen);
++	for (pprev = &tbl->buckets[h]; (he = nft_dereference(*pprev)) != NULL;
++	     pprev = &he->next) {
++		if (nft_data_cmp(&he->key, &elem->key, set->klen))
++			continue;
++		RCU_INIT_POINTER(*pprev, he->next);
++		break;
++	}
++
++	synchronize_rcu();
++	nft_hash_elem_destroy(set, he);
++	tbl->elements--;
++
++	/* Shrink table beneath 30% load */
++	if (tbl->elements * 10 / 3 < tbl->size &&
++	    tbl->size > NFT_HASH_MIN_SIZE)
++		nft_hash_tbl_shrink(set, priv);
+ }
+ 
+ static int nft_hash_get(const struct nft_set *set, struct nft_set_elem *elem)
+ {
+ 	const struct nft_hash *priv = nft_set_priv(set);
++	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+ 	struct nft_hash_elem *he;
+ 	unsigned int h;
+ 
+-	h = nft_hash_data(&elem->key, priv->hsize, set->klen);
+-	hlist_for_each_entry(he, &priv->hash[h], hnode) {
++	h = nft_hash_data(&elem->key, tbl->size, set->klen);
++	nft_hash_for_each_entry(he, tbl->buckets[h]) {
+ 		if (nft_data_cmp(&he->key, &elem->key, set->klen))
+ 			continue;
+ 
+-		elem->cookie = he;
+-		elem->flags  = 0;
++		elem->flags = 0;
+ 		if (set->flags & NFT_SET_MAP)
+ 			nft_data_copy(&elem->data, he->data);
+ 		return 0;
+@@ -129,12 +294,13 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
+ 			  struct nft_set_iter *iter)
+ {
+ 	const struct nft_hash *priv = nft_set_priv(set);
++	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+ 	const struct nft_hash_elem *he;
+ 	struct nft_set_elem elem;
+ 	unsigned int i;
+ 
+-	for (i = 0; i < priv->hsize; i++) {
+-		hlist_for_each_entry(he, &priv->hash[i], hnode) {
++	for (i = 0; i < tbl->size; i++) {
++		nft_hash_for_each_entry(he, tbl->buckets[i]) {
+ 			if (iter->count < iter->skip)
+ 				goto cont;
+ 
+@@ -161,43 +327,35 @@ static int nft_hash_init(const struct nft_set *set,
+ 			 const struct nlattr * const tb[])
+ {
+ 	struct nft_hash *priv = nft_set_priv(set);
+-	unsigned int cnt, i;
++	struct nft_hash_table *tbl;
+ 
+ 	if (unlikely(!nft_hash_rnd_initted)) {
+ 		get_random_bytes(&nft_hash_rnd, 4);
+ 		nft_hash_rnd_initted = true;
+ 	}
+ 
+-	/* Aim for a load factor of 0.75 */
+-	// FIXME: temporarily broken until we have set descriptions
+-	cnt = 100;
+-	cnt = cnt * 4 / 3;
+-
+-	priv->hash = kcalloc(cnt, sizeof(struct hlist_head), GFP_KERNEL);
+-	if (priv->hash == NULL)
++	tbl = nft_hash_tbl_alloc(NFT_HASH_MIN_SIZE);
++	if (tbl == NULL)
+ 		return -ENOMEM;
+-	priv->hsize = cnt;
+-
+-	for (i = 0; i < cnt; i++)
+-		INIT_HLIST_HEAD(&priv->hash[i]);
+-
++	RCU_INIT_POINTER(priv->tbl, tbl);
+ 	return 0;
+ }
+ 
+ static void nft_hash_destroy(const struct nft_set *set)
+ {
+ 	const struct nft_hash *priv = nft_set_priv(set);
+-	const struct hlist_node *next;
+-	struct nft_hash_elem *elem;
++	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
++	struct nft_hash_elem *he, *next;
+ 	unsigned int i;
+ 
+-	for (i = 0; i < priv->hsize; i++) {
+-		hlist_for_each_entry_safe(elem, next, &priv->hash[i], hnode) {
+-			hlist_del(&elem->hnode);
+-			nft_hash_elem_destroy(set, elem);
++	for (i = 0; i < tbl->size; i++) {
++		for (he = nft_dereference(tbl->buckets[i]); he != NULL;
++		     he = next) {
++			next = nft_dereference(he->next);
++			nft_hash_elem_destroy(set, he);
+ 		}
+ 	}
+-	kfree(priv->hash);
++	kfree(tbl);
+ }
+ 
+ static struct nft_set_ops nft_hash_ops __read_mostly = {
+-- 
+1.8.5.3
+
