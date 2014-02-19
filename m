@@ -1,78 +1,54 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [PATCH 2/2] xtables-events: prints arp rules
-Date: Wed, 19 Feb 2014 13:10:29 +0100
-Message-ID: <1392811829-5303-2-git-send-email-giuseppelng@gmail.com>
-References: <1392811829-5303-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Dennis Jacobfeuerborn <dennisml@conversis.de>
+Subject: Re: Nftables HOWTO documentation updates
+Date: Wed, 19 Feb 2014 16:13:37 +0100
+Message-ID: <5304CA21.9040309@conversis.de>
+References: <20140218112543.GA4799@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:34043 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbaBSMJ5 (ORCPT
+Received: from mail3.conversis.de ([213.203.208.210]:59476 "EHLO
+	mail3.conversis.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753773AbaBSPcd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Feb 2014 07:09:57 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so182787eei.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Feb 2014 04:09:54 -0800 (PST)
-In-Reply-To: <1392811829-5303-1-git-send-email-giuseppelng@gmail.com>
+	Wed, 19 Feb 2014 10:32:33 -0500
+In-Reply-To: <20140218112543.GA4799@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch permits to print arp rules,
-avoiding the segfault that you got currently.
+On 18.02.2014 12:25, Pablo Neira Ayuso wrote:
+> Hi,
+>
+> I have registered a subdomain for nftables that hosts the nftables
+> user HOWTO, you can reach it via:
+>
+>          http://wiki.nftables.org
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- iptables/xtables-events.c | 22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+I checked out the HOWTO and it gives a really nice concise introduction 
+to how nftables work. Good work!
 
-diff --git a/iptables/xtables-events.c b/iptables/xtables-events.c
-index 4be8ab8..535dd91 100644
---- a/iptables/xtables-events.c
-+++ b/iptables/xtables-events.c
-@@ -59,7 +59,10 @@ static bool counters;
- static int rule_cb(const struct nlmsghdr *nlh, int type)
- {
- 	struct iptables_command_state cs = {};
-+	struct arpt_entry fw_arp = {};
- 	struct nft_rule *r;
-+	void *fw = NULL;
-+	uint8_t family;
- 
- 	r = nft_rule_alloc();
- 	if (r == NULL) {
-@@ -72,21 +75,24 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
- 		goto err_free;
- 	}
- 
--	nft_rule_to_iptables_command_state(r, &cs);
--
--	switch(nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY)) {
-+	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
-+	switch (family) {
- 	case AF_INET:
--		printf("-4 ");
--		break;
- 	case AF_INET6:
--		printf("-6 ");
-+		printf("-%c ", family == AF_INET ? '4' : '6');
-+		nft_rule_to_iptables_command_state(r, &cs);
-+		fw = &cs;
- 		break;
--	default:
-+	case NFPROTO_ARP:
-+		nft_rule_to_arpt_entry(r, &fw_arp);
-+		fw = &fw_arp;
- 		break;
-+	default:
-+		goto err_free;
- 	}
- 
- 
--	nft_rule_print_save(&cs, r,
-+	nft_rule_print_save(fw, r,
- 			    type == NFT_MSG_NEWRULE ? NFT_RULE_APPEND :
- 						      NFT_RULE_DEL,
- 			    counters ? 0 : FMT_NOCOUNTS);
--- 
-1.8.3.2
+After browsing through the pages I have two questions:
 
+Is it possible to comment rules like in iptables? Comments in iptables 
+made it really easy to manage rules on a logical level i.e. I could 
+define rule "types" by adding a special comment like "TYPE:X" and then 
+use that to grep for these rules to batch-remove them or retrieve the 
+counter values. It would be nice to be able to tag rules like this.
+
+How do I insert multiple rules? The insertion example show the addition 
+of a single rule after a known handle but what if I want to add a second 
+rule after that? As far as I can tell from the example the add rule 
+command does not return the handle of the inserted rule so I have no 
+idea where to insert the second rule. Even if the command returned the 
+handle it would still require scripting to add multiple consecutive 
+rules so there should be a way to specify to add a list of rules 
+(atomically?) after a given handle.
+
+Not sure if these features are not available or just not documented yet 
+but I'm approaching this by thinking about the use-cases I encounter and 
+looking at how I would implement these using nftables instead of iptables.
+
+Regards,
+   Dennis
