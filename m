@@ -1,52 +1,131 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] Netfilter fixes for net
-Date: Wed, 19 Feb 2014 13:16:33 -0500 (EST)
-Message-ID: <20140219.131633.393853748123176532.davem@davemloft.net>
-References: <1392810102-13877-1-git-send-email-pablo@netfilter.org>
+From: Artie Hamilton <artiemhamilton@yahoo.com>
+Subject: BUG: ip6tables IPv6-REDIRECT over bridges
+Date: Thu, 20 Feb 2014 18:14:31 +0000 (GMT)
+Message-ID: <1392920071.66303.YahooMailNeo@web172306.mail.ir2.yahoo.com>
+Reply-To: Artie Hamilton <artiemhamilton@yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:45748 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbaBSSQf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Feb 2014 13:16:35 -0500
-In-Reply-To: <1392810102-13877-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"\"David S. Miller\"" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 19 Feb 2014 12:41:36 +0100
+Hi,
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> * Fix nf_trace in nftables if XT_TRACE=n, from Florian Westphal.
-> 
-> * Don't use the fast payload operation in nf_tables if the length is
->   not power of 2 or it is not aligned, from Nikolay Aleksandrov.
-> 
-> * Fix missing break statement the inet flavour of nft_reject, which
->   results in evaluating IPv4 packets with the IPv6 evaluation routine,
->   from Patrick McHardy.
-> 
-> * Fix wrong kconfig symbol in nft_meta to match the routing realm,
->   from Paul Bolle.
-> 
-> * Allocate the NAT null binding when creating new conntracks via
->   ctnetlink to avoid that several packets race at initializing the
->   the conntrack NAT extension, original patch from Florian Westphal,
->   revisited version from me.
-> 
-> * Fix DNAT handling in the snmp NAT helper, the same handling was being
->   done for SNAT and DNAT and 2.4 already contains that fix, from
->   Francois-Xavier Le Bail.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+I have currently following setup with three devices (actual 3 hardware =
+boxes)
 
-Pulled, thanks a lot Pablo.
+box1 =A0 =A0 =A0 box2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0box3
+client --> (eth0)[bridging device](eth1) --> service x
+
+
+The bridging device checks the properties of "client" and maybe redirec=
+ts
+him to a=A0server on the bridging device (just assume HTTP for now). Th=
+e
+user is then=A0welcomed and some=A0instructions are shown. Before anyon=
+e
+asks: NO, this=A0is not a security=A0mechanism.
+
+The bridging device is a linux device and currently works perfectly fin=
+e with
+IPv4 redirections. It is done (heavily simplified version) by running.
+
+$ brctl addbr br0
+$ brctl addif br0 eth0
+$ brctl addif br0 eth1
+$ ip addr add 192.168.1.42/24 dev br0
+$ sysctl -w net.bridge.bridge-nf-call-iptables=3D1
+$ iptables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 -j REDIRECT =
+--to-ports 81
+
+This works perfectly fine with IPv4 services. Everyone is happy about t=
+he
+bridged setup and the extra functionality with special redirects for th=
+is IPv4
+service.
+
+Now the same thing should be done for IPv6. It should works quite simil=
+ar
+(I just=A0assume the above mentioned steps are already done):
+
+$ sysctl -w net.ipv6.conf.br0.accept_ra=3D2
+$ sysctl -w net.bridge.bridge-nf-call-ip6tables=3D1
+$ ip6tables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 -j REDIRECT=
+ --to-ports 81
+
+But here is the problem: Connections will not be started. I see for exa=
+mple
+connections getting started to the service like this on the client:
+
+$ curl -6 -D - 'http://\[2001:1234::1\]:8080/'
+=2E.... nothing .....
+
+A dump shows as first packet at tcp SYN to the service 2001:1234::1 wit=
+h port
+8080. And sometimes I see following too:
+
+=A0* ICMPv6 redirect reply
+=A0* SYN+ACK from fde9:....:d320 (one of the addresses of br0 but not
+=A0 =A0from the actual range 2001:..../64) with port 81 !!!!!!!!!
+=A0* RST from client to fde9:....:d320 with port 81
+
+This seems to be a bug in nat or conntrack, right?
+
+The conntrack event output show this:
+
+=A0 =A0 [NEW] tcp =A0 =A0 =A06 120 SYN_SENT src=3D2001:...::3 sport=3D4=
+9495 dport=3D8080 [UNREPLIED] src=3Dfde9:....:d320 sport=3D81 dport=3D4=
+9495
+
+I've also tried following setups:
+
+=A0* bridge setup but DNAT to service y (some server next to service x)
+=A0 =A0$ ip6tables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 -j D=
+NAT --to-dest [2001:1234::2]:81
+=A0 =A0=3D> works
+=A0* routing setup (br0 only contains eth0 and eth1 is a separate devic=
+e)
+=A0 =A0$ iptables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 -j RE=
+DIRECT --to-ports 81
+=A0 =A0=3D> works
+
+When I use curl on the IPv6 address of the bridge device (2001:1234::13=
+37) then
+it works on the actual server port 81 and the port which should get red=
+irected
+to 81 - port 8080:
+
+$ curl -6 -D - 'http://\[2001:1234::1337)\]:81/'
+
+HTTP/1.1 200 OK
+=2E...
+$ curl -6 -D - 'http://\[2001:1234::1337)\]:8080/'
+HTTP/1.1 200 OK
+=2E...
+
+It really seems to be a bug when doing DNAT/REDIRECT with bridges and I=
+Pv6. And
+it is not possible for me to change the previously mentioned setup to a=
+ routed
+setup.
+
+I've also read a little bit about TPROXY but found no good way to use i=
+t
+together with this bridged setup without routing rules (but worked quit=
+e well in
+routing).
+
