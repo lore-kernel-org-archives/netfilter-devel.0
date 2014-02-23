@@ -1,532 +1,425 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [libmnl] mmap patch review request
-Date: Sun, 23 Feb 2014 18:04:49 +0900
-Message-ID: <CAGCkEt27iUktp_uY=8OTxs433T2Zt7r3tk7qv5sq51jfTTb97Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Nikolay Aleksandrov <nikolay@redhat.com>
+Subject: [RFC PATCH] netfilter: nf_tables: extend payload to support writing data
+Date: Sun, 23 Feb 2014 18:32:22 +0100
+Message-ID: <1393176742-28171-1-git-send-email-nikolay@redhat.com>
+Cc: kaber@trash.net, pablo@netfilter.org,
+	Nikolay Aleksandrov <nikolay@redhat.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:64008 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759AbaBWJEw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Feb 2014 04:04:52 -0500
-Received: by mail-la0-f45.google.com with SMTP id b8so4165377lan.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 23 Feb 2014 01:04:51 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:48562 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751286AbaBWRfV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Feb 2014 12:35:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  Hello Pablo, lists.
+This patch extends the payload expression to support packet writing.
+The new payload attribute - SREG specifies the source register to use
+when changing packet data, the rest of the attributes are the same:
+base - where to start from
+offset - offset in the packet
+len - length to write
 
-Few people get interest but let me show my current mmaped patch.
-I put this and examples
+The DREG attribute should not be set if writing is intended, if both
+attributes are set an error will be returned.
 
-    https://github.com/chamaken/libmnl/tree/mmap
+The checksum update is done automatically for the following cases:
+IPv4 checksum - changing the IPv4 header
+TCP checksum - changing addresses in the network header (pseudo) or
+               changing TCP header/packet data
+UDP checksum - same as TCP
+The pseudo header works for both IPv4 and IPv6.
 
+The following restrictions apply:
+- Cross-header writing (NH -> TH) won't get their checksum updated
+  properly.
+- The "checksum" fields of the respective headers should not be altered.
+- If altering an address in the network header, the write should not
+  alter any other field. (This is okay for IPv4 as the previous field
+  is the checksum, but changing the IPv6 "hop limit" and the first bytes
+  of the source address should not be done for example)
 
-Any advice is welcome.
-thanks.
+Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
+---
+This is _strictly_ RFC, I have some cleanups to do and a ton of tests
+to run :-)
 
---------
+Now some explanation, this is the simplest way of doing it that I could
+think of. I also have a version which doesn't copy in order to align but
+writes directly in "broken" number of bytes i.e. if we had to shift 3 bytes
+in order to round offset then on each iteration it'll either write 3 bytes
+or 1 byte with heavy use of bitfield manipulation and asynchronous word
+counting (i.e. one for the src and one for the dst). I don't believe that
+the speed difference will be big so I prefer the simpler approach, if you
+have any suggestion I'm willing to change the algorithm :-)
 
-diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index 223709c..e05bf02 100644
---- a/include/libmnl/libmnl.h
-+++ b/include/libmnl/libmnl.h
-@@ -7,6 +7,7 @@
- #include <unistd.h>
- #include <sys/socket.h> /* for sa_family_t */
+I think the rest is in the commit message, I'll continue to clean it up and
+run some more tests. I think I've addressed all comments from the previous
+RFC posting.
+This patch should apply to Dave's net-next tree.
+
+ include/net/netfilter/nf_tables_core.h   |   1 +
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nft_payload.c              | 255 +++++++++++++++++++++++++++++--
+ 3 files changed, 243 insertions(+), 15 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index cf2b7ae..0a0bd9a 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -32,6 +32,7 @@ struct nft_payload {
+ 	u8			offset;
+ 	u8			len;
+ 	enum nft_registers	dreg:8;
++	enum nft_registers	sreg:8;
+ };
+ 
+ extern const struct nft_expr_ops nft_payload_fast_ops;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 83c985a..7730a36 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -480,6 +480,7 @@ enum nft_payload_bases {
+ /**
+  * enum nft_payload_attributes - nf_tables payload expression netlink attributes
+  *
++ * @NFTA_PAYLOAD_SREG: source register to load data from (NLA_U32: nft_registers)
+  * @NFTA_PAYLOAD_DREG: destination register to load data into (NLA_U32: nft_registers)
+  * @NFTA_PAYLOAD_BASE: payload base (NLA_U32: nft_payload_bases)
+  * @NFTA_PAYLOAD_OFFSET: payload offset relative to base (NLA_U32)
+@@ -491,6 +492,7 @@ enum nft_payload_attributes {
+ 	NFTA_PAYLOAD_BASE,
+ 	NFTA_PAYLOAD_OFFSET,
+ 	NFTA_PAYLOAD_LEN,
++	NFTA_PAYLOAD_SREG,
+ 	__NFTA_PAYLOAD_MAX
+ };
+ #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index a2aeb31..d27d4ed 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -14,22 +14,173 @@
  #include <linux/netlink.h>
-+#include <linux/kernel.h> /* for __ALIGN_KERNEL */
-
- #ifdef __cplusplus
- extern "C" {
-@@ -19,10 +20,47 @@ extern "C" {
- #define MNL_SOCKET_AUTOPID     0
- #define MNL_SOCKET_BUFFER_SIZE (getpagesize() < 8192L ? getpagesize() : 8192L)
-
-+#ifndef NETLINK_RX_RING
-+struct nl_mmap_hdr {
-+       unsigned int    nm_status;
-+       unsigned int    nm_len;
-+       __u32           nm_group;
-+       /* credentials */
-+       __u32           nm_pid;
-+       __u32           nm_uid;
-+       __u32           nm_gid;
-+};
-+
-+enum nl_mmap_status {
-+       NL_MMAP_STATUS_UNUSED,
-+       NL_MMAP_STATUS_RESERVED,
-+       NL_MMAP_STATUS_VALID,
-+       NL_MMAP_STATUS_COPY,
-+       NL_MMAP_STATUS_SKIP,
-+};
-+
-+#define NL_MMAP_MSG_ALIGNMENT          NLMSG_ALIGNTO
-+#define NL_MMAP_MSG_ALIGN(sz)          __ALIGN_KERNEL(sz,
-NL_MMAP_MSG_ALIGNMENT)
-+#define NL_MMAP_HDRLEN                 NL_MMAP_MSG_ALIGN(sizeof(
-struct nl_mmap_hdr))
-+#endif /* NETLINK_RX_RING */
-+
-+enum mnl_ring_types {
-+       MNL_RING_RX,
-+       MNL_RING_TX,
-+};
-+
- struct mnl_socket;
-+struct mnl_ring;
-+
-+#define MNL_FRAME_PAYLOAD(frame) ((void *)(frame) + NL_MMAP_HDRLEN)
-
- extern struct mnl_socket *mnl_socket_open(int type);
- extern int mnl_socket_bind(struct mnl_socket *nl, unsigned int
-groups, pid_t pid);
-+extern int mnl_socket_set_ringopt(struct mnl_socket *nl, enum
-mnl_ring_types type,
-+                                 unsigned int block_size, unsigned
-int block_nf,
-+                                 unsigned int frame_size, unsigned
-int frame_nr);
-+extern int mnl_socket_map_ring(struct mnl_socket *nl);
-+extern int mnl_socket_unmap_ring(struct mnl_socket *nl);
- extern int mnl_socket_close(struct mnl_socket *nl);
- extern int mnl_socket_get_fd(const struct mnl_socket *nl);
- extern unsigned int mnl_socket_get_portid(const struct mnl_socket *nl);
-@@ -30,6 +68,9 @@ extern ssize_t mnl_socket_sendto(const struct
-mnl_socket *nl, const void *req, s
- extern ssize_t mnl_socket_recvfrom(const struct mnl_socket *nl, void
-*buf, size_t siz);
- extern int mnl_socket_setsockopt(const struct mnl_socket *nl, int
-type, void *buf, socklen_t len);
- extern int mnl_socket_getsockopt(const struct mnl_socket *nl, int
-type, void *buf, socklen_t *len);
-+extern struct mnl_ring *mnl_socket_get_ring(const struct mnl_socket
-*nl, enum mnl_ring_types type);
-+extern void mnl_ring_advance(struct mnl_ring *ring);
-+extern struct nl_mmap_hdr *mnl_ring_get_frame(const struct mnl_ring *ring);
-
- /*
-  * Netlink message API
-@@ -74,6 +115,7 @@ extern void mnl_nlmsg_batch_reset(struct mnl_nlmsg_batch *b);
- extern void *mnl_nlmsg_batch_head(struct mnl_nlmsg_batch *b);
- extern void *mnl_nlmsg_batch_current(struct mnl_nlmsg_batch *b);
- extern bool mnl_nlmsg_batch_is_empty(struct mnl_nlmsg_batch *b);
-+extern void mnl_nlmsg_batch_reset_buffer(struct mnl_nlmsg_batch *b,
-void *buf, size_t limit);
-
- /*
-  * Netlink attributes API
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index ced0e1a..1a85940 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -1,6 +1,7 @@
--#ifndef __LINUX_NETLINK_H
--#define __LINUX_NETLINK_H
-+#ifndef _UAPI__LINUX_NETLINK_H
-+#define _UAPI__LINUX_NETLINK_H
-
-+#include <linux/kernel.h>
- #include <linux/socket.h> /* for __kernel_sa_family_t */
- #include <linux/types.h>
-
-@@ -78,7 +79,7 @@ struct nlmsghdr {
- #define NLMSG_ALIGNTO  4U
- #define NLMSG_ALIGN(len) ( ((len)+NLMSG_ALIGNTO-1) & ~(NLMSG_ALIGNTO-1) )
- #define NLMSG_HDRLEN    ((int) NLMSG_ALIGN(sizeof(struct nlmsghdr)))
--#define NLMSG_LENGTH(len) ((len)+NLMSG_ALIGN(NLMSG_HDRLEN))
-+#define NLMSG_LENGTH(len) ((len) + NLMSG_HDRLEN)
- #define NLMSG_SPACE(len) NLMSG_ALIGN(NLMSG_LENGTH(len))
- #define NLMSG_DATA(nlh)  ((void*)(((char*)nlh) + NLMSG_LENGTH(0)))
- #define NLMSG_NEXT(nlh,len)     ((len) -= NLMSG_ALIGN((nlh)->nlmsg_len), \
-@@ -105,11 +106,42 @@ struct nlmsgerr {
- #define NETLINK_PKTINFO                3
- #define NETLINK_BROADCAST_ERROR        4
- #define NETLINK_NO_ENOBUFS     5
-+#define NETLINK_RX_RING                6
-+#define NETLINK_TX_RING                7
-
- struct nl_pktinfo {
-        __u32   group;
- };
-
-+struct nl_mmap_req {
-+       unsigned int    nm_block_size;
-+       unsigned int    nm_block_nr;
-+       unsigned int    nm_frame_size;
-+       unsigned int    nm_frame_nr;
-+};
-+
-+struct nl_mmap_hdr {
-+       unsigned int    nm_status;
-+       unsigned int    nm_len;
-+       __u32           nm_group;
-+       /* credentials */
-+       __u32           nm_pid;
-+       __u32           nm_uid;
-+       __u32           nm_gid;
-+};
-+
-+enum nl_mmap_status {
-+       NL_MMAP_STATUS_UNUSED,
-+       NL_MMAP_STATUS_RESERVED,
-+       NL_MMAP_STATUS_VALID,
-+       NL_MMAP_STATUS_COPY,
-+       NL_MMAP_STATUS_SKIP,
-+};
-+
-+#define NL_MMAP_MSG_ALIGNMENT          NLMSG_ALIGNTO
-+#define NL_MMAP_MSG_ALIGN(sz)          __ALIGN_KERNEL(sz,
-NL_MMAP_MSG_ALIGNMENT)
-+#define NL_MMAP_HDRLEN
-NL_MMAP_MSG_ALIGN(sizeof(struct nl_mmap_hdr))
-+
- #define NET_MAJOR 36           /* Major 36 is reserved for networking
-                                         */
-
- enum {
-@@ -150,4 +182,4 @@ struct nlattr {
- #define NLA_HDRLEN             ((int) NLA_ALIGN(sizeof(struct nlattr)))
-
-
--#endif /* __LINUX_NETLINK_H */
-+#endif /* _UAPI__LINUX_NETLINK_H */
-diff --git a/src/libmnl.map b/src/libmnl.map
-index dbc332e..d9b796a 100644
---- a/src/libmnl.map
-+++ b/src/libmnl.map
-@@ -65,10 +65,16 @@ global:
-   mnl_socket_recvfrom;
-   mnl_socket_sendto;
-   mnl_socket_setsockopt;
--
- local: *;
- };
-
- LIBMNL_1.1 {
-   mnl_attr_parse_payload;
-+  mnl_socket_set_ringopt;
-+  mnl_socket_map_ring;
-+  mnl_socket_unmap_ring;
-+  mnl_socket_get_ring;
-+  mnl_ring_advance;
-+  mnl_ring_get_frame;
-+  mnl_nlmsg_batch_reset_buffer;
- } LIBMNL_1.0;
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index fdb7af8..5dbe1ba 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -569,5 +569,34 @@ bool mnl_nlmsg_batch_is_empty(struct mnl_nlmsg_batch *b)
- EXPORT_SYMBOL(mnl_nlmsg_batch_is_empty);
-
- /**
-+ * mnl_nlmsg_batch_reset_buffer - reset to the new buffer
-+ * \param buf pointer to the new (mmaped tx frame) buffer that will store this
-+ *        batch
-+ * \param limit maximum size of the batch (should be half of
-+ *        nl_mmap_req.frame_size)
-+ *
-+ * This function is for mmap tx frame, allows to set new buffer (frame) and
-+ * reset a batch, so you can reuse it to create a new one. This function moves
-+ * the last message which does not fit the batch to the head of the new buffer,
-+ * if any.
-+ */
-+void mnl_nlmsg_batch_reset_buffer(struct mnl_nlmsg_batch *b, void
-*buf, size_t limit)
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <linux/inetdevice.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/ip.h>
+ 
+-static void nft_payload_eval(const struct nft_expr *expr,
+-			     struct nft_data data[NFT_REG_MAX + 1],
+-			     const struct nft_pktinfo *pkt)
++static u32 __mask_byte(u32 low, u32 high)
 +{
-+       if (b->overflow) {
-+               struct nlmsghdr *nlh = b->cur;
-+               memcpy(buf, b->cur, nlh->nlmsg_len);
-+               b->buflen = nlh->nlmsg_len;
-+               b->cur = buf + b->buflen;
-+               b->overflow = false;
-+       } else {
-+               b->buflen = 0;
-+               b->cur = buf;
-+       }
-+       b->buf = buf;
-+       b->limit = limit;
-+}
-+EXPORT_SYMBOL(mnl_nlmsg_batch_reset_buffer);
-+
-+/**
-  * @}
-  */
-diff --git a/src/socket.c b/src/socket.c
-index 676a08a..f63bd5e 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -10,6 +10,7 @@
- #include <libmnl/libmnl.h>
- #include <sys/types.h>
- #include <sys/socket.h>
-+#include <sys/mman.h>
- #include <stdlib.h>
- #include <unistd.h>
- #include <time.h>
-@@ -66,9 +67,19 @@
-  * code tree.
-  */
-
-+struct mnl_ring {
-+       unsigned int            head;
-+       void                    *ring;
-+       unsigned int            frame_size;
-+       unsigned int            frame_max;
-+       unsigned int            block_size;
-+};
-+
- struct mnl_socket {
-        int                     fd;
-        struct sockaddr_nl      addr;
-+       struct mnl_ring         *rx_ring;
-+       struct mnl_ring         *tx_ring;
- };
-
- /**
-@@ -168,6 +179,151 @@ int mnl_socket_bind(struct mnl_socket *nl,
-unsigned int groups, pid_t pid)
- }
- EXPORT_SYMBOL(mnl_socket_bind);
-
-+static struct mnl_ring *alloc_ring(const struct nl_mmap_req *req)
-+{
-+       struct mnl_ring *ring;
-+
-+       ring = calloc(sizeof(struct mnl_ring), 1);
-+       if (ring == NULL)
-+               return NULL;
-+
-+       ring->frame_size        = req->nm_frame_size;
-+       ring->frame_max         = req->nm_frame_nr - 1;
-+       ring->block_size        = req->nm_block_size;
-+
-+       return ring;
++	return GENMASK_ULL(high * BITS_PER_BYTE - 1, low * BITS_PER_BYTE);
 +}
 +
 +/**
-+ * mnl_socket_set_ringopt - set ring socket option to prepare for
-mnl_socket_map_ring()
-+ * \param nl netlink socket obtained via mnl_socket_open()
-+ * \param type ring type either MNL_RING_RX or MNL_RING_TX
-+ * \param block_size ring block size
-+ * \param block_nr number of blocks
-+ * \param frame_size ring frame size
-+ * \param frame_nr number of frames
++ * __adjust_cksum - adjust a checksum
++ * @sum: the original checksum which is to be adjusted
++ * @old: the original data
++ * @new: the new data
++ * @len: length which is going to change
++ * @off: alignment offset for @new to align with @old in bytes
++ * @alignbuf: pointer to the extra buffer for alignment
++ * @pseudo: calculating a pseudo header
 + *
-+ * On success, 0 is returned. On error, this function returns -1, errno is
-+ * appropriately set. See linux/Documentation/networking/netlink_mmap.txt
-+ * for detail about block/frame params.
++ * This function adjusts sum as if the bytes of @old were changed to @new >>
++ * 4 - @off (the shift here is a byte shift). @off is the offset counting from
++ * the LSB, so the offset from the MSB is 4 - off.
 + */
-+int mnl_socket_set_ringopt(struct mnl_socket *nl, enum mnl_ring_types type,
-+                          unsigned int block_size, unsigned int block_nr,
-+                          unsigned int frame_size, unsigned int frame_nr)
++static void __adjust_cksum(__sum16 *sum, u32 *old, u32 *new, u8 len, u32 off,
++			   u32 *alignbuf, bool pseudo)
 +{
-+       int optype, pre_errno, ret;
-+       struct mnl_ring **ring;
-+       struct nl_mmap_req req = {.nm_block_size = block_size,
-.nm_block_nr = block_nr,
-+                                 .nm_frame_size = frame_size,
-.nm_frame_nr = frame_nr};
++	u32 mask, oldval, newval, written, tmpval, word, tot_words;
 +
-+       switch (type) {
-+       case MNL_RING_RX:
-+               ring = &nl->rx_ring;
-+               optype = NETLINK_RX_RING;
-+               break;
-+       case MNL_RING_TX:
-+               ring = &nl->tx_ring;
-+               optype = NETLINK_TX_RING;
-+               break;
-+       default:
-+               errno = EINVAL;
-+               return -1;
-+               break;
-+       }
++	if (WARN_ON(len > 16))
++		return;
 +
-+       if (*ring != NULL) {
-+               errno = EALREADY;
-+               return -1;
-+       }
-+       *ring = alloc_ring(&req);
-+       if (*ring == NULL)
-+               return -1;
++	tot_words = roundup(len, 4) / 4;
++	/* align old with new and offset */
++	if (len > off && 4 - off > 0) {
++		memcpy((u8 *)alignbuf + 4 - off, new, len);
++		new = alignbuf;
++		tot_words = roundup(len + 4 - off, 4) / 4;
++	}
 +
-+       ret = mnl_socket_setsockopt(nl, optype, &req, sizeof(req));
-+       if (ret == -1) {
-+               pre_errno = errno;
-+               free(*ring);
-+               *ring = NULL;
-+               errno = pre_errno;
-+       }
-+       return ret;
-+}
-+EXPORT_SYMBOL(mnl_socket_set_ringopt);
++	/* Initial bytes to write, either everything or the leftover space */
++	if (len <= off)
++		written = len;
++	else
++		written = off;
++	mask = __mask_byte(off - written, off);
++	for (word = 0; word < tot_words; word++, written += tmpval) {
++		oldval = ntohl(old[word]) & mask;
++		newval = ntohl(new[word]) & mask;
++		if (!pseudo) {
++			csum_replace4(sum, htonl(oldval), htonl(newval));
++		} else {
++			__be32 diff[] = { ~htonl(oldval), htonl(newval) };
 +
-+static inline size_t ring_size(struct mnl_ring *ring)
-+{
-+       unsigned int frames_per_block = ring->block_size / ring->frame_size;
-+       unsigned int block_nr = (ring->frame_max + 1) / frames_per_block;
-+       return block_nr * ring->block_size;
++			*sum = ~csum_fold(csum_partial(diff, sizeof(diff),
++					  csum_unfold(*sum)));
++		}
++		tmpval = len - written > 4 ? 4 : len - written;
++		mask = __mask_byte(4 - tmpval, 4);
++	}
 +}
 +
-+/**
-+ * mnl_socket_map_ring - setup a ring for mnl_socket
-+ * \param nl netlink socket obtained via mnl_socket_open()
-+ *
-+ * This function must be called after setting ring up by
-+ * mnl_socket_set_ringopt(). On success, 0 is returned. On error, this function
-+ * returns -1 and errno is appropriately set and req parameter
-+ */
-+int mnl_socket_map_ring(struct mnl_socket *nl)
++static void nft_payload_fix_cksum(const struct nft_pktinfo *pkt,
++				  const struct nft_payload *priv,
++				  struct nft_data *source,
++				  int offset)
 +{
-+       size_t rx_size = 0, tx_size = 0;
-+       struct mnl_ring *rx_ring = nl->rx_ring, *tx_ring = nl->tx_ring;
-+       void *ring;
++	u32 byteoff, *oldp, chkoff, alignbuf[5];
++	struct sk_buff *skb = pkt->skb;
++	__sum16 *chkp = NULL;
++	struct tcphdr *tcph;
++	struct udphdr *udph;
++	struct iphdr *iph;
++	bool pseudo = 0;
++	int nhoff;
 +
-+       if (rx_ring == NULL && tx_ring == NULL) {
-+               errno = EBADR;
-+               return -1;
-+       }
++	if (pkt->xt.family != NFPROTO_IPV4 &&
++	    pkt->xt.family != NFPROTO_IPV6)
++		return;
 +
-+       if (rx_ring != NULL)
-+               rx_size = ring_size(rx_ring);
-+       if (tx_ring != NULL)
-+               tx_size = ring_size(tx_ring);
-+       ring = mmap(NULL, tx_size + rx_size, PROT_READ | PROT_WRITE,
-MAP_SHARED, nl->fd, 0);
-+       if (ring == MAP_FAILED)
-+               return -1;
++	nhoff = skb_network_offset(skb);
++	switch (priv->base) {
++	case NFT_PAYLOAD_LL_HEADER:
++		/* Entirely in LL header, no need to update */
++		if (offset + priv->len < nhoff)
++			break;
++	case NFT_PAYLOAD_NETWORK_HEADER:
++		if (offset >= pkt->xt.thoff)
++			goto do_th;
++		oldp = (u32 *)(skb->data + rounddown(offset, 4));
++		byteoff = 4 - (offset - rounddown(offset, 4));
++		if (pkt->xt.family == NFPROTO_IPV4) {
++			/* Make sure we can update the checksum */
++			iph = ip_hdr(skb);
++			chkoff = nhoff + offsetof(struct iphdr, check) +
++				 sizeof(iph->check);
++			if (offset + priv->len < chkoff &&
++			    !skb_make_writable(skb, chkoff))
++				break;
++			if (offset >= nhoff + offsetof(struct iphdr, saddr))
++				pseudo = 1;
 +
-+       if (rx_ring != NULL && tx_ring != NULL) {
-+               nl->rx_ring->ring = ring;
-+               nl->tx_ring->ring = ring + rx_size;
-+       } else if (rx_ring != NULL) {
-+               nl->rx_ring->ring = ring;
-+       } else {
-+               nl->tx_ring->ring = ring;
-+       }
++			__adjust_cksum(&iph->check, oldp, &source->data[0],
++				       priv->len, byteoff, alignbuf, 0);
++		} else {
++			if (offset >= nhoff + offsetof(struct ipv6hdr, saddr))
++				pseudo = 1;
++		}
++		if (!pseudo)
++			break;
++do_th:
++	case NFT_PAYLOAD_TRANSPORT_HEADER:
++			if (pkt->tprot == IPPROTO_TCP) {
++				tcph = (struct tcphdr *)(skb->data +
++							 pkt->xt.thoff);
++				chkoff = pkt->xt.thoff +
++					 offsetof(struct tcphdr, check) +
++					 sizeof(tcph->check);
++				chkp = &tcph->check;
++			} else if (pkt->tprot == IPPROTO_UDP) {
++				udph = (struct udphdr *)(skb->data +
++							 pkt->xt.thoff);
++				chkoff = pkt->xt.thoff +
++					 offsetof(struct udphdr, check) +
++					 sizeof(udph->check);
++				chkp = &udph->check;
++			}
++			/* Check if we have a valid protocol */
++			if (!chkp)
++				break;
 +
-+       return 0;
++			/* Make sure we can update the checksum */
++			if (offset + priv->len < chkoff &&
++			    !skb_make_writable(skb, chkoff))
++				break;
++
++			/* We're here because the address got changed, update
++			 * only that as we don't allow cross-header writing.
++			 */
++			if (pseudo) {
++				__adjust_cksum(chkp, oldp, &source->data[0],
++					       priv->len, byteoff, alignbuf, 1);
++				break;
++			}
++
++			oldp = (u32 *)(skb->data + rounddown(priv->offset, 4));
++			byteoff = 4 - (offset - rounddown(priv->offset, 4));
++			__adjust_cksum(chkp, oldp, &source->data[0], priv->len,
++				       byteoff, alignbuf, 0);
++		break;
++	default:
++		break;
++	}
 +}
-+EXPORT_SYMBOL(mnl_socket_map_ring);
 +
-+/**
-+ * mnl_socket_unmap_ring - unmap a ring for mnl_socket
-+ * \param nl netlink socket obtained via mnl_socket_open()
-+ *
-+ * On error, this function returns -1 and errno is appropriately set.
-+ * On success, it returns 0.
-+ */
-+int mnl_socket_unmap_ring(struct mnl_socket *nl)
-+{
-+       void *addr = NULL;
-+       size_t length = 0;
-+
-+       if (nl->tx_ring != NULL) {
-+               addr = nl->tx_ring->ring;
-+               length += ring_size(nl->tx_ring);
-+               nl->tx_ring->ring = NULL;
-+       }
-+       if (nl->rx_ring != NULL) {
-+               addr = nl->rx_ring->ring;
-+               length += ring_size(nl->rx_ring);
-+               nl->rx_ring->ring = NULL;
-+       }
-+
-+       return munmap(addr, length);
-+}
-+EXPORT_SYMBOL(mnl_socket_unmap_ring);
-+
- /**
-  * mnl_socket_sendto - send a netlink message of a certain size
-  * \param nl netlink socket obtained via mnl_socket_open()
-@@ -246,6 +402,10 @@ EXPORT_SYMBOL(mnl_socket_recvfrom);
- int mnl_socket_close(struct mnl_socket *nl)
++static int nft_payload_make_offset(const struct nft_pktinfo *pkt,
++				   const struct nft_payload *priv)
  {
-        int ret = close(nl->fd);
-+       if (nl->rx_ring)
-+               free(nl->rx_ring);
-+       if (nl->tx_ring)
-+               free(nl->tx_ring);
-        free(nl);
-        return ret;
+-	const struct nft_payload *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-	struct nft_data *dest = &data[priv->dreg];
+-	int offset;
++	int offset = -1;
+ 
+ 	switch (priv->base) {
+ 	case NFT_PAYLOAD_LL_HEADER:
+ 		if (!skb_mac_header_was_set(skb))
+-			goto err;
++			return offset;
+ 		offset = skb_mac_header(skb) - skb->data;
+ 		break;
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+@@ -43,14 +194,49 @@ static void nft_payload_eval(const struct nft_expr *expr,
+ 	}
+ 	offset += priv->offset;
+ 
+-	if (skb_copy_bits(skb, offset, dest->data, priv->len) < 0)
++	return offset;
++}
++
++static void nft_payload_eval(const struct nft_expr *expr,
++			     struct nft_data data[NFT_REG_MAX + 1],
++			     const struct nft_pktinfo *pkt)
++{
++	const struct nft_payload *priv = nft_expr_priv(expr);
++	struct nft_data *dest = &data[priv->dreg];
++	int offset = nft_payload_make_offset(pkt, priv);
++
++	if (offset == -1)
++		goto err;
++	if (skb_copy_bits(pkt->skb, offset, dest->data, priv->len) < 0)
++		goto err;
++	return;
++err:
++	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
++}
++
++static void nft_payload_set_eval(const struct nft_expr *expr,
++				 struct nft_data data[NFT_REG_MAX + 1],
++				 const struct nft_pktinfo *pkt)
++{
++	const struct nft_payload *priv = nft_expr_priv(expr);
++	struct nft_data *source = &data[priv->sreg];
++	int offset = nft_payload_make_offset(pkt, priv);
++
++	if (offset == -1)
++		goto err;
++	if (!skb_make_writable(pkt->skb, offset + priv->len))
+ 		goto err;
++
++	nft_payload_fix_cksum(pkt, priv, source, offset);
++	memcpy(pkt->skb->data + offset, source, priv->len);
++
+ 	return;
+ err:
+ 	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
  }
-@@ -300,5 +460,69 @@ int mnl_socket_getsockopt(const struct mnl_socket
-*nl, int type,
- EXPORT_SYMBOL(mnl_socket_getsockopt);
+ 
+ static const struct nla_policy nft_payload_policy[NFTA_PAYLOAD_MAX + 1] = {
++	[NFTA_PAYLOAD_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_DREG]	= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_BASE]	= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_OFFSET]	= { .type = NLA_U32 },
+@@ -75,12 +261,35 @@ static int nft_payload_init(const struct nft_ctx *ctx,
+ 	return nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
+ }
+ 
++static int nft_payload_set_init(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				const struct nlattr * const tb[])
++{
++	struct nft_payload *priv = nft_expr_priv(expr);
++	int err;
++
++	priv->base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
++	priv->offset = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_OFFSET]));
++	priv->len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
++
++	priv->sreg = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_SREG]));
++	err = nft_validate_input_register(priv->sreg);
++
++	return err;
++}
++
+ static int nft_payload_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_payload *priv = nft_expr_priv(expr);
+ 
+-	if (nla_put_be32(skb, NFTA_PAYLOAD_DREG, htonl(priv->dreg)) ||
+-	    nla_put_be32(skb, NFTA_PAYLOAD_BASE, htonl(priv->base)) ||
++	if (priv->sreg) {
++		if (nla_put_be32(skb, NFTA_PAYLOAD_SREG, htonl(priv->sreg)))
++			goto nla_put_failure;
++	} else {
++		if (nla_put_be32(skb, NFTA_PAYLOAD_DREG, htonl(priv->dreg)))
++			goto nla_put_failure;
++	}
++	if (nla_put_be32(skb, NFTA_PAYLOAD_BASE, htonl(priv->base)) ||
+ 	    nla_put_be32(skb, NFTA_PAYLOAD_OFFSET, htonl(priv->offset)) ||
+ 	    nla_put_be32(skb, NFTA_PAYLOAD_LEN, htonl(priv->len)))
+ 		goto nla_put_failure;
+@@ -107,6 +316,14 @@ const struct nft_expr_ops nft_payload_fast_ops = {
+ 	.dump		= nft_payload_dump,
+ };
+ 
++static const struct nft_expr_ops nft_payload_set_ops = {
++	.type		= &nft_payload_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_payload)),
++	.eval		= nft_payload_set_eval,
++	.init		= nft_payload_set_init,
++	.dump		= nft_payload_dump,
++};
++
+ static const struct nft_expr_ops *
+ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 		       const struct nlattr * const tb[])
+@@ -114,11 +331,14 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 	enum nft_payload_bases base;
+ 	unsigned int offset, len;
+ 
+-	if (tb[NFTA_PAYLOAD_DREG] == NULL ||
++	if ((tb[NFTA_PAYLOAD_SREG] == NULL &&
++	    tb[NFTA_PAYLOAD_DREG] == NULL) ||
+ 	    tb[NFTA_PAYLOAD_BASE] == NULL ||
+ 	    tb[NFTA_PAYLOAD_OFFSET] == NULL ||
+ 	    tb[NFTA_PAYLOAD_LEN] == NULL)
+ 		return ERR_PTR(-EINVAL);
++	if (tb[NFTA_PAYLOAD_SREG] && tb[NFTA_PAYLOAD_DREG])
++		return ERR_PTR(-EINVAL);
+ 
+ 	base = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
+ 	switch (base) {
+@@ -135,10 +355,15 @@ nft_payload_select_ops(const struct nft_ctx *ctx,
+ 	if (len == 0 || len > FIELD_SIZEOF(struct nft_data, data))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	if (len <= 4 && IS_ALIGNED(offset, len) && base != NFT_PAYLOAD_LL_HEADER)
+-		return &nft_payload_fast_ops;
+-	else
+-		return &nft_payload_ops;
++	if (tb[NFTA_PAYLOAD_SREG]) {
++		return &nft_payload_set_ops;
++	} else {
++		if (len <= 4 && IS_ALIGNED(offset, len) &&
++		    base != NFT_PAYLOAD_LL_HEADER)
++			return &nft_payload_fast_ops;
++		else
++			return &nft_payload_ops;
++	}
+ }
+ 
+ static struct nft_expr_type nft_payload_type __read_mostly = {
+-- 
+1.8.4.2
 
- /**
-+ * mnl_socket_get_ring - get ring from mnl_socket
-+ * \param nl netlink socket obtained via mnl_socket_open()
-+ * \param type ring type either MNL_RING_RX or MNL_RING_TX
-+ *
-+ * On error, this function returns NULL and errno is appropriately
-set. Otherwise,
-+ * it returns a valid pointer to the mnl_ring structure.
-+ */
-+struct mnl_ring *mnl_socket_get_ring(const struct mnl_socket *nl,
-enum mnl_ring_types type)
-+{
-+       struct mnl_ring *ring = NULL;
-+
-+       switch (type) {
-+       case MNL_RING_RX:
-+               ring = nl->rx_ring;
-+               break;
-+       case MNL_RING_TX:
-+               ring = nl->tx_ring;
-+               break;
-+       default:
-+               errno = EINVAL;
-+               return NULL;
-+               break;
-+       }
-+       if (ring->ring == NULL) {
-+               errno = EBADR;
-+               return NULL;
-+       }
-+       return ring;
-+}
-+EXPORT_SYMBOL(mnl_socket_get_ring);
-+
-+/**
-+ * mnl_ring_advance - set forward frame pointer
-+ * \param ring mnl_ring structure obtained via mnl_socket_get_ring()
-+ *
-+ * This function adcvances current frame pointer.
-+ */
-+void mnl_ring_advance(struct mnl_ring *ring)
-+{
-+       ring->head = ring->head != ring->frame_max ? ring->head + 1 : 0;
-+}
-+EXPORT_SYMBOL(mnl_ring_advance);
-+
-+/**
-+ * mnl_ring_get_frame - get current frame
-+ * \param ring mnl_ring structure obtained via mnl_socket_get_ring()
-+ *
-+ * This function returns nl_mmap_hdr structure of current frame pointer
-+ */
-+struct nl_mmap_hdr *mnl_ring_get_frame(const struct mnl_ring *ring)
-+{
-+       unsigned int frames_per_block, block_pos, frame_off;
-+
-+       frames_per_block = ring->block_size / ring->frame_size;
-+       block_pos = ring->head / frames_per_block;
-+       frame_off = ring->head % frames_per_block;
-+
-+       return (struct nl_mmap_hdr *)(ring->ring
-+                                     + block_pos * ring->block_size
-+                                     + frame_off * ring->frame_size);
-+}
-+EXPORT_SYMBOL(mnl_ring_get_frame);
-+
-+/**
-  * @}
-  */
