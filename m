@@ -1,77 +1,41 @@
-From: Nikolay Aleksandrov <nikolay@redhat.com>
-Subject: Re: [RFC PATCH] netfilter: nf_tables: extend payload to support writing
- data
-Date: Sun, 23 Feb 2014 19:34:11 +0100
-Message-ID: <530A3F23.5000201@redhat.com>
-References: <1393176742-28171-1-git-send-email-nikolay@redhat.com> <20140223180908.GA10380@macbook.localnet>
+From: "SNS Bank" <riaditel@prikrizi.sk>
+Subject: Kedves e-mail =?iso-8859-2?Q?felhaszn=E1l=F3k;?=
+Date: Sun, 23 Feb 2014 16:45:09 +0100 (CET)
+Message-ID: <942eb6b8e5916712e503c87ee6bb1d37.squirrel__46099.5348323651$1393183140$gmane$org@82.208.18.12>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33342 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbaBWSeU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Feb 2014 13:34:20 -0500
-In-Reply-To: <20140223180908.GA10380@macbook.localnet>
+Received: from server7.irisoft.sk ([82.208.18.12]:38172 "EHLO
+	server7.irisoft.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbaBWTSu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Feb 2014 14:18:50 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/23/2014 07:09 PM, Patrick McHardy wrote:
-> On Sun, Feb 23, 2014 at 06:32:22PM +0100, Nikolay Aleksandrov wrote:
->> This patch extends the payload expression to support packet writing.
->> The new payload attribute - SREG specifies the source register to use
->> when changing packet data, the rest of the attributes are the same:
->> base - where to start from
->> offset - offset in the packet
->> len - length to write
->>
->> The DREG attribute should not be set if writing is intended, if both
->> attributes are set an error will be returned.
->>
->> The checksum update is done automatically for the following cases:
->> IPv4 checksum - changing the IPv4 header
->> TCP checksum - changing addresses in the network header (pseudo) or
->>                changing TCP header/packet data
->> UDP checksum - same as TCP
->> The pseudo header works for both IPv4 and IPv6.
->>
->> The following restrictions apply:
->> - Cross-header writing (NH -> TH) won't get their checksum updated
->>   properly.
->> - The "checksum" fields of the respective headers should not be altered.
->> - If altering an address in the network header, the write should not
->>   alter any other field. (This is okay for IPv4 as the previous field
->>   is the checksum, but changing the IPv6 "hop limit" and the first bytes
->>   of the source address should not be done for example)
->>
->> Signed-off-by: Nikolay Aleksandrov <nikolay@redhat.com>
->> ---
->> This is _strictly_ RFC, I have some cleanups to do and a ton of tests
->> to run :-)
-> 
-> Thanks for your efforts so far. However regarding checksumming, encoding
-> all this protocol knowledge into the kernel is against the concepts we
-> have so far and also kind of unncessary, userspace has this knowledge
-> anyways. So I'd propose to change the checksumming in the following way:
-> 
-> - userspace specifies a checksum offset (header base and offset)
-> - userspace specifies a checksum type (CSUM_TYPE_INET or something like this)
-> - userspace specifies whether the change affects a pseudo header
-> - userspace specifies the pseudo offset if required
-> 
-> The checksum update can then simply be done one or two calls to
-> inet_proto_csum_replaceX(). Userspace is responsible for doing updates
-> in steps that result in valid checksums (IOW, don't mix updates that
-> affect the pseudo header with other updates).
-> 
-Heh, I've misunderstood you the last time apparently and tried to do it all
-automagically or to cover as much as possible cases.
-Anyway, given that userspace specifies all of the above as you said it
-should be nearly trivial to update the checksum properly.
-I'll get to it next week.
+Kedves e-mail felhaszn=E1l=F3k;
 
-Again thanks for the feedback,
- Nik
+T=FAll=E9pte 23432 Repository postafi=F3k szett
+Web Szolg=E1ltat=E1sok / manager, =E9s a probl=E9m=E1k k=FCld=E9s =E9s
+ir=E1ny=EDtani lev=E9l fogad=E1sa k=F6zben. Meg kell friss=EDteni
+Kattints az al=E1bbi linkre =E9s t=F6ltse ki az adatokat, hogy ellen=F5=
+rizze a
+sz=E1mla.
 
+K=E9rj=FCk, kattintson az al=E1bbi linkre, hogy friss=EDtse a t=E1lc=E1=
+t bejegyz=E9st.
+
+http://webmailupdategsheyhu.jimdo.com/
+
+=46igyelem!
+Ha igen, akkor nem csak korl=E1tozott hozz=E1f=E9r=E9st a postafi=F3k.
+Ha nem friss=EDti fi=F3kj=E1t h=E1rom napon bel=FCl
+friss=EDteni =E9rtes=EDt=E9s, akkor v=E9glegesen kiz=E1rj=E1k venni.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
