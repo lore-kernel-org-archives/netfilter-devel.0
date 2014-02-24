@@ -1,38 +1,72 @@
-From: "SNS Bank" <riaditel@prikrizi.sk>
-Subject: Kedves e-mail =?iso-8859-2?Q?felhaszn=E1l=F3k;?=
-Date: Sun, 23 Feb 2014 16:45:09 +0100 (CET)
-Message-ID: <942eb6b8e5916712e503c87ee6bb1d37.squirrel__46099.5348323651$1393183140$gmane$org@82.208.18.12>
+From: "Springleaf Financial Services =?iso-8859-1?Q?=AE?="
+	<adsl@sunet.com.au>
+Subject: hitel =?iso-8859-1?Q?aj=E1nlat_Jelentkezz_most?=
+Date: Mon, 24 Feb 2014 14:08:28 +1100 (EST)
+Message-ID: <22667.186.238.51.149.1393211308.squirrel@webmail.sunet.com.au>
+Reply-To: spring.leaf@webadicta.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: unlisted-recipients:; (no To-header on input)
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from server7.irisoft.sk ([82.208.18.12]:38172 "EHLO
-	server7.irisoft.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbaBWTSu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Feb 2014 14:18:50 -0500
+Received: from sunet.com.au ([203.206.208.88]:46747 "EHLO jupiter.sunet.com.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751716AbaBXKne (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Feb 2014 05:43:34 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kedves e-mail felhaszn=E1l=F3k;
 
-T=FAll=E9pte 23432 Repository postafi=F3k szett
-Web Szolg=E1ltat=E1sok / manager, =E9s a probl=E9m=E1k k=FCld=E9s =E9s
-ir=E1ny=EDtani lev=E9l fogad=E1sa k=F6zben. Meg kell friss=EDteni
-Kattints az al=E1bbi linkre =E9s t=F6ltse ki az adatokat, hogy ellen=F5=
-rizze a
-sz=E1mla.
+Springleaf Financial Services =AE adunk ki hitelek alacsony kamatl=E1b =
+3%-os .
+A j=F3 h=EDr&#369; , legitim =E9s elismert a p=E9nz hitelez=E9s company=
+=2EWe k=F6lcs=F6n
+p=E9nzt a r=E1szorul=F3 szem=E9lyek p=E9nz=FCgyi t=E1mogat=E1st. Van eg=
+y rossz hitel ,
+vagy ha sz=FCks=E9g=FCk van a p=E9nz a sz=E1ml=E1k befizet=E9se ? Azt s=
+zeretn=E9nk
+haszn=E1lni ezt a m=E9diumot , hogy t=E1j=E9koztassa arr=F3l, hogy mi t=
+eszi
+megb=EDzhat=F3 kedvezm=E9nyezett seg=EDts=E9get fogunk =F6r=FClni , hog=
+y =D6nnek egy
+k=F6lcs=F6nt .
 
-K=E9rj=FCk, kattintson az al=E1bbi linkre, hogy friss=EDtse a t=E1lc=E1=
-t bejegyz=E9st.
+Amikor Response , akkor post=E1zzuk a k=F6lcs=F6n jelentkez=E9si lapot =
+kit=F6lteni .
 
-http://webmailupdategsheyhu.jimdo.com/
+Nem a szoci=E1lis biztons=E1g =E9s a nem hitel ellen&#337;rz=E9s , 100 =
+%-os
+garant=E1lt .
 
-=46igyelem!
-Ha igen, akkor nem csak korl=E1tozott hozz=E1f=E9r=E9st a postafi=F3k.
-Ha nem friss=EDti fi=F3kj=E1t h=E1rom napon bel=FCl
-friss=EDteni =E9rtes=EDt=E9s, akkor v=E9glegesen kiz=E1rj=E1k venni.
+B=EDzunk benne, amely lehet&#337;v=E9 teszi sz=E1momra , hogy a szolg=E1=
+ltat=E1s az
+=D6n sz=E1m=E1ra.
+
+sz=FCks=E9ges inform=E1ci=F3k
+*****************************
+
+Az =D6n neve : ...........
+C=EDme: ...........
+Telefonsz=E1m : ...........
+Hitel =F6sszege Sz=FCks=E9ges : ........
+Id&#337;tartam : ...............
+=46oglalkoz=E1s : ...........
+Havi j=F6vedelem szint : ...
+Nem: ...............
+Sz=FClet=E9si id&#337;: ........
+Orsz=E1g : ..................
+Orsz=E1g : ..........
+Ir=E1ny=EDt=F3sz=E1m : .........
+C=E9l: ..........
+
+=DCdv=F6zlettel,
+Karen Douglas
+
+Telefon: +447035993973
+Vagy =EDrjon nek=FCnk az: spring.leaf@webadicta.org
+
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
