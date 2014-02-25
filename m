@@ -1,28 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/2] bridge: netfilter: Use ether_addr_copy
-Date: Mon, 24 Feb 2014 19:17:01 -0500 (EST)
-Message-ID: <20140224.191701.1833024589083119809.davem@davemloft.net>
-References: <06d3e7e463c2bbfa8b5264e67daace1181ada090.1393142669.git.joe@perches.com>
-	<8ffb523682d29d344873ad09b9c27faddcb90b5f.1393142669.git.joe@perches.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH next] netfilter: nfnetlink_log: remove unused code
+Date: Tue, 25 Feb 2014 17:43:28 +0100
+Message-ID: <20140225164328.GA25580@localhost>
+References: <1392759334-12926-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, stephen@networkplumber.org,
-	bart.de.schuymer@pandora.be, pablo@netfilter.org, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: joe@perches.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <8ffb523682d29d344873ad09b9c27faddcb90b5f.1393142669.git.joe@perches.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59433 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752908AbaBYQnm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Feb 2014 11:43:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1392759334-12926-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joe Perches <joe@perches.com>
-Date: Sun, 23 Feb 2014 00:05:26 -0800
+On Tue, Feb 18, 2014 at 10:35:34PM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-> Convert the uses of memcpy to ether_addr_copy because
-> for some architectures it is smaller and faster.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-Applied.
+It seems this has pass unused since this was added in 2.6.14.
+
+Applied, thanks Florian.
