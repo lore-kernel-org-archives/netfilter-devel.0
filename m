@@ -1,297 +1,426 @@
-From: Daniel Golle <dgolle-3AfRa/s5aFdBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] xt_quota2: introduce support for netns
-Date: Tue, 25 Feb 2014 18:00:34 +0100
-Message-ID: <20140225170034.GA10440@earthship.local.cellrox.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v5] netfilter: xtables: add quota support for nfacct
+Date: Tue, 25 Feb 2014 18:54:10 +0100
+Message-ID: <20140225175410.GA25784@localhost>
+References: <1392740402-14952-1-git-send-email-mathieu.poirier@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org>, jpa-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org,
-	john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: mathieu.poirier@linaro.org
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/containers>,
-	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/containers/>
-List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/containers>,
-	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+In-Reply-To: <1392740402-14952-1-git-send-email-mathieu.poirier@linaro.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Initialize a separate xt_quota2 instance for each network
-namespace so data limit can be set and enforced per persona.
+Hi Mathieu,
 
-Change-Id: Iba2869d87cccab2567f5166d7a49e3fc6b956ae8
+This is looking better, but still more comments to address, see below.
 
-Signed-off-by: Daniel Golle <dgolle-3AfRa/s5aFdBDgjK7y7TUQ@public.gmane.org>
-Acked-by: Oren Laadan <orenl-3AfRa/s5aFdBDgjK7y7TUQ@public.gmane.org>
----
- net/netfilter/xt_quota2.c | 127 +++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 102 insertions(+), 25 deletions(-)
+On Tue, Feb 18, 2014 at 09:20:02AM -0700, mathieu.poirier@linaro.org wrote:
+> From: Mathieu Poirier <mathieu.poirier@linaro.org>
+> 
+> Adding packet and byte quota support.  Once a quota has been
+> reached a noticifaction is sent to user space that includes
+> the name of the accounting object along with the current byte
+> and packet count.
+> 
+> Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> ---
+> Changes for v5:
+> - Removed spinlock from 'nfnl_acct_update'.
+> - Added accounting object store.
+> ---
+>  include/linux/netfilter/nfnetlink_acct.h      |  17 ++-
+>  include/uapi/linux/netfilter/nfnetlink.h      |   2 +
+>  include/uapi/linux/netfilter/nfnetlink_acct.h |   1 +
+>  include/uapi/linux/netfilter/xt_nfacct.h      |  18 ++-
+>  net/netfilter/Kconfig                         |   3 +-
+>  net/netfilter/nfnetlink_acct.c                |  46 +++++--
+>  net/netfilter/xt_nfacct.c                     | 179 ++++++++++++++++++++++++--
+>  7 files changed, 238 insertions(+), 28 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+> index b2e85e5..bb04204 100644
+> --- a/include/linux/netfilter/nfnetlink_acct.h
+> +++ b/include/linux/netfilter/nfnetlink_acct.h
+> @@ -3,11 +3,24 @@
+>  
+>  #include <uapi/linux/netfilter/nfnetlink_acct.h>
+>  
+> +struct nf_acct {
+> +	atomic64_t		pkts;
+> +	atomic64_t		bytes;
+> +	struct list_head	head;
+> +	atomic_t		refcnt;
+> +	char			name[NFACCT_NAME_MAX];
+> +	struct rcu_head		rcu_head;
+> +};
+>  
+> -struct nf_acct;
+> +enum nfnl_acct_udt_type {
+> +	NFNL_ACCT_UDT_PACKETS,
+> +	NFNL_ACCT_UDT_BYTES,
+> +};
 
-diff --git a/net/netfilter/xt_quota2.c b/net/netfilter/xt_quota2.c
-index fb2ef46..bba78ec 100644
---- a/net/netfilter/xt_quota2.c
-+++ b/net/netfilter/xt_quota2.c
-@@ -11,6 +11,12 @@
-  *	it under the terms of the GNU General Public License; either
-  *	version 2 of the License, as published by the Free Software Foundation.
-  */
-+
-+#include <linux/nsproxy.h>
-+#include <net/net_namespace.h>
-+#include <net/netns/generic.h>
-+#include <net/dst.h>
-+
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/proc_fs.h>
-@@ -43,13 +49,38 @@ module_param_named(event_num, qlog_nl_event, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(event_num,
- 		 "Event number for NETLINK_NFLOG message. 0 disables log."
- 		 "111 is what ipt_ULOG uses.");
--static struct sock *nflognl;
- #endif
- 
--static LIST_HEAD(counter_list);
-+struct quota2_net {
-+	struct list_head counter_list;
-+	struct proc_dir_entry *proc_xt_quota;
-+#ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
-+	struct sock *nflognl;
-+#endif
-+};
-+
-+static int quota2_net_id;
-+static inline struct quota2_net *quota2_pernet(struct net *net)
-+{
-+	return net_generic(net, quota2_net_id);
-+}
-+
-+/* from xt_TEE, should probably go into some common include */
-+static struct net *pick_net(const struct sk_buff *skb)
-+{
-+#ifdef CONFIG_NET_NS
-+	const struct dst_entry *dst;
-+	if (skb->dev != NULL)
-+		return dev_net(skb->dev);
-+	dst = skb_dst(skb);
-+	if (dst != NULL && dst->dev != NULL)
-+		return dev_net(dst->dev);
-+#endif
-+	return &init_net;
-+}
-+
- static DEFINE_SPINLOCK(counter_list_lock);
- 
--static struct proc_dir_entry *proc_xt_quota;
- static unsigned int quota_list_perms = S_IRUGO | S_IWUSR;
- static unsigned int quota_list_uid   = 0;
- static unsigned int quota_list_gid   = 0;
-@@ -57,9 +88,9 @@ module_param_named(perms, quota_list_perms, uint, S_IRUGO | S_IWUSR);
- module_param_named(uid, quota_list_uid, uint, S_IRUGO | S_IWUSR);
- module_param_named(gid, quota_list_gid, uint, S_IRUGO | S_IWUSR);
- 
--
- #ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
--static void quota2_log(unsigned int hooknum,
-+static void quota2_log(struct net *net,
-+		       unsigned int hooknum,
- 		       const struct sk_buff *skb,
- 		       const struct net_device *in,
- 		       const struct net_device *out,
-@@ -69,7 +100,7 @@ static void quota2_log(unsigned int hooknum,
- 	struct sk_buff *log_skb;
- 	size_t size;
- 	struct nlmsghdr *nlh;
--
-+	struct quota2_net *quota2_net = quota2_pernet(net);
- 	if (!qlog_nl_event)
- 		return;
- 
-@@ -105,13 +136,14 @@ static void quota2_log(unsigned int hooknum,
- 
- 	NETLINK_CB(log_skb).dst_group = 1;
- 	pr_debug("throwing 1 packets to netlink group 1\n");
--	netlink_broadcast(nflognl, log_skb, 0, 1, GFP_ATOMIC);
-+	netlink_broadcast(quota2_net->nflognl, log_skb, 0, 1, GFP_ATOMIC);
- 
- nlmsg_failure:  /* Used within NLMSG_PUT() */
- 	pr_debug("xt_quota2: error during NLMSG_PUT\n");
- }
- #else
--static void quota2_log(unsigned int hooknum,
-+static void quota2_log(struct net *net,
-+		       unsigned int hooknum,
- 		       const struct sk_buff *skb,
- 		       const struct net_device *in,
- 		       const struct net_device *out,
-@@ -177,11 +209,12 @@ q2_new_counter(const struct xt_quota_mtinfo2 *q, bool anon)
-  * @name:	name of counter
-  */
- static struct xt_quota_counter *
--q2_get_counter(const struct xt_quota_mtinfo2 *q)
-+q2_get_counter(struct net *net, const struct xt_quota_mtinfo2 *q)
- {
- 	struct proc_dir_entry *p;
- 	struct xt_quota_counter *e = NULL;
- 	struct xt_quota_counter *new_e;
-+	struct quota2_net *quota2_net = quota2_pernet(net);
- 
- 	if (*q->name == '\0')
- 		return q2_new_counter(q, true);
-@@ -192,7 +225,7 @@ q2_get_counter(const struct xt_quota_mtinfo2 *q)
- 		goto out;
- 
- 	spin_lock_bh(&counter_list_lock);
--	list_for_each_entry(e, &counter_list, list)
-+	list_for_each_entry(e, &quota2_net->counter_list, list)
- 		if (strcmp(e->name, q->name) == 0) {
- 			atomic_inc(&e->ref);
- 			spin_unlock_bh(&counter_list_lock);
-@@ -202,7 +235,7 @@ q2_get_counter(const struct xt_quota_mtinfo2 *q)
- 		}
- 	e = new_e;
- 	pr_debug("xt_quota2: new_counter name=%s", e->name);
--	list_add_tail(&e->list, &counter_list);
-+	list_add_tail(&e->list, &quota2_net->counter_list);
- 	/* The entry having a refcount of 1 is not directly destructible.
- 	 * This func has not yet returned the new entry, thus iptables
- 	 * has not references for destroying this entry.
-@@ -214,7 +247,7 @@ q2_get_counter(const struct xt_quota_mtinfo2 *q)
- 
- 	/* create_proc_entry() is not spin_lock happy */
- 	p = e->procfs_entry = create_proc_entry(e->name, quota_list_perms,
--	                      proc_xt_quota);
-+	                      quota2_net->proc_xt_quota);
- 
- 	if (IS_ERR_OR_NULL(p)) {
- 		spin_lock_bh(&counter_list_lock);
-@@ -249,7 +282,7 @@ static int quota_mt2_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	}
- 
--	q->master = q2_get_counter(q);
-+	q->master = q2_get_counter(par->net, q);
- 	if (q->master == NULL) {
- 		printk(KERN_ERR "xt_quota.3: memory alloc failure\n");
- 		return -ENOMEM;
-@@ -262,6 +295,7 @@ static void quota_mt2_destroy(const struct xt_mtdtor_param *par)
- {
- 	struct xt_quota_mtinfo2 *q = par->matchinfo;
- 	struct xt_quota_counter *e = q->master;
-+	struct quota2_net *quota2_net = quota2_pernet(par->net);
- 
- 	if (*q->name == '\0') {
- 		kfree(e);
-@@ -275,7 +309,7 @@ static void quota_mt2_destroy(const struct xt_mtdtor_param *par)
- 	}
- 
- 	list_del(&e->list);
--	remove_proc_entry(e->name, proc_xt_quota);
-+	remove_proc_entry(e->name, quota2_net->proc_xt_quota);
- 	spin_unlock_bh(&counter_list_lock);
- 	kfree(e);
- }
-@@ -305,7 +339,8 @@ quota_mt2(const struct sk_buff *skb, struct xt_action_param *par)
- 		} else {
- 			/* We are transitioning, log that fact. */
- 			if (e->quota) {
--				quota2_log(par->hooknum,
-+				quota2_log(pick_net(skb),
-+					   par->hooknum,
- 					   skb,
- 					   par->in,
- 					   par->out,
-@@ -342,34 +377,76 @@ static struct xt_match quota_mt2_reg[] __read_mostly = {
- 	},
- };
- 
--static int __init quota_mt2_init(void)
-+static int __net_init quota2_net_init(struct net *net)
- {
--	int ret;
--	pr_debug("xt_quota2: init()");
--
-+	struct quota2_net *quota2_net = quota2_pernet(net);
-+	INIT_LIST_HEAD(&quota2_net->counter_list);
- #ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
--	nflognl = netlink_kernel_create(&init_net,
-+	quota2_net->nflognl = netlink_kernel_create(net,
- 					NETLINK_NFLOG, 1, NULL,
- 					NULL, THIS_MODULE);
--	if (!nflognl)
-+	if (quota2_net->nflognl == NULL)
- 		return -ENOMEM;
- #endif
- 
--	proc_xt_quota = proc_mkdir("xt_quota", init_net.proc_net);
--	if (proc_xt_quota == NULL)
-+	quota2_net->proc_xt_quota = proc_mkdir("xt_quota", net->proc_net);
-+	if (quota2_net->proc_xt_quota == NULL) {
-+#ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
-+		netlink_kernel_release(quota2_net->nflognl);
-+#endif
- 		return -EACCES;
-+	}
-+	return 0;
-+}
-+
-+static void __net_exit quota2_net_exit(struct net *net)
-+{
-+	struct quota2_net *quota2_net = quota2_pernet(net);
-+	struct xt_quota_counter *e = NULL;
-+	struct list_head *pos, *q;
-+#ifdef CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
-+	netlink_kernel_release(quota2_net->nflognl);
-+#endif
-+	remove_proc_entry("xt_quota", net->proc_net);
-+
-+	/* destroy counter_list while freeing it's content */
-+	spin_lock_bh(&counter_list_lock);
-+	list_for_each_safe(pos, q, &quota2_net->counter_list) {
-+		e = list_entry(pos, struct xt_quota_counter, list);
-+		list_del(pos);
-+		kfree(e);
-+	}
-+	spin_unlock_bh(&counter_list_lock);
-+}
-+
-+static struct pernet_operations quota2_net_ops = {
-+	.init   = quota2_net_init,
-+	.exit   = quota2_net_exit,
-+	.id     = &quota2_net_id,
-+	.size   = sizeof(struct quota2_net),
-+};
-+
-+static int __init quota_mt2_init(void)
-+{
-+	int ret;
-+	pr_debug("xt_quota2: init()");
-+
-+	ret = register_pernet_subsys(&quota2_net_ops);
-+	if (ret < 0)
-+		return ret;
- 
- 	ret = xt_register_matches(quota_mt2_reg, ARRAY_SIZE(quota_mt2_reg));
- 	if (ret < 0)
--		remove_proc_entry("xt_quota", init_net.proc_net);
-+		unregister_pernet_subsys(&quota2_net_ops);
- 	pr_debug("xt_quota2: init() %d", ret);
-+
- 	return ret;
- }
- 
- static void __exit quota_mt2_exit(void)
- {
- 	xt_unregister_matches(quota_mt2_reg, ARRAY_SIZE(quota_mt2_reg));
--	remove_proc_entry("xt_quota", init_net.proc_net);
-+	unregister_pernet_subsys(&quota2_net_ops);
- }
- 
- module_init(quota_mt2_init);
--- 
-1.8.1.2
+I prefer some like this instead of the one above:
+
+enum nfacct_quota_type {
+        NFACCT_QUOTA_PACKETS = 0,
+        NFACCT_QUOTA_BYTES
+};
+
+>  struct nf_acct *nfnl_acct_find_get(const char *filter_name);
+>  void nfnl_acct_put(struct nf_acct *acct);
+> -void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
+> +extern u64 nfnl_acct_update(const struct sk_buff *skb,
+> +			   struct nf_acct *nfacct, int mode);
+> +void nfnl_quota_event(struct nf_acct *cur);
+>  
+>  #endif /* _NFNL_ACCT_H */
+> diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
+> index 596ddd4..354a7e5 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink.h
+> @@ -20,6 +20,8 @@ enum nfnetlink_groups {
+>  #define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
+>  	NFNLGRP_NFTABLES,
+>  #define NFNLGRP_NFTABLES                NFNLGRP_NFTABLES
+> +	NFNLGRP_ACCT_QUOTA,
+> +#define NFNLGRP_ACCT_QUOTA		NFNLGRP_ACCT_QUOTA
+>  	__NFNLGRP_MAX,
+>  };
+>  #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
+> diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
+> index c7b6269..ae8ea0a 100644
+> --- a/include/uapi/linux/netfilter/nfnetlink_acct.h
+> +++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
+> @@ -19,6 +19,7 @@ enum nfnl_acct_type {
+>  	NFACCT_PKTS,
+>  	NFACCT_BYTES,
+>  	NFACCT_USE,
+> +	NFACCT_QUOTA,
+
+This is wrong. You are using this new attribute (which defines another
+TLV in the payload of a message) instead of the netlink message type
+in nfnl_acct_fill_info(). This needs a specific message type to
+announce that the quota has been exceeded.
+
+>  	__NFACCT_MAX
+>  };
+>  #define NFACCT_MAX (__NFACCT_MAX - 1)
+> diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
+> index 3e19c8a..7c35ce0 100644
+> --- a/include/uapi/linux/netfilter/xt_nfacct.h
+> +++ b/include/uapi/linux/netfilter/xt_nfacct.h
+> @@ -3,11 +3,27 @@
+>  
+>  #include <linux/netfilter/nfnetlink_acct.h>
+>  
+> +enum xt_quota_flags {
+> +	XT_NFACCT_QUOTA_PKTS	= 1 << 0,
+> +	XT_NFACCT_QUOTA		= 1 << 1,
+> +};
+> +
+>  struct nf_acct;
+> +struct nf_acct_quota;
+>  
+>  struct xt_nfacct_match_info {
+>  	char		name[NFACCT_NAME_MAX];
+> -	struct nf_acct	*nfacct;
+> +	struct nf_acct	*nfacct __aligned(8);
+>  };
+>  
+> +struct xt_nfacct_match_info_v1 {
+> +	char		name[NFACCT_NAME_MAX];
+> +	struct nf_acct	*nfacct __aligned(8);
+
+You have to move at the bottom of the structure, before the new
+nf_acct_quota.
+
+The extension from userspace sets the .userspacesize field, which
+helps iptables to skip internal pointers that are set by the kernel,
+If you don't fix this, iptables -D to delete a rule with nfacct will
+not work.
+
+> +	__u32 flags;
+> +	__aligned_u64 quota;
+> +
+> +	/* used internally by kernel */
+> +	struct nf_acct_quota *priv __aligned(8);
+> +};
+>  #endif /* _XT_NFACCT_MATCH_H */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 748f304..ce184951 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -1108,7 +1108,8 @@ config NETFILTER_XT_MATCH_NFACCT
+>  	select NETFILTER_NETLINK_ACCT
+>  	help
+>  	  This option allows you to use the extended accounting through
+> -	  nfnetlink_acct.
+> +	  nfnetlink_acct.  It is also possible to add quotas at the
+> +	  packet and byte level.
+>  
+>  	  To compile it as a module, choose M here.  If unsure, say N.
+>  
+> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+> index c7b6d46..5c580a7 100644
+> --- a/net/netfilter/nfnetlink_acct.c
+> +++ b/net/netfilter/nfnetlink_acct.c
+> @@ -29,15 +29,6 @@ MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastructure");
+>  
+>  static LIST_HEAD(nfnl_acct_list);
+>  
+> -struct nf_acct {
+> -	atomic64_t		pkts;
+> -	atomic64_t		bytes;
+> -	struct list_head	head;
+> -	atomic_t		refcnt;
+> -	char			name[NFACCT_NAME_MAX];
+> -	struct rcu_head		rcu_head;
+> -};
+> -
+>  static int
+>  nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+>  	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+> @@ -92,7 +83,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+>  	return 0;
+>  }
+>  
+> -static int
+> +int
+>  nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+>  		   int event, struct nf_acct *acct)
+>  {
+> @@ -134,6 +125,7 @@ nla_put_failure:
+>  	nlmsg_cancel(skb, nlh);
+>  	return -1;
+>  }
+> +EXPORT_SYMBOL_GPL(nfnl_acct_fill_info);
+
+I think you don't need to export this symbol.
+
+>  static int
+>  nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+> @@ -329,13 +321,41 @@ void nfnl_acct_put(struct nf_acct *acct)
+>  }
+>  EXPORT_SYMBOL_GPL(nfnl_acct_put);
+>  
+> -void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct)
+> +u64 nfnl_acct_update(const struct sk_buff *skb,
+> +		    struct nf_acct *nfacct, int mode)
+>  {
+> -	atomic64_inc(&nfacct->pkts);
+> -	atomic64_add(skb->len, &nfacct->bytes);
+> +	u64 pkts, bytes;
+> +
+> +	pkts = atomic64_inc_return(&nfacct->pkts);
+> +	bytes = atomic64_add_return(skb->len, &nfacct->bytes);
+> +
+> +	return (mode == NFNL_ACCT_UDT_PACKETS) ? pkts : bytes;
+>  }
+>  EXPORT_SYMBOL_GPL(nfnl_acct_update);
+>  
+> +void
+> +nfnl_quota_event(struct nf_acct *cur)
+> +{
+> +	int ret;
+> +	struct sk_buff *skb;
+> +
+> +	skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
+> +	if (skb == NULL)
+> +		return;
+> +
+> +	ret = nfnl_acct_fill_info(skb, 0, 0, NFACCT_QUOTA,
+> +				 NFNL_MSG_ACCT_NEW, cur);
+> +
+
+Remove empty line above.
+
+> +	if (ret <= 0) {
+> +		kfree_skb(skb);
+> +		return;
+> +	}
+> +
+> +	netlink_broadcast(init_net.nfnl, skb, 0,
+> +			 NFNLGRP_ACCT_QUOTA, GFP_ATOMIC);
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_quota_event);
+> +
+>  static int __init nfnl_acct_init(void)
+>  {
+>  	int ret;
+> diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+> index b3be0ef..d1bd5ea 100644
+> --- a/net/netfilter/xt_nfacct.c
+> +++ b/net/netfilter/xt_nfacct.c
+> @@ -9,8 +9,10 @@
+>  #include <linux/module.h>
+>  #include <linux/skbuff.h>
+>  
+> +#include <net/netlink.h>
+>  #include <linux/netfilter/x_tables.h>
+>  #include <linux/netfilter/nfnetlink_acct.h>
+> +#include <linux/netfilter/nfnetlink.h>
+>  #include <linux/netfilter/xt_nfacct.h>
+>  
+>  MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+> @@ -19,15 +21,62 @@ MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("ipt_nfacct");
+>  MODULE_ALIAS("ip6t_nfacct");
+>  
+> +static LIST_HEAD(nfacct_list);
+> +static DEFINE_MUTEX(nfacct_list_mutex);
+> +
+> +struct nf_acct_quota {
+> +	char			name[NFACCT_NAME_MAX];
+> +	int			count;
+> +	u32			flags;
+> +	u64			quota;
+> +	struct list_head	node;
+> +	atomic_t		notified;
+> +};
+> +
+>  static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+>  	const struct xt_nfacct_match_info *info = par->targinfo;
+> +	u64 __always_unused val;
+> -	nfnl_acct_update(skb, info->nfacct);
+> +	val = nfnl_acct_update(skb, info->nfacct, 0);
+
+I think you can just do:
+
+        nfnl_acct_update(skb, info->nfacct...);
+
+and ignore the returned value in this case.
+
+>  	return true;
+>  }
+>  
+> +static bool
+> +nfacct_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+> +{
+> +	int mode;
+> +	u64 val;
+> +	const struct xt_nfacct_match_info_v1 *info = par->matchinfo;
+> +	struct nf_acct_quota *acct_quota = info->priv;
+> +	bool ret = true;
+> +
+> +	mode = (acct_quota->flags & XT_NFACCT_QUOTA_PKTS) ?
+> +	       NFNL_ACCT_UDT_PACKETS : NFNL_ACCT_UDT_BYTES;
+> +
+> +	/* upgrade accounting stats */
+> +	val = nfnl_acct_update(skb, info->nfacct, mode);
+> +
+> +	/* no need to go further if we don't have a quota */
+> +	if (!(acct_quota->flags & XT_NFACCT_QUOTA))
+> +		return ret;
+> +
+> +	/* are we over the limit ? */
+> +	if (val <= info->quota) {
+
+You use <=, I think this should be <. Not further below you're using >=.
+
+> +		/* reset flag in case userspace cleared the counters */
+> +		atomic_set(&acct_quota->notified, 0)
+
+This has runtime overhead and I think it's racy. I think we can avoid
+this if the quota object management is moved to nfnetlink_acct (see
+below for further explanation). The idea is to iterate over the list
+of quota objects (to find notified flags that need to be reset) by
+when NFNL_MSG_ACCT_GET_CTRZERO is called.
+
+> +		ret = !ret;
+> +	}
+> +
+> +	if (val >= info->quota)
+
+You have to use brackets here:
+
+        if (...) {
+                ...
+        }
+
+> +		/* cmpxchg guarantees only one CPU can send a notification */
+> +		if (atomic_cmpxchg(&acct_quota->notified, 0, 1) == 0)
+> +			nfnl_quota_event(info->nfacct);
+> +
+> +	return ret;
+> +}
+> +
+>  static int
+>  nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+>  {
+> @@ -44,32 +93,140 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+>  	return 0;
+>  }
+>  
+> +static
+> +struct nf_acct_quota *nfacct_find_quota(char *name)
+> +{
+> +	struct nf_acct_quota *curr, *match = NULL;
+> +
+> +	mutex_lock(&nfacct_list_mutex);
+> +	list_for_each_entry(curr, &nfacct_list, node)
+
+missing brackets here in list_for_each_entry too.
+
+> +		if (strncmp(curr->name, name, NFACCT_NAME_MAX) == 0) {
+> +			match = curr;
+> +			match->count++;
+> +			break;
+> +		}
+> +
+> +	mutex_unlock(&nfacct_list_mutex);
+> +
+> +	return match;
+> +}
+> +
+> +static struct  nf_acct_quota *
+> +nfacct_create_quota(struct xt_nfacct_match_info_v1 *info)
+
+Thinking of nftables and the reset notified flag above, I think it's
+better if you move the quota object management to nfnetlink_acct.c by
+adding new nfacct commands. The idea is to maintain a quota object
+base that can be used by xt_nfacct. You have to add the following
+commands:
+
+enum nfnl_acct_msg_types {
+        ...
+        NFNL_MSG_ACCT_QUOTA_NEW,
+        NFNL_MSG_ACCT_QUOTA_GET,
+        NFNL_MSG_ACCT_QUOTA_DEL,
+        NFNL_MSG_ACCT_MAX
+};
+
+Then, extend nfnl_callback to include this new commands. The idea is
+to create/delete quota objects from the netlink interface, then attach
+them from the iptables nfacct extension.
+
+You won't need the mutex anymore btw, since it's already protected by
+nfnl_lock.
+
+> +{
+> +	struct nf_acct_quota *acct_quota;
+> +
+> +	mutex_lock(&nfacct_list_mutex);
+> +
+> +	acct_quota = kmalloc(sizeof(struct nf_acct_quota), GFP_ATOMIC);
+> +
+
+remove empty line above.
+
+> +	if (!acct_quota) {
+> +		mutex_unlock(&nfacct_list_mutex);
+> +		return NULL;
+> +	}
+> +
+> +	strncpy(acct_quota->name, info->name, NFACCT_NAME_MAX);
+> +	acct_quota->flags = info->flags;
+> +	acct_quota->quota = info->quota;
+> +	acct_quota->count = 1;
+> +	atomic_set(&acct_quota->notified, 0);
+> +	list_add_tail(&acct_quota->node, &nfacct_list);
+
+This needs to be converted to _rcu.
