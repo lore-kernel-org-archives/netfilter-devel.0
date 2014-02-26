@@ -1,59 +1,155 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: add optional user data area to
- rules
-Date: Wed, 26 Feb 2014 13:42:46 +0100
-Message-ID: <20140226124246.GA5253@localhost>
-References: <1393379592-16312-1-git-send-email-pablo@netfilter.org>
- <20140226120506.GC24874@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH v2] netfilter: nf_tables: add optional user data area to rules
+Date: Wed, 26 Feb 2014 14:04:21 +0100
+Message-ID: <1393419861-6442-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55139 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35584 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886AbaBZMmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Feb 2014 07:42:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20140226120506.GC24874@macbook.localnet>
+	id S1750814AbaBZNEy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Feb 2014 08:04:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 26, 2014 at 12:05:06PM +0000, Patrick McHardy wrote:
-> On Wed, Feb 26, 2014 at 02:53:12AM +0100, Pablo Neira Ayuso wrote:
-> > This allows us to store user comment strings, but it could be also
-> > used to store any kind of information that the user application needs
-> > to link to the rule.
-> > 
-> >  struct nft_rule {
-> >  	struct list_head		list;
-> > -	u64				handle:46,
-> > -					genmask:2,
-> > -					dlen:16;
-> > +	u64				handle;
-> > +	u32				dlen;
-> > +	u32				genmask:2,
-> > +					ulen:30;
-> 
-> This increases the size of the rule by 8 bytes.
+This allows us to store user comment strings, but it could be also
+used to store any kind of information that the user application needs
+to link to the rule.
 
-Yup, spent some minutes in front of this but I didn't find a better
-way.
+Scratch 8 bits for the new ulen field that indicates the length the
+user data area. 4 bits from the handle (so it's 42 bits long, according
+to Patrick, it would last 139 years with 1000 new rules per second)
+and 4 bits from dlen (so the expression data area is 4K, which seems
+sufficient by now even considering the compatibility layer).
 
-> I'd suggest to scrape that off elsewhere. First of all, we probably
-> don't need 16 bytes for the rule length, 12 == 4k should be enough.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h        |   11 +++++++++--
+ include/uapi/linux/netfilter/nf_tables.h |    5 ++++-
+ net/netfilter/nf_tables_api.c            |   17 +++++++++++++++--
+ 3 files changed, 28 insertions(+), 5 deletions(-)
 
-Considered that, but my main concern was the xtables compatibility
-layer. I guess 4K is fine in terms of matches/target there. Assuming
-120 bytes per match, we get 34, which sounds quite a lot.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 81abd61..5af56da 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -326,13 +326,15 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+  *	@handle: rule handle
+  *	@genmask: generation mask
+  *	@dlen: length of expression data
++ *	@ulen: length of user data (used for comments)
+  *	@data: expression data
+  */
+ struct nft_rule {
+ 	struct list_head		list;
+-	u64				handle:46,
++	u64				handle:42,
+ 					genmask:2,
+-					dlen:16;
++					dlen:12,
++					ulen:8;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(struct nft_expr))));
+ };
+@@ -371,6 +373,11 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
+ 	return (struct nft_expr *)&rule->data[rule->dlen];
+ }
+ 
++static inline void *nft_userdata(const struct nft_rule *rule)
++{
++	return (void *)&rule->data[rule->dlen];
++}
++
+ /*
+  * The last pointer isn't really necessary, but the compiler isn't able to
+  * determine that the result of nft_expr_last() is always the same since it
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c84c452..c88ccbf 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1,7 +1,8 @@
+ #ifndef _LINUX_NF_TABLES_H
+ #define _LINUX_NF_TABLES_H
+ 
+-#define NFT_CHAIN_MAXNAMELEN 32
++#define NFT_CHAIN_MAXNAMELEN	32
++#define NFT_USERDATA_MAXLEN	256
+ 
+ enum nft_registers {
+ 	NFT_REG_VERDICT,
+@@ -156,6 +157,7 @@ enum nft_chain_attributes {
+  * @NFTA_RULE_EXPRESSIONS: list of expressions (NLA_NESTED: nft_expr_attributes)
+  * @NFTA_RULE_COMPAT: compatibility specifications of the rule (NLA_NESTED: nft_rule_compat_attributes)
+  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
++ * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
+  */
+ enum nft_rule_attributes {
+ 	NFTA_RULE_UNSPEC,
+@@ -165,6 +167,7 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_EXPRESSIONS,
+ 	NFTA_RULE_COMPAT,
+ 	NFTA_RULE_POSITION,
++	NFTA_RULE_USERDATA,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0b56340..f25d011 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1295,6 +1295,8 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+ 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
+ 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
+ 	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
++	[NFTA_RULE_USERDATA]	= { .type = NLA_BINARY,
++				    .len = NFT_USERDATA_MAXLEN },
+ };
+ 
+ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+@@ -1347,6 +1349,10 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	}
+ 	nla_nest_end(skb, list);
+ 
++	if (rule->ulen &&
++	    nla_put(skb, NFTA_RULE_USERDATA, rule->ulen, nft_userdata(rule)))
++		goto nla_put_failure;
++
+ 	return nlmsg_end(skb, nlh);
+ 
+ nla_put_failure:
+@@ -1583,7 +1589,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 	struct nft_expr *expr;
+ 	struct nft_ctx ctx;
+ 	struct nlattr *tmp;
+-	unsigned int size, i, n;
++	unsigned int size, i, n, ulen = 0;
+ 	int err, rem;
+ 	bool create;
+ 	u64 handle, pos_handle;
+@@ -1649,8 +1655,11 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 		}
+ 	}
+ 
++	if (nla[NFTA_RULE_USERDATA])
++		ulen = nla_len(nla[NFTA_RULE_USERDATA]);
++
+ 	err = -ENOMEM;
+-	rule = kzalloc(sizeof(*rule) + size, GFP_KERNEL);
++	rule = kzalloc(sizeof(*rule) + size + ulen, GFP_KERNEL);
+ 	if (rule == NULL)
+ 		goto err1;
+ 
+@@ -1658,6 +1667,10 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 	rule->handle = handle;
+ 	rule->dlen   = size;
++	rule->ulen   = ulen;
++
++	if (ulen)
++		nla_memcpy(nft_userdata(rule), nla[NFTA_RULE_USERDATA], ulen);
+ 
+ 	expr = nft_expr_first(rule);
+ 	for (i = 0; i < n; i++) {
+-- 
+1.7.10.4
 
-Good, I think we can scratch those 4 bits.
-
-> The other 4 bits could be taken from the handle I suppose, 2^42
-> should still be enough. Assuming 1000 new rules per second it would
-> still last for 139 years :)
-
-Ah good too. Someone else will have to fix this by that time, I
-already reserved a deckchair with popcorns in Mars for year 2153.
-
-Will send a v2. Thanks.
