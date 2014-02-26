@@ -1,47 +1,157 @@
-From: "=?utf-8?B?6Ie656eR5aSn5YWJ5qmf6Zu75Lit5b+D?="
-	<omeir@mail.ntust.edu.tw>
-Subject: =?utf-8?B?S2VkdmVzIGUtbWFpbCBmZWxoYXN6bsOhbMOzazs=?=
-Date: Tue, 25 Feb 2014 20:07:07 +0800 (CST)
-Message-ID: <1393330024.18951.omeir@mail.ntust.edu.tw>
-Reply-To: "=?utf-8?B?6Ie656eR5aSn5YWJ5qmf6Zu75Lit5b+D?="
-	  <henrysam123@outlook.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [RFC PATCH v2 1/6] rule: allow to print sets in plain format
+Date: Wed, 26 Feb 2014 17:09:49 +0100
+Message-ID: <20140226160949.18974.67720.stgit@nfdev.cica.es>
+References: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailproxy.ntust.edu.tw ([140.118.31.61]:36244 "HELO
-	mailproxy.ntust.edu.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751164AbaBZQI3 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Feb 2014 11:08:29 -0500
+Received: from smtp3.cica.es ([150.214.5.190]:60322 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751679AbaBZQJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Feb 2014 11:09:53 -0500
+In-Reply-To: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kedves e-mail felhaszn=C3=A1l=C3=B3k;
-=20
-T=C3=BAll=C3=A9pte 23.432 doboz =C3=A1ll=C3=ADtotta be
-Web Service / Admin, =C3=A9s akkor lesz probl=C3=A9ma a k=C3=BCld=C5=91=
- =C3=A9s
-fogadhat e-maileket, am=C3=ADg meg =C3=BAjra ellen=C5=91rizni. K=C3=A9r=
-j=C3=BCk, friss=C3=ADtse kattintva
-linkre =C3=A9s t=C3=B6ltse ki a r=C3=A9szleteket, hogy ellen=C5=91rizze=
- a sz=C3=A1mla
-K=C3=A9rj=C3=BCk, k=C3=B6vesse az al=C3=A1bbi linket vagy m=C3=A1solja =
-illessze be a b=C3=B6ng=C3=A9sz=C5=91
-ellen=C5=91rizze a v=C3=A1g=C3=B3lapra.
-=20
-http://webmailupdategsheyhu4.jimdo.com/
-=46igyelem!
-Ha nem =C3=ADgy lesz csak korl=C3=A1tozottan f=C3=A9rnek hozz=C3=A1 az =
-e-mail postafi=C3=B3kj=C3=A1t. ha
-nem friss=C3=ADteni? v=C3=A9ve h=C3=A1rom napon bel=C3=BCl friss=C3=BCl
-=C3=A9rtes=C3=ADt=C3=A9s fi=C3=B3kj=C3=A1t v=C3=A9glegesen be kell z=C3=
-=A1rni.
-Tisztelettel,
-Rendszergazda=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Allow to print sets with or without format.
+
+This is useful in situations where we want to print more or less the same
+the user typed (IOW, in one single line, and with family/table info).
+
+While at it, make family2str() function public, so it can be used in
+other places.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ include/rule.h |    3 +++
+ src/rule.c     |   62 +++++++++++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 55 insertions(+), 10 deletions(-)
+
+diff --git a/include/rule.h b/include/rule.h
+index e06444e..b263593 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -125,6 +125,8 @@ extern void chain_add_hash(struct chain *chain, struct table *table);
+ extern struct chain *chain_lookup(const struct table *table,
+ 				  const struct handle *h);
+ 
++extern const char *family2str(unsigned int family);
++
+ /**
+  * struct rule - nftables rule
+  *
+@@ -193,6 +195,7 @@ extern void set_free(struct set *set);
+ extern void set_add_hash(struct set *set, struct table *table);
+ extern struct set *set_lookup(const struct table *table, const char *name);
+ extern void set_print(const struct set *set);
++extern void set_print_plain(const struct set *s);
+ 
+ /**
+  * enum cmd_ops - command operations
+diff --git a/src/rule.c b/src/rule.c
+index ab96e62..c774664 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -90,21 +90,37 @@ struct set *set_lookup(const struct table *table, const char *name)
+ 	return NULL;
+ }
+ 
+-void set_print(const struct set *set)
++struct print_fmt_options {
++	const char	*tab;
++	const char	*nl;
++	const char	*table;
++	const char	*family;
++	const char	*stmt_separator;
++};
++
++static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ {
+ 	const char *delim = "";
+ 	const char *type;
+ 
+ 	type = set->flags & SET_F_MAP ? "map" : "set";
+-	printf("\t%s %s {\n", type, set->handle.set);
++	printf("%s%s", opts->tab, type);
++
++	if (opts->family != NULL)
++		printf(" %s", opts->family);
++
++	if (opts->table != NULL)
++		printf(" %s", opts->table);
++
++	printf(" %s { %s", set->handle.set, opts->nl);
+ 
+-	printf("\t\ttype %s", set->keytype->name);
++	printf("%s%stype %s", opts->tab, opts->tab, set->keytype->name);
+ 	if (set->flags & SET_F_MAP)
+ 		printf(" : %s", set->datatype->name);
+-	printf("\n");
++	printf("%s", opts->stmt_separator);
+ 
+ 	if (set->flags & (SET_F_CONSTANT | SET_F_INTERVAL)) {
+-		printf("\t\tflags ");
++		printf("%s%sflags ", opts->tab, opts->tab);
+ 		if (set->flags & SET_F_CONSTANT) {
+ 			printf("%sconstant", delim);
+ 			delim = ",";
+@@ -113,15 +129,41 @@ void set_print(const struct set *set)
+ 			printf("%sinterval", delim);
+ 			delim = ",";
+ 		}
+-		printf("\n");
++		printf("%s", opts->nl);
+ 	}
+ 
+ 	if (set->init != NULL && set->init->size > 0) {
+-		printf("\t\telements = ");
++		printf("%s%selements = ", opts->tab, opts->tab);
+ 		expr_print(set->init);
+-		printf("\n");
++		printf("%s", opts->nl);
+ 	}
+-	printf("\t}\n");
++	printf("%s}%s", opts->tab, opts->nl);
++}
++
++void set_print(const struct set *s)
++{
++	struct print_fmt_options opts;
++
++	opts.tab = "\t";
++	opts.nl = "\n";
++	opts.table = NULL;
++	opts.family = NULL;
++	opts.stmt_separator = "\n";
++
++	do_set_print(s, &opts);
++}
++
++void set_print_plain(const struct set *s)
++{
++	struct print_fmt_options opts;
++
++	opts.tab = "";
++	opts.nl = "";
++	opts.table = s->handle.table;
++	opts.family = family2str(s->handle.family);
++	opts.stmt_separator = ";";
++
++	do_set_print(s, &opts);
+ }
+ 
+ struct rule *rule_alloc(const struct location *loc, const struct handle *h)
+@@ -279,7 +321,7 @@ struct chain *chain_lookup(const struct table *table, const struct handle *h)
+ 	return NULL;
+ }
+ 
+-static const char *family2str(unsigned int family)
++const char *family2str(unsigned int family)
+ {
+ 	switch (family) {
+ 		case NFPROTO_IPV4:
+
