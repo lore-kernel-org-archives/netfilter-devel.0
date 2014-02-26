@@ -1,183 +1,153 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: add support for rule human-readable comments
-Date: Wed, 26 Feb 2014 02:52:50 +0100
-Message-ID: <1393379570-16256-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: add optional user data area to rules
+Date: Wed, 26 Feb 2014 02:53:12 +0100
+Message-ID: <1393379592-16312-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40529 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40551 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088AbaBZBxB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Feb 2014 20:53:01 -0500
+	id S1751075AbaBZBxW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Feb 2014 20:53:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for human-readable comments:
-
-  nft add rule filter input accept comment \"accept all traffic\"
-
-Note that comments *always* come at the end of the rule. This uses
-the new data area that allows you to attach information to the rule
-via netlink.
+This allows us to store user comment strings, but it could be also
+used to store any kind of information that the user application needs
+to link to the rule.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h            |    2 ++
- src/netlink.c             |    4 ++++
- src/netlink_delinearize.c |   11 +++++++++++
- src/parser.y              |   18 +++++++++++++++---
- src/rule.c                |    7 ++++++-
- src/scanner.l             |    1 +
- 6 files changed, 39 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h        |   15 +++++++++++----
+ include/uapi/linux/netfilter/nf_tables.h |    5 ++++-
+ net/netfilter/nf_tables_api.c            |   17 +++++++++++++++--
+ 3 files changed, 30 insertions(+), 7 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index e06444e..ecf801f 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -14,6 +14,7 @@
-  * @set:	set name (sets only)
-  * @handle:	rule handle (rules only)
-  * @position:	rule position (rules only)
-+ * @comment:	human-readable comment (rules only)
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index e7e14ff..a729298 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -323,15 +323,17 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+  *
+  *	@list: used internally
+  *	@handle: rule handle
+- *	@genmask: generation mask
+  *	@dlen: length of expression data
++ *	@genmask: generation mask
++ *	@ulen: length of user data (used for comments)
+  *	@data: expression data
   */
- struct handle {
- 	uint32_t		family;
-@@ -22,6 +23,7 @@ struct handle {
- 	const char		*set;
- 	uint64_t		handle;
- 	uint64_t		position;
-+	const char		*comment;
+ struct nft_rule {
+ 	struct list_head		list;
+-	u64				handle:46,
+-					genmask:2,
+-					dlen:16;
++	u64				handle;
++	u32				dlen;
++	u32				genmask:2,
++					ulen:30;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(struct nft_expr))));
+ };
+@@ -370,6 +372,11 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
+ 	return (struct nft_expr *)&rule->data[rule->dlen];
+ }
+ 
++static inline void *nft_userdata(const struct nft_rule *rule)
++{
++	return (void *)&rule->data[rule->dlen];
++}
++
+ /*
+  * The last pointer isn't really necessary, but the compiler isn't able to
+  * determine that the result of nft_expr_last() is always the same since it
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 83c985a..2d72ec6 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1,7 +1,8 @@
+ #ifndef _LINUX_NF_TABLES_H
+ #define _LINUX_NF_TABLES_H
+ 
+-#define NFT_CHAIN_MAXNAMELEN 32
++#define NFT_CHAIN_MAXNAMELEN	32
++#define NFT_USERDATA_MAXLEN	256
+ 
+ enum nft_registers {
+ 	NFT_REG_VERDICT,
+@@ -156,6 +157,7 @@ enum nft_chain_attributes {
+  * @NFTA_RULE_EXPRESSIONS: list of expressions (NLA_NESTED: nft_expr_attributes)
+  * @NFTA_RULE_COMPAT: compatibility specifications of the rule (NLA_NESTED: nft_rule_compat_attributes)
+  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
++ * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
+  */
+ enum nft_rule_attributes {
+ 	NFTA_RULE_UNSPEC,
+@@ -165,6 +167,7 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_EXPRESSIONS,
+ 	NFTA_RULE_COMPAT,
+ 	NFTA_RULE_POSITION,
++	NFTA_RULE_USERDATA,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index adce01e..b68364b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1296,6 +1296,8 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+ 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
+ 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
+ 	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
++	[NFTA_RULE_USERDATA]	= { .type = NLA_BINARY,
++				    .len = NFT_USERDATA_MAXLEN },
  };
  
- extern void handle_merge(struct handle *dst, const struct handle *src);
-diff --git a/src/netlink.c b/src/netlink.c
-index 2871888..94bda23 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -120,6 +120,10 @@ struct nft_rule *alloc_nft_rule(const struct handle *h)
- 		nft_rule_attr_set_u64(nlr, NFT_RULE_ATTR_HANDLE, h->handle);
- 	if (h->position)
- 		nft_rule_attr_set_u64(nlr, NFT_RULE_ATTR_POSITION, h->position);
-+	if (h->comment) {
-+		nft_rule_attr_set_data(nlr, NFT_RULE_ATTR_USERDATA,
-+				       h->comment, strlen(h->comment) + 1);
-+	}
- 	return nlr;
- }
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 5eec6cf..ca72091 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -884,9 +884,20 @@ struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
- 	h.table  = xstrdup(nft_rule_attr_get_str(nlr, NFT_RULE_ATTR_TABLE));
- 	h.chain  = xstrdup(nft_rule_attr_get_str(nlr, NFT_RULE_ATTR_CHAIN));
- 	h.handle = nft_rule_attr_get_u64(nlr, NFT_RULE_ATTR_HANDLE);
-+
- 	if (nft_rule_attr_is_set(nlr, NFT_RULE_ATTR_POSITION))
- 		h.position = nft_rule_attr_get_u64(nlr, NFT_RULE_ATTR_POSITION);
- 
-+	if (nft_rule_attr_is_set(nlr, NFT_RULE_ATTR_USERDATA)) {
-+		uint32_t len;
-+		const void *data;
-+
-+		data = nft_rule_attr_get_data(nlr, NFT_RULE_ATTR_USERDATA,
-+					      &len);
-+		h.comment = xmalloc(len);
-+		memcpy((char *)h.comment, data, len);
-+	}
-+
- 	pctx->rule = rule_alloc(&netlink_location, &h);
- 	pctx->table = table_lookup(&h);
- 	assert(pctx->table != NULL);
-diff --git a/src/parser.y b/src/parser.y
-index 07613e2..6e5904a 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -350,12 +350,13 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token OPTIONS			"options"
- 
- %token POSITION			"position"
-+%token COMMENT			"comment"
- 
- %token XML			"xml"
- %token JSON			"json"
- 
--%type <string>			identifier string
--%destructor { xfree($$); }	identifier string
-+%type <string>			identifier string comment_spec
-+%destructor { xfree($$); }	identifier string comment_spec
- 
- %type <cmd>			line
- %destructor { cmd_free($$); }	line
-@@ -1019,11 +1020,22 @@ ruleid_spec		:	chain_spec	handle_spec	position_spec
- 			}
- 			;
- 
--rule			:	stmt_list
-+comment_spec		:	/* empty */
-+			{
-+				$$ = NULL;
-+			}
-+			|	COMMENT		string
-+			{
-+				$$ = $2;
-+			}
-+			;
-+
-+rule			:	stmt_list	comment_spec
- 			{
- 				struct stmt *i;
- 
- 				$$ = rule_alloc(&@$, NULL);
-+				$$->handle.comment = $2;
- 				list_for_each_entry(i, $1, list)
- 					$$->num_stmts++;
- 				list_splice_tail($1, &$$->stmts);
-diff --git a/src/rule.c b/src/rule.c
-index ab96e62..23d3e5b 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -47,6 +47,8 @@ void handle_merge(struct handle *dst, const struct handle *src)
- 		dst->handle = src->handle;
- 	if (dst->position == 0)
- 		dst->position = src->position;
-+	if (dst->comment == NULL && src->comment != NULL)
-+		dst->comment = xstrdup(src->comment);
- }
- 
- struct set *set_alloc(const struct location *loc)
-@@ -154,7 +156,6 @@ void rule_print(const struct rule *rule)
+ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
+@@ -1348,6 +1350,10 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
  	}
- 	if (handle_output > 0)
- 		printf(" # handle %" PRIu64, rule->handle.handle);
--	printf("\n");
- }
+ 	nla_nest_end(skb, list);
  
- struct scope *scope_init(struct scope *scope, const struct scope *parent)
-@@ -351,6 +352,10 @@ static void chain_print(const struct chain *chain)
- 	list_for_each_entry(rule, &chain->rules, list) {
- 		printf("\t\t");
- 		rule_print(rule);
-+		if (rule->handle.comment)
-+			printf(" comment \"%s\"\n", rule->handle.comment);
-+		else
-+			printf("\n");
++	if (rule->ulen &&
++	    nla_put(skb, NFTA_RULE_USERDATA, rule->ulen, nft_userdata(rule)))
++		goto nla_put_failure;
++
+ 	return nlmsg_end(skb, nlh);
+ 
+ nla_put_failure:
+@@ -1584,7 +1590,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 	struct nft_expr *expr;
+ 	struct nft_ctx ctx;
+ 	struct nlattr *tmp;
+-	unsigned int size, i, n;
++	unsigned int size, i, n, ulen = 0;
+ 	int err, rem;
+ 	bool create;
+ 	u64 handle, pos_handle;
+@@ -1650,8 +1656,11 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 		}
  	}
- 	printf("\t}\n");
- }
-diff --git a/src/scanner.l b/src/scanner.l
-index e4cb398..ed6f067 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -258,6 +258,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "export"		{ return EXPORT; }
  
- "position"		{ return POSITION; }
-+"comment"		{ return COMMENT; }
++	if (nla[NFTA_RULE_USERDATA])
++		ulen = nla_len(nla[NFTA_RULE_USERDATA]);
++
+ 	err = -ENOMEM;
+-	rule = kzalloc(sizeof(*rule) + size, GFP_KERNEL);
++	rule = kzalloc(sizeof(*rule) + size + ulen, GFP_KERNEL);
+ 	if (rule == NULL)
+ 		goto err1;
  
- "constant"		{ return CONSTANT; }
- "interval"		{ return INTERVAL; }
+@@ -1659,6 +1668,10 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 	rule->handle = handle;
+ 	rule->dlen   = size;
++	rule->ulen   = ulen;
++
++	if (ulen)
++		nla_memcpy(nft_userdata(rule), nla[NFTA_RULE_USERDATA], ulen);
+ 
+ 	expr = nft_expr_first(rule);
+ 	for (i = 0; i < n; i++) {
 -- 
 1.7.10.4
 
