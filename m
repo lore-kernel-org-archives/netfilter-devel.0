@@ -1,7 +1,7 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [RFC PATCH v2 3/6] rule: generalize chain_print()
-Date: Wed, 26 Feb 2014 17:10:00 +0100
-Message-ID: <20140226161000.18974.9778.stgit@nfdev.cica.es>
+Subject: [RFC PATCH v2 5/6] netlink: add netlink_delinearize_table() func
+Date: Wed, 26 Feb 2014 17:10:10 +0100
+Message-ID: <20140226161010.18974.4605.stgit@nfdev.cica.es>
 References: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,58 +9,51 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60328 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:60336 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751679AbaBZQKC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Feb 2014 11:10:02 -0500
+	id S1751679AbaBZQKM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Feb 2014 11:10:12 -0500
 In-Reply-To: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Lest generalize the chain_print() function, so we can print a plain chain
-as the user typed in the basic CLI.
+This code is suitable to be reusable.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- include/rule.h |    1 +
- src/rule.c     |   14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+ src/netlink.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index b263593..9791cea 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -126,6 +126,7 @@ extern struct chain *chain_lookup(const struct table *table,
- 				  const struct handle *h);
- 
- extern const char *family2str(unsigned int family);
-+extern void chain_print_plain(const struct chain *chain);
- 
- /**
-  * struct rule - nftables rule
-diff --git a/src/rule.c b/src/rule.c
-index c774664..d8a065a 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -397,6 +397,20 @@ static void chain_print(const struct chain *chain)
- 	printf("\t}\n");
+diff --git a/src/netlink.c b/src/netlink.c
+index d2a7804..43af5d1 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -652,9 +652,9 @@ void netlink_dump_table(struct nft_table *nlt)
+ #endif
  }
  
-+void chain_print_plain(const struct chain *chain)
-+{
-+	printf("chain %s %s %s", family2str(chain->handle.family),
-+	       chain->handle.table, chain->handle.chain);
-+
-+	if (chain->flags & CHAIN_F_BASECHAIN) {
-+		printf(" { type %s hook %s priority %u; }", chain->type,
-+		       hooknum2str(chain->handle.family, chain->hooknum),
-+		       chain->priority);
-+	}
-+
-+	printf("\n");
+-static int list_table_cb(struct nft_table *nlt, void *arg)
++static struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
++					       struct nft_table *nlt)
+ {
+-	struct netlink_ctx *ctx = arg;
+ 	struct table *table;
+ 
+ 	netlink_dump_table(nlt);
+@@ -665,6 +665,15 @@ static int list_table_cb(struct nft_table *nlt, void *arg)
+ 		xstrdup(nft_table_attr_get_str(nlt, NFT_TABLE_ATTR_NAME));
+ 	list_add_tail(&table->list, &ctx->list);
+ 
++	return table;
 +}
 +
- struct table *table_alloc(void)
- {
- 	struct table *table;
++static int list_table_cb(struct nft_table *nlt, void *arg)
++{
++	struct netlink_ctx *ctx = arg;
++
++	netlink_delinearize_table(ctx, nlt);
++
+ 	return 0;
+ }
+ 
 
