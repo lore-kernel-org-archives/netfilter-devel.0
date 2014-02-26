@@ -1,92 +1,136 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [RFC PATCH v2 0/6] nft events reporting
-Date: Wed, 26 Feb 2014 17:09:44 +0100
-Message-ID: <20140226160918.18974.64532.stgit@nfdev.cica.es>
+Subject: [RFC PATCH v2 2/6] netlink: add netlink_delinearize_set() func
+Date: Wed, 26 Feb 2014 17:09:54 +0100
+Message-ID: <20140226160954.18974.57807.stgit@nfdev.cica.es>
+References: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60321 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:60325 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751170AbaBZQJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Feb 2014 11:09:53 -0500
+	id S1751679AbaBZQJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Feb 2014 11:09:57 -0500
+In-Reply-To: <20140226160918.18974.64532.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This series implements basic event reporting in the nftables CLI tool.
+Let's factorize this code, so it can be reused.
 
-The first patches are some neccesary code factorization changes.
-The last patch is the event reporting itself.
-
-Its quite simple, the syntax is:
- % nft monitor [added|deleted] [tables|chains|sets|rules] [xml|json]
-
-I've discarted using 'new|delete' keywords because 'new' collides with
-the 'state new'ct option. 
-
-Currently, 3 possible output formats:
- * A basic XML, provided by libnftnl.
- * A basic JSON, provided by libnftnl.
- * nft default-like syntax.
-
-About this last format:
-
-Rules are hard to print exactly as the user typed because sets.
-The approach followed in the patch is:
- * keep a userspace cache of tables/anonymous sets.
- * since there are no event notifications for set_elements, query kernel
- for set_elements in the event callback.
- * since there are no event notification for deleted anon-sets, and sets names
- are reusable, scan each deleted rule to know which sets delete from the cache.
- * no need to do any caching if we are not monitoring new rule
- events in the nft default format.
-
-So, the format with this series is as follow:
-
- % nft monitor -nnn
-delete table ip6 filter
-add table ip6 filter
-add chain ip6 filter input { type filter hook input priority 0; }
-add chain ip6 filter forward { type filter hook forward priority 0; }
-add chain ip6 filter output { type filter hook output priority 0; }
-add set ip6 filter set1 {type ipv6_address}
-[...]
-add rule ip filter input tcp sport { 1024-2048} tcp dport { 443, 80} counter packets 0 bytes 0 accept
-delete rule ip filter input handle 94
-
- % nft monitor xml
-<event><type>del</type><nftables>xml_object</nftables></event>
-
- % nft monitor json
-{event:{type:"add",{"nftables":[json_object]}}}
-
-Changes in this v2:
- * Address comments from Pablo and Patrick: Add the caching stuff and the XML/JSON format wrappers.
-
-Please comment.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
+ src/netlink.c |   70 +++++++++++++++++++++++++++------------------------------
+ 1 file changed, 33 insertions(+), 37 deletions(-)
 
-Arturo Borrero Gonzalez (6):
-      rule: allow to print sets in plain format
-      netlink: add netlink_delinearize_set() func
-      rule: generalize chain_print()
-      netlink: add netlink_delinearize_chain() func
-      netlink: add netlink_delinearize_table() func
-      src: add events reporting
+diff --git a/src/netlink.c b/src/netlink.c
+index 2871888..74372bf 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -751,6 +751,37 @@ void netlink_dump_set(struct nft_set *nls)
+ #endif
+ }
+ 
++static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
++					   struct nft_set *nls)
++{
++	struct set *set;
++	uint32_t data_len, keytype, datatype;
++
++	set = set_alloc(&netlink_location);
++	set->handle.family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
++	set->handle.table  =
++		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE));
++	set->handle.set    =
++		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_NAME));
++
++	keytype = nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_TYPE);
++	set->keytype = dtype_map_from_kernel(keytype);
++	set->keylen        =
++		nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_LEN) * BITS_PER_BYTE;
++
++	set->flags         = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FLAGS);
++
++	datatype = nft_set_attr_get_u32(nls, NFT_SET_ATTR_DATA_LEN);
++	set->datatype = dtype_map_from_kernel(datatype);
++	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_DATA_LEN)) {
++		data_len = nft_set_attr_get_u32(nls, NFT_SET_ATTR_DATA_LEN);
++		set->datalen = data_len * BITS_PER_BYTE;
++	}
++	list_add_tail(&set->list, &ctx->list);
++
++	return set;
++}
++
+ int netlink_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		    struct set *set)
+ {
+@@ -804,7 +835,6 @@ static int list_set_cb(struct nft_set *nls, void *arg)
+ 	struct netlink_ctx *ctx = arg;
+ 	const struct datatype *keytype, *datatype;
+ 	uint32_t flags, key, data;
+-	struct set *set;
+ 
+ 	netlink_dump_set(nls);
+ 	key = nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_TYPE);
+@@ -827,23 +857,7 @@ static int list_set_cb(struct nft_set *nls, void *arg)
+ 	} else
+ 		datatype = NULL;
+ 
+-	set = set_alloc(&netlink_location);
+-	set->handle.family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
+-	set->handle.table  =
+-		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE));
+-	set->handle.set    =
+-		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_NAME));
+-	set->keytype       = keytype;
+-	set->keylen        =
+-		nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_LEN) * BITS_PER_BYTE;
+-	set->flags         = flags;
+-	set->datatype      = datatype;
+-	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_DATA_LEN)) {
+-		set->datalen =
+-			nft_set_attr_get_u32(nls, NFT_SET_ATTR_DATA_LEN) * BITS_PER_BYTE;
+-	}
+-	list_add_tail(&set->list, &ctx->list);
+-
++	netlink_delinearize_set(ctx, nls);
+ 	return 0;
+ }
+ 
+@@ -867,7 +881,6 @@ int netlink_get_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		    const struct location *loc)
+ {
+ 	struct nft_set *nls;
+-	struct set *set;
+ 	int err;
+ 
+ 	nls = alloc_nft_set(h);
+@@ -878,24 +891,7 @@ int netlink_get_set(struct netlink_ctx *ctx, const struct handle *h,
+ 					"Could not receive set from kernel: %s",
+ 					strerror(errno));
+ 
+-	set = set_alloc(&netlink_location);
+-	set->handle.family = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY);
+-	set->handle.table  =
+-		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE));
+-	set->handle.set    =
+-		xstrdup(nft_set_attr_get_str(nls, NFT_SET_ATTR_NAME));
+-	set->keytype       =
+-		 dtype_map_from_kernel(nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_TYPE));
+-	set->keylen        =
+-		nft_set_attr_get_u32(nls, NFT_SET_ATTR_KEY_LEN) * BITS_PER_BYTE;
+-	set->flags         = nft_set_attr_get_u32(nls, NFT_SET_ATTR_FLAGS);
+-	set->datatype      =
+-		dtype_map_from_kernel(nft_set_attr_get_u32(nls, NFT_SET_ATTR_DATA_TYPE));
+-	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_DATA_LEN)) {
+-		set->datalen =
+-			nft_set_attr_get_u32(nls, NFT_SET_ATTR_DATA_LEN) * BITS_PER_BYTE;
+-	}
+-	list_add_tail(&set->list, &ctx->list);
++	netlink_delinearize_set(ctx, nls);
+ 	nft_set_free(nls);
+ 
+ 	return err;
 
-
- include/mnl.h     |    3 
- include/netlink.h |    8 +
- include/rule.h    |    7 +
- src/evaluate.c    |    1 
- src/mnl.c         |   45 +++-
- src/netlink.c     |  605 +++++++++++++++++++++++++++++++++++++++++++++++------
- src/parser.y      |   75 ++++++-
- src/rule.c        |  102 ++++++++-
- src/scanner.l     |    5 
- 9 files changed, 757 insertions(+), 94 deletions(-)
-
--- 
-Arturo Borrero Gonzalez
