@@ -1,119 +1,73 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [nf-next PATCH 3/5] netfilter: avoid race with exp->master ct
-Date: Thu, 27 Feb 2014 22:34:52 +0100
-Message-ID: <20140227213452.GE9965@breakpoint.cc>
-References: <20140227182220.25907.12758.stgit@dragon>
- <20140227182340.25907.6773.stgit@dragon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Florian Westphal <fw@strlen.de>,
-	Patrick McHardy <kaber@trash.net>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140227182340.25907.6773.stgit@dragon>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Josh Hunt <johunt@akamai.com>
+Subject: [PATCH v2 0/2] ipset: forceadd support
+Date: Thu, 27 Feb 2014 18:04:44 -0500
+Message-ID: <1393542286-20955-1-git-send-email-johunt@akamai.com>
+Cc: Josh Hunt <johunt@akamai.com>
+To: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from prod-mail-xrelay08.akamai.com ([96.6.114.112]:35039 "EHLO
+	prod-mail-xrelay08.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751268AbaB0XEs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Feb 2014 18:04:48 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Dangaard Brouer <brouer@redhat.com> wrote:
-> Preparation for disconnecting the nf_conntrack_lock from the
-> expectations code.  Once the nf_conntrack_lock is lifted, a race
-> condition is exposed.
-> 
-> The expectations master conntrack exp->master, can race with
-> delete operations, as the refcnt increment happens too late in
-> init_conntrack().  Race is against other CPUs invoking
-> ->destroy() (destroy_conntrack()), or nf_ct_delete() (via timeout
-> or early_drop()).
-> 
-> Avoid this race in nf_ct_find_expectation() by using atomic_inc_not_zero(),
-> and checking if nf_ct_is_dying() (path via nf_ct_delete()).
-> 
-> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-> 
->  net/netfilter/nf_conntrack_core.c   |    2 +-
->  net/netfilter/nf_conntrack_expect.c |   16 +++++++++++++++-
->  2 files changed, 16 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index ac85fd1..a822720 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -898,6 +898,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->  			 ct, exp);
->  		/* Welcome, Mr. Bond.  We've been expecting you... */
->  		__set_bit(IPS_EXPECTED_BIT, &ct->status);
-> +		/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
->  		ct->master = exp->master;
->  		if (exp->helper) {
->  			help = nf_ct_helper_ext_add(ct, exp->helper,
-> @@ -912,7 +913,6 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->  #ifdef CONFIG_NF_CONNTRACK_SECMARK
->  		ct->secmark = exp->master->secmark;
->  #endif
-> -		nf_conntrack_get(&ct->master->ct_general);
->  		NF_CT_STAT_INC(net, expect_new);
->  	} else {
->  		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index 4fd1ca9..2c4ffdb 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -147,13 +147,27 @@ nf_ct_find_expectation(struct net *net, u16 zone,
->  	if (!exp)
->  		return NULL;
->  
-> +	/* Avoid race with other CPUs, that for exp->master ct, is
-> +	 * about to invoke ->destroy(), or nf_ct_delete() via timeout
-> +	 * or early_drop().
-> +	 *
-> +	 * The atomic_inc_not_zero() check tells:  If that fails, we
-> +	 * know that the ct is being destroyed.  If it succeeds, we
-> +	 * can be sure the ct cannot disappear underneath.
-> +	 */
-> +	if (unlikely(nf_ct_is_dying(exp->master) ||
-> +		     !atomic_inc_not_zero(&exp->master->ct_general.use)))
-> +		return NULL;
-> +
->  	/* If master is not in hash table yet (ie. packet hasn't left
->  	   this machine yet), how can other end know about expected?
->  	   Hence these are not the droids you are looking for (if
->  	   master ct never got confirmed, we'd hold a reference to it
->  	   and weird things would happen to future packets). */
-> -	if (!nf_ct_is_confirmed(exp->master))
-> +	if (!nf_ct_is_confirmed(exp->master)) {
-> +		atomic_dec(&exp->master->ct_general.use);
->  		return NULL;
-> +	}
+Forceadd is a property for hash set types and is passed in duration creation.
+When sets with this property enabled are full each subsequent 'add' operation
+will attempt to evict a random entry from the set. The implementation tries to
+keep the overhead low by checking to see which bucket the new entry hashes to.
+If that bucket has any entries it will evict the first one and add the new
+entry.
 
-Not sure if this is safe.
+Ex usage:
+ipset create foo hash:ip forceadd
 
-What about:
-CPU0: atomic_inc_not_zero()
-CPU1: calls nf_conntrack_put()
-CPU0: atomic_dec() -> zero refcnt without invocation of ->destroy
+The intended usecase is for things like 'ban' lists where you may not be concerned
+with possibly evicting something early, and more concerned with the size of
+the hash itself.
 
-[ Cannot happen now because of nf_conntrack_lock ]
+Since v1:
 
-I'd suggest to test nf_ct_is_confirmed() first, it avoids the need to
-undo the atomic_inc_not_zero.
+- Address Jozsef's comments in v1
+- Remove forceadd attribute and corresponding code
+- Utilize new create option flags field
+- Bump LIBVERSION
 
-You also need to deal with the "timer-deletion-fails" a bit later in the same
-function:
+Josh Hunt (2):
+  ipset: add forceadd kernel support for hash set types
+  ipset: add userspace support for forceadd
 
-        if (exp->flags & NF_CT_EXPECT_PERMANENT) {
-                atomic_inc(&exp->use);
-                return exp;
-        } else if (del_timer(&exp->timeout)) {
-                nf_ct_unlink_expect(exp);
-                return exp;
-        }
-	// Problem: exp->master ref was bumped
-	nf_ct_put(exp->master); // missing
-        return NULL;
+ Make_global.am                                     |    2 +-
+ include/libipset/data.h                            |    4 +-
+ kernel/include/linux/netfilter/ipset/ip_set.h      |    3 +
+ kernel/include/uapi/linux/netfilter/ipset/ip_set.h |    3 +
+ kernel/net/netfilter/ipset/ip_set_core.c           |    4 +
+ kernel/net/netfilter/ipset/ip_set_hash_gen.h       |   14 ++
+ kernel/net/netfilter/ipset/ip_set_hash_ip.c        |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_ipmark.c    |    2 +-
+ kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_net.c       |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |    3 +-
+ kernel/net/netfilter/ipset/ip_set_hash_netnet.c    |    2 +-
+ kernel/net/netfilter/ipset/ip_set_hash_netport.c   |    3 +-
+ .../net/netfilter/ipset/ip_set_hash_netportnet.c   |    3 +-
+ lib/data.c                                         |    6 +
+ lib/ipset_hash_ip.c                                |  123 ++++++++++++++
+ lib/ipset_hash_ipmark.c                            |  142 ++++++++++++++++
+ lib/ipset_hash_ipport.c                            |  147 +++++++++++++++++
+ lib/ipset_hash_ipportip.c                          |  158 ++++++++++++++++++
+ lib/ipset_hash_ipportnet.c                         |  169 ++++++++++++++++++++
+ lib/ipset_hash_net.c                               |  119 ++++++++++++++
+ lib/ipset_hash_netiface.c                          |  125 +++++++++++++++
+ lib/ipset_hash_netnet.c                            |  125 +++++++++++++++
+ lib/ipset_hash_netport.c                           |  132 +++++++++++++++
+ lib/ipset_hash_netportnet.c                        |  149 +++++++++++++++++
+ src/ipset.8                                        |    7 +
+ 28 files changed, 1448 insertions(+), 12 deletions(-)
+
+-- 
+1.7.9.5
+
