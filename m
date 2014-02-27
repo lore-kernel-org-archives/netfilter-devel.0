@@ -1,588 +1,483 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [nf-next PATCH 5/5] netfilter: conntrack: remove central spinlock
-	nf_conntrack_lock
-Date: Thu, 27 Feb 2014 19:23:50 +0100
-Message-ID: <20140227182350.25907.2922.stgit@dragon>
-References: <20140227182220.25907.12758.stgit@dragon>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] netfilter: nft_hash: bug fixes and resizing
+Date: Thu, 27 Feb 2014 11:47:34 -0800
+Message-ID: <20140227194734.GV8264@linux.vnet.ibm.com>
+References: <1393512980-28780-1-git-send-email-kaber@trash.net>
+ <1393512980-28780-2-git-send-email-kaber@trash.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Florian Westphal <fw@strlen.de>,
-	"Patrick McHardy" <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	josh@joshtriplett.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19018 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753708AbaB0SX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Feb 2014 13:23:59 -0500
-In-Reply-To: <20140227182220.25907.12758.stgit@dragon>
+Received: from e39.co.us.ibm.com ([32.97.110.160]:59544 "EHLO
+	e39.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699AbaB0Tri (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Feb 2014 14:47:38 -0500
+Received: from /spool/local
+	by e39.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Thu, 27 Feb 2014 12:47:37 -0700
+Received: from b03cxnp07029.gho.boulder.ibm.com (b03cxnp07029.gho.boulder.ibm.com [9.17.130.16])
+	by d03dlp03.boulder.ibm.com (Postfix) with ESMTP id 05DD519D8036
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Feb 2014 12:47:34 -0700 (MST)
+Received: from d03av06.boulder.ibm.com (d03av06.boulder.ibm.com [9.17.195.245])
+	by b03cxnp07029.gho.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id s1RHisET11731214
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Feb 2014 18:44:54 +0100
+Received: from d03av06.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av06.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id s1RJp3cI006107
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Feb 2014 12:51:03 -0700
+Content-Disposition: inline
+In-Reply-To: <1393512980-28780-2-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_conntrack_lock is a monolithic lock and suffers from huge contention
-on current generation servers (8 or more core/threads).
+On Thu, Feb 27, 2014 at 02:56:20PM +0000, Patrick McHardy wrote:
+> The hash set type is very broken and was never meant to be merged in this
+> state. Missing RCU synchronization on element removal, leaking chain
+> refcounts when used as a verdict map, races during lookups, a fixed table
+> size are probably just some of the problems. Luckily it is currently
+> never chosen by the kernel when the rbtree type is also available.
+> 
+> Rewrite it to be usable.
+> 
+> The new implementation supports automatic hash table resizing using RCU,
+> based on Paul McKenney's and Josh Triplett's algorithm "Optimized Resizing
+> For RCU-Protected Hash Tables" described in [1].
+> 
+> Resizing doesn't require a second list head in the elements, it works by
+> chosing a hash function that remaps elements to a predictable set of buckets,
+> only resizing by integral factors and
+> 
+> - during expansion: linking new buckets to the old bucket that contains
+>   elements for any of the new buckets, thereby creating imprecise chains,
+>   then incrementally seperating the elements until the new buckets only
+>   contain elements that hash directly to them.
+> 
+> - during shrinking: linking the hash chains of all old buckets that hash
+>   to the same new bucket to form a single chain.
+> 
+> Expansion requires at most the number of elements in the longest hash chain
+> grace periods, shrinking requires a single grace period.
+> 
+> Due to the requirement of having hash chains/elements linked to multiple
+> buckets during resizing, homemade single linked lists are used instead of
+> the existing list helpers, that don't support this in a clean fashion.
+> As a side effect, the amount of memory required per element is reduced by
+> one pointer.
+> 
+> Expansion is triggered when the load factors exceeds 75%, shrinking when
+> the load factor goes below 30%. Both operations are allowed to fail and
+> will be retried on the next insertion or removal if their respective
+> conditions still hold.
+> 
+> [1] http://dl.acm.org/citation.cfm?id=2002181.2002192
+> 
+> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Josh Triplett <josh@joshtriplett.org>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Perf locking congestion is clear on base kernel:
+A few comments below, one suggested change.  With or without that change,
+but with the changes suggested by Josh Triplett:
 
--  72.56%  ksoftirqd/6  [kernel.kallsyms]    [k] _raw_spin_lock_bh
-   - _raw_spin_lock_bh
-      + 25.33% init_conntrack
-      + 24.86% nf_ct_delete_from_lists
-      + 24.62% __nf_conntrack_confirm
-      + 24.38% destroy_conntrack
-      + 0.70% tcp_packet
-+   2.21%  ksoftirqd/6  [kernel.kallsyms]    [k] fib_table_lookup
-+   1.15%  ksoftirqd/6  [kernel.kallsyms]    [k] __slab_free
-+   0.77%  ksoftirqd/6  [kernel.kallsyms]    [k] inet_getpeer
-+   0.70%  ksoftirqd/6  [nf_conntrack]       [k] nf_ct_delete
-+   0.55%  ksoftirqd/6  [ip_tables]          [k] ipt_do_table
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-This patch change conntrack locking and provides a huge performance
-improvement.  SYN-flood attack tested on a 24-core E5-2695v2(ES) with
-10Gbit/s ixgbe (with tool trafgen):
+> ---
+>  net/netfilter/nft_hash.c | 249 ++++++++++++++++++++++++++++++++++++++---------
+>  1 file changed, 203 insertions(+), 46 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+> index 3d3f8fc..9e289d1 100644
+> --- a/net/netfilter/nft_hash.c
+> +++ b/net/netfilter/nft_hash.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
+> + * Copyright (c) 2008-2014 Patrick McHardy <kaber@trash.net>
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -18,17 +18,29 @@
+>  #include <linux/netfilter/nf_tables.h>
+>  #include <net/netfilter/nf_tables.h>
+> 
+> +#define NFT_HASH_MIN_SIZE	4
+> +
+>  struct nft_hash {
+> -	struct hlist_head	*hash;
+> -	unsigned int		hsize;
+> +	struct nft_hash_table __rcu	*tbl;
+> +};
+> +
+> +struct nft_hash_table {
+> +	unsigned int			size;
+> +	unsigned int			elements;
+> +	struct nft_hash_elem __rcu	*buckets[];
+>  };
+> 
+>  struct nft_hash_elem {
+> -	struct hlist_node	hnode;
+> -	struct nft_data		key;
+> -	struct nft_data		data[];
+> +	struct nft_hash_elem __rcu	*next;
+> +	struct nft_data			key;
+> +	struct nft_data			data[];
+>  };
+> 
+> +#define nft_hash_for_each_entry(i, head) \
+> +	for (i = nft_dereference(head); i != NULL; i = nft_dereference(i->next))
+> +#define nft_hash_for_each_entry_rcu(i, head) \
+> +	for (i = rcu_dereference(head); i != NULL; i = rcu_dereference(i->next))
+> +
+>  static u32 nft_hash_rnd __read_mostly;
+>  static bool nft_hash_rnd_initted __read_mostly;
+> 
+> @@ -38,7 +50,7 @@ static unsigned int nft_hash_data(const struct nft_data *data,
+>  	unsigned int h;
+> 
+>  	h = jhash(data->data, len, nft_hash_rnd);
+> -	return ((u64)h * hsize) >> 32;
+> +	return h & (hsize - 1);
+>  }
+> 
+>  static bool nft_hash_lookup(const struct nft_set *set,
+> @@ -46,11 +58,12 @@ static bool nft_hash_lookup(const struct nft_set *set,
+>  			    struct nft_data *data)
+>  {
+>  	const struct nft_hash *priv = nft_set_priv(set);
+> +	const struct nft_hash_table *tbl = rcu_dereference(priv->tbl);
+>  	const struct nft_hash_elem *he;
+>  	unsigned int h;
+> 
+> -	h = nft_hash_data(key, priv->hsize, set->klen);
+> -	hlist_for_each_entry(he, &priv->hash[h], hnode) {
+> +	h = nft_hash_data(key, tbl->size, set->klen);
+> +	nft_hash_for_each_entry_rcu(he, tbl->buckets[h]) {
+>  		if (nft_data_cmp(&he->key, key, set->klen))
+>  			continue;
+>  		if (set->flags & NFT_SET_MAP)
+> @@ -60,19 +73,137 @@ static bool nft_hash_lookup(const struct nft_set *set,
+>  	return false;
+>  }
+> 
+> -static void nft_hash_elem_destroy(const struct nft_set *set,
+> -				  struct nft_hash_elem *he)
+> +static struct nft_hash_table *nft_hash_tbl_alloc(unsigned int size)
+>  {
+> -	nft_data_uninit(&he->key, NFT_DATA_VALUE);
+> -	if (set->flags & NFT_SET_MAP)
+> -		nft_data_uninit(he->data, set->dtype);
+> -	kfree(he);
+> +	struct nft_hash_table *tbl;
+> +
+> +	tbl = kzalloc(sizeof(*tbl) + size * sizeof(tbl->buckets[0]),
+> +		      GFP_KERNEL);
+> +	if (tbl == NULL)
+> +		return NULL;
+> +	tbl->size = size;
+> +
+> +	return tbl;
+> +}
+> +
+> +static void nft_hash_chain_unzip(const struct nft_set *set,
+> +				 const struct nft_hash_table *ntbl,
+> +				 struct nft_hash_table *tbl, unsigned int n)
+> +{
+> +	struct nft_hash_elem *he, *last, *next;
+> +	unsigned int h;
 
- Base kernel:   810.405 new conntrack/sec
- After patch: 2.233.876 new conntrack/sec
+Not seeing any per-hash-chain locking, so the table is presumably globally
+locked.  (Also no locks in the hash-bucket data structure, so to be
+expected.)  This would mean that insertions and deletions can be blocked
+for some milliseconds by resize operations, but presumably this is OK
+for your workload.
 
-Notice other floods attack (SYN+ACK or ACK) can easily be deflected using:
- # iptables -A INPUT -m state --state INVALID -j DROP
- # sysctl -w net/netfilter/nf_conntrack_tcp_loose=0
+> +
+> +	he = nft_dereference(tbl->buckets[n]);
+> +	if (he == NULL)
+> +		return;
+> +	h = nft_hash_data(&he->key, ntbl->size, set->klen);
+> +
+> +	/* Find last element of first chain hashing to bucket h */
+> +	last = he;
+> +	nft_hash_for_each_entry(he, he->next) {
+> +		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
+> +			break;
+> +		last = he;
+> +	}
+> +
+> +	/* Unlink first chain from the old table */
+> +	RCU_INIT_POINTER(tbl->buckets[n], last->next);
 
-Use an array of hashed spinlocks to protect insertions/deletions of
-conntracks into the hash table. 1024 spinlocks seem to give good
-results, at minimal cost (4KB memory). Due to lockdep max depth,
-1024 becomes 8 if CONFIG_LOCKDEP=y
+The above surprised me, but reading further, I see that you have a
+synchronized_rcu() in nft_hash_tbl_expand() between publishing the new
+hash table and doing the first round of unzip.
 
-The hash resize is a bit tricky, because we need to take all locks in
-the array. A seqcount_t is used to synchronize the hash table users
-with the resizing process.
+(And no, it should not have surprised me, given that this is exactly
+what the paper says to do, but hey!)
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
----
+RCU_INIT_POINTER() is correct here because the data being linked is
+already exposed to readers.  Ditto for the other RCU_INIT_POINTER()
+instances in this patch.
 
- include/net/netfilter/nf_conntrack_core.h |    7 +
- include/net/netns/conntrack.h             |    2 
- net/netfilter/nf_conntrack_core.c         |  219 +++++++++++++++++++++--------
- net/netfilter/nf_conntrack_helper.c       |   12 +-
- net/netfilter/nf_conntrack_netlink.c      |   15 ++
- 5 files changed, 188 insertions(+), 67 deletions(-)
+> +
+> +	/* If end of chain reached, done */
+> +	if (he == NULL)
+> +		return;
+> +
+> +	/* Find first element of second chain hashing to bucket h */
+> +	next = NULL;
+> +	nft_hash_for_each_entry(he, he->next) {
+> +		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
+> +			continue;
+> +		next = he;
+> +		break;
+> +	}
+> +
+> +	/* Link the two chains */
+> +	RCU_INIT_POINTER(last->next, next);
+> +}
+> +
+> +static int nft_hash_tbl_expand(const struct nft_set *set, struct nft_hash *priv)
+> +{
+> +	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
+> +	struct nft_hash_elem *he;
+> +	unsigned int i, h;
+> +	bool complete;
+> +
+> +	ntbl = nft_hash_tbl_alloc(tbl->size * 2);
+> +	if (ntbl == NULL)
+> +		return -ENOMEM;
+> +
+> +	/* Link new table's buckets to first element in the old table
+> +	 * hashing to the new bucket.
+> +	 */
+> +	for (i = 0; i < ntbl->size; i++) {
+> +		h = i < tbl->size ? i : i - tbl->size;
+> +		nft_hash_for_each_entry(he, tbl->buckets[h]) {
+> +			if (nft_hash_data(&he->key, ntbl->size, set->klen) != i)
+> +				continue;
+> +			RCU_INIT_POINTER(ntbl->buckets[i], he);
+> +			break;
+> +		}
+> +	}
+> +	ntbl->elements = tbl->elements;
+> +
+> +	/* Publish new table */
+> +	rcu_assign_pointer(priv->tbl, ntbl);
+> +
+> +	/* Unzip interleaved hash chains */
+> +	do {
+> +		/* Wait for readers to use new table/unzipped chains */
+> +		synchronize_rcu();
+> +
+> +		complete = true;
+> +		for (i = 0; i < tbl->size; i++) {
+> +			nft_hash_chain_unzip(set, ntbl, tbl, i);
+> +			if (tbl->buckets[i] != NULL)
+> +				complete = false;
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index d12a631..cc0c188 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -77,7 +77,12 @@ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-             const struct nf_conntrack_l3proto *l3proto,
-             const struct nf_conntrack_l4proto *proto);
- 
--extern spinlock_t nf_conntrack_lock ;
-+#ifdef CONFIG_LOCKDEP
-+# define CONNTRACK_LOCKS 8
-+#else
-+# define CONNTRACK_LOCKS 1024
-+#endif
-+extern spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
- 
- extern spinlock_t nf_conntrack_expect_lock;
- 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index c6a8994..773cce3 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -5,6 +5,7 @@
- #include <linux/list_nulls.h>
- #include <linux/atomic.h>
- #include <linux/netfilter/nf_conntrack_tcp.h>
-+#include <linux/seqlock.h>
- 
- struct ctl_table_header;
- struct nf_conntrack_ecache;
-@@ -90,6 +91,7 @@ struct netns_ct {
- 	int			sysctl_checksum;
- 
- 	unsigned int		htable_size;
-+	seqcount_t		generation;
- 	struct kmem_cache	*nf_conntrack_cachep;
- 	struct hlist_nulls_head	*hash;
- 	struct hlist_head	*expect_hash;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 6ed5dec..64c1f1a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -60,12 +60,60 @@ int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
- 				      const struct nlattr *attr) __read_mostly;
- EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
- 
--DEFINE_SPINLOCK(nf_conntrack_lock);
--EXPORT_SYMBOL_GPL(nf_conntrack_lock);
-+__cacheline_aligned_in_smp spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
-+EXPORT_SYMBOL_GPL(nf_conntrack_locks);
- 
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(nf_conntrack_expect_lock);
- EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
- 
-+static void nf_conntrack_double_unlock(unsigned int h1, unsigned int h2)
-+{
-+	h1 %= CONNTRACK_LOCKS;
-+	h2 %= CONNTRACK_LOCKS;
-+	spin_unlock(&nf_conntrack_locks[h1]);
-+	if (h1 != h2)
-+		spin_unlock(&nf_conntrack_locks[h2]);
-+}
-+
-+/* return true if we need to recompute hashes (in case hash table was resized) */
-+static bool nf_conntrack_double_lock(struct net *net, unsigned int h1,
-+				     unsigned int h2, unsigned int sequence)
-+{
-+	h1 %= CONNTRACK_LOCKS;
-+	h2 %= CONNTRACK_LOCKS;
-+	if (h1 <= h2) {
-+		spin_lock(&nf_conntrack_locks[h1]);
-+		if (h1 != h2)
-+			spin_lock_nested(&nf_conntrack_locks[h2],
-+					 SINGLE_DEPTH_NESTING);
-+	} else {
-+		spin_lock(&nf_conntrack_locks[h2]);
-+		spin_lock_nested(&nf_conntrack_locks[h1],
-+				 SINGLE_DEPTH_NESTING);
-+	}
-+	if (read_seqcount_retry(&net->ct.generation, sequence)) {
-+		nf_conntrack_double_unlock(h1, h2);
-+		return true;
-+	}
-+	return false;
-+}
-+
-+static void nf_conntrack_all_lock(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < CONNTRACK_LOCKS; i++)
-+		spin_lock_nested(&nf_conntrack_locks[i], i);
-+}
-+
-+static void nf_conntrack_all_unlock(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < CONNTRACK_LOCKS; i++)
-+		spin_unlock(&nf_conntrack_locks[i]);
-+}
-+
- unsigned int nf_conntrack_htable_size __read_mostly;
- EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
- 
-@@ -277,15 +325,28 @@ destroy_conntrack(struct nf_conntrack *nfct)
- static void nf_ct_delete_from_lists(struct nf_conn *ct)
- {
- 	struct net *net = nf_ct_net(ct);
-+	unsigned int hash, reply_hash;
-+	u16 zone = nf_ct_zone(ct);
-+	unsigned int sequence;
- 
- 	nf_ct_helper_destroy(ct);
--	spin_lock_bh(&nf_conntrack_lock);
--	/* Inside lock so preempt is disabled on module removal path.
--	 * Otherwise we can get spurious warnings. */
--	NF_CT_STAT_INC(net, delete_list);
-+
-+	local_bh_disable();
-+	do {
-+		sequence = read_seqcount_begin(&net->ct.generation);
-+		hash = hash_conntrack(net, zone,
-+				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-+		reply_hash = hash_conntrack(net, zone,
-+					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
-+
- 	clean_from_lists(ct);
-+	nf_conntrack_double_unlock(hash, reply_hash);
-+
- 	nf_ct_add_to_dying_list(ct);
--	spin_unlock_bh(&nf_conntrack_lock);
-+
-+	NF_CT_STAT_INC(net, delete_list);
-+	local_bh_enable();
- }
- 
- static void death_by_event(unsigned long ul_conntrack)
-@@ -369,8 +430,6 @@ nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
-  * Warning :
-  * - Caller must take a reference on returned object
-  *   and recheck nf_ct_tuple_equal(tuple, &h->tuple)
-- * OR
-- * - Caller must lock nf_conntrack_lock before calling this function
-  */
- static struct nf_conntrack_tuple_hash *
- ____nf_conntrack_find(struct net *net, u16 zone,
-@@ -464,14 +523,18 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
- 	u16 zone;
-+	unsigned int sequence;
- 
- 	zone = nf_ct_zone(ct);
--	hash = hash_conntrack(net, zone,
--			      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
--	reply_hash = hash_conntrack(net, zone,
--				   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 
--	spin_lock_bh(&nf_conntrack_lock);
-+	local_bh_disable();
-+	do {
-+		sequence = read_seqcount_begin(&net->ct.generation);
-+		hash = hash_conntrack(net, zone,
-+				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-+		reply_hash = hash_conntrack(net, zone,
-+					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
- 
- 	/* See if there's one in the list already, including reverse */
- 	hlist_nulls_for_each_entry(h, n, &net->ct.hash[hash], hnnode)
-@@ -490,14 +553,15 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	/* The caller holds a reference to this object */
- 	atomic_set(&ct->ct_general.use, 2);
- 	__nf_conntrack_hash_insert(ct, hash, reply_hash);
-+	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert);
--	spin_unlock_bh(&nf_conntrack_lock);
--
-+	local_bh_enable();
- 	return 0;
- 
- out:
-+	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
--	spin_unlock_bh(&nf_conntrack_lock);
-+	local_bh_enable();
- 	return -EEXIST;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
-@@ -536,6 +600,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	enum ip_conntrack_info ctinfo;
- 	struct net *net;
- 	u16 zone;
-+	unsigned int sequence;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	net = nf_ct_net(ct);
-@@ -548,31 +613,37 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		return NF_ACCEPT;
- 
- 	zone = nf_ct_zone(ct);
--	/* reuse the hash saved before */
--	hash = *(unsigned long *)&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev;
--	hash = hash_bucket(hash, net);
--	reply_hash = hash_conntrack(net, zone,
--				   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	local_bh_disable();
-+
-+	do {
-+		sequence = read_seqcount_begin(&net->ct.generation);
-+		/* reuse the hash saved before */
-+		hash = *(unsigned long *)&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev;
-+		hash = hash_bucket(hash, net);
-+		reply_hash = hash_conntrack(net, zone,
-+					   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+
-+	} while (nf_conntrack_double_lock(net, hash, reply_hash, sequence));
- 
- 	/* We're not in hash table, and we refuse to set up related
--	   connections for unconfirmed conns.  But packet copies and
--	   REJECT will give spurious warnings here. */
-+	 * connections for unconfirmed conns.  But packet copies and
-+	 * REJECT will give spurious warnings here.
-+	 */
- 	/* NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 1); */
- 
- 	/* No external references means no one else could have
--	   confirmed us. */
-+	 * confirmed us.
-+	 */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
- 	pr_debug("Confirming conntrack %p\n", ct);
--
--	spin_lock_bh(&nf_conntrack_lock);
--
- 	/* We have to check the DYING flag inside the lock to prevent
- 	   a race against nf_ct_get_next_corpse() possibly called from
- 	   user context, else we insert an already 'dead' hash, blocking
- 	   further use of that particular connection -JM */
- 
- 	if (unlikely(nf_ct_is_dying(ct))) {
--		spin_unlock_bh(&nf_conntrack_lock);
-+		nf_conntrack_double_unlock(hash, reply_hash);
-+		local_bh_enable();
- 		return NF_ACCEPT;
- 	}
- 
-@@ -614,8 +685,9 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * stores are visible.
- 	 */
- 	__nf_conntrack_hash_insert(ct, hash, reply_hash);
-+	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert);
--	spin_unlock_bh(&nf_conntrack_lock);
-+	local_bh_enable();
- 
- 	help = nfct_help(ct);
- 	if (help && help->helper)
-@@ -626,8 +698,9 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	return NF_ACCEPT;
- 
- out:
-+	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
--	spin_unlock_bh(&nf_conntrack_lock);
-+	local_bh_enable();
- 	return NF_DROP;
- }
- EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
-@@ -670,39 +743,48 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
- 
- /* There's a small race here where we may free a just-assured
-    connection.  Too bad: we're in trouble anyway. */
--static noinline int early_drop(struct net *net, unsigned int hash)
-+static noinline int early_drop(struct net *net, unsigned int _hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct = NULL, *tmp;
- 	struct hlist_nulls_node *n;
--	unsigned int i, cnt = 0;
-+	unsigned int i = 0, cnt = 0;
- 	int dropped = 0;
-+	unsigned int hash, sequence;
-+	spinlock_t *lockp;
- 
--	rcu_read_lock();
--	for (i = 0; i < net->ct.htable_size; i++) {
-+	local_bh_disable();
-+restart:
-+	sequence = read_seqcount_begin(&net->ct.generation);
-+	hash = hash_bucket(_hash, net);
-+	for (; i < net->ct.htable_size; i++) {
-+		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
-+		spin_lock(lockp);
-+		if (read_seqcount_retry(&net->ct.generation, sequence)) {
-+			spin_unlock(lockp);
-+			goto restart;
-+		}
- 		hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[hash],
- 					 hnnode) {
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
--			if (!test_bit(IPS_ASSURED_BIT, &tmp->status))
-+			if (!test_bit(IPS_ASSURED_BIT, &tmp->status) &&
-+			    !nf_ct_is_dying(tmp) &&
-+			    atomic_inc_not_zero(&tmp->ct_general.use)) {
- 				ct = tmp;
-+				break;
-+			}
- 			cnt++;
- 		}
- 
--		if (ct != NULL) {
--			if (likely(!nf_ct_is_dying(ct) &&
--				   atomic_inc_not_zero(&ct->ct_general.use)))
--				break;
--			else
--				ct = NULL;
--		}
-+		hash = (hash + 1) % net->ct.htable_size;
-+		spin_unlock(lockp);
- 
--		if (cnt >= NF_CT_EVICTION_RANGE)
-+		if (ct || cnt >= NF_CT_EVICTION_RANGE)
- 			break;
- 
--		hash = (hash + 1) % net->ct.htable_size;
- 	}
--	rcu_read_unlock();
-+	local_bh_enable();
- 
- 	if (!ct)
- 		return dropped;
-@@ -751,7 +833,7 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
- 
- 	if (nf_conntrack_max &&
- 	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
--		if (!early_drop(net, hash_bucket(hash, net))) {
-+		if (!early_drop(net, hash)) {
- 			atomic_dec(&net->ct.count);
- 			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
- 			return ERR_PTR(-ENOMEM);
-@@ -1301,18 +1383,24 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
- 	struct nf_conn *ct;
- 	struct hlist_nulls_node *n;
- 	int cpu;
-+	spinlock_t *lockp;
- 
--	spin_lock_bh(&nf_conntrack_lock);
- 	for (; *bucket < net->ct.htable_size; (*bucket)++) {
--		hlist_nulls_for_each_entry(h, n, &net->ct.hash[*bucket], hnnode) {
--			if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
--				continue;
--			ct = nf_ct_tuplehash_to_ctrack(h);
--			if (iter(ct, data))
--				goto found;
-+		lockp = &nf_conntrack_locks[*bucket % CONNTRACK_LOCKS];
-+		local_bh_disable();
-+		spin_lock(lockp);
-+		if (*bucket < net->ct.htable_size) {
-+			hlist_nulls_for_each_entry(h, n, &net->ct.hash[*bucket], hnnode) {
-+				if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-+					continue;
-+				ct = nf_ct_tuplehash_to_ctrack(h);
-+				if (iter(ct, data))
-+					goto found;
-+			}
- 		}
-+		spin_unlock(lockp);
-+		local_bh_enable();
- 	}
--	spin_unlock_bh(&nf_conntrack_lock);
- 
- 	for_each_possible_cpu(cpu) {
- 		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-@@ -1328,7 +1416,8 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
- 	return NULL;
- found:
- 	atomic_inc(&ct->ct_general.use);
--	spin_unlock_bh(&nf_conntrack_lock);
-+	spin_unlock(lockp);
-+	local_bh_enable();
- 	return ct;
- }
- 
-@@ -1529,12 +1618,16 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
- 	if (!hash)
- 		return -ENOMEM;
- 
-+	local_bh_disable();
-+	nf_conntrack_all_lock();
-+	write_seqcount_begin(&init_net.ct.generation);
-+
- 	/* Lookups in the old hash might happen in parallel, which means we
- 	 * might get false negatives during connection lookup. New connections
- 	 * created because of a false negative won't make it into the hash
--	 * though since that required taking the lock.
-+	 * though since that required taking the locks.
- 	 */
--	spin_lock_bh(&nf_conntrack_lock);
-+
- 	for (i = 0; i < init_net.ct.htable_size; i++) {
- 		while (!hlist_nulls_empty(&init_net.ct.hash[i])) {
- 			h = hlist_nulls_entry(init_net.ct.hash[i].first,
-@@ -1551,7 +1644,10 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
- 
- 	init_net.ct.htable_size = nf_conntrack_htable_size = hashsize;
- 	init_net.ct.hash = hash;
--	spin_unlock_bh(&nf_conntrack_lock);
-+
-+	write_seqcount_end(&init_net.ct.generation);
-+	nf_conntrack_all_unlock();
-+	local_bh_enable();
- 
- 	nf_ct_free_hashtable(old_hash, old_size);
- 	return 0;
-@@ -1573,7 +1669,10 @@ EXPORT_SYMBOL_GPL(nf_ct_untracked_status_or);
- int nf_conntrack_init_start(void)
- {
- 	int max_factor = 8;
--	int ret, cpu;
-+	int i, ret, cpu;
-+
-+	for (i = 0; i < ARRAY_SIZE(nf_conntrack_locks); i++)
-+		spin_lock_init(&nf_conntrack_locks[i]);
- 
- 	/* Idea from tcp.c: use 1/16384 of memory.  On i386: 32MB
- 	 * machine has 512 buckets. >= 1GB machines have 16384 buckets. */
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 608f449..38e491c 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -425,10 +425,16 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
- 			unhelp(h, me);
- 		spin_unlock_bh(&pcpu->lock);
- 	}
-+	local_bh_disable();
- 	for (i = 0; i < net->ct.htable_size; i++) {
--		hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
--			unhelp(h, me);
-+		spin_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
-+		if (i < net->ct.htable_size) {
-+			hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
-+				unhelp(h, me);
-+		}
-+		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
- 	}
-+	local_bh_enable();
- }
- 
- void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-@@ -446,10 +452,8 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	synchronize_rcu();
- 
- 	rtnl_lock();
--	spin_lock_bh(&nf_conntrack_lock);
- 	for_each_net(net)
- 		__nf_conntrack_helper_unregister(me, net);
--	spin_unlock_bh(&nf_conntrack_lock);
- 	rtnl_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 7a9b936..17badeb 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -764,14 +764,23 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
- 	int res;
-+	spinlock_t *lockp;
-+
- #ifdef CONFIG_NF_CONNTRACK_MARK
- 	const struct ctnetlink_dump_filter *filter = cb->data;
- #endif
- 
--	spin_lock_bh(&nf_conntrack_lock);
- 	last = (struct nf_conn *)cb->args[1];
-+
-+	local_bh_disable();
- 	for (; cb->args[0] < net->ct.htable_size; cb->args[0]++) {
- restart:
-+		lockp = &nf_conntrack_locks[cb->args[0] % CONNTRACK_LOCKS];
-+		spin_lock(lockp);
-+		if (cb->args[0] >= net->ct.htable_size) {
-+			spin_unlock(lockp);
-+			goto out;
-+		}
- 		hlist_nulls_for_each_entry(h, n, &net->ct.hash[cb->args[0]],
- 					 hnnode) {
- 			if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-@@ -803,16 +812,18 @@ restart:
- 			if (res < 0) {
- 				nf_conntrack_get(&ct->ct_general);
- 				cb->args[1] = (unsigned long)ct;
-+				spin_unlock(lockp);
- 				goto out;
- 			}
- 		}
-+		spin_unlock(lockp);
- 		if (cb->args[1]) {
- 			cb->args[1] = 0;
- 			goto restart;
- 		}
- 	}
- out:
--	spin_unlock_bh(&nf_conntrack_lock);
-+	local_bh_enable();
- 	if (last)
- 		nf_ct_put(last);
- 
+Probably not worth it, but you could track the first and last elements
+needing unzipping.
+
+> +		}
+> +	} while (!complete);
+> +
+> +	kfree(tbl);
+> +	return 0;
+> +}
+> +
+> +static int nft_hash_tbl_shrink(const struct nft_set *set, struct nft_hash *priv)
+> +{
+> +	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
+> +	struct nft_hash_elem __rcu **pprev;
+> +	unsigned int i;
+> +
+> +	ntbl = nft_hash_tbl_alloc(tbl->size / 2);
+> +	if (ntbl == NULL)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < ntbl->size; i++) {
+> +		ntbl->buckets[i] = tbl->buckets[i];
+> +
+> +		for (pprev = &ntbl->buckets[i]; *pprev != NULL;
+> +		     pprev = &nft_dereference(*pprev)->next)
+> +			;
+> +		RCU_INIT_POINTER(*pprev, tbl->buckets[i + ntbl->size]);
+> +	}
+> +	ntbl->elements = tbl->elements;
+> +
+> +	/* Publish new table */
+> +	rcu_assign_pointer(priv->tbl, ntbl);
+> +	synchronize_rcu();
+> +
+> +	kfree(tbl);
+> +	return 0;
+>  }
+> 
+>  static int nft_hash_insert(const struct nft_set *set,
+>  			   const struct nft_set_elem *elem)
+>  {
+>  	struct nft_hash *priv = nft_set_priv(set);
+> +	struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+>  	struct nft_hash_elem *he;
+>  	unsigned int size, h;
+> 
+> @@ -91,33 +222,66 @@ static int nft_hash_insert(const struct nft_set *set,
+>  	if (set->flags & NFT_SET_MAP)
+>  		nft_data_copy(he->data, &elem->data);
+> 
+> -	h = nft_hash_data(&he->key, priv->hsize, set->klen);
+> -	hlist_add_head_rcu(&he->hnode, &priv->hash[h]);
+> +	h = nft_hash_data(&he->key, tbl->size, set->klen);
+> +	RCU_INIT_POINTER(he->next, tbl->buckets[h]);
+> +	rcu_assign_pointer(tbl->buckets[h], he);
+> +	tbl->elements++;
+> +
+> +	/* Expand table when exceeding 75% load */
+> +	if (tbl->elements * 4 / 3 > tbl->size)
+> +		nft_hash_tbl_expand(set, priv);
+> +
+>  	return 0;
+>  }
+> 
+> +static void nft_hash_elem_destroy(const struct nft_set *set,
+> +				  struct nft_hash_elem *he)
+> +{
+> +	nft_data_uninit(&he->key, NFT_DATA_VALUE);
+> +	if (set->flags & NFT_SET_MAP)
+> +		nft_data_uninit(he->data, set->dtype);
+> +	kfree(he);
+> +}
+> +
+>  static void nft_hash_remove(const struct nft_set *set,
+>  			    const struct nft_set_elem *elem)
+>  {
+> -	struct nft_hash_elem *he = elem->cookie;
+> +	struct nft_hash *priv = nft_set_priv(set);
+> +	struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+> +	struct nft_hash_elem *he, __rcu **pprev;
+> 
+> -	hlist_del_rcu(&he->hnode);
+> +	pprev = elem->cookie;
+> +	he = nft_dereference((*pprev));
+> +
+> +	RCU_INIT_POINTER(*pprev, he->next);
+> +	synchronize_rcu();
+>  	kfree(he);
+> +	tbl->elements--;
+> +
+> +	/* Shrink table beneath 30% load */
+> +	if (tbl->elements * 10 / 3 < tbl->size &&
+> +	    tbl->size > NFT_HASH_MIN_SIZE)
+> +		nft_hash_tbl_shrink(set, priv);
+>  }
+> 
+>  static int nft_hash_get(const struct nft_set *set, struct nft_set_elem *elem)
+>  {
+>  	const struct nft_hash *priv = nft_set_priv(set);
+> +	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+> +	struct nft_hash_elem __rcu * const *pprev;
+>  	struct nft_hash_elem *he;
+>  	unsigned int h;
+> 
+> -	h = nft_hash_data(&elem->key, priv->hsize, set->klen);
+> -	hlist_for_each_entry(he, &priv->hash[h], hnode) {
+> -		if (nft_data_cmp(&he->key, &elem->key, set->klen))
+> +	h = nft_hash_data(&elem->key, tbl->size, set->klen);
+> +	pprev = &tbl->buckets[h];
+> +	nft_hash_for_each_entry(he, tbl->buckets[h]) {
+> +		if (nft_data_cmp(&he->key, &elem->key, set->klen)) {
+> +			pprev = &he->next;
+>  			continue;
+> +		}
+> 
+> -		elem->cookie = he;
+> -		elem->flags  = 0;
+> +		elem->cookie = (void *)pprev;
+> +		elem->flags = 0;
+>  		if (set->flags & NFT_SET_MAP)
+>  			nft_data_copy(&elem->data, he->data);
+>  		return 0;
+> @@ -129,12 +293,13 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
+>  			  struct nft_set_iter *iter)
+>  {
+>  	const struct nft_hash *priv = nft_set_priv(set);
+> +	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+>  	const struct nft_hash_elem *he;
+>  	struct nft_set_elem elem;
+>  	unsigned int i;
+> 
+> -	for (i = 0; i < priv->hsize; i++) {
+> -		hlist_for_each_entry(he, &priv->hash[i], hnode) {
+> +	for (i = 0; i < tbl->size; i++) {
+> +		nft_hash_for_each_entry(he, tbl->buckets[i]) {
+>  			if (iter->count < iter->skip)
+>  				goto cont;
+
+I might be confused, but it looks like the "iter->count++" in the code
+below this (not in this patch) could be added to the for() statement,
+the "goto cont" be made into "continue", and the "cont" label eliminated.
+
+> @@ -161,43 +326,35 @@ static int nft_hash_init(const struct nft_set *set,
+>  			 const struct nlattr * const tb[])
+>  {
+>  	struct nft_hash *priv = nft_set_priv(set);
+> -	unsigned int cnt, i;
+> +	struct nft_hash_table *tbl;
+> 
+>  	if (unlikely(!nft_hash_rnd_initted)) {
+>  		get_random_bytes(&nft_hash_rnd, 4);
+>  		nft_hash_rnd_initted = true;
+>  	}
+> 
+> -	/* Aim for a load factor of 0.75 */
+> -	// FIXME: temporarily broken until we have set descriptions
+> -	cnt = 100;
+> -	cnt = cnt * 4 / 3;
+> -
+> -	priv->hash = kcalloc(cnt, sizeof(struct hlist_head), GFP_KERNEL);
+> -	if (priv->hash == NULL)
+> +	tbl = nft_hash_tbl_alloc(NFT_HASH_MIN_SIZE);
+> +	if (tbl == NULL)
+>  		return -ENOMEM;
+> -	priv->hsize = cnt;
+> -
+> -	for (i = 0; i < cnt; i++)
+> -		INIT_HLIST_HEAD(&priv->hash[i]);
+> -
+> +	RCU_INIT_POINTER(priv->tbl, tbl);
+>  	return 0;
+>  }
+> 
+>  static void nft_hash_destroy(const struct nft_set *set)
+>  {
+>  	const struct nft_hash *priv = nft_set_priv(set);
+> -	const struct hlist_node *next;
+> -	struct nft_hash_elem *elem;
+> +	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+> +	struct nft_hash_elem *he, *next;
+>  	unsigned int i;
+> 
+> -	for (i = 0; i < priv->hsize; i++) {
+> -		hlist_for_each_entry_safe(elem, next, &priv->hash[i], hnode) {
+> -			hlist_del(&elem->hnode);
+> -			nft_hash_elem_destroy(set, elem);
+> +	for (i = 0; i < tbl->size; i++) {
+> +		for (he = nft_dereference(tbl->buckets[i]); he != NULL;
+> +		     he = next) {
+> +			next = nft_dereference(he->next);
+> +			nft_hash_elem_destroy(set, he);
+>  		}
+>  	}
+> -	kfree(priv->hash);
+> +	kfree(tbl);
+>  }
+> 
+>  static struct nft_set_ops nft_hash_ops __read_mostly = {
+> -- 
+> 1.8.5.3
+> 
 
