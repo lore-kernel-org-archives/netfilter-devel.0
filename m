@@ -1,84 +1,116 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nf_tables] suggestion: system-wide sets
-Date: Thu, 27 Feb 2014 14:58:55 +0000
-Message-ID: <20140227145854.GA27782@macbook.localnet>
-References: <CAOkSjBjSzf3tmdBPtXtrrcPe1xXh5S4pp4znE2ek1dEr4LzKCQ@mail.gmail.com>
- <20140227140230.GA18385@macbook.localnet>
- <CAOkSjBgUNb_4ruqd4m7sdv2aQXDAtds+dgogLXvzSNEeHdCyQw@mail.gmail.com>
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: Re: [PATCH] netfilter: nft_hash: bug fixes and resizing
+Date: Thu, 27 Feb 2014 07:47:46 -0800
+Message-ID: <20140227154746.GA26756@thin>
+References: <1393512980-28780-1-git-send-email-kaber@trash.net>
+ <1393512980-28780-2-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	paulmck@linux.vnet.ibm.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58257 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbaB0O65 (ORCPT
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:55915 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbaB0Pr5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Feb 2014 09:58:57 -0500
+	Thu, 27 Feb 2014 10:47:57 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgUNb_4ruqd4m7sdv2aQXDAtds+dgogLXvzSNEeHdCyQw@mail.gmail.com>
+In-Reply-To: <1393512980-28780-2-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 27, 2014 at 03:46:12PM +0100, Arturo Borrero Gonzalez wrote:
-> On 27 February 2014 15:02, Patrick McHardy <kaber@trash.net> wrote:
-> > On Thu, Feb 27, 2014 at 01:15:36PM +0100, Arturo Borrero Gonzalez wrote:
-> >> Hi there!
-> >>
-> >> I can't remember this subject being discussed in the near past.
-> >>
-> >> Why not using system-wide sets? Or at least, family-wide sets?
-> >>
-> >> >From the user point of view, I think is very interesting to define
-> >> sets that can be used in rules all across the ruleset, same set in
-> >> different tables and families.
-> >
-> > Yeah, I agree. I think family wide sets and global (AF_UNSPEC) sets should
-> > bet quite easy to add. However there's the question how to expose them
-> > in the nft list table output. The idea is to be able to recreate the
-> > current ruleset, including sets and elements, by parsing the output of
-> > nft list table. If we don't include sets, the user will have to seperately
-> > save and restore them. OTOH if we simply include global and AF-specific
-> > sets, they will be restored once for each table and this will fail on
-> > the second table.
-> >
-> > Any other ideas?
+On Thu, Feb 27, 2014 at 02:56:20PM +0000, Patrick McHardy wrote:
+> The hash set type is very broken and was never meant to be merged in this
+> state. Missing RCU synchronization on element removal, leaking chain
+> refcounts when used as a verdict map, races during lookups, a fixed table
+> size are probably just some of the problems. Luckily it is currently
+> never chosen by the kernel when the rbtree type is also available.
 > 
-> idea 1:
+> Rewrite it to be usable.
 > 
-> print global sets when listing every time a table is listed.
+> The new implementation supports automatic hash table resizing using RCU,
+> based on Paul McKenney's and Josh Triplett's algorithm "Optimized Resizing
+> For RCU-Protected Hash Tables" described in [1].
 > 
-> To backup the ruleset, the user must iterate over the list of
-> tables/AF (nft list table $AF $TABLE), so the global sets get printed
-> several times.
+> Resizing doesn't require a second list head in the elements, it works by
+> chosing a hash function that remaps elements to a predictable set of buckets,
+> only resizing by integral factors and
 > 
-> when restoring, try to add the global set to the kernel.
-> If the set already exist, return EEXIST from the kernel, and let nft
-> ignore that if operating with 'nft -f'.
+> - during expansion: linking new buckets to the old bucket that contains
+>   elements for any of the new buckets, thereby creating imprecise chains,
+>   then incrementally seperating the elements until the new buckets only
+>   contain elements that hash directly to them.
+> 
+> - during shrinking: linking the hash chains of all old buckets that hash
+>   to the same new bucket to form a single chain.
+> 
+> Expansion requires at most the number of elements in the longest hash chain
+> grace periods, shrinking requires a single grace period.
+> 
+> Due to the requirement of having hash chains/elements linked to multiple
+> buckets during resizing, homemade single linked lists are used instead of
+> the existing list helpers, that don't support this in a clean fashion.
+> As a side effect, the amount of memory required per element is reduced by
+> one pointer.
+> 
+> Expansion is triggered when the load factors exceeds 75%, shrinking when
+> the load factor goes below 30%. Both operations are allowed to fail and
+> will be retried on the next insertion or removal if their respective
+> conditions still hold.
 
-Yeah, that might work. However, how do we know that this it contains the
-correct elements?
+Since this hash table uses chaining, does it really make sense to expand
+at 75% load?  You might just want to expand at 100%, which is even
+easier to check for.  But that seems like a question for benchmarks to
+answer.
 
-> idea 2:
+> [1] http://dl.acm.org/citation.cfm?id=2002181.2002192
 > 
-> add `nft list ruleset', which prints all tables in all AF, including
-> global sets.
-> Global sets are only printed in this 'ruleset' view.
-> 
-> Still, the ignore EEXIST errors from the kernel for globals sets.
+> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Josh Triplett <josh@joshtriplett.org>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Also something worth considering. I'm not sure about this yet, let me
-think about this a bit.
+This looks correct to me.  Thank you very much for this work!
 
-> >> Being family-wide is what ipset does, and I'm sure is what most people
-> >> will expect.
-> >>
-> >> On the other hand, I understand this would be a major change at this point.
-> >
-> > Should be fine. I'm thinking of keeping the table specific sets and also
-> > having per AF and AF_UNSPEC sets. For maps we should restrict this feature
-> > to data maps since verdicts may need a table context.
-> 
-> I agree.
+One suggestion and one minor micro-optimization (unrelated to the
+algorithm implementation) below.  With those changed:
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+
+> +	nft_hash_for_each_entry(he, he->next) {
+> +		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
+> +			continue;
+> +		next = he;
+> +		break;
+> +	}
+
+> +		nft_hash_for_each_entry(he, tbl->buckets[h]) {
+> +			if (nft_hash_data(&he->key, ntbl->size, set->klen) != i)
+> +				continue;
+> +			RCU_INIT_POINTER(ntbl->buckets[i], he);
+> +			break;
+> +		}
+
+In both of these cases, you could reverse the sense of the if with
+s/!=/==/, move the "statement; break;" into the if, and the continue
+would become redundant.  (You then wouldn't even need the braces around
+the loop body.)
+
+Second, in the load-factor calculation:
+
+> +	/* Expand table when exceeding 75% load */
+> +	if (tbl->elements * 4 / 3 > tbl->size)
+> +		nft_hash_tbl_expand(set, priv);
+
+I just checked, and GCC ends up using an imul to implement this, due to
+the division by 3.  I'd suggest rewriting it to:
+
+if (tbl->elements > (tbl->size >> 2) * 3)
+
+Dividing tbl->size by 4 first avoids the possibility of integer
+overflow, and GCC translates the *3 into a single lea instruction.
+
+(Also, do you need an NFT_HASH_MAX_SIZE here?)
+
+Similar considerations apply to the calculation for shrinking.
+
+- Josh Triplett
