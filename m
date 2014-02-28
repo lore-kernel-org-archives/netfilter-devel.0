@@ -1,68 +1,61 @@
-From: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
-Subject: Re: change kmalloc into vmalloc for large memory
-	allocations
-Date: Fri, 28 Feb 2014 17:20:08 +0800
-Message-ID: <35FD53F367049845BC99AC72306C23D102844605F38D@CNBJMBX05.corpusers.net>
-References: <35FD53F367049845BC99AC72306C23D102844605F38C@CNBJMBX05.corpusers.net>
- <53104ECA.4010702@freescale.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2 2/2] ipset: add userspace support for forceadd
+Date: Fri, 28 Feb 2014 10:25:14 +0100
+Message-ID: <20140228092514.GA4011@localhost>
+References: <1393542286-20955-1-git-send-email-johunt@akamai.com>
+ <1393542286-20955-3-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "'alsa-devel@alsa-project.org'" <alsa-devel@alsa-project.org>,
- "'broonie@opensource.wolfsonmicro.com'"
- <broonie@opensource.wolfsonmicro.com>, "'tiwai@suse.de'" <tiwai@suse.de>,
- "'fweisbec@gmail.com'" <fweisbec@gmail.com>,
- "'dmitry.torokhov@gmail.com'" <dmitry.torokhov@gmail.com>,
- "'mingo@redhat.com'" <mingo@redhat.com>,
- "'linux-input@vger.kernel.org'" <linux-input@vger.kernel.org>,
- "'rydberg@euromail.se'" <rydberg@euromail.se>, "'lrg@ti.com'" <lrg@ti.com>,
- "'pablo@netfilter.org'" <pablo@netfilter.org>,
- "'coreteam@netfilter.org'" <coreteam@netfilter.org>,
- "'linux-arm-msm@vger.kernel.org'" <linux-arm-msm@vger.kernel.org>,
- "'rostedt@goodmis.org'" <rostedt@goodmis.org>,
- "'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
- "'linux-arm-kernel@lists.infradead.org'"
- <linux-arm-kernel@lists.infradead.org>,
- "'gregkh@linuxfoundation.org'" <gregkh@linuxfoundation.org>,
- "'li
-To: 'Huang Shijie' <b32955@freescale.com>
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <53104ECA.4010702@freescale.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: Josh Hunt <johunt@akamai.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:53260 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751447AbaB1JZY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Feb 2014 04:25:24 -0500
+Content-Disposition: inline
+In-Reply-To: <1393542286-20955-3-git-send-email-johunt@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-SGkgIA0KDQoNClllYWgsICANCkRtYSBidWZmZXIgbXVzdCBiZSBhbGxvY2F0ZWQgYnkga21hbGxv
-YywNCg0KQnV0IHRoZSBtb2R1bGVzIEkgbGlzdCBzaG91bGQgY2FuIGFsbCBiZSBjaGFuZ2VkIHRv
-IHVzZQ0Kdm1hbGxvYywgYmVjYXVzZSB0aGUgYnVmZmVyIGlzIG9ubHkgdXNlZCBieSBzb2Z0d2Fy
-ZSwNCk5vdCBieSBhbnkgaGFyZHdhcmUgLg0KDQoNClRoYW5rcw0KDQotLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KRnJvbTogSHVhbmcgU2hpamllIFttYWlsdG86YjMyOTU1QGZyZWVzY2FsZS5j
-b21dIA0KU2VudDogRnJpZGF5LCBGZWJydWFyeSAyOCwgMjAxNCA0OjU1IFBNDQpUbzogV2FuZywg
-WWFsaW4NCkNjOiAnbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZyc7ICdsaW51eC1hcm0tbXNt
-QHZnZXIua2VybmVsLm9yZyc7ICdsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcn
-OyAnbGludXgtaW5wdXRAdmdlci5rZXJuZWwub3JnJzsgJ2JhbGJpQHRpLmNvbSc7ICdncmVna2hA
-bGludXhmb3VuZGF0aW9uLm9yZyc7ICdscmdAdGkuY29tJzsgJ2Jyb29uaWVAb3BlbnNvdXJjZS53
-b2xmc29ubWljcm8uY29tJzsgJ3BlcmV4QHBlcmV4LmN6JzsgJ3Rpd2FpQHN1c2UuZGUnOyAncGFi
-bG9AbmV0ZmlsdGVyLm9yZyc7ICdrYWJlckB0cmFzaC5uZXQnOyAnZGF2ZW1AZGF2ZW1sb2Z0Lm5l
-dCc7ICdyb3N0ZWR0QGdvb2RtaXMub3JnJzsgJ2Z3ZWlzYmVjQGdtYWlsLmNvbSc7ICdtaW5nb0By
-ZWRoYXQuY29tJzsgJ2RtaXRyeS50b3Jva2hvdkBnbWFpbC5jb20nOyAncnlkYmVyZ0BldXJvbWFp
-bC5zZSc7ICdsaW51eC11c2JAdmdlci5rZXJuZWwub3JnJzsgJ2Fsc2EtZGV2ZWxAYWxzYS1wcm9q
-ZWN0Lm9yZyc7ICduZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnJzsgJ25ldGZpbHRlckB2
-Z2VyLmtlcm5lbC5vcmcnOyAnY29yZXRlYW1AbmV0ZmlsdGVyLm9yZyc7ICduZXRkZXZAdmdlci5r
-ZXJuZWwub3JnJw0KU3ViamVjdDogUmU6IGNoYW5nZSBrbWFsbG9jIGludG8gdm1hbGxvYyBmb3Ig
-bGFyZ2UgbWVtb3J5IGFsbG9jYXRpb25zDQoNCuS6jiAyMDE05bm0MDLmnIgyOOaXpSAxNjoxNSwg
-V2FuZywgWWFsaW4g5YaZ6YGTOg0KPiBjb3VsZCB0aGlzIG1vZHVsZSBjaGFuZ2UgdGhlIG1lbW9y
-eSBhbGxvY2F0aW9uIGludG8gdm1hbGxvYyA/DQp0aGUgYnVmZmVyIGFsbG9jYXRlZCBieSB2bWFs
-bG9jIGNhbiBub3QgYmUgdXNlZCBmb3IgdGhlIERNQS4NCg0KSSB0aGluayB0aGF0J3Mgd2h5IGRy
-aXZlcnMgdXNlIHRoZSBrbWFsbG9jLg0KDQp0aGFua3MNCkh1YW5nIFNoaWppZQ0KDQpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxp
-bmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1w
-cm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+On Thu, Feb 27, 2014 at 06:04:46PM -0500, Josh Hunt wrote:
+> The userspace side of the forceadd changes.
+> 
+> Signed-off-by: Josh Hunt <johunt@akamai.com>
+> ---
+>  Make_global.am              |    2 +-
+>  include/libipset/data.h     |    4 +-
+>  lib/data.c                  |    6 ++
+>  lib/ipset_hash_ip.c         |  123 +++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipmark.c     |  142 ++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipport.c     |  147 +++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipportip.c   |  158 ++++++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_ipportnet.c  |  169 +++++++++++++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_net.c        |  119 ++++++++++++++++++++++++++++++
+>  lib/ipset_hash_netiface.c   |  125 ++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_netnet.c     |  125 ++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_netport.c    |  132 +++++++++++++++++++++++++++++++++
+>  lib/ipset_hash_netportnet.c |  149 ++++++++++++++++++++++++++++++++++++++
+>  src/ipset.8                 |    7 ++
+>  14 files changed, 1406 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Make_global.am b/Make_global.am
+> index f931618..1151714 100644
+> --- a/Make_global.am
+> +++ b/Make_global.am
+> @@ -69,7 +69,7 @@
+>  # interface. 
+>  
+>  #            curr:rev:age
+> -LIBVERSION = 5:0:3
+> +LIBVERSION = 6:0:1
+
+I think this should be:
+
+6:0:4 if you just added somes interfaces while retaining backward
+compatibility.
+
+or
+
+6:0:0 if you removed interfaces (thus, backward compatibility is not
+retained).
