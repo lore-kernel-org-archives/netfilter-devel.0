@@ -1,138 +1,153 @@
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [nf-next PATCH 3/5] netfilter: avoid race with exp->master ct
-Date: Fri, 28 Feb 2014 12:30:37 +0100
-Message-ID: <20140228123037.568fdcd9@redhat.com>
+Subject: [nf-next PATCH V2 0/5] netfilter: conntrack: optimization,
+	remove central spinlock
+Date: Fri, 28 Feb 2014 13:16:15 +0100
+Message-ID: <20140228121529.20347.38300.stgit@dragon>
 References: <20140227182220.25907.12758.stgit@dragon>
- <20140227182340.25907.6773.stgit@dragon>
- <20140227213452.GE9965@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Florian Westphal <fw@strlen.de>,
+	"Patrick McHardy" <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org,
 	Eric Dumazet <eric.dumazet@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Florian Westphal <fw@strlen.de>
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140227213452.GE9965@breakpoint.cc>
+In-Reply-To: <20140227182220.25907.12758.stgit@dragon>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 27 Feb 2014 22:34:52 +0100
-Florian Westphal <fw@strlen.de> wrote:
+This patchset change the conntrack locking and provides a huge
+performance improvements.
 
-> Jesper Dangaard Brouer <brouer@redhat.com> wrote:
-> > Preparation for disconnecting the nf_conntrack_lock from the
-> > expectations code.  Once the nf_conntrack_lock is lifted, a race
-> > condition is exposed.
-> > 
-> > The expectations master conntrack exp->master, can race with
-> > delete operations, as the refcnt increment happens too late in
-> > init_conntrack().  Race is against other CPUs invoking
-> > ->destroy() (destroy_conntrack()), or nf_ct_delete() (via timeout
-> > or early_drop()).
-> > 
-> > Avoid this race in nf_ct_find_expectation() by using atomic_inc_not_zero(),
-> > and checking if nf_ct_is_dying() (path via nf_ct_delete()).
-> > 
-> > Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> > 
-> >  net/netfilter/nf_conntrack_core.c   |    2 +-
-> >  net/netfilter/nf_conntrack_expect.c |   16 +++++++++++++++-
-> >  2 files changed, 16 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index ac85fd1..a822720 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@ -898,6 +898,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
-> >  			 ct, exp);
-> >  		/* Welcome, Mr. Bond.  We've been expecting you... */
-> >  		__set_bit(IPS_EXPECTED_BIT, &ct->status);
-> > +		/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
-> >  		ct->master = exp->master;
-> >  		if (exp->helper) {
-> >  			help = nf_ct_helper_ext_add(ct, exp->helper,
-> > @@ -912,7 +913,6 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
-> >  #ifdef CONFIG_NF_CONNTRACK_SECMARK
-> >  		ct->secmark = exp->master->secmark;
-> >  #endif
-> > -		nf_conntrack_get(&ct->master->ct_general);
-> >  		NF_CT_STAT_INC(net, expect_new);
-> >  	} else {
-> >  		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
-> > diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> > index 4fd1ca9..2c4ffdb 100644
-> > --- a/net/netfilter/nf_conntrack_expect.c
-> > +++ b/net/netfilter/nf_conntrack_expect.c
-> > @@ -147,13 +147,27 @@ nf_ct_find_expectation(struct net *net, u16 zone,
-> >  	if (!exp)
-> >  		return NULL;
-> >  
-> > +	/* Avoid race with other CPUs, that for exp->master ct, is
-> > +	 * about to invoke ->destroy(), or nf_ct_delete() via timeout
-> > +	 * or early_drop().
-> > +	 *
-> > +	 * The atomic_inc_not_zero() check tells:  If that fails, we
-> > +	 * know that the ct is being destroyed.  If it succeeds, we
-> > +	 * can be sure the ct cannot disappear underneath.
-> > +	 */
-> > +	if (unlikely(nf_ct_is_dying(exp->master) ||
-> > +		     !atomic_inc_not_zero(&exp->master->ct_general.use)))
-> > +		return NULL;
-> > +
-> >  	/* If master is not in hash table yet (ie. packet hasn't left
-> >  	   this machine yet), how can other end know about expected?
-> >  	   Hence these are not the droids you are looking for (if
-> >  	   master ct never got confirmed, we'd hold a reference to it
-> >  	   and weird things would happen to future packets). */
-> > -	if (!nf_ct_is_confirmed(exp->master))
-> > +	if (!nf_ct_is_confirmed(exp->master)) {
-> > +		atomic_dec(&exp->master->ct_general.use);
-> >  		return NULL;
-> > +	}
-> 
-> Not sure if this is safe.
-> 
-> What about:
-> CPU0: atomic_inc_not_zero()
-> CPU1: calls nf_conntrack_put()
-> CPU0: atomic_dec() -> zero refcnt without invocation of ->destroy
+This patchset is based upon Eric Dumazet's proposed patch:
+  http://thread.gmane.org/gmane.linux.network/268758/focus=47306
+I have in agreement with Eric Dumazet, taken over this patch (and
+turned it into a entire patchset).
 
-Okay, so, you are saying CPU0 should use nf_ct_put() or nf_conntrack_put().
+Primary focus is to remove the central spinlock nf_conntrack_lock.
+This requires several steps to be acheived.
 
-> [ Cannot happen now because of nf_conntrack_lock ]
-> 
-> I'd suggest to test nf_ct_is_confirmed() first, it avoids the need to
-> undo the atomic_inc_not_zero.
+Patch01: Trivial cleanups
 
-Okay, guess that should be okay.
+Patch02: Moves the "special" dying/unconfirmed/template lists to use a
+ per cpu spinlock.
 
-> You also need to deal with the "timer-deletion-fails" a bit later in the same
-> function:
-> 
->         if (exp->flags & NF_CT_EXPECT_PERMANENT) {
->                 atomic_inc(&exp->use);
->                 return exp;
->         } else if (del_timer(&exp->timeout)) {
->                 nf_ct_unlink_expect(exp);
->                 return exp;
->         }
-> 	// Problem: exp->master ref was bumped
-> 	nf_ct_put(exp->master); // missing
->         return NULL;
+Patch03: Is preparing for patch04, as it address a race
+ condition. Doing this a seperate patch for reviewers sake.
 
-True, and yes, use of use nf_ct_put() or nf_conntrack_put() would be
-necessary here instead of manual refcnt dec.
+Patch04: Seperates expect locking from nf_conntrack_lock. The expect
+ list is small (default max 256), this it just get a single lock.
 
-Thanks for your review, I will fix it up...
+Patch05: Finally can remove nf_conntrack_lock, and instead uses an
+ array of hashed spinlocks to protect insertions/deletions of
+ conntracks into the hash table.  While still allowing dynamic
+ resizing of the hash table.
+
+
+Testing
+-------
+For expectations I've mostly tested the FTP nf_conntrack_ftp
+helper module, by commands:
+
+ for x in `seq 1 300`; do \
+   echo $x; \
+   echo -e "USER anonymous\nPASS nothing\nPASV" | nc 192.168.42.129 21; \
+ done
+
+ wget ftp://192.168.42.129/pub/delete.me.4k -O /dev/null
+
+For overload/DoS testing, I've primarily done, SYN-flood attack testing.
+Results on a 24-core E5-2695v2(ES) with 10Gbit/s ixgbe (with tool trafgen)
+
+ Base kernel : New   810.405 conntrack/sec
+ Fixed kernel: New 2.233.876 conntrack/sec
+
+Notice other floods attack (SYN+ACK or ACK) can easily be deflected using:
+ # iptables -A INPUT -m state --state INVALID -j DROP
+ # sysctl -w net/netfilter/nf_conntrack_tcp_loose=0
+
+E.g. this machine can reflect 6.481.463 "invalid" conntrack/sec (from
+an ACK-flood).
+
+Perf data:
+----------
+The nf_conntrack_lock is suffers from huge contention on current
+generation servers (8 or more core/threads).  Data from under
+SYN-flooding (without a listen socket)
+
+Perf locking congestion is very "visible" on a base kernel:
+
+  -  72.56%  ksoftirqd/6  [kernel.kallsyms]    [k] _raw_spin_lock_bh
+     - _raw_spin_lock_bh
+        + 25.33% init_conntrack
+        + 24.86% nf_ct_delete_from_lists
+        + 24.62% __nf_conntrack_confirm
+        + 24.38% destroy_conntrack
+        + 0.70% tcp_packet
+  +   2.21%  ksoftirqd/6  [kernel.kallsyms]    [k] fib_table_lookup
+  +   1.15%  ksoftirqd/6  [kernel.kallsyms]    [k] __slab_free
+  +   0.77%  ksoftirqd/6  [kernel.kallsyms]    [k] inet_getpeer
+  +   0.70%  ksoftirqd/6  [nf_conntrack]       [k] nf_ct_delete
+  +   0.55%  ksoftirqd/6  [ip_tables]          [k] ipt_do_table
+
+Perf after the patchset (SYN-flood attack):
+
+ +   9.62%  ksoftirqd/6  [kernel.kallsyms]    [k] fib_table_lookup
+ +   3.78%  ksoftirqd/6  [kernel.kallsyms]    [k] __slab_free
+ +   2.71%  ksoftirqd/6  [kernel.kallsyms]    [k] inet_getpeer
+ +   2.55%  ksoftirqd/6  [kernel.kallsyms]    [k] check_leaf
+ +   2.38%  ksoftirqd/6  [ip_tables]          [k] ipt_do_table
+ +   2.06%  ksoftirqd/6  [kernel.kallsyms]    [k] __slab_alloc
+ +   1.94%  ksoftirqd/6  [nf_conntrack]       [k] __nf_conntrack_alloc
+ -   1.94%  ksoftirqd/6  [kernel.kallsyms]    [k] _raw_spin_lock
+   - _raw_spin_lock
+      + 90.32% nf_conntrack_double_lock
+      + 3.61% get_partial_node
+      + 1.81% nf_ct_delete_from_lists
+      + 1.68% __nf_conntrack_confirm
+      + 1.03% sch_direct_xmit
+      + 0.52% scheduler_tick
+ +   1.86%  ksoftirqd/6  [kernel.kallsyms]    [k] nf_iterate
+ +   1.80%  ksoftirqd/6  [nf_conntrack]       [k] init_conntrack
+ +   1.77%  ksoftirqd/6  [kernel.kallsyms]    [k] __neigh_event_send
+ -   1.70%  ksoftirqd/6  [kernel.kallsyms]    [k] _raw_spin_lock_bh
+   - _raw_spin_lock_bh
+      + 32.55% nf_ct_del_from_dying_or_unconfirmed_list
+      + 25.33% init_conntrack
+      + 19.88% tcp_packet
+      + 17.97% nf_ct_delete_from_lists
+      + 1.62% nf_conntrack_in
+      + 1.33% ixgbe_poll
+      + 0.74% destroy_conntrack
+ +   1.64%  ksoftirqd/6  [nf_conntrack]       [k] hash_conntrack_raw
+ +   1.58%  ksoftirqd/6  [kernel.kallsyms]    [k] __netif_receive_skb_core
+ +   1.51%  ksoftirqd/6  [nf_conntrack]       [k] __nf_conntrack_find_get
+ +   1.48%  ksoftirqd/6  [kernel.kallsyms]    [k] __cmpxchg_double_slab
+ +   1.46%  ksoftirqd/6  [nf_conntrack]       [k] nf_conntrack_in
+ +   1.45%  ksoftirqd/6  [kernel.kallsyms]    [k] __local_bh_enable_ip
+
+---
+
+Jesper Dangaard Brouer (5):
+      netfilter: conntrack: remove central spinlock nf_conntrack_lock
+      netfilter: conntrack: seperate expect locking from nf_conntrack_lock
+      netfilter: avoid race with exp->master ct
+      netfilter: conntrack: spinlock per cpu to protect special lists.
+      netfilter: trivial code cleanup and doc changes
+
+
+ include/net/netfilter/nf_conntrack.h      |   11 +
+ include/net/netfilter/nf_conntrack_core.h |    9 +
+ include/net/netns/conntrack.h             |   13 +
+ net/netfilter/nf_conntrack_core.c         |  432 ++++++++++++++++++++---------
+ net/netfilter/nf_conntrack_expect.c       |   34 ++
+ net/netfilter/nf_conntrack_h323_main.c    |    4 
+ net/netfilter/nf_conntrack_helper.c       |   37 ++
+ net/netfilter/nf_conntrack_netlink.c      |  128 +++++----
+ net/netfilter/nf_conntrack_sip.c          |    8 -
+ 9 files changed, 459 insertions(+), 217 deletions(-)
 
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
