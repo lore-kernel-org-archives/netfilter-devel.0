@@ -1,158 +1,138 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nft_hash: bug fixes and resizing
-Date: Fri, 28 Feb 2014 11:28:32 +0000
-Message-ID: <20140228112831.GC697@macbook.localnet>
-References: <1393512980-28780-1-git-send-email-kaber@trash.net>
- <1393512980-28780-2-git-send-email-kaber@trash.net>
- <20140227194734.GV8264@linux.vnet.ibm.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [nf-next PATCH 3/5] netfilter: avoid race with exp->master ct
+Date: Fri, 28 Feb 2014 12:30:37 +0100
+Message-ID: <20140228123037.568fdcd9@redhat.com>
+References: <20140227182220.25907.12758.stgit@dragon>
+ <20140227182340.25907.6773.stgit@dragon>
+ <20140227213452.GE9965@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	josh@joshtriplett.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33509 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbaB1L2f (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Feb 2014 06:28:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20140227194734.GV8264@linux.vnet.ibm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140227213452.GE9965@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Feb 27, 2014 at 11:47:34AM -0800, Paul E. McKenney wrote:
-> On Thu, Feb 27, 2014 at 02:56:20PM +0000, Patrick McHardy wrote:
-> 
-> A few comments below, one suggested change.  With or without that change,
-> but with the changes suggested by Josh Triplett:
-> 
-> Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+On Thu, 27 Feb 2014 22:34:52 +0100
+Florian Westphal <fw@strlen.de> wrote:
 
-Thanks Paul!
-
-> > +static void nft_hash_chain_unzip(const struct nft_set *set,
-> > +				 const struct nft_hash_table *ntbl,
-> > +				 struct nft_hash_table *tbl, unsigned int n)
-> > +{
-> > +	struct nft_hash_elem *he, *last, *next;
-> > +	unsigned int h;
-> 
-> Not seeing any per-hash-chain locking, so the table is presumably globally
-> locked.  (Also no locks in the hash-bucket data structure, so to be
-> expected.)  This would mean that insertions and deletions can be blocked
-> for some milliseconds by resize operations, but presumably this is OK
-> for your workload.
-
-Correct, all nftables operations are serialized by the nfnetlink nftables
-mutex. The number of grace periods required should be very low (1-2), so
-hopefully this won't matter. We do require more in other contexts already.
-
-> > +	he = nft_dereference(tbl->buckets[n]);
-> > +	if (he == NULL)
-> > +		return;
-> > +	h = nft_hash_data(&he->key, ntbl->size, set->klen);
-> > +
-> > +	/* Find last element of first chain hashing to bucket h */
-> > +	last = he;
-> > +	nft_hash_for_each_entry(he, he->next) {
-> > +		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
-> > +			break;
-> > +		last = he;
-> > +	}
-> > +
-> > +	/* Unlink first chain from the old table */
-> > +	RCU_INIT_POINTER(tbl->buckets[n], last->next);
-> 
-> The above surprised me, but reading further, I see that you have a
-> synchronized_rcu() in nft_hash_tbl_expand() between publishing the new
-> hash table and doing the first round of unzip.
-> 
-> (And no, it should not have surprised me, given that this is exactly
-> what the paper says to do, but hey!)
-> 
-> RCU_INIT_POINTER() is correct here because the data being linked is
-> already exposed to readers.  Ditto for the other RCU_INIT_POINTER()
-> instances in this patch.
-
-Thanks! I've put the synchonrize_rcu() in the caller to make it more obvious
-at which points it synchronizes.
-
-> > +static int nft_hash_tbl_expand(const struct nft_set *set, struct nft_hash *priv)
-> > +{
-> > +	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
-> > +	struct nft_hash_elem *he;
-> > +	unsigned int i, h;
-> > +	bool complete;
-> > +
-> > +	ntbl = nft_hash_tbl_alloc(tbl->size * 2);
-> > +	if (ntbl == NULL)
-> > +		return -ENOMEM;
-> > +
-> > +	/* Link new table's buckets to first element in the old table
-> > +	 * hashing to the new bucket.
-> > +	 */
-> > +	for (i = 0; i < ntbl->size; i++) {
-> > +		h = i < tbl->size ? i : i - tbl->size;
-> > +		nft_hash_for_each_entry(he, tbl->buckets[h]) {
-> > +			if (nft_hash_data(&he->key, ntbl->size, set->klen) != i)
-> > +				continue;
-> > +			RCU_INIT_POINTER(ntbl->buckets[i], he);
-> > +			break;
-> > +		}
-> > +	}
-> > +	ntbl->elements = tbl->elements;
-> > +
-> > +	/* Publish new table */
-> > +	rcu_assign_pointer(priv->tbl, ntbl);
-> > +
-> > +	/* Unzip interleaved hash chains */
-> > +	do {
-> > +		/* Wait for readers to use new table/unzipped chains */
-> > +		synchronize_rcu();
-> > +
-> > +		complete = true;
-> > +		for (i = 0; i < tbl->size; i++) {
-> > +			nft_hash_chain_unzip(set, ntbl, tbl, i);
-> > +			if (tbl->buckets[i] != NULL)
-> > +				complete = false;
-> 
-> Probably not worth it, but you could track the first and last elements
-> needing unzipping.
-
-Do you mean for the table iteration? Yeah, good point, I didn't think of
-that. Will try whether it can be done easily without affecting readability
-too much.
-
-> > @@ -129,12 +293,13 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
-> >  			  struct nft_set_iter *iter)
-> >  {
-> >  	const struct nft_hash *priv = nft_set_priv(set);
-> > +	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
-> >  	const struct nft_hash_elem *he;
-> >  	struct nft_set_elem elem;
-> >  	unsigned int i;
+> Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+> > Preparation for disconnecting the nf_conntrack_lock from the
+> > expectations code.  Once the nf_conntrack_lock is lifted, a race
+> > condition is exposed.
 > > 
-> > -	for (i = 0; i < priv->hsize; i++) {
-> > -		hlist_for_each_entry(he, &priv->hash[i], hnode) {
-> > +	for (i = 0; i < tbl->size; i++) {
-> > +		nft_hash_for_each_entry(he, tbl->buckets[i]) {
-> >  			if (iter->count < iter->skip)
-> >  				goto cont;
+> > The expectations master conntrack exp->master, can race with
+> > delete operations, as the refcnt increment happens too late in
+> > init_conntrack().  Race is against other CPUs invoking
+> > ->destroy() (destroy_conntrack()), or nf_ct_delete() (via timeout
+> > or early_drop()).
+> > 
+> > Avoid this race in nf_ct_find_expectation() by using atomic_inc_not_zero(),
+> > and checking if nf_ct_is_dying() (path via nf_ct_delete()).
+> > 
+> > Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> > 
+> >  net/netfilter/nf_conntrack_core.c   |    2 +-
+> >  net/netfilter/nf_conntrack_expect.c |   16 +++++++++++++++-
+> >  2 files changed, 16 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > index ac85fd1..a822720 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -898,6 +898,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+> >  			 ct, exp);
+> >  		/* Welcome, Mr. Bond.  We've been expecting you... */
+> >  		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+> > +		/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+> >  		ct->master = exp->master;
+> >  		if (exp->helper) {
+> >  			help = nf_ct_helper_ext_add(ct, exp->helper,
+> > @@ -912,7 +913,6 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+> >  #ifdef CONFIG_NF_CONNTRACK_SECMARK
+> >  		ct->secmark = exp->master->secmark;
+> >  #endif
+> > -		nf_conntrack_get(&ct->master->ct_general);
+> >  		NF_CT_STAT_INC(net, expect_new);
+> >  	} else {
+> >  		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
+> > diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+> > index 4fd1ca9..2c4ffdb 100644
+> > --- a/net/netfilter/nf_conntrack_expect.c
+> > +++ b/net/netfilter/nf_conntrack_expect.c
+> > @@ -147,13 +147,27 @@ nf_ct_find_expectation(struct net *net, u16 zone,
+> >  	if (!exp)
+> >  		return NULL;
+> >  
+> > +	/* Avoid race with other CPUs, that for exp->master ct, is
+> > +	 * about to invoke ->destroy(), or nf_ct_delete() via timeout
+> > +	 * or early_drop().
+> > +	 *
+> > +	 * The atomic_inc_not_zero() check tells:  If that fails, we
+> > +	 * know that the ct is being destroyed.  If it succeeds, we
+> > +	 * can be sure the ct cannot disappear underneath.
+> > +	 */
+> > +	if (unlikely(nf_ct_is_dying(exp->master) ||
+> > +		     !atomic_inc_not_zero(&exp->master->ct_general.use)))
+> > +		return NULL;
+> > +
+> >  	/* If master is not in hash table yet (ie. packet hasn't left
+> >  	   this machine yet), how can other end know about expected?
+> >  	   Hence these are not the droids you are looking for (if
+> >  	   master ct never got confirmed, we'd hold a reference to it
+> >  	   and weird things would happen to future packets). */
+> > -	if (!nf_ct_is_confirmed(exp->master))
+> > +	if (!nf_ct_is_confirmed(exp->master)) {
+> > +		atomic_dec(&exp->master->ct_general.use);
+> >  		return NULL;
+> > +	}
 > 
-> I might be confused, but it looks like the "iter->count++" in the code
-> below this (not in this patch) could be added to the for() statement,
-> the "goto cont" be made into "continue", and the "cont" label eliminated.
+> Not sure if this is safe.
+> 
+> What about:
+> CPU0: atomic_inc_not_zero()
+> CPU1: calls nf_conntrack_put()
+> CPU0: atomic_dec() -> zero refcnt without invocation of ->destroy
 
-Not entirely. ->walk() is used for netlink dumps and loop checks. In case
-of netlink dumps, it can be interrupted if the dump skb is full. In that
-case we need to skip the amount of elements we've already dumped. Since
-we don't know the amounts of elements in each chain, we really need to
-iterate over all of them and count them.
+Okay, so, you are saying CPU0 should use nf_ct_put() or nf_conntrack_put().
 
-What would be possible is to store two values, the hash bucket number and
-the amounts of elements to skip within that bucket. I'm considering this
-for other reasons as well, but it will need an API change, so if I change
-it I will do it at a later point.
+> [ Cannot happen now because of nf_conntrack_lock ]
+> 
+> I'd suggest to test nf_ct_is_confirmed() first, it avoids the need to
+> undo the atomic_inc_not_zero.
 
-Thanks for your review!
+Okay, guess that should be okay.
+
+> You also need to deal with the "timer-deletion-fails" a bit later in the same
+> function:
+> 
+>         if (exp->flags & NF_CT_EXPECT_PERMANENT) {
+>                 atomic_inc(&exp->use);
+>                 return exp;
+>         } else if (del_timer(&exp->timeout)) {
+>                 nf_ct_unlink_expect(exp);
+>                 return exp;
+>         }
+> 	// Problem: exp->master ref was bumped
+> 	nf_ct_put(exp->master); // missing
+>         return NULL;
+
+True, and yes, use of use nf_ct_put() or nf_conntrack_put() would be
+necessary here instead of manual refcnt dec.
+
+Thanks for your review, I will fix it up...
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
