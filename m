@@ -1,161 +1,158 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [nf-next PATCH 0/5] (repost) netfilter: conntrack:
- optimization, remove central spinlock
-Date: Fri, 28 Feb 2014 10:47:38 +0100
-Message-ID: <20140228104738.6707b8f1@redhat.com>
-References: <20140227182220.25907.12758.stgit@dragon>
- <20140227.183415.788592676169519032.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: nft_hash: bug fixes and resizing
+Date: Fri, 28 Feb 2014 11:28:32 +0000
+Message-ID: <20140228112831.GC697@macbook.localnet>
+References: <1393512980-28780-1-git-send-email-kaber@trash.net>
+ <1393512980-28780-2-git-send-email-kaber@trash.net>
+ <20140227194734.GV8264@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com,
-	pablo@netfilter.org, netdev@vger.kernel.org, fw@strlen.de,
-	kaber@trash.net
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	josh@joshtriplett.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1271 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751596AbaB1Kue (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Feb 2014 05:50:34 -0500
-In-Reply-To: <20140227.183415.788592676169519032.davem@davemloft.net>
+Received: from stinky.trash.net ([213.144.137.162]:33509 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732AbaB1L2f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Feb 2014 06:28:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20140227194734.GV8264@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 27 Feb 2014 18:34:15 -0500 (EST)
-David Miller <davem@davemloft.net> wrote:
-
-> From: Jesper Dangaard Brouer <brouer@redhat.com>
-> Date: Thu, 27 Feb 2014 19:23:24 +0100
+On Thu, Feb 27, 2014 at 11:47:34AM -0800, Paul E. McKenney wrote:
+> On Thu, Feb 27, 2014 at 02:56:20PM +0000, Patrick McHardy wrote:
 > 
-> > (Repost to netfilter-devel list)
+> A few comments below, one suggested change.  With or without that change,
+> but with the changes suggested by Josh Triplett:
+> 
+> Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+
+Thanks Paul!
+
+> > +static void nft_hash_chain_unzip(const struct nft_set *set,
+> > +				 const struct nft_hash_table *ntbl,
+> > +				 struct nft_hash_table *tbl, unsigned int n)
+> > +{
+> > +	struct nft_hash_elem *he, *last, *next;
+> > +	unsigned int h;
+> 
+> Not seeing any per-hash-chain locking, so the table is presumably globally
+> locked.  (Also no locks in the hash-bucket data structure, so to be
+> expected.)  This would mean that insertions and deletions can be blocked
+> for some milliseconds by resize operations, but presumably this is OK
+> for your workload.
+
+Correct, all nftables operations are serialized by the nfnetlink nftables
+mutex. The number of grace periods required should be very low (1-2), so
+hopefully this won't matter. We do require more in other contexts already.
+
+> > +	he = nft_dereference(tbl->buckets[n]);
+> > +	if (he == NULL)
+> > +		return;
+> > +	h = nft_hash_data(&he->key, ntbl->size, set->klen);
+> > +
+> > +	/* Find last element of first chain hashing to bucket h */
+> > +	last = he;
+> > +	nft_hash_for_each_entry(he, he->next) {
+> > +		if (nft_hash_data(&he->key, ntbl->size, set->klen) != h)
+> > +			break;
+> > +		last = he;
+> > +	}
+> > +
+> > +	/* Unlink first chain from the old table */
+> > +	RCU_INIT_POINTER(tbl->buckets[n], last->next);
+> 
+> The above surprised me, but reading further, I see that you have a
+> synchronized_rcu() in nft_hash_tbl_expand() between publishing the new
+> hash table and doing the first round of unzip.
+> 
+> (And no, it should not have surprised me, given that this is exactly
+> what the paper says to do, but hey!)
+> 
+> RCU_INIT_POINTER() is correct here because the data being linked is
+> already exposed to readers.  Ditto for the other RCU_INIT_POINTER()
+> instances in this patch.
+
+Thanks! I've put the synchonrize_rcu() in the caller to make it more obvious
+at which points it synchronizes.
+
+> > +static int nft_hash_tbl_expand(const struct nft_set *set, struct nft_hash *priv)
+> > +{
+> > +	struct nft_hash_table *tbl = nft_dereference(priv->tbl), *ntbl;
+> > +	struct nft_hash_elem *he;
+> > +	unsigned int i, h;
+> > +	bool complete;
+> > +
+> > +	ntbl = nft_hash_tbl_alloc(tbl->size * 2);
+> > +	if (ntbl == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	/* Link new table's buckets to first element in the old table
+> > +	 * hashing to the new bucket.
+> > +	 */
+> > +	for (i = 0; i < ntbl->size; i++) {
+> > +		h = i < tbl->size ? i : i - tbl->size;
+> > +		nft_hash_for_each_entry(he, tbl->buckets[h]) {
+> > +			if (nft_hash_data(&he->key, ntbl->size, set->klen) != i)
+> > +				continue;
+> > +			RCU_INIT_POINTER(ntbl->buckets[i], he);
+> > +			break;
+> > +		}
+> > +	}
+> > +	ntbl->elements = tbl->elements;
+> > +
+> > +	/* Publish new table */
+> > +	rcu_assign_pointer(priv->tbl, ntbl);
+> > +
+> > +	/* Unzip interleaved hash chains */
+> > +	do {
+> > +		/* Wait for readers to use new table/unzipped chains */
+> > +		synchronize_rcu();
+> > +
+> > +		complete = true;
+> > +		for (i = 0; i < tbl->size; i++) {
+> > +			nft_hash_chain_unzip(set, ntbl, tbl, i);
+> > +			if (tbl->buckets[i] != NULL)
+> > +				complete = false;
+> 
+> Probably not worth it, but you could track the first and last elements
+> needing unzipping.
+
+Do you mean for the table iteration? Yeah, good point, I didn't think of
+that. Will try whether it can be done easily without affecting readability
+too much.
+
+> > @@ -129,12 +293,13 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
+> >  			  struct nft_set_iter *iter)
+> >  {
+> >  	const struct nft_hash *priv = nft_set_priv(set);
+> > +	const struct nft_hash_table *tbl = nft_dereference(priv->tbl);
+> >  	const struct nft_hash_elem *he;
+> >  	struct nft_set_elem elem;
+> >  	unsigned int i;
 > > 
-> > This patchset change the conntrack locking and provides a huge
-> > performance improvements.
-> > 
-> > This patchset is based upon Eric Dumazet's proposed patch:
-> >   http://thread.gmane.org/gmane.linux.network/268758/focus=47306
-> > I have in agreement with Eric Dumazet, taken over this patch (and
-> > turned it into a entire patchset).
-> > 
-> > Primary focus is to remove the central spinlock nf_conntrack_lock.
-> > This requires several steps to be acheived.
+> > -	for (i = 0; i < priv->hsize; i++) {
+> > -		hlist_for_each_entry(he, &priv->hash[i], hnode) {
+> > +	for (i = 0; i < tbl->size; i++) {
+> > +		nft_hash_for_each_entry(he, tbl->buckets[i]) {
+> >  			if (iter->count < iter->skip)
+> >  				goto cont;
 > 
-> I only worry about the raw_smp_processor_id()'s.
-> 
-> If preemption will be disabled in these contexts, then it's safe and
-> we can just use plain smp_processor_id().
+> I might be confused, but it looks like the "iter->count++" in the code
+> below this (not in this patch) could be added to the for() statement,
+> the "goto cont" be made into "continue", and the "cont" label eliminated.
 
-Most of the contexts are safe, one were not by mistake, and one is not.
-I've corrected the code (patch diff below) and tested with lockdep etc.
+Not entirely. ->walk() is used for netlink dumps and loop checks. In case
+of netlink dumps, it can be interrupted if the dump skb is full. In that
+case we need to skip the amount of elements we've already dumped. Since
+we don't know the amounts of elements in each chain, we really need to
+iterate over all of them and count them.
 
-> If preemption is not necessarily disabled in these spots, the use
-> is not correct.  We'll need to use get_cpu/put_cpu sequences, or
-> (considering what these patches are doing) something like:
-> 
-> 	struct ct_pcpu *pcpu;
-> 
-> 	/* add this conntrack to the (per cpu) unconfirmed list */
-> 	local_bh_disable();
-> 	ct->cpu = smp_processor_id();
-> 	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
-> 
-> 	spin_lock(&pcpu->lock);
-> 	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
-> 			     &pcpu->unconfirmed);
-> 	spin_unlock_bh(&pcpu->lock);
+What would be possible is to store two values, the hash bucket number and
+the amounts of elements to skip within that bucket. I'm considering this
+for other reasons as well, but it will need an API change, so if I change
+it I will do it at a later point.
 
--- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ac85fd1..289b279 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -192,34 +192,37 @@ clean_from_lists(struct nf_conn *ct)
- 	nf_ct_remove_expectations(ct);
- }
- 
-+/* must be called with local_bh_disable */
- static void nf_ct_add_to_dying_list(struct nf_conn *ct)
- {
- 	struct ct_pcpu *pcpu;
- 
- 	/* add this conntrack to the (per cpu) dying list */
--	ct->cpu = raw_smp_processor_id();
-+	ct->cpu = smp_processor_id();
- 	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
- 
--	spin_lock_bh(&pcpu->lock);
-+	spin_lock(&pcpu->lock);
- 	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 			     &pcpu->dying);
--	spin_unlock_bh(&pcpu->lock);
-+	spin_unlock(&pcpu->lock);
- }
- 
-+/* must be called with local_bh_disable */
- static void nf_ct_add_to_unconfirmed_list(struct nf_conn *ct)
- {
- 	struct ct_pcpu *pcpu;
- 
- 	/* add this conntrack to the (per cpu) unconfirmed list */
--	ct->cpu = raw_smp_processor_id();
-+	ct->cpu = smp_processor_id();
- 	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
- 
--	spin_lock_bh(&pcpu->lock);
-+	spin_lock(&pcpu->lock);
- 	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 			     &pcpu->unconfirmed);
--	spin_unlock_bh(&pcpu->lock);
-+	spin_unlock(&pcpu->lock);
- }
- 
-+/* must be called with local_bh_disable */
- static void nf_ct_del_from_dying_or_unconfirmed_list(struct nf_conn *ct)
- {
- 	struct ct_pcpu *pcpu;
-@@ -227,10 +230,10 @@ static void nf_ct_del_from_dying_or_unconfirmed_list(struct nf_conn *ct)
- 	/* We overload first tuple to link into unconfirmed or dying list.*/
- 	pcpu = per_cpu_ptr(nf_ct_net(ct)->ct.pcpu_lists, ct->cpu);
- 
--	spin_lock_bh(&pcpu->lock);
-+	spin_lock(&pcpu->lock);
- 	BUG_ON(hlist_nulls_unhashed(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode));
- 	hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
--	spin_unlock_bh(&pcpu->lock);
-+	spin_unlock(&pcpu->lock);
- }
- 
- static void
-@@ -511,10 +514,11 @@ void nf_conntrack_tmpl_insert(struct net *net, struct nf_conn *tmpl)
- 	nf_conntrack_get(&tmpl->ct_general);
- 
- 	/* add this conntrack to the (per cpu) tmpl list */
--	tmpl->cpu = raw_smp_processor_id();
-+	local_bh_disable();
-+	tmpl->cpu = smp_processor_id();
- 	pcpu = per_cpu_ptr(nf_ct_net(tmpl)->ct.pcpu_lists, tmpl->cpu);
- 
--	spin_lock_bh(&pcpu->lock);
-+	spin_lock(&pcpu->lock);
- 	/* Overload tuple linked list to put us in template list. */
- 	hlist_nulls_add_head_rcu(&tmpl->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 				 &pcpu->tmpl);
-@@ -921,11 +925,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 
- 	/* Now it is inserted into the unconfirmed list, bump refcount */
- 	nf_conntrack_get(&ct->ct_general);
--
--	spin_unlock_bh(&nf_conntrack_lock);
--
- 	nf_ct_add_to_unconfirmed_list(ct);
- 
-+	spin_unlock_bh(&nf_conntrack_lock);
- 
- 	if (exp) {
- 		if (exp->expectfn)
+Thanks for your review!
