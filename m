@@ -1,156 +1,87 @@
 From: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
-Subject: Re: change kmalloc into vmalloc for large memory
-	allocations
-Date: Mon, 3 Mar 2014 09:55:15 +0800
-Message-ID: <35FD53F367049845BC99AC72306C23D102844605F38E@CNBJMBX05.corpusers.net>
+Subject: RE: change kmalloc into vmalloc for large memory allocations
+Date: Mon, 3 Mar 2014 10:51:23 +0800
+Message-ID: <35FD53F367049845BC99AC72306C23D102844605F38F@CNBJMBX05.corpusers.net>
 References: <35FD53F367049845BC99AC72306C23D102844605F38C@CNBJMBX05.corpusers.net>
- <s5hlhwvb9q8.wl%tiwai@suse.de>
+ <53104ECA.4010702@freescale.com>
+ <35FD53F367049845BC99AC72306C23D102844605F38D@CNBJMBX05.corpusers.net>
+ <20140228163304.GA15614@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Cc: "'alsa-devel@alsa-project.org'" <alsa-devel@alsa-project.org>,
  "'broonie@opensource.wolfsonmicro.com'"
- <broonie@opensource.wolfsonmicro.com>,
+ <broonie@opensource.wolfsonmicro.com>, "'tiwai@suse.de'" <tiwai@suse.de>,
  "'fweisbec@gmail.com'" <fweisbec@gmail.com>,
- "'dmitry.torokhov@gmail.com'" <dmitry.torokhov@gmail.com>,
- "'coreteam@netfilter.org'" <coreteam@netfilter.org>,
+ "'perex@perex.cz'" <perex@perex.cz>, "'mingo@redhat.com'" <mingo@redhat.com>,
  "'linux-input@vger.kernel.org'" <linux-input@vger.kernel.org>,
  "'rydberg@euromail.se'" <rydberg@euromail.se>, "'lrg@ti.com'" <lrg@ti.com>,
  "'pablo@netfilter.org'" <pablo@netfilter.org>,
+ "'coreteam@netfilter.org'" <coreteam@netfilter.org>,
  "'linux-arm-msm@vger.kernel.org'" <linux-arm-msm@vger.kernel.org>,
  "'rostedt@goodmis.org'" <rostedt@goodmis.org>,
  "'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
- "'mingo@redhat.com'" <mingo@redhat.com>,
  "'linux-arm-kernel@lists.infradead.org'"
  <linux-arm-kernel@lists.infradead.org>,
- "'gregkh@linuxfoundation.org'" <gregkh@linuxfoundation.org>,
- "'linux-usb@vger.kernel.org'" <linux-us
-To: 'Takashi Iwai' <tiwai@suse.de>
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <s5hlhwvb9q8.wl%tiwai@suse.de>
+ "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
+ "'dmitry.torokhov@gmail.com'" <dmit
+To: "'gregkh@linuxfoundation.org'" <gregkh@linuxfoundation.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140228163304.GA15614@kroah.com>
 Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi  Takashi,
+Hi  greg,
 
-For this one:
+I am sorry,
+I make a mistake ,
+You are right ,
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/drivers/usb/gadget/f_mass_storage.c?h=master#n2724
+
+this one should not changed to use vmalloc,
+the buffer will be used by DMA，
+
+others should be safe to change:
+
 https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/sound/soc/soc-core.c?h=master#n3772
 
-in my kernel log,
-the allocation size 62496,
-about 62KB,
-I think need to  change to vmalloc .
-How do you think of it ?
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/netfilter/nf_conntrack_ftp.c?h=master#n603
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/netfilter/nf_conntrack_h323_main.c?h=master#n1849
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/netfilter/nf_conntrack_irc.c?h=master#n247
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/netfilter/nf_conntrack_sane.c?h=master#n195
 
-Logs:
-<4>[   11.469789] ------------[ cut here ]------------
-<4>[   11.469803] WARNING: at /media/00DE7FE2DE7FCE82/jb-mr2-yukon/kernel/include/linux/slub_def.h:265 __kmalloc+0x38/0x29c()
-<4>[   11.469811] size=62496 flags=80d0
-<4>[   11.469815] Modules linked in:
-<4>[   11.469835] [<c010c534>] (unwind_backtrace+0x0/0x11c) from [<c018ab04>] (warn_slowpath_common+0x4c/0x64)
-<4>[   11.469850] [<c018ab04>] (warn_slowpath_common+0x4c/0x64) from [<c018ab9c>] (warn_slowpath_fmt+0x2c/0x3c)
-<4>[   11.469864] [<c018ab9c>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0249ab4>] (__kmalloc+0x38/0x29c)
-<4>[   11.469879] [<c0249ab4>] (__kmalloc+0x38/0x29c) from [<c06a0124>] (snd_soc_register_card+0x184/0x104c)
-<4>[   11.469896] [<c06a0124>] (snd_soc_register_card+0x184/0x104c) from [<c088183c>] (msm8226_asoc_machine_probe+0x298/0x7f0)
-<4>[   11.469913] [<c088183c>] (msm8226_asoc_machine_probe+0x298/0x7f0) from [<c044b1fc>] (platform_drv_probe+0x14/0x18)
-<4>[   11.469927] [<c044b1fc>] (platform_drv_probe+0x14/0x18) from [<c0449f2c>] (driver_probe_device+0x134/0x334)
-<4>[   11.469940] [<c0449f2c>] (driver_probe_device+0x134/0x334) from [<c044a194>] (__driver_attach+0x68/0x8c)
-<4>[   11.469953] [<c044a194>] (__driver_attach+0x68/0x8c) from [<c044849c>] (bus_for_each_dev+0x48/0x80)
-<4>[   11.469965] [<c044849c>] (bus_for_each_dev+0x48/0x80) from [<c0449528>] (bus_add_driver+0x100/0x26c)
-<4>[   11.469978] [<c0449528>] (bus_add_driver+0x100/0x26c) from [<c044a66c>] (driver_register+0x9c/0x120)
-<4>[   11.469992] [<c044a66c>] (driver_register+0x9c/0x120) from [<c010052c>] (do_one_initcall+0x90/0x160)
-<4>[   11.470007] [<c010052c>] (do_one_initcall+0x90/0x160) from [<c0d00b74>] (kernel_init+0xec/0x1a8)
-<4>[   11.470022] [<c0d00b74>] (kernel_init+0xec/0x1a8) from [<c0106aec>] (kernel_thread_exit+0x0/0x8)
-<4>[   11.470030] ---[ end trace 1b75b31a2719ed4d ]---
+https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/drivers/input/evdev.c?h=master#n403
 
-BRs/ Yalin
+
+Thanks 
 -----Original Message-----
-From: Takashi Iwai [mailto:tiwai@suse.de] 
-Sent: Friday, February 28, 2014 10:20 PM
+From: 'gregkh@linuxfoundation.org' [mailto:gregkh@linuxfoundation.org] 
+Sent: Saturday, March 01, 2014 12:33 AM
 To: Wang, Yalin
-Cc: 'linux-kernel@vger.kernel.org'; 'linux-arm-msm@vger.kernel.org'; 'linux-arm-kernel@lists.infradead.org'; 'linux-input@vger.kernel.org'; 'balbi@ti.com'; 'gregkh@linuxfoundation.org'; 'lrg@ti.com'; 'broonie@opensource.wolfsonmicro.com'; 'perex@perex.cz'; 'pablo@netfilter.org'; 'kaber@trash.net'; 'davem@davemloft.net'; 'rostedt@goodmis.org'; 'fweisbec@gmail.com'; 'mingo@redhat.com'; 'dmitry.torokhov@gmail.com'; 'rydberg@euromail.se'; 'linux-usb@vger.kernel.org'; 'alsa-devel@alsa-project.org'; 'netfilter-devel@vger.kernel.org'; 'netfilter@vger.kernel.org'; 'coreteam@netfilter.org'; 'netdev@vger.kernel.org'
+Cc: 'Huang Shijie'; 'linux-kernel@vger.kernel.org'; 'linux-arm-msm@vger.kernel.org'; 'linux-arm-kernel@lists.infradead.org'; 'linux-input@vger.kernel.org'; 'balbi@ti.com'; 'lrg@ti.com'; 'broonie@opensource.wolfsonmicro.com'; 'perex@perex.cz'; 'tiwai@suse.de'; 'pablo@netfilter.org'; 'kaber@trash.net'; 'davem@davemloft.net'; 'rostedt@goodmis.org'; 'fweisbec@gmail.com'; 'mingo@redhat.com'; 'dmitry.torokhov@gmail.com'; 'rydberg@euromail.se'; 'linux-usb@vger.kernel.org'; 'alsa-devel@alsa-project.org'; 'netfilter-devel@vger.kernel.org'; 'netfilter@vger.kernel.org'; 'coreteam@netfilter.org'; 'netdev@vger.kernel.org'
 Subject: Re: change kmalloc into vmalloc for large memory allocations
 
-At Fri, 28 Feb 2014 16:15:23 +0800,
-Wang, Yalin wrote:
-> 
+On Fri, Feb 28, 2014 at 05:20:08PM +0800, Wang, Yalin wrote:
 > Hi
 > 
 > 
-> I find there is some drivers use kmalloc to allocate large Memorys 
-> during module_init,  some can be changed to use vmalloc To save some 
-> low mem, I add log in kernel to track , And list them here:
+> Yeah,
+> Dma buffer must be allocated by kmalloc,
 > 
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/drive
-> rs/usb/gadget/f_mass_storage.c?h=master#n2724
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/sound
-> /soc/soc-core.c?h=master#n3772
+> But the modules I list should can all be changed to use vmalloc, 
+> because the buffer is only used by software, Not by any hardware .
 
-At least the ASoC runtime case doesn't use the allocated memory as buffer, and they are allocated only once per device, thus it shouldn't be the problem you stated.  If it really consumes so much memory, we need to rethink, instead of allocating an array but allocate each object, for example.
+Are you sure about that?  The USB gadget driver needs DMA memory from what I can tell, have you tried your change out on a system that does not allow the USB controller to access non-DMA memory?
 
+And I agree with Steve, just fix the individual drivers, don't do a "hidden" change of where the memory is allocated from, that's not a good idea and will cause problems later.
 
-thanks,
-
-Takashi
-
-
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/n
-> etfilter/nf_conntrack_ftp.c?h=master#n603
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/n
-> etfilter/nf_conntrack_h323_main.c?h=master#n1849
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/n
-> etfilter/nf_conntrack_irc.c?h=master#n247
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/net/n
-> etfilter/nf_conntrack_sane.c?h=master#n195
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/will/linux.git/tree/drive
-> rs/input/evdev.c?h=master#n403
-> 
-> 
-> they allocate large memory from 10k~64K , this will use lots of low 
-> mem, instead if we use vmalloc for these drivers , it will be good for 
-> some devices like smart phone, we often encounter some errors like 
-> kmalloc failed because there is not enough low mem , especially when 
-> the device has physical memory less than 1GB .
-> 
-> 
-> could this module change the memory allocation into vmalloc ?
-> 
-> I was thinking that if we can introduce a helper function in kmalloc.h like this :
-> 
-> Kmalloc(size, flags)
-> {
-> 	If (size > PAGE_SIZE && flags&CAN_USE_VMALLOC_FLAG)
-> 		return vmalloc(size);
-> 	Else
-> 		return real_kmalloc(size);
-> }
-> 
-> Kfree(ptr)
-> {
-> 	If (is_vmalloc_addr(ptr))
-> 		Vfree(ptr);
-> 	Else
-> 		Kfree(ptr);
-> }
-> 
-> 
-> But we need add some flags to ensure always use kmalloc for Some 
-> special use (dma etc..)
-> 
-> How do you think of it ?
-> 
-> Thanks
-> 
-> 
-> 
+greg k-h
