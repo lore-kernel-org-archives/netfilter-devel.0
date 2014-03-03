@@ -1,61 +1,104 @@
-From: Patrick Schaaf <netdev@bof.de>
-Subject: Re: [nf_tables] suggestion: system-wide sets
-Date: Mon, 03 Mar 2014 11:32:14 +0100
-Message-ID: <4515053.884CkpCZ1T@rofl>
-References: <CAOkSjBjSzf3tmdBPtXtrrcPe1xXh5S4pp4znE2ek1dEr4LzKCQ@mail.gmail.com> <20140227140230.GA18385@macbook.localnet>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [nf-next PATCH V2 4/5] netfilter: conntrack: seperate expect
+ locking from nf_conntrack_lock
+Date: Mon, 3 Mar 2014 12:33:39 +0100
+Message-ID: <20140303123339.6f6d5c84@redhat.com>
+References: <20140228121529.20347.38300.stgit@dragon>
+	<20140228121731.20347.20481.stgit@dragon>
+	<20140228150852.GG9965@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mars.intermailgate.com ([80.242.145.70]:54200 "EHLO
-	mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751AbaCCKcU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Mar 2014 05:32:20 -0500
-In-Reply-To: <20140227140230.GA18385@macbook.localnet>
+Received: from mx1.redhat.com ([209.132.183.28]:61842 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753566AbaCCLd5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Mar 2014 06:33:57 -0500
+In-Reply-To: <20140228150852.GG9965@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 27 February 2014 14:02:30 Patrick McHardy wrote:
+On Fri, 28 Feb 2014 16:08:52 +0100
+Florian Westphal <fw@strlen.de> wrote:
 
-> Yeah, I agree. I think family wide sets and global (AF_UNSPEC) sets should
-> bet quite easy to add. However there's the question how to expose them
-> in the nft list table output. The idea is to be able to recreate the
-> current ruleset, including sets and elements, by parsing the output of
-> nft list table. If we don't include sets, the user will have to seperately
-> save and restore them. OTOH if we simply include global and AF-specific
-> sets, they will be restored once for each table and this will fail on
-> the second table.
+> Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+> > Netfilter expectations are protected with the same lock as conntrack
+> > entries (nf_conntrack_lock).  This patch split out expectations locking
+> > to use it's own lock (nf_conntrack_expect_lock).
+> > --- a/net/netfilter/nf_conntrack_helper.c
+> > +++ b/net/netfilter/nf_conntrack_helper.c
+> > @@ -258,7 +258,7 @@ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
+> >  
+> >  	if (help && rcu_dereference_protected(
+> >  			help->helper,
+> > -			lockdep_is_held(&nf_conntrack_lock)
+> > +			lockdep_is_held(&nf_conntrack_expect_lock)
+> >  			) == me) {
+> >  		nf_conntrack_event(IPCT_HELPER, ct);
+> >  		RCU_INIT_POINTER(help->helper, NULL);
 > 
-> Any other ideas?
+> Not sure if the lockdep_is_held is correct.
+> 
+> > @@ -399,13 +399,14 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+> >  	int cpu;
+> >  
+> >  	/* Get rid of expectations */
+> > +	spin_lock_bh(&nf_conntrack_expect_lock);
+> >  	for (i = 0; i < nf_ct_expect_hsize; i++) {
+> >  		hlist_for_each_entry_safe(exp, next,
+> >  					  &net->ct.expect_hash[i], hnode) {
+> >  			struct nf_conn_help *help = nfct_help(exp->master);
+> >  			if ((rcu_dereference_protected(
+> >  					help->helper,
+> > -					lockdep_is_held(&nf_conntrack_lock)
+> > +					lockdep_is_held(&nf_conntrack_expect_lock)
+> >  					) == me || exp->helper == me) &&
+> >  			    del_timer(&exp->timeout)) {
+> >  				nf_ct_unlink_expect(exp);
+> > @@ -413,6 +414,7 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+> >  			}
+> >  		}
+> >  	}
+> > +	spin_unlock_bh(&nf_conntrack_expect_lock);
+> 
+> expect_lock is released here but
+> 
+> >  	/* Get rid of expecteds, set helpers to NULL. */
+> >  	for_each_possible_cpu(cpu) {
+> 
+> will invoke unhelp()
+> 
+> AFAIU unhelp() is safe in all cases even without
+> nf_conntrack_expect_lock being held:
+> 
+> * in first loop we hold nf_conntrack_expect_lock
+> * in 2nd loop we are holding the list lock, i.e.
+>   if the ct is in the list it cannot disappear underneath
+> * in last loop you'll hold the hashed lock for the particular hash
+>   list, so can't go away either.
+> 
+> So I think the lockdep annotation in uhelp is incorrect and not the
+> patch itself.
 
-First of all I'd like to note that this needs-separate-saving, is exactly the 
-situation we have right now with ipset, so it is not something totally 
-unknown. Recreating a table that references nonexisting global sets, would 
-fail, just like loading / restoring iptables rules that reference nonexisting 
-ipsets, fails right now.
+Yes, I agree with your analysis.  The code is safe, and the lockdep
+annotation in unhelp is just incorrect.
 
-Alternatively - but I'm not sure how good an idea that would be - couldn't 
-such nonexisting set references somehow create "forward declarations" to 
-permit loading in any order, and threat as-yet-undefined sets as empty?
+I think I'm going to use rcu_dereference_raw() in unhelp this case, as
+I don't think I can use rcu_dereference() there (because we are not in a
+rcu read section).  And I'll add a comment to unhelp, that ct locking
+is needed.  Besides in the call points of unhelp, it is quite
+visible/clear that we are taking a lock protecting the ct's.
 
-An additional issue that I imagine we'd have, is set names clashing between 
-global and per-table sets. To this end, maybe it would be useful to have a 
-syntactic means to differentiate the two cases when referencing sets. Maybe 
-append a second '@' to reference global sets?
-
-nfd add rule ip input ip saddr @sharedset@
-
-Rule listing could be a bit flexibly when just a plain set name is given, 
-showing per table or global sets as they exist.
-
-Just some thoughts I have on the issue, looking from the outside. Use as you 
-see fit :)
-
-best regards
-  Patrick
+I'll send a V3 of the patchset soon with this update.
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
