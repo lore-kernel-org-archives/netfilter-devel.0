@@ -1,78 +1,76 @@
-From: Florian Westphal <fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nft] parser: support reject unreach|reset
-Date: Tue, 4 Mar 2014 10:03:07 +0100
-Message-ID: <20140304090307.GK9965@breakpoint.cc>
+Date: Tue, 4 Mar 2014 09:08:08 +0000
+Message-ID: <20140304090807.GE5094@macbook.localnet>
 References: <1393881146-12967-1-git-send-email-fw@strlen.de>
- <20140304085029.GC5094@macbook.localnet>
+ <1393882892.19488.14.camel@ice-age2.regit.org>
+ <20140303220351.GI9965@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55308 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756711AbaCDJDJ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:38216 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756480AbaCDJIL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2014 04:03:09 -0500
+	Tue, 4 Mar 2014 04:08:11 -0500
 Content-Disposition: inline
-In-Reply-To: <20140304085029.GC5094@macbook.localnet>
+In-Reply-To: <20140303220351.GI9965@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> On Mon, Mar 03, 2014 at 10:12:26PM +0100, Florian Westphal wrote:
-> > reject did not allow to use tcp reset instead of icmp unreach.
+On Mon, Mar 03, 2014 at 11:03:51PM +0100, Florian Westphal wrote:
+> Eric Leblond <eric@regit.org> wrote:
+> > > 
+> > >  In iptables this is avoided by making checkentry fail if -p tcp is not
+> > >  specified when tcp-reset is requested.
+> > >
+> > >  How should this be handled in nft?
 > > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  After this patch its possibe to do something like
+> > Good point. It looks a bit like what Patrick did mention in "Re:
+> > [nftables RFC PATCH 0/1] implementing icmp code filterin"
 > > 
-> >  rule filter output reject reset
-> 
-> Actually this looks a lot like "iptables thinking" :)
-
-*ahem* :)
-
-> Why not simply use "reset" as keyword?
-
-Yes, that would work as well.
-
-> >  Which makes kernel generate bogus tcp resets in repsonse
-> >  to non-tcp packets.
+> > "We do something similar in ct_expr_update_type() for ct expressions."
 > > 
-> >  In iptables this is avoided by making checkentry fail if -p tcp is not
-> >  specified when tcp-reset is requested.
-> > 
-> >  How should this be handled in nft?
+> > Idea is to update the entry and in this case to output an error if we
+> > don't have tcp. But I'm not sure we can access to the other expressions
+> > (and henve to the TCP or not info) in that point.
 > 
-> We could either add some infrastructure to the kernel to mimic the iptables
-> check, add runtime fallback to ICMP for non-TCP packets or simply ignore them.
+> Thanks for the pointer, this seems to work:
 > 
-> It shouldn't be difficult to check within the rule for the required matches,
-> however I'm not so sure this is really the way to go since it precludes
-> optimizations that spawn over multiple rules, f.i. checking for TCP before
-> a chain jump and have only TCP-specific rules in that chain.
-
-Good point.
-
-> I'm tending towards simply ignoring non-TCP packets at runtime.
-
-Eric, please let me know if you want to address all of this in your icmp
-code patch series, or if you would like me to handle this.
-
-If you want me to handle it I will resubmit this patch with the issues
-pointed out by Patrick resolved, plus a small kernel patch to not xmit
-reset for non-tcp packets.
-
-Otherwise I'll just mark this patch as "rejected" in patchwork.
-
-> >  %token _REJECT			"reject"
-> > +%token REJECT_RESET		"reset"
-> > +%token REJECT_UNREACH		"unreach"
+> static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
+> {
+>         if (stmt->reject.type == NFT_REJECT_TCP_RST) {
+>                 const struct proto_desc *desc;
+>                 desc = ctx->pctx.protocol[PROTO_BASE_TRANSPORT_HDR].desc;
+>                 if (desc != &proto_tcp)
+>                         return stmt_error(ctx, stmt, "reset option can only be used with tcp");
+>         }
 > 
-> Please don't use expression/statement-specific token names. We're simply
-> dealing with tokens, how they're used depends on the remaining grammar.
+>         stmt->flags |= STMT_F_TERMINAL;
+>         return 0;
+> }
 
-Makes sense.
+Yes, this is what we should do in userspace. As an add-on, we could (as we
+do for payload matches) add implicit matches if no TCP match is present,
+IOW, just as
 
-Thanks for your help Patrick.
+"filter output tcp dport ssh"
+
+really generates
+
+"filter output ip protocol tcp tcp dport ssh",
+
+"filter output reset"
+
+would generate
+
+"filter output ip protocol 6 reset"
+
+and only return an error if a conflicting protocol expression is specified.
+I'm not entirely sure whether we want to do this for statements or just for
+match expressions though, for now I guess just the check is fine.
+
+In the kernel we still should silently ignore packets that are not TCP,
+rules might be installed by other means than nft.
