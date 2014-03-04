@@ -1,76 +1,80 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft] parser: support reject unreach|reset
-Date: Tue, 4 Mar 2014 09:08:08 +0000
-Message-ID: <20140304090807.GE5094@macbook.localnet>
-References: <1393881146-12967-1-git-send-email-fw@strlen.de>
- <1393882892.19488.14.camel@ice-age2.regit.org>
- <20140303220351.GI9965@breakpoint.cc>
+Subject: Re: [nf_tables] suggestion: system-wide sets
+Date: Tue, 4 Mar 2014 09:20:13 +0000
+Message-ID: <20140304092013.GA5568@macbook.localnet>
+References: <CAOkSjBjSzf3tmdBPtXtrrcPe1xXh5S4pp4znE2ek1dEr4LzKCQ@mail.gmail.com>
+ <20140227140230.GA18385@macbook.localnet>
+ <4515053.884CkpCZ1T@rofl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick Schaaf <netdev@bof.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38216 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38301 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756480AbaCDJIL (ORCPT
+	with ESMTP id S1756677AbaCDJUR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2014 04:08:11 -0500
+	Tue, 4 Mar 2014 04:20:17 -0500
 Content-Disposition: inline
-In-Reply-To: <20140303220351.GI9965@breakpoint.cc>
+In-Reply-To: <4515053.884CkpCZ1T@rofl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 03, 2014 at 11:03:51PM +0100, Florian Westphal wrote:
-> Eric Leblond <eric@regit.org> wrote:
-> > > 
-> > >  In iptables this is avoided by making checkentry fail if -p tcp is not
-> > >  specified when tcp-reset is requested.
-> > >
-> > >  How should this be handled in nft?
-> > 
-> > Good point. It looks a bit like what Patrick did mention in "Re:
-> > [nftables RFC PATCH 0/1] implementing icmp code filterin"
-> > 
-> > "We do something similar in ct_expr_update_type() for ct expressions."
-> > 
-> > Idea is to update the entry and in this case to output an error if we
-> > don't have tcp. But I'm not sure we can access to the other expressions
-> > (and henve to the TCP or not info) in that point.
+On Mon, Mar 03, 2014 at 11:32:14AM +0100, Patrick Schaaf wrote:
+> On Thursday 27 February 2014 14:02:30 Patrick McHardy wrote:
 > 
-> Thanks for the pointer, this seems to work:
+> > Yeah, I agree. I think family wide sets and global (AF_UNSPEC) sets should
+> > bet quite easy to add. However there's the question how to expose them
+> > in the nft list table output. The idea is to be able to recreate the
+> > current ruleset, including sets and elements, by parsing the output of
+> > nft list table. If we don't include sets, the user will have to seperately
+> > save and restore them. OTOH if we simply include global and AF-specific
+> > sets, they will be restored once for each table and this will fail on
+> > the second table.
+> > 
+> > Any other ideas?
 > 
-> static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
-> {
->         if (stmt->reject.type == NFT_REJECT_TCP_RST) {
->                 const struct proto_desc *desc;
->                 desc = ctx->pctx.protocol[PROTO_BASE_TRANSPORT_HDR].desc;
->                 if (desc != &proto_tcp)
->                         return stmt_error(ctx, stmt, "reset option can only be used with tcp");
->         }
+> First of all I'd like to note that this needs-separate-saving, is exactly the 
+> situation we have right now with ipset, so it is not something totally 
+> unknown. Recreating a table that references nonexisting global sets, would 
+> fail, just like loading / restoring iptables rules that reference nonexisting 
+> ipsets, fails right now.
+
+Right, but it makes atomic replacements of the ruleset either asymetrical
+to saving them or simply impossible. Sets are considered a part of the rulset.
+
+> Alternatively - but I'm not sure how good an idea that would be - couldn't 
+> such nonexisting set references somehow create "forward declarations" to 
+> permit loading in any order, and threat as-yet-undefined sets as empty?
+
+That would mean any typo in set names would create an empty set instead of
+an error. I don't think this is a good idea.
+
+> An additional issue that I imagine we'd have, is set names clashing between 
+> global and per-table sets. To this end, maybe it would be useful to have a 
+> syntactic means to differentiate the two cases when referencing sets. Maybe 
+> append a second '@' to reference global sets?
 > 
->         stmt->flags |= STMT_F_TERMINAL;
->         return 0;
-> }
+> nfd add rule ip input ip saddr @sharedset@
 
-Yes, this is what we should do in userspace. As an add-on, we could (as we
-do for payload matches) add implicit matches if no TCP match is present,
-IOW, just as
+The alternative would be scoping, we need to look up in multiple scopes
+anyways. AF-specific overrides global.
 
-"filter output tcp dport ssh"
+> Rule listing could be a bit flexibly when just a plain set name is given, 
+> showing per table or global sets as they exist.
 
-really generates
+Yeah, that definitely makes sense, we don't want to dump all global sets
+if they're not even used within a table. Actually even easier would be
+to not show them at all outside of the AF_UNSPEC family and require the
+user to restore in the correct order when using global sets. We do support
+file inclusions etc. that make this easy to handle. A full dump (all AFs)
+would simply begin with AF_UNSPEC and be restorable without any manual
+intervention.
 
-"filter output ip protocol tcp tcp dport ssh",
+> Just some thoughts I have on the issue, looking from the outside. Use as you 
+> see fit :)
 
-"filter output reset"
-
-would generate
-
-"filter output ip protocol 6 reset"
-
-and only return an error if a conflicting protocol expression is specified.
-I'm not entirely sure whether we want to do this for statements or just for
-match expressions though, for now I guess just the check is fine.
-
-In the kernel we still should silently ignore packets that are not TCP,
-rules might be installed by other means than nft.
+Thanks.
