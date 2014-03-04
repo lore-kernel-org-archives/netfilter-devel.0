@@ -1,80 +1,54 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC PATCH 2/2] netfilter: nft_hash: use set global element counter instead of private one
-Date: Tue,  4 Mar 2014 16:41:07 +0100
-Message-ID: <1393947667-6143-3-git-send-email-kaber@trash.net>
-References: <1393947667-6143-1-git-send-email-kaber@trash.net>
+Subject: [RFC PATCH 0/2] netfilter: nf_tables: set selection
+Date: Tue,  4 Mar 2014 16:41:05 +0100
+Message-ID: <1393947667-6143-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41020 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41017 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907AbaCDPlu (ORCPT
+	with ESMTP id S1751494AbaCDPlt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2014 10:41:50 -0500
-In-Reply-To: <1393947667-6143-1-git-send-email-kaber@trash.net>
+	Tue, 4 Mar 2014 10:41:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that nf_tables performs global accounting of set elements, it is not
-needed in the hash type anymore.
+The following patch adds the beginning of proper set selection based on
+a description of the set characteristics.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/nft_hash.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+The basic idea is that userspace provides a description of the set
+elements and the kernel selects the best suited implementation according
+to a policy provided by userspace (performance/memory).
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index c0ede25b..bfb732d 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -27,7 +27,6 @@ struct nft_hash {
- 
- struct nft_hash_table {
- 	unsigned int			size;
--	unsigned int			elements;
- 	struct nft_hash_elem __rcu	*buckets[];
- };
- 
-@@ -166,7 +165,6 @@ static int nft_hash_tbl_expand(const struct nft_set *set, struct nft_hash *priv)
- 			break;
- 		}
- 	}
--	ntbl->elements = tbl->elements;
- 
- 	/* Publish new table */
- 	rcu_assign_pointer(priv->tbl, ntbl);
-@@ -206,7 +204,6 @@ static int nft_hash_tbl_shrink(const struct nft_set *set, struct nft_hash *priv)
- 			;
- 		RCU_INIT_POINTER(*pprev, tbl->buckets[i + ntbl->size]);
- 	}
--	ntbl->elements = tbl->elements;
- 
- 	/* Publish new table */
- 	rcu_assign_pointer(priv->tbl, ntbl);
-@@ -242,10 +239,9 @@ static int nft_hash_insert(const struct nft_set *set,
- 	h = nft_hash_data(&he->key, tbl->size, set->klen);
- 	RCU_INIT_POINTER(he->next, tbl->buckets[h]);
- 	rcu_assign_pointer(tbl->buckets[h], he);
--	tbl->elements++;
- 
- 	/* Expand table when exceeding 75% load */
--	if (tbl->elements > tbl->size / 4 * 3)
-+	if (set->nelems + 1 > tbl->size / 4 * 3)
- 		nft_hash_tbl_expand(set, priv);
- 
- 	return 0;
-@@ -273,10 +269,9 @@ static void nft_hash_remove(const struct nft_set *set,
- 	RCU_INIT_POINTER(*pprev, he->next);
- 	synchronize_rcu();
- 	kfree(he);
--	tbl->elements--;
- 
- 	/* Shrink table beneath 30% load */
--	if (tbl->elements < tbl->size * 3 / 10 &&
-+	if (set->nelems - 1 < tbl->size * 3 / 10 &&
- 	    tbl->size > NFT_HASH_MIN_SIZE)
- 		nft_hash_tbl_shrink(set, priv);
- }
--- 
-1.8.5.3
+We have two cases:
 
+- literal (anonymous/constant) sets where all elements are known in advance
+- set declarations where elements might or might not be known in advance
+
+In the first case userspace can provide all the information we need, in the
+second case the user can provide hints that allow us to select something
+based on the expected use case.
+
+So far all the information we need is the maximum amount of elements in the
+set. The performance class of both the rbtree and the hash (with resizing)
+is fixed, the expected memory use depends purely on the amount of elements.
+
+In case that userspace provides that information, the set implementation
+calculate an estimate, otherwise we use the per-element costs to decide.
+
+Instead of adding more information based on what we expect future
+implementations might need, I decided to start simple and we can add more
+information whenever the need arises for a new set implementation. Since
+the type of information required is expected to be quite similar for
+most set types, we should approach a state where a new set implementation
+will have all the data it needs available. Otherwise things won't fail,
+but old userspace might not take advantage of a better suited
+implementation.
+
+With these patches in place, we will usually select the hash implementation,
+unless we require support for interval lookups, in which case we'll use
+the rbtree.
+
+Patches apply on top of the RCU hash resizing patch I just sent.
+
+Comments welcome.
