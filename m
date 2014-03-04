@@ -1,47 +1,58 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] ip_set: remove extraneous log message
-Date: Tue, 4 Mar 2014 21:47:26 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1403042145590.17684@blackhole.kfki.hu>
-References: <1393794424-1887-1-git-send-email-Jason@zx2c4.com>
+Subject: [ANNOUNCE] ipset 6.21 released
+Date: Tue, 4 Mar 2014 22:12:26 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1403042207250.17838@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:53417 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757466AbaCDUra (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Mar 2014 15:47:30 -0500
-In-Reply-To: <1393794424-1887-1-git-send-email-Jason@zx2c4.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2 Mar 2014, Jason A. Donenfeld wrote:
+Hi,
 
-> This code path is hit everytime a new network namespace is created,
-> which means it runs everytime I start Chromium, resulting in needless
-> noise in my logs. This message doesn't add very much at all, and isn't
-> triggered at the correct place anyway, so this patch simply removes it.
-> 
-> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
-> ---
->  net/netfilter/ipset/ip_set_core.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index de770ec..283f197 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -1945,7 +1945,6 @@ ip_set_net_init(struct net *net)
->  		return -ENOMEM;
->  	inst->is_deleted = 0;
->  	rcu_assign_pointer(inst->ip_set_list, list);
-> -	pr_notice("ip_set: protocol %u\n", IPSET_PROTOCOL);
->  	return 0;
->  }
+I'm happy to announce ipset 6.21, which, besides bugfixes and corrections, 
+includes the new set type hash:ip,mark from Vytas Dauksa and the forceadd 
+option from Josh Hunt. See the updated manpage about these new features.
+ 
+Userspace changes:
+  - ipset: add userspace support for forceadd (Josh Hunt)
+  - kernel: uapi: fix MARKMASK attr ABI breakage (Florian Westphal)
+  - lib: fix ifname 'physdev:' prefix parsing (Florian Westphal)
+  - Prepare the kernel for create option flags when no extension is needed
+  - print mark & mark mask in hex rather then decimal (Vytas Dauksa)
+  - add markmask for hash:ip,mark data type (Vytas Dauksa)
+  - add hash:ip,mark data type to ipset (Vytas Dauksa)
+  - ipset: manpage: correct add action synopsis for hash:net,port,net.
+    (Mart Frauenlob)
+  - ipset: manpage: remove spare comma for hash:net,net test action.
+    (Mart Frauenlob)
+  - Fix all set output from list/save when set with counters in use.
+    (Sergey Popovich)
+  - ipset: Fix malformed output from list/save for ICMP types in port 
+    field (Sergey Popovich)
+  - ipset: fix timeout data type size (Nikolay Martynov)
 
-A similar patch has already been applied to the ipset git tree and going 
-to be submitted this week. Thanks your patch anyway.
+Kernel part changes:
+  - ipset: add forceadd kernel support for hash set types (Josh Hunt)
+  - netfilter: ipset: move registration message to init from net_init
+    (Ilia Mirkin)
+  - kernel: uapi: fix MARKMASK attr ABI breakage (Florian Westphal)
+  - Prepare the kernel for create option flags when no extension is needed
+  - add markmask for hash:ip,mark data type (Vytas Dauksa)
+  - add hash:ip,mark data type to ipset (Vytas Dauksa)
+  - ipset: remove unused code (Stephen Hemminger)
+  - netfilter: ipset: Add hash: fix coccinelle warnings (Fengguang Wu)
+  - Typo in ip_set_hash_netnet.c fixed (David Binderman)
+  - net ipset: use rbtree postorder iteration instead of opencoding
+    (Cody P Schafer)
+  - ipset: Follow manual page behavior for SET target on list:set
+    (Sergey Popovich)
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
 Best regards,
 Jozsef
