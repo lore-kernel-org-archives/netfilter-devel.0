@@ -1,92 +1,216 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/8] ipset patches for nf-next
-Date: Thu,  6 Mar 2014 10:23:40 +0100
-Message-ID: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 4/8] netfilter: ipset: add markmask for hash:ip,mark data type
+Date: Thu,  6 Mar 2014 10:23:44 +0100
+Message-ID: <1394097828-27901-5-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:53947 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:48210 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753064AbaCFJXw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2014 04:23:52 -0500
+	id S1753068AbaCFJXx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Mar 2014 04:23:53 -0500
+In-Reply-To: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Vytas Dauksa <vytas.dauksa@smoothwall.net>
 
-Please consider to apply the next series of patches:
+Introduce packet mark mask for hash:ip,mark data type. This allows to
+set mark bit filter for the ip set.
 
-* Follow the manual page behavior for the SET target at list:set
-  type of sets when the set contains both inet and inet6 type of sets,
-  from Sergey Popovich
-* Fix coccinelle warnings about 0/1 return values instead of false/true,
-  from Fengguang Wu
-* Introduce the hash:ip,mark hash type from Vytas Dauksa
-* Add markmask option to hash:ip,mark type from Vytas Dauksa
-* Prepare the kernel for create option flags when no extension is needed
-  from Jozsef Kadlecsik
-* Fix ABI breakage by the markmask option patch, from Florian Westphal
-* Move registration message to init from net_init from Ilia Mirkin
-* Add forceadd kernel support for hash set types from Josh Hunt.
+Change-Id: Id8dd9ca7e64477c4f7b022a1d9c1a5b187f1c96e
 
-You can pull the changes from
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/uapi/linux/netfilter/ipset/ip_set.h |    2 ++
+ net/netfilter/ipset/ip_set_hash_gen.h       |   31 +++++++++++++++++++++++++++
+ net/netfilter/ipset/ip_set_hash_ipmark.c    |    9 ++++++++
+ 3 files changed, 42 insertions(+)
 
-	git://blackhole.kfki.hu/nf-next master
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
+index 5368f82..f636f28 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -89,6 +89,7 @@ enum {
+ 	IPSET_ATTR_GC,
+ 	IPSET_ATTR_HASHSIZE,
+ 	IPSET_ATTR_MAXELEM,
++	IPSET_ATTR_MARKMASK,
+ 	IPSET_ATTR_NETMASK,
+ 	IPSET_ATTR_PROBES,
+ 	IPSET_ATTR_RESIZE,
+@@ -138,6 +139,7 @@ enum ipset_errno {
+ 	IPSET_ERR_EXIST,
+ 	IPSET_ERR_INVALID_CIDR,
+ 	IPSET_ERR_INVALID_NETMASK,
++	IPSET_ERR_INVALID_MARKMASK,
+ 	IPSET_ERR_INVALID_FAMILY,
+ 	IPSET_ERR_TIMEOUT,
+ 	IPSET_ERR_REFERENCED,
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index be6932a..b1eed81 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -263,6 +263,9 @@ struct htype {
+ 	u32 maxelem;		/* max elements in the hash */
+ 	u32 elements;		/* current element (vs timeout) */
+ 	u32 initval;		/* random jhash init value */
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	u32 markmask;		/* markmask value for mark mask to store */
++#endif
+ 	struct timer_list gc;	/* garbage collection when timeout enabled */
+ 	struct mtype_elem next; /* temporary storage for uadd */
+ #ifdef IP_SET_HASH_WITH_MULTI
+@@ -454,6 +457,9 @@ mtype_same_set(const struct ip_set *a, const struct ip_set *b)
+ #ifdef IP_SET_HASH_WITH_NETMASK
+ 	       x->netmask == y->netmask &&
+ #endif
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	       x->markmask == y->markmask &&
++#endif
+ 	       a->extensions == b->extensions;
+ }
+ 
+@@ -908,6 +914,10 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+ 	    nla_put_u8(skb, IPSET_ATTR_NETMASK, h->netmask))
+ 		goto nla_put_failure;
+ #endif
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	if (nla_put_u32(skb, IPSET_ATTR_MARKMASK, h->markmask))
++		goto nla_put_failure;
++#endif
+ 	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+ 	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
+ 		goto nla_put_failure;
+@@ -1016,6 +1026,9 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 			    struct nlattr *tb[], u32 flags)
+ {
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	u32 markmask;
++#endif
+ 	u8 hbits;
+ #ifdef IP_SET_HASH_WITH_NETMASK
+ 	u8 netmask;
+@@ -1026,6 +1039,10 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
++
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	markmask = 0xffffffff;
++#endif
+ #ifdef IP_SET_HASH_WITH_NETMASK
+ 	netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
+ 	pr_debug("Create set %s with family %s\n",
+@@ -1034,6 +1051,9 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 
+ 	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_HASHSIZE) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_MAXELEM) ||
++#ifdef IP_SET_HASH_WITH_MARKMASK
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_MARKMASK) ||
++#endif
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+@@ -1057,6 +1077,14 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 			return -IPSET_ERR_INVALID_NETMASK;
+ 	}
+ #endif
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	if (tb[IPSET_ATTR_MARKMASK]) {
++		markmask = ntohl(nla_get_u32(tb[IPSET_ATTR_MARKMASK]));
++
++		if ((markmask > 4294967295u) || markmask == 0)
++			return -IPSET_ERR_INVALID_MARKMASK;
++	}
++#endif
+ 
+ 	hsize = sizeof(*h);
+ #ifdef IP_SET_HASH_WITH_NETS
+@@ -1071,6 +1099,9 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ #ifdef IP_SET_HASH_WITH_NETMASK
+ 	h->netmask = netmask;
+ #endif
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	h->markmask = markmask;
++#endif
+ 	get_random_bytes(&h->initval, sizeof(h->initval));
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
+index e56c0d9..1bf8e85 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
+@@ -34,6 +34,7 @@ MODULE_ALIAS("ip_set_hash:ip,mark");
+ 
+ /* Type specific function prefix */
+ #define HTYPE		hash_ipmark
++#define IP_SET_HASH_WITH_MARKMASK
+ 
+ /* IPv4 variant */
+ 
+@@ -85,11 +86,13 @@ hash_ipmark4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+ 		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
++	const struct hash_ipmark *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipmark4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	e.mark = skb->mark;
++	e.mark &= h->markmask;
+ 
+ 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+@@ -122,6 +125,7 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ret;
+ 
+ 	e.mark = ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
++	e.mark &= h->markmask;
+ 
+ 	if (adt == IPSET_TEST ||
+ 	    !(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR])) {
+@@ -213,11 +217,13 @@ hash_ipmark6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+ 		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
++	const struct hash_ipmark *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipmark6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	e.mark = skb->mark;
++	e.mark &= h->markmask;
+ 
+ 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+@@ -227,6 +233,7 @@ static int
+ hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
++	const struct hash_ipmark *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipmark6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+@@ -250,6 +257,7 @@ hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ret;
+ 
+ 	e.mark = ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
++	e.mark &= h->markmask;
+ 
+ 	if (adt == IPSET_TEST) {
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+@@ -275,6 +283,7 @@ static struct ip_set_type hash_ipmark_type __read_mostly = {
+ 	.revision_max	= IPSET_TYPE_REV_MAX,
+ 	.create		= hash_ipmark_create,
+ 	.create_policy	= {
++		[IPSET_ATTR_MARKMASK]	= { .type = NLA_U32 },
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+ 		[IPSET_ATTR_MAXELEM]	= { .type = NLA_U32 },
+ 		[IPSET_ATTR_PROBES]	= { .type = NLA_U8 },
+-- 
+1.7.10.4
 
-Thanks,
-Jozsef
-----------------------------------------------------------------
-
-The following changes since commit 0768b3b3d228c5acf2075f40f3d25cda30011d4f:
-
-  netfilter: nf_tables: add optional user data area to rules (2014-02-27 16:56:00 +0100)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 07cf8f5ae2657ac495b906c68ff3441ff8ba80ba:
-
-  netfilter: ipset: add forceadd kernel support for hash set types (2014-03-06 09:31:43 +0100)
-
-----------------------------------------------------------------
-Fengguang Wu (1):
-      netfilter: ipset: Add hash: fix coccinelle warnings
-
-Florian Westphal (1):
-      netfilter: ipset: kernel: uapi: fix MARKMASK attr ABI breakage
-
-Ilia Mirkin (1):
-      netfilter: ipset: move registration message to init from net_init
-
-Josh Hunt (1):
-      netfilter: ipset: add forceadd kernel support for hash set types
-
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Prepare the kernel for create option flags when no extension is needed
-
-Sergey Popovich (1):
-      netfilter: ipset: Follow manual page behavior for SET target on list:set
-
-Vytas Dauksa (2):
-      netfilter: ipset: add hash:ip,mark data type to ipset
-      netfilter: ipset: add markmask for hash:ip,mark data type
-
- include/linux/netfilter/ipset/ip_set.h       |   15 +-
- include/uapi/linux/netfilter/ipset/ip_set.h  |   12 +
- net/netfilter/ipset/Kconfig                  |    9 +
- net/netfilter/ipset/Makefile                 |    1 +
- net/netfilter/ipset/ip_set_core.c            |    8 +-
- net/netfilter/ipset/ip_set_hash_gen.h        |   43 ++++
- net/netfilter/ipset/ip_set_hash_ip.c         |    3 +-
- net/netfilter/ipset/ip_set_hash_ipmark.c     |  321 ++++++++++++++++++++++++++
- net/netfilter/ipset/ip_set_hash_ipport.c     |    3 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c   |    3 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |    3 +-
- net/netfilter/ipset/ip_set_hash_net.c        |    3 +-
- net/netfilter/ipset/ip_set_hash_netiface.c   |    3 +-
- net/netfilter/ipset/ip_set_hash_netnet.c     |   10 +-
- net/netfilter/ipset/ip_set_hash_netport.c    |    3 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c |    3 +-
- 16 files changed, 423 insertions(+), 20 deletions(-)
- create mode 100644 net/netfilter/ipset/ip_set_hash_ipmark.c
