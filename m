@@ -1,38 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [nf-next PATCH V3 0/5] netfilter: conntrack: optimization,
  remove central spinlock
-Date: Thu, 6 Mar 2014 23:53:39 +0100
-Message-ID: <20140306225339.GE17526@breakpoint.cc>
+Date: Thu, 06 Mar 2014 15:37:57 -0800
+Message-ID: <1394149077.27473.46.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <20140303134319.2615.9293.stgit@dragon>
+	 <20140306225339.GE17526@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	netfilter-devel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Florian Westphal <fw@strlen.de>,
 	Patrick McHardy <kaber@trash.net>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42298 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750790AbaCFWxp (ORCPT
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:56550 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbaCFXh7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2014 17:53:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20140303134319.2615.9293.stgit@dragon>
+	Thu, 6 Mar 2014 18:37:59 -0500
+In-Reply-To: <20140306225339.GE17526@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Dangaard Brouer <brouer@redhat.com> wrote:
-> This patchset is based upon Eric Dumazet's proposed patch:
->   http://thread.gmane.org/gmane.linux.network/268758/focus=47306
-> I have in agreement with Eric Dumazet, taken over this patch (and
-> turned it into a entire patchset).
+On Thu, 2014-03-06 at 23:53 +0100, Florian Westphal wrote:
+> Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+> > This patchset is based upon Eric Dumazet's proposed patch:
+> >   http://thread.gmane.org/gmane.linux.network/268758/focus=47306
+> > I have in agreement with Eric Dumazet, taken over this patch (and
+> > turned it into a entire patchset).
+> 
+> FWIW I think that this series should be merged for 3.15, thus:
+> 
+> Reviewed-by: Florian Westphal <fw@strlen.de>
+> 
+> I see no more issues with these patches, thanks Jesper for resurrecting
+> Erics work.
+> --
 
-FWIW I think that this series should be merged for 3.15, thus:
+Indeed, thanks so much Jesper !
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
 
-I see no more issues with these patches, thanks Jesper for resurrecting
-Erics work.
