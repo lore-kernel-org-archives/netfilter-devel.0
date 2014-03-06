@@ -1,443 +1,271 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 3/8] netfilter: ipset: add hash:ip,mark data type to ipset
-Date: Thu,  6 Mar 2014 10:23:43 +0100
-Message-ID: <1394097828-27901-4-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 8/8] netfilter: ipset: add forceadd kernel support for hash set types
+Date: Thu,  6 Mar 2014 10:23:48 +0100
+Message-ID: <1394097828-27901-9-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:53948 "EHLO smtp0.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:57388 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753063AbaCFJXw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753065AbaCFJXw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 6 Mar 2014 04:23:52 -0500
 In-Reply-To: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+From: Josh Hunt <johunt@akamai.com>
 
-Introduce packet mark support with new ip,mark hash set. This includes
-userspace and kernelspace code, hash:ip,mark set tests and man page
-updates.
+Adds a new property for hash set types, where if a set is created
+with the 'forceadd' option and the set becomes full the next addition
+to the set may succeed and evict a random entry from the set.
 
-The intended use of ip,mark set is similar to the ip:port type, but for
-protocols which don't use a predictable port number. Instead of port
-number it matches a firewall mark determined by a layer 7 filtering
-program like opendpi.
+To keep overhead low eviction is done very simply. It checks to see
+which bucket the new entry would be added. If the bucket's pos value
+is non-zero (meaning there's at least one entry in the bucket) it
+replaces the first entry in the bucket. If pos is zero, then it continues
+down the normal add process.
 
-As well as allowing or blocking traffic it will also be used for
-accounting packets and bytes sent for each protocol.
+This property is useful if you have a set for 'ban' lists where it may
+not matter if you release some entries from the set early.
 
+Signed-off-by: Josh Hunt <johunt@akamai.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      |   10 +-
- include/uapi/linux/netfilter/ipset/ip_set.h |    1 +
- net/netfilter/ipset/Kconfig                 |    9 +
- net/netfilter/ipset/Makefile                |    1 +
- net/netfilter/ipset/ip_set_hash_ipmark.c    |  312 +++++++++++++++++++++++++++
- 5 files changed, 329 insertions(+), 4 deletions(-)
- create mode 100644 net/netfilter/ipset/ip_set_hash_ipmark.c
+ include/linux/netfilter/ipset/ip_set.h       |    3 +++
+ include/uapi/linux/netfilter/ipset/ip_set.h  |    7 +++++--
+ net/netfilter/ipset/ip_set_core.c            |    2 ++
+ net/netfilter/ipset/ip_set_hash_gen.h        |   12 ++++++++++++
+ net/netfilter/ipset/ip_set_hash_ip.c         |    3 ++-
+ net/netfilter/ipset/ip_set_hash_ipmark.c     |    2 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c     |    3 ++-
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |    3 ++-
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |    3 ++-
+ net/netfilter/ipset/ip_set_hash_net.c        |    3 ++-
+ net/netfilter/ipset/ip_set_hash_netiface.c   |    3 ++-
+ net/netfilter/ipset/ip_set_hash_netnet.c     |    2 +-
+ net/netfilter/ipset/ip_set_hash_netport.c    |    3 ++-
+ net/netfilter/ipset/ip_set_hash_netportnet.c |    3 ++-
+ 14 files changed, 40 insertions(+), 12 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 0c7d01e..4ac00d4 100644
+index f476bce..96afc29 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -39,11 +39,13 @@ enum ip_set_feature {
- 	IPSET_TYPE_NAME = (1 << IPSET_TYPE_NAME_FLAG),
- 	IPSET_TYPE_IFACE_FLAG = 5,
- 	IPSET_TYPE_IFACE = (1 << IPSET_TYPE_IFACE_FLAG),
--	IPSET_TYPE_NOMATCH_FLAG = 6,
-+	IPSET_TYPE_MARK_FLAG = 6,
-+	IPSET_TYPE_MARK = (1 << IPSET_TYPE_MARK_FLAG),
-+	IPSET_TYPE_NOMATCH_FLAG = 7,
- 	IPSET_TYPE_NOMATCH = (1 << IPSET_TYPE_NOMATCH_FLAG),
- 	/* Strictly speaking not a feature, but a flag for dumping:
- 	 * this settype must be dumped last */
--	IPSET_DUMP_LAST_FLAG = 7,
-+	IPSET_DUMP_LAST_FLAG = 8,
- 	IPSET_DUMP_LAST = (1 << IPSET_DUMP_LAST_FLAG),
- };
+@@ -65,6 +65,7 @@ enum ip_set_extension {
+ #define SET_WITH_TIMEOUT(s)	((s)->extensions & IPSET_EXT_TIMEOUT)
+ #define SET_WITH_COUNTER(s)	((s)->extensions & IPSET_EXT_COUNTER)
+ #define SET_WITH_COMMENT(s)	((s)->extensions & IPSET_EXT_COMMENT)
++#define SET_WITH_FORCEADD(s)	((s)->flags & IPSET_CREATE_FLAG_FORCEADD)
  
-@@ -171,8 +173,6 @@ struct ip_set_type {
- 	char name[IPSET_MAXNAMELEN];
- 	/* Protocol version */
- 	u8 protocol;
--	/* Set features to control swapping */
--	u8 features;
- 	/* Set type dimension */
- 	u8 dimension;
- 	/*
-@@ -182,6 +182,8 @@ struct ip_set_type {
- 	u8 family;
- 	/* Type revisions */
- 	u8 revision_min, revision_max;
-+	/* Set features to control swapping */
-+	u16 features;
+ /* Extension id, in size order */
+ enum ip_set_ext_id {
+@@ -255,6 +256,8 @@ ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
+ 		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
+ 	if (SET_WITH_COMMENT(set))
+ 		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
++	if (SET_WITH_FORCEADD(set))
++		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
  
- 	/* Create set */
- 	int (*create)(struct net *net, struct ip_set *set,
+ 	if (!cadt_flags)
+ 		return 0;
 diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index 25d3b2f..5368f82 100644
+index a1ca244..78c2f2e 100644
 --- a/include/uapi/linux/netfilter/ipset/ip_set.h
 +++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -82,6 +82,7 @@ enum {
- 	IPSET_ATTR_PROTO,	/* 7 */
- 	IPSET_ATTR_CADT_FLAGS,	/* 8 */
- 	IPSET_ATTR_CADT_LINENO = IPSET_ATTR_LINENO,	/* 9 */
-+	IPSET_ATTR_MARK,	/* 10 */
- 	/* Reserve empty slots */
- 	IPSET_ATTR_CADT_MAX = 16,
- 	/* Create-only specific attributes */
-diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
-index 44cd4f5..2f7f5c3 100644
---- a/net/netfilter/ipset/Kconfig
-+++ b/net/netfilter/ipset/Kconfig
-@@ -61,6 +61,15 @@ config IP_SET_HASH_IP
+@@ -185,13 +185,16 @@ enum ipset_cadt_flags {
+ 	IPSET_FLAG_WITH_COUNTERS = (1 << IPSET_FLAG_BIT_WITH_COUNTERS),
+ 	IPSET_FLAG_BIT_WITH_COMMENT = 4,
+ 	IPSET_FLAG_WITH_COMMENT = (1 << IPSET_FLAG_BIT_WITH_COMMENT),
++	IPSET_FLAG_BIT_WITH_FORCEADD = 5,
++	IPSET_FLAG_WITH_FORCEADD = (1 << IPSET_FLAG_BIT_WITH_FORCEADD),
+ 	IPSET_FLAG_CADT_MAX	= 15,
+ };
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ /* The flag bits which correspond to the non-extension create flags */
+ enum ipset_create_flags {
+-	IPSET_CREATE_FLAG_NONE = 0,
+-	IPSET_CREATE_FLAG_MAX = 7,
++	IPSET_CREATE_FLAG_BIT_FORCEADD = 0,
++	IPSET_CREATE_FLAG_FORCEADD = (1 << IPSET_CREATE_FLAG_BIT_FORCEADD),
++	IPSET_CREATE_FLAG_BIT_MAX = 7,
+ };
  
-+config IP_SET_HASH_IPMARK
-+	tristate "hash:ip,mark set support"
-+	depends on IP_SET
-+	help
-+	  This option adds the hash:ip,mark set type support, by which one
-+	  can store IPv4/IPv6 address and mark pairs.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config IP_SET_HASH_IPPORT
- 	tristate "hash:ip,port set support"
- 	depends on IP_SET
-diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
-index 44b2d38..231f101 100644
---- a/net/netfilter/ipset/Makefile
-+++ b/net/netfilter/ipset/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_IP_SET_BITMAP_PORT) += ip_set_bitmap_port.o
+ /* Commands with settype-specific attributes */
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 636cb8d..1172083 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -368,6 +368,8 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
  
- # hash types
- obj-$(CONFIG_IP_SET_HASH_IP) += ip_set_hash_ip.o
-+obj-$(CONFIG_IP_SET_HASH_IPMARK) += ip_set_hash_ipmark.o
- obj-$(CONFIG_IP_SET_HASH_IPPORT) += ip_set_hash_ipport.o
- obj-$(CONFIG_IP_SET_HASH_IPPORTIP) += ip_set_hash_ipportip.o
- obj-$(CONFIG_IP_SET_HASH_IPPORTNET) += ip_set_hash_ipportnet.o
+ 	if (tb[IPSET_ATTR_CADT_FLAGS])
+ 		cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
++	if (cadt_flags & IPSET_FLAG_WITH_FORCEADD)
++		set->flags |= IPSET_CREATE_FLAG_FORCEADD;
+ 	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
+ 		if (!add_extension(id, cadt_flags, tb))
+ 			continue;
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index b1eed81..61c7fb0 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -633,6 +633,18 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	bool flag_exist = flags & IPSET_FLAG_EXIST;
+ 	u32 key, multi = 0;
+ 
++	if (h->elements >= h->maxelem && SET_WITH_FORCEADD(set)) {
++		rcu_read_lock_bh();
++		t = rcu_dereference_bh(h->table);
++		key = HKEY(value, h->initval, t->htable_bits);
++		n = hbucket(t,key);
++		if (n->pos) {
++			/* Choosing the first entry in the array to replace */
++			j = 0;
++			goto reuse_slot;
++		}
++		rcu_read_unlock_bh();
++	}
+ 	if (SET_WITH_TIMEOUT(set) && h->elements >= h->maxelem)
+ 		/* FIXME: when set is full, we slow down here */
+ 		mtype_expire(set, h, NLEN(set->family), set->dsize);
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index e65fc24..dd40607 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -25,7 +25,8 @@
+ 
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1	   Counters support */
+-#define IPSET_TYPE_REV_MAX	2	/* Comments support */
++/*				2	   Comments support */
++#define IPSET_TYPE_REV_MAX	3	/* Forceadd support */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
 diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
-new file mode 100644
-index 0000000..e56c0d9
---- /dev/null
+index 1bf8e85..4eff0a2 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
-@@ -0,0 +1,312 @@
-+/* Copyright (C) 2003-2013 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+ * Copyright (C) 2013 Smoothwall Ltd. <vytas.dauksa@smoothwall.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/* Kernel module implementing an IP set type: the hash:ip,mark type */
-+
-+#include <linux/jhash.h>
-+#include <linux/module.h>
-+#include <linux/ip.h>
-+#include <linux/skbuff.h>
-+#include <linux/errno.h>
-+#include <linux/random.h>
-+#include <net/ip.h>
-+#include <net/ipv6.h>
-+#include <net/netlink.h>
-+#include <net/tcp.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/ipset/pfxlen.h>
-+#include <linux/netfilter/ipset/ip_set.h>
-+#include <linux/netfilter/ipset/ip_set_hash.h>
-+
-+#define IPSET_TYPE_REV_MIN	0
-+#define IPSET_TYPE_REV_MAX	0
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Vytas Dauksa <vytas.dauksa@smoothwall.net>");
-+IP_SET_MODULE_DESC("hash:ip,mark", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
-+MODULE_ALIAS("ip_set_hash:ip,mark");
-+
-+/* Type specific function prefix */
-+#define HTYPE		hash_ipmark
-+
-+/* IPv4 variant */
-+
-+/* Member elements */
-+struct hash_ipmark4_elem {
-+	__be32 ip;
-+	__u32 mark;
-+};
-+
-+/* Common functions */
-+
-+static inline bool
-+hash_ipmark4_data_equal(const struct hash_ipmark4_elem *ip1,
-+			const struct hash_ipmark4_elem *ip2,
-+			u32 *multi)
-+{
-+	return ip1->ip == ip2->ip &&
-+	       ip1->mark == ip2->mark;
-+}
-+
-+static bool
-+hash_ipmark4_data_list(struct sk_buff *skb,
-+		       const struct hash_ipmark4_elem *data)
-+{
-+	if (nla_put_ipaddr4(skb, IPSET_ATTR_IP, data->ip) ||
-+	    nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return 1;
-+}
-+
-+static inline void
-+hash_ipmark4_data_next(struct hash_ipmark4_elem *next,
-+		       const struct hash_ipmark4_elem *d)
-+{
-+	next->ip = d->ip;
-+}
-+
-+#define MTYPE           hash_ipmark4
-+#define PF              4
-+#define HOST_MASK       32
-+#define HKEY_DATALEN	sizeof(struct hash_ipmark4_elem)
-+#include "ip_set_hash_gen.h"
-+
-+static int
-+hash_ipmark4_kadt(struct ip_set *set, const struct sk_buff *skb,
-+		  const struct xt_action_param *par,
-+		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmark4_elem e = { };
-+	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+
-+	e.mark = skb->mark;
-+
-+	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-+	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+}
-+
-+static int
-+hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
-+		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
-+{
-+	const struct hash_ipmark *h = set->data;
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmark4_elem e = { };
-+	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-+	u32 ip, ip_to = 0;
-+	int ret;
-+
-+	if (unlikely(!tb[IPSET_ATTR_IP] ||
-+		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (tb[IPSET_ATTR_LINENO])
-+		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
-+
-+	ret = ip_set_get_ipaddr4(tb[IPSET_ATTR_IP], &e.ip) ||
-+	      ip_set_get_extensions(set, tb, &ext);
-+	if (ret)
-+		return ret;
-+
-+	e.mark = ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
-+
-+	if (adt == IPSET_TEST ||
-+	    !(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR])) {
-+		ret = adtfn(set, &e, &ext, &ext, flags);
-+		return ip_set_eexist(ret, flags) ? 0 : ret;
-+	}
-+
-+	ip_to = ip = ntohl(e.ip);
-+	if (tb[IPSET_ATTR_IP_TO]) {
-+		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
-+		if (ret)
-+			return ret;
-+		if (ip > ip_to)
-+			swap(ip, ip_to);
-+	} else if (tb[IPSET_ATTR_CIDR]) {
-+		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+
-+		if (!cidr || cidr > 32)
-+			return -IPSET_ERR_INVALID_CIDR;
-+		ip_set_mask_from_to(ip, ip_to, cidr);
-+	}
-+
-+	if (retried)
-+		ip = ntohl(h->next.ip);
-+	for (; !before(ip_to, ip); ip++) {
-+		e.ip = htonl(ip);
-+		ret = adtfn(set, &e, &ext, &ext, flags);
-+
-+		if (ret && !ip_set_eexist(ret, flags))
-+			return ret;
-+		else
-+			ret = 0;
-+	}
-+	return ret;
-+}
-+
-+/* IPv6 variant */
-+
-+struct hash_ipmark6_elem {
-+	union nf_inet_addr ip;
-+	__u32 mark;
-+};
-+
-+/* Common functions */
-+
-+static inline bool
-+hash_ipmark6_data_equal(const struct hash_ipmark6_elem *ip1,
-+			const struct hash_ipmark6_elem *ip2,
-+			u32 *multi)
-+{
-+	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
-+	       ip1->mark == ip2->mark;
-+}
-+
-+static bool
-+hash_ipmark6_data_list(struct sk_buff *skb,
-+		       const struct hash_ipmark6_elem *data)
-+{
-+	if (nla_put_ipaddr6(skb, IPSET_ATTR_IP, &data->ip.in6) ||
-+	    nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return 1;
-+}
-+
-+static inline void
-+hash_ipmark6_data_next(struct hash_ipmark4_elem *next,
-+		       const struct hash_ipmark6_elem *d)
-+{
-+}
-+
-+#undef MTYPE
-+#undef PF
-+#undef HOST_MASK
-+#undef HKEY_DATALEN
-+
-+#define MTYPE		hash_ipmark6
-+#define PF		6
-+#define HOST_MASK	128
-+#define HKEY_DATALEN	sizeof(struct hash_ipmark6_elem)
-+#define	IP_SET_EMIT_CREATE
-+#include "ip_set_hash_gen.h"
-+
-+
-+static int
-+hash_ipmark6_kadt(struct ip_set *set, const struct sk_buff *skb,
-+		  const struct xt_action_param *par,
-+		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmark6_elem e = { };
-+	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+
-+	e.mark = skb->mark;
-+
-+	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-+	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+}
-+
-+static int
-+hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
-+		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmark6_elem e = { };
-+	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-+	int ret;
-+
-+	if (unlikely(!tb[IPSET_ATTR_IP] ||
-+		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
-+		     tb[IPSET_ATTR_IP_TO] ||
-+		     tb[IPSET_ATTR_CIDR]))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (tb[IPSET_ATTR_LINENO])
-+		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
-+
-+	ret = ip_set_get_ipaddr6(tb[IPSET_ATTR_IP], &e.ip) ||
-+	      ip_set_get_extensions(set, tb, &ext);
-+	if (ret)
-+		return ret;
-+
-+	e.mark = ntohl(nla_get_u32(tb[IPSET_ATTR_MARK]));
-+
-+	if (adt == IPSET_TEST) {
-+		ret = adtfn(set, &e, &ext, &ext, flags);
-+		return ip_set_eexist(ret, flags) ? 0 : ret;
-+	}
-+
-+	ret = adtfn(set, &e, &ext, &ext, flags);
-+	if (ret && !ip_set_eexist(ret, flags))
-+		return ret;
-+	else
-+		ret = 0;
-+
-+	return ret;
-+}
-+
-+static struct ip_set_type hash_ipmark_type __read_mostly = {
-+	.name		= "hash:ip,mark",
-+	.protocol	= IPSET_PROTOCOL,
-+	.features	= IPSET_TYPE_IP | IPSET_TYPE_MARK,
-+	.dimension	= IPSET_DIM_TWO,
-+	.family		= NFPROTO_UNSPEC,
-+	.revision_min	= IPSET_TYPE_REV_MIN,
-+	.revision_max	= IPSET_TYPE_REV_MAX,
-+	.create		= hash_ipmark_create,
-+	.create_policy	= {
-+		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_MAXELEM]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_PROBES]	= { .type = NLA_U8 },
-+		[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
-+		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-+	},
-+	.adt_policy	= {
-+		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-+		[IPSET_ATTR_IP_TO]	= { .type = NLA_NESTED },
-+		[IPSET_ATTR_MARK]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_CIDR]	= { .type = NLA_U8 },
-+		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_LINENO]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
-+	},
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init
-+hash_ipmark_init(void)
-+{
-+	return ip_set_type_register(&hash_ipmark_type);
-+}
-+
-+static void __exit
-+hash_ipmark_fini(void)
-+{
-+	ip_set_type_unregister(&hash_ipmark_type);
-+}
-+
-+module_init(hash_ipmark_init);
-+module_exit(hash_ipmark_fini);
+@@ -25,7 +25,7 @@
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+ #define IPSET_TYPE_REV_MIN	0
+-#define IPSET_TYPE_REV_MAX	0
++#define IPSET_TYPE_REV_MAX	1	/* Forceadd support */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Vytas Dauksa <vytas.dauksa@smoothwall.net>");
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 525a595..7597b82 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -27,7 +27,8 @@
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1    SCTP and UDPLITE support added */
+ /*				2    Counters support added */
+-#define IPSET_TYPE_REV_MAX	3 /* Comments support added */
++/*				3    Comments support added */
++#define IPSET_TYPE_REV_MAX	4 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index f563663..672655f 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -27,7 +27,8 @@
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1    SCTP and UDPLITE support added */
+ /*				2    Counters support added */
+-#define IPSET_TYPE_REV_MAX	3 /* Comments support added */
++/*				3    Comments support added */
++#define IPSET_TYPE_REV_MAX	4 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 5d87fe8..7308d84 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -29,7 +29,8 @@
+ /*				2    Range as input support for IPv4 added */
+ /*				3    nomatch flag support added */
+ /*				4    Counters support added */
+-#define IPSET_TYPE_REV_MAX	5 /* Comments support added */
++/*				5    Comments support added */
++#define IPSET_TYPE_REV_MAX	6 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 8295cf4..4c7d495 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -26,7 +26,8 @@
+ /*				1    Range as input support for IPv4 added */
+ /*				2    nomatch flag support added */
+ /*				3    Counters support added */
+-#define IPSET_TYPE_REV_MAX	4 /* Comments support added */
++/*				4    Comments support added */
++#define IPSET_TYPE_REV_MAX	5 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index b827a0f..db26068 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -27,7 +27,8 @@
+ /*				1    nomatch flag support added */
+ /*				2    /0 support added */
+ /*				3    Counters support added */
+-#define IPSET_TYPE_REV_MAX	4 /* Comments support added */
++/*				4    Comments support added */
++#define IPSET_TYPE_REV_MAX	5 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 4e7261d..3e99987 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -24,7 +24,7 @@
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+ #define IPSET_TYPE_REV_MIN	0
+-#define IPSET_TYPE_REV_MAX	0
++#define IPSET_TYPE_REV_MAX	1	/* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>");
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index 7097fb0..1c645fb 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -28,7 +28,8 @@
+ /*				2    Range as input support for IPv4 added */
+ /*				3    nomatch flag support added */
+ /*				4    Counters support added */
+-#define IPSET_TYPE_REV_MAX	5 /* Comments support added */
++/*				5    Comments support added */
++#define IPSET_TYPE_REV_MAX	6 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 703d119..c0d2ba7 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -25,7 +25,8 @@
+ #include <linux/netfilter/ipset/ip_set_hash.h>
+ 
+ #define IPSET_TYPE_REV_MIN	0
+-#define IPSET_TYPE_REV_MAX	0 /* Comments support added */
++/*				0    Comments support added */
++#define IPSET_TYPE_REV_MAX	1 /* Forceadd support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>");
 -- 
 1.7.10.4
 
