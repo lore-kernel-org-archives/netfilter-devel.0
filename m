@@ -1,71 +1,55 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 6/8] netfilter: ipset: kernel: uapi: fix MARKMASK attr ABI breakage
-Date: Thu,  6 Mar 2014 10:23:46 +0100
-Message-ID: <1394097828-27901-7-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 5/8] netfilter: ipset: Prepare the kernel for create option flags when no extension is needed
+Date: Thu,  6 Mar 2014 10:23:45 +0100
+Message-ID: <1394097828-27901-6-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:53957 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:48207 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074AbaCFJXx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753066AbaCFJXx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 6 Mar 2014 04:23:53 -0500
 In-Reply-To: <1394097828-27901-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
-
-commit 2dfb973c0dcc6d2211 (add markmask for hash:ip,mark data type)
-inserted IPSET_ATTR_MARKMASK in-between other enum values, i.e.
-changing values of all further attributes.  This causes 'ipset list'
-segfault on existing kernels since ipset no longer finds
-IPSET_ATTR_MEMSIZE (it has a different value on kernel side).
-
-Jozsef points out it should be moved below IPSET_ATTR_MARK which
-works since there is some extra reserved space after that value.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/uapi/linux/netfilter/ipset/ip_set.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h      |    2 ++
+ include/uapi/linux/netfilter/ipset/ip_set.h |    6 ++++++
+ 2 files changed, 8 insertions(+)
 
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 4ac00d4..f476bce 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -219,6 +219,8 @@ struct ip_set {
+ 	u8 revision;
+ 	/* Extensions */
+ 	u8 extensions;
++	/* Create flags */
++	u8 flags;
+ 	/* Default timeout value, if enabled */
+ 	u32 timeout;
+ 	/* Element data size */
 diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index a29a378..a1ca244 100644
+index f636f28..a29a378 100644
 --- a/include/uapi/linux/netfilter/ipset/ip_set.h
 +++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -83,13 +83,13 @@ enum {
- 	IPSET_ATTR_CADT_FLAGS,	/* 8 */
- 	IPSET_ATTR_CADT_LINENO = IPSET_ATTR_LINENO,	/* 9 */
- 	IPSET_ATTR_MARK,	/* 10 */
-+	IPSET_ATTR_MARKMASK,	/* 11 */
- 	/* Reserve empty slots */
- 	IPSET_ATTR_CADT_MAX = 16,
- 	/* Create-only specific attributes */
- 	IPSET_ATTR_GC,
- 	IPSET_ATTR_HASHSIZE,
- 	IPSET_ATTR_MAXELEM,
--	IPSET_ATTR_MARKMASK,
- 	IPSET_ATTR_NETMASK,
- 	IPSET_ATTR_PROBES,
- 	IPSET_ATTR_RESIZE,
-@@ -139,7 +139,6 @@ enum ipset_errno {
- 	IPSET_ERR_EXIST,
- 	IPSET_ERR_INVALID_CIDR,
- 	IPSET_ERR_INVALID_NETMASK,
--	IPSET_ERR_INVALID_MARKMASK,
- 	IPSET_ERR_INVALID_FAMILY,
- 	IPSET_ERR_TIMEOUT,
- 	IPSET_ERR_REFERENCED,
-@@ -147,6 +146,7 @@ enum ipset_errno {
- 	IPSET_ERR_IPADDR_IPV6,
- 	IPSET_ERR_COUNTER,
- 	IPSET_ERR_COMMENT,
-+	IPSET_ERR_INVALID_MARKMASK,
+@@ -188,6 +188,12 @@ enum ipset_cadt_flags {
+ 	IPSET_FLAG_CADT_MAX	= 15,
+ };
  
- 	/* Type specific error codes */
- 	IPSET_ERR_TYPE_SPECIFIC = 4352,
++/* The flag bits which correspond to the non-extension create flags */
++enum ipset_create_flags {
++	IPSET_CREATE_FLAG_NONE = 0,
++	IPSET_CREATE_FLAG_MAX = 7,
++};
++
+ /* Commands with settype-specific attributes */
+ enum ipset_adt {
+ 	IPSET_ADD,
 -- 
 1.7.10.4
 
