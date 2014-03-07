@@ -1,97 +1,43 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next 2/2] ipvs: Reduce checkpatch noise in ip_vs_lblc.c
-Date: Fri,  7 Mar 2014 12:46:14 +0900
-Message-ID: <1394163974-25877-3-git-send-email-horms@verge.net.au>
-References: <1394163974-25877-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Tingwei Liu <tingw.liu@gmail.com>,
-	Tingwei Liu <liutingwei@hisense.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [ulogd PATCH] ulogd: fix logleve handling
+Date: Fri, 7 Mar 2014 15:43:05 +0900
+Message-ID: <CAGCkEt2zMU6N3rp=6F0P4TicWHbhy6+-JMg8W1aQB2tF6EHrrA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:55710 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142AbaCGDqX (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:42060 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896AbaCGGnH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2014 22:46:23 -0500
-In-Reply-To: <1394163974-25877-1-git-send-email-horms@verge.net.au>
+	Fri, 7 Mar 2014 01:43:07 -0500
+Received: by mail-la0-f47.google.com with SMTP id y1so2464021lam.6
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Mar 2014 22:43:05 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Tingwei Liu <tingw.liu@gmail.com>
+It was always default if not specified by command parameter.
 
-Add whitespace after operator and put open brace { on the previous line
-
-Cc: Tingwei Liu <liutingwei@hisense.com>
-Cc: lvs-devel@vger.kernel.org
-Signed-off-by: Tingwei Liu <tingw.liu@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- net/netfilter/ipvs/ip_vs_lblc.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ src/ulogd.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index ca056a3..547ff33 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -238,7 +238,7 @@ static void ip_vs_lblc_flush(struct ip_vs_service *svc)
- 
- 	spin_lock_bh(&svc->sched_lock);
- 	tbl->dead = 1;
--	for (i=0; i<IP_VS_LBLC_TAB_SIZE; i++) {
-+	for (i = 0; i < IP_VS_LBLC_TAB_SIZE; i++) {
- 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
- 			ip_vs_lblc_del(en);
- 			atomic_dec(&tbl->entries);
-@@ -265,7 +265,7 @@ static inline void ip_vs_lblc_full_check(struct ip_vs_service *svc)
- 	unsigned long now = jiffies;
- 	int i, j;
- 
--	for (i=0, j=tbl->rover; i<IP_VS_LBLC_TAB_SIZE; i++) {
-+	for (i = 0, j = tbl->rover; i < IP_VS_LBLC_TAB_SIZE; i++) {
- 		j = (j + 1) & IP_VS_LBLC_TAB_MASK;
- 
- 		spin_lock(&svc->sched_lock);
-@@ -321,7 +321,7 @@ static void ip_vs_lblc_check_expire(unsigned long data)
- 	if (goal > tbl->max_size/2)
- 		goal = tbl->max_size/2;
- 
--	for (i=0, j=tbl->rover; i<IP_VS_LBLC_TAB_SIZE; i++) {
-+	for (i = 0, j = tbl->rover; i < IP_VS_LBLC_TAB_SIZE; i++) {
- 		j = (j + 1) & IP_VS_LBLC_TAB_MASK;
- 
- 		spin_lock(&svc->sched_lock);
-@@ -340,7 +340,7 @@ static void ip_vs_lblc_check_expire(unsigned long data)
- 	tbl->rover = j;
- 
-   out:
--	mod_timer(&tbl->periodic_timer, jiffies+CHECK_EXPIRE_INTERVAL);
-+	mod_timer(&tbl->periodic_timer, jiffies + CHECK_EXPIRE_INTERVAL);
- }
- 
- 
-@@ -363,7 +363,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
- 	/*
- 	 *    Initialize the hash buckets
- 	 */
--	for (i=0; i<IP_VS_LBLC_TAB_SIZE; i++) {
-+	for (i = 0; i < IP_VS_LBLC_TAB_SIZE; i++) {
- 		INIT_HLIST_HEAD(&tbl->bucket[i]);
- 	}
- 	tbl->max_size = IP_VS_LBLC_TAB_SIZE*16;
-@@ -536,8 +536,7 @@ out:
- /*
-  *      IPVS LBLC Scheduler structure
-  */
--static struct ip_vs_scheduler ip_vs_lblc_scheduler =
--{
-+static struct ip_vs_scheduler ip_vs_lblc_scheduler = {
- 	.name =			"lblc",
- 	.refcnt =		ATOMIC_INIT(0),
- 	.module =		THIS_MODULE,
--- 
-1.8.5.2
+diff --git a/src/ulogd.c b/src/ulogd.c
+index 2c0fbd1..670a6e2 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -1383,9 +1383,10 @@ int main(int argc, char* argv[])
+        }
 
+        /* command line has precedence on config file */
+-       if (loglevel)
++       if (loglevel) {
+                loglevel_ce.u.value = loglevel;
+                loglevel_ce.flag |= CONFIG_FLAG_VAL_PROTECTED;
++       }
+
+        if (ulogd_pidfile) {
+                if (create_pidfile() < 0)
+--
+1.8.5.3
