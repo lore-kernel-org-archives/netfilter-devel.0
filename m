@@ -1,39 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH iptables] update coreteam members from manpage
-Date: Fri,  7 Mar 2014 18:43:40 +0100
-Message-ID: <1394214220-18346-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 0/5] netfilter: nf_tables: restore context during destruction
+Date: Fri,  7 Mar 2014 19:08:28 +0100
+Message-ID: <1394215713-32049-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58212 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751683AbaCGRn4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 12:43:56 -0500
+Received: from stinky.trash.net ([213.144.137.162]:39698 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751302AbaCGSIf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Mar 2014 13:08:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- iptables/iptables.8.in |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+The following patches restore the context during expression destruction
+in order to restore notifications for anonmyous set destruction and get
+rid of some unnecessary members in the expressions' private structures.
 
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index d67e12a..c611556 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -453,9 +453,10 @@ Jozsef Kadlecsik wrote the REJECT target.
- .PP
- Harald Welte wrote the ULOG and NFQUEUE target, the new libiptc, as well as the TTL, DSCP, ECN matches and targets.
- .PP
--The Netfilter Core Team is: Marc Boucher, Martin Josefsson, Yasuyuki Kozakai,
--Jozsef Kadlecsik, Patrick McHardy, James Morris, Pablo Neira Ayuso,
--Harald Welte and Rusty Russell.
-+The Netfilter Core Team is: Jozsef Kadlecsik, Patrick McHardy, Pablo Neira
-+Ayuso, Eric Leblond and Florian Westphal. Emeritus Core Team members are: Marc
-+Boucher, Martin Josefsson, Yasuyuki Kozakai, James Morris, Harald Welte and
-+Rusty Russell.
- .PP
- Man page originally written by Herve Eychenne <rv@wallfire.org>.
- .\" .. and did I mention that we are incredibly cool people?
--- 
-1.7.10.4
+Additionally they contain a couple of related minor cleanups.
+
+Please apply.
+
+
+Patrick McHardy (5):
+      netfilter: nf_tables: clean up nf_tables_trans_add() argument order
+      netfilter: nf_tables: restore context for expression destructors
+      netfilter: nf_tables: restore notifications for anonymous set destruction
+      netfilter: nft_ct: remove family from struct nft_ct
+      netfilter: nft_nat: fix family validation
+
+ include/net/netfilter/nf_tables.h | 13 ++++-------
+ net/netfilter/nf_tables_api.c     | 45 +++++++++++++++++++--------------------
+ net/netfilter/nft_compat.c        |  4 ++--
+ net/netfilter/nft_ct.c            | 12 ++++-------
+ net/netfilter/nft_immediate.c     |  3 ++-
+ net/netfilter/nft_log.c           |  3 ++-
+ net/netfilter/nft_lookup.c        |  5 +++--
+ net/netfilter/nft_nat.c           | 22 +++++++++----------
+ 8 files changed, 49 insertions(+), 58 deletions(-)
 
