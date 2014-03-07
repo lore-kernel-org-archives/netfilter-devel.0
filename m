@@ -1,34 +1,36 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [iptables 3/3] nft-shared: make compare_matches as public
-Date: Fri, 7 Mar 2014 12:28:33 -0800
-Message-ID: <20140307122833.0f01646c@nehalam.linuxnetplumber.net>
-References: <1394220805-18021-1-git-send-email-giuseppelng@gmail.com>
-	<1394220805-18021-4-git-send-email-giuseppelng@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [ulogd PATCH] ulogd: fix logleve handling
+Date: Fri, 07 Mar 2014 23:06:34 +0100
+Message-ID: <1394229994.19488.67.camel@ice-age2.regit.org>
+References: <CAGCkEt2zMU6N3rp=6F0P4TicWHbhy6+-JMg8W1aQB2tF6EHrrA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:36892 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692AbaCGU2h (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:36044 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752164AbaCGWGm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 15:28:37 -0500
-Received: by mail-pd0-f180.google.com with SMTP id v10so4478660pde.25
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 12:28:37 -0800 (PST)
-In-Reply-To: <1394220805-18021-4-git-send-email-giuseppelng@gmail.com>
+	Fri, 7 Mar 2014 17:06:42 -0500
+In-Reply-To: <CAGCkEt2zMU6N3rp=6F0P4TicWHbhy6+-JMg8W1aQB2tF6EHrrA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri,  7 Mar 2014 20:33:25 +0100
-Giuseppe Longo <giuseppelng@gmail.com> wrote:
+Hello,
 
-> +bool compare_matches(struct xtables_rule_match *mt1,
-> +		     struct xtables_rule_match *mt2)
+Thanks for the patch.
 
-any function exposed as global should have a name that uses
-a prefix, something like nft_compare_matches or xt_compare_matches
+On Fri, 2014-03-07 at 15:43 +0900, Ken-ichirou MATSUZAWA wrote:
+> It was always default if not specified by command parameter.
 
-The kernel is linked as single C application and this avoids future
-name conflicts.
+Oups, that's a stupid error I've made. It has been added to my private
+git tree and will be soon pushed to the public repository.
+
+Thanks again.
+
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+
