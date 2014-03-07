@@ -1,64 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 7/7] netfilter: connlimit: use rbtree for per-host
- conntrack obj storage
-Date: Fri, 07 Mar 2014 06:47:57 -0800
-Message-ID: <1394203677.20149.18.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1394199435-14395-1-git-send-email-fw@strlen.de>
-	 <1394199435-14395-8-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Jiri Popelka <jpopelka@redhat.com>
+Subject: [PATCH] iptables: fix version in iptables(8)
+Date: Fri,  7 Mar 2014 16:23:03 +0100
+Message-ID: <1394205783-17997-1-git-send-email-jpopelka@redhat.com>
+Cc: Jiri Popelka <jpopelka@redhat.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:47508 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbaCGOr7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 09:47:59 -0500
-Received: by mail-pa0-f45.google.com with SMTP id kl14so4242053pab.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 06:47:58 -0800 (PST)
-In-Reply-To: <1394199435-14395-8-git-send-email-fw@strlen.de>
+Received: from mx1.redhat.com ([209.132.183.28]:60391 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751464AbaCGPXK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Mar 2014 10:23:10 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s27FNAXl032029
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Fri, 7 Mar 2014 10:23:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2014-03-07 at 14:37 +0100, Florian Westphal wrote:
+---
+ iptables/iptables.8.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> +	/* no match, need to insert new node */
-> +	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
-> +	if (rbconn == NULL)
-> +		goto out;
->  
->  	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
-> -	if (conn == NULL)
-> -		return false;
-> +	if (conn == NULL) {
-> +		kmem_cache_free(connlimit_rb_cachep, rbconn);
-> +		goto out;
-> +	}
-> +
->  	conn->tuple = *tuple;
->  	conn->addr = *addr;
-> -	hlist_add_head(&conn->node, head);
-> -	return true;
-> +	rbconn->addr = *addr;
-> +
-> +	INIT_HLIST_HEAD(&rbconn->hhead);
-> +	hlist_add_head(&conn->node, &rbconn->hhead);
-> +
-> +	rb_link_node(&rbconn->node, parent, rbnode);
-> +	rb_insert_color(&rbconn->node, root);
-> +	count = 1;
-> + out:
-> +	tree_nodes_free(root, gc_nodes, gc_count);
-> +	return count;
->  }
-
-Very nice work Florian
-
-I would call tree_nodes_free() _before_ attempting the
-kmem_cache_alloc(), so that the allocation can reuse a hot object that
-you freed right before allocation.
-
-
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 155c97e..d67e12a 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -464,4 +464,4 @@ Man page originally written by Herve Eychenne <rv@wallfire.org>.
+ .\" .. and most of all, modest ..
+ .SH VERSION
+ .PP
+-This manual page applies to iptables/ip6tables @PACKAGE_AND_VERSION@.
++This manual page applies to iptables/ip6tables @PACKAGE_VERSION@.
+-- 
+1.8.5.3
 
