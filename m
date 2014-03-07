@@ -1,57 +1,44 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables 3/3] nft-shared: make compare_matches as public
-Date: Fri,  7 Mar 2014 20:33:25 +0100
-Message-ID: <1394220805-18021-4-git-send-email-giuseppelng@gmail.com>
-References: <1394220805-18021-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.21.1 released
+Date: Fri, 7 Mar 2014 21:07:22 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1403072058470.3887@blackhole.kfki.hu>
+References: <alpine.DEB.2.10.1403071328240.32311@blackhole.kfki.hu> <alpine.LSU.2.11.1403071705010.22956@nerf08.vanv.qr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:45587 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466AbaCGTcs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 14:32:48 -0500
-Received: by mail-ea0-f179.google.com with SMTP id q10so2513165ead.24
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 11:32:47 -0800 (PST)
-In-Reply-To: <1394220805-18021-1-git-send-email-giuseppelng@gmail.com>
+Received: from smtp1.kfki.hu ([148.6.0.26]:56134 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751011AbaCGUH1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Mar 2014 15:07:27 -0500
+In-Reply-To: <alpine.LSU.2.11.1403071705010.22956@nerf08.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This permits to compare two xtables_ebt_entry's matches reusing compare_matches.
+On Fri, 7 Mar 2014, Jan Engelhardt wrote:
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- iptables/nft-shared.c | 4 ++--
- iptables/nft-shared.h | 1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+> On Friday 2014-03-07 13:32, Jozsef Kadlecsik wrote:
+> 
+> >Userspace changes:
+> >  - Fix libipset library release versioning (reported by Mathieu Bridon)
+> 
+> AFAICS, functions were only added, yet the SONAME was changed.
+> (-version-info 7:0:4 should have been -version-info 7:0:5)
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index e2bc802..d59abd4 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -690,8 +690,8 @@ struct nft_family_ops *nft_family_ops_lookup(int family)
- 	return NULL;
- }
- 
--static bool
--compare_matches(struct xtables_rule_match *mt1, struct xtables_rule_match *mt2)
-+bool compare_matches(struct xtables_rule_match *mt1,
-+		     struct xtables_rule_match *mt2)
- {
- 	struct xtables_rule_match *mp1;
- 	struct xtables_rule_match *mp2;
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 145f19d..b80b7c0 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -128,6 +128,7 @@ struct nft_handle;
- bool nft_ipv46_rule_find(struct nft_family_ops *ops, struct nft_rule *r,
- 			 struct iptables_command_state *cs);
- 
-+bool compare_matches(struct xtables_rule_match *mt1, struct xtables_rule_match *mt2);
- bool compare_targets(struct xtables_target *tg1, struct xtables_target *tg2);
- 
- struct addr_mask {
--- 
-1.8.3.2
+6.20.1 was released with LIBVERSION = 5:0:2 (libipset.so.3.2.0). The 
+hash:ip,mark patch increased only age to 5:0:3, which was an unnoticed 
+mistake. That was then incremented to 6:0:4 in the forceadd patch.
 
+Now we have 7:0:4 which results libipset.so.3.4.0.
+
+I'm going to add an extra warning text to Make_global.am about double 
+checking LIBVERSION.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
