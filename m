@@ -1,44 +1,58 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [nf-next PATCH V3 0/5] netfilter: conntrack: optimization,
- remove central spinlock
-Date: Thu, 06 Mar 2014 15:37:57 -0800
-Message-ID: <1394149077.27473.46.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <20140303134319.2615.9293.stgit@dragon>
-	 <20140306225339.GE17526@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next 0/2] IPVS Updates for v3.15
+Date: Fri,  7 Mar 2014 12:46:12 +0900
+Message-ID: <1394163974-25877-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Florian Westphal <fw@strlen.de>
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:56550 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbaCFXh7 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:55702 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751147AbaCGDqW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Mar 2014 18:37:59 -0500
-In-Reply-To: <20140306225339.GE17526@breakpoint.cc>
+	Thu, 6 Mar 2014 22:46:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2014-03-06 at 23:53 +0100, Florian Westphal wrote:
-> Jesper Dangaard Brouer <brouer@redhat.com> wrote:
-> > This patchset is based upon Eric Dumazet's proposed patch:
-> >   http://thread.gmane.org/gmane.linux.network/268758/focus=47306
-> > I have in agreement with Eric Dumazet, taken over this patch (and
-> > turned it into a entire patchset).
-> 
-> FWIW I think that this series should be merged for 3.15, thus:
-> 
-> Reviewed-by: Florian Westphal <fw@strlen.de>
-> 
-> I see no more issues with these patches, thanks Jesper for resurrecting
-> Erics work.
-> --
+Hi Pablo,
 
-Indeed, thanks so much Jesper !
+please consider the following updates for IPVS for v3.15.
+
+It consists of two cleanups.
+* Whitespace cleanup from Tingwei Liu
+* Section conflict cleanup from Andi Kleen
+
+Please feel free to put Andi's patch into nf instead of nf-next if
+you think that is appropriate.
 
 
+The following changes since commit 0768b3b3d228c5acf2075f40f3d25cda30011d4f:
+
+  netfilter: nf_tables: add optional user data area to rules (2014-02-27 16:56:00 +0100)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v3.15
+
+for you to fetch changes up to 411fd527bc3f8357b499c760f7cd03633a0c7de2:
+
+  ipvs: Reduce checkpatch noise in ip_vs_lblc.c (2014-03-07 12:36:21 +0900)
+
+----------------------------------------------------------------
+IPVS Updates for v3.15
+
+* Cleanup from Tingwei Liu to correct whitespace
+* Cleanup from Andi Kleen to avoid a LTO section conflict compile problem
+
+----------------------------------------------------------------
+Andi Kleen (1):
+      sections, ipvs: Remove useless __read_mostly for ipvs genl_ops
+
+Tingwei Liu (1):
+      ipvs: Reduce checkpatch noise in ip_vs_lblc.c
+
+ net/netfilter/ipvs/ip_vs_ctl.c  |  2 +-
+ net/netfilter/ipvs/ip_vs_lblc.c | 13 ++++++-------
+ 2 files changed, 7 insertions(+), 8 deletions(-)
