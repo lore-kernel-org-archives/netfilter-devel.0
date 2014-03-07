@@ -1,90 +1,75 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] segtree: sort set elements before decomposition
-Date: Fri,  7 Mar 2014 11:30:26 +0100
-Message-ID: <1394188226-5219-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [PATCH] nft-arp: fix is_same_interfaces arguments
+Date: Fri,  7 Mar 2014 11:43:13 +0100
+Message-ID: <1394188993-4752-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36226 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbaCGKbF (ORCPT
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:54073 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721AbaCGKm3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 05:31:05 -0500
+	Fri, 7 Mar 2014 05:42:29 -0500
+Received: by mail-ea0-f177.google.com with SMTP id h10so2238869eak.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 02:42:27 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The decomposition phase currently depends on the kernel returning elements
-in sorted order. This is a fragile assumption, change the code to sort the
-elements itself.
+Wrong arguments are passed to is_same_interfaces
+that causes sometimes to delete a wrong rule.
+See the example below:
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+arptables-compat -A INPUT -i eth0 -j ACCEPT
+arptables-compat -A INPUT -i eth1 -j ACCEPT
+arptables-compat -A INPUT -i eth2 -j ACCEPT
+
+arptables-compat -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+-j ACCEPT -i eth0
+-j ACCEPT -i eth1
+-j ACCEPT -i eth2
+
+arptables-compat -D INPUT -i eth2 -j ACCEPT
+
+arptables-compat -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+-j ACCEPT -i eth1
+-j ACCEPT -i eth2
+
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- src/segtree.c | 28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ iptables/nft-arp.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/src/segtree.c b/src/segtree.c
-index c169f8d..1785f64 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -516,23 +516,39 @@ static struct expr *expr_value(struct expr *expr)
- 		return expr;
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index a494ee6..1af7202 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -631,14 +631,14 @@ static bool nft_arp_is_same(const void *data_a,
+ 		return false;
+ 	}
+ 
+-	return is_same_interfaces(a->arp.src_devaddr.addr,
+-				  a->arp.tgt_devaddr.addr,
+-				  (unsigned char*)a->arp.src_devaddr.mask,
+-				  (unsigned char*)a->arp.tgt_devaddr.mask,
+-				  b->arp.src_devaddr.addr,
+-				  a->arp.tgt_devaddr.addr,
+-				  (unsigned char*)b->arp.src_devaddr.mask,
+-				  (unsigned char*)b->arp.tgt_devaddr.mask);
++	return is_same_interfaces(a->arp.iniface,
++				  a->arp.outiface,
++				  (unsigned char *)a->arp.iniface_mask,
++				  (unsigned char *)a->arp.outiface_mask,
++				  b->arp.iniface,
++				  b->arp.outiface,
++				  (unsigned char *)b->arp.iniface_mask,
++				  (unsigned char *)b->arp.outiface_mask);
  }
  
-+static int expr_value_cmp(const void *p1, const void *p2)
-+{
-+	struct expr *e1 = *(void * const *)p1;
-+	struct expr *e2 = *(void * const *)p2;
-+
-+	return mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
-+}
-+
- void interval_map_decompose(struct expr *set)
- {
--	struct expr *ranges[set->size * 2];
-+	struct expr *elements[set->size], *ranges[set->size * 2];
- 	struct expr *i, *next, *low = NULL, *end;
--	unsigned int n, size;
-+	unsigned int n, m, size;
- 	mpz_t range, p;
- 	bool interval;
- 
- 	mpz_init(range);
- 	mpz_init(p);
- 
--	size = set->size;
-+	/* Sort elements */
- 	n = 0;
-+	list_for_each_entry_safe(i, next, &set->expressions, list) {
-+		compound_expr_remove(set, i);
-+		elements[n++] = i;
-+	}
-+	qsort(elements, n, sizeof(elements[0]), expr_value_cmp);
-+	size = n;
- 
-+	/* Transform points (single values) into half-closed intervals */
-+	n = 0;
- 	interval = false;
--	list_for_each_entry_safe_reverse(i, next, &set->expressions, list) {
--		compound_expr_remove(set, i);
-+	for (m = 0; m < size; m++) {
-+		i = elements[m];
- 
- 		if (i->flags & EXPR_F_INTERVAL_END)
- 			interval = false;
-@@ -540,12 +556,12 @@ void interval_map_decompose(struct expr *set)
- 			end = expr_clone(expr_value(i));
- 			end->flags |= EXPR_F_INTERVAL_END;
- 			ranges[n++] = end;
--			size++;
- 		} else
- 			interval = true;
- 
- 		ranges[n++] = i;
- 	}
-+	size = n;
- 
- 	for (n = 0; n < size; n++) {
- 		i = ranges[n];
+ static bool nft_arp_rule_find(struct nft_family_ops *ops, struct nft_rule *r,
 -- 
-1.8.5.3
+1.8.3.2
 
