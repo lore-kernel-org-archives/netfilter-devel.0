@@ -1,67 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 7/7] netfilter: connlimit: use rbtree for per-host
- conntrack obj storage
-Date: Fri, 7 Mar 2014 17:15:12 +0100
-Message-ID: <20140307161512.GF17526@breakpoint.cc>
-References: <1394199435-14395-1-git-send-email-fw@strlen.de>
- <1394199435-14395-8-git-send-email-fw@strlen.de>
- <1394203677.20149.18.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] net: inetfilter: LLVMLinux: vlais-netfilter
+Date: Fri, 7 Mar 2014 18:26:27 +0100
+Message-ID: <20140307172627.GA4856@localhost>
+References: <1394135768-27621-1-git-send-email-behanw@converseincode.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: davem@davemloft.net, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	dwmw2@infradead.org, pageexec@freemail.hu,
+	Mark Charlebois <charlebm@gmail.com>,
+	=?iso-8859-1?Q?Vin=EDcius?= Tinti <viniciustinti@gmail.com>
+To: behanw@converseincode.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45767 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752742AbaCGQPO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 11:15:14 -0500
+Received: from mail.us.es ([193.147.175.20]:56109 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752524AbaCGR0c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Mar 2014 12:26:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1394203677.20149.18.camel@edumazet-glaptop2.roam.corp.google.com>
+In-Reply-To: <1394135768-27621-1-git-send-email-behanw@converseincode.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Fri, 2014-03-07 at 14:37 +0100, Florian Westphal wrote:
+On Thu, Mar 06, 2014 at 11:56:08AM -0800, behanw@converseincode.com wrote:
+> From: Mark Charlebois <charlebm@gmail.com>
 > 
-> > +	/* no match, need to insert new node */
-> > +	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
-> > +	if (rbconn == NULL)
-> > +		goto out;
-> >  
-> >  	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
-> > -	if (conn == NULL)
-> > -		return false;
-> > +	if (conn == NULL) {
-> > +		kmem_cache_free(connlimit_rb_cachep, rbconn);
-> > +		goto out;
-> > +	}
-> > +
-> >  	conn->tuple = *tuple;
-> >  	conn->addr = *addr;
-> > -	hlist_add_head(&conn->node, head);
-> > -	return true;
-> > +	rbconn->addr = *addr;
-> > +
-> > +	INIT_HLIST_HEAD(&rbconn->hhead);
-> > +	hlist_add_head(&conn->node, &rbconn->hhead);
-> > +
-> > +	rb_link_node(&rbconn->node, parent, rbnode);
-> > +	rb_insert_color(&rbconn->node, root);
-> > +	count = 1;
-> > + out:
-> > +	tree_nodes_free(root, gc_nodes, gc_count);
-> > +	return count;
-> >  }
+> Replaced non-standard C use of Variable Length Arrays In Structs (VLAIS) in
+> xt_repldata.h with a C99 compliant flexible array member and then calculated
+> offsets to the other struct members. These other members aren't referenced by
+> name in this code, however this patch maintains the same memory layout and
+> padding as was previously accomplished using VLAIS.
 > 
-> Very nice work Florian
+> Had the original structure been ordered differently, with the entries VLA at
+> the end, then it could have been a flexible member, and this patch would have
+> been a lot simpler. However since the data stored in this structure is
+> ultimately exported to userspace, the order of this structure can't be changed.
+> 
+> This patch makes no attempt to change the existing behavior, merely the way in
+> which the current layout is accomplished using standard C99 constructs. As such
+> the code can now be compiled with either gcc or clang.
 
-Thanks Eric.
+I think we already agreed on not accepting macro tricks to get this
+compiling with clang:
 
-> I would call tree_nodes_free() _before_ attempting the
-> kmem_cache_alloc(), so that the allocation can reuse a hot object that
-> you freed right before allocation.
-
-Hmm, that would be nice.  I need to think about it again,
-problem is that moving it at this time could result in
-freeing the would-be parent of the new node.
+http://comments.gmane.org/gmane.comp.security.firewalls.netfilter.devel/45138
