@@ -1,113 +1,105 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 3/7] netfilter: connlimit: move insertion of new element out of count function
-Date: Fri,  7 Mar 2014 14:37:11 +0100
-Message-ID: <1394199435-14395-4-git-send-email-fw@strlen.de>
+Subject: [PATCH 4/7] netfilter: connlimit: use kmem_cache for conn objects
+Date: Fri,  7 Mar 2014 14:37:12 +0100
+Message-ID: <1394199435-14395-5-git-send-email-fw@strlen.de>
 References: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45173 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45174 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbaCGNlX (ORCPT
+	by vger.kernel.org with ESMTP id S1753096AbaCGNlY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 08:41:23 -0500
+	Fri, 7 Mar 2014 08:41:24 -0500
 In-Reply-To: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Allows easier code-reuse in followup patches.
+We might allocate thousands of these (one object per connection).
+Use distinct kmem cache to permit simplte tracking on how many
+objects are currently used by the connlimit match via the sysfs.
 
 Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_connlimit.c | 38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ net/netfilter/xt_connlimit.c | 24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index d4c6db1..0220d40 100644
+index 0220d40..a8eaabb 100644
 --- a/net/netfilter/xt_connlimit.c
 +++ b/net/netfilter/xt_connlimit.c
-@@ -97,13 +97,12 @@ static int count_hlist(struct net *net,
- 		       const struct nf_conntrack_tuple *tuple,
- 		       const union nf_inet_addr *addr,
- 		       const union nf_inet_addr *mask,
--		       u_int8_t family)
-+		       u_int8_t family, bool *addit)
+@@ -44,6 +44,7 @@ struct xt_connlimit_data {
+ };
+ 
+ static u_int32_t connlimit_rnd __read_mostly;
++static struct kmem_cache *connlimit_conn_cachep __read_mostly;
+ 
+ static inline unsigned int connlimit_iphash(__be32 addr)
  {
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct xt_connlimit_conn *conn;
- 	struct hlist_node *n;
- 	struct nf_conn *found_ct;
--	bool addit = true;
- 	int matches = 0;
+@@ -113,7 +114,7 @@ static int count_hlist(struct net *net,
+ 						 &conn->tuple);
+ 		if (found == NULL) {
+ 			hlist_del(&conn->node);
+-			kfree(conn);
++			kmem_cache_free(connlimit_conn_cachep, conn);
+ 			continue;
+ 		}
  
- 	rcu_read_lock();
-@@ -126,7 +125,7 @@ static int count_hlist(struct net *net,
- 			 * We should not see tuples twice unless someone hooks
- 			 * this into a table without "-p tcp --syn".
+@@ -133,7 +134,7 @@ static int count_hlist(struct net *net,
  			 */
--			addit = false;
-+			*addit = false;
- 		} else if (already_closed(found_ct)) {
- 			/*
- 			 * we do not care about connections which are
-@@ -146,20 +145,22 @@ static int count_hlist(struct net *net,
+ 			nf_ct_put(found_ct);
+ 			hlist_del(&conn->node);
+-			kfree(conn);
++			kmem_cache_free(connlimit_conn_cachep, conn);
+ 			continue;
+ 		}
  
- 	rcu_read_unlock();
+@@ -152,7 +153,9 @@ static bool add_hlist(struct hlist_head *head,
+ 		      const struct nf_conntrack_tuple *tuple,
+ 		      const union nf_inet_addr *addr)
+ {
+-	struct xt_connlimit_conn *conn = kmalloc(sizeof(*conn), GFP_ATOMIC);
++	struct xt_connlimit_conn *conn;
++
++	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
+ 	if (conn == NULL)
+ 		return false;
+ 	conn->tuple = *tuple;
+@@ -285,7 +288,7 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
+ 	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
+ 		hlist_for_each_entry_safe(conn, n, &hash[i], node) {
+ 			hlist_del(&conn->node);
+-			kfree(conn);
++			kmem_cache_free(connlimit_conn_cachep, conn);
+ 		}
+ 	}
  
--	if (addit) {
--		/* save the new connection in our list */
--		conn = kmalloc(sizeof(*conn), GFP_ATOMIC);
--		if (conn == NULL)
--			return -ENOMEM;
--		conn->tuple = *tuple;
--		conn->addr = *addr;
--		hlist_add_head(&conn->node, head);
--		++matches;
--	}
--
- 	return matches;
+@@ -305,12 +308,23 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
+ 
+ static int __init connlimit_mt_init(void)
+ {
+-	return xt_register_match(&connlimit_mt_reg);
++	int ret;
++	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
++					   sizeof(struct xt_connlimit_conn),
++					   0, 0, NULL);
++	if (!connlimit_conn_cachep)
++		return -ENOMEM;
++
++	ret = xt_register_match(&connlimit_mt_reg);
++	if (ret != 0)
++		kmem_cache_destroy(connlimit_conn_cachep);
++	return ret;
  }
  
-+static bool add_hlist(struct hlist_head *head,
-+		      const struct nf_conntrack_tuple *tuple,
-+		      const union nf_inet_addr *addr)
-+{
-+	struct xt_connlimit_conn *conn = kmalloc(sizeof(*conn), GFP_ATOMIC);
-+	if (conn == NULL)
-+		return false;
-+	conn->tuple = *tuple;
-+	conn->addr = *addr;
-+	hlist_add_head(&conn->node, head);
-+	return true;
-+}
-+
- static int count_them(struct net *net,
- 		      struct xt_connlimit_data *data,
- 		      const struct nf_conntrack_tuple *tuple,
-@@ -170,6 +171,7 @@ static int count_them(struct net *net,
- 	struct hlist_head *hhead;
- 	int count;
- 	u32 hash;
-+	bool addit = true;
+ static void __exit connlimit_mt_exit(void)
+ {
+ 	xt_unregister_match(&connlimit_mt_reg);
++	kmem_cache_destroy(connlimit_conn_cachep);
+ }
  
- 	if (family == NFPROTO_IPV6)
- 		hash = connlimit_iphash6(addr, mask);
-@@ -179,7 +181,13 @@ static int count_them(struct net *net,
- 	hhead = &data->iphash[hash];
- 
- 	spin_lock_bh(&data->lock);
--	count = count_hlist(net, hhead, tuple, addr, mask, family);
-+	count = count_hlist(net, hhead, tuple, addr, mask, family, &addit);
-+	if (addit) {
-+		if (add_hlist(hhead, tuple, addr))
-+			count++;
-+		else
-+			count = -ENOMEM;
-+	}
- 	spin_unlock_bh(&data->lock);
- 
- 	return count;
+ module_init(connlimit_mt_init);
 -- 
 1.8.1.5
 
