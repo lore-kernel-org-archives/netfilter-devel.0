@@ -1,105 +1,144 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4/7] netfilter: connlimit: use kmem_cache for conn objects
-Date: Fri,  7 Mar 2014 14:37:12 +0100
-Message-ID: <1394199435-14395-5-git-send-email-fw@strlen.de>
+Subject: [PATCH 5/7] netfilter: connlimit: use keyed locks
+Date: Fri,  7 Mar 2014 14:37:13 +0100
+Message-ID: <1394199435-14395-6-git-send-email-fw@strlen.de>
 References: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45174 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45178 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753096AbaCGNlY (ORCPT
+	by vger.kernel.org with ESMTP id S1753315AbaCGNl1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 08:41:24 -0500
+	Fri, 7 Mar 2014 08:41:27 -0500
 In-Reply-To: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We might allocate thousands of these (one object per connection).
-Use distinct kmem cache to permit simplte tracking on how many
-objects are currently used by the connlimit match via the sysfs.
+connlimit currently suffers from spinlock contention, example for
+4-core system with rps enabled:
+
++  20.84%   ksoftirqd/2  [kernel.kallsyms] [k] _raw_spin_lock_bh
++  20.76%   ksoftirqd/1  [kernel.kallsyms] [k] _raw_spin_lock_bh
++  20.42%   ksoftirqd/0  [kernel.kallsyms] [k] _raw_spin_lock_bh
++   6.07%   ksoftirqd/2  [nf_conntrack]    [k] ____nf_conntrack_find
++   6.07%   ksoftirqd/1  [nf_conntrack]    [k] ____nf_conntrack_find
++   5.97%   ksoftirqd/0  [nf_conntrack]    [k] ____nf_conntrack_find
++   2.47%   ksoftirqd/2  [nf_conntrack]    [k] hash_conntrack_raw
++   2.45%   ksoftirqd/0  [nf_conntrack]    [k] hash_conntrack_raw
++   2.44%   ksoftirqd/1  [nf_conntrack]    [k] hash_conntrack_raw
+
+May allow parallel lookup/insert/delete if the entry is hashed to
+another slot.  With patch:
+
++  20.95%  ksoftirqd/0  [nf_conntrack] [k] ____nf_conntrack_find
++  20.50%  ksoftirqd/1  [nf_conntrack] [k] ____nf_conntrack_find
++  20.27%  ksoftirqd/2  [nf_conntrack] [k] ____nf_conntrack_find
++   5.76%  ksoftirqd/1  [nf_conntrack] [k] hash_conntrack_raw
++   5.39%  ksoftirqd/2  [nf_conntrack] [k] hash_conntrack_raw
++   5.35%  ksoftirqd/0  [nf_conntrack] [k] hash_conntrack_raw
++   2.00%  ksoftirqd/1  [kernel.kallsyms] [k] __rcu_read_unlock
+
+Improved rx processing rate from ~35kpps to ~50 kpps.
 
 Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_connlimit.c | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ net/netfilter/xt_connlimit.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 0220d40..a8eaabb 100644
+index a8eaabb..892566f 100644
 --- a/net/netfilter/xt_connlimit.c
 +++ b/net/netfilter/xt_connlimit.c
-@@ -44,6 +44,7 @@ struct xt_connlimit_data {
+@@ -31,6 +31,9 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
++#define CONNLIMIT_SLOTS	256 /* power-of-two */
++#define CONNLIMIT_LOCK_SLOTS	32 /* power-of-two */
++
+ /* we will save the tuples of all connections we care about */
+ struct xt_connlimit_conn {
+ 	struct hlist_node		node;
+@@ -39,8 +42,8 @@ struct xt_connlimit_conn {
+ };
+ 
+ struct xt_connlimit_data {
+-	struct hlist_head	iphash[256];
+-	spinlock_t		lock;
++	struct hlist_head	iphash[CONNLIMIT_SLOTS];
++	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
  };
  
  static u_int32_t connlimit_rnd __read_mostly;
-+static struct kmem_cache *connlimit_conn_cachep __read_mostly;
+@@ -48,7 +51,8 @@ static struct kmem_cache *connlimit_conn_cachep __read_mostly;
  
  static inline unsigned int connlimit_iphash(__be32 addr)
  {
-@@ -113,7 +114,7 @@ static int count_hlist(struct net *net,
- 						 &conn->tuple);
- 		if (found == NULL) {
- 			hlist_del(&conn->node);
--			kfree(conn);
-+			kmem_cache_free(connlimit_conn_cachep, conn);
- 			continue;
- 		}
+-	return jhash_1word((__force __u32)addr, connlimit_rnd) & 0xFF;
++	return jhash_1word((__force __u32)addr,
++			    connlimit_rnd) % CONNLIMIT_SLOTS;
+ }
  
-@@ -133,7 +134,7 @@ static int count_hlist(struct net *net,
- 			 */
- 			nf_ct_put(found_ct);
- 			hlist_del(&conn->node);
--			kfree(conn);
-+			kmem_cache_free(connlimit_conn_cachep, conn);
- 			continue;
- 		}
+ static inline unsigned int
+@@ -61,7 +65,8 @@ connlimit_iphash6(const union nf_inet_addr *addr,
+ 	for (i = 0; i < ARRAY_SIZE(addr->ip6); ++i)
+ 		res.ip6[i] = addr->ip6[i] & mask->ip6[i];
  
-@@ -152,7 +153,9 @@ static bool add_hlist(struct hlist_head *head,
- 		      const struct nf_conntrack_tuple *tuple,
- 		      const union nf_inet_addr *addr)
- {
--	struct xt_connlimit_conn *conn = kmalloc(sizeof(*conn), GFP_ATOMIC);
-+	struct xt_connlimit_conn *conn;
-+
-+	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
- 	if (conn == NULL)
- 		return false;
- 	conn->tuple = *tuple;
-@@ -285,7 +288,7 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- 	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
- 		hlist_for_each_entry_safe(conn, n, &hash[i], node) {
- 			hlist_del(&conn->node);
--			kfree(conn);
-+			kmem_cache_free(connlimit_conn_cachep, conn);
- 		}
+-	return jhash2((u32 *)res.ip6, ARRAY_SIZE(res.ip6), connlimit_rnd) & 0xFF;
++	return jhash2((u32 *)res.ip6, ARRAY_SIZE(res.ip6),
++		       connlimit_rnd) % CONNLIMIT_SLOTS;
+ }
+ 
+ static inline bool already_closed(const struct nf_conn *conn)
+@@ -183,7 +188,7 @@ static int count_them(struct net *net,
+ 
+ 	hhead = &data->iphash[hash];
+ 
+-	spin_lock_bh(&data->lock);
++	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 	count = count_hlist(net, hhead, tuple, addr, mask, family, &addit);
+ 	if (addit) {
+ 		if (add_hlist(hhead, tuple, addr))
+@@ -191,7 +196,7 @@ static int count_them(struct net *net,
+ 		else
+ 			count = -ENOMEM;
+ 	}
+-	spin_unlock_bh(&data->lock);
++	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	return count;
+ }
+@@ -227,7 +232,6 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	connections = count_them(net, info->data, tuple_ptr, &addr,
+ 	                         &info->mask, par->family);
+-
+ 	if (connections < 0)
+ 		/* kmalloc failed, drop it entirely */
+ 		goto hotdrop;
+@@ -268,7 +272,9 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		return -ENOMEM;
  	}
  
-@@ -305,12 +308,23 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
+-	spin_lock_init(&info->data->lock);
++	for (i = 0; i < ARRAY_SIZE(info->data->locks); ++i)
++		spin_lock_init(&info->data->locks[i]);
++
+ 	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i)
+ 		INIT_HLIST_HEAD(&info->data->iphash[i]);
  
+@@ -309,6 +315,9 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
  static int __init connlimit_mt_init(void)
  {
--	return xt_register_match(&connlimit_mt_reg);
-+	int ret;
-+	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
-+					   sizeof(struct xt_connlimit_conn),
-+					   0, 0, NULL);
-+	if (!connlimit_conn_cachep)
-+		return -ENOMEM;
+ 	int ret;
 +
-+	ret = xt_register_match(&connlimit_mt_reg);
-+	if (ret != 0)
-+		kmem_cache_destroy(connlimit_conn_cachep);
-+	return ret;
- }
- 
- static void __exit connlimit_mt_exit(void)
- {
- 	xt_unregister_match(&connlimit_mt_reg);
-+	kmem_cache_destroy(connlimit_conn_cachep);
- }
- 
- module_init(connlimit_mt_init);
++	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
++
+ 	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
+ 					   sizeof(struct xt_connlimit_conn),
+ 					   0, 0, NULL);
 -- 
 1.8.1.5
 
