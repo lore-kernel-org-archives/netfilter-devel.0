@@ -1,68 +1,77 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/5] netfilter: nf_tables: clean up nf_tables_trans_add() argument order
-Date: Fri,  7 Mar 2014 19:08:29 +0100
-Message-ID: <1394215713-32049-2-git-send-email-kaber@trash.net>
-References: <1394215713-32049-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables 0/3] ebtables patchset
+Date: Fri,  7 Mar 2014 20:33:22 +0100
+Message-ID: <1394220805-18021-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39699 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416AbaCGSIf (ORCPT
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:36900 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751923AbaCGTcm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 13:08:35 -0500
-In-Reply-To: <1394215713-32049-1-git-send-email-kaber@trash.net>
+	Fri, 7 Mar 2014 14:32:42 -0500
+Received: by mail-ea0-f169.google.com with SMTP id h14so2560760eaj.28
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 11:32:40 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The context argument logically comes first, and this is what every other
-function dealing with contexts does.
+Hi Pablo,
+I reworked the patchset.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/nf_tables_api.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+The basic operations (-A/-I/-L/-D) are working,
+see the examples below:
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 89d7ec4..a206405 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1557,7 +1557,7 @@ static void nf_tables_rule_destroy(struct nft_rule *rule)
- static struct nft_expr_info *info;
- 
- static struct nft_rule_trans *
--nf_tables_trans_add(struct nft_rule *rule, const struct nft_ctx *ctx)
-+nf_tables_trans_add(struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	struct nft_rule_trans *rupd;
- 
-@@ -1683,7 +1683,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
- 		if (nft_rule_is_active_next(net, old_rule)) {
--			repl = nf_tables_trans_add(old_rule, &ctx);
-+			repl = nf_tables_trans_add(&ctx, old_rule);
- 			if (repl == NULL) {
- 				err = -ENOMEM;
- 				goto err2;
-@@ -1706,7 +1706,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 			list_add_rcu(&rule->list, &chain->rules);
- 	}
- 
--	if (nf_tables_trans_add(rule, &ctx) == NULL) {
-+	if (nf_tables_trans_add(&ctx, rule) == NULL) {
- 		err = -ENOMEM;
- 		goto err3;
- 	}
-@@ -1735,7 +1735,7 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	/* You cannot delete the same rule twice */
- 	if (nft_rule_is_active_next(ctx->net, rule)) {
--		if (nf_tables_trans_add(rule, ctx) == NULL)
-+		if (nf_tables_trans_add(ctx, rule) == NULL)
- 			return -ENOMEM;
- 		nft_rule_disactivate_next(ctx->net, rule);
- 		return 0;
+ebtables-compat -A INPUT -i eth0 -j ACCEPT
+ebtables-compat -A INPUT -p arp -s 11:22:33:44:55:66 -j ACCEPT
+ebtables-compat -A INPUT -p arp -d 11:22:33:44:55:66 -j ACCEPT
+ebtables-compat -L --Ln
+
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+1 -i eth0 -j ACCEPT
+2 -p ARP -s 11:22:33:44:55:66/0:0:0:0:0:0 -j ACCEPT
+3 -p ARP -d 11:22:33:44:55:66/0:0:0:0:0:0 -j ACCEPT
+
+ebtables-compat -D INPUT 2:3
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination
+1 -i eth0 -j ACCEPT
+
+As you can see, a minor issue have to be fixed when printing rules.
+I have no idea how to handle --logical-in/out interfaces currently,
+so please let me know if you have an idea or an advice.
+
+Giuseppe Longo (3):
+  xtables: bootstrap xtables-eb for nftables
+  Operations for bridge family
+  nft-shared: make compare_matches as public
+
+ include/linux/netfilter_bridge.h            |   33 +
+ include/linux/netfilter_bridge/ebtables.h   |  276 +++++++
+ include/linux/netfilter_bridge/ethernetdb.h |   58 ++
+ iptables/Makefile.am                        |    4 +-
+ iptables/getethertype.c                     |  161 ++++
+ iptables/nft-bridge.c                       |  439 ++++++++++
+ iptables/nft-shared.c                       |    7 +-
+ iptables/nft-shared.h                       |    1 +
+ iptables/nft.c                              |   28 +
+ iptables/nft.h                              |   12 +
+ iptables/xtables-compat-multi.c             |    1 +
+ iptables/xtables-eb-standalone.c            |   87 ++
+ iptables/xtables-eb.c                       | 1164 +++++++++++++++++++++++++++
+ iptables/xtables-ebtables.h                 |   49 ++
+ iptables/xtables-multi.c                    |    1 +
+ iptables/xtables-multi.h                    |    1 +
+ 16 files changed, 2319 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/netfilter_bridge.h
+ create mode 100644 include/linux/netfilter_bridge/ebtables.h
+ create mode 100644 include/linux/netfilter_bridge/ethernetdb.h
+ create mode 100644 iptables/getethertype.c
+ create mode 100644 iptables/nft-bridge.c
+ create mode 100644 iptables/xtables-eb-standalone.c
+ create mode 100644 iptables/xtables-eb.c
+ create mode 100644 iptables/xtables-ebtables.h
+
 -- 
-1.8.5.3
+1.8.3.2
 
