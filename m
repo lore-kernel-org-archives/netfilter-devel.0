@@ -1,68 +1,401 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 6/7] netfilter: connlimit: make same_source_net signed
-Date: Fri,  7 Mar 2014 14:37:14 +0100
-Message-ID: <1394199435-14395-7-git-send-email-fw@strlen.de>
+Subject: [PATCH 7/7] netfilter: connlimit: use rbtree for per-host conntrack obj storage
+Date: Fri,  7 Mar 2014 14:37:15 +0100
+Message-ID: <1394199435-14395-8-git-send-email-fw@strlen.de>
 References: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45182 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45188 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753315AbaCGNlb (ORCPT
+	by vger.kernel.org with ESMTP id S1753315AbaCGNlh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 08:41:31 -0500
+	Fri, 7 Mar 2014 08:41:37 -0500
 In-Reply-To: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-currently returns 1 if they're the same.  Make it work like mem/strcmp
-so it can be used as rbtree search function.
+With current match design every invocation of the connlimit_match
+function means we have to perform (number_of_conntracks % 256) lookups
+in the conntrack table [ to perform GC/delete stale entries ].
+This is also the reason why ____nf_conntrack_find() in perf top has
+> 20% cpu time per core.
+
+This patch changes the storage to rbtree which cuts down the number of
+ct objects that need testing.
+
+When looking up a new tuple, we only test the connections of the host
+objects we visit while searching for the wanted host/network (or
+the leaf we need to insert at).
+
+The slot count is reduced to 32.  Increasing slot count doesn't
+speed up things much because of rbtree nature.
+
+before patch (50kpps rx, 10kpps tx):
++  20.95%  ksoftirqd/0  [nf_conntrack] [k] ____nf_conntrack_find
++  20.50%  ksoftirqd/1  [nf_conntrack] [k] ____nf_conntrack_find
++  20.27%  ksoftirqd/2  [nf_conntrack] [k] ____nf_conntrack_find
++   5.76%  ksoftirqd/1  [nf_conntrack] [k] hash_conntrack_raw
++   5.39%  ksoftirqd/2  [nf_conntrack] [k] hash_conntrack_raw
++   5.35%  ksoftirqd/0  [nf_conntrack] [k] hash_conntrack_raw
+
+after (90kpps, 51kpps tx):
++  17.24%       swapper  [nf_conntrack]    [k] ____nf_conntrack_find
++   6.60%   ksoftirqd/2  [nf_conntrack]    [k] ____nf_conntrack_find
++   2.73%       swapper  [nf_conntrack]    [k] hash_conntrack_raw
++   2.36%       swapper  [xt_connlimit]    [k] count_tree
+
+Obvious disadvantages to previous version are the increase in code
+complexity and the increased memory cost.
+
+Partially based on Eric Dumazets fq scheduler.
 
 Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_connlimit.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ net/netfilter/xt_connlimit.c | 214 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 167 insertions(+), 47 deletions(-)
 
 diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 892566f..d3a83a9 100644
+index d3a83a9..190bbf2 100644
 --- a/net/netfilter/xt_connlimit.c
 +++ b/net/netfilter/xt_connlimit.c
-@@ -78,13 +78,14 @@ static inline bool already_closed(const struct nf_conn *conn)
- 		return 0;
- }
+@@ -19,6 +19,7 @@
+ #include <linux/jhash.h>
+ #include <linux/slab.h>
+ #include <linux/list.h>
++#include <linux/rbtree.h>
+ #include <linux/module.h>
+ #include <linux/random.h>
+ #include <linux/skbuff.h>
+@@ -31,8 +32,9 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
  
--static inline unsigned int
-+static int
- same_source_net(const union nf_inet_addr *addr,
- 		const union nf_inet_addr *mask,
- 		const union nf_inet_addr *u3, u_int8_t family)
- {
- 	if (family == NFPROTO_IPV4) {
--		return (addr->ip & mask->ip) == (u3->ip & mask->ip);
-+		return ntohl(addr->ip & mask->ip) -
-+		       ntohl(u3->ip & mask->ip);
- 	} else {
- 		union nf_inet_addr lh, rh;
- 		unsigned int i;
-@@ -94,7 +95,7 @@ same_source_net(const union nf_inet_addr *addr,
- 			rh.ip6[i] = u3->ip6[i] & mask->ip6[i];
- 		}
+-#define CONNLIMIT_SLOTS	256 /* power-of-two */
++#define CONNLIMIT_SLOTS		32 /* power-of-two */
+ #define CONNLIMIT_LOCK_SLOTS	32 /* power-of-two */
++#define CONNLIMIT_GC_MAX_NODES	16
  
--		return memcmp(&lh.ip6, &rh.ip6, sizeof(lh.ip6)) == 0;
-+		return memcmp(&lh.ip6, &rh.ip6, sizeof(lh.ip6));
+ /* we will save the tuples of all connections we care about */
+ struct xt_connlimit_conn {
+@@ -41,12 +43,20 @@ struct xt_connlimit_conn {
+ 	union nf_inet_addr		addr;
+ };
+ 
++struct xt_connlimit_rb {
++	struct rb_node node;
++	struct hlist_head hhead; /* connections/hosts in same subnet */
++	union nf_inet_addr addr; /* search key */
++};
++
+ struct xt_connlimit_data {
+-	struct hlist_head	iphash[CONNLIMIT_SLOTS];
++	struct rb_root climit_root4[CONNLIMIT_SLOTS];
++	struct rb_root climit_root6[CONNLIMIT_SLOTS];
+ 	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
+ };
+ 
+ static u_int32_t connlimit_rnd __read_mostly;
++static struct kmem_cache *connlimit_rb_cachep __read_mostly;
+ static struct kmem_cache *connlimit_conn_cachep __read_mostly;
+ 
+ static inline unsigned int connlimit_iphash(__be32 addr)
+@@ -99,19 +109,33 @@ same_source_net(const union nf_inet_addr *addr,
  	}
  }
  
-@@ -143,7 +144,7 @@ static int count_hlist(struct net *net,
+-static int count_hlist(struct net *net,
+-		       struct hlist_head *head,
+-		       const struct nf_conntrack_tuple *tuple,
+-		       const union nf_inet_addr *addr,
+-		       const union nf_inet_addr *mask,
+-		       u_int8_t family, bool *addit)
++static bool add_hlist(struct hlist_head *head,
++		      const struct nf_conntrack_tuple *tuple,
++		      const union nf_inet_addr *addr)
++{
++	struct xt_connlimit_conn *conn;
++
++	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
++	if (conn == NULL)
++		return false;
++	conn->tuple = *tuple;
++	conn->addr = *addr;
++	hlist_add_head(&conn->node, head);
++	return true;
++}
++
++static unsigned int check_hlist(struct net *net,
++				struct hlist_head *head,
++				const struct nf_conntrack_tuple *tuple,
++				bool *addit)
+ {
+ 	const struct nf_conntrack_tuple_hash *found;
+ 	struct xt_connlimit_conn *conn;
+ 	struct hlist_node *n;
+ 	struct nf_conn *found_ct;
+-	int matches = 0;
++	unsigned int length = 0;
+ 
++	*addit = true;
+ 	rcu_read_lock();
+ 
+ 	/* check the saved connections */
+@@ -144,30 +168,104 @@ static int count_hlist(struct net *net,
  			continue;
  		}
  
--		if (same_source_net(addr, mask, &conn->addr, family))
-+		if (same_source_net(addr, mask, &conn->addr, family) == 0)
- 			/* same source network -> be counted! */
- 			++matches;
+-		if (same_source_net(addr, mask, &conn->addr, family) == 0)
+-			/* same source network -> be counted! */
+-			++matches;
  		nf_ct_put(found_ct);
++		length++;
+ 	}
+ 
+ 	rcu_read_unlock();
+ 
+-	return matches;
++	return length;
+ }
+ 
+-static bool add_hlist(struct hlist_head *head,
+-		      const struct nf_conntrack_tuple *tuple,
+-		      const union nf_inet_addr *addr)
++static void tree_nodes_free(struct rb_root *root,
++			    struct xt_connlimit_rb *gc_nodes[],
++			    unsigned int gc_count)
++{
++	struct xt_connlimit_rb *rbconn;
++
++	while (gc_count) {
++		rbconn = gc_nodes[--gc_count];
++		rb_erase(&rbconn->node, root);
++		kmem_cache_free(connlimit_rb_cachep, rbconn);
++	}
++}
++
++static unsigned int
++count_tree(struct net *net, struct rb_root *root,
++	   const struct nf_conntrack_tuple *tuple,
++	   const union nf_inet_addr *addr, const union nf_inet_addr *mask,
++	   u8 family)
+ {
++	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
++	struct rb_node **rbnode, *parent = NULL;
++	struct xt_connlimit_rb *rbconn;
+ 	struct xt_connlimit_conn *conn;
++	unsigned int count = 0;
++	unsigned int gc_count = 0;
++
++	rbnode = &(root->rb_node);
++
++	while (*rbnode) {
++		int diff;
++		bool addit;
++
++		rbconn = container_of(*rbnode, struct xt_connlimit_rb, node);
++
++		parent = *rbnode;
++		diff = same_source_net(addr, mask, &rbconn->addr, family);
++		if (diff < 0) {
++			rbnode = &((*rbnode)->rb_left);
++		} else if (diff > 0) {
++			rbnode = &((*rbnode)->rb_right);
++		} else {
++			/* same source network -> be counted! */
++			count = check_hlist(net, &rbconn->hhead, tuple, &addit);
++
++			tree_nodes_free(root, gc_nodes, gc_count);
++			if (!addit)
++				return count;
++
++			if (!add_hlist(&rbconn->hhead, tuple, addr))
++				return 0; /* hotdrop */
++
++			return count + 1;
++		}
++
++		if (gc_count >= ARRAY_SIZE(gc_nodes))
++			continue;
++
++		/* only used for GC on hhead, retval and 'addit' ignored */
++		check_hlist(net, &rbconn->hhead, tuple, &addit);
++		if (hlist_empty(&rbconn->hhead)) {
++			/* node with no connections, prep for removal */
++			gc_nodes[gc_count++] = rbconn;
++		}
++	}
++
++	/* no match, need to insert new node */
++	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
++	if (rbconn == NULL)
++		goto out;
+ 
+ 	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
+-	if (conn == NULL)
+-		return false;
++	if (conn == NULL) {
++		kmem_cache_free(connlimit_rb_cachep, rbconn);
++		goto out;
++	}
++
+ 	conn->tuple = *tuple;
+ 	conn->addr = *addr;
+-	hlist_add_head(&conn->node, head);
+-	return true;
++	rbconn->addr = *addr;
++
++	INIT_HLIST_HEAD(&rbconn->hhead);
++	hlist_add_head(&conn->node, &rbconn->hhead);
++
++	rb_link_node(&rbconn->node, parent, rbnode);
++	rb_insert_color(&rbconn->node, root);
++	count = 1;
++ out:
++	tree_nodes_free(root, gc_nodes, gc_count);
++	return count;
+ }
+ 
+ static int count_them(struct net *net,
+@@ -177,26 +275,22 @@ static int count_them(struct net *net,
+ 		      const union nf_inet_addr *mask,
+ 		      u_int8_t family)
+ {
+-	struct hlist_head *hhead;
++	struct rb_root *root;
+ 	int count;
+ 	u32 hash;
+-	bool addit = true;
+ 
+-	if (family == NFPROTO_IPV6)
++	if (family == NFPROTO_IPV6) {
+ 		hash = connlimit_iphash6(addr, mask);
+-	else
++		root = &data->climit_root6[hash];
++	} else {
+ 		hash = connlimit_iphash(addr->ip & mask->ip);
+-
+-	hhead = &data->iphash[hash];
++		root = &data->climit_root4[hash];
++	}
+ 
+ 	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
+-	count = count_hlist(net, hhead, tuple, addr, mask, family, &addit);
+-	if (addit) {
+-		if (add_hlist(hhead, tuple, addr))
+-			count++;
+-		else
+-			count = -ENOMEM;
+-	}
++
++	count = count_tree(net, root, tuple, addr, mask, family);
++
+ 	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	return count;
+@@ -212,7 +306,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+-	int connections;
++	unsigned int connections;
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if (ct != NULL)
+@@ -233,7 +327,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	connections = count_them(net, info->data, tuple_ptr, &addr,
+ 	                         &info->mask, par->family);
+-	if (connections < 0)
++	if (connections == 0)
+ 		/* kmalloc failed, drop it entirely */
+ 		goto hotdrop;
+ 
+@@ -276,28 +370,44 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 	for (i = 0; i < ARRAY_SIZE(info->data->locks); ++i)
+ 		spin_lock_init(&info->data->locks[i]);
+ 
+-	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i)
+-		INIT_HLIST_HEAD(&info->data->iphash[i]);
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
++		info->data->climit_root4[i] = RB_ROOT;
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
++		info->data->climit_root6[i] = RB_ROOT;
+ 
+ 	return 0;
+ }
+ 
+-static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
++static void destroy_tree(struct rb_root *r)
+ {
+-	const struct xt_connlimit_info *info = par->matchinfo;
+ 	struct xt_connlimit_conn *conn;
++	struct xt_connlimit_rb *rbconn;
+ 	struct hlist_node *n;
+-	struct hlist_head *hash = info->data->iphash;
+-	unsigned int i;
++	struct rb_node *node;
+ 
+-	nf_ct_l3proto_module_put(par->family);
++	while ((node = rb_first(r)) != NULL) {
++		rbconn = container_of(node, struct xt_connlimit_rb, node);
+ 
+-	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
+-		hlist_for_each_entry_safe(conn, n, &hash[i], node) {
+-			hlist_del(&conn->node);
++		rb_erase(node, r);
++
++		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
+ 			kmem_cache_free(connlimit_conn_cachep, conn);
+-		}
++
++		kmem_cache_free(connlimit_rb_cachep, rbconn);
+ 	}
++}
++
++static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
++{
++	const struct xt_connlimit_info *info = par->matchinfo;
++	unsigned int i;
++
++	nf_ct_l3proto_module_put(par->family);
++
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
++		destroy_tree(&info->data->climit_root4[i]);
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
++		destroy_tree(&info->data->climit_root6[i]);
+ 
+ 	kfree(info->data);
+ }
+@@ -325,9 +435,18 @@ static int __init connlimit_mt_init(void)
+ 	if (!connlimit_conn_cachep)
+ 		return -ENOMEM;
+ 
++	connlimit_rb_cachep = kmem_cache_create("xt_connlimit_rb",
++					   sizeof(struct xt_connlimit_rb),
++					   0, 0, NULL);
++	if (!connlimit_rb_cachep) {
++		kmem_cache_destroy(connlimit_conn_cachep);
++		return -ENOMEM;
++	}
+ 	ret = xt_register_match(&connlimit_mt_reg);
+-	if (ret != 0)
++	if (ret != 0) {
+ 		kmem_cache_destroy(connlimit_conn_cachep);
++		kmem_cache_destroy(connlimit_rb_cachep);
++	}
+ 	return ret;
+ }
+ 
+@@ -335,6 +454,7 @@ static void __exit connlimit_mt_exit(void)
+ {
+ 	xt_unregister_match(&connlimit_mt_reg);
+ 	kmem_cache_destroy(connlimit_conn_cachep);
++	kmem_cache_destroy(connlimit_rb_cachep);
+ }
+ 
+ module_init(connlimit_mt_init);
 -- 
 1.8.1.5
 
