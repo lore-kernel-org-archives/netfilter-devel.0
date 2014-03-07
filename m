@@ -1,257 +1,64 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/5] netfilter: nf_tables: restore context for expression destructors
-Date: Fri,  7 Mar 2014 19:08:30 +0100
-Message-ID: <1394215713-32049-3-git-send-email-kaber@trash.net>
+Subject: [PATCH 4/5] netfilter: nft_ct: remove family from struct nft_ct
+Date: Fri,  7 Mar 2014 19:08:32 +0100
+Message-ID: <1394215713-32049-5-git-send-email-kaber@trash.net>
 References: <1394215713-32049-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39700 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39704 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570AbaCGSIf (ORCPT
+	with ESMTP id S1751674AbaCGSIf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 7 Mar 2014 13:08:35 -0500
 In-Reply-To: <1394215713-32049-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to fix set destruction notifications and get rid of unnecessary
-members in private data structures, pass the context to expressions'
-destructor functions again.
-
-In order to do so, replace various members in the nft_rule_trans structure
-by the full context.
+Since we have the context available during destruction again, we can
+remove the family from the private structure.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h | 13 ++++---------
- net/netfilter/nf_tables_api.c     | 34 +++++++++++++++++-----------------
- net/netfilter/nft_compat.c        |  4 ++--
- net/netfilter/nft_ct.c            |  3 ++-
- net/netfilter/nft_immediate.c     |  3 ++-
- net/netfilter/nft_log.c           |  3 ++-
- net/netfilter/nft_lookup.c        |  3 ++-
- 7 files changed, 31 insertions(+), 32 deletions(-)
+ net/netfilter/nft_ct.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 5af56da..e6bc14d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -289,7 +289,8 @@ struct nft_expr_ops {
- 	int				(*init)(const struct nft_ctx *ctx,
- 						const struct nft_expr *expr,
- 						const struct nlattr * const tb[]);
--	void				(*destroy)(const struct nft_expr *expr);
-+	void				(*destroy)(const struct nft_ctx *ctx,
-+						   const struct nft_expr *expr);
- 	int				(*dump)(struct sk_buff *skb,
- 						const struct nft_expr *expr);
- 	int				(*validate)(const struct nft_ctx *ctx,
-@@ -343,19 +344,13 @@ struct nft_rule {
-  *	struct nft_rule_trans - nf_tables rule update in transaction
-  *
-  *	@list: used internally
-+ *	@ctx: rule context
-  *	@rule: rule that needs to be updated
-- *	@chain: chain that this rule belongs to
-- *	@table: table for which this chain applies
-- *	@nlh: netlink header of the message that contain this update
-- *	@family: family expressesed as AF_*
-  */
- struct nft_rule_trans {
- 	struct list_head		list;
-+	struct nft_ctx			ctx;
- 	struct nft_rule			*rule;
--	const struct nft_chain		*chain;
--	const struct nft_table		*table;
--	const struct nlmsghdr		*nlh;
--	u8				family;
- };
- 
- static inline struct nft_expr *nft_expr_first(const struct nft_rule *rule)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a206405..55541ce 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1253,10 +1253,11 @@ err1:
- 	return err;
- }
- 
--static void nf_tables_expr_destroy(struct nft_expr *expr)
-+static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
-+				   struct nft_expr *expr)
- {
- 	if (expr->ops->destroy)
--		expr->ops->destroy(expr);
-+		expr->ops->destroy(ctx, expr);
- 	module_put(expr->ops->type->owner);
- }
- 
-@@ -1536,7 +1537,8 @@ err:
- 	return err;
- }
- 
--static void nf_tables_rule_destroy(struct nft_rule *rule)
-+static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
-+				   struct nft_rule *rule)
- {
- 	struct nft_expr *expr;
- 
-@@ -1546,7 +1548,7 @@ static void nf_tables_rule_destroy(struct nft_rule *rule)
- 	 */
- 	expr = nft_expr_first(rule);
- 	while (expr->ops && expr != nft_expr_last(rule)) {
--		nf_tables_expr_destroy(expr);
-+		nf_tables_expr_destroy(ctx, expr);
- 		expr = nft_expr_next(expr);
- 	}
- 	kfree(rule);
-@@ -1565,11 +1567,8 @@ nf_tables_trans_add(struct nft_ctx *ctx, struct nft_rule *rule)
- 	if (rupd == NULL)
- 	       return NULL;
- 
--	rupd->chain = ctx->chain;
--	rupd->table = ctx->table;
-+	rupd->ctx = *ctx;
- 	rupd->rule = rule;
--	rupd->family = ctx->afi->family;
--	rupd->nlh = ctx->nlh;
- 	list_add_tail(&rupd->list, &ctx->net->nft.commit_list);
- 
- 	return rupd;
-@@ -1721,7 +1720,7 @@ err3:
- 		kfree(repl);
- 	}
- err2:
--	nf_tables_rule_destroy(rule);
-+	nf_tables_rule_destroy(&ctx, rule);
- err1:
- 	for (i = 0; i < n; i++) {
- 		if (info[i].ops != NULL)
-@@ -1831,10 +1830,10 @@ static int nf_tables_commit(struct sk_buff *skb)
- 		 */
- 		if (nft_rule_is_active(net, rupd->rule)) {
- 			nft_rule_clear(net, rupd->rule);
--			nf_tables_rule_notify(skb, rupd->nlh, rupd->table,
--					      rupd->chain, rupd->rule,
--					      NFT_MSG_NEWRULE, 0,
--					      rupd->family);
-+			nf_tables_rule_notify(skb, rupd->ctx.nlh,
-+					      rupd->ctx.table, rupd->ctx.chain,
-+					      rupd->rule, NFT_MSG_NEWRULE, 0,
-+					      rupd->ctx.afi->family);
- 			list_del(&rupd->list);
- 			kfree(rupd);
- 			continue;
-@@ -1842,9 +1841,10 @@ static int nf_tables_commit(struct sk_buff *skb)
- 
- 		/* This rule is in the past, get rid of it */
- 		list_del_rcu(&rupd->rule->list);
--		nf_tables_rule_notify(skb, rupd->nlh, rupd->table, rupd->chain,
-+		nf_tables_rule_notify(skb, rupd->ctx.nlh,
-+				      rupd->ctx.table, rupd->ctx.chain,
- 				      rupd->rule, NFT_MSG_DELRULE, 0,
--				      rupd->family);
-+				      rupd->ctx.afi->family);
- 	}
- 
- 	/* Make sure we don't see any packet traversing old rules */
-@@ -1852,7 +1852,7 @@ static int nf_tables_commit(struct sk_buff *skb)
- 
- 	/* Now we can safely release unused old rules */
- 	list_for_each_entry_safe(rupd, tmp, &net->nft.commit_list, list) {
--		nf_tables_rule_destroy(rupd->rule);
-+		nf_tables_rule_destroy(&rupd->ctx, rupd->rule);
- 		list_del(&rupd->list);
- 		kfree(rupd);
- 	}
-@@ -1881,7 +1881,7 @@ static int nf_tables_abort(struct sk_buff *skb)
- 	synchronize_rcu();
- 
- 	list_for_each_entry_safe(rupd, tmp, &net->nft.commit_list, list) {
--		nf_tables_rule_destroy(rupd->rule);
-+		nf_tables_rule_destroy(&rupd->ctx, rupd->rule);
- 		list_del(&rupd->list);
- 		kfree(rupd);
- 	}
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 82cb823..8a779be 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -192,7 +192,7 @@ err:
- }
- 
- static void
--nft_target_destroy(const struct nft_expr *expr)
-+nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
- 	struct xt_target *target = expr->ops->data;
- 
-@@ -379,7 +379,7 @@ err:
- }
- 
- static void
--nft_match_destroy(const struct nft_expr *expr)
-+nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
- 	struct xt_match *match = expr->ops->data;
- 
 diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index e59b08f..65a2c7b 100644
+index 65a2c7b..bd0d41e 100644
 --- a/net/netfilter/nft_ct.c
 +++ b/net/netfilter/nft_ct.c
-@@ -321,7 +321,8 @@ static int nft_ct_init(const struct nft_ctx *ctx,
+@@ -24,11 +24,10 @@
+ struct nft_ct {
+ 	enum nft_ct_keys	key:8;
+ 	enum ip_conntrack_dir	dir:8;
+-	union{
++	union {
+ 		enum nft_registers	dreg:8;
+ 		enum nft_registers	sreg:8;
+ 	};
+-	uint8_t			family;
+ };
+ 
+ static void nft_ct_get_eval(const struct nft_expr *expr,
+@@ -316,17 +315,13 @@ static int nft_ct_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->family = ctx->afi->family;
+-
  	return 0;
  }
  
--static void nft_ct_destroy(const struct nft_expr *expr)
-+static void nft_ct_destroy(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr)
+ static void nft_ct_destroy(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr)
  {
- 	struct nft_ct *priv = nft_expr_priv(expr);
- 
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index f169501..810385e 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -70,7 +70,8 @@ err1:
- 	return err;
+-	struct nft_ct *priv = nft_expr_priv(expr);
+-
+-	nft_ct_l3proto_module_put(priv->family);
++	nft_ct_l3proto_module_put(ctx->afi->family);
  }
  
--static void nft_immediate_destroy(const struct nft_expr *expr)
-+static void nft_immediate_destroy(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
- 	return nft_data_uninit(&priv->data, nft_dreg_to_type(priv->dreg));
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 26c5154..10cfb15 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -74,7 +74,8 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 	return 0;
- }
- 
--static void nft_log_destroy(const struct nft_expr *expr)
-+static void nft_log_destroy(const struct nft_ctx *ctx,
-+			    const struct nft_expr *expr)
- {
- 	struct nft_log *priv = nft_expr_priv(expr);
- 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index bb4ef4c..953978e 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -89,7 +89,8 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	return 0;
- }
- 
--static void nft_lookup_destroy(const struct nft_expr *expr)
-+static void nft_lookup_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr)
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 
+ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
 -- 
 1.8.5.3
 
