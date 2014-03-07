@@ -1,101 +1,73 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 0/7] netfilter: connlimit: scalability improvements
-Date: Fri,  7 Mar 2014 14:37:08 +0100
-Message-ID: <1394199435-14395-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 2/7] netfilter: connlimit: improve packet-to-closed-connection logic
+Date: Fri,  7 Mar 2014 14:37:10 +0100
+Message-ID: <1394199435-14395-3-git-send-email-fw@strlen.de>
+References: <1394199435-14395-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45172 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45171 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753096AbaCGNlW (ORCPT
+	by vger.kernel.org with ESMTP id S1753028AbaCGNlW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 7 Mar 2014 08:41:22 -0500
+In-Reply-To: <1394199435-14395-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The connlimit match suffers from two problems:
+Instead of freeing the entry from our list and then adding
+it back again in the 'packet to closing connection' case just keep the
+matching entry around.  Also drop the found_ct != NULL test as
+nf_ct_tuplehash_to_ctrack is just container_of().
 
-- lock contention when multiple cpus invoke the match function
-- algorithmic complexity: on average the connlimit match will need to
-  traverse list of length NUMBER_OF_CONNTRACKS % 256 (HASH_BUCKET); as
-  it needs to test which entries are still active by querying conntrack.
+Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/xt_connlimit.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-This patch set tries to solve both issues.
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 6988818..d4c6db1 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -112,29 +112,22 @@ static int count_hlist(struct net *net,
+ 	hlist_for_each_entry_safe(conn, n, head, node) {
+ 		found    = nf_conntrack_find_get(net, NF_CT_DEFAULT_ZONE,
+ 						 &conn->tuple);
+-		found_ct = NULL;
++		if (found == NULL) {
++			hlist_del(&conn->node);
++			kfree(conn);
++			continue;
++		}
+ 
+-		if (found != NULL)
+-			found_ct = nf_ct_tuplehash_to_ctrack(found);
++		found_ct = nf_ct_tuplehash_to_ctrack(found);
+ 
+-		if (found_ct != NULL &&
+-		    nf_ct_tuple_equal(&conn->tuple, tuple) &&
+-		    !already_closed(found_ct))
++		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
+ 			/*
+ 			 * Just to be sure we have it only once in the list.
+ 			 * We should not see tuples twice unless someone hooks
+ 			 * this into a table without "-p tcp --syn".
+ 			 */
+ 			addit = false;
+-
+-		if (found == NULL) {
+-			/* this one is gone */
+-			hlist_del(&conn->node);
+-			kfree(conn);
+-			continue;
+-		}
+-
+-		if (already_closed(found_ct)) {
++		} else if (already_closed(found_ct)) {
+ 			/*
+ 			 * we do not care about connections which are
+ 			 * closed already -> ditch it
+-- 
+1.8.1.5
 
-Tested on 4-core machine, load was generated via synflood from
-randomly-generated IP addresses.
-
-Config:
-sysctl net.nf_conntrack_max=256000
-echo 65536 > /sys/module/nf_conntrack/parameters/hashsize
-
-With conntrack but without any iptables rules, the machine is not cpu
-limited when flooding, the network is simply not able to handle more
-packets. (close to 100 kpps rx, 50 kpps outbound syn/acks).
-RPS was disabled in this test.
-
-When adding
--A INPUT -p tcp --syn -m connlimit --connlimit-above 5 --connlimit-mask 32 --connlimit-saddr
-
-this changes, entire test is now cpu-bound; kernel only handles ~6kpps rx.
-
-enabling rps helps (at cost of more cpus being busy), but still maxes
-out at ~35kpps rx.
-
-perf trace in RPS-on test shows lock contention:
-+  20.84%   ksoftirqd/2  [kernel.kallsyms]              [k] _raw_spin_lock_bh
-+  20.76%   ksoftirqd/1  [kernel.kallsyms]              [k] _raw_spin_lock_bh
-+  20.42%   ksoftirqd/0  [kernel.kallsyms]              [k] _raw_spin_lock_bh
-+   6.07%   ksoftirqd/2  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   6.07%   ksoftirqd/1  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   5.97%   ksoftirqd/0  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   2.47%   ksoftirqd/2  [nf_conntrack]                 [k] hash_conntrack_raw
-+   2.45%   ksoftirqd/0  [nf_conntrack]                 [k] hash_conntrack_raw
-+   2.44%   ksoftirqd/1  [nf_conntrack]                 [k] hash_conntrack_raw
-
-With keyed locks the contention goes away, providing some improvement
-(50 kpps rx, 10 kpps tx):
-+  20.95%  ksoftirqd/0  [nf_conntrack]                 [k] ____nf_conntrack_find
-+  20.50%  ksoftirqd/1  [nf_conntrack]                 [k] ____nf_conntrack_find
-+  20.27%  ksoftirqd/2  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   5.76%  ksoftirqd/1  [nf_conntrack]                 [k] hash_conntrack_raw
-+   5.39%  ksoftirqd/2  [nf_conntrack]                 [k] hash_conntrack_raw
-+   5.35%  ksoftirqd/0  [nf_conntrack]                 [k] hash_conntrack_raw
-+   2.00%  ksoftirqd/1  [kernel.kallsyms]              [k] __rcu_read_unlock
-+   1.95%  ksoftirqd/0  [kernel.kallsyms]              [k] __rcu_read_unlock
-+   1.86%  ksoftirqd/2  [kernel.kallsyms]              [k] __rcu_read_unlock
-+   1.14%  ksoftirqd/0  [nf_conntrack]                 [k] __nf_conntrack_find_get
-+   1.14%  ksoftirqd/2  [nf_conntrack]                 [k] __nf_conntrack_find_get
-+   1.05%  ksoftirqd/1  [nf_conntrack]                 [k] __nf_conntrack_find_get
-
-With rbtree-based storage (and keyed locks) we can however handle *almost* the
-same load as without the rule, (90kpps, 51kpps outbound):
-
-+  17.24%       swapper  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   6.60%   ksoftirqd/2  [nf_conntrack]                 [k] ____nf_conntrack_find
-+   2.73%       swapper  [nf_conntrack]                 [k] hash_conntrack_raw
-+   2.36%       swapper  [xt_connlimit]                 [k] count_tree
-+   2.23%       swapper  [nf_conntrack]                 [k] __nf_conntrack_confirm
-+   2.00%       swapper  [kernel.kallsyms]              [k] _raw_spin_lock
-+   1.40%       swapper  [nf_conntrack]                 [k] __nf_conntrack_find_get
-+   1.29%       swapper  [kernel.kallsyms]              [k] __rcu_read_unlock
-+   1.13%       swapper  [kernel.kallsyms]              [k] _raw_spin_lock_bh
-+   1.13%   ksoftirqd/2  [nf_conntrack]                 [k] hash_conntrack_raw
-+   1.06%       swapper  [kernel.kallsyms]              [k] sha_transform
-
-Comments welcome.
-
-These changes may also be pulled from
-
-git://git.breakpoint.cc/fw/nf-next connlimit_18
-
-Florian Westphal (7):
-      netfilter: connlimit: factor hlist search into new function
-      netfilter: connlimit: improve packet-to-closed-connection logic
-      netfilter: connlimit: move insertion of new element out of count function
-      netfilter: connlimit: use kmem_cache for conn objects
-      netfilter: connlimit: use keyed locks
-      netfilter: connlimit: make same_source_net signed
-      netfilter: connlimit: use rbtree for per-host conntrack obj storage
-
- net/netfilter/xt_connlimit.c | 300 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 231 insertions(+), 69 deletions(-)
