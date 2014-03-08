@@ -1,175 +1,118 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH 5/8] ipfix: add function for ipfix message creation
-Date: Sat, 8 Mar 2014 10:13:47 +0900
-Message-ID: <20140308011345.GF4415@gmail.com>
+Subject: [PATCH 6/8] ipfix: decide whether prepending template by send times
+Date: Sat, 8 Mar 2014 10:15:36 +0900
+Message-ID: <20140308011534.GG4415@gmail.com>
 References: <20140308010344.GA4415@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:36651 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754522AbaCHBN5 (ORCPT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:50171 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545AbaCHBPp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 20:13:57 -0500
-Received: by mail-pd0-f182.google.com with SMTP id g10so4738403pdj.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 17:13:56 -0800 (PST)
+	Fri, 7 Mar 2014 20:15:45 -0500
+Received: by mail-pb0-f53.google.com with SMTP id rp16so4875580pbb.40
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 17:15:44 -0800 (PST)
 Received: from gmail.com (KD106159154146.ppp-bb.dion.ne.jp. [106.159.154.146])
-        by mx.google.com with ESMTPSA id nz11sm17110381pab.6.2014.03.07.17.13.53
+        by mx.google.com with ESMTPSA id lh13sm17122451pab.4.2014.03.07.17.15.41
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Fri, 07 Mar 2014 17:13:55 -0800 (PST)
+        Fri, 07 Mar 2014 17:15:43 -0800 (PST)
 Content-Disposition: inline
 In-Reply-To: <20140308010344.GA4415@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This function creates ipfix message, template and data part but not scope.
-Header sequence is kept by struct ipfix_instance, domain id is specified
-by config file. The returned value has no export time so caller set this
-and free the value after using it.
+specified in config file and kept it until_template in struct
+ulogd_ipfix_template
 
 ---
- include/ulogd/ipfix_protocol.h |  8 ++++-
- output/ulogd_output_IPFIX.c    | 71 +++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 77 insertions(+), 2 deletions(-)
+ output/ulogd_output_IPFIX.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/include/ulogd/ipfix_protocol.h b/include/ulogd/ipfix_protocol.h
-index 5d7e46a..266897e 100644
---- a/include/ulogd/ipfix_protocol.h
-+++ b/include/ulogd/ipfix_protocol.h
-@@ -15,7 +15,13 @@ struct ipfix_msg_hdr {
- 	u_int16_t	length;
- 	u_int32_t	export_time;
- 	u_int32_t	seq;
--	u_int32_t	source_id;
-+	u_int32_t	domain_id;
-+};
-+
-+/* Section 3.3.2 */
-+struct ipfix_set_hdr {
-+	u_int16_t       set_id;
-+	u_int16_t       length;
- };
- 
- /* Section 3.4.1 */
 diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 16cae74..c950fe2 100644
+index c950fe2..92db5c0 100644
 --- a/output/ulogd_output_IPFIX.c
 +++ b/output/ulogd_output_IPFIX.c
-@@ -28,6 +28,7 @@
- 
- #include <stdio.h>
- #include <stdlib.h>
-+#include <stdbool.h>
- #include <unistd.h>
- #include <string.h>
- #include <errno.h>
-@@ -84,7 +85,7 @@ struct sctp_sndrcvinfo {
+@@ -85,7 +85,7 @@ struct sctp_sndrcvinfo {
  #define IPFIX_DEFAULT_TCPUDP_PORT	4739
  
  static struct config_keyset ipfix_kset = {
--	.num_ces = 3,
-+	.num_ces = 4,
+-	.num_ces = 4,
++	.num_ces = 5,
  	.ces = {
  		{
  			.key 	 = "host",
-@@ -103,12 +104,19 @@ static struct config_keyset ipfix_kset = {
+@@ -110,6 +110,12 @@ static struct config_keyset ipfix_kset = {
  			.options = CONFIG_OPT_NONE,
- 			.u	= { .string = "udp" },
+ 			.u.value = 0,
  		},
-+		{
-+			.key	 = "domain_id",
++ 		{
++			.key	 = "send_template_per",
 +			.type	 = CONFIG_TYPE_INT,
 +			.options = CONFIG_OPT_NONE,
-+			.u.value = 0,
++			.u.value = 16,
 +		},
  	},
  };
  
- #define host_ce(x)	(x->ces[0])
+@@ -117,6 +123,7 @@ static struct config_keyset ipfix_kset = {
  #define port_ce(x)	(x->ces[1])
  #define proto_ce(x)	(x->ces[2])
-+#define domain_ce(x)	(x->ces[3])
+ #define domain_ce(x)	(x->ces[3])
++#define template_per_ce(x)	(x->ces[4])
  
  struct ipfix_template {
  	struct ipfix_templ_rec_hdr hdr;
-@@ -130,6 +138,7 @@ struct ipfix_instance {
- 
- 	struct llist_head template_list;
- 	struct nfct_bitmask *valid_bitmask;	/* bitmask of valid keys */
-+	u_int32_t seq;
+@@ -129,6 +136,7 @@ struct ulogd_ipfix_template {
+ 	unsigned int data_length;	/* length of the DATA */
+ 	void *tmpl_cur;			/* cursor into current template position */
+ 	struct ipfix_template tmpl;
++	int until_template;			/* decide if it's time to retransmit our template */
  };
  
- #define ULOGD_IPFIX_TEMPL_BASE 1024
-@@ -292,6 +301,66 @@ static int put_data_records(struct ulogd_pluginstance *upi,
- 	return len;
- }
+ struct ipfix_instance {
+@@ -171,6 +179,7 @@ build_template_for_bitmask(struct ulogd_pluginstance *upi,
+ 	tmpl->tmpl_cur = tmpl->tmpl.buf;
  
-+static struct ipfix_msg_hdr *build_ipfix_msg(struct ulogd_pluginstance *upi,
-+					     struct ulogd_ipfix_template *template,
-+					     bool need_template)
-+{
-+	struct ipfix_instance *ii = (struct ipfix_instance *) &upi->private;
-+	u_int16_t tmpl_len;
-+	struct ipfix_msg_hdr *msg_hdr;
-+	struct ipfix_templ_rec_hdr *tmpl_hdr;
-+	struct ipfix_set_hdr *data_hdr, *tmpl_set_hdr;
-+	void *buf;
-+	int msglen, ret;
-+
-+	msglen = sizeof(struct ipfix_msg_hdr) + sizeof(struct ipfix_set_hdr)
-+		+ template->data_length;
-+	if (need_template)
-+		msglen = msglen + sizeof(struct ipfix_set_hdr)
-+			+ (template->tmpl_cur - (void *)&template->tmpl);
-+	buf = malloc(msglen);
-+	if (buf == NULL)
-+		return NULL;
-+	memset(buf, 0, msglen);
-+
-+	/* ipfix msg header */
-+	msg_hdr = buf;
-+	msg_hdr->version = htons(10);
-+	msg_hdr->length = htons(msglen);
-+	msg_hdr->seq = htonl(ii->seq++);
-+	msg_hdr->domain_id = htonl(domain_ce(upi->config_kset).u.value);
-+	if (need_template) {
-+		/* put set header and template records */
-+		tmpl_set_hdr = buf + sizeof(*msg_hdr);
-+		tmpl_set_hdr->set_id = htons(2);
-+		tmpl_len = template->tmpl_cur - (void *)&template->tmpl;
-+		tmpl_set_hdr->length = htons(sizeof(*tmpl_set_hdr) + tmpl_len);
-+		tmpl_hdr = (void *)tmpl_set_hdr + sizeof(*tmpl_set_hdr);
-+		memcpy((void *)tmpl_hdr, (void *)&template->tmpl, tmpl_len);
-+		data_hdr = (void *)tmpl_hdr + tmpl_len;
-+	} else {
-+		data_hdr = buf + sizeof(*msg_hdr);
-+	}
-+
-+	/* put set header and data records */
-+	data_hdr->set_id = template->tmpl.hdr.templ_id; /* already ordered */
-+	data_hdr->length = htons(sizeof(*data_hdr) + template->data_length);
-+	ret = put_data_records(upi, template, (void *)data_hdr + sizeof(*data_hdr));
-+	if (ret < 0) {
-+		ulogd_log(ULOGD_ERROR, "could not build ipfix dataset");
-+		goto free_buf;
-+	} else if (ret > msglen) {
-+		ulogd_log(ULOGD_ERROR, "overflowed on building ipfix dataset");
-+		goto free_buf;
-+	}
-+
-+	return msg_hdr;
-+
-+free_buf:
-+	free(buf);
-+	return NULL;
-+}
-+
- static int output_ipfix(struct ulogd_pluginstance *upi)
+ 	tmpl->data_length = 0;
++	tmpl->until_template = template_per_ce(upi->config_kset).u.value;
+ 
+ 	for (i = 0, j = 0; i < upi->input.num_keys; i++) {
+ 		struct ulogd_key *key = &upi->input.keys[i];
+@@ -365,7 +374,8 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
  {
  	struct ipfix_instance *ii = (struct ipfix_instance *) &upi->private;
+ 	struct ulogd_ipfix_template *template;
+-	unsigned int total_size, i;
++	unsigned int i;
++	bool need_template = false;
+ 
+ 	/* FIXME: it would be more cache efficient if the IS_VALID
+ 	 * flags would be a separate bitmask outside of the array.
+@@ -398,16 +408,12 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
+ 			return ULOGD_IRET_ERR;
+ 		}
+ 		llist_add(&template->list, &ii->template_list);
++		need_template = true;
+ 	}
+ 	
+-	total_size = template->data_length;
+-
+-	/* decide if it's time to retransmit our template and (optionally)
+-	 * prepend it into the to-be-sent IPFIX message */
+-	if (0 /* FIXME */) {
+-		/* add size of template */
+-		//total_size += (template->tmpl_cur - (void *)&template->tmpl);
+-		total_size += sizeof(template->tmpl);
++	if (template->until_template-- == 0) {
++		need_template = true;
++		template->until_template = template_per_ce(upi->config_kset).u.value;
+ 	}
+ 
+ 	return ULOGD_IRET_OK;
 -- 
 1.8.5.3
 
