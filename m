@@ -1,352 +1,94 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH 8/8] ipfix: build headers with template
-Date: Sat, 8 Mar 2014 10:19:05 +0900
-Message-ID: <20140308011903.GI4415@gmail.com>
+Subject: [libnetfilter_conntrack PATCH] conntrack: introduce clear and equal
+ functions for bitmask object
+Date: Sat, 8 Mar 2014 10:24:18 +0900
+Message-ID: <20140308012416.GJ4415@gmail.com>
 References: <20140308010344.GA4415@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:46273 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755032AbaCHBTO (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48490 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753116AbaCHBYk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Mar 2014 20:19:14 -0500
-Received: by mail-pd0-f177.google.com with SMTP id g10so4711147pdj.22
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 17:19:14 -0800 (PST)
+	Fri, 7 Mar 2014 20:24:40 -0500
+Received: by mail-pb0-f46.google.com with SMTP id rq2so4864899pbb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Mar 2014 17:24:40 -0800 (PST)
 Received: from gmail.com (KD106159154146.ppp-bb.dion.ne.jp. [106.159.154.146])
-        by mx.google.com with ESMTPSA id oa3sm41331279pbb.15.2014.03.07.17.19.10
+        by mx.google.com with ESMTPSA id sx8sm17279806pab.5.2014.03.07.17.24.36
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Fri, 07 Mar 2014 17:19:13 -0800 (PST)
+        Fri, 07 Mar 2014 17:24:38 -0800 (PST)
 Content-Disposition: inline
 In-Reply-To: <20140308010344.GA4415@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Based on assumption that we send only two types packet, one has template
-set and data set, another has data set only. Theses templates including
-message header, set header and template records are put in struct
-ulogd_ipfix_template as struct ipfix_msg_hdr.
-
-Another assumption is that we can send only one dataset, cannot send
-muliple datasets at onece. It's better to not include dataset buffer,
-alloc it each time and use gather sendmsg to send multiple set with pre-
-allocated headers.
+ This patch adds two functions, useful for ulogd IPFIX
+output module.
 
 ---
- output/ulogd_output_IPFIX.c | 228 +++++++++++++++++++++++++++-----------------
- 1 file changed, 141 insertions(+), 87 deletions(-)
+ .../libnetfilter_conntrack.h                       |  2 ++
+ src/conntrack/api.c                                | 31 ++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 7d1a9bf..f1c1de0 100644
---- a/output/ulogd_output_IPFIX.c
-+++ b/output/ulogd_output_IPFIX.c
-@@ -126,18 +126,13 @@ static struct config_keyset ipfix_kset = {
- #define domain_ce(x)	(x->ces[3])
- #define template_per_ce(x)	(x->ces[4])
+diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+index d4542ba..a5e6a91 100644
+--- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
++++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+@@ -286,6 +286,8 @@ void nfct_bitmask_set_bit(struct nfct_bitmask *, unsigned int bit);
+ int nfct_bitmask_test_bit(const struct nfct_bitmask *, unsigned int bit);
+ void nfct_bitmask_unset_bit(struct nfct_bitmask *, unsigned int bit);
+ void nfct_bitmask_destroy(struct nfct_bitmask *);
++void nfct_bitmask_clear(struct nfct_bitmask *);
++int nfct_bitmask_equal(const struct nfct_bitmask *, const struct nfct_bitmask *);
  
--struct ipfix_template {
--	struct ipfix_templ_rec_hdr hdr;
--	char buf[0];
--};
--
- struct ulogd_ipfix_template {
- 	struct llist_head list;
- 	struct nfct_bitmask *bitmask;
--	unsigned int data_length;	/* length of the DATA */
--	void *tmpl_cur;			/* cursor into current template position */
--	struct ipfix_template tmpl;
--	int until_template;			/* decide if it's time to retransmit our template */
-+	int until_template;		/* decide if it's time to retransmit our template */
-+	int tmpl_data_msg_len, data_only_msg_len;
-+	struct ipfix_msg_hdr *tmpl_data_msg;	/* include records, set header of template, data */
-+	struct ipfix_msg_hdr *data_only_msg;	/* include records, set header of data */
- };
+ /* connlabel name <-> bit translation mapping */
+ struct nfct_labelmap;
+diff --git a/src/conntrack/api.c b/src/conntrack/api.c
+index 224be86..fc4c58f 100644
+--- a/src/conntrack/api.c
++++ b/src/conntrack/api.c
+@@ -1704,6 +1704,37 @@ void nfct_bitmask_destroy(struct nfct_bitmask *b)
+ 	free(b);
+ }
  
- struct ipfix_instance {
-@@ -155,36 +150,15 @@ static u_int16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
- 
- static int ipfix_fprintf_header(FILE *fd, const struct ipfix_msg_hdr *hdr);
- 
--/* Build the IPFIX template from the input keys */
- struct ulogd_ipfix_template *
--build_template_for_bitmask(struct ulogd_pluginstance *upi,
-+alloc_ulogd_ipfix_template(struct ulogd_pluginstance *upi,
- 			   struct nfct_bitmask *bm)
- {
- 	struct ulogd_ipfix_template *tmpl;
--	unsigned int i, j;
--	int size = sizeof(struct ulogd_ipfix_template)
--		   + (upi->input.num_keys * sizeof(struct ipfix_vendor_field));
--
--	tmpl = malloc(size);
--	if (!tmpl)
--		return NULL;
--	memset(tmpl, 0, size);
--
--	tmpl->bitmask = nfct_bitmask_clone(bm);
--	if (!tmpl->bitmask) {
--		free(tmpl);
--		return NULL;
--	}
--
--	/* initialize template header */
--	tmpl->tmpl.hdr.templ_id = htons(next_template_id++);
--
--	tmpl->tmpl_cur = tmpl->tmpl.buf;
--
--	tmpl->data_length = 0;
--	tmpl->until_template = template_per_ce(upi->config_kset).u.value;
-+	unsigned int i;
-+	int tmpl_len = 0, data_len = 0;
- 
--	for (i = 0, j = 0; i < upi->input.num_keys; i++) {
-+	for (i = 0; i < upi->input.num_keys; i++) {
- 		struct ulogd_key *key = &upi->input.keys[i];
- 		int length = ulogd_key_size(key);
- 
-@@ -204,27 +178,130 @@ build_template_for_bitmask(struct ulogd_pluginstance *upi,
- 			continue;
- 		}
- 
-+		if (key->ipfix.vendor == IPFIX_VENDOR_IETF)
-+			tmpl_len += sizeof(struct ipfix_ietf_field);
-+		else
-+			tmpl_len += sizeof(struct ipfix_vendor_field);
-+
-+		data_len += length;
-+	}
-+
-+	tmpl = calloc(sizeof(struct ulogd_ipfix_template), 1);
-+	if (tmpl == NULL)
-+		return NULL;
-+
-+	tmpl->bitmask = nfct_bitmask_clone(bm);
-+	if (!tmpl->bitmask)
-+		goto free_tmpl;
-+
-+	tmpl->data_only_msg_len = sizeof(struct ipfix_msg_hdr)
-+		+ sizeof(struct ipfix_set_hdr) + data_len;
-+	tmpl->tmpl_data_msg_len = tmpl->data_only_msg_len
-+		+ sizeof(struct ipfix_templ_rec_hdr)
-+		+ sizeof(struct ipfix_set_hdr) + tmpl_len;
-+
-+	tmpl->tmpl_data_msg = malloc(tmpl->tmpl_data_msg_len);
-+	if (tmpl->tmpl_data_msg == NULL)
-+		goto free_bitmask;
-+	memset(tmpl->tmpl_data_msg, 0, tmpl->tmpl_data_msg_len);
-+
-+	tmpl->data_only_msg = malloc(tmpl->data_only_msg_len);
-+	if (tmpl->data_only_msg == NULL)
-+		goto free_tmpl_data_msg;
-+	memset(tmpl->data_only_msg, 0, tmpl->data_only_msg_len);
-+
-+	return tmpl;
-+
-+free_tmpl_data_msg:
-+	free(tmpl->tmpl_data_msg);
-+free_bitmask:
-+	free(tmpl->bitmask);
-+free_tmpl:
-+	free(tmpl);
-+
-+	return NULL;
++/*
++ * nfct_bitmask_clear - clear a bitmask object
++ *
++ * \param b pointer to the bitmask object to clear
++ */
++void nfct_bitmask_clear(struct nfct_bitmask *b)
++{
++	unsigned int bytes = b->words * sizeof(b->bits[0]);
++	memset(b->bits, 0, bytes);
 +}
 +
-+/* Build the IPFIX template from the input keys */
-+struct ulogd_ipfix_template *
-+build_template_for_bitmask(struct ulogd_pluginstance *upi,
-+			   struct nfct_bitmask *bm)
++/*
++ * nfct_bitmask_equal - compare two bitmask objects
++ *
++ * \param b1 pointer to a valid bitmask object
++ * \param b2 pointer to a valid bitmask object
++ *
++ * If both bitmask object are equal, this function returns 1, otherwise
++ * -1 or 0 is returned.
++ */
++int nfct_bitmask_equal(const struct nfct_bitmask *b1, const struct nfct_bitmask *b2)
 +{
-+	struct ulogd_ipfix_template *tmpl;
-+	struct ipfix_msg_hdr *msg_hdr;
-+	struct ipfix_templ_rec_hdr *tmpl_hdr;
-+	struct ipfix_set_hdr *set_hdr;
-+	unsigned int i, field_count;
-+	void *ptr;
++	if (b1->words != b2->words)
++		return -1;
 +
-+	tmpl = alloc_ulogd_ipfix_template(upi, bm);
-+	if (tmpl == NULL)
-+		return NULL;
++	if (!memcmp(b1->bits, b2->bits, b1->words * sizeof(b1->bits[0])))
++		return 1;
++	else
++		return 0;
++}
 +
-+	tmpl->until_template = template_per_ce(upi->config_kset).u.value;
-+
-+	/* build template records */
-+	ptr = (void *)tmpl->tmpl_data_msg + sizeof(struct ipfix_msg_hdr)
-+		+ sizeof(struct ipfix_set_hdr) + sizeof(struct ipfix_templ_rec_hdr);
-+	for (i = 0, field_count = 0; i < upi->input.num_keys; i++) {
-+		struct ulogd_key *key = &upi->input.keys[i];
-+		int length = ulogd_key_size(key);
-+
-+		if (!(key->u.source->flags & ULOGD_RETF_VALID))
-+			continue;
-+		if (length < 0 || length > 0xfffe)
-+			continue;
-+		if (key->ipfix.field_id == 0)
-+			continue;
-+	
- 		if (key->ipfix.vendor == IPFIX_VENDOR_IETF) {
--			struct ipfix_ietf_field *field = 
--				(struct ipfix_ietf_field *) tmpl->tmpl_cur;
-+			struct ipfix_ietf_field *field = (struct ipfix_ietf_field *)ptr;
- 
- 			field->type = htons(key->ipfix.field_id);
- 			field->length = htons(length);
--			tmpl->tmpl_cur += sizeof(*field);
-+			ptr += sizeof(*field);
- 		} else {
--			struct ipfix_vendor_field *field =
--				(struct ipfix_vendor_field *) tmpl->tmpl_cur;
-+			struct ipfix_vendor_field *field =(struct ipfix_vendor_field *)ptr;
- 
- 			field->type = htons(key->ipfix.field_id | 0x8000);
--			field->enterprise_num = htonl(key->ipfix.vendor);
- 			field->length = htons(length);
--			tmpl->tmpl_cur += sizeof(*field);
-+			field->enterprise_num = htonl(key->ipfix.vendor);
-+			ptr += sizeof(*field);
- 		}
--		tmpl->data_length += length;
--		j++;
-+		field_count++;
- 	}
- 
--	tmpl->tmpl.hdr.field_count = htons(j);
-+	/** initialize ipfix message header with template and data */
-+	msg_hdr = tmpl->tmpl_data_msg;
-+	msg_hdr->version = htons(10);
-+	msg_hdr->length = htons(tmpl->tmpl_data_msg_len);
-+	msg_hdr->domain_id = htonl(domain_ce(upi->config_kset).u.value);
-+
-+	/* initialize template set header */
-+	set_hdr = (void *)msg_hdr + sizeof(*msg_hdr);
-+	set_hdr->set_id = htons(2);
-+	set_hdr->length = htons(tmpl->tmpl_data_msg_len - tmpl->data_only_msg_len);
-+
-+	/* initialize template record header */
-+	tmpl_hdr = (void *)set_hdr + sizeof(*set_hdr);
-+	tmpl_hdr->templ_id = htons(next_template_id++);
-+	tmpl_hdr->field_count = htons(field_count);
-+
-+	/* initialize data set header */
-+	set_hdr = ptr;
-+	set_hdr->set_id = tmpl_hdr->templ_id;
-+	set_hdr->length = htons(tmpl->data_only_msg_len - sizeof(struct ipfix_msg_hdr));
-+
-+	/** initialize ipfix message header with data only */
-+	msg_hdr = tmpl->data_only_msg;
-+	msg_hdr->version = htons(10);
-+	msg_hdr->length = htons(tmpl->data_only_msg_len);
-+	msg_hdr->domain_id = htonl(domain_ce(upi->config_kset).u.value);
-+
-+	/* initialize data set header */
-+	set_hdr = (void *)msg_hdr + sizeof(*msg_hdr);
-+	set_hdr->set_id = tmpl_hdr->templ_id;
-+	set_hdr->length = htons(tmpl->data_only_msg_len - sizeof(struct ipfix_msg_hdr));
- 
- 	return tmpl;
- }
-@@ -318,59 +395,36 @@ static struct ipfix_msg_hdr *build_ipfix_msg(struct ulogd_pluginstance *upi,
- 					     bool need_template)
- {
- 	struct ipfix_instance *ii = (struct ipfix_instance *) &upi->private;
--	u_int16_t tmpl_len;
- 	struct ipfix_msg_hdr *msg_hdr;
--	struct ipfix_templ_rec_hdr *tmpl_hdr;
--	struct ipfix_set_hdr *data_hdr, *tmpl_set_hdr;
--	void *buf;
--	int msglen, ret;
--
--	msglen = sizeof(struct ipfix_msg_hdr) + sizeof(struct ipfix_set_hdr)
--		+ template->data_length;
--	if (need_template)
--		msglen = msglen + sizeof(struct ipfix_set_hdr)
--			+ (template->tmpl_cur - (void *)&template->tmpl);
--	buf = malloc(msglen);
--	if (buf == NULL)
--		return NULL;
--	memset(buf, 0, msglen);
-+	void *data_records;
-+	int ret, data_len;
- 
--	/* ipfix msg header */
--	msg_hdr = buf;
--	msg_hdr->version = htons(10);
--	msg_hdr->length = htons(msglen);
--	msg_hdr->seq = htonl(ii->seq++);
--	msg_hdr->domain_id = htonl(domain_ce(upi->config_kset).u.value);
- 	if (need_template) {
--		/* put set header and template records */
--		tmpl_set_hdr = buf + sizeof(*msg_hdr);
--		tmpl_set_hdr->set_id = htons(2);
--		tmpl_len = template->tmpl_cur - (void *)&template->tmpl;
--		tmpl_set_hdr->length = htons(sizeof(*tmpl_set_hdr) + tmpl_len);
--		tmpl_hdr = (void *)tmpl_set_hdr + sizeof(*tmpl_set_hdr);
--		memcpy((void *)tmpl_hdr, (void *)&template->tmpl, tmpl_len);
--		data_hdr = (void *)tmpl_hdr + tmpl_len;
-+		int tmpl_len = template->tmpl_data_msg_len - template->data_only_msg_len;
-+		msg_hdr = template->tmpl_data_msg;
-+		data_records = (void *)msg_hdr + sizeof(struct ipfix_msg_hdr)
-+			+ tmpl_len + sizeof(struct ipfix_set_hdr);
- 	} else {
--		data_hdr = buf + sizeof(*msg_hdr);
-+		msg_hdr = template->data_only_msg;
-+		data_records = (void *)msg_hdr + sizeof(struct ipfix_msg_hdr)
-+			+ sizeof(struct ipfix_set_hdr);
- 	}
-+	msg_hdr->seq = htonl(ii->seq++);
-+
-+	data_len = template->data_only_msg_len - sizeof(struct ipfix_msg_hdr)
-+		- sizeof(struct ipfix_set_hdr);
-+	memset(data_records, 0, data_len);
- 
--	/* put set header and data records */
--	data_hdr->set_id = template->tmpl.hdr.templ_id; /* already ordered */
--	data_hdr->length = htons(sizeof(*data_hdr) + template->data_length);
--	ret = put_data_records(upi, template, (void *)data_hdr + sizeof(*data_hdr));
-+	ret = put_data_records(upi, template, data_records);
- 	if (ret < 0) {
- 		ulogd_log(ULOGD_ERROR, "could not build ipfix dataset");
--		goto free_buf;
--	} else if (ret > msglen) {
-+		return NULL;
-+	} else if (ret > data_len) {
- 		ulogd_log(ULOGD_ERROR, "overflowed on building ipfix dataset");
--		goto free_buf;
-+		return NULL;
- 	}
- 
- 	return msg_hdr;
--
--free_buf:
--	free(buf);
--	return NULL;
- }
- 
- static int output_ipfix(struct ulogd_pluginstance *upi)
-@@ -415,10 +469,11 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
- 		need_template = true;
- 	}
- 	
--	if (template->until_template-- == 0) {
-+	if (template->until_template == 0) {
- 		need_template = true;
- 		template->until_template = template_per_ce(upi->config_kset).u.value;
- 	}
-+	template->until_template--;
- 
- 	ipfix_msg = build_ipfix_msg(upi, template, need_template);
- 	if (ipfix_msg == NULL)
-@@ -428,7 +483,6 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
- 	ipfix_fprintf_header(stdout, ipfix_msg);
- 	fprintf(stdout, "\n");
- 
--	free(ipfix_msg);
- 	return ULOGD_IRET_OK;
- }
- 
+ /**
+  * @}
+  */
 -- 
 1.8.5.3
 
