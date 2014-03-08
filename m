@@ -1,60 +1,109 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH 3/3] example: removed printf rule function
-Date: Sat, 08 Mar 2014 15:00:51 +0100
-Message-ID: <20140308140051.13220.84585.stgit@Ph0enix>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH 2/3] example/nft-rule-insert: fixed and merged
+ this example with nft-rule-add
+Date: Sat, 8 Mar 2014 15:16:53 +0100
+Message-ID: <20140308141653.GA7854@localhost>
 References: <20140308140039.13220.89013.stgit@Ph0enix>
+ <20140308140045.13220.19401.stgit@Ph0enix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:48452 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429AbaCHOBF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Mar 2014 09:01:05 -0500
-Received: by mail-bk0-f49.google.com with SMTP id my13so1031672bkb.36
-        for <netfilter-devel@vger.kernel.org>; Sat, 08 Mar 2014 06:01:04 -0800 (PST)
-Received: from [127.0.1.1] ([2001:bf0:c001:30:3d1f:93c2:7e21:8d5c])
-        by mx.google.com with ESMTPSA id ey13sm5731156bkb.11.2014.03.08.06.01.03
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 08 Mar 2014 06:01:03 -0800 (PST)
-In-Reply-To: <20140308140039.13220.89013.stgit@Ph0enix>
+Received: from mail.us.es ([193.147.175.20]:44115 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751197AbaCHORB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Mar 2014 09:17:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20140308140045.13220.19401.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
+On Sat, Mar 08, 2014 at 03:00:45PM +0100, Alvaro Neira Ayuso wrote:
+> From: =C1lvaro Neira Ayuso <anayuso@sysmocom.de>
+>=20
+> Merged the example for inserting rules and fixed for using
+> the correct header.
+>=20
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> Signed-off-by: Alvaro Neira Ayuso <anayuso@sysmocom.de>
+> ---
+>  examples/nft-rule-add.c |   16 +++++++++++++---
+>  1 file changed, 13 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
+> index 21b3bf8..7407a78 100644
+> --- a/examples/nft-rule-add.c
+> +++ b/examples/nft-rule-add.c
+> @@ -80,11 +80,12 @@ static void add_counter(struct nft_rule *r)
+>  }
+> =20
+>  static struct nft_rule *setup_rule(uint8_t family, const char *table=
+,
+> -				   const char *chain)
+> +				   const char *chain, const char *handle)
+>  {
+>  	struct nft_rule *r =3D NULL;
+>  	uint8_t proto;
+>  	uint16_t dport;
+> +	uint64_t hand;
 
-Removed this code because with that we have a strange
-output. Example:
+Oh, this variable name is horrible, better handle_num?
 
-we have a rule with handle 4 and we execute
-nft-rule-del ip filter input 4
+>  	r =3D nft_rule_alloc();
+>  	if (r =3D=3D NULL) {
+> @@ -96,6 +97,12 @@ static struct nft_rule *setup_rule(uint8_t family,=
+ const char *table,
+>  	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, chain);
+>  	nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FAMILY, family);
+> =20
+> +	if (handle !=3D NULL) {
+> +		printf("entra\n");
+                ^----------------^
 
-Output: unknown filter input 4 0
+I think you have to remove that.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- examples/nft-rule-del.c |    4 ----
- 1 file changed, 4 deletions(-)
+> +		hand =3D atoi(handle);
 
-diff --git a/examples/nft-rule-del.c b/examples/nft-rule-del.c
-index 06a28c7..8d875b3 100644
---- a/examples/nft-rule-del.c
-+++ b/examples/nft-rule-del.c
-@@ -81,10 +81,6 @@ int main(int argc, char *argv[])
- 	if (argc =3D=3D 5)
- 		nft_rule_attr_set_u64(r, NFT_RULE_ATTR_HANDLE, atoi(argv[4]));
-=20
--	char tmp[1024];
--	nft_rule_snprintf(tmp, sizeof(tmp), r, 0, 0);
--	printf("%s\n", tmp);
--
- 	batch =3D mnl_nlmsg_batch_start(buf, sizeof(buf));
-=20
- 	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
+This is u64, atoi is just 32 bits. You can use atoll or strtoull.
 
+> +		nft_rule_attr_set(r, NFT_RULE_ATTR_POSITION, &hand);
+
+Use nft_rule_attr_set_u64, please.
+
+> +	}
+> +
+>  	proto =3D IPPROTO_TCP;
+>  	add_payload(r, NFT_PAYLOAD_NETWORK_HEADER, NFT_REG_1,
+>  		    offsetof(struct iphdr, protocol), sizeof(uint8_t));
+> @@ -138,7 +145,7 @@ int main(int argc, char *argv[])
+>  	uint32_t seq =3D time(NULL);
+>  	int ret;
+> =20
+> -	if (argc !=3D 4) {
+> +	if (argc < 4 || argc > 5) {
+>  		fprintf(stderr, "Usage: %s <family> <table> <chain>\n", argv[0]);
+>  		exit(EXIT_FAILURE);
+>  	}
+> @@ -152,7 +159,10 @@ int main(int argc, char *argv[])
+>  		exit(EXIT_FAILURE);
+>  	}
+> =20
+> -	r =3D setup_rule(family, argv[2], argv[3]);
+> +	if (argc !=3D 5)
+> +		r =3D setup_rule(family, argv[2], argv[3], NULL);
+> +	else
+> +		r =3D setup_rule(family, argv[2], argv[3], argv[4]);
+> =20
+>  	nl =3D mnl_socket_open(NETLINK_NETFILTER);
+>  	if (nl =3D=3D NULL) {
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
