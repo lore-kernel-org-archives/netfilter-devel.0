@@ -1,59 +1,59 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 1/2] src/rule: Removed mandatory attribute
- printing in rules
-Date: Sun, 9 Mar 2014 14:14:23 +0100
-Message-ID: <CAOkSjBhtRP+aVF8qNcP0uwV4LFRFxnZCS1GCKox1uw7Vfimuew@mail.gmail.com>
-References: <20140309125959.23270.43422.stgit@Ph0enix>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 5/7] netfilter: connlimit: use keyed locks
+Date: Sun, 9 Mar 2014 18:13:11 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1403091809110.10040@nerf08.vanv.qr>
+References: <1394199435-14395-1-git-send-email-fw@strlen.de> <1394199435-14395-6-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:41135 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055AbaCINOp convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Mar 2014 09:14:45 -0400
-Received: by mail-la0-f45.google.com with SMTP id hr17so3933589lab.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Mar 2014 06:14:43 -0700 (PDT)
-In-Reply-To: <20140309125959.23270.43422.stgit@Ph0enix>
+Received: from ares08.inai.de ([46.4.84.70]:41807 "EHLO ares08.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751207AbaCIRNN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Mar 2014 13:13:13 -0400
+In-Reply-To: <1394199435-14395-6-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 March 2014 13:59, Alvaro Neira Ayuso <alvaroneay@gmail.com> wrote:
-> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
->
-> Before this patch, the program tried to print some attribute
-> that maybe the user hasn't defined for printing. We can't
-> assume that the user want to print some attribute that we have put
-> mandatory in the rules. Example:
->
-> Before this patch, it's mandatory have a rule with family
-> and this is the output:
->
-> {"rule":{"family":"ip","handle":4...
-> <rule><family>ip</family><handle>4</handle>...
->
-> Now, we can print rule without some attribute:
->
-> {"rule":{"handle":4...
-> <rule><handle>4</handle>...
->
-> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-> ---
 
-Hi there!
+On Friday 2014-03-07 14:37, Florian Westphal wrote:
+> 
+>+#define CONNLIMIT_SLOTS	256 /* power-of-two */
+>+#define CONNLIMIT_LOCK_SLOTS	32 /* power-of-two */
 
-These attributes are no longer mandatory? What is the idea behind this?
+It's clear that 256 and 32 are powers of two. Or did you intend to
+write "these should be a power of two"? Which would then raise the
+question if they really need to be a power of two.
 
-regards.
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Given
+
+> static inline unsigned int connlimit_iphash(__be32 addr)
+> {
+>-	return jhash_1word((__force __u32)addr, connlimit_rnd) & 0xFF;
+>+	return jhash_1word((__force __u32)addr,
+>+			    connlimit_rnd) % CONNLIMIT_SLOTS;
+> }
+> 
+>@@ -183,7 +188,7 @@ static int count_them(struct net *net,
+> 
+> 	hhead = &data->iphash[hash];
+> 
+>-	spin_lock_bh(&data->lock);
+>+	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
+> 	count = count_hlist(net, hhead, tuple, addr, mask, family, &addit);
+> 	if (addit) {
+> 		if (add_hlist(hhead, tuple, addr))
+
+it would seem that it is sufficient to have CONNLIMIT_SLOTS be
+a multiple of CONNLIMIT_LOCK_SLOTS and
+
+> {
+> 	int ret;
+>+
+>+	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
+>+
+
+be followed by
+
+	BUILD_BUG_ON(CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS != 0);
