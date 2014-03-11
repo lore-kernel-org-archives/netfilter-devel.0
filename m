@@ -1,9 +1,9 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 1/2] src/rule: Removed mandatory attribute
- printing in rules
-Date: Tue, 11 Mar 2014 20:59:56 +0100
-Message-ID: <CAOkSjBhB8x0wWaP0RYn5ytuJ8Hs1HL7=6rRK-AOKqUe=hpsOrA@mail.gmail.com>
-References: <20140309125959.23270.43422.stgit@Ph0enix>
+Subject: Re: [libnftnl PATCH 2/2] src/rule: Changed parser support for having
+ consistent with the new print support
+Date: Tue, 11 Mar 2014 21:16:32 +0100
+Message-ID: <CAOkSjBgLvyAxsnqx4CAuZziQaOj4ximZ2YAqd542HuEi-J9BCQ@mail.gmail.com>
+References: <20140309125959.23270.43422.stgit@Ph0enix> <20140309130005.23270.28970.stgit@Ph0enix>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -11,68 +11,113 @@ Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
 To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:55869 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755552AbaCKUAU convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:63166 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbaCKUQx convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Mar 2014 16:00:20 -0400
-Received: by mail-lb0-f181.google.com with SMTP id c11so6037495lbj.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Mar 2014 13:00:19 -0700 (PDT)
-In-Reply-To: <20140309125959.23270.43422.stgit@Ph0enix>
+	Tue, 11 Mar 2014 16:16:53 -0400
+Received: by mail-lb0-f182.google.com with SMTP id n15so6038278lbi.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Mar 2014 13:16:52 -0700 (PDT)
+In-Reply-To: <20140309130005.23270.28970.stgit@Ph0enix>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Alvaro,
 
-I found a small issue in your patch, see below.
+a few coments below about this patch.
 
-Except for this, the patch looks good to me.
-
-On 9 March 2014 13:59, Alvaro Neira Ayuso <alvaroneay@gmail.com> wrote:
-> @@ -865,15 +904,42 @@ static int nft_rule_snprintf_xml(char *buf, siz=
-e_t size, struct nft_rule *r,
->         return offset;
->  }
+On 9 March 2014 14:00, Alvaro Neira Ayuso <alvaroneay@gmail.com> wrote:
+> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
 >
-> -static int nft_rule_snprintf_default(char *buf, size_t size, struct =
-nft_rule *r,
-> +static int nft_rule_snprintf_default(char *buf, size_t size, struct =
-nft_rule *r,
->                                      uint32_t type, uint32_t flags)
->  {
->         struct nft_rule_expr *expr;
->         int ret, len =3D size, offset =3D 0, i;
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  src/rule.c |   77 +++++++++++++++++++++++++++++++-------------------=
+----------
+>  1 file changed, 40 insertions(+), 37 deletions(-)
 >
-> -       ret =3D snprintf(buf, len, "%s %s %s %"PRIu64" %"PRIu64"\n",
-> -                       nft_family2str(r->family), r->table, r->chain=
-,
-> -                       r->handle, r->position);
-> +       if (r->flags & (1 << NFT_RULE_ATTR_FAMILY)) {
-> +               ret =3D snprintf(buf+offset, len, "%s ",
-> +                              nft_family2str(r->family));
-> +               SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+
+I would suggest to describe this parser change.
+
+> diff --git a/src/rule.c b/src/rule.c
+> index f0cafd3..e7335f8 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -540,28 +540,36 @@ int nft_jansson_parse_rule(struct nft_rule *r, =
+json_t *tree,
+>         if (root =3D=3D NULL)
+>                 return -1;
+>
+> -       if (nft_jansson_parse_family(root, &family, err) !=3D 0)
+> -               goto err;
+> +       if (nft_jansson_node_exist(root, "family")) {
+> +               if (nft_jansson_parse_family(root, &family, err) !=3D=
+ 0)
+> +                       goto err;
+>
+>         nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FAMILY, family);
 > +       }
-> +
-> +       if (r->flags & (1 << NFT_RULE_ATTR_TABLE)) {
-> +               ret =3D snprintf(buf+offset, len, "%s ",
-> +                              r->table);
-> +               SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+>
+
+=46ix indentation. The nft_rule_attr_set_u32() is now inside the if sta=
+tement.
+
+
+> -       if (nft_jansson_parse_val(root, "handle", NFT_TYPE_U64, &uval=
+64,
+> -                                 err) < 0)
+> -               goto err;
+> +       if (nft_jansson_node_exist(root, "handle")) {
+> +               if (nft_jansson_parse_val(root, "handle", NFT_TYPE_U6=
+4, &uval64,
+> +                                         err) < 0)
+
+Mixed tab/spaces indentation before 'err) < 0)'
+
+
+> @@ -640,39 +648,34 @@ int nft_mxml_rule_parse(mxml_node_t *tree, stru=
+ct nft_rule *r,
+>
+>         family =3D nft_mxml_family_parse(tree, "family", MXML_DESCEND=
+_FIRST,
+>                                        NFT_XML_MAND, err);
+> -       if (family < 0)
+> -               return -1;
+> -
+> -       r->family =3D family;
+> -       r->flags |=3D (1 << NFT_RULE_ATTR_FAMILY);
+> +       if (family >=3D 0) {
+> +               r->family =3D family;
+> +               r->flags |=3D (1 << NFT_RULE_ATTR_FAMILY);
 > +       }
-> +
-> +       if (r->flags & (1 << NFT_RULE_ATTR_CHAIN)) {
-> +               ret =3D snprintf(buf+offset, len, "%s ",
-> +                              r->chain);
-> +               SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +       }
-> +       if (r->flags & (1 << NFT_RULE_ATTR_TABLE)) {
-> +               ret =3D snprintf(buf+offset, len, "%llu ",
-> +                              (unsigned long long)r->handle);
-> +               SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+>
+
+I would suggest to, while at it, switch to nft_rule_attr_set_xx() funct=
+ions.
+IMHO, we will save some LOCs, among other benefits.
+
+> -       r->table =3D strdup(table);
+> -       r->flags |=3D (1 << NFT_RULE_ATTR_TABLE);
+> +               r->table =3D strdup(table);
+> +               r->flags |=3D (1 << NFT_RULE_ATTR_TABLE);
 > +       }
 
-Here you check the table attr but print handle.
+Just for completeness:
+remember that for string attributes, the strdup() is done internally,
+inside nft_rule_attr_set_str().
 
-Regards.
+>         if (nft_mxml_num_parse(tree, "handle", MXML_DESCEND_FIRST, BA=
+SE_DEC,
+> -                              &r->handle, NFT_TYPE_U64, NFT_XML_MAND=
+, err) !=3D 0)
+> -               return -1;
+> -
+> -       r->flags |=3D (1 << NFT_RULE_ATTR_HANDLE);
+> +                              &r->handle, NFT_TYPE_U64, NFT_XML_MAND=
+, err) >=3D 0)
+
+The line above is 82 characters long.
+
+regards!
 --=20
 Arturo Borrero Gonz=E1lez
 --
