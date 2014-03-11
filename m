@@ -1,228 +1,198 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v5] netfilter: xtables: add quota support for nfacct
-Date: Mon, 10 Mar 2014 22:02:27 +0100
-Message-ID: <20140310210227.GA23426@localhost>
-References: <1392740402-14952-1-git-send-email-mathieu.poirier@linaro.org>
- <20140225175410.GA25784@localhost>
- <CANLsYkw4aMQU4NM=oHdJBuPiHAagUck-eM6MEwaNGNcyoBVgYg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Mathieu Poirier <mathieu.poirier@linaro.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANLsYkw4aMQU4NM=oHdJBuPiHAagUck-eM6MEwaNGNcyoBVgYg@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH RFC 1/9] net: rename fp->bpf_func to fp->run_filter
+Date: Tue, 11 Mar 2014 10:19:12 +0100
+Message-ID: <1394529560-3490-2-git-send-email-pablo@netfilter.org>
+References: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34650 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752382AbaCKJTh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Mar 2014 05:19:37 -0400
+In-Reply-To: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 26, 2014 at 11:38:19AM -0700, Mathieu Poirier wrote:
-> >> diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
-> >> index c7b6269..ae8ea0a 100644
-> >> --- a/include/uapi/linux/netfilter/nfnetlink_acct.h
-> >> +++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
-> >> @@ -19,6 +19,7 @@ enum nfnl_acct_type {
-> >>       NFACCT_PKTS,
-> >>       NFACCT_BYTES,
-> >>       NFACCT_USE,
-> >> +     NFACCT_QUOTA,
-> >
-> > This is wrong. You are using this new attribute (which defines another
-> > TLV in the payload of a message) instead of the netlink message type
-> > in nfnl_acct_fill_info(). This needs a specific message type to
-> > announce that the quota has been exceeded.
-> 
-> If I understand you correctly you want a new entry in
-> "nfnl_acct_msg_types" - please confirm.
-
-Yes. There is no other way to make it.
-
-You are not adding an attribute to the payload of the netlink message
-but a new message type...
-
-> >>       __NFACCT_MAX
-> >>  };
-> >>  #define NFACCT_MAX (__NFACCT_MAX - 1)
-> >> diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
-> >> index 3e19c8a..7c35ce0 100644
-> >> --- a/include/uapi/linux/netfilter/xt_nfacct.h
-> >> +++ b/include/uapi/linux/netfilter/xt_nfacct.h
-> >> @@ -3,11 +3,27 @@
-> >>
-> >>  #include <linux/netfilter/nfnetlink_acct.h>
-> >>
-> >> +enum xt_quota_flags {
-> >> +     XT_NFACCT_QUOTA_PKTS    = 1 << 0,
-> >> +     XT_NFACCT_QUOTA         = 1 << 1,
-> >> +};
-> >> +
-> >>  struct nf_acct;
-> >> +struct nf_acct_quota;
-> >>
-> >>  struct xt_nfacct_match_info {
-> >>       char            name[NFACCT_NAME_MAX];
-> >> -     struct nf_acct  *nfacct;
-> >> +     struct nf_acct  *nfacct __aligned(8);
-> >>  };
-> >>
-> >> +struct xt_nfacct_match_info_v1 {
-> >> +     char            name[NFACCT_NAME_MAX];
-> >> +     struct nf_acct  *nfacct __aligned(8);
-> >
-> > You have to move at the bottom of the structure, before the new
-> > nf_acct_quota.
-> >
-> > The extension from userspace sets the .userspacesize field, which
-> > helps iptables to skip internal pointers that are set by the kernel,
-> > If you don't fix this, iptables -D to delete a rule with nfacct will
-> > not work.
-> 
-> Thanks for pointing that out - I've been experiencing problems with
-> "iptables -D".
-
-BTW, don't change the layout of xt_nfacct_match_info, leave it as is.
-Only use struct nf_acct  *nfacct __aligned(8); in struct
-xt_nfacct_match_info_v1, OK?
-
-> >> +static bool
-> >> +nfacct_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
-> >> +{
-> >> +     int mode;
-> >> +     u64 val;
-> >> +     const struct xt_nfacct_match_info_v1 *info = par->matchinfo;
-> >> +     struct nf_acct_quota *acct_quota = info->priv;
-> >> +     bool ret = true;
-> >> +
-> >> +     mode = (acct_quota->flags & XT_NFACCT_QUOTA_PKTS) ?
-> >> +            NFNL_ACCT_UDT_PACKETS : NFNL_ACCT_UDT_BYTES;
-> >> +
-> >> +     /* upgrade accounting stats */
-> >> +     val = nfnl_acct_update(skb, info->nfacct, mode);
-> >> +
-> >> +     /* no need to go further if we don't have a quota */
-> >> +     if (!(acct_quota->flags & XT_NFACCT_QUOTA))
-> >> +             return ret;
-> >> +
-> >> +     /* are we over the limit ? */
-> >> +     if (val <= info->quota) {
-> >
-> > You use <=, I think this should be <. Not further below you're using >=.
-> 
-> That is the intended purpose - I take the limit to be inclusive.  If
-> you have a limit of 200 packets, you want the packet that makes the
-> count go from 199 to 200 to be allowed through.  At the same time you
-> want the the notification to be sent out right away since you don't
-> know how long it will take to receive the next packet.  Get back to me
-> on that if you don't agree with my logic.
-
-OK, makes sense.
-
-> >> +             /* reset flag in case userspace cleared the counters */
-> >> +             atomic_set(&acct_quota->notified, 0)
-> >
-> > This has runtime overhead and I think it's racy.
-> 
-> Good catch on the racy part.
-> 
-> > I think we can avoid
-> > this if the quota object management is moved to nfnetlink_acct (see
-> > below for further explanation). The idea is to iterate over the list
-> > of quota objects (to find notified flags that need to be reset) by
-> > when NFNL_MSG_ACCT_GET_CTRZERO is called.
-> >
-[...]
-> >> +static struct  nf_acct_quota *
-> >> +nfacct_create_quota(struct xt_nfacct_match_info_v1 *info)
-> >
-> > Thinking of nftables and the reset notified flag above, I think it's
-> > better if you move the quota object management to nfnetlink_acct.c by
-> > adding new nfacct commands. The idea is to maintain a quota object
-> > base that can be used by xt_nfacct. You have to add the following
-> > commands:
-> >
-> > enum nfnl_acct_msg_types {
-> >         ...
-> >         NFNL_MSG_ACCT_QUOTA_NEW,
-> >         NFNL_MSG_ACCT_QUOTA_GET,
-> >         NFNL_MSG_ACCT_QUOTA_DEL,
-> >         NFNL_MSG_ACCT_MAX
-> > };
-> >
-> > Then, extend nfnl_callback to include this new commands. The idea is
-> > to create/delete quota objects from the netlink interface, then attach
-> > them from the iptables nfacct extension.
-> >
-> > You won't need the mutex anymore btw, since it's already protected by
-> > nfnl_lock.
-> 
-> Dealing with the overhead introduced by clearing the "notified" flag
-> is completely different from the management of "quota" objects.  To do
-> this the best solution is to introduce a callback to reset the flag
-> when a "nfacct" object gets reset.  That would be simple and in line
-> with what is used ubiquitously in the kernel.
->
-> Moving the management of "quota" objects to nfnetlink_acct is a
-> completely different ball game.  Not only that, it would also mandate
-> to make changes to nfacct, libnfnl and libnl.  It would also require
-> to pull a few tricks to make all that extra code compile conditionally
-> when XT_QUOTA is not selected, unless we want to automatically select
-> XT_QUOTA when NETLINK_ACCT gets enabled.  And what happens when
-> another quota type-of-thing comes along?  We keep stuffing "nfacct"
-> and "nfnetlink_acct.c" with more functionality?
-
-This is the most generic thing to make it.
-
-How the user will inspect if quota has been already fulfilled? And how
-will the user reset it in case it needs it? Or simply upgrade the
-quota without reloading the rule? You have to provide a netlink
-interface if you want to implement this in a nice way.  Otherwise, I
-bet that someone will come with yet another hackish /proc interface
-for this, no please. Or worst, people will code perl scripts to parse
-the iptables -L -n output.
-
-Of course, it's more code to nfnetlink_acct, the libraries and the
-utility, but this will be pretty generic and we'll provide a nice
-interface.
-
-And again, thinking of nftables, if we implement the quota management
-code in nfnetlink_acct, adding support for nfacct and quota will just
-require very little code since we'll reuse most of the common
+This patch is a cleanup / rename for the function that actually
+performs the filtering from bpf_func to a generic run_filter. This
+change was introduced to generalize the socket filtering
 infrastructure.
 
-I really think the quota management code belongs nfnetlink_acct, not
-xt_nfacct.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ arch/arm/net/bpf_jit_32.c       |    6 +++---
+ arch/powerpc/net/bpf_jit_comp.c |    6 +++---
+ arch/s390/net/bpf_jit_comp.c    |    6 +++---
+ arch/sparc/net/bpf_jit_comp.c   |    6 +++---
+ arch/x86/net/bpf_jit_comp.c     |    6 +++---
+ include/linux/filter.h          |    6 +++---
+ net/core/filter.c               |    2 +-
+ 7 files changed, 19 insertions(+), 19 deletions(-)
 
-> To me introducing a callback for each of the operation supported by
-> "nfnl_acct_cb" is the way to go.  It would allow any future extension
-> so take action whenever something happens to an "nfacct" object.
->
-> I'll continue thinking about this but take my proposal into account
-> and get back to me.
-> 
-> >
-> >> +{
-> >> +     struct nf_acct_quota *acct_quota;
-> >> +
-> >> +     mutex_lock(&nfacct_list_mutex);
-> >> +
-> >> +     acct_quota = kmalloc(sizeof(struct nf_acct_quota), GFP_ATOMIC);
-> >> +
-> >
-> > remove empty line above.
-> >
-> >> +     if (!acct_quota) {
-> >> +             mutex_unlock(&nfacct_list_mutex);
-> >> +             return NULL;
-> >> +     }
-> >> +
-> >> +     strncpy(acct_quota->name, info->name, NFACCT_NAME_MAX);
-> >> +     acct_quota->flags = info->flags;
-> >> +     acct_quota->quota = info->quota;
-> >> +     acct_quota->count = 1;
-> >> +     atomic_set(&acct_quota->notified, 0);
-> >> +     list_add_tail(&acct_quota->node, &nfacct_list);
-> >
-> > This needs to be converted to _rcu.
-> 
-> You mean in the context that we move forward with your suggestion?
+diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
+index 271b5e9..65bd347 100644
+--- a/arch/arm/net/bpf_jit_32.c
++++ b/arch/arm/net/bpf_jit_32.c
+@@ -924,7 +924,7 @@ void bpf_jit_compile(struct sk_filter *fp)
+ 		/* there are 2 passes here */
+ 		bpf_jit_dump(fp->len, alloc_size, 2, ctx.target);
+ 
+-	fp->bpf_func = (void *)ctx.target;
++	fp->run_filter = (void *)ctx.target;
+ out:
+ 	kfree(ctx.offsets);
+ 	return;
+@@ -932,7 +932,7 @@ out:
+ 
+ void bpf_jit_free(struct sk_filter *fp)
+ {
+-	if (fp->bpf_func != sk_run_filter)
+-		module_free(NULL, fp->bpf_func);
++	if (fp->run_filter != sk_run_filter)
++		module_free(NULL, fp->run_filter);
+ 	kfree(fp);
+ }
+diff --git a/arch/powerpc/net/bpf_jit_comp.c b/arch/powerpc/net/bpf_jit_comp.c
+index 555034f..6491d72 100644
+--- a/arch/powerpc/net/bpf_jit_comp.c
++++ b/arch/powerpc/net/bpf_jit_comp.c
+@@ -688,7 +688,7 @@ void bpf_jit_compile(struct sk_filter *fp)
+ 		/* Function descriptor nastiness: Address + TOC */
+ 		((u64 *)image)[0] = (u64)code_base;
+ 		((u64 *)image)[1] = local_paca->kernel_toc;
+-		fp->bpf_func = (void *)image;
++		fp->run_filter = (void *)image;
+ 	}
+ out:
+ 	kfree(addrs);
+@@ -697,7 +697,7 @@ out:
+ 
+ void bpf_jit_free(struct sk_filter *fp)
+ {
+-	if (fp->bpf_func != sk_run_filter)
+-		module_free(NULL, fp->bpf_func);
++	if (fp->run_filter != sk_run_filter)
++		module_free(NULL, fp->run_filter);
+ 	kfree(fp);
+ }
+diff --git a/arch/s390/net/bpf_jit_comp.c b/arch/s390/net/bpf_jit_comp.c
+index 708d60e..23089df 100644
+--- a/arch/s390/net/bpf_jit_comp.c
++++ b/arch/s390/net/bpf_jit_comp.c
+@@ -876,7 +876,7 @@ void bpf_jit_compile(struct sk_filter *fp)
+ 	}
+ 	if (jit.start) {
+ 		set_memory_ro((unsigned long)header, header->pages);
+-		fp->bpf_func = (void *) jit.start;
++		fp->run_filter = (void *) jit.start;
+ 	}
+ out:
+ 	kfree(addrs);
+@@ -884,10 +884,10 @@ out:
+ 
+ void bpf_jit_free(struct sk_filter *fp)
+ {
+-	unsigned long addr = (unsigned long)fp->bpf_func & PAGE_MASK;
++	unsigned long addr = (unsigned long)fp->run_filter & PAGE_MASK;
+ 	struct bpf_binary_header *header = (void *)addr;
+ 
+-	if (fp->bpf_func == sk_run_filter)
++	if (fp->run_filter == sk_run_filter)
+ 		goto free_filter;
+ 	set_memory_rw(addr, header->pages);
+ 	module_free(NULL, header);
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index 01fe994..ee1cd30 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -808,7 +808,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 
+ 	if (image) {
+ 		bpf_flush_icache(image, image + proglen);
+-		fp->bpf_func = (void *)image;
++		fp->run_filter = (void *)image;
+ 	}
+ out:
+ 	kfree(addrs);
+@@ -817,7 +817,7 @@ out:
+ 
+ void bpf_jit_free(struct sk_filter *fp)
+ {
+-	if (fp->bpf_func != sk_run_filter)
+-		module_free(NULL, fp->bpf_func);
++	if (fp->run_filter != sk_run_filter)
++		module_free(NULL, fp->run_filter);
+ 	kfree(fp);
+ }
+diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
+index 4ed75dd..bfadd14 100644
+--- a/arch/x86/net/bpf_jit_comp.c
++++ b/arch/x86/net/bpf_jit_comp.c
+@@ -771,7 +771,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf] - addrs[i];
+ 	if (image) {
+ 		bpf_flush_icache(header, image + proglen);
+ 		set_memory_ro((unsigned long)header, header->pages);
+-		fp->bpf_func = (void *)image;
++		fp->run_filter = (void *)image;
+ 	}
+ out:
+ 	kfree(addrs);
+@@ -781,7 +781,7 @@ out:
+ static void bpf_jit_free_deferred(struct work_struct *work)
+ {
+ 	struct sk_filter *fp = container_of(work, struct sk_filter, work);
+-	unsigned long addr = (unsigned long)fp->bpf_func & PAGE_MASK;
++	unsigned long addr = (unsigned long)fp->run_filter & PAGE_MASK;
+ 	struct bpf_binary_header *header = (void *)addr;
+ 
+ 	set_memory_rw(addr, header->pages);
+@@ -791,7 +791,7 @@ static void bpf_jit_free_deferred(struct work_struct *work)
+ 
+ void bpf_jit_free(struct sk_filter *fp)
+ {
+-	if (fp->bpf_func != sk_run_filter) {
++	if (fp->run_filter != sk_run_filter) {
+ 		INIT_WORK(&fp->work, bpf_jit_free_deferred);
+ 		schedule_work(&fp->work);
+ 	} else {
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index e568c8e..6c5d597 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -27,8 +27,8 @@ struct sk_filter
+ 	atomic_t		refcnt;
+ 	unsigned int         	len;	/* Number of filter blocks */
+ 	struct rcu_head		rcu;
+-	unsigned int		(*bpf_func)(const struct sk_buff *skb,
+-					    const struct sock_filter *filter);
++	unsigned int		(*run_filter)(const struct sk_buff *skb,
++					      const struct sock_filter *filter);
+ 	union {
+ 		struct sock_filter     	insns[0];
+ 		struct work_struct	work;
+@@ -70,7 +70,7 @@ static inline void bpf_jit_dump(unsigned int flen, unsigned int proglen,
+ 		print_hex_dump(KERN_ERR, "JIT code: ", DUMP_PREFIX_OFFSET,
+ 			       16, 1, image, proglen, false);
+ }
+-#define SK_RUN_FILTER(FILTER, SKB) (*FILTER->bpf_func)(SKB, FILTER->insns)
++#define SK_RUN_FILTER(FILTER, SKB) (*FILTER->run_filter)(SKB, FILTER->insns)
+ #else
+ #include <linux/slab.h>
+ static inline void bpf_jit_compile(struct sk_filter *fp)
+diff --git a/net/core/filter.c b/net/core/filter.c
+index ad30d62..0f63e67 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -645,7 +645,7 @@ static int __sk_prepare_filter(struct sk_filter *fp)
+ {
+ 	int err;
+ 
+-	fp->bpf_func = sk_run_filter;
++	fp->run_filter = sk_run_filter;
+ 
+ 	err = sk_chk_filter(fp->insns, fp->len);
+ 	if (err)
+-- 
+1.7.10.4
 
-Right.
