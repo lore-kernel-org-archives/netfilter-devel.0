@@ -1,33 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC 0/9] socket filtering using nf_tables
-Date: Wed, 12 Mar 2014 10:27:07 +0100
-Message-ID: <20140312092707.GA4973@localhost>
-References: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
- <531EE5A2.7090501@redhat.com>
- <CAMEtUuyJne-8uNtOAK7EcFFQNXz9m7J2DDLGH_GbYe6oWZx1pQ@mail.gmail.com>
- <20140312091500.GA4638@localhost>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: some minor tweaks for building doc/man pages for nftables
+Date: Wed, 12 Mar 2014 05:34:42 -0400 (EDT)
+Message-ID: <alpine.LFD.2.11.1403120529570.4122@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <dborkman@redhat.com>,
-	netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Network Development <netdev@vger.kernel.org>, kaber@trash.net,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	LKML <linux-kernel@vger.kernel.org>
-To: Alexei Starovoitov <ast@plumgrid.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140312091500.GA4638@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter devel list <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from astoria.ccjclearline.com ([64.235.106.9]:37716 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbaCLK0v (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Mar 2014 06:26:51 -0400
+Received: from [99.240.204.5] (port=35984 helo=crashcourse.ca)
+	by astoria.ccjclearline.com with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
+	(Exim 4.80)
+	(envelope-from <rpjday@crashcourse.ca>)
+	id 1WNfYk-00021h-7n
+	for netfilter-devel@vger.kernel.org; Wed, 12 Mar 2014 05:34:46 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 12, 2014 at 10:15:00AM +0100, Pablo Neira Ayuso wrote:
-> > 7/9:
-> > whole nft_expr_autoload() looks scary from security point of view.
-> > If I'm reading it correctly, the code will do request_module() based on
-> > userspace request to attach filter?
-> 
-> Only root can invoke that code so far.
 
-Oops, this is obviously wrong. This request_module part needs a fix
-indeed for the non-root part.
+  new here so not confident enough to submit any patches yet, but on
+my fedora rawhide system, some notes on building the man page and PDF
+docs.
+
+* re: INSTALL file, on fedora, the package names are actually:
+
+  * docbook2x -> docbook2X
+  * docbook-utils -> docbook-utils-pdf
+
+* re: Makefile and configure, command to generate man output:
+
+  * docbook2x-man -> db2x_docbook2man
+
+* in doc directory, man page currently refers to "nftables" command,
+shouldn't that be just "nft" (both filename and contents of
+doc/nftables.xml).
+
+rday
+
+-- 
+
+========================================================================
+Robert P. J. Day                                 Ottawa, Ontario, CANADA
+                        http://crashcourse.ca
+
+Twitter:                                       http://twitter.com/rpjday
+LinkedIn:                               http://ca.linkedin.com/in/rpjday
+========================================================================
