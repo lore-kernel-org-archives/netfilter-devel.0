@@ -1,148 +1,401 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH v5] netfilter: xtables: add quota support for nfacct
-Date: Wed, 12 Mar 2014 08:18:32 -0600
-Message-ID: <CANLsYkzP0pGM7MyLLii+jcihgGz8N_OBuuTf=-F=iqV3aDR0KA@mail.gmail.com>
-References: <1392740402-14952-1-git-send-email-mathieu.poirier@linaro.org>
-	<20140225175410.GA25784@localhost>
-	<CANLsYkw4aMQU4NM=oHdJBuPiHAagUck-eM6MEwaNGNcyoBVgYg@mail.gmail.com>
-	<20140310210227.GA23426@localhost>
-	<CANLsYkwh+hgqyfH84=Lp+PN0ufV9ug0sPNPvVMfD1iUxkYGsuA@mail.gmail.com>
-	<20140312121204.GA5049@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] src: fix expr_binary_error()-related compilation warnings
+Date: Wed, 12 Mar 2014 16:53:22 +0100
+Message-ID: <20140312155322.23689.60367.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20140312121204.GA5049@localhost>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:36468 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754436AbaCLPxc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Mar 2014 11:53:32 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12 March 2014 06:12, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Mar 11, 2014 at 09:24:33AM -0600, Mathieu Poirier wrote:
->> >> >>       __NFACCT_MAX
->> >> >>  };
->> >> >>  #define NFACCT_MAX (__NFACCT_MAX - 1)
->> >> >> diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
->> >> >> index 3e19c8a..7c35ce0 100644
->> >> >> --- a/include/uapi/linux/netfilter/xt_nfacct.h
->> >> >> +++ b/include/uapi/linux/netfilter/xt_nfacct.h
->> >> >> @@ -3,11 +3,27 @@
->> >> >>
->> >> >>  #include <linux/netfilter/nfnetlink_acct.h>
->> >> >>
->> >> >> +enum xt_quota_flags {
->> >> >> +     XT_NFACCT_QUOTA_PKTS    = 1 << 0,
->> >> >> +     XT_NFACCT_QUOTA         = 1 << 1,
->> >> >> +};
->> >> >> +
->> >> >>  struct nf_acct;
->> >> >> +struct nf_acct_quota;
->> >> >>
->> >> >>  struct xt_nfacct_match_info {
->> >> >>       char            name[NFACCT_NAME_MAX];
->> >> >> -     struct nf_acct  *nfacct;
->> >> >> +     struct nf_acct  *nfacct __aligned(8);
->> >> >>  };
->> >> >>
->> >> >> +struct xt_nfacct_match_info_v1 {
->> >> >> +     char            name[NFACCT_NAME_MAX];
->> >> >> +     struct nf_acct  *nfacct __aligned(8);
->> >> >
->> >> > You have to move at the bottom of the structure, before the new
->> >> > nf_acct_quota.
->> >> >
->> >> > The extension from userspace sets the .userspacesize field, which
->> >> > helps iptables to skip internal pointers that are set by the kernel,
->> >> > If you don't fix this, iptables -D to delete a rule with nfacct will
->> >> > not work.
->> >>
->> >> Thanks for pointing that out - I've been experiencing problems with
->> >> "iptables -D".
->> >
->> > BTW, don't change the layout of xt_nfacct_match_info, leave it as is.
->> > Only use struct nf_acct  *nfacct __aligned(8); in struct
->> > xt_nfacct_match_info_v1, OK?
->>
->> Ok, but why?  There is obviously a reason and I don't understand it.
->
-> If you change it, you're breaking the binary interface, so old
-> iptables versions will not work anymore.
->
-> So the problem is that 32/64 architectures are currently broken
-> without that alignment, so let's fix that with your new revision 1. The
-> revision 0 has to stay as is, we can't fix that one, it's too late as
-> it will break anyone already having an old iptables binary.
+The commit e7b43ec0 [expr: make expr_binary_error() usable outside of e=
+valuation]
+seem to change expr_binary_error() interface.
 
-Ok.
+Later, several compilation warning appears.
 
->
-> [...]
->> >> Dealing with the overhead introduced by clearing the "notified" flag
->> >> is completely different from the management of "quota" objects.  To do
->> >> this the best solution is to introduce a callback to reset the flag
->> >> when a "nfacct" object gets reset.  That would be simple and in line
->> >> with what is used ubiquitously in the kernel.
->> >>
->> >> Moving the management of "quota" objects to nfnetlink_acct is a
->> >> completely different ball game.  Not only that, it would also mandate
->> >> to make changes to nfacct, libnfnl and libnl.  It would also require
->> >> to pull a few tricks to make all that extra code compile conditionally
->> >> when XT_QUOTA is not selected, unless we want to automatically select
->> >> XT_QUOTA when NETLINK_ACCT gets enabled.  And what happens when
->> >> another quota type-of-thing comes along?  We keep stuffing "nfacct"
->> >> and "nfnetlink_acct.c" with more functionality?
->> >
->> > This is the most generic thing to make it.
->> >
->> > How the user will inspect if quota has been already fulfilled? And how
->> > will the user reset it in case it needs it? Or simply upgrade the
->> > quota without reloading the rule?
->>
->> Since quotas are intrinsically linked to nfacct objects, the best way
->> to know if a quota has been reached is to look at the statistics for
->> the corresponding nfacct object.
->
-> OK, let's put the quota on the nfacct object using some variable size
-> tricks. Please see the (unfinished) patch attached, it's just compile
-> tested.
->
-> The missing chunks are the xt_nfacct.c change and the userspace code
-> updates.
->
->> > You have to provide a netlink interface if you want to implement
->> > this in a nice way.  Otherwise, I bet that someone will come with
->> > yet another hackish /proc interface for this, no please. Or worst,
->> > people will code perl scripts to parse the iptables -L -n output.
->>
->> We could create a sysfs entry for each quota but it doesn't scale well.
->
-> /sysfs doesn't make any better than /proc IMO. The standard interface
-> in netfilter is netlink, let's stick to that.
->
->> > Of course, it's more code to nfnetlink_acct, the libraries and the
->> > utility, but this will be pretty generic and we'll provide a nice
->> > interface.
->> >
->> > And again, thinking of nftables, if we implement the quota management
->> > code in nfnetlink_acct, adding support for nfacct and quota will just
->> > require very little code since we'll reuse most of the common
->> > infrastructure.
->> >
->> > I really think the quota management code belongs nfnetlink_acct, not
->> > xt_nfacct.
->>
->> I'm not against your idea but the thought of starting over after 1)
->> agreeing on a design and 2) investing so much time is disappointing.
->> If we end up choosing your way, would you prefer enhancing the nfacct
->> tool with quota capabilities or adding something like "nfquota"?
->> Personally I would prefer the latter as it scales better.
->
-> Enhancing the nfacct tool is good.
+The expr_binary_error() function and expr_error() macro both expect
+`struct list_head *', so I simply changed callers to send `ctx->msgs'.
 
-In light of the above introducing "nfquota" doesn't make sense anymore.
+[...]
+src/evaluate.c: In function =E2=80=98byteorder_conversion=E2=80=99:
+src/evaluate.c:166:3: warning: passing argument 1 of =E2=80=98expr_bina=
+ry_error=E2=80=99 from incompatible pointer type [enabled by default]
+In file included from src/evaluate.c:21:0:
+include/expression.h:275:12: note: expected =E2=80=98struct list_head *=
+=E2=80=99 but argument is of type =E2=80=98struct eval_ctx *=E2=80=99
+src/evaluate.c: In function =E2=80=98expr_evaluate_symbol=E2=80=99:
+src/evaluate.c:204:4: warning: passing argument 1 of =E2=80=98expr_bina=
+ry_error=E2=80=99 from incompatible pointer type [enabled by default]
+In file included from src/evaluate.c:21:0:
+include/expression.h:275:12: note: expected =E2=80=98struct list_head *=
+=E2=80=99 but argument is of type =E2=80=98struct eval_ctx *=E2=80=99
+[...]
 
->
-> Let me know if you find any problem with the patch I sent you. Thanks.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/evaluate.c |   82 ++++++++++++++++++++++++++++++------------------=
+--------
+ 1 file changed, 44 insertions(+), 38 deletions(-)
 
-I get what you did - I'll fill-in the missing bits and see how well it
-all works.
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 0c19c9f..fff8fef 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -163,7 +163,7 @@ static int byteorder_conversion(struct eval_ctx *ct=
+x, struct expr **expr,
+ 	if ((*expr)->byteorder =3D=3D byteorder)
+ 		return 0;
+ 	if (expr_basetype(*expr)->type !=3D TYPE_INTEGER)
+-		return expr_error(ctx, *expr,
++		return expr_error(ctx->msgs, *expr,
+ 			 	  "Byteorder mismatch: expected %s, got %s",
+ 				  byteorder_names[byteorder],
+ 				  byteorder_names[(*expr)->byteorder]);
+@@ -201,7 +201,7 @@ static int expr_evaluate_symbol(struct eval_ctx *ct=
+x, struct expr **expr)
+ 	case SYMBOL_DEFINE:
+ 		sym =3D symbol_lookup((*expr)->scope, (*expr)->identifier);
+ 		if (sym =3D=3D NULL)
+-			return expr_error(ctx, *expr,
++			return expr_error(ctx->msgs, *expr,
+ 					  "undefined identifier '%s'",
+ 					  (*expr)->identifier);
+ 		new =3D expr_clone(sym->expr);
+@@ -228,7 +228,7 @@ static int expr_evaluate_value(struct eval_ctx *ctx=
+, struct expr **expr)
+ 	case TYPE_INTEGER:
+ 		mpz_init_bitmask(mask, ctx->ectx.len);
+ 		if (mpz_cmp((*expr)->value, mask) > 0) {
+-			expr_error(ctx, *expr,
++			expr_error(ctx->msgs, *expr,
+ 				   "Value %Zu exceeds valid range 0-%Zu",
+ 				   (*expr)->value, mask);
+ 			mpz_clear(mask);
+@@ -240,7 +240,7 @@ static int expr_evaluate_value(struct eval_ctx *ctx=
+, struct expr **expr)
+ 	case TYPE_STRING:
+ 		if (ctx->ectx.len > 0) {
+ 			if ((*expr)->len > ctx->ectx.len)
+-				return expr_error(ctx, *expr,
++				return expr_error(ctx->msgs, *expr,
+ 						  "String exceeds maximum length of %u",
+ 						  ctx->ectx.len / BITS_PER_BYTE);
+ 			(*expr)->len =3D ctx->ectx.len;
+@@ -281,7 +281,7 @@ static int expr_evaluate_payload(struct eval_ctx *c=
+tx, struct expr **expr)
+ 			return -1;
+ 		list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	} else if (ctx->pctx.protocol[base].desc !=3D payload->payload.desc)
+-		return expr_error(ctx, payload,
++		return expr_error(ctx->msgs, payload,
+ 				  "conflicting protocols specified: %s vs. %s",
+ 				  ctx->pctx.protocol[base].desc->name,
+ 				  payload->payload.desc->name);
+@@ -315,17 +315,17 @@ static int expr_evaluate_prefix(struct eval_ctx *=
+ctx, struct expr **expr)
+ 	base =3D prefix->prefix;
+=20
+ 	if (!expr_is_constant(base))
+-		return expr_error(ctx, prefix,
++		return expr_error(ctx->msgs, prefix,
+ 				  "Prefix expression is undefined for "
+ 				  "non-constant expressions");
+=20
+ 	if (expr_basetype(base)->type !=3D TYPE_INTEGER)
+-		return expr_error(ctx, prefix,
++		return expr_error(ctx->msgs, prefix,
+ 				  "Prefix expression is undefined for "
+ 				  "%s types", base->dtype->desc);
+=20
+ 	if (prefix->prefix_len > base->len)
+-		return expr_error(ctx, prefix,
++		return expr_error(ctx->msgs, prefix,
+ 				  "Prefix length %u is invalid for type "
+ 				  "of %u bits width",
+ 				  prefix->prefix_len, base->len);
+@@ -360,11 +360,11 @@ static int expr_evaluate_range_expr(struct eval_c=
+tx *ctx,
+ 		return -1;
+=20
+ 	if (expr_basetype(*expr)->type !=3D TYPE_INTEGER)
+-		return expr_binary_error(ctx, *expr, range,
++		return expr_binary_error(ctx->msgs, *expr, range,
+ 					 "Range expression is undefined for "
+ 					 "%s types", (*expr)->dtype->desc);
+ 	if (!expr_is_constant(*expr))
+-		return expr_binary_error(ctx, *expr, range,
++		return expr_binary_error(ctx->msgs, *expr, range,
+ 					 "Range is not constant");
+ 	return 0;
+ }
+@@ -382,7 +382,8 @@ static int expr_evaluate_range(struct eval_ctx *ctx=
+, struct expr **expr)
+ 	right =3D range->right;
+=20
+ 	if (mpz_cmp(left->value, right->value) >=3D 0)
+-		return expr_error(ctx, range, "Range has zero or negative size");
++		return expr_error(ctx->msgs, range,
++				  "Range has zero or negative size");
+=20
+ 	range->dtype =3D left->dtype;
+ 	range->flags |=3D EXPR_F_CONSTANT;
+@@ -487,7 +488,7 @@ static int expr_evaluate_shift(struct eval_ctx *ctx=
+, struct expr **expr)
+ 	struct expr *op =3D *expr, *left =3D op->left, *right =3D op->right;
+=20
+ 	if (mpz_get_uint32(right->value) >=3D left->len)
+-		return expr_binary_error(ctx, right, left,
++		return expr_binary_error(ctx->msgs, right, left,
+ 					 "%s shift of %u bits is undefined "
+ 					 "for type of %u bits width",
+ 					 op->op =3D=3D OP_LSHIFT ? "Left" : "Right",
+@@ -548,24 +549,24 @@ static int expr_evaluate_binop(struct eval_ctx *c=
+tx, struct expr **expr)
+ 	right =3D op->right;
+=20
+ 	if (expr_basetype(left)->type !=3D TYPE_INTEGER)
+-		return expr_binary_error(ctx, left, op,
++		return expr_binary_error(ctx->msgs, left, op,
+ 					 "Binary operation (%s) is undefined "
+ 					 "for %s types",
+ 					 sym, left->dtype->desc);
+=20
+ 	if (expr_is_constant(left) && !expr_is_singleton(left))
+-		return expr_binary_error(ctx, left, op,
++		return expr_binary_error(ctx->msgs, left, op,
+ 					 "Binary operation (%s) is undefined "
+ 					 "for %s expressions",
+ 					 sym, left->ops->name);
+=20
+ 	if (!expr_is_constant(right))
+-		return expr_binary_error(ctx, right, op,
++		return expr_binary_error(ctx->msgs, right, op,
+ 					 "Right hand side of binary operation "
+ 					 "(%s) must be constant", sym);
+=20
+ 	if (!expr_is_singleton(right))
+-		return expr_binary_error(ctx, left, op,
++		return expr_binary_error(ctx->msgs, left, op,
+ 					 "Binary operation (%s) is undefined "
+ 					 "for %s expressions",
+ 					 sym, right->ops->name);
+@@ -610,7 +611,7 @@ static int expr_evaluate_concat(struct eval_ctx *ct=
+x, struct expr **expr)
+ 	n =3D 1;
+ 	list_for_each_entry_safe(i, next, &(*expr)->expressions, list) {
+ 		if (dtype && off =3D=3D 0)
+-			return expr_binary_error(ctx, i, *expr,
++			return expr_binary_error(ctx->msgs, i, *expr,
+ 						 "unexpected concat component, "
+ 						 "expecting %s",
+ 						 dtype->desc);
+@@ -628,7 +629,7 @@ static int expr_evaluate_concat(struct eval_ctx *ct=
+x, struct expr **expr)
+ 	(*expr)->dtype =3D concat_type_alloc(*expr);
+=20
+ 	if (off > 0)
+-		return expr_error(ctx, *expr,
++		return expr_error(ctx->msgs, *expr,
+ 				  "datatype mismatch, expected %s, "
+ 				  "expression has type %s",
+ 				  dtype->desc, (*expr)->dtype->desc);
+@@ -648,11 +649,11 @@ static int expr_evaluate_list(struct eval_ctx *ct=
+x, struct expr **expr)
+ 		if (list_member_evaluate(ctx, &i) < 0)
+ 			return -1;
+ 		if (i->ops->type !=3D EXPR_VALUE)
+-			return expr_error(ctx, i,
++			return expr_error(ctx->msgs, i,
+ 					  "List member must be a constant "
+ 					  "value");
+ 		if (i->dtype->basetype->type !=3D TYPE_BITMASK)
+-			return expr_error(ctx, i,
++			return expr_error(ctx->msgs, i,
+ 					  "Basetype of type %s is not bitmask",
+ 					  i->dtype->desc);
+ 		mpz_ior(val, val, i->value);
+@@ -677,7 +678,8 @@ static int expr_evaluate_set(struct eval_ctx *ctx, =
+struct expr **expr)
+ 			return -1;
+=20
+ 		if (!expr_is_constant(i))
+-			return expr_error(ctx, i, "Set member is not constant");
++			return expr_error(ctx->msgs, i,
++					  "Set member is not constant");
+=20
+ 		if (i->ops->type =3D=3D EXPR_SET) {
+ 			/* Merge recursive set definitions */
+@@ -704,7 +706,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, =
+struct expr **expr)
+ 	if (expr_evaluate(ctx, &map->map) < 0)
+ 		return -1;
+ 	if (expr_is_constant(map->map))
+-		return expr_error(ctx, map->map,
++		return expr_error(ctx->msgs, map->map,
+ 				  "Map expression can not be constant");
+=20
+ 	mappings =3D map->mappings;
+@@ -730,7 +732,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, =
+struct expr **expr)
+ 		if (expr_evaluate(ctx, &map->mappings) < 0)
+ 			return -1;
+ 		if (map->mappings->ops->type !=3D EXPR_SET_REF)
+-			return expr_error(ctx, map->mappings,
++			return expr_error(ctx->msgs, map->mappings,
+ 					  "Expression is not a map");
+ 		break;
+ 	default:
+@@ -755,7 +757,8 @@ static int expr_evaluate_mapping(struct eval_ctx *c=
+tx, struct expr **expr)
+ 	struct set *set =3D ctx->set;
+=20
+ 	if (set =3D=3D NULL)
+-		return expr_error(ctx, mapping, "mapping outside of map context");
++		return expr_error(ctx->msgs, mapping,
++				  "mapping outside of map context");
+ 	if (!(set->flags & SET_F_MAP))
+ 		return set_error(ctx, set, "set is not a map");
+=20
+@@ -763,16 +766,19 @@ static int expr_evaluate_mapping(struct eval_ctx =
+*ctx, struct expr **expr)
+ 	if (expr_evaluate(ctx, &mapping->left) < 0)
+ 		return -1;
+ 	if (!expr_is_constant(mapping->left))
+-		return expr_error(ctx, mapping->left, "Key must be a constant");
++		return expr_error(ctx->msgs, mapping->left,
++				  "Key must be a constant");
+ 	mapping->flags |=3D mapping->left->flags & EXPR_F_SINGLETON;
+=20
+ 	expr_set_context(&ctx->ectx, set->datatype, set->datalen);
+ 	if (expr_evaluate(ctx, &mapping->right) < 0)
+ 		return -1;
+ 	if (!expr_is_constant(mapping->right))
+-		return expr_error(ctx, mapping->right, "Value must be a constant");
++		return expr_error(ctx->msgs, mapping->right,
++				  "Value must be a constant");
+ 	if (!expr_is_singleton(mapping->right))
+-		return expr_error(ctx, mapping->right, "Value must be a singleton");
++		return expr_error(ctx->msgs, mapping->right,
++				  "Value must be a singleton");
+=20
+ 	mapping->flags |=3D EXPR_F_CONSTANT;
+ 	return 0;
+@@ -789,7 +795,7 @@ static int binop_can_transfer(struct eval_ctx *ctx,
+ 	switch (left->op) {
+ 	case OP_LSHIFT:
+ 		if (mpz_scan1(right->value, 0) < mpz_get_uint32(left->right->value))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "Comparison is always false");
+ 		return 1;
+ 	case OP_XOR:
+@@ -896,12 +902,12 @@ static int expr_evaluate_relational(struct eval_c=
+tx *ctx, struct expr **expr)
+ 	}
+=20
+ 	if (!expr_is_constant(right))
+-		return expr_binary_error(ctx, right, rel,
++		return expr_binary_error(ctx->msgs, right, rel,
+ 					 "Right hand side of relational "
+ 					 "expression (%s) must be constant",
+ 					 expr_op_symbols[rel->op]);
+ 	if (expr_is_constant(left))
+-		return expr_binary_error(ctx, left, right,
++		return expr_binary_error(ctx->msgs, left, right,
+ 					 "Relational expression (%s) has "
+ 					 "constant value",
+ 					 expr_op_symbols[rel->op]);
+@@ -913,7 +919,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+ 			right =3D rel->right =3D
+ 				implicit_set_declaration(ctx, left->dtype, left->len, right);
+ 		else if (!datatype_equal(left->dtype, right->dtype))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+ 						 "set has type %s",
+ 						 left->dtype->desc,
+@@ -928,7 +934,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+ 		break;
+ 	case OP_EQ:
+ 		if (!datatype_equal(left->dtype, right->dtype))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+ 						 "expression has type %s",
+ 						 left->dtype->desc,
+@@ -948,7 +954,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+ 	case OP_NEQ:
+ 	case OP_FLAGCMP:
+ 		if (!datatype_equal(left->dtype, right->dtype))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+ 						 "expression has type %s",
+ 						 left->dtype->desc,
+@@ -974,7 +980,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+ 	case OP_LTE:
+ 	case OP_GTE:
+ 		if (!datatype_equal(left->dtype, right->dtype))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+ 						 "expression has type %s",
+ 						 left->dtype->desc,
+@@ -982,7 +988,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+=20
+ 		switch (left->ops->type) {
+ 		case EXPR_CONCAT:
+-			return expr_binary_error(ctx, left, rel,
++			return expr_binary_error(ctx->msgs, left, rel,
+ 					"Relational expression (%s) is undefined "
+ 				        "for %s expressions",
+ 					expr_op_symbols[rel->op],
+@@ -992,7 +998,7 @@ static int expr_evaluate_relational(struct eval_ctx=
+ *ctx, struct expr **expr)
+ 		}
+=20
+ 		if (!expr_is_singleton(right))
+-			return expr_binary_error(ctx, right, rel,
++			return expr_binary_error(ctx->msgs, right, rel,
+ 					"Relational expression (%s) is undefined "
+ 				        "for %s expressions",
+ 					expr_op_symbols[rel->op],
+@@ -1005,7 +1011,7 @@ static int expr_evaluate_relational(struct eval_c=
+tx *ctx, struct expr **expr)
+ 		break;
+ 	case OP_RANGE:
+ 		if (!datatype_equal(left->dtype, right->dtype))
+-			return expr_binary_error(ctx, right, left,
++			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+ 						 "expression has type %s",
+ 						 left->dtype->desc,
+@@ -1014,7 +1020,7 @@ static int expr_evaluate_relational(struct eval_c=
+tx *ctx, struct expr **expr)
+ range:
+ 		switch (left->ops->type) {
+ 		case EXPR_CONCAT:
+-			return expr_binary_error(ctx, left, rel,
++			return expr_binary_error(ctx->msgs, left, rel,
+ 					"Relational expression (%s) is undefined"
+ 				        "for %s expressions",
+ 					expr_op_symbols[rel->op],
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
