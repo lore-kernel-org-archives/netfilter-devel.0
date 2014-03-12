@@ -1,54 +1,30 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: Re: some minor tweaks for building doc/man pages for nftables
-Date: Wed, 12 Mar 2014 08:16:47 -0400 (EDT)
-Message-ID: <alpine.LFD.2.11.1403120814010.6264@localhost>
-References: <alpine.LFD.2.11.1403120529570.4122@localhost> <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com> <alpine.LFD.2.11.1403120701510.5974@localhost> <CAOkSjBjJ7f_ANknUa3ojoaHF_+meYFe1dkOCBzOBFdAC3pxxkA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/5] netfilter: nf_tables: restore context during
+ destruction
+Date: Wed, 12 Mar 2014 13:23:39 +0100
+Message-ID: <20140312122339.GA20453@localhost>
+References: <1394215713-32049-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter devel list <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:38644 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885AbaCLMQv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Mar 2014 08:16:51 -0400
-In-Reply-To: <CAOkSjBjJ7f_ANknUa3ojoaHF_+meYFe1dkOCBzOBFdAC3pxxkA@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:51696 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751350AbaCLMXu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Mar 2014 08:23:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1394215713-32049-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 12 Mar 2014, Arturo Borrero Gonzalez wrote:
+On Fri, Mar 07, 2014 at 07:08:28PM +0100, Patrick McHardy wrote:
+> The following patches restore the context during expression destruction
+> in order to restore notifications for anonmyous set destruction and get
+> rid of some unnecessary members in the expressions' private structures.
+> 
+> Additionally they contain a couple of related minor cleanups.
+> 
+> Please apply.
 
-> On 12 March 2014 12:03, Robert P. J. Day <rpjday@crashcourse.ca> wrote:
-> >   quite possibly some of it, but surely the "nftables.xml" file
-> > under doc/ should be updated to reflect that the command is now
-> > "nft", not "nftables", no?
-> >
->
-> In Debian, my plan is to provide the same man page both for 'nft'
-> and 'nftables' (one being a symlink to the other).
-
-  ok, that sounds fine but, just for the record, the *official*
-userspace command name is "nft", is it not? so linking to a man page
-that purports to explain "nftables" is going to be a bit confusing.
-
-> >   anyway, i'll leave this in the hands of the powers-that-be on
-> > this list.
->
-> In the docbook side, you could try to find a solution that covers
-> all/most-important distributions. I would suggest to simply send
-> patches so we can review your ideas.
-
-  i'll see what i can come up with that isn't distro-specific.
-
-rday
-
--- 
-
-========================================================================
-Robert P. J. Day                                 Ottawa, Ontario, CANADA
-                        http://crashcourse.ca
-
-Twitter:                                       http://twitter.com/rpjday
-LinkedIn:                               http://ca.linkedin.com/in/rpjday
-========================================================================
+All applied, thanks Patrick.
