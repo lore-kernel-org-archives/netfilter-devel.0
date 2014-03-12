@@ -1,30 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/5] netfilter: nf_tables: restore context during
- destruction
-Date: Wed, 12 Mar 2014 13:23:39 +0100
-Message-ID: <20140312122339.GA20453@localhost>
-References: <1394215713-32049-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH] userspace SSDP conntrack helper
+Date: Wed, 12 Mar 2014 13:36:32 +0100
+Message-ID: <20140312123632.GA25922@localhost>
+References: <531B3E73.3080801@blueyonder.co.uk>
+ <20140308163902.GA3590@localhost>
+ <531B87FE.9080500@blueyonder.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Ash Hughes <ashley.hughes@blueyonder.co.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51696 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56370 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751350AbaCLMXu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Mar 2014 08:23:50 -0400
+	id S1751843AbaCLMgl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Mar 2014 08:36:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1394215713-32049-1-git-send-email-kaber@trash.net>
+In-Reply-To: <531B87FE.9080500@blueyonder.co.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 07, 2014 at 07:08:28PM +0100, Patrick McHardy wrote:
-> The following patches restore the context during expression destruction
-> in order to restore notifications for anonmyous set destruction and get
-> rid of some unnecessary members in the expressions' private structures.
-> 
-> Additionally they contain a couple of related minor cleanups.
-> 
-> Please apply.
+On Sat, Mar 08, 2014 at 09:13:34PM +0000, Ash Hughes wrote:
+> Here is an updated version with fixed whitespace (sorry about that)
+> and works with multiple responses. I've mentioned SSDP in the manual
+> as well as adding some lines to the example config, but I can do
+> more if needed.
 
-All applied, thanks Patrick.
+Applied, thanks.
