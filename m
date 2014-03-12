@@ -1,42 +1,51 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 Subject: Re: some minor tweaks for building doc/man pages for nftables
-Date: Wed, 12 Mar 2014 11:51:26 +0100
-Message-ID: <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com>
-References: <alpine.LFD.2.11.1403120529570.4122@localhost>
+Date: Wed, 12 Mar 2014 07:03:19 -0400 (EDT)
+Message-ID: <alpine.LFD.2.11.1403120701510.5974@localhost>
+References: <alpine.LFD.2.11.1403120529570.4122@localhost> <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter devel list <netfilter-devel@vger.kernel.org>
-To: "Robert P. J. Day" <rpjday@crashcourse.ca>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:63199 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbaCLKvs convert rfc822-to-8bit (ORCPT
+Received: from astoria.ccjclearline.com ([64.235.106.9]:38004 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbaCLLDX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Mar 2014 06:51:48 -0400
-Received: by mail-la0-f54.google.com with SMTP id mc6so6430756lab.41
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2014 03:51:47 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.11.1403120529570.4122@localhost>
+	Wed, 12 Mar 2014 07:03:23 -0400
+In-Reply-To: <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12 March 2014 10:34, Robert P. J. Day <rpjday@crashcourse.ca> wrote:
+On Wed, 12 Mar 2014, Arturo Borrero Gonzalez wrote:
+
+> On 12 March 2014 10:34, Robert P. J. Day <rpjday@crashcourse.ca> wrote:
+> >
+> >   new here so not confident enough to submit any patches yet, but on
+> > my fedora rawhide system, some notes on building the man page and PDF
+> > docs.
+> >
 >
->   new here so not confident enough to submit any patches yet, but on
-> my fedora rawhide system, some notes on building the man page and PDF
-> docs.
+> Hi there!
 >
+> Feel free to submit patches, but maybe this is an issue for Fedora
+> packagers to fix.
 
-Hi there!
+  quite possibly some of it, but surely the "nftables.xml" file under
+doc/ should be updated to reflect that the command is now "nft", not
+"nftables", no?
 
-=46eel free to submit patches, but maybe this is an issue for Fedora
-packagers to fix.
+  anyway, i'll leave this in the hands of the powers-that-be on this
+list.
 
-regards.
---=20
-Arturo Borrero Gonz=E1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+rday
+
+-- 
+
+========================================================================
+Robert P. J. Day                                 Ottawa, Ontario, CANADA
+                        http://crashcourse.ca
+
+Twitter:                                       http://twitter.com/rpjday
+LinkedIn:                               http://ca.linkedin.com/in/rpjday
+========================================================================
