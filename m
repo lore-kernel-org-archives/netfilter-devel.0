@@ -1,295 +1,267 @@
-From: Ansis Atteka <aatteka@nicira.com>
-Subject: [PATCH] conntrackd: claim lockfile ownership properly
-Date: Tue, 11 Mar 2014 18:31:13 -0700
-Message-ID: <1394587873-9821-1-git-send-email-aatteka@nicira.com>
-Cc: Ansis Atteka <aatteka@nicira.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:45238 "HELO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756347AbaCLBiQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Mar 2014 21:38:16 -0400
-Received: by mail-qc0-f169.google.com with SMTP id i17so10635700qcy.28
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Mar 2014 18:38:15 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH RFC 0/9] socket filtering using nf_tables
+Date: Wed, 12 Mar 2014 10:15:00 +0100
+Message-ID: <20140312091500.GA4638@localhost>
+References: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+ <531EE5A2.7090501@redhat.com>
+ <CAMEtUuyJne-8uNtOAK7EcFFQNXz9m7J2DDLGH_GbYe6oWZx1pQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Network Development <netdev@vger.kernel.org>, kaber@trash.net,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>
+To: Alexei Starovoitov <ast@plumgrid.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMEtUuyJne-8uNtOAK7EcFFQNXz9m7J2DDLGH_GbYe6oWZx1pQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Before this patch, if conntrackd died in an abrupt manner (either
-by SIGKILL, SIGSEGV or abrupt shutdown), then it would have left
-a stale lock file that would have prevented any new conntrackd
-instances from running.
+Hi!
 
-Contrary to abrupt termination, this same bug was not present when
-conntrackd was terminated with a graceful signal (e.g. SIGTERM).
-This was because then the lock file would have been removed from
-the signal handler as expected.
+I'm going to reply to Daniel and you in the same email, see below.
 
-This patch fixes this bug by using POSIX File Locking API instead
-of opening file in O_EXCL mode. File Locking API ensures that file
-lock will be released once the process holding it terminates (either
-gracefully or abruptly).
+On Tue, Mar 11, 2014 at 10:59:42AM -0700, Alexei Starovoitov wrote:
+> On Tue, Mar 11, 2014 at 3:29 AM, Daniel Borkmann <dborkman@redhat.com> wrote:
+> > On 03/11/2014 10:19 AM, Pablo Neira Ayuso wrote:
+> >>
+> >> Hi!
+> >>
+> >> The following patchset provides a socket filtering alternative to BPF
+> >> which allows you to define your filter using the nf_tables expressions.
+> >>
+> >> Similarly to BPF, you can attach filters via setsockopt()
+> >> SO_ATTACH_NFT_FILTER. The filter that is passed to the kernel is
+> >> expressed in netlink TLV format which looks like:
+> >>
+> >>   expression list (nested attribute)
+> >>    expression element (nested attribute)
+> >>     expression name (string)
+> >>     expression data (nested attribute)
+> >>      ... specific attribute for this expression go here
+> >>
+> >> This is similar to the netlink format of the nf_tables rules, so we
+> >> can re-use most of the infrastructure that we already have in userspace.
+> >> The kernel takes the TLV representation and translates it to the native
+> >> nf_tables representation.
+> >>
+> >> The patches 1-3 have helped to generalize the existing socket filtering
+> >> infrastructure to allow pluging new socket filtering frameworks. Then,
+> >> patches 4-8 generalize the nf_tables code by move the neccessary nf_tables
+> >> expression and data initialization core infrastructure. Then, patch 9
+> >> provides the nf_tables socket filtering capabilities.
+> >>
+> >> Patrick and I have been discussing for a while that part of this
+> >> generalisation works should also help to add support for providing a
+> >> replacement to the tc framework, so with the necessary work, nf_tables
+> >> may provide in the near future packet a single packet classification
+> >> framework for Linux.
+> >
+> >
+> > I'm being curious here ;) as there's currently an ongoing effort on
+> > netdev for Alexei's eBPF engine (part 1 at [1,2,3]), which addresses
+> > shortcomings of current BPF and shall long term entirely replace the
+> > current BPF engine code to let filters entirely run in eBPF resp.
+> > eBPF's JIT engine, as I understand, which is also transparently usable
+> > in cls_bpf for classification in tc w/o rewriting on a different filter
+> > language. Performance figures have been posted/provided in [1] as well.
+> >
+> > So the plan on your side would be to have an alternative to eBPF, or
+> > build on top of it to reuse its in-kernel JIT compiler?
+> >
+> >  [1] http://patchwork.ozlabs.org/patch/328927/
 
-One side effect of this patch is that daemonization has to happen
-before the lock file is locked (due to the fact that child processes
-do not inherit file locks from the parent process).  This means that
-some error messages have to be logged in log file instead of STDOUT.
-
-Signed-Off-By: Ansis Atteka <aatteka@nicira.com>
----
- include/Makefile.am  |  2 +-
- include/conntrackd.h |  1 +
- include/lock_file.h  |  7 ++++++
- src/Makefile.am      |  2 +-
- src/lock_file.c      | 42 ++++++++++++++++++++++++++++++++++
- src/main.c           | 64 ++++++++++++++++++++++++++--------------------------
- src/run.c            |  4 +++-
- 7 files changed, 87 insertions(+), 35 deletions(-)
- create mode 100644 include/lock_file.h
- create mode 100644 src/lock_file.c
-
-diff --git a/include/Makefile.am b/include/Makefile.am
-index 6bd0f7f..7e5680c 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -1,7 +1,7 @@
- SUBDIRS = linux
- 
- noinst_HEADERS = alarm.h jhash.h cache.h linux_list.h linux_rbtree.h \
--		 sync.h conntrackd.h local.h udp.h tcp.h \
-+		 sync.h conntrackd.h local.h lock_file.h udp.h tcp.h \
- 		 debug.h log.h hash.h mcast.h conntrack.h \
- 		 network.h filter.h queue.h vector.h cidr.h \
- 		 traffic_stats.h netlink.h fds.h event.h bitops.h channel.h \
-diff --git a/include/conntrackd.h b/include/conntrackd.h
-index d338fc4..5c938ab 100644
---- a/include/conntrackd.h
-+++ b/include/conntrackd.h
-@@ -149,6 +149,7 @@ struct ct_general_state {
- 	struct ct_mode 			*mode;
- 	struct ct_filter		*us_filter;
- 	struct exp_filter		*exp_filter;
-+	int				lockfile_fd;
- 
- 	struct nfct_handle		*event;         /* event handler */
- 	struct nfct_filter		*filter;	/* event filter */
-diff --git a/include/lock_file.h b/include/lock_file.h
-new file mode 100644
-index 0000000..4a7038d
---- /dev/null
-+++ b/include/lock_file.h
-@@ -0,0 +1,7 @@
-+#ifndef _LOCK_FILE_H_
-+#define _LOCK_FILE_H_
-+
-+int lock_file_lock(const char *lock_file);
-+void lock_file_unlock(const char *lock_file, int fd);
-+
-+#endif
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 1bc3622..cb6110d 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -39,7 +39,7 @@ endif
- nfct_LDFLAGS = -export-dynamic
- 
- conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c rbtree.c \
--		    local.c log.c mcast.c udp.c netlink.c vector.c \
-+		    local.c lock_file.c log.c mcast.c udp.c netlink.c vector.c \
- 		    filter.c fds.c event.c process.c origin.c date.c \
- 		    cache.c cache-ct.c cache-exp.c \
- 		    cache_timer.c \
-diff --git a/src/lock_file.c b/src/lock_file.c
-new file mode 100644
-index 0000000..a15fa54
---- /dev/null
-+++ b/src/lock_file.c
-@@ -0,0 +1,42 @@
-+#include "lock_file.h"
-+
-+#include <fcntl.h>
-+#include <unistd.h>
-+
-+
-+static int
-+lock_bytes(int fd, int type, int whence, int start, int len)
-+{
-+	struct flock lock;
-+
-+	lock.l_type = type;
-+	lock.l_whence = whence;
-+	lock.l_start = start;
-+	lock.l_len = len;
-+
-+	return fcntl(fd, F_SETLK, &lock);
-+}
-+
-+int
-+lock_file_lock(const char *lock_file)
-+{
-+	int fd;
-+
-+	fd = open(lock_file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-+	if (fd == -1)
-+		return -1;
-+
-+	if (lock_bytes(fd, F_WRLCK, SEEK_SET, 0, 0)) {
-+		close(fd);
-+		return -1;
-+	}
-+
-+	return fd;
-+}
-+
-+void
-+lock_file_unlock(const char *lock_file, int fd)
-+{
-+	close(fd);
-+	unlink(lock_file);
-+}
-diff --git a/src/main.c b/src/main.c
-index dafeaee..ed3fb8d 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -18,6 +18,7 @@
-  */
- 
- #include "conntrackd.h"
-+#include "lock_file.h"
- #include "log.h"
- #include "helper.h"
- 
-@@ -118,16 +119,16 @@ set_nice_value(int nv)
+ struct sk_filter
  {
- 	errno = 0;
- 	if (nice(nv) == -1 && errno) /* warn only */
--		fprintf(stderr, "Cannot set nice level %d: %s\n",
--			nv, strerror(errno));
-+		dlog(LOG_ERR, "Cannot set nice level %d: %s",
-+		     nv, strerror(errno));
- }
- 
- static void
- do_chdir(const char *d)
- {
- 	if (chdir(d))
--		fprintf(stderr, "Cannot change current directory to %s: %s\n",
--			d, strerror(errno));
-+		dlog(LOG_ERR, "Cannot change current directory to %s: %s",
-+		     d, strerror(errno));
- }
- 
- int main(int argc, char *argv[])
-@@ -360,16 +361,34 @@ int main(int argc, char *argv[])
- 	if (init_log() == -1)
- 		exit(EXIT_FAILURE);
- 
-+	/* Daemonize conntrackd */
-+	if (type == DAEMON) {
-+		pid_t pid;
-+
-+		if ((pid = fork()) == -1) {
-+			perror("fork has failed: ");
-+			exit(EXIT_FAILURE);
-+		} else if (pid)
-+			exit(EXIT_SUCCESS);
-+
-+		setsid();
-+
-+		close(STDOUT_FILENO);
-+		close(STDERR_FILENO);
-+
-+		dlog(LOG_NOTICE, "-- starting in daemon mode --");
-+	} else
-+		dlog(LOG_NOTICE, "-- starting in console mode --");
-+
- 	/*
--	 * lock file
-+	 * After daemonizing, conntrackd has to grab its lock file
- 	 */
--	ret = open(CONFIG(lockfile), O_CREAT | O_EXCL | O_TRUNC, 0600);
--	if (ret == -1) {
--		fprintf(stderr, "lockfile `%s' exists, perhaps conntrackd "
--			        "already running?\n", CONFIG(lockfile));
-+	STATE(lockfile_fd) = lock_file_lock(CONFIG(lockfile));
-+	if (STATE(lockfile_fd) == -1) {
-+		dlog(LOG_ERR, "could not claim lockfile %s",
-+		     CONFIG(lockfile));
- 		exit(EXIT_FAILURE);
- 	}
--	close(ret);
- 
- 	/*
- 	 * Setting process priority and scheduler
-@@ -383,7 +402,7 @@ int main(int argc, char *argv[])
- 
- 		ret = sched_setscheduler(0, CONFIG(sched).type, &schedparam);
- 		if (ret == -1) {
--			perror("sched");
-+			dlog(LOG_ERR, "sched: %s", strerror(errno));
- 			exit(EXIT_FAILURE);
- 		}
- 	}
-@@ -393,9 +412,9 @@ int main(int argc, char *argv[])
- 	 */
- 
- 	if (init() == -1) {
-+		dlog(LOG_ERR, "ERROR: conntrackd cannot start, please "
-+			      "check the logfile for more info");
- 		close_log();
--		fprintf(stderr, "ERROR: conntrackd cannot start, please "
--				"check the logfile for more info\n");
- 		unlink(CONFIG(lockfile));
- 		exit(EXIT_FAILURE);
- 	}
-@@ -403,25 +422,6 @@ int main(int argc, char *argv[])
- 	do_chdir("/");
- 	close(STDIN_FILENO);
- 
--	/* Daemonize conntrackd */
--	if (type == DAEMON) {
--		pid_t pid;
--
--		if ((pid = fork()) == -1) {
--			perror("fork has failed: ");
--			exit(EXIT_FAILURE);
--		} else if (pid)
--			exit(EXIT_SUCCESS);
--
--		setsid();
--
--		close(STDOUT_FILENO);
--		close(STDERR_FILENO);
--
--		dlog(LOG_NOTICE, "-- starting in daemon mode --");
--	} else
--		dlog(LOG_NOTICE, "-- starting in console mode --");
--
- 	/*
- 	 * run main process
- 	 */
-diff --git a/src/run.c b/src/run.c
-index a9d4862..02e847e 100644
---- a/src/run.c
-+++ b/src/run.c
-@@ -22,6 +22,7 @@
- #include "conntrackd.h"
- #include "netlink.h"
- #include "filter.h"
-+#include "lock_file.h"
- #include "log.h"
- #include "alarm.h"
- #include "fds.h"
-@@ -60,7 +61,8 @@ void killer(int signo)
- 		cthelper_kill();
- #endif
- 	destroy_fds(STATE(fds));
--	unlink(CONFIG(lockfile));
-+	if (STATE(lockfile_fd) != -1)
-+		lock_file_unlock(CONFIG(lockfile), STATE(lockfile_fd));
- 	dlog(LOG_NOTICE, "---- shutdown received ----");
- 	close_log();
- 
--- 
-1.8.1.2
+        atomic_t                refcnt;
+-       unsigned int            len;    /* Number of filter blocks */
++       /* len - number of insns in sock_filter program
++        * len_ext - number of insns in socket_filter_ext program
++        * jited - true if either original or extended program was
+JITed
++        * orig_prog - original sock_filter program if not NULL
++        */
++       unsigned int            len;
++       unsigned int            len_ext;
++       unsigned int            jited:1;
++       struct sock_filter      *orig_prog;
+        struct rcu_head         rcu;
+-       unsigned int            (*bpf_func)(const struct sk_buff *skb,
+-                                           const struct sock_filter
+                                            *filter);
++       union {
++               unsigned int (*bpf_func)(const struct sk_buff *skb,
++                                        const struct sock_filter *fp);
++               unsigned int (*bpf_func_ext)(const struct sk_buff *skb,
++                                            const struct sock_filter_ext *fp);
++       };
+        union {
+                struct sock_filter      insns[0];
++               struct sock_filter_ext  insns_ext[0];
+                struct work_struct      work;
+        };
+ };
 
+I think we have to generalise this to make it flexible to accomodate
+any socket filtering infrastructure. For example, instead of having
+bpf_func and bpf_func_ext, I think it would be good to generalise it
+that so we pass some void *filter. I also think that other private
+information to the filtering approach should be put after the
+filtering code, in some variable length area.
+
+This change looks quite ad-hoc. My 1-3 patches were more going to the
+direction of making this in some generic way to accomodate any socket
+filtering infrastructure.
+
+> >  [2] http://patchwork.ozlabs.org/patch/328926/
+> >  [3] http://patchwork.ozlabs.org/patch/328928/
+> >
+> >> There is an example of the userspace code available at:
+> >>
+> >>   http://people.netfilter.org/pablo/nft-sock-filter-test.c
+> >>
+> >> I'm currently reusing the existing libnftnl interfaces, my plan is to
+> >> new interfaces in that library for easier and more simple filter
+> >> definition for socket filtering.
+> >>
+> >> Note that the current nf_tables expression-set is also limited with
+> >> regards to BPF, but the infrastructure that we have can be easily
+> >> extended with new expressions.
+> >>
+> >> Comments welcome!
+> 
+> Hi Pablo,
+> 
+> Could you share what performance you're getting when doing nft
+> filter equivalent to 'tcpdump port 22' ?
+> Meaning your filter needs to parse eth->proto, ip or ipv6 header and
+> check both ports. How will it compare with JITed bpf/ebpf ?
+
+We already have plans to add jit to nf_tables.
+
+> I was trying to go the other way: improve nft performance with ebpf.
+> 10/40G links are way to fast for interpreters. imo JIT is the only way.
+>
+> here are some comments about patches:
+> 1/9:
+> -       if (fp->bpf_func != sk_run_filter)
+> -               module_free(NULL, fp->bpf_func);
+> +       if (fp->run_filter != sk_run_filter)
+> +               module_free(NULL, fp->run_filter);
+> 
+> David suggested that these comparisons in all jits are ugly.
+> I've fixed it in my patches. When they're in, you wouldn't need to
+> mess with this.
+
+I see you have added fp->jited for this. I think we can make this more
+generic if we have some enum so fp->type will tell us what kind of
+filter we have, ie. bpf, bpf-jitted, nft, etc.
+
+> 2/9:
+> -       atomic_sub(sk_filter_size(fp->len), &sk->sk_omem_alloc);
+> +       atomic_sub(fp->size, &sk->sk_omem_alloc);
+> 
+> that's a big change in socket memory accounting.
+> We used to account for the whole sk_filter... now you're counting
+> filter size only.
+> Is it valid?
+
+We need this change for if nf_tables. We don't use a fixed layout for
+each instruction of the filter like you do, I mean:
+
++struct sock_filter_ext {
++       __u8    code;    /* opcode */
++       __u8    a_reg:4; /* dest register */
++       __u8    x_reg:4; /* source register */
++       __s16   off;     /* signed offset */
++       __s32   imm;     /* signed immediate constant */
++};
+
+If I didn't miss anything from your patchset, that structure is again
+exposed to userspace, so we won't be able to change it ever unless we
+add a new binary interface.
+
+>From the user interface perspective, our nft approach is quite
+different, from userspace you express the filter using TLVs (like in
+the payload of the netlink message). Then, nf_tables core
+infrastructure parses this and transforms it to the kernel
+representation. It's very flexible since you don't expose the internal
+representation to userspace, which means that we can change the
+internal layout anytime, thus, highly extensible.
+
+BTW, how do you make when you don't need the imm field? You just leave
+it unset I guess. And how does the code to compare an IPv6 address
+looks like?
+
+> 7/9:
+> whole nft_expr_autoload() looks scary from security point of view.
+> If I'm reading it correctly, the code will do request_module() based on
+> userspace request to attach filter?
+
+Only root can invoke that code so far.
+
+> 9/9:
+> +       case SO_NFT_GET_FILTER:
+> +               len = sk_nft_get_filter(sk, (struct sock_filter __user
+> *)optval, len);
+> with my patches there was a concern regarding socket checkpoint/restore
+> and I had to preserve existing filter image to make sure it's not broken.
+> Could you please coordinate with Pavel and co to test this piece?
+> 
+> What will happen if nft_filter attached, but so_get_filter is called? crash?
+
+I was trying to avoid to add some enum to identify to sk_filter to
+identify what kind of filter we have there, but this is needed
+indeed. Thanks for spotting this.
+
+> +static int nft_sock_expr_autoload(const struct nft_ctx *ctx,
+> +                                 const struct nlattr *nla)
+> +{
+> +#ifdef CONFIG_MODULES
+> +       mutex_unlock(&nft_expr_info_mutex);
+> +       request_module("nft-expr-%.*s", nla_len(nla), (char *)nla_data(nla));
+> +       mutex_lock(&nft_expr_info_mutex);
+> 
+> same security concern here...
+> 
+> +int sk_nft_attach_filter(char __user *optval, struct sock *sk)
+> +{
+> 
+> what about sk_clone_lock()? since filter program is in nft, do you need to do
+> special steps during copy of socket?
+> 
+> +       fp = sock_kmalloc(sk, sizeof(struct sk_filter) + size, GFP_KERNEL);
+>
+> this may allocate more memory then you need.
+> Currently sk_filter_size() computes it in an accurate way.
+
+That won't work for nf_tables, we don't necessarily have to stick to a
+fixed layout per instruction like you do, so the real filter size is
+obtained after parsing the TLVs that was passed from userspace.
+
+> Also the same issue of optmem accounting as I mentioned in 2/9
+> 
+> +err4:
+> +       sock_kfree_s(sk, fp, size);
+> 
+> a small bug: allocated sizeof(sk_filter)+size, but freeing 'size' only...
+
+Good catch, I'll fix it, thanks.
+
+> Overall I think it's very interesting work.
+> Not sure what's the use case for it though.
+> 
+> I'll cook up a patch for the opposite approach (use ebpf inside nft)
+> and will send you for review.
+
+I don't like the idea of sticking to some fixed layout structure to
+represent the filter, please hold on with it.
+
+> I would prefer to work together to satisfy your and our user requests.
+
+That would be nice, but so far I think that we have different
+approaches from user interface perspective and, thus, the kernel
+design for it.
