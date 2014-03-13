@@ -1,418 +1,264 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 3/3] netfilter: connlimit: use rbtree for per-host conntrack obj storage
-Date: Wed, 12 Mar 2014 23:49:51 +0100
-Message-ID: <1394664591-21843-4-git-send-email-fw@strlen.de>
-References: <1394664591-21843-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38339 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752270AbaCLWya (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Mar 2014 18:54:30 -0400
-In-Reply-To: <1394664591-21843-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Alexei Starovoitov <ast@plumgrid.com>
+Subject: Re: [PATCH RFC 0/9] socket filtering using nf_tables
+Date: Wed, 12 Mar 2014 20:29:07 -0700
+Message-ID: <CAMEtUuztfWniTr+3u6ttuygvG=xYdp0ANn_w9MGqacQvHrXtWA@mail.gmail.com>
+References: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+	<531EE5A2.7090501@redhat.com>
+	<CAMEtUuyJne-8uNtOAK7EcFFQNXz9m7J2DDLGH_GbYe6oWZx1pQ@mail.gmail.com>
+	<20140312091500.GA4638@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Network Development <netdev@vger.kernel.org>, kaber@trash.net,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140312091500.GA4638@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-With current match design every invocation of the connlimit_match
-function means we have to perform (number_of_conntracks % 256) lookups
-in the conntrack table [ to perform GC/delete stale entries ].
-This is also the reason why ____nf_conntrack_find() in perf top has
-> 20% cpu time per core.
+On Wed, Mar 12, 2014 at 2:15 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi!
+>
+> I'm going to reply to Daniel and you in the same email, see below.
+>
+>  struct sk_filter
+>  {
+>         atomic_t                refcnt;
+> -       unsigned int            len;    /* Number of filter blocks */
+> +       /* len - number of insns in sock_filter program
+> +        * len_ext - number of insns in socket_filter_ext program
+> +        * jited - true if either original or extended program was
+> JITed
+> +        * orig_prog - original sock_filter program if not NULL
+> +        */
+> +       unsigned int            len;
+> +       unsigned int            len_ext;
+> +       unsigned int            jited:1;
+> +       struct sock_filter      *orig_prog;
+>         struct rcu_head         rcu;
+> -       unsigned int            (*bpf_func)(const struct sk_buff *skb,
+> -                                           const struct sock_filter
+>                                             *filter);
+> +       union {
+> +               unsigned int (*bpf_func)(const struct sk_buff *skb,
+> +                                        const struct sock_filter *fp);
+> +               unsigned int (*bpf_func_ext)(const struct sk_buff *skb,
+> +                                            const struct sock_filter_ext *fp);
+> +       };
+>         union {
+>                 struct sock_filter      insns[0];
+> +               struct sock_filter_ext  insns_ext[0];
+>                 struct work_struct      work;
+>         };
+>  };
+>
+> I think we have to generalise this to make it flexible to accomodate
+> any socket filtering infrastructure. For example, instead of having
+> bpf_func and bpf_func_ext, I think it would be good to generalise it
+> that so we pass some void *filter. I also think that other private
 
-This patch changes the storage to rbtree which cuts down the number of
-ct objects that need testing.
+well, David indicated that using 'void*' for such cases is undesirable,
+since we want to rely on compiler to do type verification as much
+as we can. My patches are preserving type safety.
+'void * filter' would mean - open the door for anything.
+I don't think we want that type of 'generality'.
 
-When looking up a new tuple, we only test the connections of the host
-objects we visit while searching for the wanted host/network (or
-the leaf we need to insert at).
+> information to the filtering approach should be put after the
+> filtering code, in some variable length area.
+>
+> This change looks quite ad-hoc. My 1-3 patches were more going to the
+> direction of making this in some generic way to accomodate any socket
+> filtering infrastructure.
 
-The slot count is reduced to 32.  Increasing slot count doesn't
-speed up things much because of rbtree nature.
+They may look ad-hoc, but they're preserving type checking.
 
-before patch (50kpps rx, 10kpps tx):
-+  20.95%  ksoftirqd/0  [nf_conntrack] [k] ____nf_conntrack_find
-+  20.50%  ksoftirqd/1  [nf_conntrack] [k] ____nf_conntrack_find
-+  20.27%  ksoftirqd/2  [nf_conntrack] [k] ____nf_conntrack_find
-+   5.76%  ksoftirqd/1  [nf_conntrack] [k] hash_conntrack_raw
-+   5.39%  ksoftirqd/2  [nf_conntrack] [k] hash_conntrack_raw
-+   5.35%  ksoftirqd/0  [nf_conntrack] [k] hash_conntrack_raw
+>> Could you share what performance you're getting when doing nft
+>> filter equivalent to 'tcpdump port 22' ?
+>> Meaning your filter needs to parse eth->proto, ip or ipv6 header and
+>> check both ports. How will it compare with JITed bpf/ebpf ?
+>
+> We already have plans to add jit to nf_tables.
 
-after (90kpps, 51kpps tx):
-+  17.24%       swapper  [nf_conntrack]    [k] ____nf_conntrack_find
-+   6.60%   ksoftirqd/2  [nf_conntrack]    [k] ____nf_conntrack_find
-+   2.73%       swapper  [nf_conntrack]    [k] hash_conntrack_raw
-+   2.36%       swapper  [xt_connlimit]    [k] count_tree
+The patches don't explain the reasons to do nft socket filtering.
+I can only guess and my guess that this is to show
+that nft sort of can do what bpf can.
+tc can be made to do socket filtering too.
+The differentiation is speed and ease of use.
+Both have big question marks in sock_filter+nft approach.
 
-Obvious disadvantages to previous version are the increase in code
-complexity and the increased memory cost.
+I think to consider nft to be one and only classifier, some
+benchmarking needs to be done first:
+nft vs bpf, nft vs tc, nft vs ovs, ...
 
-Partially based on Eric Dumazets fq scheduler.
+It can be done the other way too. nft can run on top of tc.
+ovs can run on top of tc and so on.
+I'm not advocating any of that.
 
-Reviewed-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes in v2:
-   Address Eric Dumazets suggestion to free GC'd tree nodes
-   before allocating a new one.
+Having one interpreter underneath doesn't mean that all
+components will be easier to maintain or have less code around.
+Code that converts from one to another counts as well.
+Simplicity and performance should be the deciding factor.
+imo nft+sock_filter example is not simple.
 
-   Requires a restart of the lookup, but, as Eric explained
-   the 2nd lookup will be fast since all data is in the cache.
+I've posted patches to compile restricted C into ebpf.
+Theoretically I can make 'universal kernel module' out of ebpf.
+Like, compile any C code into ebpf and jit it.
+Such 'universal kernel module' will be runnable on all architectures.
+One compiler to rule them all... one ebpf to run them all... NO!
+That may be cool thing for university research, but no good
+reason to do it in practice.
+Same way nft for socket filtering is a cool research, but what
+is the strong reason to have it in kernel and maintain forever?
 
- net/netfilter/xt_connlimit.c | 224 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 177 insertions(+), 47 deletions(-)
+>> here are some comments about patches:
+>> 1/9:
+>> -       if (fp->bpf_func != sk_run_filter)
+>> -               module_free(NULL, fp->bpf_func);
+>> +       if (fp->run_filter != sk_run_filter)
+>> +               module_free(NULL, fp->run_filter);
+>>
+>> David suggested that these comparisons in all jits are ugly.
+>> I've fixed it in my patches. When they're in, you wouldn't need to
+>> mess with this.
+>
+> I see you have added fp->jited for this. I think we can make this more
+> generic if we have some enum so fp->type will tell us what kind of
+> filter we have, ie. bpf, bpf-jitted, nft, etc.
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index dc5207f..b1d43d4 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -19,6 +19,7 @@
- #include <linux/jhash.h>
- #include <linux/slab.h>
- #include <linux/list.h>
-+#include <linux/rbtree.h>
- #include <linux/module.h>
- #include <linux/random.h>
- #include <linux/skbuff.h>
-@@ -31,8 +32,9 @@
- #include <net/netfilter/nf_conntrack_tuple.h>
- #include <net/netfilter/nf_conntrack_zones.h>
- 
--#define CONNLIMIT_SLOTS	256
-+#define CONNLIMIT_SLOTS		32
- #define CONNLIMIT_LOCK_SLOTS	32
-+#define CONNLIMIT_GC_MAX_NODES	8
- 
- /* we will save the tuples of all connections we care about */
- struct xt_connlimit_conn {
-@@ -41,12 +43,20 @@ struct xt_connlimit_conn {
- 	union nf_inet_addr		addr;
- };
- 
-+struct xt_connlimit_rb {
-+	struct rb_node node;
-+	struct hlist_head hhead; /* connections/hosts in same subnet */
-+	union nf_inet_addr addr; /* search key */
-+};
-+
- struct xt_connlimit_data {
--	struct hlist_head	iphash[CONNLIMIT_SLOTS];
-+	struct rb_root climit_root4[CONNLIMIT_SLOTS];
-+	struct rb_root climit_root6[CONNLIMIT_SLOTS];
- 	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
- };
- 
- static u_int32_t connlimit_rnd __read_mostly;
-+static struct kmem_cache *connlimit_rb_cachep __read_mostly;
- static struct kmem_cache *connlimit_conn_cachep __read_mostly;
- 
- static inline unsigned int connlimit_iphash(__be32 addr)
-@@ -99,19 +109,33 @@ same_source_net(const union nf_inet_addr *addr,
- 	}
- }
- 
--static int count_hlist(struct net *net,
--		       struct hlist_head *head,
--		       const struct nf_conntrack_tuple *tuple,
--		       const union nf_inet_addr *addr,
--		       const union nf_inet_addr *mask,
--		       u_int8_t family, bool *addit)
-+static bool add_hlist(struct hlist_head *head,
-+		      const struct nf_conntrack_tuple *tuple,
-+		      const union nf_inet_addr *addr)
-+{
-+	struct xt_connlimit_conn *conn;
-+
-+	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
-+	if (conn == NULL)
-+		return false;
-+	conn->tuple = *tuple;
-+	conn->addr = *addr;
-+	hlist_add_head(&conn->node, head);
-+	return true;
-+}
-+
-+static unsigned int check_hlist(struct net *net,
-+				struct hlist_head *head,
-+				const struct nf_conntrack_tuple *tuple,
-+				bool *addit)
- {
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct xt_connlimit_conn *conn;
- 	struct hlist_node *n;
- 	struct nf_conn *found_ct;
--	int matches = 0;
-+	unsigned int length = 0;
- 
-+	*addit = true;
- 	rcu_read_lock();
- 
- 	/* check the saved connections */
-@@ -144,30 +168,114 @@ static int count_hlist(struct net *net,
- 			continue;
- 		}
- 
--		if (same_source_net(addr, mask, &conn->addr, family) == 0)
--			/* same source network -> be counted! */
--			++matches;
- 		nf_ct_put(found_ct);
-+		length++;
- 	}
- 
- 	rcu_read_unlock();
- 
--	return matches;
-+	return length;
- }
- 
--static bool add_hlist(struct hlist_head *head,
--		      const struct nf_conntrack_tuple *tuple,
--		      const union nf_inet_addr *addr)
-+static void tree_nodes_free(struct rb_root *root,
-+			    struct xt_connlimit_rb *gc_nodes[],
-+			    unsigned int gc_count)
-+{
-+	struct xt_connlimit_rb *rbconn;
-+
-+	while (gc_count) {
-+		rbconn = gc_nodes[--gc_count];
-+		rb_erase(&rbconn->node, root);
-+		kmem_cache_free(connlimit_rb_cachep, rbconn);
-+	}
-+}
-+
-+static unsigned int
-+count_tree(struct net *net, struct rb_root *root,
-+	   const struct nf_conntrack_tuple *tuple,
-+	   const union nf_inet_addr *addr, const union nf_inet_addr *mask,
-+	   u8 family)
- {
-+	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
-+	struct rb_node **rbnode, *parent;
-+	struct xt_connlimit_rb *rbconn;
- 	struct xt_connlimit_conn *conn;
-+	unsigned int gc_count;
-+	bool no_gc = false;
-+
-+ restart:
-+	gc_count = 0;
-+	parent = NULL;
-+	rbnode = &(root->rb_node);
-+	while (*rbnode) {
-+		int diff;
-+		bool addit;
-+
-+		rbconn = container_of(*rbnode, struct xt_connlimit_rb, node);
-+
-+		parent = *rbnode;
-+		diff = same_source_net(addr, mask, &rbconn->addr, family);
-+		if (diff < 0) {
-+			rbnode = &((*rbnode)->rb_left);
-+		} else if (diff > 0) {
-+			rbnode = &((*rbnode)->rb_right);
-+		} else {
-+			/* same source network -> be counted! */
-+			unsigned int count;
-+			count = check_hlist(net, &rbconn->hhead, tuple, &addit);
-+
-+			tree_nodes_free(root, gc_nodes, gc_count);
-+			if (!addit)
-+				return count;
-+
-+			if (!add_hlist(&rbconn->hhead, tuple, addr))
-+				return 0; /* hotdrop */
-+
-+			return count + 1;
-+		}
-+
-+		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
-+			continue;
-+
-+		/* only used for GC on hhead, retval and 'addit' ignored */
-+		check_hlist(net, &rbconn->hhead, tuple, &addit);
-+		if (hlist_empty(&rbconn->hhead))
-+			gc_nodes[gc_count++] = rbconn;
-+	}
-+
-+	if (gc_count) {
-+		no_gc = true;
-+		tree_nodes_free(root, gc_nodes, gc_count);
-+		/* tree_node_free before new allocation permits
-+		 * allocator to re-use newly free'd object.
-+		 *
-+		 * This is a rare event; in most cases we will find
-+		 * existing node to re-use. (or gc_count is 0).
-+		 */
-+		goto restart;
-+	}
-+
-+	/* no match, need to insert new node */
-+	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
-+	if (rbconn == NULL)
-+		return 0;
- 
- 	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
--	if (conn == NULL)
--		return false;
-+	if (conn == NULL) {
-+		kmem_cache_free(connlimit_rb_cachep, rbconn);
-+		return 0;
-+	}
-+
- 	conn->tuple = *tuple;
- 	conn->addr = *addr;
--	hlist_add_head(&conn->node, head);
--	return true;
-+	rbconn->addr = *addr;
-+
-+	INIT_HLIST_HEAD(&rbconn->hhead);
-+	hlist_add_head(&conn->node, &rbconn->hhead);
-+
-+	rb_link_node(&rbconn->node, parent, rbnode);
-+	rb_insert_color(&rbconn->node, root);
-+	return 1;
- }
- 
- static int count_them(struct net *net,
-@@ -177,26 +285,22 @@ static int count_them(struct net *net,
- 		      const union nf_inet_addr *mask,
- 		      u_int8_t family)
- {
--	struct hlist_head *hhead;
-+	struct rb_root *root;
- 	int count;
- 	u32 hash;
--	bool addit = true;
- 
--	if (family == NFPROTO_IPV6)
-+	if (family == NFPROTO_IPV6) {
- 		hash = connlimit_iphash6(addr, mask);
--	else
-+		root = &data->climit_root6[hash];
-+	} else {
- 		hash = connlimit_iphash(addr->ip & mask->ip);
--
--	hhead = &data->iphash[hash];
-+		root = &data->climit_root4[hash];
-+	}
- 
- 	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
--	count = count_hlist(net, hhead, tuple, addr, mask, family, &addit);
--	if (addit) {
--		if (add_hlist(hhead, tuple, addr))
--			count++;
--		else
--			count = -ENOMEM;
--	}
-+
-+	count = count_tree(net, root, tuple, addr, mask, family);
-+
- 	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
- 	return count;
-@@ -212,7 +316,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
- 	enum ip_conntrack_info ctinfo;
- 	const struct nf_conn *ct;
--	int connections;
-+	unsigned int connections;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (ct != NULL)
-@@ -233,7 +337,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	connections = count_them(net, info->data, tuple_ptr, &addr,
- 	                         &info->mask, par->family);
--	if (connections < 0)
-+	if (connections == 0)
- 		/* kmalloc failed, drop it entirely */
- 		goto hotdrop;
- 
-@@ -276,28 +380,44 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 	for (i = 0; i < ARRAY_SIZE(info->data->locks); ++i)
- 		spin_lock_init(&info->data->locks[i]);
- 
--	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i)
--		INIT_HLIST_HEAD(&info->data->iphash[i]);
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
-+		info->data->climit_root4[i] = RB_ROOT;
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
-+		info->data->climit_root6[i] = RB_ROOT;
- 
- 	return 0;
- }
- 
--static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
-+static void destroy_tree(struct rb_root *r)
- {
--	const struct xt_connlimit_info *info = par->matchinfo;
- 	struct xt_connlimit_conn *conn;
-+	struct xt_connlimit_rb *rbconn;
- 	struct hlist_node *n;
--	struct hlist_head *hash = info->data->iphash;
--	unsigned int i;
-+	struct rb_node *node;
- 
--	nf_ct_l3proto_module_put(par->family);
-+	while ((node = rb_first(r)) != NULL) {
-+		rbconn = container_of(node, struct xt_connlimit_rb, node);
- 
--	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
--		hlist_for_each_entry_safe(conn, n, &hash[i], node) {
--			hlist_del(&conn->node);
-+		rb_erase(node, r);
-+
-+		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
- 			kmem_cache_free(connlimit_conn_cachep, conn);
--		}
-+
-+		kmem_cache_free(connlimit_rb_cachep, rbconn);
- 	}
-+}
-+
-+static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
-+{
-+	const struct xt_connlimit_info *info = par->matchinfo;
-+	unsigned int i;
-+
-+	nf_ct_l3proto_module_put(par->family);
-+
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
-+		destroy_tree(&info->data->climit_root4[i]);
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
-+		destroy_tree(&info->data->climit_root6[i]);
- 
- 	kfree(info->data);
- }
-@@ -326,9 +446,18 @@ static int __init connlimit_mt_init(void)
- 	if (!connlimit_conn_cachep)
- 		return -ENOMEM;
- 
-+	connlimit_rb_cachep = kmem_cache_create("xt_connlimit_rb",
-+					   sizeof(struct xt_connlimit_rb),
-+					   0, 0, NULL);
-+	if (!connlimit_rb_cachep) {
-+		kmem_cache_destroy(connlimit_conn_cachep);
-+		return -ENOMEM;
-+	}
- 	ret = xt_register_match(&connlimit_mt_reg);
--	if (ret != 0)
-+	if (ret != 0) {
- 		kmem_cache_destroy(connlimit_conn_cachep);
-+		kmem_cache_destroy(connlimit_rb_cachep);
-+	}
- 	return ret;
- }
- 
-@@ -336,6 +465,7 @@ static void __exit connlimit_mt_exit(void)
- {
- 	xt_unregister_match(&connlimit_mt_reg);
- 	kmem_cache_destroy(connlimit_conn_cachep);
-+	kmem_cache_destroy(connlimit_rb_cachep);
- }
- 
- module_init(connlimit_mt_init);
--- 
-1.8.1.5
+Such enum will have a problem of explosion when flags
+start to cross-multiply.
+fp->jited flag just says jitted or not. Easier to check.
 
+>> 2/9:
+>> -       atomic_sub(sk_filter_size(fp->len), &sk->sk_omem_alloc);
+>> +       atomic_sub(fp->size, &sk->sk_omem_alloc);
+>>
+>> that's a big change in socket memory accounting.
+>> We used to account for the whole sk_filter... now you're counting
+>> filter size only.
+>> Is it valid?
+>
+> We need this change for if nf_tables. We don't use a fixed layout for
+
+I think you missed the point.
+Allocated sockopt memory is not counted properly.
+It's not fixed vs non-fixed. sizeof(struct sk_filter) needs to
+be accounted too, since it was allocated.
+
+> each instruction of the filter like you do, I mean:
+>
+> +struct sock_filter_ext {
+> +       __u8    code;    /* opcode */
+> +       __u8    a_reg:4; /* dest register */
+> +       __u8    x_reg:4; /* source register */
+> +       __s16   off;     /* signed offset */
+> +       __s32   imm;     /* signed immediate constant */
+> +};
+>
+> If I didn't miss anything from your patchset, that structure is again
+> exposed to userspace, so we won't be able to change it ever unless we
+> add a new binary interface.
+>
+> From the user interface perspective, our nft approach is quite
+> different, from userspace you express the filter using TLVs (like in
+> the payload of the netlink message). Then, nf_tables core
+> infrastructure parses this and transforms it to the kernel
+> representation. It's very flexible since you don't expose the internal
+> representation to userspace, which means that we can change the
+> internal layout anytime, thus, highly extensible.
+
+bpf/ebpf is an instruction set. Arguing about fixed vs non-fixed
+insn size is like arguing x86 variable encoding vs sparc fixed.
+Both are infinitely flexible.
+ebpf is a low level insn set with defined calling convention, so
+ebpf program can call fixed set of kernel functions if ebpf checker
+allows that.
+In sockfilters+ebpf, seccomp+ebpf, ovs+ebpf and tracing+ebpf
+I've already demonstrated that ebpf instruction set, its
+interpreter and its JIT are staying the same, while all are doing
+very different things. Cannot think of better extensibility.
+
+Extensibility is not with new instructions. We don't add new
+instructions to x86 just to do a new feature.
+New instructions are added to CPUs to make feature faster.
+Like aes crypto can be done with normal x86 insns and it can
+be done with aseni intel extensions. Same way aes can be done
+with ebpf and ebpf doesn't need new instructions to do that.
+
+> BTW, how do you make when you don't need the imm field? You just leave
+> it unset I guess. And how does the code to compare an IPv6 address
+> looks like?
+
+how x86 or sparc instruction set handles ipv6 addresses
+without 128-bit registers? ebpf does the same.
+
+nft design picked 128 bit registers because of ipv6 addresses?
+That makes it difficult to jit.
+
+>> 7/9:
+>> whole nft_expr_autoload() looks scary from security point of view.
+>> If I'm reading it correctly, the code will do request_module() based on
+>> userspace request to attach filter?
+>
+> Only root can invoke that code so far.
+
+If we want to allow non-root access the whole nft needs to
+be scrutinized.
+
+>> +       fp = sock_kmalloc(sk, sizeof(struct sk_filter) + size, GFP_KERNEL);
+>>
+>> this may allocate more memory then you need.
+>> Currently sk_filter_size() computes it in an accurate way.
+>
+> That won't work for nf_tables, we don't necessarily have to stick to a
+> fixed layout per instruction like you do, so the real filter size is
+> obtained after parsing the TLVs that was passed from userspace.
+
+That sock_malloc is allocating sizeof(sk_filter) + size.
+Meaning that it allocated unnecessary sizeof(work_struct) bytes
+and not accounting for them and for sk_filter itself in filter charge/uncharge
+
+>> Also the same issue of optmem accounting as I mentioned in 2/9
+>>
+>> +err4:
+>> +       sock_kfree_s(sk, fp, size);
+>>
+>> a small bug: allocated sizeof(sk_filter)+size, but freeing 'size' only...
+>
+> Good catch, I'll fix it, thanks.
+>
+>> Overall I think it's very interesting work.
+>> Not sure what's the use case for it though.
+>>
+>> I'll cook up a patch for the opposite approach (use ebpf inside nft)
+>> and will send you for review.
+>
+> I don't like the idea of sticking to some fixed layout structure to
+> represent the filter, please hold on with it.
+>
+>> I would prefer to work together to satisfy your and our user requests.
+>
+> That would be nice, but so far I think that we have different
+> approaches from user interface perspective and, thus, the kernel
+> design for it.
+
+Since you're planning to do nft-jit, you'd need to generate bits and
+bytes for different architectures with their own quirks.
+Don't you want to offload this work to somebody who already did this
+and who understand quirks of different architectures?
+Now imagine that you can generate some intermediate representation
+that maps one to one to x86 and other architectures.
+Intermediate representation is a pseudo assembler code.
+Say you want to translate nft-cmp instruction into sequence of native
+comparisons. You'd need to use load from memory, compare and
+branch operations. That's ebpf!
+Design of ebpf is such that every ebpf insn maps to one native insn.
+You can view ebpf as a tool to achieve jiting of nft.
+It will save you a lot of time.
+
+Thanks
+Alexei
