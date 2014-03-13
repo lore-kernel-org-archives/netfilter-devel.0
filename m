@@ -1,34 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 5/6] netfilter: Convert uses of __constant_<foo>
- to <foo>
-Date: Thu, 13 Mar 2014 14:13:56 +0100
-Message-ID: <20140313131356.GA5954@localhost>
-References: <cover.1394643455.git.joe@perches.com>
- <d0259d9122d308e3297cac6f7bc47c9955c3597b.1394643455.git.joe@perches.com>
- <20140312.152855.298436374579216260.davem@davemloft.net>
+Subject: Re: [nft PATCH] ct: add support for setting ct mark
+Date: Thu, 13 Mar 2014 14:17:46 +0100
+Message-ID: <20140313131746.GA6346@localhost>
+References: <20140312180319.5029.59536.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: joe@perches.com, netdev@vger.kernel.org, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41897 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751266AbaCMNRv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Mar 2014 09:17:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20140312.152855.298436374579216260.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20140312180319.5029.59536.stgit@nfdev.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 12, 2014 at 03:28:55PM -0400, David Miller wrote:
-> From: Joe Perches <joe@perches.com>
-> Date: Wed, 12 Mar 2014 10:04:19 -0700
+On Wed, Mar 12, 2014 at 07:03:19PM +0100, Arturo Borrero Gonzalez wrote:
+> This patch adds the possibility to set ct keys using nft. Currently, the
+> connection mark is supported. This functionality enables creating rules
+> performing the same action as iptables -j CONNMARK --save-mark. For example:
 > 
-> > The use of __constant_<foo> has been unnecessary for quite awhile now.
-> > 
-> > Make these uses consistent with the rest of the kernel.
-> > 
-> > Signed-off-by: Joe Perches <joe@perches.com>
+> table ip filter {
+> 	chain postrouting {
+> 		type filter hook postrouting priority 0;
+> 		ip protocol icmp ip daddr 8.8.8.8 ct mark set meta mark
+> 	}
+> }
 > 
-> Will let the netfilter folks pick this up.
+> My patch is based on the original http://patchwork.ozlabs.org/patch/307677/
+> by Kristian Evensen <kristian.evensen@gmail.com>.
+> 
+> I simply did a rebase and some testing. To test, I added rules like these:
+>  counter meta mark set 1 counter
+>  counter ct mark set mark counter
+>  counter ct mark 1 counter
+> 
+> The last matching worked as expected, which means the second rule is also
+> working as expected.
 
-Applied, thanks!
+Applied, thanks for recovering this patch Arturo!
