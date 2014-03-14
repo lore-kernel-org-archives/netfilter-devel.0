@@ -1,82 +1,154 @@
-From: Jiri Popelka <jpopelka@redhat.com>
-Subject: [PATCH 2/2] iptables: save: actually parse -M/--modprobe option
-Date: Fri, 14 Mar 2014 12:52:48 +0100
-Message-ID: <1394797968-9525-2-git-send-email-jpopelka@redhat.com>
-References: <1394797968-9525-1-git-send-email-jpopelka@redhat.com>
-Cc: Jiri Popelka <jpopelka@redhat.com>
+From: Yuxuan Shui <yshuiv7@gmail.com>
+Subject: [libnftnl RFC PATCH] set: Add nft_set_elems_nlmsg_build_payload_check
+Date: Fri, 14 Mar 2014 13:33:52 +0000
+Message-ID: <1394804032-6273-1-git-send-email-yshuiv7@gmail.com>
+Cc: Yuxuan Shui <yshuiv7@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17529 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753446AbaCNLxB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Mar 2014 07:53:01 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s2EBr0GV009109
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2014 07:53:00 -0400
-In-Reply-To: <1394797968-9525-1-git-send-email-jpopelka@redhat.com>
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:39869 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198AbaCNNeL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Mar 2014 09:34:11 -0400
+Received: by mail-pb0-f41.google.com with SMTP id jt11so2618720pbb.14
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2014 06:34:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The new function is nft_set_elems_nlmsg_build_payload_check, which
+checks if the buffer is large enough to hold the payload and returns
+true on success. This function can be used to guard against buffer
+overflow.
 ---
- iptables/ip6tables-save.c   | 2 +-
- iptables/iptables-save.8.in | 2 +-
- iptables/iptables-save.c    | 2 +-
- iptables/xtables-save.c     | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/libnftnl/set.h |  2 ++
+ src/libnftnl.map       |  2 ++
+ src/set_elem.c         | 73 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+)
 
-diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index 16821da..56e5afb 100644
---- a/iptables/ip6tables-save.c
-+++ b/iptables/ip6tables-save.c
-@@ -137,7 +137,7 @@ int ip6tables_save_main(int argc, char *argv[])
- 	init_extensions6();
- #endif
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index fcb1a7e..0eafc5b 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -104,6 +104,8 @@ bool nft_set_elem_attr_is_set(const struct nft_set_elem *s, uint16_t attr);
+ #define nft_set_elem_nlmsg_build_hdr	nft_nlmsg_build_hdr
+ void nft_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s);
+ void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set_elem *e);
++bool nft_set_elems_nlmsg_build_payload_check(struct nlmsghdr *nlh, size_t buflen, struct nft_set *s);
++bool nft_set_elem_nlmsg_build_payload_check(struct nlmsghdr *nlh, size_t buflen, struct nft_set_elem *e);
  
--	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcdt:M:", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
- 			fprintf(stderr, "-b/--binary option is not implemented\n");
-diff --git a/iptables/iptables-save.8.in b/iptables/iptables-save.8.in
-index 6128280..7f99d8a 100644
---- a/iptables/iptables-save.8.in
-+++ b/iptables/iptables-save.8.in
-@@ -36,7 +36,7 @@ and
- are used to dump the contents of IP or IPv6 Table in easily parseable format
- to STDOUT. Use I/O-redirection provided by your shell to write to a file.
- .TP
--\fB\-M\fP \fImodprobe_program\fP
-+\fB\-M\fR, \fB\-\-modprobe\fR \fImodprobe_program\fP
- Specify the path to the modprobe program. By default, iptables-save will
- inspect /proc/sys/kernel/modprobe to determine the executable's path.
- .TP
-diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index 2c25b71..bcf88ae 100644
---- a/iptables/iptables-save.c
-+++ b/iptables/iptables-save.c
-@@ -136,7 +136,7 @@ iptables_save_main(int argc, char *argv[])
- 	init_extensions4();
- #endif
+ int nft_set_elem_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set_elem *s);
  
--	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcdt:M:", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
- 			fprintf(stderr, "-b/--binary option is not implemented\n");
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index fe77283..d51cdcf 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -104,7 +104,7 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 		exit(EXIT_FAILURE);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index 7c4e6ca..746d0c7 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -161,6 +161,7 @@ global:
+   nft_set_elem_attr_get_str;
+   nft_set_elem_attr_get_u32;
+   nft_set_elem_nlmsg_build_payload;
++  nft_set_elem_nlmsg_build_payload_check;
+   nft_set_elem_nlmsg_parse;
+   nft_set_elem_parse;
+   nft_set_elem_parse_file;
+@@ -168,6 +169,7 @@ global:
+   nft_set_elem_fprinf;
+ 
+   nft_set_elems_nlmsg_build_payload;
++  nft_set_elems_nlmsg_build_payload_check;
+   nft_set_elems_nlmsg_parse;
+ 
+   nft_set_elems_foreach;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index ff2c9d5..3b67265 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -191,6 +191,48 @@ void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
  	}
+ }
  
--	while ((c = getopt_long(argc, argv, "bcdt:46", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcdt:M:46", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
- 			fprintf(stderr, "-b/--binary option is not implemented\n");
++bool nft_set_elem_nlmsg_build_payload_check(struct nlmsghdr *nlh, size_t buflen,
++				      struct nft_set_elem *e)
++{
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_FLAGS))
++		if (!mnl_attr_put_u32_check(nlh, buflen, NFTA_SET_ELEM_FLAGS, htonl(e->set_elem_flags)))
++			return false;
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_KEY)) {
++		struct nlattr *nest1;
++
++		nest1 = mnl_attr_nest_start_check(nlh, buflen, NFTA_SET_ELEM_KEY);
++		if (nest1 == NULL ||
++		    !mnl_attr_put_check(nlh, buflen, NFTA_DATA_VALUE, e->key.len, e->key.val))
++			return false;
++		mnl_attr_nest_end(nlh, nest1);
++	}
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_VERDICT)) {
++		struct nlattr *nest1, *nest2;
++
++		nest1 = mnl_attr_nest_start(nlh, NFTA_SET_ELEM_DATA);
++		nest2 = mnl_attr_nest_start(nlh, NFTA_DATA_VERDICT);
++		if (nest1 == NULL || nest2 == NULL ||
++		    !mnl_attr_put_u32_check(nlh, buflen, NFTA_VERDICT_CODE, htonl(e->data.verdict)))
++			return false;
++		if (e->flags & (1 << NFT_SET_ELEM_ATTR_CHAIN))
++			if (!mnl_attr_put_strz_check(nlh, buflen, NFTA_VERDICT_CHAIN, e->data.chain))
++				return false;
++
++		mnl_attr_nest_end(nlh, nest1);
++		mnl_attr_nest_end(nlh, nest2);
++	}
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_DATA)) {
++		struct nlattr *nest1;
++
++		nest1 = mnl_attr_nest_start_check(nlh, buflen, NFTA_SET_ELEM_DATA);
++		if (nest1 == NULL ||
++		    !mnl_attr_put_check(nlh, buflen, NFTA_DATA_VALUE, e->data.len, e->data.val))
++			return false;
++		mnl_attr_nest_end(nlh, nest1);
++	}
++	return true;
++}
++
+ void nft_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s)
+ {
+ 	struct nft_set_elem *elem;
+@@ -214,6 +256,37 @@ void nft_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s)
+ }
+ EXPORT_SYMBOL(nft_set_elems_nlmsg_build_payload);
+ 
++bool nft_set_elems_nlmsg_build_payload_check(struct nlmsghdr *nlh, size_t buflen, struct nft_set *s)
++{
++	struct nft_set_elem *elem;
++	struct nlattr *nest1;
++	int i = 0;
++	bool ret = true;
++
++	if (s->flags & (1 << NFT_SET_ATTR_NAME))
++		ret = ret && mnl_attr_put_strz_check(nlh, buflen, NFTA_SET_ELEM_LIST_SET, s->name);
++	if (s->flags & (1 << NFT_SET_ATTR_TABLE))
++		ret = ret && mnl_attr_put_strz_check(nlh, buflen, NFTA_SET_ELEM_LIST_TABLE, s->table);
++	if (!ret)
++		return false;
++
++	nest1 = mnl_attr_nest_start_check(nlh, buflen, NFTA_SET_ELEM_LIST_ELEMENTS);
++	if (nest1 == NULL)
++		return false;
++	list_for_each_entry(elem, &s->element_list, head) {
++		struct nlattr *nest2;
++
++		nest2 = mnl_attr_nest_start_check(nlh, buflen, ++i);
++		if (nest2 == NULL ||
++		    !nft_set_elem_nlmsg_build_payload_check(nlh, buflen, elem))
++			return false;
++		mnl_attr_nest_end(nlh, nest2);
++	}
++	mnl_attr_nest_end(nlh, nest1);
++	return true;
++}
++EXPORT_SYMBOL(nft_set_elems_nlmsg_build_payload_check);
++
+ static int nft_set_elem_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+ 	const struct nlattr **tb = data;
 -- 
-1.8.5.3
+1.9.0
 
