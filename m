@@ -1,21 +1,35 @@
-From: Santander Group <finance017@finance402.onmicrosoft.com>
-Subject: Financial Assistant /Loan Offer
-Date: Mon, 17 Mar 2014 22:13:29 +0100
-Message-ID: <6d8bfaa0-ebe2-40e0-97bb-109ae523ed3d@DB3PR02MB156.eurprd02.prod.outlook.com>
-Reply-To: <asloan01.loan@aol.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <finance017@finance402.onmicrosoft.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-db3hn0248.outbound.protection.outlook.com ([157.55.234.248]:17376
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751818AbaCQV2j convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2014 17:28:39 -0400
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: connlimit: fix UP build
+Date: Mon, 17 Mar 2014 22:27:50 +0100
+Message-ID: <1395091670-28238-1-git-send-email-fw@strlen.de>
+References: <53275dbf./J0nBeffRcN62Ddt%fengguang.wu@intel.com>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <53275dbf./J0nBeffRcN62Ddt%fengguang.wu@intel.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santafinance4@gmail.com
+cannot use ARRAY_SIZE() if spinlock_t is empty struct.
+
+Fixes: 1442e7507dd597 ("netfilter: connlimit: use keyed locks")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+Another one, did UP build with LOCKDEP=y  8-(
+
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 458464e..a6e129e 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -377,7 +377,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		return -ENOMEM;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(info->data->locks); ++i)
++	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
+ 		spin_lock_init(&info->data->locks[i]);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
+-- 
+1.8.1.5
