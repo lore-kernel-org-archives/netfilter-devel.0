@@ -1,33 +1,21 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/38] Netfilter/IPVS updates for net-next
-Date: Mon, 17 Mar 2014 15:19:38 -0400 (EDT)
-Message-ID: <20140317.151938.1257194025646995962.davem@davemloft.net>
-References: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
+From: Santander Group <finance017@finance402.onmicrosoft.com>
+Subject: Financial Assistant /Loan Offer
+Date: Mon, 17 Mar 2014 22:13:29 +0100
+Message-ID: <6d8bfaa0-ebe2-40e0-97bb-109ae523ed3d@DB3PR02MB156.eurprd02.prod.outlook.com>
+Reply-To: <asloan01.loan@aol.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <finance017@finance402.onmicrosoft.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:41671 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbaCQTTo (ORCPT
+Received: from mail-db3hn0248.outbound.protection.outlook.com ([157.55.234.248]:17376
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751818AbaCQV2j convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2014 15:19:44 -0400
-In-Reply-To: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
+	Mon, 17 Mar 2014 17:28:39 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 17 Mar 2014 13:42:20 +0100
-
-> The following patchset contains Netfilter/IPVS updates for net-next,
-> most relevantly they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-> 
-> These changes should merge cleanly without conflicts to your net-next tree.
-
-Pulled, thanks a lot Pablo.
+We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santafinance4@gmail.com
