@@ -1,56 +1,60 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: xt_CHAOS - PDE_DATA compilation error
-Date: Mon, 17 Mar 2014 13:51:26 +0100
-Message-ID: <20140317135126.111fe013@redhat.com>
-References: <1394985214.54868.YahooMailNeo@web121203.mail.ne1.yahoo.com>
-	<5325CFFB.7030206@chello.at>
-	<1394992896.60188.YahooMailNeo@web121206.mail.ne1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: brouer@redhat.com,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "M.G." <mg887@yahoo.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 08/38] netfilter: nfnetlink_log: remove unused code
+Date: Mon, 17 Mar 2014 13:42:28 +0100
+Message-ID: <1395060178-11833-9-git-send-email-pablo@netfilter.org>
+References: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23577 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:59369 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933116AbaCQMva convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:51:30 -0400
-In-Reply-To: <1394992896.60188.YahooMailNeo@web121206.mail.ne1.yahoo.com>
+	id S933108AbaCQMnb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Mar 2014 08:43:31 -0400
+In-Reply-To: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Florian Westphal <fw@strlen.de>
 
-On Sun, 16 Mar 2014 11:01:36 -0700 (PDT)"M.G." <mg887@yahoo.com> wrote:
-> On Sunday, March 16, 2014 5:22 PM, Mart Frauenlob <mart.frauenlob@che=
-llo.at> wrote:
-> On 16.03.2014 16:53, M.G. wrote:
-> >
-> > in Centos 6 x64 with kernel 2.6.32-431.3.1.el6.centos.plus.x86_64=C2=
-=A0 I have compilation error with=C2=A0 conflicting types for PDE_DATA.
-> > How to fix it ?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_log.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-[...]
->=20
-> Yes you are right, but I have the same compilation errror in xt_geoip=
-=2Ec=C2=A0
-> Any idea how to fix it ?
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index a155d19..d292c8d 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -28,8 +28,6 @@
+ #include <linux/proc_fs.h>
+ #include <linux/security.h>
+ #include <linux/list.h>
+-#include <linux/jhash.h>
+-#include <linux/random.h>
+ #include <linux/slab.h>
+ #include <net/sock.h>
+ #include <net/netfilter/nf_log.h>
+@@ -75,7 +73,6 @@ struct nfulnl_instance {
+ };
+ 
+ #define INSTANCE_BUCKETS	16
+-static unsigned int hash_init;
+ 
+ static int nfnl_log_net_id __read_mostly;
+ 
+@@ -1067,11 +1064,6 @@ static int __init nfnetlink_log_init(void)
+ {
+ 	int status = -ENOMEM;
+ 
+-	/* it's not really all that important to have a random value, so
+-	 * we can do this from the init function, even if there hasn't
+-	 * been that much entropy yet */
+-	get_random_bytes(&hash_init, sizeof(hash_init));
+-
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+ 	if (status < 0) {
+-- 
+1.7.10.4
 
-The PDE_DATA problem is related to /proc API changes.
-
-You can fix it, by looking at how it was fixed in my iptv-analyzer proj=
-ect:=20
- https://github.com/netoptimizer/IPTV-Analyzer/commit/afdfc7e45d8340
-
---=20
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
