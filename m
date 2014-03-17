@@ -1,47 +1,35 @@
 From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH 36/38] netfilter: connlimit: use keyed locks
-Date: Mon, 17 Mar 2014 15:23:56 +0100
-Message-ID: <20140317142356.GA26584@breakpoint.cc>
+Date: Mon, 17 Mar 2014 15:26:44 +0100
+Message-ID: <20140317142644.GB26584@breakpoint.cc>
 References: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
  <1395060178-11833-37-git-send-email-pablo@netfilter.org>
- <1395064808.9668.42.camel@edumazet-glaptop2.roam.corp.google.com>
+ <063D6719AE5E284EB5DD2968C1650D6D0F6DF3E3@AcuExch.aculab.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: David Laight <David.Laight@ACULAB.COM>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52911 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932700AbaCQO0r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Mar 2014 10:26:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1395064808.9668.42.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6DF3E3@AcuExch.aculab.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Mon, 2014-03-17 at 13:42 +0100, Pablo Neira Ayuso wrote:
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > connlimit currently suffers from spinlock contention, example for
-> > 4-core system with rps enabled:
-> 
+David Laight <David.Laight@ACULAB.COM> wrote:
+> From: Pablo Neira Ayuso
 > > +#define CONNLIMIT_SLOTS	256
 > > +#define CONNLIMIT_LOCK_SLOTS	32
 > 
-> 32 spinlocks use 2 cache lines (assuming 4 bytes per spinlock, and 64
-> bytes cache lines)
-> 
-> So I guess this probably should be increased to have less false sharing.
+> You might want to make these explicitly unsigned to ensure
+> the divisions are unsigned (so can be done with a simple mask).
 
-True, Jesper pointed out the same thing to me.
-
-> I believe this hash table of spinlocks could be global, not in each
-> struct xt_connlimit_data.
-
-Good point.  Indeed, this can be global.  I did not increase it
-since more locks than tree slots is illegal (need exclusive access to
-each rtree at this time). I guess we could align it or increase number
-of lock and rbtree slots (after moving lock slots out of connlimit
-data).
-
-Thanks for the heads-up Eric, I'll see about addressing this later this
-week if noone beats me to it.
+I can do  this but I checked that at least on my machine gcc already
+emits a 'add' instruction to reduce the hash value.
