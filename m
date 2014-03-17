@@ -1,158 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/38] netfilter: nf_tables: add optional user data area to rules
-Date: Mon, 17 Mar 2014 13:42:29 +0100
-Message-ID: <1395060178-11833-10-git-send-email-pablo@netfilter.org>
-References: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: xt_CHAOS - PDE_DATA compilation error
+Date: Mon, 17 Mar 2014 13:51:26 +0100
+Message-ID: <20140317135126.111fe013@redhat.com>
+References: <1394985214.54868.YahooMailNeo@web121203.mail.ne1.yahoo.com>
+	<5325CFFB.7030206@chello.at>
+	<1394992896.60188.YahooMailNeo@web121206.mail.ne1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: brouer@redhat.com,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "M.G." <mg887@yahoo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59374 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:23577 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932898AbaCQMnc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:43:32 -0400
-In-Reply-To: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
+	id S933116AbaCQMva convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Mar 2014 08:51:30 -0400
+In-Reply-To: <1394992896.60188.YahooMailNeo@web121206.mail.ne1.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows us to store user comment strings, but it could be also
-used to store any kind of information that the user application needs
-to link to the rule.
 
-Scratch 8 bits for the new ulen field that indicates the length the
-user data area. 4 bits from the handle (so it's 42 bits long, according
-to Patrick, it would last 139 years with 1000 new rules per second)
-and 4 bits from dlen (so the expression data area is 4K, which seems
-sufficient by now even considering the compatibility layer).
+On Sun, 16 Mar 2014 11:01:36 -0700 (PDT)"M.G." <mg887@yahoo.com> wrote:
+> On Sunday, March 16, 2014 5:22 PM, Mart Frauenlob <mart.frauenlob@che=
+llo.at> wrote:
+> On 16.03.2014 16:53, M.G. wrote:
+> >
+> > in Centos 6 x64 with kernel 2.6.32-431.3.1.el6.centos.plus.x86_64=C2=
+=A0 I have compilation error with=C2=A0 conflicting types for PDE_DATA.
+> > How to fix it ?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Patrick McHardy <kaber@trash.net>
----
- include/net/netfilter/nf_tables.h        |   11 +++++++++--
- include/uapi/linux/netfilter/nf_tables.h |    5 ++++-
- net/netfilter/nf_tables_api.c            |   17 +++++++++++++++--
- 3 files changed, 28 insertions(+), 5 deletions(-)
+[...]
+>=20
+> Yes you are right, but I have the same compilation errror in xt_geoip=
+=2Ec=C2=A0
+> Any idea how to fix it ?
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 81abd61..5af56da 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -326,13 +326,15 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
-  *	@handle: rule handle
-  *	@genmask: generation mask
-  *	@dlen: length of expression data
-+ *	@ulen: length of user data (used for comments)
-  *	@data: expression data
-  */
- struct nft_rule {
- 	struct list_head		list;
--	u64				handle:46,
-+	u64				handle:42,
- 					genmask:2,
--					dlen:16;
-+					dlen:12,
-+					ulen:8;
- 	unsigned char			data[]
- 		__attribute__((aligned(__alignof__(struct nft_expr))));
- };
-@@ -371,6 +373,11 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
- 	return (struct nft_expr *)&rule->data[rule->dlen];
- }
- 
-+static inline void *nft_userdata(const struct nft_rule *rule)
-+{
-+	return (void *)&rule->data[rule->dlen];
-+}
-+
- /*
-  * The last pointer isn't really necessary, but the compiler isn't able to
-  * determine that the result of nft_expr_last() is always the same since it
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c84c452..c88ccbf 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1,7 +1,8 @@
- #ifndef _LINUX_NF_TABLES_H
- #define _LINUX_NF_TABLES_H
- 
--#define NFT_CHAIN_MAXNAMELEN 32
-+#define NFT_CHAIN_MAXNAMELEN	32
-+#define NFT_USERDATA_MAXLEN	256
- 
- enum nft_registers {
- 	NFT_REG_VERDICT,
-@@ -156,6 +157,7 @@ enum nft_chain_attributes {
-  * @NFTA_RULE_EXPRESSIONS: list of expressions (NLA_NESTED: nft_expr_attributes)
-  * @NFTA_RULE_COMPAT: compatibility specifications of the rule (NLA_NESTED: nft_rule_compat_attributes)
-  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
-+ * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
-  */
- enum nft_rule_attributes {
- 	NFTA_RULE_UNSPEC,
-@@ -165,6 +167,7 @@ enum nft_rule_attributes {
- 	NFTA_RULE_EXPRESSIONS,
- 	NFTA_RULE_COMPAT,
- 	NFTA_RULE_POSITION,
-+	NFTA_RULE_USERDATA,
- 	__NFTA_RULE_MAX
- };
- #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0b56340..f25d011 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1295,6 +1295,8 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
-+	[NFTA_RULE_USERDATA]	= { .type = NLA_BINARY,
-+				    .len = NFT_USERDATA_MAXLEN },
- };
- 
- static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
-@@ -1347,6 +1349,10 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	}
- 	nla_nest_end(skb, list);
- 
-+	if (rule->ulen &&
-+	    nla_put(skb, NFTA_RULE_USERDATA, rule->ulen, nft_userdata(rule)))
-+		goto nla_put_failure;
-+
- 	return nlmsg_end(skb, nlh);
- 
- nla_put_failure:
-@@ -1583,7 +1589,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 	struct nft_expr *expr;
- 	struct nft_ctx ctx;
- 	struct nlattr *tmp;
--	unsigned int size, i, n;
-+	unsigned int size, i, n, ulen = 0;
- 	int err, rem;
- 	bool create;
- 	u64 handle, pos_handle;
-@@ -1649,8 +1655,11 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 		}
- 	}
- 
-+	if (nla[NFTA_RULE_USERDATA])
-+		ulen = nla_len(nla[NFTA_RULE_USERDATA]);
-+
- 	err = -ENOMEM;
--	rule = kzalloc(sizeof(*rule) + size, GFP_KERNEL);
-+	rule = kzalloc(sizeof(*rule) + size + ulen, GFP_KERNEL);
- 	if (rule == NULL)
- 		goto err1;
- 
-@@ -1658,6 +1667,10 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 
- 	rule->handle = handle;
- 	rule->dlen   = size;
-+	rule->ulen   = ulen;
-+
-+	if (ulen)
-+		nla_memcpy(nft_userdata(rule), nla[NFTA_RULE_USERDATA], ulen);
- 
- 	expr = nft_expr_first(rule);
- 	for (i = 0; i < n; i++) {
--- 
-1.7.10.4
+The PDE_DATA problem is related to /proc API changes.
 
+You can fix it, by looking at how it was fixed in my iptv-analyzer proj=
+ect:=20
+ https://github.com/netoptimizer/IPTV-Analyzer/commit/afdfc7e45d8340
+
+--=20
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
