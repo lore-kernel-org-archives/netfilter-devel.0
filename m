@@ -1,35 +1,71 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 36/38] netfilter: connlimit: use keyed locks
-Date: Tue, 18 Mar 2014 07:01:38 -0700
-Message-ID: <1395151298.9114.33.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1395060178-11833-1-git-send-email-pablo@netfilter.org>
-	 <1395060178-11833-37-git-send-email-pablo@netfilter.org>
-	 <1395064808.9668.42.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140318144616.0c568cbb@redhat.com>
+From: Behan Webster <behanw@converseincode.com>
+Subject: Re: [PATCH v2] net: netfilter: LLVMLinux: vlais-netfilter
+Date: Tue, 18 Mar 2014 07:47:21 -0700
+Message-ID: <53285C79.2060907@converseincode.com>
+References: <022D9517-4804-47BB-B789-CCF25F25C1ED@me.com> <1395123121-27053-1-git-send-email-behanw@converseincode.com> <063D6719AE5E284EB5DD2968C1650D6D0F6E0065@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"dwmw2@infradead.org" <dwmw2@infradead.org>,
+	"pageexec@freemail.hu" <pageexec@freemail.hu>,
+	Mark Charlebois <charlebm@gmail.com>,
+	=?UTF-8?B?Vmluw61jaXVzIFRpbnRp?= <viniciustinti@gmail.com>
+To: David Laight <David.Laight@ACULAB.COM>,
+	"davem@davemloft.net" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:48958 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754142AbaCROBk (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:65361 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754592AbaCROrZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Mar 2014 10:01:40 -0400
-In-Reply-To: <20140318144616.0c568cbb@redhat.com>
+	Tue, 18 Mar 2014 10:47:25 -0400
+Received: by mail-pb0-f50.google.com with SMTP id md12so7357336pbc.23
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2014 07:47:25 -0700 (PDT)
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6E0065@AcuExch.aculab.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2014-03-18 at 14:46 +0100, Jesper Dangaard Brouer wrote:
+On 03/18/14 02:41, David Laight wrote:
+> From:  behanw@converseincode.com
+>> From: Mark Charlebois <charlebm@gmail.com>
+>>
+>> Replaced non-standard C use of Variable Length Arrays In Structs (VLAIS) in
+>> xt_repldata.h with a C99 compliant flexible array member and then calculated
+>> offsets to the other struct members. These other members aren't referenced by
+>> name in this code, however this patch maintains the same memory layout and
+>> padding as was previously accomplished using VLAIS.
+>>
+>> Had the original structure been ordered differently, with the entries VLA at
+>> the end, then it could have been a flexible member, and this patch would have
+>> been a lot simpler. However since the data stored in this structure is
+>> ultimately exported to userspace, the order of this structure can't be changed.
+> Why not just remove the last element and allocate space for it after the
+> structure?
+Because that would still be employing VLAIS to solve the problem. The 
+last element may be a zero-length array (a flexible member), not a VLA. 
+Sadly both the last 2 elements in the struct need to be manually 
+calculated, which is what we've done.
 
-> Hehe, I actually also pointed this out during my internal review, but
-> we never gotten around to fixing this.
+> That would reduce the complexity of the patch and the unreadability
+> of the new code.
+No one is claiming this patch is more readable, merely that it is C99 
+compliant (though strictly speaking this patch is C89, C99 and C11 
+compliant). We tried to use macros to make it more readable in previous 
+patches. The consensus was that macros were bad.
 
-BTW, sizeof(spinlock_t) can be 2 bytes, if NR_CPUS is below 128 on x86
+> I realise that the alignment of type##_error is 'tricky' to determine.
+That is what makes it "unreadable". :(
 
-So whole hash table fits in a single cache line.
+Behan
 
+-- 
+Behan Webster
+behanw@converseincode.com
 
