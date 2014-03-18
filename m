@@ -1,14 +1,11 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH v2] net: netfilter: LLVMLinux: vlais-netfilter
-Date: Tue, 18 Mar 2014 15:24:13 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D0F6E0286@AcuExch.aculab.com>
-References: <022D9517-4804-47BB-B789-CCF25F25C1ED@me.com>
- <1395123121-27053-1-git-send-email-behanw@converseincode.com>
- <063D6719AE5E284EB5DD2968C1650D6D0F6E0065@AcuExch.aculab.com>
- <53285C79.2060907@converseincode.com>
+From: Behan Webster <behanw@converseincode.com>
+Subject: Re: [PATCH v2] net: netfilter: LLVMLinux: vlais-netfilter
+Date: Tue, 18 Mar 2014 10:37:58 -0700
+Message-ID: <53288476.10801@converseincode.com>
+References: <022D9517-4804-47BB-B789-CCF25F25C1ED@me.com> <1395123121-27053-1-git-send-email-behanw@converseincode.com> <063D6719AE5E284EB5DD2968C1650D6D0F6E0065@AcuExch.aculab.com> <53285C79.2060907@converseincode.com> <063D6719AE5E284EB5DD2968C1650D6D0F6E0286@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
 	"kaber@trash.net" <kaber@trash.net>,
 	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
@@ -20,40 +17,51 @@ Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
 	"dwmw2@infradead.org" <dwmw2@infradead.org>,
 	"pageexec@freemail.hu" <pageexec@freemail.hu>,
 	Mark Charlebois <charlebm@gmail.com>,
-	=?utf-8?B?Vmluw61jaXVzIFRpbnRp?= <viniciustinti@gmail.com>
-To: 'Behan Webster' <behanw@converseincode.com>,
+	=?UTF-8?B?Vmluw61jaXVzIFRpbnRp?= <viniciustinti@gmail.com>
+To: David Laight <David.Laight@ACULAB.COM>,
 	"davem@davemloft.net" <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <53285C79.2060907@converseincode.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6E0286@AcuExch.aculab.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-RnJvbTogQmVoYW4gV2Vic3RlciANCj4gT24gMDMvMTgvMTQgMDI6NDEsIERhdmlkIExhaWdodCB3
-cm90ZToNCj4gPiBGcm9tOiAgYmVoYW53QGNvbnZlcnNlaW5jb2RlLmNvbQ0KPiA+PiBGcm9tOiBN
-YXJrIENoYXJsZWJvaXMgPGNoYXJsZWJtQGdtYWlsLmNvbT4NCj4gPj4NCj4gPj4gUmVwbGFjZWQg
-bm9uLXN0YW5kYXJkIEMgdXNlIG9mIFZhcmlhYmxlIExlbmd0aCBBcnJheXMgSW4gU3RydWN0cyAo
-VkxBSVMpIGluDQo+ID4+IHh0X3JlcGxkYXRhLmggd2l0aCBhIEM5OSBjb21wbGlhbnQgZmxleGli
-bGUgYXJyYXkgbWVtYmVyIGFuZCB0aGVuIGNhbGN1bGF0ZWQNCj4gPj4gb2Zmc2V0cyB0byB0aGUg
-b3RoZXIgc3RydWN0IG1lbWJlcnMuIFRoZXNlIG90aGVyIG1lbWJlcnMgYXJlbid0IHJlZmVyZW5j
-ZWQgYnkNCj4gPj4gbmFtZSBpbiB0aGlzIGNvZGUsIGhvd2V2ZXIgdGhpcyBwYXRjaCBtYWludGFp
-bnMgdGhlIHNhbWUgbWVtb3J5IGxheW91dCBhbmQNCj4gPj4gcGFkZGluZyBhcyB3YXMgcHJldmlv
-dXNseSBhY2NvbXBsaXNoZWQgdXNpbmcgVkxBSVMuDQo+ID4+DQo+ID4+IEhhZCB0aGUgb3JpZ2lu
-YWwgc3RydWN0dXJlIGJlZW4gb3JkZXJlZCBkaWZmZXJlbnRseSwgd2l0aCB0aGUgZW50cmllcyBW
-TEEgYXQNCj4gPj4gdGhlIGVuZCwgdGhlbiBpdCBjb3VsZCBoYXZlIGJlZW4gYSBmbGV4aWJsZSBt
-ZW1iZXIsIGFuZCB0aGlzIHBhdGNoIHdvdWxkIGhhdmUNCj4gPj4gYmVlbiBhIGxvdCBzaW1wbGVy
-LiBIb3dldmVyIHNpbmNlIHRoZSBkYXRhIHN0b3JlZCBpbiB0aGlzIHN0cnVjdHVyZSBpcw0KPiA+
-PiB1bHRpbWF0ZWx5IGV4cG9ydGVkIHRvIHVzZXJzcGFjZSwgdGhlIG9yZGVyIG9mIHRoaXMgc3Ry
-dWN0dXJlIGNhbid0IGJlIGNoYW5nZWQuDQo+ID4gV2h5IG5vdCBqdXN0IHJlbW92ZSB0aGUgbGFz
-dCBlbGVtZW50IGFuZCBhbGxvY2F0ZSBzcGFjZSBmb3IgaXQgYWZ0ZXIgdGhlDQo+ID4gc3RydWN0
-dXJlPw0KPiBCZWNhdXNlIHRoYXQgd291bGQgc3RpbGwgYmUgZW1wbG95aW5nIFZMQUlTIHRvIHNv
-bHZlIHRoZSBwcm9ibGVtLiBUaGUNCj4gbGFzdCBlbGVtZW50IG1heSBiZSBhIHplcm8tbGVuZ3Ro
-IGFycmF5IChhIGZsZXhpYmxlIG1lbWJlciksIG5vdCBhIFZMQS4NCj4gU2FkbHkgYm90aCB0aGUg
-bGFzdCAyIGVsZW1lbnRzIGluIHRoZSBzdHJ1Y3QgbmVlZCB0byBiZSBtYW51YWxseQ0KPiBjYWxj
-dWxhdGVkLCB3aGljaCBpcyB3aGF0IHdlJ3ZlIGRvbmUuDQoNClNvIG1ha2UgdGhlIGxhc3QgZWxl
-bWVudCBhICdmbGV4aWJsZSBtZW1iZXInIGFuZCB0aGVuIHdvcmsgb3V0IHdoZXJlDQp0aGUgZmlu
-YWwgZmllbGQgZ29lcy4NClNvbWV0aGluZyBsaWtlOg0KCXN0cnVjdCBwIHsNCgkJc3RydWN0IGEg
-YTsNCgkJc3RydWN0IGIgYltdOw0KCX0gcCA9IG1hbGxvYyhzaXplb2YgKnAgKyBuICogc2l6ZW9m
-IChzdHJ1Y3QgYikgKyBhbGlnbm9mIChzdHJ1Y3QgYykNCgkJKyBzaXplb2YgKHN0cnVjdCBjKTsN
-CglzdHJ1Y3QgYyAqYyA9ICh2b2lkICopJnAtPmJbbl0gKyAoLW9mZnNldG9mKHN0cnVjdCBwLCBi
-W25dKSAmIChhbGlnbm9mKHN0cnVjdCBjKSAtIDEpOw0KDQoJRGF2aWQNCg0KDQo=
+On 03/18/14 08:24, David Laight wrote:
+> From: Behan Webster
+>> On 03/18/14 02:41, David Laight wrote:
+>>> From:  behanw@converseincode.com
+>>>> From: Mark Charlebois <charlebm@gmail.com>
+>>>>
+>>>> Replaced non-standard C use of Variable Length Arrays In Structs (VLAIS) in
+>>>> xt_repldata.h with a C99 compliant flexible array member and then calculated
+>>>> offsets to the other struct members. These other members aren't referenced by
+>>>> name in this code, however this patch maintains the same memory layout and
+>>>> padding as was previously accomplished using VLAIS.
+>>>>
+>>>> Had the original structure been ordered differently, with the entries VLA at
+>>>> the end, then it could have been a flexible member, and this patch would have
+>>>> been a lot simpler. However since the data stored in this structure is
+>>>> ultimately exported to userspace, the order of this structure can't be changed.
+>>> Why not just remove the last element and allocate space for it after the
+>>> structure?
+>> Because that would still be employing VLAIS to solve the problem. The
+>> last element may be a zero-length array (a flexible member), not a VLA.
+>> Sadly both the last 2 elements in the struct need to be manually
+>> calculated, which is what we've done.
+> So make the last element a 'flexible member' and then work out where
+> the final field goes.
+> Something like:
+> 	struct p {
+> 		struct a a;
+> 		struct b b[];
+> 	} p = malloc(sizeof *p + n * sizeof (struct b) + alignof (struct c)
+> 		+ sizeof (struct c);
+> 	struct c *c = (void *)&p->b[n] + (-offsetof(struct p, b[n]) & (alignof(struct c) - 1);
+Oh, I see. Will fix.
+
+Thanks!
+
+Behan
+
+-- 
+Behan Webster
+behanw@converseincode.com
