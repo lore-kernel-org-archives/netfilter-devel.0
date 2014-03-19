@@ -1,160 +1,46 @@
-From: Mark Charlebois <charlebm@gmail.com>
-Subject: Re: [PATCH v3] net: netfilter: LLVMLinux: vlais-netfilter
-Date: Wed, 19 Mar 2014 10:25:57 -0700
-Message-ID: <20140319172557.GA31869@mcharleb3-linux.qualcomm.com>
-References: <063D6719AE5E284EB5DD2968C1650D6D0F6E0286@AcuExch.aculab.com>
- <1395193841-2886-1-git-send-email-behanw@converseincode.com>
- <063D6719AE5E284EB5DD2968C1650D6D0F6E0F8D@AcuExch.aculab.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] core, nfqueue,
+ openvswitch: Orphan frags in skb_zerocopy and handle errors
+Date: Wed, 19 Mar 2014 16:24:59 -0400 (EDT)
+Message-ID: <20140319.162459.897793286761249454.davem@davemloft.net>
+References: <1395177455-2077-1-git-send-email-zoltan.kiss@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "'behanw@converseincode.com'" <behanw@converseincode.com>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"torvalds@linux-foundation.org" <torvalds@linux-foundation.org>,
-	"dwmw2@infradead.org" <dwmw2@infradead.org>,
-	"pageexec@freemail.hu" <pageexec@freemail.hu>,
-	=?iso-8859-1?Q?Vin=EDcius?= Tinti <viniciustinti@gmail.com>
-To: David Laight <David.Laight@ACULAB.COM>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:59961 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755996AbaCSR0O (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Mar 2014 13:26:14 -0400
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6E0F8D@AcuExch.aculab.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mszeredi-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org,
+ therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org,
+ coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+ xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org,
+ Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org,
+ linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org
+To: zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1395177455-2077-1-git-send-email-zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Mar 19, 2014 at 09:52:40AM +0000, David Laight wrote:
-> From: behanw@converseincode.com=20
-> > From: Mark Charlebois <charlebm@gmail.com>
-> >=20
-> > Replaced non-standard C use of Variable Length Arrays In Structs (V=
-LAIS) in
-> > xt_repldata.h with a C99 compliant flexible array member and then c=
-alculated
-> > offsets to the other struct members. These other members aren't ref=
-erenced by
-> > name in this code, however this patch maintains the same memory lay=
-out and
-> > padding as was previously accomplished using VLAIS.
-> >=20
-> > Had the original structure been ordered differently, with the entri=
-es VLA at
-> > the end, then it could have been a flexible member, and this patch =
-would have
-> > been a lot simpler. However since the data stored in this structure=
- is
-> > ultimately exported to userspace, the order of this structure can't=
- be changed.
-> >=20
-> > This patch makes no attempt to change the existing behavior, merely=
- the way in
-> > which the current layout is accomplished using standard C99 constru=
-cts. As such
-> > the code can now be compiled with either gcc or clang.
-> >=20
-> > Author: Mark Charlebois <charlebm@gmail.com>
-> > Signed-off-by: Mark Charlebois <charlebm@gmail.com>
-> > Signed-off-by: Behan Webster <behanw@converseincode.com>
-> > Signed-off-by: Vin=EDcius Tinti <viniciustinti@gmail.com>
-> > ---
-> >  net/netfilter/xt_repldata.h | 27 ++++++++++++++++++++++-----
-> >  1 file changed, 22 insertions(+), 5 deletions(-)
-> >=20
-> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldat=
-a.h
-> > index 6efe4e5..343599e 100644
-> > --- a/net/netfilter/xt_repldata.h
-> > +++ b/net/netfilter/xt_repldata.h
-> > @@ -5,23 +5,40 @@
-> >   * they serve as the hanging-off data accessed through repl.data[]=
-=2E
-> >   */
-> >=20
-> > +/* tbl has the following structure equivalent, but is C99 complian=
-t:
-> > + * struct {
-> > + *	struct type##_replace repl;
-> > + *	struct type##_standard entries[nhooks];
-> > + *	struct type##_error term;
-> > + * } *tbl;
-> > + */
-> > +
-> >  #define xt_alloc_initial_table(type, typ2) ({ \
-> >  	unsigned int hook_mask =3D info->valid_hooks; \
-> >  	unsigned int nhooks =3D hweight32(hook_mask); \
-> >  	unsigned int bytes =3D 0, hooknum =3D 0, i =3D 0; \
-> >  	struct { \
-> >  		struct type##_replace repl; \
-> > -		struct type##_standard entries[nhooks]; \
-> > -		struct type##_error term; \
-> > -	} *tbl =3D kzalloc(sizeof(*tbl), GFP_KERNEL); \
-> > +		struct type##_standard entries[]; \
-> > +	} *tbl; \
-> > +	struct type##_error *term; \
-> > +	size_t entries_end =3D offsetof(typeof(*tbl), \
-> > +		entries[nhooks-1]) + sizeof(tbl->entries[0]); \
->=20
-> Is the compiler complaining about:
-> 	offsetof(typeof(*tbl), entries[nhooks])
-> If it does it is a PITA.
->=20
-> > +	size_t term_offset =3D (entries_end + __alignof__(*term) - 1) \
-> > +		& ~(__alignof__(*term) - 1); \
->=20
-> You've not tested this - the () are in the wrong places.
+From: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+Date: Tue, 18 Mar 2014 21:17:35 +0000
 
-I have tested it with both clang and gcc. Unit test is at http://git.li=
-nuxfoundation.org/?p=3Dllvmlinux.git;a=3Dblob;f=3Dtest/unit/vlais/netfi=
-lter.c;h=3D7adc255e47e15a252d2bda7af7ae217ac683c25e;hb=3DHEAD
+> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
+> orphan them. Also, it doesn't handle errors, so this patch takes care of that
+> as well.
+> 
+> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/openvswitch/datapath.c |    6 ++++++
 
-Basic calulation of a new offset is:
+Something is seriously wrong with the diffstat generated for
+your submission, please fix this and resubmit.
 
-new offset =3D (offset + align - 1) & ~(align - 1)
-
-The parenthesis seem correct to me.
->=20
-> > +	size_t term_end =3D term_offset + sizeof(*term); \
-> > +	size_t tbl_sz =3D (term_end + __alignof__(tbl->repl) - 1) \
-> > +		& ~(__alignof__(tbl->repl) - 1); \
-> > +	tbl =3D kzalloc(tbl_sz, GFP_KERNEL); \
->=20
-> The number of temporary variables make the above hard to read.
-> I'm not at all sure you need to worry about the trailing alignment.
-> It rather depends on how the final data is used.
-> If the combined buffer is copied to userspace you may not
-> be copying all of the required data.
-> It might be easier to call copytouser() twice.
-
-I can try to remove more variables if that is prefered.
-The existing memory layout was preserved exactly so that however the
-data currently used will be unaffected. I can remove the trailing
-alignment but was not 100% sure it wasn't needed.
-
->=20
-> >  	if (tbl =3D=3D NULL) \
-> >  		return NULL; \
-> > +	term =3D (struct type##_error *)&(((char *)tbl)[term_offset]); \
-> >  	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-> > -	tbl->term =3D (struct type##_error)typ2##_ERROR_INIT;  \
-> > +	*term =3D (struct type##_error)typ2##_ERROR_INIT;  \
->=20
-> 	David
->=20
-
-Mark
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you.
