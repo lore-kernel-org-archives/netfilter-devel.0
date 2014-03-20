@@ -1,10 +1,9 @@
 From: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2] core, nfqueue,
  openvswitch: Orphan frags in skb_zerocopy and handle errors
-Date: Thu, 20 Mar 2014 13:33:20 +0100
-Message-ID: <532AE010.9050903@redhat.com>
+Date: Thu, 20 Mar 2014 13:16:51 +0100
+Message-ID: <532ADC33.5040607@redhat.com>
 References: <1395263249-16450-1-git-send-email-zoltan.kiss@citrix.com>
- <532ADC33.5040607@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
@@ -22,7 +21,7 @@ Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Miklos Szeredi <mszeredi-
 To: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Jesse Gross <jesse-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>,
  pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <532ADC33.5040607-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1395263249-16450-1-git-send-email-zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
  <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://openvswitch.org/pipermail/dev>
@@ -34,29 +33,21 @@ Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 03/20/2014 01:16 PM, Thomas Graf wrote:
-> On 03/19/2014 10:07 PM, Zoltan Kiss wrote:
->> skb_zerocopy can copy elements of the frags array between skbs, but it
->> doesn't
->> orphan them. Also, it doesn't handle errors, so this patch takes care
->> of that
->> as well.
->>
->> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+On 03/19/2014 10:07 PM, Zoltan Kiss wrote:
+> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
+> orphan them. Also, it doesn't handle errors, so this patch takes care of that
+> as well.
 >
-> Acked-by: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
 
-I take this back ;)
+Acked-by: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
->> ---
->> +    if (unlikely(skb_orphan_frags(to, GFP_ATOMIC))) {
->> +        skb_tx_error(to);
->> +        return -ENOMEM;
->> +    }
+> ---
+> +	if (unlikely(skb_orphan_frags(to, GFP_ATOMIC))) {
+> +		skb_tx_error(to);
+> +		return -ENOMEM;
+> +	}
 
-Just noticed that you orphan the Netlink skb frags which do not
-exist yet instead of the source skb frags.
-
-> Did you consider calling skb_tx_error() for Netlink message
-> allocation failures for the upcall as well? That memory pressure
-> is currently not reported back.
+Did you consider calling skb_tx_error() for Netlink message
+allocation failures for the upcall as well? That memory pressure
+is currently not reported back.
