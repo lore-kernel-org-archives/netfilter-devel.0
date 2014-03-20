@@ -1,148 +1,112 @@
-From: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2] core, nfqueue,
-	openvswitch: Orphan frags in skb_zerocopy and handle errors
-Date: Wed, 19 Mar 2014 21:07:29 +0000
-Message-ID: <1395263249-16450-1-git-send-email-zoltan.kiss@citrix.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Miklos Szeredi <mszeredi-AlSwsSmVLrQ@public.gmane.org>,
- kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
- Jan Beulich <JBeulich-IBi9RG/b67k@public.gmane.org>, Tom Herbert <therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
- Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>,
- Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org,
- Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>, Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>,
- Paul Durrant <Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-To: Jesse Gross <jesse-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, <pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH next] netfilter: connlimit: move lock array out of struct connlimit_data
+Date: Thu, 20 Mar 2014 11:53:39 +0100
+Message-ID: <1395312819-18608-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38647 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750740AbaCTK6C (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Mar 2014 06:58:02 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
-orphan them. Also, it doesn't handle errors, so this patch takes care of that
-as well.
+Eric points out that the locks can be global.
+Moreover, both Jesper and Eric note that using only 32 locks increases
+false sharing as only two cache lines are used.
 
-Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+This increases locks to 256 (16 cache lines assuming 64byte cacheline and
+4 bytes per spinlock).
+
+Suggested-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-v2: orphan the frags right before touching the frags
+ checkpatch.pl yells at me due to 'line-over-80-characters'
+ but i find breaking the 'static spinlock_t xt_connlimit ...' line
+ even worse than keeping it as-is.
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 03db95a..35c4e85 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -2508,8 +2508,8 @@ int skb_splice_bits(struct sk_buff *skb, unsigned int offset,
- 		    unsigned int flags);
- void skb_copy_and_csum_dev(const struct sk_buff *skb, u8 *to);
- unsigned int skb_zerocopy_headlen(const struct sk_buff *from);
--void skb_zerocopy(struct sk_buff *to, const struct sk_buff *from,
--		  int len, int hlen);
-+int skb_zerocopy(struct sk_buff *to, const struct sk_buff *from,
-+		 int len, int hlen);
- void skb_split(struct sk_buff *skb, struct sk_buff *skb1, const u32 len);
- int skb_shift(struct sk_buff *tgt, struct sk_buff *skb, int shiftlen);
- void skb_scrub_packet(struct sk_buff *skb, bool xnet);
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 3f14c63..5cc99b1 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2127,25 +2127,31 @@ EXPORT_SYMBOL_GPL(skb_zerocopy_headlen);
-  *
-  *	The `hlen` as calculated by skb_zerocopy_headlen() specifies the
-  *	headroom in the `to` buffer.
-+ *
-+ *	Return value:
-+ *	0: everything is OK
-+ *	-ENOMEM: couldn't orphan frags of from due to lack of memory
-+ *	-EFAULT: skb_copy_bits() found some problem with geometry
-  */
--void
-+int
- skb_zerocopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
- {
- 	int i, j = 0;
- 	int plen = 0; /* length of skb->head fragment */
-+	int ret;
- 	struct page *page;
- 	unsigned int offset;
+ Feel free to reformat if you disagree.
+
+ net/netfilter/xt_connlimit.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index a6e129e..fbc66bb 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -32,8 +32,14 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
  
- 	BUG_ON(!from->head_frag && !hlen);
- 
- 	/* dont bother with small payloads */
--	if (len <= skb_tailroom(to)) {
--		skb_copy_bits(from, 0, skb_put(to, len), len);
--		return;
--	}
-+	if (len <= skb_tailroom(to))
-+		return skb_copy_bits(from, 0, skb_put(to, len), len);
- 
- 	if (hlen) {
--		skb_copy_bits(from, 0, skb_put(to, hlen), hlen);
-+		ret = skb_copy_bits(from, 0, skb_put(to, hlen), hlen);
-+		if (unlikely(ret))
-+			return ret;
- 		len -= hlen;
- 	} else {
- 		plen = min_t(int, skb_headlen(from), len);
-@@ -2163,6 +2169,11 @@ skb_zerocopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
- 	to->len += len + plen;
- 	to->data_len += len + plen;
- 
-+	if (unlikely(skb_orphan_frags(to, GFP_ATOMIC))) {
-+		skb_tx_error(to);
-+		return -ENOMEM;
-+	}
+-#define CONNLIMIT_SLOTS		32
+-#define CONNLIMIT_LOCK_SLOTS	32
++#define CONNLIMIT_SLOTS		256U
 +
- 	for (i = 0; i < skb_shinfo(from)->nr_frags; i++) {
- 		if (!len)
- 			break;
-@@ -2173,6 +2184,8 @@ skb_zerocopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
- 		j++;
++#ifdef CONFIG_LOCKDEP
++#define CONNLIMIT_LOCK_SLOTS	8U
++#else
++#define CONNLIMIT_LOCK_SLOTS	256U
++#endif
++
+ #define CONNLIMIT_GC_MAX_NODES	8
+ 
+ /* we will save the tuples of all connections we care about */
+@@ -49,10 +55,11 @@ struct xt_connlimit_rb {
+ 	union nf_inet_addr addr; /* search key */
+ };
+ 
++static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
++
+ struct xt_connlimit_data {
+ 	struct rb_root climit_root4[CONNLIMIT_SLOTS];
+ 	struct rb_root climit_root6[CONNLIMIT_SLOTS];
+-	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
+ };
+ 
+ static u_int32_t connlimit_rnd __read_mostly;
+@@ -297,11 +304,11 @@ static int count_them(struct net *net,
+ 		root = &data->climit_root4[hash];
  	}
- 	skb_shinfo(to)->nr_frags = j;
-+
-+	return 0;
+ 
+-	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
++	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	count = count_tree(net, root, tuple, addr, mask, family);
+ 
+-	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
++	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	return count;
  }
- EXPORT_SYMBOL_GPL(skb_zerocopy);
- 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index f072fe8..ea02d16 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -488,7 +488,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 		nla->nla_type = NFQA_PAYLOAD;
- 		nla->nla_len = nla_attr_size(data_len);
- 
--		skb_zerocopy(skb, entskb, data_len, hlen);
-+		if (skb_zerocopy(skb, entskb, data_len, hlen))
-+			goto nla_put_failure;
+@@ -377,9 +384,6 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		return -ENOMEM;
  	}
  
- 	nlh->nlmsg_len = skb->len;
-diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
-index c53fe0c..9a9f668 100644
---- a/net/openvswitch/datapath.c
-+++ b/net/openvswitch/datapath.c
-@@ -464,7 +464,9 @@ static int queue_userspace_packet(struct datapath *dp, struct sk_buff *skb,
- 	}
- 	nla->nla_len = nla_attr_size(skb->len);
+-	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
+-		spin_lock_init(&info->data->locks[i]);
+-
+ 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
+ 		info->data->climit_root4[i] = RB_ROOT;
+ 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
+@@ -435,11 +439,14 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
  
--	skb_zerocopy(user_skb, skb, skb->len, hlen);
-+	err = skb_zerocopy(user_skb, skb, skb->len, hlen);
-+	if (err)
-+		goto out;
+ static int __init connlimit_mt_init(void)
+ {
+-	int ret;
++	int ret, i;
  
- 	/* Pad OVS_PACKET_ATTR_PACKET if linear copy was performed */
- 	if (!(dp->user_features & OVS_DP_F_UNALIGNED)) {
+ 	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
+ 	BUILD_BUG_ON((CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS) != 0);
+ 
++	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
++		spin_lock_init(&xt_connlimit_locks[i]);
++
+ 	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
+ 					   sizeof(struct xt_connlimit_conn),
+ 					   0, 0, NULL);
+-- 
+1.8.1.5
+
