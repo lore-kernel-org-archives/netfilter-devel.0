@@ -1,112 +1,62 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: connlimit: move lock array out of struct connlimit_data
-Date: Thu, 20 Mar 2014 11:53:39 +0100
-Message-ID: <1395312819-18608-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38647 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740AbaCTK6C (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Mar 2014 06:58:02 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] core, nfqueue,
+ openvswitch: Orphan frags in skb_zerocopy and handle errors
+Date: Thu, 20 Mar 2014 13:33:20 +0100
+Message-ID: <532AE010.9050903@redhat.com>
+References: <1395263249-16450-1-git-send-email-zoltan.kiss@citrix.com>
+ <532ADC33.5040607@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Miklos Szeredi <mszeredi-AlSwsSmVLrQ@public.gmane.org>,
+ kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
+ Jan Beulich <JBeulich-IBi9RG/b67k@public.gmane.org>, Tom Herbert <therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
+ Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>,
+ Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org,
+ Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>, Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>,
+ Paul Durrant <Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Jesse Gross <jesse-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>,
+ pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <532ADC33.5040607-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric points out that the locks can be global.
-Moreover, both Jesper and Eric note that using only 32 locks increases
-false sharing as only two cache lines are used.
+On 03/20/2014 01:16 PM, Thomas Graf wrote:
+> On 03/19/2014 10:07 PM, Zoltan Kiss wrote:
+>> skb_zerocopy can copy elements of the frags array between skbs, but it
+>> doesn't
+>> orphan them. Also, it doesn't handle errors, so this patch takes care
+>> of that
+>> as well.
+>>
+>> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+>
+> Acked-by: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-This increases locks to 256 (16 cache lines assuming 64byte cacheline and
-4 bytes per spinlock).
+I take this back ;)
 
-Suggested-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- checkpatch.pl yells at me due to 'line-over-80-characters'
- but i find breaking the 'static spinlock_t xt_connlimit ...' line
- even worse than keeping it as-is.
+>> ---
+>> +    if (unlikely(skb_orphan_frags(to, GFP_ATOMIC))) {
+>> +        skb_tx_error(to);
+>> +        return -ENOMEM;
+>> +    }
 
- Feel free to reformat if you disagree.
+Just noticed that you orphan the Netlink skb frags which do not
+exist yet instead of the source skb frags.
 
- net/netfilter/xt_connlimit.c | 25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index a6e129e..fbc66bb 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -32,8 +32,14 @@
- #include <net/netfilter/nf_conntrack_tuple.h>
- #include <net/netfilter/nf_conntrack_zones.h>
- 
--#define CONNLIMIT_SLOTS		32
--#define CONNLIMIT_LOCK_SLOTS	32
-+#define CONNLIMIT_SLOTS		256U
-+
-+#ifdef CONFIG_LOCKDEP
-+#define CONNLIMIT_LOCK_SLOTS	8U
-+#else
-+#define CONNLIMIT_LOCK_SLOTS	256U
-+#endif
-+
- #define CONNLIMIT_GC_MAX_NODES	8
- 
- /* we will save the tuples of all connections we care about */
-@@ -49,10 +55,11 @@ struct xt_connlimit_rb {
- 	union nf_inet_addr addr; /* search key */
- };
- 
-+static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
-+
- struct xt_connlimit_data {
- 	struct rb_root climit_root4[CONNLIMIT_SLOTS];
- 	struct rb_root climit_root6[CONNLIMIT_SLOTS];
--	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
- };
- 
- static u_int32_t connlimit_rnd __read_mostly;
-@@ -297,11 +304,11 @@ static int count_them(struct net *net,
- 		root = &data->climit_root4[hash];
- 	}
- 
--	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
-+	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
- 	count = count_tree(net, root, tuple, addr, mask, family);
- 
--	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
-+	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
- 	return count;
- }
-@@ -377,9 +384,6 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 		return -ENOMEM;
- 	}
- 
--	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
--		spin_lock_init(&info->data->locks[i]);
--
- 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
- 		info->data->climit_root4[i] = RB_ROOT;
- 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
-@@ -435,11 +439,14 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
- 
- static int __init connlimit_mt_init(void)
- {
--	int ret;
-+	int ret, i;
- 
- 	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
- 	BUILD_BUG_ON((CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS) != 0);
- 
-+	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
-+		spin_lock_init(&xt_connlimit_locks[i]);
-+
- 	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
- 					   sizeof(struct xt_connlimit_conn),
- 					   0, 0, NULL);
--- 
-1.8.1.5
-
+> Did you consider calling skb_tx_error() for Netlink message
+> allocation failures for the upcall as well? That memory pressure
+> is currently not reported back.
