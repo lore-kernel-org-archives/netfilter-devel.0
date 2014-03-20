@@ -1,75 +1,42 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [nft PATCH] src: check if the set name is too long
-Date: Thu, 20 Mar 2014 17:20:03 +0100
-Message-ID: <1395332403-3823-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:38656 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103AbaCTQTU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Mar 2014 12:19:20 -0400
-Received: by mail-ee0-f52.google.com with SMTP id e49so856997eek.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2014 09:19:19 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH v3] core, nfqueue,
+ openvswitch: Orphan frags in skb_zerocopy and handle errors
+Date: Thu, 20 Mar 2014 17:27:05 -0400 (EDT)
+Message-ID: <20140320.172705.8391298175812938.davem@davemloft.net>
+References: <1395331354-23659-1-git-send-email-zoltan.kiss@citrix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mszeredi-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org,
+ therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org,
+ kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+ jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
+To: zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1395331354-23659-1-git-send-email-zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-checks if the name of set is larger than 15 chars
-before to add it.
-If so, the set is not added and an error message is printed.
+From: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+Date: Thu, 20 Mar 2014 16:02:34 +0000
 
-I didn't figure out why, but another error message is printed, see below:
+> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
+> orphan them. Also, it doesn't handle errors, so this patch takes care of that
+> as well, and modify the callers accordingly. skb_tx_error() is also added to
+> the callers so they will signal the failed delivery towards the creator of the
+> skb.
+> 
+> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
 
-nft add set ip test thenameofthissetistoolooong { type ipv4_address\; }
-<cmdline>:1:17-43: Error: set name is too long (> 16)
-add set ip test thenameofthissetistoolooong { type ipv4_address; }
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-<cmdline>:1:66-66: Error: syntax error, unexpected '}'
-add set ip test thenameofthissetistoolooong { type ipv4_address; }
-
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- src/parser.y | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/src/parser.y b/src/parser.y
-index db6f493..17fbd5e 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -15,6 +15,7 @@
- #include <inttypes.h>
- #include <netinet/ip.h>
- #include <netinet/if_ether.h>
-+#include <net/if.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
-@@ -986,6 +987,11 @@ chain_identifier	:	identifier
- 
- set_spec		:	table_spec	identifier
- 			{
-+				if (strlen($2) > IFNAMSIZ) {
-+					erec_queue(error(&@2, "set name too long (> %d)", IFNAMSIZ),
-+						   state->msgs);
-+					YYERROR;
-+				}
- 				$$		= $1;
- 				$$.set		= $2;
- 			}
-@@ -993,6 +999,12 @@ set_spec		:	table_spec	identifier
- 
- set_identifier		:	identifier
- 			{
-+				if (strlen($1) > IFNAMSIZ) {
-+					erec_queue(error(&@1, "set name too long (> %d", IFNAMSIZ),
-+						   state->msgs);
-+					YYERROR;
-+				}
-+
- 				memset(&$$, 0, sizeof($$));
- 				$$.set		= $1;
- 			}
--- 
-1.8.3.2
-
+I'll wait for Thomas to review this new version before applying.
