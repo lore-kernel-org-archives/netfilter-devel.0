@@ -1,55 +1,179 @@
-From: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] core, nfqueue,
- openvswitch: Orphan frags in skb_zerocopy and handle errors
-Date: Fri, 21 Mar 2014 12:07:32 +0100
-Message-ID: <532C1D74.50008@redhat.com>
-References: <1395397894-9493-1-git-send-email-zoltan.kiss@citrix.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Miklos Szeredi <mszeredi-AlSwsSmVLrQ@public.gmane.org>,
- kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
- Jan Beulich <JBeulich-IBi9RG/b67k@public.gmane.org>, Tom Herbert <therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
- Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>,
- Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org,
- Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>, Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>,
- Paul Durrant <Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-To: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Jesse Gross <jesse-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>,
- pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1395397894-9493-1-git-send-email-zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH] netlink: have netlink per-protocol bind function return an error code.
+Date: Fri, 21 Mar 2014 12:39:11 -0400
+Message-ID: <1239812af16a5c746772913ef68d3570383f2e50.1395419169.git.rgb@redhat.com>
+Cc: Richard Guy Briggs <rgb@redhat.com>, eparis@redhat.com,
+	sgrubb@redhat.com, hadi@mojatatu.com, davem@davemloft.net
+To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:58733 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420AbaCUQjw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2014 12:39:52 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/21/2014 11:31 AM, Zoltan Kiss wrote:
-> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
-> orphan them. Also, it doesn't handle errors, so this patch takes care of that
-> as well, and modify the callers accordingly. skb_tx_error() is also added to
-> the callers so they will signal the failed delivery towards the creator of the
-> skb.
->
-> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-> ---
-> v2: orphan the frags right before touching the frags
->
-> v3:
-> - orphan 'from' instead of 'to'
-> - call skb_tx_error() in the callers if something went wrong
->
-> v4: correctly use error path in queue_userspace_packet
+Have the netlink per-protocol optional bind function return an int error code
+rather than void to signal a failure.
 
-LGTM now
+This will enable netlink protocols to perform extra checks including
+capabilities and permissions verifications when updating memberships in
+multicast groups.
 
-Acked-by: Thomas Graf <tgraf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In netlink_bind() and netlink_setsockopt() the call to the per-protocol bind
+function was moved above the multicast group update to prevent any access to
+the multicast socket groups before checking with the per-protocol bind
+function.  This will enable the per-protocol bind function to be used to check
+permissions which could be denied before making them available, and to avoid
+the messy job of undoing the addition should the per-protocol bind function
+fail.
+
+The netfilter subsystem seems to be the only one currently using the
+per-protocol bind function.
+
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+---
+In particular, the audit subsystem (NETLINK_AUDIT protocol) could benefit by
+being able to check specific capabilities for each multicast group before
+granting membership to the requesting socket.  Currently, all NETLINK_AUDIT
+sockets must have the capability CAP_NET_ADMIN.  No other capabilities are
+required to join a multicast group.  This capability is too broad allowing
+access to this socket by many applications that must not have access to this
+information.  It is proposed to add capability CAP_AUDIT_READ to allow this
+access while dropping the exessively broad capability CAP_NET_ADMIN.
+
+There has also been some interest expressed by IETF ForCES folk.
+---
+ include/linux/netlink.h   |    2 +-
+ net/netfilter/nfnetlink.c |    3 ++-
+ net/netlink/af_netlink.c  |   30 +++++++++++++++++-------------
+ net/netlink/af_netlink.h  |    4 ++--
+ 4 files changed, 22 insertions(+), 17 deletions(-)
+
+diff --git a/include/linux/netlink.h b/include/linux/netlink.h
+index 7a6c396..4402653 100644
+--- a/include/linux/netlink.h
++++ b/include/linux/netlink.h
+@@ -45,7 +45,7 @@ struct netlink_kernel_cfg {
+ 	unsigned int	flags;
+ 	void		(*input)(struct sk_buff *skb);
+ 	struct mutex	*cb_mutex;
+-	void		(*bind)(int group);
++	int		(*bind)(int group);
+ 	bool		(*compare)(struct net *net, struct sock *sk);
+ };
+ 
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 75619f9..10a4cf5 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -392,7 +392,7 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ }
+ 
+ #ifdef CONFIG_MODULES
+-static void nfnetlink_bind(int group)
++static int nfnetlink_bind(int group)
+ {
+ 	const struct nfnetlink_subsystem *ss;
+ 	int type = nfnl_group2type[group];
+@@ -403,6 +403,7 @@ static void nfnetlink_bind(int group)
+ 	if (!ss) {
+ 		request_module("nfnetlink-subsys-%d", type);
+ 	}
++	return 0;
+ }
+ #endif
+ 
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index bca50b9..4224dc5 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -1198,7 +1198,7 @@ static int netlink_create(struct net *net, struct socket *sock, int protocol,
+ 	struct module *module = NULL;
+ 	struct mutex *cb_mutex;
+ 	struct netlink_sock *nlk;
+-	void (*bind)(int group);
++	int (*bind)(int group);
+ 	int err = 0;
+ 
+ 	sock->state = SS_UNCONNECTED;
+@@ -1441,6 +1441,17 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
+ 		return 0;
+ 
++	if (nlk->netlink_bind && nladdr->nl_groups) {
++		int i;
++
++		for (i = 0; i < nlk->ngroups; i++)
++			if (test_bit(i, (long unsigned int *)&nladdr->nl_groups)) {
++				err = nlk->netlink_bind(i);
++				if (err)
++					return err;
++			}
++	}
++
+ 	netlink_table_grab();
+ 	netlink_update_subscriptions(sk, nlk->subscriptions +
+ 					 hweight32(nladdr->nl_groups) -
+@@ -1449,15 +1460,6 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 	netlink_update_listeners(sk);
+ 	netlink_table_ungrab();
+ 
+-	if (nlk->netlink_bind && nlk->groups[0]) {
+-		int i;
+-
+-		for (i=0; i<nlk->ngroups; i++) {
+-			if (test_bit(i, nlk->groups))
+-				nlk->netlink_bind(i);
+-		}
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -2095,14 +2097,16 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
+ 			return err;
+ 		if (!val || val - 1 >= nlk->ngroups)
+ 			return -EINVAL;
++		if (nlk->netlink_bind) {
++			err = nlk->netlink_bind(val);
++			if (err)
++				return err;
++		}
+ 		netlink_table_grab();
+ 		netlink_update_socket_mc(nlk, val,
+ 					 optname == NETLINK_ADD_MEMBERSHIP);
+ 		netlink_table_ungrab();
+ 
+-		if (nlk->netlink_bind)
+-			nlk->netlink_bind(val);
+-
+ 		err = 0;
+ 		break;
+ 	}
+diff --git a/net/netlink/af_netlink.h b/net/netlink/af_netlink.h
+index acbd774..0edb8d5 100644
+--- a/net/netlink/af_netlink.h
++++ b/net/netlink/af_netlink.h
+@@ -37,7 +37,7 @@ struct netlink_sock {
+ 	struct mutex		*cb_mutex;
+ 	struct mutex		cb_def_mutex;
+ 	void			(*netlink_rcv)(struct sk_buff *skb);
+-	void			(*netlink_bind)(int group);
++	int			(*netlink_bind)(int group);
+ 	struct module		*module;
+ #ifdef CONFIG_NETLINK_MMAP
+ 	struct mutex		pg_vec_lock;
+@@ -73,7 +73,7 @@ struct netlink_table {
+ 	unsigned int		groups;
+ 	struct mutex		*cb_mutex;
+ 	struct module		*module;
+-	void			(*bind)(int group);
++	int			(*bind)(int group);
+ 	bool			(*compare)(struct net *net, struct sock *sock);
+ 	int			registered;
+ };
+-- 
+1.7.1
+
