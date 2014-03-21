@@ -1,46 +1,75 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH] netlink: simplify nfnetlink_bind
-Date: Fri, 21 Mar 2014 12:44:09 -0400
-Message-ID: <d9a410952c6b88e5855d36f91c06d466d2ce9bed.1395418617.git.rgb@redhat.com>
-Cc: Richard Guy Briggs <rgb@redhat.com>, eparis@redhat.com,
-	sgrubb@redhat.com, hadi@mojatatu.com, davem@davemloft.net
-To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [nft PATCH] src: check if the set name is too long
+Date: Fri, 21 Mar 2014 18:39:00 +0100
+Message-ID: <1395423541-5098-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8964 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753680AbaCUQon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2014 12:44:43 -0400
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:44002 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761155AbaCURjT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Mar 2014 13:39:19 -0400
+Received: by mail-ee0-f52.google.com with SMTP id e49so2079321eek.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Mar 2014 10:39:17 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove duplicity and simplify code flow by moving the rcu_read_unlock() above
-the condition and let the flow control exit naturally at the end of the
-function.
+checks if the name of set is larger than 16 chars
+before to add it.
+If so, the set is not added and an error message is printed.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+I didn't figure out why, but another error message is printed, see below:
+
+nft add set ip test thenameofthissetistoolooong { type ipv4_address\; }
+<cmdline>:1:17-43: Error: set name is too long (> 16)
+add set ip test thenameofthissetistoolooong { type ipv4_address; }
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<cmdline>:1:66-66: Error: syntax error, unexpected '}'
+add set ip test thenameofthissetistoolooong { type ipv4_address; }
+
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- net/netfilter/nfnetlink.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ src/parser.y | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 046aa13..75619f9 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -399,12 +399,10 @@ static void nfnetlink_bind(int group)
+diff --git a/src/parser.y b/src/parser.y
+index db6f493..17fbd5e 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -15,6 +15,7 @@
+ #include <inttypes.h>
+ #include <netinet/ip.h>
+ #include <netinet/if_ether.h>
++#include <net/if.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+@@ -986,6 +987,11 @@ chain_identifier	:	identifier
  
- 	rcu_read_lock();
- 	ss = nfnetlink_get_subsys(type);
-+	rcu_read_unlock();
- 	if (!ss) {
--		rcu_read_unlock();
- 		request_module("nfnetlink-subsys-%d", type);
--		return;
- 	}
--	rcu_read_unlock();
- }
- #endif
+ set_spec		:	table_spec	identifier
+ 			{
++				if (strlen($2) > IFNAMSIZ) {
++					erec_queue(error(&@2, "set name too long (> %d)", IFNAMSIZ),
++						   state->msgs);
++					YYERROR;
++				}
+ 				$$		= $1;
+ 				$$.set		= $2;
+ 			}
+@@ -993,6 +999,12 @@ set_spec		:	table_spec	identifier
  
+ set_identifier		:	identifier
+ 			{
++				if (strlen($1) > IFNAMSIZ) {
++					erec_queue(error(&@1, "set name too long (> %d", IFNAMSIZ),
++						   state->msgs);
++					YYERROR;
++				}
++
+ 				memset(&$$, 0, sizeof($$));
+ 				$$.set		= $1;
+ 			}
 -- 
-1.7.1
+1.8.3.2
 
