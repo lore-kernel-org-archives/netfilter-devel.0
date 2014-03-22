@@ -1,66 +1,73 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [PATCH] nftables: fix length of set name
-Date: Fri, 21 Mar 2014 18:39:01 +0100
-Message-ID: <1395423541-5098-2-git-send-email-giuseppelng@gmail.com>
-References: <1395423541-5098-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: disallow builtin socket/tproxy with modular ipv6 defrag
+Date: Sat, 22 Mar 2014 23:59:29 +0100
+Message-ID: <1395529169-26819-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47084 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760979AbaCURjZ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49229 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750866AbaCVXDy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Mar 2014 13:39:25 -0400
-Received: by mail-ee0-f46.google.com with SMTP id t10so2072194eei.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Mar 2014 10:39:23 -0700 (PDT)
-In-Reply-To: <1395423541-5098-1-git-send-email-giuseppelng@gmail.com>
+	Sat, 22 Mar 2014 19:03:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch permits to copy the last char of the set name
-that's currently excluded.
+xt_socket.c:(.init.text+0x13d2): undefined reference to `nf_defrag_ipv6_enable'
+xt_TPROXY.c:(.init.text+0x19b5): undefined reference to `nf_defrag_ipv6_enable'
 
-nft add table ip test
-nft add chain ip test filter {type filter hook input priority 0 \; }
-nft add set ip test thisnamewith0016 { type ipv4_address\;}
-nft list table ip test
-table ip test {
-        set thisnamewith0016 {
-                type ipv4_address
-        }
+If DEFRAG_IPV6=m we cannot have SOCKET/TPROXY=y.
 
-        chain filter {
-                 type filter hook input priority 0;
-        }
-}
-
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Technically this patch is bogus, but I couldn't figure out
+how to express the dependencies in kconfig.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index adce01e..a0da542 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2018,7 +2018,7 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 		free_page((unsigned long)inuse);
- 	}
- 
--	snprintf(set->name, sizeof(set->name), name, n);
-+	snprintf(set->name, sizeof(set->name)+1, name, n);
- 	list_for_each_entry(i, &ctx->table->sets, list) {
- 		if (!strcmp(set->name, i->name))
- 			return -ENFILE;
-@@ -2399,7 +2399,7 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	if (set == NULL)
- 		goto err1;
- 
--	nla_strlcpy(name, nla[NFTA_SET_NAME], sizeof(set->name));
-+	nla_strlcpy(name, nla[NFTA_SET_NAME], sizeof(set->name)+1);
- 	err = nf_tables_set_alloc_name(&ctx, set, name);
- 	if (err < 0)
- 		goto err2;
+both already have
+
+select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+
+But its not enough; its possible to have
+CONFIG_NF_DEFRAG_IPV6=m
+CONFIG_IP6_NF_IPTABLES=m
+CONFIG_NETFILTER_XT_TARGET_TPROXY=y
+CONFIG_NETFILTER_XT_MATCH_SOCKET=y
+
+Which doesn't work as socket/tproxy references symbols
+from ipv6 defrag.
+
+cannot add
+depends on (NF_DEFRAG_IPV6 || NF_DEFRAG_IPV6=n)
+since thats a recursive dependency.
+
+Adding a dependency to have m/y depend on IP6_NF_IPTABLES
+status appears to do the right thing but its not correct
+because it also disallows DEFRAG=y, TPROXY=m (which is fine).
+
+AFAICS this dependency issue has always existed since ipv6
+support was added to tproxy.
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index e9410d1..faca831 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -834,6 +834,7 @@ config NETFILTER_XT_TARGET_TPROXY
+ 	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	depends on IP_NF_MANGLE
++	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+ 	select NF_DEFRAG_IPV4
+ 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+ 	help
+@@ -1325,6 +1326,7 @@ config NETFILTER_XT_MATCH_SOCKET
+ 	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	depends on !NF_CONNTRACK || NF_CONNTRACK
++	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+ 	depends on (IPV6 || IPV6=n)
+ 	select NF_DEFRAG_IPV4
+ 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
 -- 
-1.8.3.2
+1.8.1.5
 
