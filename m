@@ -1,73 +1,51 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: disallow builtin socket/tproxy with modular ipv6 defrag
-Date: Sat, 22 Mar 2014 23:59:29 +0100
-Message-ID: <1395529169-26819-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netlink: have netlink per-protocol bind function
+ return an error code.
+Date: Sun, 23 Mar 2014 00:50:10 -0400 (EDT)
+Message-ID: <20140323.005010.1898428719601246326.davem@davemloft.net>
+References: <1239812af16a5c746772913ef68d3570383f2e50.1395419169.git.rgb@redhat.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
+To: rgb@redhat.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49229 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750866AbaCVXDy (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:50351 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750747AbaCWEuM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Mar 2014 19:03:54 -0400
+	Sun, 23 Mar 2014 00:50:12 -0400
+In-Reply-To: <1239812af16a5c746772913ef68d3570383f2e50.1395419169.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_socket.c:(.init.text+0x13d2): undefined reference to `nf_defrag_ipv6_enable'
-xt_TPROXY.c:(.init.text+0x19b5): undefined reference to `nf_defrag_ipv6_enable'
+From: Richard Guy Briggs <rgb@redhat.com>
+Date: Fri, 21 Mar 2014 12:39:11 -0400
 
-If DEFRAG_IPV6=m we cannot have SOCKET/TPROXY=y.
+> @@ -1441,6 +1441,17 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+>  	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
+>  		return 0;
+>  
+> +	if (nlk->netlink_bind && nladdr->nl_groups) {
+> +		int i;
+> +
+> +		for (i = 0; i < nlk->ngroups; i++)
+> +			if (test_bit(i, (long unsigned int *)&nladdr->nl_groups)) {
+> +				err = nlk->netlink_bind(i);
+> +				if (err)
+> +					return err;
+> +			}
+> +	}
+> +
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-Technically this patch is bogus, but I couldn't figure out
-how to express the dependencies in kconfig.
+You can't just leave a partially set of completed bindings in place.
 
-both already have
+It's not valid to leave half-baked state like this.
 
-select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+If you return an error, all of the binding state changes must be
+completely undone.
 
-But its not enough; its possible to have
-CONFIG_NF_DEFRAG_IPV6=m
-CONFIG_IP6_NF_IPTABLES=m
-CONFIG_NETFILTER_XT_TARGET_TPROXY=y
-CONFIG_NETFILTER_XT_MATCH_SOCKET=y
-
-Which doesn't work as socket/tproxy references symbols
-from ipv6 defrag.
-
-cannot add
-depends on (NF_DEFRAG_IPV6 || NF_DEFRAG_IPV6=n)
-since thats a recursive dependency.
-
-Adding a dependency to have m/y depend on IP6_NF_IPTABLES
-status appears to do the right thing but its not correct
-because it also disallows DEFRAG=y, TPROXY=m (which is fine).
-
-AFAICS this dependency issue has always existed since ipv6
-support was added to tproxy.
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index e9410d1..faca831 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -834,6 +834,7 @@ config NETFILTER_XT_TARGET_TPROXY
- 	depends on NETFILTER_XTABLES
- 	depends on NETFILTER_ADVANCED
- 	depends on IP_NF_MANGLE
-+	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
- 	select NF_DEFRAG_IPV4
- 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
- 	help
-@@ -1325,6 +1326,7 @@ config NETFILTER_XT_MATCH_SOCKET
- 	depends on NETFILTER_XTABLES
- 	depends on NETFILTER_ADVANCED
- 	depends on !NF_CONNTRACK || NF_CONNTRACK
-+	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
- 	depends on (IPV6 || IPV6=n)
- 	select NF_DEFRAG_IPV4
- 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
--- 
-1.8.1.5
-
+If you can't find a way to do this cleanly, you'll need to find
+a way for the audit code to not return an error.
