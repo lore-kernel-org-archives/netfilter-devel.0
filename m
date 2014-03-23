@@ -1,118 +1,72 @@
-From: behanw@converseincode.com
-Subject: [PATCH v4] net: netfilter: LLVMLinux: vlais-netfilter
-Date: Sat, 22 Mar 2014 23:55:44 -0700
-Message-ID: <1395557744-25248-1-git-send-email-behanw@converseincode.com>
-References: <063D6719AE5E284EB5DD2968C1650D6D0F6E0F8D@AcuExch.aculab.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [ulogd PATCH 0/8] make progress ulogd_output_IPFIX
+Date: Sun, 23 Mar 2014 19:50:20 +0100
+Message-ID: <1395600620.23474.18.camel@ice-age2.regit.org>
+References: <20140308010344.GA4415@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dwmw2@infradead.org,
-	pageexec@freemail.hu, Mark Charlebois <charlebm@gmail.com>,
-	Behan Webster <behanw@converseincode.com>,
-	=?UTF-8?q?Vin=C3=ADcius=20Tinti?= <viniciustinti@gmail.com>
-To: davem@davemloft.net
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:46480 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893AbaCWGzu (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:39858 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099AbaCWSu3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Mar 2014 02:55:50 -0400
-Received: by mail-pa0-f46.google.com with SMTP id kp14so4107727pab.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 22 Mar 2014 23:55:49 -0700 (PDT)
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D0F6E0F8D@AcuExch.aculab.com>
+	Sun, 23 Mar 2014 14:50:29 -0400
+In-Reply-To: <20140308010344.GA4415@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Mark Charlebois <charlebm@gmail.com>
+Hello,
 
-Replaced non-standard C use of Variable Length Arrays In Structs (VLAIS=
-) in
-xt_repldata.h with a C99 compliant flexible array member and then calcu=
-lated
-offsets to the other struct members. These other members aren't referen=
-ced by
-name in this code, however this patch maintains the same memory layout =
-and
-padding as was previously accomplished using VLAIS.
+On Sat, 2014-03-08 at 10:03 +0900, Ken-ichirou MATSUZAWA wrote:
+>   Hello,
+>  
+> If there is someone who is working on ulogd_output_IPFIX, please let me
+> know. I need it and would work on it.
 
-Had the original structure been ordered differently, with the entries V=
-LA at
-the end, then it could have been a flexible member, and this patch woul=
-d have
-been a lot simpler. However since the data stored in this structure is
-ultimately exported to userspace, the order of this structure can't be =
-changed.
+Thanks lot for working on it.
 
-This patch makes no attempt to change the existing behavior, merely the=
- way in
-which the current layout is accomplished using standard C99 constructs.=
- As such
-the code can now be compiled with either gcc or clang.
+> This patch series make progress, not work completely, just print IPFIX
+> packet format. Would you review this? I think this has four issues.
+>  
+> * Install nfct_bitmask in libnetfilter_conntrack
+>   This needs libnetfilter_conntrack patch I'll send after.
 
-This version of the patch removes the trailing alignment that the VLAIS
-structure would allocate in order to simplify the patch.
+Not an issue because Florian did accept your patch.
 
-Author: Mark Charlebois <charlebm@gmail.com>
-Signed-off-by: Mark Charlebois <charlebm@gmail.com>
-Signed-off-by: Behan Webster <behanw@converseincode.com>
-Signed-off-by: Vin=C3=ADcius Tinti <viniciustinti@gmail.com>
----
- net/netfilter/xt_repldata.h | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+> * Send only one dataset, not multiple at once
+>   And it (will) send a message each time when output_ipfix() is called.
+>   It's not efficient sending.
 
-diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
-index 6efe4e5..8fd3241 100644
---- a/net/netfilter/xt_repldata.h
-+++ b/net/netfilter/xt_repldata.h
-@@ -5,23 +5,35 @@
-  * they serve as the hanging-off data accessed through repl.data[].
-  */
-=20
-+/* tbl has the following structure equivalent, but is C99 compliant:
-+ * struct {
-+ *	struct type##_replace repl;
-+ *	struct type##_standard entries[nhooks];
-+ *	struct type##_error term;
-+ * } *tbl;
-+ */
-+
- #define xt_alloc_initial_table(type, typ2) ({ \
- 	unsigned int hook_mask =3D info->valid_hooks; \
- 	unsigned int nhooks =3D hweight32(hook_mask); \
- 	unsigned int bytes =3D 0, hooknum =3D 0, i =3D 0; \
- 	struct { \
- 		struct type##_replace repl; \
--		struct type##_standard entries[nhooks]; \
--		struct type##_error term; \
--	} *tbl =3D kzalloc(sizeof(*tbl), GFP_KERNEL); \
-+		struct type##_standard entries[]; \
-+	} *tbl; \
-+	struct type##_error *term; \
-+	size_t term_offset =3D (offsetof(typeof(*tbl), entries[nhooks]) + \
-+		__alignof__(*term) - 1) & ~(__alignof__(*term) - 1); \
-+	tbl =3D kzalloc(term_offset + sizeof(*term), GFP_KERNEL); \
- 	if (tbl =3D=3D NULL) \
- 		return NULL; \
-+	term =3D (struct type##_error *)&(((char *)tbl)[term_offset]); \
- 	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
--	tbl->term =3D (struct type##_error)typ2##_ERROR_INIT;  \
-+	*term =3D (struct type##_error)typ2##_ERROR_INIT;  \
- 	tbl->repl.valid_hooks =3D hook_mask; \
- 	tbl->repl.num_entries =3D nhooks + 1; \
- 	tbl->repl.size =3D nhooks * sizeof(struct type##_standard) + \
--	                 sizeof(struct type##_error); \
-+			 sizeof(struct type##_error); \
- 	for (; hook_mask !=3D 0; hook_mask >>=3D 1, ++hooknum) { \
- 		if (!(hook_mask & 1)) \
- 			continue; \
---=20
-1.8.3.2
+I don't think there is possibly issue with starting with that
+implementation and then provide a better one later.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> * No options template and data
+>   Do we need these scope data?
+>   4. Specific Reporting Requiremt in RFC7011, says MAY be implemented
+
+IPFIX is in ulogd wanted feature list since so long that this is not an
+issue if we don't implement the extended feature. The only point is to
+be able to interact cleanly with IPFIX collector in the market.
+ 
+> * Template retransmit timing
+>   It send template per messages specified in config file. 
+>   I took a glance softflowd and follow that.
+
+Good idea to mimic an existing software.
+
+Some generic points regarding this patchset:
+      * There is some whitespace errors please fix them when resending
+      * I need the Signed-off-by line in your patch (for the same reason
+        as in Linux
+        https://www.kernel.org/doc/Documentation/SubmittingPatches)
+
+More comments to come in reply to individual patches.
+
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+
