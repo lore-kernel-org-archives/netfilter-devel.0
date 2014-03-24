@@ -1,9 +1,9 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH][v4] netlink: have netlink per-protocol bind function return
+Subject: [PATCH][v5] netlink: have netlink per-protocol bind function return
 	an error code.
-Date: Mon, 24 Mar 2014 15:37:32 -0400
-Message-ID: <043a0c6fe4912021ca84f1fc9f8f0b2eaea630af.1395687642.git.rgb@redhat.com>
-References: <218730659282a7f75672d1925104a0246cdb0454.1395685504.git.rgb@redhat.com>
+Date: Mon, 24 Mar 2014 16:59:23 -0400
+Message-ID: <5bf7c2b8ad25b31bb34ae00f5fe6ec7f5d653f4b.1395693533.git.rgb@redhat.com>
+References: <20140324183406.GE28666@madcap2.tricolour.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +12,7 @@ Cc: Richard Guy Briggs <rgb@redhat.com>, davem@davemloft.net,
 To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <218730659282a7f75672d1925104a0246cdb0454.1395685504.git.rgb@redhat.com>
+In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
 	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/archives/linux-audit>
@@ -55,7 +55,7 @@ access while dropping the exessively broad capability CAP_NET_ADMIN.
 
 There has also been some interest expressed by IETF ForCES folk.
 
-v4: fixed a logic error (missing braces) and a C99 error.
+v5: *really* fixed a logic error (missing braces) and a C99 error.
 
 v3: added netlink_unbind() option and unwound netlink_insert().
 ---
