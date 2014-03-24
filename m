@@ -1,61 +1,100 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH 5/8] ipfix: add function for ipfix message creation
-Date: Sun, 23 Mar 2014 21:06:05 +0100
-Message-ID: <1395605165.23474.29.camel@ice-age2.regit.org>
-References: <20140308010344.GA4415@gmail.com>
-	 <20140308011345.GF4415@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables PATCH] nft: replace nft_rule_attr_get_u8
+Date: Mon, 24 Mar 2014 11:59:46 +0100
+Message-ID: <1395658786-3862-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:40279 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936AbaCWUGP (ORCPT
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:60551 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750924AbaCXK6z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Mar 2014 16:06:15 -0400
-In-Reply-To: <20140308011345.GF4415@gmail.com>
+	Mon, 24 Mar 2014 06:58:55 -0400
+Received: by mail-ee0-f41.google.com with SMTP id t10so4321726eei.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Mar 2014 03:58:54 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Since the family declaration has been modified in libnftnl,
+from commit 3cd9cd06625f8181c713489cec2c1ce6722a7e16
+the assertion is failed for {ip,ip6,arp}tables-compat
+when printing rules.
 
-On Sat, 2014-03-08 at 10:13 +0900, Ken-ichirou MATSUZAWA wrote:
-> This function creates ipfix message, template and data part but not scope.
-> Header sequence is kept by struct ipfix_instance, domain id is specified
-> by config file. The returned value has no export time so caller set this
-> and free the value after using it.
-> 
-> ---
->  include/ulogd/ipfix_protocol.h |  8 ++++-
->  output/ulogd_output_IPFIX.c    | 71 +++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 77 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/ulogd/ipfix_protocol.h b/include/ulogd/ipfix_protocol.h
-> index 5d7e46a..266897e 100644
-> --- a/include/ulogd/ipfix_protocol.h
-> +++ b/include/ulogd/ipfix_protocol.h
-> @@ -15,7 +15,13 @@ struct ipfix_msg_hdr {
+iptables-compat -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+libnftnl: attribute 0 assertion failed in rule.c:273
 
-...
+ip6tables-compat -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+libnftnl: attribute 0 assertion failed in rule.c:273
 
-> +
-> +	msglen = sizeof(struct ipfix_msg_hdr) + sizeof(struct ipfix_set_hdr)
-> +		+ template->data_length;
-> +	if (need_template)
-> +		msglen = msglen + sizeof(struct ipfix_set_hdr)
-> +			+ (template->tmpl_cur - (void *)&template->tmpl);
-> +	buf = malloc(msglen);
+arptables-compat -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+libnftnl: attribute 0 assertion failed in rule.c:273
 
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+---
+ iptables/nft-arp.c        | 2 +-
+ iptables/nft-shared.c     | 2 +-
+ iptables/nft.c            | 2 +-
+ iptables/xtables-events.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-I don't like this malloc because ulogd will do an allocation for each
-messages. If the size of the message has a global limit (looks like it
-should be the case) it is possible to use a buffer attached to the ulogd
-instance and to write the message in this buffer.
-
-BR,
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index a494ee6..5d44caf 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -369,7 +369,7 @@ void nft_rule_to_arpt_entry(struct nft_rule *r, struct arpt_entry *fw)
+ {
+ 	struct nft_rule_expr_iter *iter;
+ 	struct nft_rule_expr *expr;
+-	int family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
++	int family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
+ 
+ 	iter = nft_rule_expr_iter_create(r);
+ 	if (iter == NULL)
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index d59abd4..395a4cc 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -458,7 +458,7 @@ void nft_rule_to_iptables_command_state(struct nft_rule *r,
+ {
+ 	struct nft_rule_expr_iter *iter;
+ 	struct nft_rule_expr *expr;
+-	int family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
++	int family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
+ 
+ 	iter = nft_rule_expr_iter_create(r);
+ 	if (iter == NULL)
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 8bb5c64..26942d8 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1045,7 +1045,7 @@ nft_rule_print_save(const void *data,
+ 		    unsigned int format)
+ {
+ 	const char *chain = nft_rule_attr_get_str(r, NFT_RULE_ATTR_CHAIN);
+-	int family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
++	int family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
+ 	struct nft_family_ops *ops;
+ 
+ 	/* print chain name */
+diff --git a/iptables/xtables-events.c b/iptables/xtables-events.c
+index 535dd91..552ce56 100644
+--- a/iptables/xtables-events.c
++++ b/iptables/xtables-events.c
+@@ -75,7 +75,7 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
++	family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
+ 	switch (family) {
+ 	case AF_INET:
+ 	case AF_INET6:
 -- 
-Eric Leblond <eric@regit.org>
+1.8.3.2
 
