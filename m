@@ -1,15 +1,27 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH][v3] netlink: have netlink per-protocol bind function return an error code.
-Date: Mon, 24 Mar 2014 14:35:48 -0400
-Message-ID: <218730659282a7f75672d1925104a0246cdb0454.1395685504.git.rgb@redhat.com>
-References: <20140324183406.GE28666@madcap2.tricolour.ca>
-Cc: Richard Guy Briggs <rgb@redhat.com>, eparis@redhat.com,
-	sgrubb@redhat.com, hadi@mojatatu.com, davem@davemloft.net
+Subject: [PATCH][v4] netlink: have netlink per-protocol bind function return
+	an error code.
+Date: Mon, 24 Mar 2014 15:37:32 -0400
+Message-ID: <043a0c6fe4912021ca84f1fc9f8f0b2eaea630af.1395687642.git.rgb@redhat.com>
+References: <218730659282a7f75672d1925104a0246cdb0454.1395685504.git.rgb@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Richard Guy Briggs <rgb@redhat.com>, davem@davemloft.net,
+        hadi@mojatatu.com
 To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
-Sender: linux-kernel-owner@vger.kernel.org
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <218730659282a7f75672d1925104a0246cdb0454.1395685504.git.rgb@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
 List-Id: netfilter-devel.vger.kernel.org
 
 Have the netlink per-protocol optional bind function return an int error code
@@ -42,6 +54,10 @@ information.  It is proposed to add capability CAP_AUDIT_READ to allow this
 access while dropping the exessively broad capability CAP_NET_ADMIN.
 
 There has also been some interest expressed by IETF ForCES folk.
+
+v4: fixed a logic error (missing braces) and a C99 error.
+
+v3: added netlink_unbind() option and unwound netlink_insert().
 ---
  include/linux/netlink.h   |    3 ++-
  net/netfilter/nfnetlink.c |    3 ++-
