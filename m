@@ -1,227 +1,139 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH][v6] netlink: have netlink per-protocol bind function return
-	an error code.
-Date: Tue, 25 Mar 2014 08:50:56 -0400
-Message-ID: <32971f5def3bebff26650bc088c6f3f21f3c727b.1395751443.git.rgb@redhat.com>
-References: <20140324183406.GE28666@madcap2.tricolour.ca>
+Subject: unbind [was: Re: [PATCH] netlink: have netlink per-protocol bind
+ function return] an error code.
+Date: Tue, 25 Mar 2014 09:11:59 -0400
+Message-ID: <20140325131159.GH28666@madcap2.tricolour.ca>
+References: <1239812af16a5c746772913ef68d3570383f2e50.1395419169.git.rgb@redhat.com>
+ <20140323.005010.1898428719601246326.davem@davemloft.net>
+ <20140324143843.GC28666@madcap2.tricolour.ca>
+ <20140324183406.GE28666@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Richard Guy Briggs <rgb@redhat.com>, davem@davemloft.net,
-        hadi@mojatatu.com
-To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <linux-audit-bounces@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:58824 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752607AbaCYNMa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2014 09:12:30 -0400
+Content-Disposition: inline
 In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Have the netlink per-protocol optional bind function return an int error code
-rather than void to signal a failure.
+On 14/03/24, Richard Guy Briggs wrote:
+> On 14/03/24, Richard Guy Briggs wrote:
+> > On 14/03/23, David Miller wrote:
+> > > From: Richard Guy Briggs <rgb@redhat.com>
+> > > Date: Fri, 21 Mar 2014 12:39:11 -0400
 
-This will enable netlink protocols to perform extra checks including
-capabilities and permissions verifications when updating memberships in
-multicast groups.
+Ok, sorry for all the noise.  I had a problem between chair and keyboard
+which can explain the number of useless revs of this patch...  v6 is
+current with potentially v7 with the inline hunk below...
 
-In netlink_bind() and netlink_setsockopt() the call to the per-protocol bind
-function was moved above the multicast group update to prevent any access to
-the multicast socket groups before checking with the per-protocol bind
-function.  This will enable the per-protocol bind function to be used to check
-permissions which could be denied before making them available, and to avoid
-the messy job of undoing the addition should the per-protocol bind function
-fail.
+> > > > @@ -1441,6 +1441,17 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+> > > >  	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
+> > > >  		return 0;
+> > > >  
+> > > > +	if (nlk->netlink_bind && nladdr->nl_groups) {
+> > > > +		int i;
+> > > > +
+> > > > +		for (i = 0; i < nlk->ngroups; i++)
+> > > > +			if (test_bit(i, (long unsigned int *)&nladdr->nl_groups)) {
+> > > > +				err = nlk->netlink_bind(i);
+> > > > +				if (err)
+> > > > +					return err;
+> > > > +			}
+> > > > +	}
+> > > > +
+> > > 
+> > > You can't just leave a partially set of completed bindings in place.
+> > 
+> > In the general case, I agree.
+> > 
+> > > It's not valid to leave half-baked state like this.
+> > 
+> > In the one existing case (netfilter), it adds a module that is never
+> > unloaded.  (refcounts are bumped up and down, but I don't see an
+> > auto-reap based on cleared multicast group subscriptions.)  For that
+> > matter, netlink_realloc_groups() isn't reversed on error either.
+> 
+> Ok, in netlink_bind(), netlink_insert()/netlink_autobind() also need
+> to be undone with netlink_remove() if nlk->portid was not set.
 
-The netfilter subsystem seems to be the only one currently using the
-per-protocol bind function.
+This is also true with netlink_setsockopt() in the
+NETLINK_{ADD,DROP}_MEMBERSHIP case, where on ADD we should call
+netlink_bind() but on DROP we should *not* call it and instead call
+netlink_unbind() afterwards, perhaps such as:
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
-In particular, the audit subsystem (NETLINK_AUDIT protocol) could benefit by
-being able to check specific capabilities for each multicast group before
-granting membership to the requesting socket.  Currently, all NETLINK_AUDIT
-sockets must have the capability CAP_NET_ADMIN.  No other capabilities are
-required to join a multicast group.  This capability is too broad allowing
-access to this socket by many applications that must not have access to this
-information.  It is proposed to add capability CAP_AUDIT_READ to allow this
-access while dropping the exessively broad capability CAP_NET_ADMIN.
-
-There has also been some interest expressed by IETF ForCES folk.
-
-v6: *really* fixed a logic error (missing braces) and a C99 error.
-
-v3: added netlink_unbind() option and unwound netlink_insert().
----
- include/linux/netlink.h   |    3 ++-
- net/netfilter/nfnetlink.c |    3 ++-
- net/netlink/af_netlink.c  |   41 ++++++++++++++++++++++++++++-------------
- net/netlink/af_netlink.h  |    6 ++++--
- 4 files changed, 36 insertions(+), 17 deletions(-)
-
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index 7a6c396..0ba2edd 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -45,7 +45,8 @@ struct netlink_kernel_cfg {
- 	unsigned int	flags;
- 	void		(*input)(struct sk_buff *skb);
- 	struct mutex	*cb_mutex;
--	void		(*bind)(int group);
-+	int		(*bind)(int group);
-+	void		(*unbind)(int group);
- 	bool		(*compare)(struct net *net, struct sock *sk);
- };
- 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 1da5ef1..14c8ac8 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -392,7 +392,7 @@ static void nfnetlink_rcv(struct sk_buff *skb)
- }
- 
- #ifdef CONFIG_MODULES
--static void nfnetlink_bind(int group)
-+static int nfnetlink_bind(int group)
- {
- 	const struct nfnetlink_subsystem *ss;
- 	int type = nfnl_group2type[group];
-@@ -402,6 +402,7 @@ static void nfnetlink_bind(int group)
- 	rcu_read_unlock();
- 	if (!ss)
- 		request_module("nfnetlink-subsys-%d", type);
-+	return 0;
- }
- #endif
- 
 diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index bca50b9..45dccff 100644
+index 45dccff..3354d54 100644
 --- a/net/netlink/af_netlink.c
 +++ b/net/netlink/af_netlink.c
-@@ -1198,7 +1198,8 @@ static int netlink_create(struct net *net, struct socket *sock, int protocol,
- 	struct module *module = NULL;
- 	struct mutex *cb_mutex;
- 	struct netlink_sock *nlk;
--	void (*bind)(int group);
-+	int (*bind)(int group);
-+	void (*unbind)(int group);
- 	int err = 0;
- 
- 	sock->state = SS_UNCONNECTED;
-@@ -1224,6 +1225,7 @@ static int netlink_create(struct net *net, struct socket *sock, int protocol,
- 		err = -EPROTONOSUPPORT;
- 	cb_mutex = nl_table[protocol].cb_mutex;
- 	bind = nl_table[protocol].bind;
-+	unbind = nl_table[protocol].unbind;
- 	netlink_unlock_table();
- 
- 	if (err < 0)
-@@ -1240,6 +1242,7 @@ static int netlink_create(struct net *net, struct socket *sock, int protocol,
- 	nlk = nlk_sk(sock->sk);
- 	nlk->module = module;
- 	nlk->netlink_bind = bind;
-+	nlk->netlink_unbind = unbind;
- out:
- 	return err;
- 
-@@ -1293,6 +1296,7 @@ static int netlink_release(struct socket *sock)
- 			kfree_rcu(old, rcu);
- 			nl_table[sk->sk_protocol].module = NULL;
- 			nl_table[sk->sk_protocol].bind = NULL;
-+			nl_table[sk->sk_protocol].unbind = NULL;
- 			nl_table[sk->sk_protocol].flags = 0;
- 			nl_table[sk->sk_protocol].registered = 0;
- 		}
-@@ -1441,6 +1445,24 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
- 	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
- 		return 0;
- 
-+	if (nlk->netlink_bind && nladdr->nl_groups) {
-+		int i;
-+
-+		for (i = 0; i < nlk->ngroups; i++)
-+			if (test_bit(i, (long unsigned int *)&nladdr->nl_groups)) {
-+				err = nlk->netlink_bind(i);
-+				if (err) {
-+					int undo;
-+					if (!nlk->portid)
-+						netlink_remove(sk);
-+					for (undo = 0; undo < i; undo++)
-+						if (nlk->netlink_unbind)
-+							nlk->netlink_unbind(undo);
-+					return err;
-+				}
-+			}
-+	}
-+
- 	netlink_table_grab();
- 	netlink_update_subscriptions(sk, nlk->subscriptions +
- 					 hweight32(nladdr->nl_groups) -
-@@ -1449,15 +1471,6 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
- 	netlink_update_listeners(sk);
- 	netlink_table_ungrab();
- 
--	if (nlk->netlink_bind && nlk->groups[0]) {
--		int i;
--
--		for (i=0; i<nlk->ngroups; i++) {
--			if (test_bit(i, nlk->groups))
--				nlk->netlink_bind(i);
--		}
--	}
--
- 	return 0;
- }
- 
-@@ -2095,14 +2108,16 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
+@@ -2108,7 +2108,7 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
  			return err;
  		if (!val || val - 1 >= nlk->ngroups)
  			return -EINVAL;
-+		if (nlk->netlink_bind) {
-+			err = nlk->netlink_bind(val);
-+			if (err)
-+				return err;
-+		}
- 		netlink_table_grab();
+-		if (nlk->netlink_bind) {
++		if (optname == NETLINK_ADD_MEMBERSHIP && nlk->netlink_bind) {
+ 			err = nlk->netlink_bind(val);
+ 			if (err)
+ 				return err;
+@@ -2117,6 +2117,8 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
  		netlink_update_socket_mc(nlk, val,
  					 optname == NETLINK_ADD_MEMBERSHIP);
  		netlink_table_ungrab();
++		if (optname == NETLINK_DROP_MEMBERSHIP && nlk->netlink_unbind)
++			nlk->netlink_unbind(val);
  
--		if (nlk->netlink_bind)
--			nlk->netlink_bind(val);
--
  		err = 0;
  		break;
- 	}
-diff --git a/net/netlink/af_netlink.h b/net/netlink/af_netlink.h
-index acbd774..2aeae8a 100644
---- a/net/netlink/af_netlink.h
-+++ b/net/netlink/af_netlink.h
-@@ -37,7 +37,8 @@ struct netlink_sock {
- 	struct mutex		*cb_mutex;
- 	struct mutex		cb_def_mutex;
- 	void			(*netlink_rcv)(struct sk_buff *skb);
--	void			(*netlink_bind)(int group);
-+	int			(*netlink_bind)(int group);
-+	void			(*netlink_unbind)(int group);
- 	struct module		*module;
- #ifdef CONFIG_NETLINK_MMAP
- 	struct mutex		pg_vec_lock;
-@@ -73,7 +74,8 @@ struct netlink_table {
- 	unsigned int		groups;
- 	struct mutex		*cb_mutex;
- 	struct module		*module;
--	void			(*bind)(int group);
-+	int			(*bind)(int group);
-+	void			(*unbind)(int group);
- 	bool			(*compare)(struct net *net, struct sock *sock);
- 	int			registered;
- };
--- 
-1.7.1
+
+> > In the proposed case (audit) it is only a permissions check, so there is
+> > nothing to undo.
+> > 
+> > So, I was being lazy looking at the existing situation.
+> > 
+> > > If you return an error, all of the binding state changes must be
+> > > completely undone.
+> > 
+> > Is it time to add a ".unbind = netlink_unbind" to struct proto_ops
+> > netlink_ops?  (I am only half serious here...)
+> 
+> At this stage, that function would be a no-op for netfilter and audit.
+> Are there any out-of-tree users of this per-protocol bind function?
+> 
+> > > If you can't find a way to do this cleanly, you'll need to find
+> > > a way for the audit code to not return an error.
+> > 
+> > Fair enough.  I'll go back and look at updating subscriptions and
+> > listeners first and undoing those actions if the bind fails.  In the
+> > case of netlink_setsockopt() it is just one to undo, which is easy.
+> > netlink_bind() is a bit more complex, but doable.
+
+So netlink_setsockopt() was right, but ADD/DROP need slightly different
+treatment.
+
+netlink_bind() just needs to undo netlink_bind() on error.
+
+> > The whole purpose here was to add a way for each protocol to be able to
+> > add its own permissions check and signal a way for netlink to refuse the
+> > subscription if the userspace process doesn't have the required
+> > permissions, so not returning an error defeats that whole purpose.
+
+We could do all we wanted in audit, but that would still not signal
+netlink to block that subscription.
+
+> > - RGB
+> 
+> - RGB
+
+- RGB
+
+--
+Richard Guy Briggs <rbriggs@redhat.com>
+Senior Software Engineer, Kernel Security, AMER ENG Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635, Alt: +1.613.693.0684x3545
