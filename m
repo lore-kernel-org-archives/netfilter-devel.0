@@ -1,45 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: set names cannot be larger than 15
- bytes
-Date: Tue, 25 Mar 2014 21:45:37 +0100
-Message-ID: <20140325204537.GA3501@localhost>
-References: <1395670237-3841-1-git-send-email-pablo@netfilter.org>
- <20140324224105.GA21741@breakpoint.cc>
+Subject: Re: [PATCH] conntrackd: claim lockfile ownership properly
+Date: Tue, 25 Mar 2014 21:58:31 +0100
+Message-ID: <20140325205831.GA3681@localhost>
+References: <1394587873-9821-1-git-send-email-aatteka@nicira.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com,
-	kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Ansis Atteka <aatteka@nicira.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51133 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54279 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754473AbaCYUpr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2014 16:45:47 -0400
+	id S1754487AbaCYU6m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2014 16:58:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20140324224105.GA21741@breakpoint.cc>
+In-Reply-To: <1394587873-9821-1-git-send-email-aatteka@nicira.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 24, 2014 at 11:41:05PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index 33045a5..43ae487 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -1946,7 +1946,8 @@ static const struct nft_set_ops *nft_select_set_ops(const struct nlattr * const
-> >  
-> >  static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
-> >  	[NFTA_SET_TABLE]		= { .type = NLA_STRING },
-> > -	[NFTA_SET_NAME]			= { .type = NLA_STRING },
-> > +	[NFTA_SET_NAME]			= { .type = NLA_STRING,
-> > +					    .len = IFNAMSIZ - 1 },
+On Tue, Mar 11, 2014 at 06:31:13PM -0700, Ansis Atteka wrote:
+> Before this patch, if conntrackd died in an abrupt manner (either
+> by SIGKILL, SIGSEGV or abrupt shutdown), then it would have left
+> a stale lock file that would have prevented any new conntrackd
+> instances from running.
+
+SIGKILL and SIGSEGV need a closer look from the admin, since things
+are not going right. Sudden (abrupt) shutdown is indeed a problem.
+
+> Contrary to abrupt termination, this same bug was not present when
+> conntrackd was terminated with a graceful signal (e.g. SIGTERM).
+> This was because then the lock file would have been removed from
+> the signal handler as expected.
 > 
-> Not related to your patch, but it looks to me as if all of these
-> should be NLA_NUL_STRING, no?
+> This patch fixes this bug by using POSIX File Locking API instead
+> of opening file in O_EXCL mode. File Locking API ensures that file
+> lock will be released once the process holding it terminates (either
+> gracefully or abruptly).
+> 
+> One side effect of this patch is that daemonization has to happen
+> before the lock file is locked (due to the fact that child processes
+> do not inherit file locks from the parent process).  This means that
+> some error messages have to be logged in log file instead of STDOUT.
 
-This is what I originally thought. But all of the nla_* functions use
-the nla_len to know length of the string coming from userspace, so
-they don't rely on the trailing nul-termination.
+Can you rework this to avoid converting all those message from stdout
+to the log file? I like that this daemon bails out to stdout if early
+problems are found, I find it quite annoying when you launch things
+and then you have to check ps and log file to see the reason for an
+early configuration problem. And I don't find a good reason why we
+need an early daemonization that this patch introduces.
 
-Anyway, I'd appreciate if you can do a second look at this to make
-sure I'm not overlooking anything. Thanks.
