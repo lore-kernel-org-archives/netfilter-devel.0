@@ -1,139 +1,205 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: unbind [was: Re: [PATCH] netlink: have netlink per-protocol bind
- function return] an error code.
-Date: Tue, 25 Mar 2014 09:11:59 -0400
-Message-ID: <20140325131159.GH28666@madcap2.tricolour.ca>
-References: <1239812af16a5c746772913ef68d3570383f2e50.1395419169.git.rgb@redhat.com>
- <20140323.005010.1898428719601246326.davem@davemloft.net>
- <20140324143843.GC28666@madcap2.tricolour.ca>
- <20140324183406.GE28666@madcap2.tricolour.ca>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH] netfilter: nf_tables: Add meta expression key for bridge interface name
+Date: Tue, 25 Mar 2014 18:39:47 +0200
+Message-ID: <1395765587-5399-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58824 "EHLO mx1.redhat.com"
+Received: from mga01.intel.com ([192.55.52.88]:41593 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752607AbaCYNMa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2014 09:12:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
+	id S1752382AbaCYQue (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2014 12:50:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14/03/24, Richard Guy Briggs wrote:
-> On 14/03/24, Richard Guy Briggs wrote:
-> > On 14/03/23, David Miller wrote:
-> > > From: Richard Guy Briggs <rgb@redhat.com>
-> > > Date: Fri, 21 Mar 2014 12:39:11 -0400
+NFT_META_IBRIFNAME to get packet input bridge interface name
+NFT_META_OBRIFNAME to get packet output bridge interface name
 
-Ok, sorry for all the noise.  I had a problem between chair and keyboard
-which can explain the number of useless revs of this patch...  v6 is
-current with potentially v7 with the inline hunk below...
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
 
-> > > > @@ -1441,6 +1441,17 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
-> > > >  	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
-> > > >  		return 0;
-> > > >  
-> > > > +	if (nlk->netlink_bind && nladdr->nl_groups) {
-> > > > +		int i;
-> > > > +
-> > > > +		for (i = 0; i < nlk->ngroups; i++)
-> > > > +			if (test_bit(i, (long unsigned int *)&nladdr->nl_groups)) {
-> > > > +				err = nlk->netlink_bind(i);
-> > > > +				if (err)
-> > > > +					return err;
-> > > > +			}
-> > > > +	}
-> > > > +
-> > > 
-> > > You can't just leave a partially set of completed bindings in place.
-> > 
-> > In the general case, I agree.
-> > 
-> > > It's not valid to leave half-baked state like this.
-> > 
-> > In the one existing case (netfilter), it adds a module that is never
-> > unloaded.  (refcounts are bumped up and down, but I don't see an
-> > auto-reap based on cleared multicast group subscriptions.)  For that
-> > matter, netlink_realloc_groups() isn't reversed on error either.
-> 
-> Ok, in netlink_bind(), netlink_insert()/netlink_autobind() also need
-> to be undone with netlink_remove() if nlk->portid was not set.
+Hi Pablo,
 
-This is also true with netlink_setsockopt() in the
-NETLINK_{ADD,DROP}_MEMBERSHIP case, where on ADD we should call
-netlink_bind() but on DROP we should *not* call it and instead call
-netlink_unbind() afterwards, perhaps such as:
+Does that design sounds proper?
+I added the nft type right away in nft_meta.c
+to reuse as much as possible, only the evaluation is a bit specific.
 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 45dccff..3354d54 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -2108,7 +2108,7 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
- 			return err;
- 		if (!val || val - 1 >= nlk->ngroups)
- 			return -EINVAL;
--		if (nlk->netlink_bind) {
-+		if (optname == NETLINK_ADD_MEMBERSHIP && nlk->netlink_bind) {
- 			err = nlk->netlink_bind(val);
- 			if (err)
- 				return err;
-@@ -2117,6 +2117,8 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
- 		netlink_update_socket_mc(nlk, val,
- 					 optname == NETLINK_ADD_MEMBERSHIP);
- 		netlink_table_ungrab();
-+		if (optname == NETLINK_DROP_MEMBERSHIP && nlk->netlink_unbind)
-+			nlk->netlink_unbind(val);
- 
- 		err = 0;
- 		break;
+I haven't tested yet, I will do the support of this meta key for nft to=
+ol
+accordingly.
 
-> > In the proposed case (audit) it is only a permissions check, so there is
-> > nothing to undo.
-> > 
-> > So, I was being lazy looking at the existing situation.
-> > 
-> > > If you return an error, all of the binding state changes must be
-> > > completely undone.
-> > 
-> > Is it time to add a ".unbind = netlink_unbind" to struct proto_ops
-> > netlink_ops?  (I am only half serious here...)
-> 
-> At this stage, that function would be a no-op for netfilter and audit.
-> Are there any out-of-tree users of this per-protocol bind function?
-> 
-> > > If you can't find a way to do this cleanly, you'll need to find
-> > > a way for the audit code to not return an error.
-> > 
-> > Fair enough.  I'll go back and look at updating subscriptions and
-> > listeners first and undoing those actions if the bind fails.  In the
-> > case of netlink_setsockopt() it is just one to undo, which is easy.
-> > netlink_bind() is a bit more complex, but doable.
+Tomasz
 
-So netlink_setsockopt() was right, but ADD/DROP need slightly different
-treatment.
+ include/uapi/linux/netfilter/nf_tables.h |  4 ++
+ net/netfilter/nft_meta.c                 | 79 ++++++++++++++++++++++++=
++++++++-
+ 2 files changed, 81 insertions(+), 2 deletions(-)
 
-netlink_bind() just needs to undo netlink_bind() on error.
-
-> > The whole purpose here was to add a way for each protocol to be able to
-> > add its own permissions check and signal a way for netlink to refuse the
-> > subscription if the userspace process doesn't have the required
-> > permissions, so not returning an error defeats that whole purpose.
-
-We could do all we wanted in audit, but that would still not signal
-netlink to block that subscription.
-
-> > - RGB
-> 
-> - RGB
-
-- RGB
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/li=
+nux/netfilter/nf_tables.h
+index 83c985a..e3c98f9 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -533,6 +533,8 @@ enum nft_exthdr_attributes {
+  * @NFT_META_SECMARK: packet secmark (skb->secmark)
+  * @NFT_META_NFPROTO: netfilter protocol
+  * @NFT_META_L4PROTO: layer 4 protocol number
++ * @NFT_META_IBRIFNAME: packet input bridge interface name
++ * @NFT_META_OBRIFNAME: packet output bridge interface name
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -552,6 +554,8 @@ enum nft_meta_keys {
+ 	NFT_META_SECMARK,
+ 	NFT_META_NFPROTO,
+ 	NFT_META_L4PROTO,
++	NFT_META_IBRIFNAME,
++	NFT_META_OBRIFNAME,
+ };
+=20
+ /**
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index e8254ad..60a7d63 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -18,6 +18,9 @@
+ #include <net/sock.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
++#ifdef CONFIG_NF_TABLES_BRIDGE
++#include "../br_private.h"
++#endif
+=20
+ struct nft_meta {
+ 	enum nft_meta_keys	key:8;
+@@ -141,6 +144,40 @@ err:
+ 	data[NFT_REG_VERDICT].verdict =3D NFT_BREAK;
+ }
+=20
++#ifdef CONFIG_NF_TABLES_BRIDGE
++static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
++				     struct nft_data data[NFT_REG_MAX + 1],
++				     const struct nft_pktinfo *pkt)
++{
++	const struct net_device *in =3D pkt->in, *out =3D pkt->out;
++	struct nft_data *dest =3D &data[priv->dreg];
++	const struct net_bridge_port *p;
++
++	if (pkt->ops->pf !=3D NFPROTO_BRIDGE)
++		goto out;
++
++	switch (priv->key) {
++	case NFT_META_IBRIFNAME:
++		if (in =3D=3D NULL ||=C2=A0(p =3D br_port_get_rcu(in)) =3D=3D NULL)
++			goto err;
++		break;
++	case NFT_META_OBRIFNAME:
++		if (out =3D=3D NULL ||=C2=A0(p =3D br_port_get_rcu(out)) =3D=3D NULL=
+)
++			goto err;
++		break;
++	default:
++		goto out;
++	}
++
++	strncpy((char *)dest->data, p->br->dev->name, sizeof(dest->data));
++	return;
++out:
++	return nft_meta_get_eval(expr, data, pkt);
++err:
++	data[NFT_REG_VERDICT].verdict =3D NFT_BREAK;
++}
++#endif
++
+ static void nft_meta_set_eval(const struct nft_expr *expr,
+ 			      struct nft_data data[NFT_REG_MAX + 1],
+ 			      const struct nft_pktinfo *pkt)
+@@ -205,6 +242,10 @@ static int nft_meta_init_validate_get(uint32_t key=
+)
+ #ifdef CONFIG_NETWORK_SECMARK
+ 	case NFT_META_SECMARK:
+ #endif
++#ifdef CONFIG_NF_TABLES_BRIDGE
++	case NFT_META_IBRIFNAME:
++	case NFT_META_OBRIFNAME:
++#endif
+ 		return 0;
+ 	default:
+ 		return -EOPNOTSUPP;
+@@ -294,6 +335,17 @@ static const struct nft_expr_ops nft_meta_set_ops =
+=3D {
+ 	.dump		=3D nft_meta_set_dump,
+ };
+=20
++#ifdef CONFIG_NF_TABLES_BRIDGE
++static struct nft_expr_type nft_meta_bridge_type;
++static const struct nft_expr_ops nft_meta_bridge_get_ops =3D {
++	.type		=3D &nft_meta_type,
++	.size		=3D NFT_EXPR_SIZE(sizeof(struct nft_meta)),
++	.eval		=3D nft_meta_bridge_get_eval,
++	.init		=3D nft_meta_init,
++	.dump		=3D nft_meta_get_dump,
++};
++#endif
++
+ static const struct nft_expr_ops *
+ nft_meta_select_ops(const struct nft_ctx *ctx,
+ 		    const struct nlattr * const tb[])
+@@ -304,8 +356,13 @@ nft_meta_select_ops(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_META_DREG] && tb[NFTA_META_SREG])
+ 		return ERR_PTR(-EINVAL);
+=20
+-	if (tb[NFTA_META_DREG])
++	if (tb[NFTA_META_DREG]) {
++#ifdef CONFIG_NF_TABLES_BRIDGE
++		if (ctx->aif->family =3D=3D NFPROTO_BRIDGE)
++			return &nft_meta_bridge_get_ops;
++#endif
+ 		return &nft_meta_get_ops;
++	}
+=20
+ 	if (tb[NFTA_META_SREG])
+ 		return &nft_meta_set_ops;
+@@ -321,9 +378,27 @@ static struct nft_expr_type nft_meta_type __read_m=
+ostly =3D {
+ 	.owner		=3D THIS_MODULE,
+ };
+=20
++#ifdef CONFIG_NF_TABLES_BRIDGE
++static struct nft_expr_type nft_meta_bridge_type __read_mostly =3D {
++	.family		=3D NFPROTO_BRIDGE,
++	.name		=3D "meta",
++	.select_ops	=3D &nft_meta_select_ops,
++	.policy		=3D nft_meta_policy,
++	.maxattr	=3D NFTA_META_MAX,
++	.owner		=3D THIS_MODULE,
++};
++#endif
++
+ static int __init nft_meta_module_init(void)
+ {
+-	return nft_register_expr(&nft_meta_type);
++	int ret;
++
++	ret =3D nft_register_expr(&nft_meta_type);
++#ifdef CONFIG_NF_TABLES_BRIDGE
++	if (ret =3D=3D 0)
++		ret =3D nft_register_expr(&nft_meta_bridge_type);
++#endif
++	return ret;
+ }
+=20
+ static void __exit nft_meta_module_exit(void)
+--=20
+1.8.3.2
 
 --
-Richard Guy Briggs <rbriggs@redhat.com>
-Senior Software Engineer, Kernel Security, AMER ENG Base Operating Systems, Red Hat
-Remote, Ottawa, Canada
-Voice: +1.647.777.2635, Internal: (81) 32635, Alt: +1.613.693.0684x3545
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
