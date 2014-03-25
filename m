@@ -1,36 +1,34 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [iptables 0/3] ebtables patchset
-Date: Tue, 25 Mar 2014 09:40:07 +0200
-Message-ID: <533132D7.3050306@linux.intel.com>
-References: <1394220805-18021-1-git-send-email-giuseppelng@gmail.com> <531D98DF.5070507@linux.intel.com> <20140324150956.GA32546@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH] src: check if the set name is too long
+Date: Tue, 25 Mar 2014 09:41:31 +0100
+Message-ID: <20140325084131.GA3857@localhost>
+References: <1395423541-5098-1-git-send-email-giuseppelng@gmail.com>
+ <20140324145738.GB32472@localhost>
+ <53313234.6050602@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Giuseppe Longo <giuseppelng@gmail.com>,
 	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30967 "EHLO mga11.intel.com"
+Received: from mail.us.es ([193.147.175.20]:33159 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411AbaCYHkJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2014 03:40:09 -0400
-In-Reply-To: <20140324150956.GA32546@localhost>
+	id S1753860AbaCYIlh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2014 04:41:37 -0400
+Content-Disposition: inline
+In-Reply-To: <53313234.6050602@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Tue, Mar 25, 2014 at 09:37:24AM +0200, Tomasz Bursztyka wrote:
+> Hi Pablo,
+> 
+> >I sent you a patch, I think it's better if we fix this from
+> >kernel-space.
+> 
+> I think it's also good if we check the length when parsing, as Giuseppe did.
+> Then it reduce the overhead: the error is detected way before we
+> process anything through netlink.
 
-> I think you have to extend nft_meta to support that. See
-> ebt_basic_match(), the net_bridge_port information is obtained via
-> br_port_get_rcu(dev) given that dev != NULL.
->
-> Beware that you have to make sure that the new meta types IIFBRNAME
-> and OIFBRNAME can only be used from the bridge family.  I think you
-> have to do something similar to what Patrick did with nft_reject, by
-> adding a specific flavour of nft_meta for the bridge family.
-
-Indeed. Will prepare something quick
-
-Thanks,
-
-Tomasz
+This is an error case, I don't think we should focus on reducing
+overhead in those scenarios.
