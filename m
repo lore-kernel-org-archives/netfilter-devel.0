@@ -1,43 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH][v6] netlink: have netlink per-protocol bind function
- return an error code.
-Date: Wed, 26 Mar 2014 16:46:00 -0400 (EDT)
-Message-ID: <20140326.164600.1051337978560114220.davem@davemloft.net>
-References: <20140324183406.GE28666@madcap2.tricolour.ca>
-	<32971f5def3bebff26650bc088c6f3f21f3c727b.1395751443.git.rgb@redhat.com>
+From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
+Subject: Re: [helper PATCH] Preserve conntrack helper bound through CT rule
+Date: Wed, 26 Mar 2014 21:59:39 +0100
+Message-ID: <CAF1oqRAg6K56H13djDEWugPV5i0Vu2K8wAM7V=nWPuGxkOL+dw@mail.gmail.com>
+References: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
+	<20140326130445.GD21741@breakpoint.cc>
+	<CAF1oqRAg8Xi+JwL_ErzuwF1TFWHCMcV6pGasUfFQ5_RaDNMBOQ@mail.gmail.com>
+	<20140326165747.GE21741@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
-To: rgb@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:46961 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861AbaCZUqD (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:58647 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754582AbaCZU7k (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 16:46:03 -0400
-In-Reply-To: <32971f5def3bebff26650bc088c6f3f21f3c727b.1395751443.git.rgb@redhat.com>
+	Wed, 26 Mar 2014 16:59:40 -0400
+Received: by mail-lb0-f179.google.com with SMTP id p9so1963786lbv.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2014 13:59:39 -0700 (PDT)
+In-Reply-To: <20140326165747.GE21741@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Richard Guy Briggs <rgb@redhat.com>
-Date: Tue, 25 Mar 2014 08:50:56 -0400
+On Wed, Mar 26, 2014 at 5:57 PM, Florian Westphal <fw@strlen.de> wrote:
+> I guess this was fixed by
+> commit 6714cf5465d2803a21c6a46c1ea747795a8889fa
+> 'netfilter: nf_conntrack: fix explicit helper attachment and NAT').
+> in 3.5 kernel.
 
-> @@ -1441,6 +1445,24 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
->  	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
->  		return 0;
->  
-> +	if (nlk->netlink_bind && nladdr->nl_groups) {
-> +		int i;
-> +
-> +		for (i = 0; i < nlk->ngroups; i++)
- ...
-> +				if (err) {
-> +					int undo;
-> +					if (!nlk->portid)
-> +						netlink_remove(sk);
-
-Please put an empty line between local variable declarations and code, just as it
-is a few lines up.
+You're right, this issue was already fixed.
+Sorry for the hassle.
