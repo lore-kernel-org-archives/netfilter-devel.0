@@ -1,43 +1,42 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH][v5] netlink: have netlink per-protocol bind function
- return an error code.
-Date: Wed, 26 Mar 2014 15:52:58 -0400 (EDT)
-Message-ID: <20140326.155258.685120737486107362.davem@davemloft.net>
-References: <20140324183406.GE28666@madcap2.tricolour.ca>
-	<5bf7c2b8ad25b31bb34ae00f5fe6ec7f5d653f4b.1395693533.git.rgb@redhat.com>
+Subject: Re: [PATCH v4] core, nfqueue, openvswitch: Orphan frags in
+ skb_zerocopy and handle errors
+Date: Wed, 26 Mar 2014 15:59:58 -0400 (EDT)
+Message-ID: <20140326.155958.1928261590856069753.davem@davemloft.net>
+References: <1395397894-9493-1-git-send-email-zoltan.kiss@citrix.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
-To: rgb@redhat.com
+Cc: jesse@nicira.com, pshelar@nicira.com, tgraf@redhat.com,
+	dev@openvswitch.org, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+	edumazet@google.com, dborkman@redhat.com, therbert@google.com,
+	jasowang@redhat.com, fw@strlen.de, joe@perches.com,
+	horms@verge.net.au, jiri@resnulli.us, mst@redhat.com,
+	Paul.Durrant@citrix.com, JBeulich@suse.com,
+	herbert@gondor.apana.org.au, mszeredi@suse.cz,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kvm@vger.kernel.org
+To: zoltan.kiss@citrix.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:46408 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:46529 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753544AbaCZTxE (ORCPT
+	with ESMTP id S1756134AbaCZUAE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 15:53:04 -0400
-In-Reply-To: <5bf7c2b8ad25b31bb34ae00f5fe6ec7f5d653f4b.1395693533.git.rgb@redhat.com>
+	Wed, 26 Mar 2014 16:00:04 -0400
+In-Reply-To: <1395397894-9493-1-git-send-email-zoltan.kiss@citrix.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Richard Guy Briggs <rgb@redhat.com>
-Date: Mon, 24 Mar 2014 16:59:23 -0400
+From: Zoltan Kiss <zoltan.kiss@citrix.com>
+Date: Fri, 21 Mar 2014 10:31:34 +0000
 
-> +				if (err)
-> +					if (!nlk->portid)
-> +						netlink_remove(sk);
-> +					for (int undo = 0; undo < i; undo++)
-> +						if (nlk->netlink_unbind)
-> +							nlk->netlink_unbind(undo);
-> +					return err;
+> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
+> orphan them. Also, it doesn't handle errors, so this patch takes care of that
+> as well, and modify the callers accordingly. skb_tx_error() is also added to
+> the callers so they will signal the failed delivery towards the creator of the
+> skb.
+> 
+> Signed-off-by: Zoltan Kiss <zoltan.kiss@citrix.com>
 
-Take a good long stare at that code block for a while.
-
-Looks like you forgot the braces to delineate the code block.
-
-This also means you really haven't tested this patch :-)
-
-Please also DO NOT declare local variables in a for() statement,
-this is not c++.
+Applied, thanks Zoltan.
