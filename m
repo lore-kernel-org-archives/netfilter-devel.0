@@ -1,62 +1,33 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [helper PATCH] Preserve conntrack helper bound through CT rule
-Date: Wed, 26 Mar 2014 14:04:45 +0100
-Message-ID: <20140326130445.GD21741@breakpoint.cc>
-References: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH] netfilter: nf_tables: Add meta expression key for bridge
+ interface name
+Date: Wed, 26 Mar 2014 15:06:25 +0200
+Message-ID: <5332D0D1.7010506@linux.intel.com>
+References: <1395765587-5399-1-git-send-email-tomasz.bursztyka@linux.intel.com> <20140326121255.GA1375@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Alin =?utf-8?Q?N=C4=83stac?= <alin.nastac@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33601 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753438AbaCZNEr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 09:04:47 -0400
-Content-Disposition: inline
-In-Reply-To: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:24383 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754533AbaCZNG2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Mar 2014 09:06:28 -0400
+In-Reply-To: <20140326121255.GA1375@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alin N=C4=83stac <alin.nastac@gmail.com> wrote:
-> Hi,
->=20
-> I've discovered that MASQUERADE target overwrites the CT --helper set=
-tings.
-> The setup I used is the following:
->   iptables -t raw -A PREROUTING -i lan -p tcp --dport 2121 -j CT --he=
-lper ftp
->   iptables -t nat -A POSTROUTING -o wan -s 192.168.1.0/24 -j MASQUERA=
-DE
->=20
-> I found out the problem, the helper set in the conntrack template is
-> overwritten by MASQUERADE target.
-> This patch fixes the issue:
->=20
-> diff --git a/net/netfilter/nf_conntrack_core.c
-> b/net/netfilter/nf_conntrack_core.c
-> index bba14a7..ab7cd3e 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -1445,7 +1445,7 @@ void nf_conntrack_alter_reply(struct nf_conn *c=
-t,
->         nf_ct_dump_tuple(newreply);
->=20
->         ct->tuplehash[IP_CT_DIR_REPLY].tuple =3D *newreply;
-> -       if (ct->master || (help && !hlist_empty(&help->expectations))=
-)
-> +       if (ct->master || help)
+Hi Patrick,
 
-This is confusing.  This forces re-ookup of helper even if
-expectations have been setup (i.e., helper is being used).
+> On Tue, Mar 25, 2014 at 06:39:47PM +0200, Tomasz Bursztyka wrote:
+>> NFT_META_IBRIFNAME to get packet input bridge interface name
+>> NFT_META_OBRIFNAME to get packet output bridge interface name
+> Minor request: NFT_META_BRI_IIFNAME and NFT_META_BRI_OIFNAME.
+>
 
-IOW, this increases __nf_ct_try_assign_helper() call count...
+Will do
 
-Would you mind letting us know what kernel version is having problems,
-and wheter helper autoassignments are enabled?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Tomasz
