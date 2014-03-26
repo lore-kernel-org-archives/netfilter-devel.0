@@ -1,47 +1,26 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [ulogd PATCH 0/8] make progress ulogd_output_IPFIX
-Date: Wed, 26 Mar 2014 21:11:24 +0900
-Message-ID: <20140326121122.GA24689@gmail.com>
-References: <20140308010344.GA4415@gmail.com>
- <1395600620.23474.18.camel@ice-age2.regit.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: nf_tables: Add meta expression key for bridge
+ interface name
+Date: Wed, 26 Mar 2014 12:12:55 +0000
+Message-ID: <20140326121255.GA1375@macbook.localnet>
+References: <1395765587-5399-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:32772 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753518AbaCZMLl (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33995 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518AbaCZMM7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 08:11:41 -0400
-Received: by mail-pb0-f48.google.com with SMTP id md12so1849868pbc.21
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2014 05:11:40 -0700 (PDT)
+	Wed, 26 Mar 2014 08:12:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1395600620.23474.18.camel@ice-age2.regit.org>
+In-Reply-To: <1395765587-5399-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Hello Eric.
+On Tue, Mar 25, 2014 at 06:39:47PM +0200, Tomasz Bursztyka wrote:
+> NFT_META_IBRIFNAME to get packet input bridge interface name
+> NFT_META_OBRIFNAME to get packet output bridge interface name
 
-Thank you for taking your time to see it and your reply.
-
-> Some generic points regarding this patchset:
-
-I'm resending all with following it, sorry for your inconvenience
-And you wrote...
-
-> Subject: Re: [PATCH 1/8] ipfix: use nfct_bitmask
-> available on the system. As it is possible to build ulogd with
-> --disable-nfct configure flags, you need to make the build of IPFIX
-
-I see. I should have seen input/Makefile.am before, thank you.
-
-> Subject: Re: [PATCH 5/8] ipfix: add function for ipfix message creation
-> I don't like this malloc because ulogd will do an allocation for each
-
-I think we can fix allocation sizes for each of template and I worked
-at PATCH 8/8 but you could not see it because the patches format were
-invalid, sorry.
-
-Thanks.
+Minor request: NFT_META_BRI_IIFNAME and NFT_META_BRI_OIFNAME.
