@@ -1,37 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: some minor tweaks for building doc/man pages for nftables
-Date: Wed, 26 Mar 2014 10:32:50 +0000
-Message-ID: <20140326103249.GN31312@macbook.localnet>
-References: <alpine.LFD.2.11.1403120529570.4122@localhost>
- <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com>
+From: Kirill Tkhai <ktkhai@parallels.com>
+Subject: [PATCH] netfilter: Add {ipt,ip6t}_osf aliases for xt_osf
+Date: Wed, 26 Mar 2014 14:37:59 +0400
+Message-ID: <1395830279.3601.2.camel@tkhai>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>,
-	netfilter devel list <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33224 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754049AbaCZKcy (ORCPT
+Received: from relay.parallels.com ([195.214.232.42]:49438 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792AbaCZKiN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 06:32:54 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBiKQHg7TYU_nQmNgtC_fzybe3LOLsO-JktJx=7oQsYBCQ@mail.gmail.com>
+	Wed, 26 Mar 2014 06:38:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 12, 2014 at 11:51:26AM +0100, Arturo Borrero Gonzalez wrote:
-> On 12 March 2014 10:34, Robert P. J. Day <rpjday@crashcourse.ca> wrote:
-> >
-> >   new here so not confident enough to submit any patches yet, but on
-> > my fedora rawhide system, some notes on building the man page and PDF
-> > docs.
-> >
-> 
-> Hi there!
-> 
-> Feel free to submit patches, but maybe this is an issue for Fedora
-> packagers to fix.
+There are no these aliases, so kernel can not request appropriate
+match table:
 
-I have fixes for the build and an manpage update coming up. Will push during
-the next couple of days.
+$ iptables -I INPUT -p tcp -m osf --genre Windows --ttl 2 -j DROP
+iptables: No chain/target/match by that name.
+
+setsockopt() requests ipt_osf module, which is not present. Add
+the aliases.
+
+Signed-off-by: Kirill Tkhai <ktkhai@parallels.com>
+---
+ net/netfilter/xt_osf.c | 2 ++
+ 1 file changed, 2 insertions(+)
+diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
+index 7174611..c529161 100644
+--- a/net/netfilter/xt_osf.c
++++ b/net/netfilter/xt_osf.c
+@@ -422,4 +422,6 @@ module_exit(xt_osf_fini);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Passive OS fingerprint matching.");
++MODULE_ALIAS("ipt_osf");
++MODULE_ALIAS("ip6t_osf");
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_OSF);
+
+
