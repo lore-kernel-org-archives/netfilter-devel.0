@@ -1,46 +1,89 @@
-From: Kirill Tkhai <ktkhai@parallels.com>
-Subject: [PATCH] netfilter: Add {ipt,ip6t}_osf aliases for xt_osf
-Date: Wed, 26 Mar 2014 14:37:59 +0400
-Message-ID: <1395830279.3601.2.camel@tkhai>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH RFC 1/2] netfilter: nf_tables: move set netlink messages
+ into the batch
+Date: Wed, 26 Mar 2014 11:25:54 +0000
+Message-ID: <20140326112554.GC452@macbook.localnet>
+References: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay.parallels.com ([195.214.232.42]:49438 "EHLO
-	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792AbaCZKiN (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33684 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755076AbaCZLZ7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 06:38:13 -0400
+	Wed, 26 Mar 2014 07:25:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There are no these aliases, so kernel can not request appropriate
-match table:
+On Tue, Mar 25, 2014 at 09:39:41PM +0100, Pablo Neira Ayuso wrote:
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index e6bc14d..b749e4d 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -222,6 +222,8 @@ static inline void *nft_set_priv(const struct nft_set *set)
+>  
+>  struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
+>  				     const struct nlattr *nla);
+> +struct nft_set *nf_tables_set_lookup2(const struct net *net,
+> +				      const struct nlattr *nla);
 
-$ iptables -I INPUT -p tcp -m osf --genre Windows --ttl 2 -j DROP
-iptables: No chain/target/match by that name.
+nf_tables_set_lookup_byid?
 
-setsockopt() requests ipt_osf module, which is not present. Add
-the aliases.
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index c88ccbf..3776beb 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -221,6 +221,7 @@ enum nft_set_flags {
+>   * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
+>   * @NFTA_SET_DATA_TYPE: mapping data type (NLA_U32)
+>   * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
+> + * @NFTA_SET_ID: set ID (NLA_U64)
 
-Signed-off-by: Kirill Tkhai <ktkhai@parallels.com>
----
- net/netfilter/xt_osf.c | 2 ++
- 1 file changed, 2 insertions(+)
-diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
-index 7174611..c529161 100644
---- a/net/netfilter/xt_osf.c
-+++ b/net/netfilter/xt_osf.c
-@@ -422,4 +422,6 @@ module_exit(xt_osf_fini);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("Passive OS fingerprint matching.");
-+MODULE_ALIAS("ipt_osf");
-+MODULE_ALIAS("ip6t_osf");
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_OSF);
+I think a U32 should be perfectly fine. These are not permanent IDs but just to
+identify new sets contained within a batch, so we can always start at 0.
 
+> +static int nf_tables_set_trans_add(struct list_head *list, struct nft_ctx *ctx,
+> +				   struct nft_set *set)
+> +{
+> +	struct nft_set_trans *strans;
+> +
+> +	strans = kmalloc(sizeof(struct nft_set_trans), GFP_ATOMIC);
 
+Do we need GFP_ATOMIC?
+
+> +	if (strans == NULL)
+> +		return -ENOMEM;
+> +
+> +	strans->set = set;
+> +	strans->ctx = *ctx;
+> +	if (ctx->nla[NFTA_SET_ID])
+> +		strans->id = be64_to_cpu(nla_get_be64(ctx->nla[NFTA_SET_ID]));
+> +
+> +	set->flags |= __NFT_SET_INACTIVE;
+> +	list_add_tail(&strans->list, list);
+> +	return 0;
+> +}
+> +
+>  static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+>  			    const struct nlmsghdr *nlh,
+>  			    const struct nlattr * const nla[])
+>  static int nf_tables_bind_check_setelem(const struct nft_ctx *ctx,
+> @@ -2534,7 +2619,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+>  {
+>  	list_del(&binding->list);
+>  
+> -	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
+> +	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+> +	    !(set->flags & __NFT_SET_INACTIVE))
+
+Why are we not destroying anonymous inactive sets when unbinding? This means we're
+either aborting or replaying the entire transaction, so it seems we should remove
+them, no?
+
+>  		nf_tables_set_destroy(ctx, set);
+>  }
+>  
