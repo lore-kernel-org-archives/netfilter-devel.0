@@ -1,36 +1,76 @@
-From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
-Subject: Re: [helper PATCH] Preserve conntrack helper bound through CT rule
-Date: Wed, 26 Mar 2014 14:18:58 +0100
-Message-ID: <CAF1oqRAg8Xi+JwL_ErzuwF1TFWHCMcV6pGasUfFQ5_RaDNMBOQ@mail.gmail.com>
-References: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
-	<20140326130445.GD21741@breakpoint.cc>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH RFC 1/2] netfilter: nf_tables: move set netlink messages
+ into the batch
+Date: Wed, 26 Mar 2014 13:18:57 +0000
+Message-ID: <20140326131856.GA7173@macbook.localnet>
+References: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
+ <20140326112554.GC452@macbook.localnet>
+ <20140326130338.GA31813@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:43362 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbaCZNS7 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:34426 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616AbaCZNTB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 09:18:59 -0400
-Received: by mail-la0-f42.google.com with SMTP id ec20so1502535lab.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2014 06:18:58 -0700 (PDT)
-In-Reply-To: <20140326130445.GD21741@breakpoint.cc>
+	Wed, 26 Mar 2014 09:19:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20140326130338.GA31813@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
+On Wed, Mar 26, 2014 at 02:03:38PM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Mar 26, 2014 at 11:25:54AM +0000, Patrick McHardy wrote:
+> > On Tue, Mar 25, 2014 at 09:39:41PM +0100, Pablo Neira Ayuso wrote:
+> 
+> > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > > index c88ccbf..3776beb 100644
+> > > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > > @@ -221,6 +221,7 @@ enum nft_set_flags {
+> > >   * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
+> > >   * @NFTA_SET_DATA_TYPE: mapping data type (NLA_U32)
+> > >   * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
+> > > + * @NFTA_SET_ID: set ID (NLA_U64)
+> > 
+> > I think a U32 should be perfectly fine. These are not permanent IDs but just to
+> > identify new sets contained within a batch, so we can always start at 0.
+> 
+> Yes, I was considering using this also to output the set identifier
+> for anonymous sets, but the dynamically allocated name should be fine
+> so I'll stick to u32.
 
-Quite the contrary, the new code would be
-    if (ct->master || help)
-        return;
-This will relax the if statement condition, which will decrease the
-__nf_ct_try_assing_helper() call count.
+I think these are two different things. The set identifier is so far actually
+a transaction identifier, mixing these will most likely get messy.
 
-Anyway, I use a Broadcom patched 3.4.11, but I checked the origin of
-the call, it does not originate from their patches, in comes from
-nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC) call found in
-masquerade_tg().
-Helper auto assignments are enabled (in that version is not possible
-to inhibit them outside loading nf_conntrack_ftp with ports=0).
+> Going back to the idea of using u64 to allocate the set/map names, I
+> think we have to extend the set name, currently IFNAMSIZ is limited
+> when mapping the name to set%lld, assuming a large u64 number.
+
+The problem is more that this ID is chosen by userspace, so it's not suitable
+for anonymous sets. I'd rather get rid of the names for anonymous sets
+completely. For dumps we can just as well use a dynamic numeric identifier
+to associate lookup expressions with sets. We don't really need a permanent
+identifier.
+
+> > > @@ -2534,7 +2619,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+> > >  {
+> > >  	list_del(&binding->list);
+> > >  
+> > > -	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
+> > > +	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+> > > +	    !(set->flags & __NFT_SET_INACTIVE))
+> > 
+> > Why are we not destroying anonymous inactive sets when unbinding? This means we're
+> > either aborting or replaying the entire transaction, so it seems we should remove
+> > them, no?
+> 
+> The set may be already bound to the rule, we skip this here, so the
+> set is released from the transaction. This is just to avoid a double
+> free case.
+
+I have to read the patch again, I was under the impression that a bound set
+has already been comitted and we therefore won't fail anymore. Probably
+misunderstood something.
