@@ -1,89 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH RFC 1/2] netfilter: nf_tables: move set netlink messages
- into the batch
-Date: Wed, 26 Mar 2014 11:25:54 +0000
-Message-ID: <20140326112554.GC452@macbook.localnet>
-References: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [ulogd PATCH 0/8] make progress ulogd_output_IPFIX
+Date: Wed, 26 Mar 2014 21:11:24 +0900
+Message-ID: <20140326121122.GA24689@gmail.com>
+References: <20140308010344.GA4415@gmail.com>
+ <1395600620.23474.18.camel@ice-age2.regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33684 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755076AbaCZLZ7 (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:32772 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518AbaCZMLl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 07:25:59 -0400
+	Wed, 26 Mar 2014 08:11:41 -0400
+Received: by mail-pb0-f48.google.com with SMTP id md12so1849868pbc.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2014 05:11:40 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1395600620.23474.18.camel@ice-age2.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 25, 2014 at 09:39:41PM +0100, Pablo Neira Ayuso wrote:
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index e6bc14d..b749e4d 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -222,6 +222,8 @@ static inline void *nft_set_priv(const struct nft_set *set)
->  
->  struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
->  				     const struct nlattr *nla);
-> +struct nft_set *nf_tables_set_lookup2(const struct net *net,
-> +				      const struct nlattr *nla);
+ Hello Eric.
 
-nf_tables_set_lookup_byid?
+Thank you for taking your time to see it and your reply.
 
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index c88ccbf..3776beb 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -221,6 +221,7 @@ enum nft_set_flags {
->   * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
->   * @NFTA_SET_DATA_TYPE: mapping data type (NLA_U32)
->   * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
-> + * @NFTA_SET_ID: set ID (NLA_U64)
+> Some generic points regarding this patchset:
 
-I think a U32 should be perfectly fine. These are not permanent IDs but just to
-identify new sets contained within a batch, so we can always start at 0.
+I'm resending all with following it, sorry for your inconvenience
+And you wrote...
 
-> +static int nf_tables_set_trans_add(struct list_head *list, struct nft_ctx *ctx,
-> +				   struct nft_set *set)
-> +{
-> +	struct nft_set_trans *strans;
-> +
-> +	strans = kmalloc(sizeof(struct nft_set_trans), GFP_ATOMIC);
+> Subject: Re: [PATCH 1/8] ipfix: use nfct_bitmask
+> available on the system. As it is possible to build ulogd with
+> --disable-nfct configure flags, you need to make the build of IPFIX
 
-Do we need GFP_ATOMIC?
+I see. I should have seen input/Makefile.am before, thank you.
 
-> +	if (strans == NULL)
-> +		return -ENOMEM;
-> +
-> +	strans->set = set;
-> +	strans->ctx = *ctx;
-> +	if (ctx->nla[NFTA_SET_ID])
-> +		strans->id = be64_to_cpu(nla_get_be64(ctx->nla[NFTA_SET_ID]));
-> +
-> +	set->flags |= __NFT_SET_INACTIVE;
-> +	list_add_tail(&strans->list, list);
-> +	return 0;
-> +}
-> +
->  static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
->  			    const struct nlmsghdr *nlh,
->  			    const struct nlattr * const nla[])
->  static int nf_tables_bind_check_setelem(const struct nft_ctx *ctx,
-> @@ -2534,7 +2619,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
->  {
->  	list_del(&binding->list);
->  
-> -	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
-> +	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
-> +	    !(set->flags & __NFT_SET_INACTIVE))
+> Subject: Re: [PATCH 5/8] ipfix: add function for ipfix message creation
+> I don't like this malloc because ulogd will do an allocation for each
 
-Why are we not destroying anonymous inactive sets when unbinding? This means we're
-either aborting or replaying the entire transaction, so it seems we should remove
-them, no?
+I think we can fix allocation sizes for each of template and I worked
+at PATCH 8/8 but you could not see it because the patches format were
+invalid, sorry.
 
->  		nf_tables_set_destroy(ctx, set);
->  }
->  
+Thanks.
