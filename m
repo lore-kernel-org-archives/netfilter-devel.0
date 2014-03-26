@@ -1,120 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC 1/2] netfilter: nf_tables: move set netlink messages
- into the batch
-Date: Wed, 26 Mar 2014 16:53:36 +0100
-Message-ID: <20140326155336.GA32594@localhost>
-References: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
- <20140326112554.GC452@macbook.localnet>
- <20140326130338.GA31813@localhost>
- <20140326131856.GA7173@macbook.localnet>
- <20140326134022.GA31965@localhost>
- <20140326140003.GA7344@macbook.localnet>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [helper PATCH] Preserve conntrack helper bound through CT rule
+Date: Wed, 26 Mar 2014 17:57:47 +0100
+Message-ID: <20140326165747.GE21741@breakpoint.cc>
+References: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
+ <20140326130445.GD21741@breakpoint.cc>
+ <CAF1oqRAg8Xi+JwL_ErzuwF1TFWHCMcV6pGasUfFQ5_RaDNMBOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Alin =?utf-8?Q?N=C4=83stac?= <alin.nastac@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39161 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580AbaCZPxo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 11:53:44 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34752 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932095AbaCZQ5s (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Mar 2014 12:57:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20140326140003.GA7344@macbook.localnet>
+In-Reply-To: <CAF1oqRAg8Xi+JwL_ErzuwF1TFWHCMcV6pGasUfFQ5_RaDNMBOQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 26, 2014 at 02:00:21PM +0000, Patrick McHardy wrote:
-> On Wed, Mar 26, 2014 at 02:40:22PM +0100, Pablo Neira Ayuso wrote:
-> > On Wed, Mar 26, 2014 at 01:18:57PM +0000, Patrick McHardy wrote:
-> > > On Wed, Mar 26, 2014 at 02:03:38PM +0100, Pablo Neira Ayuso wrote:
-> > > > On Wed, Mar 26, 2014 at 11:25:54AM +0000, Patrick McHardy wrote:
-> > > > > On Tue, Mar 25, 2014 at 09:39:41PM +0100, Pablo Neira Ayuso wrote:
-> > > > 
-> > > > > I think a U32 should be perfectly fine. These are not permanent IDs but just to
-> > > > > identify new sets contained within a batch, so we can always start at 0.
-> > > > 
-> > > > Yes, I was considering using this also to output the set identifier
-> > > > for anonymous sets, but the dynamically allocated name should be fine
-> > > > so I'll stick to u32.
-> > > 
-> > > I think these are two different things. The set identifier is so far actually
-> > > a transaction identifier, mixing these will most likely get messy.
-> > > 
-> > > > Going back to the idea of using u64 to allocate the set/map names, I
-> > > > think we have to extend the set name, currently IFNAMSIZ is limited
-> > > > when mapping the name to set%lld, assuming a large u64 number.
-> > > 
-> > > The problem is more that this ID is chosen by userspace, so it's not suitable
-> > > for anonymous sets.
-> > 
-> > I was not considering to use the ID allocated from userspace, but
-> > reusing the NFTA_SET_ID attribute given that it is only used for
-> > messages from userspace -> kernel, so we can reuse it when dumping the
-> > anonymous set to userspace, but that's two different things with
-> > different semantics, so better to have two different attributes for
-> > each, eg. NFTA_SET_ID_ANONYMOUS?
-> 
-> Actually that one would probably be fine. In both cases it would be used
-> in a very similar fashion, a temporary identifier or transaction ID.
+Alin N=C4=83stac <alin.nastac@gmail.com> wrote:
+> Hi Florian,
+>=20
+> Quite the contrary, the new code would be
+>     if (ct->master || help)
+>         return;
+> This will relax the if statement condition, which will decrease the
+> __nf_ct_try_assing_helper() call count.
 
-Ok, then I'm going to leave the u64 NFTA_SET_ID there so we can reuse
-it later on for the dumping. Let me know if I misinterpreted your
-comment.
+Right.
 
-> > > I'd rather get rid of the names for anonymous sets completely. For
-> > > dumps we can just as well use a dynamic numeric identifier to
-> > > associate lookup expressions with sets. We don't really need a
-> > > permanent identifier.
-> > 
-> > How will that look like? I think we need some permanent way to
-> > identify sets even if they are anonymous. A permanent ID should be
-> > fine for that.
-> 
-> Well it depends. Right now we have anonymous sets, meaning an ID is allocated,
-> but they're only used in combination with constant sets, which means they
-> can not be changed so we don't need a permanent ID. If we were to use
-> anonymous in combination with non-const then yes, we need a permanent ID.
+> Anyway, I use a Broadcom patched 3.4.11, but I checked the origin of
+> the call, it does not originate from their patches, in comes from
+> nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC) call found in
+> masquerade_tg().
 
-I see, for const + anonymous it doesn't make much sense as userspace
-can just barely fetch them, but not update them.
-
-> In either case the numeric ID is fine, the question is simply whether it
-> needs to be a permanent ID or whether a temoprary one is enough.
-
-Hm, perhaps we may add statistics per element in the future or any
-other feature that alters some internal state of the element. The user
-can fetch the set ID from the rule and then keep using it to retrieve
-that that internal state using the permanent ID.
-
-> > > > > > @@ -2534,7 +2619,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
-> > > > > >  {
-> > > > > >  	list_del(&binding->list);
-> > > > > >  
-> > > > > > -	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
-> > > > > > +	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
-> > > > > > +	    !(set->flags & __NFT_SET_INACTIVE))
-> > > > > 
-> > > > > Why are we not destroying anonymous inactive sets when unbinding? This means we're
-> > > > > either aborting or replaying the entire transaction, so it seems we should remove
-> > > > > them, no?
-> > > > 
-> > > > The set may be already bound to the rule, we skip this here, so the
-> > > > set is released from the transaction. This is just to avoid a double
-> > > > free case.
-> > > 
-> > > I have to read the patch again, I was under the impression that a bound set
-> > > has already been comitted and we therefore won't fail anymore. Probably
-> > > misunderstood something.
-> > 
-> > Think of the abort step. We already have some rules bound to the set
-> > (not yet committed), but we failed to load some rule, we need to
-> > release those rules and their set bindings. In that case, the rule
-> > destroy path skips releasing the set, so we just let the abort routine
-> > to iterate over the list of new sets to releasing.
-> 
-> So we do bind to uncommitted sets? That's the part I was missing.
-
-Right. That simplifies the error handling as no errors can currently
-happen in the nf_tables_commit() step, so we don't need to undo
-changes that were already applied because of errors which would be
-tricky.
+I guess this was fixed by
+commit 6714cf5465d2803a21c6a46c1ea747795a8889fa
+'netfilter: nf_conntrack: fix explicit helper attachment and NAT').
+in 3.5 kernel.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
