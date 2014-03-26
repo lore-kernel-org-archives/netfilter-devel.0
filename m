@@ -1,60 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrackd: claim lockfile ownership properly
-Date: Tue, 25 Mar 2014 22:05:28 +0100
-Message-ID: <20140325210528.GA3780@localhost>
-References: <1394587873-9821-1-git-send-email-aatteka@nicira.com>
- <20140325205831.GA3681@localhost>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: nf_tables: set names cannot be larger than 15
+ bytes
+Date: Wed, 26 Mar 2014 01:32:50 +0100
+Message-ID: <20140326003250.GC21741@breakpoint.cc>
+References: <1395670237-3841-1-git-send-email-pablo@netfilter.org>
+ <20140324224105.GA21741@breakpoint.cc>
+ <20140325204537.GA3501@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ansis Atteka <aatteka@nicira.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	giuseppelng@gmail.com, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55304 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754882AbaCYVFd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Mar 2014 17:05:33 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60243 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753818AbaCZAcw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Mar 2014 20:32:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20140325205831.GA3681@localhost>
+In-Reply-To: <20140325204537.GA3501@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 25, 2014 at 09:58:31PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Mar 11, 2014 at 06:31:13PM -0700, Ansis Atteka wrote:
-> > Before this patch, if conntrackd died in an abrupt manner (either
-> > by SIGKILL, SIGSEGV or abrupt shutdown), then it would have left
-> > a stale lock file that would have prevented any new conntrackd
-> > instances from running.
-> 
-> SIGKILL and SIGSEGV need a closer look from the admin, since things
-> are not going right. Sudden (abrupt) shutdown is indeed a problem.
-> 
-> > Contrary to abrupt termination, this same bug was not present when
-> > conntrackd was terminated with a graceful signal (e.g. SIGTERM).
-> > This was because then the lock file would have been removed from
-> > the signal handler as expected.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Mar 24, 2014 at 11:41:05PM +0100, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > > index 33045a5..43ae487 100644
+> > > --- a/net/netfilter/nf_tables_api.c
+> > > +++ b/net/netfilter/nf_tables_api.c
+> > > @@ -1946,7 +1946,8 @@ static const struct nft_set_ops *nft_select_set_ops(const struct nlattr * const
+> > >  
+> > >  static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+> > >  	[NFTA_SET_TABLE]		= { .type = NLA_STRING },
+> > > -	[NFTA_SET_NAME]			= { .type = NLA_STRING },
+> > > +	[NFTA_SET_NAME]			= { .type = NLA_STRING,
+> > > +					    .len = IFNAMSIZ - 1 },
 > > 
-> > This patch fixes this bug by using POSIX File Locking API instead
-> > of opening file in O_EXCL mode. File Locking API ensures that file
-> > lock will be released once the process holding it terminates (either
-> > gracefully or abruptly).
-> > 
-> > One side effect of this patch is that daemonization has to happen
-> > before the lock file is locked (due to the fact that child processes
-> > do not inherit file locks from the parent process).  This means that
-> > some error messages have to be logged in log file instead of STDOUT.
+> > Not related to your patch, but it looks to me as if all of these
+> > should be NLA_NUL_STRING, no?
 > 
-> Can you rework this to avoid converting all those message from stdout
-> to the log file? I like that this daemon bails out to stdout if early
-> problems are found, I find it quite annoying when you launch things
-> and then you have to check ps and log file to see the reason for an
-> early configuration problem. And I don't find a good reason why we
-> need an early daemonization that this patch introduces.
+> This is what I originally thought. But all of the nla_* functions use
+> the nla_len to know length of the string coming from userspace, so
+> they don't rely on the trailing nul-termination.
 
-Now I noticed after reading my own words, this can be problematic if
-someone just types 'conntrackd' by mistake instead of 'conntrackd -e'
-to dump the external cache.
+Indeed.  I reviewed this again but only 'bug' I spotted:
 
-What about using two locks? I mean, one that is grabbed when the
-process is in non-daemon stage, then another one once one it enters
-daemon stage. I think that should help to workaround the posix file
-locking limitation which doesn't allow us to inherit lock file?
+nf_tables_chain_type_lookup() does:
+request_module("nft-chain-%u-%*.s", ....
+
+('%.*s' was probably intended).  Its harmless though as NFTA_CHAIN_TYPE is
+NLA_NUL_STR so the erroneous fmt could also be changed to plain %s.
