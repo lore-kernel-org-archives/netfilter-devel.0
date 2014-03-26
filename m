@@ -1,48 +1,106 @@
-From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
-Subject: [helper PATCH] Preserve conntrack helper bound through CT rule
-Date: Wed, 26 Mar 2014 13:34:04 +0100
-Message-ID: <CAF1oqRC4LDjjq2X1EjRSJr0g0oQk45UMZBviLz0mziTwM8WbRQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH RFC 1/2] netfilter: nf_tables: move set netlink messages
+ into the batch
+Date: Wed, 26 Mar 2014 14:03:38 +0100
+Message-ID: <20140326130338.GA31813@localhost>
+References: <1395779982-3459-1-git-send-email-pablo@netfilter.org>
+ <20140326112554.GC452@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:46102 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754118AbaCZMeF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 08:34:05 -0400
-Received: by mail-lb0-f177.google.com with SMTP id z11so1434426lbi.36
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2014 05:34:04 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:60174 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753526AbaCZNDu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Mar 2014 09:03:50 -0400
+Content-Disposition: inline
+In-Reply-To: <20140326112554.GC452@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Wed, Mar 26, 2014 at 11:25:54AM +0000, Patrick McHardy wrote:
+> On Tue, Mar 25, 2014 at 09:39:41PM +0100, Pablo Neira Ayuso wrote:
+> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> > index e6bc14d..b749e4d 100644
+> > --- a/include/net/netfilter/nf_tables.h
+> > +++ b/include/net/netfilter/nf_tables.h
+> > @@ -222,6 +222,8 @@ static inline void *nft_set_priv(const struct nft_set *set)
+> >  
+> >  struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
+> >  				     const struct nlattr *nla);
+> > +struct nft_set *nf_tables_set_lookup2(const struct net *net,
+> > +				      const struct nlattr *nla);
+> 
+> nf_tables_set_lookup_byid?
 
-I've discovered that MASQUERADE target overwrites the CT --helper settings.
-The setup I used is the following:
-  iptables -t raw -A PREROUTING -i lan -p tcp --dport 2121 -j CT --helper ftp
-  iptables -t nat -A POSTROUTING -o wan -s 192.168.1.0/24 -j MASQUERADE
+That looks better.
 
-I found out the problem, the helper set in the conntrack template is
-overwritten by MASQUERADE target.
-This patch fixes the issue:
+> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > index c88ccbf..3776beb 100644
+> > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > @@ -221,6 +221,7 @@ enum nft_set_flags {
+> >   * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
+> >   * @NFTA_SET_DATA_TYPE: mapping data type (NLA_U32)
+> >   * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
+> > + * @NFTA_SET_ID: set ID (NLA_U64)
+> 
+> I think a U32 should be perfectly fine. These are not permanent IDs but just to
+> identify new sets contained within a batch, so we can always start at 0.
 
-diff --git a/net/netfilter/nf_conntrack_core.c
-b/net/netfilter/nf_conntrack_core.c
-index bba14a7..ab7cd3e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1445,7 +1445,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
-        nf_ct_dump_tuple(newreply);
+Yes, I was considering using this also to output the set identifier
+for anonymous sets, but the dynamically allocated name should be fine
+so I'll stick to u32.
 
-        ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
--       if (ct->master || (help && !hlist_empty(&help->expectations)))
-+       if (ct->master || help)
-                return;
+Going back to the idea of using u64 to allocate the set/map names, I
+think we have to extend the set name, currently IFNAMSIZ is limited
+when mapping the name to set%lld, assuming a large u64 number.
 
-        rcu_read_lock();
+> > +static int nf_tables_set_trans_add(struct list_head *list, struct nft_ctx *ctx,
+> > +				   struct nft_set *set)
+> > +{
+> > +	struct nft_set_trans *strans;
+> > +
+> > +	strans = kmalloc(sizeof(struct nft_set_trans), GFP_ATOMIC);
+> 
+> Do we need GFP_ATOMIC?
 
-I didn't used the latest kernel, but seems the problem is still present.
+not really, will swap that to GFP_KERNEL.
 
-Best regs,
-Alin
+> > +	if (strans == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	strans->set = set;
+> > +	strans->ctx = *ctx;
+> > +	if (ctx->nla[NFTA_SET_ID])
+> > +		strans->id = be64_to_cpu(nla_get_be64(ctx->nla[NFTA_SET_ID]));
+> > +
+> > +	set->flags |= __NFT_SET_INACTIVE;
+> > +	list_add_tail(&strans->list, list);
+> > +	return 0;
+> > +}
+> > +
+> >  static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+> >  			    const struct nlmsghdr *nlh,
+> >  			    const struct nlattr * const nla[])
+> >  static int nf_tables_bind_check_setelem(const struct nft_ctx *ctx,
+> > @@ -2534,7 +2619,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+> >  {
+> >  	list_del(&binding->list);
+> >  
+> > -	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
+> > +	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+> > +	    !(set->flags & __NFT_SET_INACTIVE))
+> 
+> Why are we not destroying anonymous inactive sets when unbinding? This means we're
+> either aborting or replaying the entire transaction, so it seems we should remove
+> them, no?
+
+The set may be already bound to the rule, we skip this here, so the
+set is released from the transaction. This is just to avoid a double
+free case.
+
+> >  		nf_tables_set_destroy(ctx, set);
+> >  }
+> >  
