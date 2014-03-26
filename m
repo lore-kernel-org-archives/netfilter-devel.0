@@ -1,23 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] set_elems: delete void EXPORT_SYMBOL
-Date: Wed, 26 Mar 2014 20:20:50 +0100
-Message-ID: <20140326192050.GA6511@localhost>
-References: <20140319165326.3656.88730.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH][v5] netlink: have netlink per-protocol bind function
+ return an error code.
+Date: Wed, 26 Mar 2014 15:52:58 -0400 (EDT)
+Message-ID: <20140326.155258.685120737486107362.davem@davemloft.net>
+References: <20140324183406.GE28666@madcap2.tricolour.ca>
+	<5bf7c2b8ad25b31bb34ae00f5fe6ec7f5d653f4b.1395693533.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	eparis@redhat.com, sgrubb@redhat.com, hadi@mojatatu.com
+To: rgb@redhat.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52566 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755669AbaCZTU6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Mar 2014 15:20:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20140319165326.3656.88730.stgit@nfdev.cica.es>
+Received: from shards.monkeyblade.net ([149.20.54.216]:46408 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753544AbaCZTxE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Mar 2014 15:53:04 -0400
+In-Reply-To: <5bf7c2b8ad25b31bb34ae00f5fe6ec7f5d653f4b.1395693533.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 19, 2014 at 05:53:26PM +0100, Arturo Borrero Gonzalez wrote:
-> There is no function called 'nft_set_elem_nlmsg_parse()'.
+From: Richard Guy Briggs <rgb@redhat.com>
+Date: Mon, 24 Mar 2014 16:59:23 -0400
 
-Applied, thanks.
+> +				if (err)
+> +					if (!nlk->portid)
+> +						netlink_remove(sk);
+> +					for (int undo = 0; undo < i; undo++)
+> +						if (nlk->netlink_unbind)
+> +							nlk->netlink_unbind(undo);
+> +					return err;
+
+Take a good long stare at that code block for a while.
+
+Looks like you forgot the braces to delineate the code block.
+
+This also means you really haven't tested this patch :-)
+
+Please also DO NOT declare local variables in a for() statement,
+this is not c++.
