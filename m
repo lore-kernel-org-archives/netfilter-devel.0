@@ -1,39 +1,56 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH 0/5] Add suport for bridge if dev name meta exepression
- keys
-Date: Thu, 27 Mar 2014 15:11:39 +0200
-Message-ID: <5334238B.1010108@linux.intel.com>
-References: <1395924427-27947-1-git-send-email-tomasz.bursztyka@linux.intel.com> <20140327125532.GA30825@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51447 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754903AbaC0NNJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Mar 2014 09:13:09 -0400
-In-Reply-To: <20140327125532.GA30825@macbook.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andrey Vagin <avagin@openvz.org>
+Subject: [PATCH] netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len
+Date: Thu, 27 Mar 2014 19:32:34 +0400
+Message-ID: <1395934354-13226-1-git-send-email-avagin@openvz.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, vvs@parallels.com,
+	Andrey Vagin <avagin@openvz.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+"len" contains sizeof(nf_ct_ext) and size of extensions. In a worst
+case it can contain all extensions. Bellow you can find sizes for all
+types of extensions. Their sum is definitely bigger than 256.
 
-> On Thu, Mar 27, 2014 at 02:47:02PM +0200, Tomasz Bursztyka wrote:
->> Here is the patch-set to add meta keys NFT_META_BRI_IIFNAME and NFT_META_BRI_OIFNAME.
->>
->> I did not factorize nft_meta.c code to reuse nft_meta_select_ops() and nft_meta_bridge_init()
->> At least solutions I had made the code too ugly.
->> Declaring a type for select_ops functions, same for validate_get() one, and have
->> an in-between functions called relevantly by meta_<bridge_>init etc...
-> Thanks. The patches look fine, however I'd ask you to hold off until
-> tommorrow. I have patches coming up that will introduce variable sized
-> registers for concatenations, which remove some of the functions you
-> export, so we can avoid some churn of first exporting, then removing
-> them again by adding your patches on top. Should only be very minor
-> changes to adapt.
+nf_ct_ext_types[0]->len = 24
+nf_ct_ext_types[1]->len = 32
+nf_ct_ext_types[2]->len = 24
+nf_ct_ext_types[3]->len = 32
+nf_ct_ext_types[4]->len = 152
+nf_ct_ext_types[5]->len = 2
+nf_ct_ext_types[6]->len = 16
+nf_ct_ext_types[7]->len = 8
 
-Sure, I will rebase my patchset once your modifications are upstream.
+I have seen "len" up to 280 and my host has crashes w/o this patch.
 
-Tomasz
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+---
+ include/net/netfilter/nf_conntrack_extend.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 956b175..36fd6bf 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -48,7 +48,7 @@ enum nf_ct_ext_id {
+ struct nf_ct_ext {
+ 	struct rcu_head rcu;
+ 	u8 offset[NF_CT_EXT_NUM];
+-	u8 len;
++	u16 len;
+ 	char data[0];
+ };
+ 
+-- 
+1.8.5.3
+
