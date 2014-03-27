@@ -1,42 +1,92 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH v5] core, nfqueue,
- openvswitch: Orphan frags in skb_zerocopy and handle errors
-Date: Thu, 27 Mar 2014 15:29:56 -0400 (EDT)
-Message-ID: <20140327.152956.1528740039185894234.davem@davemloft.net>
-References: <1395873465-22282-1-git-send-email-zoltan.kiss@citrix.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mszeredi-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org,
- therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org,
- kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
- jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
-To: zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1395873465-22282-1-git-send-email-zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+From: Andrey Vagin <avagin@openvz.org>
+Subject: [PATCH] netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len (v2)
+Date: Fri, 28 Mar 2014 00:06:20 +0400
+Message-ID: <1395950780-14792-1-git-send-email-avagin@openvz.org>
+References: <20140327154504.GC31944@macbook.localnet>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, vvs@parallels.com,
+	Andrey Vagin <avagin@openvz.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20140327154504.GC31944@macbook.localnet>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-Date: Wed, 26 Mar 2014 22:37:45 +0000
+"len" contains sizeof(nf_ct_ext) and size of extensions. In a worst
+case it can contain all extensions. Bellow you can find sizes for all
+types of extensions. Their sum is definitely bigger than 256.
 
-> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
-> orphan them. Also, it doesn't handle errors, so this patch takes care of that
-> as well, and modify the callers accordingly. skb_tx_error() is also added to
-> the callers so they will signal the failed delivery towards the creator of the
-> skb.
-> 
-> Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+nf_ct_ext_types[0]->len = 24
+nf_ct_ext_types[1]->len = 32
+nf_ct_ext_types[2]->len = 24
+nf_ct_ext_types[3]->len = 32
+nf_ct_ext_types[4]->len = 152
+nf_ct_ext_types[5]->len = 2
+nf_ct_ext_types[6]->len = 16
+nf_ct_ext_types[7]->len = 8
 
-Fingers crossed :-)  Applied, thanks Zoltan.
+I have seen "len" up to 280 and my host has crashes w/o this patch.
+
+The right way to fix this problem is reducing the size of the ecache
+extension (4) and Florian is going to do this, but these changes will
+be quite large to be appropriate for a stable tree.
+
+v2: rearrange the extension so ECACHE comes last. This is required to
+prevent overflow of nf_ct_ext->offset.
+
+Fixes: 5b423f6a40a0 (netfilter: nf_conntrack: fix racy timer handling with reliable)
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+---
+ include/net/netfilter/nf_conntrack_extend.h | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 956b175..9d41750 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -12,9 +12,6 @@ enum nf_ct_ext_id {
+ #endif
+ 	NF_CT_EXT_SEQADJ,
+ 	NF_CT_EXT_ACCT,
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-	NF_CT_EXT_ECACHE,
+-#endif
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	NF_CT_EXT_ZONE,
+ #endif
+@@ -30,6 +27,15 @@ enum nf_ct_ext_id {
+ #if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
+ 	NF_CT_EXT_SYNPROXY,
+ #endif
++
++/*
++ * The size of the nf_conntrack_ecache struct is about 150 bytes, so
++ * NF_CT_EXT_ECACHE must be the last one to prevent overflow of
++ * nf_ct_ext->offset[id]
++ */
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	NF_CT_EXT_ECACHE,
++#endif
+ 	NF_CT_EXT_NUM,
+ };
+ 
+@@ -48,7 +54,7 @@ enum nf_ct_ext_id {
+ struct nf_ct_ext {
+ 	struct rcu_head rcu;
+ 	u8 offset[NF_CT_EXT_NUM];
+-	u8 len;
++	u16 len;
+ 	char data[0];
+ };
+ 
+-- 
+1.8.5.3
+
