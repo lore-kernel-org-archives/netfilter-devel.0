@@ -1,35 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/5] Add suport for bridge if dev name meta exepression
- keys
-Date: Thu, 27 Mar 2014 12:55:32 +0000
-Message-ID: <20140327125532.GA30825@macbook.localnet>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH 3/5] netfilter: nf_tables: Add meta expression key for
+ bridge interface name
+Date: Thu, 27 Mar 2014 13:59:06 +0100
+Message-ID: <CAOkSjBiyNe7cRA_HiojL_BOsYXPR=P48mJQyZSVgO7HSnLp3DQ@mail.gmail.com>
 References: <1395924427-27947-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1395924427-27947-4-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44619 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbaC0Mzg (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:38019 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752124AbaC0M72 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Mar 2014 08:55:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1395924427-27947-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+	Thu, 27 Mar 2014 08:59:28 -0400
+Received: by mail-la0-f45.google.com with SMTP id hr17so2592693lab.18
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Mar 2014 05:59:26 -0700 (PDT)
+In-Reply-To: <1395924427-27947-4-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 27, 2014 at 02:47:02PM +0200, Tomasz Bursztyka wrote:
-> Here is the patch-set to add meta keys NFT_META_BRI_IIFNAME and NFT_META_BRI_OIFNAME.
-> 
-> I did not factorize nft_meta.c code to reuse nft_meta_select_ops() and nft_meta_bridge_init()
-> At least solutions I had made the code too ugly.
-> Declaring a type for select_ops functions, same for validate_get() one, and have
-> an in-between functions called relevantly by meta_<bridge_>init etc...
+On 27 March 2014 13:47, Tomasz Bursztyka
+<tomasz.bursztyka@linux.intel.com> wrote:
+>
+> diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netf=
+ilter/nft_meta_bridge.c
+> new file mode 100644
+> index 0000000..411a6b5
+> --- /dev/null
+> +++ b/net/bridge/netfilter/nft_meta_bridge.c
+> @@ -0,0 +1,162 @@
+> +/*
+> + * Copyright (c) 2012 Intel Corporation
+> + *
 
-Thanks. The patches look fine, however I'd ask you to hold off until
-tommorrow. I have patches coming up that will introduce variable sized
-registers for concatenations, which remove some of the functions you
-export, so we can avoid some churn of first exporting, then removing
-them again by adding your patches on top. Should only be very minor
-changes to adapt.
+minor question:
+Why do you use 2012 here?
+
+regards
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
