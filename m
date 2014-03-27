@@ -1,34 +1,43 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC 3/3] netfilter: nftables: Return preferably given family
- expression if any
-Date: Thu, 27 Mar 2014 13:00:15 +0200
-Message-ID: <533404BF.8060006@linux.intel.com>
-References: <1395911972-17259-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1395911972-17259-4-git-send-email-tomasz.bursztyka@linux.intel.com> <20140327092638.GA3884@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 1/5] netfilter: nf_tables: Stack expression type depending on their family
+Date: Thu, 27 Mar 2014 14:47:03 +0200
+Message-ID: <1395924427-27947-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1395924427-27947-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43795 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:64293 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755359AbaC0LAX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Mar 2014 07:00:23 -0400
-In-Reply-To: <20140327092638.GA3884@macbook.localnet>
+	id S1755098AbaC0Mrc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Mar 2014 08:47:32 -0400
+In-Reply-To: <1395924427-27947-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> Currently, when looking up for the proper expression type, what comes
->> >first is returned. Which might end up to be a non-family tight type.
->> >Instead, if a specific family type exist, it will be better to return
->> >this one.
-> Easier suggestion:
->
-> Change nft_register_expr() to appent NFPROTO_UNSPEC to the end of the
-> list and prepend all others.
+To ensure family tight expression gets selected in priority to family
+agnostic ones.
 
-Obvious one which I missed, as usual.
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ net/netfilter/nf_tables_api.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks Patrick
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index adce01e..128bd9b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1094,7 +1094,10 @@ static void nft_ctx_init(struct nft_ctx *ctx,
+ int nft_register_expr(struct nft_expr_type *type)
+ {
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	list_add_tail(&type->list, &nf_tables_expressions);
++	if (type->family == NFPROTO_UNSPEC)
++		list_add_tail(&type->list, &nf_tables_expressions);
++	else
++		list_add(&type->list, &nf_tables_expressions);
+ 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+ 	return 0;
+ }
+-- 
+1.8.3.2
 
-Tomasz
