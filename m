@@ -1,54 +1,32 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next] netfilter: conntrack: remove timer from ecache
- extension
-Date: Fri, 28 Mar 2014 14:09:34 +0100
-Message-ID: <20140328130934.GB4682@breakpoint.cc>
-References: <1395943238-29319-1-git-send-email-fw@strlen.de>
- <20140328103203.GA12225@localhost>
- <20140328111031.GG21741@breakpoint.cc>
- <20140328111440.GA12728@localhost>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 6/7] netfilter: nf_tables: move chain handling to the
+ transaction infrastructure
+Date: Fri, 28 Mar 2014 13:10:00 +0000
+Message-ID: <20140328131000.GF7895@macbook.localnet>
+References: <1395957197-4899-1-git-send-email-pablo@netfilter.org>
+ <1395957197-4899-7-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44191 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751227AbaC1NJf (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55521 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751227AbaC1NKE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 09:09:35 -0400
+	Fri, 28 Mar 2014 09:10:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20140328111440.GA12728@localhost>
+In-Reply-To: <1395957197-4899-7-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Mar 28, 2014 at 12:10:31PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > >  I'm mainly interested if you think timer removal is worthwile,
-> > > >  it works well in practice from usability POV.
-> > > 
-> > > Thanks for looking again into this. We definitely have to get rid of
-> > > that timer.
-> > > 
-> > > Regarding the new flag, perhaps we can avoid exposing this to
-> > > userspace? I mean, we can define some mask of internal flags that we
-> > > don't include via dump_status in ctnetlink.
-> > 
-> > What is your rationale for supressing this information?
-> > [ or, why is exposing this to userspace bad? ]
-> 
-> I think that flag provides no useful information to userspace.
+On Thu, Mar 27, 2014 at 10:53:16PM +0100, Pablo Neira Ayuso wrote:
+> This patch speeds up rule-set updates and it helps to leave chains
+> in consistent state when processing a batch. Note this patch does
+> not introduce a way to revert chain updates, eg. counter or default
+> policy changes.
 
-Fair enough.
-
-> > Is it so we don't have to keep dummy flag when we find a different
-> > solution later?
-> 
-> Right, that's another good reason not to expose that information to
-> userspace.
-
-Alright, I'll create a separate patch that adds mask of 'public'
-flags that will be dumped to userspace.
-
-Will send it along with another spin of this patch next week or so.
+Also it doesn't seem to handle chain renames. I think this is a conceptual
+shortcoming, there's no way to implement updates properly by just storing
+the chain in the transaction, we need to store the actual actions to be
+performed.
