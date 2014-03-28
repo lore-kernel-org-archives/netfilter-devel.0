@@ -1,46 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/7] netfilter: nf_tables: deconstify table and chain in
- context structure
-Date: Fri, 28 Mar 2014 13:57:41 +0100
-Message-ID: <20140328125741.GA13685@localhost>
-References: <1395957197-4899-1-git-send-email-pablo@netfilter.org>
- <1395957197-4899-2-git-send-email-pablo@netfilter.org>
- <20140328124229.GB7895@macbook.localnet>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: nf_tables: set names cannot be larger than 15
+ bytes
+Date: Fri, 28 Mar 2014 14:18:39 +0100
+Message-ID: <20140328131839.GH21741@breakpoint.cc>
+References: <1395670237-3841-1-git-send-email-pablo@netfilter.org>
+ <20140324224105.GA21741@breakpoint.cc>
+ <20140325204537.GA3501@localhost>
+ <20140326003250.GC21741@breakpoint.cc>
+ <20140328112058.GA12878@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	giuseppelng@gmail.com, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47413 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751227AbaC1NPc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 09:15:32 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44217 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751417AbaC1NSl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2014 09:18:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20140328124229.GB7895@macbook.localnet>
+In-Reply-To: <20140328112058.GA12878@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 28, 2014 at 12:42:29PM +0000, Patrick McHardy wrote:
-> On Thu, Mar 27, 2014 at 10:53:11PM +0100, Pablo Neira Ayuso wrote:
-> > The new transaction infrastructure updates the family, table and chain
-> > objects in the context structure, so let's deconstify them. While at it,
-> > move the context structure initialization routine to the top of the
-> > source file as it will be also used from the table and chain routines.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > This is what I originally thought. But all of the nla_* functions use
+> > > the nla_len to know length of the string coming from userspace, so
+> > > they don't rely on the trailing nul-termination.
+> > 
+> > Indeed.  I reviewed this again but only 'bug' I spotted:
+> > 
+> > nf_tables_chain_type_lookup() does:
+> > request_module("nft-chain-%u-%*.s", ....
+> > 
+> > ('%.*s' was probably intended).  Its harmless though as NFTA_CHAIN_TYPE is
+> > NLA_NUL_STR so the erroneous fmt could also be changed to plain %s.
 > 
-> I would prefer to keep the consts for the context, but I'm fine with it
-> if we don't find a clean other way. Basically I'd suggest to use your
-> patch if we have functions that are called from both the transaction
-> code and non-transaction code, IOW need the nft_ctx structure.
-> Otherwise, if this stuff is only used by the transaction code, we could
-> add the individual members to the transaction as non-consts.
+> I think we can change that to NLA_STRING to make it consistent with
+> other attributes. libnftnl is anyway sending the nul-termination all
+> the time, so nothing should break IMO.
 
-This is being used from both transaction and non-transaction code. I
-initially casted this to non-const as a workaround to calm down gcc,
-but at some point I needed the list handling to add and to remove
-elements from the lists which was quite ugly. I liked those compile
-time checkings that we were getting before this.
+Right, but the kernel shouldn't rely on that :)
 
-Another possibility is to add some nft_ctx_trans which would look very
-similar to nft_ctx, but in some cases we would need to define both
-nft_ctx and nft_ctx_trans, which doesn't look very nice either. So I
-don't see a better way to make this at this moment.
+I see no problem converting it to NLA_STRING (if request_module args are
+fixed).
