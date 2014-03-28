@@ -1,190 +1,70 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] nftables: Fix list of sets by family
-Date: Fri, 28 Mar 2014 08:57:54 +0100
-Message-ID: <dfe65abd0921773564be9ebfe55b55233380bd40.1395993386.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:48856 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbaC1H6R (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 03:58:17 -0400
-Received: by mail-we0-f177.google.com with SMTP id u57so2301115wes.8
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Mar 2014 00:58:15 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andrey Vagin <avagin@openvz.org>
+Subject: [PATCH] netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len (v3)
+Date: Fri, 28 Mar 2014 13:54:32 +0400
+Message-ID: <1396000472-6130-1-git-send-email-avagin@openvz.org>
+References: <20140328092449.GA20844@paralelels.com>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, vvs@parallels.com,
+	Andrey Vagin <avagin@openvz.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20140328092449.GA20844@paralelels.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Fix the result of command line 'nft list sets FAMILY'. It shows the
-following error message:
+"len" contains sizeof(nf_ct_ext) and size of extensions. In a worst
+case it can contain all extensions. Bellow you can find sizes for all
+types of extensions. Their sum is definitely bigger than 256.
 
-"Error: syntax error, unexpected end of file, expecting string"
+nf_ct_ext_types[0]->len = 24
+nf_ct_ext_types[1]->len = 32
+nf_ct_ext_types[2]->len = 24
+nf_ct_ext_types[3]->len = 32
+nf_ct_ext_types[4]->len = 152
+nf_ct_ext_types[5]->len = 2
+nf_ct_ext_types[6]->len = 16
+nf_ct_ext_types[7]->len = 8
 
-Use set_print function to show the list of set by family (ip, ip6, arp,
-bridge).
+I have seen "len" up to 280 and my host has crashes w/o this patch.
 
-The set_print function is used in the following command line:
-* sudo nft list table FAMILY table_name
-* sudo nft list set FAMILY table_name set_name
-* sudo nft list sets FAMILY
+The right way to fix this problem is reducing the size of the ecache
+extension (4) and Florian is going to do this, but these changes will
+be quite large to be appropriate for a stable tree.
 
-In 'nft list table FAMILY table_name' and 'nft list set FAMILY
-table_name set_name' command line is necessary a extra indent that is
-not necessary in 'nft list sets FAMILY'.
+v2: rearrange the extension so ECACHE comes last. This is required to
+prevent overflow of nf_ct_ext->offset.
+v3: The previous attempt of rearranging constants doesn't work here,
+because extensions may be added in a random order.
 
-Thus, It fixes this indent problem in the set_print function and now, it is
-possible show right this information:
-
-$ sudo nft list sets ip
-et set_test {
-	type ipv4_address
-	elements = { 192.168.3.45, 192.168.3.43, 192.168.3.42, 192.168.3.4}
-}
-set set_test2 {
-	type ipv4_address
-	elements = { 192.168.3.43, 192.168.3.42, 192.168.3.4}
-}
-set set0 {
-	type ipv4_address
-	flags constant
-	elements = { 127.0.0.12, 172.0.0.13}
-}
-
-$ sudo nft  list set ip test set_test
-set set_test {
-	type ipv4_address
-	elements = { 192.168.3.45, 192.168.3.43, 192.168.3.42, 192.168.3.4}
-}
-
-$ sudo nft list table ip test
-table ip test {
-	set set_test {
-		type ipv4_address
-		elements = { 192.168.3.45, 192.168.3.43, 192.168.3.42, 192.168.3.4}
-	}
-
-	set set_test2 {
-		type ipv4_address
-		elements = { 192.168.3.43, 192.168.3.42, 192.168.3.4}
-	}
-
-	chain input {
-		 ip daddr { 127.0.0.12, 172.0.0.13} drop
-	}
-}
-
-Signed-off-by: Ana Rey <anarey@gmail.com>
+Fixes: 5b423f6a40a0 (netfilter: nf_conntrack: fix racy timer handling with reliable)
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
 ---
- include/rule.h |  2 +-
- src/parser.y   |  2 +-
- src/rule.c     | 26 ++++++++++++++++----------
- 3 files changed, 18 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index ecf801f..b283421 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -194,7 +194,7 @@ extern struct set *set_get(struct set *set);
- extern void set_free(struct set *set);
- extern void set_add_hash(struct set *set, struct table *table);
- extern struct set *set_lookup(const struct table *table, const char *name);
--extern void set_print(const struct set *set);
-+extern void set_print(const struct set *set, bool indent);
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 956b175..55d1504 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -47,8 +47,8 @@ enum nf_ct_ext_id {
+ /* Extensions: optional stuff which isn't permanently in struct. */
+ struct nf_ct_ext {
+ 	struct rcu_head rcu;
+-	u8 offset[NF_CT_EXT_NUM];
+-	u8 len;
++	u16 offset[NF_CT_EXT_NUM];
++	u16 len;
+ 	char data[0];
+ };
  
- /**
-  * enum cmd_ops - command operations
-diff --git a/src/parser.y b/src/parser.y
-index db6f493..af34857 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -719,7 +719,7 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_CHAIN, &$2, &@$, NULL);
- 			}
--			|	SETS		table_spec
-+			|	SETS		tables_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
- 			}
-diff --git a/src/rule.c b/src/rule.c
-index b719040..68f2696 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -93,21 +93,23 @@ struct set *set_lookup(const struct table *table, const char *name)
- 	return NULL;
- }
- 
--void set_print(const struct set *set)
-+void set_print(const struct set *set, bool indent)
- {
- 	const char *delim = "";
- 	const char *type;
- 
- 	type = set->flags & SET_F_MAP ? "map" : "set";
--	printf("\t%s %s {\n", type, set->handle.set);
-+	printf("%s%s %s {\n", indent ? "\t" : "", type, set->handle.set);
-+
-+	printf("%s\ttype %s", indent ? "\t" : "", set->keytype->name);
- 
--	printf("\t\ttype %s", set->keytype->name);
- 	if (set->flags & SET_F_MAP)
- 		printf(" : %s", set->datatype->name);
- 	printf("\n");
- 
- 	if (set->flags & (SET_F_CONSTANT | SET_F_INTERVAL)) {
--		printf("\t\tflags ");
-+		printf("%s\tflags ", indent ? "\t" : "");
-+
- 		if (set->flags & SET_F_CONSTANT) {
- 			printf("%sconstant", delim);
- 			delim = ",";
-@@ -120,11 +122,11 @@ void set_print(const struct set *set)
- 	}
- 
- 	if (set->init != NULL && set->init->size > 0) {
--		printf("\t\telements = ");
-+		printf("%s\telements = ", indent ? "\t" : "");
- 		expr_print(set->init);
- 		printf("\n");
- 	}
--	printf("\t}\n");
-+	printf("%s}\n", indent ? "\t" : "");
- }
- 
- struct rule *rule_alloc(const struct location *loc, const struct handle *h)
-@@ -414,7 +416,7 @@ static void table_print(const struct table *table)
- 		if (set->flags & SET_F_ANONYMOUS)
- 			continue;
- 		printf("%s", delim);
--		set_print(set);
-+		set_print(set, true);
- 		delim = "\n";
- 	}
- 	list_for_each_entry(chain, &table->chains, list) {
-@@ -668,8 +670,12 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_SETS:
- 		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
- 			return -1;
--		list_for_each_entry_safe(set, nset, &ctx->list, list)
--			list_move_tail(&set->list, &table->sets);
-+		list_for_each_entry(set, &ctx->list, list){
-+			if (netlink_get_setelems(ctx, &set->handle,
-+						 &cmd->location, set) < 0)
-+				return -1;
-+			set_print(set, false);
-+		}
- 		break;
- 	case CMD_OBJ_SET:
- 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
-@@ -678,7 +684,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 			if (netlink_get_setelems(ctx, &cmd->handle,
- 						 &cmd->location, set) < 0)
- 				return -1;
--			set_print(set);
-+			set_print(set, false);
- 		}
- 		return 0;
- 	default:
 -- 
-1.9.0
+1.8.5.3
 
