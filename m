@@ -1,85 +1,121 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH v2] nftables: Fix list of sets by family
-Date: Fri, 28 Mar 2014 12:40:31 +0100
-Message-ID: <008e38aa5e97439e7ac8a9e178689c2d666fa554.1396006133.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables RFH PATCH] netfilter: nf_tables: add set_elem notifications
+Date: Fri, 28 Mar 2014 12:46:22 +0100
+Message-ID: <20140328114622.8896.14752.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:53246 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761AbaC1Lk5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 07:40:57 -0400
-Received: by mail-wg0-f41.google.com with SMTP id n12so3560719wgh.24
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Mar 2014 04:40:56 -0700 (PDT)
+Received: from smtp3.cica.es ([150.214.5.190]:56500 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750761AbaC1Lqc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2014 07:46:32 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix the result of command line 'nft list sets FAMILY'. It shows the
-following error message:
+This patch adds set_elems notifications.
 
-"Error: syntax error, unexpected end of file, expecting string"
+When a set_elem is added/deleted, all listening peers in userspace will
+receive the corresponding notification.
 
-Now, it is possible shows right this information:
-
-$ sudo nft -nna list sets ip
-	set set_test {
-		type ipv4_address
-		elements = { 192.168.3.45, 192.168.3.43, 192.168.3.42, 192.168.3.4}
-	}
-	set set_test2 {
-		type ipv4_address
-		elements = { 192.168.3.43, 192.168.3.42, 192.168.3.4}
-	}
-	set set0 {
-		type ipv4_address
-		flags constant
-		elements = { 127.0.0.12, 12.11.11.11}
-	}
-
-Signed-off-by: Ana Rey <anarey@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-[Changes in v2]
-* Delete all references regarding the indentation in the code.
-* Delete all references regarding the indentation in the descriptions.
-These changes were spotted by Patrick McHardy.
+ net/netfilter/nf_tables_api.c |   68 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
- src/parser.y | 2 +-
- src/rule.c   | 8 ++++++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/src/parser.y b/src/parser.y
-index db6f493..af34857 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -719,7 +719,7 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_CHAIN, &$2, &@$, NULL);
- 			}
--			|	SETS		table_spec
-+			|	SETS		tables_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
- 			}
-diff --git a/src/rule.c b/src/rule.c
-index b719040..00dedf5 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -668,8 +668,12 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_SETS:
- 		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
- 			return -1;
--		list_for_each_entry_safe(set, nset, &ctx->list, list)
--			list_move_tail(&set->list, &table->sets);
-+		list_for_each_entry(set, &ctx->list, list){
-+			if (netlink_get_setelems(ctx, &set->handle,
-+						 &cmd->location, set) < 0)
-+				return -1;
-+			set_print(set);
-+		}
- 		break;
- 	case CMD_OBJ_SET:
- 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
--- 
-1.9.0
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index adce01e..33b1585 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2712,6 +2712,71 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
+ 	return -EOPNOTSUPP;
+ }
+ 
++static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
++				    const struct nft_set *set,
++				    const struct nft_set_elem *elem,
++				    int event, u16 flags)
++{
++	const struct sk_buff *oskb = ctx->skb;
++	struct sk_buff *skb;
++	struct net *net;
++	struct nfgenmsg *nfmsg;
++	struct nlmsghdr *nlh;
++	struct nlattr *nest;
++	bool report;
++	u32 portid;
++	u32 seq = ctx->nlh->nlmsg_seq;
++	int err;
++
++	portid = oskb ? NETLINK_CB(oskb).portid : 0;
++	net = oskb ? sock_net(oskb->sk) : &init_net;
++
++	report = ctx->nlh ? nlmsg_report(ctx->nlh) : false;
++	if (!report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
++		return 0;
++
++	err = -ENOBUFS;
++	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
++	if (skb == NULL)
++		goto err;
++
++	event |= NFNL_SUBSYS_NFTABLES << 8;
++	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
++			flags);
++	if (nlh == NULL)
++		goto err_free;
++
++	nfmsg = nlmsg_data(nlh);
++	nfmsg->nfgen_family	= ctx->afi->family;
++	nfmsg->version		= NFNETLINK_V0;
++	nfmsg->res_id		= 0;
++
++	if (nla_put_string(skb, NFTA_SET_TABLE, ctx->table->name))
++		goto err_free;
++	if (nla_put_string(skb, NFTA_SET_NAME, set->name))
++		goto err_free;
++
++	nest = nla_nest_start(skb, NFTA_SET_ELEM_LIST_ELEMENTS);
++	if (nest == NULL)
++		goto err_free;
++
++	err = nf_tables_fill_setelem(skb, set, elem);
++	if (err < 0)
++		goto err_free;
++
++	nla_nest_end(skb, nest);
++	nlmsg_end(skb, nlh);
++
++	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report,
++			     GFP_KERNEL);
++err_free:
++	kfree_skb(skb);
++err:
++	if (err < 0)
++		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
++	return err;
++}
++
+ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr)
+ {
+@@ -2788,6 +2853,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
+ 	if (err < 0)
+ 		goto err3;
+ 
++	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_NEWSETELEM, 0);
+ 	return 0;
+ 
+ err3:
+@@ -2857,6 +2923,8 @@ static int nft_del_setelem(const struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 	set->ops->remove(set, &elem);
+ 
++	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_DELSETELEM, 0);
++
+ 	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
+ 	if (set->flags & NFT_SET_MAP)
+ 		nft_data_uninit(&elem.data, set->dtype);
 
