@@ -1,70 +1,28 @@
-From: Andrey Vagin <avagin@openvz.org>
-Subject: [PATCH] netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len (v3)
-Date: Fri, 28 Mar 2014 13:54:32 +0400
-Message-ID: <1396000472-6130-1-git-send-email-avagin@openvz.org>
-References: <20140328092449.GA20844@paralelels.com>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org, vvs@parallels.com,
-	Andrey Vagin <avagin@openvz.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: linux-kernel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20140328092449.GA20844@paralelels.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 0/2] netfilter: nf_tables: set selection
+Date: Fri, 28 Mar 2014 10:19:46 +0000
+Message-ID: <1396001988-32338-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:54086 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683AbaC1KTy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2014 06:19:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-"len" contains sizeof(nf_ct_ext) and size of extensions. In a worst
-case it can contain all extensions. Bellow you can find sizes for all
-types of extensions. Their sum is definitely bigger than 256.
+These patches implement the basic set selection mechanism based on data
+characteristics provided by userspace. So far we only need to know the
+maximum number of elements.
 
-nf_ct_ext_types[0]->len = 24
-nf_ct_ext_types[1]->len = 32
-nf_ct_ext_types[2]->len = 24
-nf_ct_ext_types[3]->len = 32
-nf_ct_ext_types[4]->len = 152
-nf_ct_ext_types[5]->len = 2
-nf_ct_ext_types[6]->len = 16
-nf_ct_ext_types[7]->len = 8
+Instead of trying to anticipate the information future set types will
+need, the plan is to add more as we require it under the assumption
+that we will converge to a state where a new set type already has
+all information required available. The expectation is that most set
+types will require the same information for estimation since they
+most likely will be some type of tree or trie.
 
-I have seen "len" up to 280 and my host has crashes w/o this patch.
-
-The right way to fix this problem is reducing the size of the ecache
-extension (4) and Florian is going to do this, but these changes will
-be quite large to be appropriate for a stable tree.
-
-v2: rearrange the extension so ECACHE comes last. This is required to
-prevent overflow of nf_ct_ext->offset.
-v3: The previous attempt of rearranging constants doesn't work here,
-because extensions may be added in a random order.
-
-Fixes: 5b423f6a40a0 (netfilter: nf_conntrack: fix racy timer handling with reliable)
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
----
- include/net/netfilter/nf_conntrack_extend.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 956b175..55d1504 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -47,8 +47,8 @@ enum nf_ct_ext_id {
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
- 	struct rcu_head rcu;
--	u8 offset[NF_CT_EXT_NUM];
--	u8 len;
-+	u16 offset[NF_CT_EXT_NUM];
-+	u16 len;
- 	char data[0];
- };
- 
--- 
-1.8.5.3
+Please apply.
 
