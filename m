@@ -1,18 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [nf_tables RFH PATCH] netfilter: nf_tables: add set_elem
  notifications
-Date: Fri, 28 Mar 2014 12:49:38 +0100
-Message-ID: <20140328114938.GA13207@localhost>
+Date: Fri, 28 Mar 2014 11:55:32 +0000
+Message-ID: <20140328115532.GA7280@macbook.localnet>
 References: <20140328114622.8896.14752.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55409 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140AbaC1Ltt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 07:49:49 -0400
+Received: from stinky.trash.net ([213.144.137.162]:54881 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751029AbaC1Lzg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2014 07:55:36 -0400
 Content-Disposition: inline
 In-Reply-To: <20140328114622.8896.14752.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -24,17 +25,8 @@ On Fri, Mar 28, 2014 at 12:46:22PM +0100, Arturo Borrero Gonzalez wrote:
 > When a set_elem is added/deleted, all listening peers in userspace will
 > receive the corresponding notification.
 
-I was just looking into this now. Is this patch still crashing?
+So is the oops you observed with anonymous sets already resolved?
 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  net/netfilter/nf_tables_api.c |   68 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 68 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index adce01e..33b1585 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
 > @@ -2712,6 +2712,71 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
 >  	return -EOPNOTSUPP;
 >  }
@@ -59,6 +51,15 @@ I was just looking into this now. Is this patch still crashing?
 > +	net = oskb ? sock_net(oskb->sk) : &init_net;
 > +
 > +	report = ctx->nlh ? nlmsg_report(ctx->nlh) : false;
+
+All these tests seem overly defensive. We only have the codepath using
+nfnetlink to add or delete elements, so it should be very clear which
+context members are valid and which aren't. Also you're already using
+ctx->nlh before that for initialization of seq.
+
+>From what I can tell, all these tests can be removed and the initialization
+can be done unconditionally based on the context.
+
 > +	if (!report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
 > +		return 0;
 > +
@@ -90,6 +91,13 @@ I was just looking into this now. Is this patch still crashing?
 > +	err = nf_tables_fill_setelem(skb, set, elem);
 > +	if (err < 0)
 > +		goto err_free;
+
+This single element per message is fine for now since we don't do proper
+atomic additions/removals, so we might fail mid way. But please make sure
+that userspace is able to handle lists containing multiple elements since
+this is way more efficient and should be changed once we do have proper
+atomic changes for set elements.
+
 > +
 > +	nla_nest_end(skb, nest);
 > +	nlmsg_end(skb, nlh);
@@ -107,21 +115,5 @@ I was just looking into this now. Is this patch still crashing?
 >  static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
 >  			    const struct nlattr *attr)
 >  {
-> @@ -2788,6 +2853,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
->  	if (err < 0)
->  		goto err3;
->  
-> +	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_NEWSETELEM, 0);
->  	return 0;
->  
->  err3:
-> @@ -2857,6 +2923,8 @@ static int nft_del_setelem(const struct nft_ctx *ctx, struct nft_set *set,
->  
->  	set->ops->remove(set, &elem);
->  
-> +	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_DELSETELEM, 0);
-> +
->  	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
->  	if (set->flags & NFT_SET_MAP)
->  		nft_data_uninit(&elem.data, set->dtype);
-> 
+
+Besides the things mentioned above, your patch looks fine to me.
