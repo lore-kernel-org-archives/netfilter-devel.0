@@ -1,43 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [nf_tables RFH PATCH] netfilter: nf_tables: add set_elem
  notifications
-Date: Fri, 28 Mar 2014 12:02:38 +0000
-Message-ID: <20140328120238.GB7423@macbook.localnet>
+Date: Fri, 28 Mar 2014 12:15:27 +0000
+Message-ID: <20140328121527.GA7610@macbook.localnet>
 References: <20140328114622.8896.14752.stgit@nfdev.cica.es>
- <20140328114938.GA13207@localhost>
- <CAOkSjBhhaAOCyZpXBG2N3v7TStEz-ye00mhKdx0+RpHXN96rqg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54968 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55063 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaC1MCm (ORCPT
+	with ESMTP id S1751033AbaC1MPb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 08:02:42 -0400
+	Fri, 28 Mar 2014 08:15:31 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBhhaAOCyZpXBG2N3v7TStEz-ye00mhKdx0+RpHXN96rqg@mail.gmail.com>
+In-Reply-To: <20140328114622.8896.14752.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 28, 2014 at 01:00:36PM +0100, Arturo Borrero Gonzalez wrote:
-> On 28 March 2014 12:49, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Fri, Mar 28, 2014 at 12:46:22PM +0100, Arturo Borrero Gonzalez wrote:
-> >> This patch adds set_elems notifications.
-> >>
-> >> When a set_elem is added/deleted, all listening peers in userspace will
-> >> receive the corresponding notification.
-> >
-> > I was just looking into this now. Is this patch still crashing?
-> 
-> Yes, still crashing :-(
+On Fri, Mar 28, 2014 at 12:46:22PM +0100, Arturo Borrero Gonzalez wrote:
+> +static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
+> +				    const struct nft_set *set,
+> +				    const struct nft_set_elem *elem,
+> +				    int event, u16 flags)
+> +{
+> ...
+> +	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report,
+> +			     GFP_KERNEL);
+> +err_free:
+> +	kfree_skb(skb);
 
-And this is only happening using anonymous sets?
-
-> Should this be delayed until the set batching is applied?
-
-I think it would be nice to get this in ASAP. Lets fix the crash and
-hope it doesn't clash much, but I don't think so.
+There's the reason of your crash. You must not free the skb after sending it.
