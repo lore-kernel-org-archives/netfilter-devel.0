@@ -1,47 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nftables: Fix list of sets by family
-Date: Fri, 28 Mar 2014 10:25:56 +0000
-Message-ID: <20140328102555.GB20105@macbook.localnet>
-References: <dfe65abd0921773564be9ebfe55b55233380bd40.1395993386.git.anarey@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next] netfilter: conntrack: remove timer from ecache
+ extension
+Date: Fri, 28 Mar 2014 11:32:03 +0100
+Message-ID: <20140328103203.GA12225@localhost>
+References: <1395943238-29319-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54140 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbaC1KZ7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Mar 2014 06:25:59 -0400
+Received: from mail.us.es ([193.147.175.20]:60790 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751035AbaC1KcR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Mar 2014 06:32:17 -0400
 Content-Disposition: inline
-In-Reply-To: <dfe65abd0921773564be9ebfe55b55233380bd40.1395993386.git.anarey@gmail.com>
+In-Reply-To: <1395943238-29319-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 28, 2014 at 08:57:54AM +0100, Ana Rey wrote:
-> Fix the result of command line 'nft list sets FAMILY'. It shows the
-> following error message:
+On Thu, Mar 27, 2014 at 07:00:38PM +0100, Florian Westphal wrote:
+> This brings the (per-conntrack) ecache extension back to 24 bytes in size
+> (was 152 byte on x86_64 with lockdep on).
 > 
-> "Error: syntax error, unexpected end of file, expecting string"
+> When event delivery fails, re-delivery is attempted via work queue.
+> As long as the work queue has events to deliver, and at least one
+> delivery succeeded, it is rescheduled without delay,  if no
+> pending event was delivered after 0.1 seconds to avoid hogging cpu.
 > 
-> Use set_print function to show the list of set by family (ip, ip6, arp,
-> bridge).
+> As the dying list also contains entries that do not need event
+> redelivery, a new status bit is added to identify these conntracks.
 > 
-> The set_print function is used in the following command line:
-> * sudo nft list table FAMILY table_name
-> * sudo nft list set FAMILY table_name set_name
-> * sudo nft list sets FAMILY
+> We cannot use !IPS_DYING_BIT, as entries whose event was already
+> sent can be recycled at any time due to SLAB_DESTROY_BY_RCU.
 > 
-> In 'nft list table FAMILY table_name' and 'nft list set FAMILY
-> table_name set_name' command line is necessary a extra indent that is
-> not necessary in 'nft list sets FAMILY'.
+> When userspace is heavily backlogged/overloaded, redelivery attempts
+> every 0.1 seconds are not enough.  To avoid this, the ecache work
+> is scheduled for immediate execution iff we have pending conntracks
+> and a conntrack expired successfully (i.e., userspace consumed the
+> event and is thus likely to accept more messages).
 > 
-> Thus, It fixes this indent problem in the set_print function and now, it is
-> possible show right this information:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  This is not replacement for 'u16 len' patch submitted recently because this
+>  is not stable material.
+> 
+>  Adding new status bit is not nice, but only alternative is
+>  adding new 'ecache redelivery' list, which would mean we alter current
+>  lifecycle (unconfirmed list -> hash list -> dying list).
+> 
+>  Would also need to add ability to dump new list via ctnetlink.
+> 
+>  I'm mainly interested if you think timer removal is worthwile,
+>  it works well in practice from usability POV.
 
-These are two unrelated changes. Regarding the indentation, Arturro has
-a patch that will also fix this in a more general way. Please seperate
-the grammar fix and submit this patch, we'll fix the indentation with
-Arturro's monitor feature.
+Thanks for looking again into this. We definitely have to get rid of
+that timer.
 
-Thanks!
+Regarding the new flag, perhaps we can avoid exposing this to
+userspace? I mean, we can define some mask of internal flags that we
+don't include via dump_status in ctnetlink.
