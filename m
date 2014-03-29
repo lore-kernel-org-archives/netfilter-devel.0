@@ -1,25 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 0/3] netfilter: nf_tables: cleanup and a bugfix
-Date: Sat, 29 Mar 2014 10:43:00 +0000
-Message-ID: <1396089783-3984-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 1/3] netfilter: nft_ct: add missing ifdef for NFT_MARK setting
+Date: Sat, 29 Mar 2014 10:43:01 +0000
+Message-ID: <1396089783-3984-2-git-send-email-kaber@trash.net>
+References: <1396089783-3984-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from 219.Red-2-139-50.dynamicIP.rima-tde.net ([2.139.50.219]:19630
 	"EHLO macbook.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751394AbaC2K46 (ORCPT
+	with ESMTP id S1751394AbaC2K5A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Mar 2014 06:56:58 -0400
+	Sat, 29 Mar 2014 06:57:00 -0400
+In-Reply-To: <1396089783-3984-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These patches contain some cleanup and preparation for variable sized data.
-To support variable sized data, we need the length of each key for validation
-of the register load. Move the key validation back into the init functions
-of meta/ct to do this. This also qualifies as a cleanup in my opinion, the
-split is quite unnatural and the code is easier to read by handling get and
-set operations seperately.
+The set operation for ct mark is only valid if CONFIG_NF_CONNTRACK_MARK is
+enabled.
 
-Additionally a patch to add a missing ifdef for NFT_CT_MARK is included.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nft_ct.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Please apply.
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index bd0d41e..a2c45bd 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -268,8 +268,10 @@ static int nft_ct_init_validate_get(const struct nft_expr *expr,
+ static int nft_ct_init_validate_set(uint32_t key)
+ {
+ 	switch (key) {
++#ifdef CONFIG_NF_CONNTRACK_MARK
+ 	case NFT_CT_MARK:
+ 		break;
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+-- 
+1.9.0
+
