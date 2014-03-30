@@ -1,48 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack: reserve two bytes for
- nf_ct_ext->len (v3)
-Date: Sun, 30 Mar 2014 13:35:04 +0200
-Message-ID: <20140330113504.GA5895@localhost>
-References: <20140328092449.GA20844@paralelels.com>
- <1396000472-6130-1-git-send-email-avagin@openvz.org>
+Subject: Re: [PATCH 0/3] netfilter: nf_tables: cleanup and a bugfix
+Date: Sun, 30 Mar 2014 13:35:31 +0200
+Message-ID: <20140330113531.GB5895@localhost>
+References: <1396089783-3984-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, vvs@parallels.com,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Andrey Vagin <avagin@openvz.org>
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43017 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753207AbaC3Lfk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Mar 2014 07:35:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1396000472-6130-1-git-send-email-avagin@openvz.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1396089783-3984-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 28, 2014 at 01:54:32PM +0400, Andrey Vagin wrote:
-> "len" contains sizeof(nf_ct_ext) and size of extensions. In a worst
-> case it can contain all extensions. Bellow you can find sizes for all
-> types of extensions. Their sum is definitely bigger than 256.
+On Sat, Mar 29, 2014 at 10:43:00AM +0000, Patrick McHardy wrote:
+> These patches contain some cleanup and preparation for variable sized data.
+> To support variable sized data, we need the length of each key for validation
+> of the register load. Move the key validation back into the init functions
+> of meta/ct to do this. This also qualifies as a cleanup in my opinion, the
+> split is quite unnatural and the code is easier to read by handling get and
+> set operations seperately.
 > 
-> nf_ct_ext_types[0]->len = 24
-> nf_ct_ext_types[1]->len = 32
-> nf_ct_ext_types[2]->len = 24
-> nf_ct_ext_types[3]->len = 32
-> nf_ct_ext_types[4]->len = 152
-> nf_ct_ext_types[5]->len = 2
-> nf_ct_ext_types[6]->len = 16
-> nf_ct_ext_types[7]->len = 8
-> 
-> I have seen "len" up to 280 and my host has crashes w/o this patch.
-> 
-> The right way to fix this problem is reducing the size of the ecache
-> extension (4) and Florian is going to do this, but these changes will
-> be quite large to be appropriate for a stable tree.
-> 
-> v2: rearrange the extension so ECACHE comes last. This is required to
-> prevent overflow of nf_ct_ext->offset.
-> v3: The previous attempt of rearranging constants doesn't work here,
-> because extensions may be added in a random order.
+> Additionally a patch to add a missing ifdef for NFT_CT_MARK is included.
 
-Applied, thanks.
+Applied, thanks Patrick.
