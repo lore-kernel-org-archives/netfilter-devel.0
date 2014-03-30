@@ -1,30 +1,31 @@
-From: "Linux parisc" <csanders@sefcoelectric.com>
-Subject: My husband loves Jacob & Co
-Date: Sun, 30 Mar 2014 09:24:41 +0200
-Message-ID: <AF12BDC1.1DB94AAD@sefcoelectric.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: Add {ipt,ip6t}_osf aliases for xt_osf
+Date: Sun, 30 Mar 2014 13:33:46 +0200
+Message-ID: <20140330113346.GA5593@localhost>
+References: <1395830279.3601.2.camel@tkhai>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <linux-pci@vger.kernel.org>, <linux-pm@vger.kernel.org>,
-	<linux-ppp@vger.kernel.org>, <linux-ppp-owner@vger.kernel.org>,
-	<linux-raid@vger.kernel.org>, <linux-raid-owner@vger.kernel.org>,
-	<linux-s390@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-sh@vger.kernel.org>,
-	<linux-smp@vger.kernel.org>, <linux-smp-owner@vger.kernel.org>,
-	<linux-sound-owner@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-userfs@vger.kernel.org>, <linux-wireless@vger.kernel.org>,
-	<majordomo@vger.kernel.org>, <net@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <netfilter@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	<platform-driver-x86@vger.kernel.org>,
-	<postmaster@vger.kernel.org>, <reiserfs-devel@vger.kernel.org>
-To: <linux-parisc@vger.kernel.org>
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Kirill Tkhai <ktkhai@parallels.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42870 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752612AbaC3Ldw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Mar 2014 07:33:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1395830279.3601.2.camel@tkhai>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Give her the gift of her lifetime without using your lifetime's savings.
-http://stalvandriel.com/umyvxyp.php
+On Wed, Mar 26, 2014 at 02:37:59PM +0400, Kirill Tkhai wrote:
+> There are no these aliases, so kernel can not request appropriate
+> match table:
+> 
+> $ iptables -I INPUT -p tcp -m osf --genre Windows --ttl 2 -j DROP
+> iptables: No chain/target/match by that name.
+> 
+> setsockopt() requests ipt_osf module, which is not present. Add
+> the aliases.
 
-
+Applied, thanks.
