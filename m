@@ -1,189 +1,177 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [RFC PATCH 2/2] netfilter: xt_nfacct: Add quota to nfacct filter
-Date: Mon, 31 Mar 2014 07:50:06 -0600
-Message-ID: <CANLsYky5ciqKEP7oNuP1bEdX3iARKHtDgv=87j8dFXjTCt255Q@mail.gmail.com>
-References: <1396213844-10528-1-git-send-email-mathieu.poirier@linaro.org>
-	<1396213844-10528-3-git-send-email-mathieu.poirier@linaro.org>
-	<20140331121351.GA3866@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Andrey Vagin <avagin@openvz.org>
+Subject: [PATCH] [RFC] netfilter: ct: flush net_gre->keymap_list only in nf_conntrack_proto_gre
+Date: Mon, 31 Mar 2014 18:14:18 +0400
+Message-ID: <1396275258-19015-1-git-send-email-avagin@openvz.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, vvs@parallels.com,
+	Andrey Vagin <avagin@openvz.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20140331121351.GA3866@localhost>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 31 March 2014 06:13, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Mar 30, 2014 at 03:10:44PM -0600, mathieu.poirier@linaro.org wrote:
->> From: Mathieu Poirier <mathieu.poirier@linaro.org>
->>
->> Fixing quota management in accounting framework, most notably:
->> - Clearing overquota bit in 'nfnl_acct_fill_info' when userspace
->> resets accounting statistics.
->> - Decoupling quota attainment verification and message dispatch
->> in 'nfnl_acct_overquota'.
->
-> Please, merge this to 1/2. I don't really mind about the one showing
-> up as author in the patch. You can add in the commit log that this
-> patch is a joint work between you and me so I'm also credited for the
-> changes.
+nf_ct_gre_keymap_flush() removes a nf_ct_gre_keymap object from
+net_gre->keymap_list and frees the object. But it doesn't clean
+a reference on this object from ct_pptp_info->keymap[dir].
+Then nf_ct_gre_keymap_destroy() may release the same object again.
 
-Very well.
+So nf_ct_gre_keymap_flush() can be called only when we are sure that
+when nf_ct_gre_keymap_destroy will not be called.
 
->
-> Another comment below.
->
->> With the above adding quota limits to xt_nfacct is trival.
->>
->> Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
->> ---
->>  include/linux/netfilter/nfnetlink_acct.h |  3 ++-
->>  net/netfilter/nfnetlink_acct.c           | 36 ++++++++++++++++++++++----------
->>  net/netfilter/xt_nfacct.c                | 13 ++++++++++++
->>  3 files changed, 40 insertions(+), 12 deletions(-)
->>
->> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
->> index b2e85e5..cfc210d 100644
->> --- a/include/linux/netfilter/nfnetlink_acct.h
->> +++ b/include/linux/netfilter/nfnetlink_acct.h
->> @@ -9,5 +9,6 @@ struct nf_acct;
->>  struct nf_acct *nfnl_acct_find_get(const char *filter_name);
->>  void nfnl_acct_put(struct nf_acct *acct);
->>  void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
->> -
->> +extern bool nfnl_acct_overquota(const struct sk_buff *skb,
->> +                             struct nf_acct *nfacct);
->>  #endif /* _NFNL_ACCT_H */
->> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
->> index 25afecf..e0b5147 100644
->> --- a/net/netfilter/nfnetlink_acct.c
->> +++ b/net/netfilter/nfnetlink_acct.c
->> @@ -147,6 +147,10 @@ nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
->>       if (type == NFNL_MSG_ACCT_GET_CTRZERO) {
->>               pkts = atomic64_xchg(&acct->pkts, 0);
->>               bytes = atomic64_xchg(&acct->bytes, 0);
->> +             if (acct->flags & NFACCT_F_QUOTA) {
->> +                     smp_mb__before_clear_bit();
->> +                     clear_bit(NFACCT_F_OVERQUOTA, &acct->flags);
->> +             }
->>       } else {
->>               pkts = atomic64_read(&acct->pkts);
->>               bytes = atomic64_read(&acct->bytes);
->> @@ -393,23 +397,33 @@ static void nfnl_overquota_report(struct nf_acct *nfacct)
->>                         GFP_ATOMIC);
->>  }
->>
->> +/* Check 'skb' statistics against accounting object 'nfacct'.  Quotas limits
->> + * are considered inclusive.  A message is sent to userspace if at or above
->> + * a quota.
->> + *
->> + * Returns -EINVAL if nfacct object doesn't have a quota, true if above quota
->> + * and false is below or at quota.
->> + */
->>  bool nfnl_acct_overquota(const struct sk_buff *skb, struct nf_acct *nfacct)
->>  {
->> +     u64 now;
->>       u64 *quota;
->>       bool ret = false;
->>
->> -     if (nfacct->flags & NFACCT_F_QUOTA_PKTS) {
->> -             quota = (u64 *)nfacct->data;
->> -             ret = atomic64_read(&nfacct->pkts) >= *quota &&
->> -                   !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags);
->> -     }
->> -     if (nfacct->flags & NFACCT_F_QUOTA_BYTES) {
->> -             quota = (u64 *)nfacct->data;
->> -             ret = atomic64_read(&nfacct->bytes) >= *quota &&
->> -                   !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags);
->> -     }
->> -     if (ret)
->> +     /* no place here if we don't have a quota */
->> +     if (!(nfacct->flags & NFACCT_F_QUOTA))
->> +             return -EINVAL;
->
-> This function returns boolean, we have to change it. You can probably
-> use this return values:
->
-> -1 no quota
-> 0 underquota
-> 1 overquota
+nf_ct_gre_keymap is created by nf_ct_gre_keymap_add() and the right way
+to destroy it is to call nf_ct_gre_keymap_destroy().
 
-Ok.
+This patch marks nf_ct_gre_keymap_flush() as static, so this patch can
+break compilation of third party modules, which use
+nf_ct_gre_keymap_flush. I'm not sure this is the right way to deprecate
+this function.
 
->
-> You can just define some enum, ie.
->
-> enum {
->         NFACCT_NO_QUOTA         = -1,
->         NFACCT_UNDERQUOTA,
->         NFACCT_OVERQUOTA,
-> };
->
-> to include/linux/netfilter/nfnetlink_acct.h.
->
-> I guess with that we can also remove the comments everywhere, as it
-> will be quite clear with the enums.
->
-> Merge window will be close soon, please also post the userspace
-> changes for the library and the utility asap.
+[  226.540793] general protection fault: 0000 [#1] SMP
+[  226.541750] Modules linked in: nf_nat_pptp nf_nat_proto_gre
+nf_conntrack_pptp nf_conntrack_proto_gre ip_gre ip_tunnel gre
+ppp_deflate bsd_comp ppp_async crc_ccitt ppp_generic slhc xt_nat
+iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat
+nf_conntrack veth tun bridge stp llc ppdev microcode joydev pcspkr
+serio_raw virtio_console virtio_balloon floppy parport_pc parport
+pvpanic i2c_piix4 virtio_net drm_kms_helper ttm ata_generic virtio_pci
+virtio_ring virtio drm i2c_core pata_acpi [last unloaded: ip_tunnel]
+[  226.541776] CPU: 0 PID: 49 Comm: kworker/u4:2 Not tainted 3.14.0-rc8+ #101
+[  226.541776] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[  226.541776] Workqueue: netns cleanup_net
+[  226.541776] task: ffff8800371e0000 ti: ffff88003730c000 task.ti: ffff88003730c000
+[  226.541776] RIP: 0010:[<ffffffff81389ba9>]  [<ffffffff81389ba9>] __list_del_entry+0x29/0xd0
+[  226.541776] RSP: 0018:ffff88003730dbd0  EFLAGS: 00010a83
+[  226.541776] RAX: 6b6b6b6b6b6b6b6b RBX: ffff8800374e6c40 RCX: dead000000200200
+[  226.541776] RDX: 6b6b6b6b6b6b6b6b RSI: ffff8800371e07d0 RDI: ffff8800374e6c40
+[  226.541776] RBP: ffff88003730dbd0 R08: 0000000000000000 R09: 0000000000000000
+[  226.541776] R10: 0000000000000001 R11: ffff88003730d92e R12: 0000000000000002
+[  226.541776] R13: ffff88007a4c42d0 R14: ffff88007aef0000 R15: ffff880036cf0018
+[  226.541776] FS:  0000000000000000(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+[  226.541776] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  226.541776] CR2: 00007f07f643f7d0 CR3: 0000000036fd2000 CR4: 00000000000006f0
+[  226.541776] Stack:
+[  226.541776]  ffff88003730dbe8 ffffffff81389c5d ffff8800374ffbe4 ffff88003730dc28
+[  226.541776]  ffffffffa0162a43 ffffffffa01627c5 ffff88007a4c42d0 ffff88007aef0000
+[  226.541776]  ffffffffa01651c0 ffff88007a4c45e0 ffff88007aef0000 ffff88003730dc40
+[  226.541776] Call Trace:
+[  226.541776]  [<ffffffff81389c5d>] list_del+0xd/0x30
+[  226.541776]  [<ffffffffa0162a43>] nf_ct_gre_keymap_destroy+0x283/0x2d0 [nf_conntrack_proto_gre]
+[  226.541776]  [<ffffffffa01627c5>] ? nf_ct_gre_keymap_destroy+0x5/0x2d0 [nf_conntrack_proto_gre]
+[  226.541776]  [<ffffffffa0162ab7>] gre_destroy+0x27/0x70 [nf_conntrack_proto_gre]
+[  226.541776]  [<ffffffffa0117de3>] destroy_conntrack+0x83/0x200 [nf_conntrack]
+[  226.541776]  [<ffffffffa0117d87>] ? destroy_conntrack+0x27/0x200 [nf_conntrack]
+[  226.541776]  [<ffffffffa0117d60>] ? nf_conntrack_hash_check_insert+0x2e0/0x2e0 [nf_conntrack]
+[  226.541776]  [<ffffffff81630142>] nf_conntrack_destroy+0x72/0x180
+[  226.541776]  [<ffffffff816300d5>] ? nf_conntrack_destroy+0x5/0x180
+[  226.541776]  [<ffffffffa011ef80>] ? kill_l3proto+0x20/0x20 [nf_conntrack]
+[  226.541776]  [<ffffffffa011847e>] nf_ct_iterate_cleanup+0x14e/0x170 [nf_conntrack]
+[  226.541776]  [<ffffffffa011f74b>] nf_ct_l4proto_pernet_unregister+0x5b/0x90 [nf_conntrack]
+[  226.541776]  [<ffffffffa0162409>] proto_gre_net_exit+0x19/0x30 [nf_conntrack_proto_gre]
+[  226.541776]  [<ffffffff815edf89>] ops_exit_list.isra.1+0x39/0x60
+[  226.541776]  [<ffffffff815eecc0>] cleanup_net+0x100/0x1d0
+[  226.541776]  [<ffffffff810a608a>] process_one_work+0x1ea/0x4f0
+[  226.541776]  [<ffffffff810a6028>] ? process_one_work+0x188/0x4f0
+[  226.541776]  [<ffffffff810a64ab>] worker_thread+0x11b/0x3a0
+[  226.541776]  [<ffffffff810a6390>] ? process_one_work+0x4f0/0x4f0
+[  226.541776]  [<ffffffff810af42d>] kthread+0xed/0x110
+[  226.541776]  [<ffffffff8173d4dc>] ? _raw_spin_unlock_irq+0x2c/0x40
+[  226.541776]  [<ffffffff810af340>] ? kthread_create_on_node+0x200/0x200
+[  226.541776]  [<ffffffff8174747c>] ret_from_fork+0x7c/0xb0
+[  226.541776]  [<ffffffff810af340>] ? kthread_create_on_node+0x200/0x200
+[  226.541776] Code: 00 00 55 48 8b 17 48 b9 00 01 10 00 00 00 ad de
+48 8b 47 08 48 89 e5 48 39 ca 74 29 48 b9 00 02 20 00 00 00 ad de 48
+39 c8 74 7a <4c> 8b 00 4c 39 c7 75 53 4c 8b 42 08 4c 39 c7 75 2b 48 89
+42 08
+[  226.541776] RIP  [<ffffffff81389ba9>] __list_del_entry+0x29/0xd0
+[  226.541776]  RSP <ffff88003730dbd0>
+[  226.612193] ---[ end trace 985ae23ddfcc357c ]---
 
-At this time I only have the userspace modifications in the nfacct
-port I did for Android.  That one links to libnl2.0 and won't be of
-interest to you.  I can get you the kernel work in time for the merge
-window but modifications to the "real" nfacct may not make it.  I'd
-love to see the work going in the 3.15 merge window but can't offer
-guarantees.
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+---
+ include/linux/netfilter/nf_conntrack_proto_gre.h |  1 -
+ net/netfilter/nf_conntrack_pptp.c                | 20 +-------------------
+ net/netfilter/nf_conntrack_proto_gre.c           |  3 +--
+ 3 files changed, 2 insertions(+), 22 deletions(-)
 
-Would you consider queuing the kernel patch in the merge window
-without the userspace?  Note that I would understand if you woudn't
-accept that....
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index ec2ffaf..df78dc2 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -87,7 +87,6 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ /* delete keymap entries */
+ void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
+ 
+-void nf_ct_gre_keymap_flush(struct net *net);
+ void nf_nat_need_gre(void);
+ 
+ #endif /* __KERNEL__ */
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 7bd03de..825c3e3 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -605,32 +605,14 @@ static struct nf_conntrack_helper pptp __read_mostly = {
+ 	.expect_policy		= &pptp_exp_policy,
+ };
+ 
+-static void nf_conntrack_pptp_net_exit(struct net *net)
+-{
+-	nf_ct_gre_keymap_flush(net);
+-}
+-
+-static struct pernet_operations nf_conntrack_pptp_net_ops = {
+-	.exit = nf_conntrack_pptp_net_exit,
+-};
+-
+ static int __init nf_conntrack_pptp_init(void)
+ {
+-	int rv;
+-
+-	rv = nf_conntrack_helper_register(&pptp);
+-	if (rv < 0)
+-		return rv;
+-	rv = register_pernet_subsys(&nf_conntrack_pptp_net_ops);
+-	if (rv < 0)
+-		nf_conntrack_helper_unregister(&pptp);
+-	return rv;
++	return nf_conntrack_helper_register(&pptp);
+ }
+ 
+ static void __exit nf_conntrack_pptp_fini(void)
+ {
+ 	nf_conntrack_helper_unregister(&pptp);
+-	unregister_pernet_subsys(&nf_conntrack_pptp_net_ops);
+ }
+ 
+ module_init(nf_conntrack_pptp_init);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 9d9c0da..d566573 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -66,7 +66,7 @@ static inline struct netns_proto_gre *gre_pernet(struct net *net)
+ 	return net_generic(net, proto_gre_net_id);
+ }
+ 
+-void nf_ct_gre_keymap_flush(struct net *net)
++static void nf_ct_gre_keymap_flush(struct net *net)
+ {
+ 	struct netns_proto_gre *net_gre = gre_pernet(net);
+ 	struct nf_ct_gre_keymap *km, *tmp;
+@@ -78,7 +78,6 @@ void nf_ct_gre_keymap_flush(struct net *net)
+ 	}
+ 	write_unlock_bh(&net_gre->keymap_lock);
+ }
+-EXPORT_SYMBOL(nf_ct_gre_keymap_flush);
+ 
+ static inline int gre_key_cmpfn(const struct nf_ct_gre_keymap *km,
+ 				const struct nf_conntrack_tuple *t)
+-- 
+1.8.5.3
 
->
-> Thanks.
->
->> +
->> +     quota = (u64 *)nfacct->data;
->> +     now = (nfacct->flags & NFACCT_F_QUOTA_PKTS) ?
->> +            atomic64_read(&nfacct->pkts) : atomic64_read(&nfacct->bytes);
->> +
->> +     ret = now > *quota;
->> +
->> +     if (now >= *quota &&
->> +         !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags)) {
->>               nfnl_overquota_report(nfacct);
->> +     }
->>
->>       return ret;
->>  }
->> diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
->> index b3be0ef..bbe1491 100644
->> --- a/net/netfilter/xt_nfacct.c
->> +++ b/net/netfilter/xt_nfacct.c
->> @@ -21,10 +21,23 @@ MODULE_ALIAS("ip6t_nfacct");
->>
->>  static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
->>  {
->> +     bool overquota;
->>       const struct xt_nfacct_match_info *info = par->targinfo;
->>
->>       nfnl_acct_update(skb, info->nfacct);
->>
->> +     overquota = nfnl_acct_overquota(skb, info->nfacct);
->> +
->> +     /* The only time packets are allowed through is when:
->> +      * 1) A quota has been specivied.
->> +      * 2) That quota hasn't been reached yet.
->> +      */
->> +     if (overquota == false)
->> +             return false;
->> +
->> +      /* Return true if a quota hasn't been specified or if
->> +       * quota has been attained.
->> +       */
->>       return true;
->>  }
->>
->> --
->> 1.8.3.2
->>
