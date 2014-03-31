@@ -1,140 +1,40 @@
-From: mathieu.poirier@linaro.org
-Subject: [RFC PATCH 2/2] netfilter: xt_nfacct: Add quota to nfacct filter
-Date: Sun, 30 Mar 2014 15:10:44 -0600
-Message-ID: <1396213844-10528-3-git-send-email-mathieu.poirier@linaro.org>
-References: <1396213844-10528-1-git-send-email-mathieu.poirier@linaro.org>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	mathieu.poirier@linaro.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/3] netfilter: nf_tables: set names cannot be larger than 15 bytes
+Date: Mon, 31 Mar 2014 13:51:29 +0200
+Message-ID: <1396266691-3538-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:40431 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150AbaC3VK7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Mar 2014 17:10:59 -0400
-Received: by mail-pd0-f179.google.com with SMTP id w10so7042107pde.24
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Mar 2014 14:10:58 -0700 (PDT)
-In-Reply-To: <1396213844-10528-1-git-send-email-mathieu.poirier@linaro.org>
+Received: from mail.us.es ([193.147.175.20]:55728 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310AbaCaLvo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 Mar 2014 07:51:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Currently, nf_tables trims off the set name if it exceeeds 15
+bytes, so explicitly reject set names that are too large.
 
-Fixing quota management in accounting framework, most notably:
-- Clearing overquota bit in 'nfnl_acct_fill_info' when userspace
-resets accounting statistics.
-- Decoupling quota attainment verification and message dispatch
-in 'nfnl_acct_overquota'.
-
-With the above adding quota limits to xt_nfacct is trival.
-
-Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+Reported-by: Giuseppe Longo <giuseppelng@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nfnetlink_acct.h |  3 ++-
- net/netfilter/nfnetlink_acct.c           | 36 ++++++++++++++++++++++----------
- net/netfilter/xt_nfacct.c                | 13 ++++++++++++
- 3 files changed, 40 insertions(+), 12 deletions(-)
+ net/netfilter/nf_tables_api.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
-index b2e85e5..cfc210d 100644
---- a/include/linux/netfilter/nfnetlink_acct.h
-+++ b/include/linux/netfilter/nfnetlink_acct.h
-@@ -9,5 +9,6 @@ struct nf_acct;
- struct nf_acct *nfnl_acct_find_get(const char *filter_name);
- void nfnl_acct_put(struct nf_acct *acct);
- void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
--
-+extern bool nfnl_acct_overquota(const struct sk_buff *skb,
-+				struct nf_acct *nfacct);
- #endif /* _NFNL_ACCT_H */
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 25afecf..e0b5147 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -147,6 +147,10 @@ nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	if (type == NFNL_MSG_ACCT_GET_CTRZERO) {
- 		pkts = atomic64_xchg(&acct->pkts, 0);
- 		bytes = atomic64_xchg(&acct->bytes, 0);
-+		if (acct->flags & NFACCT_F_QUOTA) {
-+			smp_mb__before_clear_bit();
-+			clear_bit(NFACCT_F_OVERQUOTA, &acct->flags);
-+		}
- 	} else {
- 		pkts = atomic64_read(&acct->pkts);
- 		bytes = atomic64_read(&acct->bytes);
-@@ -393,23 +397,33 @@ static void nfnl_overquota_report(struct nf_acct *nfacct)
- 			  GFP_ATOMIC);
- }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 33045a5..43ae487 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1946,7 +1946,8 @@ static const struct nft_set_ops *nft_select_set_ops(const struct nlattr * const
  
-+/* Check 'skb' statistics against accounting object 'nfacct'.  Quotas limits
-+ * are considered inclusive.  A message is sent to userspace if at or above
-+ * a quota.
-+ *
-+ * Returns -EINVAL if nfacct object doesn't have a quota, true if above quota
-+ * and false is below or at quota.
-+ */
- bool nfnl_acct_overquota(const struct sk_buff *skb, struct nf_acct *nfacct)
- {
-+	u64 now;
- 	u64 *quota;
- 	bool ret = false;
- 
--	if (nfacct->flags & NFACCT_F_QUOTA_PKTS) {
--		quota = (u64 *)nfacct->data;
--		ret = atomic64_read(&nfacct->pkts) >= *quota &&
--		      !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags);
--	}
--	if (nfacct->flags & NFACCT_F_QUOTA_BYTES) {
--		quota = (u64 *)nfacct->data;
--		ret = atomic64_read(&nfacct->bytes) >= *quota &&
--		      !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags);
--	}
--	if (ret)
-+	/* no place here if we don't have a quota */
-+	if (!(nfacct->flags & NFACCT_F_QUOTA))
-+		return -EINVAL;
-+
-+	quota = (u64 *)nfacct->data;
-+	now = (nfacct->flags & NFACCT_F_QUOTA_PKTS) ?
-+	       atomic64_read(&nfacct->pkts) : atomic64_read(&nfacct->bytes);
-+
-+	ret = now > *quota;
-+
-+	if (now >= *quota &&
-+	    !test_and_set_bit(NFACCT_F_OVERQUOTA, &nfacct->flags)) {
- 		nfnl_overquota_report(nfacct);
-+	}
- 
- 	return ret;
- }
-diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
-index b3be0ef..bbe1491 100644
---- a/net/netfilter/xt_nfacct.c
-+++ b/net/netfilter/xt_nfacct.c
-@@ -21,10 +21,23 @@ MODULE_ALIAS("ip6t_nfacct");
- 
- static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
-+	bool overquota;
- 	const struct xt_nfacct_match_info *info = par->targinfo;
- 
- 	nfnl_acct_update(skb, info->nfacct);
- 
-+	overquota = nfnl_acct_overquota(skb, info->nfacct);
-+
-+	/* The only time packets are allowed through is when:
-+	 * 1) A quota has been specivied.
-+	 * 2) That quota hasn't been reached yet.
-+	 */
-+	if (overquota == false)
-+		return false;
-+
-+	 /* Return true if a quota hasn't been specified or if
-+	  * quota has been attained.
-+	  */
- 	return true;
- }
- 
+ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 	[NFTA_SET_TABLE]		= { .type = NLA_STRING },
+-	[NFTA_SET_NAME]			= { .type = NLA_STRING },
++	[NFTA_SET_NAME]			= { .type = NLA_STRING,
++					    .len = IFNAMSIZ - 1 },
+ 	[NFTA_SET_FLAGS]		= { .type = NLA_U32 },
+ 	[NFTA_SET_KEY_TYPE]		= { .type = NLA_U32 },
+ 	[NFTA_SET_KEY_LEN]		= { .type = NLA_U32 },
 -- 
-1.8.3.2
+1.7.10.4
 
