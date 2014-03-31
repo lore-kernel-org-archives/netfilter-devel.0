@@ -1,50 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH 2/2] netfilter: xt_nfacct: Add quota to nfacct filter
-Date: Mon, 31 Mar 2014 17:17:30 +0200
-Message-ID: <20140331151730.GA19050@localhost>
-References: <1396213844-10528-1-git-send-email-mathieu.poirier@linaro.org>
- <1396213844-10528-3-git-send-email-mathieu.poirier@linaro.org>
- <20140331121351.GA3866@localhost>
- <CANLsYky5ciqKEP7oNuP1bEdX3iARKHtDgv=87j8dFXjTCt255Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Mathieu Poirier <mathieu.poirier@linaro.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANLsYky5ciqKEP7oNuP1bEdX3iARKHtDgv=87j8dFXjTCt255Q@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH 3/5] netfilter: Fix format string mismatch in _conntrack_tftp_init()
+Date: Tue,  1 Apr 2014 00:43:37 +0900
+Message-ID: <1396280619-31152-2-git-send-email-standby24x7@gmail.com>
+References: <1396280619-31152-1-git-send-email-standby24x7@gmail.com>
+Cc: Masanari Iida <standby24x7@gmail.com>
+To: netdev@vger.kernel.org, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1396280619-31152-1-git-send-email-standby24x7@gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 31, 2014 at 07:50:06AM -0600, Mathieu Poirier wrote:
-[...]
-> >
-> > You can just define some enum, ie.
-> >
-> > enum {
-> >         NFACCT_NO_QUOTA         = -1,
-> >         NFACCT_UNDERQUOTA,
-> >         NFACCT_OVERQUOTA,
-> > };
-> >
-> > to include/linux/netfilter/nfnetlink_acct.h.
-> >
-> > I guess with that we can also remove the comments everywhere, as it
-> > will be quite clear with the enums.
-> >
-> > Merge window will be close soon, please also post the userspace
-> > changes for the library and the utility asap.
-> 
-> At this time I only have the userspace modifications in the nfacct
-> port I did for Android.  That one links to libnl2.0 and won't be of
-> interest to you.  I can get you the kernel work in time for the merge
-> window but modifications to the "real" nfacct may not make it.  I'd
-> love to see the work going in the 3.15 merge window but can't offer
-> guarantees.
-> 
-> Would you consider queuing the kernel patch in the merge window
-> without the userspace?  Note that I would understand if you woudn't
-> accept that....
+Fix format string mismatch in _conntrack_tftp_init().
 
-You have to send me the library changes for libnetfilter_acct at
-least and the tested kernel patch asap.
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ net/netfilter/nf_conntrack_tftp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index e68ab4f..9b1608f 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -134,7 +134,7 @@ static int __init nf_conntrack_tftp_init(void)
+ 			if (ports[i] == TFTP_PORT)
+ 				sprintf(tftp[i][j].name, "tftp");
+ 			else
+-				sprintf(tftp[i][j].name, "tftp-%u", i);
++				sprintf(tftp[i][j].name, "tftp-%d", i);
+ 
+ 			ret = nf_conntrack_helper_register(&tftp[i][j]);
+ 			if (ret) {
+-- 
+1.9.1.352.gd393d14
