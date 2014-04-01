@@ -1,64 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: net-next is closed [was Re: no new feature patches please]
-Date: Tue, 1 Apr 2014 10:32:08 +0200
-Message-ID: <20140401083208.GA4473@localhost>
-References: <20140331.151625.1813309792083064637.davem@davemloft.net>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: [PATCH] ipset: Fix printf format warning
+Date: Tue, 1 Apr 2014 17:44:52 +0700
+Message-ID: <20140401104452.GA2110@nitrogen.neutroncom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Cc: kadlec@blackhole.kfki.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60259 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077AbaDAIc2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Apr 2014 04:32:28 -0400
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:61838 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206AbaDAKo6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Apr 2014 06:44:58 -0400
+Received: by mail-pd0-f172.google.com with SMTP id p10so9417692pdj.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Apr 2014 03:44:58 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140331.151625.1813309792083064637.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As you probably noticed, the net-next merge window is already closed.
 
-I had several patches in my queue though that I thought I could manage
-to get them in together with some of them that were closed to be
-ready, but this time I overestimate the amount of time that I had to
-make it, sorry. To resolve the current situation, I'll rearrange the
-current patchset in the following way:
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-* nf_tables patches, they will all fly to the nftables tree [1] to
-  keep it simple for the nftables developers. I'll keep this tree open
-  for new features meanwhile.
+Using PRIx32 macro is portable across multiple architectures and
+also fix the printf format warning on any architectures that
+"%llx" is not refer to 32 bits size.
 
-netfilter: nft_hash: use set global element counter instead of private one
-netfilter: nf_tables: implement proper set selection
-netfilter: nft_ct: split nft_ct_init() into two functions for get/set
-netfilter: nft_meta: split nft_meta_init() into two functions for get/set
-netfilter: nft_ct: add missing ifdef for NFT_MARK set
+Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
+---
+ lib/print.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-* Netfilter fixes:
+diff --git a/lib/print.c b/lib/print.c
+index f81c074..a7abdcf 100644
+--- a/lib/print.c
++++ b/lib/print.c
+@@ -13,6 +13,7 @@
+ #include <arpa/inet.h>				/* inet_ntop */
+ #include <net/ethernet.h>			/* ETH_ALEN */
+ #include <net/if.h>				/* IFNAMSIZ */
++#include <inttypes.h>				/* PRIx macro */
+=20
+ #include <libipset/debug.h>			/* D() */
+ #include <libipset/data.h>			/* ipset_data_* */
+@@ -519,7 +520,7 @@ ipset_print_mark(char *buf, unsigned int len,
+ 	mark =3D ipset_data_get(data, opt);
+ 	assert(mark);
+=20
+-	size =3D snprintf(buf, len, "0x%08llx", *mark);
++	size =3D snprintf(buf, len, "0x%08"PRIx32, *mark);
+ 	SNPRINTF_FAILURE(size, len, offset);
+=20
+ 	return offset;
+--=20
+1.9.1
 
-netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len
-netfilter: Add {ipt,ip6t}_osf aliases for xt_osf
-netfilter: connlimit: move lock array out of struct connlimit_data
-netfilter: x_tables: allow to use cgroup match for LOCAL_IN nf hooks
-netfilter: connlimit: fix UP build
 
-* For nf-next, I'll enqueue this cleanup:
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-netfilter: nfnetlink: simplify nfnetlink_bind
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-[1] http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git
+iQIcBAEBCAAGBQJTOpikAAoJEJ0EcL2mzcRXw/gP/0bSgJwI0Nchst8V3O8MFgO3
+6ILrVycJMMEa4KR8+hrxJqqiZgeKZ02VIZPiIwDHVl/zAHijZ9H7wf/OD5IUA9Rz
+Nv0r4qJypnY/uErQpBX/5WrMdfst7TwbqbsUb5jsc3Jab2KHZMq4xTe6y3esiHMZ
+dw5fA85ch3iWuJ7l38mwQCxQaeEYahkB+YMVFRwazspLyehSeK6DSt8rlLmk1JvF
+N+hLpIs+caAok3ae4DF86dltVGlYLwPHmbd8qSfSBGpu8MmXwH9LYuQ1PRajnbDd
+timvzlUcMMEqD2NswBLHWub9d3qmnbB1Ukogjw7vK1RtFtfdMOjvU8c+/nETwM9I
+GfzSbXsvfKUeMFh/TU5Mg/QlbV9OEpu22oDdZkqq7MkVLEVjryPCylsL44tEXQeo
+uQEYJdf5cmiBuW/BpyaUvzixuqG5kFHRErHRpeaGhOxcch+RauVaL5WtvfdykUHj
+F92D1/TRp74dEwKTTElb30XHbfVGVF58rNBhuWSqvZKdSUliuENPbcGw8LOhw4nf
+crMG6NR9YGI+BDhB1Q+fheudtYqzI31YlWWqttqDj/FlD2spjQyBxamgKfn/vpXC
+c/Pj4kauot/NUGJ8xZEnvrb961Eusd6wuvoVcOygx9Fytc8PgH370rFMJ6DwZxRG
+8QD6fs9MgUlG6835s2lz
+=YAQn
+-----END PGP SIGNATURE-----
 
-On Mon, Mar 31, 2014 at 03:16:25PM -0400, David Miller wrote:
-> 
-> We are enterring the merge window, please do not submit non-bugfix patches
-> until the net-next tree opens back up.
-> 
-> I will be just silently marking as "deferred" any submission which
-> violates this, because it is extremely time consuming responding to
-> each and every posting which violates the submission rules.
-> 
-> Thanks in advance for your understanding.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--17pEHd4RhPHOinZp--
