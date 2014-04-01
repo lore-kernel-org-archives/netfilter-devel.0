@@ -1,84 +1,81 @@
 From: Neutron Soutmun <neo.neutron@gmail.com>
-Subject: [PATCH] ipset: Fix printf format warning
-Date: Tue, 1 Apr 2014 17:44:52 +0700
-Message-ID: <20140401104452.GA2110@nitrogen.neutroncom.local>
+Subject: [PATCH] ipset: Fix grammar error in manpage
+Date: Tue, 1 Apr 2014 17:46:34 +0700
+Message-ID: <20140401104634.GB2110@nitrogen.neutroncom.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+	protocol="application/pgp-signature"; boundary="K8nIJk4ghYZn606h"
 Cc: kadlec@blackhole.kfki.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:61838 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206AbaDAKo6 (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:45610 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206AbaDAKqk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Apr 2014 06:44:58 -0400
-Received: by mail-pd0-f172.google.com with SMTP id p10so9417692pdj.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Apr 2014 03:44:58 -0700 (PDT)
+	Tue, 1 Apr 2014 06:46:40 -0400
+Received: by mail-pb0-f45.google.com with SMTP id uo5so9672248pbc.32
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Apr 2014 03:46:40 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---17pEHd4RhPHOinZp
+--K8nIJk4ghYZn606h
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Using PRIx32 macro is portable across multiple architectures and
-also fix the printf format warning on any architectures that
-"%llx" is not refer to 32 bits size.
+Refer to: https://bugs.launchpad.net/ubuntu/+source/lintian/+bug/608231
+
+The "allows to" is a common grammar error which it will probably be replaced
+by "allows one to" as a suggestion in above bug report page.
 
 Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
 ---
- lib/print.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ src/ipset.8 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/lib/print.c b/lib/print.c
-index f81c074..a7abdcf 100644
---- a/lib/print.c
-+++ b/lib/print.c
-@@ -13,6 +13,7 @@
- #include <arpa/inet.h>				/* inet_ntop */
- #include <net/ethernet.h>			/* ETH_ALEN */
- #include <net/if.h>				/* IFNAMSIZ */
-+#include <inttypes.h>				/* PRIx macro */
-=20
- #include <libipset/debug.h>			/* D() */
- #include <libipset/data.h>			/* ipset_data_* */
-@@ -519,7 +520,7 @@ ipset_print_mark(char *buf, unsigned int len,
- 	mark =3D ipset_data_get(data, opt);
- 	assert(mark);
-=20
--	size =3D snprintf(buf, len, "0x%08llx", *mark);
-+	size =3D snprintf(buf, len, "0x%08"PRIx32, *mark);
- 	SNPRINTF_FAILURE(size, len, offset);
-=20
- 	return offset;
+diff --git a/src/ipset.8 b/src/ipset.8
+index 6c9a0f5..6d272db 100644
+--- a/src/ipset.8
++++ b/src/ipset.8
+@@ -905,7 +905,7 @@ The protocol family of the IP addresses to be stored in=
+ the set. The default is
+ \fBinet\fR, i.e IPv4.
+ .TP
+ \fBmarkmask\fR \fIvalue\fR
+-Allows to set bits you are interested in the packet mark. This values is t=
+hen used to perform bitwise AND operation for every mark added.
++Allows you to set bits you are interested in the packet mark. This values =
+is then used to perform bitwise AND operation for every mark added.
+ markmask can be any value between 1 and 4294967295, by default all 32 bits=
+ are set.
+ .TP
+ \fBhashsize\fR \fIvalue\fR
 --=20
 1.9.1
 
 
---17pEHd4RhPHOinZp
+--K8nIJk4ghYZn606h
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCAAGBQJTOpikAAoJEJ0EcL2mzcRXw/gP/0bSgJwI0Nchst8V3O8MFgO3
-6ILrVycJMMEa4KR8+hrxJqqiZgeKZ02VIZPiIwDHVl/zAHijZ9H7wf/OD5IUA9Rz
-Nv0r4qJypnY/uErQpBX/5WrMdfst7TwbqbsUb5jsc3Jab2KHZMq4xTe6y3esiHMZ
-dw5fA85ch3iWuJ7l38mwQCxQaeEYahkB+YMVFRwazspLyehSeK6DSt8rlLmk1JvF
-N+hLpIs+caAok3ae4DF86dltVGlYLwPHmbd8qSfSBGpu8MmXwH9LYuQ1PRajnbDd
-timvzlUcMMEqD2NswBLHWub9d3qmnbB1Ukogjw7vK1RtFtfdMOjvU8c+/nETwM9I
-GfzSbXsvfKUeMFh/TU5Mg/QlbV9OEpu22oDdZkqq7MkVLEVjryPCylsL44tEXQeo
-uQEYJdf5cmiBuW/BpyaUvzixuqG5kFHRErHRpeaGhOxcch+RauVaL5WtvfdykUHj
-F92D1/TRp74dEwKTTElb30XHbfVGVF58rNBhuWSqvZKdSUliuENPbcGw8LOhw4nf
-crMG6NR9YGI+BDhB1Q+fheudtYqzI31YlWWqttqDj/FlD2spjQyBxamgKfn/vpXC
-c/Pj4kauot/NUGJ8xZEnvrb961Eusd6wuvoVcOygx9Fytc8PgH370rFMJ6DwZxRG
-8QD6fs9MgUlG6835s2lz
-=YAQn
+iQIcBAEBCAAGBQJTOpkKAAoJEJ0EcL2mzcRXkCwQALrxHeeijcbxJCvb0mQphx9v
+nwObTc7AbOXRwRytxLEVJH0xq7XIGNen8ghkhwLYD93LtMtXFHankFdF7RIDkK19
+GyyIPAv40gHla6yRspm/q5LX4nIdpLS7n2J6UUlQZ5o29cK6RtFKn9TWl1qZLojg
+szJFZC6NWmnSXWWOraWNnqzZIw4Wa130NqBg8Eiog1Sagd/tGM2PNjlO1s9VLft1
+IXRiW6dNYSteyylviPXsYLFO8p+ze9Ol4daQsLf5uOyWpX7TDdyrDDylHfPyB/T9
+1XwCxIrZRytqo6RQnNdYdR6Y//Tq1udvB+Joybt2LeX4swyUJYL71367YrMC4BhH
+Mwvxc2YV/ZdSBnzd1QqVnHrHdOS45sLWIsMwRVmlj7BaVXjy05VKHPD0uxb3tM/v
+V9hFovSZ1lDK9a/tBIHponAT0EHco01sIRLy/JkMhDT7YbjmnxkZXd/FM9BAN6PN
+qrrSzJNzHPiWK7kICCdMfwMochxD7GWw86U0carTP8hGOJ4gaL/W7CIGqbnBTpJf
+CCyT7mUKghPVV5hsP7j2h0EdKqHZQcDNAN8dOm10VOPz7N8aVlzvXqp6bUbxrgeW
+O/LaZaa11twtGQ9qu/gkAstIeZdQovIxvht6RrKQtbVVopRSPuBOtRZDioAGqe/1
+pMQYM3VrT1FNINaNCUFz
+=LiJy
 -----END PGP SIGNATURE-----
 
---17pEHd4RhPHOinZp--
+--K8nIJk4ghYZn606h--
