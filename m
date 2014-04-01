@@ -1,135 +1,60 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH] netfilter: nf_tables: add set_elem notifications
-Date: Tue, 01 Apr 2014 14:06:07 +0200
-Message-ID: <20140401120606.4305.13228.stgit@nfdev.cica.es>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH 3/3] netlink: implement unbind to netlink_setsockopt
+	NETLINK_DROP_MEMBERSHIP
+Date: Tue,  1 Apr 2014 10:14:58 -0400
+Message-ID: <c050da1200ba5811b94bd1543728c7b90aafdb0f.1396317747.git.rgb@redhat.com>
+References: <20140324183406.GE28666@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:51280 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752097AbaDAMGX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Apr 2014 08:06:23 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Richard Guy Briggs <rgb@redhat.com>, davem@davemloft.net,
+        hadi@mojatatu.com
+To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
+In-Reply-To: <cover.1396317747.git.rgb@redhat.com>
+References: <cover.1396317747.git.rgb@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds set_elems notifications.
+Call the per-protocol unbind function rather than bind function on
+NETLINK_DROP_MEMBERSHIP in netlink_setsockopt().
 
-When a set_elem is added/deleted, all listening peers in userspace will
-receive the corresponding notification.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- net/netfilter/nf_tables_api.c |   82 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ net/netlink/af_netlink.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 33045a5..9791c49 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2723,6 +2723,85 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
- 	return -EOPNOTSUPP;
- }
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 9ae6e0f..3938138 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -2109,7 +2109,7 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
+ 			return err;
+ 		if (!val || val - 1 >= nlk->ngroups)
+ 			return -EINVAL;
+-		if (nlk->netlink_bind) {
++		if (optname == NETLINK_ADD_MEMBERSHIP && nlk->netlink_bind) {
+ 			err = nlk->netlink_bind(val);
+ 			if (err)
+ 				return err;
+@@ -2118,6 +2118,8 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
+ 		netlink_update_socket_mc(nlk, val,
+ 					 optname == NETLINK_ADD_MEMBERSHIP);
+ 		netlink_table_ungrab();
++		if (optname == NETLINK_DROP_MEMBERSHIP && nlk->netlink_unbind)
++			nlk->netlink_unbind(val);
  
-+static int nf_tables_fill_setelem_info(const struct nft_ctx *ctx,
-+				       struct sk_buff *skb;
-+				       const struct nft_set *set,
-+				       const struct nft_set_elem *elem,
-+				       int event, u16 flags)
-+{
-+	u32 seq = ctx->nlh->nlmsg_seq;
-+	struct nfgenmsg *nfmsg;
-+	struct nlmsghdr *nlh;
-+	struct nlattr *nest;
-+
-+	event |= NFNL_SUBSYS_NFTABLES << 8;
-+	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-+			flags);
-+	if (nlh == NULL)
-+		goto nla_put_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family	= ctx->afi->family;
-+	nfmsg->version		= NFNETLINK_V0;
-+	nfmsg->res_id		= 0;
-+
-+	if (nla_put_string(skb, NFTA_SET_TABLE, ctx->table->name))
-+		goto nla_put_failure;
-+
-+	if (nla_put_string(skb, NFTA_SET_NAME, set->name))
-+		goto nla_put_failure;
-+
-+	nest = nla_nest_start(skb, NFTA_SET_ELEM_LIST_ELEMENTS);
-+	if (nest == NULL)
-+		goto nla_put_failure;
-+
-+	err = nf_tables_fill_setelem(skb, set, elem);
-+	if (err < 0)
-+		goto nla_put_failure;
-+
-+	nla_nest_end(skb, nest);
-+
-+	return nlmsg_end(skb, nlh);
-+
-+nla_put_failure:
-+	nlmsg_trim(skb, nlh);
-+	return -1;
-+}
-+
-+static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
-+				    const struct nft_set *set,
-+				    const struct nft_set_elem *elem,
-+				    int event, u16 flags)
-+{
-+	const struct sk_buff *oskb = ctx->skb;
-+	struct net *net = sock_net(oskb->sk);
-+	u32 portid = NETLINK_CB(oskb).portid;
-+	bool report = nlmsg_report(ctx->nlh);
-+	struct sk_buff *skb;
-+	int err;
-+
-+	if (!report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-+		return 0;
-+
-+	err = -ENOBUFS;
-+	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-+	if (skb == NULL)
-+		goto err;
-+
-+	err = nf_tables_fill_setelem_info(skb, ctx, set, elem, evet, flags);
-+	if (err < 0) {
-+		kfree_skb(skb);
-+		goto err;
-+	}
-+
-+	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report,
-+			     GFP_KERNEL);
-+err:
-+	if (err < 0)
-+		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
-+	return err;
-+}
-+
- static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr)
- {
-@@ -2799,6 +2878,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
- 	if (err < 0)
- 		goto err3;
- 
-+	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_NEWSETELEM, 0);
- 	return 0;
- 
- err3:
-@@ -2868,6 +2948,8 @@ static int nft_del_setelem(const struct nft_ctx *ctx, struct nft_set *set,
- 
- 	set->ops->remove(set, &elem);
- 
-+	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_DELSETELEM, 0);
-+
- 	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
- 	if (set->flags & NFT_SET_MAP)
- 		nft_data_uninit(&elem.data, set->dtype);
-
+ 		err = 0;
+ 		break;
+-- 
+1.7.1
