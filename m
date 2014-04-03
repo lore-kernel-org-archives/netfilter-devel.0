@@ -1,75 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: Can't fail and free after table replacement
-Date: Fri, 4 Apr 2014 00:08:26 +0200
-Message-ID: <20140403220826.GC6769@breakpoint.cc>
-References: <e9465527b268e8ad308384c839f0b2051da3efb7.1396452712.git.tgraf@suug.ch>
- <20140403213757.GA3834@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: disallow builtin socket/tproxy with modular
+ ipv6 defrag
+Date: Fri, 4 Apr 2014 00:22:38 +0200
+Message-ID: <20140403222238.GA9081@localhost>
+References: <1395529169-26819-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, bart.de.schuymer@pandora.be,
-	kaber@trash.net, kadlec@blackhole.kfki.hu,
-	stephen@networkplumber.org, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37105 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753382AbaDCWIe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2014 18:08:34 -0400
+Received: from mail.us.es ([193.147.175.20]:46386 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753894AbaDCWWo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Apr 2014 18:22:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20140403213757.GA3834@localhost>
+In-Reply-To: <1395529169-26819-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Apr 02, 2014 at 05:35:13PM +0200, Thomas Graf wrote:
-> > All xtables variants suffer from the defect that the copy_to_user()
-> > to copy the counters to user memory may fail after the table has
-> > already been exchanged and thus exposed. Return an error at this
-> > point will result in freeing the already exposed table. Any
-> > subsequent packet processing will result in a kernel panic.
-> > 
-> > We can't copy the counters before exposing the new tables as we
-> > want provide the counter state after the old table has been
-> > unhooked. Therefore convert this into a silent error.
-> > 
-> > Cc: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: Thomas Graf <tgraf@suug.ch>
-> > ---
-> >  net/bridge/netfilter/ebtables.c | 4 +---
-> >  net/ipv4/netfilter/arp_tables.c | 5 +++--
-> >  net/ipv4/netfilter/ip_tables.c  | 5 +++--
-> >  net/ipv6/netfilter/ip6_tables.c | 5 +++--
-> >  4 files changed, 10 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> > index 0e474b1..7a3dc98 100644
-> > --- a/net/bridge/netfilter/ebtables.c
-> > +++ b/net/bridge/netfilter/ebtables.c
-> > @@ -1044,10 +1044,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
-> >  	if (repl->num_counters &&
-> >  	   copy_to_user(repl->counters, counterstmp,
-> >  	   repl->num_counters * sizeof(struct ebt_counter))) {
-> > -		ret = -EFAULT;
-> > +		/* Silent error, can't fail, new table is already in place */
-> >  	}
-> > -	else
-> > -		ret = 0;
-> >  
+On Sat, Mar 22, 2014 at 11:59:29PM +0100, Florian Westphal wrote:
+> xt_socket.c:(.init.text+0x13d2): undefined reference to `nf_defrag_ipv6_enable'
+> xt_TPROXY.c:(.init.text+0x19b5): undefined reference to `nf_defrag_ipv6_enable'
 > 
-> This seems good to me.
+> If DEFRAG_IPV6=m we cannot have SOCKET/TPROXY=y.
 > 
-> Perhaps we can spot a warning like in rtnetlink to inform the user
-> that counters are not reliable anymore?
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+> Technically this patch is bogus, but I couldn't figure out
+> how to express the dependencies in kconfig.
+> 
+> both already have
+> 
+> select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+> 
+> But its not enough; its possible to have
+> CONFIG_NF_DEFRAG_IPV6=m
+> CONFIG_IP6_NF_IPTABLES=m
+> CONFIG_NETFILTER_XT_TARGET_TPROXY=y
+> CONFIG_NETFILTER_XT_MATCH_SOCKET=y
+> 
+> Which doesn't work as socket/tproxy references symbols
+> from ipv6 defrag.
+> 
+> cannot add
+> depends on (NF_DEFRAG_IPV6 || NF_DEFRAG_IPV6=n)
+> since thats a recursive dependency.
+> 
+> Adding a dependency to have m/y depend on IP6_NF_IPTABLES
+> status appears to do the right thing but its not correct
+> because it also disallows DEFRAG=y, TPROXY=m (which is fine).
+>
+> AFAICS this dependency issue has always existed since ipv6
+> support was added to tproxy.
 
-you mean net_warn_ratelimit() ?
-
-Sure, can be added.
-
-However given that this bug has been around for 9 years I don't think
-its really needed, if it fails kernel panic'd, so its safe to say
-that the counters are reliable ;)
-
-With vanilla iptables this only fails if the userspace buffer was
-swapped out and could not be paged back in due to OOM.
+Not your fault, this Kconfig games that we already have to resolve the
+IPv6 dependencies are a mess. We should consider splitting this two in
+ipt_/ip6t_ modules, but that's just large change just to resolve this.
