@@ -1,139 +1,60 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH v2] Subject: netfilter: nf_tables: add set_elem
-	notifications
-Date: Thu, 03 Apr 2014 15:58:58 +0200
-Message-ID: <20140403135836.2769.2196.stgit@nfdev.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: Can't fail and free after table replacement
+Date: Thu, 3 Apr 2014 23:37:57 +0200
+Message-ID: <20140403213757.GA3834@localhost>
+References: <e9465527b268e8ad308384c839f0b2051da3efb7.1396452712.git.tgraf@suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, stephen@networkplumber.org,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:53854 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752104AbaDCN7C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2014 09:59:02 -0400
+Received: from mail.us.es ([193.147.175.20]:41633 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752870AbaDCViG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Apr 2014 17:38:06 -0400
+Content-Disposition: inline
+In-Reply-To: <e9465527b268e8ad308384c839f0b2051da3efb7.1396452712.git.tgraf@suug.ch>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds set_elems notifications. When a set_elem is
-added/deleted, all listening peers in userspace will receive the
-corresponding notification.
+On Wed, Apr 02, 2014 at 05:35:13PM +0200, Thomas Graf wrote:
+> All xtables variants suffer from the defect that the copy_to_user()
+> to copy the counters to user memory may fail after the table has
+> already been exchanged and thus exposed. Return an error at this
+> point will result in freeing the already exposed table. Any
+> subsequent packet processing will result in a kernel panic.
+> 
+> We can't copy the counters before exposing the new tables as we
+> want provide the counter state after the old table has been
+> unhooked. Therefore convert this into a silent error.
+> 
+> Cc: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Thomas Graf <tgraf@suug.ch>
+> ---
+>  net/bridge/netfilter/ebtables.c | 4 +---
+>  net/ipv4/netfilter/arp_tables.c | 5 +++--
+>  net/ipv4/netfilter/ip_tables.c  | 5 +++--
+>  net/ipv6/netfilter/ip6_tables.c | 5 +++--
+>  4 files changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 0e474b1..7a3dc98 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1044,10 +1044,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+>  	if (repl->num_counters &&
+>  	   copy_to_user(repl->counters, counterstmp,
+>  	   repl->num_counters * sizeof(struct ebt_counter))) {
+> -		ret = -EFAULT;
+> +		/* Silent error, can't fail, new table is already in place */
+>  	}
+> -	else
+> -		ret = 0;
+>  
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Acked-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@gnumonks.org>
----
-v2: rebased and fixed by Pablo. Tested again by myself.
+This seems good to me.
 
- net/netfilter/nf_tables_api.c |   82 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index bd3381e..60feca9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2807,6 +2807,85 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
- 	return -EOPNOTSUPP;
- }
- 
-+static int nf_tables_fill_setelem_info(struct sk_buff *skb,
-+				       const struct nft_ctx *ctx, u32 seq,
-+				       u32 portid, int event, u16 flags,
-+				       const struct nft_set *set,
-+				       const struct nft_set_elem *elem)
-+{
-+	struct nfgenmsg *nfmsg;
-+	struct nlmsghdr *nlh;
-+	struct nlattr *nest;
-+	int err;
-+
-+	event |= NFNL_SUBSYS_NFTABLES << 8;
-+	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-+			flags);
-+	if (nlh == NULL)
-+		goto nla_put_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family	= ctx->afi->family;
-+	nfmsg->version		= NFNETLINK_V0;
-+	nfmsg->res_id		= 0;
-+
-+	if (nla_put_string(skb, NFTA_SET_TABLE, ctx->table->name))
-+		goto nla_put_failure;
-+	if (nla_put_string(skb, NFTA_SET_NAME, set->name))
-+		goto nla_put_failure;
-+
-+	nest = nla_nest_start(skb, NFTA_SET_ELEM_LIST_ELEMENTS);
-+	if (nest == NULL)
-+		goto nla_put_failure;
-+
-+	err = nf_tables_fill_setelem(skb, set, elem);
-+	if (err < 0)
-+		goto nla_put_failure;
-+
-+	nla_nest_end(skb, nest);
-+
-+	return nlmsg_end(skb, nlh);
-+
-+nla_put_failure:
-+	nlmsg_trim(skb, nlh);
-+	return -1;
-+}
-+
-+static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
-+				    const struct nft_set *set,
-+				    const struct nft_set_elem *elem,
-+				    int event, u16 flags)
-+{
-+	const struct sk_buff *oskb = ctx->skb;
-+	struct net *net = sock_net(oskb->sk);
-+	u32 portid = NETLINK_CB(oskb).portid;
-+	bool report = nlmsg_report(ctx->nlh);
-+	struct sk_buff *skb;
-+	int err;
-+
-+	if (!report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-+		return 0;
-+
-+	err = -ENOBUFS;
-+	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-+	if (skb == NULL)
-+		goto err;
-+
-+	err = nf_tables_fill_setelem_info(skb, ctx, 0, portid, event, flags,
-+					  set, elem);
-+	if (err < 0) {
-+		kfree_skb(skb);
-+		goto err;
-+	}
-+
-+	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report,
-+			     GFP_KERNEL);
-+err:
-+	if (err < 0)
-+		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
-+	return err;
-+}
-+
- static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr)
- {
-@@ -2887,6 +2966,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
- 		goto err3;
- 	set->nelems++;
- 
-+	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_NEWSETELEM, 0);
- 	return 0;
- 
- err3:
-@@ -2957,6 +3037,8 @@ static int nft_del_setelem(const struct nft_ctx *ctx, struct nft_set *set,
- 	set->ops->remove(set, &elem);
- 	set->nelems--;
- 
-+	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_DELSETELEM, 0);
-+
- 	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
- 	if (set->flags & NFT_SET_MAP)
- 		nft_data_uninit(&elem.data, set->dtype);
-
+Perhaps we can spot a warning like in rtnetlink to inform the user
+that counters are not reliable anymore?
