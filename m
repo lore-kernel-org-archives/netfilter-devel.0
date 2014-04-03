@@ -1,131 +1,191 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] libnftnl: tests: Use getopt_long to parse the command-line arguments.
-Date: Thu,  3 Apr 2014 13:56:03 +0200
-Message-ID: <e2f3b55fb0b4efaabf1a489da34f78cf8f3bd804.1396525912.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf_tables PATCH] netfilter: nf_tables: add set_elem
+ notifications
+Date: Thu, 3 Apr 2014 12:19:03 +0200
+Message-ID: <20140403101903.GA15176@localhost>
+References: <20140401120606.4305.13228.stgit@nfdev.cica.es>
+ <20140403100730.GA11139@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="ZGiS0Q5IWpPtfppv"
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:47643 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbaDCL4M (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Apr 2014 07:56:12 -0400
-Received: by mail-wi0-f169.google.com with SMTP id hm4so728641wib.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Apr 2014 04:56:11 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:45892 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751848AbaDCKTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Apr 2014 06:19:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20140403100730.GA11139@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use getopt_long to parse the command-line arguments and
-prepare it to add new arguments in next patches.
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Apr 03, 2014 at 12:07:30PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 01, 2014 at 02:06:07PM +0200, Arturo Borrero Gonzalez wrote:
+> > This patch adds set_elems notifications.
+> > 
+> > When a set_elem is added/deleted, all listening peers in userspace will
+> > receive the corresponding notification.
+> > 
+> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> > ---
+> >  net/netfilter/nf_tables_api.c |   82 +++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 82 insertions(+)
+> > 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index 33045a5..9791c49 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -2723,6 +2723,85 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
+> >  	return -EOPNOTSUPP;
+> >  }
+> >  
+> > +static int nf_tables_fill_setelem_info(const struct nft_ctx *ctx,
+> > +				       struct sk_buff *skb;
+>                                                           ^
+> 
+> Did you send me the final patch version?
+
+Just revamped your patch to make it compile. I need it to rebase my
+transaction infrastructure upon it.
+
+Find it attached, compile tested only. Please, put a bit more care
+next time. Thanks.
+
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-nf_tables-add-set_elem-notifications.patch"
+
+>From 112423d94f59ae850fc891e442cae882fc75d656 Mon Sep 17 00:00:00 2001
+From: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Date: Tue, 1 Apr 2014 14:06:07 +0200
+Subject: [PATCH] netfilter: nf_tables: add set_elem notifications
+
+This patch adds set_elems notifications. When a set_elem is
+added/deleted, all listening peers in userspace will receive the
+corresponding notification.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@gnumonks.org>
 ---
- tests/nft-parsing-test.c | 53 +++++++++++++++++++++++++++++++++++++++++-------
- tests/test-script.sh     |  4 ++--
- 2 files changed, 48 insertions(+), 9 deletions(-)
+ net/netfilter/nf_tables_api.c |   83 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 83 insertions(+)
 
-diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-index 1786cb6..55925f7 100644
---- a/tests/nft-parsing-test.c
-+++ b/tests/nft-parsing-test.c
-@@ -4,6 +4,7 @@
- #include <dirent.h>
- #include <limits.h>
- #include <errno.h>
-+#include <getopt.h>
- 
- #include <libmnl/libmnl.h> /*nlmsghdr*/
- #include <libnftnl/ruleset.h>
-@@ -161,7 +162,7 @@ failparsing:
- 	return -1;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index bd3381e..0dcc99c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2807,6 +2807,86 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
+ 	return -EOPNOTSUPP;
  }
  
--int main(int argc, char *argv[])
-+static int execute_test(const char *dir_name)
- {
- 	DIR *d;
- 	struct dirent *dent;
-@@ -169,12 +170,8 @@ int main(int argc, char *argv[])
- 	int ret = 0, exit_code = 0;
- 	struct nft_parse_err *err;
- 
--	if (argc != 2) {
--		fprintf(stderr, "Usage: %s <directory>\n", argv[0]);
--		exit(EXIT_FAILURE);
--	}
-+	d = opendir(dir_name);
- 
--	d = opendir(argv[1]);
- 	if (d == NULL) {
- 		perror("opendir");
- 		exit(EXIT_FAILURE);
-@@ -193,7 +190,7 @@ int main(int argc, char *argv[])
- 		    strcmp(dent->d_name, "..") == 0)
- 			continue;
- 
--		snprintf(path, sizeof(path), "%s/%s", argv[1], dent->d_name);
-+		snprintf(path, sizeof(path), "%s/%s", dir_name, dent->d_name);
- 
- 		if (strcmp(&dent->d_name[len-4], ".xml") == 0) {
- 			if ((ret = test_xml(path, err)) == 0) {
-@@ -219,3 +216,45 @@ int main(int argc, char *argv[])
- 
- 	return 0;
- }
-+
-+int main(int argc, char *argv[])
++static int nf_tables_fill_setelem_info(struct sk_buff *skb,
++				       const struct nft_ctx *ctx, u32 portid,
++				       int event, u32 flags,
++				       const struct nft_set *set,
++				       const struct nft_set_elem *elem)
 +{
++	u32 seq = ctx->nlh->nlmsg_seq;
++	struct nfgenmsg *nfmsg;
++	struct nlmsghdr *nlh;
++	struct nlattr *nest;
++	int err;
 +
-+	int c;
-+	int ret = 0;
++	event |= NFNL_SUBSYS_NFTABLES << 8;
++	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
++			flags);
++	if (nlh == NULL)
++		goto nla_put_failure;
 +
-+	if (argc < 2) {
-+		fprintf(stderr, "Usage: %s -d <directory>\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
++	nfmsg = nlmsg_data(nlh);
++	nfmsg->nfgen_family	= ctx->afi->family;
++	nfmsg->version		= NFNETLINK_V0;
++	nfmsg->res_id		= 0;
 +
-+	while (1) {
-+		int option_index = 0;
-+		static struct option long_options[] = {
-+			{"dir", required_argument, 0, 'd'},
-+			{"update", required_argument, 0, 'u'},
-+			{0,0,0,0}
-+		};
-+		c = getopt_long(argc, argv, "u:d:", long_options, &option_index);
++	if (nla_put_string(skb, NFTA_SET_TABLE, ctx->table->name))
++		goto nla_put_failure;
 +
-+		if (c == -1)
-+			break;
++	if (nla_put_string(skb, NFTA_SET_NAME, set->name))
++		goto nla_put_failure;
 +
-+		switch (c) {
-+		case 'd':
-+			ret = execute_test(optarg);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
++	nest = nla_nest_start(skb, NFTA_SET_ELEM_LIST_ELEMENTS);
++	if (nest == NULL)
++		goto nla_put_failure;
 +
-+	if (optind < argc) {
-+		printf("non-option ARGV-elements: ");
-+		while (optind < argc)
-+			printf("%s ", argv[optind++]);
-+	printf("\nUsage: -d <directory>\n");
-+	}
++	err = nf_tables_fill_setelem(skb, set, elem);
++	if (err < 0)
++		goto nla_put_failure;
 +
-+	return ret;
++	nla_nest_end(skb, nest);
++
++	return nlmsg_end(skb, nlh);
++
++nla_put_failure:
++	nlmsg_trim(skb, nlh);
++	return -1;
 +}
-diff --git a/tests/test-script.sh b/tests/test-script.sh
-index b766421..44725d8 100755
---- a/tests/test-script.sh
-+++ b/tests/test-script.sh
-@@ -18,5 +18,5 @@
- ./nft-rule-test
- ./nft-set-test
- ./nft-table-test
--./nft-parsing-test xmlfiles
--./nft-parsing-test jsonfiles
-+./nft-parsing-test -d xmlfiles
-+./nft-parsing-test -d jsonfiles
++
++static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
++				    const struct nft_set *set,
++				    const struct nft_set_elem *elem,
++				    int event, u16 flags)
++{
++	const struct sk_buff *oskb = ctx->skb;
++	struct net *net = sock_net(oskb->sk);
++	u32 portid = NETLINK_CB(oskb).portid;
++	bool report = nlmsg_report(ctx->nlh);
++	struct sk_buff *skb;
++	int err;
++
++	if (!report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
++		return 0;
++
++	err = -ENOBUFS;
++	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
++	if (skb == NULL)
++		goto err;
++
++	err = nf_tables_fill_setelem_info(skb, ctx, 0, event, flags, set, elem);
++	if (err < 0) {
++		kfree_skb(skb);
++		goto err;
++	}
++
++	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report,
++			     GFP_KERNEL);
++err:
++	if (err < 0)
++		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
++	return err;
++}
++
+ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
+ 			    const struct nlattr *attr)
+ {
+@@ -2887,6 +2967,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err3;
+ 	set->nelems++;
+ 
++	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_NEWSETELEM, 0);
+ 	return 0;
+ 
+ err3:
+@@ -2957,6 +3038,8 @@ static int nft_del_setelem(const struct nft_ctx *ctx, struct nft_set *set,
+ 	set->ops->remove(set, &elem);
+ 	set->nelems--;
+ 
++	nf_tables_setelem_notify(ctx, set, &elem, NFT_MSG_DELSETELEM, 0);
++
+ 	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
+ 	if (set->flags & NFT_SET_MAP)
+ 		nft_data_uninit(&elem.data, set->dtype);
 -- 
-1.9.0
+1.7.10.4
 
+
+--ZGiS0Q5IWpPtfppv--
