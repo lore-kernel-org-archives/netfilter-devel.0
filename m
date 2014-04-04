@@ -1,187 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/10] netfilter: nf_tables: deconstify table and chain in context structure
-Date: Fri,  4 Apr 2014 15:48:05 +0200
-Message-ID: <1396619294-26212-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 07/10] netfilter: nf_tables: disabling table hooks always succeeds
+Date: Fri,  4 Apr 2014 15:48:11 +0200
+Message-ID: <1396619294-26212-8-git-send-email-pablo@netfilter.org>
 References: <1396619294-26212-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48505 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48521 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752871AbaDDNsa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Apr 2014 09:48:30 -0400
+	id S1753009AbaDDNsc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Apr 2014 09:48:32 -0400
 In-Reply-To: <1396619294-26212-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The new transaction infrastructure updates the family, table and chain
-objects in the context structure, so let's deconstify them. While at it,
-move the context structure initialization routine to the top of the
-source file as it will be also used from the table and chain routines.
+nf_tables_table_disable() always succeeds, make this function void.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |    6 ++--
- net/netfilter/nf_tables_api.c     |   58 ++++++++++++++++++-------------------
- 2 files changed, 32 insertions(+), 32 deletions(-)
+ net/netfilter/nf_tables_api.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 29ff1dc..9150523 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -83,9 +83,9 @@ struct nft_ctx {
- 	struct net			*net;
- 	const struct sk_buff		*skb;
- 	const struct nlmsghdr		*nlh;
--	const struct nft_af_info	*afi;
--	const struct nft_table		*table;
--	const struct nft_chain		*chain;
-+	struct nft_af_info		*afi;
-+	struct nft_table		*table;
-+	struct nft_chain		*chain;
- 	const struct nlattr * const 	*nla;
- };
- 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 60feca9..af5a348 100644
+index 2345259..0fa9671 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -88,6 +88,23 @@ nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
- 	return ERR_PTR(-EAFNOSUPPORT);
+@@ -381,7 +381,7 @@ err:
+ 	return err;
  }
  
-+static void nft_ctx_init(struct nft_ctx *ctx,
-+			 const struct sk_buff *skb,
-+			 const struct nlmsghdr *nlh,
-+			 struct nft_af_info *afi,
-+			 struct nft_table *table,
-+			 struct nft_chain *chain,
-+			 const struct nlattr * const *nla)
-+{
-+	ctx->net   = sock_net(skb->sk);
-+	ctx->skb   = skb;
-+	ctx->nlh   = nlh;
-+	ctx->afi   = afi;
-+	ctx->table = table;
-+	ctx->chain = chain;
-+	ctx->nla   = nla;
-+}
-+
- /*
-  * Tables
-  */
-@@ -812,7 +829,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+-static int nf_tables_table_disable(const struct nft_af_info *afi,
++static void nf_tables_table_disable(const struct nft_af_info *afi,
+ 				   struct nft_table *table)
  {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	const struct nlattr * uninitialized_var(name);
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct nft_table *table;
  	struct nft_chain *chain;
- 	struct nft_base_chain *basechain = NULL;
-@@ -1024,7 +1041,7 @@ static int nf_tables_delchain(struct sock *nlsk, struct sk_buff *skb,
- 			      const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct nft_table *table;
- 	struct nft_chain *chain;
- 	struct net *net = sock_net(skb->sk);
-@@ -1062,23 +1079,6 @@ static int nf_tables_delchain(struct sock *nlsk, struct sk_buff *skb,
- 	return 0;
- }
- 
--static void nft_ctx_init(struct nft_ctx *ctx,
--			 const struct sk_buff *skb,
--			 const struct nlmsghdr *nlh,
--			 const struct nft_af_info *afi,
--			 const struct nft_table *table,
--			 const struct nft_chain *chain,
--			 const struct nlattr * const *nla)
--{
--	ctx->net   = sock_net(skb->sk);
--	ctx->skb   = skb;
--	ctx->nlh   = nlh;
--	ctx->afi   = afi;
--	ctx->table = table;
--	ctx->chain = chain;
--	ctx->nla   = nla;
--}
+@@ -391,8 +391,6 @@ static int nf_tables_table_disable(const struct nft_af_info *afi,
+ 			nf_unregister_hooks(nft_base_chain(chain)->ops,
+ 					    afi->nops);
+ 	}
 -
- /*
-  * Expressions
-  */
-@@ -1579,7 +1579,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 			     const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct net *net = sock_net(skb->sk);
- 	struct nft_table *table;
- 	struct nft_chain *chain;
-@@ -1760,9 +1760,9 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
- 			     const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct net *net = sock_net(skb->sk);
--	const struct nft_table *table;
-+	struct nft_table *table;
- 	struct nft_chain *chain = NULL;
- 	struct nft_rule *rule;
- 	int family = nfmsg->nfgen_family, err = 0;
-@@ -2006,8 +2006,8 @@ static int nft_ctx_init_from_setattr(struct nft_ctx *ctx,
- {
- 	struct net *net = sock_net(skb->sk);
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	const struct nft_af_info *afi = NULL;
--	const struct nft_table *table = NULL;
-+	struct nft_af_info *afi = NULL;
-+	struct nft_table *table = NULL;
+-	return 0;
+ }
  
- 	if (nfmsg->nfgen_family != NFPROTO_UNSPEC) {
- 		afi = nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
-@@ -2236,7 +2236,7 @@ static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff *skb,
- {
- 	const struct nft_set *set;
- 	unsigned int idx, s_idx = cb->args[0];
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct nft_table *table, *cur_table = (struct nft_table *)cb->args[2];
- 	struct net *net = sock_net(skb->sk);
- 	int cur_family = cb->args[3];
-@@ -2381,7 +2381,7 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	const struct nft_set_ops *ops;
--	const struct nft_af_info *afi;
-+	struct nft_af_info *afi;
- 	struct net *net = sock_net(skb->sk);
- 	struct nft_table *table;
- 	struct nft_set *set;
-@@ -2643,8 +2643,8 @@ static int nft_ctx_init_from_elemattr(struct nft_ctx *ctx,
- 				      const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	const struct nft_af_info *afi;
--	const struct nft_table *table;
-+	struct nft_af_info *afi;
-+	struct nft_table *table;
- 	struct net *net = sock_net(skb->sk);
+ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+@@ -412,9 +410,8 @@ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
  
- 	afi = nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
-@@ -2951,7 +2951,7 @@ static int nft_add_set_elem(const struct nft_ctx *ctx, struct nft_set *set,
- 			struct nft_ctx bind_ctx = {
- 				.afi	= ctx->afi,
- 				.table	= ctx->table,
--				.chain	= binding->chain,
-+				.chain	= (struct nft_chain *)binding->chain,
- 			};
+ 		if ((flags & NFT_TABLE_F_DORMANT) &&
+ 		    !(table->flags & NFT_TABLE_F_DORMANT)) {
+-			ret = nf_tables_table_disable(afi, table);
+-			if (ret >= 0)
+-				table->flags |= NFT_TABLE_F_DORMANT;
++			nf_tables_table_disable(afi, table);
++			table->flags |= NFT_TABLE_F_DORMANT;
+ 		} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 			   table->flags & NFT_TABLE_F_DORMANT) {
+ 			ret = nf_tables_table_enable(afi, table);
+@@ -963,7 +960,8 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		}
  
- 			err = nft_validate_data_load(&bind_ctx, dreg,
+ 		nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+-		trans = nft_trans_alloc(&ctx, NFT_MSG_NEWCHAIN);
++		trans = nft_trans_alloc(&ctx, NFT_MSG_NEWCHAIN,
++					sizeof(struct nft_trans_chain));
+ 		if (trans == NULL)
+ 			return -ENOMEM;
+ 
 -- 
 1.7.10.4
 
