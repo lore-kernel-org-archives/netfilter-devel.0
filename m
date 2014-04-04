@@ -1,58 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nftables] testing at sparc
-Date: Fri, 4 Apr 2014 14:05:04 +0200
-Message-ID: <20140404120504.GB27267@macbook.localnet>
-References: <CAOkSjBjhsQ7wS4_0YMrcV0Mm5yKOSVh8rn+sg3JK5zTH2qhYDw@mail.gmail.com>
+Subject: Re: [PATCH nft] expr: do not suppress OP_EQ when RHS is bitmask type
+Date: Fri, 4 Apr 2014 14:07:39 +0200
+Message-ID: <20140404120739.GC27267@macbook.localnet>
+References: <1395094118-32580-1-git-send-email-fw@strlen.de>
+ <20140404081723.GA3574@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64012 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64031 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbaDDMFI (ORCPT
+	with ESMTP id S1752582AbaDDMHm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Apr 2014 08:05:08 -0400
+	Fri, 4 Apr 2014 08:07:42 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjhsQ7wS4_0YMrcV0Mm5yKOSVh8rn+sg3JK5zTH2qhYDw@mail.gmail.com>
+In-Reply-To: <20140404081723.GA3574@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 02, 2014 at 06:23:03PM +0200, Arturo Borrero Gonzalez wrote:
-> Hi there!
+On Fri, Apr 04, 2014 at 10:17:23AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Mar 17, 2014 at 11:08:38PM +0100, Florian Westphal wrote:
+> > bitmask types default to flagcmp now, thus do not suppress OP_EQ.  Else,
+> > 
+> > rule filter output tcp flags syn
+> > rule filter output tcp flags == syn
+> > 
+> > are both displayed as 'flags syn'.
 > 
-> I've been testing nftables at sparc, looking for endianess issues.
-
-Great, I meant to do this for a long time.
-
-> Unfortunately, weird things happened.
+> I believe that in other selectors:
 > 
-> Adding some rule:
+>         selector == value
+>         selector value
 > 
-> % nft add table filter
-> % nft add chain filter input
-> % nft add rule filter input tcp dport 22 counter
-> % nft list table filter
-> table ip filter {
->   chain input {
->     payload @th,16,16 0x0 [invalid type] counter packets 0 bytes 0
->   }
-> }
-> 
-> However, matching happened when I generated some traffic.
+> are equivalent.
 
-So it appears we only have a problem in userspace? That's at least partially
-good news. Could you provide access to that machine for debugging?
+No, it really depends on the base type. For bitmasks the equality relation
+should be printed explicitly.
 
-> Also, compiling the nft cli tool:
-> 
-> % make
-> -e   CC src/main.c
-> src/main.c: In function 'nft_netlink':
-> src/main.c:176:2: warning: cast increases required alignment of target
-> type [-Wcast-align]
+> I think it's not just that we have to fix the printing, but make it
+> consistent.
 
-It appears all of these originate from the list iterator macros.
-I guess its container_of() and the cast to (type *)(char *)ptr ...
+What do you propose to change?
