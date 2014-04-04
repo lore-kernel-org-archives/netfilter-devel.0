@@ -1,50 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] expr: do not suppress OP_EQ when RHS is bitmask type
-Date: Fri, 4 Apr 2014 11:44:33 +0200
-Message-ID: <20140404094433.GA4275@localhost>
-References: <1395094118-32580-1-git-send-email-fw@strlen.de>
- <20140404081723.GA3574@localhost>
- <20140404083328.GE6769@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH 1/5] netfilter: nf_tables: Stack expression type depending on their family
+Date: Fri,  4 Apr 2014 12:47:27 +0300
+Message-ID: <1396604851-15348-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1396604851-15348-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36545 "EHLO mail.us.es"
+Received: from mga09.intel.com ([134.134.136.24]:30452 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbaDDJoj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Apr 2014 05:44:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20140404083328.GE6769@breakpoint.cc>
+	id S1752260AbaDDJrm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Apr 2014 05:47:42 -0400
+In-Reply-To: <1396604851-15348-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 04, 2014 at 10:33:28AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Mar 17, 2014 at 11:08:38PM +0100, Florian Westphal wrote:
-> > > bitmask types default to flagcmp now, thus do not suppress OP_EQ.  Else,
-> > > 
-> > > rule filter output tcp flags syn
-> > > rule filter output tcp flags == syn
-> > > 
-> > > are both displayed as 'flags syn'.
-> > 
-> > I believe that in other selectors:
-> > 
-> >         selector == value
-> >         selector value
-> > 
-> > are equivalent.
-> 
-> Yes, thats true.
-> 
-> > I think it's not just that we have to fix the printing, but make it
-> > consistent.
-> 
-> Not sure, this was changed recently, see
-> 6bad82aba5d304c7a2dd1b19fe57464dca327f4a
-> (evaluate: use flagcmp for single RHS bitmask expression).
+To ensure family tight expression gets selected in priority to family
+agnostic ones.
 
-That change is fine, I think we only have to fix tcp flags == syn to
-make it equivalent to tcp flags syn. I don't find a good reason why
-the should behave in a different way.
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
+ net/netfilter/nf_tables_api.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 33045a5..700a522 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1093,7 +1093,10 @@ static void nft_ctx_init(struct nft_ctx *ctx,
+ int nft_register_expr(struct nft_expr_type *type)
+ {
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	list_add_tail(&type->list, &nf_tables_expressions);
++	if (type->family == NFPROTO_UNSPEC)
++		list_add_tail(&type->list, &nf_tables_expressions);
++	else
++		list_add(&type->list, &nf_tables_expressions);
+ 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+ 	return 0;
+ }
+-- 
+1.8.3.2
+
