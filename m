@@ -1,38 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH RFC 0/9] socket filtering using nf_tables
-Date: Fri, 04 Apr 2014 11:24:32 -0400 (EDT)
-Message-ID: <20140404.112432.523364323608428978.davem@davemloft.net>
-References: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] expr: do not suppress OP_EQ when RHS is bitmask type
+Date: Fri, 4 Apr 2014 17:23:44 +0200
+Message-ID: <20140404152307.GA3278@localhost>
+References: <1395094118-32580-1-git-send-email-fw@strlen.de>
+ <20140404081723.GA3574@localhost>
+ <20140404083328.GE6769@breakpoint.cc>
+ <20140404094433.GA4275@localhost>
+ <20140404120946.GD27267@macbook.localnet>
+ <20140404140430.GB28581@localhost>
+ <20140404142333.GA28798@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:52419 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822AbaDDPW5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Apr 2014 11:22:57 -0400
-In-Reply-To: <1394529560-3490-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:34751 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbaDDPXv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Apr 2014 11:23:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20140404142333.GA28798@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 11 Mar 2014 10:19:11 +0100
+On Fri, Apr 04, 2014 at 04:24:40PM +0200, Patrick McHardy wrote:
+> > > If an equality relation is explicitly specified by the user, it also needs
+> > > to be printed. Florian's change is all we need from what I can tell.
+> > 
+> > Then we have to document that in some cases key == value and key
+> > value are equivalent, and when it comes to flags it is not, which is
+> > still rare to me.
+> 
+> Sure. I think I already have it in my documentation. Its basically simply
+> documenting what the implicit op means in which context.
 
-> The following patchset provides a socket filtering alternative to BPF
-> which allows you to define your filter using the nf_tables expressions.
-
-Generally I like this series, but of course you will need to respin
-it against the work that went into net-next recently.
-
-I only wonder about the expression implementation module loading
-logic when we add an nft filter to a socket.
-
-It seems that if the module doesn't exist, we return -EAGAIN, drop the
-mutex, and retry.  I see nothing which breaks this loop, it seems like
-it can run forever if a module is simply not present.
-
-Thanks.
+OK, please go ahead push it, thanks.
