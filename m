@@ -1,451 +1,108 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/10] netfilter: nf_tables: use new transaction infrastructure to handle sets
-Date: Fri,  4 Apr 2014 15:48:09 +0200
-Message-ID: <1396619294-26212-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 08/10] netfilter: nf_tables: pass context to nf_tables_uptable
+Date: Fri,  4 Apr 2014 15:48:12 +0200
+Message-ID: <1396619294-26212-9-git-send-email-pablo@netfilter.org>
 References: <1396619294-26212-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48516 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48524 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752964AbaDDNse (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Apr 2014 09:48:34 -0400
+	id S1753020AbaDDNsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Apr 2014 09:48:33 -0400
 In-Reply-To: <1396619294-26212-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch reworks the nf_tables API so set updates are included in
-the same batch that contains rule updates. This speeds up rule-set
-updates since we skip a dialog of four messages between kernel and
-user-space (two on each direction), from:
-
- 1) create the set and send netlink message to the kernel
- 2) process the response from the kernel that contains the allocated name.
- 3) add the set elements and send netlink message to the kernel.
- 4) process the response from the kernel (to check for errors).
-
-To:
-
- 1) add the set to the batch.
- 2) add the set elements to the batch.
- 3) add the rule that points to the set.
- 4) send batch to the kernel.
-
-This also introduces an internal set ID (NFTA_SET_ID) that is unique
-in the batch so set elements and rules can refer to new sets.
-
-Backward compatibility has been only retained in userspace, this
-means that new nft versions can talk to the kernel both in the new
-and the old fashion.
+So nf_tables_uptable() only takes one single parameter.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h        |   12 +++
- include/uapi/linux/netfilter/nf_tables.h |    6 ++
- net/netfilter/nf_tables_api.c            |  123 ++++++++++++++++++++++++++----
- net/netfilter/nft_lookup.c               |   10 ++-
- 4 files changed, 133 insertions(+), 18 deletions(-)
+ net/netfilter/nf_tables_api.c |   51 +++++++++++++++++++++--------------------
+ 1 file changed, 26 insertions(+), 25 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index d8dfb26..0f472d6 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -268,6 +268,8 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 
- struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- 				     const struct nlattr *nla);
-+struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
-+					  const struct nlattr *nla);
- 
- /**
-  *	struct nft_set_binding - nf_tables set binding
-@@ -408,6 +410,16 @@ struct nft_trans_rule {
- #define nft_trans_rule(trans)	\
- 	(((struct nft_trans_rule *)trans->data)->rule)
- 
-+struct nft_trans_set {
-+	struct nft_set	*set;
-+	u32		set_id;
-+};
-+
-+#define nft_trans_set(trans)	\
-+	(((struct nft_trans_set *)trans->data)->set)
-+#define nft_trans_set_id(trans)	\
-+	(((struct nft_trans_set *)trans->data)->set_id)
-+
- static inline struct nft_expr *nft_expr_first(const struct nft_rule *rule)
- {
- 	return (struct nft_expr *)&rule->data[0];
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 1601592..0349846 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -246,6 +246,7 @@ enum nft_set_desc_attributes {
-  * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
-  * @NFTA_SET_POLICY: selection policy (NLA_U32)
-  * @NFTA_SET_DESC: set description (NLA_NESTED)
-+ * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -258,6 +259,7 @@ enum nft_set_attributes {
- 	NFTA_SET_DATA_LEN,
- 	NFTA_SET_POLICY,
- 	NFTA_SET_DESC,
-+	NFTA_SET_ID,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-@@ -293,12 +295,14 @@ enum nft_set_elem_attributes {
-  * @NFTA_SET_ELEM_LIST_TABLE: table of the set to be changed (NLA_STRING)
-  * @NFTA_SET_ELEM_LIST_SET: name of the set to be changed (NLA_STRING)
-  * @NFTA_SET_ELEM_LIST_ELEMENTS: list of set elements (NLA_NESTED: nft_set_elem_attributes)
-+ * @NFTA_SET_ELEM_LIST_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-  */
- enum nft_set_elem_list_attributes {
- 	NFTA_SET_ELEM_LIST_UNSPEC,
- 	NFTA_SET_ELEM_LIST_TABLE,
- 	NFTA_SET_ELEM_LIST_SET,
- 	NFTA_SET_ELEM_LIST_ELEMENTS,
-+	NFTA_SET_ELEM_LIST_SET_ID,
- 	__NFTA_SET_ELEM_LIST_MAX
- };
- #define NFTA_SET_ELEM_LIST_MAX	(__NFTA_SET_ELEM_LIST_MAX - 1)
-@@ -484,12 +488,14 @@ enum nft_cmp_attributes {
-  * @NFTA_LOOKUP_SET: name of the set where to look for (NLA_STRING)
-  * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
-  * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
-+ * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-  */
- enum nft_lookup_attributes {
- 	NFTA_LOOKUP_UNSPEC,
- 	NFTA_LOOKUP_SET,
- 	NFTA_LOOKUP_SREG,
- 	NFTA_LOOKUP_DREG,
-+	NFTA_LOOKUP_SET_ID,
- 	__NFTA_LOOKUP_MAX
- };
- #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 90a753e..d3a26d2 100644
+index 0fa9671..c5587b2 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1931,6 +1931,7 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 	[NFTA_SET_DATA_LEN]		= { .type = NLA_U32 },
- 	[NFTA_SET_POLICY]		= { .type = NLA_U32 },
- 	[NFTA_SET_DESC]			= { .type = NLA_NESTED },
-+	[NFTA_SET_ID]			= { .type = NLA_U32 },
- };
- 
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
-@@ -1981,6 +1982,20 @@ struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- 	return ERR_PTR(-ENOENT);
+@@ -393,36 +393,34 @@ static void nf_tables_table_disable(const struct nft_af_info *afi,
+ 	}
  }
  
-+struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
-+					  const struct nlattr *nla)
-+{
-+	struct nft_trans *trans;
-+	u32 id = ntohl(nla_get_be32(nla));
-+
-+	list_for_each_entry(trans, &net->nft.commit_list, list) {
-+		if (trans->msg_type == NFT_MSG_NEWSET &&
-+		    id == nft_trans_set_id(trans))
-+			return nft_trans_set(trans);
-+	}
-+	return ERR_PTR(-ENOENT);
-+}
-+
- static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 				    const char *name)
+-static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+-			      const struct nlmsghdr *nlh,
+-			      const struct nlattr * const nla[],
+-			      struct nft_af_info *afi, struct nft_table *table)
++static int nf_tables_updtable(struct nft_ctx *ctx)
  {
-@@ -2251,6 +2266,8 @@ static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
+-	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
++	const struct nfgenmsg *nfmsg = nlmsg_data(ctx->nlh);
+ 	int family = nfmsg->nfgen_family, ret = 0;
++	u32 flags;
+ 
+-	if (nla[NFTA_TABLE_FLAGS]) {
+-		u32 flags;
++	if (!ctx->nla[NFTA_TABLE_FLAGS])
++		return 0;
+ 
+-		flags = ntohl(nla_get_be32(nla[NFTA_TABLE_FLAGS]));
+-		if (flags & ~NFT_TABLE_F_DORMANT)
+-			return -EINVAL;
++	flags = ntohl(nla_get_be32(ctx->nla[NFTA_TABLE_FLAGS]));
++	if (flags & ~NFT_TABLE_F_DORMANT)
++		return -EINVAL;
+ 
+-		if ((flags & NFT_TABLE_F_DORMANT) &&
+-		    !(table->flags & NFT_TABLE_F_DORMANT)) {
+-			nf_tables_table_disable(afi, table);
+-			table->flags |= NFT_TABLE_F_DORMANT;
+-		} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+-			   table->flags & NFT_TABLE_F_DORMANT) {
+-			ret = nf_tables_table_enable(afi, table);
+-			if (ret >= 0)
+-				table->flags &= ~NFT_TABLE_F_DORMANT;
+-		}
+-		if (ret < 0)
+-			goto err;
+-	}
++	if ((flags & NFT_TABLE_F_DORMANT) &&
++	    !(ctx->table->flags & NFT_TABLE_F_DORMANT)) {
++		nf_tables_table_disable(ctx->afi, ctx->table);
++		ctx->table->flags |= NFT_TABLE_F_DORMANT;
++	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
++		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
++		ret = nf_tables_table_enable(ctx->afi, ctx->table);
++		if (ret >= 0)
++			ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
++	}
++	if (ret < 0)
++		goto err;
+ 
+-	nf_tables_table_notify(skb, nlh, table, NFT_MSG_NEWTABLE, family);
++	nf_tables_table_notify(ctx->skb, ctx->nlh, ctx->table,
++			       NFT_MSG_NEWTABLE, family);
+ err:
  	return ret;
  }
+@@ -438,6 +436,7 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
+ 	u32 flags = 0;
++	struct nft_ctx ctx;
  
-+#define NFT_SET_INACTIVE	(1 << 15)	/* Internal set flag */
+ 	afi = nf_tables_afinfo_lookup(net, family, true);
+ 	if (IS_ERR(afi))
+@@ -456,7 +455,9 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
+ 			return -EEXIST;
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+ 			return -EOPNOTSUPP;
+-		return nf_tables_updtable(nlsk, skb, nlh, nla, afi, table);
 +
- static int nf_tables_getset(struct sock *nlsk, struct sk_buff *skb,
- 			    const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[])
-@@ -2280,6 +2297,8 @@ static int nf_tables_getset(struct sock *nlsk, struct sk_buff *skb,
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_NAME]);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
-+	if (set->flags & NFT_SET_INACTIVE)
-+		return -ENOENT;
- 
- 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb2 == NULL)
-@@ -2313,6 +2332,26 @@ static int nf_tables_set_desc_parse(const struct nft_ctx *ctx,
- 	return 0;
- }
- 
-+static int nft_trans_set_add(struct nft_ctx *ctx, int msg_type,
-+			     struct nft_set *set)
-+{
-+	struct nft_trans *trans;
-+
-+	trans = nft_trans_alloc(ctx, msg_type, sizeof(struct nft_trans_set));
-+	if (trans == NULL)
-+		return -ENOMEM;
-+
-+	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] != NULL) {
-+		nft_trans_set_id(trans) =
-+			ntohl(nla_get_be32(ctx->nla[NFTA_SET_ID]));
-+		set->flags |= NFT_SET_INACTIVE;
-+	}
-+	nft_trans_set(trans) = set;
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
-+
-+	return 0;
-+}
-+
- static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 			    const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[])
-@@ -2333,7 +2372,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 
- 	if (nla[NFTA_SET_TABLE] == NULL ||
- 	    nla[NFTA_SET_NAME] == NULL ||
--	    nla[NFTA_SET_KEY_LEN] == NULL)
-+	    nla[NFTA_SET_KEY_LEN] == NULL ||
-+	    nla[NFTA_SET_ID] == NULL)
- 		return -EINVAL;
- 
- 	memset(&desc, 0, sizeof(desc));
-@@ -2450,8 +2490,11 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	if (err < 0)
- 		goto err2;
- 
-+	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
-+	if (err < 0)
-+		goto err2;
-+
- 	list_add_tail(&set->list, &table->sets);
--	nf_tables_set_notify(&ctx, set, NFT_MSG_NEWSET);
- 	return 0;
- 
- err2:
-@@ -2461,16 +2504,20 @@ err1:
- 	return err;
- }
- 
--static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
-+static void nft_set_destroy(struct nft_set *set)
- {
--	list_del(&set->list);
--	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
--
- 	set->ops->destroy(set);
- 	module_put(set->ops->owner);
- 	kfree(set);
- }
- 
-+static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	list_del(&set->list);
-+	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
-+	nft_set_destroy(set);
-+}
-+
- static int nf_tables_delset(struct sock *nlsk, struct sk_buff *skb,
- 			    const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[])
-@@ -2492,10 +2539,16 @@ static int nf_tables_delset(struct sock *nlsk, struct sk_buff *skb,
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_NAME]);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
-+	if (set->flags & NFT_SET_INACTIVE)
-+		return -ENOENT;
- 	if (!list_empty(&set->bindings))
- 		return -EBUSY;
- 
--	nf_tables_set_destroy(&ctx, set);
-+	err = nft_trans_set_add(&ctx, NFT_MSG_DELSET, set);
-+	if (err < 0)
-+		return err;
-+
-+	list_del(&set->list);
- 	return 0;
- }
- 
-@@ -2555,7 +2608,8 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
- {
- 	list_del(&binding->list);
- 
--	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
-+	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
-+	    !(set->flags & NFT_SET_INACTIVE))
- 		nf_tables_set_destroy(ctx, set);
- }
- 
-@@ -2573,6 +2627,7 @@ static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX +
- 	[NFTA_SET_ELEM_LIST_TABLE]	= { .type = NLA_STRING },
- 	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING },
- 	[NFTA_SET_ELEM_LIST_ELEMENTS]	= { .type = NLA_NESTED },
-+	[NFTA_SET_ELEM_LIST_SET_ID]	= { .type = NLA_U32 },
- };
- 
- static int nft_ctx_init_from_elemattr(struct nft_ctx *ctx,
-@@ -2672,6 +2727,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_ELEM_LIST_SET]);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
-+	if (set->flags & NFT_SET_INACTIVE)
-+		return -ENOENT;
- 
- 	event  = NFT_MSG_NEWSETELEM;
- 	event |= NFNL_SUBSYS_NFTABLES << 8;
-@@ -2735,6 +2792,8 @@ static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_ELEM_LIST_SET]);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
-+	if (set->flags & NFT_SET_INACTIVE)
-+		return -ENOENT;
- 
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
-@@ -2920,6 +2979,7 @@ static int nf_tables_newsetelem(struct sock *nlsk, struct sk_buff *skb,
- 				const struct nlmsghdr *nlh,
- 				const struct nlattr * const nla[])
- {
-+	struct net *net = sock_net(skb->sk);
- 	const struct nlattr *attr;
- 	struct nft_set *set;
- 	struct nft_ctx ctx;
-@@ -2930,8 +2990,15 @@ static int nf_tables_newsetelem(struct sock *nlsk, struct sk_buff *skb,
- 		return err;
- 
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_ELEM_LIST_SET]);
--	if (IS_ERR(set))
--		return PTR_ERR(set);
-+	if (IS_ERR(set)) {
-+		if (nla[NFTA_SET_ELEM_LIST_SET_ID]) {
-+			set = nf_tables_set_lookup_byid(net,
-+					nla[NFTA_SET_ELEM_LIST_SET_ID]);
-+		}
-+		if (IS_ERR(set))
-+			return PTR_ERR(set);
-+	}
-+
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
- 		return -EBUSY;
- 
-@@ -3061,7 +3128,7 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 		.policy		= nft_rule_policy,
- 	},
- 	[NFT_MSG_NEWSET] = {
--		.call		= nf_tables_newset,
-+		.call_batch	= nf_tables_newset,
- 		.attr_count	= NFTA_SET_MAX,
- 		.policy		= nft_set_policy,
- 	},
-@@ -3071,12 +3138,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 		.policy		= nft_set_policy,
- 	},
- 	[NFT_MSG_DELSET] = {
--		.call		= nf_tables_delset,
-+		.call_batch	= nf_tables_delset,
- 		.attr_count	= NFTA_SET_MAX,
- 		.policy		= nft_set_policy,
- 	},
- 	[NFT_MSG_NEWSETELEM] = {
--		.call		= nf_tables_newsetelem,
-+		.call_batch	= nf_tables_newsetelem,
- 		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
- 		.policy		= nft_set_elem_list_policy,
- 	},
-@@ -3086,7 +3153,7 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 		.policy		= nft_set_elem_list_policy,
- 	},
- 	[NFT_MSG_DELSETELEM] = {
--		.call		= nf_tables_delsetelem,
-+		.call_batch	= nf_tables_delsetelem,
- 		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
- 		.policy		= nft_set_elem_list_policy,
- 	},
-@@ -3128,6 +3195,16 @@ static int nf_tables_commit(struct sk_buff *skb)
- 					      nft_trans_rule(trans), NFT_MSG_DELRULE, 0,
- 					      trans->ctx.afi->family);
- 			break;
-+		case NFT_MSG_NEWSET:
-+			nft_trans_set(trans)->flags &= ~NFT_SET_INACTIVE;
-+			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
-+					     NFT_MSG_NEWSET);
-+			nft_trans_destroy(trans);
-+			break;
-+		case NFT_MSG_DELSET:
-+			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
-+					     NFT_MSG_DELSET);
-+			break;
- 		}
++		nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
++		return nf_tables_updtable(&ctx);
  	}
  
-@@ -3140,9 +3217,12 @@ static int nf_tables_commit(struct sk_buff *skb)
- 		case NFT_MSG_DELRULE:
- 			nf_tables_rule_destroy(&trans->ctx,
- 					       nft_trans_rule(trans));
--			nft_trans_destroy(trans);
-+			break;
-+		case NFT_MSG_DELSET:
-+			nft_set_destroy(nft_trans_set(trans));
- 			break;
- 		}
-+		nft_trans_destroy(trans);
- 	}
- 
- 	return 0;
-@@ -3162,6 +3242,14 @@ static int nf_tables_abort(struct sk_buff *skb)
- 			nft_rule_clear(trans->ctx.net, nft_trans_rule(trans));
- 			nft_trans_destroy(trans);
- 			break;
-+		case NFT_MSG_NEWSET:
-+			list_del(&nft_trans_set(trans)->list);
-+			break;
-+		case NFT_MSG_DELSET:
-+			list_add_tail(&nft_trans_set(trans)->list,
-+				      &trans->ctx.table->sets);
-+			nft_trans_destroy(trans);
-+			break;
- 		}
- 	}
- 
-@@ -3173,9 +3261,12 @@ static int nf_tables_abort(struct sk_buff *skb)
- 		case NFT_MSG_NEWRULE:
- 			nf_tables_rule_destroy(&trans->ctx,
- 					       nft_trans_rule(trans));
--			nft_trans_destroy(trans);
-+			break;
-+		case NFT_MSG_NEWSET:
-+			nft_set_destroy(nft_trans_set(trans));
- 			break;
- 		}
-+		nft_trans_destroy(trans);
- 	}
- 
- 	return 0;
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 7fd2bea..6404a72 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -56,8 +56,14 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 		return -EINVAL;
- 
- 	set = nf_tables_set_lookup(ctx->table, tb[NFTA_LOOKUP_SET]);
--	if (IS_ERR(set))
--		return PTR_ERR(set);
-+	if (IS_ERR(set)) {
-+		if (tb[NFTA_LOOKUP_SET_ID]) {
-+			set = nf_tables_set_lookup_byid(ctx->net,
-+							tb[NFTA_LOOKUP_SET_ID]);
-+		}
-+		if (IS_ERR(set))
-+			return PTR_ERR(set);
-+	}
- 
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_LOOKUP_SREG]));
- 	err = nft_validate_input_register(priv->sreg);
+ 	if (nla[NFTA_TABLE_FLAGS]) {
 -- 
 1.7.10.4
 
