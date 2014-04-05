@@ -1,33 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: Can't fail and free after table replacement
-Date: Sat, 5 Apr 2014 17:47:01 +0200
-Message-ID: <20140405154701.GA3747@localhost>
-References: <b6e7d146668a1f60c3aa9b34538a04bafaf1e433.1396626959.git.tgraf@suug.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, stephen@networkplumber.org,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH 2/8] netfilter: connlimit: move lock array out of struct connlimit_data
+Date: Sat,  5 Apr 2014 18:03:44 +0200
+Message-ID: <1396713830-4009-3-git-send-email-pablo@netfilter.org>
+References: <1396713830-4009-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33329 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34327 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752993AbaDEPrI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Apr 2014 11:47:08 -0400
-Content-Disposition: inline
-In-Reply-To: <b6e7d146668a1f60c3aa9b34538a04bafaf1e433.1396626959.git.tgraf@suug.ch>
+	id S1753016AbaDEQEA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Apr 2014 12:04:00 -0400
+In-Reply-To: <1396713830-4009-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 04, 2014 at 05:57:45PM +0200, Thomas Graf wrote:
-> All xtables variants suffer from the defect that the copy_to_user()
-> to copy the counters to user memory may fail after the table has
-> already been exchanged and thus exposed. Return an error at this
-> point will result in freeing the already exposed table. Any
-> subsequent packet processing will result in a kernel panic.
-> 
-> We can't copy the counters before exposing the new tables as we
-> want provide the counter state after the old table has been
-> unhooked. Therefore convert this into a silent error.
+From: Florian Westphal <fw@strlen.de>
 
-Applied, thanks Thomas.
+Eric points out that the locks can be global.
+Moreover, both Jesper and Eric note that using only 32 locks increases
+false sharing as only two cache lines are used.
+
+This increases locks to 256 (16 cache lines assuming 64byte cacheline and
+4 bytes per spinlock).
+
+Suggested-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_connlimit.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index a6e129e..fbc66bb 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -32,8 +32,14 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
+-#define CONNLIMIT_SLOTS		32
+-#define CONNLIMIT_LOCK_SLOTS	32
++#define CONNLIMIT_SLOTS		256U
++
++#ifdef CONFIG_LOCKDEP
++#define CONNLIMIT_LOCK_SLOTS	8U
++#else
++#define CONNLIMIT_LOCK_SLOTS	256U
++#endif
++
+ #define CONNLIMIT_GC_MAX_NODES	8
+ 
+ /* we will save the tuples of all connections we care about */
+@@ -49,10 +55,11 @@ struct xt_connlimit_rb {
+ 	union nf_inet_addr addr; /* search key */
+ };
+ 
++static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
++
+ struct xt_connlimit_data {
+ 	struct rb_root climit_root4[CONNLIMIT_SLOTS];
+ 	struct rb_root climit_root6[CONNLIMIT_SLOTS];
+-	spinlock_t		locks[CONNLIMIT_LOCK_SLOTS];
+ };
+ 
+ static u_int32_t connlimit_rnd __read_mostly;
+@@ -297,11 +304,11 @@ static int count_them(struct net *net,
+ 		root = &data->climit_root4[hash];
+ 	}
+ 
+-	spin_lock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
++	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	count = count_tree(net, root, tuple, addr, mask, family);
+ 
+-	spin_unlock_bh(&data->locks[hash % CONNLIMIT_LOCK_SLOTS]);
++	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+ 	return count;
+ }
+@@ -377,9 +384,6 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		return -ENOMEM;
+ 	}
+ 
+-	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
+-		spin_lock_init(&info->data->locks[i]);
+-
+ 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
+ 		info->data->climit_root4[i] = RB_ROOT;
+ 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
+@@ -435,11 +439,14 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
+ 
+ static int __init connlimit_mt_init(void)
+ {
+-	int ret;
++	int ret, i;
+ 
+ 	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
+ 	BUILD_BUG_ON((CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS) != 0);
+ 
++	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
++		spin_lock_init(&xt_connlimit_locks[i]);
++
+ 	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
+ 					   sizeof(struct xt_connlimit_conn),
+ 					   0, 0, NULL);
+-- 
+1.7.10.4
+
