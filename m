@@ -1,49 +1,47 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+From: David Miller <davem@davemloft.net>
 Subject: Re: linux-next: Tree for Apr 1 (netfilter)
-Date: Sun, 6 Apr 2014 15:50:04 +0200
-Message-ID: <CAMuHMdXaoUvUButpaDYQh6aj=Zm9GCS7MKFA_-h8GOo1RkOObw@mail.gmail.com>
-References: <20140401183907.a5127cadbe7116261096beaa@canb.auug.org.au>
-	<533B06A7.5010900@infradead.org>
+Date: Sun, 06 Apr 2014 11:31:06 -0400 (EDT)
+Message-ID: <20140406.113106.564835222660199498.davem@davemloft.net>
+References: <533B06A7.5010900@infradead.org>
 	<20140401.152203.847120817141929645.davem@davemloft.net>
+	<CAMuHMdXaoUvUButpaDYQh6aj=Zm9GCS7MKFA_-h8GOo1RkOObw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Linux-Next <linux-next@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Miller <davem@davemloft.net>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20140401.152203.847120817141929645.davem@davemloft.net>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: rdunlap@infradead.org, sfr@canb.auug.org.au,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: geert@linux-m68k.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:43835 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754340AbaDFP3d (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 6 Apr 2014 11:29:33 -0400
+In-Reply-To: <CAMuHMdXaoUvUButpaDYQh6aj=Zm9GCS7MKFA_-h8GOo1RkOObw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 1, 2014 at 9:22 PM, David Miller <davem@davemloft.net> wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
-> Date: Tue, 01 Apr 2014 11:34:15 -0700
->
->> on x86_64:
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sun, 6 Apr 2014 15:50:04 +0200
+
+> On Tue, Apr 1, 2014 at 9:22 PM, David Miller <davem@davemloft.net> wrote:
+>> From: Randy Dunlap <rdunlap@infradead.org>
+>> Date: Tue, 01 Apr 2014 11:34:15 -0700
 >>
->> net/netfilter/xt_connlimit.c: In function 'connlimit_mt_check':
->> net/netfilter/xt_connlimit.c:380:18: warning: division by zero [-Wdiv-by-zero]
+>>> on x86_64:
+>>>
+>>> net/netfilter/xt_connlimit.c: In function 'connlimit_mt_check':
+>>> net/netfilter/xt_connlimit.c:380:18: warning: division by zero [-Wdiv-by-zero]
+>>>
+>>> Maybe just use CONNLIMIT_LOCK_SLOTS instead of ARRAY_SIZE(...).
 >>
->> Maybe just use CONNLIMIT_LOCK_SLOTS instead of ARRAY_SIZE(...).
->
-> I'd rather see that ARRAY_SIZE() be adjusted to work cleanly for zero
-> sized array elements.
+>> I'd rather see that ARRAY_SIZE() be adjusted to work cleanly for zero
+>> sized array elements.
+> 
+> Anyone with a suggestion?
+> 
+> Please note this is now in Linus' tree, possibly crashing people's boxes...
 
-Anyone with a suggestion?
-
-Please note this is now in Linus' tree, possibly crashing people's boxes...
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+I took in the version of the fix I didn't like via Pablo for
+now.
