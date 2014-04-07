@@ -1,19 +1,20 @@
 From: Kirill Tkhai <ktkhai@parallels.com>
-Subject: [PATCH --smtp-server=mail.sw.ru] ipt_CLUSTERIP: Add network device
- notifier
-Date: Mon, 07 Apr 2014 15:37:11 +0400
-Message-ID: <20140407113644.22540.42391.stgit@tkhai>
+Subject: [PATCH] ipt_CLUSTERIP: Add network device notifier
+Date: Mon, 7 Apr 2014 15:58:49 +0400
+Message-ID: <1396871929.3741.6.camel@tkhai>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: tkhai@yandex.ru, kaber@trash.net, pablo@netfilter.org,
-	kadlec@blackhole.kfki.hu
-To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, <tkhai@yandex.ru>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from swsoft-msk-nat.sw.ru ([195.214.232.10]:63069 "EHLO tkhai"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753510AbaDGLv2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Apr 2014 07:51:28 -0400
+Received: from relay.parallels.com ([195.214.232.42]:39441 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755176AbaDGL7D (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Apr 2014 07:59:03 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -322,4 +323,6 @@ index 2510c02..f878946 100644
  	unregister_pernet_subsys(&clusterip_net_ops);
  
  	/* Wait for completion of call_rcu_bh()'s (clusterip_config_rcu_free) */
+
+
 
