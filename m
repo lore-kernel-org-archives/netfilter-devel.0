@@ -1,166 +1,199 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [libnetfilter_conntrack PATCH 1/3] conntrack: add mark event filter
-Date: Tue, 8 Apr 2014 19:30:04 +0900
-Message-ID: <20140408103002.GB29462@gmail.com>
+Subject: [ulogd PATCH 2/3] add mark event filter
+Date: Tue, 8 Apr 2014 19:32:19 +0900
+Message-ID: <20140408103218.GC29462@gmail.com>
 References: <20140408102614.GA29462@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:49619 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756549AbaDHKaK (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:49922 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754579AbaDHKcZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 06:30:10 -0400
-Received: by mail-pd0-f181.google.com with SMTP id p10so807385pdj.26
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 03:30:09 -0700 (PDT)
+	Tue, 8 Apr 2014 06:32:25 -0400
+Received: by mail-pd0-f171.google.com with SMTP id r10so826386pdi.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 03:32:25 -0700 (PDT)
 Received: from gmail.com (softbank220009032009.bbtec.net. [220.9.32.9])
-        by mx.google.com with ESMTPSA id kc9sm3673682pbc.25.2014.04.08.03.30.07
+        by mx.google.com with ESMTPSA id hr5sm8377239pac.18.2014.04.08.03.32.23
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Tue, 08 Apr 2014 03:30:08 -0700 (PDT)
+        Tue, 08 Apr 2014 03:32:24 -0700 (PDT)
 Content-Disposition: inline
 In-Reply-To: <20140408102614.GA29462@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds mark filter for event listener, using same struct
-nfct_filter_dump_mark.
+This patch adds a new configuration variable which is used to limit
+conntrack event to connection of the mark.
 
 Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- include/internal/object.h                          |  7 ++++
- .../libnetfilter_conntrack.h                       |  1 +
- src/conntrack/bsf.c                                | 49 ++++++++++++++++++++++
- src/conntrack/filter.c                             | 13 ++++++
- 4 files changed, 70 insertions(+)
+ configure.ac                    | 15 +++++++++
+ input/flow/ulogd_inpflow_NFCT.c | 75 +++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 88 insertions(+), 2 deletions(-)
 
-diff --git a/include/internal/object.h b/include/internal/object.h
-index 540ad0d..1259467 100644
---- a/include/internal/object.h
-+++ b/include/internal/object.h
-@@ -263,6 +263,13 @@ struct nfct_filter {
- 		u_int32_t 	mask[4];
- 	} l3proto_ipv6[2][__FILTER_IPV6_MAX];
- 
-+	u_int32_t 		mark_elems;
-+	struct {
-+#define __FILTER_MARK_MAX	127
-+		u_int32_t 	val;
-+		u_int32_t 	mask;
-+	} mark[__FILTER_MARK_MAX];
+diff --git a/configure.ac b/configure.ac
+index 522c345..7e5f5fc 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -58,6 +58,20 @@ AS_IF([test "x$enable_nfct" = "xyes"], [
+     AC_DEFINE([BUILD_NFCT], [1], [Building nfct module])
+ ])
+ AM_CONDITIONAL([BUILD_NFCT], [test "x$enable_nfct" = "xyes"])
++AS_IF([test "x$enable_nfct" = "xyes"], [
++    AC_MSG_CHECKING([for enable mark filter for event])
++    AC_CACHE_VAL(ac_cv_nfct_filter_mark,
++    AC_TRY_COMPILE(
++        [ #include <libnetfilter_conntrack/libnetfilter_conntrack.h>],
++        [ int i = NFCT_FILTER_MARK; ],
++        ac_cv_nfct_filter_mark=yes,
++        ac_cv_nfct_filter_mark=no))
++    AC_MSG_RESULT($ac_cv_nfct_filter_mark)
++    AS_IF([test "x$ac_cv_nfct_filter_mark" = "xyes"], [
++        AC_DEFINE([HAVE_NFCT_FILTER_MARK], [1], [Building nfct mark event filter])
++    ])
++])
 +
- 	u_int32_t 		set[1];
- };
+ AC_ARG_ENABLE(nfacct,
+        AS_HELP_STRING([--enable-nfacct], [Enable nfacct module [default=yes]]),,[enable_nfacct=yes])
+ AS_IF([test "x$enable_nfacct" = "xyes"], [
+@@ -156,6 +170,7 @@ Ulogd configuration:
+   Input plugins:
+     NFLOG plugin:			${enable_nflog}
+     NFCT plugin:			${enable_nfct}
++      with MARK event filter		${ac_cv_nfct_filter_mark}
+     NFACCT plugin:			${enable_nfacct}
+   Output plugins:
+     PCAP plugin:			${enable_pcap}
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index 899b7e3..a5cf854 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -35,6 +35,7 @@
  
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index d4542ba..890721a 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -496,6 +496,7 @@ enum nfct_filter_attr {
- 	NFCT_FILTER_DST_IPV4,		/* struct nfct_filter_ipv4 */
- 	NFCT_FILTER_SRC_IPV6,		/* struct nfct_filter_ipv6 */
- 	NFCT_FILTER_DST_IPV6,		/* struct nfct_filter_ipv6 */
-+	NFCT_FILTER_MARK,		/* struct nfct_filter_dump_mark */
- 	NFCT_FILTER_MAX
- };
+ #include <sys/time.h>
+ #include <time.h>
++#include <ctype.h>
+ #include <netinet/in.h>
+ #include <netdb.h>
+ #include <ulogd/linuxlist.h>
+@@ -78,7 +79,7 @@ struct nfct_pluginstance {
+ #define EVENT_MASK	NF_NETLINK_CONNTRACK_NEW | NF_NETLINK_CONNTRACK_DESTROY
  
-diff --git a/src/conntrack/bsf.c b/src/conntrack/bsf.c
-index 534202f..08a9a44 100644
---- a/src/conntrack/bsf.c
-+++ b/src/conntrack/bsf.c
-@@ -663,6 +663,52 @@ bsf_add_daddr_ipv6_filter(const struct nfct_filter *f, struct sock_filter *this)
- 	return bsf_add_addr_ipv6_filter(f, this, CTA_IP_V6_DST);
+ static struct config_keyset nfct_kset = {
+-	.num_ces = 12,
++	.num_ces = 13,
+ 	.ces = {
+ 		{
+ 			.key	 = "pollinterval",
+@@ -149,6 +150,11 @@ static struct config_keyset nfct_kset = {
+ 			.type	 = CONFIG_TYPE_STRING,
+ 			.options = CONFIG_OPT_NONE,
+ 		},
++		{
++			.key	 = "accept_mark_filter",
++			.type	 = CONFIG_TYPE_STRING,
++			.options = CONFIG_OPT_NONE,
++		},
+ 	},
+ };
+ #define pollint_ce(x)	(x->ces[0])
+@@ -163,6 +169,7 @@ static struct config_keyset nfct_kset = {
+ #define src_filter_ce(x)	((x)->ces[9])
+ #define dst_filter_ce(x)	((x)->ces[10])
+ #define proto_filter_ce(x)	((x)->ces[11])
++#define mark_filter_ce(x)	((x)->ces[12])
+ 
+ enum nfct_keys {
+ 	NFCT_ORIG_IP_SADDR = 0,
+@@ -1221,6 +1228,60 @@ static int build_nfct_filter_proto(struct nfct_filter *filter, char* filter_stri
+ 	return 0;
  }
  
-+static int
-+bsf_add_mark_filter(const struct nfct_filter *f, struct sock_filter *this)
++#if defined HAVE_NFCT_FILTER_MARK
++static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_string)
 +{
-+	unsigned int i, j;
-+	unsigned int jt;
-+	struct stack *s;
-+	struct jump jmp;
++	char *p, *endptr;
++	uintmax_t v;
++	struct nfct_filter_dump_mark filter_mark;
++	errno = 0;
 +
-+	/* nothing to filter, skip */
-+	if (f->mark_elems == 0)
-+		return 0;
++	for (p = filter_string; isspace(*p); ++p)
++		;
++	v = strtoumax(p, &endptr, 0);
++	if (endptr == p)
++		goto invalid_error;
++	if ((errno == ERANGE && v == UINTMAX_MAX) || errno != 0)
++		goto invalid_error;
++	filter_mark.val = (uint32_t)v;
 +
-+	/* XXX: see bsf_add_addr_ipv4_filter() */
-+	s = stack_create(sizeof(struct jump), 3 + 127);
-+	if (s == NULL) {
-+		errno = ENOMEM;
-+		return -1;
++	if (*endptr != '\0') {
++		for (p = endptr; isspace(*p); ++p)
++			;
++		if (*p++ != '/')
++			goto invalid_error;
++		for (; isspace(*p); ++p)
++			;
++		v = strtoumax(p, &endptr, 0);
++		if (endptr == p)
++			goto invalid_error;
++		if ((errno == ERANGE && v == UINTMAX_MAX) || errno != 0)
++			goto invalid_error;
++		filter_mark.mask = (uint32_t)v;
++		if (*endptr != '\0')
++			goto invalid_error;
++	} else {
++		filter_mark.mask = UINT32_MAX;
 +	}
 +
-+	jt = 1;
-+	j = 0;
-+	j += nfct_bsf_load_payload_offset(this, j);
-+	j += nfct_bsf_find_attr(this, CTA_MARK, j);
-+	j += nfct_bsf_x_equal_a(this, j);
++	ulogd_log(ULOGD_NOTICE, "adding mark to filter: \"%u/%u\"\n",
++		  filter_mark.val, filter_mark.mask);
++	nfct_filter_add_attr(filter, NFCT_FILTER_MARK, &filter_mark);
 +
-+	for (i = 0; i < f->mark_elems; i++) {
-+		int mark = f->mark[i].val & f->mark[i].mask;
++	return 0;
 +
-+		j += nfct_bsf_load_attr(this, BPF_W, j);
-+		j += nfct_bsf_alu_and(this, f->mark[i].mask, j);
-+		j += nfct_bsf_cmp_k_stack(this, mark, jt - j, j, s);
++invalid_error:
++	ulogd_log(ULOGD_FATAL, "invalid val/mask %s\n", filter_string);
++	return -1;
++
++}
++#else
++static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_string)
++{
++	ulogd_log(ULOGD_FATAL, "mark filter is not supported\n");
++	return -1;
++}
++#endif /* HAVE_NFCT_FILTER_MARK */
+ 
+ static int build_nfct_filter(struct ulogd_pluginstance *upi)
+ {
+@@ -1264,6 +1325,15 @@ static int build_nfct_filter(struct ulogd_pluginstance *upi)
+ 		}
+ 	}
+ 
++	if (strlen(mark_filter_ce(upi->config_kset).u.string) != 0) {
++		char *filter_string = mark_filter_ce(upi->config_kset).u.string;
++		if (build_nfct_filter_mark(filter, filter_string) != 0) {
++			ulogd_log(ULOGD_FATAL,
++					"Unable to create mark filter\n");
++			goto err_filter;
++		}
 +	}
 +
-+	while (stack_pop(s, &jmp) != -1)
-+		this[jmp.line].jt += jmp.jt + j;
-+
-+	if (f->logic[NFCT_FILTER_MARK] == NFCT_FILTER_LOGIC_NEGATIVE)
-+		j += nfct_bsf_jump_to(this, 1, j);
-+
-+	j += nfct_bsf_ret_verdict(this, NFCT_FILTER_REJECT, j);
-+
-+	stack_destroy(s);
-+
-+	return j;
-+}
-+
- /* this buffer must be big enough to store all the autogenerated lines */
- #define BSF_BUFFER_SIZE 	2048
+ 	if (filter) {
+ 		if (nfct_filter_attach(nfct_fd(cpi->cth), filter) == -1) {
+ 			ulogd_log(ULOGD_FATAL, "nfct_filter_attach");
+@@ -1296,7 +1366,8 @@ static int constructor_nfct_events(struct ulogd_pluginstance *upi)
  
-@@ -696,6 +742,9 @@ int __setup_netlink_socket_filter(int fd, struct nfct_filter *f)
- 	j += bsf_add_state_filter(f, &bsf[j]);
- 	show_filter(bsf, from, j, "---- check state ----");
- 	from = j;
-+	j += bsf_add_mark_filter(f, &bsf[j]);
-+	show_filter(bsf, from, j, "---- check mark ----");
-+	from = j;
- 
- 	/* nothing to filter, skip */
- 	if (j == 0)
-diff --git a/src/conntrack/filter.c b/src/conntrack/filter.c
-index 026545a..78fbbc5 100644
---- a/src/conntrack/filter.c
-+++ b/src/conntrack/filter.c
-@@ -79,6 +79,18 @@ static void filter_attr_dst_ipv6(struct nfct_filter *filter, const void *value)
- 	filter->l3proto_elems_ipv6[1]++;
- }
- 
-+static void filter_attr_mark(struct nfct_filter *filter, const void *value)
-+{
-+	const struct nfct_filter_dump_mark *this = value;
-+
-+	if (filter->mark_elems >= __FILTER_MARK_MAX)
-+		return;
-+
-+	filter->mark[filter->mark_elems].val = this->val;
-+	filter->mark[filter->mark_elems].mask = this->mask;
-+	filter->mark_elems++;
-+}
-+
- const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
- 	[NFCT_FILTER_L4PROTO]		= filter_attr_l4proto,
- 	[NFCT_FILTER_L4PROTO_STATE]	= filter_attr_l4proto_state,
-@@ -86,4 +98,5 @@ const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
- 	[NFCT_FILTER_DST_IPV4]		= filter_attr_dst_ipv4,
- 	[NFCT_FILTER_SRC_IPV6]		= filter_attr_src_ipv6,
- 	[NFCT_FILTER_DST_IPV6]		= filter_attr_dst_ipv6,
-+	[NFCT_FILTER_MARK]		= filter_attr_mark,
- };
+ 	if ((strlen(src_filter_ce(upi->config_kset).u.string) != 0) ||
+ 		(strlen(dst_filter_ce(upi->config_kset).u.string) != 0) ||
+-		(strlen(proto_filter_ce(upi->config_kset).u.string) != 0)
++		(strlen(proto_filter_ce(upi->config_kset).u.string) != 0) ||
++		(strlen(mark_filter_ce(upi->config_kset).u.string) != 0)
+ 	   ) {
+ 		if (build_nfct_filter(upi) != 0) {
+ 			ulogd_log(ULOGD_FATAL, "error creating NFCT filter\n");
 -- 
 1.8.5.3
 
