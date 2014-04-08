@@ -1,29 +1,41 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [RFC 2/3] netfilter: nf_tables: Add meta expression key for bridge
- interface name
-Date: Tue, 08 Apr 2014 12:04:12 +0300
-Message-ID: <5343BB8C.2030105@linux.intel.com>
-References: <1395911972-17259-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1395911972-17259-3-git-send-email-tomasz.bursztyka@linux.intel.com> <20140408080642.GA3904@localhost> <5343B153.30804@linux.intel.com> <20140408083418.GA5272@localhost>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [libnetfilter_conntrack/ulogd PATCH 0/3] add mark filter
+Date: Tue, 8 Apr 2014 19:26:16 +0900
+Message-ID: <20140408102614.GA29462@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14383 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800AbaDHJEP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 05:04:15 -0400
-In-Reply-To: <20140408083418.GA5272@localhost>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:56091 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756299AbaDHK0W (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 06:26:22 -0400
+Received: by mail-pd0-f173.google.com with SMTP id z10so818361pdj.18
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 03:26:22 -0700 (PDT)
+Received: from gmail.com (softbank220009032009.bbtec.net. [220.9.32.9])
+        by mx.google.com with ESMTPSA id dy7sm8336984pad.9.2014.04.08.03.26.19
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Tue, 08 Apr 2014 03:26:20 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+ Hello,
 
-> +
-> +       if (pkt->ops->pf != NFPROTO_BRIDGE)
->
-> Do you really need this or is it just defensive?
+This patch series enables mark filtering in NFCT plugin.
+Would you review it? I think there are two issues:
 
-Defensive, but useless. Will get rid of it.
+* libnetfilter_conntrack
+  I reused struct nfct_filter_dump_mark for NFCT_FILTER_MARK
+  nfct_filter_add_attr(). Should I introduce a new one which
+  will be the same field?
 
-Tomasz
+* ulogd
+  I've changed all dump function to use nfct_filter_dump
+  excepting in do_purge(). It may require many tests so that
+  is it better having a field to check mark filter has set
+  and checking it on dumping?
+
+Thanks.
