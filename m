@@ -1,208 +1,251 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [ulogd PATCH 3/3] add mark dump filter
-Date: Tue, 8 Apr 2014 19:34:22 +0900
-Message-ID: <20140408103420.GD29462@gmail.com>
-References: <20140408102614.GA29462@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH 3/5] netfilter: nf_tables: Add meta expression key for bridge interface name
+Date: Tue,  8 Apr 2014 14:25:22 +0300
+Message-ID: <1396956324-17803-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:48433 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756576AbaDHKe2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 06:34:28 -0400
-Received: by mail-pa0-f46.google.com with SMTP id kx10so851478pab.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 03:34:28 -0700 (PDT)
-Received: from gmail.com (softbank220009032009.bbtec.net. [220.9.32.9])
-        by mx.google.com with ESMTPSA id i10sm8335605pat.36.2014.04.08.03.34.25
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Tue, 08 Apr 2014 03:34:26 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140408102614.GA29462@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:36650 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756550AbaDHLZp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 07:25:45 -0400
+In-Reply-To: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch makes enable to filter dump by mark.
+NFT_META_BRI_IIFNAME to get packet input bridge interface name
+NFT_META_BRI_OIFNAME to get packet output bridge interface name
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Such meta key are accessible only through NFPROTO_BRIDGE family, on a
+dedicated nft meta module: nft_meta_bridge.
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- input/flow/ulogd_inpflow_NFCT.c | 63 +++++++++++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 21 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |   4 +
+ net/bridge/Makefile                      |   1 +
+ net/bridge/netfilter/Kconfig             |  12 ++-
+ net/bridge/netfilter/Makefile            |   1 +
+ net/bridge/netfilter/nft_meta_bridge.c   | 139 +++++++++++++++++++++++++++++++
+ 5 files changed, 156 insertions(+), 1 deletion(-)
+ create mode 100644 net/bridge/netfilter/nft_meta_bridge.c
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index a5cf854..37b45e8 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -71,6 +71,7 @@ struct nfct_pluginstance {
- 	struct ulogd_timer ov_timer;	/* overrun retry timer */
- 	struct hashtable *ct_active;
- 	int nlbufsiz;			/* current netlink buffer size */
-+	struct nfct_filter_dump *filter_dump;
- 	struct nf_conntrack *ct;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c88ccbf..45fb37c 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -536,6 +536,8 @@ enum nft_exthdr_attributes {
+  * @NFT_META_SECMARK: packet secmark (skb->secmark)
+  * @NFT_META_NFPROTO: netfilter protocol
+  * @NFT_META_L4PROTO: layer 4 protocol number
++ * @NFT_META_BRI_IIFNAME: packet input bridge interface name
++ * @NFT_META_BRI_OIFNAME: packet output bridge interface name
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -555,6 +557,8 @@ enum nft_meta_keys {
+ 	NFT_META_SECMARK,
+ 	NFT_META_NFPROTO,
+ 	NFT_META_L4PROTO,
++	NFT_META_BRI_IIFNAME,
++	NFT_META_BRI_OIFNAME,
  };
  
-@@ -1003,8 +1004,9 @@ dump_reset_handler(enum nf_conntrack_msg_type type,
+ /**
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index e85498b2f..58acd82 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -16,4 +16,5 @@ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
  
- static void get_ctr_zero(struct ulogd_pluginstance *upi)
- {
-+	struct nfct_pluginstance *cpi =
-+			(struct nfct_pluginstance *)upi->private;
- 	struct nfct_handle *h;
--	int family = AF_UNSPEC;
+ bridge-$(CONFIG_BRIDGE_VLAN_FILTERING) += br_vlan.o
  
- 	h = nfct_open(CONNTRACK, 0);
- 	if (h == NULL) {
-@@ -1012,7 +1014,7 @@ static void get_ctr_zero(struct ulogd_pluginstance *upi)
- 		return;
- 	}
- 	nfct_callback_register(h, NFCT_T_ALL, &dump_reset_handler, upi);
--	if (nfct_query(h, NFCT_Q_DUMP_RESET, &family) == -1)
-+	if (nfct_query(h, NFCT_Q_DUMP_FILTER_RESET, cpi->filter_dump) == -1)
- 		ulogd_log(ULOGD_FATAL, "Cannot dump and reset counters\n");
++obj-$(CONFIG_NF_TABLES_BRIDGE) += netfilter/
+ obj-$(CONFIG_BRIDGE_NF_EBTABLES) += netfilter/
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 5ca74a0..906783d 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -2,10 +2,20 @@
+ # Bridge netfilter configuration
+ #
+ #
+-config NF_TABLES_BRIDGE
++menuconfig NF_TABLES_BRIDGE
+ 	depends on NF_TABLES
+ 	tristate "Ethernet Bridge nf_tables support"
  
- 	nfct_close(h);
-@@ -1023,9 +1025,8 @@ static void polling_timer_cb(struct ulogd_timer *t, void *data)
- 	struct ulogd_pluginstance *upi = data;
- 	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
--	int family = AF_UNSPEC;
- 
--	nfct_query(cpi->pgh, NFCT_Q_DUMP, &family);
-+	nfct_query(cpi->pgh, NFCT_Q_DUMP_FILTER, cpi->filter_dump);
- 	hashtable_iterate(cpi->ct_active, upi, do_purge);
- 	ulogd_add_timer(&cpi->timer, pollint_ce(upi->config_kset).u.value);
- }
-@@ -1044,12 +1045,11 @@ static int configure_nfct(struct ulogd_pluginstance *upi,
- 
- static void overrun_timeout(struct ulogd_timer *a, void *data)
- {
--	int family = AF_UNSPEC;
- 	struct ulogd_pluginstance *upi = data;
- 	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
- 
--	nfct_send(cpi->ovh, NFCT_Q_DUMP, &family);
-+	nfct_send(cpi->ovh, NFCT_Q_DUMP_FILTER, cpi->filter_dump);
- }
- 
- 
-@@ -1228,8 +1228,8 @@ static int build_nfct_filter_proto(struct nfct_filter *filter, char* filter_stri
- 	return 0;
- }
- 
--#if defined HAVE_NFCT_FILTER_MARK
--static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_string)
-+static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_string,
-+				struct nfct_filter_dump *filter_dump)
- {
- 	char *p, *endptr;
- 	uintmax_t v;
-@@ -1264,24 +1264,27 @@ static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_strin
- 		filter_mark.mask = UINT32_MAX;
- 	}
- 
--	ulogd_log(ULOGD_NOTICE, "adding mark to filter: \"%u/%u\"\n",
-+	if (filter != NULL) {
-+#if defined HAVE_NFCT_FILTER_MARK
-+		nfct_filter_add_attr(filter, NFCT_FILTER_MARK, &filter_mark);
-+		ulogd_log(ULOGD_NOTICE, "adding mark to event filter: \"%u/%u\"\n",
-+			  filter_mark.val, filter_mark.mask);
-+#else
-+		ulogd_log(ULOGD_FATAL, "mark event filter is not supported\n");
-+		return -1;
-+#endif
-+	}
-+	nfct_filter_dump_set_attr(filter_dump, NFCT_FILTER_DUMP_MARK,
-+					&filter_mark);
-+	ulogd_log(ULOGD_NOTICE, "adding mark to dump filter: \"%u/%u\"\n",
- 		  filter_mark.val, filter_mark.mask);
--	nfct_filter_add_attr(filter, NFCT_FILTER_MARK, &filter_mark);
- 
- 	return 0;
- 
- invalid_error:
- 	ulogd_log(ULOGD_FATAL, "invalid val/mask %s\n", filter_string);
- 	return -1;
--
--}
--#else
--static int build_nfct_filter_mark(struct nfct_filter *filter, char* filter_string)
--{
--	ulogd_log(ULOGD_FATAL, "mark filter is not supported\n");
--	return -1;
- }
--#endif /* HAVE_NFCT_FILTER_MARK */
- 
- static int build_nfct_filter(struct ulogd_pluginstance *upi)
- {
-@@ -1327,7 +1330,7 @@ static int build_nfct_filter(struct ulogd_pluginstance *upi)
- 
- 	if (strlen(mark_filter_ce(upi->config_kset).u.string) != 0) {
- 		char *filter_string = mark_filter_ce(upi->config_kset).u.string;
--		if (build_nfct_filter_mark(filter, filter_string) != 0) {
-+		if (build_nfct_filter_mark(filter, filter_string, cpi->filter_dump) != 0) {
- 			ulogd_log(ULOGD_FATAL,
- 					"Unable to create mark filter\n");
- 			goto err_filter;
-@@ -1412,7 +1415,6 @@ static int constructor_nfct_events(struct ulogd_pluginstance *upi)
- 		goto err_nfctobj;
- 
- 	if (usehash_ce(upi->config_kset).u.value != 0) {
--		int family = AF_UNSPEC;
- 		struct nfct_handle *h;
- 
- 		/* we use a hashtable to cache entries in userspace. */
-@@ -1436,7 +1438,7 @@ static int constructor_nfct_events(struct ulogd_pluginstance *upi)
- 		}
- 		nfct_callback_register(h, NFCT_T_ALL,
- 				       &event_handler_hashtable, upi);
--		nfct_query(h, NFCT_Q_DUMP, &family);
-+		nfct_query(h, NFCT_Q_DUMP_FILTER, cpi->filter_dump);
- 		nfct_close(h);
- 
- 		/* the overrun handler only make sense with the hashtable,
-@@ -1500,6 +1502,14 @@ static int constructor_nfct_polling(struct ulogd_pluginstance *upi)
- 		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
- 		goto err;
- 	}
-+	if (strlen(mark_filter_ce(upi->config_kset).u.string) != 0) {
-+		char *filter_string = mark_filter_ce(upi->config_kset).u.string;
-+		if (build_nfct_filter_mark(NULL, filter_string,
-+					   cpi->filter_dump) != 0) {
-+			ulogd_log(ULOGD_FATAL, "error creating NFCT mark filter\n");
-+			goto err_hashtable;
-+		}
-+	}
- 	nfct_callback_register(cpi->pgh, NFCT_T_ALL, &polling_handler, upi);
- 
- 	cpi->ct_active =
-@@ -1534,6 +1544,15 @@ err:
- 
- static int constructor_nfct(struct ulogd_pluginstance *upi)
- {
-+	struct nfct_pluginstance *cpi =
-+			(struct nfct_pluginstance *) upi->private;
++if NF_TABLES_BRIDGE
 +
-+	cpi->filter_dump = nfct_filter_dump_create();
-+	if (cpi->filter_dump == NULL) {
-+		ulogd_log(ULOGD_FATAL, "could not create filter_dump\n");
-+		return -1;
++config NFT_BRIDGE_META
++	tristate "Netfilter nf_table bridge meta support"
++	depends on NFT_META
++	help
++	  Add support for bridge dedicated meta key.
++
++endif # NF_TABLES_BRIDGE
++
+ menuconfig BRIDGE_NF_EBTABLES
+ 	tristate "Ethernet Bridge tables (ebtables) support"
+ 	depends on BRIDGE && NETFILTER
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index ea7629f..6f2f394 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -3,6 +3,7 @@
+ #
+ 
+ obj-$(CONFIG_NF_TABLES_BRIDGE) += nf_tables_bridge.o
++obj-$(CONFIG_NFT_BRIDGE_META)  += nft_meta_bridge.o
+ 
+ obj-$(CONFIG_BRIDGE_NF_EBTABLES) += ebtables.o
+ 
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+new file mode 100644
+index 0000000..4f02109
+--- /dev/null
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -0,0 +1,139 @@
++/*
++ * Copyright (c) 2014 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nft_meta.h>
++
++#include "../br_private.h"
++
++static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
++				     struct nft_data data[NFT_REG_MAX + 1],
++				     const struct nft_pktinfo *pkt)
++{
++	const struct nft_meta *priv = nft_expr_priv(expr);
++	const struct net_device *in = pkt->in, *out = pkt->out;
++	struct nft_data *dest = &data[priv->dreg];
++	const struct net_bridge_port *p;
++
++	switch (priv->key) {
++	case NFT_META_BRI_IIFNAME:
++		if (in == NULL || (p = br_port_get_rcu(in)) == NULL)
++			goto err;
++		break;
++	case NFT_META_BRI_OIFNAME:
++		if (out == NULL || (p = br_port_get_rcu(out)) == NULL)
++			goto err;
++		break;
++	default:
++		goto out;
 +	}
 +
- 	if (pollint_ce(upi->config_kset).u.value == 0) {
- 		/* listen to ctnetlink events. */
- 		return constructor_nfct_events(upi);
-@@ -1553,6 +1572,8 @@ static int destructor_nfct_events(struct ulogd_pluginstance *upi)
- 
- 	ulogd_unregister_fd(&cpi->nfct_fd);
- 
-+	nfct_filter_dump_destroy(cpi->filter_dump);
++	strncpy((char *)dest->data, p->br->dev->name, sizeof(dest->data));
++	return;
++out:
++	return nft_meta_get_eval(expr, data, pkt);
++err:
++	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
++}
 +
- 	rc = nfct_close(cpi->cth);
- 	if (rc < 0)
- 		return rc;
++static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
++				    const struct nft_expr *expr,
++				    const struct nlattr * const tb[])
++{
++	struct nft_meta *priv = nft_expr_priv(expr);
++	int err;
++
++	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
++	switch (priv->key) {
++	case NFT_META_BRI_IIFNAME:
++	case NFT_META_BRI_OIFNAME:
++		break;
++	default:
++		return nft_meta_get_init(ctx, expr, tb);
++	}
++
++	priv->dreg = ntohl(nla_get_be32(tb[NFTA_META_DREG]));
++	err = nft_validate_output_register(priv->dreg);
++	if (err < 0)
++		return err;
++
++	err = nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
++	if (err < 0)
++		return err;
++
++	return 0;
++}
++
++static struct nft_expr_type nft_meta_bridge_type;
++static const struct nft_expr_ops nft_meta_bridge_get_ops = {
++	.type		= &nft_meta_bridge_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
++	.eval		= nft_meta_bridge_get_eval,
++	.init		= nft_meta_bridge_get_init,
++	.dump		= nft_meta_get_dump,
++};
++
++static const struct nft_expr_ops nft_meta_bridge_set_ops = {
++	.type		= &nft_meta_bridge_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
++	.eval		= nft_meta_set_eval,
++	.init		= nft_meta_set_init,
++	.dump		= nft_meta_set_dump,
++};
++
++static const struct nft_expr_ops *
++nft_meta_bridge_select_ops(const struct nft_ctx *ctx,
++			   const struct nlattr * const tb[])
++{
++	if (tb[NFTA_META_KEY] == NULL)
++		return ERR_PTR(-EINVAL);
++
++	if (tb[NFTA_META_DREG] && tb[NFTA_META_SREG])
++		return ERR_PTR(-EINVAL);
++
++	if (tb[NFTA_META_DREG])
++		return &nft_meta_bridge_get_ops;
++
++	if (tb[NFTA_META_SREG])
++		return &nft_meta_bridge_set_ops;
++
++	return ERR_PTR(-EINVAL);
++}
++
++static struct nft_expr_type nft_meta_bridge_type __read_mostly = {
++	.family         = NFPROTO_BRIDGE,
++	.name           = "meta",
++	.select_ops     = &nft_meta_bridge_select_ops,
++	.policy         = nft_meta_policy,
++	.maxattr        = NFTA_META_MAX,
++	.owner          = THIS_MODULE,
++};
++
++static int __init nft_meta_bridge_module_init(void)
++{
++	return nft_register_expr(&nft_meta_bridge_type);
++}
++
++static void __exit nft_meta_bridge_module_exit(void)
++{
++	nft_unregister_expr(&nft_meta_bridge_type);
++}
++
++module_init(nft_meta_bridge_module_init);
++module_exit(nft_meta_bridge_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>");
++MODULE_ALIAS_NFT_AF_EXPR(AF_BRIDGE, "meta");
 -- 
-1.8.5.3
+1.8.3.2
 
