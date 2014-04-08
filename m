@@ -1,84 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nftables 5/5] meta: Add support for input and output
- bridge interface name
-Date: Tue, 8 Apr 2014 10:12:16 +0200
-Message-ID: <20140408081216.GA4775@localhost>
-References: <1396604851-15348-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1396604851-15348-6-git-send-email-tomasz.bursztyka@linux.intel.com>
- <20140404111134.GA8247@localhost>
- <20140404121300.GE27267@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+From: Ana Rey <anarey@gmail.com>
+Subject: [nftables PATCH v2] src: rule: fix crash in set listing
+Date: Tue,  8 Apr 2014 10:19:41 +0200
+Message-ID: <89f7e3e3f3a65a85381e04e8e0d12dd1c3069f73.1396944817.git.anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54191 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756331AbaDHIMV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 04:12:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20140404121300.GE27267@macbook.localnet>
+Received: from mail-we0-f179.google.com ([74.125.82.179]:51738 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293AbaDHITv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 04:19:51 -0400
+Received: by mail-we0-f179.google.com with SMTP id x48so559954wes.38
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 01:19:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 04, 2014 at 02:13:06PM +0200, Patrick McHardy wrote:
-> On Fri, Apr 04, 2014 at 01:11:34PM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Apr 04, 2014 at 12:47:31PM +0300, Tomasz Bursztyka wrote:
-> > > --- a/src/parser.y
-> > > +++ b/src/parser.y
-> > > @@ -304,6 +304,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
-> > >  %token SKGID			"skgid"
-> > >  %token NFTRACE			"nftrace"
-> > >  %token RTCLASSID		"rtclassid"
-> > > +%token BRI_IIFNAME		"bri_iifname"
-> > > +%token BRI_OIFNAME		"bri_oifname"
-> > >  
-> > >  %token CT			"ct"
-> > >  %token DIRECTION		"direction"
-> > > @@ -1563,6 +1565,8 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
-> > >  			|	SKGID		{ $$ = NFT_META_SKGID; }
-> > >  			|	NFTRACE		{ $$ = NFT_META_NFTRACE; }
-> > >  			|	RTCLASSID	{ $$ = NFT_META_RTCLASSID; }
-> > > +			|	BRI_IIFNAME	{ $$ = NFT_META_BRI_IIFNAME; }
-> > > +			|       BRI_OIFNAME	{ $$ = NFT_META_BRI_OIFNAME; }
-> > >  			;
-> > >  
-> > >  meta_stmt		:	META	meta_key	SET	expr
-> > > diff --git a/src/scanner.l b/src/scanner.l
-> > > index 47c5933..61c98b5 100644
-> > > --- a/src/scanner.l
-> > > +++ b/src/scanner.l
-> > > @@ -402,6 +402,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
-> > >  "skgid"			{ return SKGID; }
-> > >  "nftrace"		{ return NFTRACE; }
-> > >  "rtclassid"		{ return RTCLASSID; }
-> > > +"bri_iifname"		{ return BRI_IIFNAME; }
-> > > +"bri_oifname"		{ return BRI_OIFNAME; }
-> > 
-> > I prefer if we skip the underscore there, I remember that Patrick
-> > mentioned that he would also like to get rid of it in other cases like
-> > the ipv4_address type.
-> > 
-> > Perhaps iifnamebr
-> >         oifnamebr?
-> > 
-> > briifname and broifname could be an alternative, but I had problems to
-> > type that myself several times while writing this email. So I prefer
-> > the iffnamebr / oifnamebr alternative.
-> 
-> Actually I think they all suck :)
+It fixes an invalid read that is shown by valgrind.
 
-Now I remember why I'm not a top sales book writer :)
+==3962== Invalid read of size 4
+==3962==    at 0x407040: do_command (rule.c:692)
+==3962==    by 0x40588C: nft_run (main.c:183)
+==3962==    by 0x405469: main (main.c:334)
+==3962==  Address 0x10 is not stack'd, malloc'd or (recently) free'd
 
-> The match on bridge ports, so something containing briport would be a lot
-> more descriptive. briiport and brioport, ibriport and obriport, something
-> like that?
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+[Changes in v2]
+*  I fix description and subject in this patch.
 
-ibriport and obriport look fine to me. I have problems myself with
-cacophony like briiport.
-                 ^^
 
-@Tomasz: Can you address the feedback and resend? I'd like to have
-this in the nftables tree so Giuseppe can continue with the ebtables
-compat layer. Thanks.
+ src/rule.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rule.c b/src/rule.c
+index 00dedf5..18ae6b1 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -674,7 +674,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 				return -1;
+ 			set_print(set);
+ 		}
+-		break;
++		return 0;
+ 	case CMD_OBJ_SET:
+ 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
+ 			return -1;
+-- 
+1.9.0
+
