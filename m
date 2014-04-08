@@ -1,41 +1,35 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [PATCH 3/5] netfilter: nf_tables: Add meta expression key for bridge interface name
-Date: Tue,  8 Apr 2014 14:25:22 +0300
-Message-ID: <1396956324-17803-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH 5/5] meta: Add support for input and output bridge interface name
+Date: Tue,  8 Apr 2014 14:25:24 +0300
+Message-ID: <1396956324-17803-6-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36650 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:42069 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756550AbaDHLZp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 07:25:45 -0400
+	id S1756627AbaDHLZr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 07:25:47 -0400
 In-Reply-To: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NFT_META_BRI_IIFNAME to get packet input bridge interface name
-NFT_META_BRI_OIFNAME to get packet output bridge interface name
+Add support to get an input or output bridge interface name through the
+relevant meta keys.
 
-Such meta key are accessible only through NFPROTO_BRIDGE family, on a
-dedicated nft meta module: nft_meta_bridge.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   4 +
- net/bridge/Makefile                      |   1 +
- net/bridge/netfilter/Kconfig             |  12 ++-
- net/bridge/netfilter/Makefile            |   1 +
- net/bridge/netfilter/nft_meta_bridge.c   | 139 +++++++++++++++++++++++++++++++
- 5 files changed, 156 insertions(+), 1 deletion(-)
- create mode 100644 net/bridge/netfilter/nft_meta_bridge.c
+ include/linux/netfilter/nf_tables.h | 4 ++++
+ src/meta.c                          | 6 ++++++
+ src/parser.y                        | 4 ++++
+ src/scanner.l                       | 2 ++
+ 4 files changed, 16 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c88ccbf..45fb37c 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -536,6 +536,8 @@ enum nft_exthdr_attributes {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index ff9b0a7..a5f8ec0 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -533,6 +533,8 @@ enum nft_exthdr_attributes {
   * @NFT_META_SECMARK: packet secmark (skb->secmark)
   * @NFT_META_NFPROTO: netfilter protocol
   * @NFT_META_L4PROTO: layer 4 protocol number
@@ -44,7 +38,7 @@ index c88ccbf..45fb37c 100644
   */
  enum nft_meta_keys {
  	NFT_META_LEN,
-@@ -555,6 +557,8 @@ enum nft_meta_keys {
+@@ -552,6 +554,8 @@ enum nft_meta_keys {
  	NFT_META_SECMARK,
  	NFT_META_NFPROTO,
  	NFT_META_L4PROTO,
@@ -53,199 +47,58 @@ index c88ccbf..45fb37c 100644
  };
  
  /**
-diff --git a/net/bridge/Makefile b/net/bridge/Makefile
-index e85498b2f..58acd82 100644
---- a/net/bridge/Makefile
-+++ b/net/bridge/Makefile
-@@ -16,4 +16,5 @@ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
+diff --git a/src/meta.c b/src/meta.c
+index ebc0c54..c511f1c 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -332,6 +332,12 @@ static const struct meta_template meta_templates[] = {
+ 						1    , BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_RTCLASSID]	= META_TEMPLATE("rtclassid", &realm_type,
+ 						4 * 8, BYTEORDER_HOST_ENDIAN),
++	[NFT_META_BRI_IIFNAME]	= META_TEMPLATE("ibriport",  &string_type,
++						IFNAMSIZ * BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN),
++	[NFT_META_BRI_OIFNAME]	= META_TEMPLATE("obriport",  &string_type,
++						IFNAMSIZ * BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN),
+ };
  
- bridge-$(CONFIG_BRIDGE_VLAN_FILTERING) += br_vlan.o
+ static void meta_expr_print(const struct expr *expr)
+diff --git a/src/parser.y b/src/parser.y
+index db6f493..6ae5e82 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -304,6 +304,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token SKGID			"skgid"
+ %token NFTRACE			"nftrace"
+ %token RTCLASSID		"rtclassid"
++%token IBRIPORT			"ibriport"
++%token OBRIPORT			"obriport"
  
-+obj-$(CONFIG_NF_TABLES_BRIDGE) += netfilter/
- obj-$(CONFIG_BRIDGE_NF_EBTABLES) += netfilter/
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 5ca74a0..906783d 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -2,10 +2,20 @@
- # Bridge netfilter configuration
- #
- #
--config NF_TABLES_BRIDGE
-+menuconfig NF_TABLES_BRIDGE
- 	depends on NF_TABLES
- 	tristate "Ethernet Bridge nf_tables support"
+ %token CT			"ct"
+ %token DIRECTION		"direction"
+@@ -1563,6 +1565,8 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
+ 			|	SKGID		{ $$ = NFT_META_SKGID; }
+ 			|	NFTRACE		{ $$ = NFT_META_NFTRACE; }
+ 			|	RTCLASSID	{ $$ = NFT_META_RTCLASSID; }
++			|	IBRIPORT	{ $$ = NFT_META_BRI_IIFNAME; }
++			|       OBRIPORT	{ $$ = NFT_META_BRI_OIFNAME; }
+ 			;
  
-+if NF_TABLES_BRIDGE
-+
-+config NFT_BRIDGE_META
-+	tristate "Netfilter nf_table bridge meta support"
-+	depends on NFT_META
-+	help
-+	  Add support for bridge dedicated meta key.
-+
-+endif # NF_TABLES_BRIDGE
-+
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
- 	depends on BRIDGE && NETFILTER
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index ea7629f..6f2f394 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -3,6 +3,7 @@
- #
+ meta_stmt		:	META	meta_key	SET	expr
+diff --git a/src/scanner.l b/src/scanner.l
+index 47c5933..69d6b8f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -402,6 +402,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "skgid"			{ return SKGID; }
+ "nftrace"		{ return NFTRACE; }
+ "rtclassid"		{ return RTCLASSID; }
++"ibriport"		{ return IBRIPORT; }
++"obriport"		{ return OBRIPORT; }
  
- obj-$(CONFIG_NF_TABLES_BRIDGE) += nf_tables_bridge.o
-+obj-$(CONFIG_NFT_BRIDGE_META)  += nft_meta_bridge.o
- 
- obj-$(CONFIG_BRIDGE_NF_EBTABLES) += ebtables.o
- 
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-new file mode 100644
-index 0000000..4f02109
---- /dev/null
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -0,0 +1,139 @@
-+/*
-+ * Copyright (c) 2014 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nft_meta.h>
-+
-+#include "../br_private.h"
-+
-+static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
-+				     struct nft_data data[NFT_REG_MAX + 1],
-+				     const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
-+	const struct net_device *in = pkt->in, *out = pkt->out;
-+	struct nft_data *dest = &data[priv->dreg];
-+	const struct net_bridge_port *p;
-+
-+	switch (priv->key) {
-+	case NFT_META_BRI_IIFNAME:
-+		if (in == NULL || (p = br_port_get_rcu(in)) == NULL)
-+			goto err;
-+		break;
-+	case NFT_META_BRI_OIFNAME:
-+		if (out == NULL || (p = br_port_get_rcu(out)) == NULL)
-+			goto err;
-+		break;
-+	default:
-+		goto out;
-+	}
-+
-+	strncpy((char *)dest->data, p->br->dev->name, sizeof(dest->data));
-+	return;
-+out:
-+	return nft_meta_get_eval(expr, data, pkt);
-+err:
-+	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
-+}
-+
-+static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
-+				    const struct nft_expr *expr,
-+				    const struct nlattr * const tb[])
-+{
-+	struct nft_meta *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
-+	switch (priv->key) {
-+	case NFT_META_BRI_IIFNAME:
-+	case NFT_META_BRI_OIFNAME:
-+		break;
-+	default:
-+		return nft_meta_get_init(ctx, expr, tb);
-+	}
-+
-+	priv->dreg = ntohl(nla_get_be32(tb[NFTA_META_DREG]));
-+	err = nft_validate_output_register(priv->dreg);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static struct nft_expr_type nft_meta_bridge_type;
-+static const struct nft_expr_ops nft_meta_bridge_get_ops = {
-+	.type		= &nft_meta_bridge_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
-+	.eval		= nft_meta_bridge_get_eval,
-+	.init		= nft_meta_bridge_get_init,
-+	.dump		= nft_meta_get_dump,
-+};
-+
-+static const struct nft_expr_ops nft_meta_bridge_set_ops = {
-+	.type		= &nft_meta_bridge_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
-+	.eval		= nft_meta_set_eval,
-+	.init		= nft_meta_set_init,
-+	.dump		= nft_meta_set_dump,
-+};
-+
-+static const struct nft_expr_ops *
-+nft_meta_bridge_select_ops(const struct nft_ctx *ctx,
-+			   const struct nlattr * const tb[])
-+{
-+	if (tb[NFTA_META_KEY] == NULL)
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_META_DREG] && tb[NFTA_META_SREG])
-+		return ERR_PTR(-EINVAL);
-+
-+	if (tb[NFTA_META_DREG])
-+		return &nft_meta_bridge_get_ops;
-+
-+	if (tb[NFTA_META_SREG])
-+		return &nft_meta_bridge_set_ops;
-+
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static struct nft_expr_type nft_meta_bridge_type __read_mostly = {
-+	.family         = NFPROTO_BRIDGE,
-+	.name           = "meta",
-+	.select_ops     = &nft_meta_bridge_select_ops,
-+	.policy         = nft_meta_policy,
-+	.maxattr        = NFTA_META_MAX,
-+	.owner          = THIS_MODULE,
-+};
-+
-+static int __init nft_meta_bridge_module_init(void)
-+{
-+	return nft_register_expr(&nft_meta_bridge_type);
-+}
-+
-+static void __exit nft_meta_bridge_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_meta_bridge_type);
-+}
-+
-+module_init(nft_meta_bridge_module_init);
-+module_exit(nft_meta_bridge_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_BRIDGE, "meta");
+ "ct"			{ return CT; }
+ "direction"		{ return DIRECTION; }
 -- 
 1.8.3.2
 
