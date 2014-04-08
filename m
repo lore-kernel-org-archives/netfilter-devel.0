@@ -1,185 +1,43 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [PATCH 2/5] netfilter: nf_tables: Make meta expression core functions public
-Date: Tue,  8 Apr 2014 14:25:21 +0300
-Message-ID: <1396956324-17803-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH 1/5] netfilter: nf_tables: Stack expression type depending on their family
+Date: Tue,  8 Apr 2014 14:25:20 +0300
+Message-ID: <1396956324-17803-2-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:62297 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756620AbaDHLZm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 07:25:42 -0400
+	id S1756239AbaDHLZl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 07:25:41 -0400
 In-Reply-To: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- This will be useful to create network family dedicated META expression
- as for NFPROTO_BRIDGE for instance.
+To ensure family tight expression gets selected in priority to family
+agnostic ones.
 
- Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- include/net/netfilter/nft_meta.h | 36 +++++++++++++++++++++++++++++
- net/netfilter/nft_meta.c         | 50 ++++++++++++++++++++--------------------
- 2 files changed, 61 insertions(+), 25 deletions(-)
- create mode 100644 include/net/netfilter/nft_meta.h
+ net/netfilter/nf_tables_api.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-new file mode 100644
-index 0000000..0ee47c3
---- /dev/null
-+++ b/include/net/netfilter/nft_meta.h
-@@ -0,0 +1,36 @@
-+#ifndef _NFT_META_H_
-+#define _NFT_META_H_
-+
-+struct nft_meta {
-+	enum nft_meta_keys	key:8;
-+	union {
-+		enum nft_registers	dreg:8;
-+		enum nft_registers	sreg:8;
-+	};
-+};
-+
-+extern const struct nla_policy nft_meta_policy[];
-+
-+int nft_meta_get_init(const struct nft_ctx *ctx,
-+		      const struct nft_expr *expr,
-+		      const struct nlattr * const tb[]);
-+
-+int nft_meta_set_init(const struct nft_ctx *ctx,
-+		      const struct nft_expr *expr,
-+		      const struct nlattr * const tb[]);
-+
-+int nft_meta_get_dump(struct sk_buff *skb,
-+		      const struct nft_expr *expr);
-+
-+int nft_meta_set_dump(struct sk_buff *skb,
-+		      const struct nft_expr *expr);
-+
-+void nft_meta_get_eval(const struct nft_expr *expr,
-+		       struct nft_data data[NFT_REG_MAX + 1],
-+		       const struct nft_pktinfo *pkt);
-+
-+void nft_meta_set_eval(const struct nft_expr *expr,
-+		       struct nft_data data[NFT_REG_MAX + 1],
-+		       const struct nft_pktinfo *pkt);
-+
-+#endif
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 6d0b8cc2..852b178 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -18,18 +18,11 @@
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nft_meta.h>
- 
--struct nft_meta {
--	enum nft_meta_keys	key:8;
--	union {
--		enum nft_registers	dreg:8;
--		enum nft_registers	sreg:8;
--	};
--};
--
--static void nft_meta_get_eval(const struct nft_expr *expr,
--			      struct nft_data data[NFT_REG_MAX + 1],
--			      const struct nft_pktinfo *pkt)
-+void nft_meta_get_eval(const struct nft_expr *expr,
-+		       struct nft_data data[NFT_REG_MAX + 1],
-+		       const struct nft_pktinfo *pkt)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 33045a5..700a522 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1093,7 +1093,10 @@ static void nft_ctx_init(struct nft_ctx *ctx,
+ int nft_register_expr(struct nft_expr_type *type)
  {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
-@@ -140,10 +133,11 @@ static void nft_meta_get_eval(const struct nft_expr *expr,
- err:
- 	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
- }
-+EXPORT_SYMBOL_GPL(nft_meta_get_eval);
- 
--static void nft_meta_set_eval(const struct nft_expr *expr,
--			      struct nft_data data[NFT_REG_MAX + 1],
--			      const struct nft_pktinfo *pkt)
-+void nft_meta_set_eval(const struct nft_expr *expr,
-+		       struct nft_data data[NFT_REG_MAX + 1],
-+		       const struct nft_pktinfo *pkt)
- {
- 	const struct nft_meta *meta = nft_expr_priv(expr);
- 	struct sk_buff *skb = pkt->skb;
-@@ -163,16 +157,18 @@ static void nft_meta_set_eval(const struct nft_expr *expr,
- 		WARN_ON(1);
- 	}
- }
-+EXPORT_SYMBOL_GPL(nft_meta_set_eval);
- 
--static const struct nla_policy nft_meta_policy[NFTA_META_MAX + 1] = {
-+const struct nla_policy nft_meta_policy[NFTA_META_MAX + 1] = {
- 	[NFTA_META_DREG]	= { .type = NLA_U32 },
- 	[NFTA_META_KEY]		= { .type = NLA_U32 },
- 	[NFTA_META_SREG]	= { .type = NLA_U32 },
- };
-+EXPORT_SYMBOL_GPL(nft_meta_policy);
- 
--static int nft_meta_get_init(const struct nft_ctx *ctx,
--			     const struct nft_expr *expr,
--			     const struct nlattr * const tb[])
-+int nft_meta_get_init(const struct nft_ctx *ctx,
-+		      const struct nft_expr *expr,
-+		      const struct nlattr * const tb[])
- {
- 	struct nft_meta *priv = nft_expr_priv(expr);
- 	int err;
-@@ -215,10 +211,11 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
- 
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	list_add_tail(&type->list, &nf_tables_expressions);
++	if (type->family == NFPROTO_UNSPEC)
++		list_add_tail(&type->list, &nf_tables_expressions);
++	else
++		list_add(&type->list, &nf_tables_expressions);
+ 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
  	return 0;
  }
-+EXPORT_SYMBOL_GPL(nft_meta_get_init);
- 
--static int nft_meta_set_init(const struct nft_ctx *ctx,
--			     const struct nft_expr *expr,
--			     const struct nlattr * const tb[])
-+int nft_meta_set_init(const struct nft_ctx *ctx,
-+		      const struct nft_expr *expr,
-+		      const struct nlattr * const tb[])
- {
- 	struct nft_meta *priv = nft_expr_priv(expr);
- 	int err;
-@@ -240,9 +237,10 @@ static int nft_meta_set_init(const struct nft_ctx *ctx,
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(nft_meta_set_init);
- 
--static int nft_meta_get_dump(struct sk_buff *skb,
--			     const struct nft_expr *expr)
-+int nft_meta_get_dump(struct sk_buff *skb,
-+		      const struct nft_expr *expr)
- {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 
-@@ -255,9 +253,10 @@ static int nft_meta_get_dump(struct sk_buff *skb,
- nla_put_failure:
- 	return -1;
- }
-+EXPORT_SYMBOL_GPL(nft_meta_get_dump);
- 
--static int nft_meta_set_dump(struct sk_buff *skb,
--			     const struct nft_expr *expr)
-+int nft_meta_set_dump(struct sk_buff *skb,
-+		      const struct nft_expr *expr)
- {
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 
-@@ -271,6 +270,7 @@ static int nft_meta_set_dump(struct sk_buff *skb,
- nla_put_failure:
- 	return -1;
- }
-+EXPORT_SYMBOL_GPL(nft_meta_set_dump);
- 
- static struct nft_expr_type nft_meta_type;
- static const struct nft_expr_ops nft_meta_get_ops = {
 -- 
 1.8.3.2
 
