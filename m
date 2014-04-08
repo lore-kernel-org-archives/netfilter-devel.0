@@ -1,50 +1,32 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [nftables PATCH v2] src: rule: fix crash in set listing
-Date: Tue,  8 Apr 2014 10:19:41 +0200
-Message-ID: <89f7e3e3f3a65a85381e04e8e0d12dd1c3069f73.1396944817.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [RFC 2/3] netfilter: nf_tables: Add meta expression key for bridge
+ interface name
+Date: Tue, 08 Apr 2014 11:20:35 +0300
+Message-ID: <5343B153.30804@linux.intel.com>
+References: <1395911972-17259-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1395911972-17259-3-git-send-email-tomasz.bursztyka@linux.intel.com> <20140408080642.GA3904@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:51738 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756293AbaDHITv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 04:19:51 -0400
-Received: by mail-we0-f179.google.com with SMTP id x48so559954wes.38
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Apr 2014 01:19:49 -0700 (PDT)
+Received: from mga11.intel.com ([192.55.52.93]:20022 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756389AbaDHIVT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Apr 2014 04:21:19 -0400
+In-Reply-To: <20140408080642.GA3904@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It fixes an invalid read that is shown by valgrind.
+Hi Pablo,
 
-==3962== Invalid read of size 4
-==3962==    at 0x407040: do_command (rule.c:692)
-==3962==    by 0x40588C: nft_run (main.c:183)
-==3962==    by 0x405469: main (main.c:334)
-==3962==  Address 0x10 is not stack'd, malloc'd or (recently) free'd
+> Please, also rework this so we have one _init function for the get and
+> the set variants, ie. nft_meta_bridge_get_init and
+> nft_meta_bridge_set_init, I'd suggest.
+>
+> Apart from that, this patch looks fine to me. Thanks.
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
-[Changes in v2]
-*  I fix description and subject in this patch.
+I fully changed that on the version 2. This RFC is no longer valid, prior to
+Patrick's comments and also his changes on nft_meta.c
 
-
- src/rule.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/rule.c b/src/rule.c
-index 00dedf5..18ae6b1 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -674,7 +674,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 				return -1;
- 			set_print(set);
- 		}
--		break;
-+		return 0;
- 	case CMD_OBJ_SET:
- 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
- 			return -1;
--- 
-1.9.0
-
+Tomasz
