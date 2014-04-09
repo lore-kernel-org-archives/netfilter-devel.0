@@ -1,60 +1,137 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/11] netfilter: nf_tables: disabling table hooks always succeeds
-Date: Wed,  9 Apr 2014 20:36:09 +0200
-Message-ID: <1397068572-3916-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 06/11] netfilter: nf_tables: refactor chain statistic routines
+Date: Wed,  9 Apr 2014 20:36:07 +0200
+Message-ID: <1397068572-3916-7-git-send-email-pablo@netfilter.org>
 References: <1397068572-3916-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59224 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59221 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933989AbaDISg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S933477AbaDISg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 9 Apr 2014 14:36:26 -0400
 In-Reply-To: <1397068572-3916-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_tables_table_disable() always succeeds, make this function void.
+Add new routines to encapsulate chain statistics allocation and
+replacement.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c |   45 ++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 21 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index eeec445..1cedd85 100644
+index d3a26d2..33970b9 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -381,7 +381,7 @@ err:
- 	return err;
- }
+@@ -805,8 +805,7 @@ static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
+ 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
+ };
  
--static int nf_tables_table_disable(const struct nft_af_info *afi,
-+static void nf_tables_table_disable(const struct nft_af_info *afi,
- 				   struct nft_table *table)
+-static int
+-nf_tables_counters(struct nft_base_chain *chain, const struct nlattr *attr)
++static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
  {
- 	struct nft_chain *chain;
-@@ -391,8 +391,6 @@ static int nf_tables_table_disable(const struct nft_af_info *afi,
- 			nf_unregister_hooks(nft_base_chain(chain)->ops,
- 					    afi->nops);
- 	}
+ 	struct nlattr *tb[NFTA_COUNTER_MAX+1];
+ 	struct nft_stats __percpu *newstats;
+@@ -815,14 +814,14 @@ nf_tables_counters(struct nft_base_chain *chain, const struct nlattr *attr)
+ 
+ 	err = nla_parse_nested(tb, NFTA_COUNTER_MAX, attr, nft_counter_policy);
+ 	if (err < 0)
+-		return err;
++		return ERR_PTR(err);
+ 
+ 	if (!tb[NFTA_COUNTER_BYTES] || !tb[NFTA_COUNTER_PACKETS])
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	newstats = alloc_percpu(struct nft_stats);
+ 	if (newstats == NULL)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* Restore old counters on this cpu, no problem. Per-cpu statistics
+ 	 * are not exposed to userspace.
+@@ -831,6 +830,12 @@ nf_tables_counters(struct nft_base_chain *chain, const struct nlattr *attr)
+ 	stats->bytes = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
+ 	stats->pkts = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
+ 
++	return newstats;
++}
++
++static void nft_chain_stats_replace(struct nft_base_chain *chain,
++				    struct nft_stats __percpu *newstats)
++{
+ 	if (chain->stats) {
+ 		struct nft_stats __percpu *oldstats =
+ 				nft_dereference(chain->stats);
+@@ -840,8 +845,6 @@ nf_tables_counters(struct nft_base_chain *chain, const struct nlattr *attr)
+ 		free_percpu(oldstats);
+ 	} else
+ 		rcu_assign_pointer(chain->stats, newstats);
 -
 -	return 0;
  }
  
- static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
-@@ -412,9 +410,8 @@ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+@@ -860,6 +863,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	u8 policy = NF_ACCEPT;
+ 	u64 handle = 0;
+ 	unsigned int i;
++	struct nft_stats __percpu *stats;
+ 	int err;
+ 	bool create;
  
- 		if ((flags & NFT_TABLE_F_DORMANT) &&
- 		    !(table->flags & NFT_TABLE_F_DORMANT)) {
--			ret = nf_tables_table_disable(afi, table);
--			if (ret >= 0)
--				table->flags |= NFT_TABLE_F_DORMANT;
-+			nf_tables_table_disable(afi, table);
-+			table->flags |= NFT_TABLE_F_DORMANT;
- 		} else if (!(flags & NFT_TABLE_F_DORMANT) &&
- 			   table->flags & NFT_TABLE_F_DORMANT) {
- 			ret = nf_tables_table_enable(afi, table);
+@@ -920,10 +924,11 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 			if (!(chain->flags & NFT_BASE_CHAIN))
+ 				return -EOPNOTSUPP;
+ 
+-			err = nf_tables_counters(nft_base_chain(chain),
+-						 nla[NFTA_CHAIN_COUNTERS]);
+-			if (err < 0)
+-				return err;
++			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
++			if (IS_ERR(stats))
++				return PTR_ERR(stats);
++
++			nft_chain_stats_replace(nft_base_chain(chain), stats);
+ 		}
+ 
+ 		if (nla[NFTA_CHAIN_POLICY])
+@@ -977,23 +982,21 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 			return -ENOMEM;
+ 
+ 		if (nla[NFTA_CHAIN_COUNTERS]) {
+-			err = nf_tables_counters(basechain,
+-						 nla[NFTA_CHAIN_COUNTERS]);
+-			if (err < 0) {
++			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
++			if (IS_ERR(stats)) {
+ 				module_put(type->owner);
+ 				kfree(basechain);
+-				return err;
++				return PTR_ERR(stats);
+ 			}
++			basechain->stats = stats;
+ 		} else {
+-			struct nft_stats __percpu *newstats;
+-
+-			newstats = alloc_percpu(struct nft_stats);
+-			if (newstats == NULL) {
++			stats = alloc_percpu(struct nft_stats);
++			if (IS_ERR(stats)) {
+ 				module_put(type->owner);
+ 				kfree(basechain);
+-				return -ENOMEM;
++				return PTR_ERR(stats);
+ 			}
+-			rcu_assign_pointer(basechain->stats, newstats);
++			rcu_assign_pointer(basechain->stats, stats);
+ 		}
+ 
+ 		basechain->type = type;
 -- 
 1.7.10.4
 
