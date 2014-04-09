@@ -1,40 +1,44 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [PATCH v3 0/5] Add suport for bridge if dev name meta exepression keys
-Date: Tue,  8 Apr 2014 14:25:19 +0300
-Message-ID: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH 1/3] ruleset: Add an end of line in the exit of ruleset.
+Date: Wed,  9 Apr 2014 10:53:59 +0200
+Message-ID: <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
+References: <cover.1397032579.git.anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62297 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756496AbaDHLZl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Apr 2014 07:25:41 -0400
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:63920 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444AbaDIIyO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2014 04:54:14 -0400
+Received: by mail-wi0-f176.google.com with SMTP id r20so8469853wiv.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 01:54:13 -0700 (PDT)
+In-Reply-To: <cover.1397032579.git.anarey@gmail.com>
+In-Reply-To: <cover.1397032579.git.anarey@gmail.com>
+References: <cover.1397032579.git.anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Here is the patch-set to add meta keys NFT_META_BRI_IIFNAME and NFT_META_BRI_OIFNAME.
+Add an end of line in the exit of ruleset.
 
-Changes against
-v2:
-- Applied Pablo's comment on patch 3
-- Applied human readable names on patch 5 according to Pablo and Patrick comments.
-v1:
-- Rebased the kernel patch set against Patrick's nft_meta.c get/set init function split up.
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ src/ruleset.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Last 2 patches are about user-space support.
-
-Tomasz Bursztyka (5):
-kernel:
-  netfilter: nf_tables: Stack expression type depending on their family
-  netfilter: nf_tables: Make meta expression core functions public
-  netfilter: nf_tables: Add meta expression key for bridge interface
-    name
-libnftnl:
-  meta: Add support for input and output bridge interface name
-nftables:
-  meta: Add support for input and output bridge interface name
-
-
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 3cbec09..181aeae 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -818,7 +818,7 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
+-	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_closetag(type));
++	ret = snprintf(buf+offset, size, "%s\n", nft_ruleset_o_closetag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
 -- 
-1.8.3.2
+1.9.0
 
