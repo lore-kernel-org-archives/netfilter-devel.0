@@ -1,44 +1,44 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 1/3] ruleset: Add an end of line in the exit of ruleset.
-Date: Wed, 9 Apr 2014 12:11:42 +0200
-Message-ID: <CAOkSjBjOTWW2cS012J73-UcqYbUyAJ31aXA==K4BsTYkTXffmA@mail.gmail.com>
-References: <cover.1397032579.git.anarey@gmail.com> <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
+Subject: Re: nftables-20140407 compilation error
+Date: Wed, 9 Apr 2014 12:26:49 +0200
+Message-ID: <CAOkSjBgUGK8caypKrDWCz-usHc7LVYOOVwKh2Qr6tEMP6WKz1Q@mail.gmail.com>
+References: <CABtPJSsULt0MKYHacfGtLbJFLrepcGGB5uUZ5CSaQkNdTb2kSg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Ana Rey <anarey@gmail.com>
+To: Nazim Wahid Djafar <nwd.dev@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:50002 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758178AbaDIKME convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:59894 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932358AbaDIK1L convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2014 06:12:04 -0400
-Received: by mail-la0-f43.google.com with SMTP id e16so955789lan.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 03:12:02 -0700 (PDT)
-In-Reply-To: <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
+	Wed, 9 Apr 2014 06:27:11 -0400
+Received: by mail-lb0-f171.google.com with SMTP id w7so972793lbi.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 03:27:10 -0700 (PDT)
+In-Reply-To: <CABtPJSsULt0MKYHacfGtLbJFLrepcGGB5uUZ5CSaQkNdTb2kSg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 April 2014 10:53, Ana Rey <anarey@gmail.com> wrote:
-> Add an end of line in the exit of ruleset.
->
-> Signed-off-by: Ana Rey <anarey@gmail.com>
+On 9 April 2014 11:17, Nazim Wahid Djafar <nwd.dev@gmail.com> wrote:
+> There is an error of compilation of nftables-20140407 on Debian 7.0
+> Wheezy (eglibc 2.13 )
 
-Hi Ana,
+Hi! thanks for your report.
 
-Why do you need this here?
+Would you like to test this debian package?
 
-The policy was to don't add any format stuff (tabs, newlines..) to
-XML|JSON formats and let the caller add the trailing \n if needed..
+https://github.com/aborrero/pkg-nftables
 
-However, I see several inconsistencies already in the code:
-src/rule.c: ret =3D snprintf(buf+offset, len, "\n");
-src/rule.c: ret =3D snprintf(buf+offset, len, "]\n");
-src/rule.c: ret =3D snprintf(buf+offset, len, " }\n");
-src/set.c: ret =3D snprintf(buf+offset, len, "\n");
+you will need git-buildpackage and others build-deps.
 
+$ sudo aptitude install git-buildpackage
+$ gbp clone https://github.com/aborrero/pkg-nftables
+$ cd pkg-nftables
+$ git-buildpackage
+
+regards
 --=20
 Arturo Borrero Gonz=E1lez
 --
