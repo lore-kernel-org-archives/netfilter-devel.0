@@ -1,44 +1,39 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 1/3] ruleset: Add an end of line in the exit of ruleset.
-Date: Wed,  9 Apr 2014 10:53:59 +0200
-Message-ID: <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
-References: <cover.1397032579.git.anarey@gmail.com>
+Subject: [libnftnl PATCH 0/3] New features in nft-parsing-test
+Date: Wed,  9 Apr 2014 10:53:58 +0200
+Message-ID: <cover.1397032579.git.anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:63920 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752444AbaDIIyO (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:56011 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770AbaDIIyN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2014 04:54:14 -0400
-Received: by mail-wi0-f176.google.com with SMTP id r20so8469853wiv.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 01:54:13 -0700 (PDT)
-In-Reply-To: <cover.1397032579.git.anarey@gmail.com>
-In-Reply-To: <cover.1397032579.git.anarey@gmail.com>
-References: <cover.1397032579.git.anarey@gmail.com>
+	Wed, 9 Apr 2014 04:54:13 -0400
+Received: by mail-wi0-f177.google.com with SMTP id cc10so2776332wib.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 01:54:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add an end of line in the exit of ruleset.
+The following patchset contains new features in nft-parsing-test:
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
- src/ruleset.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+* Add the following command-line arguments:
 
-diff --git a/src/ruleset.c b/src/ruleset.c
-index 3cbec09..181aeae 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -818,7 +818,7 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_closetag(type));
-+	ret = snprintf(buf+offset, size, "%s\n", nft_ruleset_o_closetag(type));
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
+-u/--update <directory>      Update test files from <directory>.
+-f/--file <file>             Check test file <file>\n"
+
+* Add an end of line in the exit of ruleset. It is necessary to write the
+new generated testfiles.
+
+Ana Rey (3):
+  ruleset: Add an end of line in the exit of ruleset.
+  tests: New tools to uptade xml and json testfiles.
+  tests: Add support to check a json or xml testfile.
+
+ src/ruleset.c            |  2 +-
+ tests/nft-parsing-test.c | 88 ++++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 83 insertions(+), 7 deletions(-)
+
 -- 
 1.9.0
 
