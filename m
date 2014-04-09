@@ -1,143 +1,56 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH v2 1/2] tests: New tools to uptade xml and json testfiles.
-Date: Wed,  9 Apr 2014 17:03:44 +0200
-Message-ID: <b6b20bce9ecf384db04e8d9582a49905bf0fa72c.1397048551.git.anarey@gmail.com>
-References: <cover.1397048551.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nftables-20140407 compilation error
+Date: Wed, 9 Apr 2014 17:29:49 +0200
+Message-ID: <20140409152949.GB12361@breakpoint.cc>
+References: <CABtPJSsULt0MKYHacfGtLbJFLrepcGGB5uUZ5CSaQkNdTb2kSg@mail.gmail.com>
+ <20140409095143.GA12361@breakpoint.cc>
+ <20140409123126.GA7102@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	Nazim Wahid Djafar <nwd.dev@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:60638 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933204AbaDIPEB (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53755 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933372AbaDIP3w (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2014 11:04:01 -0400
-Received: by mail-we0-f181.google.com with SMTP id q58so2614331wes.12
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 08:03:59 -0700 (PDT)
-In-Reply-To: <cover.1397048551.git.anarey@gmail.com>
-In-Reply-To: <cover.1397048551.git.anarey@gmail.com>
-References: <cover.1397048551.git.anarey@gmail.com>
+	Wed, 9 Apr 2014 11:29:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20140409123126.GA7102@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-New tools to updata testfiles when the structure of xml or json files
-are changed.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > src/scanner.o: In function `nft_realloc':
+> > > /home/nwd/lab/nftables/nftables-20140407/<stdout>:4260: undefined
+> > > reference to `rpl_realloc'
+> > 
+> > This happens when configure thinks malloc/realloc are missing.
+> > 
+> > Any objetions wrt. removing AC_FUNC_MALLOC/AC_FUNC_REALLOC from
+> > nftables configure.ac?
+> 
+> If that resolves the problem, please go ahead, thanks Florian.
 
-It adds a new command-line argument in nft-parsing-test.
+The problem is two-fold.  When libnftnl has just been installed and
+is not yet in linker path, the malloc/realloc test will fail:
 
-With nft-parsing-test -u <directory>, you can update test files in
-<directory> with a new structure of xml or json file.
+configure:4557: gcc -o conftest -I/usr/local/libnftnl/include
+-L/usr/local/libnftnl/lib conftest.c -lreadline -lgmp -lnftnl -lmnl  >&5
+configure:4557: $? = 0
+configure:4557: ./conftest
+./conftest: error while loading shared libraries: libnftnl.so.0: cannot
+open shared object file: No such file or directory
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
-[Changes in v2:]
-* Change from fwrite to fprintf functions to add the end of line in the
-new files.
+That error is only in config.log, and config.h redefines malloc/realloc
+with rpl_ prefix, which then yields the mysterious
+'undefined reference to `rpl_realloc'' error when compiling nftables.
 
+The 2nd problem is that the macro executes the built program, which has
+the usual cross-compiling issue.
 
- tests/nft-parsing-test.c | 42 ++++++++++++++++++++++++++++++++++++------
- 1 file changed, 36 insertions(+), 6 deletions(-)
-
-diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-index a35c064..59c75a6 100644
---- a/tests/nft-parsing-test.c
-+++ b/tests/nft-parsing-test.c
-@@ -18,6 +18,8 @@ enum {
- 	TEST_JSON_RULESET,
- };
- 
-+static bool update = false;
-+
- static void print_detail_error(char *a, char *b)
- {
- 	int i;
-@@ -80,8 +82,24 @@ static int compare_test(uint32_t type, struct nft_ruleset *rs,
- 	rewind(fp);
- 	fgets(orig, sizeof(orig), fp);
- 
--	if (strncmp(orig, out, strlen(out)) == 0)
-+	if (strncmp(orig, out, strlen(out)) == 0) {
-+		if (update)
-+			printf("%s: No changes to update\n", filename);
-+		return 0;
-+	}
-+	if (update) {
-+		FILE *fout;
-+		printf("%s: Updating test file\n", filename);
-+		fout = fopen(filename, "w");
-+		if (fout == NULL) {
-+			printf("unable to open file %s: %s\n", filename,
-+			strerror(errno));
-+			return -1;
-+		}
-+		fprintf(fout, "%s\n", out);
-+		fclose(fout);
- 		return 0;
-+	}
- 
- 	printf("validating %s: ", filename);
- 	printf("\033[31mFAILED\e[0m\n");
-@@ -193,15 +211,21 @@ static int execute_test(const char *dir_name)
- 
- 		if (strcmp(&dent->d_name[len-4], ".xml") == 0) {
- 			if ((ret = test_xml(path, err)) == 0) {
--				printf("parsing and validating %s: ", path);
--				printf("\033[32mOK\e[0m\n");
-+				if (!update) {
-+					printf("parsing and validating %s: ",
-+					       path);
-+					printf("\033[32mOK\e[0m\n");
-+				}
- 			}
- 			exit_code += ret;
- 		}
- 		if (strcmp(&dent->d_name[len-5], ".json") == 0) {
- 			if ((ret = test_json(path, err)) == 0) {
--				printf("parsing and validating %s: ", path);
--				printf("\033[32mOK\e[0m\n");
-+				if (!update) {
-+					printf("parsing and validating %s: ",
-+					       path);
-+					printf("\033[32mOK\e[0m\n");
-+				}
- 			}
- 			exit_code += ret;
- 		}
-@@ -223,6 +247,7 @@ static void show_help(const char *name)
- "\n"
- "Options:\n"
- "  -d/--dir <directory>		Check test files from <directory>.\n"
-+"  -u/--update <directory>	Update test files from <directory>.\n"
- "\n",
- 	       name);
- }
-@@ -234,6 +259,7 @@ int main(int argc, char *argv[])
- 	int option_index = 0;
- 	static struct option long_options[] = {
- 		{ "dir", required_argument, 0, 'd' },
-+		{ "update", required_argument, 0, 'u' },
- 		{ 0 }
- 	};
- 
-@@ -243,7 +269,7 @@ int main(int argc, char *argv[])
- 	}
- 
- 	while (1) {
--		val = getopt_long(argc, argv, "d:", long_options,
-+		val = getopt_long(argc, argv, "d:u:", long_options,
- 				  &option_index);
- 
- 		if (val == -1)
-@@ -253,6 +279,10 @@ int main(int argc, char *argv[])
- 		case 'd':
- 			ret = execute_test(optarg);
- 			break;
-+		case 'u':
-+			update = true;
-+			ret = execute_test(optarg);
-+			break;
- 		default:
- 			show_help(argv[0]);
- 			break;
--- 
-1.9.0
-
+AFAIU these macros are only useful to check if malloc(0) returns
+non-NULL and that realloc(NULL, .. works, hence the question if these
+should just be removed.
