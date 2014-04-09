@@ -1,32 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: nftables-20140407 compilation error
-Date: Wed, 9 Apr 2014 11:51:43 +0200
-Message-ID: <20140409095143.GA12361@breakpoint.cc>
-References: <CABtPJSsULt0MKYHacfGtLbJFLrepcGGB5uUZ5CSaQkNdTb2kSg@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftnl PATCH 1/3] ruleset: Add an end of line in the exit of ruleset.
+Date: Wed, 9 Apr 2014 12:11:42 +0200
+Message-ID: <CAOkSjBjOTWW2cS012J73-UcqYbUyAJ31aXA==K4BsTYkTXffmA@mail.gmail.com>
+References: <cover.1397032579.git.anarey@gmail.com> <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nazim Wahid Djafar <nwd.dev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52536 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758185AbaDIJvp (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:50002 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758178AbaDIKME convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2014 05:51:45 -0400
-Content-Disposition: inline
-In-Reply-To: <CABtPJSsULt0MKYHacfGtLbJFLrepcGGB5uUZ5CSaQkNdTb2kSg@mail.gmail.com>
+	Wed, 9 Apr 2014 06:12:04 -0400
+Received: by mail-la0-f43.google.com with SMTP id e16so955789lan.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2014 03:12:02 -0700 (PDT)
+In-Reply-To: <15bbda6958ec01d0088c386537288dcfe1ad8731.1397032579.git.anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nazim Wahid Djafar <nwd.dev@gmail.com> wrote:
-> There is an error of compilation of nftables-20140407 on Debian 7.0
-> Wheezy (eglibc 2.13 )
+On 9 April 2014 10:53, Ana Rey <anarey@gmail.com> wrote:
+> Add an end of line in the exit of ruleset.
+>
+> Signed-off-by: Ana Rey <anarey@gmail.com>
 
-> src/scanner.o: In function `nft_realloc':
-> /home/nwd/lab/nftables/nftables-20140407/<stdout>:4260: undefined
-> reference to `rpl_realloc'
+Hi Ana,
 
-This happens when configure thinks malloc/realloc are missing.
+Why do you need this here?
 
-Any objetions wrt. removing AC_FUNC_MALLOC/AC_FUNC_REALLOC from
-nftables configure.ac?
+The policy was to don't add any format stuff (tabs, newlines..) to
+XML|JSON formats and let the caller add the trailing \n if needed..
+
+However, I see several inconsistencies already in the code:
+src/rule.c: ret =3D snprintf(buf+offset, len, "\n");
+src/rule.c: ret =3D snprintf(buf+offset, len, "]\n");
+src/rule.c: ret =3D snprintf(buf+offset, len, " }\n");
+src/set.c: ret =3D snprintf(buf+offset, len, "\n");
+
+--=20
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
