@@ -1,209 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/11] netfilter: nf_tables: relocate commit and abort routines in the source file
-Date: Wed,  9 Apr 2014 20:36:04 +0200
-Message-ID: <1397068572-3916-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 08/11] netfilter: nf_tables: disabling table hooks always succeeds
+Date: Wed,  9 Apr 2014 20:36:09 +0200
+Message-ID: <1397068572-3916-9-git-send-email-pablo@netfilter.org>
 References: <1397068572-3916-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59213 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59224 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933809AbaDISgY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Apr 2014 14:36:24 -0400
+	id S933989AbaDISg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Apr 2014 14:36:26 -0400
 In-Reply-To: <1397068572-3916-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move the commit and abort routines to the bottom of the source code
-file. This change is required by the follow up patches that add the
-set, chain and table transaction support.
-
-This patch is just a cleanup to access several functions without
-having to declare their prototypes.
+nf_tables_table_disable() always succeeds, make this function void.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |  160 ++++++++++++++++++++---------------------
- 1 file changed, 80 insertions(+), 80 deletions(-)
+ net/netfilter/nf_tables_api.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6ee68e4..dd4e8b7 100644
+index eeec445..1cedd85 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1824,86 +1824,6 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
+@@ -381,7 +381,7 @@ err:
  	return err;
  }
  
--static int nf_tables_commit(struct sk_buff *skb)
--{
--	struct net *net = sock_net(skb->sk);
--	struct nft_trans *trans, *next;
--
--	/* Bump generation counter, invalidate any dump in progress */
--	net->nft.genctr++;
--
--	/* A new generation has just started */
--	net->nft.gencursor = gencursor_next(net);
--
--	/* Make sure all packets have left the previous generation before
--	 * purging old rules.
--	 */
--	synchronize_rcu();
--
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		/* This rule was inactive in the past and just became active.
--		 * Clear the next bit of the genmask since its meaning has
--		 * changed, now it is the future.
--		 */
--		if (nft_rule_is_active(net, nft_trans_rule(trans))) {
--			nft_rule_clear(net, nft_trans_rule(trans));
--			nf_tables_rule_notify(skb, trans->ctx.nlh,
--					      trans->ctx.table,
--					      trans->ctx.chain,
--					      nft_trans_rule(trans),
--					      NFT_MSG_NEWRULE, 0,
--					      trans->ctx.afi->family);
--			nft_trans_destroy(trans);
--			continue;
--		}
--
--		/* This rule is in the past, get rid of it */
--		list_del_rcu(&nft_trans_rule(trans)->list);
--		nf_tables_rule_notify(skb, trans->ctx.nlh,
--				      trans->ctx.table, trans->ctx.chain,
--				      nft_trans_rule(trans), NFT_MSG_DELRULE,
--				      0, trans->ctx.afi->family);
--	}
--
--	/* Make sure we don't see any packet traversing old rules */
--	synchronize_rcu();
--
--	/* Now we can safely release unused old rules */
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
--		nft_trans_destroy(trans);
--	}
+-static int nf_tables_table_disable(const struct nft_af_info *afi,
++static void nf_tables_table_disable(const struct nft_af_info *afi,
+ 				   struct nft_table *table)
+ {
+ 	struct nft_chain *chain;
+@@ -391,8 +391,6 @@ static int nf_tables_table_disable(const struct nft_af_info *afi,
+ 			nf_unregister_hooks(nft_base_chain(chain)->ops,
+ 					    afi->nops);
+ 	}
 -
 -	return 0;
--}
--
--static int nf_tables_abort(struct sk_buff *skb)
--{
--	struct net *net = sock_net(skb->sk);
--	struct nft_trans *trans, *next;
--
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		if (!nft_rule_is_active_next(net, nft_trans_rule(trans))) {
--			nft_rule_clear(net, nft_trans_rule(trans));
--			nft_trans_destroy(trans);
--			continue;
--		}
--
--		/* This rule is inactive, get rid of it */
--		list_del_rcu(&nft_trans_rule(trans)->list);
--	}
--
--	/* Make sure we don't see any packet accessing aborted rules */
--	synchronize_rcu();
--
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
--		nft_trans_destroy(trans);
--	}
--
--	return 0;
--}
--
- /*
-  * Sets
-  */
-@@ -3169,6 +3089,86 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	},
- };
+ }
  
-+static int nf_tables_commit(struct sk_buff *skb)
-+{
-+	struct net *net = sock_net(skb->sk);
-+	struct nft_trans *trans, *next;
-+
-+	/* Bump generation counter, invalidate any dump in progress */
-+	net->nft.genctr++;
-+
-+	/* A new generation has just started */
-+	net->nft.gencursor = gencursor_next(net);
-+
-+	/* Make sure all packets have left the previous generation before
-+	 * purging old rules.
-+	 */
-+	synchronize_rcu();
-+
-+	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+		/* This rule was inactive in the past and just became active.
-+		 * Clear the next bit of the genmask since its meaning has
-+		 * changed, now it is the future.
-+		 */
-+		if (nft_rule_is_active(net, nft_trans_rule(trans))) {
-+			nft_rule_clear(net, nft_trans_rule(trans));
-+			nf_tables_rule_notify(skb, trans->ctx.nlh,
-+					      trans->ctx.table,
-+					      trans->ctx.chain,
-+					      nft_trans_rule(trans),
-+					      NFT_MSG_NEWRULE, 0,
-+					      trans->ctx.afi->family);
-+			nft_trans_destroy(trans);
-+			continue;
-+		}
-+
-+		/* This rule is in the past, get rid of it */
-+		list_del_rcu(&nft_trans_rule(trans)->list);
-+		nf_tables_rule_notify(skb, trans->ctx.nlh,
-+				      trans->ctx.table, trans->ctx.chain,
-+				      nft_trans_rule(trans), NFT_MSG_DELRULE,
-+				      0, trans->ctx.afi->family);
-+	}
-+
-+	/* Make sure we don't see any packet traversing old rules */
-+	synchronize_rcu();
-+
-+	/* Now we can safely release unused old rules */
-+	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		nft_trans_destroy(trans);
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_tables_abort(struct sk_buff *skb)
-+{
-+	struct net *net = sock_net(skb->sk);
-+	struct nft_trans *trans, *next;
-+
-+	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+		if (!nft_rule_is_active_next(net, nft_trans_rule(trans))) {
-+			nft_rule_clear(net, nft_trans_rule(trans));
-+			nft_trans_destroy(trans);
-+			continue;
-+		}
-+
-+		/* This rule is inactive, get rid of it */
-+		list_del_rcu(&nft_trans_rule(trans)->list);
-+	}
-+
-+	/* Make sure we don't see any packet accessing aborted rules */
-+	synchronize_rcu();
-+
-+	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		nft_trans_destroy(trans);
-+	}
-+
-+	return 0;
-+}
-+
- static const struct nfnetlink_subsystem nf_tables_subsys = {
- 	.name		= "nf_tables",
- 	.subsys_id	= NFNL_SUBSYS_NFTABLES,
+ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+@@ -412,9 +410,8 @@ static int nf_tables_updtable(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 		if ((flags & NFT_TABLE_F_DORMANT) &&
+ 		    !(table->flags & NFT_TABLE_F_DORMANT)) {
+-			ret = nf_tables_table_disable(afi, table);
+-			if (ret >= 0)
+-				table->flags |= NFT_TABLE_F_DORMANT;
++			nf_tables_table_disable(afi, table);
++			table->flags |= NFT_TABLE_F_DORMANT;
+ 		} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 			   table->flags & NFT_TABLE_F_DORMANT) {
+ 			ret = nf_tables_table_enable(afi, table);
 -- 
 1.7.10.4
 
