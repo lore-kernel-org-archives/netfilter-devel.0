@@ -1,68 +1,47 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH RFC] netfilter: nf_tables: defer all object release via
- rcu
-Date: Thu, 10 Apr 2014 15:01:47 +0300
-Message-ID: <5346882B.30605@linux.intel.com>
-References: <1397130696-3760-1-git-send-email-pablo@netfilter.org>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: NETFILTER_XT_TARGET_NOTRACK
+Date: Thu, 10 Apr 2014 14:05:11 +0200
+Message-ID: <1397131511.25950.97.camel@chaos.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Michal Kubecek <mkubecek@suse.cz>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6581 "EHLO mga02.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:48380 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030282AbaDJMDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Apr 2014 08:03:37 -0400
-In-Reply-To: <1397130696-3760-1-git-send-email-pablo@netfilter.org>
+	id S1030282AbaDJMFO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Apr 2014 08:05:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi  Pablo,
+Hi all,
 
-2 minor issues.
+I have a concern / question / suggestion regarding
+NETFILTER_XT_TARGET_NOTRACK.
 
->   include/net/netfilter/nf_tables.h |    2 +
->   net/netfilter/nf_tables_api.c     |  100 ++++++++++++++++++++++---------------
->   2 files changed, 62 insertions(+), 40 deletions(-)
->
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index b08f2a9..65656f7 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -391,12 +391,14 @@ struct nft_rule {
->   /**
->    *	struct nft_trans - nf_tables object update in transaction
->    *
-> + *	rcu_head: rcu head to defer release of transaction data
+Currently, NETFILTER_XT_TARGET_NOTRACK merely selects
+NETFILTER_XT_TARGET_CT, and does nothing else. This means that selecting
+or not selecting NETFILTER_XT_TARGET_NOTRACK makes no difference, as
+long as NETFILTER_XT_TARGET_CT itself is set.
 
-an '@' is missing
+I seem to understand that NETFILTER_XT_TARGET_NOTRACK was reintroduced
+in kernel 3.8 to help migration to NETFILTER_XT_TARGET_CT. I understand
+the logic, but this was 7 kernel versions / over 2 years ago. Wouldn't
+it be the right time to finally remove NETFILTER_XT_TARGET_NOTRACK?
 
->    *	@list: used internally
->    *	@msg_type: message type
->    *	@ctx: transaction context
->    *	@data: internal information related to the transaction
->    */
->   struct nft_trans {
-> +	struct rcu_head			rcu_head;
->   	struct list_head		list;
->   	int				msg_type;
->   	struct nft_ctx			ctx;
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 5606ae30..fd03212 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2612,7 +2612,8 @@ static void nft_set_destroy(struct nft_set *set)
->   static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
->   {
->   	list_del(&set->list);
-> -	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
-> +	if (!set->flags & NFT_SET_ANONYMOUS)
-> +		nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
+Alternatively, I find it curious that the compatibility code is
+unconditionally built into xt_CT even when NETFILTER_XT_TARGET_NOTRACK
+is not selected. Is it an overlook, or is it by design? I think it would
+make sense to only build that compatibility code when
+NETFILTER_XT_TARGET_NOTRACK is selected. In that case it would make
+sense to keep NETFILTER_XT_TARGET_NOTRACK.
 
-It's a fix for anonymous set, so it's should be on another patch.
+Thanks,
+-- 
+Jean Delvare
+SUSE L3 Support
 
-
-
-Tomasz
