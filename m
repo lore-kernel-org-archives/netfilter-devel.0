@@ -1,53 +1,24 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [nft PATCH] expression: Fix inconsistent output in set
-Date: Fri, 11 Apr 2014 10:26:46 +0200
-Message-ID: <1daccfe0798bd032f1770b0ae7888a88db46f3f6.1397204678.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: "Semple, Kylie M" <kms1037@sru.edu>
+Subject: SUSPECT: General web-mail maintenance
+Date: Fri, 11 Apr 2014 07:33:18 -0400
+Message-ID: <9A90E5A3B8A8104DBF80EE8CDD733B5F27A6B2D05C__49170.9798611284$1397216414$gmane$org@MSFEXCH05.srunet.sruad.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: "employeedesk@webmaster.org" <employeedesk@webmaster.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:39378 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805AbaDKI0z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:26:55 -0400
-Received: by mail-wg0-f43.google.com with SMTP id x13so5005053wgg.26
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2014 01:26:54 -0700 (PDT)
+Received: from sruedge04.sru.edu ([205.149.70.243]:3958 "EHLO
+	SSFEXCHEDGE04.srunet.sruad.edu" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754251AbaDKLjc convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Apr 2014 07:39:32 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a whitespace between the last element in a set and the close braces.
-
-Old output set:
-
-	set set-test {
-		type ipv4_address
-		elements = { 192.168.1.44, 192.168.2.4}
-	}
-
-New output set:
-	set set-test {
-		type ipv4_address
-		elements = { 192.168.1.44, 192.168.2.4 }
-	}
-
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
- src/expression.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/expression.c b/src/expression.c
-index fa14d99..3b299ff 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -734,7 +734,7 @@ static void set_expr_print(const struct expr *expr)
- {
- 	printf("{ ");
- 	compound_expr_print(expr, ", ");
--	printf("}");
-+	printf(" }");
- }
- 
- static void set_expr_set_type(const struct expr *expr,
--- 
-1.9.0
-
+General web-mail maintenance
+Dear Account Owner,
+ THIS MESSAGE IS DIRECTED TO USERS USING Office Outlook Web Access Web-mail (2007 version). We want to upgrade all Microsoft Exchange email account scheduled for today as part of our duty to strengthen security of your mailbox. CLICK HERE<http://up-refere1.a.nf/> to upgrade your account to Outlook Web Apps 2014. If your settings is not updated today, your account will be inactive and cannot send or receive message any longer.
+Sincerely,
+IT Helpdesk DEPT
+Microsoft Corporation. All rights reserved
