@@ -1,90 +1,91 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables data type names
-Date: Sat, 12 Apr 2014 13:03:53 +0200
-Message-ID: <20140412110352.GA15624@macbook.localnet>
-References: <20140412102901.GA8090@macbook.localnet>
- <20140412105646.GJ31953@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netfilter: nf_tables: fix nft_cmp_fast failure on big endian for size < 4
+Date: Sat, 12 Apr 2014 13:17:57 +0200
+Message-ID: <1397301477-16204-2-git-send-email-kaber@trash.net>
+References: <1397301477-16204-1-git-send-email-kaber@trash.net>
+Cc: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42412 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42493 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188AbaDLLD4 (ORCPT
+	with ESMTP id S1754475AbaDLLSG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Apr 2014 07:03:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20140412105646.GJ31953@breakpoint.cc>
+	Sat, 12 Apr 2014 07:18:06 -0400
+In-Reply-To: <1397301477-16204-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Apr 12, 2014 at 12:56:46PM +0200, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > Before the upcoming release, I'd like to add some more consistency among
-> > nftables data type names. We currently have the following types:
-> [..]
-> > In some cases we're more verbose, in other we're using abrevations.
-> > I'd like to decide for either one.
-> > 
-> > The following ones should IMO definitely be changed:
-> > 
-> > - etheraddr => ether_address or mac_address. ether_addr would be more
-> >   consistent with ethertype.
-> > 
-> > - ethertype => ether_type if ether_addr is used
-> 
-> I like ether_type/ether_addr.
+nft_cmp_fast is used for equality comparisions of size <= 4. For
+comparisions of size < 4 byte a mask is calculated that is applied to
+both the data from userspace (during initialization) and the register
+value (during runtime). Both values are stored using (in effect) memcpy
+to a memory area that is then interpreted as u32 by nft_cmp_fast.
 
-Ok, lets take those.
+This works fine on little endian since smaller types have the same base
+address, however on big endian this is not true and the smaller types
+are interpreted as a big number with trailing zero bytes.
 
-> > - optionally: *_address => *_addr
-> 
-> We already have 'ip saddr/daddr' etc in nft rules,
-> so I'd prefer to use _addr everywhere.
+The mask therefore must not include the lower bytes, but the higher bytes
+on big endian. Add a helper function that does a cpu_to_le32 to switch
+the bytes on big endian. Since we're dealing with a mask of just consequitive
+bits, this works out fine.
 
-Good point.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/net/netfilter/nf_tables_core.h | 10 ++++++++++
+ net/netfilter/nf_tables_core.c         |  3 +--
+ net/netfilter/nft_cmp.c                |  2 +-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-> > - arphrd => iftype/interface_type?
-> 
-> I read that as "arphdr"...
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index cf2b7ae..a75fc8e 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -13,6 +13,16 @@ struct nft_cmp_fast_expr {
+ 	u8			len;
+ };
+ 
++/* Calculate the mask for the nft_cmp_fast expression. On big endian the
++ * mask needs to include the *upper* bytes when interpreting that data as
++ * something smaller than the full u32, therefore a cpu_to_le32 is done.
++ */
++static inline u32 nft_cmp_fast_mask(unsigned int len)
++{
++	return cpu_to_le32(~0U >> (FIELD_SIZEOF(struct nft_cmp_fast_expr,
++						data) * BITS_PER_BYTE - len));
++}
++
+ extern const struct nft_expr_ops nft_cmp_fast_ops;
+ 
+ int nft_cmp_module_init(void);
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 90998a6..8041053 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -25,9 +25,8 @@ static void nft_cmp_fast_eval(const struct nft_expr *expr,
+ 			      struct nft_data data[NFT_REG_MAX + 1])
+ {
+ 	const struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
+-	u32 mask;
++	u32 mask = nft_cmp_fast_mask(priv->len);
+ 
+-	mask = ~0U >> (sizeof(priv->data) * BITS_PER_BYTE - priv->len);
+ 	if ((data[priv->sreg].data[0] & mask) == priv->data)
+ 		return;
+ 	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 954925d..e2b3f51 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -128,7 +128,7 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
+ 	BUG_ON(err < 0);
+ 	desc.len *= BITS_PER_BYTE;
+ 
+-	mask = ~0U >> (sizeof(priv->data) * BITS_PER_BYTE - desc.len);
++	mask = nft_cmp_fast_mask(desc.len);
+ 	priv->data = data.data[0] & mask;
+ 	priv->len  = desc.len;
+ 	return 0;
+-- 
+1.9.0
 
-Yeah, same here.
-
-> Since its used of iif/oiftype I think interface_type is good choice.
-
-Agreed, will change.
-
-> > If we're deciding for more verbose names (which IMO is fine for types),
-> > I'd also change:
-> > 
-> > - arp_op => arp_operation
-> > - ifindex => interface_index
-> > - nfproto => nf_protocol
-> 
-> I agree iff we go for eg. _address instead of _addr.
-> I would prefer _addr, i.e.
-
-Yep.
-
-> > otherwise:
-> > 
-> > - inet_protocol => inet_proto
-> 
-> inet_proto, too.
-> Looking at scanner.l we also have l3proto, l4proto, nfproto keywords.
-
-I'll also change those.
-
-> [ I realize that there is not requirement to be consistent with
-> datatype names vs. nft rules but I see no reason to differ ]
-
-Yeah, sticking to internal data type names is a bad habit from a usability
-perspective IMO. iiftype / arphrd is the best example for this.
-
-> > Basically the should be human readable, not programmer readable, should
-> > describe what they actually are (not arphrd) and should be consistent.
-> 
-> Fully agree, more consistency would be good.
-
-Thanks for the feedback, I'll post a patch soon.
