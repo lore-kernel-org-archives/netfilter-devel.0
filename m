@@ -1,39 +1,85 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH] expression: Fix inconsistent output in set
-Date: Sat, 12 Apr 2014 11:49:24 +0200
-Message-ID: <20140412094924.GA2682@macbook.localnet>
-References: <1daccfe0798bd032f1770b0ae7888a88db46f3f6.1397204678.git.anarey@gmail.com>
+Subject: nftables data type names
+Date: Sat, 12 Apr 2014 12:29:01 +0200
+Message-ID: <20140412102901.GA8090@macbook.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41986 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42225 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511AbaDLJt2 (ORCPT
+	with ESMTP id S1756085AbaDLK3F (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Apr 2014 05:49:28 -0400
+	Sat, 12 Apr 2014 06:29:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1daccfe0798bd032f1770b0ae7888a88db46f3f6.1397204678.git.anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 11, 2014 at 10:26:46AM +0200, Ana Rey wrote:
-> Add a whitespace between the last element in a set and the close braces.
-> 
-> Old output set:
-> 
-> 	set set-test {
-> 		type ipv4_address
-> 		elements = { 192.168.1.44, 192.168.2.4}
-> 	}
-> 
-> New output set:
-> 	set set-test {
-> 		type ipv4_address
-> 		elements = { 192.168.1.44, 192.168.2.4 }
-> 	}
-> 
+Before the upcoming release, I'd like to add some more consistency among
+nftables data type names. We currently have the following types:
 
-That's actually deliberate. A space is always added before a set member, but never
-after.
+ ct_state
+ ct_dir
+ ct_status
+ ct_label
+ invalid
+ verdict
+ nfproto
+ bitmask
+ integer
+ string
+ lladdr
+ ipv4_address
+ ipv6_address
+ inet_protocol
+ inet_service
+ mark
+ time
+ mh_type
+ realm
+ tc_handle
+ ifindex
+ arphrd
+ uid
+ gid
+ icmp_type
+ tcp_flag
+ dccp_pkttype
+ icmpv6_type
+ arp_op
+ etheraddr
+ ethertype
+
+In some cases we're more verbose, in other we're using abrevations.
+I'd like to decide for either one.
+
+The following ones should IMO definitely be changed:
+
+- etheraddr => ether_address or mac_address. ether_addr would be more
+  consistent with ethertype.
+
+- ethertype => ether_type if ether_addr is used
+
+- optionally: *_address => *_addr
+
+- otherwise: ll_addr => ll_address
+
+- arphrd => iftype/interface_type?
+
+If we're deciding for more verbose names (which IMO is fine for types),
+I'd also change:
+
+- arp_op => arp_operation
+- ifindex => interface_index
+- nfproto => nf_protocol
+
+otherwise:
+
+- inet_protocol => inet_proto
+- *_address -> *_addr
+
+Basically the should be human readable, not programmer readable, should
+describe what they actually are (not arphrd) and should be consistent.
+
+Any comments or suggestions?
