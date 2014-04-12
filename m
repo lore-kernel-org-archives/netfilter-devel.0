@@ -1,99 +1,93 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/2] expression: fix constant expression allocation on big endian
-Date: Sat, 12 Apr 2014 11:09:58 +0200
-Message-ID: <1397293799-2600-2-git-send-email-kaber@trash.net>
+Subject: [PATCH 2/2] gmputil: use MSF/LSF in import/export functions dependant on host byte order
+Date: Sat, 12 Apr 2014 11:09:59 +0200
+Message-ID: <1397293799-2600-3-git-send-email-kaber@trash.net>
 References: <1397293799-2600-1-git-send-email-kaber@trash.net>
 Cc: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41748 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41751 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346AbaDLJKD (ORCPT
+	with ESMTP id S1755085AbaDLJKE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Apr 2014 05:10:03 -0400
+	Sat, 12 Apr 2014 05:10:04 -0400
 In-Reply-To: <1397293799-2600-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-
-When allocating a constant expression, a pointer to the data is passed
-to the allocation function. When the variable used to store the data
-is larger than the size of the data type, this fails on big endian since
-the most significant bytes (being zero) come first.
-
-Add a helper function to calculate the proper address for the cases
-where this is needed.
-
-This currently affects symbolic tables for values < u64 and payload
-dependency generation for protocol values < u32.
+For data of byteorder BYTEORDER_HOST_ENDIAN we need to set the word order
+dependant on the host byte order.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/utils.h | 14 ++++++++++++++
- src/datatype.c  |  2 +-
- src/payload.c   |  3 ++-
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ include/gmputil.h | 9 +++++++++
+ src/gmputil.c     | 7 +++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/include/utils.h b/include/utils.h
-index 88ee0c9..cc5948c 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -1,6 +1,7 @@
- #ifndef NFTABLES_UTILS_H
- #define NFTABLES_UTILS_H
+diff --git a/include/gmputil.h b/include/gmputil.h
+index 88be697..63eb0ba 100644
+--- a/include/gmputil.h
++++ b/include/gmputil.h
+@@ -2,12 +2,21 @@
+ #define NFTABLES_GMPUTIL_H
  
+ #include <gmp.h>
 +#include <asm/byteorder.h>
- #include <stdint.h>
- #include <stdbool.h>
- #include <stdarg.h>
-@@ -46,6 +47,19 @@
- 	typeof( ((type *)0)->member ) *__mptr = (ptr);		\
- 	(type *)( (void *)__mptr - offsetof(type,member) );})
  
-+/**
-+ * Return a pointer to a constant variable of a size smaller than the variable.
-+ */
+ enum mpz_word_order {
+ 	MPZ_MSWF		= 1,
+ 	MPZ_LSWF		= -1,
+ };
+ 
 +#ifdef __LITTLE_ENDIAN_BITFIELD
-+#define constant_data_ptr(val, len) \
-+	((void *)&(val))
++#define MPZ_HWO	MPZ_LSWF
 +#elif defined(__BIG_ENDIAN_BITFIELD)
-+#define constant_data_ptr(val, len) \
-+	((void *)&(val) + sizeof(val) - (len) / BITS_PER_BYTE)
++#define MPZ_HWO MPZ_MSWF
 +#else
 +#error "byteorder undefined"
 +#endif
 +
- #define field_sizeof(t, f)	(sizeof(((t *)NULL)->f))
- #define array_size(arr)		(sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
- #define div_round_up(n, d)	(((n) + (d) - 1) / (d))
-diff --git a/src/datatype.c b/src/datatype.c
-index ac42faa..331f235 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -124,7 +124,7 @@ struct error_record *symbolic_constant_parse(const struct expr *sym,
+ enum mpz_byte_order {
+ 	MPZ_BIG_ENDIAN		= 1,
+ 	MPZ_HOST_ENDIAN		= 0,
+diff --git a/src/gmputil.c b/src/gmputil.c
+index f34c077..cb46445 100644
+--- a/src/gmputil.c
++++ b/src/gmputil.c
+@@ -98,20 +98,23 @@ void *mpz_export_data(void *data, const mpz_t op,
+ 		      enum byteorder byteorder,
+ 		      unsigned int len)
+ {
++	enum mpz_word_order order;
+ 	enum mpz_byte_order endian;
  
- 	*res = constant_expr_alloc(&sym->location, dtype,
- 				   dtype->byteorder, dtype->size,
--				   &s->value);
-+				   constant_data_ptr(s->value, dtype->size));
- 	return NULL;
+ 	switch (byteorder) {
+ 	case BYTEORDER_BIG_ENDIAN:
+ 	default:
++		order = MPZ_MSWF;
+ 		endian = MPZ_BIG_ENDIAN;
+ 		break;
+ 	case BYTEORDER_HOST_ENDIAN:
++		order = MPZ_HWO;
+ 		endian = MPZ_HOST_ENDIAN;
+ 		break;
+ 	}
+ 
+ 	memset(data, 0, len);
+-	mpz_export(data, NULL, MPZ_MSWF, len, endian, 0, op);
++	mpz_export(data, NULL, order, len, endian, 0, op);
+ 	return data;
  }
  
-diff --git a/src/payload.c b/src/payload.c
-index 427080c..a1785a5 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -209,7 +209,8 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 
- 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
- 				    BYTEORDER_HOST_ENDIAN,
--				    tmpl->len, &protocol);
-+				    tmpl->len,
-+				    constant_data_ptr(protocol, tmpl->len));
- 
- 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
- 	left->ops->pctx_update(&ctx->pctx, dep);
+@@ -129,7 +132,7 @@ void mpz_import_data(mpz_t rop, const void *data,
+ 		endian = MPZ_BIG_ENDIAN;
+ 		break;
+ 	case BYTEORDER_HOST_ENDIAN:
+-		order  = MPZ_LSWF;
++		order  = MPZ_HWO;
+ 		endian = MPZ_HOST_ENDIAN;
+ 		break;
+ 	}
 -- 
 1.9.0
 
