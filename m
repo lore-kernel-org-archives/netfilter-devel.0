@@ -1,91 +1,30 @@
-From: Andrey Vagin <avagin@openvz.org>
-Subject: [PATCH] netfilter: conntrack: initialize net.ct.generation
-Date: Fri, 11 Apr 2014 21:34:20 +0400
-Message-ID: <1397237660-30632-1-git-send-email-avagin@openvz.org>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	Andrey Vagin <avagin@openvz.org>,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: linux-kernel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 0/2] nftables: fix big endian bugs
+Date: Sat, 12 Apr 2014 11:09:57 +0200
+Message-ID: <1397293799-2600-1-git-send-email-kaber@trash.net>
+Cc: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:41747 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754024AbaDLJKD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Apr 2014 05:10:03 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[  251.920788] INFO: trying to register non-static key.
-[  251.921386] the code is fine but needs lockdep annotation.
-[  251.921386] turning off the locking correctness validator.
-[  251.921386] CPU: 2 PID: 15715 Comm: socket_listen Not tainted 3.14.0+ #294
-[  251.921386] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-[  251.921386]  0000000000000000 000000009d18c210 ffff880075f039b8 ffffffff816b7ecd
-[  251.921386]  ffffffff822c3b10 ffff880075f039c8 ffffffff816b36f4 ffff880075f03aa0
-[  251.921386]  ffffffff810c65ff ffffffff810c4a85 00000000fffffe01 ffffffffa0075172
-[  251.921386] Call Trace:
-[  251.921386]  [<ffffffff816b7ecd>] dump_stack+0x45/0x56
-[  251.921386]  [<ffffffff816b36f4>] register_lock_class.part.24+0x38/0x3c
-[  251.921386]  [<ffffffff810c65ff>] __lock_acquire+0x168f/0x1b40
-[  251.921386]  [<ffffffff810c4a85>] ? trace_hardirqs_on_caller+0x105/0x1d0
-[  251.921386]  [<ffffffffa0075172>] ? nf_nat_setup_info+0x252/0x3a0 [nf_nat]
-[  251.921386]  [<ffffffff816c1215>] ? _raw_spin_unlock_bh+0x35/0x40
-[  251.921386]  [<ffffffffa0075172>] ? nf_nat_setup_info+0x252/0x3a0 [nf_nat]
-[  251.921386]  [<ffffffff810c7272>] lock_acquire+0xa2/0x120
-[  251.921386]  [<ffffffffa008ab90>] ? ipv4_confirm+0x90/0xf0 [nf_conntrack_ipv4]
-[  251.921386]  [<ffffffffa0055989>] __nf_conntrack_confirm+0x129/0x410 [nf_conntrack]
-[  251.921386]  [<ffffffffa008ab90>] ? ipv4_confirm+0x90/0xf0 [nf_conntrack_ipv4]
-[  251.921386]  [<ffffffffa008ab90>] ipv4_confirm+0x90/0xf0 [nf_conntrack_ipv4]
-[  251.921386]  [<ffffffff815e7b00>] ? ip_fragment+0x9f0/0x9f0
-[  251.921386]  [<ffffffff815d8c5a>] nf_iterate+0xaa/0xc0
-[  251.921386]  [<ffffffff815e7b00>] ? ip_fragment+0x9f0/0x9f0
-[  251.921386]  [<ffffffff815d8d14>] nf_hook_slow+0xa4/0x190
-[  251.921386]  [<ffffffff815e7b00>] ? ip_fragment+0x9f0/0x9f0
-[  251.921386]  [<ffffffff815e98f2>] ip_output+0x92/0x100
-[  251.921386]  [<ffffffff815e8df9>] ip_local_out+0x29/0x90
-[  251.921386]  [<ffffffff815e9240>] ip_queue_xmit+0x170/0x4c0
-[  251.921386]  [<ffffffff815e90d5>] ? ip_queue_xmit+0x5/0x4c0
-[  251.921386]  [<ffffffff81601208>] tcp_transmit_skb+0x498/0x960
-[  251.921386]  [<ffffffff81602d82>] tcp_connect+0x812/0x960
-[  251.921386]  [<ffffffff810e3dc5>] ? ktime_get_real+0x25/0x70
-[  251.921386]  [<ffffffff8159ea2a>] ? secure_tcp_sequence_number+0x6a/0xc0
-[  251.921386]  [<ffffffff81606f57>] tcp_v4_connect+0x317/0x470
-[  251.921386]  [<ffffffff8161f645>] __inet_stream_connect+0xb5/0x330
-[  251.921386]  [<ffffffff8158dfc3>] ? lock_sock_nested+0x33/0xa0
-[  251.921386]  [<ffffffff810c4b5d>] ? trace_hardirqs_on+0xd/0x10
-[  251.921386]  [<ffffffff81078885>] ? __local_bh_enable_ip+0x75/0xe0
-[  251.921386]  [<ffffffff8161f8f8>] inet_stream_connect+0x38/0x50
-[  251.921386]  [<ffffffff8158b157>] SYSC_connect+0xe7/0x120
-[  251.921386]  [<ffffffff810e3789>] ? current_kernel_time+0x69/0xd0
-[  251.921386]  [<ffffffff810c4a85>] ? trace_hardirqs_on_caller+0x105/0x1d0
-[  251.921386]  [<ffffffff810c4b5d>] ? trace_hardirqs_on+0xd/0x10
-[  251.921386]  [<ffffffff8158c36e>] SyS_connect+0xe/0x10
-[  251.921386]  [<ffffffff816caf69>] system_call_fastpath+0x16/0x1b
-[  312.014104] INFO: rcu_sched detected stalls on CPUs/tasks: {} (detected by 0, t=60003 jiffies, g=42359, c=42358, q=333)
-[  312.015097] INFO: Stall ended before state dump start
+The following two patches fix the remaining big endian bugs in nftables
+I could find during my testing.
 
-Fixes: 93bb0ceb75be ("netfilter: conntrack: remove central spinlock nf_conntrack_lock")
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
----
- net/netfilter/nf_conntrack_core.c | 1 +
- 1 file changed, 1 insertion(+)
+Patch 1 addresses the problem that a constant expression is allocated with
+data from a variable that is larger than the data size. On big endian we
+can't simply use &var but need to calculate the address of the data
+dependant on the size of the variable and the size of the data we want.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 6dba48e..75421f2 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1795,6 +1795,7 @@ int nf_conntrack_init_net(struct net *net)
- 	int cpu;
- 
- 	atomic_set(&net->ct.count, 0);
-+	seqcount_init(&net->ct.generation);
- 
- 	net->ct.pcpu_lists = alloc_percpu(struct ct_pcpu);
- 	if (!net->ct.pcpu_lists)
--- 
-1.9.0
+Patch 2 fixes the GMP import/export functions for BYTEORDER_HOST_ENDIAN
+to use the proper word order dependant on the host endianess. This is needed
+because we always use a word size of 1 and the word order basically
+determines the byte order.
+
+With these patches in place, everything appears to work fine. A single
+fix for the kernel is also needed, this will be sent seperately.
