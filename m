@@ -1,71 +1,90 @@
-From: Florian Westphal <fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: nftables data type names
-Date: Sat, 12 Apr 2014 12:56:46 +0200
-Message-ID: <20140412105646.GJ31953@breakpoint.cc>
+Date: Sat, 12 Apr 2014 13:03:53 +0200
+Message-ID: <20140412110352.GA15624@macbook.localnet>
 References: <20140412102901.GA8090@macbook.localnet>
+ <20140412105646.GJ31953@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36267 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754188AbaDLK4s (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:42412 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754188AbaDLLD4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Apr 2014 06:56:48 -0400
+	Sat, 12 Apr 2014 07:03:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20140412102901.GA8090@macbook.localnet>
+In-Reply-To: <20140412105646.GJ31953@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> Before the upcoming release, I'd like to add some more consistency among
-> nftables data type names. We currently have the following types:
-[..]
-> In some cases we're more verbose, in other we're using abrevations.
-> I'd like to decide for either one.
+On Sat, Apr 12, 2014 at 12:56:46PM +0200, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
+> > Before the upcoming release, I'd like to add some more consistency among
+> > nftables data type names. We currently have the following types:
+> [..]
+> > In some cases we're more verbose, in other we're using abrevations.
+> > I'd like to decide for either one.
+> > 
+> > The following ones should IMO definitely be changed:
+> > 
+> > - etheraddr => ether_address or mac_address. ether_addr would be more
+> >   consistent with ethertype.
+> > 
+> > - ethertype => ether_type if ether_addr is used
 > 
-> The following ones should IMO definitely be changed:
+> I like ether_type/ether_addr.
+
+Ok, lets take those.
+
+> > - optionally: *_address => *_addr
 > 
-> - etheraddr => ether_address or mac_address. ether_addr would be more
->   consistent with ethertype.
+> We already have 'ip saddr/daddr' etc in nft rules,
+> so I'd prefer to use _addr everywhere.
+
+Good point.
+
+> > - arphrd => iftype/interface_type?
 > 
-> - ethertype => ether_type if ether_addr is used
+> I read that as "arphdr"...
 
-I like ether_type/ether_addr.
+Yeah, same here.
 
-> - optionally: *_address => *_addr
+> Since its used of iif/oiftype I think interface_type is good choice.
 
-We already have 'ip saddr/daddr' etc in nft rules,
-so I'd prefer to use _addr everywhere.
+Agreed, will change.
 
-> - arphrd => iftype/interface_type?
-
-I read that as "arphdr"...
-
-Since its used of iif/oiftype I think interface_type is good choice.
-
-> If we're deciding for more verbose names (which IMO is fine for types),
-> I'd also change:
+> > If we're deciding for more verbose names (which IMO is fine for types),
+> > I'd also change:
+> > 
+> > - arp_op => arp_operation
+> > - ifindex => interface_index
+> > - nfproto => nf_protocol
 > 
-> - arp_op => arp_operation
-> - ifindex => interface_index
-> - nfproto => nf_protocol
+> I agree iff we go for eg. _address instead of _addr.
+> I would prefer _addr, i.e.
 
-I agree iff we go for eg. _address instead of _addr.
-I would prefer _addr, i.e.
+Yep.
 
-> otherwise:
+> > otherwise:
+> > 
+> > - inet_protocol => inet_proto
 > 
-> - inet_protocol => inet_proto
+> inet_proto, too.
+> Looking at scanner.l we also have l3proto, l4proto, nfproto keywords.
 
-inet_proto, too.
-Looking at scanner.l we also have l3proto, l4proto, nfproto keywords.
+I'll also change those.
 
-[ I realize that there is not requirement to be consistent with
-datatype names vs. nft rules but I see no reason to differ ]
+> [ I realize that there is not requirement to be consistent with
+> datatype names vs. nft rules but I see no reason to differ ]
 
-> Basically the should be human readable, not programmer readable, should
-> describe what they actually are (not arphrd) and should be consistent.
+Yeah, sticking to internal data type names is a bad habit from a usability
+perspective IMO. iiftype / arphrd is the best example for this.
 
-Fully agree, more consistency would be good.
+> > Basically the should be human readable, not programmer readable, should
+> > describe what they actually are (not arphrd) and should be consistent.
+> 
+> Fully agree, more consistency would be good.
+
+Thanks for the feedback, I'll post a patch soon.
