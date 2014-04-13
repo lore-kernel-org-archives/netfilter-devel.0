@@ -1,109 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables data type names
-Date: Sun, 13 Apr 2014 16:21:02 +0200
-Message-ID: <20140413142102.GA3375@macbook.localnet>
-References: <20140412102901.GA8090@macbook.localnet>
- <20140412105646.GJ31953@breakpoint.cc>
- <20140412110352.GA15624@macbook.localnet>
- <20140413105751.GA1188@macbook.localnet>
- <20140413123728.GA26141@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH] tests: Fix a memory leak
+Date: Sun, 13 Apr 2014 20:08:34 +0200
+Message-ID: <77e2db7e796774f9155dcc91531dc8a13bea1a94.1397411811.git.anarey@gmail.com>
+References: <3a6157fa2be7124bafa2b681acb65eea9be432d2.1397411873.git.anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52301 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbaDMOVH (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:56700 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754785AbaDMSIv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2014 10:21:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20140413123728.GA26141@localhost>
+	Sun, 13 Apr 2014 14:08:51 -0400
+Received: by mail-wi0-f181.google.com with SMTP id hm4so3087649wib.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Apr 2014 11:08:50 -0700 (PDT)
+In-Reply-To: <3a6157fa2be7124bafa2b681acb65eea9be432d2.1397411873.git.anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Apr 13, 2014 at 02:37:28PM +0200, Pablo Neira Ayuso wrote:
-> On Sun, Apr 13, 2014 at 12:57:53PM +0200, Patrick McHardy wrote:
-> > 
-> > What I've got now is:
-> > 
-> > Address types:
-> > 
-> >  ll_addr
-> >  ipv4_addr
-> >  ipv6_addr
-> >  ether_addr
-> > 
-> > Protocol types:
-> > 
-> >  nf_proto
-> >  inet_proto
-> > 
-> > (l3proto and l4proto don't exist as types)
-> > 
-> > Conntrack types:
-> > 
-> >  ct_state
-> >  ct_dir
-> >  ct_status
-> >  ct_label
-> > 
-> > Packet type related types:
-> > 
-> >  mh_type
-> >  iface_type
-> >  icmp_type
-> >  dccp_pkttype
-> >  icmpv6_type
-> >  ether_type
-> > 
-> > Interface related types:
-> > 
-> >  ifindex
-> >  iface_type
-> > 
-> > Arp types:
-> > 
-> >  arp_op
-> > 
-> > Other types:
-> > 
-> >  mark
-> >  time
-> >  realm
-> >  uid
-> >  gid
-> > 
-> > And a few base types that are fine as they are.
-> > 
-> > The things I'm not sure about are:
-> > 
-> >  ifindex: this is a well established term I think, however it would be more
-> >           consistent to use iface_index
-> 
-> We can have an alias for this perhaps so both work?
+Free nft_parse_err struct when there is an error in execute_test function.
 
-Sure. We have to decide for one for output however. I'd prefer to use iface_
-for consistency.
+It solves the following memory leak shown by valgrind.
 
-> >  mark/realm: pkt_mark and pkt_realm/route_realm perhaps. Not sure
-> 
-> if we would ever have ct_mark, then the initial pkt_ prefix is good to
-> have.
+==7845== 24 bytes in 1 blocks are still reachable in loss record 1 of 2
+==7845==    at 0x4C29590: calloc (vg_replace_malloc.c:618)
+==7845==    by 0x401740: execute_test_file (nft-parsing-test.c:249)
+==7845==    by 0x400EBB: main (nft-parsing-test.c:330)
 
-Well, its the data type, so ct_mark is unlikely to exist since the ct marks
-are effectively packet marks. This is also the reason why I chose "mark"
-without a prefix in the first place, but I now think using pkt_mark for
-both is more precise about what the meaning of these values is.
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ tests/nft-parsing-test.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> >  uid/gid: sk_uid/sk_gid?
-> 
-> I like the sk_ prefix also clearly specifies to users that this is
-> related to the socket information.
+diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
+index 952ffbf..2a15109 100644
+--- a/tests/nft-parsing-test.c
++++ b/tests/nft-parsing-test.c
+@@ -263,6 +263,7 @@ static int execute_test_file(const char *filename)
+ 				printf("\033[32mOK\e[0m\n");
+ 			}
+ 		}
++		nft_parse_err_free(err);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (strcmp(&filename[len-5], ".json") == 0) {
+@@ -273,6 +274,7 @@ static int execute_test_file(const char *filename)
+ 				printf("\033[32mOK\e[0m\n");
+ 			}
+ 		}
++		nft_parse_err_free(err);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+-- 
+1.9.0
 
-Ok, will change.
-
-> So following prefix_keytype looks good to me. The prefix just denotes
-> the scope for which the keytype applies.
-
-Yep.
