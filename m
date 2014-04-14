@@ -1,7 +1,7 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 5/8] netlink: add netlink_delinearize_table() func
-Date: Mon, 14 Apr 2014 12:17:30 +0200
-Message-ID: <20140414101730.5018.95044.stgit@nfdev.cica.es>
+Subject: [nft PATCH 6/8] netlink: refactorize set_elem conversion from netlink
+Date: Mon, 14 Apr 2014 12:17:35 +0200
+Message-ID: <20140414101735.5018.72797.stgit@nfdev.cica.es>
 References: <20140414101634.5018.86819.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,51 +9,50 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:42777 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:42784 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752045AbaDNKRc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 06:17:32 -0400
+	id S1752045AbaDNKRh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2014 06:17:37 -0400
 In-Reply-To: <20140414101634.5018.86819.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This code is suitable to be reusable.
+Lets refactorize set_elem handling.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/netlink.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ src/netlink.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/src/netlink.c b/src/netlink.c
-index 91f1304..f0ea6ca 100644
+index f0ea6ca..84f2b7e 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
-@@ -656,9 +656,9 @@ void netlink_dump_table(struct nft_table *nlt)
- #endif
+@@ -953,11 +953,10 @@ int netlink_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 	return err;
  }
  
--static int list_table_cb(struct nft_table *nlt, void *arg)
-+static struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
-+					       struct nft_table *nlt)
+-static int list_setelem_cb(struct nft_set_elem *nlse, void *arg)
++static int netlink_delinearize_setelem(struct nft_set_elem *nlse,
++				       struct set *set)
  {
+ 	struct nft_data_delinearize nld;
 -	struct netlink_ctx *ctx = arg;
- 	struct table *table;
+-	struct set *set = ctx->set;
+ 	struct expr *expr, *data;
+ 	uint32_t flags = 0;
  
- 	netlink_dump_table(nlt);
-@@ -669,6 +669,15 @@ static int list_table_cb(struct nft_table *nlt, void *arg)
- 		xstrdup(nft_table_attr_get_str(nlt, NFT_TABLE_ATTR_NAME));
- 	list_add_tail(&table->list, &ctx->list);
- 
-+	return table;
-+}
-+
-+static int list_table_cb(struct nft_table *nlt, void *arg)
-+{
-+	struct netlink_ctx *ctx = arg;
-+
-+	netlink_delinearize_table(ctx, nlt);
-+
+@@ -1001,6 +1000,12 @@ out:
  	return 0;
  }
  
++static int list_setelem_cb(struct nft_set_elem *nlse, void *arg)
++{
++	struct netlink_ctx *ctx = arg;
++	return netlink_delinearize_setelem(nlse, ctx->set);
++}
++
+ extern void interval_map_decompose(struct expr *set);
+ 
+ int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
 
