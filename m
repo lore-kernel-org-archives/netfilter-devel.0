@@ -1,50 +1,55 @@
 From: mathieu.poirier@linaro.org
-Subject: [PATCH 1/2] Extend accounting capabilities to support quotas
-Date: Sun, 13 Apr 2014 18:54:36 -0600
-Message-ID: <1397436877-32458-1-git-send-email-mathieu.poirier@linaro.org>
+Subject: [PATCH 2/2] nfacct: adding quota capabilities
+Date: Sun, 13 Apr 2014 18:54:37 -0600
+Message-ID: <1397436877-32458-2-git-send-email-mathieu.poirier@linaro.org>
+References: <1397436877-32458-1-git-send-email-mathieu.poirier@linaro.org>
 Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
 	mathieu.poirier@linaro.org, john.stultz@linaro.org
 To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:42363 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbaDNAzH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Apr 2014 20:55:07 -0400
-Received: by mail-pd0-f169.google.com with SMTP id fp1so7484441pdb.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Apr 2014 17:55:06 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <1397436877-32458-1-git-send-email-mathieu.poirier@linaro.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Mathieu Poirier <mathieu.poirier@linaro.org>
 
-The accounting framework already supports accounting at the
-quota and byte level.  As such it is a natural extention to
-add a ceiling limit to those metrics.
+The accounting framework now supports quota at the packet and byte
+level.  The tool is simply enhanced with two optional arguments to
+specify the whether accounting for byte of packet and the limit
+associated with each.  Also adding a monitor mode that listens for
+quota attainment notification.
+
+Examples:
+
+/* create an accounting object that isn't associated to a quota */
+$ nfacct add first_no_quota
+
+/* create a quota object with byte count limited to 50 byte */
+$ nfacct add second_quota byte 50
+
+/* create a quota object with packet count limited to 5 */
+$ nfacct add third_quota packet 5
+
+>From there the accounting objects can be used in iptables the same
+way as they did before:
+
+/* limit the number of icmp packets allowed through the OUTPUT chain */
+$ iptables -I OUTPUT -p icmp -m nfacct --nfacct-name third_quota --jump REJECT
+
+/* listening for quota attainment notification */
+$ nfacct listen
+
+Everything else works the same way.
 
 Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 ---
- include/libnetfilter_acct/libnetfilter_acct.h |  2 +
- include/linux/netfilter/nfnetlink.h           |  4 ++
- include/linux/netfilter/nfnetlink_acct.h      |  9 ++++
- src/libnetfilter_acct.c                       | 67 +++++++++++++++++++++++++--
- 4 files changed, 78 insertions(+), 4 deletions(-)
+ include/linux/netfilter/nfnetlink.h      |   4 +
+ include/linux/netfilter/nfnetlink_acct.h |   9 ++
+ src/nfacct.c                             | 140 +++++++++++++++++++++++++++----
+ 3 files changed, 137 insertions(+), 16 deletions(-)
 
-diff --git a/include/libnetfilter_acct/libnetfilter_acct.h b/include/libnetfilter_acct/libnetfilter_acct.h
-index b00e366..c6ed858 100644
---- a/include/libnetfilter_acct/libnetfilter_acct.h
-+++ b/include/libnetfilter_acct/libnetfilter_acct.h
-@@ -14,6 +14,8 @@ enum nfacct_attr_type {
- 	NFACCT_ATTR_NAME = 0,
- 	NFACCT_ATTR_PKTS,
- 	NFACCT_ATTR_BYTES,
-+	NFACCT_ATTR_FLAGS,
-+	NFACCT_ATTR_QUOTA,
- };
- 
- struct nfacct *nfacct_alloc(void);
 diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 4a4efaf..d3e0ea8 100644
+index b64454c..ea27bb6 100644
 --- a/include/linux/netfilter/nfnetlink.h
 +++ b/include/linux/netfilter/nfnetlink.h
 @@ -18,6 +18,10 @@ enum nfnetlink_groups {
@@ -59,7 +64,7 @@ index 4a4efaf..d3e0ea8 100644
  };
  #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
 diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
-index c7b6269..6b8c935 100644
+index 7c4279b..44dcd17 100644
 --- a/include/linux/netfilter/nfnetlink_acct.h
 +++ b/include/linux/netfilter/nfnetlink_acct.h
 @@ -10,15 +10,24 @@ enum nfnl_acct_msg_types {
@@ -87,129 +92,240 @@ index c7b6269..6b8c935 100644
  	__NFACCT_MAX
  };
  #define NFACCT_MAX (__NFACCT_MAX - 1)
-diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-index 77f58ce..0c1a758 100644
---- a/src/libnetfilter_acct.c
-+++ b/src/libnetfilter_acct.c
-@@ -61,6 +61,8 @@ struct nfacct {
- 	uint64_t	pkts;
- 	uint64_t	bytes;
- 	uint32_t	bitset;
-+	uint32_t	flags;
-+	uint64_t	quota;
+diff --git a/src/nfacct.c b/src/nfacct.c
+index 2ef93c3..139aced 100644
+--- a/src/nfacct.c
++++ b/src/nfacct.c
+@@ -22,6 +22,8 @@
+ 
+ #include <libmnl/libmnl.h>
+ #include <libnetfilter_acct/libnetfilter_acct.h>
++#include <linux/netfilter/nfnetlink_acct.h>
++#include <linux/netfilter/nfnetlink.h>
+ 
+ enum {
+ 	NFACCT_CMD_NONE = 0,
+@@ -33,6 +35,7 @@ enum {
+ 	NFACCT_CMD_VERSION,
+ 	NFACCT_CMD_HELP,
+ 	NFACCT_CMD_RESTORE,
++	NFACCT_CMD_LISTEN,
  };
  
- /**
-@@ -114,6 +116,14 @@ nfacct_attr_set(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		nfacct->bytes = *((uint64_t *) data);
- 		nfacct->bitset |= (1 << NFACCT_ATTR_BYTES);
- 		break;
-+	case NFACCT_ATTR_FLAGS:
-+		nfacct->flags = *((uint32_t *) data);
-+		nfacct->bitset |= (1 << NFACCT_ATTR_FLAGS);
-+		break;
-+	case NFACCT_ATTR_QUOTA:
-+		nfacct->quota = *((uint64_t *) data);
-+		nfacct->bitset |= (1 << NFACCT_ATTR_QUOTA);
-+		break;
- 	}
- }
- EXPORT_SYMBOL(nfacct_attr_set);
-@@ -164,6 +174,12 @@ nfacct_attr_unset(struct nfacct *nfacct, enum nfacct_attr_type type)
- 	case NFACCT_ATTR_BYTES:
- 		nfacct->bitset &= ~(1 << NFACCT_ATTR_BYTES);
- 		break;
-+	case NFACCT_ATTR_FLAGS:
-+		nfacct->bitset &= ~(1 << NFACCT_ATTR_FLAGS);
-+		break;
-+	case NFACCT_ATTR_QUOTA:
-+		nfacct->bitset &= ~(1 << NFACCT_ATTR_QUOTA);
-+		break;
- 	}
- }
- EXPORT_SYMBOL(nfacct_attr_unset);
-@@ -193,6 +209,14 @@ const void *nfacct_attr_get(struct nfacct *nfacct, enum nfacct_attr_type type)
- 		if (nfacct->bitset & (1 << NFACCT_ATTR_BYTES))
- 			ret = &nfacct->bytes;
- 		break;
-+	case NFACCT_ATTR_FLAGS:
-+		if (nfacct->bitset & (1 << NFACCT_ATTR_FLAGS))
-+			ret = &nfacct->flags;
-+		break;
-+	case NFACCT_ATTR_QUOTA:
-+		if (nfacct->bitset & (1 << NFACCT_ATTR_QUOTA))
-+			ret = &nfacct->quota;
-+		break;
- 	}
- 	return ret;
- }
-@@ -232,13 +256,35 @@ static int
- nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
- 		      uint16_t flags)
- {
--	int ret;
-+	int ret, temp;
-+	char *walking_buf;
-+
-+	temp = rem;
-+	walking_buf = buf;
+ static int nfacct_cmd_list(int argc, char *argv[]);
+@@ -43,6 +46,7 @@ static int nfacct_cmd_flush(int argc, char *argv[]);
+ static int nfacct_cmd_version(int argc, char *argv[]);
+ static int nfacct_cmd_help(int argc, char *argv[]);
+ static int nfacct_cmd_restore(int argc, char *argv[]);
++static int nfacct_cmd_listen(int argc, char *argv[]);
  
- 	if (flags & NFACCT_SNPRINTF_F_FULL) {
--		ret = snprintf(buf, rem,
--			"{ pkts = %.20"PRIu64", bytes = %.20"PRIu64" } = %s;",
-+		ret = snprintf(walking_buf, temp,
-+			"{ pkts = %.20"PRIu64", bytes = %.20"PRIu64"",
- 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
--			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES));
+ static void usage(char *argv[])
+ {
+@@ -84,6 +88,8 @@ int main(int argc, char *argv[])
+ 		cmd = NFACCT_CMD_HELP;
+ 	else if (strncmp(argv[1], "restore", strlen(argv[1])) == 0)
+ 		cmd = NFACCT_CMD_RESTORE;
++	else if (strncmp(argv[1], "listen", strlen(argv[1])) == 0)
++		cmd = NFACCT_CMD_LISTEN;
+ 	else {
+ 		fprintf(stderr, "nfacct v%s: Unknown command: %s\n",
+ 			VERSION, argv[1]);
+@@ -116,6 +122,9 @@ int main(int argc, char *argv[])
+ 	case NFACCT_CMD_RESTORE:
+ 		ret = nfacct_cmd_restore(argc, argv);
+ 		break;
++	case NFACCT_CMD_LISTEN:
++		ret = nfacct_cmd_listen(argc, argv);
++		break;
+ 	}
+ 	return ret < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
+ }
+@@ -219,7 +228,8 @@ static int nfacct_cmd_list(int argc, char *argv[])
+ 	return 0;
+ }
+ 
+-static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
++static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes,
++			  uint32_t flags, uint64_t quota)
+ {
+ 	struct mnl_socket *nl;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+@@ -238,6 +248,10 @@ static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
+ 
+ 	nfacct_attr_set_u64(nfacct, NFACCT_ATTR_PKTS, pkts);
+ 	nfacct_attr_set_u64(nfacct, NFACCT_ATTR_BYTES, bytes);
++	if (flags) {
++		nfacct_attr_set(nfacct, NFACCT_ATTR_FLAGS, &flags);
++		nfacct_attr_set_u64(nfacct, NFACCT_ATTR_QUOTA, quota);
++	}
+ 
+ 	seq = time(NULL);
+ 	nlh = nfacct_nlmsg_build_hdr(buf, NFNL_MSG_ACCT_NEW,
+@@ -279,19 +293,47 @@ static int _nfacct_cmd_add(char *name, uint64_t pkts, uint64_t bytes)
+ 	return 0;
+ }
+ 
+-
+-
+ static int nfacct_cmd_add(int argc, char *argv[])
+ {
++	int mode, ret;
++	uint64_t quota;
 +
-+		if (nfacct->flags) {
-+			uint32_t mode;
+ 	if (argc < 3) {
+ 		nfacct_perror("missing object name");
+ 		return -1;
+-	} else if (argc > 3) {
++	}
 +
-+			mode = nfacct_attr_get_u64(nfacct, NFACCT_ATTR_FLAGS);
++	if (argc == 3)
++		return _nfacct_cmd_add(argv[2], 0, 0, 0, 0);
 +
-+			walking_buf += ret;
-+			temp -= ret;
-+			ret = snprintf(walking_buf, temp,
-+				", quota = %.20"PRIu64", mode = %s",
-+				nfacct_attr_get_u64(nfacct, NFACCT_ATTR_QUOTA),
-+				mode == NFACCT_F_QUOTA_BYTES ?
-+				"byte" : "packet");
++	if (argc == 4) {
++		nfacct_perror("missing quota value");
++		return -1;
++	}
++
++	if (argc == 5) {
++		if (strcmp(argv[3], "byte") && strcmp(argv[3], "packet")) {
++			nfacct_perror("argument must "
++				      "\"byte\" or \"packet\"");
++			return -1;
++		}
++	}
++
++	if (argc > 5) {
+ 		nfacct_perror("too many arguments");
+ 		return -1;
+ 	}
+ 
+-	return _nfacct_cmd_add(argv[2], 0, 0);
++	mode = (strcmp(argv[3], "byte") == 0 ?
++		NFACCT_F_QUOTA_BYTES : NFACCT_F_QUOTA_PKTS);
++
++	ret = sscanf(argv[4], "%"PRIu64"", &quota);
++	if (ret != 1) {
++		nfacct_perror("error reading quota");
++		return -1;
++	}
++
++	return _nfacct_cmd_add(argv[2], 0, 0, mode, quota);
+ }
+ 
+ static int nfacct_cmd_delete(int argc, char *argv[])
+@@ -515,6 +557,7 @@ static const char help_msg[] =
+ 	"  get object-name\tGet existing accounting object\n"
+ 	"  flush\t\t\tFlush accounting object table\n"
+ 	"  restore\t\tRestore accounting object table reading 'list' output from stdin\n"
++	"  listen\t\tListens for quota attainment notifications\n"
+ 	"  version\t\tDisplay version and disclaimer\n"
+ 	"  help\t\t\tDisplay this help message\n";
+ 
+@@ -526,28 +569,93 @@ static int nfacct_cmd_help(int argc, char *argv[])
+ 
+ static int nfacct_cmd_restore(int argc, char *argv[])
+ {
+-	uint64_t pkts, bytes;
+-	char name[512];
+-	char buffer[512];
+-	int ret;
++	uint64_t pkts, bytes, quota;
++	char name[512], mode[512], buffer[512];
++	int ret, flags;
+ 
+ 	while (fgets(buffer, sizeof(buffer), stdin)) {
+ 		char *semicolon = strchr(buffer, ';');
++
+ 		if (semicolon == NULL) {
+ 			nfacct_perror("invalid line");
+ 			return -1;
+ 		}
++
++		/* a single ';' terminates the input */
++		if (strncmp(buffer, ";", 1) == 0)
++			break;
++
+ 		*semicolon = 0;
+-		ret = sscanf(buffer,
+-			     "{ pkts = %"PRIu64", bytes = %"PRIu64" } = %s",
+-		       &pkts, &bytes, name);
+-		if (ret != 3) {
+-			nfacct_perror("error reading input");
+-			return -1;
++		ret = flags = 0;
++		quota = 0;
++
++		if (!strstr(buffer, "quota")) {
++			ret = sscanf(buffer,
++				     "{ pkts = %"PRIu64", "
++				     "bytes = %"PRIu64" } = %s",
++				     &pkts, &bytes, name);
++
++			if (ret != 3) {
++				nfacct_perror("error reading input");
++				return -1;
++			}
++		} else {
++			ret = sscanf(buffer, "{ pkts = %"PRIu64", "
++				     "bytes = %"PRIu64", quota = %"PRIu64", "
++				     "mode = %s } = %s",
++				     &pkts, &bytes, &quota, mode, name);
++
++			if (ret != 5) {
++				nfacct_perror("error reading input");
++				return -1;
++			}
++
++			flags = (strcmp(mode, "byte") == 0 ?
++				 NFACCT_F_QUOTA_BYTES : NFACCT_F_QUOTA_PKTS);
+ 		}
+-		if ((ret = _nfacct_cmd_add(name, pkts, bytes)) != 0)
++
++		ret = _nfacct_cmd_add(name, pkts, bytes, flags, quota);
++		if (ret != 0)
+ 			return ret;
++	}
++	return 0;
++}
++
++static int nfacct_cmd_listen(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	bool xml = false;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	int ret, stop = 0, option = NFNLGRP_ACCT_QUOTA;
+ 
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		nfacct_perror("mnl_socket_open");
++		return -1;
+ 	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		nfacct_perror("mnl_socket_bind");
++		return -1;
++	}
++
++	mnl_socket_setsockopt(nl, NETLINK_ADD_MEMBERSHIP,
++			      &option, sizeof(int));
++
++	while (!stop) {
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++		if (ret == -1) {
++			fprintf(stderr, "Problems receiving nfaccounting "
++					"notification - bailing out\n");
++			stop = 1;
 +		}
 +
-+		walking_buf += ret;
-+		temp -= ret;
-+		ret = snprintf(walking_buf, temp, " } = %s;",
- 			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
- 	} else {
- 		ret = snprintf(buf, rem, "%s\n",
-@@ -424,6 +470,12 @@ void nfacct_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfacct *nfacct)
- 
- 	if (nfacct->bitset & (1 << NFACCT_ATTR_BYTES))
- 		mnl_attr_put_u64(nlh, NFACCT_BYTES, htobe64(nfacct->bytes));
-+
-+	if (nfacct->bitset & (1 << NFACCT_ATTR_FLAGS))
-+		mnl_attr_put_u32(nlh, NFACCT_FLAGS, htobe32(nfacct->flags));
-+
-+	if (nfacct->bitset & (1 << NFACCT_ATTR_QUOTA))
-+		mnl_attr_put_u64(nlh, NFACCT_QUOTA, htobe64(nfacct->quota));
- }
- EXPORT_SYMBOL(nfacct_nlmsg_build_payload);
- 
-@@ -479,6 +531,13 @@ nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct)
- 	nfacct_attr_set_u64(nfacct, NFACCT_ATTR_BYTES,
- 			    be64toh(mnl_attr_get_u64(tb[NFACCT_BYTES])));
- 
-+	if (tb[NFACCT_FLAGS] && tb[NFACCT_QUOTA]) {
-+		uint32_t flags = be32toh(mnl_attr_get_u32(tb[NFACCT_FLAGS]));
-+		nfacct_attr_set(nfacct, NFACCT_ATTR_FLAGS, &flags);
-+		nfacct_attr_set_u64(nfacct, NFACCT_ATTR_QUOTA,
-+			    be64toh(mnl_attr_get_u64(tb[NFACCT_QUOTA])));
++		ret = mnl_cb_run(buf, ret, 0, 0, nfacct_cb, &xml);
++		if (ret <= 0)
++			stop = 1;
 +	}
++
++	mnl_socket_close(nl);
 +
  	return 0;
  }
- EXPORT_SYMBOL(nfacct_nlmsg_parse_payload);
 -- 
 1.8.3.2
 
