@@ -1,445 +1,832 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/5] nft: xtables-restore: add generic parsing infrastructure
-Date: Mon, 14 Apr 2014 12:41:03 +0200
-Message-ID: <1397472066-13011-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/5] nft: xtables: add generic parsing infrastructure to interpret commands
+Date: Mon, 14 Apr 2014 12:41:02 +0200
+Message-ID: <1397472066-13011-2-git-send-email-pablo@netfilter.org>
 References: <1397472066-13011-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45234 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45226 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459AbaDNKlR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 06:41:17 -0400
+	id S1753004AbaDNKlQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2014 06:41:16 -0400
 In-Reply-To: <1397472066-13011-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows us to reuse the xtables-restore parser code in the
-translation infrastructure.
+Split the code to parse arguments and to issue command so we reuse this
+for the iptables to nft translation infrastructure.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft-shared.h      |   35 ++++++
- iptables/xtables-restore.c |  271 ++++++++++++++++++++++++++------------------
- 2 files changed, 195 insertions(+), 111 deletions(-)
+ iptables/nft-shared.h |   15 ++
+ iptables/xtables.c    |  445 ++++++++++++++++++++++++++-----------------------
+ 2 files changed, 249 insertions(+), 211 deletions(-)
 
 diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index d4bc31e..584cd5f 100644
+index 145f19d..d4bc31e 100644
 --- a/iptables/nft-shared.h
 +++ b/iptables/nft-shared.h
-@@ -190,6 +190,41 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
- 	      struct nft_xt_cmd_parse *p, struct iptables_command_state *cs,
- 	      struct xtables_args *args);
+@@ -175,6 +175,21 @@ struct xtables_args {
+ #define CMD_ZERO_NUM		0x2000U
+ #define CMD_CHECK		0x4000U
  
-+struct nft_xt_restore_parse {
-+	FILE		*in;
-+	int		testing;
-+	const char	*tablename;
++struct nft_xt_cmd_parse {
++	unsigned int			command;
++	unsigned int			rulenum;
++	char				*table;
++	char				*chain;
++	char				*newname;
++	char				*policy;
++	bool				restore;
++	int				verbose;
 +};
 +
-+struct nft_chain_list;
-+
-+struct nft_xt_restore_cb {
-+	void (*table_new)(struct nft_handle *h, const char *table);
-+	struct nft_chain_list *(*chain_list)(struct nft_handle *h);
-+	int (*chains_purge)(struct nft_handle *h, const char *table,
-+			    struct nft_chain_list *clist);
-+	void (*chain_del)(struct nft_chain_list *clist, const char *curtable,
-+			  const char *chain);
-+	int (*chain_set)(struct nft_handle *h, const char *table,
-+			 const char *chain, const char *policy,
-+			 const struct xt_counters *counters);
-+	int (*chain_user_add)(struct nft_handle *h, const char *chain,
-+			      const char *table);
-+
-+	int (*rule_flush)(struct nft_handle *h, const char *chain, const char *table);
-+
-+	int (*do_command)(struct nft_handle *h, int argc, char *argv[],
-+			  char **table, bool restore);
-+
-+	int (*commit)(struct nft_handle *h);
-+	int (*abort)(struct nft_handle *h);
-+};
-+
-+void xtables_restore_parse(struct nft_handle *h,
-+			   struct nft_xt_restore_parse *p,
-+			   struct nft_xt_restore_cb *cb,
-+			   int argc, char *argv[]);
++void do_parse(struct nft_handle *h, int argc, char *argv[],
++	      struct nft_xt_cmd_parse *p, struct iptables_command_state *cs,
++	      struct xtables_args *args);
 +
  /*
   * ARP
   */
-diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-index 3cb095f..f5e4553 100644
---- a/iptables/xtables-restore.c
-+++ b/iptables/xtables-restore.c
-@@ -159,107 +159,62 @@ static void add_param_to_argv(char *parsestart)
- 	}
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 45a5ac6..8aa58af 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -678,25 +678,17 @@ static void command_match(struct iptables_command_state *cs)
+ 		xtables_error(OTHER_PROBLEM, "can't alloc memory!");
  }
  
-+static struct nft_chain_list *get_chain_list(struct nft_handle *h)
-+{
-+	struct nft_chain_list *chain_list;
-+
-+	chain_list = nft_chain_dump(h);
-+	if (chain_list == NULL)
-+		xtables_error(OTHER_PROBLEM, "cannot retrieve chain list\n");
-+
-+	return chain_list;
-+}
-+
-+static void chain_delete(struct nft_chain_list *clist, const char *curtable,
-+			 const char *chain)
-+{
-+	struct nft_chain *chain_obj;
-+
-+	chain_obj = nft_chain_list_find(clist, curtable, chain);
-+	/* This chain has been found, delete from list. Later
-+	 * on, unvisited chains will be purged out.
-+	 */
-+	if (chain_obj != NULL)
-+		nft_chain_list_del(chain_obj);
-+}
-+
-+struct nft_xt_restore_cb restore_cb = {
-+	.chain_list	= get_chain_list,
-+	.commit		= nft_commit,
-+	.abort		= nft_abort,
-+	.chains_purge	= nft_table_purge_chains,
-+	.rule_flush	= nft_rule_flush,
-+	.chain_del	= chain_delete,
-+	.do_command	= do_commandx,
-+	.chain_set	= nft_chain_set,
-+	.chain_user_add	= nft_chain_user_add,
-+};
-+
- static const struct xtc_ops xtc_ops = {
- 	.strerror	= nft_strerror,
- };
- 
--static int
--xtables_restore_main(int family, const char *progname, int argc, char *argv[])
-+void xtables_restore_parse(struct nft_handle *h,
-+			   struct nft_xt_restore_parse *p,
-+			   struct nft_xt_restore_cb *cb,
-+			   int argc, char *argv[])
+-int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+-		bool restore)
++void do_parse(struct nft_handle *h, int argc, char *argv[],
++	      struct nft_xt_cmd_parse *p, struct iptables_command_state *cs,
++	      struct xtables_args *args)
  {
--	struct nft_handle h = {
--		.family = family,
--		.restore = true,
+-	struct iptables_command_state cs;
+-	int verbose = 0;
+-	const char *chain = NULL;
+-	const char *policy = NULL, *newname = NULL;
+-	unsigned int rulenum = 0, command = 0;
+-	int ret = 1;
+ 	struct xtables_match *m;
+ 	struct xtables_rule_match *matchp;
+ 	struct xtables_target *t;
+-	struct xtables_args args = {
+-		.family	= h->family,
 -	};
- 	char buffer[10240];
--	int c;
-+	int in_table = 0;
- 	char curtable[XT_TABLE_MAXNAMELEN + 1];
--	FILE *in;
--	int in_table = 0, testing = 0;
--	const char *tablename = NULL;
- 	const struct xtc_ops *ops = &xtc_ops;
--	struct nft_chain_list *chain_list;
--	struct nft_chain *chain_obj;
--
--	line = 0;
--
--	xtables_globals.program_name = progname;
--	c = xtables_init_all(&xtables_globals, family);
--	if (c < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version);
--		exit(1);
--	}
--#if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
--	init_extensions();
--	init_extensions4();
--#endif
--
--	if (nft_init(&h, xtables_ipv4) < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version,
--				strerror(errno));
--		exit(EXIT_FAILURE);
--	}
-+	struct nft_chain_list *chain_list = NULL;
  
--	while ((c = getopt_long(argc, argv, "bcvthnM:T:46", options, NULL)) != -1) {
--		switch (c) {
--			case 'b':
--				fprintf(stderr, "-b/--binary option is not implemented\n");
--				break;
--			case 'c':
--				counters = 1;
--				break;
--			case 'v':
--				verbose = 1;
--				break;
--			case 't':
--				testing = 1;
--				break;
--			case 'h':
--				print_usage("xtables-restore",
--					    IPTABLES_VERSION);
--				break;
--			case 'n':
--				noflush = 1;
--				break;
--			case 'M':
--				xtables_modprobe_program = optarg;
--				break;
--			case 'T':
--				tablename = optarg;
--				break;
--			case '4':
--				h.family = AF_INET;
--				break;
--			case '6':
--				h.family = AF_INET6;
--				xtables_set_nfproto(AF_INET6);
--				break;
--		}
--	}
--
--	if (optind == argc - 1) {
--		in = fopen(argv[optind], "re");
--		if (!in) {
--			fprintf(stderr, "Can't open %s: %s\n", argv[optind],
--				strerror(errno));
--			exit(1);
--		}
--	}
--	else if (optind < argc) {
--		fprintf(stderr, "Unknown arguments found on commandline\n");
--		exit(1);
--	}
--	else in = stdin;
--
--	chain_list = nft_chain_dump(&h);
--	if (chain_list == NULL)
--		xtables_error(OTHER_PROBLEM, "cannot retrieve chain list\n");
-+	if (cb->chain_list)
-+		chain_list = cb->chain_list(h);
+-	memset(&cs, 0, sizeof(cs));
+-	cs.jumpto = "";
+-	cs.argv = argv;
++	memset(cs, 0, sizeof(*cs));
++	cs->jumpto = "";
++	cs->argv = argv;
  
- 	/* Grab standard input. */
--	while (fgets(buffer, sizeof(buffer), in)) {
-+	while (fgets(buffer, sizeof(buffer), p->in)) {
- 		int ret = 0;
+ 	/* re-set optind to 0 in case do_command4 gets called
+ 	 * a second time */
+@@ -721,43 +713,43 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		xtables_error(PARAMETER_PROBLEM, "Unknown family");
  
- 		line++;
-@@ -270,22 +225,24 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				fputs(buffer, stdout);
- 			continue;
- 		} else if ((strcmp(buffer, "COMMIT\n") == 0) && (in_table)) {
--			if (!testing) {
-+			if (!p->testing) {
- 				/* Commit per table, although we support
- 				 * global commit at once, stick by now to
- 				 * the existing behaviour.
- 				 */
- 				DEBUGP("Calling commit\n");
--				ret = nft_commit(&h);
-+				if (cb->commit)
-+					ret = cb->commit(h);
- 			} else {
- 				DEBUGP("Not calling commit, testing\n");
--				ret = nft_abort(&h);
-+				if (cb->abort)
-+					ret = cb->abort(h);
+ 	opts = xt_params->orig_opts;
+-	while ((cs.c = getopt_long(argc, argv,
++	while ((cs->c = getopt_long(argc, argv,
+ 	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:46",
+ 					   opts, NULL)) != -1) {
+-		switch (cs.c) {
++		switch (cs->c) {
+ 			/*
+ 			 * Command selection
+ 			 */
+ 		case 'A':
+-			add_command(&command, CMD_APPEND, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_APPEND, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			break;
+ 
+ 		case 'C':
+-			add_command(&command, CMD_CHECK, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_CHECK, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			break;
+ 
+ 		case 'D':
+-			add_command(&command, CMD_DELETE, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_DELETE, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!') {
+-				rulenum = parse_rulenumber(argv[optind++]);
+-				command = CMD_DELETE_NUM;
++				p->rulenum = parse_rulenumber(argv[optind++]);
++				p->command = CMD_DELETE_NUM;
  			}
- 			in_table = 0;
+ 			break;
  
- 			/* Purge out unused chains in this table */
--			if (!testing)
--				nft_table_purge_chains(&h, curtable, chain_list);
-+			if (!p->testing && cb->chains_purge)
-+				cb->chains_purge(h, curtable, chain_list);
- 
- 		} else if ((buffer[0] == '*') && (!in_table)) {
- 			/* New table */
-@@ -302,18 +259,22 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 			strncpy(curtable, table, XT_TABLE_MAXNAMELEN);
- 			curtable[XT_TABLE_MAXNAMELEN] = '\0';
- 
--			if (tablename && (strcmp(tablename, table) != 0))
-+			if (p->tablename && (strcmp(p->tablename, table) != 0))
- 				continue;
- 
- 			if (noflush == 0) {
- 				DEBUGP("Cleaning all chains of table '%s'\n",
- 					table);
--				nft_rule_flush(&h, NULL, table);
-+				if (cb->rule_flush)
-+					cb->rule_flush(h, NULL, table);
- 			}
- 
- 			ret = 1;
- 			in_table = 1;
- 
-+			if (cb->table_new)
-+				cb->table_new(h, table);
-+
- 		} else if ((buffer[0] == ':') && (in_table)) {
- 			/* New chain. */
- 			char *policy, *chain = NULL;
-@@ -328,13 +289,8 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				exit(1);
- 			}
- 
--			chain_obj = nft_chain_list_find(chain_list,
--							curtable, chain);
--			/* This chain has been found, delete from list. Later
--			 * on, unvisited chains will be purged out.
--			 */
--			if (chain_obj != NULL)
--				nft_chain_list_del(chain_obj);
-+			if (cb->chain_del)
-+				cb->chain_del(chain_list, curtable, chain);
- 
- 			if (strlen(chain) >= XT_EXTENSION_MAXNAMELEN)
+ 		case 'R':
+-			add_command(&command, CMD_REPLACE, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_REPLACE, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				rulenum = parse_rulenumber(argv[optind++]);
++				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			else
  				xtables_error(PARAMETER_PROBLEM,
-@@ -362,7 +318,8 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 							   "for chain '%s'\n", chain);
+ 					   "-%c requires a rule number",
+@@ -765,59 +757,64 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			break;
  
- 				}
--				if (nft_chain_set(&h, curtable, chain, policy, &count) < 0) {
-+				if (cb->chain_set &&
-+				    cb->chain_set(h, curtable, chain, policy, &count) < 0) {
- 					xtables_error(OTHER_PROBLEM,
- 						      "Can't set policy `%s'"
- 						      " on `%s' line %u: %s\n",
-@@ -374,7 +331,8 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				ret = 1;
+ 		case 'I':
+-			add_command(&command, CMD_INSERT, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_INSERT, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				rulenum = parse_rulenumber(argv[optind++]);
+-			else rulenum = 1;
++				p->rulenum = parse_rulenumber(argv[optind++]);
++			else
++				p->rulenum = 1;
+ 			break;
  
- 			} else {
--				if (nft_chain_user_add(&h, chain, curtable) < 0) {
-+				if (cb->chain_user_add &&
-+				    cb->chain_user_add(h, chain, curtable) < 0) {
- 					if (errno == EEXIST)
- 						continue;
+ 		case 'L':
+-			add_command(&command, CMD_LIST,
+-				    CMD_ZERO | CMD_ZERO_NUM, cs.invert);
+-			if (optarg) chain = optarg;
++			add_command(&p->command, CMD_LIST,
++				    CMD_ZERO | CMD_ZERO_NUM, cs->invert);
++			if (optarg)
++				p->chain = optarg;
+ 			else if (optind < argc && argv[optind][0] != '-'
+ 				 && argv[optind][0] != '!')
+-				chain = argv[optind++];
++				p->chain = argv[optind++];
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				rulenum = parse_rulenumber(argv[optind++]);
++				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
  
-@@ -441,10 +399,14 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 			for (a = 0; a < newargc; a++)
- 				DEBUGP("argv[%u]: %s\n", a, newargv[a]);
+ 		case 'S':
+-			add_command(&command, CMD_LIST_RULES,
+-				    CMD_ZERO|CMD_ZERO_NUM, cs.invert);
+-			if (optarg) chain = optarg;
++			add_command(&p->command, CMD_LIST_RULES,
++				    CMD_ZERO|CMD_ZERO_NUM, cs->invert);
++			if (optarg)
++				p->chain = optarg;
+ 			else if (optind < argc && argv[optind][0] != '-'
+ 				 && argv[optind][0] != '!')
+-				chain = argv[optind++];
++				p->chain = argv[optind++];
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				rulenum = parse_rulenumber(argv[optind++]);
++				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
  
--			ret = do_commandx(&h, newargc, newargv,
--					  &newargv[2], true);
-+			ret = cb->do_command(h, newargc, newargv,
-+					    &newargv[2], true);
- 			if (ret < 0) {
--				ret = nft_abort(&h);
-+				if (cb->abort)
-+					ret = cb->abort(h);
-+				else
-+					ret = 0;
-+
- 				if (ret < 0) {
- 					fprintf(stderr, "failed to abort "
- 							"commit operation\n");
-@@ -455,7 +417,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 			free_argv();
- 			fflush(stdout);
+ 		case 'F':
+-			add_command(&command, CMD_FLUSH, CMD_NONE,
+-				    cs.invert);
+-			if (optarg) chain = optarg;
++			add_command(&p->command, CMD_FLUSH, CMD_NONE,
++				    cs->invert);
++			if (optarg)
++				p->chain = optarg;
+ 			else if (optind < argc && argv[optind][0] != '-'
+ 				 && argv[optind][0] != '!')
+-				chain = argv[optind++];
++				p->chain = argv[optind++];
+ 			break;
+ 
+ 		case 'Z':
+-			add_command(&command, CMD_ZERO, CMD_LIST|CMD_LIST_RULES,
+-				    cs.invert);
+-			if (optarg) chain = optarg;
++			add_command(&p->command, CMD_ZERO,
++				    CMD_LIST|CMD_LIST_RULES, cs->invert);
++			if (optarg)
++				p->chain = optarg;
+ 			else if (optind < argc && argv[optind][0] != '-'
+ 				&& argv[optind][0] != '!')
+-				chain = argv[optind++];
++				p->chain = argv[optind++];
+ 			if (optind < argc && argv[optind][0] != '-'
+ 				&& argv[optind][0] != '!') {
+-				rulenum = parse_rulenumber(argv[optind++]);
+-				command = CMD_ZERO_NUM;
++				p->rulenum = parse_rulenumber(argv[optind++]);
++				p->command = CMD_ZERO_NUM;
+ 			}
+ 			break;
+ 
+@@ -830,27 +827,28 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "chain name may not clash "
+ 					   "with target name\n");
+-			add_command(&command, CMD_NEW_CHAIN, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_NEW_CHAIN, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			break;
+ 
+ 		case 'X':
+-			add_command(&command, CMD_DELETE_CHAIN, CMD_NONE,
+-				    cs.invert);
+-			if (optarg) chain = optarg;
++			add_command(&p->command, CMD_DELETE_CHAIN, CMD_NONE,
++				    cs->invert);
++			if (optarg)
++				p->chain = optarg;
+ 			else if (optind < argc && argv[optind][0] != '-'
+ 				 && argv[optind][0] != '!')
+-				chain = argv[optind++];
++				p->chain = argv[optind++];
+ 			break;
+ 
+ 		case 'E':
+-			add_command(&command, CMD_RENAME_CHAIN, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_RENAME_CHAIN, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				newname = argv[optind++];
++				p->newname = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "-%c requires old-chain-name and "
+@@ -859,12 +857,12 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			break;
+ 
+ 		case 'P':
+-			add_command(&command, CMD_SET_POLICY, CMD_NONE,
+-				    cs.invert);
+-			chain = optarg;
++			add_command(&p->command, CMD_SET_POLICY, CMD_NONE,
++				    cs->invert);
++			p->chain = optarg;
+ 			if (optind < argc && argv[optind][0] != '-'
+ 			    && argv[optind][0] != '!')
+-				policy = argv[optind++];
++				p->policy = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "-%c requires a chain and a policy",
+@@ -876,57 +874,58 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 				optarg = argv[optind];
+ 
+ 			/* iptables -p icmp -h */
+-			if (!cs.matches && cs.protocol)
+-				xtables_find_match(cs.protocol,
+-					XTF_TRY_LOAD, &cs.matches);
++			if (!cs->matches && cs->protocol)
++				xtables_find_match(cs->protocol,
++					XTF_TRY_LOAD, &cs->matches);
+ 
+-			exit_printhelp(cs.matches);
++			exit_printhelp(cs->matches);
+ 
+ 			/*
+ 			 * Option selection
+ 			 */
+ 		case 'p':
+-			set_option(&cs.options, OPT_PROTOCOL, &args.invflags,
+-				   cs.invert);
++			set_option(&cs->options, OPT_PROTOCOL,
++				   &args->invflags, cs->invert);
+ 
+ 			/* Canonicalize into lower case */
+-			for (cs.protocol = optarg; *cs.protocol; cs.protocol++)
+-				*cs.protocol = tolower(*cs.protocol);
++			for (cs->protocol = optarg; *cs->protocol; cs->protocol++)
++				*cs->protocol = tolower(*cs->protocol);
+ 
+-			cs.protocol = optarg;
+-			args.proto = xtables_parse_protocol(cs.protocol);
++			cs->protocol = optarg;
++			args->proto = xtables_parse_protocol(cs->protocol);
+ 
+-			if (args.proto == 0 && (args.invflags & XT_INV_PROTO))
++			if (args->proto == 0 &&
++			    (args->invflags & XT_INV_PROTO))
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "rule would never match protocol");
+ 
+ 			/* This needs to happen here to parse extensions */
+-			h->ops->proto_parse(&cs, &args);
++			h->ops->proto_parse(cs, args);
+ 			break;
+ 
+ 		case 's':
+-			set_option(&cs.options, OPT_SOURCE, &args.invflags,
+-				   cs.invert);
+-			args.shostnetworkmask = optarg;
++			set_option(&cs->options, OPT_SOURCE,
++				   &args->invflags, cs->invert);
++			args->shostnetworkmask = optarg;
+ 			break;
+ 
+ 		case 'd':
+-			set_option(&cs.options, OPT_DESTINATION,
+-				   &args.invflags, cs.invert);
+-			args.dhostnetworkmask = optarg;
++			set_option(&cs->options, OPT_DESTINATION,
++				   &args->invflags, cs->invert);
++			args->dhostnetworkmask = optarg;
+ 			break;
+ 
+ #ifdef IPT_F_GOTO
+ 		case 'g':
+-			set_option(&cs.options, OPT_JUMP, &args.invflags,
+-				   cs.invert);
+-			args.goto_set = true;
+-			cs.jumpto = parse_target(optarg);
++			set_option(&cs->options, OPT_JUMP, &args->invflags,
++				   cs->invert);
++			args->goto_set = true;
++			cs->jumpto = parse_target(optarg);
+ 			break;
+ #endif
+ 
+ 		case 'j':
+-			command_jump(&cs);
++			command_jump(cs);
+ 			break;
+ 
+ 
+@@ -935,11 +934,11 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"Empty interface is likely to be "
+ 					"undesired");
+-			set_option(&cs.options, OPT_VIANAMEIN, &args.invflags,
+-				   cs.invert);
++			set_option(&cs->options, OPT_VIANAMEIN,
++				   &args->invflags, cs->invert);
+ 			xtables_parse_interface(optarg,
+-						args.iniface,
+-						args.iniface_mask);
++						args->iniface,
++						args->iniface_mask);
+ 			break;
+ 
+ 		case 'o':
+@@ -947,54 +946,54 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"Empty interface is likely to be "
+ 					"undesired");
+-			set_option(&cs.options, OPT_VIANAMEOUT, &args.invflags,
+-				   cs.invert);
++			set_option(&cs->options, OPT_VIANAMEOUT,
++				   &args->invflags, cs->invert);
+ 			xtables_parse_interface(optarg,
+-						args.outiface,
+-						args.outiface_mask);
++						args->outiface,
++						args->outiface_mask);
+ 			break;
+ 
+ 		case 'f':
+-			if (args.family == AF_INET6) {
++			if (args->family == AF_INET6) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"`-f' is not supported in IPv6, "
+ 					"use -m frag instead");
+ 			}
+-			set_option(&cs.options, OPT_FRAGMENT, &args.invflags,
+-				   cs.invert);
+-			args.flags |= IPT_F_FRAG;
++			set_option(&cs->options, OPT_FRAGMENT, &args->invflags,
++				   cs->invert);
++			args->flags |= IPT_F_FRAG;
+ 			break;
+ 
+ 		case 'v':
+-			if (!verbose)
+-				set_option(&cs.options, OPT_VERBOSE,
+-					   &args.invflags, cs.invert);
+-			verbose++;
++			if (!p->verbose)
++				set_option(&cs->options, OPT_VERBOSE,
++					   &args->invflags, cs->invert);
++			p->verbose++;
+ 			break;
+ 
+ 		case 'm':
+-			command_match(&cs);
++			command_match(cs);
+ 			break;
+ 
+ 		case 'n':
+-			set_option(&cs.options, OPT_NUMERIC, &args.invflags,
+-				   cs.invert);
++			set_option(&cs->options, OPT_NUMERIC, &args->invflags,
++				   cs->invert);
+ 			break;
+ 
+ 		case 't':
+-			if (cs.invert)
++			if (cs->invert)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "unexpected ! flag before --table");
+-			*table = optarg;
++			p->table = optarg;
+ 			break;
+ 
+ 		case 'x':
+-			set_option(&cs.options, OPT_EXPANDED, &args.invflags,
+-				   cs.invert);
++			set_option(&cs->options, OPT_EXPANDED, &args->invflags,
++				   cs->invert);
+ 			break;
+ 
+ 		case 'V':
+-			if (cs.invert)
++			if (cs->invert)
+ 				printf("Not %s ;-)\n", prog_vers);
+ 			else
+ 				printf("%s v%s\n",
+@@ -1002,7 +1001,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			exit(0);
+ 
+ 		case 'w':
+-			if (restore) {
++			if (p->restore) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					      "You cannot use `-w' from "
+ 					      "iptables-restore");
+@@ -1010,8 +1009,8 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			break;
+ 
+ 		case '0':
+-			set_option(&cs.options, OPT_LINENUMBERS,
+-				   &args.invflags, cs.invert);
++			set_option(&cs->options, OPT_LINENUMBERS,
++				   &args->invflags, cs->invert);
+ 			break;
+ 
+ 		case 'M':
+@@ -1019,45 +1018,44 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			break;
+ 
+ 		case 'c':
+-
+-			set_option(&cs.options, OPT_COUNTERS, &args.invflags,
+-				   cs.invert);
+-			args.pcnt = optarg;
+-			args.bcnt = strchr(args.pcnt + 1, ',');
+-			if (args.bcnt)
+-			    args.bcnt++;
+-			if (!args.bcnt && optind < argc &&
++			set_option(&cs->options, OPT_COUNTERS, &args->invflags,
++				   cs->invert);
++			args->pcnt = optarg;
++			args->bcnt = strchr(args->pcnt + 1, ',');
++			if (args->bcnt)
++			    args->bcnt++;
++			if (!args->bcnt && optind < argc &&
+ 			    argv[optind][0] != '-' &&
+ 			    argv[optind][0] != '!')
+-				args.bcnt = argv[optind++];
+-			if (!args.bcnt)
++				args->bcnt = argv[optind++];
++			if (!args->bcnt)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"-%c requires packet and byte counter",
+ 					opt2char(OPT_COUNTERS));
+ 
+-			if (sscanf(args.pcnt, "%llu", &args.pcnt_cnt) != 1)
++			if (sscanf(args->pcnt, "%llu", &args->pcnt_cnt) != 1)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"-%c packet counter not numeric",
+ 					opt2char(OPT_COUNTERS));
+ 
+-			if (sscanf(args.bcnt, "%llu", &args.bcnt_cnt) != 1)
++			if (sscanf(args->bcnt, "%llu", &args->bcnt_cnt) != 1)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					"-%c byte counter not numeric",
+ 					opt2char(OPT_COUNTERS));
+ 			break;
+ 
+ 		case '4':
+-			if (args.family != AF_INET)
++			if (args->family != AF_INET)
+ 				exit_tryhelp(2);
+ 
+-			h->ops = nft_family_ops_lookup(args.family);
++			h->ops = nft_family_ops_lookup(args->family);
+ 			break;
+ 
+ 		case '6':
+-			args.family = AF_INET6;
++			args->family = AF_INET6;
+ 			xtables_set_nfproto(AF_INET6);
+ 
+-			h->ops = nft_family_ops_lookup(args.family);
++			h->ops = nft_family_ops_lookup(args->family);
+ 			if (h->ops == NULL)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					      "Unknown family");
+@@ -1065,11 +1063,11 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 
+ 		case 1: /* non option */
+ 			if (optarg[0] == '!' && optarg[1] == '\0') {
+-				if (cs.invert)
++				if (cs->invert)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						   "multiple consecutive ! not"
+ 						   " allowed");
+-				cs.invert = TRUE;
++				cs->invert = TRUE;
+ 				optarg[0] = '\0';
+ 				continue;
+ 			}
+@@ -1077,78 +1075,78 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			exit_tryhelp(2);
+ 
+ 		default:
+-			if (command_default(&cs, &xtables_globals) == 1)
++			if (command_default(cs, &xtables_globals) == 1)
+ 				/* cf. ip6tables.c */
+ 				continue;
+ 			break;
  		}
--		if (tablename && (strcmp(tablename, curtable) != 0))
-+		if (p->tablename && (strcmp(p->tablename, curtable) != 0))
- 			continue;
- 		if (!ret) {
- 			fprintf(stderr, "%s: line %u failed\n",
-@@ -468,8 +430,95 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				xt_params->program_name, line + 1);
- 		exit(1);
+-		cs.invert = FALSE;
++		cs->invert = FALSE;
+ 	}
+ 
+-	if (strcmp(*table, "nat") == 0 &&
+-	    ((policy != NULL && strcmp(policy, "DROP") == 0) ||
+-	    (cs.jumpto != NULL && strcmp(cs.jumpto, "DROP") == 0)))
++	if (strcmp(p->table, "nat") == 0 &&
++	    ((p->policy != NULL && strcmp(p->policy, "DROP") == 0) ||
++	    (cs->jumpto != NULL && strcmp(cs->jumpto, "DROP") == 0)))
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			"\nThe \"nat\" table is not intended for filtering, "
+ 			"the use of DROP is therefore inhibited.\n\n");
+ 
+-	for (matchp = cs.matches; matchp; matchp = matchp->next)
++	for (matchp = cs->matches; matchp; matchp = matchp->next)
+ 		xtables_option_mfcall(matchp->match);
+-	if (cs.target != NULL)
+-		xtables_option_tfcall(cs.target);
++	if (cs->target != NULL)
++		xtables_option_tfcall(cs->target);
+ 
+ 	/* Fix me: must put inverse options checking here --MN */
+ 
+ 	if (optind < argc)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "unknown arguments found on commandline");
+-	if (!command)
++	if (!p->command)
+ 		xtables_error(PARAMETER_PROBLEM, "no command specified");
+-	if (cs.invert)
++	if (cs->invert)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "nothing appropriate following !");
+ 
+ 	/* Set only if required, needed by xtables-restore */
+ 	if (h->family == AF_UNSPEC)
+-		h->family = args.family;
++		h->family = args->family;
+ 
+-	h->ops->post_parse(command, &cs, &args);
++	h->ops->post_parse(p->command, cs, args);
+ 
+-	if (command == CMD_REPLACE &&
+-	    (args.s.naddrs != 1 || args.d.naddrs != 1))
++	if (p->command == CMD_REPLACE &&
++	    (args->s.naddrs != 1 || args->d.naddrs != 1))
+ 		xtables_error(PARAMETER_PROBLEM, "Replacement rule does not "
+ 			   "specify a unique address");
+ 
+-	generic_opt_check(command, cs.options);
++	generic_opt_check(p->command, cs->options);
+ 
+-	if (chain != NULL && strlen(chain) >= XT_EXTENSION_MAXNAMELEN)
++	if (p->chain != NULL && strlen(p->chain) >= XT_EXTENSION_MAXNAMELEN)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "chain name `%s' too long (must be under %u chars)",
+-			   chain, XT_EXTENSION_MAXNAMELEN);
+-
+-	if (command == CMD_APPEND
+-	    || command == CMD_DELETE
+-	    || command == CMD_CHECK
+-	    || command == CMD_INSERT
+-	    || command == CMD_REPLACE) {
+-		if (strcmp(chain, "PREROUTING") == 0
+-		    || strcmp(chain, "INPUT") == 0) {
++			   p->chain, XT_EXTENSION_MAXNAMELEN);
++
++	if (p->command == CMD_APPEND ||
++	    p->command == CMD_DELETE ||
++	    p->command == CMD_CHECK ||
++	    p->command == CMD_INSERT ||
++	    p->command == CMD_REPLACE) {
++		if (strcmp(p->chain, "PREROUTING") == 0
++		    || strcmp(p->chain, "INPUT") == 0) {
+ 			/* -o not valid with incoming packets. */
+-			if (cs.options & OPT_VIANAMEOUT)
++			if (cs->options & OPT_VIANAMEOUT)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "Can't use -%c with %s\n",
+ 					   opt2char(OPT_VIANAMEOUT),
+-					   chain);
++					   p->chain);
+ 		}
+ 
+-		if (strcmp(chain, "POSTROUTING") == 0
+-		    || strcmp(chain, "OUTPUT") == 0) {
++		if (strcmp(p->chain, "POSTROUTING") == 0
++		    || strcmp(p->chain, "OUTPUT") == 0) {
+ 			/* -i not valid with outgoing packets */
+-			if (cs.options & OPT_VIANAMEIN)
++			if (cs->options & OPT_VIANAMEIN)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "Can't use -%c with %s\n",
+ 					   opt2char(OPT_VIANAMEIN),
+-					   chain);
++					   p->chain);
+ 		}
+ 
+ 		/*
+@@ -1157,90 +1155,115 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 		 * nf_table will spot the error if the chain does not exists.
+ 		 */
  	}
 +}
 +
-+static int
-+xtables_restore_main(int family, const char *progname, int argc, char *argv[])
++int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
++		bool restore)
 +{
-+	struct nft_handle h = {
-+		.family = family,
-+		.restore = true,
++	int ret = 1;
++	struct nft_xt_cmd_parse p = {
++		.table		= *table,
++		.restore	= restore,
 +	};
-+	int c;
-+	struct nft_xt_restore_parse p = {};
++	struct iptables_command_state cs;
++	struct xtables_args args = {
++		.family = h->family,
++	};
 +
-+	line = 0;
-+
-+	xtables_globals.program_name = progname;
-+	c = xtables_init_all(&xtables_globals, family);
-+	if (c < 0) {
-+		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
-+				xtables_globals.program_name,
-+				xtables_globals.program_version);
-+		exit(1);
-+	}
-+#if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
-+	init_extensions4();
-+#endif
-+
-+	if (nft_init(&h, xtables_ipv4) < 0) {
-+		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
-+				xtables_globals.program_name,
-+				xtables_globals.program_version,
-+				strerror(errno));
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	while ((c = getopt_long(argc, argv, "bcvthnM:T:46", options, NULL)) != -1) {
-+		switch (c) {
-+			case 'b':
-+				fprintf(stderr, "-b/--binary option is not implemented\n");
-+				break;
-+			case 'c':
-+				counters = 1;
-+				break;
-+			case 'v':
-+				verbose = 1;
-+				break;
-+			case 't':
-+				p.testing = 1;
-+				break;
-+			case 'h':
-+				print_usage("xtables-restore",
-+					    IPTABLES_VERSION);
-+				break;
-+			case 'n':
-+				noflush = 1;
-+				break;
-+			case 'M':
-+				xtables_modprobe_program = optarg;
-+				break;
-+			case 'T':
-+				p.tablename = optarg;
-+				break;
-+			case '4':
-+				h.family = AF_INET;
-+				break;
-+			case '6':
-+				h.family = AF_INET6;
-+				xtables_set_nfproto(AF_INET6);
-+				break;
-+		}
-+	}
-+
-+	if (optind == argc - 1) {
-+		p.in = fopen(argv[optind], "re");
-+		if (!p.in) {
-+			fprintf(stderr, "Can't open %s: %s\n", argv[optind],
-+				strerror(errno));
-+			exit(1);
-+		}
-+	} else if (optind < argc) {
-+		fprintf(stderr, "Unknown arguments found on commandline\n");
-+		exit(1);
-+	} else {
-+		p.in = stdin;
-+	}
-+
-+	xtables_restore_parse(&h, &p, &restore_cb, argc, argv);
++	do_parse(h, argc, argv, &p, &cs, &args);
  
--	fclose(in);
-+	fclose(p.in);
- 	return 0;
- }
+-	switch (command) {
++	switch (p.command) {
+ 	case CMD_APPEND:
+-		ret = add_entry(chain, *table, &cs, 0, h->family,
+-				args.s, args.d, cs.options&OPT_VERBOSE,
+-				h, true);
++		ret = add_entry(p.chain, p.table, &cs, 0, h->family,
++				args.s, args.d,
++				cs.options & OPT_VERBOSE, h, true);
+ 		break;
+ 	case CMD_DELETE:
+-		ret = delete_entry(chain, *table, &cs, h->family,
+-				   args.s, args.d, cs.options&OPT_VERBOSE, h);
++		ret = delete_entry(p.chain, p.table, &cs, h->family,
++				   args.s, args.d,
++				   cs.options & OPT_VERBOSE, h);
+ 		break;
+ 	case CMD_DELETE_NUM:
+-		ret = nft_rule_delete_num(h, chain, *table, rulenum - 1, verbose);
++		ret = nft_rule_delete_num(h, p.chain, p.table,
++					  p.rulenum - 1, p.verbose);
+ 		break;
+ 	case CMD_CHECK:
+-		ret = check_entry(chain, *table, &cs, h->family,
+-				   args.s, args.d, cs.options&OPT_VERBOSE, h);
++		ret = check_entry(p.chain, p.table, &cs, h->family,
++				  args.s, args.d,
++				  cs.options & OPT_VERBOSE, h);
+ 		break;
+ 	case CMD_REPLACE:
+-		ret = replace_entry(chain, *table, &cs, rulenum - 1,
++		ret = replace_entry(p.chain, p.table, &cs, p.rulenum - 1,
+ 				    h->family, args.s, args.d,
+-				    cs.options&OPT_VERBOSE, h);
++				    cs.options & OPT_VERBOSE, h);
+ 		break;
+ 	case CMD_INSERT:
+-		ret = add_entry(chain, *table, &cs, rulenum - 1, h->family,
+-				args.s, args.d, cs.options&OPT_VERBOSE, h,
+-				false);
++		ret = add_entry(p.chain, p.table, &cs, p.rulenum - 1,
++				h->family, args.s, args.d,
++				cs.options&OPT_VERBOSE, h, false);
+ 		break;
+ 	case CMD_FLUSH:
+-		ret = nft_rule_flush(h, chain, *table);
++		ret = nft_rule_flush(h, p.chain, p.table);
+ 		break;
+ 	case CMD_ZERO:
+-		ret = nft_chain_zero_counters(h, chain, *table);
++		ret = nft_chain_zero_counters(h, p.chain, p.table);
+ 		break;
+ 	case CMD_ZERO_NUM:
+-		ret = nft_rule_zero_counters(h, chain, *table, rulenum - 1);
++		ret = nft_rule_zero_counters(h, p.chain, p.table,
++					     p.rulenum - 1);
+ 		break;
+ 	case CMD_LIST:
+ 	case CMD_LIST|CMD_ZERO:
+ 	case CMD_LIST|CMD_ZERO_NUM:
+-		ret = list_entries(h, chain, *table,
+-				   rulenum,
+-				   cs.options&OPT_VERBOSE,
+-				   cs.options&OPT_NUMERIC,
+-				   cs.options&OPT_EXPANDED,
+-				   cs.options&OPT_LINENUMBERS);
+-		if (ret && (command & CMD_ZERO))
+-			ret = nft_chain_zero_counters(h, chain, *table);
+-		if (ret && (command & CMD_ZERO_NUM))
+-			ret = nft_rule_zero_counters(h, chain, *table,
+-						     rulenum - 1);
++		ret = list_entries(h, p.chain, p.table, p.rulenum,
++				   cs.options & OPT_VERBOSE,
++				   cs.options & OPT_NUMERIC,
++				   cs.options & OPT_EXPANDED,
++				   cs.options & OPT_LINENUMBERS);
++		if (ret && (p.command & CMD_ZERO)) {
++			ret = nft_chain_zero_counters(h, p.chain,
++						      p.table);
++		}
++		if (ret && (p.command & CMD_ZERO_NUM)) {
++			ret = nft_rule_zero_counters(h, p.chain, p.table,
++						     p.rulenum - 1);
++		}
+ 		break;
+ 	case CMD_LIST_RULES:
+ 	case CMD_LIST_RULES|CMD_ZERO:
+ 	case CMD_LIST_RULES|CMD_ZERO_NUM:
+-		ret = list_rules(h, chain, *table, rulenum, cs.options&OPT_VERBOSE);
+-		if (ret && (command & CMD_ZERO))
+-			ret = nft_chain_zero_counters(h, chain, *table);
+-		if (ret && (command & CMD_ZERO_NUM))
+-			ret = nft_rule_zero_counters(h, chain, *table,
+-						     rulenum - 1);
++		ret = list_rules(h, p.chain, p.table, p.rulenum,
++				 cs.options & OPT_VERBOSE);
++		if (ret && (p.command & CMD_ZERO)) {
++			ret = nft_chain_zero_counters(h, p.chain,
++						      p.table);
++		}
++		if (ret && (p.command & CMD_ZERO_NUM)) {
++			ret = nft_rule_zero_counters(h, p.chain, p.table,
++						     p.rulenum - 1);
++		}
+ 		break;
+ 	case CMD_NEW_CHAIN:
+-		ret = nft_chain_user_add(h, chain, *table);
++		ret = nft_chain_user_add(h, p.chain, p.table);
+ 		break;
+ 	case CMD_DELETE_CHAIN:
+-		ret = nft_chain_user_del(h, chain, *table);
++		ret = nft_chain_user_del(h, p.chain, p.table);
+ 		break;
+ 	case CMD_RENAME_CHAIN:
+-		ret = nft_chain_user_rename(h, chain, *table, newname);
++		ret = nft_chain_user_rename(h, p.chain, p.table, p.newname);
+ 		break;
+ 	case CMD_SET_POLICY:
+-		ret = nft_chain_set(h, *table, chain, policy, NULL);
++		ret = nft_chain_set(h, p.table, p.chain, p.policy, NULL);
+ 		if (ret < 0)
+ 			xtables_error(PARAMETER_PROBLEM, "Wrong policy `%s'\n",
+-				      policy);
++				      p.policy);
+ 		break;
+ 	default:
+ 		/* We should never reach this... */
+ 		exit_tryhelp(2);
+ 	}
+ 
+-/*	if (verbose > 1)
+-		dump_entries(*handle); */
++	*table = p.table;
+ 
+ 	xtables_rule_matches_free(&cs.matches);
  
 -- 
 1.7.10.4
