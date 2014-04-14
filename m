@@ -1,61 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] netfilter: nf_tables: set selection
-Date: Mon, 14 Apr 2014 10:55:57 +0200
-Message-ID: <20140414085557.GA6346@localhost>
-References: <1396001988-32338-1-git-send-email-kaber@trash.net>
- <20140331115333.GA3623@localhost>
- <20140414055605.GA541@macbook.localnet>
- <20140414082800.GA3882@localhost>
- <20140414085235.GA6181@macbook.localnet>
+From: Ana Rey <anarey@gmail.com>
+Subject: cannot stat 'doc/nftables.8': No such file or directory
+Date: Mon, 14 Apr 2014 11:37:36 +0200
+Message-ID: <CAD7o0sja_p2BhAuDMBEqR7Y6oprGs+nViDTC66Xr9-RU0H54LQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48783 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750979AbaDNI4C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 04:56:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20140414085235.GA6181@macbook.localnet>
+Received: from mail-ve0-f179.google.com ([209.85.128.179]:47488 "EHLO
+	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbaDNJh5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:37:57 -0400
+Received: by mail-ve0-f179.google.com with SMTP id db12so7079374veb.38
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Apr 2014 02:37:57 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 14, 2014 at 10:52:36AM +0200, Patrick McHardy wrote:
-> On Mon, Apr 14, 2014 at 10:28:00AM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Apr 14, 2014 at 07:56:07AM +0200, Patrick McHardy wrote:
-> > > On Mon, Mar 31, 2014 at 01:53:33PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Fri, Mar 28, 2014 at 10:19:46AM +0000, Patrick McHardy wrote:
-> > > > > These patches implement the basic set selection mechanism based on data
-> > > > > characteristics provided by userspace. So far we only need to know the
-> > > > > maximum number of elements.
-> > > > > 
-> > > > > Instead of trying to anticipate the information future set types will
-> > > > > need, the plan is to add more as we require it under the assumption
-> > > > > that we will converge to a state where a new set type already has
-> > > > > all information required available. The expectation is that most set
-> > > > > types will require the same information for estimation since they
-> > > > > most likely will be some type of tree or trie.
-> > > > 
-> > > > I'm going to include this in the next batch for net-next before merge
-> > > > window closes, which should happen soon. Thanks a lot Patrick.
-> > > 
-> > > I can't find neither this series, nor the patch
-> > > "netfilter: nf_tables: handle more than 8 * PAGE_SIZE set name allocations"
-> > > anywhere in your trees or upstream.
-> > 
-> > That one I missed, I'll enqueue it to the nftables tree.
-> > 
-> > > Am I missing something?
-> > 
-> > http://git.kernel.org/cgit/linux/kernel/git/pablo/nftables.git/log/
-> 
-> I see. I thought that tree was retired and things moved to nf/nf-next?
+Hello,
 
-I already mentioned here:
+With the last changes in nftable (last commit 'doc: change
+documentation license to CC BY-SA 4.0')
 
-http://marc.info/?l=netfilter-devel&m=139634116115356&w=2
+$ sudo make install
+-e   SUBDIR src/
+-e   INSTALL nft
+-e   SUBDIR files/
+-e   INSTALL files
+-e   SUBDIR doc/
+-e   MAN doc/nftables.8
+-e   INSTALL doc
+/usr/bin/install: cannot stat 'doc/nftables.8': No such file or directory
+make[1]: *** [install] Error 1
+make: *** [doc] Error 2
 
-net-next / nf-next is closed at this moment. So I kept the nftables
-kernel tree open to collect things until net-next opens back not to
-mix with other non-nftables things.
+I have docbook in my system, and I try to install it before a 'make
+clean'  and './autogen.sh'
+
+-- 
+Ana Rey (@anaRB)
+http://about.me/anarey
