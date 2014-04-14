@@ -1,80 +1,130 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/5] extensions: libxt_state: add translation to nft
-Date: Mon, 14 Apr 2014 12:41:06 +0200
-Message-ID: <1397472066-13011-6-git-send-email-pablo@netfilter.org>
-References: <1397472066-13011-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 3/5] netfilter: nf_tables: Add meta expression key for
+ bridge interface name
+Date: Mon, 14 Apr 2014 13:36:57 +0200
+Message-ID: <20140414113657.GA21331@localhost>
+References: <1396956324-17803-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1396956324-17803-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45240 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57668 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754721AbaDNKlS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 06:41:18 -0400
-In-Reply-To: <1397472066-13011-1-git-send-email-pablo@netfilter.org>
+	id S1753855AbaDNLhE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2014 07:37:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1396956324-17803-4-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- extensions/libxt_conntrack.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+On Tue, Apr 08, 2014 at 02:25:22PM +0300, Tomasz Bursztyka wrote:
+> NFT_META_BRI_IIFNAME to get packet input bridge interface name
+> NFT_META_BRI_OIFNAME to get packet output bridge interface name
+> 
+> Such meta key are accessible only through NFPROTO_BRIDGE family, on a
+> dedicated nft meta module: nft_meta_bridge.
+> 
+> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |   4 +
+>  net/bridge/Makefile                      |   1 +
+>  net/bridge/netfilter/Kconfig             |  12 ++-
+>  net/bridge/netfilter/Makefile            |   1 +
+>  net/bridge/netfilter/nft_meta_bridge.c   | 139 +++++++++++++++++++++++++++++++
+>  5 files changed, 156 insertions(+), 1 deletion(-)
+>  create mode 100644 net/bridge/netfilter/nft_meta_bridge.c
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index c88ccbf..45fb37c 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -536,6 +536,8 @@ enum nft_exthdr_attributes {
+>   * @NFT_META_SECMARK: packet secmark (skb->secmark)
+>   * @NFT_META_NFPROTO: netfilter protocol
+>   * @NFT_META_L4PROTO: layer 4 protocol number
+> + * @NFT_META_BRI_IIFNAME: packet input bridge interface name
+> + * @NFT_META_BRI_OIFNAME: packet output bridge interface name
+>   */
+>  enum nft_meta_keys {
+>  	NFT_META_LEN,
+> @@ -555,6 +557,8 @@ enum nft_meta_keys {
+>  	NFT_META_SECMARK,
+>  	NFT_META_NFPROTO,
+>  	NFT_META_L4PROTO,
+> +	NFT_META_BRI_IIFNAME,
+> +	NFT_META_BRI_OIFNAME,
+>  };
+>  
+>  /**
+> diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+> index e85498b2f..58acd82 100644
+> --- a/net/bridge/Makefile
+> +++ b/net/bridge/Makefile
+> @@ -16,4 +16,5 @@ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
+>  
+>  bridge-$(CONFIG_BRIDGE_VLAN_FILTERING) += br_vlan.o
+>  
+> +obj-$(CONFIG_NF_TABLES_BRIDGE) += netfilter/
+>  obj-$(CONFIG_BRIDGE_NF_EBTABLES) += netfilter/
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 128bbd2..4154464 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -1156,6 +1156,43 @@ static void state_save(const void *ip, const struct xt_entry_match *match)
- 	state_print_state(sinfo->statemask);
- }
- 
-+static void state_xlate_print(struct xt_buf *buf, unsigned int statemask)
-+{
-+	const char *sep = "";
-+
-+	if (statemask & XT_CONNTRACK_STATE_INVALID) {
-+		xt_buf_add(buf, "%s%s", sep, "invalid");
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_NEW)) {
-+		xt_buf_add(buf, "%s%s", sep, "new");
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_RELATED)) {
-+		xt_buf_add(buf, "%s%s", sep, "related");
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_BIT(IP_CT_ESTABLISHED)) {
-+		xt_buf_add(buf, "%s%s", sep, "established");
-+		sep = ",";
-+	}
-+	if (statemask & XT_CONNTRACK_STATE_UNTRACKED) {
-+		xt_buf_add(buf, "%s%s", sep, "untracked");
-+		sep = ",";
-+	}
-+}
-+
-+static int state_xlate(const struct xt_entry_match *match, struct xt_buf *buf)
-+{
-+	const struct xt_conntrack_mtinfo3 *sinfo = (const void *)match->data;
-+
-+	xt_buf_add(buf, "ct state %s", sinfo->invert_flags & XT_CONNTRACK_STATE ?
-+					"!= " : "");
-+	state_xlate_print(buf, sinfo->state_mask);
-+	xt_buf_add(buf, " ");
-+	return 1;
-+}
-+
- static struct xtables_match conntrack_mt_reg[] = {
- 	{
- 		.version       = XTABLES_VERSION,
-@@ -1306,6 +1343,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.save          = state_save,
- 		.x6_parse      = state_ct23_parse,
- 		.x6_options    = state_opts,
-+		.xlate         = state_xlate,
- 	},
- 	{
- 		.family        = NFPROTO_UNSPEC,
--- 
-1.7.10.4
+I think you can add some backward compatibility alias:
 
+config CONFIG_BRIDGE_NF_EBTABLES
+        select CONFIG_NETFILTER_BRIDGE
+
+so you can add CONFIG_NETFILTER_BRIDGE for that directory, which is
+more generic.
+
+obj-$(CONFIG_NETFILTER_BRIDGE) += netfilter/
+
+> diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+> index 5ca74a0..906783d 100644
+> --- a/net/bridge/netfilter/Kconfig
+> +++ b/net/bridge/netfilter/Kconfig
+> @@ -2,10 +2,20 @@
+>  # Bridge netfilter configuration
+>  #
+>  #
+> -config NF_TABLES_BRIDGE
+> +menuconfig NF_TABLES_BRIDGE
+>  	depends on NF_TABLES
+>  	tristate "Ethernet Bridge nf_tables support"
+>  
+> +if NF_TABLES_BRIDGE
+> +
+> +config NFT_BRIDGE_META
+> +	tristate "Netfilter nf_table bridge meta support"
+> +	depends on NFT_META
+> +	help
+> +	  Add support for bridge dedicated meta key.
+> +
+> +endif # NF_TABLES_BRIDGE
+> +
+>  menuconfig BRIDGE_NF_EBTABLES
+>  	tristate "Ethernet Bridge tables (ebtables) support"
+>  	depends on BRIDGE && NETFILTER
+> diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+> index ea7629f..6f2f394 100644
+> --- a/net/bridge/netfilter/Makefile
+> +++ b/net/bridge/netfilter/Makefile
+> @@ -3,6 +3,7 @@
+>  #
+>  
+>  obj-$(CONFIG_NF_TABLES_BRIDGE) += nf_tables_bridge.o
+> +obj-$(CONFIG_NFT_BRIDGE_META)  += nft_meta_bridge.o
+>  
+>  obj-$(CONFIG_BRIDGE_NF_EBTABLES) += ebtables.o
+>  
+> diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+> new file mode 100644
+> index 0000000..4f02109
+> --- /dev/null
+> +++ b/net/bridge/netfilter/nft_meta_bridge.c
+
+I think you can remove the trailing _bridge, it's obvious that we're
+already in the bridge directory.
+
+Apart from those two, this looks good to me. Thanks Tomasz.
