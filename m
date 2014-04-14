@@ -1,29 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH v2] target, match: Fix an invalid read
-Date: Mon, 14 Apr 2014 15:09:11 +0200
-Message-ID: <20140414130911.GA22518@localhost>
-References: <5de83fb1d752c0e4582b4ed41c150bb4bf2f187e.1397467220.git.anarey@gmail.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] ebtables printing of ipv6 masks
+Date: Mon, 14 Apr 2014 22:14:44 +0200
+Message-ID: <534C41B4.7020003@pandora.be>
+References: <201404111528.42153.mmazur@axeos.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Mariusz Mazur <mmazur@axeos.com>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49565 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754930AbaDNNJQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 09:09:16 -0400
-Content-Disposition: inline
-In-Reply-To: <5de83fb1d752c0e4582b4ed41c150bb4bf2f187e.1397467220.git.anarey@gmail.com>
+Received: from andre.telenet-ops.be ([195.130.132.53]:37850 "EHLO
+	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958AbaDNUOs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Apr 2014 16:14:48 -0400
+In-Reply-To: <201404111528.42153.mmazur@axeos.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 14, 2014 at 11:50:37AM +0200, Ana Rey wrote:
-> Valgrind reports the following invalid read:
-> 
-> $ sudo valgrind --leak-check=full ./nft-parsing-test -f ../jsonfiles/35-rule-target.json
-> ( and similar result with jsonfiles/29-rule-match.json file)
-> 
-> ==26018== Invalid read of size 8
-> ==26018==    at 0x4E484E3: nft_rule_expr_target_set (target.c:46)
+Mariusz Mazur schreef op 11/04/2014 15:28:
+> Currently ebtables is smart enough to not print /255.255.255.255 for ipv4
+> addresses, not so however for ipv6 addresses. The attached patch fixes that.
+>
+> (Not sure my kmail won't mangle it, so here it is uploaded:
+> http://u.42.pl/2T8O )
+>
+> --mmazur
+>
 
-Applied, thanks Ana.
+Your patch introduces a bug when printing the IPv6 destination mask. 
+I've applied a fixed version.
+
+cheers,
+Bart
+
