@@ -1,62 +1,96 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 1/2] common: add wrapper to represent events
-Date: Tue, 15 Apr 2014 11:51:53 +0200
-Message-ID: <20140415095153.GB5223@localhost>
-References: <20140415094030.23739.71580.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH] lookup: Fix an invalid read
+Date: Tue, 15 Apr 2014 12:13:46 +0200
+Message-ID: <952227cde493df2637db10cbe8cf2f9b964d885c.1397556664.git.anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58006 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbaDOJv7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:51:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20140415094030.23739.71580.stgit@nfdev.cica.es>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35458 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899AbaDOKOB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2014 06:14:01 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hi2so5387908wib.17
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2014 03:14:00 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 15, 2014 at 11:40:30AM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds a simple string wrapper to represent nf_tables events.
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  include/libnftnl/common.h |    6 +++++
->  src/common.c              |   59 +++++++++++++++++++++++++++++++++++++++++++++
->  src/libnftnl.map          |    3 ++
->  3 files changed, 68 insertions(+)
-> 
-> diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
-> index f0c20f0..96f8155 100644
-> --- a/include/libnftnl/common.h
-> +++ b/include/libnftnl/common.h
-> @@ -2,6 +2,7 @@
->  #define _LIBNFTNL_COMMON_H_
->  
->  #include <stdint.h>
-> +#include <stdio.h>
->  
->  enum {
->  	NFT_PARSE_EBADINPUT	= 0,
-> @@ -30,4 +31,9 @@ struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
->  struct nft_parse_err *nft_parse_err_alloc(void);
->  void nft_parse_err_free(struct nft_parse_err *);
->  int nft_parse_perror(const char *str, struct nft_parse_err *err);
-> +int nft_event_snprintf(char *buf, size_t bufsiz, const char *content,
-> +		       uint32_t format, uint32_t type);
-> +int nft_event_fprintf(FILE *fp, const char *content,
-> +		      uint32_t format, uint32_t type);
+Valgrind reports the following invalid read:
 
-We have flags in the existing output functions:
+$ sudo valgrind ./nft-parsing-test -f ../jsonfiles/30-rule-lookup.json
+==26664== Memcheck, a memory error detector
+==26664== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==26664== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
+==26664== Command: ./nft-parsing-test -f ../jsonfiles/30-rule-lookup.json
+==26664==
+==26664== Invalid read of size 8
+==26664==    at 0x4E45490: nft_rule_expr_lookup_set (lookup.c:50)
+==26664==    by 0x4E40B04: nft_rule_expr_set (expr.c:73)
+==26664==    by 0x4E44FFF: nft_rule_expr_lookup_json_parse (lookup.c:157)
+==26664==    by 0x4E408CD: nft_jansson_expr_parse (jansson.c:206)
+==26664==    by 0x4E3B719: nft_jansson_parse_rule (rule.c:606)
+==26664==    by 0x4E3F005: nft_ruleset_do_parse (ruleset.c:312)
+==26664==    by 0x401479: test_json (nft-parsing-test.c:129)
+==26664==    by 0x4017C2: execute_test_file (nft-parsing-test.c:270)
+==26664==    by 0x400EBB: main (nft-parsing-test.c:332)
+==26664==  Address 0x5c34d40 is 0 bytes inside a block of size 5 alloc'd
+==26664==    at 0x4C274A0: malloc (vg_replace_malloc.c:291)
+==26664==    by 0x56834FF: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5685825: json_string_nocheck (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682A3F: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682C5D: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682C5D: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682EDD: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5683295: json_loadf (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==
+==26664== Invalid read of size 8
+==26664==    at 0x4E45497: nft_rule_expr_lookup_set (lookup.c:50)
+==26664==    by 0x4E40B04: nft_rule_expr_set (expr.c:73)
+==26664==    by 0x4E44FFF: nft_rule_expr_lookup_json_parse (lookup.c:157)
+==26664==    by 0x4E408CD: nft_jansson_expr_parse (jansson.c:206)
+==26664==    by 0x4E3B719: nft_jansson_parse_rule (rule.c:606)
+==26664==    by 0x4E3F005: nft_ruleset_do_parse (ruleset.c:312)
+==26664==    by 0x401479: test_json (nft-parsing-test.c:129)
+==26664==    by 0x4017C2: execute_test_file (nft-parsing-test.c:270)
+==26664==    by 0x400EBB: main (nft-parsing-test.c:332)
+==26664==  Address 0x5c34d48 is 3 bytes after a block of size 5 alloc'd
+==26664==    at 0x4C274A0: malloc (vg_replace_malloc.c:291)
+==26664==    by 0x56834FF: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5685825: json_string_nocheck (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682A3F: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682C5D: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682C5D: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682ADE: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5682EDD: ??? (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
+==26664==    by 0x5683295: json_loadf (in /usr/lib/x86_64-linux-gnu/libjansson.so.4.6.0)
 
-int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
-                       uint32_t type, uint32_t flags);
-int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type,
-                      uint32_t flags);
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ src/expr/lookup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I think you can add a new flag that tells that you have to add the
-extra event handling that you need, thus, we don't need a new
-interface.
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index 5e0bf75..50282a8 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -47,8 +47,8 @@ nft_rule_expr_lookup_set(struct nft_rule_expr *e, uint16_t type,
+ 		lookup->dreg = *((uint32_t *)data);
+ 		break;
+ 	case NFT_EXPR_LOOKUP_SET:
+-		memcpy(lookup->set_name, data, IFNAMSIZ);
+-		lookup->set_name[IFNAMSIZ-1] = '\0';
++		snprintf(lookup->set_name, sizeof(lookup->set_name), "%s",
++			 (const char *)data);
+ 		break;
+ 	default:
+ 		return -1;
+-- 
+1.9.0
 
-You can most likely reuse most of the code in this patch.
