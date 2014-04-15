@@ -1,89 +1,62 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH 2/2] examples: nft-events: use new events wrappers
-Date: Tue, 15 Apr 2014 11:40:35 +0200
-Message-ID: <20140415094035.23739.59645.stgit@nfdev.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH 1/2] common: add wrapper to represent events
+Date: Tue, 15 Apr 2014 11:51:53 +0200
+Message-ID: <20140415095153.GB5223@localhost>
 References: <20140415094030.23739.71580.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60772 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750899AbaDOJkn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:40:43 -0400
+Received: from mail.us.es ([193.147.175.20]:58006 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751475AbaDOJv7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:51:59 -0400
+Content-Disposition: inline
 In-Reply-To: <20140415094030.23739.71580.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's use the new event wrappers in the events example.
+On Tue, Apr 15, 2014 at 11:40:30AM +0200, Arturo Borrero Gonzalez wrote:
+> This patch adds a simple string wrapper to represent nf_tables events.
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  include/libnftnl/common.h |    6 +++++
+>  src/common.c              |   59 +++++++++++++++++++++++++++++++++++++++++++++
+>  src/libnftnl.map          |    3 ++
+>  3 files changed, 68 insertions(+)
+> 
+> diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
+> index f0c20f0..96f8155 100644
+> --- a/include/libnftnl/common.h
+> +++ b/include/libnftnl/common.h
+> @@ -2,6 +2,7 @@
+>  #define _LIBNFTNL_COMMON_H_
+>  
+>  #include <stdint.h>
+> +#include <stdio.h>
+>  
+>  enum {
+>  	NFT_PARSE_EBADINPUT	= 0,
+> @@ -30,4 +31,9 @@ struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+>  struct nft_parse_err *nft_parse_err_alloc(void);
+>  void nft_parse_err_free(struct nft_parse_err *);
+>  int nft_parse_perror(const char *str, struct nft_parse_err *err);
+> +int nft_event_snprintf(char *buf, size_t bufsiz, const char *content,
+> +		       uint32_t format, uint32_t type);
+> +int nft_event_fprintf(FILE *fp, const char *content,
+> +		      uint32_t format, uint32_t type);
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- examples/nft-events.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+We have flags in the existing output functions:
 
-diff --git a/examples/nft-events.c b/examples/nft-events.c
-index 989f4bd..9d33295 100644
---- a/examples/nft-events.c
-+++ b/examples/nft-events.c
-@@ -22,6 +22,7 @@
- #include <libnftnl/chain.h>
- #include <libnftnl/rule.h>
- #include <libnftnl/set.h>
-+#include <libnftnl/common.h>
- 
- static int table_cb(const struct nlmsghdr *nlh, int type)
- {
-@@ -40,7 +41,8 @@ static int table_cb(const struct nlmsghdr *nlh, int type)
- 	}
- 
- 	nft_table_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
--	printf("[%s]\t%s\n", type == NFT_MSG_NEWTABLE ? "NEW" : "DEL", buf);
-+	nft_event_fprintf(stdout, buf, NFT_OUTPUT_DEFAULT, type);
-+	fprintf(stdout, "\n");
- 
- err_free:
- 	nft_table_free(t);
-@@ -65,7 +67,8 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
- 	}
- 
- 	nft_rule_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
--	printf("[%s]\t%s\n", type == NFT_MSG_NEWRULE ? "NEW" : "DEL", buf);
-+	nft_event_fprintf(stdout, buf, NFT_OUTPUT_DEFAULT, type);
-+	fprintf(stdout, "\n");
- 
- err_free:
- 	nft_rule_free(t);
-@@ -90,7 +93,8 @@ static int chain_cb(const struct nlmsghdr *nlh, int type)
- 	}
- 
- 	nft_chain_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
--	printf("[%s]\t%s\n", type == NFT_MSG_NEWCHAIN ? "NEW" : "DEL", buf);
-+	nft_event_fprintf(stdout, buf, NFT_OUTPUT_DEFAULT, type);
-+	fprintf(stdout, "\n");
- 
- err_free:
- 	nft_chain_free(t);
-@@ -115,7 +119,8 @@ static int set_cb(const struct nlmsghdr *nlh, int type)
- 	}
- 
- 	nft_set_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
--	printf("[%s]\t%s\n", type == NFT_MSG_NEWSET ? "NEW" : "DEL", buf);
-+	nft_event_fprintf(stdout, buf, NFT_OUTPUT_DEFAULT, type);
-+	fprintf(stdout, "\n");
- 
- err_free:
- 	nft_set_free(t);
-@@ -141,7 +146,8 @@ static int setelem_cb(const struct nlmsghdr *nlh, int type)
- 	}
- 
- 	nft_set_snprintf(buf, sizeof(buf), s, NFT_OUTPUT_DEFAULT, 0);
--	printf("[%s]\t%s\n", type == NFT_MSG_NEWSETELEM ? "NEW" : "DEL", buf);
-+	nft_event_fprintf(stdout, buf, NFT_OUTPUT_DEFAULT, type);
-+	fprintf(stdout, "\n");
- 
- err_free:
- 	nft_set_free(s);
+int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
+                       uint32_t type, uint32_t flags);
+int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type,
+                      uint32_t flags);
 
+I think you can add a new flag that tells that you have to add the
+extra event handling that you need, thus, we don't need a new
+interface.
+
+You can most likely reuse most of the code in this patch.
