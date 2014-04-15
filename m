@@ -1,167 +1,513 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: [OOPS,TPROXY,xt_owner]: Oops accessing socket in owner_mt()
-Date: Tue, 15 Apr 2014 15:32:20 +0200
-Message-ID: <20140415133220.GG6576@imap.eitzenberger.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH v2 1/2] src: add flag to add event wrapping in output
+	functions
+Date: Tue, 15 Apr 2014 20:12:58 +0200
+Message-ID: <20140415181154.6395.53213.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="1yeeQ81UyVL57Vl7"
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.13]:51973 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbaDOR2I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 13:28:08 -0400
-Content-Disposition: inline
+Received: from smtp3.cica.es ([150.214.5.190]:39048 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750998AbaDOSNM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2014 14:13:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch uses the flag option of each output function to print an
+event wrapper string in each object.
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In order to use this functionality, the caller must pass a flag with either
+NFT_OUTPUT_FLAG_EVENTNEW or NFT_OUTPUT_FLAG_EVENTDEL activated.
 
-Hi all,
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: address comments from Pablo: factorize code and fix output flags.
 
-using kernel v8.8.13.15 I see a kernel oops happening in a setup where
-a HTTP using TPROXY is used on a bridge interface.  Also NFQUEUE
-is involved:
+ include/libnftnl/common.h |    6 +++
+ src/chain.c               |   24 ++++++++++--
+ src/internal.h            |    6 +++
+ src/rule.c                |   30 +++++++++++++--
+ src/ruleset.c             |   38 +++++++++++++++----
+ src/set.c                 |   30 +++++++++++++--
+ src/set_elem.c            |   24 ++++++++++--
+ src/table.c               |   23 +++++++++---
+ src/utils.c               |   90 +++++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 237 insertions(+), 34 deletions(-)
 
-[ 379.046358] Pid: 5847, comm: afcd/258 Tainted: G O
-3.8.13.15-110.g4be5643-smp64 001 Astaro AG ASG/NSB2189
-[ 379.046358] RIP: 0010:[<ffffffffa0269034>] [<ffffffffa0269034>] owner_mt+0x31/0xad [xt_owner]
-[ 379.046358] RSP: 0018:ffff88016b05b5f0 EFLAGS: 00210246
-[ 379.046358] RAX: 0000000000002000 RBX: ffffc90014306ca8 RCX: ffffc90014306cc8
-[ 379.046358] RDX: ffffc90014306c01 RSI: ffff88016b05b600 RDI: c9443747ad79b9de
-[ 379.046358] RBP: ffffc90014306c38 R08: ffffc90014306b68 R09: ffff88010069b0e0
-[ 379.046358] R10: 0000000000000002 R11: 0000000000001000 R12: ffff8801980f9810
-[ 379.046358] R13: 0000000000000004 R14: ffff8800d4022f00 R15: ffffffff8147faa0
-[ 379.046358] FS: 0000000000000000(0000) GS:ffff88019fc80000(0063)
-knlGS:00000000f5983b70
-[ 379.046358] CS: 0010 DS: 002b ES: 002b CR0: 0000000080050033
-[ 379.046358] CR2: 00000000f5b34fa8 CR3: 000000016b115000 CR4: 00000000000007e0
-[ 379.046358] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 379.046358] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[ 379.046358] Process afcd/258 (pid: 5847, threadinfo ffff88016b05a000, task
-ffff880196292520)
-[ 379.046358] Stack:
-[ 379.046358] ffffffffa015a3f1 0000000100000001 ffff880101dda1c0
-00000000000005c8
-[ 379.046358] ffff880101dda1c0 ffff8800db9b1e00 ffffffff812b5f73
-000000000000000c
-[ 379.046358] 0000000000000004 ffff88019627c000 0000000000000000
-0000000400000000
-[ 379.046358] Call Trace:
-[ 379.046358] [<ffffffffa015a3f1>] ? ipt_do_table+0x286/0x5f8 [ip_tables]
-[ 379.046358] [<ffffffff812b5f73>] ? tcp_rcv_established+0x594/0x685
-[ 379.046358] [<ffffffff8129b502>] ? nf_iterate+0x42/0x7d
-[ 379.046358] [<ffffffff810b5141>] ? virt_to_head_page+0x9/0x30
-[ 379.046358] [<ffffffff8129c304>] ? nf_reinject+0x9c/0x131
-[ 379.046358] [<ffffffff812a5576>] ? ip_finish_output2+0x2b1/0x2b1
-[ 379.046358] [<ffffffffa03337e0>] ? nfqnl_recv_verdict+0x68/0x2b2
-
-Actual OOPS is at the time owner match access VFS file on socket, from
-xt_owner.c:owner_mt():
-
-	filp = sk->sk_socket->file;
-		if (filp == NULL) {
-
-And I think that owner match races with TPROXY calling sock_orphan()
-eventually, e. g. if system is low on memory.  To be verified.
-
-I think I have fixed the issue by using a read_lock on 
-sk->sk_callback_lock, same lock is used in sock_orphan().
-
-Also I found xt_LOG.c:dump_sk_uid_gid() to be similar, also
-using sk->sk_callback_lock.
-
-I have attached the patch I am currently using.  Please check, it
-seems to fix the issue seen.  But still unsure, as not occuring
-often.
-
- /Holger
-
-
---1yeeQ81UyVL57Vl7
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="xt_owner-fix.diff"
-
-xt_owner: fix race with sock_orphan()
-
-By using a read_lock on sk->sk_callback_lock we can avoid Oops
-due to someone else calling sock_orphan() at same time on
-another CPU, e. g. when using TPROXY.
-
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-
-Index: net-next/net/netfilter/xt_owner.c
-===================================================================
---- net-next.orig/net/netfilter/xt_owner.c
-+++ net-next/net/netfilter/xt_owner.c
-@@ -32,21 +32,32 @@ static bool
- owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
+index f0c20f0..04d2906 100644
+--- a/include/libnftnl/common.h
++++ b/include/libnftnl/common.h
+@@ -15,6 +15,12 @@ enum nft_output_type {
+ 	NFT_OUTPUT_JSON,
+ };
+ 
++enum nft_output_flags {
++	NFT_OF_EVENT_NEW	= (1 << 0),
++	NFT_OF_EVENT_DEL	= (1 << 1),
++	NFT_OF_EVENT_ANY	= (NFT_OF_EVENT_NEW | NFT_OF_EVENT_DEL),
++};
++
+ enum nft_parse_type {
+ 	NFT_PARSE_NONE		= 0,
+ 	NFT_PARSE_XML,
+diff --git a/src/chain.c b/src/chain.c
+index 472203e..5311af6 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -924,17 +924,31 @@ static int nft_chain_snprintf_default(char *buf, size_t size,
+ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
+ 		       uint32_t type, uint32_t flags)
  {
- 	const struct xt_owner_match_info *info = par->matchinfo;
-+	struct sock *sk = skb->sk;
- 	const struct file *filp;
- 
--	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
-+	if (sk == NULL)
- 		return (info->match ^ info->invert) == 0;
--	else if (info->match & info->invert & XT_OWNER_SOCKET)
++	int ret, len = size, offset = 0;
 +
-+	read_lock_bh(&sk->sk_callback_lock);
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 +
-+	if (sk->sk_socket == NULL) {
-+		read_unlock_bh(&sk->sk_callback_lock);
-+		return (info->match ^ info->invert) == 0;
-+	}
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return nft_chain_snprintf_default(buf, size, c);
++		ret = nft_chain_snprintf_default(buf+offset, len, c);
++		break;
+ 	case NFT_OUTPUT_XML:
+-		return nft_chain_snprintf_xml(buf, size, c);
++		ret = nft_chain_snprintf_xml(buf+offset, len, c);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return nft_chain_snprintf_json(buf, size, c);
+-	default:
++		ret = nft_chain_snprintf_json(buf+offset, len, c);
+ 		break;
++	default:
++		return -1;
+ 	}
+-	return -1;
 +
-+	if (info->match & info->invert & XT_OWNER_SOCKET)
- 		/*
- 		 * Socket exists but user wanted ! --socket-exists.
- 		 * (Single ampersands intended.)
- 		 */
--		return false;
-+		goto out_false;
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
+ }
+ EXPORT_SYMBOL(nft_chain_snprintf);
  
--	filp = skb->sk->sk_socket->file;
--	if (filp == NULL)
-+	filp = sk->sk_socket->file;
-+	if (filp == NULL) {
-+		read_unlock_bh(&sk->sk_callback_lock);
- 		return ((info->match ^ info->invert) &
- 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
-+	}
+diff --git a/src/internal.h b/src/internal.h
+index ba994c8..6595e70 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -136,6 +136,12 @@ int nft_get_value(enum nft_type type, void *val, void *out);
  
- 	if (info->match & XT_OWNER_UID) {
- 		kuid_t uid_min = make_kuid(&init_user_ns, info->uid_min);
-@@ -54,7 +65,7 @@ owner_mt(const struct sk_buff *skb, stru
- 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
- 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
- 		    !(info->invert & XT_OWNER_UID))
--			return false;
-+			goto out_false;
+ #include <stdio.h>
+ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj, uint32_t type, uint32_t flags));
++int nft_event_header_snprintf(char *buf, size_t bufsize,
++			      uint32_t format, uint32_t flags);
++int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags);
++int nft_event_footer_snprintf(char *buf, size_t bufsize,
++			      uint32_t format, uint32_t flags);
++int nft_event_footer_fprintf(FILE *fp, uint32_t format, uint32_t flags);
+ 
+ void xfree(const void *ptr);
+ 
+diff --git a/src/rule.c b/src/rule.c
+index df9dd80..ac88abb 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -967,17 +967,37 @@ static int nft_rule_snprintf_default(char *buf, size_t size, struct nft_rule *r,
+ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
+ 		       uint32_t type, uint32_t flags)
+ {
++	int ret, len = size, offset = 0;
++	uint32_t inner_flags = flags;
++
++	inner_flags &= ~NFT_OF_EVENT_ANY;
++
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return nft_rule_snprintf_default(buf, size, r, type, flags);
++		ret = nft_rule_snprintf_default(buf+offset, len, r, type,
++						inner_flags);
++		break;
+ 	case NFT_OUTPUT_XML:
+-		return nft_rule_snprintf_xml(buf, size, r, type, flags);
++		ret = nft_rule_snprintf_xml(buf+offset, len, r, type,
++					    inner_flags);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return nft_rule_snprintf_json(buf, size, r, type, flags);
+-	default:
++		ret = nft_rule_snprintf_json(buf+offset, len, r, type,
++					     inner_flags);
+ 		break;
++	default:
++		return -1;
+ 	}
+-	return -1;
++
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
+ }
+ EXPORT_SYMBOL(nft_rule_snprintf);
+ 
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 3cbec09..98c4367 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -765,14 +765,21 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ {
+ 	int ret, len = size, offset = 0;
+ 	void *prev = NULL;
++	uint32_t inner_flags = flags;
+ 
+-	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_opentag(type));
++	/* dont pass events flags to child calls of _snprintf() */
++	inner_flags &= ~NFT_OF_EVENT_ANY;
++
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = snprintf(buf+offset, len, "%s", nft_ruleset_o_opentag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST) &&
+ 	    (!nft_table_list_is_empty(rs->table_list))) {
+ 		ret = nft_ruleset_snprintf_table(buf+offset, len, rs,
+-						 type, flags);
++						 type, inner_flags);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		if (ret > 0)
+@@ -786,7 +793,7 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_chain(buf+offset, len, rs,
+-						 type, flags);
++						 type, inner_flags);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		if (ret > 0)
+@@ -800,7 +807,7 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_set(buf+offset, len, rs,
+-					       type, flags);
++					       type, inner_flags);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		if (ret > 0)
+@@ -814,13 +821,16 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		ret = nft_ruleset_snprintf_rule(buf+offset, len, rs,
+-						type, flags);
++						type, inner_flags);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  	}
  
- 	if (info->match & XT_OWNER_GID) {
-@@ -63,10 +74,16 @@ owner_mt(const struct sk_buff *skb, stru
- 		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
- 		     gid_lte(filp->f_cred->fsgid, gid_max)) ^
- 		    !(info->invert & XT_OWNER_GID))
--			return false;
-+			goto out_false;
- 	}
+ 	ret = snprintf(buf+offset, size, "%s", nft_ruleset_o_closetag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  
-+	read_unlock_bh(&sk->sk_callback_lock);
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 +
- 	return true;
-+
-+out_false:
-+	read_unlock_bh(&sk->sk_callback_lock);
-+	return false;
+ 	return offset;
  }
  
- static struct xt_match owner_mt_reg __read_mostly = {
+@@ -989,13 +999,20 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ {
+ 	int len = 0, ret = 0;
+ 	void *prev = NULL;
++	uint32_t inner_flags = flags;
++
++	/* dont pass events flags to child calls of _snprintf() */
++	inner_flags &= ~NFT_OF_EVENT_ANY;
++
++	ret = nft_event_header_fprintf(fp, type, flags);
++	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 	ret = fprintf(fp, "%s", nft_ruleset_o_opentag(type));
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST)) &&
+ 	    (!nft_table_list_is_empty(rs->table_list))) {
+-		ret = nft_ruleset_fprintf_tables(fp, rs, type, flags);
++		ret = nft_ruleset_fprintf_tables(fp, rs, type, inner_flags);
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 		if (ret > 0)
+@@ -1007,7 +1024,7 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ 		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+-		ret = nft_ruleset_fprintf_chains(fp, rs, type, flags);
++		ret = nft_ruleset_fprintf_chains(fp, rs, type, inner_flags);
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 		if (ret > 0)
+@@ -1019,7 +1036,7 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ 		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+-		ret = nft_ruleset_fprintf_sets(fp, rs, type, flags);
++		ret = nft_ruleset_fprintf_sets(fp, rs, type, inner_flags);
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 		if (ret > 0)
+@@ -1031,13 +1048,16 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ 		ret = fprintf(fp, "%s", nft_ruleset_o_separator(prev, type));
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+-		ret = nft_ruleset_fprintf_rules(fp, rs, type, flags);
++		ret = nft_ruleset_fprintf_rules(fp, rs, type, inner_flags);
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 	}
+ 
+ 	ret = fprintf(fp, "%s", nft_ruleset_o_closetag(type));
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
++	ret = nft_event_footer_fprintf(fp, type, flags);
++	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
++
+ 	return len;
+ }
+ EXPORT_SYMBOL(nft_ruleset_fprintf);
+diff --git a/src/set.c b/src/set.c
+index 550c262..7c15857 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -704,17 +704,37 @@ static int nft_set_snprintf_xml(char *buf, size_t size, struct nft_set *s,
+ int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
+ 		     uint32_t type, uint32_t flags)
+ {
++	int ret, len = size, offset = 0;
++	uint32_t inner_flags = flags;
++
++	/* prevent set_elems to print as events */
++	inner_flags &= ~NFT_OF_EVENT_ANY;
++
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return nft_set_snprintf_default(buf, size, s, type, flags);
++		ret = nft_set_snprintf_default(buf+offset, len, s, type,
++					       inner_flags);
++		break;
+ 	case NFT_OUTPUT_XML:
+-		return nft_set_snprintf_xml(buf, size, s, flags);
++		ret = nft_set_snprintf_xml(buf+offset, len, s, inner_flags);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return nft_set_snprintf_json(buf, size, s, type, flags);
+-	default:
++		ret = nft_set_snprintf_json(buf+offset, len, s, type,
++					    inner_flags);
+ 		break;
++	default:
++		return -1;
+ 	}
+-	return -1;
++
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
+ }
+ EXPORT_SYMBOL(nft_set_snprintf);
+ 
+diff --git a/src/set_elem.c b/src/set_elem.c
+index a747ba6..9b40752 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -591,17 +591,31 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
+ int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
+ 			   uint32_t type, uint32_t flags)
+ {
++	int ret, len = size, offset = 0;
++
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return nft_set_elem_snprintf_default(buf, size, e);
++		ret = nft_set_elem_snprintf_default(buf+offset, len, e);
++		break;
+ 	case NFT_OUTPUT_XML:
+-		return nft_set_elem_snprintf_xml(buf, size, e, flags);
++		ret = nft_set_elem_snprintf_xml(buf+offset, len, e, flags);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return nft_set_elem_snprintf_json(buf, size, e, flags);
+-	default:
++		ret = nft_set_elem_snprintf_json(buf+offset, len, e, flags);
+ 		break;
++	default:
++		return -1;
+ 	}
+-	return -1;
++
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
+ }
+ EXPORT_SYMBOL(nft_set_elem_snprintf);
+ 
+diff --git a/src/table.c b/src/table.c
+index 44e9a7b..b4d1663 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -441,17 +441,30 @@ static int nft_table_snprintf_default(char *buf, size_t size, struct nft_table *
+ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
+ 		       uint32_t type, uint32_t flags)
+ {
++	int ret, len = size, offset = 0;
++
++	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return nft_table_snprintf_default(buf, size, t);
++		ret = nft_table_snprintf_default(buf+offset, len, t);
++		break;
+ 	case NFT_OUTPUT_XML:
+-		return nft_table_snprintf_xml(buf, size, t);
++		ret = nft_table_snprintf_xml(buf+offset, len, t);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return nft_table_snprintf_json(buf, size, t);
+-	default:
++		ret = nft_table_snprintf_json(buf+offset, len, t);
+ 		break;
++	default:
++		return -1;
+ 	}
+-	return -1;
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
+ }
+ EXPORT_SYMBOL(nft_table_snprintf);
+ 
+diff --git a/src/utils.c b/src/utils.c
+index 18917f5..29a958d 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -212,6 +212,96 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
+ 	return ret;
+ }
+ 
++static const char *nft_event_opentag(uint32_t event, uint32_t format)
++{
++	switch (format) {
++	case NFT_OUTPUT_XML:
++		switch (event) {
++		case NFT_OF_EVENT_NEW:
++			return "<event><type>new</type>";
++		case NFT_OF_EVENT_DEL:
++			return "<event><type>destroy</type>";
++		default:
++			return "[unknown]";
++		}
++	case NFT_OUTPUT_JSON:
++		switch (event) {
++		case NFT_OF_EVENT_NEW:
++			return "{event:{type:\"new\",{\"";
++		case NFT_OF_EVENT_DEL:
++			return "{event:{type:\"destroy\",{\"";
++		default:
++			return "[unknown]";
++		}
++	default:
++		switch (event) {
++		case NFT_OF_EVENT_NEW:
++			return "[NEW] ";
++		case NFT_OF_EVENT_DEL:
++			return "[DELETE] ";
++		default:
++			return "[unknown]";
++		}
++	}
++}
++
++int nft_event_header_snprintf(char *buf, size_t bufsize,
++			      uint32_t format, uint32_t flags)
++{
++	if (flags & NFT_OF_EVENT_NEW)
++		return snprintf(buf, bufsize, "%9s",
++				nft_event_opentag(NFT_OF_EVENT_NEW, format));
++
++	if (flags & NFT_OF_EVENT_DEL)
++		return snprintf(buf, bufsize, "%9s",
++				nft_event_opentag(NFT_OF_EVENT_DEL, format));
++
++	return 0;
++}
++
++int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags)
++{
++	if (flags & NFT_OF_EVENT_NEW)
++		return fprintf(fp, "%9s",
++			       nft_event_opentag(NFT_OF_EVENT_NEW, format));
++
++	if (flags & NFT_OF_EVENT_DEL)
++		return fprintf(fp, "%9s",
++			       nft_event_opentag(NFT_OF_EVENT_DEL, format));
++
++	return 0;
++}
++
++static const char *nft_event_closetag(uint32_t format)
++{
++	switch (format) {
++	case NFT_OUTPUT_XML:
++		return "</event>";
++	case NFT_OUTPUT_JSON:
++		return "}}}";
++	default:
++		return "";
++	}
++}
++
++int nft_event_footer_snprintf(char *buf, size_t bufsize,
++			      uint32_t format, uint32_t flags)
++{
++	if (flags & NFT_OF_EVENT_ANY)
++		return snprintf(buf, bufsize, "%s",
++				nft_event_closetag(format));
++
++	return 0;
++}
++
++int nft_event_footer_fprintf(FILE *fp, uint32_t format, uint32_t flags)
++{
++	if (flags & NFT_OF_EVENT_ANY)
++		return fprintf(fp, "%s", nft_event_closetag(format));
++
++	return 0;
++}
++
+ void __nft_assert_fail(uint16_t attr, const char *filename, int line)
+ {
+ 	fprintf(stderr, "libnftnl: attribute %d assertion failed in %s:%d\n",
 
---1yeeQ81UyVL57Vl7--
