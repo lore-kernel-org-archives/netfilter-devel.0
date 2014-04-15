@@ -1,172 +1,143 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [libnetfilter_conntrack PATCH 1/3 resend] conntrack: add mark event
- filter
-Date: Tue, 15 Apr 2014 20:54:53 +0900
-Message-ID: <20140415115453.GA6947@gmail.com>
-References: <20140408102614.GA29462@gmail.com>
- <20140408103002.GB29462@gmail.com>
- <20140414125324.GA22192@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH 2/2] examples: nft-events: use new events wrappers
+Date: Tue, 15 Apr 2014 14:50:37 +0200
+Message-ID: <20140415125036.2590.93069.stgit@nfdev.cica.es>
+References: <20140415125030.2590.5501.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:58593 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853AbaDOLzA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 07:55:00 -0400
-Received: by mail-pb0-f53.google.com with SMTP id rp16so9422593pbb.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2014 04:55:00 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140414125324.GA22192@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:54066 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754753AbaDOMup (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2014 08:50:45 -0400
+In-Reply-To: <20140415125030.2590.5501.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds mark filter for event listener, using same struct
-nfct_filter_dump_mark.
+Let's use the new event wrappers in the events example.
 
-Signed-off-by Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- include/internal/object.h                          |  7 +++
- .../libnetfilter_conntrack.h                       |  1 +
- src/conntrack/bsf.c                                | 55 ++++++++++++++++++++++
- src/conntrack/filter.c                             | 13 +++++
- 4 files changed, 76 insertions(+)
+ examples/nft-events.c |   45 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
-diff --git a/include/internal/object.h b/include/internal/object.h
-index 540ad0d..1259467 100644
---- a/include/internal/object.h
-+++ b/include/internal/object.h
-@@ -263,6 +263,13 @@ struct nfct_filter {
- 		u_int32_t 	mask[4];
- 	} l3proto_ipv6[2][__FILTER_IPV6_MAX];
- 
-+	u_int32_t 		mark_elems;
-+	struct {
-+#define __FILTER_MARK_MAX	127
-+		u_int32_t 	val;
-+		u_int32_t 	mask;
-+	} mark[__FILTER_MARK_MAX];
+diff --git a/examples/nft-events.c b/examples/nft-events.c
+index 989f4bd..6177f95 100644
+--- a/examples/nft-events.c
++++ b/examples/nft-events.c
+@@ -22,11 +22,31 @@
+ #include <libnftnl/chain.h>
+ #include <libnftnl/rule.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/common.h>
 +
- 	u_int32_t 		set[1];
- };
- 
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index d4542ba..890721a 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -496,6 +496,7 @@ enum nfct_filter_attr {
- 	NFCT_FILTER_DST_IPV4,		/* struct nfct_filter_ipv4 */
- 	NFCT_FILTER_SRC_IPV6,		/* struct nfct_filter_ipv6 */
- 	NFCT_FILTER_DST_IPV6,		/* struct nfct_filter_ipv6 */
-+	NFCT_FILTER_MARK,		/* struct nfct_filter_dump_mark */
- 	NFCT_FILTER_MAX
- };
- 
-diff --git a/src/conntrack/bsf.c b/src/conntrack/bsf.c
-index 534202f..632c201 100644
---- a/src/conntrack/bsf.c
-+++ b/src/conntrack/bsf.c
-@@ -663,6 +663,58 @@ bsf_add_daddr_ipv6_filter(const struct nfct_filter *f, struct sock_filter *this)
- 	return bsf_add_addr_ipv6_filter(f, this, CTA_IP_V6_DST);
- }
- 
-+static int
-+bsf_add_mark_filter(const struct nfct_filter *f, struct sock_filter *this)
++static uint32_t event2flag(uint32_t event)
 +{
-+	unsigned int i, j;
-+	unsigned int label_continue, jt;
-+	struct stack *s;
-+	struct jump jmp;
-+
-+	/* nothing to filter, skip */
-+	if (f->mark_elems == 0)
-+		return 0;
-+
-+	/* XXX: see bsf_add_addr_ipv4_filter() */
-+	s = stack_create(sizeof(struct jump), 3 + 127);
-+	if (s == NULL) {
-+		errno = ENOMEM;
-+		return -1;
++	switch (event) {
++	case NFT_MSG_NEWTABLE:
++	case NFT_MSG_NEWCHAIN:
++	case NFT_MSG_NEWRULE:
++	case NFT_MSG_NEWSET:
++	case NFT_MSG_NEWSETELEM:
++		return (1 << NFT_OUTPUT_FLAG_EVENTNEW);
++	case NFT_MSG_DELTABLE:
++	case NFT_MSG_DELCHAIN:
++	case NFT_MSG_DELRULE:
++	case NFT_MSG_DELSET:
++	case NFT_MSG_DELSETELEM:
++		return (1 << NFT_OUTPUT_FLAG_EVENTDEL);
 +	}
 +
-+	jt = 1;
-+	if (f->logic[NFCT_FILTER_MARK] == NFCT_FILTER_LOGIC_POSITIVE)
-+		label_continue = 1;
-+	else
-+		label_continue = 2;
-+
-+	j = 0;
-+	j += nfct_bsf_load_payload_offset(this, j);
-+	j += nfct_bsf_find_attr(this, CTA_MARK, j);
-+	j += nfct_bsf_cmp_k_stack(this, 0, label_continue - j, j, s);
-+	j += nfct_bsf_x_equal_a(this, j);
-+
-+	for (i = 0; i < f->mark_elems; i++) {
-+		int mark = f->mark[i].val & f->mark[i].mask;
-+
-+		j += nfct_bsf_load_attr(this, BPF_W, j);
-+		j += nfct_bsf_alu_and(this, f->mark[i].mask, j);
-+		j += nfct_bsf_cmp_k_stack(this, mark, jt - j, j, s);
-+	}
-+
-+	while (stack_pop(s, &jmp) != -1)
-+		this[jmp.line].jt += jmp.jt + j;
-+
-+	if (f->logic[NFCT_FILTER_MARK] == NFCT_FILTER_LOGIC_NEGATIVE)
-+		j += nfct_bsf_jump_to(this, 1, j);
-+
-+	j += nfct_bsf_ret_verdict(this, NFCT_FILTER_REJECT, j);
-+
-+	stack_destroy(s);
-+
-+	return j;
++	return 0;
 +}
-+
- /* this buffer must be big enough to store all the autogenerated lines */
- #define BSF_BUFFER_SIZE 	2048
  
-@@ -696,6 +748,9 @@ int __setup_netlink_socket_filter(int fd, struct nfct_filter *f)
- 	j += bsf_add_state_filter(f, &bsf[j]);
- 	show_filter(bsf, from, j, "---- check state ----");
- 	from = j;
-+	j += bsf_add_mark_filter(f, &bsf[j]);
-+	show_filter(bsf, from, j, "---- check mark ----");
-+	from = j;
+ static int table_cb(const struct nlmsghdr *nlh, int type)
+ {
+ 	struct nft_table *t;
+-	char buf[4096];
  
- 	/* nothing to filter, skip */
- 	if (j == 0)
-diff --git a/src/conntrack/filter.c b/src/conntrack/filter.c
-index 026545a..78fbbc5 100644
---- a/src/conntrack/filter.c
-+++ b/src/conntrack/filter.c
-@@ -79,6 +79,18 @@ static void filter_attr_dst_ipv6(struct nfct_filter *filter, const void *value)
- 	filter->l3proto_elems_ipv6[1]++;
- }
+ 	t = nft_table_alloc();
+ 	if (t == NULL) {
+@@ -39,8 +59,8 @@ static int table_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
  
-+static void filter_attr_mark(struct nfct_filter *filter, const void *value)
-+{
-+	const struct nfct_filter_dump_mark *this = value;
-+
-+	if (filter->mark_elems >= __FILTER_MARK_MAX)
-+		return;
-+
-+	filter->mark[filter->mark_elems].val = this->val;
-+	filter->mark[filter->mark_elems].mask = this->mask;
-+	filter->mark_elems++;
-+}
-+
- const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
- 	[NFCT_FILTER_L4PROTO]		= filter_attr_l4proto,
- 	[NFCT_FILTER_L4PROTO_STATE]	= filter_attr_l4proto_state,
-@@ -86,4 +98,5 @@ const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
- 	[NFCT_FILTER_DST_IPV4]		= filter_attr_dst_ipv4,
- 	[NFCT_FILTER_SRC_IPV6]		= filter_attr_src_ipv6,
- 	[NFCT_FILTER_DST_IPV6]		= filter_attr_dst_ipv6,
-+	[NFCT_FILTER_MARK]		= filter_attr_mark,
- };
--- 
-1.9.1
+-	nft_table_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
+-	printf("[%s]\t%s\n", type == NFT_MSG_NEWTABLE ? "NEW" : "DEL", buf);
++	nft_table_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	fprintf(stdout, "\n");
+ 
+ err_free:
+ 	nft_table_free(t);
+@@ -51,7 +71,6 @@ err:
+ static int rule_cb(const struct nlmsghdr *nlh, int type)
+ {
+ 	struct nft_rule *t;
+-	char buf[4096];
+ 
+ 	t = nft_rule_alloc();
+ 	if (t == NULL) {
+@@ -64,8 +83,8 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_rule_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
+-	printf("[%s]\t%s\n", type == NFT_MSG_NEWRULE ? "NEW" : "DEL", buf);
++	nft_rule_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	fprintf(stdout, "\n");
+ 
+ err_free:
+ 	nft_rule_free(t);
+@@ -76,7 +95,6 @@ err:
+ static int chain_cb(const struct nlmsghdr *nlh, int type)
+ {
+ 	struct nft_chain *t;
+-	char buf[4096];
+ 
+ 	t = nft_chain_alloc();
+ 	if (t == NULL) {
+@@ -89,8 +107,8 @@ static int chain_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_chain_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
+-	printf("[%s]\t%s\n", type == NFT_MSG_NEWCHAIN ? "NEW" : "DEL", buf);
++	nft_chain_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	fprintf(stdout, "\n");
+ 
+ err_free:
+ 	nft_chain_free(t);
+@@ -114,8 +132,8 @@ static int set_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_set_snprintf(buf, sizeof(buf), t, NFT_OUTPUT_DEFAULT, 0);
+-	printf("[%s]\t%s\n", type == NFT_MSG_NEWSET ? "NEW" : "DEL", buf);
++	nft_set_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	fprintf(stdout, "\n");
+ 
+ err_free:
+ 	nft_set_free(t);
+@@ -127,7 +145,6 @@ static int setelem_cb(const struct nlmsghdr *nlh, int type)
+ {
+ 
+ 	struct nft_set *s;
+-	char buf[4096];
+ 
+ 	s = nft_set_alloc();
+ 	if (s == NULL) {
+@@ -140,8 +157,8 @@ static int setelem_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_set_snprintf(buf, sizeof(buf), s, NFT_OUTPUT_DEFAULT, 0);
+-	printf("[%s]\t%s\n", type == NFT_MSG_NEWSETELEM ? "NEW" : "DEL", buf);
++	nft_set_fprintf(stdout, s, NFT_OUTPUT_DEFAULT, event2flag(type));
++	fprintf(stdout, "\n");
+ 
+ err_free:
+ 	nft_set_free(s);
 
