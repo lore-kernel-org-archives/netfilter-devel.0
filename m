@@ -1,37 +1,90 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for net
-Date: Mon, 14 Apr 2014 19:00:32 -0400 (EDT)
-Message-ID: <20140414.190032.1844010181476508083.davem@davemloft.net>
-References: <1397515415-5477-1-git-send-email-pablo@netfilter.org>
+From: Eric Leblond <eric@regit.org>
+Subject: [ANNOUNCE] ulogd 2.0.4 release
+Date: Tue, 15 Apr 2014 09:56:30 +0200
+Message-ID: <1397548590.18685.2.camel@ice-age2.regit.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-+yV0VtG9BtiV74IsmQeo"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+
+--=-+yV0VtG9BtiV74IsmQeo
+Content-Type: multipart/mixed; boundary="=-ctLcdn+BcGosGCuQvMR1"
+
+
+--=-ctLcdn+BcGosGCuQvMR1
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+The Netfilter project proudly presents:
+
+        ulogd 2.0.4
+
+ulogd is a userspace logging daemon for netfilter/iptables related
+logging. This includes per-packet logging of security violations,
+per-packet logging for accounting, per-flow logging and flexible
+user-defined accounting.
+
+ulogd 2.0.4 features a new JSON output plugin allowing easy integration
+with log management systems.
+
+See ChangeLog that comes attached to this email for more details.
+
+Thanks to Gustavo Zacarias and Ken-ichirou Matsuzawa for their
+contributions to this release of ulogd.
+
+You can download it from:
+
+http://www.netfilter.org/projects/ulogd/downloads.html
+ftp://ftp.netfilter.org/pub/ulogd/
+
+Have fun!
+--=20
+Eric Leblond <eric@regit.org>
+
+
+--=-ctLcdn+BcGosGCuQvMR1
+Content-Disposition: attachment; filename="changes-ulogd-2.0.4.txt"
+Content-Type: text/plain; name="changes-ulogd-2.0.4.txt"; charset="ISO-8859-15"
+Content-Transfer-Encoding: base64
+
+RXJpYyBMZWJsb25kICgxMyk6DQogICAgICBuYWNjdDogZml4IGZvcm1hdCB3YXJuaW5nDQogICAg
+ICB1dGlsOiBmaXggd2FybmluZyBvbiBmb3JtYXQgc3RyaW5nDQogICAgICBkYjogc2V0IHJpbmcg
+ZGVmYXVsdCBzaXplIHRvIDANCiAgICAgIGRiOiBjYW5jZWwgaW5qZWN0aW9uIHRocmVhZCB3aGVu
+IHRlcm1pbmF0aW5nDQogICAgICBkYjogZG9uJ3QgbG9vc2Ugb25lIHBhY2tldCBvbiByZWNvbm5l
+Y3QNCiAgICAgIHN0b3JlIENvbW1vbiBJbmZvcm1hdGlvbiBNb2RlbCBuYW1lIGluIHVsb2dkIGtl
+eQ0KICAgICAganNvbjogaW50cm9kdWNlIG5ldyBKU09OIG91dHB1dCBwbHVnaW4NCiAgICAgIHVs
+b2dkOiBhdm9pZCBwb3RlbnRpYWwgZG91YmxlIHByaW50IG9mIG1lc3NhZ2UNCiAgICAgIHVsb2dk
+OiBhZGQgY2FycmlhZ2UgcmV0dXJuIGFzIHNlcGFyYXRvcg0KICAgICAgbmZjdDogdXNlIHN0YXJ0
+IHRpbWVzdGFtcCBpZiBwcm92aWRlZA0KICAgICAganNvbjogdXNlIHBhY2tldCB0aW1lc3RhbXAg
+aWYgYXZhaWxhYmxlDQogICAgICBwcmludHBrdDogb29iLnRpbWUuc2VjIHdhcyBub3QgdXNlZA0K
+ICAgICAgU2V0IHJlbGVhc2UgbnVtYmVyIHRvIDIuMC40Lg0KDQpHdXN0YXZvIFphY2FyaWFzICgx
+KToNCiAgICAgIHVsb2dkOiB1c2UgQUNfU0VBUkNIX0xJQlMgZm9yIGxpYnB0aHJlYWQNCg0KS2Vu
+LWljaGlyb3UgTUFUU1VaQVdBICgxKToNCiAgICAgIHVsb2dkOiBmaXggbG9nbGV2ZWwgaGFuZGxp
+bmcNCg0K
+
+
+--=-ctLcdn+BcGosGCuQvMR1--
+
+--=-+yV0VtG9BtiV74IsmQeo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:59922 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796AbaDNXAe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Apr 2014 19:00:34 -0400
-In-Reply-To: <1397515415-5477-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 15 Apr 2014 00:43:32 +0200
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> The following patchset contains three Netfilter fixes for your net tree,
-> they are:
-> 
-> * Fix missing generation sequence initialization which results in a splat
->   if lockdep is enabled, it was introduced in the recent works to improve
->   nf_conntrack scalability, from Andrey Vagin.
-> 
-> * Don't flush the GRE keymap list in nf_conntrack when the pptp helper is
->   disabled otherwise this crashes due to a double release, from Andrey
->   Vagin.
-> 
-> * Fix nf_tables cmp fast in big endian, from Patrick McHardy.
+iD8DBQBTTOYunxA7CdMWjzIRAvQDAJ9p+yOqVwwPu5UjjNdLKEKHfD+iCwCcC2OJ
+Os8To3iFFoz5PZAexbDqRVk=
+=BPox
+-----END PGP SIGNATURE-----
 
-Pulled, thanks a lot Pablo.
+--=-+yV0VtG9BtiV74IsmQeo--
+
