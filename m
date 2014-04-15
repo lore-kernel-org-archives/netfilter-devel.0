@@ -1,59 +1,138 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH] set: add helper to get the first set_elem
-Date: Tue, 15 Apr 2014 10:44:09 +0200
-Message-ID: <CAOkSjBgjzx0H4GOcekrXEip7Mqab=cTkMzvdUmRiKLWh=J5qUw@mail.gmail.com>
-References: <20140415075842.18544.32525.stgit@nfdev.cica.es>
- <20140415080432.GA15759@macbook.localnet> <20140415081124.GA3675@localhost>
+Subject: [libnftnl PATCH 1/2] common: add wrapper to represent events
+Date: Tue, 15 Apr 2014 11:40:30 +0200
+Message-ID: <20140415094030.23739.71580.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:43684 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbaDOIob convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 04:44:31 -0400
-Received: by mail-lb0-f169.google.com with SMTP id q8so6746998lbi.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2014 01:44:29 -0700 (PDT)
-In-Reply-To: <20140415081124.GA3675@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:60773 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750873AbaDOJkn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:40:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15 April 2014 10:11, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Apr 15, 2014 at 10:04:32AM +0200, Patrick McHardy wrote:
->> On Tue, Apr 15, 2014 at 09:58:42AM +0200, Arturo Borrero Gonzalez wr=
-ote:
->> > Add a helper that returns a pointer to the first set_elem in a giv=
-en set.
->> >
->> > This function is useful in situations where you know the set only =
-have one
->> > element (ie, event reporting from the kernel).
->>
->> That doesn't seem right to me. As I said in my review of the notific=
-ation
->> patch, userspace *must* be prepared for multiple elements being repo=
-rted
->> at once since it is very likely that we will change the kernel side =
-in
->> the future for efficiency reasons.
->
-> I see. Arturo, you have to consider that the set may have more than
-> one element in the event from userspace, even if currently we only
-> have one single element. So use the set iterator to print all the
-> elements in the set instead.
+This patch adds a simple string wrapper to represent nf_tables events.
 
-ok!
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ include/libnftnl/common.h |    6 +++++
+ src/common.c              |   59 +++++++++++++++++++++++++++++++++++++++++++++
+ src/libnftnl.map          |    3 ++
+ 3 files changed, 68 insertions(+)
 
-regards.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
+index f0c20f0..96f8155 100644
+--- a/include/libnftnl/common.h
++++ b/include/libnftnl/common.h
+@@ -2,6 +2,7 @@
+ #define _LIBNFTNL_COMMON_H_
+ 
+ #include <stdint.h>
++#include <stdio.h>
+ 
+ enum {
+ 	NFT_PARSE_EBADINPUT	= 0,
+@@ -30,4 +31,9 @@ struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+ struct nft_parse_err *nft_parse_err_alloc(void);
+ void nft_parse_err_free(struct nft_parse_err *);
+ int nft_parse_perror(const char *str, struct nft_parse_err *err);
++int nft_event_snprintf(char *buf, size_t bufsiz, const char *content,
++		       uint32_t format, uint32_t type);
++int nft_event_fprintf(FILE *fp, const char *content,
++		      uint32_t format, uint32_t type);
++
+ #endif
+diff --git a/src/common.c b/src/common.c
+index 336d2b4..5ded0de 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -8,9 +8,11 @@
+  */
+ 
+ #include <stdlib.h>
++#include <stdio.h>
+ #include <sys/socket.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
+ 
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/common.h>
+@@ -66,3 +68,60 @@ int nft_parse_perror(const char *str, struct nft_parse_err *err)
+ 	}
+ }
+ EXPORT_SYMBOL(nft_parse_perror);
++
++int nft_event_snprintf(char *buf, size_t bufsiz, const char *content,
++		       uint32_t format, uint32_t type)
++{
++	const char *type_str = "unknown";
++	int ret;
++
++	switch (type) {
++	case NFT_MSG_NEWTABLE:
++	case NFT_MSG_NEWCHAIN:
++	case NFT_MSG_NEWSET:
++	case NFT_MSG_NEWRULE:
++	case NFT_MSG_NEWSETELEM:
++		type_str = "new";
++		break;
++	case NFT_MSG_DELTABLE:
++	case NFT_MSG_DELCHAIN:
++	case NFT_MSG_DELSET:
++	case NFT_MSG_DELRULE:
++	case NFT_MSG_DELSETELEM:
++		type_str = "destroy";
++		break;
++	}
++
++	switch (format) {
++	case NFT_OUTPUT_XML:
++		ret = snprintf(buf, bufsiz, "<event><type>%s</type>"
++			       "<nftables>%s</nftables></event>",
++			       type_str, content);
++		break;
++	case NFT_OUTPUT_JSON:
++		ret = snprintf(buf, bufsiz, "{event:{type:\"%s\","
++			       "{\"nftables\":[\"%s\"]}}}",
++			       type_str, content);
++		break;
++	default:
++		ret = snprintf(buf, bufsiz, "[%s] %s", type_str, content);
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(nft_event_snprintf);
++
++static int nft_event_do_snprintf(char *buf, size_t bufsiz, void *content,
++				 uint32_t format, uint32_t type)
++{
++	return nft_event_snprintf(buf, bufsiz, (const char *)content,
++				  format, type);
++}
++
++int nft_event_fprintf(FILE *fp, const char *content,
++		      uint32_t format, uint32_t type)
++{
++	return nft_fprintf(fp, (void *)content, format, type,
++			   nft_event_do_snprintf);
++}
++EXPORT_SYMBOL(nft_event_fprintf);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index b11db67..18e58fa 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -205,4 +205,7 @@ LIBNFTNL_1.1 {
+   nft_rule_attr_get_data;
+   nft_set_attr_set_data;
+   nft_set_attr_get_data;
++
++  nft_event_snprintf;
++  nft_event_fprintf;
+ } LIBNFTNL_1.0;
+
