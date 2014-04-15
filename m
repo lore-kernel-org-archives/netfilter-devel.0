@@ -1,63 +1,172 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH] set-elem: fix a memory leak
-Date: Tue, 15 Apr 2014 12:13:47 +0200
-Message-ID: <8df9d8df7c8a2c0fa13763fcae5e57f04a4d0362.1397556694.git.anarey@gmail.com>
-References: <952227cde493df2637db10cbe8cf2f9b964d885c.1397556664.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [libnetfilter_conntrack PATCH 1/3 resend] conntrack: add mark event
+ filter
+Date: Tue, 15 Apr 2014 20:54:53 +0900
+Message-ID: <20140415115453.GA6947@gmail.com>
+References: <20140408102614.GA29462@gmail.com>
+ <20140408103002.GB29462@gmail.com>
+ <20140414125324.GA22192@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:42083 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbaDOKOF (ORCPT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:58593 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853AbaDOLzA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 06:14:05 -0400
-Received: by mail-wg0-f46.google.com with SMTP id b13so9180487wgh.17
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2014 03:14:04 -0700 (PDT)
-In-Reply-To: <952227cde493df2637db10cbe8cf2f9b964d885c.1397556664.git.anarey@gmail.com>
+	Tue, 15 Apr 2014 07:55:00 -0400
+Received: by mail-pb0-f53.google.com with SMTP id rp16so9422593pbb.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2014 04:55:00 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140414125324.GA22192@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Valgrind reports the following memory leak:
+This patch adds mark filter for event listener, using same struct
+nfct_filter_dump_mark.
 
-valgrind  --leak-check=full ./nft-parsing-test -f jsonfiles/63-set.json
-==7131== HEAP SUMMARY:
-==7131==     in use at exit: 2 bytes in 1 blocks
-==7131==   total heap usage: 155 allocs, 154 frees, 6,497 bytes allocated
-==7131==
-==7131== 2 bytes in 1 blocks are definitely lost in loss record 1 of 1
-==7131==    at 0x4C274A0: malloc (vg_replace_malloc.c:291)
-==7131==    by 0x590B829: strdup (strdup.c:42)
-==7131==    by 0x4E4341A: nft_data_reg_json_parse (data_reg.c:55)
-==7131==    by 0x4E4093A: nft_jansson_data_reg_parse (jansson.c:231)
-==7131==    by 0x4E40A1B: nft_jansson_et_elem_parse (jansson.c:257)
-==7131==    by 0x4E3CECA: nft_jansson_parse_set (set.c:398)
-==7131==    by 0x4E3EC65: nft_ruleset_do_parse (ruleset.c:263)
-==7131==    by 0x401479: test_json (nft-parsing-test.c:129)
-==7131==    by 0x4017C2: execute_test_file (nft-parsing-test.c:270)
-==7131==    by 0x400EBB: main (nft-parsing-test.c:332)
+Signed-off-by Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/set_elem.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/internal/object.h                          |  7 +++
+ .../libnetfilter_conntrack.h                       |  1 +
+ src/conntrack/bsf.c                                | 55 ++++++++++++++++++++++
+ src/conntrack/filter.c                             | 13 +++++
+ 4 files changed, 76 insertions(+)
 
-diff --git a/src/set_elem.c b/src/set_elem.c
-index a747ba6..05fd08b 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -42,6 +42,12 @@ EXPORT_SYMBOL(nft_set_elem_alloc);
+diff --git a/include/internal/object.h b/include/internal/object.h
+index 540ad0d..1259467 100644
+--- a/include/internal/object.h
++++ b/include/internal/object.h
+@@ -263,6 +263,13 @@ struct nfct_filter {
+ 		u_int32_t 	mask[4];
+ 	} l3proto_ipv6[2][__FILTER_IPV6_MAX];
  
- void nft_set_elem_free(struct nft_set_elem *s)
- {
-+	if (s->flags & (1 << NFT_SET_ELEM_ATTR_CHAIN)) {
-+		if (s->data.chain) {
-+			xfree(s->data.chain);
-+			s->data.chain = NULL;
-+		}
-+	}
- 	xfree(s);
++	u_int32_t 		mark_elems;
++	struct {
++#define __FILTER_MARK_MAX	127
++		u_int32_t 	val;
++		u_int32_t 	mask;
++	} mark[__FILTER_MARK_MAX];
++
+ 	u_int32_t 		set[1];
+ };
+ 
+diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+index d4542ba..890721a 100644
+--- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
++++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+@@ -496,6 +496,7 @@ enum nfct_filter_attr {
+ 	NFCT_FILTER_DST_IPV4,		/* struct nfct_filter_ipv4 */
+ 	NFCT_FILTER_SRC_IPV6,		/* struct nfct_filter_ipv6 */
+ 	NFCT_FILTER_DST_IPV6,		/* struct nfct_filter_ipv6 */
++	NFCT_FILTER_MARK,		/* struct nfct_filter_dump_mark */
+ 	NFCT_FILTER_MAX
+ };
+ 
+diff --git a/src/conntrack/bsf.c b/src/conntrack/bsf.c
+index 534202f..632c201 100644
+--- a/src/conntrack/bsf.c
++++ b/src/conntrack/bsf.c
+@@ -663,6 +663,58 @@ bsf_add_daddr_ipv6_filter(const struct nfct_filter *f, struct sock_filter *this)
+ 	return bsf_add_addr_ipv6_filter(f, this, CTA_IP_V6_DST);
  }
- EXPORT_SYMBOL(nft_set_elem_free);
+ 
++static int
++bsf_add_mark_filter(const struct nfct_filter *f, struct sock_filter *this)
++{
++	unsigned int i, j;
++	unsigned int label_continue, jt;
++	struct stack *s;
++	struct jump jmp;
++
++	/* nothing to filter, skip */
++	if (f->mark_elems == 0)
++		return 0;
++
++	/* XXX: see bsf_add_addr_ipv4_filter() */
++	s = stack_create(sizeof(struct jump), 3 + 127);
++	if (s == NULL) {
++		errno = ENOMEM;
++		return -1;
++	}
++
++	jt = 1;
++	if (f->logic[NFCT_FILTER_MARK] == NFCT_FILTER_LOGIC_POSITIVE)
++		label_continue = 1;
++	else
++		label_continue = 2;
++
++	j = 0;
++	j += nfct_bsf_load_payload_offset(this, j);
++	j += nfct_bsf_find_attr(this, CTA_MARK, j);
++	j += nfct_bsf_cmp_k_stack(this, 0, label_continue - j, j, s);
++	j += nfct_bsf_x_equal_a(this, j);
++
++	for (i = 0; i < f->mark_elems; i++) {
++		int mark = f->mark[i].val & f->mark[i].mask;
++
++		j += nfct_bsf_load_attr(this, BPF_W, j);
++		j += nfct_bsf_alu_and(this, f->mark[i].mask, j);
++		j += nfct_bsf_cmp_k_stack(this, mark, jt - j, j, s);
++	}
++
++	while (stack_pop(s, &jmp) != -1)
++		this[jmp.line].jt += jmp.jt + j;
++
++	if (f->logic[NFCT_FILTER_MARK] == NFCT_FILTER_LOGIC_NEGATIVE)
++		j += nfct_bsf_jump_to(this, 1, j);
++
++	j += nfct_bsf_ret_verdict(this, NFCT_FILTER_REJECT, j);
++
++	stack_destroy(s);
++
++	return j;
++}
++
+ /* this buffer must be big enough to store all the autogenerated lines */
+ #define BSF_BUFFER_SIZE 	2048
+ 
+@@ -696,6 +748,9 @@ int __setup_netlink_socket_filter(int fd, struct nfct_filter *f)
+ 	j += bsf_add_state_filter(f, &bsf[j]);
+ 	show_filter(bsf, from, j, "---- check state ----");
+ 	from = j;
++	j += bsf_add_mark_filter(f, &bsf[j]);
++	show_filter(bsf, from, j, "---- check mark ----");
++	from = j;
+ 
+ 	/* nothing to filter, skip */
+ 	if (j == 0)
+diff --git a/src/conntrack/filter.c b/src/conntrack/filter.c
+index 026545a..78fbbc5 100644
+--- a/src/conntrack/filter.c
++++ b/src/conntrack/filter.c
+@@ -79,6 +79,18 @@ static void filter_attr_dst_ipv6(struct nfct_filter *filter, const void *value)
+ 	filter->l3proto_elems_ipv6[1]++;
+ }
+ 
++static void filter_attr_mark(struct nfct_filter *filter, const void *value)
++{
++	const struct nfct_filter_dump_mark *this = value;
++
++	if (filter->mark_elems >= __FILTER_MARK_MAX)
++		return;
++
++	filter->mark[filter->mark_elems].val = this->val;
++	filter->mark[filter->mark_elems].mask = this->mask;
++	filter->mark_elems++;
++}
++
+ const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
+ 	[NFCT_FILTER_L4PROTO]		= filter_attr_l4proto,
+ 	[NFCT_FILTER_L4PROTO_STATE]	= filter_attr_l4proto_state,
+@@ -86,4 +98,5 @@ const filter_attr filter_attr_array[NFCT_FILTER_MAX] = {
+ 	[NFCT_FILTER_DST_IPV4]		= filter_attr_dst_ipv4,
+ 	[NFCT_FILTER_SRC_IPV6]		= filter_attr_src_ipv6,
+ 	[NFCT_FILTER_DST_IPV6]		= filter_attr_dst_ipv6,
++	[NFCT_FILTER_MARK]		= filter_attr_mark,
+ };
 -- 
-1.9.0
+1.9.1
 
