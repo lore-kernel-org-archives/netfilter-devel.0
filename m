@@ -1,88 +1,50 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [iptables PATCH] extensions: udp: add translation to nft
-Date: Wed, 16 Apr 2014 09:19:40 +0200
-Message-ID: <a23cb222241de735c0f1bd19492ed7ea752b65f8.1397632430.git.anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: nftables v0.2 doesn't build with libnftnl v1.0.0
+Date: Wed, 16 Apr 2014 14:46:25 +0200
+Message-ID: <CAOkSjBikNo+m5w0tCEin+JUeKoy6JdE9V4jyiym2p7DizXvn4g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:46971 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769AbaDPHTv (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:58720 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360AbaDPMqr convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Apr 2014 03:19:51 -0400
-Received: by mail-we0-f170.google.com with SMTP id w61so10567048wes.15
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Apr 2014 00:19:50 -0700 (PDT)
+	Wed, 16 Apr 2014 08:46:47 -0400
+Received: by mail-la0-f54.google.com with SMTP id mc6so8262340lab.27
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Apr 2014 05:46:45 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Some examples:
+Hi there!
 
- $ sudo iptables-translate -A INPUT -p udp -i eth0 --sport 53 -j ACCEPT
-add rule ip filter INPUT iifname eth0 udp sport 53 counter accept
+nftables v0.2 needs latest libnftnl to build.
 
- $ sudo ./iptables-translate -A OUTPUT -p udp -o eth0 --dport 53:66 -j DROP
-add rule ip filter OUTPUT oifname eth0 udp dport 53-66 counter drop
+When using libnftnl v1.0.0 I get:
 
- $ sudo ./iptables-translate -I OUTPUT -p udp -d 8.8.8.8 -j ACCEPT
-nft insert rule ip filter OUTPUT ip protocol udp ip daddr 8.8.8.8 counter accept
+[...]
+src/netlink.c: In function =E2=80=98alloc_nft_rule=E2=80=99:
+src/netlink.c:124:3: warning: implicit declaration of function
+=E2=80=98nft_rule_attr_set_data=E2=80=99 [-Wimplicit-function-declarati=
+on]
+src/netlink.c:124:31: error: =E2=80=98NFT_RULE_ATTR_USERDATA=E2=80=99 u=
+ndeclared
+(first use in this function)
+src/netlink.c:124:31: note: each undeclared identifier is reported
+only once for each function it appears in
+[...]
 
-Sign-off-by: Ana Rey <anarey@gmail.com>
----
- extensions/libxt_udp.c | 34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+Would you please release a new version of libnftnl?
 
-diff --git a/extensions/libxt_udp.c b/extensions/libxt_udp.c
-index b9f39ee..f3532ef 100644
---- a/extensions/libxt_udp.c
-+++ b/extensions/libxt_udp.c
-@@ -152,6 +152,39 @@ static void udp_save(const void *ip, const struct xt_entry_match *match)
- 	}
- }
- 
-+static int udp_xlate(const struct xt_entry_match *match, struct xt_buf *buf)
-+{
-+	const struct xt_udp *udpinfo = (struct xt_udp *)match->data;
-+
-+	if (udpinfo->spts[0] != 0 || udpinfo->spts[1] != 0xFFFF) {
-+		if (udpinfo->spts[0] != udpinfo->spts[1])
-+			xt_buf_add(buf,"udp sport %s%u-%u ",
-+				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
-+					 "!= ": "",
-+				   udpinfo->spts[0], udpinfo->spts[1]);
-+		else
-+			xt_buf_add(buf, "udp sport %s%u ",
-+				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
-+					 "!= ": "",
-+				   udpinfo->spts[0]);
-+	}
-+
-+	if (udpinfo->dpts[0] != 0 || udpinfo->dpts[1] != 0xFFFF) {
-+		if (udpinfo->dpts[0]  != udpinfo->dpts[1])
-+			xt_buf_add(buf,"udp dport %s%u-%u ",
-+				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
-+					 "!= ": "",
-+				   udpinfo->dpts[0], udpinfo->dpts[1]);
-+		else
-+			xt_buf_add(buf,"udp dport %s%u ",
-+				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
-+					 "!= ": "",
-+				   udpinfo->dpts[0]);
-+	}
-+
-+	return 1;
-+}
-+
- static struct xtables_match udp_match = {
- 	.family		= NFPROTO_UNSPEC,
- 	.name		= "udp",
-@@ -164,6 +197,7 @@ static struct xtables_match udp_match = {
- 	.save		= udp_save,
- 	.x6_parse	= udp_parse,
- 	.x6_options	= udp_opts,
-+	.xlate		= udp_xlate,
- };
- 
- void
--- 
-1.9.0
+thanks, regards.
 
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
