@@ -1,64 +1,88 @@
-From: isabelle <contact_claude@isabelle.de>
-Subject: spende /Donation
-Date: Tue, 15 Apr 2014 21:47:38 +0200
-Message-ID: <yx4Sef42JyeoopbQKx5pAipXLBt1prSNuXPiRcWu1Nis__16237.6180677258$1397596696$gmane$org@isabelle.de>
-Reply-To: isabelle.claude654@laposte.net
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Undisclosed-Recipients:;
+From: Ana Rey <anarey@gmail.com>
+Subject: [iptables PATCH] extensions: udp: add translation to nft
+Date: Wed, 16 Apr 2014 09:19:40 +0200
+Message-ID: <a23cb222241de735c0f1bd19492ed7ea752b65f8.1397632430.git.anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps22121.lws-hosting.com ([192.162.68.139]:47016 "EHLO
-	vps22121.lws-hosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbaDOVPu convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:46971 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754769AbaDPHTv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Apr 2014 17:15:50 -0400
+	Wed, 16 Apr 2014 03:19:51 -0400
+Received: by mail-we0-f170.google.com with SMTP id w61so10567048wes.15
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Apr 2014 00:19:50 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hallo
-Wenn ich diese Nachricht zu senden wollte, ist dies nicht einfach Zufal=
-l. Dies ist, weil Ihre e-Mail vom elektronischen Roboter gesichert mein=
-e WX.7AR BW ausgew=E4hlt wurde.
-Zun=E4chst m=F6chte ich mich f=FCr dieses Eindringen in Ihr Leben zu en=
-tschuldigen, obwohl ich zugeben, dass es mir sehr wichtig. Ich bin Isab=
-elle Vasudev. Ich leide an Krebs im Hals seit nun mehr als 3 Jahre und =
-eine halbe und es leider, mein Arzt hat gerade informiert mich, dass ic=
-h bin voller unheilbar und, dass meine Tage, wegen meinen etwas gez=E4h=
-lt sind abgebaut Zustand. Ich bin eine Witwe und ich habe keine Kind, d=
-as ich beginne zu bedauern.
-In der Tat ist der Grund, warum ich Sie kontaktieren bin, m=F6chte ich =
-einen Teil von meinem Grundst=FCck zu spenden, weil ich niemand, wer di=
-e Erben konnte. Ich habe fast mein ganzes Zeug, darunter ein Unternehme=
-n der Export von Holz, Gummi und Stahl-Industrie in Afrika, wo ich wohn=
-e nun mehr 10 Jahren, verkauft. Ein gro=DFer Teil der Gelder gesammelt =
-wurde mit unterschiedlichen Verb=E4nden humanit=E4ren Charakter =FCbera=
-ll in der Welt, aber besonders hier in Afrika bezahlt.
-Im Hinblick auf den Rest der Summe genau in H=F6he von 750.000, 00euros=
- (sieben hundert und f=FCnfzig tausend Euro) auf eine gesperrte Mitarbe=
-iter-Account, meine letzte w=FCnschen w=FCrde Sie es spenden, so dass S=
-ie in Ihrer Branche und vor allem den humanit=E4ren investieren k=F6nne=
-n. Ich bin ganz bewusst was ich zu tun beabsichtigen, und ich denke, tr=
-otz der Tatsache, die wir nicht wissen, werdet ihr diese Summe gut nutz=
-en. Ich bitte Sie, bitte dieses Erbe zu akzeptieren, ohne jedoch Fragen=
- Sie alles, was in zur=FCckgeben wenn es nicht immer denken, gutes zu t=
-un, um dich herum, was ich nicht getan habe, in meiner Existenz.
-Das hei=DFt, wird auf einer verantwortlichen Person und besonders gutem=
- Glauben fallen zu lassen beruhigt, ich m=F6chte bitten, dass Sie bitte=
- mich bei den meisten schnell kontaktieren, um weitere Erkl=E4rung =FCb=
-er die Gr=FCnde f=FCr meine Geste und den Verlauf der Dinge zu geben. B=
-itte kontaktieren Sie mich so bald wie m=F6glich, wenn Sie mein Angebot=
- akzeptieren.
-Gott m=F6ge mit dir sein!
-Ich fordere Sie auf, mich =FCber meine pers=F6nliche e-Mail-Adresse zu =
-kontaktieren:
-Isabelle.claude654@laposte.net
-Der Frieden und Barmherzigkeit Gottes m=F6ge mit dir sein.
-Mrs Isabelle
+Some examples:
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ $ sudo iptables-translate -A INPUT -p udp -i eth0 --sport 53 -j ACCEPT
+add rule ip filter INPUT iifname eth0 udp sport 53 counter accept
+
+ $ sudo ./iptables-translate -A OUTPUT -p udp -o eth0 --dport 53:66 -j DROP
+add rule ip filter OUTPUT oifname eth0 udp dport 53-66 counter drop
+
+ $ sudo ./iptables-translate -I OUTPUT -p udp -d 8.8.8.8 -j ACCEPT
+nft insert rule ip filter OUTPUT ip protocol udp ip daddr 8.8.8.8 counter accept
+
+Sign-off-by: Ana Rey <anarey@gmail.com>
+---
+ extensions/libxt_udp.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+diff --git a/extensions/libxt_udp.c b/extensions/libxt_udp.c
+index b9f39ee..f3532ef 100644
+--- a/extensions/libxt_udp.c
++++ b/extensions/libxt_udp.c
+@@ -152,6 +152,39 @@ static void udp_save(const void *ip, const struct xt_entry_match *match)
+ 	}
+ }
+ 
++static int udp_xlate(const struct xt_entry_match *match, struct xt_buf *buf)
++{
++	const struct xt_udp *udpinfo = (struct xt_udp *)match->data;
++
++	if (udpinfo->spts[0] != 0 || udpinfo->spts[1] != 0xFFFF) {
++		if (udpinfo->spts[0] != udpinfo->spts[1])
++			xt_buf_add(buf,"udp sport %s%u-%u ",
++				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
++					 "!= ": "",
++				   udpinfo->spts[0], udpinfo->spts[1]);
++		else
++			xt_buf_add(buf, "udp sport %s%u ",
++				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
++					 "!= ": "",
++				   udpinfo->spts[0]);
++	}
++
++	if (udpinfo->dpts[0] != 0 || udpinfo->dpts[1] != 0xFFFF) {
++		if (udpinfo->dpts[0]  != udpinfo->dpts[1])
++			xt_buf_add(buf,"udp dport %s%u-%u ",
++				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
++					 "!= ": "",
++				   udpinfo->dpts[0], udpinfo->dpts[1]);
++		else
++			xt_buf_add(buf,"udp dport %s%u ",
++				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
++					 "!= ": "",
++				   udpinfo->dpts[0]);
++	}
++
++	return 1;
++}
++
+ static struct xtables_match udp_match = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "udp",
+@@ -164,6 +197,7 @@ static struct xtables_match udp_match = {
+ 	.save		= udp_save,
+ 	.x6_parse	= udp_parse,
+ 	.x6_options	= udp_opts,
++	.xlate		= udp_xlate,
+ };
+ 
+ void
+-- 
+1.9.0
+
