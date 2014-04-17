@@ -1,41 +1,127 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] set-elem: fix a memory leak
-Date: Wed, 16 Apr 2014 20:09:42 +0200
-Message-ID: <20140416180942.GB5144@localhost>
-References: <952227cde493df2637db10cbe8cf2f9b964d885c.1397556664.git.anarey@gmail.com>
- <8df9d8df7c8a2c0fa13763fcae5e57f04a4d0362.1397556694.git.anarey@gmail.com>
+Subject: [ANNOUNCE] libnftnl 1.0.1 release
+Date: Thu, 17 Apr 2014 13:09:08 +0200
+Message-ID: <20140417110908.GA23125@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+Content-Type: multipart/mixed; boundary="IS0zKkzwUGydFO0o"
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50379 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48585 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754196AbaDPSJr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Apr 2014 14:09:47 -0400
+	id S1751019AbaDQLJP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Apr 2014 07:09:15 -0400
 Content-Disposition: inline
-In-Reply-To: <8df9d8df7c8a2c0fa13763fcae5e57f04a4d0362.1397556694.git.anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 15, 2014 at 12:13:47PM +0200, Ana Rey wrote:
-> Valgrind reports the following memory leak:
-> 
-> valgrind  --leak-check=full ./nft-parsing-test -f jsonfiles/63-set.json
-> ==7131== HEAP SUMMARY:
-> ==7131==     in use at exit: 2 bytes in 1 blocks
-> ==7131==   total heap usage: 155 allocs, 154 frees, 6,497 bytes allocated
-> ==7131==
-> ==7131== 2 bytes in 1 blocks are definitely lost in loss record 1 of 1
-> ==7131==    at 0x4C274A0: malloc (vg_replace_malloc.c:291)
-> ==7131==    by 0x590B829: strdup (strdup.c:42)
-> ==7131==    by 0x4E4341A: nft_data_reg_json_parse (data_reg.c:55)
-> ==7131==    by 0x4E4093A: nft_jansson_data_reg_parse (jansson.c:231)
-> ==7131==    by 0x4E40A1B: nft_jansson_et_elem_parse (jansson.c:257)
-> ==7131==    by 0x4E3CECA: nft_jansson_parse_set (set.c:398)
-> ==7131==    by 0x4E3EC65: nft_ruleset_do_parse (ruleset.c:263)
-> ==7131==    by 0x401479: test_json (nft-parsing-test.c:129)
-> ==7131==    by 0x4017C2: execute_test_file (nft-parsing-test.c:270)
-> ==7131==    by 0x400EBB: main (nft-parsing-test.c:332)
 
-Also applied, thanks Ana.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi!
+
+The Netfilter project proudly presents:
+
+        libnftnl 1.0.1
+
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem. The
+library libnftnl has been previously known as libnftables. This
+library is currently used by the nft command line tool.
+
+This release comes with new features available in 3.14 and fixes.
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Have fun!
+
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: attachment; filename="changes-libnftnl-1.0.1.txt"
+Content-Transfer-Encoding: 8bit
+
+Ana Rey (9):
+      tests: Use getopt_long to parse the command-line arguments.
+      xml, json: Delete a cmpdata label in xml and json file
+      xml, json: Delete an immediatedate label in xml and json file
+      tests: New tools to update xml and json testfiles
+      tests: Add support to check a json or xml testfile
+      tests: Fix a memory leak
+      target, match: Fix an invalid read
+      set-elem: fix a memory leak
+      lookup: Fix an invalid read
+
+Arturo Borrero (8):
+      src: update meta expr
+      examples: nft-set-get: retrieve all sets via unspec
+      examples: add nft-ruleset-get
+      include: add stdint.h to common.h
+      src: check if netlink parsing fails
+      set_elems: delete unexisting exported symbol
+      set_elem: parse family from Netlink message
+      examples: complete nft-events example
+
+Arturo Borrero Gonzalez (1):
+      tests: add table 'use' attr to testfiles
+
+Eric Leblond (2):
+      expr: add support for nfnetlink queue
+      test: add tests for expr queue
+
+Florian Westphal (1):
+      expr: add conntrack label match support
+
+Jan Engelhardt (2):
+      build: resolve build failure involving linux/netlink.h
+      build: resolve compile error involving XT_EXTENSION_MAXNAMELEN
+
+Kristian Evensen (2):
+      meta: Let user specify any combination of sreg/dreg
+      expr: ct: Add support for setting the mark
+
+Pablo Neira Ayuso (17):
+      src: fix compilation due to missing NFPROTO_INET definition
+      build: fix final report after configuration
+      include: add cached copy of linux/kernel.h
+      Merge branch 'master' into next-3.14
+      chain: print usage counter for base chain via default output as well
+      src: compile queue expression support
+      src: early attribute type validation in nft_*_attr_set
+      src: add assertion infrastructure to validate attribute types
+      src: add nft_*_attr_{set|get}_data interface
+      src: fix wrong type in NFT_ATTR_*_FAMILY
+      include: get linux/netfilter/nf_tables.h in sync with kernel header
+      example: nft-rule-add: simplify example
+      rule: add NFT_RULE_ATTR_USERDATA support
+      examples: remove nft-rule-insert from Makefile.am
+      src: fix bogus assertion for unset attributes
+      include: add missing netfilter.h
+      bump version to 1.0.1
+
+Patrick McHardy (4):
+      libnftables: add support for inet family and mete nfproto/l4proto expressions
+      Merge branch 'next-3.14' of git.netfilter.org:libnftables into inet
+      libnftables: replace netfilter.h by sanitized header
+      expr/cmp: fix type size
+
+Tomasz Bursztyka (2):
+      table: Add support for NFTA_TABLE_USE attribute
+      build: Ensure pkg-config file provides the right informations
+
+Álvaro Neira Ayuso (5):
+      examples: nft-rule-del: fix missing batching headers
+      examples: nft-rule-insert: fix and merge it to nft-rule-add
+      examples: nft-rule-del: removed printf rule function
+      rule: don't print unset attributes
+      rule: don't enforce attributes when parsing
+
+
+--IS0zKkzwUGydFO0o--
