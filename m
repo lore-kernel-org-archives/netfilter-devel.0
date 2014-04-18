@@ -1,51 +1,44 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH 3/6] netlink: implement unbind to netlink_setsockopt NETLINK_DROP_MEMBERSHIP
-Date: Fri, 18 Apr 2014 13:34:07 -0400
-Message-ID: <05abbc9f1bad49dd7adca5f434fb47404caddd84.1397831970.git.rgb@redhat.com>
-References: <20140324183406.GE28666@madcap2.tricolour.ca>
-Cc: Richard Guy Briggs <rgb@redhat.com>, davem@davemloft.net,
-	eparis@redhat.com, netfilter-devel@vger.kernel.org,
-	hadi@mojatatu.com, sgrubb@redhat.com
-To: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, selinux@tycho.nsa.gov,
-	linux-security-module@vger.kernel.org
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20140324183406.GE28666@madcap2.tricolour.ca>
-In-Reply-To: <cover.1397831970.git.rgb@redhat.com>
-References: <cover.1397831970.git.rgb@redhat.com>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: additional conntrack feature
+Date: Fri, 18 Apr 2014 22:02:54 +0200
+Message-ID: <20140418200254.GA5417@localhost>
+References: <535046D9.3020602@cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Donovan <doohara@cisco.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55610 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753862AbaDRUDG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Apr 2014 16:03:06 -0400
+Content-Disposition: inline
+In-Reply-To: <535046D9.3020602@cisco.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Call the per-protocol unbind function rather than bind function on
-NETLINK_DROP_MEMBERSHIP in netlink_setsockopt().
+On Thu, Apr 17, 2014 at 05:25:45PM -0400, Donovan wrote:
+> Hi,
+> 
+> We are writing Proof Of Concept (POC) code to export (send) enhanced
+> NetFlow based on conntrack events.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- net/netlink/af_netlink.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+I guess you refer to IPFIX? We got some recent patches to get it
+working in ulogd2.
 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 3f43e5a..cdb236f 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -2118,7 +2118,7 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
- 			return err;
- 		if (!val || val - 1 >= nlk->ngroups)
- 			return -EINVAL;
--		if (nlk->netlink_bind) {
-+		if (optname == NETLINK_ADD_MEMBERSHIP && nlk->netlink_bind) {
- 			err = nlk->netlink_bind(val);
- 			if (err)
- 				return err;
-@@ -2127,6 +2127,8 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
- 		netlink_update_socket_mc(nlk, val,
- 					 optname == NETLINK_ADD_MEMBERSHIP);
- 		netlink_table_ungrab();
-+		if (optname == NETLINK_DROP_MEMBERSHIP && nlk->netlink_unbind)
-+			nlk->netlink_unbind(val);
- 
- 		err = 0;
- 		break;
--- 
-1.7.1
+> We've added some new minimal functionality to the kernel socket and
+> netfilter-conntrack code.  This provides new information in the
+> events as can be viewed by the conntrack program.
+>
+> We would like to send NetFlow based on the conntrack events and were
+> wondering where to place such functionality. We would like such
+> NetFlow to be sent by a service or daemon and we would like for this
+> functionality to become open source. We have some questions:
 
+> - Would it be acceptable to enhance conntrack-tools to send this NetFlow?
+> - Like for instance placing it in the conntrackd daemon?
+> - Or would it be OK to provide a new program alongside conntrack and
+> conntrackd or the conntrack-tools to do this?
+
+ulogd2 is the logging netfilter stub, so it's the right framework for
+logging extensions IMO.
