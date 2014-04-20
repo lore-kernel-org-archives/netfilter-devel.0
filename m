@@ -1,64 +1,77 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [ulogd PATCH 0/8] make progress ulogd_output_IPFIX
-Date: Sat, 19 Apr 2014 15:36:33 +0200
-Message-ID: <1397914593.25953.7.camel@ice-age2.regit.org>
-References: <20140308010344.GA4415@gmail.com>
-	 <1395600620.23474.18.camel@ice-age2.regit.org>
-	 <20140326121122.GA24689@gmail.com>
+From: Vasily Averin <vvs@parallels.com>
+Subject: Re: [PATCH 1/1] superfluous skb->nfct check in
+	br_nf_dev_queue_xmit
+Date: Sun, 20 Apr 2014 09:33:41 +0400
+Message-ID: <53535C35.7070108@parallels.com>
+References: <534FB7D2.3020705@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:40500 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910AbaDSNgp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Apr 2014 09:36:45 -0400
-In-Reply-To: <20140326121122.GA24689@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>
+To: Vasily Averin <vvs@parallels.com>, Patrick McHardy <kaber@trash.net>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <534FB7D2.3020705@parallels.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Please do not apply my patch, probably it breaks processing of VLAN packets.
 
-Sorry for the delay in the review.
+Dear Patrick,
+could you please explain why fragmentation of packets requires enabled
+connection tracking?
 
-On Wed, 2014-03-26 at 21:11 +0900, Ken-ichirou MATSUZAWA wrote:
->  Hello Eric.
+During old patch discussion you told "everything related to fragmenting
+is only needed with NF_CONNTRACK". However before adding (skb->nfct) check
+bridge worked well with fragments, and I cannot understand what exactly in 
+ip_fragment should not work with disabled connection trackng.
+
+>From my point of view its better to drop packets in ip_fragment(), 
+where failcounters accounts these events instead silent dropping
+in br_dev_queu_push_xmit().
+
+So could you please explain, why we need to have skb->nfct check
+in br_nf_dev_queue_xmit()?
+
+Thank you,
+	Vasily Averin
+
+On 04/17/2014 03:15 PM, Vasily Averin wrote:
+> skb->nfct check in br_nf_dev_queue_xmit() does not work if conntracks
+> are not loaded on the node. This check does not allow to fragment skb
+> combined from incoming fragments, as results this skb will be dropped
+> silently in br_dev_queue_push_xmit()
 > 
-> Thank you for taking your time to see it and your reply.
+> This check was added in commit c197facc8ea08062f8f949aade6a33649ee06771
+> netfilter: bridge: allow fragmentation of VLAN packets traversing a bridge
 > 
-> > Some generic points regarding this patchset:
+> I believe this check is superfluous and should be removed.
 > 
-> I'm resending all with following it, sorry for your inconvenience
-> And you wrote...
+> Signed-off-by: Vasily Averin <vvs@openvz.org>
+> ---
+>  net/bridge/br_netfilter.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> > Subject: Re: [PATCH 1/8] ipfix: use nfct_bitmask
-> > available on the system. As it is possible to build ulogd with
-> > --disable-nfct configure flags, you need to make the build of IPFIX
-
-I've just realized this means you won't be able to build IPFIX module if
-you don't have a new version of libnetfilter_conntrack. I don't want to
-dump once again the required version of the libs. So you should add a
-check on nfct_bitmask in the configure.ac to be sure you will be able to
-build IPFIX.
-
-> I see. I should have seen input/Makefile.am before, thank you.
+> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+> index 80e1b0f..6a8407c 100644
+> --- a/net/bridge/br_netfilter.c
+> +++ b/net/bridge/br_netfilter.c
+> @@ -864,7 +864,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+>  {
+>  	int ret;
+>  
+> -	if (skb->nfct != NULL && skb->protocol == htons(ETH_P_IP) &&
+> +	if (skb->protocol == htons(ETH_P_IP) &&
+>  	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
+>  	    !skb_is_gso(skb)) {
+>  		if (br_parse_ip_options(skb))
 > 
-> > Subject: Re: [PATCH 5/8] ipfix: add function for ipfix message creation
-> > I don't like this malloc because ulogd will do an allocation for each
-> 
-> I think we can fix allocation sizes for each of template and I worked
-> at PATCH 8/8 but you could not see it because the patches format were
-> invalid, sorry.
-
-I'm basically ok with the patchset if we omit the nfct_bitmask issue.
-I've just fixed two remaining whitespace issues and I can provide you
-the updated patchset if you want.
-
-BR,
--- 
-Eric Leblond <eric@regit.org>
-
