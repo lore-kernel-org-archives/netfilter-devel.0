@@ -1,77 +1,49 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: Re: [PATCH 1/1] superfluous skb->nfct check in
-	br_nf_dev_queue_xmit
-Date: Sun, 20 Apr 2014 09:33:41 +0400
-Message-ID: <53535C35.7070108@parallels.com>
-References: <534FB7D2.3020705@parallels.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-To: Vasily Averin <vvs@parallels.com>, Patrick McHardy <kaber@trash.net>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <534FB7D2.3020705@parallels.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next] IPVS Updates for v3.16
+Date: Mon, 21 Apr 2014 09:16:46 +0900
+Message-ID: <1398039407-12060-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:40572 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908AbaDUARF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Apr 2014 20:17:05 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Please do not apply my patch, probably it breaks processing of VLAN packets.
 
-Dear Patrick,
-could you please explain why fragmentation of packets requires enabled
-connection tracking?
+Hi Pablo,
 
-During old patch discussion you told "everything related to fragmenting
-is only needed with NF_CONNTRACK". However before adding (skb->nfct) check
-bridge worked well with fragments, and I cannot understand what exactly in 
-ip_fragment should not work with disabled connection trackng.
+please consider the following updates for IPVS for v3.16.
 
->From my point of view its better to drop packets in ip_fragment(), 
-where failcounters accounts these events instead silent dropping
-in br_dev_queu_push_xmit().
+It consists of a format string fix from Masanari Iida.
 
-So could you please explain, why we need to have skb->nfct check
-in br_nf_dev_queue_xmit()?
 
-Thank you,
-	Vasily Averin
+The following changes since commit 6125c94e6972fca79214809a43eb60e27feff3ee:
 
-On 04/17/2014 03:15 PM, Vasily Averin wrote:
-> skb->nfct check in br_nf_dev_queue_xmit() does not work if conntracks
-> are not loaded on the node. This check does not allow to fragment skb
-> combined from incoming fragments, as results this skb will be dropped
-> silently in br_dev_queue_push_xmit()
-> 
-> This check was added in commit c197facc8ea08062f8f949aade6a33649ee06771
-> netfilter: bridge: allow fragmentation of VLAN packets traversing a bridge
-> 
-> I believe this check is superfluous and should be removed.
-> 
-> Signed-off-by: Vasily Averin <vvs@openvz.org>
-> ---
->  net/bridge/br_netfilter.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-> index 80e1b0f..6a8407c 100644
-> --- a/net/bridge/br_netfilter.c
-> +++ b/net/bridge/br_netfilter.c
-> @@ -864,7 +864,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
->  {
->  	int ret;
->  
-> -	if (skb->nfct != NULL && skb->protocol == htons(ETH_P_IP) &&
-> +	if (skb->protocol == htons(ETH_P_IP) &&
->  	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
->  	    !skb_is_gso(skb)) {
->  		if (br_parse_ip_options(skb))
-> 
+  netfilter: nft_ct: split nft_ct_init() into two functions for get/set (2014-03-30 13:31:44 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v3.16
+
+for you to fetch changes up to 9c55bfa9373b4b44c32f0e844923a0e6c607056d:
+
+  netfilter: Fix format string mismatch in ip_vs_proto_name() (2014-04-03 10:35:35 +0900)
+
+----------------------------------------------------------------
+IPVS Updates for v3.16
+
+* Format string fix from  Masanari Iida
+
+----------------------------------------------------------------
+Masanari Iida (1):
+      netfilter: Fix format string mismatch in ip_vs_proto_name()
+
+ net/netfilter/ipvs/ip_vs_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
