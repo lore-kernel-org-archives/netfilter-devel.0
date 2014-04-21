@@ -1,65 +1,44 @@
-From: Luis Henriques <luis.henriques-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: Re: [PATCH v5] core, nfqueue,
- openvswitch: Orphan frags in skb_zerocopy and handle errors
-Date: Mon, 21 Apr 2014 12:26:01 +0100
-Message-ID: <20140421112601.GC3200@hercules>
-References: <1395873465-22282-1-git-send-email-zoltan.kiss@citrix.com>
- <20140327.152956.1528740039185894234.davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset suggestion, idle-timeout
+Date: Mon, 21 Apr 2014 21:25:15 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1404212121400.17211@blackhole.kfki.hu>
+References: <5354A37C.8080308@fremnet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mszeredi-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org,
- therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org,
- kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
- jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, Paul.Durrant-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140327.152956.1528740039185894234.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Shannon Wynter <freman@fremnet.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:41295 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754235AbaDUTZI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Apr 2014 15:25:08 -0400
+In-Reply-To: <5354A37C.8080308@fremnet.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+On Mon, 21 Apr 2014, Shannon Wynter wrote:
 
-On Thu, Mar 27, 2014 at 03:29:56PM -0400, David Miller wrote:
-> From: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-> Date: Wed, 26 Mar 2014 22:37:45 +0000
-> =
+> It would essentially work like the regular timeout, removing the entry from
+> the set but only if no matches on the entry for the duration of the timeout
+> 
+> eg:
+> Add a match for 8.8.8.8 for 300 seconds.
+> If there is a match on 8.8.8.8 at 250 seconds then the timer is reset.
+> If there is no match on 8.8.8.8 for 300 then the entry is removed
+> 
+> I wouldn't mind having a look at this myself but don't really know the first
 
-> > skb_zerocopy can copy elements of the frags array between skbs, but it =
-doesn't
-> > orphan them. Also, it doesn't handle errors, so this patch takes care o=
-f that
-> > as well, and modify the callers accordingly. skb_tx_error() is also add=
-ed to
-> > the callers so they will signal the failed delivery towards the creator=
- of the
-> > skb.
-> > =
+That's equivalent with "match and re-add the element", which can easily be 
+achieved with a rule like:
 
-> > Signed-off-by: Zoltan Kiss <zoltan.kiss-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-> =
+... -m set --match-set .... -j SET --add-set ...
 
-> Fingers crossed :-)  Applied, thanks Zoltan.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(or if you need multiple actions, then jump to a proper chain).
 
-Could you please queue this for stable as well?  It has CVE-2014-2568
-assigned to it and I believe it is applicable to some of the trees.
-
-Cheers,
---
-Lu=EDs
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
