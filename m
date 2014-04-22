@@ -1,72 +1,61 @@
-From: Bob Hockney <zeus@ix.netcom.com>
-Subject: [PATCH 1/2] Make column type for oob_protocol in mysql smallint(5)
-Date: Thu, 27 Dec 2012 10:38:47 -0700
-Message-ID: <201404221917.s3MJHoe5022658@gateway.ford-prefect.net>
-Cc: netfilter-devel@vger.kernel.org
-To: eric@regit.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [24.49.174.127] ([24.49.174.127]:7235 "EHLO
-	smtp.ford-prefect.net" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754151AbaDVT0W (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Apr 2014 15:26:22 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/6] netlink: have netlink per-protocol bind function
+ return an error code.
+Date: Tue, 22 Apr 2014 16:19:04 -0400 (EDT)
+Message-ID: <20140422.161904.1187535812839850973.davem@davemloft.net>
+References: <20140324183406.GE28666@madcap2.tricolour.ca>
+	<cover.1397831970.git.rgb@redhat.com>
+	<c9a8a0879bc9f375bb3484f8e86189a8af5aa142.1397831970.git.rgb@redhat.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-audit@redhat.com, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, selinux@tycho.nsa.gov,
+	linux-security-module@vger.kernel.org, eparis@redhat.com,
+	netfilter-devel@vger.kernel.org, hadi@mojatatu.com,
+	sgrubb@redhat.com
+To: rgb@redhat.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c9a8a0879bc9f375bb3484f8e86189a8af5aa142.1397831970.git.rgb@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
- Make column type for oob_protocol in mysql smallint(5) unsigned
- (was smallint(5)). Highest defined value in linux/if_ether.h is
- 0xFBFB (64507)
+From: Richard Guy Briggs <rgb@redhat.com>
+Date: Fri, 18 Apr 2014 13:34:06 -0400
 
-Signed-off-by: Bob Hockney <zeus@ix.netcom.com>
----
- doc/mysql-ulogd2-flat.sql | 2 +-
- doc/mysql-ulogd2.sql      | 6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> @@ -1449,6 +1453,26 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+>  	if (!nladdr->nl_groups && (nlk->groups == NULL || !(u32)nlk->groups[0]))
+>  		return 0;
+>  
+> +	if (nlk->netlink_bind && nladdr->nl_groups) {
+> +		int i;
+> +
+> +		for (i = 0; i < nlk->ngroups; i++) {
+> +			int undo;
+> +
+> +			if (!test_bit(i, (long unsigned int *)&nladdr->nl_groups))
+> +				continue;
+> +			err = nlk->netlink_bind(i);
+> +			if (!err)
+> +				continue;
+> +			if (!nlk->portid)
+> +				netlink_remove(sk);
+> +			for (undo = 0; undo < i; undo++)
+> +				if (nlk->netlink_unbind)
+> +					nlk->netlink_unbind(undo);
+> +			return err;
+> +		}
+> +	}
+> +
 
-diff --git a/doc/mysql-ulogd2-flat.sql b/doc/mysql-ulogd2-flat.sql
-index d71608c..6d663f6 100644
---- a/doc/mysql-ulogd2-flat.sql
-+++ b/doc/mysql-ulogd2-flat.sql
-@@ -51,7 +51,7 @@ CREATE TABLE `ulog2` (
-   `raw_label` tinyint(3) unsigned default NULL,
-   `mac_saddr_str` varchar(32) default NULL,
-   `mac_daddr_str` varchar(32) default NULL,
--  `oob_protocol` smallint(5) default NULL,
-+  `oob_protocol` smallint(5) unsigned default NULL,
-   `raw_type` int(10) unsigned default NULL,
-   `mac_str` varchar(255) default NULL,
-   `tcp_sport` int(5) unsigned default NULL,
-diff --git a/doc/mysql-ulogd2.sql b/doc/mysql-ulogd2.sql
-index c44f9a9..782f368 100644
---- a/doc/mysql-ulogd2.sql
-+++ b/doc/mysql-ulogd2.sql
-@@ -84,7 +84,7 @@ CREATE TABLE `mac` (
-   `_mac_id` bigint unsigned NOT NULL auto_increment,
-   `mac_saddr` varchar(32) default NULL,
-   `mac_daddr` varchar(32) default NULL,
--  `mac_protocol` smallint(5) default NULL,
-+  `mac_protocol` smallint(5) unsigned default NULL,
-   UNIQUE KEY `key_id` (`_mac_id`)
- ) ENGINE=INNODB;
- 
-@@ -681,7 +681,7 @@ delimiter $$
- CREATE FUNCTION INSERT_OR_SELECT_MAC(
- 		`_saddr` varchar(32),
- 		`_daddr` varchar(32),
--		`_protocol` smallint(5)
-+		`_protocol` smallint(5) unsigned
- 		) RETURNS bigint unsigned
- NOT DETERMINISTIC
- READS SQL DATA
-@@ -764,7 +764,7 @@ CREATE FUNCTION INSERT_PACKET_FULL(
-                 raw_header varchar(256),
- 		mac_saddr varchar(32),
- 		mac_daddr varchar(32),
--		mac_protocol smallint(5),
-+		mac_protocol smallint(5) unsigned,
- 		_label tinyint(4) unsigned,
- 		sctp_sport smallint(5) unsigned,
- 		sctp_dport smallint(5) unsigned,
--- 
-1.8.3.1
+It took me a while to figure out why you need to do the netlink_remove() in
+the error path.
 
+I think it's really asking for trouble to allow the socket to have temporary
+visibility if we end up signalling an error.
+
+It seems safest if we only do the autobind/insert once we are absolutely
+certain that the bind() will fully succeed.  This means that you have to
+do this bind validation loop before autobind/insert.
+
+Please make this change and resubmit this series, thanks.
