@@ -1,38 +1,43 @@
-From: Shannon Wynter <freman@fremnet.net>
-Subject: Re: ipset suggestion, idle-timeout
-Date: Tue, 22 Apr 2014 12:25:28 +1000
-Message-ID: <5355D318.8010102@fremnet.net>
-References: <5354A37C.8080308@fremnet.net> <alpine.DEB.2.10.1404212121400.17211@blackhole.kfki.hu>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [ ulogd PATCH 0/2 ] two small fixes for ulogd
+Date: Tue, 22 Apr 2014 10:02:11 +0200
+Message-ID: <1398153731.4353.3.camel@ice-age2.regit.org>
+References: <53557B50.6000503@ix.netcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Bob Hockney <zeus@ix.netcom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ipmail06.adl2.internode.on.net ([150.101.137.129]:31131 "EHLO
-	ipmail06.adl2.internode.on.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751287AbaDVCZf (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:37494 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbaDVICY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Apr 2014 22:25:35 -0400
-In-Reply-To: <alpine.DEB.2.10.1404212121400.17211@blackhole.kfki.hu>
+	Tue, 22 Apr 2014 04:02:24 -0400
+In-Reply-To: <53557B50.6000503@ix.netcom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22/04/2014 5:25 AM, Jozsef Kadlecsik wrote:
-> That's equivalent with "match and re-add the element", which can easily be
-> achieved with a rule like:
->
-> ... -m set --match-set .... -j SET --add-set ...
->
-> (or if you need multiple actions, then jump to a proper chain).
->
-> Best regards,
-> Jozsef
->
-Brilliant, my apologies, I've been using ipset for ages, have even read 
-the manual a few times, must have missed the bit where it was telling me 
-I could use iptables to add to sets (makes sense though)
+Hello,
 
-Thank you
+On Mon, 2014-04-21 at 14:10 -0600, Bob Hockney wrote:
+> Hi there,
+> 
+> I have two small fixes for ulogd.  The first adjusts the mysql data 
+> layout for oob_protocol (ether proto) to unsigned smallint from signed 
+> to accommodate all defined values.  The second is to the PGSQL output 
+> plugin, the patch adding the connstring parameter inadvertently required 
+> its use, ignoring other connection parameters and breaking prior 
+> configurations.
 
-Shannon.
+Thanks a lot. That's two good catches. Sadly I can not apply your
+patches with git am. Can you resubmit your patch using git
+format-patch ?
+
+Thanks in advance.
+
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+
