@@ -1,50 +1,30 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next] IPVS Updates for v3.16
-Date: Thu, 24 Apr 2014 09:50:37 +0900
-Message-ID: <20140424005037.GB5064@verge.net.au>
-References: <1398039407-12060-1-git-send-email-horms@verge.net.au>
- <20140423121715.GA12169@localhost>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH 3/5] netfilter: nf_tables: Add meta expression key for
+ bridge interface name
+Date: Thu, 24 Apr 2014 09:08:58 +0300
+Message-ID: <5358AA7A.7030104@linux.intel.com>
+References: <1397479290-6967-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1397479290-6967-4-git-send-email-tomasz.bursztyka@linux.intel.com> <20140423120325.GA7799@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:49264 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579AbaDXAul (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Apr 2014 20:50:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20140423121715.GA12169@localhost>
+Received: from mga09.intel.com ([134.134.136.24]:55969 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750787AbaDXGJB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Apr 2014 02:09:01 -0400
+In-Reply-To: <20140423120325.GA7799@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 23, 2014 at 02:17:15PM +0200, Pablo Neira Ayuso wrote:
-> Hi Simon,
-> 
-> On Mon, Apr 21, 2014 at 09:16:46AM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > please consider the following updates for IPVS for v3.16.
-> > 
-> > It consists of a format string fix from Masanari Iida.
-> > 
-> > 
-> > The following changes since commit 6125c94e6972fca79214809a43eb60e27feff3ee:
-> > 
-> >   netfilter: nft_ct: split nft_ct_init() into two functions for get/set (2014-03-30 13:31:44 +0200)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v3.16
-> 
-> I'm going to manually apply this small patch.
-> 
-> There was a small cleanup for nfnetlink that has reached David's tree
-> in a bigger batch that I already applied in my tree, so I needed to
-> REbase to avoid problems. You'll also have to rebase as well. Sorry.
+Hi Pablo,
 
-Thanks, that is perfectly fine by me.
+> I'm going to rename
+> NFT_META_BRI_IIFNAME to NFT_META_IBRIPORT,
+
+As you want. I took the name proposed by Patrick here, and since it's an API
+there is less concerns about having a really short human-writable name as
+for the nftables tool.
+
+Tomasz
