@@ -1,57 +1,50 @@
-From: Josh Boyer <jwboyer@fedoraproject.org>
-Subject: Re: [PATCH 3.13] core, nfqueue, openvswitch: Orphan frags in
- skb_zerocopy and handle errors
-Date: Wed, 23 Apr 2014 09:31:25 -0400
-Message-ID: <CA+5PVA4pPG9yVO1C1JnkxV3mSdAqh3QB44Y8xsVRvQv5PHM-Ag@mail.gmail.com>
-References: <1395873465-22282-1-git-send-email-zoltan.kiss@citrix.com>
-	<20140327.152956.1528740039185894234.davem@davemloft.net>
-	<20140421112601.GC3200@hercules>
-	<1398181118.3624.203.camel@deadeye.wl.decadent.org.uk>
-	<5356AEBF.5010505@citrix.com>
-	<1398194284.7767.101.camel@deadeye.wl.decadent.org.uk>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-next] IPVS Updates for v3.16
+Date: Thu, 24 Apr 2014 09:50:37 +0900
+Message-ID: <20140424005037.GB5064@verge.net.au>
+References: <1398039407-12060-1-git-send-email-horms@verge.net.au>
+ <20140423121715.GA12169@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Zoltan Kiss <zoltan.kiss@citrix.com>,
-	Luis Henriques <luis.henriques@canonical.com>,
-	David Miller <davem@davemloft.net>, jesse@nicira.com,
-	pshelar@nicira.com, Thomas Graf <tgraf@redhat.com>,
-	dev@openvswitch.org, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-	edumazet@google.com, Daniel Borkmann <dborkman@redhat.com>,
-	Tom Herbert <therbert@google.com>, jasowang@redhat.com,
-	fw@strlen.de, Joe Perches <joe@perches.com>, horms@verge.net.au,
-	jiri@resnulli.us, mst@redhat.com, Paul.Durrant@citrix.com,
-	Jan Beulich <JBeulich@suse.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>, mszeredi@suse.cz,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	xen-devel@lists.xenproject.org, netdev <netdev@vger.kernel.org>,
-	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-	KVM list <kvm@vger.kernel.org>
-To: Ben Hutchings <ben@decadent.org.uk>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <1398194284.7767.101.camel@deadeye.wl.decadent.org.uk>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:49264 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579AbaDXAul (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Apr 2014 20:50:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20140423121715.GA12169@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 22, 2014 at 3:18 PM, Ben Hutchings <ben@decadent.org.uk> wrote:
-> From: Zoltan Kiss <zoltan.kiss@citrix.com>
->
-> commit 36d5fe6a000790f56039afe26834265db0a3ad4c upstream.
->
-> skb_zerocopy can copy elements of the frags array between skbs, but it doesn't
-> orphan them. Also, it doesn't handle errors, so this patch takes care of that
-> as well, and modify the callers accordingly. skb_tx_error() is also added to
-> the callers so they will signal the failed delivery towards the creator of the
-> skb.
->
-> Signed-off-by: Zoltan Kiss <zoltan.kiss@citrix.com>
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> [bwh: Backported to 3.13: skb_zerocopy() is new in 3.14, but was moved from a
->  static function in nfnetlink_queue.  We need to patch that and its caller, but
->  not openvswitch.]
-> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+On Wed, Apr 23, 2014 at 02:17:15PM +0200, Pablo Neira Ayuso wrote:
+> Hi Simon,
+> 
+> On Mon, Apr 21, 2014 at 09:16:46AM +0900, Simon Horman wrote:
+> > Hi Pablo,
+> > 
+> > please consider the following updates for IPVS for v3.16.
+> > 
+> > It consists of a format string fix from Masanari Iida.
+> > 
+> > 
+> > The following changes since commit 6125c94e6972fca79214809a43eb60e27feff3ee:
+> > 
+> >   netfilter: nft_ct: split nft_ct_init() into two functions for get/set (2014-03-30 13:31:44 +0200)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v3.16
+> 
+> I'm going to manually apply this small patch.
+> 
+> There was a small cleanup for nfnetlink that has reached David's tree
+> in a bigger batch that I already applied in my tree, so I needed to
+> REbase to avoid problems. You'll also have to rebase as well. Sorry.
 
-Deja-vu.  I sent almost the same patch to netdev a while ago and you
-acked it there.  So I guess I'll ack your copy as well :).  Not sure
-why either version wasn't picked up by Dave.
-
-josh
+Thanks, that is perfectly fine by me.
