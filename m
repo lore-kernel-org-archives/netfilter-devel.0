@@ -1,39 +1,36 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH lnf-queue] src: PF_BIND/UNBIND is ignored in 3.8 and later
-Date: Thu, 24 Apr 2014 12:09:10 +0200
-Message-ID: <20140424100910.GC13717@breakpoint.cc>
-References: <1398330071-3463-1-git-send-email-fw@strlen.de>
- <20140424100105.GA8151@localhost>
+Subject: Re: [PATCH 1/1] superfluous skb->nfct check in br_nf_dev_queue_xmit
+Date: Thu, 24 Apr 2014 18:32:43 +0200
+Message-ID: <20140424163243.GN31953@breakpoint.cc>
+References: <534FB7D2.3020705@parallels.com>
+ <53535C35.7070108@parallels.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>,
+	bridge@lists.linux-foundation.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Saikiran Madugula <hummerbliss@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org
+To: Vasily Averin <vvs@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36676 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37992 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754434AbaDXKJL (ORCPT
+	by vger.kernel.org with ESMTP id S1758390AbaDXQc6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Apr 2014 06:09:11 -0400
+	Thu, 24 Apr 2014 12:32:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20140424100105.GA8151@localhost>
+In-Reply-To: <53535C35.7070108@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > -	nlh = nfq_hdr_put(buf, NFQNL_MSG_CONFIG, 0);
-> > -	nfq_nlmsg_cfg_put_cmd(nlh, AF_INET, NFQNL_CFG_CMD_PF_UNBIND);
-> > -
-> > -	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-> > -		perror("mnl_socket_send");
-> > -		exit(EXIT_FAILURE);
-> > -	}
-> > -
-> > +	/* PF_BIND is not needed with kernels 3.8 and later */
-> 
-> My only concern is that people using old kernels won't manage to run
-> this example, I think there are quite a lot of people running < 3.8,
-> so we may hit confusion from the other side.
+Vasily Averin <vvs@parallels.com> wrote:
+> Please do not apply my patch, probably it breaks processing of VLAN packets.
 
-I pushed the patch without the UNBIND removal.
+Why would it break VLAN?
+In fact, the same dicussion came up couple of days back and I think the
+nfct test is wrong.  There is no guarantee that skb->nfct == NULL means
+that packet was not defragmented via nf_defrag (e.g. rror in l4 protocol
+tracker, nf_defrag_ipv4 loaded but no nf_conntrack_ipv4)
 
-Thanks.
+For ipv6 its even worse since we toss all ipv6 defragmented packets...
