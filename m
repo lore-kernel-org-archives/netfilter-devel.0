@@ -1,75 +1,195 @@
-From: Kevin Fenzi <kevin@scrye.com>
-Subject: Re: tests/test-script.sh missing from 1.0.1 tar.bz2?
-Date: Fri, 25 Apr 2014 10:14:15 -0600
-Message-ID: <20140425101415.7af65532@voldemort.scrye.com>
-References: <20140424112343.20161e0f@voldemort.scrye.com>
-	<20140425085505.GB4113@localhost>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/VCYiQWxkolSm0fD57nGOCb8"; protocol="application/pgp-signature"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnftnl] examples: nft-events: add option how to format the printed events
+Date: Sat, 26 Apr 2014 14:03:43 +0200
+Message-ID: <1398513823-23222-1-git-send-email-pablo@netfilter.org>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 75-148-32-185-Colorado.hfc.comcastbusiness.net ([75.148.32.185]:51066
-	"EHLO mail.scrye.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418AbaDYQOR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Apr 2014 12:14:17 -0400
-In-Reply-To: <20140425085505.GB4113@localhost>
+Received: from mail.us.es ([193.147.175.20]:46835 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751816AbaDZMEJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 26 Apr 2014 08:04:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/VCYiQWxkolSm0fD57nGOCb8
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+ # ./nft-events xml
+ <event><type>new</type><chain><name>xxx</name><handle>9</handle><bytes>0</bytes><packets>0</packets><table>test</table><family>ip</family></chain></event>
 
-On Fri, 25 Apr 2014 10:55:05 +0200
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ examples/nft-events.c |   60 +++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 41 insertions(+), 19 deletions(-)
 
-> On Thu, Apr 24, 2014 at 11:23:43AM -0600, Kevin Fenzi wrote:
-> > Greetings.=20
-> >=20
-> > Looks like somewhere along the way the tests/test-script.sh didn't
-> > get included in the
-> > http://ftp.netfilter.org/pub/libnftnl/libnftnl-1.0.1.tar.bz2
-> > release.
-> >=20
-> > Something in 'make dist' dropping it?
->=20
-> Just pushed a patch to fix this, thanks.
->=20
-> http://git.netfilter.org/libnftnl/commit/?id=3D4e92a484c00a8c2e18d4e2b8a1=
-912ac1b86b4089
+diff --git a/examples/nft-events.c b/examples/nft-events.c
+index fc63650..fb18e55 100644
+--- a/examples/nft-events.c
++++ b/examples/nft-events.c
+@@ -44,7 +44,7 @@ static uint32_t event2flag(uint32_t event)
+ 	return 0;
+ }
+ 
+-static int table_cb(const struct nlmsghdr *nlh, int type)
++static int table_cb(const struct nlmsghdr *nlh, int event, int type)
+ {
+ 	struct nft_table *t;
+ 
+@@ -59,7 +59,7 @@ static int table_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_table_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	nft_table_fprintf(stdout, t, type, event2flag(event));
+ 	fprintf(stdout, "\n");
+ 
+ err_free:
+@@ -68,7 +68,7 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
+-static int rule_cb(const struct nlmsghdr *nlh, int type)
++static int rule_cb(const struct nlmsghdr *nlh, int event, int type)
+ {
+ 	struct nft_rule *t;
+ 
+@@ -83,7 +83,7 @@ static int rule_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_rule_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	nft_rule_fprintf(stdout, t, type, event2flag(event));
+ 	fprintf(stdout, "\n");
+ 
+ err_free:
+@@ -92,7 +92,7 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
+-static int chain_cb(const struct nlmsghdr *nlh, int type)
++static int chain_cb(const struct nlmsghdr *nlh, int event, int type)
+ {
+ 	struct nft_chain *t;
+ 
+@@ -107,7 +107,7 @@ static int chain_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_chain_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	nft_chain_fprintf(stdout, t, type, event2flag(event));
+ 	fprintf(stdout, "\n");
+ 
+ err_free:
+@@ -116,7 +116,7 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
+-static int set_cb(const struct nlmsghdr *nlh, int type)
++static int set_cb(const struct nlmsghdr *nlh, int event, int type)
+ {
+ 	struct nft_set *t;
+ 
+@@ -131,7 +131,7 @@ static int set_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_set_fprintf(stdout, t, NFT_OUTPUT_DEFAULT, event2flag(type));
++	nft_set_fprintf(stdout, t, type, event2flag(event));
+ 	fprintf(stdout, "\n");
+ 
+ err_free:
+@@ -140,7 +140,7 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
+-static int setelem_cb(const struct nlmsghdr *nlh, int type)
++static int setelem_cb(const struct nlmsghdr *nlh, int event, int type)
+ {
+ 
+ 	struct nft_set *s;
+@@ -156,7 +156,7 @@ static int setelem_cb(const struct nlmsghdr *nlh, int type)
+ 		goto err_free;
+ 	}
+ 
+-	nft_set_fprintf(stdout, s, NFT_OUTPUT_DEFAULT, event2flag(type));
++	nft_set_fprintf(stdout, s, type, event2flag(event));
+ 	fprintf(stdout, "\n");
+ 
+ err_free:
+@@ -168,28 +168,29 @@ err:
+ static int events_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	int ret = MNL_CB_OK;
+-	int type = nlh->nlmsg_type & 0xFF;
++	int event = NFNL_MSG_TYPE(nlh->nlmsg_type);
++	int type = *((int *)data);
+ 
+-	switch(type) {
++	switch(event) {
+ 	case NFT_MSG_NEWTABLE:
+ 	case NFT_MSG_DELTABLE:
+-		ret = table_cb(nlh, type);
++		ret = table_cb(nlh, event, type);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
+ 	case NFT_MSG_DELCHAIN:
+-		ret = chain_cb(nlh, type);
++		ret = chain_cb(nlh, event, type);
+ 		break;
+ 	case NFT_MSG_NEWRULE:
+ 	case NFT_MSG_DELRULE:
+-		ret = rule_cb(nlh, type);
++		ret = rule_cb(nlh, event, type);
+ 		break;
+ 	case NFT_MSG_NEWSET:
+ 	case NFT_MSG_DELSET:
+-		ret = set_cb(nlh, type);
++		ret = set_cb(nlh, event, type);
+ 		break;
+ 	case NFT_MSG_NEWSETELEM:
+ 	case NFT_MSG_DELSETELEM:
+-		ret = setelem_cb(nlh, type);
++		ret = setelem_cb(nlh, event, type);
+ 		break;
+ 	}
+ 
+@@ -200,7 +201,28 @@ int main(int argc, char *argv[])
+ {
+ 	struct mnl_socket *nl;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+-	int ret;
++	int ret, type;
++
++	switch (argc) {
++	case 1:
++		type = NFT_OUTPUT_DEFAULT;
++		break;
++	case 2:
++		if (strcmp(argv[1], "xml") == 0) {
++			type = NFT_OUTPUT_XML;
++		} else if (strcmp(argv[1], "json") == 0) {
++			type = NFT_OUTPUT_JSON;
++		} else if (strcmp(argv[1], "default") == 0) {
++			type = NFT_OUTPUT_DEFAULT;
++		} else {
++			fprintf(stderr, "unknown format type `%s'\n", argv[1]);
++			return EXIT_FAILURE;
++		}
++		break;
++	default:
++		fprintf(stderr, "%s [<default|xml|json>]\n", argv[0]);
++		return EXIT_FAILURE;
++	}
+ 
+ 	nl = mnl_socket_open(NETLINK_NETFILTER);
+ 	if (nl == NULL) {
+@@ -215,7 +237,7 @@ int main(int argc, char *argv[])
+ 
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, 0, 0, events_cb, NULL);
++		ret = mnl_cb_run(buf, ret, 0, 0, events_cb, &type);
+ 		if (ret <= 0)
+ 			break;
+ 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-- 
+1.7.10.4
 
-Oops. Also the tests/jsonfiles/ and tests/xmlfiles/ are missing as
-well.=20
-
-Sorry for not noticing those at the same time. ;(=20
-
-kevin
-
-
-
---Sig_/VCYiQWxkolSm0fD57nGOCb8
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCgAGBQJTWonXAAoJEEs3sNgP+7te1aYP/j6Qxw8LV8jLwOAM7jtpjIF4
-dNBQHdNFUv3GFLN7jZi9xdePWbmwj1O+Qwx6gaq+n6j24wdOz1niJEKHiA0w8g7o
-6PtNJ4iPiHUcEr5+2A7Ffn8gtmt62U4fHIcqYMiH2bE8aC3j48JIeHHhHAkfgSO9
-ho+kV9Ygk+2ESpukgVkXEfazcQqYpryl3qw9YRqfmXjtQ2Oxu9TB696WFnHERyJv
-5gl45GJ1OptbUyQcdvHd69K678UheYG0WwXnMrHC1Ks/Uv8rpJFWYjtE80Whfb5B
-ZQXUnStfigv/qczFYYDLNreOK3zgjUzwFBfrwS/YATl5IrRcLxJD1Pnwzlq8vrmN
-vF5PwN6bidY/rEuuhxXRvypUFeg8GHjYKoF7hFyZ8AY+zqF1j6aFD37ZsfnLI6Rr
-6t395QS9jHj/T3CaS5cdw3V2qLJw8n31w7v5cfO29NUXK/9OumtJquRL1ZbfDq6I
-tIpSmEpaWG0xYVNzTLU3Uw+9rxq9penE43LhztGF3G5tsc5QPauGes4S2Vpq4Kb/
-MqvEyigg6TJjMq8Zqyy53eNtr0rUyBNq01VjDnM1H9nFX9qqSKU/PHl1CoCTdXOa
-cpIOS6JGk08tRG/7LAP89Ed28g+CP1e2la25mZWsDGwt1yVY4J4EqOlt/ENAh7Bn
-Lskg48559e6WKMNEMw9C
-=FCHe
------END PGP SIGNATURE-----
-
---Sig_/VCYiQWxkolSm0fD57nGOCb8--
