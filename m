@@ -1,52 +1,181 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: ctnetlink: don't add null bindings if no nat requested
-Date: Mon, 28 Apr 2014 21:07:31 +0200
-Message-ID: <1398712051-1684-1-git-send-email-fw@strlen.de>
+Subject: [PATCH next] net: netfilter: add helper for adding nat extension
+Date: Mon, 28 Apr 2014 21:09:50 +0200
+Message-ID: <1398712190-1973-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47138 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47149 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932085AbaD1TMm (ORCPT
+	by vger.kernel.org with ESMTP id S1754817AbaD1TPA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2014 15:12:42 -0400
+	Mon, 28 Apr 2014 15:15:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0eba801b64cc8284d9024c7ece30415a2b981a72 tried to fix a race
-where nat initialisation can happen after ctnetlink-created conntrack
-has been created.
-
-However, it causes the nat module(s) to be loaded needlessly on
-systems that are not using NAT.
-
-Fortunately, we do not have to create null bindings in that case.
-
-conntracks injected via ctnetlink always have the CONFIRMED bit set,
-which prevents addition of the nat extension in nf_nat_ipv4/6_fn().
-
-We only need to make sure that either no nat extension is added
-or that we've created both src and dst manips.
+Reduce copy-past a bit by adding a common helper.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_netlink.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/net/netfilter/nf_nat.h          |  2 ++
+ net/ipv4/netfilter/iptable_nat.c        | 14 +++-----------
+ net/ipv4/netfilter/nft_chain_nat_ipv4.c | 12 +++---------
+ net/ipv6/netfilter/ip6table_nat.c       | 14 +++-----------
+ net/ipv6/netfilter/nft_chain_nat_ipv6.c | 12 +++---------
+ net/netfilter/nf_nat_core.c             | 24 ++++++++++++++++--------
+ 6 files changed, 30 insertions(+), 48 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ccc46fa..5857963 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1336,6 +1336,9 @@ ctnetlink_setup_nat(struct nf_conn *ct, const struct nlattr * const cda[])
- #ifdef CONFIG_NF_NAT_NEEDED
- 	int ret;
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index 07eaaf6..a71dd33 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -48,6 +48,8 @@ unsigned int nf_nat_setup_info(struct nf_conn *ct,
+ extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
+ 					      unsigned int hooknum);
  
-+	if (!cda[CTA_NAT_DST] && !cda[CTA_NAT_SRC])
-+		return 0;
++struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
 +
- 	ret = ctnetlink_parse_nat_setup(ct, NF_NAT_MANIP_DST,
- 					cda[CTA_NAT_DST]);
- 	if (ret < 0)
+ /* Is this tuple already taken? (not by us)*/
+ int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_conntrack);
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index ee28861..f1787c0 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -91,17 +91,9 @@ nf_nat_ipv4_fn(const struct nf_hook_ops *ops,
+ 	if (nf_ct_is_untracked(ct))
+ 		return NF_ACCEPT;
+ 
+-	nat = nfct_nat(ct);
+-	if (!nat) {
+-		/* NAT module was loaded late. */
+-		if (nf_ct_is_confirmed(ct))
+-			return NF_ACCEPT;
+-		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
+-		if (nat == NULL) {
+-			pr_debug("failed to add NAT extension\n");
+-			return NF_ACCEPT;
+-		}
+-	}
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
+ 
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+index b5b256d..3964157 100644
+--- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+@@ -48,15 +48,9 @@ static unsigned int nf_nat_fn(const struct nf_hook_ops *ops,
+ 
+ 	NF_CT_ASSERT(!(ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)));
+ 
+-	nat = nfct_nat(ct);
+-	if (nat == NULL) {
+-		/* Conntrack module was loaded late, can't add extension. */
+-		if (nf_ct_is_confirmed(ct))
+-			return NF_ACCEPT;
+-		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
+-		if (nat == NULL)
+-			return NF_ACCEPT;
+-	}
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
+ 
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
+index 84c7f33..387d8b8 100644
+--- a/net/ipv6/netfilter/ip6table_nat.c
++++ b/net/ipv6/netfilter/ip6table_nat.c
+@@ -90,17 +90,9 @@ nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
+ 	if (nf_ct_is_untracked(ct))
+ 		return NF_ACCEPT;
+ 
+-	nat = nfct_nat(ct);
+-	if (!nat) {
+-		/* NAT module was loaded late. */
+-		if (nf_ct_is_confirmed(ct))
+-			return NF_ACCEPT;
+-		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
+-		if (nat == NULL) {
+-			pr_debug("failed to add NAT extension\n");
+-			return NF_ACCEPT;
+-		}
+-	}
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
+ 
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+index 9c3297a..d189fcb 100644
+--- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
++++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+@@ -47,15 +47,9 @@ static unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
+ 	if (ct == NULL || nf_ct_is_untracked(ct))
+ 		return NF_ACCEPT;
+ 
+-	nat = nfct_nat(ct);
+-	if (nat == NULL) {
+-		/* Conntrack module was loaded late, can't add extension. */
+-		if (nf_ct_is_confirmed(ct))
+-			return NF_ACCEPT;
+-		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
+-		if (nat == NULL)
+-			return NF_ACCEPT;
+-	}
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
+ 
+ 	switch (ctinfo) {
+ 	case IP_CT_RELATED:
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 52ca952..bfac6c9 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -358,6 +358,19 @@ out:
+ 	rcu_read_unlock();
+ }
+ 
++struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct)
++{
++	struct nf_conn_nat *nat = nfct_nat(ct);
++	if (nat)
++		return nat;
++
++	if (!nf_ct_is_confirmed(ct))
++		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
++
++	return nat;
++}
++EXPORT_SYMBOL_GPL(nf_ct_nat_ext_add);
++
+ unsigned int
+ nf_nat_setup_info(struct nf_conn *ct,
+ 		  const struct nf_nat_range *range,
+@@ -368,14 +381,9 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 	struct nf_conn_nat *nat;
+ 
+ 	/* nat helper or nfctnetlink also setup binding */
+-	nat = nfct_nat(ct);
+-	if (!nat) {
+-		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
+-		if (nat == NULL) {
+-			pr_debug("failed to add NAT extension\n");
+-			return NF_ACCEPT;
+-		}
+-	}
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
+ 
+ 	NF_CT_ASSERT(maniptype == NF_NAT_MANIP_SRC ||
+ 		     maniptype == NF_NAT_MANIP_DST);
 -- 
 1.8.1.5
 
