@@ -1,72 +1,53 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: [PATCH v2] bridge: Superfluous skb->nfct check in
-	br_nf_dev_queue_xmit
-Date: Mon, 28 Apr 2014 17:31:45 +0400
-Message-ID: <535E5841.2030802@parallels.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] ipt_CLUSTERIP: Add network device notifier
+Date: Mon, 28 Apr 2014 16:23:06 +0200
+Message-ID: <20140428142306.GA28547@localhost>
+References: <1396871929.3741.6.camel@tkhai>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	Patrick McHardy <kaber@trash.net>, "David S. Miller" <davem@davemloft.net>
-To: Florian Westphal <fw@strlen.de>, bridge@lists.linux-foundation.org,
-	netfilter-devel@vger.kernel.org
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, tkhai@yandex.ru
+To: Kirill Tkhai <ktkhai@parallels.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59123 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751635AbaD1OXQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2014 10:23:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1396871929.3741.6.camel@tkhai>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently bridge silently drops defragmented ipv4 packets if nf_conntrack module
-is not loaded on the node. However ipv4 fragmentation and defragmentation
-does not require enabled connection tracking.
+Hi,
 
-Removing superfluous skb->nfct check allows to re-fragment previously
-defragmented packets and give them chance to reach destination side.
+On Mon, Apr 07, 2014 at 03:58:49PM +0400, Kirill Tkhai wrote:
+> Clusterip target does dev_hold() in .checkentry, while dev_put() in .destroy.
+> So, unregister_netdevice catches the leak:
+> 
+> # modprobe dummy
+> # iptables -A INPUT -d 10.31.3.236 -j CLUSTERIP --new --hashmode sourceip -i dummy0 --clustermac 01:aa:7b:47:f7:d7 --total-nodes 2 --local-node 1
+> # rmmod dummy
+>
+>   Message from syslogd@localhost ...
+>     kernel: unregister_netdevice: waiting for dummy0 to become free. Usage count = 1
+>
+[...]
+>  1 file changed, 134 insertions(+), 12 deletions(-)
 
-v2: removed #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4) added because
-of using of nfct check
+I have spinned several times on this patch, and I'm not very happy
+with taking this fix:
 
-Signed-off-by: Vasily Averin <vvs@openvz.org>
----
- net/bridge/br_netfilter.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+1) It's quite large fix for a situation that seems unlikely to me.
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 80e1b0f..d50c154 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -859,12 +859,11 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
- 	return NF_STOLEN;
- }
- 
--#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4)
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
- 	int ret;
- 
--	if (skb->nfct != NULL && skb->protocol == htons(ETH_P_IP) &&
-+	if (skb->protocol == htons(ETH_P_IP) &&
- 	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
- 	    !skb_is_gso(skb)) {
- 		if (br_parse_ip_options(skb))
-@@ -876,12 +875,6 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- 
- 	return ret;
- }
--#else
--static int br_nf_dev_queue_xmit(struct sk_buff *skb)
--{
--        return br_dev_queue_push_xmit(skb);
--}
--#endif
- 
- /* PF_BRIDGE/POST_ROUTING ********************************************/
- static unsigned int br_nf_post_routing(const struct nf_hook_ops *ops,
--- 
-1.7.5.4
+2) We have this problem since the beginning, since the CLUSTERIP
+   target was merged mainstream.
+
+3) We have theses days the cluster match, which is more flexible as
+   you can also use it not only for backend, but also in active-active
+   gateway setups. It just requires a couple of arptables rules for
+   mangling ARP replies to include the multicast MAC there.
+
+Perhaps linking net_device structure with the module that have created
+would simplify this, but I guess David won't take such patch just to
+fix this rare iptables extension, unless this is manifesting in other
+netdev code, eg. tunneling protocols.
