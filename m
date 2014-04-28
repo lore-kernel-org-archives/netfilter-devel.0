@@ -1,61 +1,103 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: Re: [PATCH 1/1] superfluous skb->nfct check in
-	br_nf_dev_queue_xmit
-Date: Mon, 28 Apr 2014 16:37:08 +0400
-Message-ID: <535E4B74.4050107@parallels.com>
-References: <534FB7D2.3020705@parallels.com> <53535C35.7070108@parallels.com>
-	<20140424163243.GN31953@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: bridge@lists.linux-foundation.org, Patrick McHardy <kaber@trash.net>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <20140424163243.GN31953@breakpoint.cc>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnetfilter_acct] src: fix broken output handling
+Date: Mon, 28 Apr 2014 15:14:24 +0200
+Message-ID: <1398690864-28322-1-git-send-email-pablo@netfilter.org>
+Cc: mathieu.poirier@linaro.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46888 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755346AbaD1NOe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2014 09:14:34 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04/24/2014 08:32 PM, Florian Westphal wrote:
-> Vasily Averin <vvs@parallels.com> wrote:
->> Please do not apply my patch, probably it breaks processing of VLAN packets.
-> 
-> Why would it break VLAN?
-Sorry, seems it was false alert.
+In 948fa3b ("Extend accounting capabilities to support quotas"), the
+error handling of snprintf is incorrect since this function may
+return -1 on error. Add a new SNPRINTF_CHECK() macro to offload the
+complicated handling of snprintf.
 
-We got report about problem on RHEL6-based OpenVZ kernel:
-large UDP and ICMP packets was dropped on bridge without incrementing of any failcounters.
-Connection tracking was disabled on this node , nf_conntrack module was unloaded
-Ftrace pointed that it was happen because nfct check.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/internal.h          |   11 +++++++++++
+ src/libnetfilter_acct.c |   21 ++++++++-------------
+ 2 files changed, 19 insertions(+), 13 deletions(-)
 
-I've unloaded nf_conntrack module and problem was reproduced again
-After removing nfct check problem went away.
+diff --git a/src/internal.h b/src/internal.h
+index 2106401..f0cc2e1 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -21,4 +21,15 @@
+ #	endif
+ #endif
+ 
++#define SNPRINTF_CHECK(ret, rem, offset, len)			\
++do {								\
++	if (ret < 0)						\
++		return ret;					\
++	len += ret;						\
++	if (ret > rem)						\
++		ret = rem;					\
++	offset += ret;						\
++	rem -= ret;						\
++} while (0)
++
+ #endif
+diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
+index 0c1a758..7f539b6 100644
+--- a/src/libnetfilter_acct.c
++++ b/src/libnetfilter_acct.c
+@@ -256,42 +256,37 @@ static int
+ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
+ 		      uint16_t flags)
+ {
+-	int ret, temp;
+-	char *walking_buf;
+-
+-	temp = rem;
+-	walking_buf = buf;
++	int ret, offset = 0, len = 0;
+ 
+ 	if (flags & NFACCT_SNPRINTF_F_FULL) {
+-		ret = snprintf(walking_buf, temp,
++		ret = snprintf(buf, rem,
+ 			"{ pkts = %.20"PRIu64", bytes = %.20"PRIu64"",
+ 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
+ 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES));
++		SNPRINTF_CHECK(ret, rem, offset, len);
+ 
+ 		if (nfacct->flags) {
+ 			uint32_t mode;
+ 
+ 			mode = nfacct_attr_get_u64(nfacct, NFACCT_ATTR_FLAGS);
+ 
+-			walking_buf += ret;
+-			temp -= ret;
+-			ret = snprintf(walking_buf, temp,
++			ret = snprintf(buf + offset, rem,
+ 				", quota = %.20"PRIu64", mode = %s",
+ 				nfacct_attr_get_u64(nfacct, NFACCT_ATTR_QUOTA),
+ 				mode == NFACCT_F_QUOTA_BYTES ?
+ 				"byte" : "packet");
++			SNPRINTF_CHECK(ret, rem, offset, len);
+ 		}
+ 
+-		walking_buf += ret;
+-		temp -= ret;
+-		ret = snprintf(walking_buf, temp, " } = %s;",
++		ret = snprintf(buf + offset, rem, " } = %s;",
+ 			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
+ 	} else {
+ 		ret = snprintf(buf, rem, "%s\n",
+ 			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
+ 	}
++	SNPRINTF_CHECK(ret, rem, offset, len);
+ 
+-	return ret;
++	return len;
+ }
+ 
+ #define BUFFER_SIZE(ret, size, rem, offset)		\
+-- 
+1.7.10.4
 
-The check was added by patch that fixed processing of VLAN packets.
-I did not tested this scenario and therefore asked to delay processing of my patch,
-to investigate this case more carefully.
-
-IS_VLAN_IP() check on RHEL6 kernels seems is not depend on nfct check,
-in current mainline we do not have this code at all, 
-therefore removing of nfct check should not affect this case too.
-
-Therefore I believe that my patch is still correct, however now I think we also need 
-to remove #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4) in br_nf_dev_queue_xmit().
-
-> In fact, the same dicussion came up couple of days back and I think the
-> nfct test is wrong.  There is no guarantee that skb->nfct == NULL means
-> that packet was not defragmented via nf_defrag (e.g. rror in l4 protocol
-> tracker, nf_defrag_ipv4 loaded but no nf_conntrack_ipv4)
-
-Thank you for explanation,
-In my case ftrace also shows that packets was defragmented in ipv4_conntrack_defrag().
-However this module does not depend on NF_CONNTRACK_IPV4.
