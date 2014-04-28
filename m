@@ -1,42 +1,48 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] common: fix unconditional output of event wrapping
-	stuff
-Date: Mon, 28 Apr 2014 12:58:38 +0200
-Message-ID: <20140428105837.18312.91126.stgit@nfdev.cica.es>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [ulogd PATCH 0/13] make progress ulogd_output_IPFIX
+Date: Mon, 28 Apr 2014 20:39:36 +0900
+Message-ID: <20140428113936.GA12523@gmail.com>
+References: <20140308010344.GA4415@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36678 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755128AbaD1K6z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2014 06:58:55 -0400
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:44981 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752033AbaD1Ljn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Apr 2014 07:39:43 -0400
+Received: by mail-pd0-f170.google.com with SMTP id x10so2225272pdj.29
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Apr 2014 04:39:42 -0700 (PDT)
+Received: from gmail.com (softbank220009032006.bbtec.net. [220.9.32.6])
+        by mx.google.com with ESMTPSA id kj1sm34498484pbd.20.2014.04.28.04.39.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Mon, 28 Apr 2014 04:39:41 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140308010344.GA4415@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We can't unconditionally print out these strings.
+ Hello,
 
-Before this patch, objects being printed will be treated as an 'unkown' event.
+Would you review IPFIX patchset? Compared with previous one,
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/common.c |    3 +++
- 1 file changed, 3 insertions(+)
+change:
+* configure.ac
+  check if new libnetfilter_conntrack bitmask functions
+  exists or not.
 
-diff --git a/src/common.c b/src/common.c
-index 929f25d..52e5f0e 100644
---- a/src/common.c
-+++ b/src/common.c
-@@ -72,6 +72,9 @@ int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
- {
- 	int ret = 0;
- 
-+	if (!(flags & NFT_OF_EVENT_ANY))
-+		return 0;
-+
- 	switch (type) {
- 	case NFT_OUTPUT_XML:
- 		if (flags & NFT_OF_EVENT_NEW) {
+* ulogd_output_IPFIX.c
+  remove odd space
 
+add:
+* ulogd_inpflow_NFCT.c
+  - fix field id of "flow.end.usec"
+  - introduce IPFIX_VENDOR_REVERSE field from RFC5103
+  - introduce new key "flow.(start|end).mcsec for
+    flow(Start|End)MicroSecond
+  - add debug symbol for yafscii
+
+Thanks,
