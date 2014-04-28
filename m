@@ -1,99 +1,61 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [ulogd PATCH 13/13] ipfix: add debug symbol for yafscii
-Date: Mon, 28 Apr 2014 20:57:42 +0900
-Message-ID: <20140428115742.GN12523@gmail.com>
-References: <20140308010344.GA4415@gmail.com>
- <20140428113936.GA12523@gmail.com>
+From: Vasily Averin <vvs@parallels.com>
+Subject: Re: [PATCH 1/1] superfluous skb->nfct check in
+	br_nf_dev_queue_xmit
+Date: Mon, 28 Apr 2014 16:37:08 +0400
+Message-ID: <535E4B74.4050107@parallels.com>
+References: <534FB7D2.3020705@parallels.com> <53535C35.7070108@parallels.com>
+	<20140424163243.GN31953@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:47769 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbaD1L5t (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2014 07:57:49 -0400
-Received: by mail-pa0-f53.google.com with SMTP id ld10so5698155pab.40
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Apr 2014 04:57:48 -0700 (PDT)
-Received: from gmail.com (softbank220009032006.bbtec.net. [220.9.32.6])
-        by mx.google.com with ESMTPSA id ir10sm34559493pbc.59.2014.04.28.04.57.45
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Mon, 28 Apr 2014 04:57:47 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140428113936.GA12523@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: bridge@lists.linux-foundation.org, Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	netfilter-devel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <20140424163243.GN31953@breakpoint.cc>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-http://tools.netsa.cert.org/yaf/yafscii.html
-To see flow created by yafscii
-yafscii --in /tmp/ulogd.yaf and see /tmp/ulogd.yaf.txt
+On 04/24/2014 08:32 PM, Florian Westphal wrote:
+> Vasily Averin <vvs@parallels.com> wrote:
+>> Please do not apply my patch, probably it breaks processing of VLAN packets.
+> 
+> Why would it break VLAN?
+Sorry, seems it was false alert.
 
-Signed-off-by Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
----
- output/ulogd_output_IPFIX.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+We got report about problem on RHEL6-based OpenVZ kernel:
+large UDP and ICMP packets was dropped on bridge without incrementing of any failcounters.
+Connection tracking was disabled on this node , nf_conntrack module was unloaded
+Ftrace pointed that it was happen because nfct check.
 
-diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 2c77264..e0495d2 100644
---- a/output/ulogd_output_IPFIX.c
-+++ b/output/ulogd_output_IPFIX.c
-@@ -38,6 +38,12 @@
- #include <sys/socket.h>
- #include <netdb.h>
- 
-+#define DEBUG_YAFSCII_FILE "/tmp/ulogd.yaf"
-+#ifdef DEBUG_YAFSCII_FILE
-+#include <sys/stat.h>
-+#include <sys/fcntl.h>
-+#endif
-+
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
- 
- #include <ulogd/linuxlist.h>
-@@ -143,6 +149,10 @@ struct ipfix_instance {
- 	struct llist_head template_list;
- 	struct nfct_bitmask *valid_bitmask;	/* bitmask of valid keys */
- 	u_int32_t seq;
-+
-+#ifdef DEBUG_YAFSCII_FILE
-+	int yaf_fd;
-+#endif
- };
- 
- #define ULOGD_IPFIX_TEMPL_BASE 1024
-@@ -486,6 +496,9 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
- 	ipfix_fprintf_header(stdout, ipfix_msg);
- 	fprintf(stdout, "\n");
- 
-+#ifdef DEBUG_YAFSCII_FILE
-+	write(ii->yaf_fd, ipfix_msg, ntohs(ipfix_msg->length));
-+#endif
- 	return ULOGD_IRET_OK;
- }
- 
-@@ -582,6 +595,10 @@ static int start_ipfix(struct ulogd_pluginstance *pi)
- 	if (ret < 0)
- 		goto out_bm_free;
- 
-+#ifdef DEBUG_YAFSCII_FILE
-+	ii->yaf_fd = open(DEBUG_YAFSCII_FILE, O_CREAT|O_WRONLY|O_TRUNC, S_IWUSR);
-+#endif
-+
- 	return 0;
- 
- out_bm_free:
-@@ -595,6 +612,9 @@ static int stop_ipfix(struct ulogd_pluginstance *pi)
- {
- 	struct ipfix_instance *ii = (struct ipfix_instance *) &pi->private;
- 
-+#ifdef DEBUG_YAFSCII_FILE
-+	close(ii->yaf_fd);
-+#endif
- 	close(ii->fd);
- 
- 	nfct_bitmask_destroy(ii->valid_bitmask);
--- 
-1.9.1
+I've unloaded nf_conntrack module and problem was reproduced again
+After removing nfct check problem went away.
 
+The check was added by patch that fixed processing of VLAN packets.
+I did not tested this scenario and therefore asked to delay processing of my patch,
+to investigate this case more carefully.
+
+IS_VLAN_IP() check on RHEL6 kernels seems is not depend on nfct check,
+in current mainline we do not have this code at all, 
+therefore removing of nfct check should not affect this case too.
+
+Therefore I believe that my patch is still correct, however now I think we also need 
+to remove #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4) in br_nf_dev_queue_xmit().
+
+> In fact, the same dicussion came up couple of days back and I think the
+> nfct test is wrong.  There is no guarantee that skb->nfct == NULL means
+> that packet was not defragmented via nf_defrag (e.g. rror in l4 protocol
+> tracker, nf_defrag_ipv4 loaded but no nf_conntrack_ipv4)
+
+Thank you for explanation,
+In my case ftrace also shows that packets was defragmented in ipv4_conntrack_defrag().
+However this module does not depend on NF_CONNTRACK_IPV4.
