@@ -1,33 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/5] netfilter: Fix format string mismatch in
- mangle_content_len()
-Date: Tue, 29 Apr 2014 21:02:46 +0200
-Message-ID: <20140429190246.GA9993@localhost>
-References: <1396280619-31152-1-git-send-email-standby24x7@gmail.com>
- <20140429142119.GA12499@macbook.localnet>
+Subject: Re: [PATCH] netfilter: ctnetlink: don't add null bindings if no nat
+ requested
+Date: Tue, 29 Apr 2014 21:03:24 +0200
+Message-ID: <20140429190324.GA10858@localhost>
+References: <1398712051-1684-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Masanari Iida <standby24x7@gmail.com>, netdev@vger.kernel.org,
-	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48305 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48438 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933292AbaD2TCw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Apr 2014 15:02:52 -0400
+	id S933428AbaD2TDc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Apr 2014 15:03:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20140429142119.GA12499@macbook.localnet>
+In-Reply-To: <1398712051-1684-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 29, 2014 at 03:21:21PM +0100, Patrick McHardy wrote:
-> On Tue, Apr 01, 2014 at 12:43:36AM +0900, Masanari Iida wrote:
-> > Fix format string mismatch in mangle_connect_len()
+On Mon, Apr 28, 2014 at 09:07:31PM +0200, Florian Westphal wrote:
+> commit 0eba801b64cc8284d9024c7ece30415a2b981a72 tried to fix a race
+> where nat initialisation can happen after ctnetlink-created conntrack
+> has been created.
 > 
-> All these patches seem like pointless noise to me. In none of these
-> cases can the value legitimately be negative. If anything, you should
-> fix the types to be unsigned.
+> However, it causes the nat module(s) to be loaded needlessly on
+> systems that are not using NAT.
+> 
+> Fortunately, we do not have to create null bindings in that case.
+> 
+> conntracks injected via ctnetlink always have the CONFIRMED bit set,
+> which prevents addition of the nat extension in nf_nat_ipv4/6_fn().
+> 
+> We only need to make sure that either no nat extension is added
+> or that we've created both src and dst manips.
 
-Let's do that instead. I'm going to remove these oneliners from the
-nf-next queue, thanks Patrick.
+Thanks Florian, applied.
