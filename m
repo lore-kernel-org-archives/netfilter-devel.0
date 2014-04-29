@@ -1,181 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] net: netfilter: add helper for adding nat extension
-Date: Mon, 28 Apr 2014 21:09:50 +0200
-Message-ID: <1398712190-1973-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47149 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754817AbaD1TPA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Apr 2014 15:15:00 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Subject: Re: [RESEND PATCH 2/2] nfacct: adding quota capabilities
+Date: Tue, 29 Apr 2014 08:03:51 -0600
+Message-ID: <CANLsYkx11G7ZE6E58dgzRbRjJKDiPOGvj5z5kh1p=pLyHCKpZA@mail.gmail.com>
+References: <1398041896-8479-1-git-send-email-mathieu.poirier@linaro.org>
+	<1398041896-8479-2-git-send-email-mathieu.poirier@linaro.org>
+	<20140428085625.GA18836@localhost>
+	<20140428102033.GA3842@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20140428102033.GA3842@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Reduce copy-past a bit by adding a common helper.
+On 28 April 2014 04:20, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Apr 28, 2014 at 10:56:25AM +0200, Pablo Neira Ayuso wrote:
+>> > @@ -526,28 +569,93 @@ static int nfacct_cmd_help(int argc, char *argv[])
+>> >
+>> >  static int nfacct_cmd_restore(int argc, char *argv[])
+>> >  {
+>> > -   uint64_t pkts, bytes;
+>> > -   char name[512];
+>> > -   char buffer[512];
+>> > -   int ret;
+>> > +   uint64_t pkts, bytes, quota;
+>> > +   char name[512], mode[512], buffer[512];
+>> > +   int ret, flags;
+>> >
+>> >     while (fgets(buffer, sizeof(buffer), stdin)) {
+>> >             char *semicolon = strchr(buffer, ';');
+>> > +
+>> >             if (semicolon == NULL) {
+>> >                     nfacct_perror("invalid line");
+>> >                     return -1;
+>> >             }
+>> > +
+>> > +           /* a single ';' terminates the input */
+>> > +           if (strncmp(buffer, ";", 1) == 0)
+>> > +                   break;
+>>
+>> This chunk seems new, why is it needed there?
+>
+> I have applied this patch, we can clarify this or remove it in a
+> follow up patch.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_nat.h          |  2 ++
- net/ipv4/netfilter/iptable_nat.c        | 14 +++-----------
- net/ipv4/netfilter/nft_chain_nat_ipv4.c | 12 +++---------
- net/ipv6/netfilter/ip6table_nat.c       | 14 +++-----------
- net/ipv6/netfilter/nft_chain_nat_ipv6.c | 12 +++---------
- net/netfilter/nf_nat_core.c             | 24 ++++++++++++++++--------
- 6 files changed, 30 insertions(+), 48 deletions(-)
-
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index 07eaaf6..a71dd33 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -48,6 +48,8 @@ unsigned int nf_nat_setup_info(struct nf_conn *ct,
- extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
- 					      unsigned int hooknum);
- 
-+struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
-+
- /* Is this tuple already taken? (not by us)*/
- int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 		      const struct nf_conn *ignored_conntrack);
-diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-index ee28861..f1787c0 100644
---- a/net/ipv4/netfilter/iptable_nat.c
-+++ b/net/ipv4/netfilter/iptable_nat.c
-@@ -91,17 +91,9 @@ nf_nat_ipv4_fn(const struct nf_hook_ops *ops,
- 	if (nf_ct_is_untracked(ct))
- 		return NF_ACCEPT;
- 
--	nat = nfct_nat(ct);
--	if (!nat) {
--		/* NAT module was loaded late. */
--		if (nf_ct_is_confirmed(ct))
--			return NF_ACCEPT;
--		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
--		if (nat == NULL) {
--			pr_debug("failed to add NAT extension\n");
--			return NF_ACCEPT;
--		}
--	}
-+	nat = nf_ct_nat_ext_add(ct);
-+	if (nat == NULL)
-+		return NF_ACCEPT;
- 
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
-diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-index b5b256d..3964157 100644
---- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-@@ -48,15 +48,9 @@ static unsigned int nf_nat_fn(const struct nf_hook_ops *ops,
- 
- 	NF_CT_ASSERT(!(ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)));
- 
--	nat = nfct_nat(ct);
--	if (nat == NULL) {
--		/* Conntrack module was loaded late, can't add extension. */
--		if (nf_ct_is_confirmed(ct))
--			return NF_ACCEPT;
--		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
--		if (nat == NULL)
--			return NF_ACCEPT;
--	}
-+	nat = nf_ct_nat_ext_add(ct);
-+	if (nat == NULL)
-+		return NF_ACCEPT;
- 
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index 84c7f33..387d8b8 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -90,17 +90,9 @@ nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
- 	if (nf_ct_is_untracked(ct))
- 		return NF_ACCEPT;
- 
--	nat = nfct_nat(ct);
--	if (!nat) {
--		/* NAT module was loaded late. */
--		if (nf_ct_is_confirmed(ct))
--			return NF_ACCEPT;
--		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
--		if (nat == NULL) {
--			pr_debug("failed to add NAT extension\n");
--			return NF_ACCEPT;
--		}
--	}
-+	nat = nf_ct_nat_ext_add(ct);
-+	if (nat == NULL)
-+		return NF_ACCEPT;
- 
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
-diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-index 9c3297a..d189fcb 100644
---- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-+++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-@@ -47,15 +47,9 @@ static unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
- 	if (ct == NULL || nf_ct_is_untracked(ct))
- 		return NF_ACCEPT;
- 
--	nat = nfct_nat(ct);
--	if (nat == NULL) {
--		/* Conntrack module was loaded late, can't add extension. */
--		if (nf_ct_is_confirmed(ct))
--			return NF_ACCEPT;
--		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
--		if (nat == NULL)
--			return NF_ACCEPT;
--	}
-+	nat = nf_ct_nat_ext_add(ct);
-+	if (nat == NULL)
-+		return NF_ACCEPT;
- 
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 52ca952..bfac6c9 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -358,6 +358,19 @@ out:
- 	rcu_read_unlock();
- }
- 
-+struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct)
-+{
-+	struct nf_conn_nat *nat = nfct_nat(ct);
-+	if (nat)
-+		return nat;
-+
-+	if (!nf_ct_is_confirmed(ct))
-+		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
-+
-+	return nat;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_nat_ext_add);
-+
- unsigned int
- nf_nat_setup_info(struct nf_conn *ct,
- 		  const struct nf_nat_range *range,
-@@ -368,14 +381,9 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	struct nf_conn_nat *nat;
- 
- 	/* nat helper or nfctnetlink also setup binding */
--	nat = nfct_nat(ct);
--	if (!nat) {
--		nat = nf_ct_ext_add(ct, NF_CT_EXT_NAT, GFP_ATOMIC);
--		if (nat == NULL) {
--			pr_debug("failed to add NAT extension\n");
--			return NF_ACCEPT;
--		}
--	}
-+	nat = nf_ct_nat_ext_add(ct);
-+	if (nat == NULL)
-+		return NF_ACCEPT;
- 
- 	NF_CT_ASSERT(maniptype == NF_NAT_MANIP_SRC ||
- 		     maniptype == NF_NAT_MANIP_DST);
--- 
-1.8.1.5
-
+I found what I think is a problem with the restore command.  I will
+setup the environment and get back to you with a printout of the
+condition - just give me a few days.
