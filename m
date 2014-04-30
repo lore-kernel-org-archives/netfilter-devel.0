@@ -1,43 +1,38 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: Re: [PATCH 1/1] superfluous skb->nfct check in
-	br_nf_dev_queue_xmit
-Date: Wed, 30 Apr 2014 13:06:08 +0400
-Message-ID: <5360BD00.6050906@parallels.com>
-References: <534FB7D2.3020705@parallels.com> <53535C35.7070108@parallels.com>
-	<20140424163243.GN31953@breakpoint.cc>
-	<535E4B74.4050107@parallels.com>
-	<20140428131646.GP31953@breakpoint.cc>
-	<535E64D2.7080700@parallels.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] bridge: Superfluous skb->nfct check in
+ br_nf_dev_queue_xmit
+Date: Wed, 30 Apr 2014 11:39:05 +0200
+Message-ID: <20140430093905.GA4318@localhost>
+References: <20140428131646.GP31953@breakpoint.cc>
+ <5360BA5A.7020200@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: bridge@lists.linux-foundation.org, "David S. Miller" <davem@davemloft.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
 	Stephen Hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <535E64D2.7080700@parallels.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+	Patrick McHardy <kaber@trash.net>,
+	Saikiran Madugula <hummerbliss@gmail.com>
+To: Vasily Averin <vvs@parallels.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52490 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751691AbaD3Jtc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Apr 2014 05:49:32 -0400
+Content-Disposition: inline
+In-Reply-To: <5360BA5A.7020200@parallels.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04/28/2014 06:25 PM, Vasily Averin wrote:
->>> Therefore I believe that my patch is still correct, however now I think we also need 
->>> to remove #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4) in br_nf_dev_queue_xmit().
->>
->> I don't think so, DEFRAG_IPV4 is dependency glue, so it shouldn't be
->> possible to build kernel with CONNTRACK_IPV4=n and DEFRAG_IPV4=(m|y).
-> 
-> Also I believe you are wrong with dependencies:
-> NF_CONNTRACK_IPV4 forces NF_DEFRAG_IPV4, not vice versa
+On Wed, Apr 30, 2014 at 12:54:50PM +0400, Vasily Averin wrote:
+> Currently bridge can silently drop ipv4 fragments.
+> If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
+> br_nf_pre_routing defragments incoming ipv4 fragments
+> but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined packet back,
+> and therefore it is dropped in br_dev_queue_push_xmit without incrementing of any failcounters
 
-If you do not want to remove this #ifdef at all
-how do you like an idea to replace NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4?
+Patrick already mentioned that bridges should not defragment unless
+conntrack is enabled.
+
+Please, see: http://marc.info/?l=netfilter-devel&m=139878065822267&w=2
+
+I think we have to consider some alternative way to fix what you
+report.
