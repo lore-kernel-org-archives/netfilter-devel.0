@@ -1,98 +1,62 @@
-From: Sharat Masetty <sharat04@gmail.com>
-Subject: Re: ebtables issue in compat mode
-Date: Thu, 1 May 2014 15:50:09 -0600
-Message-ID: <CAJzFV35Sj=7X3ntYJ=oecd1Rt0UDaFCnULVZ4_4YyGP2eXt_Ow@mail.gmail.com>
-References: <CAJzFV37HK7J2W5uz8-zFZ-n80yYKvu8KmxWu8Dx2rzbzzLeZDw@mail.gmail.com>
-	<20140501100229.GS31953@breakpoint.cc>
-	<CAJzFV37Vus34O9F+0ATW6s6-5=OgTBLAxJ1rC6_658x25dNWzw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, abhinov.k.s@live.com
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: ipv4: defrag: set local_df flag on defragmented skb
+Date: Fri,  2 May 2014 15:32:16 +0200
+Message-ID: <1399037536-5294-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:65049 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259AbaEAVuK convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57676 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751764AbaEBNhf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 May 2014 17:50:10 -0400
-Received: by mail-wi0-f177.google.com with SMTP id cc10so1451190wib.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 May 2014 14:50:09 -0700 (PDT)
-In-Reply-To: <CAJzFV37Vus34O9F+0ATW6s6-5=OgTBLAxJ1rC6_658x25dNWzw@mail.gmail.com>
+	Fri, 2 May 2014 09:37:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just a quick update, We are actually using kernel sanitized headers
-for compilation, and we still see the same issue
+else we may fail to forward skb even if original fragments do fit
+outgoing link mtu:
 
-Here is where it is failing exactly, in check_chainloops() function in
-ebtables.c in the kernel
+1. remote sends 2k packets in two 1000 byte frags, DF set
+2. we want to forward but only see '2k > mtu and DF set'
+3. we then send icmp error saying that outgoing link is 1500
 
-if (e->target_offset + sizeof(struct ebt_standard_target) >
-e->next_offset) {
-BUGPRINT("Standard target size too big\n");
-return -1;
-}
+But original sender never sent a packet that would not fit
+the outgoing link.
 
-Thanks
-Sharat
+Setting local_df makes outgoing path test size vs.
+IPCB(skb)->frag_max_size, so we will still send the correct
+error in case the largest original size did not fit
+outgoing link mtu.
 
-On Thu, May 1, 2014 at 10:09 AM, Sharat Masetty <sharat04@gmail.com> wr=
-ote:
-> We are using a 3.10.0 kernel version which has CONFIG_COMPAT enabled.
-> The ebtables version is 2.0.10-4.  This is arm 63/32 not x86.
-> I also have another question. Do we need to compile the userspace too=
-l
-> using the sanitized kernel headers?(uapi/linux) or should we be using
-> headers provided in the ebtables user space package? The reason for
-> asking this question is that I see some differences in the structure
-> definitions between the ebtables packaged kernel header files and the
-> header files exposed by the kernel.
->
-> Please let me know what to watch out for
->
-> Thanks
-> Sharat
->
-> On Thu, May 1, 2014 at 4:02 AM, Florian Westphal <fw@strlen.de> wrote=
-:
->> Sharat Masetty <sharat04@gmail.com> wrote:
->>> I am seeing a problem when running ebtables in 32bit userspace and =
-64
->>> bit kernel space mode.
->>>
->>> The command I am trying to run is
->>> ebtables -t broute -A BROUTING -p IPv4 -j DROP
->>>
->>> Here is the log message I am seeing in userspace
->>>
->> [..]
->>
->>> I noticed that setsockopt() is failing . The message is also printe=
-d
->>> in kernel =E2=80=93 Standard target size too big . This occurs beca=
-use there
->>> is a mismatch in the size of the structures ebt_standard_target whi=
-ch
->>> is 48 bytes in kernel and 40 bytes in userspace.
->>>
->>> Can someone help us fix this issue?
->>
->> Please provide more information.
->>
->> Works fine for me on x86_64 with 32 bit binary:
->> # ~/bin32/ebtables -t broute -A BROUTING -p IPv4 -j DROP
->> # echo $?
->> 0
->> ebtables -L shows
->> Bridge chain: BROUTING, entries: 1, policy: ACCEPT
->> -p IPv4 -j DROP
->>
->> as expected.  Linux 3.13.11 x86_64.
->>
->> Are you using an old kernel without ebt compat support?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reported-by: Maxime Bizon <mbizon@freebox.fr>
+Suggested-by: Maxime Bizon <mbizon@freebox.fr>
+Fixes: 5f2d04f1f9 (ipv4: fix path MTU discovery with connection tracking)
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 12e13bd..f40f321 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -22,7 +22,6 @@
+ #endif
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
+-/* Returns new sk_buff, or NULL */
+ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+ {
+ 	int err;
+@@ -33,8 +32,10 @@ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+ 	err = ip_defrag(skb, user);
+ 	local_bh_enable();
+ 
+-	if (!err)
++	if (!err) {
+ 		ip_send_check(ip_hdr(skb));
++		skb->local_df = 1;
++	}
+ 
+ 	return err;
+ }
+-- 
+1.8.1.5
+
