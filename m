@@ -1,39 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] ipv4: "conntrack zones" support for defrag user check
- in ip_expire
-Date: Sun, 04 May 2014 14:28:24 -0400 (EDT)
-Message-ID: <20140504.142824.1212392577822772638.davem@davemloft.net>
-References: <536426BC.7020509@parallels.com>
-	<20140504111850.GA3765@localhost>
-	<20140504125835.GA4452@localhost>
+From: Vasily Averin <vvs@parallels.com>
+Subject: Re: [PATCH] bridge: Superfluous skb->nfct check in br_nf_dev_queue_xmit
+Date: Sun, 04 May 2014 23:04:29 +0400
+Message-ID: <53668F3D.7080202@parallels.com>
+References: <20140428131646.GP31953@breakpoint.cc> <5360BA5A.7020200@parallels.com> <20140504125427.GA4344@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: vvs@parallels.com, kaber@trash.net, fw@strlen.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140504125835.GA4452@localhost>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Saikiran Madugula <hummerbliss@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailhub.sw.ru ([195.214.232.25]:24694 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751502AbaEDTGP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 May 2014 15:06:15 -0400
+In-Reply-To: <20140504125427.GA4344@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sun, 4 May 2014 14:58:35 +0200
-
-> On Sun, May 04, 2014 at 01:18:50PM +0200, Pablo Neira Ayuso wrote:
->> On Sat, May 03, 2014 at 03:14:04AM +0400, Vasily Averin wrote:
->> > Defrag user check in ip_expire was not updated after adding support for
->> > "conntrack zones"
->> 
->> I think this bug manifests as a RFC violation, as the router will send
->> the icmp time exceeeded message when using conntrack zones. Just would
->> like to confirm this, so we can include it in the patch description.
->> Thanks.
+On 05/04/2014 04:54 PM, Pablo Neira Ayuso wrote:
+> On Wed, Apr 30, 2014 at 12:54:50PM +0400, Vasily Averin wrote:
+>> Currently bridge can silently drop ipv4 fragments.
+>> If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
+>> br_nf_pre_routing defragments incoming ipv4 fragments
+>> but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined packet back,
+>> and therefore it is dropped in br_dev_queue_push_xmit without incrementing of any failcounters
 > 
-> @David: If no objection, I'll pick this patch given that it's a
-> netfilter bug.
+> If no further objections, I'll push this original patch appending this comment
+> to the description:
 > 
-> I will also append to the patch description the comment above for the
-> record.
+> [ It seems the only way to hit the ip_fragment code in the bridge xmit
+>   path is to have a fragment list whose reassembled fragments go over
+>   the mtu. This only happens if nf_defrag is enabled. Thanks to
+>   Florian Westphal for providing feedback to clarify this. ]
 
-That's perfectly fine, thanks.
+I have not objections, however I still do not understand why #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4) 
+is required in br_dev_queue_push_xmit()?
+
+If ipv4 defragmentation is required not only for conntracks but for TPROXY target and xt_socket match
+I think we need to use NF_DEFRAG_IPV4 instead.
