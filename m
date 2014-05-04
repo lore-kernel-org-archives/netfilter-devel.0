@@ -1,66 +1,37 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: [PATCH v2] bridge: superfluous skb->nfct check in br_nf_dev_queue_xmit
-Date: Mon, 05 May 2014 00:17:48 +0400
-Message-ID: <5366A06C.7060509@parallels.com>
-References: <20140504192517.GA13876@localhost>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: ebtables issue in compat mode
+Date: Sun, 04 May 2014 23:04:32 +0200
+Message-ID: <5366AB60.7020009@pandora.be>
+References: <CAJzFV37HK7J2W5uz8-zFZ-n80yYKvu8KmxWu8Dx2rzbzzLeZDw@mail.gmail.com>	<20140501100229.GS31953@breakpoint.cc> <CAJzFV37Vus34O9F+0ATW6s6-5=OgTBLAxJ1rC6_658x25dNWzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Sharat Masetty <sharat04@gmail.com>,
+	Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:2827 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753417AbaEDUTX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 May 2014 16:19:23 -0400
-In-Reply-To: <20140504192517.GA13876@localhost>
+Received: from albert.telenet-ops.be ([195.130.137.90]:33117 "EHLO
+	albert.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462AbaEDVEk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 May 2014 17:04:40 -0400
+In-Reply-To: <CAJzFV37Vus34O9F+0ATW6s6-5=OgTBLAxJ1rC6_658x25dNWzw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[v2: #ifdef is changed from NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4]
+Sharat Masetty schreef op 1/05/2014 18:09:
+> We are using a 3.10.0 kernel version which has CONFIG_COMPAT enabled.
+> The ebtables version is 2.0.10-4.  This is arm 63/32 not x86.
+> I also have another question. Do we need to compile the userspace tool
+> using the sanitized kernel headers?(uapi/linux) or should we be using
+> headers provided in the ebtables user space package? The reason for
+> asking this question is that I see some differences in the structure
+> definitions between the ebtables packaged kernel header files and the
+> header files exposed by the kernel.
 
-Currently bridge can silently drop ipv4 fragments.
-If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
-br_nf_pre_routing defragments incoming ipv4 fragments
-but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined
-packet back, and therefore it is dropped in br_dev_queue_push_xmit without
-incrementing of any failcounters
+The kernel should be backwards compatible, so using the provided header 
+files should be fine.
 
-It seems the only way to hit the ip_fragment code in the bridge xmit
-path is to have a fragment list whose reassembled fragments go over
-the mtu. This only happens if nf_defrag is enabled. Thanks to
-Florian Westphal for providing feedback to clarify this.
-
-Defragmentation ipv4 is required not only in conntracks but at least in
-TPROXY target and socket match, therefore #ifdef is changed from
-NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4
-
-Signed-off-by: Vasily Averin <vvs@openvz.org>
----
- net/bridge/br_netfilter.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 80e1b0f..2acf7fa 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -859,12 +859,12 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
- 	return NF_STOLEN;
- }
- 
--#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV4)
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
- 	int ret;
- 
--	if (skb->nfct != NULL && skb->protocol == htons(ETH_P_IP) &&
-+	if (skb->protocol == htons(ETH_P_IP) &&
- 	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
- 	    !skb_is_gso(skb)) {
- 		if (br_parse_ip_options(skb))
--- 
-1.7.5.4
+cheers,
+Bart
 
