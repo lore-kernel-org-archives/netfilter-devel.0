@@ -1,73 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [pablo@netfilter.org: Re: nft 2.0, NULL pointer dereference in
- 3.14.1]
-Date: Sun, 4 May 2014 13:34:54 +0200
-Message-ID: <20140504113454.GA4006@localhost>
+Subject: Re: [RESEND PATCH 2/2] nfacct: adding quota capabilities
+Date: Sun, 4 May 2014 14:30:43 +0200
+Message-ID: <20140504123043.GA26519@localhost>
+References: <1398041896-8479-1-git-send-email-mathieu.poirier@linaro.org>
+ <1398041896-8479-2-git-send-email-mathieu.poirier@linaro.org>
+ <20140428085625.GA18836@localhost>
+ <20140428102033.GA3842@localhost>
+ <CANLsYky2jcZF=hxMaXaYj_7jjn1GjtqTEXbSv9mBJ_Vn8sdJ4w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	John Stultz <john.stultz@linaro.org>
+To: Mathieu Poirier <mathieu.poirier@linaro.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37992 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41211 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753297AbaEDLfH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 May 2014 07:35:07 -0400
+	id S1753625AbaEDMas (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 May 2014 08:30:48 -0400
 Content-Disposition: inline
+In-Reply-To: <CANLsYky2jcZF=hxMaXaYj_7jjn1GjtqTEXbSv9mBJ_Vn8sdJ4w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Forwarding this reply to nf-devel, it was not included in the CC. Just
-for the record.
-
------ Forwarded message from Pablo Neira Ayuso <pablo@netfilter.org> -----
-
-Date: Sun, 4 May 2014 13:33:57 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Cc: netdev@vger.kernel.org, kaber@trash.net, kadlec@blackhole.kfki.hu
-Subject: Re: nft 2.0, NULL pointer dereference in 3.14.1
-User-Agent: Mutt/1.5.21 (2010-09-15)
-
-On Sun, May 04, 2014 at 10:25:58AM +0300, Denys Fedoryshchenko wrote:
-> Hi
+On Wed, Apr 30, 2014 at 02:30:22PM -0600, Mathieu Poirier wrote:
+> On 28 April 2014 04:20, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Apr 28, 2014 at 10:56:25AM +0200, Pablo Neira Ayuso wrote:
+> >> > @@ -526,28 +569,93 @@ static int nfacct_cmd_help(int argc, char *argv[])
+> >> >
+> >> >  static int nfacct_cmd_restore(int argc, char *argv[])
+> >> >  {
+> >> > -   uint64_t pkts, bytes;
+> >> > -   char name[512];
+> >> > -   char buffer[512];
+> >> > -   int ret;
+> >> > +   uint64_t pkts, bytes, quota;
+> >> > +   char name[512], mode[512], buffer[512];
+> >> > +   int ret, flags;
+> >> >
+> >> >     while (fgets(buffer, sizeof(buffer), stdin)) {
+> >> >             char *semicolon = strchr(buffer, ';');
+> >> > +
+> >> >             if (semicolon == NULL) {
+> >> >                     nfacct_perror("invalid line");
+> >> >                     return -1;
+> >> >             }
+> >> > +
+> >> > +           /* a single ';' terminates the input */
+> >> > +           if (strncmp(buffer, ";", 1) == 0)
+> >> > +                   break;
+> >>
+> >> This chunk seems new, why is it needed there?
+> >
+> > I have applied this patch, we can clarify this or remove it in a
+> > follow up patch.
 > 
-> I bit more debugging and found that problem is happening at:
+> I've investigated this a little more to find out that my EOF character
+> wasn't coming in properly on my target.  After correction the original
+> code works properly and as such the highlighted chunk is not needed.
 > 
-> >sock = netlink_lookup(sock_net(ssk), ssk->sk_protocol, portid);
-> 
-> ssk is NULL
-> 
-> After checking, i noticed in nfnetlink.c
-> nfnetlink_rcv_batch() function
-> 
-> We have
-> nskb->sk = oskb->sk;
-> skb = nskb;
-> 
-> I am matching condition
-> ss = rcu_dereference_protected(table[subsys_id].subsys,
->        lockdep_is_held(&table[subsys_id].mutex));
-> if (!ss) {
-> 
-> And then
-> nfnl_unlock(subsys_id);
-> kfree_skb(nskb);
-> return netlink_ack(skb, nlh, -EOPNOTSUPP);
-> 
-> If i am not wrong, nskb same pointer as skb, so we are giving
-> netlink_ack freed pointer?
-> Is it "use after free()" ?
+> I can send a new patch or you can edit it out directly - pls get back
+> to me with that you prefer.
 
-Right, this is an embarrasing use after free when no nf_tables support
-has been selected / modules are not available.
-
-> If yes, then it seems attached patch fixing my issue. Please let me
-> know, if it is ok and i should submit it.
-
-I'm going to take this, but please next time use git format-patch and
-include your Signed-off-by tag. If you feel the patch is not complete
-in some aspect or that you may be missing anything, just include the
-RFC tag in the subject.
-
-Thanks Denys!
-
------ End forwarded message -----
+Please, send me a follow up patch. This is already in master. Thanks.
