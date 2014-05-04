@@ -1,38 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] bridge: Superfluous skb->nfct check in
- br_nf_dev_queue_xmit
-Date: Sun, 4 May 2014 14:54:27 +0200
-Message-ID: <20140504125427.GA4344@localhost>
-References: <20140428131646.GP31953@breakpoint.cc>
- <5360BA5A.7020200@parallels.com>
+Subject: Re: [PATCH] ipv4: "conntrack zones" support for defrag user check in
+ ip_expire
+Date: Sun, 4 May 2014 14:58:35 +0200
+Message-ID: <20140504125835.GA4452@localhost>
+References: <536426BC.7020509@parallels.com>
+ <20140504111850.GA3765@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
+Cc: Vasily Averin <vvs@parallels.com>,
 	Patrick McHardy <kaber@trash.net>,
-	Saikiran Madugula <hummerbliss@gmail.com>
-To: Vasily Averin <vvs@parallels.com>
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42222 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42393 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753656AbaEDMyd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 May 2014 08:54:33 -0400
+	id S1753811AbaEDM6k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 May 2014 08:58:40 -0400
 Content-Disposition: inline
-In-Reply-To: <5360BA5A.7020200@parallels.com>
+In-Reply-To: <20140504111850.GA3765@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 30, 2014 at 12:54:50PM +0400, Vasily Averin wrote:
-> Currently bridge can silently drop ipv4 fragments.
-> If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
-> br_nf_pre_routing defragments incoming ipv4 fragments
-> but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined packet back,
-> and therefore it is dropped in br_dev_queue_push_xmit without incrementing of any failcounters
+On Sun, May 04, 2014 at 01:18:50PM +0200, Pablo Neira Ayuso wrote:
+> On Sat, May 03, 2014 at 03:14:04AM +0400, Vasily Averin wrote:
+> > Defrag user check in ip_expire was not updated after adding support for
+> > "conntrack zones"
+> 
+> I think this bug manifests as a RFC violation, as the router will send
+> the icmp time exceeeded message when using conntrack zones. Just would
+> like to confirm this, so we can include it in the patch description.
+> Thanks.
 
-If no further objections, I'll push this original patch appending this comment
-to the description:
+@David: If no objection, I'll pick this patch given that it's a
+netfilter bug.
 
-[ It seems the only way to hit the ip_fragment code in the bridge xmit
-  path is to have a fragment list whose reassembled fragments go over
-  the mtu. This only happens if nf_defrag is enabled. Thanks to
-  Florian Westphal for providing feedback to clarify this. ]
+I will also append to the patch description the comment above for the
+record.
+
+> > Signed-off-by: Vasily Averin <vvs@openvz.org>
+> > ---
+> >  net/ipv4/ip_fragment.c |    5 +++--
+> >  1 files changed, 3 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+> > index c10a3ce..ed32313 100644
+> > --- a/net/ipv4/ip_fragment.c
+> > +++ b/net/ipv4/ip_fragment.c
+> > @@ -232,8 +232,9 @@ static void ip_expire(unsigned long arg)
+> >  		 * "Fragment Reassembly Timeout" message, per RFC792.
+> >  		 */
+> >  		if (qp->user == IP_DEFRAG_AF_PACKET ||
+> > -		    (qp->user == IP_DEFRAG_CONNTRACK_IN &&
+> > -		     skb_rtable(head)->rt_type != RTN_LOCAL))
+> > +		    ((qp->user >= IP_DEFRAG_CONNTRACK_IN) &&
+> > +		     (qp->user <= __IP_DEFRAG_CONNTRACK_IN_END) &&
+> > +		     (skb_rtable(head)->rt_type != RTN_LOCAL)))
+> >  			goto out_rcu_unlock;
+> >  
+> >  
+> > -- 
+> > 1.7.5.4
+> > 
