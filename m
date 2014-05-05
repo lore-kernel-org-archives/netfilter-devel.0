@@ -1,73 +1,41 @@
-From: Vasily Averin <vvs@parallels.com>
-Subject: [PATCH 5/7] nf: ipv4 defragmentation users counter changes in TPROXY
- target
-Date: Mon, 05 May 2014 16:56:19 +0400
-Message-ID: <53678A73.8040502@parallels.com>
-References: <20140503233908.GA6297@localhost> <cover.1399292146.git.vvs@openvz.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+From: Sergey Popovich <popovich_sergei@mail.ru>
+Subject: [PATCH 0/2] hash:net,net and hash:net,port,net fixes and debug output extending
+Date: Mon,  5 May 2014 11:07:04 +0300
+Message-ID: <cover.1399275196.git.popovich_sergei@mail.ru>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:18862 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932214AbaEEM5w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 May 2014 08:57:52 -0400
-In-Reply-To: <cover.1399292146.git.vvs@openvz.org>
+Received: from fallback4.mail.ru ([94.100.176.42]:53419 "EHLO
+	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892AbaEEIJr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 May 2014 04:09:47 -0400
+Received: from smtp4.mail.ru (smtp4.mail.ru [94.100.176.44])
+	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id A745B246002C
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2014 12:07:30 +0400 (MSK)
+Received: from [195.234.68.4] (port=40497 helo=tuxracer.skif.com.ua)
+	by smtp4.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
+	id 1WhDvc-0003Yx-OM
+	for netfilter-devel@vger.kernel.org; Mon, 05 May 2014 12:07:13 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This small series present two patches one of which fixes
+problem with element ranges support in hash:net,net and
+hash:net,port,net set types. Second one just extends debugging
+output for three dimension sets when ipset/library compiled
+with IPSET_DEBUG.
 
-Signed-off-by: Vasily Averin <vvs@openvz.org>
----
- net/netfilter/xt_TPROXY.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+See individual patch description for more information.
 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index ef8a926..ce99ad4 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -528,14 +528,21 @@ static int tproxy_tg4_check(const struct xt_tgchk_param *par)
- 	const struct ipt_ip *i = par->entryinfo;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
--	    && !(i->invflags & IPT_INV_PROTO))
-+	    && !(i->invflags & IPT_INV_PROTO)) {
-+		inc_br_defrag_ipv4_users_count(par->net);
- 		return 0;
-+	}
- 
- 	pr_info("Can be used only in combination with "
- 		"either -p tcp or -p udp\n");
- 	return -EINVAL;
- }
- 
-+void tproxy_tg4_destroy(const struct xt_tgdtor_param *par)
-+{
-+	dec_br_defrag_ipv4_users_count(par->net);
-+}
-+
- static struct xt_target tproxy_tg_reg[] __read_mostly = {
- 	{
- 		.name		= "TPROXY",
-@@ -545,6 +552,7 @@ static struct xt_target tproxy_tg_reg[] __read_mostly = {
- 		.revision	= 0,
- 		.targetsize	= sizeof(struct xt_tproxy_target_info),
- 		.checkentry	= tproxy_tg4_check,
-+		.destroy	= tproxy_tg4_destroy,
- 		.hooks		= 1 << NF_INET_PRE_ROUTING,
- 		.me		= THIS_MODULE,
- 	},
-@@ -556,6 +564,7 @@ static struct xt_target tproxy_tg_reg[] __read_mostly = {
- 		.revision	= 1,
- 		.targetsize	= sizeof(struct xt_tproxy_target_info_v1),
- 		.checkentry	= tproxy_tg4_check,
-+		.destroy	= tproxy_tg4_destroy,
- 		.hooks		= 1 << NF_INET_PRE_ROUTING,
- 		.me		= THIS_MODULE,
- 	},
+Sergey Popovich (2):
+  libipset: print third element in debugging
+  netnet,netportnet: Fix value range support for IPv4
+
+ kernel/net/netfilter/ipset/ip_set_hash_netnet.c     |   13 +++++++------
+ kernel/net/netfilter/ipset/ip_set_hash_netportnet.c |    6 ++++--
+ lib/parse.c                                         |    4 +++-
+ 3 files changed, 14 insertions(+), 9 deletions(-)
+
 -- 
-1.7.5.4
+1.7.10.4
 
