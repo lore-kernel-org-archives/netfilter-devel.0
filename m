@@ -1,51 +1,43 @@
-From: Sergey Popovich <popovich_sergei@mail.ru>
-Subject: [PATCH 1/2] libipset: print third element in debugging
-Date: Mon,  5 May 2014 11:07:05 +0300
-Message-ID: <594c392cc60dc713fc6ea8d29ccf30913e8a9629.1399275196.git.popovich_sergei@mail.ru>
-References: <cover.1399275196.git.popovich_sergei@mail.ru>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] bridge: superfluous skb->nfct check in
+ br_nf_dev_queue_xmit
+Date: Mon, 5 May 2014 16:07:55 +0200
+Message-ID: <20140505140755.GA12018@localhost>
+References: <20140504192517.GA13876@localhost>
+ <5366A06C.7060509@parallels.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Vasily Averin <vvs@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.176.58]:53880 "EHLO
-	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755341AbaEEIJA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 May 2014 04:09:00 -0400
-Received: from smtp4.mail.ru (smtp4.mail.ru [94.100.176.44])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id 9ED0E11499C04
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2014 12:07:32 +0400 (MSK)
-Received: from [195.234.68.4] (port=40497 helo=tuxracer.skif.com.ua)
-	by smtp4.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ru>)
-	id 1WhDvd-0003Yx-9a
-	for netfilter-devel@vger.kernel.org; Mon, 05 May 2014 12:07:13 +0400
-In-Reply-To: <cover.1399275196.git.popovich_sergei@mail.ru>
+Received: from mail.us.es ([193.147.175.20]:53463 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932548AbaEEOIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 May 2014 10:08:05 -0400
+Content-Disposition: inline
+In-Reply-To: <5366A06C.7060509@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have that done for first and second elements when
-parsing element string, do this for third element for
-convenience.
+On Mon, May 05, 2014 at 12:17:48AM +0400, Vasily Averin wrote:
+> [v2: #ifdef is changed from NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4]
+> 
+> Currently bridge can silently drop ipv4 fragments.
+> If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
+> br_nf_pre_routing defragments incoming ipv4 fragments
+> but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined
+> packet back, and therefore it is dropped in br_dev_queue_push_xmit without
+> incrementing of any failcounters
+> 
+> It seems the only way to hit the ip_fragment code in the bridge xmit
+> path is to have a fragment list whose reassembled fragments go over
+> the mtu. This only happens if nf_defrag is enabled. Thanks to
+> Florian Westphal for providing feedback to clarify this.
+> 
+> Defragmentation ipv4 is required not only in conntracks but at least in
+> TPROXY target and socket match, therefore #ifdef is changed from
+> NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4
 
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ru>
----
- lib/parse.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/lib/parse.c b/lib/parse.c
-index 4db872e..405d6a2 100644
---- a/lib/parse.c
-+++ b/lib/parse.c
-@@ -1976,8 +1976,10 @@ ipset_parse_elem(struct ipset_session *session,
- 		D("parse elem part two: %s", a);
- 		parse_elem(session, type, IPSET_DIM_TWO, a);
- 	}
--	if (type->dimension > IPSET_DIM_TWO && b != NULL)
-+	if (type->dimension > IPSET_DIM_TWO && b != NULL) {
-+		D("parse elem part three: %s", b);
- 		parse_elem(session, type, IPSET_DIM_THREE, b);
-+	}
- 
- 	goto out;
- 
--- 
-1.7.10.4
-
+Applied, thanks Vasily.
