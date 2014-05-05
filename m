@@ -1,43 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] bridge: superfluous skb->nfct check in
- br_nf_dev_queue_xmit
-Date: Mon, 5 May 2014 16:07:55 +0200
-Message-ID: <20140505140755.GA12018@localhost>
-References: <20140504192517.GA13876@localhost>
- <5366A06C.7060509@parallels.com>
+From: Vasily Averin <vvs@parallels.com>
+Subject: [PATCH 1/7] nf: added per net namespace ipv4 defragmentation users
+ counter
+Date: Mon, 05 May 2014 16:55:39 +0400
+Message-ID: <53678A4B.90705@parallels.com>
+References: <20140503233908.GA6297@localhost> <cover.1399292146.git.vvs@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Vasily Averin <vvs@parallels.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53463 "EHLO mail.us.es"
+Received: from mailhub.sw.ru ([195.214.232.25]:31898 "EHLO relay.sw.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932548AbaEEOIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 May 2014 10:08:05 -0400
-Content-Disposition: inline
-In-Reply-To: <5366A06C.7060509@parallels.com>
+	id S932219AbaEEM5M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 May 2014 08:57:12 -0400
+In-Reply-To: <cover.1399292146.git.vvs@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 05, 2014 at 12:17:48AM +0400, Vasily Averin wrote:
-> [v2: #ifdef is changed from NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4]
-> 
-> Currently bridge can silently drop ipv4 fragments.
-> If node have loaded nf_defrag_ipv4 module but have no nf_conntrack_ipv4,
-> br_nf_pre_routing defragments incoming ipv4 fragments
-> but nfct check in br_nf_dev_queue_xmit does not allow re-fragment combined
-> packet back, and therefore it is dropped in br_dev_queue_push_xmit without
-> incrementing of any failcounters
-> 
-> It seems the only way to hit the ip_fragment code in the bridge xmit
-> path is to have a fragment list whose reassembled fragments go over
-> the mtu. This only happens if nf_defrag is enabled. Thanks to
-> Florian Westphal for providing feedback to clarify this.
-> 
-> Defragmentation ipv4 is required not only in conntracks but at least in
-> TPROXY target and socket match, therefore #ifdef is changed from
-> NF_CONNTRACK_IPV4 to NF_DEFRAG_IPV4
 
-Applied, thanks Vasily.
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+---
+ include/net/net_namespace.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index 5f9eb26..d82e4b2 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -113,6 +113,9 @@ struct net {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ 	struct netns_nf_frag	nf_frag;
+ #endif
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
++	atomic_t		br_defrag_ipv4_users_count;
++#endif
+ 	struct sock		*nfnl;
+ 	struct sock		*nfnl_stash;
+ #endif
+-- 
+1.7.5.4
+
