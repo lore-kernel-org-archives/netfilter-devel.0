@@ -1,71 +1,33 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] data_reg: fix bad buffer size bounds
-Date: Tue, 06 May 2014 19:19:46 +0200
-Message-ID: <20140506171946.4163.82349.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/2] libipset: print third element in debugging
+Date: Tue, 6 May 2014 11:05:15 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1405061104360.10540@blackhole.kfki.hu>
+References: <cover.1399275196.git.popovich_sergei@mail.ru> <594c392cc60dc713fc6ea8d29ccf30913e8a9629.1399275196.git.popovich_sergei@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Sergey Popovich <popovich_sergei@mail.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:56275 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751111AbaEFRUA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 May 2014 13:20:00 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.25]:50185 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934344AbaEFJFO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 May 2014 05:05:14 -0400
+In-Reply-To: <594c392cc60dc713fc6ea8d29ccf30913e8a9629.1399275196.git.popovich_sergei@mail.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These calls need to use the new buffer size, instead of the
-size that the buffer originally had.
+On Mon, 5 May 2014, Sergey Popovich wrote:
 
-Bugs introduced by myself at dec68741 [data_reg: fix verdict format approach].
+> We have that done for first and second elements when
+> parsing element string, do this for third element for
+> convenience.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/expr/data_reg.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Patch is applied, thanks.
 
-diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index 0523cb7..44281f7 100644
---- a/src/expr/data_reg.c
-+++ b/src/expr/data_reg.c
-@@ -304,7 +304,7 @@ nft_data_reg_verdict_snprintf_def(char *buf, size_t size,
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (reg->chain != NULL) {
--		ret = snprintf(buf+offset, size, "-> %s ", reg->chain);
-+		ret = snprintf(buf+offset, len, "-> %s ", reg->chain);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
-@@ -322,12 +322,12 @@ nft_data_reg_verdict_snprintf_xml(char *buf, size_t size,
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (reg->chain != NULL) {
--		ret = snprintf(buf+offset, size, "<chain>%s</chain>",
-+		ret = snprintf(buf+offset, len, "<chain>%s</chain>",
- 			       reg->chain);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, "</data_reg>");
-+	ret = snprintf(buf+offset, len, "</data_reg>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-@@ -344,12 +344,12 @@ nft_data_reg_verdict_snprintf_json(char *buf, size_t size,
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (reg->chain != NULL) {
--		ret = snprintf(buf+offset, size, ",\"chain\":\"%s\"",
-+		ret = snprintf(buf+offset, len, ",\"chain\":\"%s\"",
- 			       reg->chain);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf+offset, size, "}");
-+	ret = snprintf(buf+offset, len, "}");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
