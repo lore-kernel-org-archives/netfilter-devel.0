@@ -1,26 +1,37 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/2] libipset: print third element in debugging
-Date: Tue, 6 May 2014 11:05:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1405061104360.10540@blackhole.kfki.hu>
-References: <cover.1399275196.git.popovich_sergei@mail.ru> <594c392cc60dc713fc6ea8d29ccf30913e8a9629.1399275196.git.popovich_sergei@mail.ru>
+Subject: Re: [PATCH] ipset: Fix ethernet address parser
+Date: Tue, 6 May 2014 11:04:11 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1405061103470.10540@blackhole.kfki.hu>
+References: <CAM=+jx8BjiVY6f3Gv8G3KPxr3KaDYkbTqeZWkxhBFakgdsnyLw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Sergey Popovich <popovich_sergei@mail.ru>
+To: Janeks Jaunups <th3n3x@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:50185 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:38027 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934344AbaEFJFO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 May 2014 05:05:14 -0400
-In-Reply-To: <594c392cc60dc713fc6ea8d29ccf30913e8a9629.1399275196.git.popovich_sergei@mail.ru>
+	id S934344AbaEFJEI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 May 2014 05:04:08 -0400
+In-Reply-To: <CAM=+jx8BjiVY6f3Gv8G3KPxr3KaDYkbTqeZWkxhBFakgdsnyLw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 5 May 2014, Sergey Popovich wrote:
+On Wed, 30 Apr 2014, Janeks Jaunups wrote:
 
-> We have that done for first and second elements when
-> parsing element string, do this for third element for
-> convenience.
+> Currently ipset would not parse ether addresses which are not exactly
+> 17 characters long, for ex. 1:2:3:4:5:6
+> 
+> I've ran into this problem when trying to do fancy things with ISC
+> DHCP scripts/events, which gladly skips zeroes in front of address
+> element, at least in a way I was doing it.
+> 
+> on commit {
+>   set ClientIP = binary-to-ascii(10, 8, ".", leased-address);
+>   set ClientMac = binary-to-ascii(16, 8, ":", substring(hardware, 1, 6));
+> 
+>   execute("sudo", "/usr/sbin/ipset", "add", "-exist", "dynnet",
+> concat( ClientIP, ",", ClientMac));
+> }
 
 Patch is applied, thanks.
 
