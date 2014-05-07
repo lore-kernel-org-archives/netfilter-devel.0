@@ -1,26 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] data_reg: fix bad buffer size bounds
-Date: Wed, 7 May 2014 15:39:32 +0200
-Message-ID: <20140507133932.GB4890@localhost>
-References: <20140506171946.4163.82349.stgit@nfdev.cica.es>
+Subject: Re: [libnftnl PATCH] ruleset: fix erroneus call to snprintf
+Date: Wed, 7 May 2014 15:39:21 +0200
+Message-ID: <20140507133921.GA4890@localhost>
+References: <20140506150933.31175.48901.stgit@nfdev.cica.es>
+ <CAOkSjBiuZvgQrxH2rJDk2Sq593gq7Tv30nCx5RTua1BuTLg0Sw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32930 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32907 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933138AbaEGNjl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 May 2014 09:39:41 -0400
+	id S932959AbaEGNj1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 May 2014 09:39:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20140506171946.4163.82349.stgit@nfdev.cica.es>
+In-Reply-To: <CAOkSjBiuZvgQrxH2rJDk2Sq593gq7Tv30nCx5RTua1BuTLg0Sw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 06, 2014 at 07:19:46PM +0200, Arturo Borrero Gonzalez wrote:
-> These calls need to use the new buffer size, instead of the
-> size that the buffer originally had.
+On Tue, May 06, 2014 at 05:53:01PM +0200, Arturo Borrero Gonzalez wrote:
+> On 6 May 2014 17:09, Arturo Borrero Gonzalez
+> <arturo.borrero.glez@gmail.com> wrote:
+> > This snprintf call is taking an erroneus value for size.
+> >
 > 
-> Bugs introduced by myself at dec68741 [data_reg: fix verdict format approach].
+> Please Pablo fix the message if you apply this. erroneus -> erroneous.
 
-Applied, thanks Arturo.
+Fixed and applied, thanks.
