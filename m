@@ -1,96 +1,44 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH 2/2] examples: use new nft_*_build_msg() functions
-Date: Tue, 06 May 2014 22:19:41 +0200
-Message-ID: <20140506201941.18158.46054.stgit@nfdev.cica.es>
-References: <20140506201936.18158.83354.stgit@nfdev.cica.es>
+From: Vasily Averin <vvs@parallels.com>
+Subject: Re: [PATCH RFC 0/7] users counter to manage ipv4 defragmentation
+ on bridge
+Date: Wed, 07 May 2014 17:27:33 +0400
+Message-ID: <536A34C5.2000909@parallels.com>
+References: <20140503233908.GA6297@localhost> <53678A3E.3060903@parallels.com> <20140505205757.GB32448@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60542 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755203AbaEFUTy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 May 2014 16:19:54 -0400
-In-Reply-To: <20140506201936.18158.83354.stgit@nfdev.cica.es>
+Received: from mailhub.sw.ru ([195.214.232.25]:10665 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933025AbaEGN3m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 May 2014 09:29:42 -0400
+In-Reply-To: <20140505205757.GB32448@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's use these new functions in the examples.
+On 05/06/2014 12:57 AM, Florian Westphal wrote:
+> Vasily Averin <vvs@parallels.com> wrote:
+>> For nf_conntrack_ipv4 I increment counter once only,
+>> For TPROXY target and socket match I increment counter on checkentry and
+>> decrement on destroy hook. So if these modules are just loaded but are not
+>> used in net namespace, they will not affect ipv4 defragmentation.
+>> Please let me know if you have some better ideas.
+> 
+> bridges defrag packets (if the nf_defrag_ipv4 is loaded) because
+> brnf_call_iptables sysctl is set to 1 by default.
+> 
+> What about making this sysctl per-netns?
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- examples/nft-rule-add.c |    9 ++-------
- examples/nft-rule-del.c |   13 +++++--------
- 2 files changed, 7 insertions(+), 15 deletions(-)
+I think it is great idea,
+I'm agree it's much better than my patch set.
 
-diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
-index 6961d0d..32302c5 100644
---- a/examples/nft-rule-add.c
-+++ b/examples/nft-rule-add.c
-@@ -137,7 +137,6 @@ int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
- 	struct nft_rule *r;
--	struct nlmsghdr *nlh;
- 	struct mnl_nlmsg_batch *batch;
- 	uint8_t family;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
-@@ -180,12 +179,8 @@ int main(int argc, char *argv[])
- 			  NFNL_MSG_BATCH_BEGIN, seq++);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
--			NFT_MSG_NEWRULE,
--			nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY),
--			NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK, seq++);
--
--	nft_rule_nlmsg_build_payload(nlh, r);
-+	nft_rule_build_msg(r, mnl_nlmsg_batch_current(batch), NFT_MSG_NEWRULE,
-+			   NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK, seq++);
- 	nft_rule_free(r);
- 	mnl_nlmsg_batch_next(batch);
- 
-diff --git a/examples/nft-rule-del.c b/examples/nft-rule-del.c
-index cec9440..50e8eb8 100644
---- a/examples/nft-rule-del.c
-+++ b/examples/nft-rule-del.c
-@@ -42,11 +42,10 @@ int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
--	struct nlmsghdr *nlh;
- 	struct mnl_nlmsg_batch *batch;
--	uint32_t portid, seq;
-+	uint32_t portid, seq, family;
- 	struct nft_rule *r = NULL;
--	int ret, family;
-+	int ret;
- 
- 	if (argc < 4 || argc > 5) {
- 		fprintf(stderr, "Usage: %s <family> <table> <chain> [<handle>]\n",
-@@ -76,6 +75,7 @@ int main(int argc, char *argv[])
- 	seq = time(NULL);
- 	nft_rule_attr_set(r, NFT_RULE_ATTR_TABLE, argv[2]);
- 	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, argv[3]);
-+	nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FAMILY, family);
- 
- 	/* If no handle is specified, delete all rules in the chain */
- 	if (argc == 5)
-@@ -87,12 +87,9 @@ int main(int argc, char *argv[])
- 			  NFNL_MSG_BATCH_BEGIN, seq++);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
--				NFT_MSG_DELRULE,
--				family,
--				NLM_F_ACK, seq++);
-+	nft_rule_build_msg(r, mnl_nlmsg_batch_current(batch), NFT_MSG_DELRULE,
-+			   NLM_F_ACK, seq++);
- 
--	nft_rule_nlmsg_build_payload(nlh, r);
- 	nft_rule_free(r);
- 	mnl_nlmsg_batch_next(batch);
- 
+However, could anybody explain,
+if nobody likes bridge-netfilters, why according sysctls are enabled in kernel by default?
+I've found in RHEL6 tries to disable them via /etc/sysctl.conf
+however it doesn't work when bridge module is loaded after applying settings saved in sysctl.conf
 
+Thank you,
+	Vasily Averin
