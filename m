@@ -1,69 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/6] netfilter: ipv4: defrag: set local_df flag on defragmented skb
-Date: Fri,  9 May 2014 12:56:03 +0200
-Message-ID: <1399632967-4423-3-git-send-email-pablo@netfilter.org>
-References: <1399632967-4423-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40272 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754753AbaEIK4S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 May 2014 06:56:18 -0400
-In-Reply-To: <1399632967-4423-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [contrack-tools PATCH] build: do not compile nfct if we disabled
+ cttimeout
+Date: Fri, 9 May 2014 13:29:59 +0200
+Message-ID: <20140509112959.GA3812@localhost>
+References: <1399543345-3634-1-git-send-email-liuhangbin@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter dev <netfilter@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Hangbin Liu <liuhangbin@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1399543345-3634-1-git-send-email-liuhangbin@gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Thu, May 08, 2014 at 06:02:25PM +0800, Hangbin Liu wrote:
+> If we do not have libnetfilter_cttimeout and disabled cttimeout, conntrack-tools
+> will compile fail because nfct.c include nfnetlink_cttimeout.h. Fix it by only
+> compile nfct when we have enabled cttimeout
 
-else we may fail to forward skb even if original fragments do fit
-outgoing link mtu:
+Strange. The nfnetlink_cttimeout.h file is cached inside the
+conntrack-tools tree:
 
-1. remote sends 2k packets in two 1000 byte frags, DF set
-2. we want to forward but only see '2k > mtu and DF set'
-3. we then send icmp error saying that outgoing link is 1500
+conntrack-tools/include/linux/netfilter/nfnetlink_cttimeout.h
 
-But original sender never sent a packet that would not fit
-the outgoing link.
+Here this compiles fine with my current tree and using:
 
-Setting local_df makes outgoing path test size vs.
-IPCB(skb)->frag_max_size, so we will still send the correct
-error in case the largest original size did not fit
-outgoing link mtu.
+./configure --prefix=/usr --disable-cthelper --disable-cttimeout
 
-Reported-by: Maxime Bizon <mbizon@freebox.fr>
-Suggested-by: Maxime Bizon <mbizon@freebox.fr>
-Fixes: 5f2d04f1f9 (ipv4: fix path MTU discovery with connection tracking)
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/nf_defrag_ipv4.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 12e13bd..f40f321 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -22,7 +22,6 @@
- #endif
- #include <net/netfilter/nf_conntrack_zones.h>
- 
--/* Returns new sk_buff, or NULL */
- static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
- {
- 	int err;
-@@ -33,8 +32,10 @@ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
- 	err = ip_defrag(skb, user);
- 	local_bh_enable();
- 
--	if (!err)
-+	if (!err) {
- 		ip_send_check(ip_hdr(skb));
-+		skb->local_df = 1;
-+	}
- 
- 	return err;
- }
--- 
-1.7.10.4
-
+Please, investigate this issue a bit further.
