@@ -1,53 +1,44 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] utils: fix buffer reallocation of nft_fprinft()
-Date: Fri, 09 May 2014 18:45:47 +0200
-Message-ID: <20140509164547.7057.94412.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] Netfilter fixes for net
+Date: Fri, 09 May 2014 13:17:58 -0400 (EDT)
+Message-ID: <20140509.131758.403206154033471633.davem@davemloft.net>
+References: <1399632967-4423-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48634 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754465AbaEIQqC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 May 2014 12:46:02 -0400
+Received: from shards.monkeyblade.net ([149.20.54.216]:38315 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756779AbaEIRSA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 May 2014 13:18:00 -0400
+In-Reply-To: <1399632967-4423-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When _snprintf() reports it would print n characters, that n doesn't include
-the trailing \0 that snprintf adds.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri,  9 May 2014 12:56:01 +0200
 
-Thus, we need to [re]allocate n+1 characters.
+> The following batch contains netfilter fixes for your net tree, they are:
+> 
+> 1) Fix use after free in nfnetlink when sending a batch for some
+>    unsupported subsystem, from Denys Fedoryshchenko.
+> 
+> 2) Skip autoload of the nat module if no binding is specified via
+>    ctnetlink, from Florian Westphal.
+> 
+> 3) Set local_df after netfilter defragmentation to avoid a bogus ICMP
+>    fragmentation needed in the forwarding path, also from Florian.
+> 
+> 4) Fix potential user after free in ip6_route_me_harder() when returning
+>    the error code to the upper layers, from Sergey Popovich.
+> 
+> 5) Skip possible bogus ICMP time exceeded emitted from the router (not
+>    valid according to RFC) if conntrack zones are used, from Vasily Averin.
+> 
+> 6) Fix fragment handling when nf_defrag_ipv4 is loaded but nf_conntrack
+>    is not present, also from Vasily.
 
-While at it, change the reallocation trigger. If the length of the buffer we
-used is equals to the expanded string length, the output has been truncated.
-In other words, if ret == bufsiz, then the trailing \0 is missing.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/utils.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/src/utils.c b/src/utils.c
-index 18917f5..b8094aa 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -195,12 +195,13 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
- 	int ret;
- 
- 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
--	if (ret > NFT_SNPRINTF_BUFSIZ) {
--		buf = calloc(1, ret);
-+	if (ret >= NFT_SNPRINTF_BUFSIZ) {
-+		bufsiz = ret + 1;
-+
-+		buf = calloc(1, bufsiz);
- 		if (buf == NULL)
- 			return -1;
- 
--		bufsiz = ret;
- 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
- 	}
- 
-
+Pulled, thanks a lot Pablo.
