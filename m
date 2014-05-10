@@ -1,39 +1,49 @@
-From: Hangbin Liu <liuhangbin@gmail.com>
-Subject: Re: [contrack-tools PATCH] build: do not compile nfct if we disabled
- cttimeout
-Date: Sat, 10 May 2014 10:51:23 +0800
-Message-ID: <20140510025123.GK25631@localhost.localdomain>
-References: <1399543345-3634-1-git-send-email-liuhangbin@gmail.com>
- <20140509112959.GA3812@localhost>
- <20140509115411.GJ25631@localhost.localdomain>
- <20140509135942.GA11325@localhost>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: ip_route_output_key returns wrong gateway info with specific ip rules
+Date: Sat, 10 May 2014 02:56:17 -0700
+Message-ID: <CAHo-Ooww_a0jXJGQru9E5mGTW4LUqNi6559AWy79wdHErB0Y8w@mail.gmail.com>
+References: <20140509134110.GI10939@kvmbude>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter dev <netfilter@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140509135942.GA11325@localhost>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Andreas Herz <andi@geekosphere.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:51959 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752764AbaEJJ4S (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 10 May 2014 05:56:18 -0400
+Received: by mail-qc0-f175.google.com with SMTP id w7so5742002qcr.20
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2014 02:56:17 -0700 (PDT)
+In-Reply-To: <20140509134110.GI10939@kvmbude>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 09, 2014 at 03:59:42PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, May 09, 2014 at 07:54:11PM +0800, Hangbin Liu wrote:
-> > On Fri, May 09, 2014 at 01:29:59PM +0200, Pablo Neira Ayuso wrote:
-> > > On Thu, May 08, 2014 at 06:02:25PM +0800, Hangbin Liu wrote:
-> > > > If we do not have libnetfilter_cttimeout and disabled cttimeout, conntrack-tools
-> > > > will compile fail because nfct.c include nfnetlink_cttimeout.h. Fix it by only
-> > > > compile nfct when we have enabled cttimeout
-> 
-> OK, I see. That's not nfnetlink_cttimeout.h, it's
-> libnetfilter_cttimeout.h.
+(guesswork, read it with a grain of salt)
 
-Ah, sorry, my mistake
-> 
-> Let me check if I can come up with some alternative solution.
+In my experience stuff like this usually ends up being caused by the
+order in which src ip selection (for locally generated packets without
+an explicit bind(ip) call, but thus also src ip selection for auto
+nat), route lookup and nat happen.
+Easiest fix has been to use iptables mangle prerouting to mark
+packets, thus also forcing a reroute, and then using fwmark ip rules
+instead of (or maybe in addition to) from ip rules.
 
--- 
+In your particular case I'm guessing the route lookup is happening
+post-source-nat src ip substitution (or even with a 0 during nat sec
+ip selection).  While theoretically SNAT happens in POSTROUTING, and
+thus after routing, I think this is only truly the case for the first
+packet of a flow.
 
-Thanks & Best Regards
-Hangbin Liu <liuhangbin@gmail.com>
+To be fair my info may be long obsolete, since I most recently (1-2
+weeks ago) ran into something like this on some 2.4 kernel (wrt54gl
+openwrt 8.09.2) while trying to use a different src ip for SNAT to
+port 80/443 then for all other ports.
+In my case iptables mangle prerouting (ip rule fwmark lookup) was used
+to mark SYNs from local client ip to dest port 80/443, and then src ip
+routing (ip rule from X) worked for everything else (ie. the rest of
+the tcp connection).
+Although that was with dst port based SNAT rules and not MASQUERADE.
+
+- Maciej
