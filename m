@@ -1,30 +1,49 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: ip_route_output_key returns wrong gateway info with specific ip rules
-Date: Sat, 10 May 2014 03:23:36 -0700
-Message-ID: <CAHo-Ooz2dCf5L0_w+kjHOG-byg+f0nPMS58bjUE1AnG3MRGE+Q@mail.gmail.com>
-References: <20140509134110.GI10939@kvmbude>
-	<CAHo-Ooww_a0jXJGQru9E5mGTW4LUqNi6559AWy79wdHErB0Y8w@mail.gmail.com>
-	<CAHo-OoyP69f=4yvct+gy6rPsS3Dps_Ph=tn1SnRkH0yVS2+2OA@mail.gmail.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH 01/15] br_netfilter: brnf_net structure
+Date: Sun, 11 May 2014 21:26:18 +0200
+Message-ID: <536FCEDA.1030508@pandora.be>
+References: <536A8054.90201@pandora.de> <cover.1399660706.git.vvs@openvz.org> <536D481A.1060700@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Andreas Herz <andi@geekosphere.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Vasily Averin <vvs@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:36294 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752845AbaEJKXh (ORCPT
+Received: from andre.telenet-ops.be ([195.130.132.53]:42769 "EHLO
+	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933968AbaEKT0T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 May 2014 06:23:37 -0400
-Received: by mail-qc0-f175.google.com with SMTP id w7so5757843qcr.20
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2014 03:23:36 -0700 (PDT)
-In-Reply-To: <CAHo-OoyP69f=4yvct+gy6rPsS3Dps_Ph=tn1SnRkH0yVS2+2OA@mail.gmail.com>
+	Sun, 11 May 2014 15:26:19 -0400
+In-Reply-To: <536D481A.1060700@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Btw. Obviously you could just skip the '--syn' match, MARK all tcp
-packets to those ports, and rely on fwmark rule for everything (and
-not just the SYN packets) and not even bother with the 'from
-192.168.100.3' rule.
+Vasily Averin schreef op 9/05/2014 23:26:
+> struct brnf_net for per-netns settings in br_netfilters
+>
+> Signed-off-by: Vasily Averin <vvs@openvz.org>
+> ---
+>   net/bridge/br_private.h |   15 +++++++++++++++
+>   1 files changed, 15 insertions(+), 0 deletions(-)
+>
+> diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+> index 06811d7..e29ae83 100644
+> --- a/net/bridge/br_private.h
+> +++ b/net/bridge/br_private.h
+> @@ -312,6 +312,21 @@ struct br_input_skb_cb {
+>   # define BR_INPUT_SKB_CB_MROUTERS_ONLY(__skb)	(0)
+>   #endif
+>
+> +#ifdef CONFIG_BRIDGE_NETFILTER
+> +struct brnf_net {
+> +	struct net *net;
 
-But that would be boring and not showing the issue at hand. ;-)
+Unless I missed something, the net member is only really needed for 
+CONFIG_SYSCTL.
+
+cheers,
+Bart
+
