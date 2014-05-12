@@ -1,53 +1,93 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 5/5] netfilter: nf_tables: fix missing return trace at the end of non-base chain
-Date: Mon, 12 May 2014 16:40:05 +0200
-Message-ID: <1399905605-6394-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf 2/5] netfilter: nf_tables: fix goto action
+Date: Mon, 12 May 2014 16:40:02 +0200
+Message-ID: <1399905605-6394-2-git-send-email-pablo@netfilter.org>
 References: <1399905605-6394-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36568 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36566 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758718AbaELOlP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 10:41:15 -0400
+	id S1758716AbaELOlO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 10:41:14 -0400
 In-Reply-To: <1399905605-6394-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Display "return" for implicit rule at the end of a non-base chain,
-instead of when popping chain from the stack.
+This patch fixes a crash when trying to access the counters and the
+default chain policy from the non-base chain that we have reached
+via the goto chain. Fix this by falling back on the original base
+chain after returning from the custom chain.
+
+While fixing this, kill the inline function to account chain statistics
+to improve source code readability.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_core.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_core.c |   28 ++++++++++------------------
+ 1 file changed, 10 insertions(+), 18 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index be08a96..421c36a 100644
+index 4368c58..7d83a49 100644
 --- a/net/netfilter/nf_tables_core.c
 +++ b/net/netfilter/nf_tables_core.c
-@@ -182,18 +182,16 @@ next_rule:
- 	case NFT_RETURN:
- 		if (unlikely(pkt->skb->nf_trace))
- 			nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RETURN);
--
--		/* fall through */
-+		break;
- 	case NFT_CONTINUE:
-+		if (unlikely(pkt->skb->nf_trace && !(chain->flags & NFT_BASE_CHAIN)))
-+			nft_trace_packet(pkt, chain, ++rulenum, NFT_TRACE_RETURN);
- 		break;
- 	default:
- 		WARN_ON(1);
- 	}
+@@ -66,20 +66,6 @@ struct nft_jumpstack {
+ 	int			rulenum;
+ };
  
- 	if (stackptr > 0) {
--		if (unlikely(pkt->skb->nf_trace))
--			nft_trace_packet(pkt, chain, ++rulenum, NFT_TRACE_RETURN);
+-static inline void
+-nft_chain_stats(const struct nft_chain *this, const struct nft_pktinfo *pkt,
+-		struct nft_jumpstack *jumpstack, unsigned int stackptr)
+-{
+-	struct nft_stats __percpu *stats;
+-	const struct nft_chain *chain = stackptr ? jumpstack[0].chain : this;
 -
- 		stackptr--;
- 		chain = jumpstack[stackptr].chain;
- 		rule  = jumpstack[stackptr].rule;
+-	rcu_read_lock_bh();
+-	stats = rcu_dereference(nft_base_chain(chain)->stats);
+-	__this_cpu_inc(stats->pkts);
+-	__this_cpu_add(stats->bytes, pkt->skb->len);
+-	rcu_read_unlock_bh();
+-}
+-
+ enum nft_trace {
+ 	NFT_TRACE_RULE,
+ 	NFT_TRACE_RETURN,
+@@ -117,12 +103,13 @@ static void nft_trace_packet(const struct nft_pktinfo *pkt,
+ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
+ {
+-	const struct nft_chain *chain = ops->priv;
++	const struct nft_chain *chain = ops->priv, *basechain = chain;
+ 	const struct nft_rule *rule;
+ 	const struct nft_expr *expr, *last;
+ 	struct nft_data data[NFT_REG_MAX + 1];
+ 	unsigned int stackptr = 0;
+ 	struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
++	struct nft_stats __percpu *stats;
+ 	int rulenum;
+ 	/*
+ 	 * Cache cursor to avoid problems in case that the cursor is updated
+@@ -209,12 +196,17 @@ next_rule:
+ 		rulenum = jumpstack[stackptr].rulenum;
+ 		goto next_rule;
+ 	}
+-	nft_chain_stats(chain, pkt, jumpstack, stackptr);
+ 
+ 	if (unlikely(pkt->skb->nf_trace))
+-		nft_trace_packet(pkt, chain, ++rulenum, NFT_TRACE_POLICY);
++		nft_trace_packet(pkt, basechain, ++rulenum, NFT_TRACE_POLICY);
++
++	rcu_read_lock_bh();
++	stats = rcu_dereference(nft_base_chain(basechain)->stats);
++	__this_cpu_inc(stats->pkts);
++	__this_cpu_add(stats->bytes, pkt->skb->len);
++	rcu_read_unlock_bh();
+ 
+-	return nft_base_chain(chain)->policy;
++	return nft_base_chain(basechain)->policy;
+ }
+ EXPORT_SYMBOL_GPL(nft_do_chain);
+ 
 -- 
 1.7.10.4
 
