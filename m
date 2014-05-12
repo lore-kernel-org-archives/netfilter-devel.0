@@ -1,62 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 2/2] examples: use new nft_*_build_msg()
- functions
-Date: Mon, 12 May 2014 18:15:08 +0200
-Message-ID: <20140512161508.GB13099@localhost>
-References: <20140506201936.18158.83354.stgit@nfdev.cica.es>
- <20140506201941.18158.46054.stgit@nfdev.cica.es>
+From: Vasily Averin <vvs@parallels.com>
+Subject: [PATCH RFC v3 0/2] per-netns sysctl for br_netfilter
+Date: Mon, 12 May 2014 20:31:46 +0400
+Message-ID: <5370F772.3050004@parallels.com>
+References: <20140512140706.GA22082@macbook.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Bart De Schuymer <bdschuym@pandora.be>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44449 "EHLO mail.us.es"
+Received: from mailhub.sw.ru ([195.214.232.25]:1566 "EHLO relay.sw.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159AbaELQPR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 12:15:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20140506201941.18158.46054.stgit@nfdev.cica.es>
+	id S1754172AbaELQc6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 12:32:58 -0400
+In-Reply-To: <20140512140706.GA22082@macbook.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 06, 2014 at 10:19:41PM +0200, Arturo Borrero Gonzalez wrote:
-> Let's use these new functions in the examples.
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  examples/nft-rule-add.c |    9 ++-------
->  examples/nft-rule-del.c |   13 +++++--------
->  2 files changed, 7 insertions(+), 15 deletions(-)
-> 
-> diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
-> index 6961d0d..32302c5 100644
-> --- a/examples/nft-rule-add.c
-> +++ b/examples/nft-rule-add.c
-> @@ -137,7 +137,6 @@ int main(int argc, char *argv[])
->  {
->  	struct mnl_socket *nl;
->  	struct nft_rule *r;
-> -	struct nlmsghdr *nlh;
->  	struct mnl_nlmsg_batch *batch;
->  	uint8_t family;
->  	char buf[MNL_SOCKET_BUFFER_SIZE];
-> @@ -180,12 +179,8 @@ int main(int argc, char *argv[])
->  			  NFNL_MSG_BATCH_BEGIN, seq++);
->  	mnl_nlmsg_batch_next(batch);
->  
-> -	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-> -			NFT_MSG_NEWRULE,
-> -			nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY),
-> -			NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK, seq++);
-> -
-> -	nft_rule_nlmsg_build_payload(nlh, r);
-> +	nft_rule_build_msg(r, mnl_nlmsg_batch_current(batch), NFT_MSG_NEWRULE,
-> +			   NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK, seq++);
+Dear Patrick,
+thank you for feedback.
+Frankly speaking I still badly understand how it's better to split this patch set.
+Finally I've decided to combine v2 patches to 2 parts (1-8 and 9-11). 
+Could you please explain how to it better?
 
-Is this the only potential user of this new _build_ function? If so,
-I'd prefer to keep this back until we have more clients, I don't want
-to prematurely increase the size of the library with code that we
-don't need yet.
+This patch set enables per network namespace managemnt for br_netfiltes sysctls,
+it allows to enable processing br-nf-call hooks in ones network namespaces 
+and keep it disabled in another ones.
 
-Let me know,
-Thanks.
+v3: patches are merged into more large chunks 
+v2: removed extra overhead for CONFIG_SYSCTL=n
+
+Vasily Averin (2):
+  br_netfilter: common structure for sysctl flags
+  br_netfilter: per-netns copy of structure for sysctl flags
+
+ net/bridge/br_netfilter.c |  155 ++++++++++++++++++++++++++++++++++-----------
+ net/bridge/br_private.h   |   13 ++++
+ 2 files changed, 130 insertions(+), 38 deletions(-)
+
+-- 
+1.7.5.4
+
