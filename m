@@ -1,81 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrackd IPv6 client support for interface scope
-Date: Mon, 12 May 2014 18:07:32 +0200
-Message-ID: <20140512160732.GA13013@localhost>
-References: <C1308655-F367-4C0F-BD8D-DF62B0E7A8EA@nearband.com>
+Subject: Re: [libnftnl PATCH 1/2] src: add nft_*_build_msg functions
+Date: Mon, 12 May 2014 18:13:36 +0200
+Message-ID: <20140512161336.GA13099@localhost>
+References: <20140506201936.18158.83354.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Michael Griego <mgriego@nearband.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43838 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44363 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752482AbaELQHq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 12:07:46 -0400
+	id S1753343AbaELQNq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 12:13:46 -0400
 Content-Disposition: inline
-In-Reply-To: <C1308655-F367-4C0F-BD8D-DF62B0E7A8EA@nearband.com>
+In-Reply-To: <20140506201936.18158.83354.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Tue, May 06, 2014 at 10:19:36PM +0200, Arturo Borrero Gonzalez wrote:
+> These functions are likely to be used by all userspace programs to interact
+> with the nftables kernel subsystem.
+> 
+> Lets put in the library.
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  include/libnftnl/chain.h |    2 ++
+>  include/libnftnl/rule.h  |    2 ++
+>  include/libnftnl/set.h   |    4 ++++
+>  include/libnftnl/table.h |    2 ++
+>  src/chain.c              |   11 +++++++++++
+>  src/libnftnl.map         |    8 ++++++++
+>  src/rule.c               |   11 +++++++++++
+>  src/set.c                |   11 +++++++++++
+>  src/set_elem.c           |   11 +++++++++++
+>  src/table.c              |   11 +++++++++++
+>  10 files changed, 73 insertions(+)
+> 
+> diff --git a/include/libnftnl/chain.h b/include/libnftnl/chain.h
+> index c11cb5e..eecc7e9 100644
+> --- a/include/libnftnl/chain.h
+> +++ b/include/libnftnl/chain.h
+> @@ -56,6 +56,8 @@ uint64_t nft_chain_attr_get_u64(struct nft_chain *c, uint16_t attr);
+>  struct nlmsghdr;
+>  
+>  void nft_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_chain *t);
+> +void nft_chain_build_msg(struct nft_chain *c, void *buf, uint16_t msg,
+> +			 unsigned int flags, uint32_t seq);
 
-On Wed, May 07, 2014 at 03:18:04PM -0500, Michael Griego wrote:
-> Greetings,
->=20
-> I=E2=80=99ve been setting up conntrackd on a pair of new firewalls, a=
-nd I
-> discovered that, while the server code handles setting the scope for
-> the IPv6 address structure, the client code does not.  In a case
-> where a person is using link-local addresses for conntrackd syncing
-> (as I am) on a multi-homed system (as is generally expected in these
-> scenarios, especially since conntrackd is expected to be running on
-> a dedicated interface), this causes the server socket to get bound
-> to the proper scope/interface, but the client socket never gets the
-> scope, so it will fall back to the kernel routing table to connect
-> to its peer.  The kernel routing table will often not choose the
-> correct interface for this.
->=20
-> I patched my local copy of conntrack-tools (for UDP in this case) as =
-so:
->=20
-> --- conntrack-tools-1.4.1.orig/src/udp.c	2013-02-24 16:23:57.18398500=
-9 -0600
-> +++ conntrack-tools-1.4.1/src/udp.c	2014-05-07 14:18:20.407835364 -05=
-00
-> @@ -144,6 +144,7 @@
->  		memcpy(&m->addr.ipv6.sin6_addr, &conf->client.inet_addr6,
->  		       sizeof(struct in6_addr));
->  		m->sockaddr_len =3D sizeof(struct sockaddr_in6);=20
-> +		m->addr.ipv6.sin6_scope_id =3D conf->server.ipv6.scope_id;
->  		break;
->  	default:
->  		ret =3D -1;
->=20
->=20
-> It simply sets the scope ID of the client socket to the same one
-> that=E2=80=99s being used for the server socket.  It should be a safe
-> assumption, since only one Interface stanza is used for the channel
-> configuration.  This did allow usage of link-local addresses to
-> begin working properly without having to resort to setting up host
-> routes in each firewall for the link local address of each other.
->=20
-> The same thing would need to be done for the other channel types as
-> well, but I was curious about the reception of this type of patch
-> before creating a full patch (against 1.4.2 instead of 1.4.1, of
-> course).  As I said, this patched code is now working properly in my
-> setup using link-local IPv6 addresses in a UDP unicast channel.
-
-I don't find a reasonable scenario in which someone would need to
-receive sync message from one interface and send them from another.
-
-So I agree with your assumption, could you please send me a patch in
-git-format-patch including a Signed-off-by that I can apply with
-git-am.
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We should return the struct nlmsghdr * there, so we can still use the
+_fprintf function from libmnl in case we need to debug the message
+that has been made.
