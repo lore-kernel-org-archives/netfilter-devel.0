@@ -1,53 +1,55 @@
-From: Andreas Herz <andi@geekosphere.org>
-Subject: Re: ip_route_output_key returns wrong gateway info with specific ip
- rules
-Date: Mon, 12 May 2014 09:55:26 +0200
-Message-ID: <20140512075526.GV10939@kvmbude>
-References: <20140509134110.GI10939@kvmbude>
- <CAHo-Ooww_a0jXJGQru9E5mGTW4LUqNi6559AWy79wdHErB0Y8w@mail.gmail.com>
+From: Vasily Averin <vvs@parallels.com>
+Subject: [PATCH RFC v2 01/11] br_netfilter: brnf_net structure for sysctl
+ setting
+Date: Mon, 12 May 2014 16:56:49 +0400
+Message-ID: <5370C511.1040907@parallels.com>
+References: <536FD0FD.8010204@pandora.de> <cover.1399897184.git.vvs@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.geekosphere.org ([78.47.150.211]:59972 "EHLO
-	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbaELHz2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 03:55:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHo-Ooww_a0jXJGQru9E5mGTW4LUqNi6559AWy79wdHErB0Y8w@mail.gmail.com>
+Received: from mailhub.sw.ru ([195.214.232.25]:30136 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758201AbaELM5g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 08:57:36 -0400
+In-Reply-To: <cover.1399897184.git.vvs@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Maciej,
 
-thanks for your explanations!
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+---
+ net/bridge/br_private.h |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-On 10/05/14 at 02:56, Maciej =C5=BBenczykowski wrote:
-> Easiest fix has been to use iptables mangle prerouting to mark
-> packets, thus also forcing a reroute, and then using fwmark ip rules
-> instead of (or maybe in addition to) from ip rules.
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 06811d7..25a785e 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -312,6 +312,19 @@ struct br_input_skb_cb {
+ # define BR_INPUT_SKB_CB_MROUTERS_ONLY(__skb)	(0)
+ #endif
+ 
++#if defined CONFIG_BRIDGE_NETFILTER && defined CONFIG_SYSCTL
++struct brnf_net {
++	struct net *net;
++	struct ctl_table_header	*hdr;
++	int call_arptables;
++	int call_iptables;
++	int call_ip6tables;
++	int filter_vlan_tagged;
++	int filter_pppoe_tagged;
++	int pass_vlan_indev;
++};
++#endif
++
+ #define br_printk(level, br, format, args...)	\
+ 	printk(level "%s: " format, (br)->dev->name, ##args)
+ 
+-- 
+1.7.5.4
 
-I can workaround this with marked packets etc., sure.  But i want to
-know/learn why the "ip_route_output_key" from route.c function returns =
-a
-different value in my scenario although the data it gets via the
-parameter is the same and just the ip rule is different.
-
-I guess i have to add debug parts into route.c and dig more into that, =
-i
-just thought maybe some developer already knows what the problem might
-be.
-
-Thanks.
-
---=20
-Andreas Herz
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
