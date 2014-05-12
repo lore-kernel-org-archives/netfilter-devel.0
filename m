@@ -1,176 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/3] netfilter: nf_tables: defer all object release via rcu
-Date: Mon, 12 May 2014 16:52:07 +0200
-Message-ID: <1399906327-6491-3-git-send-email-pablo@netfilter.org>
-References: <1399906327-6491-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [contrack-tools PATCH] build: do not compile nfct if we disabled
+ cttimeout
+Date: Mon, 12 May 2014 17:23:54 +0200
+Message-ID: <20140512152354.GA6781@localhost>
+References: <1399543345-3634-1-git-send-email-liuhangbin@gmail.com>
+ <20140509112959.GA3812@localhost>
+ <20140509115411.GJ25631@localhost.localdomain>
+ <20140509135942.GA11325@localhost>
+ <20140510025123.GK25631@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Hangbin Liu <liuhangbin@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37309 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39756 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751216AbaELOwe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 10:52:34 -0400
-In-Reply-To: <1399906327-6491-1-git-send-email-pablo@netfilter.org>
+	id S1758554AbaELPYj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 11:24:39 -0400
+Content-Disposition: inline
+In-Reply-To: <20140510025123.GK25631@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that all objects are released in the reverse order via the
-transaction infrastructure, we can enqueue the release via
-call_rcu to save one synchronize_rcu. For small rule-sets loaded
-via nft -f, it now takes around 50ms less here.
+On Sat, May 10, 2014 at 10:51:23AM +0800, Hangbin Liu wrote:
+> On Fri, May 09, 2014 at 03:59:42PM +0200, Pablo Neira Ayuso wrote:
+> > On Fri, May 09, 2014 at 07:54:11PM +0800, Hangbin Liu wrote:
+> > > On Fri, May 09, 2014 at 01:29:59PM +0200, Pablo Neira Ayuso wrote:
+> > > > On Thu, May 08, 2014 at 06:02:25PM +0800, Hangbin Liu wrote:
+> > > > > If we do not have libnetfilter_cttimeout and disabled cttimeout, conntrack-tools
+> > > > > will compile fail because nfct.c include nfnetlink_cttimeout.h. Fix it by only
+> > > > > compile nfct when we have enabled cttimeout
+> > 
+> > OK, I see. That's not nfnetlink_cttimeout.h, it's
+> > libnetfilter_cttimeout.h.
+> 
+> Ah, sorry, my mistake
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This applies on top of the pile of transaction patches.
+Please, give a try to the attached patch.
 
- include/net/netfilter/nf_tables.h |    2 +
- net/netfilter/nf_tables_api.c     |   93 +++++++++++++++++++++----------------
- 2 files changed, 56 insertions(+), 39 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1ed2797..7ee6ce6 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -393,12 +393,14 @@ struct nft_rule {
- /**
-  *	struct nft_trans - nf_tables object update in transaction
-  *
-+ *	@rcu_head: rcu head to defer release of transaction data
-  *	@list: used internally
-  *	@msg_type: message type
-  *	@ctx: transaction context
-  *	@data: internal information related to the transaction
-  */
- struct nft_trans {
-+	struct rcu_head			rcu_head;
- 	struct list_head		list;
- 	int				msg_type;
- 	struct nft_ctx			ctx;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5ea7952..690df4d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3290,6 +3290,30 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 	}
- }
- 
-+/* Schedule objects for release via rcu to make sure no packets are accesing
-+ * removed rules.
-+ */
-+static void nf_tables_commit_release_rcu(struct rcu_head *rt)
-+{
-+	struct nft_trans *trans = container_of(rt, struct nft_trans, rcu_head);
-+
-+	switch (trans->msg_type) {
-+	case NFT_MSG_DELTABLE:
-+		nf_tables_table_destroy(&trans->ctx);
-+		break;
-+	case NFT_MSG_DELCHAIN:
-+		nf_tables_chain_destroy(trans->ctx.chain);
-+		break;
-+	case NFT_MSG_DELRULE:
-+		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		break;
-+	case NFT_MSG_DELSET:
-+		nft_set_destroy(nft_trans_set(trans));
-+		break;
-+	}
-+	kfree(trans);
-+}
-+
- static int nf_tables_commit(struct sk_buff *skb)
- {
- 	struct net *net = sock_net(skb->sk);
-@@ -3389,32 +3413,39 @@ static int nf_tables_commit(struct sk_buff *skb)
- 		}
- 	}
- 
--	/* Make sure we don't see any packet traversing old rules */
--	synchronize_rcu();
--
--	/* Now we can safely release unused old rules */
- 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		switch (trans->msg_type) {
--		case NFT_MSG_DELTABLE:
--			nf_tables_table_destroy(&trans->ctx);
--			break;
--		case NFT_MSG_DELCHAIN:
--			nf_tables_chain_destroy(trans->ctx.chain);
--			break;
--		case NFT_MSG_DELRULE:
--			nf_tables_rule_destroy(&trans->ctx,
--					       nft_trans_rule(trans));
--			break;
--		case NFT_MSG_DELSET:
--			nft_set_destroy(nft_trans_set(trans));
--			break;
--		}
--		nft_trans_destroy(trans);
-+		list_del(&trans->list);
-+		trans->ctx.nla = NULL;
-+		call_rcu(&trans->rcu_head, nf_tables_commit_release_rcu);
- 	}
- 
- 	return 0;
- }
- 
-+/* Schedule objects for release via rcu to make sure no packets are accesing
-+ * aborted rules.
-+ */
-+static void nf_tables_abort_release_rcu(struct rcu_head *rt)
-+{
-+	struct nft_trans *trans = container_of(rt, struct nft_trans, rcu_head);
-+
-+	switch (trans->msg_type) {
-+	case NFT_MSG_NEWTABLE:
-+		nf_tables_table_destroy(&trans->ctx);
-+		break;
-+	case NFT_MSG_NEWCHAIN:
-+		nf_tables_chain_destroy(trans->ctx.chain);
-+		break;
-+	case NFT_MSG_NEWRULE:
-+		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
-+		break;
-+	case NFT_MSG_NEWSET:
-+		nft_set_destroy(nft_trans_set(trans));
-+		break;
-+	}
-+	kfree(trans);
-+}
-+
- static int nf_tables_abort(struct sk_buff *skb)
- {
- 	struct net *net = sock_net(skb->sk);
-@@ -3487,26 +3518,10 @@ static int nf_tables_abort(struct sk_buff *skb)
- 		}
- 	}
- 
--	/* Make sure we don't see any packet accessing aborted rules */
--	synchronize_rcu();
--
- 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		switch (trans->msg_type) {
--		case NFT_MSG_NEWTABLE:
--			nf_tables_table_destroy(&trans->ctx);
--			break;
--		case NFT_MSG_NEWCHAIN:
--			nf_tables_chain_destroy(trans->ctx.chain);
--			break;
--		case NFT_MSG_NEWRULE:
--			nf_tables_rule_destroy(&trans->ctx,
--					       nft_trans_rule(trans));
--			break;
--		case NFT_MSG_NEWSET:
--			nft_set_destroy(nft_trans_set(trans));
--			break;
--		}
--		nft_trans_destroy(trans);
-+		list_del(&trans->list);
-+		trans->ctx.nla = NULL;
-+		call_rcu(&trans->rcu_head, nf_tables_abort_release_rcu);
- 	}
- 
- 	return 0;
--- 
-1.7.10.4
-
+Thanks.
