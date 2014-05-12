@@ -1,7 +1,8 @@
 From: Vasily Averin <vvs@parallels.com>
-Subject: [PATCH RFC v3 1/2] br_netfilter: common structure for sysctl flags
-Date: Mon, 12 May 2014 20:31:53 +0400
-Message-ID: <5370F779.1020504@parallels.com>
+Subject: [PATCH RFC v3 2/2] br_netfilter: per-netns copy of structure for
+ sysctl flags
+Date: Mon, 12 May 2014 20:32:01 +0400
+Message-ID: <5370F781.7010909@parallels.com>
 References: <20140512140706.GA22082@macbook.localnet> <cover.1399909529.git.vvs@openvz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -11,205 +12,185 @@ Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
 To: Bart De Schuymer <bdschuym@pandora.be>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:47296 "EHLO relay.sw.ru"
+Received: from mailhub.sw.ru ([195.214.232.25]:26131 "EHLO relay.sw.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758798AbaELQdD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 May 2014 12:33:03 -0400
+	id S1759088AbaELQdL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 May 2014 12:33:11 -0400
 In-Reply-To: <cover.1399909529.git.vvs@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduced common structure for sysctl flags
+pernet_operations creates per-netns copy of common structure for sysctl flags
+and initialize it values taken from init_brnf_net.
 
 Signed-off-by: Vasily Averin <vvs@openvz.org>
 ---
- net/bridge/br_netfilter.c |   55 ++++++++++++++++++++++++++------------------
- net/bridge/br_private.h   |   13 ++++++++++
- 2 files changed, 45 insertions(+), 23 deletions(-)
+ net/bridge/br_netfilter.c |  104 +++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 87 insertions(+), 17 deletions(-)
 
 diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 2acf7fa..31bfd90 100644
+index 31bfd90..9886afc 100644
 --- a/net/bridge/br_netfilter.c
 +++ b/net/bridge/br_netfilter.c
-@@ -49,19 +49,28 @@
- 
+@@ -40,6 +40,7 @@
+ #include "br_private.h"
  #ifdef CONFIG_SYSCTL
- static struct ctl_table_header *brnf_sysctl_header;
--static int brnf_call_iptables __read_mostly = 1;
--static int brnf_call_ip6tables __read_mostly = 1;
--static int brnf_call_arptables __read_mostly = 1;
--static int brnf_filter_vlan_tagged __read_mostly = 0;
--static int brnf_filter_pppoe_tagged __read_mostly = 0;
--static int brnf_pass_vlan_indev __read_mostly = 0;
--#else
-+#endif
-+#define brnf_call_arptables 1
+ #include <linux/sysctl.h>
++#include <net/netns/generic.h>
+ #endif
+ 
+ #define skb_origaddr(skb)	 (((struct bridge_skb_cb *) \
+@@ -47,9 +48,6 @@
+ #define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = ip_hdr(skb)->daddr)
+ #define dnat_took_place(skb)	 (skb_origaddr(skb) != ip_hdr(skb)->daddr)
+ 
+-#ifdef CONFIG_SYSCTL
+-static struct ctl_table_header *brnf_sysctl_header;
+-#endif
+ #define brnf_call_arptables 1
  #define brnf_call_iptables 1
  #define brnf_call_ip6tables 1
--#define brnf_call_arptables 1
- #define brnf_filter_vlan_tagged 0
- #define brnf_filter_pppoe_tagged 0
+@@ -58,6 +56,7 @@ static struct ctl_table_header *brnf_sysctl_header;
  #define brnf_pass_vlan_indev 0
+ 
+ #ifdef CONFIG_SYSCTL
++static int brnf_net_id __read_mostly;
+ static struct brnf_net init_brnf_net = {
+ 	.hdr			= NULL,
+ 	.call_arptables		= brnf_call_arptables,
+@@ -68,7 +67,13 @@ static struct brnf_net init_brnf_net = {
+ 	.pass_vlan_indev	= brnf_pass_vlan_indev,
+ };
+ 
+-#define brnf_flag(skb, flag)		init_brnf_net.flag
++static inline struct brnf_net *brnf_net(const struct net *net)
++{
++	return net_generic(net, brnf_net_id);
++}
 +
-+#ifdef CONFIG_SYSCTL
-+static struct brnf_net init_brnf_net = {
-+	.hdr			= NULL,
-+	.call_arptables		= brnf_call_arptables,
-+	.call_iptables		= brnf_call_iptables,
-+	.call_ip6tables		= brnf_call_ip6tables,
-+	.filter_vlan_tagged	= brnf_filter_vlan_tagged,
-+	.filter_pppoe_tagged	= brnf_filter_pppoe_tagged,
-+	.pass_vlan_indev	= brnf_pass_vlan_indev,
++#define skb_netns(skb)			net((skb)->dev)
++#define brnf_flag(skb, flag)		brnf_net(skb_netns(skb))->flag
+ #else
+ #define brnf_flag(skb, flag)		brnf_##flag
+ #endif
+@@ -1066,6 +1071,70 @@ static struct ctl_table brnf_table[] = {
+ 	},
+ 	{ }
+ };
++
++static int brnf_sysctl_net_register(struct brnf_net *bn)
++{
++	struct ctl_table *table;
++	struct ctl_table_header *hdr;
++	int i;
++
++	table = brnf_table;
++	if (!net_eq(bn->net, &init_net)) {
++
++		table = kmemdup(table, sizeof(brnf_table), GFP_KERNEL);
++		if (!table)
++			goto err_alloc;
++	}
++	for (i = 0; table[i].data; i++)
++		table[i].data += (char *)bn - (char *)&init_brnf_net;
++
++	hdr = register_net_sysctl(bn->net, "net/bridge", table);
++	if (!hdr)
++		goto err_reg;
++
++	bn->hdr = hdr;
++	return 0;
++
++err_reg:
++	if (!net_eq(bn->net, &init_net))
++		kfree(table);
++err_alloc:
++	return -ENOMEM;
++}
++
++static void brnf_sysctl_net_unregister(struct brnf_net *bn)
++{
++	struct ctl_table *table;
++
++	if (bn->hdr == NULL)
++		return;
++
++	table = bn->hdr->ctl_table_arg;
++	unregister_net_sysctl_table(bn->hdr);
++	if (!net_eq(bn->net, &init_net))
++		kfree(table);
++}
++
++static int __net_init brnf_net_init(struct net *net)
++{
++	struct brnf_net *bn = brnf_net(net);
++
++	memcpy(bn, &init_brnf_net, sizeof(struct brnf_net));
++	bn->net = net;
++	return brnf_sysctl_net_register(bn);
++}
++
++static void __net_exit brnf_net_exit(struct net *net)
++{
++	brnf_sysctl_net_unregister(brnf_net(net));
++}
++
++static struct pernet_operations __net_initdata brnf_net_ops = {
++	.init	= brnf_net_init,
++	.exit	= brnf_net_exit,
++	.id	= &brnf_net_id,
++	.size	= sizeof(struct brnf_net),
 +};
-+
-+#define brnf_flag(skb, flag)		init_brnf_net.flag
-+#else
-+#define brnf_flag(skb, flag)		brnf_##flag
  #endif
  
- #define IS_IP(skb) \
-@@ -85,15 +94,15 @@ static inline __be16 vlan_proto(const struct sk_buff *skb)
+ int __init br_netfilter_init(void)
+@@ -1074,32 +1143,33 @@ int __init br_netfilter_init(void)
  
- #define IS_VLAN_IP(skb) \
- 	(vlan_proto(skb) == htons(ETH_P_IP) && \
--	 brnf_filter_vlan_tagged)
-+	 brnf_flag(skb, filter_vlan_tagged))
+ 	ret = dst_entries_init(&fake_dst_ops);
+ 	if (ret < 0)
+-		return ret;
++		goto err_dst;
  
- #define IS_VLAN_IPV6(skb) \
- 	(vlan_proto(skb) == htons(ETH_P_IPV6) && \
--	 brnf_filter_vlan_tagged)
-+	 brnf_flag(skb, filter_vlan_tagged))
- 
- #define IS_VLAN_ARP(skb) \
- 	(vlan_proto(skb) == htons(ETH_P_ARP) &&	\
--	 brnf_filter_vlan_tagged)
-+	 brnf_flag(skb, filter_vlan_tagged))
- 
- static inline __be16 pppoe_proto(const struct sk_buff *skb)
- {
-@@ -104,12 +113,12 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
- #define IS_PPPOE_IP(skb) \
- 	(skb->protocol == htons(ETH_P_PPP_SES) && \
- 	 pppoe_proto(skb) == htons(PPP_IP) && \
--	 brnf_filter_pppoe_tagged)
-+	 brnf_flag(skb, filter_pppoe_tagged))
- 
- #define IS_PPPOE_IPV6(skb) \
- 	(skb->protocol == htons(ETH_P_PPP_SES) && \
- 	 pppoe_proto(skb) == htons(PPP_IPV6) && \
--	 brnf_filter_pppoe_tagged)
-+	 brnf_flag(skb, filter_pppoe_tagged))
- 
- static void fake_update_pmtu(struct dst_entry *dst, struct sock *sk,
- 			     struct sk_buff *skb, u32 mtu)
-@@ -532,7 +541,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct
- 	struct net_device *vlan, *br;
- 
- 	br = bridge_parent(dev);
--	if (brnf_pass_vlan_indev == 0 || !vlan_tx_tag_present(skb))
-+	if (brnf_flag(skb, pass_vlan_indev) == 0 || !vlan_tx_tag_present(skb))
- 		return br;
- 
- 	vlan = __vlan_find_dev_deep(br, skb->vlan_proto,
-@@ -690,14 +699,14 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
- 	br = p->br;
- 
- 	if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb)) {
--		if (!brnf_call_ip6tables && !br->nf_call_ip6tables)
-+		if (!brnf_flag(skb, call_ip6tables) && !br->nf_call_ip6tables)
- 			return NF_ACCEPT;
- 
- 		nf_bridge_pull_encap_header_rcsum(skb);
- 		return br_nf_pre_routing_ipv6(ops, skb, in, out, okfn);
+ 	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+-	if (ret < 0) {
+-		dst_entries_destroy(&fake_dst_ops);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto err_nf;
++
+ #ifdef CONFIG_SYSCTL
+-	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
+-	if (brnf_sysctl_header == NULL) {
+-		printk(KERN_WARNING
+-		       "br_netfilter: can't register to sysctl.\n");
++	ret = register_pernet_subsys(&brnf_net_ops);
++	if (ret < 0) {
+ 		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+-		dst_entries_destroy(&fake_dst_ops);
+-		return -ENOMEM;
++		goto err_nf;
  	}
- 
--	if (!brnf_call_iptables && !br->nf_call_iptables)
-+	if (!brnf_flag(skb, call_iptables) && !br->nf_call_iptables)
- 		return NF_ACCEPT;
- 
- 	if (!IS_IP(skb) && !IS_VLAN_IP(skb) && !IS_PPPOE_IP(skb))
-@@ -838,7 +847,7 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
- 		return NF_ACCEPT;
- 	br = p->br;
- 
--	if (!brnf_call_arptables && !br->nf_call_arptables)
-+	if (!brnf_flag(skb, call_arptables) && !br->nf_call_arptables)
- 		return NF_ACCEPT;
- 
- 	if (!IS_ARP(skb)) {
-@@ -1015,42 +1024,42 @@ int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
- static struct ctl_table brnf_table[] = {
- 	{
- 		.procname	= "bridge-nf-call-arptables",
--		.data		= &brnf_call_arptables,
-+		.data		= &init_brnf_net.call_arptables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-call-iptables",
--		.data		= &brnf_call_iptables,
-+		.data		= &init_brnf_net.call_iptables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-call-ip6tables",
--		.data		= &brnf_call_ip6tables,
-+		.data		= &init_brnf_net.call_ip6tables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-filter-vlan-tagged",
--		.data		= &brnf_filter_vlan_tagged,
-+		.data		= &init_brnf_net.filter_vlan_tagged,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-filter-pppoe-tagged",
--		.data		= &brnf_filter_pppoe_tagged,
-+		.data		= &init_brnf_net.filter_pppoe_tagged,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-pass-vlan-input-dev",
--		.data		= &brnf_pass_vlan_indev,
-+		.data		= &init_brnf_net.pass_vlan_indev,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index 06811d7..25a785e 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -312,6 +312,19 @@ struct br_input_skb_cb {
- # define BR_INPUT_SKB_CB_MROUTERS_ONLY(__skb)	(0)
  #endif
- 
-+#if defined CONFIG_BRIDGE_NETFILTER && defined CONFIG_SYSCTL
-+struct brnf_net {
-+	struct net *net;
-+	struct ctl_table_header	*hdr;
-+	int call_arptables;
-+	int call_iptables;
-+	int call_ip6tables;
-+	int filter_vlan_tagged;
-+	int filter_pppoe_tagged;
-+	int pass_vlan_indev;
-+};
-+#endif
+ 	printk(KERN_NOTICE "Bridge firewalling registered\n");
+ 	return 0;
 +
- #define br_printk(level, br, format, args...)	\
- 	printk(level "%s: " format, (br)->dev->name, ##args)
++err_nf:
++	dst_entries_destroy(&fake_dst_ops);
++err_dst:
++	return ret;
+ }
  
+ void br_netfilter_fini(void)
+ {
+-	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+ #ifdef CONFIG_SYSCTL
+-	unregister_net_sysctl_table(brnf_sysctl_header);
++	unregister_pernet_subsys(&brnf_net_ops);
+ #endif
++	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+ 	dst_entries_destroy(&fake_dst_ops);
+ }
 -- 
 1.7.5.4
 
