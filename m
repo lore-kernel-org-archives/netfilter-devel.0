@@ -1,68 +1,92 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH v2] utils: fix buffer reallocation of nft_fprinft()
-Date: Tue, 13 May 2014 11:17:49 +0200
-Message-ID: <20140513091658.20413.10155.stgit@nfdev.cica.es>
+From: Martin Kraus <lists_mk@wujiman.net>
+Subject: Re: conntrackd, internal cache keeps filling up
+Date: Tue, 13 May 2014 13:45:35 +0200
+Message-ID: <20140513114535.GA9209@finrod>
+References: <20140505104058.GA30297@finrod>
+ <20140509113129.GA8031@localhost>
+ <20140510061743.GA32197@finrod>
+ <20140512163538.GA13344@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60999 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759897AbaEMJSD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2014 05:18:03 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140512163538.GA13344@localhost>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When _snprintf() reports it would print n characters, that n doesn't include
-the trailing \0 that snprintf adds.
+On Mon, May 12, 2014 at 06:35:38PM +0200, Pablo Neira Ayuso wrote:
+> > current kernel is 3.13.7. 
+> > 
+> > we already hit a bug in the official 3.2 kernel packaged with wheezy where 
+> > our scan for heartbleed vulnerability would cause conntrackd to kernel panic
+> > the router.
+> 
+> Please, provide more information on how to reproduce the problem that
+> you're noticing. Thank you.
 
-Thus, we need to [re]allocate n+1 characters.
+regarding the kernel panic on 3.2 a colleague of mine was using nmap with it's
+heartbleed plugin
 
-While at it, change the reallocation trigger. If the length of the buffer we
-used is equals to the expanded string length, the output has been truncated.
-In other words, if ret == bufsiz, then the trailing \0 is missing.
+nmap --script ssl-heartbleed -sT -oX logfile.log 10.0.0.0/20
 
-Also, check if _snprintf() returned < 0, which means an error ocurred.
+http://nmap.org/nsedoc/scripts/ssl-heartbleed.html
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: check if snprintf() calls failed. Replace calloc with malloc.
+it took about 30 minutes to trigger the problem.
 
- src/utils.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+regarding the internal cache fill up. we have two routers and some vlans using
+one and some vlans using the other router as the default gateway. 
 
-diff --git a/src/utils.c b/src/utils.c
-index 18917f5..20a2fa3 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -195,17 +195,24 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
- 	int ret;
- 
- 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
--	if (ret > NFT_SNPRINTF_BUFSIZ) {
--		buf = calloc(1, ret);
-+	if (ret < 0)
-+		goto out;
-+
-+	if (ret >= NFT_SNPRINTF_BUFSIZ) {
-+		bufsiz = ret + 1;
-+
-+		buf = malloc(bufsiz);
- 		if (buf == NULL)
- 			return -1;
- 
--		bufsiz = ret;
- 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
-+		if (ret < 0)
-+			goto out;
- 	}
- 
- 	ret = fprintf(fp, "%s", buf);
- 
-+out:
- 	if (buf != _buf)
- 		xfree(buf);
- 
+this is the conntrackd config on both routers.
 
+Sync {
+        Mode FTFW {
+                ResendQueueSize 131072
+                ACKWindowSize 300
+                DisableExternalCache On
+        }
+        UDP {
+                IPv4_address 192.168.100.200
+                IPv4_Destination_Address 192.168.100.100
+                Port 3780
+                Interface eth0
+                Checksum on
+        }
+        Options {
+                TCPWindowTracking On
+        }
+}
+
+General {
+        Nice -20
+
+        HashSize 65536
+        HashLimit 262144
+
+        Syslog on
+        LockFile /var/lock/conntrack.lock
+        UNIX {
+                Path /var/run/conntrackd.ctl
+                Backlog 20
+        }
+
+        NetlinkBufferSize 2097152
+        NetlinkBufferSizeMaxGrowth 8388608
+        NetlinkEventsReliable On
+        NetlinkOverrunResync Off
+
+        Filter From Kernelspace {
+                Address Ignore {
+                        IPv4_address 127.0.0.1 # loopback
+                }
+        }
+}
+
+We have about 80 users, some of them running window or macs, so there is
+plenty of multicasts and broadcasts that fill the conntrack table. some of
+these then get stuck in the conntrackd internal cache. We can see the
+LAST_ACK tcp states stuck in the internal cache as well, but I think these are
+related to TCPWindowTracking On.
+
+mk
