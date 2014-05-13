@@ -1,50 +1,75 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 2/2] examples: use new nft_*_build_msg() functions
-Date: Tue, 13 May 2014 10:18:58 +0200
-Message-ID: <CAOkSjBhjrHSDQa=+mCJnaVEWDJbvD2tWyWjCei9jAXtLorTVMA@mail.gmail.com>
-References: <20140506201936.18158.83354.stgit@nfdev.cica.es>
- <20140506201941.18158.46054.stgit@nfdev.cica.es> <20140512161508.GB13099@localhost>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [net] BUG: unable to handle kernel NULL pointer dereference at
+ 000000000000022f
+Date: Tue, 13 May 2014 09:51:58 +0200
+Message-ID: <5371CF1E.8090903@pengutronix.de>
+References: <537188D4.6050201@intel.com> <5371AA32.6070407@hartkopp.net> <5371CD3A.9020500@pengutronix.de>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="0oJNWNKvum3OuhJMmlIcnicfDPNj3I9gq"
+Cc: Fengguang Wu <fengguang.wu@intel.com>,
+	linux-crypto@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	netdev@vger.kernel.org, linux-can@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Oliver Hartkopp <socketcan@hartkopp.net>,
+	Jet Chen <jet.chen@intel.com>
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <5371CD3A.9020500@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--0oJNWNKvum3OuhJMmlIcnicfDPNj3I9gq
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:35687 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758769AbaEMITV convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2014 04:19:21 -0400
-Received: by mail-la0-f45.google.com with SMTP id gl10so2827751lab.32
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2014 01:19:20 -0700 (PDT)
-In-Reply-To: <20140512161508.GB13099@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
 
-On 12 May 2014 18:15, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> Is this the only potential user of this new _build_ function? If so,
-> I'd prefer to keep this back until we have more clients, I don't want
-> to prematurely increase the size of the library with code that we
-> don't need yet.
->
+On 05/13/2014 09:43 AM, Marc Kleine-Budde wrote:
+> On 05/13/2014 07:14 AM, Oliver Hartkopp wrote:
+>> Hello Jet,
+>>
+>> this is likely not CAN related, as
+>>
+>> # CONFIG_CAN is not set
+>>
+>> and all the CAN changes introduced by Marc's merge are not even compil=
+ed in
+>> your setup.
+>>
+>> So I assume the issue somewhere in the netlink or ipv6 stuff (see comm=
+it at
+>> the end.
+>=20
+> Yes, I my merge is probably broken. That was an attempt to merge net
+> into net-next, but I'm going to ask David Miller to do so. As I'm going=
 
-We can make use of these functions in nft and nft-sync as well.
+> to rebase this branch onto David's net-next (after the net merge), we
+> can ignore this for now.
 
-I think this is kind of the first step to get higher level functions.
-A second step would be to add _delete() and _add() functions to
-libnftnl or other, higher level, library.
+While I was asleep David merged net to net-master ;) I just rebased this
+branch and updated it. The oops should be gone now.
 
-You know, src/mnl.c is repeating over and over almost the same code.
+Marc
 
-Let me know your thoughts.
-
-regards.
 --=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--0oJNWNKvum3OuhJMmlIcnicfDPNj3I9gq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Using GnuPG with Icedove - http://www.enigmail.net/
+
+iEYEARECAAYFAlNxzx4ACgkQjTAFq1RaXHPcPQCgmCNTHEPQSYNlBdr0GuJLbZm6
+T8MAoIGfXp5A5Fva6d38QFfdIDuzb7Y3
+=NgTP
+-----END PGP SIGNATURE-----
+
+--0oJNWNKvum3OuhJMmlIcnicfDPNj3I9gq--
