@@ -1,56 +1,68 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH] utils: fix buffer reallocation of nft_fprinft()
-Date: Tue, 13 May 2014 11:11:24 +0200
-Message-ID: <CAOkSjBjpMa4uipdXx8wzgLEDf8PcH_nXXZUNRJrjBkzSJQD-MQ@mail.gmail.com>
-References: <20140509164547.7057.94412.stgit@nfdev.cica.es> <20140512155457.GB12698@localhost>
+Subject: [libnftnl PATCH v2] utils: fix buffer reallocation of nft_fprinft()
+Date: Tue, 13 May 2014 11:17:49 +0200
+Message-ID: <20140513091658.20413.10155.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:55417 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759460AbaEMJLq convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2014 05:11:46 -0400
-Received: by mail-lb0-f178.google.com with SMTP id w7so39969lbi.23
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2014 02:11:44 -0700 (PDT)
-In-Reply-To: <20140512155457.GB12698@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:60999 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759897AbaEMJSD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2014 05:18:03 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12 May 2014 17:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> You can use malloc instead. Just make sure that the string is always
-> nul-terminated before printing, something like:
->
->                 bufsiz =3D ret + 1;
->                 buf =3D malloc(1, bufsiz);
->                 if (buf =3D=3D NULL)
->                         return -1;
->
->                 ret =3D snprintf(...
->                 if (ret < 0)
->                         ...
->         }
->
->         buf[ret] =3D '\0';
->         ... =3D fprintf(...
->
+When _snprintf() reports it would print n characters, that n doesn't include
+the trailing \0 that snprintf adds.
 
-=46rom my man pages, I understand that snprintf() null-terminate the
-string. This seems a bit redundant.
-I think it's safe to don't include calloc() neither buf[ret] =3D '\0'.
+Thus, we need to [re]allocate n+1 characters.
 
-I'm resending this patch with this assumption and your other request.
+While at it, change the reallocation trigger. If the length of the buffer we
+used is equals to the expanded string length, the output has been truncated.
+In other words, if ret == bufsiz, then the trailing \0 is missing.
 
-regards.
+Also, check if _snprintf() returned < 0, which means an error ocurred.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: check if snprintf() calls failed. Replace calloc with malloc.
+
+ src/utils.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/src/utils.c b/src/utils.c
+index 18917f5..20a2fa3 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -195,17 +195,24 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
+ 	int ret;
+ 
+ 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
+-	if (ret > NFT_SNPRINTF_BUFSIZ) {
+-		buf = calloc(1, ret);
++	if (ret < 0)
++		goto out;
++
++	if (ret >= NFT_SNPRINTF_BUFSIZ) {
++		bufsiz = ret + 1;
++
++		buf = malloc(bufsiz);
+ 		if (buf == NULL)
+ 			return -1;
+ 
+-		bufsiz = ret;
+ 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
++		if (ret < 0)
++			goto out;
+ 	}
+ 
+ 	ret = fprintf(fp, "%s", buf);
+ 
++out:
+ 	if (buf != _buf)
+ 		xfree(buf);
+ 
+
