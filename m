@@ -1,58 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] utils: fix buffer reallocation of nft_fprinft()
-Date: Tue, 13 May 2014 14:49:10 +0200
-Message-ID: <20140513124910.GA3784@localhost>
-References: <20140509164547.7057.94412.stgit@nfdev.cica.es>
- <20140512155457.GB12698@localhost>
- <CAOkSjBjpMa4uipdXx8wzgLEDf8PcH_nXXZUNRJrjBkzSJQD-MQ@mail.gmail.com>
+Subject: Re: conntrackd, internal cache keeps filling up
+Date: Tue, 13 May 2014 14:55:09 +0200
+Message-ID: <20140513125509.GA3881@localhost>
+References: <20140505104058.GA30297@finrod>
+ <20140509113129.GA8031@localhost>
+ <20140510061743.GA32197@finrod>
+ <20140512163538.GA13344@localhost>
+ <20140513114535.GA9209@finrod>
+ <20140513120400.GA22929@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37260 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932613AbaEMNDp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2014 09:03:45 -0400
+Cc: Martin Kraus <lists_mk@wujiman.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjpMa4uipdXx8wzgLEDf8PcH_nXXZUNRJrjBkzSJQD-MQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20140513120400.GA22929@breakpoint.cc>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 13, 2014 at 11:11:24AM +0200, Arturo Borrero Gonzalez wrote:
-> On 12 May 2014 17:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > You can use malloc instead. Just make sure that the string is always
-> > nul-terminated before printing, something like:
-> >
-> >                 bufsiz = ret + 1;
-> >                 buf = malloc(1, bufsiz);
-> >                 if (buf == NULL)
-> >                         return -1;
-> >
-> >                 ret = snprintf(...
-> >                 if (ret < 0)
-> >                         ...
-> >         }
-> >
-> >         buf[ret] = '\0';
-> >         ... = fprintf(...
-> >
+On Tue, May 13, 2014 at 02:04:00PM +0200, Florian Westphal wrote:
+> Martin Kraus <lists_mk@wujiman.net> wrote:
+> > On Mon, May 12, 2014 at 06:35:38PM +0200, Pablo Neira Ayuso wrote:
+> > > > current kernel is 3.13.7. 
+> > > > 
+> > > > we already hit a bug in the official 3.2 kernel packaged with wheezy where 
+> > > > our scan for heartbleed vulnerability would cause conntrackd to kernel panic
+> > > > the router.
+> > > 
+> > > Please, provide more information on how to reproduce the problem that
+> > > you're noticing. Thank you.
+> > 
+> > regarding the kernel panic on 3.2 a colleague of mine was using nmap with it's
+> > heartbleed plugin
+> > 
+> > nmap --script ssl-heartbleed -sT -oX logfile.log 10.0.0.0/20
+> > 
+> > http://nmap.org/nsedoc/scripts/ssl-heartbleed.html
+> > 
+> > it took about 30 minutes to trigger the problem.
+> [..]
 > 
-> From my man pages, I understand that snprintf() null-terminate the
-> string. This seems a bit redundant.
+> >         NetlinkEventsReliable On
+> 
+> known broken until at least Linux 3.6, see f.e.
+> 
+> 5b423f6a40a0327f9d40bc8b97ce9be266f74368
+> ("netfilter: nf_conntrack: fix racy timer handling with reliable events")
 
-If the amount of written bytes is smaller than the buffer size,
-snprintf always nul-terminate it. But if the amount of bytes returned
-equals the buffer size, then you have to explicitly nul-terminate the
-string.
-
-> I think it's safe to don't include calloc() neither buf[ret] = '\0'.
-
-Right, if you use a buffer size of ret + 1, then you can guarantee
-that snprintf always have room to append the nul-termination, as the
-returned value will be ret at maximum.
-
-> I'm resending this patch with this assumption and your other request.
-
-OK, thanks.
+If they are using latest 3.2, that patch is already there.
