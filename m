@@ -1,71 +1,56 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [net] BUG: unable to handle kernel NULL pointer dereference at
- 000000000000022f
-Date: Tue, 13 May 2014 09:43:54 +0200
-Message-ID: <5371CD3A.9020500@pengutronix.de>
-References: <537188D4.6050201@intel.com> <5371AA32.6070407@hartkopp.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftnl PATCH] utils: fix buffer reallocation of nft_fprinft()
+Date: Tue, 13 May 2014 11:11:24 +0200
+Message-ID: <CAOkSjBjpMa4uipdXx8wzgLEDf8PcH_nXXZUNRJrjBkzSJQD-MQ@mail.gmail.com>
+References: <20140509164547.7057.94412.stgit@nfdev.cica.es> <20140512155457.GB12698@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="aE5Cpud0re1qwkow6nH8No27ccbAfE4wm"
-Cc: Fengguang Wu <fengguang.wu@intel.com>,
-	linux-crypto@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netdev@vger.kernel.org, linux-can@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Oliver Hartkopp <socketcan@hartkopp.net>,
-	Jet Chen <jet.chen@intel.com>
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <5371AA32.6070407@hartkopp.net>
-Sender: linux-can-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aE5Cpud0re1qwkow6nH8No27ccbAfE4wm
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:55417 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759460AbaEMJLq convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2014 05:11:46 -0400
+Received: by mail-lb0-f178.google.com with SMTP id w7so39969lbi.23
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2014 02:11:44 -0700 (PDT)
+In-Reply-To: <20140512155457.GB12698@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/13/2014 07:14 AM, Oliver Hartkopp wrote:
-> Hello Jet,
->=20
-> this is likely not CAN related, as
->=20
-> # CONFIG_CAN is not set
->=20
-> and all the CAN changes introduced by Marc's merge are not even compile=
-d in
-> your setup.
->=20
-> So I assume the issue somewhere in the netlink or ipv6 stuff (see commi=
-t at
-> the end.
+On 12 May 2014 17:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> You can use malloc instead. Just make sure that the string is always
+> nul-terminated before printing, something like:
+>
+>                 bufsiz =3D ret + 1;
+>                 buf =3D malloc(1, bufsiz);
+>                 if (buf =3D=3D NULL)
+>                         return -1;
+>
+>                 ret =3D snprintf(...
+>                 if (ret < 0)
+>                         ...
+>         }
+>
+>         buf[ret] =3D '\0';
+>         ... =3D fprintf(...
+>
 
-Yes, I my merge is probably broken. That was an attempt to merge net
-into net-next, but I'm going to ask David Miller to do so. As I'm going
-to rebase this branch onto David's net-next (after the net merge), we
-can ignore this for now.
+=46rom my man pages, I understand that snprintf() null-terminate the
+string. This seems a bit redundant.
+I think it's safe to don't include calloc() neither buf[ret] =3D '\0'.
 
-Thanks,
-Marc
+I'm resending this patch with this assumption and your other request.
+
+regards.
 
 --=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---aE5Cpud0re1qwkow6nH8No27ccbAfE4wm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Using GnuPG with Icedove - http://www.enigmail.net/
-
-iEUEARECAAYFAlNxzToACgkQjTAFq1RaXHNFhgCePnlpFMg20DmQ41uY84kmf4dR
-+W4AmL25rmtvz5Ukx1sawbuHARW9Wbw=
-=+9h6
------END PGP SIGNATURE-----
-
---aE5Cpud0re1qwkow6nH8No27ccbAfE4wm--
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
