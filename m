@@ -1,65 +1,56 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH RFC v3 2/2] br_netfilter: per-netns copy of structure
- for sysctl flags
-Date: Tue, 13 May 2014 21:28:06 +0200
-Message-ID: <53727246.4050306@pandora.be>
-References: <20140512140706.GA22082@macbook.localnet> <cover.1399909529.git.vvs@openvz.org> <5370F781.7010909@parallels.com> <53711B21.1060309@pandora.be> <53712B0A.7060007@parallels.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] parser: fix inconsistency in monitor options
+Date: Wed, 14 May 2014 17:24:29 +0200
+Message-ID: <20140514152429.24350.45632.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Vasily Averin <vvs@parallels.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from albert.telenet-ops.be ([195.130.137.90]:45450 "EHLO
-	albert.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464AbaEMT2K (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2014 15:28:10 -0400
-In-Reply-To: <53712B0A.7060007@parallels.com>
+Received: from smtp3.cica.es ([150.214.5.190]:54864 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751875AbaENPYn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 May 2014 11:24:43 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 4E7F751EE76
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2014 15:24:41 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id i1ltwjtNJpEV for <netfilter-devel@vger.kernel.org>;
+	Wed, 14 May 2014 17:24:31 +0200 (CEST)
+Received: from nfdev.cica.es (nfdev.cica.es [IPv6:2a00:9ac0:c1ca:31::220])
+	by smtp.cica.es (Postfix) with ESMTP id 6B9E351ED51
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2014 17:24:31 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Vasily Averin schreef op 12/05/2014 22:11:
-> On 05/12/2014 11:04 PM, Bart De Schuymer wrote:
->> Vasily Averin schreef op 12/05/2014 18:32:
->>> pernet_operations creates per-netns copy of common structure for sysctl flags
->>> and initialize it values taken from init_brnf_net.
->>>
->>> Signed-off-by: Vasily Averin <vvs@openvz.org>
->>
->>> +static int __net_init brnf_net_init(struct net *net)
->>> +{
->>> +    struct brnf_net *bn = brnf_net(net);
->>> +
->>> +    memcpy(bn, &init_brnf_net, sizeof(struct brnf_net));
->>> +    bn->net = net;
->>> +    return brnf_sysctl_net_register(bn);
->>
->> This does introduce a bit of backwards incompatibility (easily fixed
->> by adapting scripts), but this is really unavoidable when
->> transforming an existing global configuration to a per-netns
->> configuration. I'm ok with it.
->
-> Could you please explain, which backward incompatibility you mean here?
-> Nobody changes values init_brnf_net,
-> init_net have own copy, like any other network namespaces.
+The keyword for monitoring chains events is 'chains'. For rules, 'rules'.
 
-Well, init_brnf_net is never written to, so it keeps the default flags.
-If a new netns is created, a copy of the contents of init_brnf_net is 
-made. So, whenever a netns is created, it starts with the default flags 
-(e.g. brnf_call_iptables is always 1 for a newly created netns).
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/parser.y |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-In the current kernel, when a new netns is created, the configuration of 
-the main netns is used (the proc system doesn't even show the flags in 
-the created netns): if brnf_call_iptables is 0 before the new netns is 
-created, iptables won't see bridged IP traffic in the new netns.
-With your patch, this behaviour will change.
-
-It's possible to alter your patch to keep the same behaviour as before 
-at netns creation, but always starting from the same defaults is cleaner.
-
-cheers,
-Bart
+diff --git a/src/parser.y b/src/parser.y
+index 9c20737..b9916db 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -810,7 +810,7 @@ monitor_flags		:	/* empty */
+ 			}
+ 			|	NEW 	TABLES 	{	$$ |= (1 << NFT_MSG_NEWTABLE); }
+ 			|	DESTROY	TABLES	{	$$ |= (1 << NFT_MSG_DELTABLE); }
+-			|	CHAIN
++			|	CHAINS
+ 			{
+ 				$$ |= (1 << NFT_MSG_NEWCHAIN);	$$ |= (1 << NFT_MSG_DELCHAIN);
+ 			}
+@@ -822,7 +822,7 @@ monitor_flags		:	/* empty */
+ 			}
+ 			|	NEW	SETS 	{ 	$$ |= (1 << NFT_MSG_NEWSET); }
+ 			|	DESTROY SETS	{	$$ |= (1 << NFT_MSG_DELSET); }
+-			|	RULE
++			|	RULES
+ 			{
+ 				$$ |= (1 << NFT_MSG_NEWRULE);	$$ |= (1 << NFT_MSG_DELRULE);
+ 			}
 
