@@ -1,49 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: fix trace when matching rule
-Date: Thu, 15 May 2014 18:28:44 +0200
-Message-ID: <1400171324-3923-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: question about default values for per-namespace settings
+Date: Thu, 15 May 2014 13:48:50 -0400
+Message-ID: <20140515174850.GB20738@mtj.dyndns.org>
+References: <20140512140706.GA22082@macbook.localnet>
+ <cover.1399909529.git.vvs@openvz.org>
+ <5370F781.7010909@parallels.com>
+ <53711B21.1060309@pandora.be>
+ <53712B0A.7060007@parallels.com>
+ <53727246.4050306@pandora.be>
+ <53748280.60906@parallels.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: containers@lists.linux-foundation.org,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>
+To: Vasily Averin <vvs@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44968 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752666AbaEOQ2v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 May 2014 12:28:51 -0400
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:44188 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561AbaEORsx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 May 2014 13:48:53 -0400
+Received: by mail-qc0-f180.google.com with SMTP id i17so2373497qcy.39
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2014 10:48:53 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <53748280.60906@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the corresponding trace if we have a full match in a rule.
-Note that the traces will look slightly different than in x_tables
-since the log message after all expressions have been evaluated
-(contrary to x_tables, that emits it before the target action).
-This manifests in two differences in nf_tables wrt. x_tables:
+Hello,
 
-1) The rule that enables the tracing is included in the trace.
+On Thu, May 15, 2014 at 01:01:52PM +0400, Vasily Averin wrote:
+> how do you think, which defaults should be used for per-namespace settings in general case
+> and for per-netns sysctls especially? Do we have some common position about this or
+> perhaps we already have some setting that allows to select desired behavior?
 
-2) If the rule emits some log message, that is shown before the
-   trace log message.
+Unfortunately, I don't have much idea on the subject.  Serge and
+others on the containers list should know a lot better than me.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Thanks.
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 421c36a..7dbf803 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -144,8 +144,10 @@ next_rule:
- 		switch (data[NFT_REG_VERDICT].verdict) {
- 		case NFT_BREAK:
- 			data[NFT_REG_VERDICT].verdict = NFT_CONTINUE;
--			/* fall through */
-+			continue;
- 		case NFT_CONTINUE:
-+			if (unlikely(pkt->skb->nf_trace && expr == last))
-+				nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
- 			continue;
- 		}
- 		break;
 -- 
-1.7.10.4
-
+tejun
