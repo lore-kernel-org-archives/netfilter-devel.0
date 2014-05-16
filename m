@@ -1,55 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCHv2 nf] netfilter: nf_tables: fix trace of matching non-terminal rule
-Date: Thu, 15 May 2014 19:57:37 +0200
-Message-ID: <1400176657-3517-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52297 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753334AbaEOR5q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 May 2014 13:57:46 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: question about default values for per-namespace settings
+Date: Fri, 16 May 2014 04:16:18 -0700
+Message-ID: <CAHo-OoyTowOPEqPoqXV53w7+PgbJpBprT-qwHapR7R-pqSdMcg@mail.gmail.com>
+References: <20140512140706.GA22082@macbook.localnet>
+	<cover.1399909529.git.vvs@openvz.org>
+	<5370F781.7010909@parallels.com> <53711B21.1060309@pandora.be>
+	<53712B0A.7060007@parallels.com> <53727246.4050306@pandora.be>
+	<53748280.60906@parallels.com>
+	<20140515174850.GB20738@mtj.dyndns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Vasily Averin <vvs-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>,
+	Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>,
+	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20140515174850.GB20738-9pTldWuhBndy/B6EtB590w@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/containers/>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add the corresponding trace if we have a full match in a non-terminal
-rule. Note that the traces will look slightly different than in
-x_tables since the log message after all expressions have been
-evaluated (contrary to x_tables, that emits it before the target
-action). This manifests in two differences in nf_tables wrt. x_tables:
+Isn't pulling current settings from init_net an isolation violation if
+init_net isn't the namespace you are in at the time you are creating
+the new namespace?
 
-1) The rule that enables the tracing is included in the trace.
+The way I see it there are 2 possibilities:
+(a) you use some kernel (probably compile time) defaults (ie. what
+init_net gets when you boot machine)
+(b) you inherit from current namespace
+I'm not sure what the right choice is.
 
-2) If the rule emits some log message, that is shown before the
-   trace log message.
+For something like 'iptables configuration' it seems (a) is correct
+(come up with no firewall).
+For something like 'tcp socket memory limits' or 'bindv6only' or
+'v6.default_use_tempaddr) it does seem like (b) is possibly more
+appropriate.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: This patch supersedes ("netfilter: nf_tables: fix trace when
-    matching rule") which includes a superfluous checking for the
-    last expression in the rule. The only way to reach the
-    NFT_CONTINUE case only happens when this has iterated over the
-    entire list of expressions in the rule.
+That said I think there are cases where (a) is clearly correct and (b)
+is clearly not desirable (iptables conf being a prime example).
+After all a new namespace doesn't inherit interfaces from the
+namespace we're in when we create it.
 
- net/netfilter/nf_tables_core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I can't think of any cases where (b) is clearly correct and (a) is
+clearly not desirable.
+[I guess this is less than clear for settings which auto scale at boot
+with available ram and/or number of cpus in the machine]
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 421c36a..345acfb 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -144,8 +144,10 @@ next_rule:
- 		switch (data[NFT_REG_VERDICT].verdict) {
- 		case NFT_BREAK:
- 			data[NFT_REG_VERDICT].verdict = NFT_CONTINUE;
--			/* fall through */
-+			continue;
- 		case NFT_CONTINUE:
-+			if (unlikely(pkt->skb->nf_trace))
-+				nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RULE);
- 			continue;
- 		}
- 		break;
--- 
-1.7.10.4
+Based on that doing (a) for everything may be the right choice
+(consistency trump...).
+This would imply network namespace you are in should have no effect on
+the new network namespace you are creating.
 
+OTOH, if I want to change some tcp mem tuning sysctl (or something
+like net.ipv6.conf.default.use_tempaddr = 2)
+it would be annoying if /etc/sysctl.conf didn't apply to non-init
+namespace.  But perhaps this is better solved in userspace
+by loading some /etc/sysctls-for-new-network-namespaces.conf settings
+in some network namespace creating libraries.
+
+- Maciej
