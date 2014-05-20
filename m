@@ -1,44 +1,297 @@
-From: David Newall <davidn@davidnewall.com>
-Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge : Sanitize
- skb before it enters the IP stack)
-Date: Tue, 20 May 2014 13:27:32 +0930
-Message-ID: <537AD2AC.4050009@davidnewall.com>
-References: <537621AC.1060409@davidnewall.com> <5379FFFD.1050705@davidnewall.com> <20140519140119.GA24523@breakpoint.cc> <537A12EA.4060604@davidnewall.com> <20140519170915.GB24523@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	bridge@lists.linux-foundation.org
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] parser: remove the "new" and "destroy" tokens from the scanner
+Date: Tue, 20 May 2014 11:17:32 +0200
+Message-ID: <1400577452-6087-1-git-send-email-pablo@netfilter.org>
+Cc: arturo.borrero.glez@gmail.com, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hawking.rebel.net.au ([203.20.69.83]:56434 "EHLO
-	hawking.rebel.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731AbaETEDQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 May 2014 00:03:16 -0400
-In-Reply-To: <20140519170915.GB24523@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:58891 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752950AbaETJRo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 May 2014 05:17:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20/05/14 02:39, Florian Westphal wrote:
->  From a quick glance, it should be sufficient to edit
-> br_parse_ip_options() and remove everything after
->
-> memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
+These new tokens were introduced in f9563c0 ("src: add events reporting")
+to allow filtering based on the event type.
 
-Yes.  That's the way it used to be, and how it would return with the 
-change I'm proposing.  The br_parse_ip_option function would be removed 
-and its remaining code moved back from whence it came.
+This confuses the parser when parsing the "new" token:
 
+test:32:33-35: Error: syntax error, unexpected new
+add rule filter output ct state new,established counter
+                                ^^^
 
-> A 2nd step would be to move a copy of ip_options_compile()
-> into br_netfilter.c and trim it down to only validate the
-> ipv4 header without modifying it.
+This patch fixes this by replacing these event type tokens by the
+generic string token, which is then interpreted during the parsing.
 
-The bridge sounds like the wrong place to validate an IPv4 header, 
-unless it also validates every type of header; and that can't be right.  
-That we need to zero the cb area seems like a big clue that IP's 
-treatment of the area is lame.  I think that's where the problem lies, 
-and that the right thing to do is to yank out the crap from bridge that 
-papers over IP's weakness.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser.y  |  209 ++++++++++++++++++++++++++++++++++++++++++++-------------
+ src/scanner.l |    2 -
+ 2 files changed, 164 insertions(+), 47 deletions(-)
+
+diff --git a/src/parser.y b/src/parser.y
+index 9c20737..03bbb92 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -92,6 +92,21 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
+ 
++enum {
++	NFT_EVENT_NEW	= 0,
++	NFT_EVENT_DEL,
++};
++
++static int monitor_lookup_event(const char *event)
++{
++	if (strcmp(event, "new") == 0)
++		return NFT_EVENT_NEW;
++	else if (strcmp(event, "destroy") == 0)
++		return NFT_EVENT_DEL;
++
++	return -1;
++}
++
+ %}
+ 
+ /* Declaration section */
+@@ -171,8 +186,6 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token ELEMENT			"element"
+ %token MAP			"map"
+ %token HANDLE			"handle"
+-%token NEW			"new"
+-%token DESTROY			"destroy"
+ 
+ %token INET			"inet"
+ 
+@@ -777,64 +790,170 @@ monitor_cmd		:	monitor_flags	output_format
+ 
+ monitor_flags		:	/* empty */
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWRULE);
+-				$$ |= (1 << NFT_MSG_DELRULE);
+-				$$ |= (1 << NFT_MSG_NEWSET);
+-				$$ |= (1 << NFT_MSG_DELSET);
+-				$$ |= (1 << NFT_MSG_NEWSETELEM);
+-				$$ |= (1 << NFT_MSG_DELSETELEM);
+-				$$ |= (1 << NFT_MSG_NEWCHAIN);
+-				$$ |= (1 << NFT_MSG_DELCHAIN);
+-				$$ |= (1 << NFT_MSG_NEWTABLE);
+-				$$ |= (1 << NFT_MSG_DELTABLE);
+-			}
+-			|	NEW
+-			{
+-				$$ |= (1 << NFT_MSG_NEWRULE);
+-				$$ |= (1 << NFT_MSG_NEWSET);
+-				$$ |= (1 << NFT_MSG_NEWSETELEM);
+-				$$ |= (1 << NFT_MSG_NEWCHAIN);
+-				$$ |= (1 << NFT_MSG_NEWTABLE);
+-			}
+-			|	DESTROY
+-			{
+-				$$ |= (1 << NFT_MSG_DELRULE);
+-				$$ |= (1 << NFT_MSG_DELSET);
+-				$$ |= (1 << NFT_MSG_DELSETELEM);
+-				$$ |= (1 << NFT_MSG_DELCHAIN);
+-				$$ |= (1 << NFT_MSG_DELTABLE);
++				$$ = (1 << NFT_MSG_NEWRULE)	|
++				     (1 << NFT_MSG_DELRULE)	|
++				     (1 << NFT_MSG_NEWSET)	|
++				     (1 << NFT_MSG_DELSET)	|
++				     (1 << NFT_MSG_NEWSETELEM)	|
++				     (1 << NFT_MSG_DELSETELEM)	|
++				     (1 << NFT_MSG_NEWCHAIN)	|
++				     (1 << NFT_MSG_DELCHAIN)	|
++				     (1 << NFT_MSG_NEWTABLE)	|
++				     (1 << NFT_MSG_DELTABLE);
++			}
++			|	STRING
++			{
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWTABLE)	|
++					     (1 << NFT_MSG_NEWCHAIN)	|
++					     (1 << NFT_MSG_NEWRULE)	|
++					     (1 << NFT_MSG_NEWSET)	|
++					     (1 << NFT_MSG_NEWSETELEM);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELTABLE)	|
++					     (1 << NFT_MSG_DELCHAIN)	|
++					     (1 << NFT_MSG_DELRULE)	|
++					     (1 << NFT_MSG_DELSET)	|
++					     (1 << NFT_MSG_DELSETELEM);
++					break;
++				}
+ 			}
+ 			|	TABLES
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWTABLE);	$$ |= (1 << NFT_MSG_DELTABLE);
++				$$ = (1 << NFT_MSG_NEWTABLE) |
++				     (1 << NFT_MSG_DELTABLE);
+ 			}
+-			|	NEW 	TABLES 	{	$$ |= (1 << NFT_MSG_NEWTABLE); }
+-			|	DESTROY	TABLES	{	$$ |= (1 << NFT_MSG_DELTABLE); }
+-			|	CHAIN
++			|	STRING 	TABLES
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWCHAIN);	$$ |= (1 << NFT_MSG_DELCHAIN);
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWTABLE);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELTABLE);
++					break;
++				}
++			}
++			|	CHAINS
++			{
++				$$ = (1 << NFT_MSG_NEWCHAIN) |
++				     (1 << NFT_MSG_DELCHAIN);
++			}
++			|	STRING	CHAINS
++			{
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWCHAIN);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELCHAIN);
++					break;
++				}
+ 			}
+-			|	NEW	CHAINS	{	$$ |= (1 << NFT_MSG_NEWCHAIN); }
+-			|	DESTROY	CHAINS	{	$$ |= (1 << NFT_MSG_DELCHAIN); }
+ 			|	SETS
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWSET);	$$ |= (1 << NFT_MSG_DELSET);
++				$$ = (1 << NFT_MSG_NEWSET) |
++				     (1 << NFT_MSG_DELSET);
++			}
++			|	STRING	SETS
++			{
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWSET);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELSET);
++					break;
++				}
+ 			}
+-			|	NEW	SETS 	{ 	$$ |= (1 << NFT_MSG_NEWSET); }
+-			|	DESTROY SETS	{	$$ |= (1 << NFT_MSG_DELSET); }
+ 			|	RULE
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWRULE);	$$ |= (1 << NFT_MSG_DELRULE);
++				$$ = (1 << NFT_MSG_NEWRULE) |
++				     (1 << NFT_MSG_DELRULE);
++			}
++			|	STRING 	RULES
++			{
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWRULE);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELRULE);
++					break;
++				}
+ 			}
+-			|	NEW 	RULES	{	$$ |= (1 << NFT_MSG_NEWRULE); }
+-			|	DESTROY RULES	{	$$ |= (1 << NFT_MSG_DELRULE); }
+ 			|	ELEMENTS
+ 			{
+-				$$ |= (1 << NFT_MSG_NEWSETELEM);
+-				$$ |= (1 << NFT_MSG_DELSETELEM);
++				$$ = (1 << NFT_MSG_NEWSETELEM) |
++				     (1 << NFT_MSG_DELSETELEM);
++			}
++			|	STRING	ELEMENTS
++			{
++				int event;
++
++				event = monitor_lookup_event($1);
++				if (event < 0) {
++					erec_queue(error(&@1, "unknown event type %s", $1),
++						   state->msgs);
++					YYERROR;
++				}
++
++				switch (event) {
++				case NFT_EVENT_NEW:
++					$$ = (1 << NFT_MSG_NEWSETELEM);
++					break;
++				case NFT_EVENT_DEL:
++					$$ = (1 << NFT_MSG_DELSETELEM);
++					break;
++				}
+ 			}
+-			|	NEW	ELEMENTS	{	$$ |= (1 << NFT_MSG_NEWSETELEM); }
+-			|	DESTROY ELEMENTS	{	$$ |= (1 << NFT_MSG_DELSETELEM); }
+ 			;
+ 
+ output_format		:	/* empty */
+diff --git a/src/scanner.l b/src/scanner.l
+index 801c030..86bc519 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -240,8 +240,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "element"		{ return ELEMENT; }
+ "map"			{ return MAP; }
+ "handle"		{ return HANDLE; }
+-"new"			{ return NEW; }
+-"destroy"		{ return DESTROY; }
+ 
+ "accept"		{ return ACCEPT; }
+ "drop"			{ return DROP; }
+-- 
+1.7.10.4
+
