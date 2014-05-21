@@ -1,169 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/25] netfilter: nft_ct: split nft_ct_init() into two functions for get/set
-Date: Wed, 21 May 2014 11:43:01 +0200
-Message-ID: <1400665402-5835-4-git-send-email-pablo@netfilter.org>
-References: <1400665402-5835-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1400665402-5835-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: function for getting the source ip defined in the routing table
+Date: Wed, 21 May 2014 10:06:43 -0700
+Message-ID: <CAHo-Oozp=_ss7NG=yBQwD2qxjpvKRUwcMa4fJ+gbkMyYuJM6Jw@mail.gmail.com>
+References: <20140520124634.GM10939@kvmbude>
+	<alpine.LSU.2.11.1405201602100.9387@nerf08.vanv.qr>
+	<20140520141828.GO10939@kvmbude>
+	<CAHo-OozhUDnEJX3AZFTdWAx+trKhT9m=hKjj0Kr32aZm+Q_u=g@mail.gmail.com>
+	<20140521083643.GU10939@kvmbude>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Andreas Herz <andi@geekosphere.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qg0-f54.google.com ([209.85.192.54]:50090 "EHLO
+	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724AbaEURGn convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2014 13:06:43 -0400
+Received: by mail-qg0-f54.google.com with SMTP id q108so3691150qgd.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2014 10:06:43 -0700 (PDT)
+In-Reply-To: <20140521083643.GU10939@kvmbude>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+That's not the way routing works.
+If you don't specify a source ip, the routing table picks for you,
+if you do already have a source ip specified the routing table will
+use that information to make decisions (ip rule from ...) but will not
+change it.
 
-For value spanning multiple registers, we need to validate the length
-of data loads. In order to add this to nft_ct, we need the length from
-key validation. Split the nft_ct_init() function into two functions
-for the get and set operations as preparation for that.
+Otherwise TCP wouldn't work.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_ct.c |   96 ++++++++++++++++++++++--------------------------
- 1 file changed, 43 insertions(+), 53 deletions(-)
+So this is working as intended.
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index a2c45bd..cc56030 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -215,22 +215,14 @@ static void nft_ct_l3proto_module_put(uint8_t family)
- 		nf_ct_l3proto_module_put(family);
- }
- 
--static int nft_ct_init_validate_get(const struct nft_expr *expr,
--				    const struct nlattr * const tb[])
-+static int nft_ct_get_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
- {
- 	struct nft_ct *priv = nft_expr_priv(expr);
-+	int err;
- 
--	if (tb[NFTA_CT_DIRECTION] != NULL) {
--		priv->dir = nla_get_u8(tb[NFTA_CT_DIRECTION]);
--		switch (priv->dir) {
--		case IP_CT_DIR_ORIGINAL:
--		case IP_CT_DIR_REPLY:
--			break;
--		default:
--			return -EINVAL;
--		}
--	}
--
-+	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
- 	switch (priv->key) {
- 	case NFT_CT_STATE:
- 	case NFT_CT_DIRECTION:
-@@ -262,12 +254,42 @@ static int nft_ct_init_validate_get(const struct nft_expr *expr,
- 		return -EOPNOTSUPP;
- 	}
- 
-+	if (tb[NFTA_CT_DIRECTION] != NULL) {
-+		priv->dir = nla_get_u8(tb[NFTA_CT_DIRECTION]);
-+		switch (priv->dir) {
-+		case IP_CT_DIR_ORIGINAL:
-+		case IP_CT_DIR_REPLY:
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+	}
-+
-+	priv->dreg = ntohl(nla_get_be32(tb[NFTA_CT_DREG]));
-+	err = nft_validate_output_register(priv->dreg);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_validate_data_load(ctx, priv->dreg, NULL, NFT_DATA_VALUE);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
-+	if (err < 0)
-+		return err;
-+
- 	return 0;
- }
- 
--static int nft_ct_init_validate_set(uint32_t key)
-+static int nft_ct_set_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
- {
--	switch (key) {
-+	struct nft_ct *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
-+	switch (priv->key) {
- #ifdef CONFIG_NF_CONNTRACK_MARK
- 	case NFT_CT_MARK:
- 		break;
-@@ -276,42 +298,10 @@ static int nft_ct_init_validate_set(uint32_t key)
- 		return -EOPNOTSUPP;
- 	}
- 
--	return 0;
--}
--
--static int nft_ct_init(const struct nft_ctx *ctx,
--		       const struct nft_expr *expr,
--		       const struct nlattr * const tb[])
--{
--	struct nft_ct *priv = nft_expr_priv(expr);
--	int err;
--
--	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
--
--	if (tb[NFTA_CT_DREG]) {
--		err = nft_ct_init_validate_get(expr, tb);
--		if (err < 0)
--			return err;
--
--		priv->dreg = ntohl(nla_get_be32(tb[NFTA_CT_DREG]));
--		err = nft_validate_output_register(priv->dreg);
--		if (err < 0)
--			return err;
--
--		err = nft_validate_data_load(ctx, priv->dreg, NULL,
--					     NFT_DATA_VALUE);
--		if (err < 0)
--			return err;
--	} else {
--		err = nft_ct_init_validate_set(priv->key);
--		if (err < 0)
--			return err;
--
--		priv->sreg = ntohl(nla_get_be32(tb[NFTA_CT_SREG]));
--		err = nft_validate_input_register(priv->sreg);
--		if (err < 0)
--			return err;
--	}
-+	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CT_SREG]));
-+	err = nft_validate_input_register(priv->sreg);
-+	if (err < 0)
-+		return err;
- 
- 	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
- 	if (err < 0)
-@@ -372,7 +362,7 @@ static const struct nft_expr_ops nft_ct_get_ops = {
- 	.type		= &nft_ct_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
- 	.eval		= nft_ct_get_eval,
--	.init		= nft_ct_init,
-+	.init		= nft_ct_get_init,
- 	.destroy	= nft_ct_destroy,
- 	.dump		= nft_ct_get_dump,
- };
-@@ -381,7 +371,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
- 	.type		= &nft_ct_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
- 	.eval		= nft_ct_set_eval,
--	.init		= nft_ct_init,
-+	.init		= nft_ct_set_init,
- 	.destroy	= nft_ct_destroy,
- 	.dump		= nft_ct_set_dump,
- };
--- 
-1.7.10.4
+- Maciej
+
+On Wed, May 21, 2014 at 1:36 AM, Andreas Herz <andi@geekosphere.org> wr=
+ote:
+> On 20/05/14 at 08:38, Maciej =C5=BBenczykowski wrote:
+>> Guessing that after ip_route_output_key(net, &fl4) fl4.saddr will ha=
+ve
+>> what you want.
+>
+> Only if the fl4.saddr wasn't set before:
+>
+> if (!fl4->saddr)
+>     fl4->saddr =3D FIB_RES_PREFSRC(net, res);
+>
+> But i have (or need) a fl4->saddr since i want "ip rules" to be
+> inspected as well, and with an ip rule with "from $SRC" i need to cal=
+l
+> ip_route_output_key(dev_net(dev), &fl4) with an fl4->saddr set or the
+> rule won't match correctly.
+>
+> In the past i could call "ip_route_output_key" and then use "rt->rt_s=
+rc"
+> to get the source ip i needed.
+>
+> --
+> Andreas Herz
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
