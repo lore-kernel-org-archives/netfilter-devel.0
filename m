@@ -1,30 +1,37 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: function for getting the source ip defined in the routing table
-Date: Wed, 21 May 2014 10:07:27 -0700
-Message-ID: <CAHo-OozPGMby_mt7GK-s6efs6vgctJiRSoZL2_hs_WmswsYwtg@mail.gmail.com>
-References: <20140520124634.GM10939@kvmbude>
-	<alpine.LSU.2.11.1405201602100.9387@nerf08.vanv.qr>
-	<20140520141828.GO10939@kvmbude>
-	<CAHo-OozhUDnEJX3AZFTdWAx+trKhT9m=hKjj0Kr32aZm+Q_u=g@mail.gmail.com>
-	<20140521083643.GU10939@kvmbude>
-	<CAHo-Oozp=_ss7NG=yBQwD2qxjpvKRUwcMa4fJ+gbkMyYuJM6Jw@mail.gmail.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge : Sanitize
+ skb before it enters the IP stack)
+Date: Wed, 21 May 2014 20:51:14 +0200
+Message-ID: <537CF5A2.3080401@pandora.be>
+References: <537621AC.1060409@davidnewall.com> <5379FFFD.1050705@davidnewall.com> <20140519140119.GA24523@breakpoint.cc> <537A12EA.4060604@davidnewall.com> <20140519170915.GB24523@breakpoint.cc> <537A6E5C.6090602@pandora.be> <537C5A6C.3030809@davidnewall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Andreas Herz <andi@geekosphere.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qc0-f173.google.com ([209.85.216.173]:58592 "EHLO
-	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840AbaEURH2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2014 13:07:28 -0400
-Received: by mail-qc0-f173.google.com with SMTP id i8so3684849qcq.18
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2014 10:07:27 -0700 (PDT)
-In-Reply-To: <CAHo-Oozp=_ss7NG=yBQwD2qxjpvKRUwcMa4fJ+gbkMyYuJM6Jw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux-foundation.org
+To: David Newall <davidn@davidnewall.com>,
+	Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <537C5A6C.3030809@davidnewall.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-[Obviously you could call ip_route_output_key twice, once with
-saddr=0, second time with whatever it returned or you wanted to use]
+David Newall schreef op 21/05/2014 9:49:
+>> An alternative would be to make sure that the data pointed to by IPCB
+>> and BR_INPUT_SKB_CB don't overlap. If this were the case, we could
+>> indeed just revert the commit that was referred to.
+>
+> They are identical spaces, but you imply a good point: the cb area is
+> possibly being used, simultaneously, for two, incompatible purposes. Yet
+> another argument for divorcing bridge of ip logic.
+
+There's no reason why they should overlap in the cb: it's 48 bytes big, 
+so big enough to hold both struct br_input_skb_cb and struct 
+inet_skb_parm. The original problem was introduced when BR_INPUT_SKB_CB 
+was introduced (around Feb 27, 2010), so fixing BR_INPUT_SKB_CB seems 
+most appropriate to me.
+As for your other remark: as I've said before, if you don't like 
+bridge-netfilter then don't compile it into your kernel.
+
+Bart
