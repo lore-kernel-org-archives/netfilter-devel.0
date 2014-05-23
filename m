@@ -1,65 +1,52 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge : Sanitize
- skb before it enters the IP stack)
-Date: Thu, 22 May 2014 20:57:13 +0200
-Message-ID: <537E4889.5000306@pandora.be>
-References: <537A6E5C.6090602@pandora.be>	<537C5A6C.3030809@davidnewall.com>	<537CF5A2.3080401@pandora.be> <20140521.161841.1806439174351824310.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: davidn@davidnewall.com, fw@strlen.de, stephen@networkplumber.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	bridge@lists.linux-foundation.org
-To: David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: fix wrong transaction ordering in set elements
+Date: Fri, 23 May 2014 11:03:19 +0200
+Message-ID: <1400835799-4195-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:39643 "EHLO
-	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922AbaEVS5O (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2014 14:57:14 -0400
-In-Reply-To: <20140521.161841.1806439174351824310.davem@davemloft.net>
+Received: from mail.us.es ([193.147.175.20]:60841 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751417AbaEWJDa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 May 2014 05:03:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller schreef op 21/05/2014 22:18:
-> From: Bart De Schuymer <bdschuym@pandora.be>
->> There's no reason why they should overlap in the cb: it's 48 bytes
->> big, so big enough to hold both struct br_input_skb_cb and struct
->> inet_skb_parm. The original problem was introduced when
->> BR_INPUT_SKB_CB was introduced (around Feb 27, 2010), so fixing
->> BR_INPUT_SKB_CB seems most appropriate to me.
->
-> So you are suggesting the patch below will fix everything?
+The transaction needs to be placed at the end of the commit list,
+otherwise event notifications are reordered and we may crash when
+releasing object via call_rcu.
 
-Assuming:
-- David Newall's worries about IPCB are incorrect
-- you also revert the commit mentioned by David 
-(462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge :
-Sanitize skb before it enters the IP stack))
+This problem was introduced in 60319eb ("netfilter: nf_tables: use new
+transaction infrastructure to handle elements").
 
-Then I give it a good chance the regression will be gone with your patch.
+Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> We never should have added bridging netfilter to the tree in the
-> first place, I wish I had better judgment back then.
-
-Feel free to deprecate it. This is my last spare-time involvement.
-
-Please apply following patch:
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f5de16e..2369bae 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3163,10 +3163,9 @@ S:	Maintained
-  F:	drivers/scsi/eata_pio.*
-
-  EBTABLES
--M:	Bart De Schuymer <bart.de.schuymer@pandora.be>
-  L:	netfilter-devel@vger.kernel.org
-  W:	http://ebtables.sourceforge.net/
--S:	Maintained
-+S:	Orphan
-  F:	include/linux/netfilter_bridge/ebt_*.h
-  F:	include/uapi/linux/netfilter_bridge/ebt_*.h
-  F:	net/bridge/netfilter/ebt*.c
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e171c63..ca38725 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3076,7 +3076,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err4;
+ 
+ 	nft_trans_elem(trans) = elem;
+-	list_add(&trans->list, &ctx->net->nft.commit_list);
++	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 	return 0;
+ 
+ err4:
+@@ -3160,7 +3160,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err2;
+ 
+ 	nft_trans_elem(trans) = elem;
+-	list_add(&trans->list, &ctx->net->nft.commit_list);
++	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 
+ 	nft_data_uninit(&elem.key, NFT_DATA_VALUE);
+ 	if (set->flags & NFT_SET_MAP)
+-- 
+1.7.10.4
 
