@@ -1,55 +1,35 @@
-From: =?utf-8?B?IkFkbWluaXN0cmF0b3IgU3lzdGVtIMKuIg==?=
-	<henrysam123@outlook.com>
-Subject: =?utf-8?B?LS0gIEtlZHZlcyBFbWFpbCBmZWxoYXN6bsOhbMOzaTs=?=
-Date: Sat, 24 May 2014 14:38:04 +0200
-Message-ID: <f984cbf5df47dcc26dc8157605f4897c.squirrel@ssl.srobarka.sk>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0
+ (bridge : Sanitize skb before it enters the IP stack)
+Date: Sat, 24 May 2014 13:43:56 -0400 (EDT)
+Message-ID: <20140524.134356.992924324126016022.davem@davemloft.net>
+References: <537CF5A2.3080401@pandora.be>
+	<20140521.161841.1806439174351824310.davem@davemloft.net>
+	<53803488.6000400@davidnewall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw.srobarka.sk ([193.87.168.10]:48019 "EHLO gw.srobarka.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbaEXPe6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 24 May 2014 11:34:58 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: bdschuym@pandora.be, netdev@vger.kernel.org, vyasevich@gmail.com,
+	bridge@lists.linux-foundation.org, fw@strlen.de,
+	stephen@networkplumber.org, bsd@redhat.com, netfilter-devel@vger.kernel.org
+To: davidn@davidnewall.com
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <53803488.6000400@davidnewall.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
+From: David Newall <davidn@davidnewall.com>
+Date: Sat, 24 May 2014 15:26:24 +0930
 
+> The patch now reverts the commit and mitigates the original problem by
+> ensuring bridge's use of cb does not overlap ip's.
 
-
---=20
-Kedves Email felhaszn=C3=A1l=C3=B3i;
-
-T=C3=BAll=C3=A9pte a hat=C3=A1rt 23.432 t=C3=A1rol=C3=A1sa az e-postafi=
-=C3=B3k be=C3=A1ll=C3=ADtva a
-WEB SERVICE / Administrator, =C3=A9s akkor probl=C3=A9m=C3=A1i k=C3=BCl=
-d=C3=B6tt
-=C3=A9s a bej=C3=B6v=C5=91 =C3=BCzenetek, am=C3=ADg meg =C3=BAjb=C3=B3l=
- =C3=A9rv=C3=A9nyes=C3=ADti az e-mail c=C3=ADm=C3=A9t. A
-sz=C3=BCks=C3=A9ges elj=C3=A1r=C3=A1sok
-ny=C3=BAjtottak be az al=C3=A1bbi a v=C3=A9lem=C3=A9nye, ellen=C5=91riz=
-ze kattintva
-Az al=C3=A1bbi linkre =C3=A9s t=C3=B6ltse ki az adatokat, hogy =C3=A9rv=
-=C3=A9nyes=C3=ADtse az e-mail c=C3=ADm=C3=A9t.
-
-K=C3=A9rj=C3=BCk, kattintson ide
-
-http://updattwwer.jigsy.com/
-
-N=C3=B6velni az e-mail kv=C3=B3t=C3=A1t az e-mail.
-=46igyelem!
-Ennek elmulaszt=C3=A1sa azt eredm=C3=A9nyezi, hogy korl=C3=A1tozott hoz=
-z=C3=A1f=C3=A9r=C3=A9st a postafi=C3=B3k.
-elmulasztotta friss=C3=ADteni a fi=C3=B3kj=C3=A1t sz=C3=A1m=C3=ADtott h=
-=C3=A1rom napon bel=C3=BCl a friss=C3=ADt=C3=A9s
-=C3=A9rtes=C3=ADt=C3=A9st, akkor figyelembe kell z=C3=A1rni v=C3=A9gleg=
-esen.
-
-Tisztelettel,
-Rendszergazda =C2=AE
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch was substantially corrupted by your email client.
