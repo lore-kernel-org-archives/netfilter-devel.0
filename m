@@ -1,92 +1,68 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf] ipvs: Fix panic due to non-linear skb
-Date: Mon, 26 May 2014 10:37:15 +0900
-Message-ID: <1401068235-6730-2-git-send-email-horms@verge.net.au>
-References: <1401068235-6730-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Peter Christensen <pch@ordbogen.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] netfilter: bridge: fix Kconfig unmet
+ dependencies
+Date: Mon, 26 May 2014 00:42:54 -0400 (EDT)
+Message-ID: <20140526.004254.830467668632986669.davem@davemloft.net>
+References: <1401022113-6430-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:35072 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418AbaEZBhY (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:52606 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbaEZEm6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 May 2014 21:37:24 -0400
-In-Reply-To: <1401068235-6730-1-git-send-email-horms@verge.net.au>
+	Mon, 26 May 2014 00:42:58 -0400
+In-Reply-To: <1401022113-6430-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Peter Christensen <pch@ordbogen.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 25 May 2014 14:48:33 +0200
 
-Receiving a ICMP response to an IPIP packet in a non-linear skb could
-cause a kernel panic in __skb_pull.
+> Before f5efc69 ("netfilter: nf_tables: Add meta expression key for
+> bridge interface name"), the entire net/bridge/netfilter/ directory
+> depended on BRIDGE_NF_EBTABLES, ie. on ebtables. However, that
+> directory already contained the nf_tables bridge extension that
+> we should allow to compile separately. In f5efc69, we tried to
+> generalize this by using CONFIG_BRIDGE_NETFILTER which was not a good
+> idea since this option already existed and it is dedicated to enable
+> the Netfilter bridge IP/ARP filtering.
+> 
+> Let's try to fix this mess by:
+> 
+> 1) making net/bridge/netfilter/ dependent on the toplevel
+>    CONFIG_NETFILTER option, just like we do with the net/netfilter and
+>    net/ipv{4,6}/netfilter/ directories.
+> 
+> 2) Changing 'selects' to 'depends on' NETFILTER_XTABLES for
+>    BRIDGE_NF_EBTABLES. I believe this problem was already before
+>    f5efc69:
+> 
+> warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has
+> unmet direct dependencies (NET && INET && NETFILTER)
+> 
+> 3) Fix ebtables/nf_tables bridge dependencies by making NF_TABLES_BRIDGE
+>    and BRIDGE_NF_EBTABLES dependent on BRIDGE and NETFILTER:
+> 
+> warning: (NF_TABLES_BRIDGE && BRIDGE_NF_EBTABLES) selects
+> BRIDGE_NETFILTER which has unmet direct dependencies (NET && BRIDGE &&
+> NETFILTER && INET && NETFILTER_ADVANCED)
+> 
+> net/built-in.o: In function `br_parse_ip_options':
+> br_netfilter.c:(.text+0x4a5ba): undefined reference to `ip_options_compile'
+> br_netfilter.c:(.text+0x4a5ed): undefined reference to `ip_options_rcv_srr'
+> net/built-in.o: In function `br_nf_pre_routing_finish':
+> br_netfilter.c:(.text+0x4a8a4): undefined reference to `ip_route_input_noref'
+> br_netfilter.c:(.text+0x4a987): undefined reference to `ip_route_output_flow'
+> make: *** [vmlinux] Error 1
+> 
+> Reported-by: Jim Davis <jim.epost@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> @David: Please, feel free to pick this fix into your net-next, it addresses
+> http://marc.info/?l=linux-netdev&m=140095588506382&w=2
 
-The problem was introduced in
-commit f2edb9f7706dcb2c0d9a362b2ba849efe3a97f5e ("ipvs: implement
-passive PMTUD for IPIP packets").
-
-Signed-off-by: Peter Christensen <pch@ordbogen.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_core.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 4f26ee4..3d2d2c8 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1392,15 +1392,19 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 
- 	if (ipip) {
- 		__be32 info = ic->un.gateway;
-+		__u8 type = ic->type;
-+		__u8 code = ic->code;
- 
- 		/* Update the MTU */
- 		if (ic->type == ICMP_DEST_UNREACH &&
- 		    ic->code == ICMP_FRAG_NEEDED) {
- 			struct ip_vs_dest *dest = cp->dest;
- 			u32 mtu = ntohs(ic->un.frag.mtu);
-+			__be16 frag_off = cih->frag_off;
- 
- 			/* Strip outer IP and ICMP, go to IPIP header */
--			__skb_pull(skb, ihl + sizeof(_icmph));
-+			if (pskb_pull(skb, ihl + sizeof(_icmph)) == NULL)
-+				goto ignore_ipip;
- 			offset2 -= ihl + sizeof(_icmph);
- 			skb_reset_network_header(skb);
- 			IP_VS_DBG(12, "ICMP for IPIP %pI4->%pI4: mtu=%u\n",
-@@ -1408,7 +1412,7 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 			ipv4_update_pmtu(skb, dev_net(skb->dev),
- 					 mtu, 0, 0, 0, 0);
- 			/* Client uses PMTUD? */
--			if (!(cih->frag_off & htons(IP_DF)))
-+			if (!(frag_off & htons(IP_DF)))
- 				goto ignore_ipip;
- 			/* Prefer the resulting PMTU */
- 			if (dest) {
-@@ -1427,12 +1431,13 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 		/* Strip outer IP, ICMP and IPIP, go to IP header of
- 		 * original request.
- 		 */
--		__skb_pull(skb, offset2);
-+		if (pskb_pull(skb, offset2) == NULL)
-+			goto ignore_ipip;
- 		skb_reset_network_header(skb);
- 		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
- 			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
--			ic->type, ic->code, ntohl(info));
--		icmp_send(skb, ic->type, ic->code, info);
-+			type, code, ntohl(info));
-+		icmp_send(skb, type, code, info);
- 		/* ICMP can be shorter but anyways, account it */
- 		ip_vs_out_stats(cp, skb);
- 
--- 
-1.8.5.2
-
+Applied thanks a lot Pablo.
