@@ -1,94 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next] netfilter: bridge: fix Kconfig unmet dependencies
-Date: Sun, 25 May 2014 14:48:33 +0200
-Message-ID: <1401022113-6430-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] Fixes for v3.15
+Date: Mon, 26 May 2014 10:37:14 +0900
+Message-ID: <1401068235-6730-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Before f5efc69 ("netfilter: nf_tables: Add meta expression key for
-bridge interface name"), the entire net/bridge/netfilter/ directory
-depended on BRIDGE_NF_EBTABLES, ie. on ebtables. However, that
-directory already contained the nf_tables bridge extension that
-we should allow to compile separately. In f5efc69, we tried to
-generalize this by using CONFIG_BRIDGE_NETFILTER which was not a good
-idea since this option already existed and it is dedicated to enable
-the Netfilter bridge IP/ARP filtering.
+Hi Pablo,
 
-Let's try to fix this mess by:
+I realise this is extremely late in the v3.15 cycle so please don't hesitate
+to push it back to v3.16. I am more than happy to rebase/resubmit if that
+is what you decided on.
 
-1) making net/bridge/netfilter/ dependent on the toplevel
-   CONFIG_NETFILTER option, just like we do with the net/netfilter and
-   net/ipv{4,6}/netfilter/ directories.
+This fix resolves a panic due to non-linear skb.
 
-2) Changing 'selects' to 'depends on' NETFILTER_XTABLES for
-   BRIDGE_NF_EBTABLES. I believe this problem was already before
-   f5efc69:
+It has been present since v3.6-rc1.
 
-warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has
-unmet direct dependencies (NET && INET && NETFILTER)
+I would like this fix considered for -stable and I have checked that it
+applies cleanly on top of v3.10.40, v3.12.20 and v3.14.4.
 
-3) Fix ebtables/nf_tables bridge dependencies by making NF_TABLES_BRIDGE
-   and BRIDGE_NF_EBTABLES dependent on BRIDGE and NETFILTER:
 
-warning: (NF_TABLES_BRIDGE && BRIDGE_NF_EBTABLES) selects
-BRIDGE_NETFILTER which has unmet direct dependencies (NET && BRIDGE &&
-NETFILTER && INET && NETFILTER_ADVANCED)
+The following changes since commit 3b084e99a3fabaeb0f9c65a0806cde30f0b2835e:
 
-net/built-in.o: In function `br_parse_ip_options':
-br_netfilter.c:(.text+0x4a5ba): undefined reference to `ip_options_compile'
-br_netfilter.c:(.text+0x4a5ed): undefined reference to `ip_options_rcv_srr'
-net/built-in.o: In function `br_nf_pre_routing_finish':
-br_netfilter.c:(.text+0x4a8a4): undefined reference to `ip_route_input_noref'
-br_netfilter.c:(.text+0x4a987): undefined reference to `ip_route_output_flow'
-make: *** [vmlinux] Error 1
+  netfilter: nf_tables: fix trace of matching non-terminal rule (2014-05-15 19:44:20 +0200)
 
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@David: Please, feel free to pick this fix into your net-next, it addresses
-http://marc.info/?l=linux-netdev&m=140095588506382&w=2
+are available in the git repository at:
 
- net/bridge/Makefile          |    2 +-
- net/bridge/netfilter/Kconfig |    7 ++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.15
 
-diff --git a/net/bridge/Makefile b/net/bridge/Makefile
-index 906a18b..be68796 100644
---- a/net/bridge/Makefile
-+++ b/net/bridge/Makefile
-@@ -16,4 +16,4 @@ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
- 
- bridge-$(CONFIG_BRIDGE_VLAN_FILTERING) += br_vlan.o
- 
--obj-$(CONFIG_BRIDGE_NETFILTER) += netfilter/
-+obj-$(CONFIG_NETFILTER) += netfilter/
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 3baf29d..629dc77 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -3,8 +3,7 @@
- #
- #
- menuconfig NF_TABLES_BRIDGE
--	depends on NF_TABLES
--	select BRIDGE_NETFILTER
-+	depends on BRIDGE && NETFILTER && NF_TABLES
- 	tristate "Ethernet Bridge nf_tables support"
- 
- if NF_TABLES_BRIDGE
-@@ -19,9 +18,7 @@ endif # NF_TABLES_BRIDGE
- 
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
--	depends on BRIDGE && NETFILTER
--	select BRIDGE_NETFILTER
--	select NETFILTER_XTABLES
-+	depends on BRIDGE && NETFILTER && NETFILTER_XTABLES
- 	help
- 	  ebtables is a general, extensible frame/packet identification
- 	  framework. Say 'Y' or 'M' here if you want to do Ethernet
--- 
-1.7.10.4
+for you to fetch changes up to f44a5f45f544561302e855e7bd104e5f506ec01b:
+
+  ipvs: Fix panic due to non-linear skb (2014-05-26 10:22:46 +0900)
+
+----------------------------------------------------------------
+IPVS Fixes for v3.15
+
+Fix for panic due to non-linear skb by Peter Christensen.
+
+This resolves a regression introduced in v3.6-rc1 by
+f2edb9f7706dcb2c0d9a362b2ba849efe3a97f5e ("ipvs: implement
+passive PMTUD for IPIP packets").
+
+----------------------------------------------------------------
+Peter Christensen (1):
+      ipvs: Fix panic due to non-linear skb
+
+ net/netfilter/ipvs/ip_vs_core.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
