@@ -1,54 +1,41 @@
-From: HUSAM AL SAYED <Husamalsayed@asia.com>
-Subject: Your Urgent reply.
-Date: Mon, 26 May 2014 22:07:46 +0400
-Message-ID: <CAKFyHyoc+qL=wx=MUjUxRHGWR3K4Zb4HGHghxwF+z_=Tp+BD5Q__19999.6744202965$1401127688$gmane$org@mail.gmail.com>
-Reply-To: Husamalsayed@asia.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [HEADS UP] Migrating ebtables and arptables to netfilter.org
+Date: Tue, 27 May 2014 10:33:59 +0200
+Message-ID: <20140527083359.GA4342@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: undisclosed-recipients:;
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f196.google.com ([74.125.82.196]:33692 "EHLO
-	mail-we0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbaEZSHs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 May 2014 14:07:48 -0400
-Received: by mail-we0-f196.google.com with SMTP id k48so2684168wev.7
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 May 2014 11:07:46 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org, bridge@lists.linux-foundation.org,
+	Bart De Schuymer <bdschuym@pandora.be>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear Friend,
+Hi!
 
+We're migrating arptables and ebtables to git.netfilter.org. The new
+location for the repositories are:
 
-Compliments of the day.This mail May be a surprise to you Because you
-did not give me the permission to do so and Neither do you know me but
-before I tell you about myself I want you to please forgive me for
-sending this mail without your permission I have been in search of
-someone with this last name so when I saw you online, I was pushed to
-contact you and see how best we can assist each other. I am Mr. Husam
-Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
-God for me to come across you now. I am having an important business
-discussion I wish to share with you which I  believe will interest
-you, because it is in connection with your last name and you are going
-to benefit from it.
+1) arptables:
 
-One Late peter who was among the death victims in the May 27 2006
-Earthquake disaster in Java, Indonesia that killed over 5,000 people.
-He was in Indonesia on a business trip and that was how he met his
-end. My bank management is yet to know about his death, I knew about
-it because he was my friend and I am his account officer.he did not
-mention any Next of Kin/ Heir when the account was opened, and he was
-not married and no children. Last week my Bank Management requested
-that he should give instructions on what to do about his funds,I know
-this will happen and that is why I have been looking for a means to
-handle the situation,
+        git://git.netfilter.org/arptables
+        http://git.netfilter.org/arptables/
 
-If you are interested send me your private Email Address so that i can
-send you more details of the transaction,
-Thanks for your understanding
+2) ebtables:
 
-I am waiting for your reply.
+        git://git.netfilter.org/ebtables
+        http://git.netfilter.org/ebtables/
 
-Best regards,
+Originally, these two applications were located in the same repository
+which has been kept at:
 
-Mr. Husam Al Sayed
+        http://git.netfilter.org/ebtables.old-history/
+
+just for the record.
+
+I have git-filter-branch the original repository to separate the
+ebtables and the arptables in two independent repositories.
+
+Let me know if you experience any problem in this migration,
+Thanks.
