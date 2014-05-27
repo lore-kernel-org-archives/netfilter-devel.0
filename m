@@ -1,41 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [HEADS UP] Migrating ebtables and arptables to netfilter.org
-Date: Tue, 27 May 2014 10:33:59 +0200
-Message-ID: <20140527083359.GA4342@localhost>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge :
+ Sanitize skb before it enters the IP stack)
+Date: Tue, 27 May 2014 08:55:12 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1724E207@AcuExch.aculab.com>
+References: <537CF5A2.3080401@pandora.be>
+	<20140521.161841.1806439174351824310.davem@davemloft.net>
+	<53803488.6000400@davidnewall.com>
+ <20140524.134356.992924324126016022.davem@davemloft.net>
+ <53815623.8020506@davidnewall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, bridge@lists.linux-foundation.org,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "bdschuym@pandora.be" <bdschuym@pandora.be>,
+	"fw@strlen.de" <fw@strlen.de>,
+	"stephen@networkplumber.org" <stephen@networkplumber.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"bridge@lists.linux-foundation.org"
+	<bridge@lists.linux-foundation.org>,
+	"bsd@redhat.com" <bsd@redhat.com>,
+	"vyasevich@gmail.com" <vyasevich@gmail.com>
+To: 'David Newall' <davidn@davidnewall.com>,
+	David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <53815623.8020506@davidnewall.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+From: David Newall
+> On 25/05/14 03:13, David Miller wrote:
+> > This patch was substantially corrupted by your email client.
+> 
+> We should be sending these things as mime attachments.  Having to put
+> patches inline is brittle, absurd and a waste of everyone's time.  Is
+> there actually anybody here who doesn't have a mime-compatible MUA?
 
-We're migrating arptables and ebtables to git.netfilter.org. The new
-location for the repositories are:
+Yes - anyone using the email client from the world's largest desktop
+computer software company.
 
-1) arptables:
+It doesn't have any method for displaying text attachments.
+It has a scheme for executing attachments, for which it will use
+an interpreter based on the filename extension.
+(Yes - this is why it is very good at propagating viruses.)
 
-        git://git.netfilter.org/arptables
-        http://git.netfilter.org/arptables/
+FWIW it can send valid patches quite easily - just copy/paste from wordpad.
+(Possibly after hacking the registry to allow lines longer than 72 characters.
 
-2) ebtables:
-
-        git://git.netfilter.org/ebtables
-        http://git.netfilter.org/ebtables/
-
-Originally, these two applications were located in the same repository
-which has been kept at:
-
-        http://git.netfilter.org/ebtables.old-history/
-
-just for the record.
-
-I have git-filter-branch the original repository to separate the
-ebtables and the arptables in two independent repositories.
-
-Let me know if you experience any problem in this migration,
-Thanks.
+	David
