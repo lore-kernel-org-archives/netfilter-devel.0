@@ -1,134 +1,55 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nftables PATCH] netlink: Allow invert the ranges
-Date: Tue, 27 May 2014 19:15:34 +0200
-Message-ID: <1401210934-4900-1-git-send-email-alvaroneay@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] parser: use symbolic expression for ether too
+Date: Wed, 28 May 2014 10:06:16 +0200
+Message-ID: <1401264376-4094-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:51218 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039AbaE0RRN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 May 2014 13:17:13 -0400
-Received: by mail-wg0-f52.google.com with SMTP id l18so9747749wgh.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 May 2014 10:17:11 -0700 (PDT)
-Received: from localhost.localdomain (85.136.70.56.dyn.user.ono.com. [85.136.70.56])
-        by mx.google.com with ESMTPSA id em5sm9847493wic.23.2014.05.27.10.17.10
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 27 May 2014 10:17:10 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:51394 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754269AbaE1IG3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 May 2014 04:06:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
+Like in 0dbced3 ("parser: use symbolic expressions for parsing
+keywords as protocol values"), convert `ether' to use a symbolic
+expression.
 
-This patch fix the bug:
+This fixes:
 
-http://bugzilla.netfilter.org/show_bug.cgi?id=3D924
+ # nft add rule ip filter input meta iiftype ether
+ # nft list table filter
+ table ip filter {
+	...
+	iiftype 256
 
-Before, nftables doesn't permit invert ranges. This patch allows
-add rules like this:
+which was converted to network byte order.
 
-nft add rule ip test input ip daddr !=3D 192.168.1.2-192.168.1.55
-
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Reported-by: Ana Rey <anarey@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_linearize.c |   43 +++++++++++++++++++++++++++++++++++++--=
-----
- 1 file changed, 37 insertions(+), 6 deletions(-)
+ src/parser.y |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index e3f06af..4b6400a 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -182,6 +182,10 @@ static enum nft_cmp_ops netlink_gen_cmp_op(enum op=
-s op)
- 	}
- }
-=20
-+static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
-+			      const struct expr *expr,
-+			      enum nft_registers dreg);
-+
- static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 			    const struct expr *expr,
- 			    enum nft_registers dreg)
-@@ -196,7 +200,8 @@ static void netlink_gen_cmp(struct netlink_lineariz=
-e_ctx *ctx,
- 	sreg =3D get_register(ctx);
- 	netlink_gen_expr(ctx, expr->left, sreg);
-=20
--	if (expr->right->ops->type =3D=3D EXPR_PREFIX) {
-+	switch (expr->right->ops->type) {
-+	case EXPR_PREFIX: {
- 		mpz_t mask;
-=20
- 		mpz_init(mask);
-@@ -216,7 +221,11 @@ static void netlink_gen_cmp(struct netlink_lineari=
-ze_ctx *ctx,
- 		nft_rule_add_expr(ctx->nlr, nle);
-=20
- 		right =3D expr->right->prefix;
--	} else {
-+		break;
-+		}
-+	case EXPR_RANGE:
-+		return netlink_gen_range(ctx, expr, dreg);
-+	default:
- 		right =3D expr->right;
- 	}
-=20
-@@ -247,16 +256,38 @@ static void netlink_gen_range(struct netlink_line=
-arize_ctx *ctx,
-=20
- 	nle =3D alloc_nft_expr("cmp");
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
--			      netlink_gen_cmp_op(OP_GTE));
-+	switch (expr->op) {
-+	case OP_EQ:
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-+				      netlink_gen_cmp_op(OP_GTE));
-+		break;
-+	case OP_NEQ:
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-+				      netlink_gen_cmp_op(OP_LT));
-+		break;
-+	default:
-+		BUG("invalid comparison operation %u\n", expr->op);
-+	}
-+
- 	netlink_gen_data(range->left, &nld);
- 	nft_rule_expr_set(nle, NFT_EXPR_CMP_DATA, nld.value, nld.len);
- 	nft_rule_add_expr(ctx->nlr, nle);
-=20
- 	nle =3D alloc_nft_expr("cmp");
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
--			      netlink_gen_cmp_op(OP_LTE));
-+	switch (expr->op) {
-+	case OP_EQ:
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-+				      netlink_gen_cmp_op(OP_LTE));
-+		break;
-+	case OP_NEQ:
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-+				      netlink_gen_cmp_op(OP_GT));
-+		break;
-+	default:
-+		BUG("invalid comparison operation %u\n", expr->op);
-+	}
-+
- 	netlink_gen_data(range->right, &nld);
- 	nft_rule_expr_set(nle, NFT_EXPR_CMP_DATA, nld.value, nld.len);
- 	nft_rule_add_expr(ctx->nlr, nle);
---=20
+diff --git a/src/parser.y b/src/parser.y
+index 20a836e..38b655d 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -1848,10 +1848,9 @@ eth_hdr_expr		:	ETHER	eth_hdr_field
+ 			}
+ 			|	ETHER
+ 			{
+-				uint16_t data = ARPHRD_ETHER;
+-				$$ = constant_expr_alloc(&@$, &arphrd_type,
+-							 BYTEORDER_BIG_ENDIAN,
+-							 sizeof(data) * BITS_PER_BYTE, &data);
++				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++						       current_scope(state),
++						       "ether");
+ 			}
+ 			;
+ 
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
