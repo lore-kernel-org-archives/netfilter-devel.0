@@ -1,38 +1,42 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: OOPS NULL pointer dereference in nf_nat_setup_info+0x471
- (reproductible, 3.14.4)
-Date: Thu, 29 May 2014 20:32:53 +0200
-Message-ID: <20140529183253.GA16912@breakpoint.cc>
-References: <4667198.VVkvcgzEe7@luna>
- <9874911.sZTeTrmm52@quad>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf] Fixes for v3.15
+Date: Thu, 29 May 2014 23:00:43 +0200
+Message-ID: <20140529210043.GA5730@localhost>
+References: <1401068235-6730-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Vincent Tondellier <tondellier+ml.nfdev@dosisoft.fr>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50388 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755180AbaE2Scz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 14:32:55 -0400
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9874911.sZTeTrmm52@quad>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1401068235-6730-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Vincent Tondellier <tondellier+ml.nfdev@dosisoft.fr> wrote:
-> sysctl -w net.ipv4.ip_forward=1
-> sysctl -w net.netfilter.nf_conntrack_helper=0
-> sysctl -w net.netfilter.nf_conntrack_acct=1
+On Mon, May 26, 2014 at 10:37:14AM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> And try to connect the pptp client. Instant oops.
+> I realise this is extremely late in the v3.15 cycle so please don't hesitate
+> to push it back to v3.16. I am more than happy to rebase/resubmit if that
+> is what you decided on.
+> 
+> This fix resolves a panic due to non-linear skb.
+> 
+> It has been present since v3.6-rc1.
+> 
+> I would like this fix considered for -stable and I have checked that it
+> applies cleanly on top of v3.10.40, v3.12.20 and v3.14.4.
+> 
+> 
+> The following changes since commit 3b084e99a3fabaeb0f9c65a0806cde30f0b2835e:
+> 
+>   netfilter: nf_tables: fix trace of matching non-terminal rule (2014-05-15 19:44:20 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.15
 
-Q: does it not oops with _acct=0?
-
-If that fixes it, and you have lockdep enabled in kernel
-config -- can you check if
-
-commit 223b02d923ecd7c84cf9780bb3686f455d279279
-netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len
-
-helps?
+Pulled, thanks Simon.
