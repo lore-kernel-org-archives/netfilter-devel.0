@@ -1,42 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] Fixes for v3.15
-Date: Thu, 29 May 2014 23:00:43 +0200
-Message-ID: <20140529210043.GA5730@localhost>
-References: <1401068235-6730-1-git-send-email-horms@verge.net.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge :
+ Sanitize skb before it enters the IP stack)
+Date: Thu, 29 May 2014 15:34:24 -0700 (PDT)
+Message-ID: <20140529.153424.1310751217059624351.davem@davemloft.net>
+References: <53803488.6000400@davidnewall.com>
+	<20140524.134356.992924324126016022.davem@davemloft.net>
+	<53815623.8020506@davidnewall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1401068235-6730-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: bdschuym@pandora.be, fw@strlen.de, stephen@networkplumber.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux-foundation.org, bsd@redhat.com,
+	vyasevich@gmail.com
+To: davidn@davidnewall.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <53815623.8020506@davidnewall.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 26, 2014 at 10:37:14AM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> I realise this is extremely late in the v3.15 cycle so please don't hesitate
-> to push it back to v3.16. I am more than happy to rebase/resubmit if that
-> is what you decided on.
-> 
-> This fix resolves a panic due to non-linear skb.
-> 
-> It has been present since v3.6-rc1.
-> 
-> I would like this fix considered for -stable and I have checked that it
-> applies cleanly on top of v3.10.40, v3.12.20 and v3.14.4.
-> 
-> 
-> The following changes since commit 3b084e99a3fabaeb0f9c65a0806cde30f0b2835e:
-> 
->   netfilter: nf_tables: fix trace of matching non-terminal rule (2014-05-15 19:44:20 +0200)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.15
+From: David Newall <davidn@davidnewall.com>
+Date: Sun, 25 May 2014 12:02:03 +0930
 
-Pulled, thanks Simon.
+> +	pskb_trim_rcsum(skb, len);
+
+You really need to check the return value as this can perform allocations,
+GFP_ATOMIC ones in fact.
+
+Also, why are we not bumping the statistics any more?  I didn't see a
+discussion of that in this thread.
