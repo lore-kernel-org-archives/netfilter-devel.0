@@ -1,147 +1,83 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables 2/4] netfilter: nf_rbtree: introduce locking
-Date: Thu, 29 May 2014 11:48:25 +0200
-Message-ID: <1401356907-6840-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nftables 4/4] netfilter: nf_tables: atomic allocation in set notifications from rcu callback
+Date: Thu, 29 May 2014 11:48:27 +0200
+Message-ID: <1401356907-6840-5-git-send-email-pablo@netfilter.org>
 References: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45821 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45832 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756810AbaE2Jsi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 05:48:38 -0400
+	id S1756792AbaE2Jsk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 May 2014 05:48:40 -0400
 In-Reply-To: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There's no rbtree rcu version yet, so let's fall back on the spinlock
-to protect the concurrent access of this structure both from user
-(to update the set content) and kernel-space (in the packet path).
+Use GFP_ATOMIC allocations when sending removal notifications of
+anonymous sets from rcu callback context. Sleeping in that context
+is illegal.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_rbtree.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
-index 072e611..e1836ff 100644
---- a/net/netfilter/nft_rbtree.c
-+++ b/net/netfilter/nft_rbtree.c
-@@ -18,6 +18,8 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index dbf8236..043f9a3 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2191,7 +2191,7 @@ nla_put_failure:
  
-+static DEFINE_SPINLOCK(nft_rbtree_lock);
-+
- struct nft_rbtree {
- 	struct rb_root		root;
- };
-@@ -38,6 +40,7 @@ static bool nft_rbtree_lookup(const struct nft_set *set,
- 	const struct rb_node *parent = priv->root.rb_node;
- 	int d;
+ static int nf_tables_set_notify(const struct nft_ctx *ctx,
+ 				const struct nft_set *set,
+-				int event)
++				int event, int gfp_flags)
+ {
+ 	struct sk_buff *skb;
+ 	u32 portid = ctx->portid;
+@@ -2202,7 +2202,7 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
+ 		return 0;
  
-+	spin_lock_bh(&nft_rbtree_lock);
- 	while (parent != NULL) {
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
+ 	err = -ENOBUFS;
+-	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
++	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
+ 	if (skb == NULL)
+ 		goto err;
  
-@@ -53,6 +56,8 @@ found:
- 				goto out;
- 			if (set->flags & NFT_SET_MAP)
- 				nft_data_copy(data, rbe->data);
-+
-+			spin_unlock_bh(&nft_rbtree_lock);
- 			return true;
- 		}
+@@ -2213,7 +2213,7 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
  	}
-@@ -62,6 +67,7 @@ found:
- 		goto found;
- 	}
- out:
-+	spin_unlock_bh(&nft_rbtree_lock);
- 	return false;
- }
  
-@@ -124,9 +130,12 @@ static int nft_rbtree_insert(const struct nft_set *set,
- 	    !(rbe->flags & NFT_SET_ELEM_INTERVAL_END))
- 		nft_data_copy(rbe->data, &elem->data);
- 
-+	spin_lock_bh(&nft_rbtree_lock);
- 	err = __nft_rbtree_insert(set, rbe);
+ 	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
+-			     ctx->report, GFP_KERNEL);
++			     ctx->report, gfp_flags);
+ err:
  	if (err < 0)
- 		kfree(rbe);
-+
-+	spin_unlock_bh(&nft_rbtree_lock);
- 	return err;
+ 		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
+@@ -2613,7 +2613,7 @@ static void nft_set_destroy(struct nft_set *set)
+ static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	list_del(&set->list);
+-	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
++	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET, GFP_ATOMIC);
+ 	nft_set_destroy(set);
  }
  
-@@ -136,7 +145,9 @@ static void nft_rbtree_remove(const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe = elem->cookie;
+@@ -3409,12 +3409,12 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 				trans->ctx.table->use--;
  
-+	spin_lock_bh(&nft_rbtree_lock);
- 	rb_erase(&rbe->node, &priv->root);
-+	spin_unlock_bh(&nft_rbtree_lock);
- 	kfree(rbe);
- }
- 
-@@ -147,6 +158,7 @@ static int nft_rbtree_get(const struct nft_set *set, struct nft_set_elem *elem)
- 	struct nft_rbtree_elem *rbe;
- 	int d;
- 
-+	spin_lock_bh(&nft_rbtree_lock);
- 	while (parent != NULL) {
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
- 
-@@ -161,9 +173,11 @@ static int nft_rbtree_get(const struct nft_set *set, struct nft_set_elem *elem)
- 			    !(rbe->flags & NFT_SET_ELEM_INTERVAL_END))
- 				nft_data_copy(&elem->data, rbe->data);
- 			elem->flags = rbe->flags;
-+			spin_unlock_bh(&nft_rbtree_lock);
- 			return 0;
- 		}
- 	}
-+	spin_unlock_bh(&nft_rbtree_lock);
- 	return -ENOENT;
- }
- 
-@@ -176,6 +190,7 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	struct nft_set_elem elem;
- 	struct rb_node *node;
- 
-+	spin_lock_bh(&nft_rbtree_lock);
- 	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
- 		if (iter->count < iter->skip)
- 			goto cont;
-@@ -188,11 +203,14 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 		elem.flags = rbe->flags;
- 
- 		iter->err = iter->fn(ctx, set, iter, &elem);
--		if (iter->err < 0)
-+		if (iter->err < 0) {
-+			spin_unlock_bh(&nft_rbtree_lock);
- 			return;
-+		}
- cont:
- 		iter->count++;
- 	}
-+	spin_unlock_bh(&nft_rbtree_lock);
- }
- 
- static unsigned int nft_rbtree_privsize(const struct nlattr * const nla[])
-@@ -216,11 +234,13 @@ static void nft_rbtree_destroy(const struct nft_set *set)
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *node;
- 
-+	spin_lock_bh(&nft_rbtree_lock);
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
- 		nft_rbtree_elem_destroy(set, rbe);
- 	}
-+	spin_unlock_bh(&nft_rbtree_lock);
- }
- 
- static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
+-					     NFT_MSG_NEWSET);
++					     NFT_MSG_NEWSET, GFP_KERNEL);
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSET:
+ 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
+-					     NFT_MSG_DELSET);
++					     NFT_MSG_DELSET, GFP_KERNEL);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			nf_tables_setelem_notify(&trans->ctx,
 -- 
 1.7.10.4
 
