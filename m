@@ -1,83 +1,110 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nftables 4/4] netfilter: nf_tables: atomic allocation in set notifications from rcu callback
-Date: Thu, 29 May 2014 11:48:27 +0200
-Message-ID: <1401356907-6840-5-git-send-email-pablo@netfilter.org>
-References: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH 1/2] src: expr: log: Code refactoring in nft_rule_expr_log_snprintf
+Date: Thu, 29 May 2014 13:26:39 +0200
+Message-ID: <1401362800-30749-2-git-send-email-anarey@gmail.com>
+References: <1401362800-30749-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45832 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756792AbaE2Jsk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 05:48:40 -0400
-In-Reply-To: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:62770 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbaE2L06 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 May 2014 07:26:58 -0400
+Received: by mail-wg0-f43.google.com with SMTP id l18so231467wgh.14
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2014 04:26:56 -0700 (PDT)
+In-Reply-To: <1401362800-30749-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use GFP_ATOMIC allocations when sending removal notifications of
-anonymous sets from rcu callback context. Sleeping in that context
-is illegal.
+This process adds three new functions:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+* nft_rule_expr_log_snprintf_default
+* nft_rule_expr_log_snprintf_xml
+* nft_rule_expr_log_snprintf_json
+
+Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- net/netfilter/nf_tables_api.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ src/expr/log.c | 58 ++++++++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 40 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index dbf8236..043f9a3 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2191,7 +2191,7 @@ nla_put_failure:
- 
- static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 				const struct nft_set *set,
--				int event)
-+				int event, int gfp_flags)
- {
- 	struct sk_buff *skb;
- 	u32 portid = ctx->portid;
-@@ -2202,7 +2202,7 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 		return 0;
- 
- 	err = -ENOBUFS;
--	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-+	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
- 	if (skb == NULL)
- 		goto err;
- 
-@@ -2213,7 +2213,7 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 	}
- 
- 	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
--			     ctx->report, GFP_KERNEL);
-+			     ctx->report, gfp_flags);
- err:
- 	if (err < 0)
- 		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
-@@ -2613,7 +2613,7 @@ static void nft_set_destroy(struct nft_set *set)
- static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
- {
- 	list_del(&set->list);
--	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET);
-+	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET, GFP_ATOMIC);
- 	nft_set_destroy(set);
+diff --git a/src/expr/log.c b/src/expr/log.c
+index 5119c20..a61a8d3 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -243,32 +243,54 @@ static int nft_rule_expr_log_xml_parse(struct nft_rule_expr *e,
+ #endif
  }
  
-@@ -3409,12 +3409,12 @@ static int nf_tables_commit(struct sk_buff *skb)
- 				trans->ctx.table->use--;
- 
- 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
--					     NFT_MSG_NEWSET);
-+					     NFT_MSG_NEWSET, GFP_KERNEL);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELSET:
- 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
--					     NFT_MSG_DELSET);
-+					     NFT_MSG_DELSET, GFP_KERNEL);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			nf_tables_setelem_notify(&trans->ctx,
++static int nft_rule_expr_log_snprintf_default(char *buf, size_t len,
++					      struct nft_rule_expr *e)
++{
++	struct nft_expr_log *log = nft_expr_data(e);
++
++	return snprintf(buf, len, "prefix '%s' group %u snaplen %u"
++				  "qthreshold %u ",
++			log->prefix, log->group, log->snaplen, log->qthreshold);
++}
++
++static int nft_rule_expr_log_snprintf_xml(char *buf, size_t size,
++					  struct nft_rule_expr *e)
++{
++	struct nft_expr_log *log = nft_expr_data(e);
++
++	return snprintf(buf, size, "<prefix>%s</prefix>"
++				   "<group>%u</group>"
++				   "<snaplen>%u</snaplen>"
++				   "<qthreshold>%u</qthreshold>",
++			log->prefix, log->group,
++			log->snaplen, log->qthreshold);
++}
++
++static int nft_rule_expr_log_snprintf_json(char *buf, size_t len,
++					   struct nft_rule_expr *e)
++{
++	struct nft_expr_log *log = nft_expr_data(e);
++
++	return snprintf(buf, len, "\"prefix\":\"%s\","
++				  "\"group\":%u,"
++				  "\"snaplen\":%u,"
++				  "\"qthreshold\":%u",
++			log->prefix, log->group,
++			log->snaplen, log->qthreshold);
++}
++
++
+ static int
+ nft_rule_expr_log_snprintf(char *buf, size_t len, uint32_t type,
+ 			    uint32_t flags, struct nft_rule_expr *e)
+ {
+-	struct nft_expr_log *log = nft_expr_data(e);
+-
+ 	switch(type) {
+ 	case NFT_OUTPUT_DEFAULT:
+-		return snprintf(buf, len, "prefix '%s' group %u "
+-					  "snaplen %u qthreshold %u ",
+-				log->prefix, log->group,
+-				log->snaplen, log->qthreshold);
++		return nft_rule_expr_log_snprintf_default(buf, len, e);
+ 	case NFT_OUTPUT_XML:
+-		return snprintf(buf, len, "<prefix>%s</prefix>"
+-					  "<group>%u</group>"
+-					  "<snaplen>%u</snaplen>"
+-					  "<qthreshold>%u</qthreshold>",
+-				log->prefix, log->group,
+-				log->snaplen, log->qthreshold);
++		return nft_rule_expr_log_snprintf_xml(buf, len, e);
+ 	case NFT_OUTPUT_JSON:
+-		return snprintf(buf, len, "\"prefix\":\"%s\","
+-					  "\"group\":%u,"
+-					  "\"snaplen\":%u,"
+-					  "\"qthreshold\":%u",
+-				log->prefix, log->group,
+-				log->snaplen, log->qthreshold);
++		return nft_rule_expr_log_snprintf_json(buf, len, e);
+ 	default:
+ 		break;
+ 	}
 -- 
-1.7.10.4
+2.0.0.rc2
 
