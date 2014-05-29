@@ -1,72 +1,86 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 2/2] src: expr: log: Do not print unset values in xml.
-Date: Thu, 29 May 2014 14:00:52 +0200
-Message-ID: <CAOkSjBhs4q2KxebcVicg5U+f=T8=UA4JkUb6nHysPndgxwHHRg@mail.gmail.com>
-References: <1401362800-30749-1-git-send-email-anarey@gmail.com> <1401362800-30749-3-git-send-email-anarey@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 6/13] [NETFILTER]: arp_tables: make return of 0 explicit
+Date: Thu, 29 May 2014 14:24:00 +0200
+Message-ID: <20140529122400.GA5371@localhost>
+References: <1400473875-22228-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1400473875-22228-7-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Ana Rey <anarey@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:38706 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757100AbaE2MBN convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 08:01:13 -0400
-Received: by mail-la0-f51.google.com with SMTP id gf5so122299lab.38
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2014 05:01:12 -0700 (PDT)
-In-Reply-To: <1401362800-30749-3-git-send-email-anarey@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: kernel-janitors@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1400473875-22228-7-git-send-email-Julia.Lawall@lip6.fr>
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 29 May 2014 13:26, Ana Rey <anarey@gmail.com> wrote:
-> It changes the parse and the snprint functions to omit unset values.
+Hi Julia,
+
+On Mon, May 19, 2014 at 06:31:08AM +0200, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 >
-
-Hi Ana,
-
-I like your patches. A minor comment below.
-
-> @@ -209,32 +209,25 @@ static int nft_rule_expr_log_xml_parse(struct n=
-ft_rule_expr *e,
+> Delete unnecessary local variable whose value is always 0 and that hides
+> the fact that the result is always 0.
 >
->         prefix =3D nft_mxml_str_parse(tree, "prefix", MXML_DESCEND_FI=
-RST,
->                                     NFT_XML_MAND, err);
-> -       if (prefix =3D=3D NULL)
-> -               return -1;
-> -
-> -       log->prefix =3D strdup(prefix);
-> -       e->flags |=3D (1 << NFT_EXPR_LOG_PREFIX);
-> +       if (prefix !=3D NULL) {
-> +               log->prefix =3D strdup(prefix);
-> +               e->flags |=3D (1 << NFT_EXPR_LOG_PREFIX);
-> +       }
+> A simplified version of the semantic patch that fixes this problem is as
+> follows: (http://coccinelle.lip6.fr/)
 >
+> // <smpl>
+> @r exists@
+> local idexpression ret;
+> expression e;
+> position p;
+> @@
+>
+> -ret = 0;
+> ... when != ret = e
+> return
+> - ret
+> + 0
+>   ;
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> ---
+>  net/ipv4/netfilter/arp_tables.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index f95b6f9..89f6737 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+> @@ -1289,9 +1289,8 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+>  	struct xt_target *target;
+>  	struct arpt_entry *de;
+>  	unsigned int origsize;
+> -	int ret, h;
+> +	int h;
+>
+> -	ret = 0;
+>  	origsize = *size;
+>  	de = (struct arpt_entry *)*dstptr;
+>  	memcpy(de, e, sizeof(struct arpt_entry));
+> @@ -1312,7 +1311,7 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+>  		if ((unsigned char *)de - base < newinfo->underflow[h])
+>  			newinfo->underflow[h] -= origsize - *size;
+>  	}
+> -	return ret;
+> +	return 0;
+>  }
 
-I guess it's time to switch here to nft_expr_attr_set_*() functions.
-It was my fault to not use the shortcuts.
-I think shortcuts are less error prone and save some lines of code.
+This looks good, but we can simplify this a bit further, given that
+compat_copy_entry_from_user could be made void.
 
-Like the JSON parsing code:
+This branch below never happens.
 
-if (prefix !=3D NULL)
-  nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
+        xt_entry_foreach(iter0, entry0, total_size) {
+                ret = compat_copy_entry_from_user(iter0, &pos, &size,
+                                                  name, newinfo, entry1);
+                if (ret != 0)
+                        break;
+        }
 
-BTW, looking at how JSON does it [0], there the prefix element is
-mandatory. I think we need to be consistent in both formats, so I
-would recommend an additional patch to make prefix optional in the
-JSON parser.
-
-regards.
-
-[0] http://git.netfilter.org/libnftnl/tree/src/expr/log.c#n171
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your patch anyway!
