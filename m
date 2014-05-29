@@ -1,81 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [HEADS UP] Migrating ebtables and arptables to netfilter.org
-Date: Thu, 29 May 2014 11:00:32 +0200
-Message-ID: <20140529090032.GA14999@localhost>
-References: <20140527083359.GA4342@localhost>
- <CAHo-OoxDb6rREH1kZNKSGWzVL6pwwuzgEgYbHWA-NAUX9fRJqg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	bridge@lists.linux-foundation.org,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: [PATCH nftables 1/4] netfilter: nf_tables: release objects in reverse order in the abort path
+Date: Thu, 29 May 2014 11:48:24 +0200
+Message-ID: <1401356907-6840-2-git-send-email-pablo@netfilter.org>
+References: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55948 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45812 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934021AbaE2JAj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 05:00:39 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHo-OoxDb6rREH1kZNKSGWzVL6pwwuzgEgYbHWA-NAUX9fRJqg@mail.gmail.com>
+	id S1756119AbaE2Jsi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 May 2014 05:48:38 -0400
+In-Reply-To: <1401356907-6840-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 29, 2014 at 01:37:43AM -0700, Maciej =C5=BBenczykowski wrot=
-e:
-> Missing tags if there were any previously.
+The patch c7c32e7 ("netfilter: nf_tables: defer all object release via
+rcu") indicates that we always release deleted objects in the reverse
+order, but that is only needed in the abort path. These are the two
+possible scenarios when releasing objects:
 
-It seems there is no tags, according to what I see in
-ebtables.old-history which is a copy of the original tree.
+1) Deletion scenario in the commit path: no need to release objects in
+the reverse order since userspace already ensures that dependencies are
+fulfilled), ie. userspace tells us to delete rule -> ... -> rule ->
+chain -> table. In this case, we have to release the objects in the
+*same order* as userspace provided.
 
-BTW, please, stop top posting.
+2) Deletion scenario in the abort path: we have to iterate in the reverse
+order to undo what it cannot be added, ie. userspace sent us a batch
+that includes: table -> chain -> rule -> ... -> rule, and that needs to
+be partially undone. In this case, we have to release objects in the
+reverse order to ensure that the set and chain objects point to valid
+rule and table objects.
 
-These are the mailing list rules:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-http://www.netfilter.org/mailinglists.html#list-rules
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 9365531..4fffa36 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3527,7 +3527,8 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 		}
+ 	}
+ 
+-	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
++	list_for_each_entry_safe_reverse(trans, next,
++					 &net->nft.commit_list, list) {
+ 		list_del(&trans->list);
+ 		trans->ctx.nla = NULL;
+ 		call_rcu(&trans->rcu_head, nf_tables_abort_release_rcu);
+-- 
+1.7.10.4
 
-Thank you.
-
-> On Tue, May 27, 2014 at 1:33 AM, Pablo Neira Ayuso <pablo@netfilter.o=
-rg> wrote:
-> > Hi!
-> >
-> > We're migrating arptables and ebtables to git.netfilter.org. The ne=
-w
-> > location for the repositories are:
-> >
-> > 1) arptables:
-> >
-> >         git://git.netfilter.org/arptables
-> >         http://git.netfilter.org/arptables/
-> >
-> > 2) ebtables:
-> >
-> >         git://git.netfilter.org/ebtables
-> >         http://git.netfilter.org/ebtables/
-> >
-> > Originally, these two applications were located in the same reposit=
-ory
-> > which has been kept at:
-> >
-> >         http://git.netfilter.org/ebtables.old-history/
-> >
-> > just for the record.
-> >
-> > I have git-filter-branch the original repository to separate the
-> > ebtables and the arptables in two independent repositories.
-> >
-> > Let me know if you experience any problem in this migration,
-> > Thanks.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe netfilter=
--devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
