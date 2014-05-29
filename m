@@ -1,40 +1,92 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC v3 0/2] per-netns sysctl for br_netfilter
-Date: Thu, 29 May 2014 14:28:59 +0200
-Message-ID: <20140529122859.GA5412@localhost>
-References: <20140512140706.GA22082@macbook.localnet>
- <5370F772.3050004@parallels.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 6/13] [NETFILTER]: arp_tables: make return of 0
+ explicit
+Date: Thu, 29 May 2014 14:37:24 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1405291436590.1996@localhost6.localdomain6>
+References: <1400473875-22228-1-git-send-email-Julia.Lawall@lip6.fr> <1400473875-22228-7-git-send-email-Julia.Lawall@lip6.fr> <20140529122400.GA5371@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	Patrick McHardy <kaber@trash.net>,
-	Florian Westphal <fw@strlen.de>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kernel-janitors@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netfilter-devel@vger.kernel.org
-To: Vasily Averin <vvs@parallels.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42201 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755546AbaE2M3P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2014 08:29:15 -0400
-Content-Disposition: inline
-In-Reply-To: <5370F772.3050004@parallels.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20140529122400.GA5371@localhost>
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Vasily,
 
-On Mon, May 12, 2014 at 08:31:46PM +0400, Vasily Averin wrote:
-> Dear Patrick,
-> thank you for feedback.
-> Frankly speaking I still badly understand how it's better to split this patch set.
-> Finally I've decided to combine v2 patches to 2 parts (1-8 and 9-11). 
-> Could you please explain how to it better?
+
+On Thu, 29 May 2014, Pablo Neira Ayuso wrote:
+
+> Hi Julia,
 > 
-> This patch set enables per network namespace managemnt for br_netfiltes sysctls,
-> it allows to enable processing br-nf-call hooks in ones network namespaces 
-> and keep it disabled in another ones.
+> On Mon, May 19, 2014 at 06:31:08AM +0200, Julia Lawall wrote:
+> > From: Julia Lawall <Julia.Lawall@lip6.fr>
+> >
+> > Delete unnecessary local variable whose value is always 0 and that hides
+> > the fact that the result is always 0.
+> >
+> > A simplified version of the semantic patch that fixes this problem is as
+> > follows: (http://coccinelle.lip6.fr/)
+> >
+> > // <smpl>
+> > @r exists@
+> > local idexpression ret;
+> > expression e;
+> > position p;
+> > @@
+> >
+> > -ret = 0;
+> > ... when != ret = e
+> > return
+> > - ret
+> > + 0
+> >   ;
+> > // </smpl>
+> >
+> > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> >
+> > ---
+> >  net/ipv4/netfilter/arp_tables.c |    5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> > index f95b6f9..89f6737 100644
+> > --- a/net/ipv4/netfilter/arp_tables.c
+> > +++ b/net/ipv4/netfilter/arp_tables.c
+> > @@ -1289,9 +1289,8 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+> >  	struct xt_target *target;
+> >  	struct arpt_entry *de;
+> >  	unsigned int origsize;
+> > -	int ret, h;
+> > +	int h;
+> >
+> > -	ret = 0;
+> >  	origsize = *size;
+> >  	de = (struct arpt_entry *)*dstptr;
+> >  	memcpy(de, e, sizeof(struct arpt_entry));
+> > @@ -1312,7 +1311,7 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+> >  		if ((unsigned char *)de - base < newinfo->underflow[h])
+> >  			newinfo->underflow[h] -= origsize - *size;
+> >  	}
+> > -	return ret;
+> > +	return 0;
+> >  }
 > 
-> v3: patches are merged into more large chunks 
-> v2: removed extra overhead for CONFIG_SYSCTL=n
+> This looks good, but we can simplify this a bit further, given that
+> compat_copy_entry_from_user could be made void.
+> 
+> This branch below never happens.
+> 
+>         xt_entry_foreach(iter0, entry0, total_size) {
+>                 ret = compat_copy_entry_from_user(iter0, &pos, &size,
+>                                                   name, newinfo, entry1);
+>                 if (ret != 0)
+>                         break;
+>         }
 
-Any further concern with this v3 patchset? Thanks.
+Are you taking care of this., or should I do something?
+
+thanks,
+julia
