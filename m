@@ -1,81 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] ipvs: Fix panic due to non-linear skb
-Date: Fri, 30 May 2014 18:43:04 +0200
-Message-ID: <1401468184-3704-2-git-send-email-pablo@netfilter.org>
-References: <1401468184-3704-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1401468184-3704-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: Revert 462fb2af9788a82a534f8184abfde31574e1cfa0 (bridge :
+ Sanitize skb before it enters the IP stack)
+Date: Fri, 30 May 2014 17:46:08 -0700 (PDT)
+Message-ID: <20140530.174608.587404162482133282.davem@davemloft.net>
+References: <53815623.8020506@davidnewall.com>
+	<20140529.153424.1310751217059624351.davem@davemloft.net>
+	<53884CC6.2000000@davidnewall.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: bdschuym@pandora.be, fw@strlen.de, stephen@networkplumber.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux-foundation.org, bsd@redhat.com,
+	vyasevich@gmail.com
+To: davidn@davidnewall.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:60916 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934638AbaEaAqJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 May 2014 20:46:09 -0400
+In-Reply-To: <53884CC6.2000000@davidnewall.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Peter Christensen <pch@ordbogen.com>
+From: David Newall <davidn@davidnewall.com>
+Date: Fri, 30 May 2014 18:47:58 +0930
 
-Receiving a ICMP response to an IPIP packet in a non-linear skb could
-cause a kernel panic in __skb_pull.
+> On 30/05/14 08:04, David Miller wrote:
+>> You really need to check the return value as this can perform
+>> allocations,
+>> GFP_ATOMIC ones in fact.
+>>
+>> Also, why are we not bumping the statistics any more?  I didn't see a
+>> discussion of that in this thread.
+> 
+> I was only restoring the code as it was before the commit.  Maybe
+> this, (instead of the previous patch of br_netfilter.c,) to keep the
+> (added) check on pskb_may_pull's return value and incremented
+> statistics?
 
-The problem was introduced in
-commit f2edb9f7706dcb2c0d9a362b2ba849efe3a97f5e ("ipvs: implement
-passive PMTUD for IPIP packets").
-
-Signed-off-by: Peter Christensen <pch@ordbogen.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_core.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 4f26ee4..3d2d2c8 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1392,15 +1392,19 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 
- 	if (ipip) {
- 		__be32 info = ic->un.gateway;
-+		__u8 type = ic->type;
-+		__u8 code = ic->code;
- 
- 		/* Update the MTU */
- 		if (ic->type == ICMP_DEST_UNREACH &&
- 		    ic->code == ICMP_FRAG_NEEDED) {
- 			struct ip_vs_dest *dest = cp->dest;
- 			u32 mtu = ntohs(ic->un.frag.mtu);
-+			__be16 frag_off = cih->frag_off;
- 
- 			/* Strip outer IP and ICMP, go to IPIP header */
--			__skb_pull(skb, ihl + sizeof(_icmph));
-+			if (pskb_pull(skb, ihl + sizeof(_icmph)) == NULL)
-+				goto ignore_ipip;
- 			offset2 -= ihl + sizeof(_icmph);
- 			skb_reset_network_header(skb);
- 			IP_VS_DBG(12, "ICMP for IPIP %pI4->%pI4: mtu=%u\n",
-@@ -1408,7 +1412,7 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 			ipv4_update_pmtu(skb, dev_net(skb->dev),
- 					 mtu, 0, 0, 0, 0);
- 			/* Client uses PMTUD? */
--			if (!(cih->frag_off & htons(IP_DF)))
-+			if (!(frag_off & htons(IP_DF)))
- 				goto ignore_ipip;
- 			/* Prefer the resulting PMTU */
- 			if (dest) {
-@@ -1427,12 +1431,13 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 		/* Strip outer IP, ICMP and IPIP, go to IP header of
- 		 * original request.
- 		 */
--		__skb_pull(skb, offset2);
-+		if (pskb_pull(skb, offset2) == NULL)
-+			goto ignore_ipip;
- 		skb_reset_network_header(skb);
- 		IP_VS_DBG(12, "Sending ICMP for %pI4->%pI4: t=%u, c=%u, i=%u\n",
- 			&ip_hdr(skb)->saddr, &ip_hdr(skb)->daddr,
--			ic->type, ic->code, ntohl(info));
--		icmp_send(skb, ic->type, ic->code, info);
-+			type, code, ntohl(info));
-+		icmp_send(skb, type, code, info);
- 		/* ICMP can be shorter but anyways, account it */
- 		ip_vs_out_stats(cp, skb);
- 
--- 
-1.7.10.4
+I don't see why you don't simply keep br_parse_ip_options() around
+and adjust it as you need, you're just mostly duplicating it's
+contents into br_nf_pre_routing().
