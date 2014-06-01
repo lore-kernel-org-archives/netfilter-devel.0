@@ -1,120 +1,83 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [ulogd PATCH 12/13] nfct: introduce new out keys for ipfix
- timestamp
-Date: Sun, 01 Jun 2014 12:28:32 +0200
-Message-ID: <1401618512.2562.3.camel@ice-age2.regit.org>
-References: <20140308010344.GA4415@gmail.com>
-	 <20140428113936.GA12523@gmail.com> <20140428115621.GM12523@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nftables PATCH v2] payload: Relax assert in function
+ payload_expr_pctx_update
+Date: Sun, 1 Jun 2014 21:12:54 +0100
+Message-ID: <20140601201254.GA19396@macbook.localnet>
+References: <1401203097-26180-1-git-send-email-alvaroneay@gmail.com>
+ <1401270454-11669-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:38027 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbaFAK2m (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55129 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752271AbaFAUNG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jun 2014 06:28:42 -0400
-In-Reply-To: <20140428115621.GM12523@gmail.com>
+	Sun, 1 Jun 2014 16:13:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1401270454-11669-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, May 28, 2014 at 11:47:34AM +0200, Alvaro Neira Ayuso wrote:
+> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
+>=20
+> If we add this rule:
+>=20
+> sudo nft add rule ip test input ip protocol !=3D icmp
+>=20
+> and we try to list the rules in the table test, nftables
+> show this error:
+>=20
+> nft: src/payload.c:76: payload_expr_pctx_update: Assertion `expr->op
+> =3D=3D OP_EQ' failed.
+>=20
+> This patch relaxes this assert adding another clause like
+> the expr operation can be non equal, not only equal.
 
-Hi,
+The function is supposed to update the context based on equality
+relations. This change is very wrong, for !=3D icmp it will update
+the contect for upper protocol to be ICMP.
 
-First of all, sorry for the delay in the review. Don't hesitate to ping
-me back to speed up the answer.
+The correct fix would be to only invoke the function for equality
+relations in payload_match_postprocess().
 
-I'm agree with most of your patches but not with this one:
-      * It causes useless computation for most output supporting NFCT
-        (which don't use this value).
-      * It will also cause the log all keys module like JSON to log a
-        supplementary (ad useless) fields
 
-It will be better to introduce a new filter module. That will produce
-the wanted key from the existing timestamp key.
-
-On Mon, 2014-04-28 at 20:56 +0900, Ken-ichirou MATSUZAWA wrote:
-> Signed-off-by Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 > ---
->  input/flow/ulogd_inpflow_NFCT.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
-> 
-> diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-> index 4f4301e..b31c46f 100644
-> --- a/input/flow/ulogd_inpflow_NFCT.c
-> +++ b/input/flow/ulogd_inpflow_NFCT.c
-> @@ -186,8 +186,10 @@ enum nfct_keys {
->  	NFCT_CT_EVENT,
->  	NFCT_FLOW_START_SEC,
->  	NFCT_FLOW_START_USEC,
-> +	NFCT_FLOW_START_MCSEC,
->  	NFCT_FLOW_END_SEC,
->  	NFCT_FLOW_END_USEC,
-> +	NFCT_FLOW_END_MCSEC,
->  	NFCT_OOB_FAMILY,
->  	NFCT_OOB_PROTOCOL,
->  	NFCT_CT,
-> @@ -379,6 +381,11 @@ static struct ulogd_key nfct_okeys[] = {
->  		.type 	= ULOGD_RET_UINT32,
->  		.flags 	= ULOGD_RETF_NONE,
->  		.name	= "flow.start.usec",
-> +	},
-> +	{
-> +		.type 	= ULOGD_RET_UINT64,
-> +		.flags 	= ULOGD_RETF_NONE,
-> +		.name	= "flow.start.mcsec",
->  		.ipfix	= {
->  			.vendor		= IPFIX_VENDOR_IETF,
->  			.field_id	= IPFIX_flowStartMicroSeconds,
-> @@ -397,6 +404,11 @@ static struct ulogd_key nfct_okeys[] = {
->  		.type	= ULOGD_RET_UINT32,
->  		.flags	= ULOGD_RETF_NONE,
->  		.name	= "flow.end.usec",
-> +	},
-> +	{
-> +		.type	= ULOGD_RET_UINT64,
-> +		.flags	= ULOGD_RETF_NONE,
-> +		.name	= "flow.end.mcsec",
->  		.ipfix	= {
->  			.vendor		= IPFIX_VENDOR_IETF,
->  			.field_id	= IPFIX_flowEndMicroSeconds,
-> @@ -485,6 +497,13 @@ static int compare(const void *data1, const void *data2)
->  	return nfct_cmp(u1->ct, ct, NFCT_CMP_ORIG | NFCT_CMP_REPL);
->  }
->  
-> +static inline uint64_t tv2ntp(const struct timeval t)
-> +{
-> +	/* RFC7101 - 6.1.10. dateTimeNanoseconds */
-> +	return (uint64_t) (t.tv_sec << 32)
-> +		+ (t.tv_usec << 32) / (NSEC_PER_SEC / 1000);
-> +}
-> +
->  /* only the main_upi plugin instance contains the correct private data. */
->  static int propagate_ct(struct ulogd_pluginstance *main_upi,
->  			struct ulogd_pluginstance *upi,
-> @@ -579,12 +598,16 @@ static int propagate_ct(struct ulogd_pluginstance *main_upi,
->  				     ts->time[START].tv_sec);
->  			okey_set_u32(&ret[NFCT_FLOW_START_USEC],
->  				     ts->time[START].tv_usec);
-> +			okey_set_u64(&ret[NFCT_FLOW_START_MCSEC],
-> +				     tv2ntp(ts->time[START]));
->  		}
->  		if (ts->time[STOP].tv_sec) {
->  			okey_set_u32(&ret[NFCT_FLOW_END_SEC],
->  				     ts->time[STOP].tv_sec);
->  			okey_set_u32(&ret[NFCT_FLOW_END_USEC],
->  				     ts->time[STOP].tv_usec);
-> +			okey_set_u64(&ret[NFCT_FLOW_END_MCSEC],
-> +				     tv2ntp(ts->time[STOP]));
->  		}
->  	}
->  	okey_set_ptr(&ret[NFCT_CT], cpi->ct);
-
-
-BR,
--- 
-Eric Leblond <eric@regit.org>
-
+> [changes in v2]
+> * I have rewritten the title and the description of this patch
+>=20
+>  src/payload.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/src/payload.c b/src/payload.c
+> index a1785a5..b9ad6f7 100644
+> --- a/src/payload.c
+> +++ b/src/payload.c
+> @@ -73,7 +73,7 @@ static void payload_expr_pctx_update(struct proto_c=
+tx *ctx,
+>  	if (!(left->flags & EXPR_F_PROTOCOL))
+>  		return;
+> =20
+> -	assert(expr->op =3D=3D OP_EQ);
+> +	assert(expr->op =3D=3D OP_EQ || expr->op =3D=3D OP_NEQ);
+>  	base =3D ctx->protocol[left->payload.base].desc;
+>  	desc =3D proto_find_upper(base, mpz_get_uint32(right->value));
+> =20
+> --=20
+> 1.7.10.4
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
