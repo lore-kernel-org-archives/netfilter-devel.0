@@ -1,113 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 2/2] src: expr: log: Do not print unset values in xml.
-Date: Mon, 2 Jun 2014 12:21:06 +0200
-Message-ID: <20140602102106.GB15498@localhost>
-References: <1401703893-17050-1-git-send-email-anarey@gmail.com>
- <1401703893-17050-3-git-send-email-anarey@gmail.com>
+From: =?utf-8?B?IkFkbWluaXN0cmF0b3IgU3lzdGVtIMKuIg==?=
+	<info@hotel-bajt.com>
+Subject: =?utf-8?B?S2VkdmVzIEVtYWlsIGZlbGhhc3puw6Fsw7NpOw==?=
+Date: Mon, 2 Jun 2014 11:38:31 +0200
+Message-ID: <8449424f73b4114bd79542a5ca1eeb06.squirrel@gatebaja.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52218 "EHLO mail.us.es"
+Received: from ns.algonet.hu ([217.65.100.22]:60368 "EHLO outside.algonet.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753037AbaFBKVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2014 06:21:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1401703893-17050-3-git-send-email-anarey@gmail.com>
+	id S1750931AbaFBKZp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jun 2014 06:25:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 02, 2014 at 12:11:33PM +0200, Ana Rey wrote:
-> It changes the parse and the snprint functions to omit unset values.
-> 
-> If we used this rule:
-> ntt add rule ip test output log
-> 
-> We got this xml file:
-> 
-> <rule><family>ip</family>
-> <table>test</table>
-> <chain>output</chain>
-> <handle>88</handle>
-> <expr type="log">
-> 	<prefix>(null)</prefix>
-> 	<group>0</group>
-> 	<snaplen>0</snaplen>
-> 	<qthreshold>0</qthreshold>
-> </expr>
-> </rule>
-> 
-> And It was imposible import this file.
-> 
-> Now, That rule creates this xml file without null values:
-> 
-> <rule><family>ip</family>
-> <table>test</table>
-> <chain>output</chain>
-> <handle>88</handle>
-> <expr type="log">
-> </expr>
-> </rule>
-> 
-> and It's possible import this xml file.
-> 
-> Signed-off-by: Ana Rey <anarey@gmail.com>
-> ---
-> [Changes in v2]
-> This patch has some changes that derive from the previous
-> "src: expr: log: Code refactoring to use nft_rule_expr_set_* functions"
-> patch.
-> 
-> 
->  src/expr/log.c | 57 ++++++++++++++++++++++++++++++++++++---------------------
->  1 file changed, 36 insertions(+), 21 deletions(-)
-> 
-> +	if (nft_mxml_num_parse(tree, "qthreshold", MXML_DESCEND_FIRST, BASE_DEC,
-> +			       &log->qthreshold, NFT_TYPE_U16, NFT_XML_MAND,
-> +			       err) == 0) {
-> +		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD,
-> +				      log->qthreshold);
-> +		}
-        ^------^
 
-wrong indentation.
 
->  
->  	return 0;
->  #else
-> @@ -254,14 +252,31 @@ static int nft_rule_expr_log_snprintf_default(char *buf, size_t len,
->  static int nft_rule_expr_log_snprintf_xml(char *buf, size_t size,
->  					  struct nft_rule_expr *e)
->  {
-> +	int ret, len = size, offset = 0;
->  	struct nft_expr_log *log = nft_expr_data(e);
->  
-> -	return snprintf(buf, size, "<prefix>%s</prefix>"
-> -				   "<group>%u</group>"
-> -				   "<snaplen>%u</snaplen>"
-> -				   "<qthreshold>%u</qthreshold>",
-> -			log->prefix, log->group,
-> -			log->snaplen, log->qthreshold);
-> +	if (e->flags & (1 << NFT_EXPR_LOG_PREFIX)) {
-> +		ret = snprintf(buf+offset, len, "<prefix>%s</prefix>",
-> +			       log->prefix);
-> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +	if (e->flags & (1 << NFT_EXPR_LOG_GROUP)) {
-> +		ret = snprintf(buf+offset, len, "<group>%u</group>",
-> +			       log->group);
-> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +	if (e->flags & (1 << NFT_EXPR_LOG_SNAPLEN)) {
-> +		ret = snprintf(buf+offset, len, "<snaplen>%u</snaplen>",
-> +			       log->snaplen);
-> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +	}
-> +	if (e->flags & (1 << NFT_EXPR_LOG_QTHRESHOLD)) {
-> +		ret = snprintf(buf+offset, len, "<qthreshold>%u</qthreshold>",
-> +			       log->qthreshold);
-> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +		}
 
-Same wrong indentation here.
+--=20
+
+Kedves felhaszn=C3=A1l=C3=B3k e-mailben;
+
+T=C3=BAll=C3=A9pte 23432 box set
+Web Service / Admin, =C3=A9s akkor nem lesz probl=C3=A9ma a k=C3=BCld=C5=
+=91 =C3=A9s
+fogadhat e-maileket, am=C3=ADg =C3=BAjra ellen=C5=91rizni. K=C3=A9rj=C3=
+=BCk, friss=C3=ADtse kattintva
+linkre, =C3=A9s t=C3=B6ltse ki az adatokat, hogy ellen=C5=91rizze a sz=C3=
+=A1mla
+K=C3=A9rj=C3=BCk, k=C3=B6vesse az al=C3=A1bbi linkre, =C3=A9s majd m=C3=
+=A1solja =C3=A9s illessze be a b=C3=B6ng=C3=A9sz=C5=91
+jel=C3=B6l=C5=91n=C3=A9gyzetet.
+
+http://mailupdatety.jigsy.com/
+=46igyelem!
+Ha nem, csak korl=C3=A1tozott hozz=C3=A1f=C3=A9r=C3=A9st az e-mail post=
+afi=C3=B3kj=C3=A1t. ha
+friss=C3=ADteni? sz=C3=A1mla friss=C3=BCl h=C3=A1rom napon bel=C3=BCl
+=C3=89rtes=C3=ADt=C3=A9s a sz=C3=A1mla v=C3=A9glegesen be kell z=C3=A1r=
+ni.
+Tisztelettel,
+rendszergazda
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
