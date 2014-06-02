@@ -1,141 +1,113 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 1/2] src: expr: log: Code refactoring to use
- nft_rule_expr_set_* functions
-Date: Mon, 2 Jun 2014 12:19:59 +0200
-Message-ID: <20140602101959.GA15498@localhost>
+Subject: Re: [PATCH v2 2/2] src: expr: log: Do not print unset values in xml.
+Date: Mon, 2 Jun 2014 12:21:06 +0200
+Message-ID: <20140602102106.GB15498@localhost>
 References: <1401703893-17050-1-git-send-email-anarey@gmail.com>
- <1401703893-17050-2-git-send-email-anarey@gmail.com>
+ <1401703893-17050-3-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51575 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52218 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752959AbaFBKUL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2014 06:20:11 -0400
+	id S1753037AbaFBKVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jun 2014 06:21:16 -0400
 Content-Disposition: inline
-In-Reply-To: <1401703893-17050-2-git-send-email-anarey@gmail.com>
+In-Reply-To: <1401703893-17050-3-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ana,
-
-No need to include "src: " in the tag, "expr: log: ..." should be
-enough.
-
-The "src: " is sort of wildcard, when the change applies to different
-aspects of the tree.
-
-On Mon, Jun 02, 2014 at 12:11:32PM +0200, Ana Rey wrote:
-> Code refactoring to use nft_rule_expr_set_* in parse functions.
+On Mon, Jun 02, 2014 at 12:11:33PM +0200, Ana Rey wrote:
+> It changes the parse and the snprint functions to omit unset values.
 > 
-> This change was supported by Arturo Borrero Gonzalez.
-                  ^-------^
-                  suggested
-
-Or you could just include:
-
-Suggested-by: Arturo Borrero Gonzalez <...>
-
+> If we used this rule:
+> ntt add rule ip test output log
+> 
+> We got this xml file:
+> 
+> <rule><family>ip</family>
+> <table>test</table>
+> <chain>output</chain>
+> <handle>88</handle>
+> <expr type="log">
+> 	<prefix>(null)</prefix>
+> 	<group>0</group>
+> 	<snaplen>0</snaplen>
+> 	<qthreshold>0</qthreshold>
+> </expr>
+> </rule>
+> 
+> And It was imposible import this file.
+> 
+> Now, That rule creates this xml file without null values:
+> 
+> <rule><family>ip</family>
+> <table>test</table>
+> <chain>output</chain>
+> <handle>88</handle>
+> <expr type="log">
+> </expr>
+> </rule>
+> 
+> and It's possible import this xml file.
+> 
 > Signed-off-by: Ana Rey <anarey@gmail.com>
 > ---
->  src/expr/log.c | 32 +++++++++++++++-----------------
->  1 file changed, 15 insertions(+), 17 deletions(-)
+> [Changes in v2]
+> This patch has some changes that derive from the previous
+> "src: expr: log: Code refactoring to use nft_rule_expr_set_* functions"
+> patch.
 > 
-> diff --git a/src/expr/log.c b/src/expr/log.c
-> index a61a8d3..bf18b42 100644
-> --- a/src/expr/log.c
-> +++ b/src/expr/log.c
-> @@ -133,6 +133,9 @@ nft_rule_expr_log_parse(struct nft_rule_expr *e, struct nlattr *attr)
->  {
->  	struct nft_expr_log *log = nft_expr_data(e);
->  	struct nlattr *tb[NFTA_LOG_MAX+1] = {};
-> +	const char *prefix;
-> +	uint32_t snaplen;
-> +	uint16_t uval16;
+> 
+>  src/expr/log.c | 57 ++++++++++++++++++++++++++++++++++++---------------------
+>  1 file changed, 36 insertions(+), 21 deletions(-)
+> 
+> +	if (nft_mxml_num_parse(tree, "qthreshold", MXML_DESCEND_FIRST, BASE_DEC,
+> +			       &log->qthreshold, NFT_TYPE_U16, NFT_XML_MAND,
+> +			       err) == 0) {
+> +		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD,
+> +				      log->qthreshold);
+> +		}
+        ^------^
 
-Please, no uval16 or tmp variable names for code readability reasons.
+wrong indentation.
 
->  
->  	if (mnl_attr_parse_nested(attr, nft_rule_expr_log_cb, tb) < 0)
->  		return -1;
-> @@ -141,20 +144,20 @@ nft_rule_expr_log_parse(struct nft_rule_expr *e, struct nlattr *attr)
->  		if (log->prefix)
->  			xfree(log->prefix);
->  
-> -		log->prefix = strdup(mnl_attr_get_str(tb[NFTA_LOG_PREFIX]));
-> -		e->flags |= (1 << NFT_EXPR_LOG_PREFIX);
-> +		prefix = strdup(mnl_attr_get_str(tb[NFTA_LOG_PREFIX]));
-> +		nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
->  	}
->  	if (tb[NFTA_LOG_GROUP]) {
-> -		log->group = ntohs(mnl_attr_get_u16(tb[NFTA_LOG_GROUP]));
-> -		e->flags |= (1 << NFT_EXPR_LOG_GROUP);
-> +		uval16 = ntohs(mnl_attr_get_u16(tb[NFTA_LOG_GROUP]));
-
-I'd suggest here:
-
-        if (tb[NFTA_LOG_GROUP]) {
-                uint16_t group = ntohs(mnl_attr_get_u16(tb[NFTA_LOG_GROUP]));
-                nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, group);
-        }
-
-> +		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, uval16);
->  	}
->  	if (tb[NFTA_LOG_SNAPLEN]) {
-> -		log->snaplen = ntohl(mnl_attr_get_u32(tb[NFTA_LOG_SNAPLEN]));
-> -		e->flags |= (1 << NFT_EXPR_LOG_SNAPLEN);
-> +		snaplen = ntohl(mnl_attr_get_u32(tb[NFTA_LOG_SNAPLEN]));
-> +		nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
->  	}
->  	if (tb[NFTA_LOG_QTHRESHOLD]) {
-> -		log->qthreshold = ntohs(mnl_attr_get_u16(tb[NFTA_LOG_QTHRESHOLD]));
-> -		e->flags |= (1 << NFT_EXPR_LOG_QTHRESHOLD);
-> +		uval16 = ntohs(mnl_attr_get_u16(tb[NFTA_LOG_QTHRESHOLD]));
-> +		nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, uval16);
->  	}
->  
->  	return 0;
-> @@ -211,30 +214,25 @@ static int nft_rule_expr_log_xml_parse(struct nft_rule_expr *e,
->  				    NFT_XML_MAND, err);
->  	if (prefix == NULL)
->  		return -1;
-> -
-> -	log->prefix = strdup(prefix);
-> -	e->flags |= (1 << NFT_EXPR_LOG_PREFIX);
-> +	nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
->  
->  	if (nft_mxml_num_parse(tree, "group", MXML_DESCEND_FIRST, BASE_DEC,
->  			       &log->group, NFT_TYPE_U16, NFT_XML_MAND,
->  			       err) != 0)
->  		return -1;
-> -
-> -	e->flags |= (1 << NFT_EXPR_LOG_GROUP);
-> +	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, log->group);
->  
->  	if (nft_mxml_num_parse(tree, "snaplen", MXML_DESCEND_FIRST, BASE_DEC,
->  			       &log->snaplen, NFT_TYPE_U32, NFT_XML_MAND,
->  			       err) != 0)
->  		return -1;
-> -
-> -	e->flags |= (1 << NFT_EXPR_LOG_SNAPLEN);
-> +	nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, log->snaplen);
->  
->  	if (nft_mxml_num_parse(tree, "qthreshold", MXML_DESCEND_FIRST,
->  			       BASE_DEC, &log->qthreshold,
->  			       NFT_TYPE_U16, NFT_XML_MAND, err) != 0)
->  		return -1;
-> -
-> -	e->flags |= (1 << NFT_EXPR_LOG_QTHRESHOLD);
-> +	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, log->qthreshold);
 >  
 >  	return 0;
 >  #else
-> -- 
-> 2.0.0.rc2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -254,14 +252,31 @@ static int nft_rule_expr_log_snprintf_default(char *buf, size_t len,
+>  static int nft_rule_expr_log_snprintf_xml(char *buf, size_t size,
+>  					  struct nft_rule_expr *e)
+>  {
+> +	int ret, len = size, offset = 0;
+>  	struct nft_expr_log *log = nft_expr_data(e);
+>  
+> -	return snprintf(buf, size, "<prefix>%s</prefix>"
+> -				   "<group>%u</group>"
+> -				   "<snaplen>%u</snaplen>"
+> -				   "<qthreshold>%u</qthreshold>",
+> -			log->prefix, log->group,
+> -			log->snaplen, log->qthreshold);
+> +	if (e->flags & (1 << NFT_EXPR_LOG_PREFIX)) {
+> +		ret = snprintf(buf+offset, len, "<prefix>%s</prefix>",
+> +			       log->prefix);
+> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> +	}
+> +	if (e->flags & (1 << NFT_EXPR_LOG_GROUP)) {
+> +		ret = snprintf(buf+offset, len, "<group>%u</group>",
+> +			       log->group);
+> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> +	}
+> +	if (e->flags & (1 << NFT_EXPR_LOG_SNAPLEN)) {
+> +		ret = snprintf(buf+offset, len, "<snaplen>%u</snaplen>",
+> +			       log->snaplen);
+> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> +	}
+> +	if (e->flags & (1 << NFT_EXPR_LOG_QTHRESHOLD)) {
+> +		ret = snprintf(buf+offset, len, "<qthreshold>%u</qthreshold>",
+> +			       log->qthreshold);
+> +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> +		}
+
+Same wrong indentation here.
