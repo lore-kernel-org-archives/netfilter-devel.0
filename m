@@ -1,8 +1,7 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH v3 ulogd 06/12] ipfix: decide whether prepending template by
- send times
-Date: Tue, 3 Jun 2014 19:10:33 +0900
-Message-ID: <20140603101033.GG24668@gmail.com>
+Subject: [PATCH v3 ulogd 07/12] ipfix: print ipfix message
+Date: Tue, 3 Jun 2014 19:11:47 +0900
+Message-ID: <20140603101147.GH24668@gmail.com>
 References: <20140603100130.GA24668@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -10,106 +9,287 @@ Cc: Eric Leblond <eric@regit.org>
 To: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:42305 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbaFCKKj (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:36686 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbaFCKLy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jun 2014 06:10:39 -0400
-Received: by mail-pd0-f172.google.com with SMTP id fp1so4500397pdb.31
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jun 2014 03:10:39 -0700 (PDT)
+	Tue, 3 Jun 2014 06:11:54 -0400
+Received: by mail-pb0-f41.google.com with SMTP id uo5so5362080pbc.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jun 2014 03:11:53 -0700 (PDT)
 Content-Disposition: inline
 In-Reply-To: <20140603100130.GA24668@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-specified in config file and kept it until_template in struct ulogd_ipfix_template
+by messy ipfix_fprintf_ functions.
 
 Signed-off-by Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- output/ulogd_output_IPFIX.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ output/ulogd_output_IPFIX.c | 226 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 226 insertions(+)
 
 diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 352b5a7..f9e23bb 100644
+index f9e23bb..0ff2efe 100644
 --- a/output/ulogd_output_IPFIX.c
 +++ b/output/ulogd_output_IPFIX.c
-@@ -85,7 +85,7 @@ struct sctp_sndrcvinfo {
- #define IPFIX_DEFAULT_TCPUDP_PORT	4739
+@@ -31,6 +31,7 @@
+ #include <stdbool.h>
+ #include <unistd.h>
+ #include <string.h>
++#include <time.h>
+ #include <errno.h>
  
- static struct config_keyset ipfix_kset = {
--	.num_ces = 4,
-+	.num_ces = 5,
- 	.ces = {
- 		{
- 			.key 	 = "host",
-@@ -110,6 +110,12 @@ static struct config_keyset ipfix_kset = {
- 			.options = CONFIG_OPT_NONE,
- 			.u.value = 0,
- 		},
-+		{
-+			.key	 = "send_template_per",
-+			.type	 = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u.value = 16,
-+		},
- 	},
- };
+ #include <sys/types.h>
+@@ -152,6 +153,8 @@ struct ipfix_instance {
+ #define ULOGD_IPFIX_TEMPL_BASE 1024
+ static u_int16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
  
-@@ -117,6 +123,7 @@ static struct config_keyset ipfix_kset = {
- #define port_ce(x)	(x->ces[1])
- #define proto_ce(x)	(x->ces[2])
- #define domain_ce(x)	(x->ces[3])
-+#define template_per_ce(x)	(x->ces[4])
- 
- struct ipfix_template {
- 	struct ipfix_templ_rec_hdr hdr;
-@@ -129,6 +136,7 @@ struct ulogd_ipfix_template {
- 	unsigned int data_length;	/* length of the DATA */
- 	void *tmpl_cur;			/* cursor into current template position */
- 	struct ipfix_template tmpl;
-+	int until_template;			/* decide if it's time to retransmit our template */
- };
- 
- struct ipfix_instance {
-@@ -171,6 +179,7 @@ build_template_for_bitmask(struct ulogd_pluginstance *upi,
- 	tmpl->tmpl_cur = tmpl->tmpl.buf;
- 
- 	tmpl->data_length = 0;
-+	tmpl->until_template = template_per_ce(upi->config_kset).u.value;
- 
- 	for (i = 0, j = 0; i < upi->input.num_keys; i++) {
- 		struct ulogd_key *key = &upi->input.keys[i];
-@@ -355,7 +364,8 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
++static int ipfix_fprintf_header(FILE *fd, const struct ipfix_msg_hdr *hdr);
++
+ /* Build the IPFIX template from the input keys */
+ struct ulogd_ipfix_template *
+ build_template_for_bitmask(struct ulogd_pluginstance *upi,
+@@ -364,6 +367,7 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
  {
  	struct ipfix_instance *ii = (struct ipfix_instance *) &upi->private;
  	struct ulogd_ipfix_template *template;
--	unsigned int total_size, i;
-+	unsigned int i;
-+	bool need_template = false;
++	struct ipfix_msg_hdr *ipfix_msg;
+ 	unsigned int i;
+ 	bool need_template = false;
  
- 	/* FIXME: it would be more cache efficient if the IS_VALID
- 	 * flags would be a separate bitmask outside of the array.
-@@ -388,16 +398,12 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
- 			return ULOGD_IRET_ERR;
- 		}
- 		llist_add(&template->list, &ii->template_list);
-+		need_template = true;
- 	}
- 	
--	total_size = template->data_length;
--
--	/* decide if it's time to retransmit our template and (optionally)
--	 * prepend it into the to-be-sent IPFIX message */
--	if (0 /* FIXME */) {
--		/* add size of template */
--		//total_size += (template->tmpl_cur - (void *)&template->tmpl);
--		total_size += sizeof(template->tmpl);
-+	if (template->until_template-- == 0) {
-+		need_template = true;
-+		template->until_template = template_per_ce(upi->config_kset).u.value;
+@@ -406,6 +410,15 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
+ 		template->until_template = template_per_ce(upi->config_kset).u.value;
  	}
  
++	ipfix_msg = build_ipfix_msg(upi, template, need_template);
++	if (ipfix_msg == NULL)
++		return ULOGD_IRET_ERR;
++
++	ipfix_msg->export_time = htonl((u_int32_t)(time(NULL)));
++	ipfix_fprintf_header(stdout, ipfix_msg);
++	fprintf(stdout, "\n");
++
++	free(ipfix_msg);
  	return ULOGD_IRET_OK;
+ }
+ 
+@@ -604,3 +617,216 @@ void init(void)
+ {
+ 	ulogd_register_plugin(&ipfix_plugin);
+ }
++
++static int ipfix_fprintf_ietf_field(FILE *fd, const struct ipfix_ietf_field *field, int len);
++static int ipfix_fprintf_vendor_field(FILE *fd, const struct ipfix_vendor_field *field, int len);
++
++static int ipfix_fprintf_ietf_field(FILE *fd, const struct ipfix_ietf_field *field,
++				    int len)
++{
++	int ret;
++	void *ptr;
++
++	if (len < (int)sizeof(*field)) {
++		fprintf(fd, "ERROR ietf field: too short buflen for IETF field: %d\n", len);
++		return -1;
++	}
++
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|0 Information Emement id: %5d |            Field Length: %5d |\n",
++		ntohs(field->type), ntohs(field->length));
++
++	len -= sizeof(*field);
++	if (len == 0)
++		return sizeof(*field);
++
++	ptr = (void *)field + sizeof(*field);
++	if (*(u_int8_t *)ptr & 0x80)
++		ret = ipfix_fprintf_vendor_field(fd, ptr, len);
++	else
++		ret = ipfix_fprintf_ietf_field(fd, ptr, len);
++
++	if (ret == -1)
++		return -1;
++	return ret + sizeof(*field);
++}
++
++static int ipfix_fprintf_vendor_field(FILE *fd, const struct ipfix_vendor_field *field,
++				      int len)
++{
++	int ret;
++	void *ptr;
++
++	if (len < (int)sizeof(*field)) {
++		fprintf(fd, "ERROR vendor field: too short buflen for vendor field: %d\n", len);
++		return -1;
++	}
++
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|1 Information Emement id: %5d |            Field Length: %5d |\n",
++		ntohs(field->type) & 0x7fff, ntohs(field->length));
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|               Enterprise Number: %10d                     |\n",
++		ntohl(field->enterprise_num));
++
++	len -= sizeof(*field);
++	if (len == 0)
++		return sizeof(*field);
++
++	ptr = (void *)field + sizeof(*field);
++	if (*(u_int8_t *)ptr & 0x80) /* vendor */
++		ret = ipfix_fprintf_vendor_field(fd, ptr, len);
++	else /* ietf */
++		ret = ipfix_fprintf_ietf_field(fd, ptr, len);
++
++	if (ret == -1)
++		return -1;
++	return ret + sizeof(*field);
++}
++
++static int ipfix_fprintf_data_records(FILE *fd, const void *data, int len)
++{
++	int i;
++
++	fprintf(fd, "+-----------------------------------------------------------------+\n");
++	/* don't say messy...*/
++	for (i = 0; i < len; i += 4) {
++		switch (len - i - 4) {
++		case -3:
++			fprintf(fd, "|          0x%02x                                                   |\n",
++				*(u_int8_t *)(data + i));
++			break;
++		case -2:
++			fprintf(fd, "|          0x%02x          0x%02x                                     |\n",
++				*(u_int8_t *)(data + i), *(u_int8_t *)(data + i + 1));
++			break;
++		case -1:
++			fprintf(fd, "|          0x%02x          0x%02x          0x%02x                       |\n",
++				*(u_int8_t *)(data + i), *(u_int8_t *)(data + i + 1), *(u_int8_t *)(data + i + 2));
++			break;
++		default:
++			fprintf(fd, "|          0x%02x          0x%02x          0x%02x          0x%02x         |\n",
++				*(u_int8_t *)(data + i), *(u_int8_t *)(data + i + 1),
++				*(u_int8_t *)(data + i + 2), *(u_int8_t *)(data + i + 3));
++			break;
++		}
++	}
++	return len;
++}
++
++static int ipfix_fprintf_template_records(FILE *fd, const struct ipfix_templ_rec_hdr *hdr,
++					  int len)
++{
++	int ret;
++	void *field;
++
++	if (len < (int)sizeof(*hdr)) {
++		fprintf(fd, "ERROR template records: too short buflen for template record: %d\n", len);
++		return -1;
++	}
++
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|             Template ID: %5d |             Field Count: %5d |\n",
++		ntohs(hdr->templ_id), ntohs(hdr->field_count));
++
++	len -= sizeof(*hdr);
++	if (len == 0)
++		return sizeof(*hdr);
++
++	field = (void *)hdr + sizeof(*hdr);
++	if (*(u_int8_t *)field & 0x80)
++		ret = ipfix_fprintf_vendor_field(fd, field, len);
++	else
++		ret = ipfix_fprintf_ietf_field(fd, field, len);
++
++	if (ret == -1)
++		return -1;
++	return ret + sizeof(*hdr);
++}
++
++static int ipfix_fprintf_set_header(FILE *fd, const struct ipfix_set_hdr *hdr, int len)
++{
++	int ret, setlen, total_len;
++	void *ptr;
++
++	if (len < (int)sizeof(*hdr)) {
++		fprintf(fd, "ERROR set header: too short buflen for set header: %d\n", len);
++		return -1;
++	}
++	setlen = ntohs(hdr->length);
++	if (len < setlen) {
++		fprintf(fd, "ERROR set header: buflen: %d is smaller than set length field: %d\n", len, setlen);
++		/* return -1; */
++	}
++	if (setlen < (int)sizeof(*hdr)) {
++		fprintf(fd, "ERROR set header: too short set length field: %d\n", setlen);
++		return -1;
++	}
++
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|                  Set ID: %5d |                  Length: %5d |\n",
++		ntohs(hdr->set_id), setlen);
++
++	setlen -= sizeof(*hdr);
++	ptr = (void *)hdr + sizeof(*hdr);
++	total_len = sizeof(*hdr);
++
++	switch (ntohs(hdr->set_id)) {
++	case 2:
++		ret = ipfix_fprintf_template_records(fd, ptr, setlen);
++		break;
++	case 3:
++		/* XXX: ret = ipfix_fprintf_options_template_records(fd, ptr, setlen); */
++		fprintf(fd, "ERROR: options template is not implemented yet, sorry");
++		ret = setlen;
++		break;
++	default:
++		ret = ipfix_fprintf_data_records(fd, ptr, setlen);
++		break;
++	}
++
++	if (ret == -1 || ret != setlen)
++		return -1;
++
++	fprintf(fd, "+-----------------------------------------------------------------+\n");
++	return total_len + ret;
++}
++
++static int ipfix_fprintf_header(FILE *fd, const struct ipfix_msg_hdr *hdr)
++{
++	int ret, len;
++	char outstr[20];
++	void *ptr;
++	time_t t = (time_t)(ntohl(hdr->export_time));
++	struct tm *tmp = localtime(&t);
++
++	/* XXX: tmp == NULL and strftime == 0 */
++	strftime(outstr, sizeof(outstr), "%F %T", tmp);
++
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|          Version Number: %5d |                  Length: %5d |\n",
++		ntohs(hdr->version), ntohs(hdr->length));
++	fprintf(fd, "+--------------------------------+--------------------------------+\n");
++	fprintf(fd, "|                     Exoprt Time: %10d                     |\t%s\n",
++		ntohl(hdr->export_time), outstr);
++	fprintf(fd, "+-----------------------------------------------------------------+\n");
++	fprintf(fd, "|                 Sequence Number: %10d                     |\n",
++		ntohl(hdr->seq));
++	fprintf(fd, "+-----------------------------------------------------------------+\n");
++	fprintf(fd, "|           Observation Domain ID: %10d                     |\n",
++		ntohl(hdr->domain_id));
++	fprintf(fd, "+-----------------------------------------------------------------+\n");
++
++	len = ntohs(hdr->length) - sizeof(*hdr);
++	ptr = (void *)hdr + sizeof(*hdr);
++
++	while (len > 0) {
++		ret = ipfix_fprintf_set_header(fd, ptr, len);
++		if (ret == -1)
++			return -1;
++		len -= ret;
++		ptr += ret;
++	}
++
++	return ntohs(hdr->length) - len;
++}
 -- 
 1.9.1
 
