@@ -1,241 +1,73 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables-compat PATCH] save: fix the printing of the counters
-Date: Tue,  3 Jun 2014 09:47:32 +0200
-Message-ID: <1401781652-3538-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: Andreas Herz <andi@geekosphere.org>
+Subject: Re: function for getting the source ip defined in the routing table
+Date: Tue, 3 Jun 2014 09:55:35 +0200
+Message-ID: <20140603075535.GY10939@kvmbude>
+References: <20140520124634.GM10939@kvmbude>
+ <alpine.LSU.2.11.1405201602100.9387@nerf08.vanv.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Cc: Jan Engelhardt <jengelh@inai.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:36736 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932186AbaFCHpj (ORCPT
+Received: from mail.geekosphere.org ([78.47.150.211]:34966 "EHLO
+	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255AbaFCHzh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jun 2014 03:45:39 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hi2so5990860wib.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jun 2014 00:45:38 -0700 (PDT)
+	Tue, 3 Jun 2014 03:55:37 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.11.1405201602100.9387@nerf08.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch prints the counters of a rule before the details,
-like iptables-save syntax.
+On 20/05/14 at 16:03, Jan Engelhardt wrote:
+> On Tuesday 2014-05-20 14:46, Andreas Herz wrote:
+> 
+> >i was looking for a function to get the source ip that is defined in the
+> >routing table. I looked into the MASQUERADE module but the
+> >"inet_select_addr" function returns the source ip from the interface
+> >(the first one, in most use cases).
+> >
+> >See the following routing table entry:
+> >
+> >10.0.13.0/24 dev eth1  proto kernel  scope link  src 10.0.13.4
+> >
+> >while the interface has multiple IPs:
+> >
+> >    inet 10.0.12.1/24 scope global eth0
+> >    inet 10.0.13.2/24 scope global eth0
+> >    inet 10.0.13.4/24 scope global secondary eth0
+> >
+> >So what i want is the value of the src part in the routing table (for 
+> >connections to the related network).
+> 
+> RTM_GETROUTE in netlink, `ip route get` on sh, and 
+> ip6_route_output/ip_route_output_key in C.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- iptables/nft-arp.c    | 14 ++++++++------
- iptables/nft-ipv4.c   | 11 +++++++++--
- iptables/nft-ipv6.c   | 12 ++++++++++--
- iptables/nft-shared.c | 18 ++++++++++--------
- iptables/nft-shared.h |  5 +++--
- iptables/nft.c        | 11 +++++++----
- 6 files changed, 47 insertions(+), 24 deletions(-)
+I had some time to test around with "ip_route_output_key" but now i'm
+stuck. Kernel used is 2.6.32.62.
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 562a1a2..dffdc94 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -599,12 +599,6 @@ static void nft_arp_save_firewall(const void *data,
- 
- 	print_fw_details((struct arpt_entry *)fw, format);
- 
--	if (!(format & FMT_NOCOUNTS)) {
--		printf("-c ");
--		xtables_print_num(fw->counters.pcnt, format);
--		xtables_print_num(fw->counters.bcnt, format);
--	}
--
- 	target = get_target((struct arpt_entry *)fw, format);
- 
- 	if (target) {
-@@ -680,6 +674,13 @@ static bool nft_arp_rule_find(struct nft_family_ops *ops, struct nft_rule *r,
- 	return true;
- }
- 
-+static void nft_arp_save_counters(const void *data, unsigned int format)
-+{
-+	const struct arpt_entry *fw = data;
-+
-+	save_counters(fw->counters.pcnt, fw->counters.bcnt, format);
-+}
-+
- struct nft_family_ops nft_family_ops_arp = {
- 	.add			= nft_arp_add,
- 	.is_same		= nft_arp_is_same,
-@@ -689,6 +690,7 @@ struct nft_family_ops nft_family_ops_arp = {
- 	.parse_immediate	= nft_arp_parse_immediate,
- 	.print_firewall		= nft_arp_print_firewall,
- 	.save_firewall		= nft_arp_save_firewall,
-+	.save_counters		= nft_arp_save_counters,
- 	.post_parse		= NULL,
- 	.rule_find		= nft_arp_rule_find,
- 	.parse_target		= nft_arp_parse_target,
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index d05e80e..c59a120 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -315,8 +315,7 @@ static void nft_ipv4_save_firewall(const void *data, unsigned int format)
- 
- 	save_firewall_details(cs, cs->fw.ip.invflags, cs->fw.ip.proto,
- 			      cs->fw.ip.iniface, cs->fw.ip.iniface_mask,
--			      cs->fw.ip.outiface, cs->fw.ip.outiface_mask,
--			      format);
-+			      cs->fw.ip.outiface, cs->fw.ip.outiface_mask);
- 
- 	if (cs->fw.ip.flags & IPT_F_FRAG) {
- 		if (cs->fw.ip.invflags & IPT_INV_FRAG)
-@@ -409,6 +408,13 @@ static bool nft_ipv4_rule_find(struct nft_family_ops *ops,
- 	return nft_ipv46_rule_find(ops, r, cs);
- }
- 
-+static void nft_ipv4_save_counters(const void *data, unsigned int format)
-+{
-+	const struct iptables_command_state *cs = data;
-+
-+	save_counters(cs->counters.pcnt, cs->counters.bcnt, format);
-+}
-+
- struct nft_family_ops nft_family_ops_ipv4 = {
- 	.add			= nft_ipv4_add,
- 	.is_same		= nft_ipv4_is_same,
-@@ -417,6 +423,7 @@ struct nft_family_ops nft_family_ops_ipv4 = {
- 	.parse_immediate	= nft_ipv4_parse_immediate,
- 	.print_firewall		= nft_ipv4_print_firewall,
- 	.save_firewall		= nft_ipv4_save_firewall,
-+	.save_counters		= nft_ipv4_save_counters,
- 	.proto_parse		= nft_ipv4_proto_parse,
- 	.post_parse		= nft_ipv4_post_parse,
- 	.parse_target		= nft_ipv4_parse_target,
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index f08598a..e00c1aa 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -222,8 +222,8 @@ static void nft_ipv6_save_firewall(const void *data, unsigned int format)
- 
- 	save_firewall_details(cs, cs->fw6.ipv6.invflags, cs->fw6.ipv6.proto,
- 			      cs->fw6.ipv6.iniface, cs->fw6.ipv6.iniface_mask,
--			      cs->fw6.ipv6.outiface, cs->fw6.ipv6.outiface_mask,
--			      format);
-+			      cs->fw6.ipv6.outiface,
-+			      cs->fw6.ipv6.outiface_mask);
- 
- 	save_ipv6_addr('s', &cs->fw6.ipv6.src,
- 		       cs->fw6.ipv6.invflags & IPT_INV_SRCIP);
-@@ -330,6 +330,13 @@ static bool nft_ipv6_rule_find(struct nft_family_ops *ops,
- 	return nft_ipv46_rule_find(ops, r, cs);
- }
- 
-+static void nft_ipv6_save_counters(const void *data, unsigned int format)
-+{
-+	const struct iptables_command_state *cs = data;
-+
-+	save_counters(cs->counters.pcnt, cs->counters.bcnt, format);
-+}
-+
- struct nft_family_ops nft_family_ops_ipv6 = {
- 	.add			= nft_ipv6_add,
- 	.is_same		= nft_ipv6_is_same,
-@@ -338,6 +345,7 @@ struct nft_family_ops nft_family_ops_ipv6 = {
- 	.parse_immediate	= nft_ipv6_parse_immediate,
- 	.print_firewall		= nft_ipv6_print_firewall,
- 	.save_firewall		= nft_ipv6_save_firewall,
-+	.save_counters		= nft_ipv6_save_counters,
- 	.proto_parse		= nft_ipv6_proto_parse,
- 	.post_parse		= nft_ipv6_post_parse,
- 	.parse_target		= nft_ipv6_parse_target,
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 09dd4f4..be6f276 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -601,15 +601,8 @@ void save_firewall_details(const struct iptables_command_state *cs,
- 			   const char *iniface,
- 			   unsigned const char *iniface_mask,
- 			   const char *outiface,
--			   unsigned const char *outiface_mask,
--			   unsigned int format)
-+			   unsigned const char *outiface_mask)
- {
--	if (!(format & FMT_NOCOUNTS)) {
--		printf("-c ");
--		xtables_print_num(cs->counters.pcnt, format);
--		xtables_print_num(cs->counters.bcnt, format);
--	}
--
- 	if (iniface != NULL) {
- 		print_iface('i', iniface, iniface_mask,
- 			    invflags & IPT_INV_VIA_IN);
-@@ -632,6 +625,15 @@ void save_firewall_details(const struct iptables_command_state *cs,
- 	}
- }
- 
-+void save_counters(uint64_t pcnt, uint64_t bcnt, unsigned int format)
-+{
-+	printf("[");
-+	xtables_print_num(pcnt, format);
-+	printf(":");
-+	xtables_print_num(bcnt, format);
-+	printf("] ");
-+}
-+
- void save_matches_and_target(struct xtables_rule_match *m,
- 			     struct xtables_target *target,
- 			     const char *jumpto, uint8_t flags, const void *fw)
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index ea11745..71fc8ae 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -50,6 +50,7 @@ struct nft_family_ops {
- 	void (*print_firewall)(struct nft_rule *r, unsigned int num,
- 			       unsigned int format);
- 	void (*save_firewall)(const void *data, unsigned int format);
-+	void (*save_counters)(const void *data, unsigned int format);
- 	void (*proto_parse)(struct iptables_command_state *cs,
- 			    struct xtables_args *args);
- 	void (*post_parse)(int command, struct iptables_command_state *cs,
-@@ -117,8 +118,8 @@ void save_firewall_details(const struct iptables_command_state *cs,
- 			   const char *iniface,
- 			   unsigned const char *iniface_mask,
- 			   const char *outiface,
--			   unsigned const char *outiface_mask,
--			   unsigned int format);
-+			   unsigned const char *outiface_mask);
-+void save_counters(uint64_t pcnt, uint64_t bcnt, unsigned int format);
- void save_matches_and_target(struct xtables_rule_match *m,
- 			     struct xtables_target *target,
- 			     const char *jumpto,
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 26942d8..1157646 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -939,8 +939,8 @@ int add_counters(struct nft_rule *r, uint64_t packets, uint64_t bytes)
- 	if (expr == NULL)
- 		return -ENOMEM;
- 
--	nft_rule_expr_set_u64(expr, NFT_EXPR_CTR_BYTES, packets);
--	nft_rule_expr_set_u64(expr, NFT_EXPR_CTR_PACKETS, bytes);
-+	nft_rule_expr_set_u64(expr, NFT_EXPR_CTR_PACKETS, packets);
-+	nft_rule_expr_set_u64(expr, NFT_EXPR_CTR_BYTES, bytes);
- 
- 	nft_rule_add_expr(r, expr);
- 
-@@ -1048,6 +1048,11 @@ nft_rule_print_save(const void *data,
- 	int family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
- 	struct nft_family_ops *ops;
- 
-+	ops = nft_family_ops_lookup(family);
-+
-+	if (!(format & FMT_NOCOUNTS) && ops->save_counters)
-+		ops->save_counters(data, format);
-+
- 	/* print chain name */
- 	switch(type) {
- 	case NFT_RULE_APPEND:
-@@ -1058,8 +1063,6 @@ nft_rule_print_save(const void *data,
- 		break;
- 	}
- 
--	ops = nft_family_ops_lookup(family);
--
- 	if (ops->save_firewall)
- 		ops->save_firewall(data, format);
- 
+If i call it with flowi fl set with daddr _and_ with saddr i come into
+"ip_route_output_slow". Since i have a saddr set i ran into the part
+with "if (oldflp->fl4_src)" which results in the "dev_out =
+ip_dev_find(net, oldflp->fl4_src);" call.
+
+But there the table lookup always uses the local table "local_table =
+fib_get_table(net, RT_TABLE_LOCAL);" but since i have some packets that
+are forwarded, there is no suitable entry in the local table but in some
+self defined table.
+
+In my described scenario i also have eth1 with 10.0.20.0/24 net and when
+the packet comes from 10.0.20.2 there is no rule in the local table on
+the forwarding linux system just in the $USERDEFINED table.
+
+Is there a way to call "ip_route_output_key" with the daddr for this
+packet and the saddr 10.0.20.2 to receive the information from the
+$USERDEFINED table instead of parsing just the local table?
+
+Or what is the reason that it's just looking into the local table?
+Or did i miss some other way to parse other tables then the local one?
+
+thanks so far!
+
 -- 
-1.8.3.2
-
+Andreas Herz
