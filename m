@@ -1,94 +1,70 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH v3 ulogd 12/12] ipfix: add debug symbol for yafscii
-Date: Tue, 3 Jun 2014 19:18:34 +0900
-Message-ID: <20140603101833.GM24668@gmail.com>
-References: <20140603100130.GA24668@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>
-To: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH v4 1/3] expr: log: Rename variables in nft_rule_expr_log_json_parse functions
+Date: Tue,  3 Jun 2014 12:41:54 +0200
+Message-ID: <1401792116-17742-2-git-send-email-anarey@gmail.com>
+References: <1401792116-17742-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:48194 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbaFCKSk (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:48159 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752065AbaFCKmH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jun 2014 06:18:40 -0400
-Received: by mail-pd0-f169.google.com with SMTP id w10so4530095pde.28
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jun 2014 03:18:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140603100130.GA24668@gmail.com>
+	Tue, 3 Jun 2014 06:42:07 -0400
+Received: by mail-wg0-f51.google.com with SMTP id x13so6546182wgg.10
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jun 2014 03:42:06 -0700 (PDT)
+In-Reply-To: <1401792116-17742-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-http://tools.netsa.cert.org/yaf/yafscii.html
-To see the file by yafscii
-yafscii --in /tmp/ulogd.yaf and see /tmp/ulogd.yaf.txt
+Renames some variables for code readability reasons.
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- output/ulogd_output_IPFIX.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ src/expr/log.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index f10a82b..e552a3c 100644
---- a/output/ulogd_output_IPFIX.c
-+++ b/output/ulogd_output_IPFIX.c
-@@ -38,6 +38,12 @@
- #include <sys/socket.h>
- #include <netdb.h>
+diff --git a/src/expr/log.c b/src/expr/log.c
+index a61a8d3..eaba1d6 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -166,7 +166,8 @@ static int nft_rule_expr_log_json_parse(struct nft_rule_expr *e, json_t *root,
+ #ifdef JSON_PARSING
+ 	const char *prefix;
+ 	uint32_t snaplen;
+-	uint16_t uval16;
++	uint16_t group;
++	uint16_t qthreshold;
  
-+#define DEBUG_YAFSCII_FILE "/tmp/ulogd.yaf"
-+#ifdef DEBUG_YAFSCII_FILE
-+#include <sys/stat.h>
-+#include <sys/fcntl.h>
-+#endif
-+
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+ 	prefix = nft_jansson_parse_str(root, "prefix", err);
+ 	if (prefix == NULL)
+@@ -174,11 +175,11 @@ static int nft_rule_expr_log_json_parse(struct nft_rule_expr *e, json_t *root,
  
- #include <ulogd/linuxlist.h>
-@@ -143,6 +149,10 @@ struct ipfix_instance {
- 	struct llist_head template_list;
- 	struct nfct_bitmask *valid_bitmask;	/* bitmask of valid keys */
- 	u_int32_t seq;
-+
-+#ifdef DEBUG_YAFSCII_FILE
-+	int yaf_fd;
-+#endif
- };
+ 	nft_rule_expr_set_str(e, NFT_EXPR_LOG_PREFIX, prefix);
  
- #define ULOGD_IPFIX_TEMPL_BASE 1024
-@@ -469,6 +479,9 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
- 	ipfix_fprintf_header(stdout, ipfix_msg);
- 	fprintf(stdout, "\n");
+-	if (nft_jansson_parse_val(root, "group", NFT_TYPE_U16, &uval16,
++	if (nft_jansson_parse_val(root, "group", NFT_TYPE_U16, &group,
+ 				  err) < 0)
+ 		return -1;
  
-+#ifdef DEBUG_YAFSCII_FILE
-+	write(ii->yaf_fd, ipfix_msg, ntohs(ipfix_msg->length));
-+#endif
- 	return ULOGD_IRET_OK;
- }
+-	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, uval16);
++	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_GROUP, group);
  
-@@ -565,6 +578,10 @@ static int start_ipfix(struct ulogd_pluginstance *pi)
- 	if (ret < 0)
- 		goto out_bm_free;
+ 	if (nft_jansson_parse_val(root, "snaplen", NFT_TYPE_U32, &snaplen,
+ 				  err) < 0)
+@@ -187,10 +188,10 @@ static int nft_rule_expr_log_json_parse(struct nft_rule_expr *e, json_t *root,
+ 	nft_rule_expr_set_u32(e, NFT_EXPR_LOG_SNAPLEN, snaplen);
  
-+#ifdef DEBUG_YAFSCII_FILE
-+	ii->yaf_fd = open(DEBUG_YAFSCII_FILE, O_CREAT|O_WRONLY|O_TRUNC, S_IWUSR);
-+#endif
-+
+ 	if (nft_jansson_parse_val(root, "qthreshold", NFT_TYPE_U16,
+-				  &uval16, err) < 0)
++				  &qthreshold, err) < 0)
+ 		return -1;
+ 
+-	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, uval16);
++	nft_rule_expr_set_u16(e, NFT_EXPR_LOG_QTHRESHOLD, qthreshold);
+ 
  	return 0;
- 
- out_bm_free:
-@@ -578,6 +595,9 @@ static int stop_ipfix(struct ulogd_pluginstance *pi)
- {
- 	struct ipfix_instance *ii = (struct ipfix_instance *) &pi->private;
- 
-+#ifdef DEBUG_YAFSCII_FILE
-+	close(ii->yaf_fd);
-+#endif
- 	close(ii->fd);
- 
- 	nfct_bitmask_destroy(ii->valid_bitmask);
+ #else
 -- 
-1.9.1
+2.0.0.rc2
 
