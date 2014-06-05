@@ -1,112 +1,52 @@
-From: Yuxuan Shui <yshuiv7@gmail.com>
-Subject: [PATCH v2 3/3] netfilter: Add SKPID and SKSID meta keys
-Date: Thu,  5 Jun 2014 23:27:47 +0800
-Message-ID: <1401982067-21341-1-git-send-email-yshuiv7@gmail.com>
-Cc: Yuxuan Shui <yshuiv7@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 2/2] netfilter: conntrack: remove timer from ecache
+ extension
+Date: Thu, 5 Jun 2014 23:05:44 +0200
+Message-ID: <20140605210544.GD23367@breakpoint.cc>
+References: <1400751788-7923-1-git-send-email-fw@strlen.de>
+ <1400751788-7923-3-git-send-email-fw@strlen.de>
+ <20140605142549.GA24216@localhost>
+ <20140605143311.GA24460@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:48564 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588AbaFEP2F (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41346 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751440AbaFEVFq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2014 11:28:05 -0400
-Received: by mail-pd0-f173.google.com with SMTP id v10so1234893pde.18
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jun 2014 08:28:04 -0700 (PDT)
+	Thu, 5 Jun 2014 17:05:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20140605143311.GA24460@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add SKPID and SKSID meta keys so we can implement PID and SID matching
-rules in userspace nft tool.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > In one test, I noticed around ~75 entries stuck in the dying list. In
+> > another test, I noticed conntrackd -i | wc -l showed one entry that
+> > got stuck in the cache, which was not in the dying list. I suspect
+> > some problem in the retransmission logic.
+> 
+> Another interesting information. If I generate new entries that get
+> stuck in the dying list because of undelivered events, the worker
+> seems to give another chance to deliver, and the entries that were
+> stuck are not there anymore.
 
-v2: Add missing read_unlock_bh in error path.
+Hmm, don't yet understand how we could end up with
+pending events on the list without work queue being scheduled
+for execution.
 
-Signed-off-by: Yuxuan Shui <yshuiv7@gmail.com>
----
- include/uapi/linux/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nft_meta.c                 | 27 +++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+The eache worker will _always_ schedule itself _except_ when
+it thinks that it has delivered all entries.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 7d6433f..d41880f 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -565,6 +565,8 @@ enum nft_exthdr_attributes {
-  * @NFT_META_L4PROTO: layer 4 protocol number
-  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
-  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
-+ * @NFT_META_SKPID: origination socket owner PID
-+ * @NFT_META_SKSID: origination socket owner SID
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -586,6 +588,8 @@ enum nft_meta_keys {
- 	NFT_META_L4PROTO,
- 	NFT_META_BRI_IIFNAME,
- 	NFT_META_BRI_OIFNAME,
-+	NFT_META_SKPID,
-+	NFT_META_SKSID,
- };
- 
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 852b178..9efe89d 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -14,6 +14,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/pid.h>
- #include <net/dst.h>
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
-@@ -27,6 +28,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 	const struct nft_meta *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
- 	const struct net_device *in = pkt->in, *out = pkt->out;
-+	const struct task_struct *task;
-+	const struct pid *sid;
- 	struct nft_data *dest = &data[priv->dreg];
- 
- 	switch (priv->key) {
-@@ -109,6 +112,28 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 				 skb->sk->sk_socket->file->f_cred->fsgid);
- 		read_unlock_bh(&skb->sk->sk_callback_lock);
- 		break;
-+	case NFT_META_SKPID:
-+		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
-+			goto err;
-+
-+		read_lock_bh(&skb->sk->sk_callback_lock);
-+		dest->data[0] = pid_nr(skb->sk->sk_peer_pid);
-+		read_unlock_bh(&skb->sk->sk_callback_lock);
-+		break;
-+	case NFT_META_SKSID:
-+		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
-+			goto err;
-+
-+		read_lock_bh(&skb->sk->sk_callback_lock);
-+		task = get_pid_task(skb->sk->sk_peer_pid, PIDTYPE_PID);
-+		sid = task_session(task);
-+		if (!sid) {
-+			read_unlock_bh(&skb->sk->sk_callback_lock);
-+			goto err;
-+		}
-+		dest->data[0] = pid_nr(sid);
-+		read_unlock_bh(&skb->sk->sk_callback_lock);
-+		break;
- #ifdef CONFIG_IP_ROUTE_CLASSID
- 	case NFT_META_RTCLASSID: {
- 		const struct dst_entry *dst = skb_dst(skb);
-@@ -189,6 +214,8 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_OIFTYPE:
- 	case NFT_META_SKUID:
- 	case NFT_META_SKGID:
-+	case NFT_META_PID:
-+	case NFT_META_SID:
- #ifdef CONFIG_IP_ROUTE_CLASSID
- 	case NFT_META_RTCLASSID:
- #endif
--- 
-2.0.0
+Its possible that a new entry was put on the dying list
+immediately after we've done the hlist nulls test, however in that
+case the delivery failure should also have scheduled the work
+queue via nf_conntrack_ecache_delayed_work().
 
+AFAICS delayed_work_pending() cannot return true for a work struct
+that is still running since WORK_STRUCT_PENDING_BIT is cleared
+before callback invocation.
+
+Will look again tomorrow.
