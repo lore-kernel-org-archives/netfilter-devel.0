@@ -1,52 +1,37 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 2/2] netfilter: conntrack: remove timer from ecache
- extension
-Date: Thu, 5 Jun 2014 23:05:44 +0200
-Message-ID: <20140605210544.GD23367@breakpoint.cc>
-References: <1400751788-7923-1-git-send-email-fw@strlen.de>
- <1400751788-7923-3-git-send-email-fw@strlen.de>
- <20140605142549.GA24216@localhost>
- <20140605143311.GA24460@localhost>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] Netfilter/nf_tables fixes for net-next
+Date: Thu, 05 Jun 2014 15:35:21 -0700 (PDT)
+Message-ID: <20140605.153521.2289697483630879773.davem@davemloft.net>
+References: <1401980906-25290-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41346 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440AbaFEVFq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2014 17:05:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20140605143311.GA24460@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1401980906-25290-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > In one test, I noticed around ~75 entries stuck in the dying list. In
-> > another test, I noticed conntrackd -i | wc -l showed one entry that
-> > got stuck in the cache, which was not in the dying list. I suspect
-> > some problem in the retransmission logic.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu,  5 Jun 2014 17:08:20 +0200
+
+> This patchset contains fixes for recent updates available in your
+> net-next, they are:
 > 
-> Another interesting information. If I generate new entries that get
-> stuck in the dying list because of undelivered events, the worker
-> seems to give another chance to deliver, and the entries that were
-> stuck are not there anymore.
+> 1) Fix double memory allocation for accounting objects that results
+>    in a leak, this slipped through with the new quota extension,
+>    patch from Mathieu Poirier.
+> 
+> 2) Fix broken ordering when adding set element transactions.
+> 
+> 3) Make sure that objects are released in reverse order in the abort
+>    path, to avoid possible use-after-free when accessing dependencies.
+> 
+> 4) Allow to delete several objects (as long as dependencies are
+>    fulfilled) by using one batch. This includes changes in the use
+>    counter semantics of the nf_tables objects.
+> 
+> 5) Fix illegal sleeping allocation from rcu callback.
 
-Hmm, don't yet understand how we could end up with
-pending events on the list without work queue being scheduled
-for execution.
-
-The eache worker will _always_ schedule itself _except_ when
-it thinks that it has delivered all entries.
-
-Its possible that a new entry was put on the dying list
-immediately after we've done the hlist nulls test, however in that
-case the delivery failure should also have scheduled the work
-queue via nf_conntrack_ecache_delayed_work().
-
-AFAICS delayed_work_pending() cannot return true for a work struct
-that is still running since WORK_STRUCT_PENDING_BIT is cleared
-before callback invocation.
-
-Will look again tomorrow.
+Pulled, thanks a lot Pablo.
