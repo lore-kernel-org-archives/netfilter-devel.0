@@ -1,36 +1,36 @@
 From: Yuxuan Shui <yshuiv7@gmail.com>
-Subject: [PATCH libnftnl 2/3] meta: Add support for SKPID and SKSID meta keys
-Date: Thu,  5 Jun 2014 22:19:15 +0800
-Message-ID: <1401977956-15500-2-git-send-email-yshuiv7@gmail.com>
+Subject: [PATCH 3/3] netfilter: Add SKPID and SKSID meta keys
+Date: Thu,  5 Jun 2014 22:19:16 +0800
+Message-ID: <1401977956-15500-3-git-send-email-yshuiv7@gmail.com>
 References: <1401977956-15500-1-git-send-email-yshuiv7@gmail.com>
 Cc: Yuxuan Shui <yshuiv7@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:59829 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752110AbaFEOUW (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:44439 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbaFEOU1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2014 10:20:22 -0400
-Received: by mail-pb0-f53.google.com with SMTP id md12so1178533pbc.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jun 2014 07:20:22 -0700 (PDT)
+	Thu, 5 Jun 2014 10:20:27 -0400
+Received: by mail-pb0-f51.google.com with SMTP id ma3so1174268pbc.38
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jun 2014 07:20:26 -0700 (PDT)
 In-Reply-To: <1401977956-15500-1-git-send-email-yshuiv7@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Add SKPID and SKSID meta keys so we can implement PID and SID matching
-rules in nft.
+rules in userspace nft tool.
 
 Signed-off-by: Yuxuan Shui <yshuiv7@gmail.com>
 ---
- include/linux/netfilter/nf_tables.h | 4 ++++
- src/expr/meta.c                     | 4 +++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+ net/netfilter/nft_meta.c                 | 25 +++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 2a88f64..cea17d4 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -571,6 +571,8 @@ enum nft_exthdr_attributes {
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7d6433f..d41880f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -565,6 +565,8 @@ enum nft_exthdr_attributes {
   * @NFT_META_L4PROTO: layer 4 protocol number
   * @NFT_META_BRI_IIFNAME: packet input bridge interface name
   * @NFT_META_BRI_OIFNAME: packet output bridge interface name
@@ -39,7 +39,7 @@ index 2a88f64..cea17d4 100644
   */
  enum nft_meta_keys {
  	NFT_META_LEN,
-@@ -592,6 +594,8 @@ enum nft_meta_keys {
+@@ -586,6 +588,8 @@ enum nft_meta_keys {
  	NFT_META_L4PROTO,
  	NFT_META_BRI_IIFNAME,
  	NFT_META_BRI_OIFNAME,
@@ -48,28 +48,63 @@ index 2a88f64..cea17d4 100644
  };
  
  /**
-diff --git a/src/expr/meta.c b/src/expr/meta.c
-index fb945f0..1568544 100644
---- a/src/expr/meta.c
-+++ b/src/expr/meta.c
-@@ -23,7 +23,7 @@
- #include "expr_ops.h"
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 852b178..777ed53 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -14,6 +14,7 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/pid.h>
+ #include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+@@ -27,6 +28,8 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+ 	const struct net_device *in = pkt->in, *out = pkt->out;
++	const struct task_struct *task;
++	const struct pid *sid;
+ 	struct nft_data *dest = &data[priv->dreg];
  
- #ifndef NFT_META_MAX
--#define NFT_META_MAX (NFT_META_BRI_OIFNAME + 1)
-+#define NFT_META_MAX (NFT_META_SKSID + 1)
+ 	switch (priv->key) {
+@@ -109,6 +112,26 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 				 skb->sk->sk_socket->file->f_cred->fsgid);
+ 		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
++	case NFT_META_SKPID:
++		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
++			goto err;
++
++		read_lock_bh(&skb->sk->sk_callback_lock);
++		dest->data[0] = pid_nr(skb->sk->sk_peer_pid);
++		read_unlock_bh(&skb->sk->sk_callback_lock);
++		break;
++	case NFT_META_SKSID:
++		if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
++			goto err;
++
++		read_lock_bh(&skb->sk->sk_callback_lock);
++		task = get_pid_task(skb->sk->sk_peer_pid, PIDTYPE_PID);
++		sid = task_session(task);
++		if (!sid)
++			goto err;
++		dest->data[0] = pid_nr(sid);
++		read_unlock_bh(&skb->sk->sk_callback_lock);
++		break;
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID: {
+ 		const struct dst_entry *dst = skb_dst(skb);
+@@ -189,6 +212,8 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ 	case NFT_META_OIFTYPE:
+ 	case NFT_META_SKUID:
+ 	case NFT_META_SKGID:
++	case NFT_META_PID:
++	case NFT_META_SID:
+ #ifdef CONFIG_IP_ROUTE_CLASSID
+ 	case NFT_META_RTCLASSID:
  #endif
- 
- struct nft_expr_meta {
-@@ -155,6 +155,8 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
- 	[NFT_META_SECMARK]	= "secmark",
- 	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
- 	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
-+	[NFT_META_SKPID]	= "skpid",
-+	[NFT_META_SKSID]	= "sksid",
- };
- 
- static const char *meta_key2str(uint8_t key)
 -- 
 1.9.3
 
