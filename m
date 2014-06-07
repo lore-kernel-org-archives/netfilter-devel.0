@@ -1,232 +1,67 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [PATCH 3.13] core, nfqueue, openvswitch: Orphan frags in
- skb_zerocopy and handle errors
-Date: Fri, 06 Jun 2014 17:01:07 +0100
-Message-ID: <1402070467.23860.1.camel@deadeye.wl.decadent.org.uk>
-References: <1395873465-22282-1-git-send-email-zoltan.kiss@citrix.com>
-	 <20140327.152956.1528740039185894234.davem@davemloft.net>
-	 <20140421112601.GC3200@hercules>
-	 <1398181118.3624.203.camel@deadeye.wl.decadent.org.uk>
-	 <5356AEBF.5010505@citrix.com>
-	 <1398194284.7767.101.camel@deadeye.wl.decadent.org.uk>
+From: Guruswamy B <guru2018@gmail.com>
+Subject: [nftables PATCH] fix nft -i command crashes when try to input multi
+ line command
+Date: Sun, 8 Jun 2014 00:44:16 +0530
+Message-ID: <CAHSpA5_tm8PJKSCYwo4RObrzm25tGNX+j_7=K8ySB5+NdK0N9g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-4fQtRN7bhDnEI4wT0xh8"
-Cc: Zoltan Kiss <zoltan.kiss@citrix.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>, stable <stable@vger.kernel.org>
-To: David Miller <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:34755 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751660AbaFFP4y (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:61572 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbaFGTOR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2014 11:56:54 -0400
-In-Reply-To: <1398194284.7767.101.camel@deadeye.wl.decadent.org.uk>
+	Sat, 7 Jun 2014 15:14:17 -0400
+Received: by mail-pb0-f51.google.com with SMTP id ma3so3852092pbc.10
+        for <netfilter-devel@vger.kernel.org>; Sat, 07 Jun 2014 12:14:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
+ When try to input multiline command in "nft -i", it crashes.
 
---=-4fQtRN7bhDnEI4wT0xh8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-[Trimmed cc list; added Greg and stable]
-
-On Tue, 2014-04-22 at 20:18 +0100, Ben Hutchings wrote:
-> From: Zoltan Kiss <zoltan.kiss@citrix.com>
->=20
-> commit 36d5fe6a000790f56039afe26834265db0a3ad4c upstream.
->=20
-> skb_zerocopy can copy elements of the frags array between skbs, but it do=
-esn't
-> orphan them. Also, it doesn't handle errors, so this patch takes care of =
-that
-> as well, and modify the callers accordingly. skb_tx_error() is also added=
- to
-> the callers so they will signal the failed delivery towards the creator o=
-f the
-> skb.
->=20
-> Signed-off-by: Zoltan Kiss <zoltan.kiss@citrix.com>
-> Signed-off-by: David S. Miller <davem@davemloft.net>
-> [bwh: Backported to 3.13: skb_zerocopy() is new in 3.14, but was moved fr=
-om a
->  static function in nfnetlink_queue.  We need to patch that and its calle=
-r, but
->  not openvswitch.]
-> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-
-I noticed this is still not applied or queued for the 3.10.y branch, but
-it does seem to be needed.
-
-Ben.
-
-> ---
-> On Tue, 2014-04-22 at 19:02 +0100, Zoltan Kiss wrote:
-> > On 22/04/14 16:38, Ben Hutchings wrote:
-> > > On Mon, 2014-04-21 at 12:26 +0100, Luis Henriques wrote:
-> > >> Hi David,
-> > >>
-> > >> On Thu, Mar 27, 2014 at 03:29:56PM -0400, David Miller wrote:
-> > >>> From: Zoltan Kiss <zoltan.kiss@citrix.com>
-> > >>> Date: Wed, 26 Mar 2014 22:37:45 +0000
-> > >>>
-> > >>>> skb_zerocopy can copy elements of the frags array between skbs, bu=
-t it doesn't
-> > >>>> orphan them. Also, it doesn't handle errors, so this patch takes c=
-are of that
-> > >>>> as well, and modify the callers accordingly. skb_tx_error() is als=
-o added to
-> > >>>> the callers so they will signal the failed delivery towards the cr=
-eator of the
-> > >>>> skb.
-> > >>>>
-> > >>>> Signed-off-by: Zoltan Kiss <zoltan.kiss@citrix.com>
-> > >>>
-> > >>> Fingers crossed :-)  Applied, thanks Zoltan.
-> > >>> --
-> > >>> To unsubscribe from this list: send the line "unsubscribe netdev" i=
-n
-> > >>> the body of a message to majordomo@vger.kernel.org
-> > >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >>
-> > >> Could you please queue this for stable as well?  It has CVE-2014-256=
-8
-> > >> assigned to it and I believe it is applicable to some of the trees.
-> > >
-> > > It was applied to 3.13, but needs backporting to earlier versions.  I
-> > > posted my attempt in
-> > > <1397429860.10849.86.camel@deadeye.wl.decadent.org.uk> but it needs
-> > > testing/reviewing.
-> >=20
-> > This one is a different issue, although it is very similar.
->=20
-> Sorry for mixing these up.  I believe this bug has been present since
-> zerocopy was added to nfqueue in Linux 3.10 (commit ae08ce002108).  This
-> is the version I used for Debian's 3.13 branch, which might be usable
-> for older stable branches too.
->=20
-> Ben.
->=20
-> ---
-> --- a/net/netfilter/nfnetlink_queue_core.c
-> +++ b/net/netfilter/nfnetlink_queue_core.c
-> @@ -235,22 +235,23 @@ nfqnl_flush(struct nfqnl_instance *queue
->  	spin_unlock_bh(&queue->lock);
->  }
-> =20
-> -static void
-> +static int
->  nfqnl_zcopy(struct sk_buff *to, const struct sk_buff *from, int len, int=
- hlen)
->  {
->  	int i, j =3D 0;
->  	int plen =3D 0; /* length of skb->head fragment */
-> +	int ret;
->  	struct page *page;
->  	unsigned int offset;
-> =20
->  	/* dont bother with small payloads */
-> -	if (len <=3D skb_tailroom(to)) {
-> -		skb_copy_bits(from, 0, skb_put(to, len), len);
-> -		return;
-> -	}
-> +	if (len <=3D skb_tailroom(to))
-> +		return skb_copy_bits(from, 0, skb_put(to, len), len);
-> =20
->  	if (hlen) {
-> -		skb_copy_bits(from, 0, skb_put(to, hlen), hlen);
-> +		ret =3D skb_copy_bits(from, 0, skb_put(to, hlen), hlen);
-> +		if (unlikely(ret))
-> +			return ret;
->  		len -=3D hlen;
->  	} else {
->  		plen =3D min_t(int, skb_headlen(from), len);
-> @@ -268,6 +269,11 @@ nfqnl_zcopy(struct sk_buff *to, const st
->  	to->len +=3D len + plen;
->  	to->data_len +=3D len + plen;
-> =20
-> +	if (unlikely(skb_orphan_frags(from, GFP_ATOMIC))) {
-> +		skb_tx_error(from);
-> +		return -ENOMEM;
-> +	}
-> +
->  	for (i =3D 0; i < skb_shinfo(from)->nr_frags; i++) {
->  		if (!len)
->  			break;
-> @@ -278,6 +284,8 @@ nfqnl_zcopy(struct sk_buff *to, const st
->  		j++;
->  	}
->  	skb_shinfo(to)->nr_frags =3D j;
-> +
-> +	return 0;
->  }
-> =20
->  static int
-> @@ -374,13 +382,16 @@ nfqnl_build_packet_message(struct net *n
-> =20
->  	skb =3D nfnetlink_alloc_skb(net, size, queue->peer_portid,
->  				  GFP_ATOMIC);
-> -	if (!skb)
-> +	if (!skb) {
-> +		skb_tx_error(entskb);
->  		return NULL;
-> +	}
-> =20
->  	nlh =3D nlmsg_put(skb, 0, 0,
->  			NFNL_SUBSYS_QUEUE << 8 | NFQNL_MSG_PACKET,
->  			sizeof(struct nfgenmsg), 0);
->  	if (!nlh) {
-> +		skb_tx_error(entskb);
->  		kfree_skb(skb);
->  		return NULL;
->  	}
-> @@ -504,13 +515,15 @@ nfqnl_build_packet_message(struct net *n
->  		nla->nla_type =3D NFQA_PAYLOAD;
->  		nla->nla_len =3D nla_attr_size(data_len);
-> =20
-> -		nfqnl_zcopy(skb, entskb, data_len, hlen);
-> +		if (nfqnl_zcopy(skb, entskb, data_len, hlen))
-> +			goto nla_put_failure;
->  	}
-> =20
->  	nlh->nlmsg_len =3D skb->len;
->  	return skb;
-> =20
->  nla_put_failure:
-> +	skb_tx_error(entskb);
->  	kfree_skb(skb);
->  	net_err_ratelimited("nf_queue: error creating packet message\n");
->  	return NULL;
->=20
-
---=20
-Ben Hutchings
-You can't have everything.  Where would you put it?
+ Issue is, function "cli_append_multiline" return null in case of
+multiline command,
+ But in the calling function "cli_complete", cli_exit is getting
+called, which in turn calls "rl_callback_handler_remove"  and the
+handler is getting removed.
 
 
---=-4fQtRN7bhDnEI4wT0xh8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
+---
+---
+ src/cli.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+diff --git a/src/cli.c b/src/cli.c
+index 8875207..c0051a5 100644
+--- a/src/cli.c
++++ b/src/cli.c
+@@ -66,6 +66,7 @@ static char *cli_append_multiline(char *line)
+        multiline = line;
+        rl_save_prompt();
+        rl_clear_message();
++       rl_set_prompt(">");
+    } else {
+        len += strlen(multiline);
+        s = xmalloc(len + 1);
+@@ -89,12 +90,15 @@ static void cli_complete(char *line)
+    const char *c;
+    LIST_HEAD(msgs);
 
-iQIVAwUAU5Hlyue/yOyVhhEJAQpu4w/+MF8zSQgGqyzne+seHF5CONl0FTzgENfs
-aPv/Xz2Wp35mRNWRzDDhMd4KcWdfJV7V+N6rYcet3Q2MBBLNY6GALv3qXQT7GHjT
-+QmgVAogc5Y7PZYj2q1ostVZkcAi7zS9tHiV7Y6/aB3/mA/3lfWpBVb48eTMXHZy
-2Q0T7x27zrWp7tLfJosuFjlWAwrSMTwRQExlcYVXT2LDESBJdxe0nO2aZwZYcMb9
-5+jPYOhsphGqBOfkVfv6yc/s6LfJXuSCxhBhVFfoBDIB4FhmyGw8MAUmRQr7KA21
-+/pA3yXb3lcj4Hir6i6k8OLBoMlN+8BDL9bs1LMEGCXNmVfboTB5KSmAfuCQaFOj
-8lrukk97VJF0NgiIeE/dUg6IJRZ6vNyGKoMjefbZli2JVoi3u5T6B1XrRHBlrDhs
-HUnYGEjfniOCwx2BIm9yk/bgbt7A50v9GwAhLkdaW9ZhaTTtyJiTSPyBvk3/Ta+d
-DQUDnzXM3G+U4rnbU8ugO/7KSz0Io9JLb3rF4OMv7NckTkIP7uQHeqMjnwKVUM4q
-Gnuk0yJ3VIPrNNlMe9pkmvM54zLvIiIhyrIRtkhBxiWUyHcZFuAXtSNo442Epo2h
-XW4ooCOnDSnz7q1cyMkvRMTbSwONy/zQXVxFRpZ0eUZA+TnvGi5+FswpZzqXqn/S
-L4UA6N3oX7g=
-=NFpQ
------END PGP SIGNATURE-----
+-   line = cli_append_multiline(line);
+    if (line == NULL) {
+        printf("\n");
+        cli_exit();
+-       return;
++       exit(0);
+    }
++
++   line = cli_append_multiline(line);
++   if(line == NULL)
++       return;
 
---=-4fQtRN7bhDnEI4wT0xh8--
+    for (c = line; *c != '\0'; c++)
+        if (!isspace(*c))
+-- 
+1.9.3
