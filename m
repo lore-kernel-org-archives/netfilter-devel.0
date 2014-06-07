@@ -1,67 +1,106 @@
-From: Guruswamy B <guru2018@gmail.com>
-Subject: [nftables PATCH] fix nft -i command crashes when try to input multi
- line command
-Date: Sun, 8 Jun 2014 00:44:16 +0530
-Message-ID: <CAHSpA5_tm8PJKSCYwo4RObrzm25tGNX+j_7=K8ySB5+NdK0N9g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: nf_nat: fix oops on netns removal
+Date: Sat,  7 Jun 2014 21:17:04 +0200
+Message-ID: <1402168624-10081-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:61572 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbaFGTOR (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44909 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752205AbaFGTXC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Jun 2014 15:14:17 -0400
-Received: by mail-pb0-f51.google.com with SMTP id ma3so3852092pbc.10
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Jun 2014 12:14:16 -0700 (PDT)
+	Sat, 7 Jun 2014 15:23:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
- When try to input multiline command in "nft -i", it crashes.
+Quoting Samu Kallio:
 
- Issue is, function "cli_append_multiline" return null in case of
-multiline command,
- But in the calling function "cli_complete", cli_exit is getting
-called, which in turn calls "rl_callback_handler_remove"  and the
-handler is getting removed.
+ Basically what's happening is, during netns cleanup,
+ nf_nat_net_exit gets called before ipv4_net_exit. As I understand
+ it, nf_nat_net_exit is supposed to kill any conntrack entries which
+ have NAT context (through nf_ct_iterate_cleanup), but for some
+ reason this doesn't happen (perhaps something else is still holding
+ refs to those entries?).
 
+ When ipv4_net_exit is called, conntrack entries (including those
+ with NAT context) are cleaned up, but the
+ nat_bysource hashtable is long gone - freed in nf_nat_net_exit. The
+ bug happens when attempting to free a conntrack entry whose NAT hash
+ 'prev' field points to a slot in the freed hash table (head for that
+ bin).
 
-Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
+We ignore conntracks with null nat bindings.  But this is wrong,
+as these are in bysource hash table as well.
+
+Restore nat-cleaning for the netns-is-being-removed case.
+
+bug:
+https://bugzilla.kernel.org/show_bug.cgi?id=65191
+
+Fixes: c2d421e1718 ('netfilter: nf_nat: fix race when unloading protocol modules')
+Reported-by: Samu Kallio <samu.kallio@aberdeencloud.com>
+Debugged-by: Samu Kallio <samu.kallio@aberdeencloud.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
----
- src/cli.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ net/netfilter/nf_nat_core.c | 35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
-diff --git a/src/cli.c b/src/cli.c
-index 8875207..c0051a5 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -66,6 +66,7 @@ static char *cli_append_multiline(char *line)
-        multiline = line;
-        rl_save_prompt();
-        rl_clear_message();
-+       rl_set_prompt(">");
-    } else {
-        len += strlen(multiline);
-        s = xmalloc(len + 1);
-@@ -89,12 +90,15 @@ static void cli_complete(char *line)
-    const char *c;
-    LIST_HEAD(msgs);
+There is alternate patch in above BZ:
+https://bugzilla.kernel.org/attachment.cgi?id=138271
 
--   line = cli_append_multiline(line);
-    if (line == NULL) {
-        printf("\n");
-        cli_exit();
--       return;
-+       exit(0);
-    }
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 09096a6..a49907b 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -525,6 +525,39 @@ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
+ 	return i->status & IPS_NAT_MASK ? 1 : 0;
+ }
+ 
++static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
++{
++	struct nf_conn_nat *nat = nfct_nat(ct);
 +
-+   line = cli_append_multiline(line);
-+   if(line == NULL)
-+       return;
-
-    for (c = line; *c != '\0'; c++)
-        if (!isspace(*c))
++	if (nf_nat_proto_remove(ct, data))
++		return 1;
++
++	if (!nat || !nat->ct)
++		return 0;
++
++	/* This netns is being destroyed, and conntrack has nat null binding.
++	 * Remove it from bysource hash, as the table will be freed soon.
++	 *
++	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
++	 * will delete entry from already-freed table.
++	 */
++	if (!del_timer(&ct->timeout))
++		return 1;
++
++	spin_lock_bh(&nf_nat_lock);
++	hlist_del_rcu(&nat->bysource);
++	ct->status &= ~IPS_NAT_DONE_MASK;
++	nat->ct = NULL;
++	spin_unlock_bh(&nf_nat_lock);
++
++	add_timer(&ct->timeout);
++
++	/* don't delete conntrack.  Although that would make things a lot
++	 * simpler, we'd end up flushing all conntracks on nat rmmod.
++	 */
++	return 0;
++}
++
+ static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
+ {
+ 	struct nf_nat_proto_clean clean = {
+@@ -795,7 +828,7 @@ static void __net_exit nf_nat_net_exit(struct net *net)
+ {
+ 	struct nf_nat_proto_clean clean = {};
+ 
+-	nf_ct_iterate_cleanup(net, &nf_nat_proto_remove, &clean, 0, 0);
++	nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean, 0, 0);
+ 	synchronize_rcu();
+ 	nf_ct_free_hashtable(net->ct.nat_bysource, net->ct.nat_htable_size);
+ }
 -- 
-1.9.3
+1.8.1.5
+
