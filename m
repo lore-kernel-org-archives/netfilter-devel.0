@@ -1,106 +1,75 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: nf_nat: fix oops on netns removal
-Date: Sat,  7 Jun 2014 21:17:04 +0200
-Message-ID: <1402168624-10081-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: ctnetlink: fix refcnt leak in dying/unconfirmed list dumper
+Date: Sun,  8 Jun 2014 11:41:23 +0200
+Message-ID: <1402220483-10565-1-git-send-email-fw@strlen.de>
+Cc: brouer@redhat.com, Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44909 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45420 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbaFGTXC (ORCPT
+	by vger.kernel.org with ESMTP id S1753358AbaFHJrW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Jun 2014 15:23:02 -0400
+	Sun, 8 Jun 2014 05:47:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Quoting Samu Kallio:
+'last' keeps track of the ct that had its refcnt bumped during previous
+dump cycle.  Thus it must not be overwritten until end-of-function.
 
- Basically what's happening is, during netns cleanup,
- nf_nat_net_exit gets called before ipv4_net_exit. As I understand
- it, nf_nat_net_exit is supposed to kill any conntrack entries which
- have NAT context (through nf_ct_iterate_cleanup), but for some
- reason this doesn't happen (perhaps something else is still holding
- refs to those entries?).
+Another (unrelated, theoretical) issue: Don't attempt to bump refcnt of a conntrack
+whose reference count is already 0.  Such conntrack is being destroyed
+right now, its memory is freed once we release the percpu dying spinlock.
 
- When ipv4_net_exit is called, conntrack entries (including those
- with NAT context) are cleaned up, but the
- nat_bysource hashtable is long gone - freed in nf_nat_net_exit. The
- bug happens when attempting to free a conntrack entry whose NAT hash
- 'prev' field points to a slot in the freed hash table (head for that
- bin).
-
-We ignore conntracks with null nat bindings.  But this is wrong,
-as these are in bysource hash table as well.
-
-Restore nat-cleaning for the netns-is-being-removed case.
-
-bug:
-https://bugzilla.kernel.org/show_bug.cgi?id=65191
-
-Fixes: c2d421e1718 ('netfilter: nf_nat: fix race when unloading protocol modules')
-Reported-by: Samu Kallio <samu.kallio@aberdeencloud.com>
-Debugged-by: Samu Kallio <samu.kallio@aberdeencloud.com>
+Fixes: b7779d06 ('netfilter: conntrack: spinlock per cpu to protect special lists.')
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_nat_core.c | 35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+ With this patch I do not see any more stale entries on the dying list with eache evictor
+ not being scheduled.  Such 'leaked' entries are easy to spot since their 'use' count
+ is growing, i.e. invoking conntrack -L dying repeatedly yields 'use=$bignum++' output.
 
-There is alternate patch in above BZ:
-https://bugzilla.kernel.org/attachment.cgi?id=138271
+ net/netfilter/nf_conntrack_netlink.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 09096a6..a49907b 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -525,6 +525,39 @@ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
- 	return i->status & IPS_NAT_MASK ? 1 : 0;
- }
- 
-+static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
-+{
-+	struct nf_conn_nat *nat = nfct_nat(ct);
-+
-+	if (nf_nat_proto_remove(ct, data))
-+		return 1;
-+
-+	if (!nat || !nat->ct)
-+		return 0;
-+
-+	/* This netns is being destroyed, and conntrack has nat null binding.
-+	 * Remove it from bysource hash, as the table will be freed soon.
-+	 *
-+	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
-+	 * will delete entry from already-freed table.
-+	 */
-+	if (!del_timer(&ct->timeout))
-+		return 1;
-+
-+	spin_lock_bh(&nf_nat_lock);
-+	hlist_del_rcu(&nat->bysource);
-+	ct->status &= ~IPS_NAT_DONE_MASK;
-+	nat->ct = NULL;
-+	spin_unlock_bh(&nf_nat_lock);
-+
-+	add_timer(&ct->timeout);
-+
-+	/* don't delete conntrack.  Although that would make things a lot
-+	 * simpler, we'd end up flushing all conntracks on nat rmmod.
-+	 */
-+	return 0;
-+}
-+
- static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 5857963..7e89c1a 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1150,7 +1150,7 @@ static int ctnetlink_done_list(struct netlink_callback *cb)
+ static int
+ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying)
  {
- 	struct nf_nat_proto_clean clean = {
-@@ -795,7 +828,7 @@ static void __net_exit nf_nat_net_exit(struct net *net)
- {
- 	struct nf_nat_proto_clean clean = {};
+-	struct nf_conn *ct, *last = NULL;
++	struct nf_conn *ct, *last;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct hlist_nulls_node *n;
+ 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+@@ -1166,6 +1166,8 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ 	if (cb->args[0] == nr_cpu_ids)
+ 		return 0;
  
--	nf_ct_iterate_cleanup(net, &nf_nat_proto_remove, &clean, 0, 0);
-+	nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean, 0, 0);
- 	synchronize_rcu();
- 	nf_ct_free_hashtable(net->ct.nat_bysource, net->ct.nat_htable_size);
- }
++	last = (struct nf_conn *)cb->args[1];
++
+ 	for (cpu = cb->args[0]; cpu < nr_cpu_ids; cpu++) {
+ 		struct ct_pcpu *pcpu;
+ 
+@@ -1174,7 +1176,6 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ 
+ 		pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
+ 		spin_lock_bh(&pcpu->lock);
+-		last = (struct nf_conn *)cb->args[1];
+ 		list = dying ? &pcpu->dying : &pcpu->unconfirmed;
+ restart:
+ 		hlist_nulls_for_each_entry(h, n, list, hnnode) {
+@@ -1193,7 +1194,8 @@ restart:
+ 						  ct);
+ 			rcu_read_unlock();
+ 			if (res < 0) {
+-				nf_conntrack_get(&ct->ct_general);
++				if (!atomic_inc_not_zero(&ct->ct_general.use))
++					continue;
+ 				cb->args[1] = (unsigned long)ct;
+ 				spin_unlock_bh(&pcpu->lock);
+ 				goto out;
 -- 
 1.8.1.5
 
