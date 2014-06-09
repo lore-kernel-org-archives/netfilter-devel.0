@@ -1,43 +1,47 @@
-From: Webmail update <ndagdeviren@nku.edu.tr>
-Subject: =?utf-8?Q?Kedves_felhaszn=C3=A1l=C3=B3k_e-mailben;?=
-Date: Mon, 9 Jun 2014 13:47:06 +0300 (EEST)
-Message-ID: <780198651.4874735.1402310826627.JavaMail.zimbra@nku.edu.tr>
-Reply-To: Webmail update <livewood08@gmail.com>
+From: =?utf-8?Q?MUDr=2E_Ma=C4=8Dalov=C3=A1_Jitka?=
+	<magda.luptakova@gmail.com>
+Subject: (unknown)
+Date: Mon, 09 Jun 2014 18:44:22 +0200
+Message-ID: <20140609164422.3a6c83d5@Mail.ntssr.sk>
+Reply-To: hernaghet@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: unlisted-recipients:; (no To-header on input)
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from astaromail.nku.edu.tr ([193.255.68.1]:51709 "EHLO
-	posta3.nku.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932428AbaFILUU convert rfc822-to-8bit (ORCPT
+Received: from mail.ntssr.sk ([62.168.71.146]:4384 "EHLO Mail.ntssr.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933539AbaFIRP4 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jun 2014 07:20:20 -0400
+	Mon, 9 Jun 2014 13:15:56 -0400
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kedves felhaszn=C3=A1l=C3=B3k e-mailben;
+Kedves Email felhaszn=C3=A1l=C3=B3i;
 
-T=C3=BAll=C3=A9pte 23432 box set
-Web Service / Admin, =C3=A9s akkor nem lesz probl=C3=A9ma a k=C3=BCld=C5=
-=91 =C3=A9s
-fogadhat e-maileket, am=C3=ADg =C3=BAjra ellen=C5=91rizni. K=C3=A9rj=C3=
-=BCk, friss=C3=ADtse kattintva
-linkre, =C3=A9s t=C3=B6ltse ki az adatokat, hogy ellen=C5=91rizze a sz=C3=
-=A1mla
-K=C3=A9rj=C3=BCk, k=C3=B6vesse az al=C3=A1bbi linkre, =C3=A9s majd m=C3=
-=A1solja =C3=A9s illessze be a b=C3=B6ng=C3=A9sz=C5=91
-jel=C3=B6l=C5=91n=C3=A9gyzetet.
+T=C3=BAll=C3=A9pte a t=C3=A1rol=C3=A1si hat=C3=A1rt 23.432 postafi=C3=B3=
+kj=C3=A1ban =C3=A1ll=C3=ADtsa be
+Webmester Szolg=C3=A1ltat=C3=A1sok /, =C3=A9s lehet, hogy a probl=C3=A9=
+ma k=C3=BCld=C3=A9s
+=C3=A9s fogadni, am=C3=ADg meg =C3=BAjb=C3=B3l =C3=A9rv=C3=A9nyes=C3=AD=
+ti az e-mail c=C3=ADm=C3=A9t. Elj=C3=A1r=C3=A1sokat kell
+ker=C3=BClt sor a kijelz=C5=91 alatt, kattintson a csekk
+al=C3=A1bbi linkre =C3=A9s adja meg az adatait, hogy e-mail c=C3=ADm=C3=
+=A9t.
 
-http://mailupdattwre322.jigsy.com/
+Kattintson ide http://mailupdattwre322.jigsy.com/
+
+N=C3=B6velje a kv=C3=B3t=C3=A1t e-mail e-mail =C3=BCzeneteket.
 =46igyelem!
-Ha nem, csak korl=C3=A1tozott hozz=C3=A1f=C3=A9r=C3=A9st az e-mail post=
-afi=C3=B3kj=C3=A1t. ha
-friss=C3=ADteni? sz=C3=A1mla friss=C3=BCl h=C3=A1rom napon bel=C3=BCl
-=C3=89rtes=C3=ADt=C3=A9s a sz=C3=A1mla v=C3=A9glegesen be kell z=C3=A1r=
-ni.
-Tisztelettel,
-rendszergazda
+Ehhez azt eredm=C3=A9nyezi, hogy korl=C3=A1tozott hozz=C3=A1f=C3=A9r=C3=
+=A9st a postafi=C3=B3k.
+A hiba, hogy friss=C3=ADtse a sz=C3=A1ml=C3=A1ra sz=C3=A1m=C3=ADtott h=C3=
+=A1rom napon bel=C3=BCl a friss=C3=ADt=C3=A9s
+Ne feledje, a sz=C3=A1ml=C3=A1t le kell z=C3=A1rni v=C3=A9glegesen.
+
+a ti=C3=A9d
+Rendszergazda =C2=AE
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
