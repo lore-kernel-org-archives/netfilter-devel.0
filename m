@@ -1,20 +1,38 @@
-From: "Santander Finance" <zein@sumutprov.go.id>
-Subject: We offer all purpose loan at 3% interest rate
-Date: Mon, 09 Jun 2014 18:25:40 -0700
-Message-ID: <201406100125.s5A0PClU005954__15341.2067601041$1402363778$gmane$org@akmo.kz>
-Reply-To: santafinance@aol.com
+From: "Info" <zein@sumutprov.go.id>
+Subject: Urgent Notification Free Lotto Award(Reference:WIN-37-14-29-14)
+Date: Mon, 09 Jun 2014 20:49:36 -0700
+Message-ID: <201406100349.s5A1guEg024005@akmo.kz>
+Reply-To: freel261@aol.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: Recipients <zein@sumutprov.go.id>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from akmo.kz ([212.154.234.163]:40551 "EHLO akmo.kz"
+Received: from akmo.kz ([212.154.234.163]:47700 "EHLO akmo.kz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933292AbaFJB2R convert rfc822-to-8bit (ORCPT
+	id S1754476AbaFJDx6 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jun 2014 21:28:17 -0400
+	Mon, 9 Jun 2014 23:53:58 -0400
 Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santanderfinancegroup@gmail.com
+=46rom claim=B4s processing office.
+=46ree Lotto Lottery Award Notification
+Confirmation Ticket No: 33-48-19-H5H
+Reference:WIN-37-14-29-14
+You have won( 1 Million Euros )in the Free Lotto Lottery Award 2014 hel=
+d in Madrid Spain
+This email was sent to notify you officially as you are advise to conta=
+ct the claim=B4s processing office with your details immediately for cl=
+aim,
+Contact Person: Martinez Adela
+Contact Email: freelottoaward066@gmail.com
+Signed (Announcer)
+Director, Cooperate HR and Communication.
+=46REE LOTTO LOTTERY AWARD
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
