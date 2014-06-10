@@ -1,65 +1,61 @@
-From: Domen Puncer <domen.puncer@samsung.com>
-Subject: [PATCH iptables] libxtables: fix getaddrinfo return value usage
-Date: Tue, 10 Jun 2014 14:29:49 +0100
-Message-ID: <5397084D.8020703@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Hendrik Schwartke <hendrik@os-t.de>
+Subject: [PATCH 2/2] Enhanced error message which is displayed if an error occured while creating a chain.
+Date: Tue, 10 Jun 2014 16:54:47 +0200
+Message-ID: <1402412087-9825-2-git-send-email-hendrik@os-t.de>
+References: <1402412087-9825-1-git-send-email-hendrik@os-t.de>
+Cc: Hendrik Schwartke <hendrik@os-t.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:47111 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbaFJNar (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:63195 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbaFJOzM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 09:30:47 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6Y002CRG783L10@mailout3.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Tue, 10 Jun 2014 14:30:44 +0100 (BST)
-Received: from ex1.seri.co.uk ([106.1.8.3])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0N6Y00GKGG78T6B0@eusync3.samsung.com> for
- netfilter-devel@vger.kernel.org; Tue, 10 Jun 2014 14:30:44 +0100 (BST)
+	Tue, 10 Jun 2014 10:55:12 -0400
+In-Reply-To: <1402412087-9825-1-git-send-email-hendrik@os-t.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-getaddrinfo return value on error can also be positive.
-
-Signed-off-by: Domen Puncer Kugler <domen.puncer@samsung.com>
+Creating a base chain which depends on unsupported kernel features
+(e.g. creating a chain with a nat hook without loading the nat
+kernel module) results in a confusing error message.
+This patch added a meaningful hint.
 ---
- libxtables/xtoptions.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ src/netlink.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
-index 9b4c5aa..d26d2f8 100644
---- a/libxtables/xtoptions.c
-+++ b/libxtables/xtoptions.c
-@@ -519,7 +519,7 @@ static void xtopt_parse_host(struct xt_option_call *cb)
- 	int ret;
+diff --git a/src/netlink.c b/src/netlink.c
+index 1b174bd..d4a71b8 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -480,10 +480,11 @@ int netlink_add_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 
+         struct nft_chain *nlc;
+         int err;
++        int is_basechain = chain != NULL && chain->flags & CHAIN_F_BASECHAIN;
+         unsigned int flags = excl ? NLM_F_EXCL : 0;
+ 
+         nlc = alloc_nft_chain(h);
+-        if (chain != NULL && chain->flags & CHAIN_F_BASECHAIN) {
++        if (is_basechain) {
+                 nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_HOOKNUM,
+                                        chain->hooknum);
+                 nft_chain_attr_set_s32(nlc, NFT_CHAIN_ATTR_PRIO,
+@@ -500,8 +501,13 @@ int netlink_add_chain(struct netlink_ctx *ctx, const struct handle *h,
+         nft_chain_free(nlc);
+ 
+         if (err < 0) {
+-                netlink_io_error(ctx, loc, "Could not add chain: %s",
+-                                 strerror(errno));
++                const char *expl="";
++                if(is_basechain && errno==ENOENT)
++                        expl=" - perhaps some kernel modules are not"
++                             " loaded or the kernel doesn't include"
++                             " necessary features.";
++                netlink_io_error(ctx, loc, "Could not add chain: %s%s",
++                                 strerror(errno), expl);
+         }
+         return err;
+ }
+-- 
+1.7.10.4
 
- 	ret = getaddrinfo(cb->arg, NULL, &hints, &res);
--	if (ret < 0)
-+	if (ret != 0)
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 			"getaddrinfo: %s\n", gai_strerror(ret));
-
-@@ -562,7 +562,7 @@ static int xtables_getportbyname(const char *name)
- 	int ret;
-
- 	ret = getaddrinfo(NULL, name, NULL, &res);
--	if (ret < 0)
-+	if (ret != 0)
- 		return -1;
- 	ret = -1;
- 	for (p = res; p != NULL; p = p->ai_next) {
-@@ -675,7 +675,7 @@ static int xtopt_parse_mask(struct xt_option_call *cb)
- 	int ret;
-
- 	ret = getaddrinfo(cb->arg, NULL, &hints, &res);
--	if (ret < 0)
-+	if (ret != 0)
- 		return 0;
-
- 	memcpy(&cb->val.hmask, xtables_sa_host(res->ai_addr, res->ai_family),
