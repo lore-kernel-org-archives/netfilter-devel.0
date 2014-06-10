@@ -1,92 +1,20 @@
-From: Hendrik Schwartke <hendrik@os-t.de>
-Subject: [PATCH] Changed type of chain.priority from unsigned int to int.
-Date: Mon,  9 Jun 2014 23:39:32 +0200
-Message-ID: <1402349972-18658-1-git-send-email-hendrik@os-t.de>
-Cc: Hendrik Schwartke <hendrik@os-t.de>
-To: netfilter-devel@vger.kernel.org
+From: "Santander Finance" <zein@sumutprov.go.id>
+Subject: We offer all purpose loan at 3% interest rate
+Date: Mon, 09 Jun 2014 18:25:40 -0700
+Message-ID: <201406100125.s5A0PClU005954__15341.2067601041$1402363778$gmane$org@akmo.kz>
+Reply-To: santafinance@aol.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <zein@sumutprov.go.id>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:51122 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388AbaFIVkb (ORCPT
+Received: from akmo.kz ([212.154.234.163]:40551 "EHLO akmo.kz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933292AbaFJB2R convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jun 2014 17:40:31 -0400
+	Mon, 9 Jun 2014 21:28:17 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This removes a bug that displays strange hook priorities
-like "type route hook output priority 4294967146".
----
- include/rule.h |    2 +-
- src/netlink.c  |    6 +++---
- src/rule.c     |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/include/rule.h b/include/rule.h
-index ebdafe8..db91406 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -115,7 +115,7 @@ struct chain {
- 	uint32_t		flags;
- 	const char		*hookstr;
- 	unsigned int		hooknum;
--	unsigned int		priority;
-+	int			priority;
- 	const char		*type;
- 	struct scope		scope;
- 	struct list_head	rules;
-diff --git a/src/netlink.c b/src/netlink.c
-index edefc76..2e7c572 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -485,7 +485,7 @@ static int netlink_add_chain_compat(struct netlink_ctx *ctx,
- 	if (chain != NULL && chain->flags & CHAIN_F_BASECHAIN) {
- 		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_HOOKNUM,
- 				       chain->hooknum);
--		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_PRIO,
-+		nft_chain_attr_set_s32(nlc, NFT_CHAIN_ATTR_PRIO,
- 				       chain->priority);
- 		nft_chain_attr_set_str(nlc, NFT_CHAIN_ATTR_TYPE,
- 				       chain->type);
-@@ -512,7 +512,7 @@ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
- 	if (chain != NULL && chain->flags & CHAIN_F_BASECHAIN) {
- 		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_HOOKNUM,
- 				       chain->hooknum);
--		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_PRIO,
-+		nft_chain_attr_set_s32(nlc, NFT_CHAIN_ATTR_PRIO,
- 				       chain->priority);
- 		nft_chain_attr_set_str(nlc, NFT_CHAIN_ATTR_TYPE,
- 				       chain->type);
-@@ -667,7 +667,7 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- 		chain->hooknum       =
- 			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_HOOKNUM);
- 		chain->priority      =
--			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_PRIO);
-+			nft_chain_attr_get_s32(nlc, NFT_CHAIN_ATTR_PRIO);
- 		chain->type          =
- 			xstrdup(nft_chain_attr_get_str(nlc, NFT_CHAIN_ATTR_TYPE));
- 		chain->flags        |= CHAIN_F_BASECHAIN;
-diff --git a/src/rule.c b/src/rule.c
-index 43a3e11..a7bc6f4 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -418,7 +418,7 @@ static void chain_print(const struct chain *chain)
- 
- 	printf("\tchain %s {\n", chain->handle.chain);
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
--		printf("\t\t type %s hook %s priority %u;\n", chain->type,
-+		printf("\t\t type %s hook %s priority %d;\n", chain->type,
- 		       hooknum2str(chain->handle.family, chain->hooknum),
- 		       chain->priority);
- 	}
-@@ -439,7 +439,7 @@ void chain_print_plain(const struct chain *chain)
- 	       chain->handle.table, chain->handle.chain);
- 
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
--		printf(" { type %s hook %s priority %u; }", chain->type,
-+		printf(" { type %s hook %s priority %d; }", chain->type,
- 		       hooknum2str(chain->handle.family, chain->hooknum),
- 		       chain->priority);
- 	}
--- 
-1.7.10.4
-
+We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santanderfinancegroup@gmail.com
