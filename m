@@ -1,34 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH] fix nft -i command crashes when try to input
- multi line command
-Date: Tue, 10 Jun 2014 12:55:52 +0200
-Message-ID: <20140610105552.GA9228@localhost>
-References: <CAHSpA5_tm8PJKSCYwo4RObrzm25tGNX+j_7=K8ySB5+NdK0N9g@mail.gmail.com>
+Subject: Re: [PATCH 3/3] netfilter: Add SKPID and SKSID meta keys
+Date: Tue, 10 Jun 2014 13:01:15 +0200
+Message-ID: <20140610110115.GA9240@localhost>
+References: <1401977956-15500-1-git-send-email-yshuiv7@gmail.com>
+ <1401977956-15500-3-git-send-email-yshuiv7@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Guruswamy B <guru2018@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: Yuxuan Shui <yshuiv7@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54802 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57293 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750808AbaFJKz5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 06:55:57 -0400
+	id S1750790AbaFJLB2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jun 2014 07:01:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAHSpA5_tm8PJKSCYwo4RObrzm25tGNX+j_7=K8ySB5+NdK0N9g@mail.gmail.com>
+In-Reply-To: <1401977956-15500-3-git-send-email-yshuiv7@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jun 08, 2014 at 12:44:16AM +0530, Guruswamy B wrote:
-> Hello,
->  When try to input multiline command in "nft -i", it crashes.
-> 
->  Issue is, function "cli_append_multiline" return null in case of
-> multiline command,
->  But in the calling function "cli_complete", cli_exit is getting
-> called, which in turn calls "rl_callback_handler_remove"  and the
-> handler is getting removed.
+On Thu, Jun 05, 2014 at 10:19:16PM +0800, Yuxuan Shui wrote:
+> Add SKPID and SKSID meta keys so we can implement PID and SID matching
+> rules in userspace nft tool.
 
-Could you include an example on how to reproduce the crash that I can
-append to this patch description?
+I would like to have some use case in the patch description that
+justifies how this can be useful to everyone.
 
-Thanks.
+I don't want add more selectors just because we can make it, they
+should allow to perform some useful action.
