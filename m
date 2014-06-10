@@ -1,17 +1,18 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [nftables PATCH] queue: More compact syntax for nft queue
-Date: Tue, 10 Jun 2014 13:53:49 +0200
-Message-ID: <20140610115349.GA11882@localhost>
+Date: Tue, 10 Jun 2014 14:38:49 +0200
+Message-ID: <20140610123848.GB4938@macbook.localnet>
 References: <1402399703-11177-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, eric@regit.org, kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org, eric@regit.org
 To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48911 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751101AbaFJLxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 07:53:54 -0400
+Received: from stinky.trash.net ([213.144.137.162]:37224 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbaFJMix (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jun 2014 08:38:53 -0400
 Content-Disposition: inline
 In-Reply-To: <1402399703-11177-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -46,77 +47,8 @@ On Tue, Jun 10, 2014 at 01:28:23PM +0200, Alvaro Neira Ayuso wrote:
 > we don't need to use options and the comma for stablishing the
 > flags.
 > 
-> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-> ---
->  include/statement.h       |    4 ++--
->  src/netlink_delinearize.c |    9 ++++++---
->  src/netlink_linearize.c   |   13 ++++++++++---
->  src/parser.y              |   40 ++++++++++++++++++++++++----------------
->  src/scanner.l             |    2 --
->  src/statement.c           |   23 ++++++++---------------
->  6 files changed, 50 insertions(+), 41 deletions(-)
-> 
-> diff --git a/include/statement.h b/include/statement.h
-> index 896b972..480b719 100644
-> --- a/include/statement.h
-> +++ b/include/statement.h
-> @@ -60,8 +60,8 @@ struct nat_stmt {
->  extern struct stmt *nat_stmt_alloc(const struct location *loc);
->  
->  struct queue_stmt {
-> -	uint16_t		queuenum;
-> -	uint16_t		queues_total;
-> +	uint16_t		from;
-> +	uint16_t		to;
->  	uint16_t		flags;
->  };
->  
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index ea33308..aa47d5f 100644
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -541,11 +541,14 @@ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
->  			      const struct nft_rule_expr *nle)
->  {
->  	struct stmt *stmt;
-> +	uint16_t range_to;
->  
->  	stmt = queue_stmt_alloc(loc);
-> -	stmt->queue.queuenum = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
-> -	stmt->queue.queues_total =
-> -		nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
-> +	stmt->queue.from = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
-> +	range_to = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
-> +	range_to += stmt->queue.from - 1;
-> +
-> +	stmt->queue.to = range_to;
->  	stmt->queue.flags = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_FLAGS);
->  	list_add_tail(&stmt->list, &ctx->rule->stmts);
->  }
-> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-> index 19153fd..9b6eed6 100644
-> --- a/src/netlink_linearize.c
-> +++ b/src/netlink_linearize.c
-> @@ -683,15 +683,22 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
->  				 const struct stmt *stmt)
->  {
->  	struct nft_rule_expr *nle;
-> +	uint16_t total_queues;
->  
->  	nle = alloc_nft_expr("queue");
->  
->  	nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_NUM,
-> -			      stmt->queue.queuenum);
-> -	if (stmt->queue.queues_total) {
-> +			      stmt->queue.from);
-> +
-> +	if (stmt->queue.to >= stmt->queue.from) {
-> +		total_queues = stmt->queue.to - stmt->queue.from;
->  		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_TOTAL,
-> -				      stmt->queue.queues_total);
-> +				      total_queues + 1);
-> +	} else {
-> +		BUG("invalid queue interval %u-%u\n", stmt->queue.from,
-> +		    stmt->queue.to);
 
-You can control this error case in the parser.
+I like that. I already came up with something quite similar myself, but
+your approach is even better.
+
+Thanks :)
