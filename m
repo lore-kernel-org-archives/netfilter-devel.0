@@ -1,227 +1,140 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH iptables-nftables 1/3] iptables: nft: generalize batch infrastructure
-Date: Tue, 10 Jun 2014 11:30:37 +0200
-Message-ID: <1402392639-8071-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH iptables-nftables 2/3] iptables: nft: remove unused code
+Date: Tue, 10 Jun 2014 11:30:38 +0200
+Message-ID: <1402392639-8071-2-git-send-email-pablo@netfilter.org>
+References: <1402392639-8071-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49664 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49667 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751172AbaFJJar (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751494AbaFJJar (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 10 Jun 2014 05:30:47 -0400
+In-Reply-To: <1402392639-8071-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prepare inclusion of tables and chain objects in the batch.
+Remove code to set table in dormant state, this is not required from
+the iptables over nft compatibility layer.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft.c |   82 ++++++++++++++++++++++++++++----------------------------
- iptables/nft.h |    4 +--
- 2 files changed, 43 insertions(+), 43 deletions(-)
+ iptables/nft.c |   56 ++++----------------------------------------------------
+ iptables/nft.h |    3 ---
+ 2 files changed, 4 insertions(+), 55 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index f3ec526..919b64d 100644
+index 919b64d..884462c 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -615,7 +615,7 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
- 	h->portid = mnl_socket_get_portid(h->nl);
- 	h->tables = t;
- 
--	INIT_LIST_HEAD(&h->rule_list);
-+	INIT_LIST_HEAD(&h->obj_list);
- 
- 	h->batch = mnl_nft_batch_alloc();
- 
-@@ -949,37 +949,37 @@ err:
- 	return NULL;
- }
- 
--enum rule_update_type {
--       NFT_DO_APPEND,
--       NFT_DO_INSERT,
--       NFT_DO_REPLACE,
--       NFT_DO_DELETE,
--       NFT_DO_FLUSH,
--       NFT_DO_COMMIT,
--       NFT_DO_ABORT,
-+enum obj_update_type {
-+	NFT_COMPAT_RULE_APPEND,
-+	NFT_COMPAT_RULE_INSERT,
-+	NFT_COMPAT_RULE_REPLACE,
-+	NFT_COMPAT_RULE_DELETE,
-+	NFT_COMPAT_RULE_FLUSH,
-+	NFT_COMPAT_COMMIT,
-+	NFT_COMPAT_ABORT,
+@@ -427,9 +427,8 @@ struct builtin_table xtables_arp[TABLES_MAX] = {
+ 	},
  };
  
--struct rule_update {
--       struct list_head        head;
--       enum rule_update_type   type;
--       struct nft_rule	       *rule;
-+struct obj_update {
-+       struct list_head		head;
-+       enum obj_update_type	type;
-+       struct nft_rule		*rule;
- };
- 
--static int rule_update_add(struct nft_handle *h, enum rule_update_type type,
-+static int batch_rule_add(struct nft_handle *h, enum obj_update_type type,
- 			  struct nft_rule *r)
+-int
+-nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
+-			bool dormant)
++static int nft_table_builtin_add(struct nft_handle *h,
++				 struct builtin_table *_t)
  {
--       struct rule_update *rupd;
-+	struct obj_update *obj;
- 
--       rupd = calloc(1, sizeof(struct rule_update));
--       if (rupd == NULL)
--	       return -1;
-+	obj = calloc(1, sizeof(struct obj_update));
-+	if (obj == NULL)
-+		return -1;
- 
--       rupd->rule = r;
--       rupd->type = type;
--       list_add_tail(&rupd->head, &h->rule_list);
--       h->rule_list_num++;
-+	obj->rule = r;
-+	obj->type = type;
-+	list_add_tail(&obj->head, &h->obj_list);
-+	h->obj_list_num++;
- 
--       return 0;
-+	return 0;
- }
- 
- int
-@@ -1001,11 +1001,11 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
- 
- 	if (handle > 0) {
- 		nft_rule_attr_set(r, NFT_RULE_ATTR_HANDLE, &handle);
--		type = NFT_DO_REPLACE;
-+		type = NFT_COMPAT_RULE_REPLACE;
- 	} else
--		type = NFT_DO_APPEND;
-+		type = NFT_COMPAT_RULE_APPEND;
- 
--	if (rule_update_add(h, type, r) < 0)
-+	if (batch_rule_add(h, type, r) < 0)
- 		nft_rule_free(r);
- 
- 	return 1;
-@@ -1243,7 +1243,7 @@ __nft_rule_flush(struct nft_handle *h, const char *table, const char *chain)
- 	nft_rule_attr_set(r, NFT_RULE_ATTR_TABLE, (char *)table);
- 	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, (char *)chain);
- 
--	if (rule_update_add(h, NFT_DO_FLUSH, r) < 0)
-+	if (batch_rule_add(h, NFT_COMPAT_RULE_FLUSH, r) < 0)
- 		nft_rule_free(r);
- }
- 
-@@ -1630,7 +1630,7 @@ static int __nft_rule_del(struct nft_handle *h, struct nft_rule_list *list,
- 
- 	nft_rule_list_del(r);
- 
--	ret = rule_update_add(h, NFT_DO_DELETE, r);
-+	ret = batch_rule_add(h, NFT_COMPAT_RULE_DELETE, r);
- 	if (ret < 0) {
- 		nft_rule_free(r);
- 		return -1;
-@@ -1756,7 +1756,7 @@ nft_rule_add(struct nft_handle *h, const char *chain,
- 	if (handle > 0)
- 		nft_rule_attr_set_u64(r, NFT_RULE_ATTR_POSITION, handle);
- 
--	if (rule_update_add(h, NFT_DO_INSERT, r) < 0) {
-+	if (batch_rule_add(h, NFT_COMPAT_RULE_INSERT, r) < 0) {
- 		nft_rule_free(r);
- 		return 0;
- 	}
-@@ -2180,28 +2180,28 @@ error:
- static int nft_action(struct nft_handle *h, int action)
- {
- 	int flags = NLM_F_CREATE, type;
--	struct rule_update *n, *tmp;
-+	struct obj_update *n, *tmp;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
  	struct nlmsghdr *nlh;
- 	uint32_t seq = 1;
- 	int ret;
+@@ -444,10 +443,6 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
+ 		return -1;
  
- 	mnl_nft_batch_begin(h->batch, seq++);
+ 	nft_table_attr_set(t, NFT_TABLE_ATTR_NAME, (char *)_t->name);
+-	if (dormant) {
+-		nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS,
+-					NFT_TABLE_F_DORMANT);
+-	}
  
--	list_for_each_entry_safe(n, tmp, &h->rule_list, head) {
-+	list_for_each_entry_safe(n, tmp, &h->obj_list, head) {
- 		switch (n->type) {
--		case NFT_DO_APPEND:
-+		case NFT_COMPAT_RULE_APPEND:
- 			type = NFT_MSG_NEWRULE;
- 			flags |= NLM_F_APPEND;
- 			break;
--		case NFT_DO_INSERT:
-+		case NFT_COMPAT_RULE_INSERT:
- 			type = NFT_MSG_NEWRULE;
- 			break;
--		case NFT_DO_REPLACE:
-+		case NFT_COMPAT_RULE_REPLACE:
- 			type = NFT_MSG_NEWRULE;
- 			flags |= NLM_F_REPLACE;
- 			break;
--		case NFT_DO_DELETE:
--		case NFT_DO_FLUSH:
-+		case NFT_COMPAT_RULE_DELETE:
-+		case NFT_COMPAT_RULE_FLUSH:
- 			type = NFT_MSG_DELRULE;
- 			break;
- 		default:
-@@ -2213,7 +2213,7 @@ static int nft_action(struct nft_handle *h, int action)
- 		nft_rule_nlmsg_build_payload(nlh, n->rule);
- 		nft_rule_print_debug(n->rule, nlh);
- 
--		h->rule_list_num--;
-+		h->obj_list_num--;
- 		list_del(&n->head);
- 		nft_rule_free(n->rule);
- 		free(n);
-@@ -2223,10 +2223,10 @@ static int nft_action(struct nft_handle *h, int action)
+ 	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL, h->seq);
+@@ -582,7 +577,7 @@ nft_chain_builtin_init(struct nft_handle *h, const char *table,
+ 		ret = -1;
+ 		goto out;
  	}
- 
- 	switch (action) {
--	case NFT_DO_COMMIT:
-+	case NFT_COMPAT_COMMIT:
- 		mnl_nft_batch_end(h->batch, seq++);
- 		break;
--	case NFT_DO_ABORT:
-+	case NFT_COMPAT_ABORT:
- 		break;
- 	}
- 
-@@ -2244,12 +2244,12 @@ static int nft_action(struct nft_handle *h, int action)
- 
- int nft_commit(struct nft_handle *h)
- {
--	return nft_action(h, NFT_DO_COMMIT);
-+	return nft_action(h, NFT_COMPAT_COMMIT);
+-	if (nft_table_builtin_add(h, t, false) < 0) {
++	if (nft_table_builtin_add(h, t) < 0) {
+ 		/* Built-in table already initialized, skip. */
+ 		if (errno == EEXIST)
+ 			goto out;
+@@ -653,49 +648,6 @@ int nft_chain_add(struct nft_handle *h, const struct nft_chain *c)
+ 	return mnl_talk(h, nlh, NULL, NULL);
  }
  
- int nft_abort(struct nft_handle *h)
+-int nft_table_set_dormant(struct nft_handle *h, const char *table)
+-{
+-	int ret = 0, i;
+-	struct builtin_table *t;
+-
+-	t = nft_table_builtin_find(h, table);
+-	if (t == NULL) {
+-		ret = -1;
+-		goto out;
+-	}
+-	/* Add this table as dormant */
+-	if (nft_table_builtin_add(h, t, true) < 0) {
+-		/* Built-in table already initialized, skip. */
+-		if (errno == EEXIST)
+-			goto out;
+-	}
+-	for (i=0; t->chains[i].name != NULL && i<NF_INET_NUMHOOKS; i++)
+-		__nft_chain_builtin_init(h, t, t->chains[i].name, NF_ACCEPT);
+-out:
+-	return ret;
+-}
+-
+-int nft_table_wake_dormant(struct nft_handle *h, const char *table)
+-{
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+-	struct nlmsghdr *nlh;
+-	struct nft_table *t;
+-
+-	t = nft_table_alloc();
+-	if (t == NULL)
+-		return -1;
+-
+-	nft_table_attr_set(t, NFT_TABLE_ATTR_NAME, (char *)table);
+-	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, 0);
+-
+-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
+-					NLM_F_ACK, h->seq);
+-	nft_table_nlmsg_build_payload(nlh, t);
+-	nft_table_free(t);
+-
+-	return mnl_talk(h, nlh, NULL, NULL);
+-}
+-
+ static void nft_chain_print_debug(struct nft_chain *c, struct nlmsghdr *nlh)
  {
--	return nft_action(h, NFT_DO_ABORT);
-+	return nft_action(h, NFT_COMPAT_ABORT);
- }
+ #ifdef NLDEBUG
+@@ -721,7 +673,7 @@ __nft_chain_set(struct nft_handle *h, const char *table,
+ 	_t = nft_table_builtin_find(h, table);
+ 	/* if this built-in table does not exists, create it */
+ 	if (_t != NULL)
+-		nft_table_builtin_add(h, _t, false);
++		nft_table_builtin_add(h, _t);
  
- int nft_compatible_revision(const char *name, uint8_t rev, int opt)
+ 	_c = nft_chain_builtin_find(_t, chain);
+ 	if (_c != NULL) {
 diff --git a/iptables/nft.h b/iptables/nft.h
-index c31371c..ddc5201 100644
+index ddc5201..1e78edd 100644
 --- a/iptables/nft.h
 +++ b/iptables/nft.h
-@@ -30,8 +30,8 @@ struct nft_handle {
- 	struct mnl_socket	*nl;
- 	uint32_t		portid;
- 	uint32_t		seq;
--	struct list_head	rule_list;
--	int			rule_list_num;
-+	struct list_head	obj_list;
-+	int			obj_list_num;
- 	struct mnl_nlmsg_batch	*batch;
- 	struct nft_family_ops	*ops;
- 	struct builtin_table	*tables;
+@@ -53,13 +53,10 @@ void nft_fini(struct nft_handle *h);
+ struct nft_table;
+ struct nft_chain_list;
+ 
+-int nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t, bool dormant);
+ struct builtin_table *nft_table_builtin_find(struct nft_handle *h, const char *table);
+ int nft_table_add(struct nft_handle *h, const struct nft_table *t);
+ int nft_for_each_table(struct nft_handle *h, int (*func)(struct nft_handle *h, const char *tablename, bool counters), bool counters);
+ bool nft_table_find(struct nft_handle *h, const char *tablename);
+-int nft_table_set_dormant(struct nft_handle *h, const char *table);
+-int nft_table_wake_dormant(struct nft_handle *h, const char *table);
+ int nft_table_purge_chains(struct nft_handle *h, const char *table, struct nft_chain_list *list);
+ 
+ /*
 -- 
 1.7.10.4
 
