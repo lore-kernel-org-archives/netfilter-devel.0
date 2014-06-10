@@ -1,59 +1,122 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables-compat PATCH] save: fix the printing of the counters
-Date: Tue, 10 Jun 2014 13:48:53 +0200
-Message-ID: <20140610114853.GA11663@localhost>
-References: <1401781652-3538-1-git-send-email-giuseppelng@gmail.com>
+Subject: Re: [nftables PATCH] queue: More compact syntax for nft queue
+Date: Tue, 10 Jun 2014 13:53:49 +0200
+Message-ID: <20140610115349.GA11882@localhost>
+References: <1402399703-11177-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, eric@regit.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47117 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48911 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241AbaFJLs6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 07:48:58 -0400
+	id S1751101AbaFJLxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jun 2014 07:53:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1401781652-3538-1-git-send-email-giuseppelng@gmail.com>
+In-Reply-To: <1402399703-11177-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 03, 2014 at 09:47:32AM +0200, Giuseppe Longo wrote:
-> This patch prints the counters of a rule before the details,
-> like iptables-save syntax.
+On Tue, Jun 10, 2014 at 01:28:23PM +0200, Alvaro Neira Ayuso wrote:
+> This patch allows to use a new syntax more compact and break
+> the last syntax. This new syntax is more similar than the nftables
+> syntax that we use usually. We can use range like we have used in
+> other case in nftables. Here, we have some examples:
+> 
+> Before, If we want to declare a queue, we have used a syntax like this:
+> 
+> nft add rule test input queue num 1 total 3 options bypass,fanout
+> 
+> If we want to use the queue number 1 and the two next (total 3),
+> we use a range in the new syntax, for example:
+> 
+> nft add rule test input queue num 1-3 bypass fanout
+> 
+> Also if we want to use only one queue, the new rules are like:
+> 
+> nft add rule test input queue num 1	//queue 1
+> or
+> nft add rule test input queue	//queue 0
+> 
+> And if we want to add a specific flags we only need to put
+> what flags we want to use:
+> 
+> nft add rule test input queue bypass
+> 
+> we don't need to use options and the comma for stablishing the
+> flags.
+> 
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  include/statement.h       |    4 ++--
+>  src/netlink_delinearize.c |    9 ++++++---
+>  src/netlink_linearize.c   |   13 ++++++++++---
+>  src/parser.y              |   40 ++++++++++++++++++++++++----------------
+>  src/scanner.l             |    2 --
+>  src/statement.c           |   23 ++++++++---------------
+>  6 files changed, 50 insertions(+), 41 deletions(-)
+> 
+> diff --git a/include/statement.h b/include/statement.h
+> index 896b972..480b719 100644
+> --- a/include/statement.h
+> +++ b/include/statement.h
+> @@ -60,8 +60,8 @@ struct nat_stmt {
+>  extern struct stmt *nat_stmt_alloc(const struct location *loc);
+>  
+>  struct queue_stmt {
+> -	uint16_t		queuenum;
+> -	uint16_t		queues_total;
+> +	uint16_t		from;
+> +	uint16_t		to;
+>  	uint16_t		flags;
+>  };
+>  
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> index ea33308..aa47d5f 100644
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -541,11 +541,14 @@ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
+>  			      const struct nft_rule_expr *nle)
+>  {
+>  	struct stmt *stmt;
+> +	uint16_t range_to;
+>  
+>  	stmt = queue_stmt_alloc(loc);
+> -	stmt->queue.queuenum = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
+> -	stmt->queue.queues_total =
+> -		nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
+> +	stmt->queue.from = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
+> +	range_to = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
+> +	range_to += stmt->queue.from - 1;
+> +
+> +	stmt->queue.to = range_to;
+>  	stmt->queue.flags = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_FLAGS);
+>  	list_add_tail(&stmt->list, &ctx->rule->stmts);
+>  }
+> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+> index 19153fd..9b6eed6 100644
+> --- a/src/netlink_linearize.c
+> +++ b/src/netlink_linearize.c
+> @@ -683,15 +683,22 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+>  				 const struct stmt *stmt)
+>  {
+>  	struct nft_rule_expr *nle;
+> +	uint16_t total_queues;
+>  
+>  	nle = alloc_nft_expr("queue");
+>  
+>  	nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_NUM,
+> -			      stmt->queue.queuenum);
+> -	if (stmt->queue.queues_total) {
+> +			      stmt->queue.from);
+> +
+> +	if (stmt->queue.to >= stmt->queue.from) {
+> +		total_queues = stmt->queue.to - stmt->queue.from;
+>  		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_TOTAL,
+> -				      stmt->queue.queues_total);
+> +				      total_queues + 1);
+> +	} else {
+> +		BUG("invalid queue interval %u-%u\n", stmt->queue.from,
+> +		    stmt->queue.to);
 
-The output after your patch:
-
-shell# iptables-compat-save -c
-# Generated by xtables-save v1.4.21 on Tue Jun 10 13:37:11 2014
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:test - [0:0]
-[       0 :       0 ] -A INPUT -s 1.1.1.1/32 
-COMMIT
-# Completed on Tue Jun 10 13:37:11 2014
-
-And the original iptables-save output:
-
-shell# iptables-save -c
-# Generated by iptables-save v1.4.21 on Tue Jun 10 13:33:06 2014
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:test - [0:0]
-[0:0] -A INPUT -s 1.1.1.1/32
-COMMIT
-
-I think you have to use:
-
-+void save_counters(uint64_t pcnt, uint64_t bcnt, unsigned int format)
-+{
-+       printf("[%llu:%llu] ", pcnt, bcnt);
-+}
-
-to make it look similar to what we have. The format parameter, I think
-you don't need it if this is only used for saving.
-
-Can you fix you and resend? Thanks.
+You can control this error case in the parser.
