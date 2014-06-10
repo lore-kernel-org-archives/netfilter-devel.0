@@ -1,265 +1,65 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nftables PATCH v2] queue: More compact syntax
-Date: Tue, 10 Jun 2014 15:26:24 +0200
-Message-ID: <1402406784-15693-1-git-send-email-alvaroneay@gmail.com>
-References: <1402406110-14892-1-git-send-email-alvaroneay@gmail.com>
-Cc: eric@regit.org, kaber@trash.net
+From: Domen Puncer <domen.puncer@samsung.com>
+Subject: [PATCH iptables] libxtables: fix getaddrinfo return value usage
+Date: Tue, 10 Jun 2014 14:29:49 +0100
+Message-ID: <5397084D.8020703@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:45604 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbaFJN0p (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:47111 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbaFJNar (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 09:26:45 -0400
-Received: by mail-we0-f179.google.com with SMTP id w62so2892552wes.24
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Jun 2014 06:26:41 -0700 (PDT)
-In-Reply-To: <1402406110-14892-1-git-send-email-alvaroneay@gmail.com>
+	Tue, 10 Jun 2014 09:30:47 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6Y002CRG783L10@mailout3.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Tue, 10 Jun 2014 14:30:44 +0100 (BST)
+Received: from ex1.seri.co.uk ([106.1.8.3])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0N6Y00GKGG78T6B0@eusync3.samsung.com> for
+ netfilter-devel@vger.kernel.org; Tue, 10 Jun 2014 14:30:44 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows to use a new syntax more compact and break
-the current syntax. This new syntax is more similar than the nftables
-syntax that we use usually. We can use range like we have used in
-other case in nftables. Here, we have some examples:
+getaddrinfo return value on error can also be positive.
 
-Before, If we want to declare a queue, we have used a syntax like this:
-
-nft add rule test input queue num 1 total 3 options bypass,fanout
-
-If we want to use the queue number 1 and the two next (total 3),
-we use a range in the new syntax, for example:
-
-nft add rule test input queue num 1-3 bypass fanout
-
-Also if we want to use only one queue, the new rules are like:
-
-nft add rule test input queue num 1	//queue 1
-or
-nft add rule test input queue	//queue 0
-
-And if we want to add a specific flags we only need to put
-what flags we want to use:
-
-nft add rule test input queue bypass
-
-we don't need to use options and the comma for indicating the
-flags.
-
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Signed-off-by: Domen Puncer Kugler <domen.puncer@samsung.com>
 ---
-[changes in v2]
-* I have moved the range checking (if the range is well-form) from the linealize
-  to the parser.
+ libxtables/xtoptions.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- include/statement.h       |    4 ++--
- src/netlink_delinearize.c |    9 ++++++---
- src/netlink_linearize.c   |   12 +++++++-----
- src/parser.y              |   46 +++++++++++++++++++++++++++++----------------
- src/scanner.l             |    2 --
- src/statement.c           |   23 ++++++++---------------
- 6 files changed, 53 insertions(+), 43 deletions(-)
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 9b4c5aa..d26d2f8 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -519,7 +519,7 @@ static void xtopt_parse_host(struct xt_option_call *cb)
+ 	int ret;
 
-diff --git a/include/statement.h b/include/statement.h
-index 896b972..480b719 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -60,8 +60,8 @@ struct nat_stmt {
- extern struct stmt *nat_stmt_alloc(const struct location *loc);
- 
- struct queue_stmt {
--	uint16_t		queuenum;
--	uint16_t		queues_total;
-+	uint16_t		from;
-+	uint16_t		to;
- 	uint16_t		flags;
- };
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index ea33308..5c6ca80 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -541,11 +541,14 @@ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
- 			      const struct nft_rule_expr *nle)
- {
- 	struct stmt *stmt;
-+	uint16_t range_to;
- 
- 	stmt = queue_stmt_alloc(loc);
--	stmt->queue.queuenum = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
--	stmt->queue.queues_total =
--		nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
-+	stmt->queue.from = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_NUM);
-+	range_to = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_TOTAL);
-+	range_to += stmt->queue.from - 1;
-+	stmt->queue.to = range_to;
-+
- 	stmt->queue.flags = nft_rule_expr_get_u16(nle, NFT_EXPR_QUEUE_FLAGS);
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 19153fd..8db333c 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -683,15 +683,17 @@ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
- 				 const struct stmt *stmt)
- {
- 	struct nft_rule_expr *nle;
-+	uint16_t total_queues;
- 
- 	nle = alloc_nft_expr("queue");
- 
- 	nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_NUM,
--			      stmt->queue.queuenum);
--	if (stmt->queue.queues_total) {
--		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_TOTAL,
--				      stmt->queue.queues_total);
--	}
-+			      stmt->queue.from);
-+
-+	total_queues = stmt->queue.to - stmt->queue.from;
-+	nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_TOTAL,
-+			      total_queues + 1);
-+
- 	if (stmt->queue.flags) {
- 		nft_rule_expr_set_u16(nle, NFT_EXPR_QUEUE_FLAGS,
- 				      stmt->queue.flags);
-diff --git a/src/parser.y b/src/parser.y
-index 38b655d..95159e2 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -365,10 +365,8 @@ static int monitor_lookup_event(const char *event)
- 
- %token QUEUE			"queue"
- %token QUEUENUM			"num"
--%token QUEUETOTAL		"total"
- %token QUEUEBYPASS		"bypass"
- %token QUEUECPUFANOUT		"fanout"
--%token OPTIONS			"options"
- 
- %token POSITION			"position"
- %token COMMENT			"comment"
-@@ -425,7 +423,7 @@ static int monitor_lookup_event(const char *event)
- %destructor { stmt_free($$); }	reject_stmt
- %type <stmt>			nat_stmt nat_stmt_alloc
- %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc
--%type <stmt>			queue_stmt queue_stmt_alloc
-+%type <stmt>			queue_stmt queue_stmt_alloc queue_range
- %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
- %type <val>			queue_flags queue_flag
- 
-@@ -1444,24 +1442,40 @@ queue_stmt_alloc		:	QUEUE
- 			}
- 			;
- 
--queue_args		:	queue_arg
-+queue_args		:	QUEUENUM	queue_range	queue_flags
- 			{
--				$<stmt>$	= $<stmt>0;
-+				$<stmt>0->queue.from  = $2->queue.from;
-+				$<stmt>0->queue.to = $2->queue.to;
-+				$<stmt>0->queue.flags = $3;
- 			}
--			|	queue_args	queue_arg
--			;
--
--queue_arg		:	QUEUENUM		NUM
-+			|	QUEUENUM	queue_range
- 			{
--				$<stmt>0->queue.queuenum	 = $2;
-+				$<stmt>0->queue.from  = $2->queue.from;
-+				$<stmt>0->queue.to = $2->queue.to;
- 			}
--			|	QUEUETOTAL		NUM
-+			|	queue_flags
- 			{
--				$<stmt>0->queue.queues_total	 = $2;
-+				$<stmt>0->queue.flags		= $1;
- 			}
--			|	OPTIONS		queue_flags
-+			;
-+
-+queue_range		:	NUM
- 			{
--				$<stmt>0->queue.flags		 = $2;
-+				$<stmt>0->queue.from		= $1;
-+				$<stmt>0->queue.to		= $1;
-+				$$ = $<stmt>0;
-+			}
-+			|	NUM	DASH	NUM
-+			{
-+				if ($3 < $1) {
-+					erec_queue(error(&@1,
-+							 "invalid range %d-%d",
-+							 $1, $3), state->msgs);
-+					YYERROR;
-+				}
-+				$<stmt>0->queue.from		= $1;
-+				$<stmt>0->queue.to		= $3;
-+				$$ = $<stmt>0;
- 			}
- 			;
- 
-@@ -1469,9 +1483,9 @@ queue_flags		:	queue_flag
- 			{
- 				$$ = $1;
- 			}
--			|	queue_flags	COMMA	queue_flag
-+			|	queue_flags	queue_flag
- 			{
--				$$ |= $1 | $3;
-+				$$ |= $1 | $2;
- 			}
- 			;
- 
-diff --git a/src/scanner.l b/src/scanner.l
-index d8d70ed..73a1a3f 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -279,10 +279,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 
- "queue"			{ return QUEUE;}
- "num"			{ return QUEUENUM;}
--"total"			{ return QUEUETOTAL;}
- "bypass"		{ return QUEUEBYPASS;}
- "fanout"		{ return QUEUECPUFANOUT;}
--"options"		{ return OPTIONS;}
- 
- "limit"			{ return LIMIT; }
- "rate"			{ return RATE; }
-diff --git a/src/statement.c b/src/statement.c
-index 3fdd9e2..2dd3f18 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -174,21 +174,14 @@ struct stmt *limit_stmt_alloc(const struct location *loc)
- 
- static void queue_stmt_print(const struct stmt *stmt)
- {
--	int one = 0;
--
--	printf("queue num %u total %u",
--		stmt->queue.queuenum, stmt->queue.queues_total);
--	if (stmt->queue.flags)
--		printf(" options ");
--	if (stmt->queue.flags & NFT_QUEUE_FLAG_BYPASS) {
--		printf("bypass");
--		one = 1;
--	}
--	if (stmt->queue.flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
--		if (one)
--			printf (",");
--		printf("fanout");
--	}
-+	printf("queue num %u",
-+		stmt->queue.from);
-+	if (stmt->queue.to && stmt->queue.to != stmt->queue.from)
-+		printf("-%u", stmt->queue.to);
-+	if (stmt->queue.flags & NFT_QUEUE_FLAG_BYPASS)
-+		printf(" bypass");
-+	if (stmt->queue.flags & NFT_QUEUE_FLAG_CPU_FANOUT)
-+		printf(" fanout");
- 
- }
- 
--- 
-1.7.10.4
+ 	ret = getaddrinfo(cb->arg, NULL, &hints, &res);
+-	if (ret < 0)
++	if (ret != 0)
+ 		xt_params->exit_err(PARAMETER_PROBLEM,
+ 			"getaddrinfo: %s\n", gai_strerror(ret));
 
+@@ -562,7 +562,7 @@ static int xtables_getportbyname(const char *name)
+ 	int ret;
+
+ 	ret = getaddrinfo(NULL, name, NULL, &res);
+-	if (ret < 0)
++	if (ret != 0)
+ 		return -1;
+ 	ret = -1;
+ 	for (p = res; p != NULL; p = p->ai_next) {
+@@ -675,7 +675,7 @@ static int xtopt_parse_mask(struct xt_option_call *cb)
+ 	int ret;
+
+ 	ret = getaddrinfo(cb->arg, NULL, &hints, &res);
+-	if (ret < 0)
++	if (ret != 0)
+ 		return 0;
+
+ 	memcpy(&cb->val.hmask, xtables_sa_host(res->ai_addr, res->ai_family),
