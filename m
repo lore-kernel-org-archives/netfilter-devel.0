@@ -1,53 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 2/5] src: set: Do not print unset values in xml
-Date: Wed, 11 Jun 2014 19:49:01 +0200
-Message-ID: <20140611174901.GA17843@localhost>
+Subject: Re: [libnftnl PATCH 3/5] src: set: Do not print unset values in json
+Date: Wed, 11 Jun 2014 19:50:26 +0200
+Message-ID: <20140611175026.GB17843@localhost>
 References: <1402501851-22208-1-git-send-email-anarey@gmail.com>
- <1402501851-22208-4-git-send-email-anarey@gmail.com>
- <CAOkSjBjU6X1nZ1QY7TK08Ft22pZdSEQHmrrVxPWYCbUQuC+qrg@mail.gmail.com>
+ <1402501851-22208-5-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Ana Rey <anarey@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56944 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57128 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751633AbaFKRtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 13:49:09 -0400
+	id S1751633AbaFKRub (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jun 2014 13:50:31 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjU6X1nZ1QY7TK08Ft22pZdSEQHmrrVxPWYCbUQuC+qrg@mail.gmail.com>
+In-Reply-To: <1402501851-22208-5-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 11, 2014 at 06:14:40PM +0200, Arturo Borrero Gonzalez wrote:
-> Hi Ana,
+On Wed, Jun 11, 2014 at 05:50:49PM +0200, Ana Rey wrote:
+> It changes the parse and the snprint functions to omit unset values.
 > 
-> a small thing below,
+> This json file is gotten for a set:
+> {
+>   "set": {
+>     "name": "mi6set3",
+>     "table": "test6",
+>     "flags": "0",
+>     "family": "unknown",
+>     "key_type": "0",
+>     "key_len": "0",
+>     "set_elem": [
+>       {
+>         "flags": "0",
+>         "key": {
+>           "data_reg": {
+>             "type": "value",
+>             "len": "16",
+>             "data0": "0x000080fe",
+>             "data1": "0x00000000",
+>             "data2": "0xffb30202",
+>             "data3": "0x89001efe"
 > 
-> On 11 June 2014 17:50, Ana Rey <anarey@gmail.com> wrote:
-> [...]
-> > @@ -563,17 +560,26 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
-> >  {
-> >         int ret, len = size, offset = 0, type = DATA_NONE;
-> >
-> > -       ret = snprintf(buf, size, "<set_elem>"
-> > -                               "<flags>%u</flags><key>",
-> > -                               e->set_elem_flags);
-> > +       ret = snprintf(buf, size, "<set_elem>");
-> >         SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> >
-> > -       ret = nft_data_reg_snprintf(buf+offset, len, &e->key,
-> > -                                   NFT_OUTPUT_XML, flags, DATA_VALUE);
-> > -       SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> > +       if (e->flags & (1 << NFT_SET_ELEM_ATTR_FLAGS)) {
-> > +               ret = snprintf(buf, size, "<flags>%u</flags>",
-> > +                              e->set_elem_flags);
-> 
-> I think this snprintf call may overwrite the buffer, so you should use
-> snprintf(buf+offset, len, ...)
+> Now, This json file is gotten for a set without unset elements.
+> {
+>   "set": {
+>     "name": "mi6set3",
+>     "table": "test6",
+>     "family": "unknown",
+>     "set_elem": [
+>       {
+>         "key": {
+>           "data_reg": {
+>             "type": "value",
+>             "len": "16",
+>             "data0": "0x000080fe",
+>             "data1": "0x00000000",
+>             "data2": "0xffb30202",
+>             "data3": "0x89001efe"
 
-Thanks for reviewing Arturo.
+I have included a note that says that this is the output when printing
+set elements (where the key and key length are not available).
 
-I have fixed this here and applied.
+Applied, thanks.
