@@ -1,19 +1,18 @@
-From: Info <freelotto1@freelotto739.onmicrosoft.com>
-Subject: Urgent Notification Free Lotto Award(Reference:WIN-37-14-29-14)
-Date: Wed, 11 Jun 2014 01:30:51 +0200
-Message-ID: <0c236299-d66a-40d7-b5c0-71a313e28061__36120.2222331942$1402443093$gmane$org@AM3PR05MB306.eurprd05.prod.outlook.com>
-Reply-To: <freel26f@aol.com>
+From: "Info" <zein@sumutprov.go.id>
+Subject: Urgent Notification OF Award(Reference:WIN-37-14-29-14)
+Date: Tue, 10 Jun 2014 19:21:36 -0700
+Message-ID: <201406110221.s5B24xxV018167__40470.5675821335$1402453423$gmane$org@akmo.kz>
+Reply-To: freel26f@aol.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Recipients <freelotto1@freelotto739.onmicrosoft.com>
+To: Recipients <zein@sumutprov.go.id>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-db3hn0247.outbound.protection.outlook.com ([157.55.234.247]:13888
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752183AbaFJXbP convert rfc822-to-8bit (ORCPT
+Received: from akmo.kz ([212.154.234.163]:47162 "EHLO akmo.kz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751937AbaFKCX0 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2014 19:31:15 -0400
+	Tue, 10 Jun 2014 22:23:26 -0400
 Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
