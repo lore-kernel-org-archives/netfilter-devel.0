@@ -1,62 +1,65 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 2/5] src: set: Do not print unset values in xml
-Date: Wed, 11 Jun 2014 18:14:40 +0200
-Message-ID: <CAOkSjBjU6X1nZ1QY7TK08Ft22pZdSEQHmrrVxPWYCbUQuC+qrg@mail.gmail.com>
-References: <1402501851-22208-1-git-send-email-anarey@gmail.com> <1402501851-22208-4-git-send-email-anarey@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Ana Rey <anarey@gmail.com>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nftables PATCH 1/2] reject: Check the protocol context for indicating the reject type
+Date: Wed, 11 Jun 2014 18:49:22 +0200
+Message-ID: <1402505362-8355-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:39808 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755744AbaFKQPC convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f181.google.com ([74.125.82.181]:49631 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152AbaFKQtl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 12:15:02 -0400
-Received: by mail-lb0-f180.google.com with SMTP id p9so4830655lbv.25
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 09:15:00 -0700 (PDT)
-In-Reply-To: <1402501851-22208-4-git-send-email-anarey@gmail.com>
+	Wed, 11 Jun 2014 12:49:41 -0400
+Received: by mail-we0-f181.google.com with SMTP id q59so3428wes.40
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 09:49:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ana,
+This patch check the protocol context and initialize the reject type
+considering if the transport protocol is tcp, udp, etc. Before, we
+didn't initialize it
 
-a small thing below,
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/evaluate.c            |   12 ++++++++++++
+ src/netlink_delinearize.c |    1 +
+ 2 files changed, 13 insertions(+)
 
-On 11 June 2014 17:50, Ana Rey <anarey@gmail.com> wrote:
-[...]
-> @@ -563,17 +560,26 @@ static int nft_set_elem_snprintf_xml(char *buf,=
- size_t size,
->  {
->         int ret, len =3D size, offset =3D 0, type =3D DATA_NONE;
->
-> -       ret =3D snprintf(buf, size, "<set_elem>"
-> -                               "<flags>%u</flags><key>",
-> -                               e->set_elem_flags);
-> +       ret =3D snprintf(buf, size, "<set_elem>");
->         SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
->
-> -       ret =3D nft_data_reg_snprintf(buf+offset, len, &e->key,
-> -                                   NFT_OUTPUT_XML, flags, DATA_VALUE=
-);
-> -       SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-> +       if (e->flags & (1 << NFT_SET_ELEM_ATTR_FLAGS)) {
-> +               ret =3D snprintf(buf, size, "<flags>%u</flags>",
-> +                              e->set_elem_flags);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 2330bbb..c15cd55 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1132,6 +1132,18 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
+ {
++	struct proto_ctx *pctx = &ctx->pctx;
++	const struct proto_desc *base;
++
++	base = pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
++	if (base == NULL)
++		return -1;
++
++	if (strcmp(base->name, "tcp") == 0)
++		stmt->reject.type = NFT_REJECT_TCP_RST;
++	else
++		stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
++
+ 	stmt->flags |= STMT_F_TERMINAL;
+ 	return 0;
+ }
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 5c6ca80..a98c68f 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -456,6 +456,7 @@ static void netlink_parse_reject(struct netlink_parse_ctx *ctx,
+ 	struct stmt *stmt;
+ 
+ 	stmt = reject_stmt_alloc(loc);
++	stmt->reject.type = nft_rule_expr_get_u32(expr, NFT_EXPR_REJECT_TYPE);
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
+ }
+ 
+-- 
+1.7.10.4
 
-I think this snprintf call may overwrite the buffer, so you should use
-snprintf(buf+offset, len, ...)
-
-Maybe we need more testfiles, to cover all combinations of optionals
-node-elements.
-
-regards.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
