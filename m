@@ -1,56 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] tests: Use the system errors in test_xml.
-Date: Wed, 11 Jun 2014 19:48:28 +0200
-Message-ID: <20140611174828.GB17547@localhost>
+Subject: Re: [libnftnl PATCH 2/5] src: set: Do not print unset values in xml
+Date: Wed, 11 Jun 2014 19:49:01 +0200
+Message-ID: <20140611174901.GA17843@localhost>
 References: <1402501851-22208-1-git-send-email-anarey@gmail.com>
- <1402501851-22208-3-git-send-email-anarey@gmail.com>
+ <1402501851-22208-4-git-send-email-anarey@gmail.com>
+ <CAOkSjBjU6X1nZ1QY7TK08Ft22pZdSEQHmrrVxPWYCbUQuC+qrg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56865 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409AbaFKRsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 13:48:33 -0400
+	id S1751633AbaFKRtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jun 2014 13:49:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1402501851-22208-3-git-send-email-anarey@gmail.com>
+In-Reply-To: <CAOkSjBjU6X1nZ1QY7TK08Ft22pZdSEQHmrrVxPWYCbUQuC+qrg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 11, 2014 at 05:50:47PM +0200, Ana Rey wrote:
-> Add the use of system errors (nft_parse_perror) in test_xml to know which
-> node is not found.
+On Wed, Jun 11, 2014 at 06:14:40PM +0200, Arturo Borrero Gonzalez wrote:
+> Hi Ana,
 > 
-> Example:
-> parsing xmlfiles/75-ruleset.xml: FAILED (Invalid argument)
-> fail : Node "flags" not found
+> a small thing below,
+> 
+> On 11 June 2014 17:50, Ana Rey <anarey@gmail.com> wrote:
+> [...]
+> > @@ -563,17 +560,26 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
+> >  {
+> >         int ret, len = size, offset = 0, type = DATA_NONE;
+> >
+> > -       ret = snprintf(buf, size, "<set_elem>"
+> > -                               "<flags>%u</flags><key>",
+> > -                               e->set_elem_flags);
+> > +       ret = snprintf(buf, size, "<set_elem>");
+> >         SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> >
+> > -       ret = nft_data_reg_snprintf(buf+offset, len, &e->key,
+> > -                                   NFT_OUTPUT_XML, flags, DATA_VALUE);
+> > -       SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> > +       if (e->flags & (1 << NFT_SET_ELEM_ATTR_FLAGS)) {
+> > +               ret = snprintf(buf, size, "<flags>%u</flags>",
+> > +                              e->set_elem_flags);
+> 
+> I think this snprintf call may overwrite the buffer, so you should use
+> snprintf(buf+offset, len, ...)
 
-Renamed 'fail' to 'Reason'. I know the other part of code it was using
-'fail', but it already said 'FAILED' above, so I think it clarifies a
-bit more.
+Thanks for reviewing Arturo.
 
-> Signed-off-by: Ana Rey <anarey@gmail.com>
-> ---
->  tests/nft-parsing-test.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-> index 2a15109..5eff0b9 100644
-> --- a/tests/nft-parsing-test.c
-> +++ b/tests/nft-parsing-test.c
-> @@ -177,6 +177,7 @@ failparsing:
->  	fclose(fp);
->  	printf("parsing %s: ", filename);
->  	printf("\033[31mFAILED\e[0m (%s)\n", strerror(errno));
-> +	nft_parse_perror("fail", err);
->  	return -1;
->  }
->  
-> -- 
-> 2.0.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have fixed this here and applied.
