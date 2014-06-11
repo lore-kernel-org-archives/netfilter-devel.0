@@ -1,41 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] netfilter: conntrack: remove timer from ecache
- extension
-Date: Wed, 11 Jun 2014 10:55:47 +0200
-Message-ID: <20140611085547.GA4131@localhost>
-References: <1402434776-23461-1-git-send-email-fw@strlen.de>
+Subject: Re: [iptables-compat PATCH v2] save: fix the printing of the counters
+Date: Wed, 11 Jun 2014 11:03:21 +0200
+Message-ID: <20140611090321.GA4881@localhost>
+References: <1402476792-4738-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44467 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47536 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754230AbaFKIzx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 04:55:53 -0400
+	id S1755734AbaFKJDb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jun 2014 05:03:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1402434776-23461-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1402476792-4738-1-git-send-email-giuseppelng@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
+On Wed, Jun 11, 2014 at 10:53:12AM +0200, Giuseppe Longo wrote:
+> This patch prints the counters of a rule before the details,
+> like iptables-save syntax.
 
-Thanks for this new round.
-
-On Tue, Jun 10, 2014 at 11:12:56PM +0200, Florian Westphal wrote:
-> This brings the (per-conntrack) ecache extension back to 24 bytes in size
-> (was 152 byte on x86_64 with lockdep on).
-> 
-> When event delivery fails, re-delivery is attempted via work queue.
-> 
-> Redelivery is attempted at least every 0.1 seconds, but can happen
-> more frequently if userspace is not congested.
-> 
-> The nf_ct_release_dying_list() function is removed.
-> With this patch, ownership of the to-be-redelivered conntracks
-> (on-dying-list-with-DYING-bit not yet set) is with the work queue,
-> which will release the references once event is out.
-
-I think we need to keep the nf_ct_release_dying_list(), otherwise we
-will hit problems when destroying the kmem_cache, since the workqueue
-may race with that, right?
+Applied, thanks Giuseppe!
