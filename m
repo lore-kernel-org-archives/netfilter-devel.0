@@ -1,40 +1,50 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [RFC PATCH libnetfilter_conntrack 0/1] zero value handling of mark
+Subject: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of mark
  and zone
-Date: Thu, 12 Jun 2014 08:38:14 +0900
-Message-ID: <CAGCkEt1s+qbY90TV5y4-oxXojv3Eu4Mg+03qgsNG0mnx+aU22Q@mail.gmail.com>
+Date: Thu, 12 Jun 2014 08:42:24 +0900
+Message-ID: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:56659 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbaFKXiP (ORCPT
+Received: from mail-la0-f41.google.com ([209.85.215.41]:41262 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694AbaFKXm0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 19:38:15 -0400
-Received: by mail-la0-f48.google.com with SMTP id gl10so260039lab.21
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 16:38:14 -0700 (PDT)
+	Wed, 11 Jun 2014 19:42:26 -0400
+Received: by mail-la0-f41.google.com with SMTP id hz20so268674lab.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 16:42:24 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Hello,
+This patch enables comparison of 0 value with mark and zone since
+both CTA_MARK and CTA_ZONE are not set in case of its value is 0.
 
-Dumping conntrack entries of zone value 0 by conntrack command in
-conntrack-tools
-by specifying option -L -w0 does not list any entry. To solve it, I
-think we have three
-options:
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+---
+ src/conntrack/compare.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-1. As with mark, adding filter code to ctnetlink_dump_table() and
-ctnetlink_get_conntrack()
-
-2. Add zone value even its value 0 in ctnetlink_fill_info() (and
-ctnetlink_conntrack_event())
-
-3. Handle mark and zone as special case in comparison. (This patch)
-
-Would you tell me what is suitable for?
-
-Thanks,
+diff --git a/src/conntrack/compare.c b/src/conntrack/compare.c
+index f4a194a..06edd0d 100644
+--- a/src/conntrack/compare.c
++++ b/src/conntrack/compare.c
+@@ -24,8 +24,12 @@ static int __cmp(int attr,
+        } else if (!a && !b) {
+                return 1;
+        } else if (flags & NFCT_CMP_MASK &&
+-                  test_bit(attr, ct1->head.set)) {
+-               return 0;
++                  !test_bit(attr, ct1->head.set)) {
++               return 1;
++       } else if (attr == ATTR_MARK) {
++               return ct1->mark == 0 && ct2->mark == 0;
++       } else if (attr == ATTR_ZONE) {
++               return ct1->zone == 0 && ct2->zone == 0;
+        } else if (flags & NFCT_CMP_STRICT) {
+                return 0;
+        }
+--
+1.9.1
