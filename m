@@ -1,45 +1,92 @@
-From: Domen Puncer <domen.puncer@samsung.com>
-Subject: Re: [PATCH iptables] libxtables: fix getaddrinfo return value usage
-Date: Wed, 11 Jun 2014 10:48:19 +0100
-Message-ID: <539825E3.6020000@samsung.com>
-References: <5397084D.8020703@samsung.com> <20140611093758.GA5427@localhost>
+From: Kirill Tkhai <ktkhai@parallels.com>
+Subject: Re: [PATCH] ipt_CLUSTERIP: Add network device notifier
+Date: Wed, 11 Jun 2014 15:44:39 +0400
+Message-ID: <1402487079.32126.54.camel@tkhai>
+References: <1396871929.3741.6.camel@tkhai>
+	 <20140428142306.GA28547@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, <tkhai@yandex.ru>,
+	"Pavel Emelyanov" <xemul@parallels.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20639 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbaFKJtX (ORCPT
+Received: from relay.parallels.com ([195.214.232.42]:54953 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbaFKLot (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 05:49:23 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7000MPO0LU4670@mailout2.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Wed, 11 Jun 2014 10:49:06 +0100 (BST)
-In-reply-to: <20140611093758.GA5427@localhost>
+	Wed, 11 Jun 2014 07:44:49 -0400
+In-Reply-To: <20140428142306.GA28547@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/06/14 10:37, Pablo Neira Ayuso wrote:
-> On Tue, Jun 10, 2014 at 02:29:49PM +0100, Domen Puncer wrote:
->> getaddrinfo return value on error can also be positive.
-> 
-> At quick glance, all EAI_* that I see are negative.
+Hi, Pablo,
 
-You don't see all of them :-)
-On Android they're positive, e.g.:
-	android-ndk-r9d/platforms/android-19/arch-arm/usr/include/netdb.h
-	147 #define EAI_NONAME       8      /* hostname nor servname provided,
-or not known */
+=D0=92 =D0=9F=D0=BD, 28/04/2014 =D0=B2 16:23 +0200, Pablo Neira Ayuso =D0=
+=BF=D0=B8=D1=88=D0=B5=D1=82:
+> Hi,
+>=20
+> On Mon, Apr 07, 2014 at 03:58:49PM +0400, Kirill Tkhai wrote:
+> > Clusterip target does dev_hold() in .checkentry, while dev_put() in=
+ .destroy.
+> > So, unregister_netdevice catches the leak:
+> >=20
+> > # modprobe dummy
+> > # iptables -A INPUT -d 10.31.3.236 -j CLUSTERIP --new --hashmode so=
+urceip -i dummy0 --clustermac 01:aa:7b:47:f7:d7 --total-nodes 2 --local=
+-node 1
+> > # rmmod dummy
+> >
+> >   Message from syslogd@localhost ...
+> >     kernel: unregister_netdevice: waiting for dummy0 to become free=
+=2E Usage count =3D 1
+> >
+> [...]
+> >  1 file changed, 134 insertions(+), 12 deletions(-)
+>=20
+> I have spinned several times on this patch, and I'm not very happy
+> with taking this fix:
+>=20
+> 1) It's quite large fix for a situation that seems unlikely to me.
 
-And as a plus, it's not bad to conform to specs.
+We have several reports from containers users, who bumped into this.
+The hang happens on netns stop, it's 100% reproducible. Every time
+a container is stopping or a device is going away, the unregistration
+fails and hungs if CLUSTERIP is used. So, we'd want to have some fix
+of this.
 
-> 
-> What problem are you experience? What case are you trying to catch?
-> 
-> Thanks.
-> 
+> 2) We have this problem since the beginning, since the CLUSTERIP
+>    target was merged mainstream.
 
+Some time ago we discovered, several our BUGs are connected with this
+problem. It's not once-only for us.
+
+> 3) We have theses days the cluster match, which is more flexible as
+>    you can also use it not only for backend, but also in active-activ=
+e
+>    gateway setups. It just requires a couple of arptables rules for
+>    mangling ARP replies to include the multicast MAC there.
+
+Yes, but CLUSTERIP is still in upstream, and some people still use it.
+This bug potentially is a bomb, when the only user of a container can
+kill all the system.
+
+> Perhaps linking net_device structure with the module that have create=
+d
+> would simplify this, but I guess David won't take such patch just to
+> fix this rare iptables extension, unless this is manifesting in other
+> netdev code, eg. tunneling protocols.
+
+Is there a better decidion? We'd could fix it in other way if you sugge=
+st.
+
+Thanks,
+Kirill
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
