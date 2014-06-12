@@ -1,57 +1,59 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
- mark and zone
-Date: Thu, 12 Jun 2014 14:19:45 +0900
-Message-ID: <CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
-References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
-	<20140612001807.GB22240@breakpoint.cc>
+From: Domen Puncer <domen.puncer@samsung.com>
+Subject: Re: [PATCH iptables] libxtables: fix getaddrinfo return value usage
+Date: Thu, 12 Jun 2014 08:01:29 +0100
+Message-ID: <53995049.4040304@samsung.com>
+References: <5397084D.8020703@samsung.com> <20140611093758.GA5427@localhost>
+ <539825E3.6020000@samsung.com> <20140611175550.GA17981@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:55748 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbaFLFTq (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64113 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932127AbaFLHCf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2014 01:19:46 -0400
-Received: by mail-la0-f42.google.com with SMTP id el20so398274lab.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 22:19:45 -0700 (PDT)
-In-Reply-To: <20140612001807.GB22240@breakpoint.cc>
+	Thu, 12 Jun 2014 03:02:35 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N7100CR3NJUP220@mailout2.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Thu, 12 Jun 2014 08:02:18 +0100 (BST)
+In-reply-to: <20140611175550.GA17981@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Hello, thank you for your reply.
+On 11/06/14 18:55, Pablo Neira Ayuso wrote:
+> On Wed, Jun 11, 2014 at 10:48:19AM +0100, Domen Puncer wrote:
+>> On 11/06/14 10:37, Pablo Neira Ayuso wrote:
+>>> On Tue, Jun 10, 2014 at 02:29:49PM +0100, Domen Puncer wrote:
+>>>> getaddrinfo return value on error can also be positive.
+>>>
+>>> At quick glance, all EAI_* that I see are negative.
+>>
+>> You don't see all of them :-)
+>> On Android they're positive, e.g.:
+>> 	android-ndk-r9d/platforms/android-19/arch-arm/usr/include/netdb.h
+>> 	147 #define EAI_NONAME       8      /* hostname nor servname provided,
+>> or not known */
+> 
+> I suspected something like this..
+> 
+> Please, next time include this in the patch description since the
+> beginning, thanks.
 
-2014-06-12 9:18 GMT+09:00 Florian Westphal <fw@strlen.de>:
-> Maybe it is better to alter cmp_meta() and invoke a different
-> comparator for MARK and ZONE that will give 'extra chance'
+OK. Will do so.
 
-I see, thanks.
+> 
+>> And as a plus, it's not bad to conform to specs.
+> 
+> It sounds like a reasonable assumption to me.
+> 
+> Do you have more patches like this in your queue?
 
-> when we hit the NFCT_CMP_STRICT conditional, i.e.
+Sorry, this was just a one-off.
 
-# I may not understand what you told me...
 
-nf_conntrack which is created by --zone 0 options is the first param
-of nfct_cmp() with NFCT_CMP_MASK flag in conntrack command,
-I think it's better to handle NFCT_CMP_MASK flag too.
-
-How about creating new function __cmp_none_as_zero() which
-is called from cmp_meta() in case of ZONE attr and its signature
-is the same as __cmp():
-
-    return __cmp(attr, ct1, ct2, flags, cmp) ||
-            (!test_bit(attr, ct1->head.set || nfct_get_attr_u16(ct1,
-attr) == 0) &&
-             (!test_bit(attr, ct2->head.set || nfct_get_attr_u16(ct2,
-attr) == 0));
-
-But this can work only for u16 attrs. To work with another size,
-I think we need adding switch-case statement of attr length to
-code snippet above or adding a new similer functions for it.
-Would you tell me which one is better?
-
-Thanks,
+Best regards,
+  Domen
