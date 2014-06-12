@@ -1,104 +1,56 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: add pktype support to meta expression
-Date: Thu, 12 Jun 2014 19:17:52 +0200
-Message-ID: <1402593473-4904-2-git-send-email-anarey@gmail.com>
-References: <1402593473-4904-1-git-send-email-anarey@gmail.com>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
+ mark and zone
+Date: Fri, 13 Jun 2014 08:12:46 +0900
+Message-ID: <CAGCkEt34pLyfV+T6+QzMaEnKo5fL6VL_Wz-mST_BsZz_4FwbBA@mail.gmail.com>
+References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
+	<20140612001807.GB22240@breakpoint.cc>
+	<CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
+	<20140612094842.GA1982@breakpoint.cc>
+	<CAGCkEt0=-PJSEyWLPwgouzFydMZNnaxjqP9BJAjN71KxELyQMg@mail.gmail.com>
+	<20140612115925.GB1982@breakpoint.cc>
+	<20140612134328.GA24379@gmail.com>
+	<20140612140547.GC1982@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Ana Rey <anarey@gmail.com>,
-	Alvaro Neira Ayuso <alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:33436 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbaFLRSI (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:60099 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777AbaFLXMs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:18:08 -0400
-Received: by mail-wg0-f41.google.com with SMTP id a1so1575384wgh.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 10:18:07 -0700 (PDT)
-In-Reply-To: <1402593473-4904-1-git-send-email-anarey@gmail.com>
+	Thu, 12 Jun 2014 19:12:48 -0400
+Received: by mail-la0-f43.google.com with SMTP id e16so1047027lan.30
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 16:12:47 -0700 (PDT)
+In-Reply-To: <20140612140547.GC1982@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Joint work with =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
+ Hello, thank you for your reply.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_meta.c                 | 17 +++++++++++++++++
- 2 files changed, 19 insertions(+)
+2014-06-12 23:05 GMT+09:00 Florian Westphal <fw@strlen.de>:
+> Ken-ichirou MATSUZAWA <chamaken@gmail.com> wrote:
+>> Should we clear errno in that cmp_zone() before return?
+>
+> I *think* the best approach would be to not clear it
+> at this time.
+>
+> would solve.  I don't think callers/users should rely on errno
+> having any particular value after nfct_cmp() returns, regardless
+> of the return value.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/li=
-nux/netfilter/nf_tables.h
-index 2a88f64..9eb5153 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -571,6 +571,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_L4PROTO: layer 4 protocol number
-  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
-  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
-+ * @NFT_META_PKTTYPE: Packet class
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -592,6 +593,7 @@ enum nft_meta_keys {
- 	NFT_META_L4PROTO,
- 	NFT_META_BRI_IIFNAME,
- 	NFT_META_BRI_OIFNAME,
-+	NFT_META_PKTTYPE,
- };
-=20
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 852b178..1d9d5b3 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -14,6 +14,9 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/in.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
- #include <net/dst.h>
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
-@@ -124,6 +127,19 @@ void nft_meta_get_eval(const struct nft_expr *expr=
-,
- 		dest->data[0] =3D skb->secmark;
- 		break;
- #endif
-+	case NFT_META_PKTTYPE:
-+		dest->data[0] =3D skb->pkt_type;
-+		if (skb->pkt_type !=3D PACKET_LOOPBACK)
-+			dest->data[0] =3D skb->pkt_type;
-+		else if (expr->ops->type->family =3D=3D NFPROTO_IPV4 &&
-+			 ipv4_is_multicast(ip_hdr(skb)->daddr))
-+			dest->data[0] =3D PACKET_MULTICAST;
-+		else if (expr->ops->type->family =3D=3D NFPROTO_IPV6 &&
-+			 ipv6_hdr(skb)->daddr.s6_addr[0] =3D=3D 0xFF)
-+			dest->data[0] =3D PACKET_MULTICAST;
-+		else
-+			dest->data[0] =3D PACKET_BROADCAST;
-+		break;
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -194,6 +210,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- #endif
- #ifdef CONFIG_NETWORK_SECMARK
- 	case NFT_META_SECMARK:
-+	case NFT_META_PKTTYPE:
- #endif
- 		break;
- 	default:
---=20
-2.0.0
+I'd read same thing in err30-c and I'll follow your best thought.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry for offtopic:
+I think go lang people made an unlikable decision. Its function
+can return multiple value, and its c wrapper suite (cgo) normally
+returns result and errno as error. They have an ideom like
+
+    if retval, err := function(); err != nil {
+        error_processing()
+    }
+
+Things you told me is very helpful for wrapping by golang, thanks.
