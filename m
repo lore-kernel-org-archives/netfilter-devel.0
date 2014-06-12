@@ -1,179 +1,104 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [nft PATCH] src: Add support for pkttype in meta
-Date: Thu, 12 Jun 2014 19:17:53 +0200
-Message-ID: <1402593473-4904-3-git-send-email-anarey@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: add pktype support to meta expression
+Date: Thu, 12 Jun 2014 19:17:52 +0200
+Message-ID: <1402593473-4904-2-git-send-email-anarey@gmail.com>
 References: <1402593473-4904-1-git-send-email-anarey@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Ana Rey <anarey@gmail.com>,
 	Alvaro Neira Ayuso <alvaroneay@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:42445 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbaFLRSL (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:33436 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124AbaFLRSI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:18:11 -0400
-Received: by mail-wg0-f47.google.com with SMTP id k14so1568315wgh.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 10:18:09 -0700 (PDT)
+	Thu, 12 Jun 2014 13:18:08 -0400
+Received: by mail-wg0-f41.google.com with SMTP id a1so1575384wgh.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 10:18:07 -0700 (PDT)
 In-Reply-To: <1402593473-4904-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Joint work with Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Joint work with =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- include/datatype.h                  |  1 +
- include/linux/netfilter/nf_tables.h |  2 ++
- src/meta.c                          | 55 +++++++++++++++++++++++++++++++++++++
- src/parser.y                        |  2 ++
- src/scanner.l                       |  1 +
- 5 files changed, 61 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_meta.c                 | 17 +++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/include/datatype.h b/include/datatype.h
-index b53358c..66ca8ed 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -70,6 +70,7 @@ enum datatypes {
- 	TYPE_CT_STATUS,
- 	TYPE_ICMP6_TYPE,
- 	TYPE_CT_LABEL,
-+	TYPE_PKTTYPE,
- 	__TYPE_MAX
- };
- #define TYPE_MAX		(__TYPE_MAX - 1)
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index a5f8ec0..e391ed4 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -535,6 +535,7 @@ enum nft_exthdr_attributes {
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/li=
+nux/netfilter/nf_tables.h
+index 2a88f64..9eb5153 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -571,6 +571,7 @@ enum nft_exthdr_attributes {
   * @NFT_META_L4PROTO: layer 4 protocol number
   * @NFT_META_BRI_IIFNAME: packet input bridge interface name
   * @NFT_META_BRI_OIFNAME: packet output bridge interface name
-+ * @@NFT_META_PKTTYPE: packet class
++ * @NFT_META_PKTTYPE: Packet class
   */
  enum nft_meta_keys {
  	NFT_META_LEN,
-@@ -556,6 +557,7 @@ enum nft_meta_keys {
+@@ -592,6 +593,7 @@ enum nft_meta_keys {
  	NFT_META_L4PROTO,
  	NFT_META_BRI_IIFNAME,
  	NFT_META_BRI_OIFNAME,
 +	NFT_META_PKTTYPE,
  };
- 
+=20
  /**
-diff --git a/src/meta.c b/src/meta.c
-index 80f88ff..0155b2a 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -20,6 +20,7 @@
- #include <pwd.h>
- #include <grp.h>
- #include <linux/pkt_sched.h>
-+#include <linux/if_packet.h>
- 
- #include <nftables.h>
- #include <expression.h>
-@@ -297,6 +298,57 @@ static const struct datatype gid_type = {
- 	.parse		= gid_type_parse,
- };
- 
-+static const struct symbol_table pkttype_type_tbl = {
-+	.symbols	= {
-+		SYMBOL("unicast", PACKET_HOST),
-+		SYMBOL("broadcast", PACKET_BROADCAST),
-+		SYMBOL("multicast", PACKET_MULTICAST),
-+		SYMBOL("loopback", PACKET_LOOPBACK),
-+	},
-+};
-+
-+static void pkttype_type_print(const struct expr *expr)
-+{
-+	return symbolic_constant_print(&pkttype_type_tbl, expr);
-+}
-+
-+static struct error_record *pkttype_type_parse(const struct expr *sym,
-+					       struct expr **res)
-+{
-+	struct error_record *erec;
-+	const struct symbolic_constant *s;
-+
-+	for (s = pkttype_type_tbl.symbols; s->identifier != NULL; s++) {
-+		if (!strcmp(sym->identifier, s->identifier)) {
-+			*res = constant_expr_alloc(&sym->location, sym->dtype,
-+						   sym->dtype->byteorder,
-+						   sym->dtype->size,
-+						   &s->value);
-+			return NULL;
-+		}
-+	}
-+
-+	*res = NULL;
-+	erec = sym->dtype->basetype->parse(sym, res);
-+	if (erec != NULL)
-+		return erec;
-+	if (*res)
-+		return NULL;
-+
-+	return symbolic_constant_parse(sym, &pkttype_type_tbl, res);
-+}
-+
-+static const struct datatype pkttype_type = {
-+	.type		= TYPE_PKTTYPE,
-+	.name		= "pkttype",
-+	.desc		= "Packet class",
-+	.byteorder	= BYTEORDER_HOST_ENDIAN,
-+	.size		= BITS_PER_BYTE,
-+	.basetype	= &integer_type,
-+	.print		= pkttype_type_print,
-+	.parse		= pkttype_type_parse,
-+};
-+
- static const struct meta_template meta_templates[] = {
- 	[NFT_META_LEN]		= META_TEMPLATE("length",    &integer_type,
- 						4 * 8, BYTEORDER_HOST_ENDIAN),
-@@ -338,6 +390,9 @@ static const struct meta_template meta_templates[] = {
- 	[NFT_META_BRI_OIFNAME]	= META_TEMPLATE("obriport",  &string_type,
- 						IFNAMSIZ * BITS_PER_BYTE,
- 						BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_PKTTYPE]	= META_TEMPLATE("pkttype",  &pkttype_type,
-+						BITS_PER_BYTE,
-+						BYTEORDER_HOST_ENDIAN),
- };
- 
- static void meta_expr_print(const struct expr *expr)
-diff --git a/src/parser.y b/src/parser.y
-index 3e08e21..6da6e98 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -324,6 +324,7 @@ static int monitor_lookup_event(const char *event)
- %token RTCLASSID		"rtclassid"
- %token IBRIPORT			"ibriport"
- %token OBRIPORT			"obriport"
-+%token PKTTYPE			"pkttype"
- 
- %token CT			"ct"
- %token DIRECTION		"direction"
-@@ -1784,6 +1785,7 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
- 			|	RTCLASSID	{ $$ = NFT_META_RTCLASSID; }
- 			|	IBRIPORT	{ $$ = NFT_META_BRI_IIFNAME; }
- 			|       OBRIPORT	{ $$ = NFT_META_BRI_OIFNAME; }
-+			|       PKTTYPE		{ $$ = NFT_META_PKTTYPE; }
- 			;
- 
- meta_stmt		:	META	meta_key	SET	expr
-diff --git a/src/scanner.l b/src/scanner.l
-index 73a1a3f..1d2be76 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -406,6 +406,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "rtclassid"		{ return RTCLASSID; }
- "ibriport"		{ return IBRIPORT; }
- "obriport"		{ return OBRIPORT; }
-+"pkttype"		{ return PKTTYPE; }
- 
- "ct"			{ return CT; }
- "direction"		{ return DIRECTION; }
--- 
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 852b178..1d9d5b3 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -14,6 +14,9 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
+ #include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+@@ -124,6 +127,19 @@ void nft_meta_get_eval(const struct nft_expr *expr=
+,
+ 		dest->data[0] =3D skb->secmark;
+ 		break;
+ #endif
++	case NFT_META_PKTTYPE:
++		dest->data[0] =3D skb->pkt_type;
++		if (skb->pkt_type !=3D PACKET_LOOPBACK)
++			dest->data[0] =3D skb->pkt_type;
++		else if (expr->ops->type->family =3D=3D NFPROTO_IPV4 &&
++			 ipv4_is_multicast(ip_hdr(skb)->daddr))
++			dest->data[0] =3D PACKET_MULTICAST;
++		else if (expr->ops->type->family =3D=3D NFPROTO_IPV6 &&
++			 ipv6_hdr(skb)->daddr.s6_addr[0] =3D=3D 0xFF)
++			dest->data[0] =3D PACKET_MULTICAST;
++		else
++			dest->data[0] =3D PACKET_BROADCAST;
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -194,6 +210,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ #endif
+ #ifdef CONFIG_NETWORK_SECMARK
+ 	case NFT_META_SECMARK:
++	case NFT_META_PKTTYPE:
+ #endif
+ 		break;
+ 	default:
+--=20
 2.0.0
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
