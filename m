@@ -1,52 +1,57 @@
-From: Florian Westphal <fw@strlen.de>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
  mark and zone
-Date: Thu, 12 Jun 2014 02:18:07 +0200
-Message-ID: <20140612001807.GB22240@breakpoint.cc>
+Date: Thu, 12 Jun 2014 14:19:45 +0900
+Message-ID: <CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
 References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
+	<20140612001807.GB22240@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Cc: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53778 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752689AbaFLASK (ORCPT
+Received: from mail-la0-f42.google.com ([209.85.215.42]:55748 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbaFLFTq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2014 20:18:10 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
+	Thu, 12 Jun 2014 01:19:46 -0400
+Received: by mail-la0-f42.google.com with SMTP id el20so398274lab.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2014 22:19:45 -0700 (PDT)
+In-Reply-To: <20140612001807.GB22240@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ken-ichirou MATSUZAWA <chamaken@gmail.com> wrote:
-> This patch enables comparison of 0 value with mark and zone since
-> both CTA_MARK and CTA_ZONE are not set in case of its value is 0.
+ Hello, thank you for your reply.
 
-I think the general idea is right.
+2014-06-12 9:18 GMT+09:00 Florian Westphal <fw@strlen.de>:
+> Maybe it is better to alter cmp_meta() and invoke a different
+> comparator for MARK and ZONE that will give 'extra chance'
 
-When nfct_cmp is invoked with 'full compare' then two conntracks
-should be regarded the same if they only differ in 'zone unset'
-and 'zone set and it is 0', as a unset zone does imply a 0.
+I see, thanks.
 
-Maybe it is better to alter cmp_meta() and invoke a different
-comparator for MARK and ZONE that will give 'extra chance'
-when we hit the NFCT_CMP_STRICT conditional, i.e.
+> when we hit the NFCT_CMP_STRICT conditional, i.e.
 
->         } else if (flags & NFCT_CMP_STRICT) {
+# I may not understand what you told me...
 
-One way might be to add __cmp_harder() which is same as __cmp() but
-will invoke cmp() again in the CMP_STRICT case.
+nf_conntrack which is created by --zone 0 options is the first param
+of nfct_cmp() with NFCT_CMP_MASK flag in conntrack command,
+I think it's better to handle NFCT_CMP_MASK flag too.
 
-Then, cmp_zone() could be altered to do
+How about creating new function __cmp_none_as_zero() which
+is called from cmp_meta() in case of ZONE attr and its signature
+is the same as __cmp():
 
-return nfct_attr_get_u16(ct1) == nfct_attr_get_u16(ct2)
+    return __cmp(attr, ct1, ct2, flags, cmp) ||
+            (!test_bit(attr, ct1->head.set || nfct_get_attr_u16(ct1,
+attr) == 0) &&
+             (!test_bit(attr, ct2->head.set || nfct_get_attr_u16(ct2,
+attr) == 0));
 
-Which should fix this problem (get_u16 of unset attr returns 0).
+But this can work only for u16 attrs. To work with another size,
+I think we need adding switch-case statement of attr length to
+code snippet above or adding a new similer functions for it.
+Would you tell me which one is better?
 
-Alternatively of course we could change __cmp() to always
-invoke the cmp() function again in STRICT case but it probably
-requires a lot more changes/care since we'd have to fix all the
-other attribute specific comparators.
+Thanks,
