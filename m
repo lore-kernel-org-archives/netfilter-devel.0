@@ -1,42 +1,77 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
- mark and zone
-Date: Thu, 12 Jun 2014 16:05:47 +0200
-Message-ID: <20140612140547.GC1982@breakpoint.cc>
-References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
- <20140612001807.GB22240@breakpoint.cc>
- <CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
- <20140612094842.GA1982@breakpoint.cc>
- <CAGCkEt0=-PJSEyWLPwgouzFydMZNnaxjqP9BJAjN71KxELyQMg@mail.gmail.com>
- <20140612115925.GB1982@breakpoint.cc>
- <20140612134328.GA24379@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH] expr: meta: Add pkttype support
+Date: Thu, 12 Jun 2014 19:17:51 +0200
+Message-ID: <1402593473-4904-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>,
+	Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55113 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752823AbaFLOFu (ORCPT
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:50789 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124AbaFLRSG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2014 10:05:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20140612134328.GA24379@gmail.com>
+	Thu, 12 Jun 2014 13:18:06 -0400
+Received: by mail-wg0-f45.google.com with SMTP id l18so1583311wgh.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 10:18:04 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ken-ichirou MATSUZAWA <chamaken@gmail.com> wrote:
-> Should we clear errno in that cmp_zone() before return?
+Add pkttype support in meta. The pkttype option does not set.
 
-Good question, I don't know.
+Before, If we want to declare a pktype, It has used a syntax like this:
 
-I *think* the best approach would be to not clear it
-at this time.
+nft add rule ip filter input meta pkttype broadcast
 
-Its not yet clear to me what problem the zeroing
-would solve.  I don't think callers/users should rely on errno
-having any particular value after nfct_cmp() returns, regardless
-of the return value.
+Joint work with Alvaro Neira Ayuso <alvaroneay@gmail.com>
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ include/linux/netfilter/nf_tables.h | 2 ++
+ src/expr/meta.c                     | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 2a88f64..9eb5153 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -571,6 +571,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_L4PROTO: layer 4 protocol number
+  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
+  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
++ * @NFT_META_PKTTYPE: Packet class
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -592,6 +593,7 @@ enum nft_meta_keys {
+ 	NFT_META_L4PROTO,
+ 	NFT_META_BRI_IIFNAME,
+ 	NFT_META_BRI_OIFNAME,
++	NFT_META_PKTTYPE,
+ };
+ 
+ /**
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index fb945f0..24057f2 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -23,7 +23,7 @@
+ #include "expr_ops.h"
+ 
+ #ifndef NFT_META_MAX
+-#define NFT_META_MAX (NFT_META_BRI_OIFNAME + 1)
++#define NFT_META_MAX (NFT_META_PKTTYPE + 1)
+ #endif
+ 
+ struct nft_expr_meta {
+@@ -155,6 +155,7 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
+ 	[NFT_META_SECMARK]	= "secmark",
+ 	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
+ 	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
++	[NFT_META_PKTTYPE]	= "pkttype"
+ };
+ 
+ static const char *meta_key2str(uint8_t key)
+-- 
+2.0.0
+
