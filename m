@@ -1,56 +1,43 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
- mark and zone
-Date: Fri, 13 Jun 2014 08:12:46 +0900
-Message-ID: <CAGCkEt34pLyfV+T6+QzMaEnKo5fL6VL_Wz-mST_BsZz_4FwbBA@mail.gmail.com>
-References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
-	<20140612001807.GB22240@breakpoint.cc>
-	<CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
-	<20140612094842.GA1982@breakpoint.cc>
-	<CAGCkEt0=-PJSEyWLPwgouzFydMZNnaxjqP9BJAjN71KxELyQMg@mail.gmail.com>
-	<20140612115925.GB1982@breakpoint.cc>
-	<20140612134328.GA24379@gmail.com>
-	<20140612140547.GC1982@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_tables: add pktype support to meta expression
+Date: Fri, 13 Jun 2014 08:13:32 +0200
+Message-ID: <CAOkSjBgJ4DZSe3=EChE-vNQyShdJEqHHr6t5PaJvHdmf1LJC_g@mail.gmail.com>
+References: <1402593473-4904-1-git-send-email-anarey@gmail.com> <1402593473-4904-2-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: The netfilter developer mailinglist
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
+	Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:60099 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777AbaFLXMs (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:43489 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbaFMGNy convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2014 19:12:48 -0400
-Received: by mail-la0-f43.google.com with SMTP id e16so1047027lan.30
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 16:12:47 -0700 (PDT)
-In-Reply-To: <20140612140547.GC1982@breakpoint.cc>
+	Fri, 13 Jun 2014 02:13:54 -0400
+Received: by mail-la0-f46.google.com with SMTP id gl10so1193708lab.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2014 23:13:53 -0700 (PDT)
+In-Reply-To: <1402593473-4904-2-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Hello, thank you for your reply.
+On 12 June 2014 19:17, Ana Rey <anarey@gmail.com> wrote:
+[...]
+> @@ -194,6 +210,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+>  #endif
+>  #ifdef CONFIG_NETWORK_SECMARK
+>         case NFT_META_SECMARK:
+> +       case NFT_META_PKTTYPE:
+>  #endif
 
-2014-06-12 23:05 GMT+09:00 Florian Westphal <fw@strlen.de>:
-> Ken-ichirou MATSUZAWA <chamaken@gmail.com> wrote:
->> Should we clear errno in that cmp_zone() before return?
->
-> I *think* the best approach would be to not clear it
-> at this time.
->
-> would solve.  I don't think callers/users should rely on errno
-> having any particular value after nfct_cmp() returns, regardless
-> of the return value.
+Why to enclose this in the #ifdef CONFIG_NETWORK_SECMARK?
 
-I'd read same thing in err30-c and I'll follow your best thought.
-
-Sorry for offtopic:
-I think go lang people made an unlikable decision. Its function
-can return multiple value, and its c wrapper suite (cgo) normally
-returns result and errno as error. They have an ideom like
-
-    if retval, err := function(); err != nil {
-        error_processing()
-    }
-
-Things you told me is very helpful for wrapping by golang, thanks.
+regards
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
