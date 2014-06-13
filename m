@@ -1,55 +1,96 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH] ipvs: stop tot_stats estimator only under CONFIG_SYSCTL
-Date: Fri, 13 Jun 2014 16:37:09 +0900
-Message-ID: <1402645029-21756-2-git-send-email-horms@verge.net.au>
-References: <1402645029-21756-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1402645029-21756-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libmnl] include: cache copy of include/linux/socket.h
+Date: Fri, 13 Jun 2014 11:23:33 +0200
+Message-ID: <1402651413-10059-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57348 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753064AbaFMJXn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Jun 2014 05:23:43 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+This fixes compilation in Debian Squeeze:
 
-The tot_stats estimator is started only when CONFIG_SYSCTL
-is defined. But it is stopped without checking CONFIG_SYSCTL.
-Fix the crash by moving ip_vs_stop_estimator into
-ip_vs_control_net_cleanup_sysctl.
+  CC     attr.lo
+In file included from ../include/libmnl/libmnl.h:9,
+                 from socket.c:10:
+=2E./include/linux/netlink.h:35: error: expected specifier-qualifier-li=
+st before =E2=80=98__kernel_sa_family_t=E2=80=99
+In file included from ../include/libmnl/libmnl.h:9,
+                 from callback.c:11:
+=2E./include/linux/netlink.h:35: error: expected specifier-qualifier-li=
+st before =E2=80=98__kernel_sa_family_t=E2=80=99
+socket.c: In function =E2=80=98mnl_socket_get_portid=E2=80=99:
+socket.c:102: error: =E2=80=98const struct sockaddr_nl=E2=80=99 has no =
+member named =E2=80=98nl_pid=E2=80=99
+socket.c: In function =E2=80=98mnl_socket_bind=E2=80=99:
+socket.c:146: error: =E2=80=98struct sockaddr_nl=E2=80=99 has no member=
+ named =E2=80=98nl_family=E2=80=99
+socket.c:147: error: =E2=80=98struct sockaddr_nl=E2=80=99 has no member=
+ named =E2=80=98nl_groups=E2=80=99
+socket.c:148: error: =E2=80=98struct sockaddr_nl=E2=80=99 has no member=
+ named =E2=80=98nl_pid=E2=80=99
+socket.c:163: error: =E2=80=98struct sockaddr_nl=E2=80=99 has no member=
+ named =E2=80=98nl_family=E2=80=99
+socket.c: In function =E2=80=98mnl_socket_sendto=E2=80=99:
+socket.c:184: error: unknown field =E2=80=98nl_family=E2=80=99 specifie=
+d in initializer
+socket.c:185: warning: excess elements in struct initializer
+socket.c:185: warning: (near initialization for =E2=80=98snl=E2=80=99)
 
-The change is needed after commit 14e405461e664b
-("IPVS: Add __ip_vs_control_{init,cleanup}_sysctl()") from 2.6.39.
-
-Reported-by: Jet Chen <jet.chen@intel.com>
-Tested-by: Jet Chen <jet.chen@intel.com>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/Makefile.am |    2 +-
+ include/linux/socket.h    |   21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+ create mode 100644 include/linux/socket.h
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c42e83d..581a658 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3778,6 +3778,7 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
- 	cancel_delayed_work_sync(&ipvs->defense_work);
- 	cancel_work_sync(&ipvs->defense_work.work);
- 	unregister_net_sysctl_table(ipvs->sysctl_hdr);
-+	ip_vs_stop_estimator(net, &ipvs->tot_stats);
- }
- 
- #else
-@@ -3840,7 +3841,6 @@ void __net_exit ip_vs_control_net_cleanup(struct net *net)
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
- 	ip_vs_trash_cleanup(net);
--	ip_vs_stop_estimator(net, &ipvs->tot_stats);
- 	ip_vs_control_net_cleanup_sysctl(net);
- 	remove_proc_entry("ip_vs_stats_percpu", net->proc_net);
- 	remove_proc_entry("ip_vs_stats", net->proc_net);
--- 
-2.0.0.rc2
+diff --git a/include/linux/Makefile.am b/include/linux/Makefile.am
+index 95f82d2..08c600b 100644
+--- a/include/linux/Makefile.am
++++ b/include/linux/Makefile.am
+@@ -1,2 +1,2 @@
+ SUBDIRS =3D netfilter
+-noinst_HEADERS =3D netlink.h
++noinst_HEADERS =3D netlink.h socket.h
+diff --git a/include/linux/socket.h b/include/linux/socket.h
+new file mode 100644
+index 0000000..8c1e501
+--- /dev/null
++++ b/include/linux/socket.h
+@@ -0,0 +1,21 @@
++#ifndef _LINUX_SOCKET_H
++#define _LINUX_SOCKET_H
++
++/*
++ * Desired design of maximum size and alignment (see RFC2553)
++ */
++#define _K_SS_MAXSIZE	128	/* Implementation specific max size */
++#define _K_SS_ALIGNSIZE	(__alignof__ (struct sockaddr *))
++				/* Implementation specific desired alignment */
++
++typedef unsigned short __kernel_sa_family_t;
++
++struct __kernel_sockaddr_storage {
++	__kernel_sa_family_t	ss_family;		/* address family */
++	/* Following field(s) are implementation specific */
++	char		__data[_K_SS_MAXSIZE - sizeof(unsigned short)];
++				/* space to achieve desired size, */
++				/* _SS_MAXSIZE value minus size of ss_family */
++} __attribute__ ((aligned(_K_SS_ALIGNSIZE)));	/* force desired alignme=
+nt */
++
++#endif /* _LINUX_SOCKET_H */
+--=20
+1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
