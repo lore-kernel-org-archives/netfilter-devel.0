@@ -1,80 +1,62 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 3/3] expr: nat: Do not print unset values in json file
-Date: Fri, 13 Jun 2014 14:08:29 +0200
-Message-ID: <1402661309-17839-4-git-send-email-anarey@gmail.com>
-References: <1402661309-17839-1-git-send-email-anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [RFC PATCH 1/1 libnetfilter_conntrack] zero value handling of
+ mark and zone
+Date: Mon, 16 Jun 2014 09:04:03 +0900
+Message-ID: <CAGCkEt2KCUmMYU5nDuKnZh14YofB_bbwVSF3HvE-FQ83kWGrPg@mail.gmail.com>
+References: <CAGCkEt0oek-eZxd9Xetpyj5iqaHK1c+qqLaNP6MJ58cMNLNnSQ@mail.gmail.com>
+	<20140612001807.GB22240@breakpoint.cc>
+	<CAGCkEt02-WGJBKBr8kkDYq0uBk84bovuXp2wkKw5SDuypSEFhg@mail.gmail.com>
+	<20140612094842.GA1982@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:48853 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbaFMMIv (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:64237 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbaFPAEG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jun 2014 08:08:51 -0400
-Received: by mail-wi0-f179.google.com with SMTP id cc10so750242wib.6
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jun 2014 05:08:50 -0700 (PDT)
-In-Reply-To: <1402661309-17839-1-git-send-email-anarey@gmail.com>
+	Sun, 15 Jun 2014 20:04:06 -0400
+Received: by mail-lb0-f175.google.com with SMTP id q8so319030lbi.6
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2014 17:04:04 -0700 (PDT)
+In-Reply-To: <20140612094842.GA1982@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It changes the parse functions to omit unset values.
+ Hello,
 
-Now, It possible to use a xml file like this:
-[...]
-      {
-        "type": "nat",
-        "nat_type": "snat",
-        "family": "ip",
-        "sreg_addr_min": 1,
-        "sreg_addr_max": 1,
-      }
+2014-06-12 18:48 GMT+09:00 Florian Westphal <fw@strlen.de>:
+> What about this:
+>
+> static int cmp_zone(const struct nf_conntrack *ct1,
+>         const struct nf_conntrack *ct2, unsigned int flags)
+> {
+>  return nfct_get_attr_u16(ct1, ATTR_ZONE) == nfct_get_attr_u16(ct2, ATTR_ZONE);
+> }
+>
+> Then it should be sufficient to not call __cmp at all, i.e.:
+>
+> - if (!__cmp(ATTR_ZONE, ct1, ct2, flags, cmp_zone))
+> + if (!cmp_zone(ct1, ct2, flags))
+>
+> ct1 and ct2 zones would then always be equal except if
+> both have ATTR_ZONE set and the zones are different.
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
- src/expr/nat.c | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+Sorry, it did not work with NFCT_CMP_MASK in case of
+only ct2 has attr. We need to think of NCFT_CMP_MASK
+as you told.
 
-diff --git a/src/expr/nat.c b/src/expr/nat.c
-index c10f0ff..0136fca 100644
---- a/src/expr/nat.c
-+++ b/src/expr/nat.c
-@@ -225,28 +225,20 @@ static int nft_rule_expr_nat_json_parse(struct nft_rule_expr *e, json_t *root,
- 	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_FAMILY, val32);
- 
- 	if (nft_jansson_parse_reg(root, "sreg_addr_min", NFT_TYPE_U32,
--				  &reg, err) < 0)
--		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MIN, reg);
-+				  &reg, err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MIN, reg);
- 
- 	if (nft_jansson_parse_reg(root, "sreg_addr_max", NFT_TYPE_U32,
--				  &reg, err) < 0)
--		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MAX, reg);
-+				  &reg, err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_ADDR_MAX, reg);
- 
- 	if (nft_jansson_parse_reg(root, "sreg_proto_min", NFT_TYPE_U32,
--				  &reg, err) < 0)
--		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MIN, reg);
-+				  &reg, err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MIN, reg);
- 
- 	if (nft_jansson_parse_reg(root, "sreg_proto_max", NFT_TYPE_U32,
--				  &reg, err) < 0)
--		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MAX, reg);
-+				  &reg, err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_NAT_REG_PROTO_MAX, reg);
- 
- 	return 0;
- #else
--- 
-2.0.0
+  static int cmp_zone(const struct nf_conntrack *ct1,
+                                  const struct nf_conntrack *ct2,
+                                  unsigned int flags)
+  {
+      return (flags & NFCT_CMP_MASK &&
+                 !test_bit(ATTR_ZONE, ct1->head.set)) ||
+                 nfct_get_attr_u16(ct1, ATTR_ZONE)
+                 == nfct_get_attr_u16(ct2, ATTR_ZONE);
+  }
 
+What about this?
+Could I resend the patch if it is acceptable?
