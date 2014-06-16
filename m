@@ -1,32 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 0/4] limit: Do not print unset value
-Date: Mon, 16 Jun 2014 12:34:14 +0200
-Message-ID: <20140616103414.GA12550@localhost>
-References: <1402909817-25325-1-git-send-email-anarey@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] MAINTAINERS: merge ebtables into netfilter entry
+Date: Mon, 16 Jun 2014 13:01:52 +0200
+Message-ID: <1402916512-15164-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57033 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37459 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754992AbaFPKeT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:34:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1402909817-25325-1-git-send-email-anarey@gmail.com>
+	id S1751076AbaFPLCD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Jun 2014 07:02:03 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 16, 2014 at 11:10:13AM +0200, Ana Rey wrote:
-> This patchset does tasks about does not print unset value in xml and json file
-> and about refactoring code:
-> "expr: limit: Add nft_rule_expr_limit_snprinf_* functions" and
-> "expr: limit: Use nft_rule_expr_set_* in the xml parsing code"
-> 
-> Ana Rey (4):
->   expr: limit: Add nft_rule_expr_limit_snprinf_* functions
->   expr: limit: Use nft_rule_expr_set_* in the xml parsing code
->   expr: limit: Do not print unset values in json
->   expr: limit: Do not print unset values in xml
+Moreover, remove reference to the netfilter users mailing list,
+so they don't receive patches.
 
-Series applied, thanks Ana.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ MAINTAINERS |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 134483f..2d67a5d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3189,14 +3189,6 @@ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
+ F:	drivers/scsi/eata_pio.*
+ 
+-EBTABLES
+-L:	netfilter-devel@vger.kernel.org
+-W:	http://ebtables.sourceforge.net/
+-S:	Orphan
+-F:	include/linux/netfilter_bridge/ebt_*.h
+-F:	include/uapi/linux/netfilter_bridge/ebt_*.h
+-F:	net/bridge/netfilter/ebt*.c
+-
+ EC100 MEDIA DRIVER
+ M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+@@ -6105,12 +6097,11 @@ F:	Documentation/networking/s2io.txt
+ F:	Documentation/networking/vxge.txt
+ F:	drivers/net/ethernet/neterion/
+ 
+-NETFILTER/IPTABLES
++NETFILTER ({IP,IP6,ARP,EB,NF}TABLES)
+ M:	Pablo Neira Ayuso <pablo@netfilter.org>
+ M:	Patrick McHardy <kaber@trash.net>
+ M:	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+ L:	netfilter-devel@vger.kernel.org
+-L:	netfilter@vger.kernel.org
+ L:	coreteam@netfilter.org
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
+-- 
+1.7.10.4
+
