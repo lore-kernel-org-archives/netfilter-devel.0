@@ -1,55 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: add zone size to length
-Date: Mon, 16 Jun 2014 13:56:29 +0200
-Message-ID: <20140616115629.GA10734@localhost>
-References: <CAGCkEt29_QnR1N9+oPQt7mX=6_0GF0oTsT4WgTz_ajGyef+Odg@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: nf_nat: fix oops on netns removal
+Date: Mon, 16 Jun 2014 14:00:25 +0200
+Message-ID: <20140616120025.GA10876@localhost>
+References: <1402168624-10081-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57800 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59299 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090AbaFPL4j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2014 07:56:39 -0400
+	id S1753845AbaFPMAj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Jun 2014 08:00:39 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGCkEt29_QnR1N9+oPQt7mX=6_0GF0oTsT4WgTz_ajGyef+Odg@mail.gmail.com>
+In-Reply-To: <1402168624-10081-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 12, 2014 at 08:34:55AM +0900, Ken-ichirou MATSUZAWA wrote:
-> Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-
-Applied, thanks.
-
->  net/netfilter/nf_conntrack_netlink.c |    6 ++++++
->  1 file changed, 6 insertions(+)
+On Sat, Jun 07, 2014 at 09:17:04PM +0200, Florian Westphal wrote:
+> Quoting Samu Kallio:
 > 
-> diff --git a/net/netfilter/nf_conntrack_netlink.c
-> b/net/netfilter/nf_conntrack_netlink.c
-> index 5857963..e279b76 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -597,6 +597,9 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
->  #ifdef CONFIG_NF_CONNTRACK_MARK
->                + nla_total_size(sizeof(u_int32_t)) /* CTA_MARK */
->  #endif
-> +#ifdef CONFIG_NF_CONNTRACK_ZONES
-> +              + nla_total_size(sizeof(u_int16_t)) /* CTA_ZONE */
-> +#endif
->                + ctnetlink_proto_size(ct)
->                + ctnetlink_label_size(ct)
->                ;
-> @@ -2040,6 +2043,9 @@ ctnetlink_nfqueue_build_size(const struct nf_conn *ct)
->  #ifdef CONFIG_NF_CONNTRACK_MARK
->                + nla_total_size(sizeof(u_int32_t)) /* CTA_MARK */
->  #endif
-> +#ifdef CONFIG_NF_CONNTRACK_ZONES
-> +              + nla_total_size(sizeof(u_int16_t)) /* CTA_ZONE */
-> +#endif
->                + ctnetlink_proto_size(ct)
->                ;
->  }
-> --
-> 1.7.10.4
+>  Basically what's happening is, during netns cleanup,
+>  nf_nat_net_exit gets called before ipv4_net_exit. As I understand
+>  it, nf_nat_net_exit is supposed to kill any conntrack entries which
+>  have NAT context (through nf_ct_iterate_cleanup), but for some
+>  reason this doesn't happen (perhaps something else is still holding
+>  refs to those entries?).
+> 
+>  When ipv4_net_exit is called, conntrack entries (including those
+>  with NAT context) are cleaned up, but the
+>  nat_bysource hashtable is long gone - freed in nf_nat_net_exit. The
+>  bug happens when attempting to free a conntrack entry whose NAT hash
+>  'prev' field points to a slot in the freed hash table (head for that
+>  bin).
+> 
+> We ignore conntracks with null nat bindings.  But this is wrong,
+> as these are in bysource hash table as well.
+> 
+> Restore nat-cleaning for the netns-is-being-removed case.
+> 
+> bug:
+> https://bugzilla.kernel.org/show_bug.cgi?id=65191
+> Fixes: c2d421e1718 ('netfilter: nf_nat: fix race when unloading protocol modules')
+
+Applied, thanks!
