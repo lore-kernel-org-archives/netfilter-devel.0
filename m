@@ -1,38 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nftables PATCH 2/2] reject: add ICMP code field parameter for
- indicating the type of error
-Date: Mon, 16 Jun 2014 12:00:54 +0200
-Message-ID: <20140616100054.GB9296@localhost>
-References: <1402505463-8420-1-git-send-email-alvaroneay@gmail.com>
+Subject: Re: [libnftnl PATCH 0/5] queue: Do not print unset value
+Date: Mon, 16 Jun 2014 12:11:55 +0200
+Message-ID: <20140616101155.GA10466@localhost>
+References: <1402651913-15065-1-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43394 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47908 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754816AbaFPKBD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:01:03 -0400
+	id S1755107AbaFPKMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Jun 2014 06:12:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1402505463-8420-1-git-send-email-alvaroneay@gmail.com>
+In-Reply-To: <1402651913-15065-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 11, 2014 at 06:51:03PM +0200, Alvaro Neira Ayuso wrote:
-> This patch allows to indicate the code field in case that we
-> use reject. Before, we have sent always network unreachable error
-> like code fiend and now we can determine the code field that
-> we want to use. Example:
+On Fri, Jun 13, 2014 at 11:31:48AM +0200, Ana Rey wrote:
+> This patchset does tasks about does not print unset value in xml and json file
+> and about refactoring code: "Add nft_rule_expr_queue_snprinf_* functions"
+> and "Use nft_rule_expr_* in the xml".
 > 
-> nft add rule filter input tcp dport 22 reject with host-unreach
-> or
-> nft add rule filter input udp dport 22 reject with host-unreach
+> Also, It fixes some data type of variables.
 > 
-> In this case, we are going to use the code field host unreachable.
-> 
-> The default code field still is network unreachable and we can use
-> also the rules without the with like that:
-> 
-> nft add rule filter input udp dport 22 reject
+> Ana Rey (5):
+>   expr: queue: Add nft_rule_expr_queue_snprinf_* functions
+>   expr: queue: Use nft_rule_expr_* in the xml
+>   expr: queue: Do not print unset values in xml
+>   expr: queue: Do not print unset values in json
+>   expr: queue: Use the correct data type.
 
-Also applied, thanks.
+Series applied, thanks Ana.
