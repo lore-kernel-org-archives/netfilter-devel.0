@@ -1,57 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] MAINTAINERS: merge ebtables into netfilter entry
-Date: Mon, 16 Jun 2014 13:01:52 +0200
-Message-ID: <1402916512-15164-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37459 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076AbaFPLCD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2014 07:02:03 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [GIT PULL nf] IPVS Fixes for v3.16
+Date: Mon, 16 Jun 2014 13:11:15 +0200
+Message-ID: <20140616111115.GA25199@localhost>
+References: <1402645029-21756-1-git-send-email-horms@verge.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1402645029-21756-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Moreover, remove reference to the netfilter users mailing list,
-so they don't receive patches.
+On Fri, Jun 13, 2014 at 04:37:08PM +0900, Simon Horman wrote:
+> Hi Pablo,
+> 
+> Please consider this IPVS fix for v3.16.
+> 
+> Fix for panic due use of tot_stats estimator outside of CONFIG_SYSCTL
+> 
+> It has been present since v3.6.39.
+> 
+> I would like this fix considered for -stable and I have checked that it
+> applies cleanly on top of v3.15, v3.14.7, v3.12.22, v3.10.43 and v3.2.60.
+> 
+> 
+> The following changes since commit f44a5f45f544561302e855e7bd104e5f506ec01b:
+> 
+>   ipvs: Fix panic due to non-linear skb (2014-05-26 10:22:46 +0900)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git ipvs-fixes-for-v3.16
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- MAINTAINERS |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 134483f..2d67a5d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3189,14 +3189,6 @@ L:	linux-scsi@vger.kernel.org
- S:	Maintained
- F:	drivers/scsi/eata_pio.*
- 
--EBTABLES
--L:	netfilter-devel@vger.kernel.org
--W:	http://ebtables.sourceforge.net/
--S:	Orphan
--F:	include/linux/netfilter_bridge/ebt_*.h
--F:	include/uapi/linux/netfilter_bridge/ebt_*.h
--F:	net/bridge/netfilter/ebt*.c
--
- EC100 MEDIA DRIVER
- M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
-@@ -6105,12 +6097,11 @@ F:	Documentation/networking/s2io.txt
- F:	Documentation/networking/vxge.txt
- F:	drivers/net/ethernet/neterion/
- 
--NETFILTER/IPTABLES
-+NETFILTER ({IP,IP6,ARP,EB,NF}TABLES)
- M:	Pablo Neira Ayuso <pablo@netfilter.org>
- M:	Patrick McHardy <kaber@trash.net>
- M:	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
- L:	netfilter-devel@vger.kernel.org
--L:	netfilter@vger.kernel.org
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
--- 
-1.7.10.4
-
+Pulled, thanks Simon.
