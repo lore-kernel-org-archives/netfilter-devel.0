@@ -1,40 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS Fixes for v3.16
-Date: Mon, 16 Jun 2014 13:11:15 +0200
-Message-ID: <20140616111115.GA25199@localhost>
-References: <1402645029-21756-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH] netfilter: ctnetlink: fix refcnt leak in
+ dying/unconfirmed list dumper
+Date: Mon, 16 Jun 2014 13:12:03 +0200
+Message-ID: <20140616111203.GA25217@localhost>
+References: <1402220483-10565-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, brouer@redhat.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40429 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751635AbaFPLMK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Jun 2014 07:12:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1402645029-21756-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1402220483-10565-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 13, 2014 at 04:37:08PM +0900, Simon Horman wrote:
-> Hi Pablo,
+On Sun, Jun 08, 2014 at 11:41:23AM +0200, Florian Westphal wrote:
+> 'last' keeps track of the ct that had its refcnt bumped during previous
+> dump cycle.  Thus it must not be overwritten until end-of-function.
 > 
-> Please consider this IPVS fix for v3.16.
+> Another (unrelated, theoretical) issue: Don't attempt to bump refcnt of a conntrack
+> whose reference count is already 0.  Such conntrack is being destroyed
+> right now, its memory is freed once we release the percpu dying spinlock.
 > 
-> Fix for panic due use of tot_stats estimator outside of CONFIG_SYSCTL
-> 
-> It has been present since v3.6.39.
-> 
-> I would like this fix considered for -stable and I have checked that it
-> applies cleanly on top of v3.15, v3.14.7, v3.12.22, v3.10.43 and v3.2.60.
-> 
-> 
-> The following changes since commit f44a5f45f544561302e855e7bd104e5f506ec01b:
-> 
->   ipvs: Fix panic due to non-linear skb (2014-05-26 10:22:46 +0900)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git ipvs-fixes-for-v3.16
+> Fixes: b7779d06 ('netfilter: conntrack: spinlock per cpu to protect special lists.')
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  With this patch I do not see any more stale entries on the dying list with eache evictor
+>  not being scheduled.  Such 'leaked' entries are easy to spot since their 'use' count
+>  is growing, i.e. invoking conntrack -L dying repeatedly yields 'use=$bignum++' output.
 
-Pulled, thanks Simon.
+Applied, thanks Florian!
