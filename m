@@ -1,85 +1,107 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH libnetfilter_conntrack] add userspace dump filter
-Date: Wed, 18 Jun 2014 10:59:36 +0200
-Message-ID: <20140618085936.GA3923@localhost>
-References: <20140617123718.GC24712@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [PATCH 00/13] netfilter fixes for net
+Date: Wed, 18 Jun 2014 11:44:26 +0200
+Message-ID: <1403084679-11227-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53417 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41370 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965238AbaFRI7m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jun 2014 04:59:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20140617123718.GC24712@gmail.com>
+	id S965210AbaFRJos (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Jun 2014 05:44:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 17, 2014 at 09:37:18PM +0900, Ken-ichirou MATSUZAWA wrote:
->  Hello,
-> 
-> I tried to filter dump by zone in userspace. But it seems for me
-> that CTA_ZONE is classified larger class than CTA_MARK, then I
-> think it allows to be filtered in kernel like CTA_MARK/CTA_MARK_MASK.
-> 
-> Which is preferable way?
->
-> --------
-> 
-> This patch adds more type to filter_dump, working in userspace,
+Hi David,
 
-If this works from userspace, then you can just filter out the
-conntracks from the callback handler itself. So I don't think this
-patch is the way to go.
+The following patchset contains netfilter updates for your net tree,
+they are:
 
-The kernel side filtering aims to reduce the time to dump conntrack
-tables with lots of entries. If you want to add filtering by zone in
-the ctnetlink_dump_table path, you have to generalize the existing
-ctnetlink code.
+1) Fix refcount leak when dumping the dying/unconfirmed conntrack lists,
+   from Florian Westphal.
 
-My suggestion is to rework ctnetlink_dump_filter to make it look like
-(just quick code, I didn't even compile test it):
+2) Fix crash in NAT when removing a netnamespace, also from Florian.
 
-struct ctnetlink_dump_filter {
-        enum ctnetlink_filter_key       key;
-        u_int32_t                       data;
-        u_int32_t                       mask;
-};
+3) Fix a crash in IPVS when trying to remove an estimator out of the
+   sysctl scope, from Julian Anastasov.
 
-The keys can be:
+4) Add zone attribute to the routing to calculate the message size in
+   ctnetlink events, from Ken-ichirou MATSUZAWA.
 
-enum ctnetlink_filter_key {
-        CTNL_FILTER_MARK = 0,
-        CTNL_FILTER_ZONE,
-};
+5) Another fix for the dying/unconfirmed list which was preventing to
+   dump more than one memory page of entries (~17 entries in x86_64).
 
-Then, from ctnetlink_dump_table() you'll need to do something like:
+6) Fix missing RCU-safe list insertion in the rule replacement code
+   in nf_tables.
 
-        if (filter) {
-                data = ctnetlink_fetch_key(ct, filter->key);
-                if (!(data & filter->mask == filter->data))
-                        continue;
-        }
+7) Since the new transaction infrastructure is in place, we have to
+   upgrade the chain use counter from u16 to u32 to avoid overflow
+   after more than 2^16 rules are added.
 
-The ctnetlink_fetch_key() should look like:
+8) Fix refcount leak when replacing rule in nf_tables. This problem
+   was also introduced in new transaction.
 
-static u_int32_t ctnetlink_fetch_key(const struct nf_conn *ct, u_int32_t key)
-{
-        u_int32_t ret;
+9) Call the ->destroy() callback when releasing nft-xt rules to fix
+   module refcount leaks.
 
-        switch (key) {
-        case CTNL_FILTER_MARK:
-                ret = ct->mark;
-        case CTNL_FILTER_ZONE:
-                ret = ct->zone;
-        }
+10) Set the family in the netlink messages that contain set elements
+    in nf_tables to make it consistent with other object types.
 
-        return ret;
-}
+11) Don't dump NAT port information if it is unset in nft_nat.
 
-Please, if you work on this, first send us a patch to generalize the
-filtering "framework" for ctnetlink dumps and then add the filtering
-by zone.
+12) Update the MAINTAINERS file, I have merged the ebtables entry
+    into netfilter. While at it, also removed the netfilter users
+    mailing list, the development list should be enough.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+
+  Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to db9cf3a345d310bd459f369e8fa5f039076293f2:
+
+  MAINTAINERS: merge ebtables into netfilter entry (2014-06-18 11:27:03 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: ctnetlink: fix refcnt leak in dying/unconfirmed list dumper
+      netfilter: nf_nat: fix oops on netns removal
+
+Julian Anastasov (1):
+      ipvs: stop tot_stats estimator only under CONFIG_SYSCTL
+
+Ken-ichirou MATSUZAWA (1):
+      netfilter: ctnetlink: add zone size to length
+
+Pablo Neira Ayuso (10):
+      netfilter: ctnetlink: fix dumping of dying/unconfirmed conntracks
+      netfilter: nf_tables: use RCU-safe list insertion when replacing rules
+      netfilter: nf_tables: use u32 for chain use counter
+      netfilter: nf_tables: decrement chain use counter when replacing rules
+      netfilter: nf_tables: fix wrong type in transaction when replacing rules
+      netfilter: nft_compat: call {target, match}->destroy() to cleanup entry
+      netfilter: nf_tables: indicate family when dumping set elements
+      netfilter: nft_nat: don't dump port information if unset
+      Merge branch 'ipvs'
+      MAINTAINERS: merge ebtables into netfilter entry
+
+ MAINTAINERS                          |   11 +----------
+ include/net/netfilter/nf_tables.h    |    6 +++---
+ net/netfilter/ipvs/ip_vs_ctl.c       |    2 +-
+ net/netfilter/nf_conntrack_netlink.c |   20 ++++++++++++-------
+ net/netfilter/nf_nat_core.c          |   35 +++++++++++++++++++++++++++++++++-
+ net/netfilter/nf_tables_api.c        |   11 ++++++++---
+ net/netfilter/nft_compat.c           |   18 +++++++++++++++++
+ net/netfilter/nft_nat.c              |   14 ++++++++------
+ 8 files changed, 86 insertions(+), 31 deletions(-)
