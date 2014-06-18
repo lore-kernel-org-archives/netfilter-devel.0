@@ -1,28 +1,31 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: Multiple conntrack tables
-Date: Wed, 18 Jun 2014 23:30:57 +0200
-Message-ID: <20140618213057.GA13029@breakpoint.cc>
-References: <CAOj-5WDepb3pj3=oRms+OhWhScFJ15V-H3QuGUFjScE54-mtMg@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/13] netfilter fixes for net
+Date: Wed, 18 Jun 2014 16:10:20 -0700 (PDT)
+Message-ID: <20140618.161020.2096402283013785140.davem@davemloft.net>
+References: <1403084679-11227-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Sam Liddicott <sam@liddicott.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40296 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755408AbaFRVa6 (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:36068 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864AbaFRXKX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jun 2014 17:30:58 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOj-5WDepb3pj3=oRms+OhWhScFJ15V-H3QuGUFjScE54-mtMg@mail.gmail.com>
+	Wed, 18 Jun 2014 19:10:23 -0400
+In-Reply-To: <1403084679-11227-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sam Liddicott <sam@liddicott.com> wrote:
-> I know that a rule in raw can prevent a packet from being processed by
-> contrack..
-> 
-> I wonder if it could also identify which contrack table it should go in.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 18 Jun 2014 11:44:26 +0200
 
-This is possible via conntrack zones, see
-iptables-extensions(8), '--zone' option of CT target.
+> The following patchset contains netfilter updates for your net tree,
+> they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Pulled, thanks Pablo.
