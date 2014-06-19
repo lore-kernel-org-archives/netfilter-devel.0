@@ -1,18 +1,18 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 4/4] expr: cmp: Do not print unset values in json file
-Date: Thu, 19 Jun 2014 19:34:24 +0200
-Message-ID: <1403199264-14271-5-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH 3/4] expr: cmp: Do not print unset values in xml file
+Date: Thu, 19 Jun 2014 19:34:23 +0200
+Message-ID: <1403199264-14271-4-git-send-email-anarey@gmail.com>
 References: <1403199264-14271-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:63179 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934040AbaFSReo (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:64483 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934040AbaFSRen (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2014 13:34:44 -0400
-Received: by mail-wi0-f174.google.com with SMTP id bs8so9769114wib.7
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 10:34:43 -0700 (PDT)
+	Thu, 19 Jun 2014 13:34:43 -0400
+Received: by mail-wg0-f43.google.com with SMTP id b13so2636562wgh.14
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 10:34:42 -0700 (PDT)
 In-Reply-To: <1403199264-14271-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -21,70 +21,71 @@ It changes the parse and snprintf functions to omit unset values.
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/expr/cmp.c | 41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ src/expr/cmp.c | 39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
 diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 5fd02e4..633e114 100644
+index cc01573..5fd02e4 100644
 --- a/src/expr/cmp.c
 +++ b/src/expr/cmp.c
-@@ -183,26 +183,20 @@ static int nft_rule_expr_cmp_json_parse(struct nft_rule_expr *e, json_t *root,
- 	uint32_t uval32;
- 	int base;
+@@ -221,26 +221,21 @@ static int nft_rule_expr_cmp_xml_parse(struct nft_rule_expr *e, mxml_node_t *tre
+ 	uint32_t sreg;
  
--	if (nft_jansson_parse_val(root, "sreg", NFT_TYPE_U32, &uval32, err) < 0)
+ 	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
+-			       NFT_XML_MAND, err) != 0)
 -		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, uval32);
-+	if (nft_jansson_parse_val(root, "sreg", NFT_TYPE_U32, &uval32,
-+				  err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, uval32);
+-	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, sreg);
++			       NFT_XML_MAND, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, sreg);
  
- 	op = nft_jansson_parse_str(root, "op", err);
+ 	op = nft_mxml_str_parse(tree, "op", MXML_DESCEND_FIRST, NFT_XML_MAND,
+ 				err);
 -	if (op == NULL)
 -		return -1;
 -
--	base = nft_str2cmp(op);
--	if (base < 0)
+-	op_value = nft_str2cmp(op);
+-	if (op_value < 0)
 -		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, base);
+-	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, op_value);
 +	if (op != NULL) {
-+		base = nft_str2cmp(op);
-+		if (base >= 0)
-+			nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, base);
++		op_value = nft_str2cmp(op);
++		if (op_value >= 0)
++			nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, op_value);
 +	}
  
- 	if (nft_jansson_data_reg_parse(root, "cmpdata",
--				       &cmp->data, err) != DATA_VALUE)
+ 	if (nft_mxml_data_reg_parse(tree, "cmpdata",
+ 				    &cmp->data, NFT_XML_MAND,
+-				    err) != DATA_VALUE)
 -		return -1;
 -
 -	e->flags |= (1 << NFT_EXPR_CMP_DATA);
-+				       &cmp->data, err) == DATA_VALUE)
++				    err) == DATA_VALUE)
 +		e->flags |= (1 << NFT_EXPR_CMP_DATA);
  
  	return 0;
  #else
-@@ -250,11 +244,16 @@ static int nft_rule_expr_cmp_snprintf_json(char *buf, size_t size,
+@@ -272,11 +267,19 @@ static int nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size,
  	struct nft_expr_cmp *cmp = nft_expr_data(e);
  	int len = size, offset = 0, ret;
  
--	ret = snprintf(buf, len, "\"sreg\":%u,\"op\":\"%s\",",
+-	ret = snprintf(buf, len, "<sreg>%u</sreg><op>%s</op>",
 -		       cmp->sreg, expr_cmp_str[cmp->op]);
 -	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--
--	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
 +	if (e->flags & (1 << NFT_EXPR_CMP_SREG)) {
-+		ret = snprintf(buf + offset, len, "\"sreg\":%u,", cmp->sreg);
++		ret = snprintf(buf, len, "<sreg>%u</sreg>",
++			       cmp->sreg);
 +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 +	}
-+	if (e->flags & (1 << NFT_EXPR_CMP_OP)) {
-+		ret = snprintf(buf + offset, len, "\"op\":\"%s\",",
+ 
+-	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
++	if (e->flags & (1 << NFT_EXPR_CMP_SREG)) {
++		ret = snprintf(buf + offset, len, "<op>%s</op>",
 +			       expr_cmp_str[cmp->op]);
 +		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 +	}
++
 +	ret = nft_data_reg_snprintf(buf + offset, len, &cmp->data,
- 				    NFT_OUTPUT_JSON, 0, DATA_VALUE);
+ 				    NFT_OUTPUT_XML, 0, DATA_VALUE);
  	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  
 -- 
