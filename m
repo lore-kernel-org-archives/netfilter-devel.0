@@ -1,35 +1,43 @@
-From: Sam Liddicott <sam@liddicott.com>
-Subject: Re: Multiple conntrack tables
-Date: Thu, 19 Jun 2014 14:49:01 +0100
-Message-ID: <CAOj-5WDOCwpCCBPLUwQ=vd1GzrTbLg6hLSFVWCnrozdZhTjp5A@mail.gmail.com>
-References: <CAOj-5WDepb3pj3=oRms+OhWhScFJ15V-H3QuGUFjScE54-mtMg@mail.gmail.com>
-	<20140618213057.GA13029@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH 0/5] expr: bitwise: Do not print unset values
+Date: Thu, 19 Jun 2014 17:07:05 +0200
+Message-ID: <1403190430-22173-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:57672 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979AbaFSNtC (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:38113 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932894AbaFSPHW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2014 09:49:02 -0400
-Received: by mail-qc0-f176.google.com with SMTP id w7so2184991qcr.35
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 06:49:01 -0700 (PDT)
-In-Reply-To: <20140618213057.GA13029@breakpoint.cc>
+	Thu, 19 Jun 2014 11:07:22 -0400
+Received: by mail-wg0-f43.google.com with SMTP id b13so2450593wgh.14
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 08:07:21 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks, Florian, that's great!
+This patchset does tasks about does not print unset value in xml and json file
+and about refactoring code:
 
-Sam
+*"expr: byteorder: Get a nft_rule_expr type in
+    nft_rule_expr_byteorder_snprintf_* functions"
+* "expr: byteorder: Use nft_rule_expr_set_* in the xml parsing code"
+* "expr: byteorder: Rename variables in
+    nft_rule_expr_byteorder_json_parse functions"
 
-On Wed, Jun 18, 2014 at 10:30 PM, Florian Westphal <fw@strlen.de> wrote:
-> Sam Liddicott <sam@liddicott.com> wrote:
->> I know that a rule in raw can prevent a packet from being processed by
->> contrack..
->>
->> I wonder if it could also identify which contrack table it should go in.
->
-> This is possible via conntrack zones, see
-> iptables-extensions(8), '--zone' option of CT target.
+*** BLURB HERE ***
+
+Ana Rey (5):
+  expr: byteorder: Get a nft_rule_expr type in
+    nft_rule_expr_byteorder_snprintf_* functions
+  expr: byteorder: Use nft_rule_expr_set_* in the xml parsing code
+  expr: byteorder: Do not print unset values in xml file
+  expr: byteorder: Rename variables in
+    nft_rule_expr_byteorder_json_parse functions
+  expr: byteorder: Do not print unset values in json
+
+ src/expr/byteorder.c | 196 +++++++++++++++++++++++++++------------------------
+ 1 file changed, 102 insertions(+), 94 deletions(-)
+
+-- 
+2.0.0
+
