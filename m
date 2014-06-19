@@ -1,48 +1,35 @@
-From: Yanchuan Nian <ycnian@gmail.com>
-Subject: [nftables PATCH] Correct initial value of bytes counter in nftables rule
-Date: Thu, 19 Jun 2014 20:23:47 +0800
-Message-ID: <1403180627-5631-1-git-send-email-ycnian@gmail.com>
-Cc: Yanchuan Nian <ycnian@gmail.com>
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+From: Sam Liddicott <sam@liddicott.com>
+Subject: Re: Multiple conntrack tables
+Date: Thu, 19 Jun 2014 14:49:01 +0100
+Message-ID: <CAOj-5WDOCwpCCBPLUwQ=vd1GzrTbLg6hLSFVWCnrozdZhTjp5A@mail.gmail.com>
+References: <CAOj-5WDepb3pj3=oRms+OhWhScFJ15V-H3QuGUFjScE54-mtMg@mail.gmail.com>
+	<20140618213057.GA13029@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:53163 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757442AbaFSMUb (ORCPT
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:57672 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755979AbaFSNtC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2014 08:20:31 -0400
-Received: by mail-pa0-f44.google.com with SMTP id rd3so1858379pab.17
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 05:20:31 -0700 (PDT)
+	Thu, 19 Jun 2014 09:49:02 -0400
+Received: by mail-qc0-f176.google.com with SMTP id w7so2184991qcr.35
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 06:49:01 -0700 (PDT)
+In-Reply-To: <20140618213057.GA13029@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Packages can be accounted by nftables through such command.
-% nft add rule filter output ip daddr 8.8.8.8 counter
+Thanks, Florian, that's great!
 
-You can also give the initial values of packets and bytes.
-% nft add rule filter output ip daddr 8.8.8.8 counter  packets 10 bytes 20
+Sam
 
-But packets and bytes are both initialized to 10 in above command for there is
-a mistake in the program.
-
-Signed-off-by: Yanchuan Nian <ycnian@gmail.com>
----
- src/netlink_linearize.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index b0ca241..222d102 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -545,7 +545,7 @@ static void netlink_gen_counter_stmt(struct netlink_linearize_ctx *ctx,
- 	}
- 	if (stmt->counter.bytes) {
- 		nft_rule_expr_set_u64(nle, NFT_EXPR_CTR_BYTES,
--				      stmt->counter.packets);
-+				      stmt->counter.bytes);
- 	}
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
--- 
-1.9.3
-
+On Wed, Jun 18, 2014 at 10:30 PM, Florian Westphal <fw@strlen.de> wrote:
+> Sam Liddicott <sam@liddicott.com> wrote:
+>> I know that a rule in raw can prevent a packet from being processed by
+>> contrack..
+>>
+>> I wonder if it could also identify which contrack table it should go in.
+>
+> This is possible via conntrack zones, see
+> iptables-extensions(8), '--zone' option of CT target.
