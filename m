@@ -1,33 +1,48 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH 3/3] netfilter: Add SKPID and SKSID meta keys
-Date: Thu, 19 Jun 2014 13:25:23 +0300
-Message-ID: <53A2BA93.2070908@linux.intel.com>
-References: <1401977956-15500-1-git-send-email-yshuiv7@gmail.com> <1401977956-15500-3-git-send-email-yshuiv7@gmail.com> <20140610110115.GA9240@localhost> <53A2B897.8080501@linux.intel.com> <20140619101959.GA4431@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Yuxuan Shui <yshuiv7@gmail.com>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Yanchuan Nian <ycnian@gmail.com>
+Subject: [nftables PATCH] Correct initial value of bytes counter in nftables rule
+Date: Thu, 19 Jun 2014 20:23:47 +0800
+Message-ID: <1403180627-5631-1-git-send-email-ycnian@gmail.com>
+Cc: Yanchuan Nian <ycnian@gmail.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34361 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528AbaFSKZi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2014 06:25:38 -0400
-In-Reply-To: <20140619101959.GA4431@localhost>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:53163 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757442AbaFSMUb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jun 2014 08:20:31 -0400
+Received: by mail-pa0-f44.google.com with SMTP id rd3so1858379pab.17
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2014 05:20:31 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Packages can be accounted by nftables through such command.
+% nft add rule filter output ip daddr 8.8.8.8 counter
 
->> To mimic xtables libxt_owner extension, would that be sufficient?
-> That is already achieved through skuid and skgid.
+You can also give the initial values of packets and bytes.
+% nft add rule filter output ip daddr 8.8.8.8 counter  packets 10 bytes 20
 
-What about:
+But packets and bytes are both initialized to 10 in above command for there is
+a mistake in the program.
 
-[!] --pid-owner processid    Match local PID
-[!] --sid-owner sessionid    Match local SID
+Signed-off-by: Yanchuan Nian <ycnian@gmail.com>
+---
+ src/netlink_linearize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Though in kernel side, I could not find any handlers for those... Unless 
-I missed something.
-
-Tomasz
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index b0ca241..222d102 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -545,7 +545,7 @@ static void netlink_gen_counter_stmt(struct netlink_linearize_ctx *ctx,
+ 	}
+ 	if (stmt->counter.bytes) {
+ 		nft_rule_expr_set_u64(nle, NFT_EXPR_CTR_BYTES,
+-				      stmt->counter.packets);
++				      stmt->counter.bytes);
+ 	}
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+-- 
+1.9.3
 
