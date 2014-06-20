@@ -1,51 +1,98 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH 0/3] expr: bitwise: Do not print unset values
-Date: Fri, 20 Jun 2014 09:19:19 +0200
-Message-ID: <CAOkSjBg89EWHK3CYazaQsmMRO7tGRpLEA=KQabCwWAmpanrH8g@mail.gmail.com>
-References: <1403172339-29786-1-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH] expr: nat: add helper function to translate nat
+	types to string
+Date: Fri, 20 Jun 2014 10:55:08 +0200
+Message-ID: <20140620085508.12697.41817.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Ana Rey <anarey@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: anarey@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:37025 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934032AbaFTHTl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jun 2014 03:19:41 -0400
-Received: by mail-lb0-f175.google.com with SMTP id q8so2055498lbi.20
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2014 00:19:39 -0700 (PDT)
-In-Reply-To: <1403172339-29786-1-git-send-email-anarey@gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:45229 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S934307AbaFTIzS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Jun 2014 04:55:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19 June 2014 12:05, Ana Rey <anarey@gmail.com> wrote:
-> This patchset does tasks about does not print unset value in xml and =
-json file
-> and about refactoring code: "Get a nft_rule_expr type in
-> nft_rule_expr_bitwise_snprintf_* functions"
->
-> Ana Rey (3):
->   expr: bitwise: Get a nft_rule_expr type in
->     nft_rule_expr_bitwise_snprintf_* functions
->   expr: bitwise: Do not print unset values in xml
->   expr: bitwise: Do not print unset values in json
->
->  src/expr/bitwise.c | 212 ++++++++++++++++++++++++++++---------------=
-----------
->  1 file changed, 112 insertions(+), 100 deletions(-)
->
+This patch adds a helper functon to translate nat types to string.
 
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/expr/nat.c |   40 +++++++++++++++++-----------------------
+ 1 file changed, 17 insertions(+), 23 deletions(-)
 
-Patch set reviewed. Ok to me.
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 0136fca..c719b6c 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -184,6 +184,18 @@ nft_rule_expr_nat_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 				 htonl(nat->sreg_proto_max));
+ }
+ 
++static inline const char *nft_nat2str(uint16_t nat)
++{
++	switch (nat) {
++	case NFT_NAT_SNAT:
++		return "snat";
++	case NFT_NAT_DNAT:
++		return "dnat";
++	default:
++		return "unknown";
++	}
++}
++
+ static inline int nft_str2nat(const char *nat)
+ {
+ 	if (strcmp(nat, "snat") == 0)
+@@ -304,11 +316,8 @@ nft_rule_expr_nat_snprintf_json(char *buf, size_t size,
+ 	struct nft_expr_nat *nat = nft_expr_data(e);
+ 	int len = size, offset = 0, ret = 0;
+ 
+-	if (nat->type == NFT_NAT_SNAT)
+-		ret = snprintf(buf, len, "\"nat_type\":\"snat\",");
+-	else if (nat->type == NFT_NAT_DNAT)
+-		ret = snprintf(buf, len, "\"nat_type\":\"dnat\",");
+-
++	ret = snprintf(buf, len, "\"nat_type\":\"%s\",",
++		       nft_nat2str(nat->type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "\"family\":\"%s\",",
+@@ -340,14 +349,7 @@ nft_rule_expr_nat_snprintf_xml(char *buf, size_t size,
+ 	struct nft_expr_nat *nat = nft_expr_data(e);
+ 	int len = size, offset = 0, ret = 0;
+ 
+-	/* Is a mandatory element. Provide a default, even empty */
+-	if (nat->type == NFT_NAT_SNAT)
+-		ret = snprintf(buf, len, "<type>snat</type>");
+-	else if (nat->type == NFT_NAT_DNAT)
+-		ret = snprintf(buf, len, "<type>dnat</type>");
+-	else
+-		ret = snprintf(buf, len, "<type>unknown</type>");
+-
++	ret = snprintf(buf, len, "<type>%s</type>", nft_nat2str(nat->type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "<family>%s</family>",
+@@ -380,16 +382,8 @@ nft_rule_expr_nat_snprintf_default(char *buf, size_t size,
+ 	struct nft_expr_nat *nat = nft_expr_data(e);
+ 	int len = size, offset = 0, ret = 0;
+ 
+-	switch (nat->type) {
+-	case NFT_NAT_SNAT:
+-		ret = snprintf(buf, len, "snat ");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-		break;
+-	case NFT_NAT_DNAT:
+-		ret = snprintf(buf, len, "dnat ");
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-		break;
+-	}
++	ret = snprintf(buf, len, "%s ", nft_nat2str(nat->type));
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "%s ", nft_family2str(nat->family));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
 
-regards.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
