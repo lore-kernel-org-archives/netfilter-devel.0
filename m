@@ -1,36 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_queue Bugzilla
-Date: Fri, 20 Jun 2014 12:07:16 +0200
-Message-ID: <20140620100716.GC5444@localhost>
-References: <5e6979a91e744ea727ed66e4ef30fbe9@csie.ntu.edu.tw>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?utf-8?B?6JeN5oy655GL?= <b01902062@csie.ntu.edu.tw>
+Subject: [PATCH libnftnl] expr: remove alignment through XT_ALIGN in match and target
+Date: Fri, 20 Jun 2014 12:12:22 +0200
+Message-ID: <1403259142-5911-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32920 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34545 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965546AbaFTKHW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jun 2014 06:07:22 -0400
-Content-Disposition: inline
-In-Reply-To: <5e6979a91e744ea727ed66e4ef30fbe9@csie.ntu.edu.tw>
+	id S932976AbaFTKMd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Jun 2014 06:12:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 20, 2014 at 05:19:08PM +0800, =E8=97=8D=E6=8C=BA=E7=91=8B w=
-rote:
-> I have found several bugs in libnetfilter_queue. Is bugzilla the
-> correct way to report bugs? I reported it two weeks ago, but there
-> is no activity on the bug report.
->=20
-> https://bugzilla.netfilter.org/show_bug.cgi?id=3D957
+The info area that this gets via the setter should be already
+aligned. The caller has to care of this.
 
-We prefer patches through netfilter-devel.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/expr/match.c  |    2 +-
+ src/expr/target.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-I have applied this, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/expr/match.c b/src/expr/match.c
+index a65d3e5..a78bd69 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -124,7 +124,7 @@ nft_rule_expr_match_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 	if (e->flags & (1 << NFT_EXPR_MT_REV))
+ 		mnl_attr_put_u32(nlh, NFTA_MATCH_REV, htonl(mt->rev));
+ 	if (e->flags & (1 << NFT_EXPR_MT_INFO))
+-		mnl_attr_put(nlh, NFTA_MATCH_INFO, XT_ALIGN(mt->data_len), mt->data);
++		mnl_attr_put(nlh, NFTA_MATCH_INFO, mt->data_len, mt->data);
+ }
+ 
+ static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *attr)
+diff --git a/src/expr/target.c b/src/expr/target.c
+index ff0e56f..6a2b405 100644
+--- a/src/expr/target.c
++++ b/src/expr/target.c
+@@ -124,7 +124,7 @@ nft_rule_expr_target_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 	if (e->flags & (1 << NFT_EXPR_TG_REV))
+ 		mnl_attr_put_u32(nlh, NFTA_TARGET_REV, htonl(tg->rev));
+ 	if (e->flags & (1 << NFT_EXPR_TG_INFO))
+-		mnl_attr_put(nlh, NFTA_TARGET_INFO, XT_ALIGN(tg->data_len), tg->data);
++		mnl_attr_put(nlh, NFTA_TARGET_INFO, tg->data_len, tg->data);
+ }
+ 
+ static int nft_rule_expr_target_parse(struct nft_rule_expr *e, struct nlattr *attr)
+-- 
+1.7.10.4
+
