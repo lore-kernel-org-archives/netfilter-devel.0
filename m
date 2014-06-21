@@ -1,98 +1,74 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 4/4] expr: meta: Do not print unset values in json file
-Date: Sat, 21 Jun 2014 18:30:00 +0200
-Message-ID: <1403368200-8860-5-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH 1/4] expr: meta: Use nft_rule_expr_set_* in the xml parsing code
+Date: Sat, 21 Jun 2014 18:29:57 +0200
+Message-ID: <1403368200-8860-2-git-send-email-anarey@gmail.com>
 References: <1403368200-8860-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:40144 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713AbaFUQaS (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:36509 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665AbaFUQaQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Jun 2014 12:30:18 -0400
-Received: by mail-wi0-f171.google.com with SMTP id n15so2160371wiw.10
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jun 2014 09:30:17 -0700 (PDT)
+	Sat, 21 Jun 2014 12:30:16 -0400
+Received: by mail-wi0-f179.google.com with SMTP id cc10so2142123wib.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jun 2014 09:30:12 -0700 (PDT)
 In-Reply-To: <1403368200-8860-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It changes the parse and snprintf functions to omit unset values.
-Moreover, It adds some whitespaces arount '+' caracter, as the CodingStyle
-recommends.
+Code refactoring to use nft_rule_expr_set_* in parse functions.
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/expr/meta.c | 33 +++++++++++++--------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+ src/expr/meta.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
 diff --git a/src/expr/meta.c b/src/expr/meta.c
-index 95d538c..248686b 100644
+index 24057f2..c325742 100644
 --- a/src/expr/meta.c
 +++ b/src/expr/meta.c
-@@ -188,29 +188,22 @@ static int nft_rule_expr_meta_json_parse(struct nft_rule_expr *e, json_t *root,
+@@ -225,10 +225,9 @@ static int nft_rule_expr_meta_xml_parse(struct nft_rule_expr *e, mxml_node_t *tr
+ 					struct nft_parse_err *err)
+ {
+ #ifdef XML_PARSING
+-	struct nft_expr_meta *meta = nft_expr_data(e);
+ 	const char *key_str;
  	int key;
+-	uint32_t reg;
++	uint32_t dreg, sreg;
  
- 	key_str = nft_jansson_parse_str(root, "key", err);
--	if (key_str == NULL)
--		return -1;
--
--	key = str2meta_key(key_str);
--	if (key < 0)
--		return -1;
--
--	nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
-+	if (key_str != NULL) {
-+		key = str2meta_key(key_str);
-+		if (key >= 0)
-+			nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
-+	}
+ 	key_str = nft_mxml_str_parse(tree, "key", MXML_DESCEND_FIRST,
+ 				     NFT_XML_MAND, err);
+@@ -238,21 +237,15 @@ static int nft_rule_expr_meta_xml_parse(struct nft_rule_expr *e, mxml_node_t *tr
+ 	key = str2meta_key(key_str);
+ 	if (key < 0)
+ 		return -1;
++	nft_rule_expr_set_u32(e, NFT_EXPR_META_KEY, key);
  
- 	if (nft_jansson_node_exist(root, "dreg")) {
- 		if (nft_jansson_parse_reg(root, "dreg", NFT_TYPE_U32, &reg,
--					  err) < 0)
--			return -1;
+-	meta->key = key;
+-	e->flags |= (1 << NFT_EXPR_META_KEY);
 -
--		nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, reg);
-+					  err) == 0)
-+			nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, reg);
- 	}
+-	if (nft_mxml_reg_parse(tree, "dreg", &reg, MXML_DESCEND_FIRST,
+-			       NFT_XML_OPT, err) >= 0) {
+-		meta->dreg = reg;
+-		e->flags |= (1 << NFT_EXPR_META_DREG);
+-	}
++	if (nft_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
++			       NFT_XML_OPT, err) >= 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_META_DREG, dreg);
  
- 	if (nft_jansson_node_exist(root, "sreg")) {
- 		if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &reg,
--					  err) < 0)
--			return -1;
--
--		nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, reg);
-+					  err) == 0)
-+			nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, reg);
- 	}
+-	if (nft_mxml_reg_parse(tree, "sreg", &reg, MXML_DESCEND_FIRST,
+-			       NFT_XML_OPT, err) >= 0) {
+-		meta->sreg = reg;
+-		e->flags |= (1 << NFT_EXPR_META_SREG);
+-	}
++	if (nft_mxml_reg_parse(tree, "sreg", &sreg, MXML_DESCEND_FIRST,
++			       NFT_XML_OPT, err) >= 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_META_SREG, sreg);
  
  	return 0;
-@@ -304,19 +297,19 @@ nft_rule_expr_meta_snprintf_json(char *buf, size_t size,
- 	struct nft_expr_meta *meta = nft_expr_data(e);
- 
- 	if (e->flags & (1 << NFT_EXPR_META_DREG)) {
--		ret = snprintf(buf+offset, len, "\"dreg\":%u,",
-+		ret = snprintf(buf + offset, len, "\"dreg\":%u,",
- 			       meta->dreg);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
- 	if (e->flags & (1 << NFT_EXPR_META_KEY)) {
--		ret = snprintf(buf+offset, len, "\"key\":\"%s\",",
--						meta_key2str(meta->key));
-+		ret = snprintf(buf + offset, len, "\"key\":\"%s\",",
-+			       meta_key2str(meta->key));
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
- 	if (e->flags & (1 << NFT_EXPR_META_SREG)) {
--		ret = snprintf(buf+offset, len, "\"sreg\":%u,",
-+		ret = snprintf(buf + offset, len, "\"sreg\":%u,",
- 			       meta->sreg);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
+ #else
 -- 
 2.0.0
 
