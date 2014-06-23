@@ -1,125 +1,222 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/9] Netfilter packet logging updates
-Date: Mon, 23 Jun 2014 16:41:04 +0200
-Message-ID: <1403534473-5178-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/9] netfilter: nf_log: use an array of loggers instead of list
+Date: Mon, 23 Jun 2014 16:41:06 +0200
+Message-ID: <1403534473-5178-3-git-send-email-pablo@netfilter.org>
+References: <1403534473-5178-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, fw@strlen.de,
 	eric.dumazet@gmail.com, eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42191 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42193 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755103AbaFWOle (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2014 10:41:34 -0400
+	id S1754940AbaFWOlf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jun 2014 10:41:35 -0400
+In-Reply-To: <1403534473-5178-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Now that legacy ulog targets are not available anymore in the tree, we
+can have up to two possible loggers:
 
-The following patch series contain updates for the Netfilter packet
-logging infrastructure that aim to finish the nft_log support by
-providing isolated modules that implement the family packet logger
-for IPv4, IPv6, ARP and bridged packets.
+1) The plain text logging via kernel logging ring.
+2) The nfnetlink_log infrastructure which delivers log messages
+   to userspace.
 
-The result is somewhat similar to what we already have in the
-conntrack and NAT subsystems, ie. per-family modularized code. The
-output format aims to be consistent for all families, so nf_tables
-will solve the inconsistencies between the ebtables and ip{6}tables
-plain text logging formats. The bridge logger also doesn't replicate
-the IPv4, IPv6 and ARP code to log packets anymore.
+This patch replaces the list of loggers by an array of two pointers
+per family for each possible logger and it also introduces a new field
+to the nf_logger structure which indicates the position in the logger
+array (based on the logger type). This prepares a follow up patch
+that consolidates the nf_log_packet() interface by allowing to specify
+the logger as parameter.
 
-These are the patches:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_log.h |   15 +++++++++------
+ net/bridge/netfilter/ebt_log.c |    1 +
+ net/netfilter/nf_log.c         |   39 +++++++++++++++++++--------------------
+ net/netfilter/nfnetlink_log.c  |    1 +
+ net/netfilter/xt_LOG.c         |    2 ++
+ 5 files changed, 32 insertions(+), 26 deletions(-)
 
-1) Kill the ulog targets, both ebt_ulog and ipt_ULOG. It's been a long
-   time since we're providing the nfnetlink_log infrastructure.
-
-2) Use an array of loggers, one per type. Basically, we can have the
-   plain text packet logger and the netlink packet logging infrastructure.
-   Now that the old ulog targets are gone, we don't need to keep the list
-   of overlapping loggers anymore. This change prepares the follow up
-   patch to consolidate nf_log_packet() interface.
-
-3) Move Eric Dumazet's log buffering used by xt_LOG to the nf_log core
-   so it can be used from other packet loggers, such as the new ARP
-   packet logger.
-
-4) Move the family specific code from xt_LOG to nf_log_ipv4.c,
-   nf_log_ipv6.c and nf_log_common.c. This allows us to register one
-   logger per family which can be used both from nft_log and xt_LOG.
-
-5) Use the struct nf_loginfo parameter as the explict logger to be used
-   through nf_log_packet(). Thus, the nf_log_packet() routes the packet
-   to the corresponding family and type logger. If not specified, it still
-   uses the default logger.
-
-6) Add the ARP packet logger, which is indirectly used by nft_log through
-   nf_log_packet().
-
-7) Add the bridged packet logger. The ebt_log output has been left in
-   place not to break backward compatibility. The ebt_log is not the
-   default logger anymore, we should also reject new patches that use
-   nf_log_packet() from the ebtables code.
-
-8) Add the inet packet logger for the special inet chain.
-
-9) Complete the nft_log support by allowing to specify the type of logging
-   through the NFTA_LOG_SYSLOG and NFTA_LOG_GROUP attributes, which allows
-   you to select plain kernel logging through the ringbuffer and the
-   nfnetlink_log infrastructure.
-
-Please, let me know if you have any comment. Thanks.
-
-Pablo Neira Ayuso (9):
-  netfilter: kill ulog targets
-  netfilter: nf_log: use an array of loggers instead of list
-  netfilter: nf_log: move log buffering to core logging
-  netfilter: log: split family specific code to nf_log_{ip,ip6,common}.c files
-  netfilter: log: nf_log_packet() as real unified interface
-  netfilter: add generic ARP packet logger
-  netfilter: bridge: add generic packet logger
-  netfilter: add generic inet packet logger
-  netfilter: nft_log: complete logging support
-
- include/net/netfilter/nf_log.h                 |   42 +-
- include/net/netfilter/xt_log.h                 |   54 --
- include/uapi/linux/netfilter/nf_tables.h       |    4 +
- include/uapi/linux/netfilter_bridge/Kbuild     |    1 -
- include/uapi/linux/netfilter_bridge/ebt_ulog.h |   38 -
- include/uapi/linux/netfilter_ipv4/Kbuild       |    1 -
- include/uapi/linux/netfilter_ipv4/ipt_ULOG.h   |   49 --
- net/bridge/netfilter/Kconfig                   |   19 +-
- net/bridge/netfilter/Makefile                  |    3 +
- net/bridge/netfilter/ebt_log.c                 |   47 +-
- net/bridge/netfilter/ebt_ulog.c                |  393 -----------
- net/bridge/netfilter/nf_log_bridge.c           |   96 +++
- net/ipv4/netfilter/Kconfig                     |   23 +-
- net/ipv4/netfilter/Makefile                    |    4 +
- net/ipv4/netfilter/ipt_ULOG.c                  |  498 -------------
- net/ipv4/netfilter/nf_log_arp.c                |  149 ++++
- net/ipv4/netfilter/nf_log_ipv4.c               |  385 +++++++++++
- net/ipv6/netfilter/Kconfig                     |    5 +
- net/ipv6/netfilter/Makefile                    |    3 +
- net/ipv6/netfilter/nf_log_ipv6.c               |  417 +++++++++++
- net/netfilter/Kconfig                          |   10 +
- net/netfilter/Makefile                         |    4 +
- net/netfilter/nf_log.c                         |  144 +++-
- net/netfilter/nf_log_common.c                  |  187 +++++
- net/netfilter/nf_log_inet.c                    |   78 +++
- net/netfilter/nfnetlink_log.c                  |    4 +
- net/netfilter/nft_log.c                        |   81 ++-
- net/netfilter/xt_LOG.c                         |  884 +-----------------------
- 28 files changed, 1597 insertions(+), 2026 deletions(-)
- delete mode 100644 include/net/netfilter/xt_log.h
- delete mode 100644 include/uapi/linux/netfilter_bridge/ebt_ulog.h
- delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_ULOG.h
- delete mode 100644 net/bridge/netfilter/ebt_ulog.c
- create mode 100644 net/bridge/netfilter/nf_log_bridge.c
- delete mode 100644 net/ipv4/netfilter/ipt_ULOG.c
- create mode 100644 net/ipv4/netfilter/nf_log_arp.c
- create mode 100644 net/ipv4/netfilter/nf_log_ipv4.c
- create mode 100644 net/ipv6/netfilter/nf_log_ipv6.c
- create mode 100644 net/netfilter/nf_log_common.c
- create mode 100644 net/netfilter/nf_log_inet.c
-
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 99eac12..06b4c6b 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -12,8 +12,11 @@
+ #define NF_LOG_UID		0x08	/* Log UID owning local socket */
+ #define NF_LOG_MASK		0x0f
+ 
+-#define NF_LOG_TYPE_LOG		0x01
+-#define NF_LOG_TYPE_ULOG	0x02
++enum nf_log_type {
++	NF_LOG_TYPE_LOG		= 0,
++	NF_LOG_TYPE_ULOG,
++	NF_LOG_TYPE_MAX
++};
+ 
+ struct nf_loginfo {
+ 	u_int8_t type;
+@@ -40,10 +43,10 @@ typedef void nf_logfn(struct net *net,
+ 		      const char *prefix);
+ 
+ struct nf_logger {
+-	struct module	*me;
+-	nf_logfn 	*logfn;
+-	char		*name;
+-	struct list_head	list[NFPROTO_NUMPROTO];
++	char			*name;
++	enum nf_log_type	type;
++	nf_logfn 		*logfn;
++	struct module		*me;
+ };
+ 
+ /* Function to register/unregister log function. */
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 5322a36..0577477 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -207,6 +207,7 @@ static struct xt_target ebt_log_tg_reg __read_mostly = {
+ 
+ static struct nf_logger ebt_log_logger __read_mostly = {
+ 	.name 		= "ebt_log",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ebt_log_packet,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 85296d4..96891e6 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -16,16 +16,19 @@
+ #define NF_LOG_PREFIXLEN		128
+ #define NFLOGGER_NAME_LEN		64
+ 
+-static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
++static struct nf_logger *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
+ static DEFINE_MUTEX(nf_log_mutex);
+ 
+ static struct nf_logger *__find_logger(int pf, const char *str_logger)
+ {
+-	struct nf_logger *t;
++	int i;
+ 
+-	list_for_each_entry(t, &nf_loggers_l[pf], list[pf]) {
+-		if (!strnicmp(str_logger, t->name, strlen(t->name)))
+-			return t;
++	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
++		if (loggers[pf][i] == NULL)
++			continue;
++		if (!strnicmp(str_logger, loggers[pf][i]->name,
++			      strlen(loggers[pf][i]->name)))
++			return loggers[pf][i];
+ 	}
+ 
+ 	return NULL;
+@@ -73,17 +76,14 @@ int nf_log_register(u_int8_t pf, struct nf_logger *logger)
+ 	if (pf >= ARRAY_SIZE(init_net.nf.nf_loggers))
+ 		return -EINVAL;
+ 
+-	for (i = 0; i < ARRAY_SIZE(logger->list); i++)
+-		INIT_LIST_HEAD(&logger->list[i]);
+-
+ 	mutex_lock(&nf_log_mutex);
+ 
+ 	if (pf == NFPROTO_UNSPEC) {
+ 		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+-			list_add_tail(&(logger->list[i]), &(nf_loggers_l[i]));
++			loggers[i][logger->type] = logger;
+ 	} else {
+ 		/* register at end of list to honor first register win */
+-		list_add_tail(&logger->list[pf], &nf_loggers_l[pf]);
++		loggers[pf][logger->type] = logger;
+ 	}
+ 
+ 	mutex_unlock(&nf_log_mutex);
+@@ -98,7 +98,7 @@ void nf_log_unregister(struct nf_logger *logger)
+ 
+ 	mutex_lock(&nf_log_mutex);
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		list_del(&logger->list[i]);
++		loggers[i][logger->type] = NULL;
+ 	mutex_unlock(&nf_log_mutex);
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
+@@ -188,8 +188,7 @@ static int seq_show(struct seq_file *s, void *v)
+ {
+ 	loff_t *pos = v;
+ 	const struct nf_logger *logger;
+-	struct nf_logger *t;
+-	int ret;
++	int i, ret;
+ 	struct net *net = seq_file_net(s);
+ 
+ 	logger = rcu_dereference_protected(net->nf.nf_loggers[*pos],
+@@ -203,11 +202,14 @@ static int seq_show(struct seq_file *s, void *v)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	list_for_each_entry(t, &nf_loggers_l[*pos], list[*pos]) {
+-		ret = seq_printf(s, "%s", t->name);
++	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
++		if (loggers[*pos][i] == NULL)
++			continue;
++
++		ret = seq_printf(s, "%s", loggers[*pos][i]->name);
+ 		if (ret < 0)
+ 			return ret;
+-		if (&t->list[*pos] != nf_loggers_l[*pos].prev) {
++		if (i == 0 && loggers[*pos][i + 1]) {
+ 			ret = seq_printf(s, ",");
+ 			if (ret < 0)
+ 				return ret;
+@@ -389,14 +391,11 @@ static struct pernet_operations nf_log_net_ops = {
+ 
+ int __init netfilter_log_init(void)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	ret = register_pernet_subsys(&nf_log_net_ops);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+-		INIT_LIST_HEAD(&(nf_loggers_l[i]));
+-
+ 	return 0;
+ }
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index d292c8d..160bb8e 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -773,6 +773,7 @@ nfulnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
+ 
+ static struct nf_logger nfulnl_logger __read_mostly = {
+ 	.name	= "nfnetlink_log",
++	.type	= NF_LOG_TYPE_ULOG,
+ 	.logfn	= &nfulnl_log_packet,
+ 	.me	= THIS_MODULE,
+ };
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index 5ab2484..e668d97 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -896,6 +896,7 @@ static struct xt_target log_tg_regs[] __read_mostly = {
+ 
+ static struct nf_logger ipt_log_logger __read_mostly = {
+ 	.name		= "ipt_LOG",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ipt_log_packet,
+ 	.me		= THIS_MODULE,
+ };
+@@ -903,6 +904,7 @@ static struct nf_logger ipt_log_logger __read_mostly = {
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static struct nf_logger ip6t_log_logger __read_mostly = {
+ 	.name		= "ip6t_LOG",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ip6t_log_packet,
+ 	.me		= THIS_MODULE,
+ };
 -- 
 1.7.10.4
 
