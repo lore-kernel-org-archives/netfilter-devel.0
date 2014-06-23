@@ -1,177 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/9] netfilter: bridge: add generic packet logger
-Date: Mon, 23 Jun 2014 16:41:11 +0200
-Message-ID: <1403534473-5178-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 8/9] netfilter: add generic inet packet logger
+Date: Mon, 23 Jun 2014 16:41:12 +0200
+Message-ID: <1403534473-5178-9-git-send-email-pablo@netfilter.org>
 References: <1403534473-5178-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, fw@strlen.de,
 	eric.dumazet@gmail.com, eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42246 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42286 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755322AbaFWOlk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2014 10:41:40 -0400
+	id S1755148AbaFWOll (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jun 2014 10:41:41 -0400
 In-Reply-To: <1403534473-5178-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds the generic plain text packet loggger for bridged packets.
-It routes the logging message to the real protocol packet logger.
-I decided not to refactor the ebt_log code for two reasons:
-
-1) The ebt_log output is not consistent with the IPv4 and IPv6
-   Netfilter packet loggers. The output is different for no good
-   reason and it adds redundant code to handle packet logging.
-
-2) To avoid breaking backward compatibility for applications
-   outthere that are parsing the specific ebt_log output, the ebt_log
-   output has been left as is. So only nftables will use the new
-   consistent logging format for logged bridged packets.
-
-More decisions coming in this patch:
-
-1) This also removes ebt_log as default logger for bridged packets.
-   Thus, nf_log_packet() routes packet to this new packet logger
-   instead. This doesn't break backward compatibility since
-   nf_log_packet() is not used to log packets in plain text format
-   from anywhere in the ebtables/netfilter bridge code.
-
-2) The new bridge packet logger also performs a lazy request to
-   register the real IPv4, ARP and IPv6 netfilter packet loggers.
-   If the real protocol logger is no available (not compiled or the
-   module is not available in the system, not packet logging happens.
+This allows you to log packets from the special inet chains.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_log.h       |    1 +
- net/bridge/netfilter/Kconfig         |    3 ++
- net/bridge/netfilter/Makefile        |    3 ++
- net/bridge/netfilter/ebt_log.c       |   48 ++---------------
- net/bridge/netfilter/nf_log_bridge.c |   96 ++++++++++++++++++++++++++++++++++
- net/netfilter/nf_log.c               |    7 +++
- 6 files changed, 115 insertions(+), 43 deletions(-)
- create mode 100644 net/bridge/netfilter/nf_log_bridge.c
+ net/netfilter/Kconfig       |    4 +++
+ net/netfilter/Makefile      |    3 +-
+ net/netfilter/nf_log_inet.c |   78 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nf_log_inet.c
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index b82dd19..534e1f2 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -63,6 +63,7 @@ void nf_log_unbind_pf(struct net *net, u_int8_t pf);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index f17b273..280ed9c 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -362,6 +362,10 @@ config NETFILTER_NETLINK_QUEUE_CT
+ config NF_LOG_COMMON
+ 	tristate
  
- int nf_logger_find_get(int pf, enum nf_log_type type);
- void nf_logger_put(int pf, enum nf_log_type type);
-+void nf_logger_request_module(int pf, enum nf_log_type type);
- 
- #define MODULE_ALIAS_NF_LOGGER(family, type) \
- 	MODULE_ALIAS("nf-logger-" __stringify(family) "-" __stringify(type))
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 3a76ac7..4ce0b31 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -14,6 +14,9 @@ config NFT_BRIDGE_META
- 	help
- 	  Add support for bridge dedicated meta key.
- 
-+config NF_LOG_BRIDGE
-+	tristate "Bridge packet logging"
++config NF_LOG_INET
++	tristate "INET packet logging"
++	default m if NETFILTER_ADVANCED=n
 +
- endif # NF_TABLES_BRIDGE
+ config NF_NAT
+ 	tristate
  
- menuconfig BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 6f2f394..1f78ea0 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -5,6 +5,9 @@
- obj-$(CONFIG_NF_TABLES_BRIDGE) += nf_tables_bridge.o
- obj-$(CONFIG_NFT_BRIDGE_META)  += nft_meta_bridge.o
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 8308624..81ca236 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -47,7 +47,8 @@ obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
+ nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
+ 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
  
+-# generic transport layer logging
 +# packet logging
-+obj-$(CONFIG_NF_LOG_BRIDGE) += nf_log_bridge.o
-+
- obj-$(CONFIG_BRIDGE_NF_EBTABLES) += ebtables.o
++obj-$(CONFIG_NF_LOG_INET) += nf_log_inet.o
+ obj-$(CONFIG_NF_LOG_COMMON) += nf_log_common.o
  
- # tables
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 0577477..17f2e4b 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -186,6 +186,10 @@ ebt_log_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	li.u.log.level = info->loglevel;
- 	li.u.log.logflags = info->bitmask;
- 
-+	/* Remember that we have to use ebt_log_packet() not to break backward
-+	 * compatibility. We cannot use the default bridge packet logger via
-+	 * nf_log_packet() with NFT_LOG_TYPE_LOG here. --Pablo
-+	 */
- 	if (info->bitmask & EBT_LOG_NFLOG)
- 		nf_log_packet(net, NFPROTO_BRIDGE, par->hooknum, skb,
- 			      par->in, par->out, &li, "%s", info->prefix);
-@@ -205,55 +209,13 @@ static struct xt_target ebt_log_tg_reg __read_mostly = {
- 	.me		= THIS_MODULE,
- };
- 
--static struct nf_logger ebt_log_logger __read_mostly = {
--	.name 		= "ebt_log",
--	.type		= NF_LOG_TYPE_LOG,
--	.logfn		= &ebt_log_packet,
--	.me		= THIS_MODULE,
--};
--
--static int __net_init ebt_log_net_init(struct net *net)
--{
--	nf_log_set(net, NFPROTO_BRIDGE, &ebt_log_logger);
--	return 0;
--}
--
--static void __net_exit ebt_log_net_fini(struct net *net)
--{
--	nf_log_unset(net, &ebt_log_logger);
--}
--
--static struct pernet_operations ebt_log_net_ops = {
--	.init = ebt_log_net_init,
--	.exit = ebt_log_net_fini,
--};
--
- static int __init ebt_log_init(void)
- {
--	int ret;
--
--	ret = register_pernet_subsys(&ebt_log_net_ops);
--	if (ret < 0)
--		goto err_pernet;
--
--	ret = xt_register_target(&ebt_log_tg_reg);
--	if (ret < 0)
--		goto err_target;
--
--	nf_log_register(NFPROTO_BRIDGE, &ebt_log_logger);
--
--	return ret;
--
--err_target:
--	unregister_pernet_subsys(&ebt_log_net_ops);
--err_pernet:
--	return ret;
-+	return xt_register_target(&ebt_log_tg_reg);
- }
- 
- static void __exit ebt_log_fini(void)
- {
--	unregister_pernet_subsys(&ebt_log_net_ops);
--	nf_log_unregister(&ebt_log_logger);
- 	xt_unregister_target(&ebt_log_tg_reg);
- }
- 
-diff --git a/net/bridge/netfilter/nf_log_bridge.c b/net/bridge/netfilter/nf_log_bridge.c
+ obj-$(CONFIG_NF_NAT) += nf_nat.o
+diff --git a/net/netfilter/nf_log_inet.c b/net/netfilter/nf_log_inet.c
 new file mode 100644
-index 0000000..5d9953a
+index 0000000..c1ca67a
 --- /dev/null
-+++ b/net/bridge/netfilter/nf_log_bridge.c
-@@ -0,0 +1,96 @@
++++ b/net/netfilter/nf_log_inet.c
+@@ -0,0 +1,78 @@
 +/*
-+ * (C) 2014 by Pablo Neira Ayuso <pablo@netfilter.org>
++ * (c) 2014 by Pablo Neira Ayuso <pablo@netfilter.org>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -181,109 +71,73 @@ index 0000000..5d9953a
 +#include <linux/module.h>
 +#include <linux/spinlock.h>
 +#include <linux/skbuff.h>
-+#include <linux/if_bridge.h>
-+#include <linux/ip.h>
 +#include <net/route.h>
 +
 +#include <linux/netfilter.h>
 +#include <net/netfilter/nf_log.h>
 +
-+static void nf_log_bridge_packet(struct net *net, u_int8_t pf,
-+				 unsigned int hooknum,
-+				 const struct sk_buff *skb,
-+				 const struct net_device *in,
-+				 const struct net_device *out,
-+				 const struct nf_loginfo *loginfo,
-+				 const char *prefix)
++static void nf_log_inet_packet(struct net *net, u_int8_t pf,
++			       unsigned int hooknum, const struct sk_buff *skb,
++			       const struct net_device *in,
++			       const struct net_device *out,
++			       const struct nf_loginfo *loginfo,
++			       const char *prefix)
 +{
-+	switch (eth_hdr(skb)->h_proto) {
-+	case htons(ETH_P_IP):
-+		nf_log_packet(net, NFPROTO_IPV4, hooknum, skb, in, out,
-+			      loginfo, "%s", prefix);
-+		break;
-+	case htons(ETH_P_IPV6):
-+		nf_log_packet(net, NFPROTO_IPV6, hooknum, skb, in, out,
-+			      loginfo, "%s", prefix);
-+		break;
-+	case htons(ETH_P_ARP):
-+	case htons(ETH_P_RARP):
-+		nf_log_packet(net, NFPROTO_ARP, hooknum, skb, in, out,
-+			      loginfo, "%s", prefix);
-+		break;
-+	}
++	nf_log_packet(net, pf, hooknum, skb, in, out, loginfo, "%s", prefix);
 +}
 +
-+static struct nf_logger nf_bridge_logger __read_mostly = {
-+	.name		= "nf_log_bridge",
++static struct nf_logger nf_inet_logger __read_mostly = {
++	.name		= "nf_log_inet",
 +	.type		= NF_LOG_TYPE_LOG,
-+	.logfn		= nf_log_bridge_packet,
++	.logfn		= nf_log_inet_packet,
 +	.me		= THIS_MODULE,
 +};
 +
-+static int __net_init nf_log_bridge_net_init(struct net *net)
++static int __net_init nf_log_inet_net_init(struct net *net)
 +{
-+	nf_log_set(net, NFPROTO_BRIDGE, &nf_bridge_logger);
++	nf_log_set(net, NFPROTO_INET, &nf_inet_logger);
 +	return 0;
 +}
 +
-+static void __net_exit nf_log_bridge_net_exit(struct net *net)
++static void __net_exit nf_log_inet_net_exit(struct net *net)
 +{
-+	nf_log_unset(net, &nf_bridge_logger);
++	nf_log_unset(net, &nf_inet_logger);
 +}
 +
-+static struct pernet_operations nf_log_bridge_net_ops = {
-+	.init = nf_log_bridge_net_init,
-+	.exit = nf_log_bridge_net_exit,
++static struct pernet_operations nf_log_inet_net_ops = {
++	.init = nf_log_inet_net_init,
++	.exit = nf_log_inet_net_exit,
 +};
 +
-+static int __init nf_log_bridge_init(void)
++static int __init nf_log_inet_init(void)
 +{
 +	int ret;
 +
 +	/* Request to load the real packet loggers. */
 +	nf_logger_request_module(NFPROTO_IPV4, NF_LOG_TYPE_LOG);
 +	nf_logger_request_module(NFPROTO_IPV6, NF_LOG_TYPE_LOG);
-+	nf_logger_request_module(NFPROTO_ARP, NF_LOG_TYPE_LOG);
 +
-+	ret = register_pernet_subsys(&nf_log_bridge_net_ops);
++	ret = register_pernet_subsys(&nf_log_inet_net_ops);
 +	if (ret < 0)
 +		return ret;
 +
-+	nf_log_register(NFPROTO_BRIDGE, &nf_bridge_logger);
++	nf_log_register(NFPROTO_INET, &nf_inet_logger);
 +	return 0;
 +}
 +
-+static void __exit nf_log_bridge_exit(void)
++static void __exit nf_log_inet_exit(void)
 +{
-+	unregister_pernet_subsys(&nf_log_bridge_net_ops);
-+	nf_log_unregister(&nf_bridge_logger);
++	unregister_pernet_subsys(&nf_log_inet_net_ops);
++	nf_log_unregister(&nf_inet_logger);
 +}
 +
-+module_init(nf_log_bridge_init);
-+module_exit(nf_log_bridge_exit);
++module_init(nf_log_inet_init);
++module_exit(nf_log_inet_exit);
 +
 +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_DESCRIPTION("Netfilter bridge packet logging");
++MODULE_DESCRIPTION("Netfilter inet packet logging");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS_NF_LOGGER(AF_BRIDGE, 0);
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 5863008..c62a925 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -129,6 +129,13 @@ void nf_log_unbind_pf(struct net *net, u_int8_t pf)
- }
- EXPORT_SYMBOL(nf_log_unbind_pf);
- 
-+void nf_logger_request_module(int pf, enum nf_log_type type)
-+{
-+	if (loggers[pf][type] == NULL)
-+		request_module("nf-logger-%u-%u", pf, type);
-+}
-+EXPORT_SYMBOL_GPL(nf_logger_request_module);
-+
- int nf_logger_find_get(int pf, enum nf_log_type type)
- {
- 	struct nf_logger *logger;
++MODULE_ALIAS_NF_LOGGER(1, 0);
 -- 
 1.7.10.4
 
