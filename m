@@ -1,39 +1,50 @@
-From: dansmith <dansmith@riseup.net>
-Subject: iptables owner gid matches random packets
-Date: Mon, 23 Jun 2014 05:56:09 +0000
-Message-ID: <53A7C179.8000507@riseup.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftnl PATCH 0/3] expr: immediate: Do not print unset values
+ in xml and json
+Date: Mon, 23 Jun 2014 11:02:53 +0200
+Message-ID: <CAOkSjBgVWOrHNAKxVDR0juXbJDDjLip54SFK4-6AYcga6VH9xw@mail.gmail.com>
+References: <1403366023-6385-1-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:54774 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365AbaFWGDQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2014 02:03:16 -0400
-Received: from fruiteater.riseup.net (fruiteater-pn.riseup.net [10.0.1.74])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client CN "*.riseup.net", Issuer "Gandi Standard SSL CA" (not verified))
-	by mx1.riseup.net (Postfix) with ESMTPS id A0D8151912
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Jun 2014 22:56:14 -0700 (PDT)
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:53599 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbaFWJDP convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jun 2014 05:03:15 -0400
+Received: by mail-lb0-f181.google.com with SMTP id p9so3992402lbv.40
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jun 2014 02:03:13 -0700 (PDT)
+In-Reply-To: <1403366023-6385-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, I have an iptables rule:
-iptables -I OUTPUT 1 -m state --state NEW -m owner --gid-owner test -j
-NFQUEUE --queue-num 11223
-an an appropriate nfq handler for queue 11223 in the code.
-Group "test" does not have any users in it. The only executable on my
-system that has its gid=="test" proceeds to open 10000s of non-blocking
-sockets and firing off connect()s. I see all those connect's being
-processed by the nfq handler.
-However, every once and again, the nfq handler will process a packet
-which comes from some random already running process on my machine. I
-can tell that the packet is from a different process, because at the
-time when nfq triggers, I look up /proc/net/tcp for the source port,
-find a correlating inode/socket and then look up which process the
-socket belongs to by scanning all pids in  /proc/*<pid>/fd
+On 21 June 2014 17:53, Ana Rey <anarey@gmail.com> wrote:
+> This patchset does tasks about does not print unset value in xml and =
+json file
+> and about refactoring code:
+> * "expr: immediate: Use nft_rule_expr_set_* in the xml parsing code"
+>
+> Ana Rey (3):
+>   expr: immediate: Use nft_rule_expr_set_* in the xml parsing code
+>   expr: immediate: Do not print unset values in json file
+>   expr: immediate: Do not print unset values in xml file
+>
+>  src/expr/immediate.c | 95 +++++++++++++++++++++++++-----------------=
+----------
+>  1 file changed, 46 insertions(+), 49 deletions(-)
 
-Is this a known bug? I could come up with minimal code reproducing this
-if needed.
+Hi Ana, I reviewed the series and seems fine to me.
 
+regards.
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
