@@ -1,178 +1,89 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH v3 2/2 libnetfilter_conntrack] conntrack: zero value handling
- of mark and zone
-Date: Mon, 23 Jun 2014 19:18:10 +0900
-Message-ID: <20140623101810.GC29052@gmail.com>
-References: <20140617120405.GA24712@gmail.com>
- <20140619151611.GC13029@breakpoint.cc>
- <20140623101235.GA29052@gmail.com>
+Subject: Re: [RFC PATCH libnetfilter_conntrack] add userspace dump filter
+Date: Mon, 23 Jun 2014 19:26:50 +0900
+Message-ID: <20140623102650.GD29052@gmail.com>
+References: <20140617123718.GC24712@gmail.com>
+ <20140618085936.GA3923@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:42382 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389AbaFWKSR (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:40209 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608AbaFWK05 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2014 06:18:17 -0400
-Received: by mail-pb0-f49.google.com with SMTP id rr13so5642070pbb.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jun 2014 03:18:16 -0700 (PDT)
+	Mon, 23 Jun 2014 06:26:57 -0400
+Received: by mail-pb0-f47.google.com with SMTP id up15so5690475pbc.6
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jun 2014 03:26:57 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140623101235.GA29052@gmail.com>
+In-Reply-To: <20140618085936.GA3923@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch enables comparison of 0 value with mark and zone since both CTA_MARK
-and CTA_ZONE are not set in case of its value is 0. This patch has just passed
-qa test which Florian wrote, I guess there is more sophiscated way that settle
-cmp_mark() and cmp_zone().
+ Thank you for your understandable explanation. 
+ 
+2014-06-18 17:59 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Tue, Jun 17, 2014 at 09:37:18PM +0900, Ken-ichirou MATSUZAWA wrote:
+> Please, if you work on this, first send us a patch to generalize the
+> filtering "framework" for ctnetlink dumps and then add the filtering
+> by zone.
+ 
+How about using sk_filter? I could have understood it's not efficient
+than the way you told me but BPF seems more versatile and can work
+on the socket which both dumping and listening event.
+ 
+# I think your nfct-daemon.c example in libmnl
+ 
+Also I know this changes dump behavior, I need to include an indication
+in nla or somewhere which distinguishes from normal dump, but it's not
+included. 
+ 
+--------
+
+This patch enables dump filtering by bpf. It is not efficient since every
+nf_conn needs to be translated into skb, but it can be used both event and
+dump socket.
 
 Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- qa/test_api.c           | 20 ++++++++++----------
- src/conntrack/compare.c | 44 ++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 50 insertions(+), 14 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/qa/test_api.c b/qa/test_api.c
-index 1335b23..c8faeda 100644
---- a/qa/test_api.c
-+++ b/qa/test_api.c
-@@ -287,15 +287,15 @@ static void test_nfct_cmp_attr(int attr)
- 
- 	flags = NFCT_CMP_STRICT;
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	0,	flags) == 1);
--	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 0);
--	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	0,	flags) == 0);
-+	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 1);
-+	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,	 true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	0,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	1,	0,	flags) == 0);
--	assert(test_cmp_attr16(ATTR_ZONE, false, true,	1,	0,	flags) == 0); /* verbose */
-+	assert(test_cmp_attr16(ATTR_ZONE, false, true,	1,	0,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	1,	0,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	1,	flags) == 1); /* verbose */
--	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 0); /* verbose */
-+	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	1,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	0,	1,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	1,	flags) == 1); /* verbose */
-@@ -305,7 +305,7 @@ static void test_nfct_cmp_attr(int attr)
- 
- 	flags = NFCT_CMP_MASK;
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	0,	flags) == 1);
--	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 0);
-+	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,	 true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	0,	flags) == 1); /* verbose */
-@@ -313,7 +313,7 @@ static void test_nfct_cmp_attr(int attr)
- 	assert(test_cmp_attr16(ATTR_ZONE, false, true,	1,	0,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	1,	0,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	1,	flags) == 1); /* verbose */
--	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 0); /* verbose */
-+	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	1,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	0,	1,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	1,	flags) == 1); /* verbose */
-@@ -323,15 +323,15 @@ static void test_nfct_cmp_attr(int attr)
- 
- 	flags = NFCT_CMP_STRICT|NFCT_CMP_MASK;
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	0,	flags) == 1);
--	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 0);
--	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	0,	flags) == 0);
-+	assert(test_cmp_attr16(ATTR_ZONE, true,	 false,	0,	0,	flags) == 1);
-+	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,	 true,	0,	0,	flags) == 1);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	0,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	1,	0,	flags) == 0);
--	assert(test_cmp_attr16(ATTR_ZONE, false, true,	1,	0,	flags) == 0); /* verbose */
-+	assert(test_cmp_attr16(ATTR_ZONE, false, true,	1,	0,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	1,	0,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	0,	1,	flags) == 1); /* verbose */
--	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 0); /* verbose */
-+	assert(test_cmp_attr16(ATTR_ZONE, true,  false,	0,	1,	flags) == 1); /* verbose */
- 	assert(test_cmp_attr16(ATTR_ZONE, false, true,	0,	1,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, true,  true,	0,	1,	flags) == 0);
- 	assert(test_cmp_attr16(ATTR_ZONE, false, false,	1,	1,	flags) == 1); /* verbose */
-diff --git a/src/conntrack/compare.c b/src/conntrack/compare.c
-index f4a194a..a3da81b 100644
---- a/src/conntrack/compare.c
-+++ b/src/conntrack/compare.c
-@@ -291,7 +291,25 @@ cmp_mark(const struct nf_conntrack *ct1,
- 	 const struct nf_conntrack *ct2,
- 	 unsigned int flags)
- {
--	return (ct1->mark == ct2->mark);
-+	int a = test_bit(ATTR_MARK, ct1->head.set);
-+	int b = test_bit(ATTR_MARK, ct2->head.set);
-+	if (a & b) {
-+		return (ct1->mark == ct2->mark);
-+	} else if (!a && !b) {
-+		return 1;
-+	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index f77024d..189f19d 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -831,10 +831,26 @@ restart:
+ 					    cb->nlh->nlmsg_seq,
+ 					    NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+ 					    ct);
+-			rcu_read_unlock();
+-			if (res < 0) {
++			if (res >= 0) {
++				struct sk_filter *skfilter
++					= rcu_dereference(skb->sk->sk_filter);
++				int ret = 0;
 +
-+	switch (flags & (NFCT_CMP_STRICT | NFCT_CMP_MASK)) {
-+	case NFCT_CMP_MASK:
-+		if (!a)
-+			return 1;
-+	case NFCT_CMP_STRICT | NFCT_CMP_MASK:
-+	case NFCT_CMP_STRICT:
-+		return nfct_get_attr_u32(ct1, ATTR_MARK)
-+			== nfct_get_attr_u32(ct2, ATTR_MARK);
-+	default:
-+		return 1;
-+	}
- }
- 
- static int 
-@@ -357,7 +375,25 @@ cmp_zone(const struct nf_conntrack *ct1,
- 	 const struct nf_conntrack *ct2,
- 	 unsigned int flags)
- {
--	return (ct1->zone == ct2->zone);
-+	int a = test_bit(ATTR_ZONE, ct1->head.set);
-+	int b = test_bit(ATTR_ZONE, ct2->head.set);
-+	if (a & b) {
-+		return (ct1->zone == ct2->zone);
-+	} else if (!a && !b) {
-+		return 1;
-+	}
-+
-+	switch (flags & (NFCT_CMP_STRICT | NFCT_CMP_MASK)) {
-+	case NFCT_CMP_MASK:
-+		if (!a)
-+			return 1;
-+	case NFCT_CMP_STRICT | NFCT_CMP_MASK:
-+	case NFCT_CMP_STRICT:
-+		return nfct_get_attr_u16(ct1, ATTR_ZONE)
-+			== nfct_get_attr_u16(ct2, ATTR_ZONE);
-+	default:
-+		return 1;
-+	}
- }
- 
- static int
-@@ -421,7 +457,7 @@ static int cmp_meta(const struct nf_conntrack *ct1,
- {
- 	if (!__cmp(ATTR_ID, ct1, ct2, flags, cmp_id))
- 		return 0;
--	if (!__cmp(ATTR_MARK, ct1, ct2, flags, cmp_mark))
-+	if (!cmp_mark(ct1, ct2, flags))
- 		return 0;
- 	if (!__cmp(ATTR_TIMEOUT, ct1, ct2, flags, cmp_timeout))
- 		return 0;
-@@ -433,7 +469,7 @@ static int cmp_meta(const struct nf_conntrack *ct1,
- 		return 0;
- 	if (!__cmp(ATTR_DCCP_STATE, ct1, ct2, flags, cmp_dccp_state))
- 		return 0;
--	if (!__cmp(ATTR_ZONE, ct1, ct2, flags, cmp_zone))
-+	if (!cmp_zone(ct1, ct2, flags))
- 		return 0;
- 	if (!__cmp(ATTR_SECCTX, ct1, ct2, flags, cmp_secctx))
- 		return 0;
++				if (skfilter != NULL) {
++					skb_pull(skb, cb->args[2]);
++					ret = SK_RUN_FILTER(skfilter, skb);
++					skb_push(skb, cb->args[2]);
++					if (ret)
++						cb->args[2] = res;
++					else
++						skb_trim(skb, cb->args[2]);
++				}
++				rcu_read_unlock();
++			} else {
++				rcu_read_unlock();
+ 				nf_conntrack_get(&ct->ct_general);
+ 				cb->args[1] = (unsigned long)ct;
++				cb->args[2] = 0;
+ 				spin_unlock(lockp);
+ 				goto out;
+ 			}
 -- 
-1.9.1
+1.7.10.4
 
