@@ -1,109 +1,85 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 1/4] expr: exthdr: Add nft_rule_expr_exthdr_snprinf_* functions
-Date: Tue, 24 Jun 2014 14:33:44 +0200
-Message-ID: <1403613227-14134-2-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH 2/4] expr: exthdr: Use nft_rule_expr_set_* in the xml parsing code
+Date: Tue, 24 Jun 2014 14:33:45 +0200
+Message-ID: <1403613227-14134-3-git-send-email-anarey@gmail.com>
 References: <1403613227-14134-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:65207 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbaFXMeF (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:42728 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513AbaFXMeF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 24 Jun 2014 08:34:05 -0400
-Received: by mail-wg0-f49.google.com with SMTP id y10so280437wgg.8
+Received: by mail-we0-f171.google.com with SMTP id q58so269144wes.2
         for <netfilter-devel@vger.kernel.org>; Tue, 24 Jun 2014 05:34:01 -0700 (PDT)
 In-Reply-To: <1403613227-14134-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Code refactoring in nft_rule_expr_exthdr functions.
-
-This patch adds three new functions:
-* nft_rule_expr_exthdr_snprinf_default
-* nft_rule_expr_exthdr_snprinf_xml
-* nft_rule_expr_exthdr_snprinf_json
+Code refactoring to use nft_rule_expr_set_* in parse functions.
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/expr/exthdr.c | 56 +++++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 38 insertions(+), 18 deletions(-)
+ src/expr/exthdr.c | 24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
 diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
-index 66a6cf5..ad80826 100644
+index ad80826..e624990 100644
 --- a/src/expr/exthdr.c
 +++ b/src/expr/exthdr.c
-@@ -285,32 +285,52 @@ nft_rule_expr_exthdr_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
- #endif
- }
- 
-+static int nft_rule_expr_exthdr_snprintf_json(char *buf, size_t len,
-+					      struct nft_rule_expr *e)
-+{
-+	struct nft_expr_exthdr *exthdr = nft_expr_data(e);
-+
-+	return snprintf(buf, len, "\"dreg\":%u,"
-+				  "\"exthdr_type\":\"%s\",\"offset\":%u,"
-+				  "\"len\":%u",
-+			exthdr->dreg, exthdr_type2str(exthdr->type),
-+			exthdr->offset, exthdr->len);
-+}
-+
-+static int nft_rule_expr_exthdr_snprintf_xml(char *buf, size_t len,
-+					     struct nft_rule_expr *e)
-+{
-+	struct nft_expr_exthdr *exthdr = nft_expr_data(e);
-+
-+	return snprintf(buf, len, "<dreg>%u</dreg>"
-+				  "<exthdr_type>%s</exthdr_type>"
-+				  "<offset>%u</offset>"
-+				  "<len>%u</len>",
-+			exthdr->dreg, exthdr_type2str(exthdr->type),
-+			exthdr->offset, exthdr->len);
-+}
-+
-+static int nft_rule_expr_exthdr_snprintf_default(char *buf, size_t len,
-+						 struct nft_rule_expr *e)
-+{
-+	struct nft_expr_exthdr *exthdr = nft_expr_data(e);
-+
-+	return snprintf(buf, len, "load %ub @ %u + %u => reg %u ",
-+			exthdr->len, exthdr->type, exthdr->offset,
-+			exthdr->dreg);
-+}
-+
- static int
- nft_rule_expr_exthdr_snprintf(char *buf, size_t len, uint32_t type,
- 			       uint32_t flags, struct nft_rule_expr *e)
+@@ -238,17 +238,14 @@ nft_rule_expr_exthdr_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
+ 			       struct nft_parse_err *err)
  {
+ #ifdef XML_PARSING
 -	struct nft_expr_exthdr *exthdr = nft_expr_data(e);
+ 	const char *exthdr_type;
+ 	int type;
+-	uint32_t reg;
++	uint32_t dreg, len, offset;
+ 
+-	if (nft_mxml_reg_parse(tree, "dreg", &reg, MXML_DESCEND_FIRST,
++	if (nft_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
+ 			       NFT_XML_MAND, err) != 0)
+ 		return -1;
 -
- 	switch(type) {
- 	case NFT_OUTPUT_DEFAULT:
--		return snprintf(buf, len, "load %ub @ %u + %u => reg %u ",
--				exthdr->len, exthdr->type,
--				exthdr->offset, exthdr->dreg);
-+		return nft_rule_expr_exthdr_snprintf_default(buf, len, e);
- 	case NFT_OUTPUT_XML:
--		return snprintf(buf, len, "<dreg>%u</dreg>"
--					  "<exthdr_type>%s</exthdr_type>"
--					  "<offset>%u</offset>"
--					  "<len>%u</len>",
--					exthdr->dreg,
--					exthdr_type2str(exthdr->type),
--					exthdr->offset, exthdr->len);
-+		return nft_rule_expr_exthdr_snprintf_xml(buf, len, e);
- 	case NFT_OUTPUT_JSON:
--		return snprintf(buf, len, "\"dreg\":%u,"
--					  "\"exthdr_type\":\"%s\",\"offset\":%u,"
--					  "\"len\":%u",
--					exthdr->dreg,
--					exthdr_type2str(exthdr->type),
--					exthdr->offset, exthdr->len);
-+		return nft_rule_expr_exthdr_snprintf_json(buf, len, e);
- 	default:
- 		break;
- 	}
+-	exthdr->dreg = reg;
+-	e->flags |= (1 << NFT_EXPR_EXTHDR_DREG);
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_DREG, dreg);
+ 
+ 	exthdr_type = nft_mxml_str_parse(tree, "exthdr_type",
+ 					 MXML_DESCEND_FIRST, NFT_XML_MAND, err);
+@@ -258,25 +255,20 @@ nft_rule_expr_exthdr_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
+ 	type = str2exthdr_type(exthdr_type);
+ 	if (type < 0)
+ 		return -1;
+-
+-	exthdr->type = type;
+-	e->flags |= (1 << NFT_EXPR_EXTHDR_TYPE);
++	nft_rule_expr_set_u8(e, NFT_EXPR_EXTHDR_TYPE, type);
+ 
+ 	/* Get and set <offset> */
+ 	if (nft_mxml_num_parse(tree, "offset", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &exthdr->offset, NFT_TYPE_U32,
+-			       NFT_XML_MAND, err) != 0)
++			       &offset, NFT_TYPE_U32, NFT_XML_MAND, err) != 0)
+ 		return -1;
+-
+-	e->flags |= (1 << NFT_EXPR_EXTHDR_OFFSET);
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_OFFSET, offset);
+ 
+ 	/* Get and set <len> */
+ 	if (nft_mxml_num_parse(tree, "len", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &exthdr->len, NFT_TYPE_U32, NFT_XML_MAND,
+-			       err) != 0)
++			       &len, NFT_TYPE_U32, NFT_XML_MAND, err) != 0)
+ 		return -1;
+ 
+-	e->flags |= (1 << NFT_EXPR_EXTHDR_LEN);
++	nft_rule_expr_set_u32(e, NFT_EXPR_EXTHDR_LEN, len);
+ 
+ 	return 0;
+ #else
 -- 
 2.0.0
 
