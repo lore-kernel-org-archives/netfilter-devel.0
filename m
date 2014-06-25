@@ -1,151 +1,75 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnftnl 1.0.2 release
-Date: Wed, 25 Jun 2014 17:57:15 +0200
-Message-ID: <20140625155715.GA16261@localhost>
+Subject: Re: [PATCH v3] netfilter: conntrack: remove timer from ecache
+ extension
+Date: Wed, 25 Jun 2014 19:06:36 +0200
+Message-ID: <20140625170636.GA16571@localhost>
+References: <1402434776-23461-1-git-send-email-fw@strlen.de>
+ <20140611085547.GA4131@localhost>
+ <20140611092015.GA12405@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="X1bOJ3K7DJ5YkBrT"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-
---X1bOJ3K7DJ5YkBrT
 Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54860 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757033AbaFYRGl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Jun 2014 13:06:41 -0400
 Content-Disposition: inline
+In-Reply-To: <20140611092015.GA12405@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Hi Florian,
 
-The Netfilter project proudly presents:
+On Wed, Jun 11, 2014 at 11:20:15AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Tue, Jun 10, 2014 at 11:12:56PM +0200, Florian Westphal wrote:
+> > > This brings the (per-conntrack) ecache extension back to 24 bytes in size
+> > > (was 152 byte on x86_64 with lockdep on).
+> > > 
+> > > When event delivery fails, re-delivery is attempted via work queue.
+> > > 
+> > > Redelivery is attempted at least every 0.1 seconds, but can happen
+> > > more frequently if userspace is not congested.
+> > > 
+> > > The nf_ct_release_dying_list() function is removed.
+> > > With this patch, ownership of the to-be-redelivered conntracks
+> > > (on-dying-list-with-DYING-bit not yet set) is with the work queue,
+> > > which will release the references once event is out.
+> > 
+> > I think we need to keep the nf_ct_release_dying_list(), otherwise we
+> > will hit problems when destroying the kmem_cache, since the workqueue
+> > may race with that, right?
+> 
+> Are you sure?
+> 
+> nf_ct_release_dying_list() looks broken to me, it _puts() entries
+> it doesn't own (i.e. refcnt underflows when real owner _puts() entry).
+> 
+> In any case, nf_conntrack_cleanup_net_list() loops until
+> net->ct.count is zero.  That should be enough, no?
+> 
+> If there are lot of entries with undelivered events the wait period should
+> not be big; Since there are no listeners at this point the worker will be
+> rescheduled for immediate reexecuition until it has put() all conntracks
+> without DYING set.
 
-        libnftnl 1.0.2
+Yes, there should be no listeners at this point since
+nf_conntrack_netlink modules needs to be removed before nf_conntrack.
 
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem. The
-library libnftnl has been previously known as libnftables. This
-library is currently used by the nft command line tool.
+> nf_conntrack_ecache_pernet_fini() (which stops the work queue) is called
+> after ct.count is 0 and before kmem_cache_destroy().  Looks good to me,
+> did I miss something?
 
-This release comes with new features available in 3.15, the event
-monitoring and fixes for the XML/JSON infrastructure See ChangeLog
-for more details.
+This patch looks good to me. I made some experiments again in my
+testbed. I see no packet drops and the result of 'conntrack -L dying |
+wc -l' per second shows small peaks of entries waiting in the dying
+list to be delivered which is followed by empty lists by conntrackd at
+some point. However, perhaps the per-second watch is not enough to get
+a real evolution on how the dying list population evolves along time.
 
-You can download this library from:
+Anyway, I think this is good enough to get rid of the extra timer. We
+can enqueue this patch to 3.17, unless you have any objection.
 
-http://www.netfilter.org/projects/libnftnl/downloads.html
-ftp://ftp.netfilter.org/pub/libnftnl/
-
-Have fun!
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnftnl-1.0.2.txt"
-
-Ana Rey (76):
-      expr: log: Code refactoring in nft_rule_expr_log_snprintf
-      expr: log: Rename variables in nft_rule_expr_log_json_parse functions
-      expr: log: Use nft_rule_expr_set_* in the xml parsing code
-      expr: log: Do not print unset values in xml
-      expr: log: Do not print unset values in json
-      expr: reject: Add nft_rule_expr_reject_snprinf_* functions
-      expr: reject: Use nft_rule_expr_set_* in the xml
-      expr: reject: Do not print unset values in xml
-      expr: reject: Convert the type of a variable
-      expr: reject: Do not print unset values in json
-      tests: xmlfile: Remove unset child elements in the log expression
-      src: set: Use nft_rule_expr_set_* in the xml parsing code
-      tests: nft-parsing-test: Display error reason when testing XML
-      src: set: Do not print unset values in xml
-      src: set: Do not print unset values in json
-      set: Free memory in the same function that is reserved
-      tests: xmlfiles: Test files without unset child elements in set elements
-      expr: queue: Add nft_rule_expr_queue_snprinf_* functions
-      expr: queue: Use nft_rule_expr_* in the xml
-      expr: queue: Do not print unset values in xml
-      expr: queue: Do not print unset values in json
-      expr: queue: Use the correct data type
-      expr: queue: Use snprintf and SNPRINTF_BUFFER_SIZE in snprintf_default function
-      tests: Add json and xml test file for queue
-      expr: nat: Use nft_rule_expr_set_* in the xml
-      expr: nat: Do not print unset values in xml file
-      expr: nat: Do not print unset values in json file
-      expr: limit: Add nft_rule_expr_limit_snprinf_* functions
-      expr: limit: Use nft_rule_expr_set_* in the xml parsing code
-      expr: limit: Do not print unset values in json
-      expr: limit: Do not print unset values in xml
-      expr: bitwise: Get a nft_rule_expr type in nft_rule_expr_bitwise_snprintf_* functions
-      expr: bitwise: Do not print unset values in xml
-      expr: bitwise: Do not print unset values in json
-      expr: immediate: Use nft_rule_expr_set_* in the xml parsing code
-      expr: immediate: Do not print unset values in json file
-      expr: immediate: Do not print unset values in xml file
-      expr: meta: Use nft_rule_expr_set_* in the xml parsing code
-      expr: meta: Do not print unset values in xml file
-      expr: meta: Do not print unset values in json file
-      expr: payload: Use nft_rule_expr_set_* in the xml parsing code
-      expr: payload: get a nft_rule_expr type in nft_rule_expr_payload_snprintf_* functions.
-      expr: payload: Do not print unset values in xml file
-      expr: payload: Do not print unset values in json file
-      expr: target: get a nft_rule_expr type in nft_rule_expr_target_snprintf_* functions
-      expr: target: Use nft_rule_expr_set_* in the xml parsing code
-      expr: target: Do not print unset values in xml file
-      expr: target: Do not print unset values in json file
-      expr: byteorder: Get a nft_rule_expr type in nft_rule_expr_byteorder_snprintf_* functions
-      expr: byteorder: Use nft_rule_expr_set_* in the xml parsing code
-      expr: byteorder: Do not print unset values in xml file
-      expr: byteorder: Rename variables in nft_rule_expr_byteorder_json_parse functions
-      expr: byteorder: Do not print unset values in json
-      expr: cmp: Get a nft_rule_expr type in nft_rule_expr_cmp_snprintf_* functions
-      expr: cmp: Use nft_rule_expr_set_* in the xml parsing code
-      expr: cmp: Do not print unset values in xml file
-      expr: cmp: Do not print unset values in json file
-      expr: ct: Use nft_rule_expr_set_* in the xml parsing code
-      expr: ct: Do not print unset values in xml file
-      expr: ct: Delete the last comma character in json text
-      expr: ct: Do not parse unset values in json
-      expr: counter: Add nft_rule_expr_counter_snprinf_* functions
-      expr: counter: Use nft_rule_expr_set_* in the xml parsing code
-      expr: counter: Do not print unset values in xml
-      expr: counter: Do not print unset values in json
-      expr: exthdr: Add nft_rule_expr_exthdr_snprinf_* functions
-      expr: exthdr: Use nft_rule_expr_set_* in the xml parsing code
-      expr: exthdr: Do not print unset values in xml
-      expr: exthdr: Do not print unset values in json
-      expr: lookup: Use nft_rule_expr_set_* in the xml parsing code
-      expr: lookup: Do not print unset values in xml file
-      expr: lookup: Do not print unset values in json file
-      expr: match: get a nft_rule_expr type in nft_rule_expr_match_snprintf_* functions
-      expr: match: Use nft_rule_expr_set_* in the xml parsing code
-      expr: match: Do not print unset values in xml file
-      expr: match: Do not print unset values in json file
-
-Arturo Borrero (8):
-      src: add flag to add event wrapping in output functions
-      examples: nft-events: use new events wrappers
-      common: fix unconditional output of event wrapping stuff
-      ruleset: fix erroneous call to snprintf
-      data_reg: fix bad buffer size bounds
-      internal: fix SNPRINTF_BUFFER_SIZE macro
-      utils: fix buffer reallocation of nft_fprinft()
-      expr: nat: add helper function to translate nat types to string
-
-Gustavo Zacarias (1):
-      configure: uclinux is also linux (nommu)
-
-Pablo Neira Ayuso (8):
-      tests: include test-script.sh via make distcheck
-      tests: include xml and json test files via make distcheck
-      examples: nft-events: add option how to format the printed events
-      include: synchronize nf_tables.h with nftables tree
-      set: add set ID support
-      common: homogeneous error message in nft_parse_perror()
-      expr: remove alignment through XT_ALIGN in match and target
-      bump version to 1.0.2
-
-Tomasz Bursztyka (1):
-      meta: Add support for input and output bridge interface name
-
-
---X1bOJ3K7DJ5YkBrT--
+Let me know, thanks.
