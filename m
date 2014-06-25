@@ -1,172 +1,227 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: nft_log: complete logging support
-Date: Wed, 25 Jun 2014 14:32:43 +0200
-Message-ID: <1403699563-3604-10-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/9] netfilter: nf_log: use an array of loggers instead of list
+Date: Wed, 25 Jun 2014 14:32:36 +0200
+Message-ID: <1403699563-3604-3-git-send-email-pablo@netfilter.org>
 References: <1403699563-3604-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46743 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46752 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756723AbaFYMc7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Jun 2014 08:32:59 -0400
+	id S932092AbaFYMdC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Jun 2014 08:33:02 -0400
 In-Reply-To: <1403699563-3604-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the unified nf_log_packet() interface that allows us explicit
-logger selection through the nf_loginfo structure.
+Now that legacy ulog targets are not available anymore in the tree, we
+can have up to two possible loggers:
 
-If you specify the group attribute, this means you want to receive
-logging messages through nfnetlink_log. In that case, the snaplen
-and qthreshold attributes allows you to tune internal aspects of
-the netlink logging infrastructure.
+1) The plain text logging via kernel logging ring.
+2) The nfnetlink_log infrastructure which delivers log messages
+   to userspace.
 
-On the other hand, if the level is specified, then the plain text
-format through the kernel logging ring is used instead, which is
-also used by default if neither group nor level are indicated.
+This patch replaces the list of loggers by an array of two pointers
+per family for each possible logger and it also introduces a new field
+to the nf_logger structure which indicates the position in the logger
+array (based on the logger type).
+
+This prepares a follow up patch that consolidates the nf_log_packet()
+interface by allowing to specify the logger as parameter.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |    4 ++
- net/netfilter/nft_log.c                  |   76 +++++++++++++++++++++++-------
- 2 files changed, 63 insertions(+), 17 deletions(-)
+ include/net/netfilter/nf_log.h |   15 ++++++++------
+ net/bridge/netfilter/ebt_log.c |    1 +
+ net/netfilter/nf_log.c         |   44 ++++++++++++++++++++++------------------
+ net/netfilter/nfnetlink_log.c  |    1 +
+ net/netfilter/xt_LOG.c         |    2 ++
+ 5 files changed, 37 insertions(+), 26 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 2a88f64..5ce21e3 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -697,6 +697,8 @@ enum nft_counter_attributes {
-  * @NFTA_LOG_PREFIX: prefix to prepend to log messages (NLA_STRING)
-  * @NFTA_LOG_SNAPLEN: length of payload to include in netlink message (NLA_U32)
-  * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U32)
-+ * @NFTA_LOG_SYSLOG: syslog level (NLA_U32)
-+ * @NFTA_LOG_FLAGS: logging flags (NLA_U32)
-  */
- enum nft_log_attributes {
- 	NFTA_LOG_UNSPEC,
-@@ -704,6 +706,8 @@ enum nft_log_attributes {
- 	NFTA_LOG_PREFIX,
- 	NFTA_LOG_SNAPLEN,
- 	NFTA_LOG_QTHRESHOLD,
-+	NFTA_LOG_SYSLOG,
-+	NFTA_LOG_FLAGS,
- 	__NFTA_LOG_MAX
- };
- #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 55d4297..e930afc 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
-+ * Copyright (c) 2012-2014 Pablo Neira Ayuso <pablo@netfilter.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -41,6 +42,8 @@ static const struct nla_policy nft_log_policy[NFTA_LOG_MAX + 1] = {
- 	[NFTA_LOG_PREFIX]	= { .type = NLA_STRING },
- 	[NFTA_LOG_SNAPLEN]	= { .type = NLA_U32 },
- 	[NFTA_LOG_QTHRESHOLD]	= { .type = NLA_U16 },
-+	[NFTA_LOG_SYSLOG]	= { .type = NLA_U32 },
-+	[NFTA_LOG_FLAGS]	= { .type = NLA_U32 },
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 99eac12..06b4c6b 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -12,8 +12,11 @@
+ #define NF_LOG_UID		0x08	/* Log UID owning local socket */
+ #define NF_LOG_MASK		0x0f
+ 
+-#define NF_LOG_TYPE_LOG		0x01
+-#define NF_LOG_TYPE_ULOG	0x02
++enum nf_log_type {
++	NF_LOG_TYPE_LOG		= 0,
++	NF_LOG_TYPE_ULOG,
++	NF_LOG_TYPE_MAX
++};
+ 
+ struct nf_loginfo {
+ 	u_int8_t type;
+@@ -40,10 +43,10 @@ typedef void nf_logfn(struct net *net,
+ 		      const char *prefix);
+ 
+ struct nf_logger {
+-	struct module	*me;
+-	nf_logfn 	*logfn;
+-	char		*name;
+-	struct list_head	list[NFPROTO_NUMPROTO];
++	char			*name;
++	enum nf_log_type	type;
++	nf_logfn 		*logfn;
++	struct module		*me;
  };
  
- static int nft_log_init(const struct nft_ctx *ctx,
-@@ -58,18 +61,41 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 		if (priv->prefix == NULL)
- 			return -ENOMEM;
- 		nla_strlcpy(priv->prefix, nla, nla_len(nla) + 1);
--	} else
-+	} else {
- 		priv->prefix = (char *)nft_log_null_prefix;
-+	}
+ /* Function to register/unregister log function. */
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 5322a36..0577477 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -207,6 +207,7 @@ static struct xt_target ebt_log_tg_reg __read_mostly = {
  
--	li->type = NF_LOG_TYPE_ULOG;
-+	li->type = NF_LOG_TYPE_LOG;
-+	if (tb[NFTA_LOG_SYSLOG] != NULL &&
-+	    tb[NFTA_LOG_GROUP] != NULL)
-+		return -EINVAL;
- 	if (tb[NFTA_LOG_GROUP] != NULL)
-+		li->type = NF_LOG_TYPE_ULOG;
+ static struct nf_logger ebt_log_logger __read_mostly = {
+ 	.name 		= "ebt_log",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ebt_log_packet,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 85296d4..9c334db 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -16,16 +16,22 @@
+ #define NF_LOG_PREFIXLEN		128
+ #define NFLOGGER_NAME_LEN		64
+ 
+-static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
++static struct nf_logger __rcu *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
+ static DEFINE_MUTEX(nf_log_mutex);
+ 
+ static struct nf_logger *__find_logger(int pf, const char *str_logger)
+ {
+-	struct nf_logger *t;
++	struct nf_logger *log;
++	int i;
 +
-+	switch (li->type) {
-+	case NF_LOG_TYPE_LOG:
-+		if (tb[NFTA_LOG_SYSLOG] != NULL) {
-+			li->u.log.level =
-+				ntohl(nla_get_be32(tb[NFTA_LOG_SYSLOG]));;
-+		} else {
-+			li->u.log.level = 4;
-+		}
-+		if (tb[NFTA_LOG_FLAGS] != NULL) {
-+			li->u.log.logflags =
-+				ntohl(nla_get_be32(tb[NFTA_LOG_FLAGS]));
-+		}
-+		break;
-+	case NF_LOG_TYPE_ULOG:
- 		li->u.ulog.group = ntohs(nla_get_be16(tb[NFTA_LOG_GROUP]));
--
--	if (tb[NFTA_LOG_SNAPLEN] != NULL)
--		li->u.ulog.copy_len = ntohl(nla_get_be32(tb[NFTA_LOG_SNAPLEN]));
--	if (tb[NFTA_LOG_QTHRESHOLD] != NULL) {
--		li->u.ulog.qthreshold =
--			ntohs(nla_get_be16(tb[NFTA_LOG_QTHRESHOLD]));
-+		if (tb[NFTA_LOG_SNAPLEN] != NULL) {
-+			li->u.ulog.copy_len =
-+				ntohl(nla_get_be32(tb[NFTA_LOG_SNAPLEN]));
-+		}
-+		if (tb[NFTA_LOG_QTHRESHOLD] != NULL) {
-+			li->u.ulog.qthreshold =
-+				ntohs(nla_get_be16(tb[NFTA_LOG_QTHRESHOLD]));
-+		}
-+		break;
++	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
++		if (loggers[pf][i] == NULL)
++			continue;
+ 
+-	list_for_each_entry(t, &nf_loggers_l[pf], list[pf]) {
+-		if (!strnicmp(str_logger, t->name, strlen(t->name)))
+-			return t;
++		log = rcu_dereference_protected(loggers[pf][i],
++						lockdep_is_held(&nf_log_mutex));
++		if (!strnicmp(str_logger, log->name, strlen(log->name)))
++			return log;
  	}
  
- 	if (ctx->afi->family == NFPROTO_INET) {
-@@ -113,17 +139,33 @@ static int nft_log_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (priv->prefix != nft_log_null_prefix)
- 		if (nla_put_string(skb, NFTA_LOG_PREFIX, priv->prefix))
- 			goto nla_put_failure;
--	if (li->u.ulog.group)
--		if (nla_put_be16(skb, NFTA_LOG_GROUP, htons(li->u.ulog.group)))
--			goto nla_put_failure;
--	if (li->u.ulog.copy_len)
--		if (nla_put_be32(skb, NFTA_LOG_SNAPLEN,
--				 htonl(li->u.ulog.copy_len)))
-+	switch (li->type) {
-+	case NF_LOG_TYPE_LOG:
-+		if (nla_put_be32(skb, NFTA_LOG_SYSLOG, htonl(li->u.log.level)))
- 			goto nla_put_failure;
--	if (li->u.ulog.qthreshold)
--		if (nla_put_be16(skb, NFTA_LOG_QTHRESHOLD,
--				 htons(li->u.ulog.qthreshold)))
-+
-+		if (li->u.log.logflags) {
-+			if (nla_put_be32(skb, NFTA_LOG_FLAGS,
-+					 htonl(li->u.log.logflags)))
-+				goto nla_put_failure;
-+		}
-+		break;
-+	case NF_LOG_TYPE_ULOG:
-+		if (nla_put_be16(skb, NFTA_LOG_GROUP, htons(li->u.ulog.group)))
- 			goto nla_put_failure;
-+
-+		if (li->u.ulog.copy_len) {
-+			if (nla_put_be32(skb, NFTA_LOG_SNAPLEN,
-+					 htonl(li->u.ulog.copy_len)))
-+				goto nla_put_failure;
-+		}
-+		if (li->u.ulog.qthreshold) {
-+			if (nla_put_be16(skb, NFTA_LOG_QTHRESHOLD,
-+					 htons(li->u.ulog.qthreshold)))
-+				goto nla_put_failure;
-+		}
-+		break;
-+	}
- 	return 0;
+ 	return NULL;
+@@ -73,17 +79,14 @@ int nf_log_register(u_int8_t pf, struct nf_logger *logger)
+ 	if (pf >= ARRAY_SIZE(init_net.nf.nf_loggers))
+ 		return -EINVAL;
  
- nla_put_failure:
+-	for (i = 0; i < ARRAY_SIZE(logger->list); i++)
+-		INIT_LIST_HEAD(&logger->list[i]);
+-
+ 	mutex_lock(&nf_log_mutex);
+ 
+ 	if (pf == NFPROTO_UNSPEC) {
+ 		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+-			list_add_tail(&(logger->list[i]), &(nf_loggers_l[i]));
++			rcu_assign_pointer(loggers[i][logger->type], logger);
+ 	} else {
+ 		/* register at end of list to honor first register win */
+-		list_add_tail(&logger->list[pf], &nf_loggers_l[pf]);
++		rcu_assign_pointer(loggers[pf][logger->type], logger);
+ 	}
+ 
+ 	mutex_unlock(&nf_log_mutex);
+@@ -98,7 +101,7 @@ void nf_log_unregister(struct nf_logger *logger)
+ 
+ 	mutex_lock(&nf_log_mutex);
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		list_del(&logger->list[i]);
++		RCU_INIT_POINTER(loggers[i][logger->type], NULL);
+ 	mutex_unlock(&nf_log_mutex);
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
+@@ -188,8 +191,7 @@ static int seq_show(struct seq_file *s, void *v)
+ {
+ 	loff_t *pos = v;
+ 	const struct nf_logger *logger;
+-	struct nf_logger *t;
+-	int ret;
++	int i, ret;
+ 	struct net *net = seq_file_net(s);
+ 
+ 	logger = rcu_dereference_protected(net->nf.nf_loggers[*pos],
+@@ -203,11 +205,16 @@ static int seq_show(struct seq_file *s, void *v)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	list_for_each_entry(t, &nf_loggers_l[*pos], list[*pos]) {
+-		ret = seq_printf(s, "%s", t->name);
++	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
++		if (loggers[*pos][i] == NULL)
++			continue;
++
++		logger = rcu_dereference_protected(loggers[*pos][i],
++					   lockdep_is_held(&nf_log_mutex));
++		ret = seq_printf(s, "%s", logger->name);
+ 		if (ret < 0)
+ 			return ret;
+-		if (&t->list[*pos] != nf_loggers_l[*pos].prev) {
++		if (i == 0 && loggers[*pos][i + 1] != NULL) {
+ 			ret = seq_printf(s, ",");
+ 			if (ret < 0)
+ 				return ret;
+@@ -389,14 +396,11 @@ static struct pernet_operations nf_log_net_ops = {
+ 
+ int __init netfilter_log_init(void)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	ret = register_pernet_subsys(&nf_log_net_ops);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+-		INIT_LIST_HEAD(&(nf_loggers_l[i]));
+-
+ 	return 0;
+ }
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index d292c8d..160bb8e 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -773,6 +773,7 @@ nfulnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
+ 
+ static struct nf_logger nfulnl_logger __read_mostly = {
+ 	.name	= "nfnetlink_log",
++	.type	= NF_LOG_TYPE_ULOG,
+ 	.logfn	= &nfulnl_log_packet,
+ 	.me	= THIS_MODULE,
+ };
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index 5ab2484..e668d97 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -896,6 +896,7 @@ static struct xt_target log_tg_regs[] __read_mostly = {
+ 
+ static struct nf_logger ipt_log_logger __read_mostly = {
+ 	.name		= "ipt_LOG",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ipt_log_packet,
+ 	.me		= THIS_MODULE,
+ };
+@@ -903,6 +904,7 @@ static struct nf_logger ipt_log_logger __read_mostly = {
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static struct nf_logger ip6t_log_logger __read_mostly = {
+ 	.name		= "ip6t_LOG",
++	.type		= NF_LOG_TYPE_LOG,
+ 	.logfn		= &ip6t_log_packet,
+ 	.me		= THIS_MODULE,
+ };
 -- 
 1.7.10.4
 
