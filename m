@@ -1,43 +1,79 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] netfilter: conntrack: remove timer from ecache
- extension
-Date: Wed, 25 Jun 2014 19:22:15 +0200
-Message-ID: <20140625172215.GA13362@localhost>
-References: <1402434776-23461-1-git-send-email-fw@strlen.de>
- <20140611085547.GA4131@localhost>
- <20140611092015.GA12405@breakpoint.cc>
- <20140625170636.GA16571@localhost>
- <20140625171327.GE6328@breakpoint.cc>
+From: Giorgio <giorgio.nicole@arcor.de>
+Subject: problems cross compiling nftables
+Date: Wed, 25 Jun 2014 21:43:31 +0159
+Message-ID: <53AB267C.5070403@arcor.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="SA5nTjgJoIKxcwLfQaI9g8MvTBNHLhKtv"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57278 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757311AbaFYRWX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Jun 2014 13:22:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20140625171327.GE6328@breakpoint.cc>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:54774 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752113AbaFYToH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Jun 2014 15:44:07 -0400
+Received: from mail-in-02-z2.arcor-online.net (mail-in-02-z2.arcor-online.net [151.189.8.14])
+	by mx.arcor.de (Postfix) with ESMTP id 961D55A55B
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Jun 2014 21:44:05 +0200 (CEST)
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net [151.189.21.54])
+	by mail-in-02-z2.arcor-online.net (Postfix) with ESMTP id 84E617186B0
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Jun 2014 21:44:05 +0200 (CEST)
+Received: from [192.168.178.21] (p549AD71C.dip0.t-ipconnect.de [84.154.215.28])
+	(Authenticated sender: giorgio.nicole@arcor.de)
+	by mail-in-14.arcor-online.net (Postfix) with ESMTPA id ECB079BE1D
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Jun 2014 21:44:04 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 25, 2014 at 07:13:27PM +0200, Florian Westphal wrote:
-> > However, perhaps the per-second watch is not enough to get
-> > a real evolution on how the dying list population evolves along time.
-> 
-> Yes, you might be right.
-> IFF you think its useful, we could add a counter to keep track of the
-> maximum length of entries that the ecache worker has seen and
-> export that via ctnetlink (like we do for number of conntracks, search
-> list restarts, etc etc).
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--SA5nTjgJoIKxcwLfQaI9g8MvTBNHLhKtv
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-We can revisit this later to see if we can get some extra tuning. But
-I'm quite happy with the current results.
+Hi,
+my name is Dal Molin Giorgio,
 
-> > Anyway, I think this is good enough to get rid of the extra timer. We
-> > can enqueue this patch to 3.17, unless you have any objection.
-> 
-> No objections from me, thanks Pablo!
+I'm trying to cross compile the current 'nftables' git repo. for an arm
+embedded system but it's not so easy.
 
-Thanks, I'll enqueue this.
+Looking at the configure.ac / Makefile.in's I've noticed that they are
+not exactly 'state of the art'.
+
+I think, adding a proper/modern gnu autotools support to nftables would
+solve all my cross compile problems.
+
+My question in the first place is if it's interesting for you to add
+such a support to nftables.
+
+I've already tried it myself to see how complex it is;
+I've found it easy to update the configure.ac and to replace the
+Makefile.in's with Makefile.am's.
+
+The difficult part arises now from the header files: it seems there are
+kinda circular dependencies between them and it's difficult for me to
+solve them (ideally I should not need to modify any of the .c or .h
+files).
+
+Please let me know your position about it.
+
+Thank you for your attention,
+
+giorgio
+
+
+--SA5nTjgJoIKxcwLfQaI9g8MvTBNHLhKtv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlOrJoEACgkQYqbc2h3T5VBIoQCfYEVjM2hpm/LO+sNtKXKhG5e/
+i9UAnjc14uZ+sIHQFZr1rnPtOm1csaN1
+=C9Um
+-----END PGP SIGNATURE-----
+
+--SA5nTjgJoIKxcwLfQaI9g8MvTBNHLhKtv--
