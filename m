@@ -1,242 +1,84 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 6/6] src: chain: Do not print unser values in json
-Date: Thu, 26 Jun 2014 18:39:00 +0200
-Message-ID: <1403800740-10572-7-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH 3/6] src: chain: add set, unset, get, parse and build payload implementation for use value
+Date: Thu, 26 Jun 2014 18:38:57 +0200
+Message-ID: <1403800740-10572-4-git-send-email-anarey@gmail.com>
 References: <1403800740-10572-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:41043 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932402AbaFZQj1 (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:52043 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932387AbaFZQjX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Jun 2014 12:39:27 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hi2so1415728wib.7
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jun 2014 09:39:24 -0700 (PDT)
+	Thu, 26 Jun 2014 12:39:23 -0400
+Received: by mail-wi0-f179.google.com with SMTP id cc10so1415419wib.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jun 2014 09:39:20 -0700 (PDT)
 In-Reply-To: <1403800740-10572-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It changes the parse and snprintf functions to omit unset values.
+Add some parts of the implemention of 'use' vualue in chain that miss it.
+
+These changes are neeeded for a correct import/export of xml/json file
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/chain.c | 166 ++++++++++++++++++++++++++++++++++--------------------------
- 1 file changed, 95 insertions(+), 71 deletions(-)
+ src/chain.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/src/chain.c b/src/chain.c
-index 042ff13..1a3f052 100644
+index 9e9f207..f01abb9 100644
 --- a/src/chain.c
 +++ b/src/chain.c
-@@ -575,40 +575,28 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
- 		return -1;
- 
- 	name = nft_jansson_parse_str(root, "name", err);
--	if (name == NULL)
--		return -1;
--
--	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_NAME, name);
-+	if (name != NULL)
-+		nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_NAME, name);
- 
- 	if (nft_jansson_parse_val(root, "handle", NFT_TYPE_U64, &handle,
--				  err) < 0)
--		return -1;
--
--	nft_chain_attr_set_u64(c,NFT_CHAIN_ATTR_HANDLE, handle);
-+				  err) == 0)
-+		nft_chain_attr_set_u64(c,NFT_CHAIN_ATTR_HANDLE, handle);
- 
- 	if (nft_jansson_parse_val(root, "bytes", NFT_TYPE_U64, &bytes,
--				  err) < 0)
--		return -1;
--
--	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_BYTES, bytes);
-+				  err) == 0)
-+		nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_BYTES, bytes);
- 
- 	if (nft_jansson_parse_val(root, "packets", NFT_TYPE_U64, &packets,
--				  err) < 0)
--		return -1;
--
--	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_PACKETS, packets);
--
--	if (nft_jansson_parse_family(root, &family, err) != 0)
--		return -1;
-+				  err) == 0)
-+		nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_PACKETS, packets);
- 
--	nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_FAMILY, family);
-+	if (nft_jansson_parse_family(root, &family, err) == 0)
-+		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_FAMILY, family);
- 
- 	table = nft_jansson_parse_str(root, "table", err);
- 
--	if (table == NULL)
--		return -1;
--
--	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, table);
-+	if (table != NULL)
-+		nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, table);
- 
- 	if (nft_jansson_parse_val(root, "use", NFT_TYPE_U32, &use, err) == 0)
- 		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_USE, use);
-@@ -616,39 +604,33 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
- 	if (nft_jansson_node_exist(root, "hooknum")) {
- 		type = nft_jansson_parse_str(root, "type", err);
- 
--		if (type == NULL)
--			return -1;
--
--		nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TYPE, type);
-+		if (type != NULL)
-+			nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TYPE, type);
- 
- 		if (nft_jansson_parse_val(root, "prio", NFT_TYPE_S32,
--					  &prio, err) < 0)
--			return -1;
--
--		nft_chain_attr_set_s32(c, NFT_CHAIN_ATTR_PRIO, prio);
-+					  &prio, err) == 0)
-+			nft_chain_attr_set_s32(c, NFT_CHAIN_ATTR_PRIO, prio);
- 
- 		hooknum_str = nft_jansson_parse_str(root, "hooknum", err);
--		if (hooknum_str == NULL)
--			return -1;
--
--		hooknum = nft_str2hooknum(c->family, hooknum_str);
--		if (hooknum == -1)
--			return -1;
--
--		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_HOOKNUM, hooknum);
-+		if (hooknum_str != NULL) {
-+			hooknum = nft_str2hooknum(c->family, hooknum_str);
-+			if (hooknum == -1)
-+				return -1;
-+			nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_HOOKNUM,
-+					       hooknum);
-+		}
- 
- 		policy = nft_jansson_parse_str(root, "policy", err);
--		if (policy == NULL)
--			return -1;
--
--		if (nft_str2verdict(policy, &policy_num) != 0) {
--			errno = EINVAL;
--			err->node_name = "policy";
--			err->error = NFT_PARSE_EBADTYPE;
--			return -1;
-+		if (policy != NULL) {
-+			if (nft_str2verdict(policy, &policy_num) != 0) {
-+				errno = EINVAL;
-+				err->node_name = "policy";
-+				err->error = NFT_PARSE_EBADTYPE;
-+				return -1;
-+			}
-+			nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_POLICY,
-+					       policy_num);
+@@ -115,8 +115,7 @@ void nft_chain_attr_unset(struct nft_chain *c, uint16_t attr)
  		}
--
--		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_POLICY, policy_num);
+ 		break;
+ 	case NFT_CHAIN_ATTR_USE:
+-		/* cannot be unset?, ignore it */
+-		return;
++		break;
+ 	case NFT_CHAIN_ATTR_TYPE:
+ 		if (c->type) {
+ 			xfree(c->type);
+@@ -178,8 +177,8 @@ void nft_chain_attr_set_data(struct nft_chain *c, uint16_t attr,
+ 		c->policy = *((uint32_t *)data);
+ 		break;
+ 	case NFT_CHAIN_ATTR_USE:
+-		/* cannot be set, ignore it */
+-		return;
++		c->use = *((uint32_t *)data);
++		break;
+ 	case NFT_CHAIN_ATTR_BYTES:
+ 		c->bytes = *((uint64_t *)data);
+ 		break;
+@@ -356,6 +355,8 @@ void nft_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_chain
  	}
+ 	if (c->flags & (1 << NFT_CHAIN_ATTR_POLICY))
+ 		mnl_attr_put_u32(nlh, NFTA_CHAIN_POLICY, htonl(c->policy));
++	if (c->flags & (1 << NFT_CHAIN_ATTR_USE))
++		mnl_attr_put_u32(nlh, NFTA_CHAIN_USE, htonl(c->use));
+ 	if ((c->flags & (1 << NFT_CHAIN_ATTR_PACKETS)) &&
+ 	    (c->flags & (1 << NFT_CHAIN_ATTR_BYTES))) {
+ 		struct nlattr *nest;
+@@ -566,7 +567,7 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
+ 	json_t *root;
+ 	uint64_t uval64;
+ 	int policy;
+-	int32_t val32;
++	int32_t val32, use;
+ 	const char *valstr;
  
- 	return 0;
-@@ -817,32 +799,74 @@ static int nft_chain_snprintf_json(char *buf, size_t size, struct nft_chain *c)
- {
- 	int ret, len = size, offset = 0;
+ 	root = nft_jansson_get_node(tree, "chain", err);
+@@ -609,6 +610,9 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
  
--	ret = snprintf(buf, len,
--			"{\"chain\":{"
--			"\"name\":\"%s\","
--			"\"handle\":%"PRIu64","
--			"\"bytes\":%"PRIu64","
--			"\"packets\":%"PRIu64","
--			"\"family\":\"%s\","
--			"\"table\":\"%s\","
--			"\"use\":%d",
--			c->name, c->handle, c->bytes, c->packets,
--			nft_family2str(c->family),
--			c->table, c->use);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	ret = snprintf(buf, len, "{\"chain\":{");
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, valstr);
+ 
++	if (nft_jansson_parse_val(root, "use", NFT_TYPE_U32, &use, err) == 0)
++		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_USE, use);
 +
-+	ret = 0;
+ 	if (nft_jansson_node_exist(root, "hooknum")) {
+ 		valstr = nft_jansson_parse_str(root, "type", err);
  
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_NAME)) {
-+		ret = snprintf(buf + offset, len, "\"name\":\"%s\",", c->name);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_HANDLE)) {
-+		ret = snprintf(buf + offset, len, "\"handle\":%"PRIu64",",
-+			       c->handle);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_BYTES)) {
-+		ret = snprintf(buf + offset, len, "\"bytes\":%"PRIu64",",
-+			       c->bytes);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_PACKETS)) {
-+		ret = snprintf(buf + offset, len, "\"packets\":%"PRIu64",",
-+			       c->packets);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_FAMILY)) {
-+		ret = snprintf(buf + offset, len, "\"family\":\"%s\",",
-+			       nft_family2str(c->family));
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_FAMILY)) {
-+		ret = snprintf(buf + offset, len, "\"table\":\"%s\",",
-+			       c->table);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (c->flags & (1 << NFT_CHAIN_ATTR_USE)) {
-+		ret = snprintf(buf + offset, len, "\"use\":%d,", c->use);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
- 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
--		ret =  snprintf(buf+offset, len,
--				",\"type\":\"%s\","
--				"\"hooknum\":\"%s\","
--				"\"prio\":%d,"
--				"\"policy\":\"%s\"",
--			c->type, nft_hooknum2str(c->family, c->hooknum),
--			c->prio, nft_verdict2str(c->policy));
-+		if (c->flags & (1 << NFT_CHAIN_ATTR_TYPE)) {
-+			ret = snprintf(buf + offset, len, "\"type\":\"%s\",",
-+				       c->type);
-+			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+		}
-+
-+		ret = snprintf(buf + offset, len, "\"hooknum\":\"%s\",",
-+			       nft_hooknum2str(c->family, c->hooknum));
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+		if (c->flags & (1 << NFT_CHAIN_ATTR_PRIO)) {
-+			ret = snprintf(buf + offset, len, "\"prio\":%d,",
-+				       c->prio);
-+			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+		}
-+		if (c->flags & (1 << NFT_CHAIN_ATTR_POLICY)) {
-+			ret = snprintf(buf + offset, len, "\"policy\":\"%s\",",
-+				       nft_verdict2str(c->policy));
-+			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+		}
- 	}
- 
--	ret = snprintf(buf+offset, len, "}}");
-+	/* If ret is not 0, some values are printed. So, It's necessary to
-+	 * delete the last comma character
-+	 */
-+	if (ret > 0)
-+		offset--;
-+
-+	ret = snprintf(buf + offset, len, "}}");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
 -- 
 2.0.0
 
