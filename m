@@ -1,113 +1,71 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [libnftnl PATCH 5/5] src: table: Do not print unset values in json file
-Date: Thu, 26 Jun 2014 19:08:41 +0200
-Message-ID: <1403802521-12571-6-git-send-email-anarey@gmail.com>
+Subject: [libnftnl PATCH 2/5] src: table: Use nft_table_attr_set_* in the xml functions
+Date: Thu, 26 Jun 2014 19:08:38 +0200
+Message-ID: <1403802521-12571-3-git-send-email-anarey@gmail.com>
 References: <1403802521-12571-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:63411 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757431AbaFZRJC (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:57738 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757431AbaFZRI7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Jun 2014 13:09:02 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hi2so1443190wib.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jun 2014 10:08:58 -0700 (PDT)
+	Thu, 26 Jun 2014 13:08:59 -0400
+Received: by mail-wg0-f43.google.com with SMTP id b13so3923758wgh.26
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jun 2014 10:08:54 -0700 (PDT)
 In-Reply-To: <1403802521-12571-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It changes the parse and snprintf functions to omit unset values.
+Code refactoring to use nft_table_attr_set_* in parse xml functions.
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- src/table.c | 64 ++++++++++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 42 insertions(+), 22 deletions(-)
+ src/table.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
 diff --git a/src/table.c b/src/table.c
-index 7874245..abbaa52 100644
+index ed6e615..de4a64d 100644
 --- a/src/table.c
 +++ b/src/table.c
-@@ -319,20 +319,15 @@ int nft_jansson_parse_table(struct nft_table *t, json_t *tree,
- 		return -1;
- 
- 	str = nft_jansson_parse_str(root, "name", err);
--	if (str == NULL)
--		return -1;
--
--	nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, str);
--
--	if (nft_jansson_parse_family(root, &family, err) != 0)
--		return -1;
--
--	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FAMILY, family);
-+	if (str != NULL)
-+		nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, str);
- 
--	if (nft_jansson_parse_val(root, "flags", NFT_TYPE_U32, &flags, err) < 0)
--		return -1;
-+	if (nft_jansson_parse_family(root, &family, err) == 0)
-+		nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FAMILY, family);
- 
--	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, flags);
-+	if (nft_jansson_parse_val(root, "flags", NFT_TYPE_U32, &flags,
-+				  err) == 0)
-+		nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, flags);
- 
- 	if (nft_jansson_parse_val(root, "use", NFT_TYPE_U32, &use, err) == 0)
- 		nft_table_attr_set_u32(t, NFT_TABLE_ATTR_USE, use);
-@@ -407,16 +402,41 @@ EXPORT_SYMBOL(nft_table_parse_file);
- 
- static int nft_table_snprintf_json(char *buf, size_t size, struct nft_table *t)
+@@ -263,32 +263,24 @@ int nft_mxml_table_parse(mxml_node_t *tree, struct nft_table *t,
  {
--	return snprintf(buf, size,
--			"{\"table\":{"
--			"\"name\":\"%s\","
--			"\"family\":\"%s\","
--			"\"flags\":%d,"
--			"\"use\":%d"
--			"}"
--			"}" ,
--			t->name, nft_family2str(t->family),
--			t->table_flags, t->use);
-+	int ret, len = size, offset = 0;
-+
-+	ret = snprintf(buf, size, "{\"table\":{");
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	ret = 0;
-+
-+	if (t->flags & (1 << NFT_TABLE_ATTR_NAME)) {
-+		ret = snprintf(buf + offset, size, "\"name\":\"%s\",", t->name);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (t->flags & (1 << NFT_TABLE_ATTR_FAMILY)) {
-+		ret = snprintf(buf + offset, size, "\"family\":\"%s\",",
-+			       nft_family2str(t->family));
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (t->flags & (1 << NFT_TABLE_ATTR_FLAGS)) {
-+		ret = snprintf(buf + offset, size, "\"flags\":%u,",
-+			       t->table_flags);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+	if (t->flags & (1 << NFT_TABLE_ATTR_USE)) {
-+		ret = snprintf(buf + offset, size, "\"use\":%u,", t->use);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	/* If  some values is set, ret is not 0. So, It's needed to remove the
-+	 * last comma characther
-+	 */
-+	if (ret > 0)
-+		offset--;
-+
-+	ret = snprintf(buf + offset, size, "}}");
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	return offset;
- }
+ 	const char *name;
+ 	int family;
++	uint32_t flags;
  
- static int nft_table_snprintf_xml(char *buf, size_t size, struct nft_table *t)
+ 	name = nft_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
+ 				  NFT_XML_MAND, err);
+ 	if (name == NULL)
+ 		return -1;
+-
+-	if (t->name)
+-		xfree(t->name);
+-
+-	t->name = strdup(name);
+-	t->flags |= (1 << NFT_TABLE_ATTR_NAME);
++	nft_table_attr_set_str(t, NFT_TABLE_ATTR_NAME, name);
+ 
+ 	family = nft_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST,
+ 				       NFT_XML_MAND, err);
+ 	if (family < 0)
+ 		return -1;
+-
+-	t->family = family;
+-	t->flags |= (1 << NFT_TABLE_ATTR_FAMILY);
++	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FAMILY, family);
+ 
+ 	if (nft_mxml_num_parse(tree, "flags", MXML_DESCEND, BASE_DEC,
+-			       &t->table_flags, NFT_TYPE_U32,
+-			       NFT_XML_MAND, err) != 0)
++			       &flags, NFT_TYPE_U32, NFT_XML_MAND, err) != 0)
+ 		return -1;
+-
+-	t->flags |= (1 << NFT_TABLE_ATTR_FLAGS);
++	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, flags);
+ 
+ 	return 0;
+ }
 -- 
 2.0.0
 
