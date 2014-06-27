@@ -1,89 +1,51 @@
-From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-Subject: [PATCH net-next] netfilter: only compile nf_nat_ipv4_nlattr_to_range/nf_nat_ipv6_nlattr_to_range
-Date: Fri, 27 Jun 2014 13:51:47 +0800
-Message-ID: <53AD0673.3000500@cn.fujitsu.com>
+From: giorgio.nicole@arcor.de
+Subject: libnftnl.pc lacks dependency from libmnl
+Date: Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
+Message-ID: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:23318 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750729AbaF0FzJ (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:39241 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751598AbaF0JQ1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 01:55:09 -0400
+	Fri, 27 Jun 2014 05:16:27 -0400
+Received: from mail-in-11-z2.arcor-online.net (mail-in-11-z2.arcor-online.net [151.189.8.28])
+	by mx.arcor.de (Postfix) with ESMTP id 5B834D8182
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net [151.189.21.50])
+	by mail-in-11-z2.arcor-online.net (Postfix) with ESMTP id 5283E7FE6C5
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
+Received: from webmail09.arcor-online.net (webmail09.arcor-online.net [151.189.8.45])
+	by mail-in-10.arcor-online.net (Postfix) with ESMTP id 44F422D71ED
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-When CONFIG_NF_CT_NETLINK is configed.
+I've noticed that the pkg-config file libnftnl.pc installed by the
+library package misses the dependency from libmnl in
+the 'Required:' line.
 
-Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
----
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 4 ++++
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 4 ++++
- 2 files changed, 8 insertions(+)
+# cat libnftnl.pc.in
+# libnftnl pkg-config file
 
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index d8b2e14..14f5ccd 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -154,6 +154,7 @@ static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
- 					 htons(oldlen), htons(datalen), 1);
- }
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- static int nf_nat_ipv4_nlattr_to_range(struct nlattr *tb[],
- 				       struct nf_nat_range *range)
- {
-@@ -169,6 +170,7 @@ static int nf_nat_ipv4_nlattr_to_range(struct nlattr *tb[],
- 
- 	return 0;
- }
-+#endif
- 
- static const struct nf_nat_l3proto nf_nat_l3proto_ipv4 = {
- 	.l3proto		= NFPROTO_IPV4,
-@@ -177,7 +179,9 @@ static const struct nf_nat_l3proto nf_nat_l3proto_ipv4 = {
- 	.manip_pkt		= nf_nat_ipv4_manip_pkt,
- 	.csum_update		= nf_nat_ipv4_csum_update,
- 	.csum_recalc		= nf_nat_ipv4_csum_recalc,
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 	.nlattr_to_range	= nf_nat_ipv4_nlattr_to_range,
-+#endif
- #ifdef CONFIG_XFRM
- 	.decode_session		= nf_nat_ipv4_decode_session,
- #endif
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index abfe75a..fc8e49b 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -158,6 +158,7 @@ static void nf_nat_ipv6_csum_recalc(struct sk_buff *skb,
- 					 htons(oldlen), htons(datalen), 1);
- }
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- static int nf_nat_ipv6_nlattr_to_range(struct nlattr *tb[],
- 				       struct nf_nat_range *range)
- {
-@@ -175,6 +176,7 @@ static int nf_nat_ipv6_nlattr_to_range(struct nlattr *tb[],
- 
- 	return 0;
- }
-+#endif
- 
- static const struct nf_nat_l3proto nf_nat_l3proto_ipv6 = {
- 	.l3proto		= NFPROTO_IPV6,
-@@ -183,7 +185,9 @@ static const struct nf_nat_l3proto nf_nat_l3proto_ipv6 = {
- 	.manip_pkt		= nf_nat_ipv6_manip_pkt,
- 	.csum_update		= nf_nat_ipv6_csum_update,
- 	.csum_recalc		= nf_nat_ipv6_csum_recalc,
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 	.nlattr_to_range	= nf_nat_ipv6_nlattr_to_range,
-+#endif
- #ifdef CONFIG_XFRM
- 	.decode_session	= nf_nat_ipv6_decode_session,
- #endif
--- 
-1.8.3.1
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libnftnl
+Description: Netfilter nf_tables infrastructure library
+URL: http://netfilter.org/projects/libnftnl/
+Version: @VERSION@
+Requires:                                                             <=== this line
+Conflicts:
+Libs: -L${libdir} -lnftnl
+Cflags: -I${includedir}
+
+
+giorgio
