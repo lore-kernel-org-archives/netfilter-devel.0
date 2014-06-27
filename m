@@ -1,37 +1,34 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: libnftnl.pc lacks dependency from libmnl
-Date: Fri, 27 Jun 2014 17:36:00 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1406271734110.32683@nerf08.vanv.qr>
-References: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
+From: netfilter@tsaunders.co.uk
+Subject: sockopts
+Date: Fri, 27 Jun 2014 16:13:42 +0100 (BST)
+Message-ID: <Pine.LNX.4.64.1406271607001.4915@fedex.thefeds.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: giorgio.nicole@arcor.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:46920 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753338AbaF0PgE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 11:36:04 -0400
-In-Reply-To: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
+Received: from fedex.thefeds.net ([81.168.97.116]:48088 "EHLO
+	fedex.thefeds.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838AbaF0QKR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2014 12:10:17 -0400
+Received: from fedex.thefeds.net (fedex.thefeds.net [127.0.0.1])
+	by fedex.thefeds.net (8.13.8/8.13.8) with ESMTP id s5RFDh9g004942
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 16:13:43 +0100
+Received: from localhost (elwe@localhost)
+	by fedex.thefeds.net (8.13.8/8.13.8/Submit) with ESMTP id s5RFDghE004939
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 16:13:43 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2014-06-27 11:16, giorgio.nicole@arcor.de wrote:
+I am maintaining a proprietary netfilter module. The module fails to load 
+when ip_set is loaded and ip_set won't load when it is loaded. I think 
+this may be because the sockopt number the original developer chose 
+clashes with the number ip_set uses. Would this clash cause such a 
+problem?
 
->Hi,
->
->I've noticed that the pkg-config file libnftnl.pc installed by the
->library package misses the dependency from libmnl in
->the 'Required:' line.
->
-># cat libnftnl.pc.in
-># libnftnl pkg-config file
->[...]
->Name: libnftnl
->Description: Netfilter nf_tables infrastructure library
->URL: http://netfilter.org/projects/libnftnl/
->Version: @VERSION@
->Requires:                                                             <=== this line
+I have read the netfilter hacking howto and searched, but I cannot find 
+any details of how to choose a sockopt number. Is there any documentation?
 
-This seems correct, as the libmnl development files do not appear to be 
-needed to write a libnftnl program.
+Thanks
+Tim
