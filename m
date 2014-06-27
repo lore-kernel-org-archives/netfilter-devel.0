@@ -1,51 +1,42 @@
-From: giorgio.nicole@arcor.de
-Subject: libnftnl.pc lacks dependency from libmnl
-Date: Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
-Message-ID: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
+From: "WebMail Administrator" <info@webmail.hu>
+Subject: =?utf-8?B?RXLFkXPDrXRzZSBtZWcgYSBzemVtw6lseWF6b25vc3PDoWfDoXQgV2VibWFp?=
+ =?utf-8?B?bA==?=
+Date: Fri, 27 Jun 2014 13:14:57 +0400
+Message-ID: <8bc428cb75fd7e6b3a8870f9d68c7cc0.squirrel@webmail.ippe.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:39241 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751598AbaF0JQ1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 05:16:27 -0400
-Received: from mail-in-11-z2.arcor-online.net (mail-in-11-z2.arcor-online.net [151.189.8.28])
-	by mx.arcor.de (Postfix) with ESMTP id 5B834D8182
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net [151.189.21.50])
-	by mail-in-11-z2.arcor-online.net (Postfix) with ESMTP id 5283E7FE6C5
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
-Received: from webmail09.arcor-online.net (webmail09.arcor-online.net [151.189.8.45])
-	by mail-in-10.arcor-online.net (Postfix) with ESMTP id 44F422D71ED
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2014 11:16:25 +0200 (CEST)
+Received: from mx.ippe.ru ([212.193.160.5]:43474 "EHLO mx.ippe.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750756AbaF0Jhm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2014 05:37:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-I've noticed that the pkg-config file libnftnl.pc installed by the
-library package misses the dependency from libmnl in
-the 'Required:' line.
-
-# cat libnftnl.pc.in
-# libnftnl pkg-config file
-
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
-
-Name: libnftnl
-Description: Netfilter nf_tables infrastructure library
-URL: http://netfilter.org/projects/libnftnl/
-Version: @VERSION@
-Requires:                                                             <=== this line
-Conflicts:
-Libs: -L${libdir} -lnftnl
-Cflags: -I${includedir}
 
 
-giorgio
+
+Er=C5=91s=C3=ADtse meg a szem=C3=A9lyazonoss=C3=A1g=C3=A1t Webmail
+
+A postafi=C3=B3k meghaladta egy vagy t=C3=B6bb megadott m=C3=A9reteket =
+=C3=A1ltal
+rendszergazda. Lehet, hogy nem tud k=C3=BCldeni vagy fogadni az =C3=BAj=
+ =C3=BCzeneteket,
+am=C3=ADg a
+postafi=C3=B3k m=C3=A9rete cs=C3=B6kken. Ahhoz, hogy t=C3=B6bb hely =C3=
+=A1ll rendelkez=C3=A9sre, kattintson
+al=C3=A1bbi linkre =C3=A9s adja meg a helyes sz=C3=A1mla.
+
+  http://mailupdatesk.jigsy.com/
+
+K=C3=B6sz=C3=B6n=C3=B6m, =C3=A9s eln=C3=A9z=C3=A9st k=C3=A9r=C3=BCnk az=
+ esetleges kellemetlens=C3=A9gek=C3=A9rt.
+Rendszergazda.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
