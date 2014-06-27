@@ -1,36 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 9/9] netfilter: nft_log: complete logging support
-Date: Fri, 27 Jun 2014 13:39:14 +0200
-Message-ID: <20140627113914.GA25253@localhost>
-References: <1403699563-3604-1-git-send-email-pablo@netfilter.org>
- <1403699563-3604-10-git-send-email-pablo@netfilter.org>
- <20140626113730.GA5939@macbook.localnet>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: libnftnl.pc lacks dependency from libmnl
+Date: Fri, 27 Jun 2014 17:36:00 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1406271734110.32683@nerf08.vanv.qr>
+References: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: giorgio.nicole@arcor.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33022 "EHLO mail.us.es"
+Received: from ares08.inai.de ([46.4.84.70]:46920 "EHLO ares08.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753288AbaF0LjT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 07:39:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20140626113730.GA5939@macbook.localnet>
+	id S1753338AbaF0PgE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2014 11:36:04 -0400
+In-Reply-To: <1005632599.974483.1403860585336.JavaMail.ngmail@webmail09.arcor-online.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 26, 2014 at 01:37:30PM +0200, Patrick McHardy wrote:
-> On Wed, Jun 25, 2014 at 02:32:43PM +0200, Pablo Neira Ayuso wrote:
-> > +	switch (li->type) {
-> > +	case NF_LOG_TYPE_LOG:
-> > +		if (tb[NFTA_LOG_SYSLOG] != NULL) {
-> > +			li->u.log.level =
-> > +				ntohl(nla_get_be32(tb[NFTA_LOG_SYSLOG]));;
-> > +		} else {
-> > +			li->u.log.level = 4;
-> > +		}
-> 
-> I'd suggest to call it what it is, NFTA_LOG_LEVEL. Besides this minor issue,
-> the patches look good to me.
+On Friday 2014-06-27 11:16, giorgio.nicole@arcor.de wrote:
 
-I'm going to locally edit this and push this. Thanks Patrick.
+>Hi,
+>
+>I've noticed that the pkg-config file libnftnl.pc installed by the
+>library package misses the dependency from libmnl in
+>the 'Required:' line.
+>
+># cat libnftnl.pc.in
+># libnftnl pkg-config file
+>[...]
+>Name: libnftnl
+>Description: Netfilter nf_tables infrastructure library
+>URL: http://netfilter.org/projects/libnftnl/
+>Version: @VERSION@
+>Requires:                                                             <=== this line
+
+This seems correct, as the libmnl development files do not appear to be 
+needed to write a libnftnl program.
