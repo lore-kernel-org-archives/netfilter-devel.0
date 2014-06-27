@@ -1,32 +1,59 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: sockopts
-Date: Fri, 27 Jun 2014 19:11:47 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1406271909340.14571@nerf08.vanv.qr>
-References: <Pine.LNX.4.64.1406271607001.4915@fedex.thefeds.net>
+From: Robby Workman <robby@rlworkman.net>
+Subject: Re: [ANNOUNCE] nftables 0.3 release
+Date: Fri, 27 Jun 2014 12:42:36 -0500
+Message-ID: <20140627124236.793bc975.robby@rlworkman.net>
+References: <20140625155210.GA31550@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: netfilter@tsaunders.co.uk
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:56269 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256AbaF0RLs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 13:11:48 -0400
-In-Reply-To: <Pine.LNX.4.64.1406271607001.4915@fedex.thefeds.net>
+Received: from harrier.slackbuilds.org ([207.223.116.211]:41302 "EHLO
+	harrier.slackbuilds.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbaF0RuX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2014 13:50:23 -0400
+In-Reply-To: <20140625155210.GA31550@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2014-06-27 17:13, netfilter@tsaunders.co.uk wrote:
+On Wed, 25 Jun 2014 17:52:10 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-> I am maintaining a proprietary netfilter module. The module fails to load when
-> ip_set is loaded and ip_set won't load when it is loaded. I think this may be
-> because the sockopt number the original developer chose clashes with the number
-> ip_set uses. Would this clash cause such a problem?
->
-> I have read the netfilter hacking howto and searched, but I cannot find any
-> details of how to choose a sockopt number. Is there any documentation?
+> The Netfilter project presents:
+> 
+>         nftables 0.3
+> 
+> This release contains bug fixes, syntax cleanups, new features,
+> support for all new features contained in the recent 3.15 kernel
+> release.
 
-There are no provisions for external software to select subsystem 
-numbers (either sockopt or netlink numbers). The closest thing that is 
-friendly to external modules is genetlink which uses a string that is 
-rather clash-free.
+
+Hi Pablo,
+
+I get this error after configure:
+
+  checking for readline in -lreadline... no
+  configure: error: No suitable version of libreadline found
+
+It appears that you're depending on distro-specific enhancements to
+readline, specifically that Fedora explicitly links libtinfo, Arch
+explicitly links ncurses, etcetera, while according to upstream
+readline, this should not occur -- from INSTALL file in readline:
+
+The readline `configure' recognizes a single `--with-PACKAGE' option:
+
+`--with-curses'
+    This tells readline that it can find the termcap library functions
+    (tgetent, et al.) in the curses library, rather than a separate
+    termcap library.  Readline uses the termcap functions, but does not
+    link with the termcap or curses library itself, allowing applications
+    which link with readline the to choose an appropriate library.
+    This option tells readline to link the example programs with the
+    curses library rather than libtermcap.
+
+I think this will be useful:
+https://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
+
+-RW
