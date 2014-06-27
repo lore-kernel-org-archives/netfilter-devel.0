@@ -1,41 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: skip transaction if no update flags in tables
-Date: Fri, 27 Jun 2014 18:51:39 +0200
-Message-ID: <1403887900-9185-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: sockopts
+Date: Fri, 27 Jun 2014 19:11:47 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1406271909340.14571@nerf08.vanv.qr>
+References: <Pine.LNX.4.64.1406271607001.4915@fedex.thefeds.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: netfilter@tsaunders.co.uk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39808 "EHLO mail.us.es"
+Received: from ares08.inai.de ([46.4.84.70]:56269 "EHLO ares08.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971AbaF0Qvx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 12:51:53 -0400
+	id S1751256AbaF0RLs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2014 13:11:48 -0400
+In-Reply-To: <Pine.LNX.4.64.1406271607001.4915@fedex.thefeds.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Skip transaction handling for table updates with no changes in
-the flags. This fixes a crash when passing the table flag with all
-bits unset.
+On Friday 2014-06-27 17:13, netfilter@tsaunders.co.uk wrote:
 
-Reported-by: Ana Rey <anarey@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |    3 +++
- 1 file changed, 3 insertions(+)
+> I am maintaining a proprietary netfilter module. The module fails to load when
+> ip_set is loaded and ip_set won't load when it is loaded. I think this may be
+> because the sockopt number the original developer chose clashes with the number
+> ip_set uses. Would this clash cause such a problem?
+>
+> I have read the netfilter hacking howto and searched, but I cannot find any
+> details of how to choose a sockopt number. Is there any documentation?
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ab4566c..da5dc37 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -407,6 +407,9 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	if (flags & ~NFT_TABLE_F_DORMANT)
- 		return -EINVAL;
- 
-+	if (flags == ctx->table->flags)
-+		return 0;
-+
- 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
- 				sizeof(struct nft_trans_table));
- 	if (trans == NULL)
--- 
-1.7.10.4
-
+There are no provisions for external software to select subsystem 
+numbers (either sockopt or netlink numbers). The closest thing that is 
+friendly to external modules is genetlink which uses a string that is 
+rather clash-free.
