@@ -1,53 +1,43 @@
-From: Matthijs Kooijman <matthijs@stdin.nl>
-Subject: Re: Unable to DNAT packets back into originating bridge port
-Date: Fri, 27 Jun 2014 22:00:49 +0200
-Message-ID: <20140627200049.GI1353@login.tika.stderr.nl>
-References: <20140627174837.GG1353@login.tika.stderr.nl>
- <20140627185207.GA2843@breakpoint.cc>
+From: "WebMail Administrator" <info@webmail.hu>
+Subject: =?utf-8?B?RXLFkXPDrXRzZSBtZWcgYSBzemVtw6lseWF6b25vc3PDoWfDoXQgV2VibWFp?=
+ =?utf-8?B?bA==?=
+Date: Sat, 28 Jun 2014 10:32:44 +0400
+Message-ID: <ffa5d4f6589fa31a5f6daefc14575b8c.squirrel@webmail.ippe.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oPYnW2SrAqZUvu4n"
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	Bart De Schuymer <bart.de.schuymer@pandora.be>,
-	bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tika.stderr.nl ([94.142.244.14]:41247 "EHLO tika.stderr.nl"
+Received: from mx.ippe.ru ([212.193.160.5]:42446 "EHLO mx.ippe.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaF0UBK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2014 16:01:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20140627185207.GA2843@breakpoint.cc>
+	id S1751127AbaF1Gye (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Jun 2014 02:54:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---oPYnW2SrAqZUvu4n
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hey Florian,
 
-> Sounds like
-> http://marc.info/?t=136627796900001&r=1&w=2
-Yup, I'm pretty sure this is the same issue. I hadn't realize the need
-for source mac address mangling yet. It didn't show up as a problem
-in my setup, but I guess it can be needed in some setups.
+Er=C5=91s=C3=ADtse meg a szem=C3=A9lyazonoss=C3=A1g=C3=A1t Webmail
 
-Gr.
+A postafi=C3=B3k meghaladta egy vagy t=C3=B6bb megadott m=C3=A9reteket =
+=C3=A1ltal
+rendszergazda. Lehet, hogy nem tud k=C3=BCldeni vagy fogadni az =C3=BAj=
+ =C3=BCzeneteket,
+am=C3=ADg a
+postafi=C3=B3k m=C3=A9rete cs=C3=B6kken. Ahhoz, hogy t=C3=B6bb hely =C3=
+=A1ll rendelkez=C3=A9sre, kattintson
+al=C3=A1bbi linkre =C3=A9s adja meg a helyes sz=C3=A1mla.
 
-Matthijs
+  http://wemailmail007.jigsy.com/
 
---oPYnW2SrAqZUvu4n
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+K=C3=B6sz=C3=B6n=C3=B6m, =C3=A9s eln=C3=A9z=C3=A9st k=C3=A9r=C3=BCnk az=
+ esetleges kellemetlens=C3=A9gek=C3=A9rt.
+Rendszergazda.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
 
-iEYEARECAAYFAlOtzXEACgkQz0nQ5oovr7ytWQCfX3Pqn3htX0USPc8jRFfAgY7v
-xg8An1s+Vdd6fOU+WRs8e44vVrHRA0xp
-=s1HB
------END PGP SIGNATURE-----
-
---oPYnW2SrAqZUvu4n--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
