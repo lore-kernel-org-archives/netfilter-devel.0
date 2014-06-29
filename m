@@ -1,36 +1,130 @@
-From: Pascal Hambourg <pascal@plouf.fr.eu.org>
-Subject: Re: [RFC PATCH iptables] Hide FORWARD chain if forwarding is not
- enabled
-Date: Sat, 28 Jun 2014 11:28:43 +0200
-Message-ID: <53AE8ACB.1030800@plouf.fr.eu.org>
-References: <53AE6FFD.5080109@jbeekman.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jethro Beekman <kernel@jbeekman.nl>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/2 nf-next] netfilter: fix several Kconfig problems in NF_LOG_*
+Date: Sun, 29 Jun 2014 12:15:00 +0200
+Message-ID: <1404036901-3782-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([178.132.17.28]:50026 "EHLO bamako.nerim.net"
+Received: from mail.us.es ([193.147.175.20]:34909 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750720AbaF1JiN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Jun 2014 05:38:13 -0400
-In-Reply-To: <53AE6FFD.5080109@jbeekman.nl>
+	id S1752675AbaF2KPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Jun 2014 06:15:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jethro Beekman a =E9crit :
-> Most Linux distributions have IP forwarding disabled and it gets me e=
-very time.
-> The FORWARD chain is pretty much useless with forwarding disabled, so=
- make
-> ip{,6}tables -L print a message notifying the user instead of actuall=
-y listing
-> the contents.
+warning: (NETFILTER_XT_TARGET_LOG) selects NF_LOG_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && IP6_NF_IPTABLES && NETFILTER_ADVANCED)
+warning: (NF_LOG_IPV4 && NF_LOG_IPV6) selects NF_LOG_COMMON which has unmet direct dependencies (NET && INET && NETFILTER && NF_CONNTRACK)
 
-As a user I prefer to have the ability to check rules in the FORWARD
-chains before enabling IP forwarding.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: 83e96d4 ("netfilter: log: split family specific code to nf_log_{ip,ip6,common}.c files")
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/Kconfig |   20 ++++++++++----------
+ net/ipv6/netfilter/Kconfig |   10 +++++-----
+ net/netfilter/Kconfig      |   10 ++++------
+ 3 files changed, 19 insertions(+), 21 deletions(-)
+
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 12e6057..fb17312 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -36,6 +36,16 @@ config NF_CONNTRACK_PROC_COMPAT
+ 
+ 	  If unsure, say Y.
+ 
++config NF_LOG_ARP
++	tristate "ARP packet logging"
++	default m if NETFILTER_ADVANCED=n
++	select NF_LOG_COMMON
++
++config NF_LOG_IPV4
++	tristate "IPv4 packet logging"
++	default m if NETFILTER_ADVANCED=n
++	select NF_LOG_COMMON
++
+ config NF_TABLES_IPV4
+ 	depends on NF_TABLES
+ 	tristate "IPv4 nf_tables support"
+@@ -159,16 +169,6 @@ config IP_NF_TARGET_SYNPROXY
+ 
+ 	  To compile it as a module, choose M here. If unsure, say N.
+ 
+-config NF_LOG_ARP
+-	tristate "ARP packet logging"
+-	default m if NETFILTER_ADVANCED=n
+-	select NF_LOG_INET
+-
+-config NF_LOG_IPV4
+-	tristate "IPv4 packet logging"
+-	default m if NETFILTER_ADVANCED=n
+-	select NF_LOG_COMMON
+-
+ # NAT + specific targets: nf_conntrack
+ config NF_NAT_IPV4
+ 	tristate "IPv4 NAT"
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 1537130..ac93df1 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -55,6 +55,11 @@ config NFT_REJECT_IPV6
+ 	default NFT_REJECT
+ 	tristate
+ 
++config NF_LOG_IPV6
++	tristate "IPv6 packet logging"
++	depends on NETFILTER_ADVANCED
++	select NF_LOG_COMMON
++
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+ 	depends on INET && IPV6
+@@ -227,11 +232,6 @@ config IP6_NF_SECURITY
+ 
+          If unsure, say N.
+ 
+-config NF_LOG_IPV6
+-	tristate "IPv6 packet logging"
+-	depends on NETFILTER_ADVANCED
+-	select NF_LOG_COMMON
+-
+ config NF_NAT_IPV6
+ 	tristate "IPv6 NAT"
+ 	depends on NF_CONNTRACK_IPV6
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index f17b273..ad751fe 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -46,6 +46,9 @@ config NF_CONNTRACK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NF_LOG_COMMON
++	tristate
++
+ if NF_CONNTRACK
+ 
+ config NF_CONNTRACK_MARK
+@@ -359,9 +362,6 @@ config NETFILTER_NETLINK_QUEUE_CT
+ 	  If this option is enabled, NFQUEUE can include Connection Tracking
+ 	  information together with the packet is the enqueued via NFNETLINK.
+ 
+-config NF_LOG_COMMON
+-	tristate
+-
+ config NF_NAT
+ 	tristate
+ 
+@@ -747,9 +747,7 @@ config NETFILTER_XT_TARGET_LED
+ 
+ config NETFILTER_XT_TARGET_LOG
+ 	tristate "LOG target support"
+-	select NF_LOG
+-	select NF_LOG_IPV4
+-	select NF_LOG_IPV6
++	depends on NF_LOG_IPV4 && NF_LOG_IPV6
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `LOG' target, which allows you to create rules in
+-- 
+1.7.10.4
+
