@@ -1,42 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf-next] netfilter: xt_LOG: add missing string format in nf_log_packet()
-Date: Sun, 29 Jun 2014 12:15:01 +0200
-Message-ID: <1404036901-3782-2-git-send-email-pablo@netfilter.org>
-References: <1404036901-3782-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: use IS_ENABLED() macro
+Date: Mon, 30 Jun 2014 08:56:44 +0800
+Message-ID: <53B0B5CC.5060406@cn.fujitsu.com>
+References: <53AD0623.5090104@cn.fujitsu.com> <20140627105018.GA6058@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34934 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752667AbaF2KPT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Jun 2014 06:15:19 -0400
-In-Reply-To: <1404036901-3782-1-git-send-email-pablo@netfilter.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:6384 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753316AbaF3BAN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Jun 2014 21:00:13 -0400
+In-Reply-To: <20140627105018.GA6058@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-   net/netfilter/xt_LOG.c: In function 'log_tg':
->> net/netfilter/xt_LOG.c:43: error: format not a string literal and no format arguments
+On 06/27/2014 06:50 PM, Pablo Neira Ayuso wrote:
+> On Fri, Jun 27, 2014 at 01:50:27PM +0800, Duan Jiong wrote:
+>>
+>> replace:
+>>  #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+>> with
+>>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+> 
+> Could you also send a new version including these?
 
-Fixes: fab4085 ("netfilter: log: nf_log_packet() as real unified interface")
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_LOG.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ok, i will send v2 patch.
 
-diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-index 00eb491..c13b794 100644
---- a/net/netfilter/xt_LOG.c
-+++ b/net/netfilter/xt_LOG.c
-@@ -40,7 +40,7 @@ log_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	li.u.log.logflags = loginfo->logflags;
- 
- 	nf_log_packet(net, par->family, par->hooknum, skb, par->in, par->out,
--		      &li, loginfo->prefix);
-+		      &li, "%s", loginfo->prefix);
- 	return XT_CONTINUE;
- }
- 
--- 
-1.7.10.4
+Thanks,
+  Duan
+
+> 
+> net/ipv4/netfilter/nf_defrag_ipv4.c:#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+> net/ipv4/netfilter/nf_defrag_ipv4.c:#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+> net/ipv4/netfilter/nf_defrag_ipv4.c:#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+> net/ipv4/netfilter/nf_defrag_ipv4.c:#if !defined(CONFIG_NF_NAT) && !defined(CONFIG_NF_NAT_MODULE)
+> 
+> Thanks.
+> 
 
