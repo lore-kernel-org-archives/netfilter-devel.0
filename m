@@ -1,59 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: Starting point in netfilter development
-Date: Mon, 30 Jun 2014 17:22:45 +0200
-Message-ID: <20140630152245.GC9515@breakpoint.cc>
-References: <CAFgy_YLvGwc3y3R3vv0hdTPsQ+yX7eUW8YUppef9xJQsdH9frw@mail.gmail.com>
+From: =?Big5?Q?=C2=C5=AE=BC=DE=B3?= <lantw44@gmail.com>
+Subject: Re: [PATCH 2/3] extra: fix wrong implementation in
+ nfq_udp_get_payload
+Date: Tue, 01 Jul 2014 01:00:25 +0800
+Message-ID: <1404147625.31928.0.camel@wn.lant.com.tw>
+References: <1403260021-8732-1-git-send-email-lantw44@gmail.com>
+	 <1403260021-8732-2-git-send-email-lantw44@gmail.com>
+	 <20140630100229.GB5038@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Quentin Headen <qheaden@phaseshiftsoftware.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39545 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752167AbaF3PWq (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:49398 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754756AbaF3RAb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2014 11:22:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CAFgy_YLvGwc3y3R3vv0hdTPsQ+yX7eUW8YUppef9xJQsdH9frw@mail.gmail.com>
+	Mon, 30 Jun 2014 13:00:31 -0400
+Received: by mail-pa0-f45.google.com with SMTP id rd3so8923792pab.18
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jun 2014 10:00:30 -0700 (PDT)
+In-Reply-To: <20140630100229.GB5038@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Quentin Headen <qheaden@phaseshiftsoftware.com> wrote:
-> * Is there an active IRC channel for netfilter developers?
+=E6=96=BC =E4=B8=80=EF=BC=8C2014-06-30 =E6=96=BC 12:02 +0200=EF=BC=8CPa=
+blo Neira Ayuso =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Fri, Jun 20, 2014 at 06:27:00PM +0800, lantw44@gmail.com wrote:
+> > From: Ting-Wei Lan <lantw44@gmail.com>
+> >=20
+> > ---
+> >  src/extra/udp.c | 12 ++++++++----
+> >  1 file changed, 8 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/src/extra/udp.c b/src/extra/udp.c
+> > index eee732e..2a17a2f 100644
+> > --- a/src/extra/udp.c
+> > +++ b/src/extra/udp.c
+> > @@ -56,13 +56,17 @@ EXPORT_SYMBOL(nfq_udp_get_hdr);
+> >   */
+> >  void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pk=
+tb)
+> >  {
+> > -	unsigned int doff =3D udph->len;
+> > +	uint16_t len =3D ntohs (udph->len);
+>                             ^
+>=20
+> removed this space.
+>=20
+> Applied, thanks.
 
-Not that I am aware of.  There is #netfilter on freenode,
-sometimes developers are also on this channel though its mostly
-dealing with end-user questions.
+but I cannot find this patch in libnetfilter_queue git log ...
 
-> * When pulling repository changes, do I use git.netfilter.org, or the
-> main Linux kernel git repo?
 
-nf.git and nf-next.git from kernel.org. git.netfilter.org
-mostly hosts the userspace tools like iptables/nftables
-and the associated libraries.
-
-> * Where is a good place for me to get started with netfilter contributions?
-
-It depends on wheter you want to focus on kernel or userspace,
-and on what area you'd like to work on.
-
-nftables is currently under active development; f.e. you could
-add one of the missing iptables extensions such as hashlimit
-or nfacct.
-
-At least for hashlimit I suspect that an nftables equivalent should
-not 'copy' hashlimit to nftables but instead take advantage
-of nftables' architecture by e.g. using register(s) as input
-(as compared to the packet).
-
-Would avoid avoid adding all the hashlimit-mode/src-mask options
-from the iptables match in the nft version, and it would be more
-flexible because the data extraction/compaction would be in userspace.
-
-Alternatively, you could look at the open bug reports/feature wishlist
-items:
-http://bugzilla.netfilter.org/buglist.cgi?product=nftables&component=nft&resolution=---
-
-> * Is there any bug tracking done outside of the mailing list?
-
-There is bugzilla.netfilter.org that some people use.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
