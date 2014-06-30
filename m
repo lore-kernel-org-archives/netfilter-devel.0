@@ -1,54 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: libreadline not found by configure [was Re: [ANNOUNCE] nftables 0.3
-Date: Mon, 30 Jun 2014 13:22:19 +0200
-Message-ID: <20140630112219.GA8205@localhost>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Aw: Re: libnftnl.pc lacks dependency from libmnl
+Date: Mon, 30 Jun 2014 13:27:14 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1406301323020.9261@nerf08.vanv.qr>
+References: <2044885271.472926.1404124882557.JavaMail.ngmail@webmail13.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Robby Workman <robby@rlworkman.net>
+To: giorgio.nicole@arcor.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41987 "EHLO mail.us.es"
+Received: from ares08.inai.de ([46.4.84.70]:57097 "EHLO ares08.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750913AbaF3LWn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2014 07:22:43 -0400
-Content-Disposition: inline
+	id S1750882AbaF3L1P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Jun 2014 07:27:15 -0400
+In-Reply-To: <2044885271.472926.1404124882557.JavaMail.ngmail@webmail13.arcor-online.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-release]
-Reply-To: 
-In-Reply-To: <20140627124236.793bc975.robby@rlworkman.net>
 
-Hi Robby,
+On Monday 2014-06-30 12:41, giorgio.nicole@arcor.de wrote:
+>
+>(cross) compiling an autotooled version of the 'nftables' package that finds the 'libnftnl'
+>library using the pkg-config macro 'PKG_CHECK_MODULES()' I get the following
+>errors:
+>
+>arm-imx6-linux-gnueabihf-gcc -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wdeclaration-after-statement -Wsign-compare -Winit-self -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute -Wcast-align -Wundef -Wbad-function-cast -Waggregate-return -Wunused -Wwrite-strings -I/opt/projects/pkg_root/include  -I/opt/projects/pkg_root/include  -I/opt/projects/pkg_root/include/ncurses  -O2 -march=armv7-a -mtune=cortex-a9 -mcpu=cortex-a9 -mfpu=neon -mvectorize-with-neon-quad -mfloat-abi=hard  -L/opt/projects/pkg_root/lib -o nft nft-main.o nft-cli.o nft-rule.o nft-statement.o nft-datatype.o nft-expression.o nft-evaluate.o nft-proto.o nft-payload.o nft-exthdr.o nft-meta.o nft-ct.o nft-netlink.o nft-netlink_linearize.o nft-netlink_delinearize.o 
+ nft-segtree.o nft-rbtree.o nft-gmputil.o nft-utils.o nft-erec.o nft-mnl.o nft-scanner.o nft-yacc_parser.o -L/opt/projects/pkg_root/lib -lmnl -lnftnl -lreadline -lncurses -lgmp 
+>/opt/projects/pkg_root/lib/libnftnl.a(table.o): In function `nft_table_parse_attr_cb':
+>(.text+0xc): undefined reference to `mnl_attr_get_type'
+>/opt/projects/pkg_root/lib/libnftnl.a(table.o): In function `nft_table_parse_attr_cb':
+>(.text+0x1c): undefined reference to `mnl_attr_type_valid'
+>...
+>
+>Maybe it is a problem only when doing a static link (I do a static link here).
 
-On Fri, Jun 27, 2014 at 12:42:36PM -0500, Robby Workman wrote:
-> Hi Pablo,
-> 
-> I get this error after configure:
-> 
->   checking for readline in -lreadline... no
->   configure: error: No suitable version of libreadline found
-> 
-> It appears that you're depending on distro-specific enhancements to
-> readline, specifically that Fedora explicitly links libtinfo, Arch
-> explicitly links ncurses, etcetera, while according to upstream
-> readline, this should not occur -- from INSTALL file in readline:
-> 
-> The readline `configure' recognizes a single `--with-PACKAGE' option:
-> 
-> `--with-curses'
->     This tells readline that it can find the termcap library functions
->     (tgetent, et al.) in the curses library, rather than a separate
->     termcap library.  Readline uses the termcap functions, but does not
->     link with the termcap or curses library itself, allowing applications
->     which link with readline the to choose an appropriate library.
->     This option tells readline to link the example programs with the
->     curses library rather than libtermcap.
-> 
-> I think this will be useful:
-> https://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
+Static linking should be possible, by way of libnftnl.la, which contains:
 
-Thanks for the detailed report.
+# Libraries that this one depends upon.
+dependency_libs=' -lmnl'
 
-Would you send us a patch that you can test in your fedora setup? I
-would appreciate it. Thanks.
+However, nftables is not using automake+libtool, so it gets ignored.
