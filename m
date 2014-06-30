@@ -1,41 +1,121 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Aw: Re: libnftnl.pc lacks dependency from libmnl
-Date: Mon, 30 Jun 2014 13:27:14 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1406301323020.9261@nerf08.vanv.qr>
-References: <2044885271.472926.1404124882557.JavaMail.ngmail@webmail13.arcor-online.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: giorgio.nicole@arcor.de
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnl PATCH v2 1/4] src: chain: Add all support of use attribute
+Date: Mon, 30 Jun 2014 13:50:05 +0200
+Message-ID: <1404129008-29564-2-git-send-email-anarey@gmail.com>
+References: <1404129008-29564-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:57097 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750882AbaF3L1P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2014 07:27:15 -0400
-In-Reply-To: <2044885271.472926.1404124882557.JavaMail.ngmail@webmail13.arcor-online.net>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:41254 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbaF3Lu0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Jun 2014 07:50:26 -0400
+Received: by mail-we0-f171.google.com with SMTP id q58so7993219wes.16
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jun 2014 04:50:24 -0700 (PDT)
+In-Reply-To: <1404129008-29564-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Add set, unset, get, parse and build payload implementation for use value.
 
-On Monday 2014-06-30 12:41, giorgio.nicole@arcor.de wrote:
->
->(cross) compiling an autotooled version of the 'nftables' package that finds the 'libnftnl'
->library using the pkg-config macro 'PKG_CHECK_MODULES()' I get the following
->errors:
->
->arm-imx6-linux-gnueabihf-gcc -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wdeclaration-after-statement -Wsign-compare -Winit-self -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute -Wcast-align -Wundef -Wbad-function-cast -Waggregate-return -Wunused -Wwrite-strings -I/opt/projects/pkg_root/include  -I/opt/projects/pkg_root/include  -I/opt/projects/pkg_root/include/ncurses  -O2 -march=armv7-a -mtune=cortex-a9 -mcpu=cortex-a9 -mfpu=neon -mvectorize-with-neon-quad -mfloat-abi=hard  -L/opt/projects/pkg_root/lib -o nft nft-main.o nft-cli.o nft-rule.o nft-statement.o nft-datatype.o nft-expression.o nft-evaluate.o nft-proto.o nft-payload.o nft-exthdr.o nft-meta.o nft-ct.o nft-netlink.o nft-netlink_linearize.o nft-netlink_delinearize.o 
- nft-segtree.o nft-rbtree.o nft-gmputil.o nft-utils.o nft-erec.o nft-mnl.o nft-scanner.o nft-yacc_parser.o -L/opt/projects/pkg_root/lib -lmnl -lnftnl -lreadline -lncurses -lgmp 
->/opt/projects/pkg_root/lib/libnftnl.a(table.o): In function `nft_table_parse_attr_cb':
->(.text+0xc): undefined reference to `mnl_attr_get_type'
->/opt/projects/pkg_root/lib/libnftnl.a(table.o): In function `nft_table_parse_attr_cb':
->(.text+0x1c): undefined reference to `mnl_attr_type_valid'
->...
->
->Maybe it is a problem only when doing a static link (I do a static link here).
+These changes are neeeded for a correct import/export of xml/json file
 
-Static linking should be possible, by way of libnftnl.la, which contains:
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+[Changes in v2:]
 
-# Libraries that this one depends upon.
-dependency_libs=' -lmnl'
+I add a xml support for 'use' attribute that I did not add in v1
 
-However, nftables is not using automake+libtool, so it gets ignored.
+Moreover, I improve the subject and description of this patch
+
+ src/chain.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/src/chain.c b/src/chain.c
+index 9e9f207..ea7bc56 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -115,8 +115,7 @@ void nft_chain_attr_unset(struct nft_chain *c, uint16_t attr)
+ 		}
+ 		break;
+ 	case NFT_CHAIN_ATTR_USE:
+-		/* cannot be unset?, ignore it */
+-		return;
++		break;
+ 	case NFT_CHAIN_ATTR_TYPE:
+ 		if (c->type) {
+ 			xfree(c->type);
+@@ -178,8 +177,8 @@ void nft_chain_attr_set_data(struct nft_chain *c, uint16_t attr,
+ 		c->policy = *((uint32_t *)data);
+ 		break;
+ 	case NFT_CHAIN_ATTR_USE:
+-		/* cannot be set, ignore it */
+-		return;
++		c->use = *((uint32_t *)data);
++		break;
+ 	case NFT_CHAIN_ATTR_BYTES:
+ 		c->bytes = *((uint64_t *)data);
+ 		break;
+@@ -356,6 +355,8 @@ void nft_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nft_chain
+ 	}
+ 	if (c->flags & (1 << NFT_CHAIN_ATTR_POLICY))
+ 		mnl_attr_put_u32(nlh, NFTA_CHAIN_POLICY, htonl(c->policy));
++	if (c->flags & (1 << NFT_CHAIN_ATTR_USE))
++		mnl_attr_put_u32(nlh, NFTA_CHAIN_USE, htonl(c->use));
+ 	if ((c->flags & (1 << NFT_CHAIN_ATTR_PACKETS)) &&
+ 	    (c->flags & (1 << NFT_CHAIN_ATTR_BYTES))) {
+ 		struct nlattr *nest;
+@@ -566,7 +567,7 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
+ 	json_t *root;
+ 	uint64_t uval64;
+ 	int policy;
+-	int32_t val32;
++	int32_t val32, use;
+ 	const char *valstr;
+ 
+ 	root = nft_jansson_get_node(tree, "chain", err);
+@@ -609,6 +610,9 @@ int nft_jansson_parse_chain(struct nft_chain *c, json_t *tree,
+ 
+ 	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, valstr);
+ 
++	if (nft_jansson_parse_val(root, "use", NFT_TYPE_U32, &use, err) == 0)
++		nft_chain_attr_set_u32(c, NFT_CHAIN_ATTR_USE, use);
++
+ 	if (nft_jansson_node_exist(root, "hooknum")) {
+ 		valstr = nft_jansson_parse_str(root, "type", err);
+ 
+@@ -681,7 +685,7 @@ int nft_mxml_chain_parse(mxml_node_t *tree, struct nft_chain *c,
+ {
+ 	const char *table, *name, *hooknum_str, *policy_str, *type;
+ 	int family, hooknum, policy;
+-	uint64_t handle, bytes, packets, prio;
++	uint64_t handle, bytes, packets, prio, use;
+ 
+ 	name = nft_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
+ 				  NFT_XML_MAND, err);
+@@ -711,6 +715,10 @@ int nft_mxml_chain_parse(mxml_node_t *tree, struct nft_chain *c,
+ 		return -1;
+ 	nft_chain_attr_set_str(c, NFT_CHAIN_ATTR_TABLE, table);
+ 
++	if (nft_mxml_num_parse(tree, "use", MXML_DESCEND_FIRST, BASE_DEC,
++			       &use, NFT_TYPE_U64, NFT_XML_MAND, err) == 0)
++		nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_PACKETS, use);
++
+ 	family = nft_mxml_family_parse(tree, "family", MXML_DESCEND_FIRST,
+ 				       NFT_XML_MAND, err);
+ 	if (family < 0)
+@@ -860,6 +868,10 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
+ 		       c->name, c->handle, c->bytes, c->packets, c->table);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	if (c->flags & (1 << NFT_CHAIN_ATTR_USE)) {
++		ret = snprintf(buf + offset, len, "<use>%u</use>", c->use);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
+ 	if (c->flags & (1 << NFT_CHAIN_ATTR_HOOKNUM)) {
+ 		ret =  snprintf(buf+offset, len,
+ 				"<type>%s</type>"
+-- 
+2.0.0
+
