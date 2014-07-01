@@ -1,250 +1,72 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [linux PATCH v3 5/5] netfilter: nft_nat: add masquerade support
-Date: Tue, 01 Jul 2014 18:33:06 +0200
-Message-ID: <20140701163241.2847.36080.stgit@nfdev.cica.es>
-References: <20140701162801.2847.14389.stgit@nfdev.cica.es>
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+Subject: Re: Parser stable fix question for CFG80211_INTERNAL_REGDB
+Date: Tue, 1 Jul 2014 19:17:13 +0200
+Message-ID: <20140701171713.GO27687@wotan.suse.de>
+References: <CAB=NE6WfTXiScyXHReEWcpQ9EKpu1YCVQypa-B5BBO6aYXh3fA@mail.gmail.com> <CAB=NE6VTN==Ewvf4HhTcadWLzjZnYkF1xSM1Yej6QfotWHKY0A@mail.gmail.com> <20140701144149.GB6358@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48393 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758139AbaGAQdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Jul 2014 12:33:16 -0400
-In-Reply-To: <20140701162801.2847.14389.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>,
+	Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>,
+	Felix Fietkau <nbd-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, John Walker <john-40Xsf+s1Dzo@public.gmane.org>,
+	Krishna Chaitanya <chaitanya.mgit-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Richard Fontana <fontana-7LmRToLsLASJEOdND1YtKA@public.gmane.org>
+To: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140701144149.GB6358-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds masquerade support to nft_nat.
+On Tue, Jul 01, 2014 at 10:41:49AM -0400, John W. Linville wrote:
+> On Mon, Jun 30, 2014 at 12:19:08PM -0700, Luis R. Rodriguez wrote:
+> > On Mon, Jun 30, 2014 at 11:55 AM, Luis R. Rodriguez
+> > <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
+> > > For the current kernel we
+> > > could intake the patch below, and I can port the change to no use
+> > > dfs_cac, that would enable older kernels to use new and older versions
+> > > of the ASCII database file.
+> > 
+> > Personally I actually rather avoid us accept a patch upstream for a
+> > userspace change. The problem here is that we failed to realize the
+> > impact of CFG80211_INTERNAL_REGDB at build time with a userspace tool,
+> > in this case the db.txt file wireless-regdb provides and its format.
+> > 
+> > If we wanted to avoid a stable patch we could require a match between
+> > wireless-regdb input file used for a kernel when
+> > CFG80211_INTERNAL_REGDB is used at build time. That would require
+> > different ASCII files on wireless-regdb or having the users of
+> > CFG80211_INTERNAL_REGDB do the conversion themselves. Upstream would
+> > just follow the wireless-regdb latest format. This then would just
+> > require upstream a Kconfig update to clarify the requirements.
+> > 
+> > This seems like a rather lazy option but also one that would be rather
+> > more fair and honest for upstream, we could deal with a proper fix by
+> > reconsidering the implementation of CFG80211_INTERNAL_REGDB completely
+> > for future kernels.
+> 
+> I'm shocked that anyone actually uses CFG80211_INTERNAL_REGDB...
 
-Note that enum nf_nat_manip_type is replaced by enum nft_nat_types in order
-to support masquerade.
+I believe all mobile and APs use it these days.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: fix missing htonl() conversion for NFTA_NAT_TYPE in _ipv6_dump().
-v3: no changes.
+> Anyway, I don't see the big deal.  We should keep
+> CFG80211_INTERNAL_REGDB (whether implemented in awk or C) up-to-date
+> with current kernels.  Anyone wanting to use an old kernel with an
+> updated wireless-regdb file is responsible for ensuring compatibility.
+> If they can't do that, then they should seek support from a vendor.
 
- include/net/netfilter/nft_nat.h          |    2 +-
- include/uapi/linux/netfilter/nf_tables.h |    8 ++++--
- net/ipv4/netfilter/nft_nat_ipv4.c        |   40 ++++++++++++++++++++++++++++--
- net/ipv6/netfilter/nft_nat_ipv6.c        |   39 +++++++++++++++++++++++++++--
- net/netfilter/nft_nat.c                  |   20 ++++-----------
- 5 files changed, 84 insertions(+), 25 deletions(-)
+Fine by me... I'll update the Kconfig.
 
-diff --git a/include/net/netfilter/nft_nat.h b/include/net/netfilter/nft_nat.h
-index 0ac1546..f5e108c 100644
---- a/include/net/netfilter/nft_nat.h
-+++ b/include/net/netfilter/nft_nat.h
-@@ -6,7 +6,7 @@ struct nft_nat {
- 	enum nft_registers      sreg_addr_max:8;
- 	enum nft_registers      sreg_proto_min:8;
- 	enum nft_registers      sreg_proto_max:8;
--	enum nf_nat_manip_type  type:8;
-+	enum nft_nat_types	type:8;
- 	u8			family;
- 	u16			flags;
- };
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 92c211b..ce75cb7 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -754,14 +754,16 @@ enum nft_reject_attributes {
- #define NFTA_REJECT_MAX		(__NFTA_REJECT_MAX - 1)
- 
- /**
-- * enum nft_nat_types - nf_tables nat expression NAT types
-+ * enum nft_nat_types - nf_tables nat expression NAT types.
-  *
-  * @NFT_NAT_SNAT: source NAT
-  * @NFT_NAT_DNAT: destination NAT
-+ * @NFT_NAT_MASQUERADE: masquerade NAT
-  */
- enum nft_nat_types {
--	NFT_NAT_SNAT,
--	NFT_NAT_DNAT,
-+	NFT_NAT_SNAT,		/* NF_NAT_MANIP_SRC */
-+	NFT_NAT_DNAT,		/* NF_NAT_MANIP_DST */
-+	NFT_NAT_MASQUERADE,
- };
- 
- /**
-diff --git a/net/ipv4/netfilter/nft_nat_ipv4.c b/net/ipv4/netfilter/nft_nat_ipv4.c
-index eea3cd9..d246eb3 100644
---- a/net/ipv4/netfilter/nft_nat_ipv4.c
-+++ b/net/ipv4/netfilter/nft_nat_ipv4.c
-@@ -37,6 +37,7 @@ static void nft_nat_ipv4_eval(const struct nft_expr *expr,
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(pkt->skb, &ctinfo);
- 	struct nf_nat_range range;
-+	unsigned int verdict;
- 
- 	memset(&range, 0, sizeof(range));
- 	if (priv->sreg_addr_min) {
-@@ -59,8 +60,40 @@ static void nft_nat_ipv4_eval(const struct nft_expr *expr,
- 
- 	range.flags |= priv->flags;
- 
--	data[NFT_REG_VERDICT].verdict =
--				nf_nat_setup_info(ct, &range, priv->type);
-+	if (priv->type == NFT_NAT_MASQUERADE) {
-+		verdict = nf_nat_masquerade_ipv4(pkt->skb, pkt->ops->hooknum,
-+						 &range, pkt->out);
-+	} else {
-+		verdict = nf_nat_setup_info(ct, &range, priv->type);
-+	}
-+
-+	data[NFT_REG_VERDICT].verdict = verdict;
-+}
-+
-+static int nft_nat_ipv4_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
-+{
-+	int ret;
-+	struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	ret = nft_nat_init(ctx, expr, tb);
-+	if (ret < 0)
-+		goto out;
-+
-+	if (priv->type == NFT_NAT_MASQUERADE)
-+		nf_nat_masquerade_ipv4_register_notifier();
-+out:
-+	return ret;
-+}
-+
-+static void nft_nat_ipv4_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
-+{
-+	struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	if (priv->type == NFT_NAT_MASQUERADE)
-+		nf_nat_masquerade_ipv4_unregister_notifier();
- }
- 
- static struct nft_expr_type nft_nat_ipv4_type;
-@@ -68,7 +101,8 @@ static const struct nft_expr_ops nft_nat_ipv4_ops = {
- 	.type           = &nft_nat_ipv4_type,
- 	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
- 	.eval           = nft_nat_ipv4_eval,
--	.init           = nft_nat_init,
-+	.init           = nft_nat_ipv4_init,
-+	.destroy	= nft_nat_ipv4_destroy,
- 	.dump           = nft_nat_dump,
- };
- 
-diff --git a/net/ipv6/netfilter/nft_nat_ipv6.c b/net/ipv6/netfilter/nft_nat_ipv6.c
-index bf1498a..0e4f277 100644
---- a/net/ipv6/netfilter/nft_nat_ipv6.c
-+++ b/net/ipv6/netfilter/nft_nat_ipv6.c
-@@ -27,6 +27,7 @@
- #include <net/netfilter/nf_nat_l3proto.h>
- #include <net/ip.h>
- #include <net/netfilter/nft_nat.h>
-+#include <net/netfilter/ipv6/nf_nat_masquerade_ipv6.h>
- 
- static void nft_nat_ipv6_eval(const struct nft_expr *expr,
- 			      struct nft_data data[NFT_REG_MAX + 1],
-@@ -36,6 +37,7 @@ static void nft_nat_ipv6_eval(const struct nft_expr *expr,
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(pkt->skb, &ctinfo);
- 	struct nf_nat_range range;
-+	unsigned int verdict;
- 
- 	memset(&range, 0, sizeof(range));
- 	if (priv->sreg_addr_min) {
-@@ -59,8 +61,38 @@ static void nft_nat_ipv6_eval(const struct nft_expr *expr,
- 
- 	range.flags |= priv->flags;
- 
--	data[NFT_REG_VERDICT].verdict =
--				nf_nat_setup_info(ct, &range, priv->type);
-+	if (priv->type == NFT_NAT_MASQUERADE)
-+		verdict = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
-+	else
-+		verdict = nf_nat_setup_info(ct, &range, priv->type);
-+
-+	data[NFT_REG_VERDICT].verdict = verdict;
-+}
-+
-+static int nft_nat_ipv6_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
-+{
-+	int ret;
-+	struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	ret = nft_nat_init(ctx, expr, tb);
-+	if (ret < 0)
-+		goto out;
-+
-+	if (priv->type == NFT_NAT_MASQUERADE)
-+		nf_nat_masquerade_ipv6_register_notifier();
-+out:
-+	return ret;
-+}
-+
-+static void nft_nat_ipv6_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
-+{
-+	struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	if (priv->type == NFT_NAT_MASQUERADE)
-+		nf_nat_masquerade_ipv6_unregister_notifier();
- }
- 
- static struct nft_expr_type nft_nat_ipv6_type;
-@@ -68,7 +100,8 @@ static const struct nft_expr_ops nft_nat_ipv6_ops = {
- 	.type           = &nft_nat_ipv6_type,
- 	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
- 	.eval           = nft_nat_ipv6_eval,
--	.init           = nft_nat_init,
-+	.init           = nft_nat_ipv6_init,
-+	.destroy	= nft_nat_ipv6_destroy,
- 	.dump           = nft_nat_dump,
- };
- 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index ec9c283..d603acb 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -49,12 +49,11 @@ int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (tb[NFTA_NAT_TYPE] == NULL)
- 		return -EINVAL;
- 
--	switch (ntohl(nla_get_be32(tb[NFTA_NAT_TYPE]))) {
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_NAT_TYPE]));
-+	switch (priv->type) {
- 	case NFT_NAT_SNAT:
--		priv->type = NF_NAT_MANIP_SRC;
--		break;
- 	case NFT_NAT_DNAT:
--		priv->type = NF_NAT_MANIP_DST;
-+	case NFT_NAT_MASQUERADE:
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -122,17 +121,8 @@ int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_nat *priv = nft_expr_priv(expr);
- 
--	switch (priv->type) {
--	case NF_NAT_MANIP_SRC:
--		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_SNAT)))
--			goto nla_put_failure;
--		break;
--	case NF_NAT_MANIP_DST:
--		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_DNAT)))
--			goto nla_put_failure;
--		break;
--	}
--
-+	if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(priv->type)))
-+		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_NAT_FAMILY, htonl(priv->family)))
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb,
+> How is this any different from any other kernel support issue?
 
+This is a build issue that does not cause any errors, users go through with the install
+just fine and only at run time do they discover the issue. We never documented
+the expecations nor do I think we expected this before. This is also caused by an
+input file from userspace, I do consider the issue unexpected.
+ 
+  Luis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
