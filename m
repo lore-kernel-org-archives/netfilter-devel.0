@@ -1,7 +1,8 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [linux PATCH v3 1/5] netfilter: nft_nat: include a flag attribute
-Date: Tue, 01 Jul 2014 18:30:29 +0200
-Message-ID: <20140701162919.2847.1973.stgit@nfdev.cica.es>
+Subject: [linux PATCH v3 2/5] netfilter: nf_nat_masquerade_ipv4: code
+ factorization
+Date: Tue, 01 Jul 2014 18:30:54 +0200
+Message-ID: <20140701163034.2847.53931.stgit@nfdev.cica.es>
 References: <20140701162801.2847.14389.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,130 +10,395 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:52417 "EHLO smtp.cica.es"
+Received: from smtp4.cica.es ([150.214.5.182]:47912 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756491AbaGAQah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Jul 2014 12:30:37 -0400
+	id S1758139AbaGAQbE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Jul 2014 12:31:04 -0400
 In-Reply-To: <20140701162801.2847.14389.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Both SNAT and DNAT (and the upcoming masquerade) can have additional
-configuration parameters, such as port randomization or NAT addressing
-persistence.
-We can cover these scenarios by simply adding a flag attribute for
-userspace to fill when needed.
+Let's refactor the code so we can reach the masquerade functionality from
+outside the xt context (ie, nftables).
 
-The flags to use are defined in include/uapi/linux/netfilter/nf_nat.h,
- NF_NAT_RANGE_MAP_IPS
- NF_NAT_RANGE_PROTO_SPECIFIED
- NF_NAT_RANGE_PROTO_RANDOM
- NF_NAT_RANGE_PERSISTENT
- NF_NAT_RANGE_PROTO_RANDOM_FULLY
- NF_NAT_RANGE_PROTO_RANDOM_ALL
+The patch includes adding an atomic counter to the masquerade notifier: the
+stuff to be done by the notifier is the same in any case, and agnostic
+about who called it. Only one notification handler is needed.
 
-The caller must take care of not messing up with the flags, as they are
-added unconditionally to the final resulting nf_nat_range.
+This factorization only involves IPv4; a similar patch will follow to handle
+IPv6.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-v2: address Florian Westphal's comments: check all flag bits to be known.
-v3: style cleanup requested by Pablo Neira. Mask name shortened.
+v2: no changes.
+v3: no changes.
 
- include/uapi/linux/netfilter/nf_nat.h    |    5 +++++
- include/uapi/linux/netfilter/nf_tables.h |    2 ++
- net/netfilter/nft_nat.c                  |   16 ++++++++++++++++
- 3 files changed, 23 insertions(+)
+ .../net/netfilter/ipv4/nf_nat_masquerade_ipv4.h    |   14 ++
+ net/ipv4/netfilter/Kconfig                         |    7 +
+ net/ipv4/netfilter/Makefile                        |    1 
+ net/ipv4/netfilter/ipt_MASQUERADE.c                |  108 +-------------
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c        |  155 ++++++++++++++++++++
+ 5 files changed, 186 insertions(+), 99 deletions(-)
+ create mode 100644 include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h
+ create mode 100644 net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
 
-diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
-index 1ad3659..898db2d 100644
---- a/include/uapi/linux/netfilter/nf_nat.h
-+++ b/include/uapi/linux/netfilter/nf_nat.h
-@@ -13,6 +13,11 @@
- #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
- 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
- 
-+#define NF_NAT_RANGE_MASK					\
-+	(NF_NAT_RANGE_MAP_IPS|NF_NAT_RANGE_PROTO_SPECIFIED	\
-+	 |NF_NAT_RANGE_PROTO_RANDOM|NF_NAT_RANGE_PERSISTENT	\
-+	 |NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+diff --git a/include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h b/include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h
+new file mode 100644
+index 0000000..a9c001c
+--- /dev/null
++++ b/include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h
+@@ -0,0 +1,14 @@
++#ifndef _NF_NAT_MASQUERADE_IPV4_H_
++#define _NF_NAT_MASQUERADE_IPV4_H_
 +
- struct nf_nat_ipv4_range {
- 	unsigned int			flags;
- 	__be32				min_ip;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 2a88f64..92c211b 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -773,6 +773,7 @@ enum nft_nat_types {
-  * @NFTA_NAT_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
-  * @NFTA_NAT_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
-  * @NFTA_NAT_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
-+ * @NFTA_NAT_FLAGS: additional NAT configuration (NF_NAT_RANGE_*) (NLA_U32)
-  */
- enum nft_nat_attributes {
- 	NFTA_NAT_UNSPEC,
-@@ -782,6 +783,7 @@ enum nft_nat_attributes {
- 	NFTA_NAT_REG_ADDR_MAX,
- 	NFTA_NAT_REG_PROTO_MIN,
- 	NFTA_NAT_REG_PROTO_MAX,
-+	NFTA_NAT_FLAGS,
- 	__NFTA_NAT_MAX
- };
- #define NFTA_NAT_MAX		(__NFTA_NAT_MAX - 1)
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 79ff58c..799550b 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -33,6 +33,7 @@ struct nft_nat {
- 	enum nft_registers      sreg_proto_max:8;
- 	enum nf_nat_manip_type  type:8;
- 	u8			family;
-+	u16			flags;
- };
- 
- static void nft_nat_eval(const struct nft_expr *expr,
-@@ -71,6 +72,8 @@ static void nft_nat_eval(const struct nft_expr *expr,
- 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
-+	range.flags |= priv->flags;
++#include <net/netfilter/nf_nat.h>
 +
- 	data[NFT_REG_VERDICT].verdict =
- 		nf_nat_setup_info(ct, &range, priv->type);
++unsigned int
++nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
++		       const struct nf_nat_range *range,
++		       const struct net_device *out);
++
++void nf_nat_masquerade_ipv4_register_notifier(void);
++void nf_nat_masquerade_ipv4_unregister_notifier(void);
++
++#endif /*_NF_NAT_MASQUERADE_IPV4_H_ */
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index a26ce03..f2d2202 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -193,8 +193,15 @@ config NF_NAT_IPV4
+ 
+ if NF_NAT_IPV4
+ 
++config NF_NAT_MASQUERADE_IPV4
++	tristate "IPv4 masquerade support"
++	help
++	This is the kernel functionality to provide NAT in the masquerade
++	flavour (automatic source address selection).
++
+ config IP_NF_TARGET_MASQUERADE
+ 	tristate "MASQUERADE target support"
++	select NF_NAT_MASQUERADE_IPV4
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Masquerading is a special case of NAT: all outgoing connections are
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 90b8240..a7bfa0a 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
+ obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
+ obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
+ obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
++obj-$(CONFIG_NF_NAT_MASQUERADE_IPV4) += nf_nat_masquerade_ipv4.o
+ 
+ # NAT protocols (nf_nat)
+ obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
+diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+index 00352ce..78bb32e 100644
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
+@@ -22,6 +22,7 @@
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <net/netfilter/nf_nat.h>
++#include <net/netfilter/ipv4/nf_nat_masquerade_ipv4.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+@@ -46,103 +47,17 @@ static int masquerade_tg_check(const struct xt_tgchk_param *par)
+ static unsigned int
+ masquerade_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	struct nf_conn *ct;
+-	struct nf_conn_nat *nat;
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_nat_range newrange;
++	struct nf_nat_range range;
+ 	const struct nf_nat_ipv4_multi_range_compat *mr;
+-	const struct rtable *rt;
+-	__be32 newsrc, nh;
+-
+-	NF_CT_ASSERT(par->hooknum == NF_INET_POST_ROUTING);
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	nat = nfct_nat(ct);
+-
+-	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
+-			    ctinfo == IP_CT_RELATED_REPLY));
+-
+-	/* Source address is 0.0.0.0 - locally generated packet that is
+-	 * probably not supposed to be masqueraded.
+-	 */
+-	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip == 0)
+-		return NF_ACCEPT;
+ 
+ 	mr = par->targinfo;
+-	rt = skb_rtable(skb);
+-	nh = rt_nexthop(rt, ip_hdr(skb)->daddr);
+-	newsrc = inet_select_addr(par->out, nh, RT_SCOPE_UNIVERSE);
+-	if (!newsrc) {
+-		pr_info("%s ate my IP address\n", par->out->name);
+-		return NF_DROP;
+-	}
+-
+-	nat->masq_index = par->out->ifindex;
+-
+-	/* Transfer from original range. */
+-	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
+-	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
+-	newrange.flags       = mr->range[0].flags | NF_NAT_RANGE_MAP_IPS;
+-	newrange.min_addr.ip = newsrc;
+-	newrange.max_addr.ip = newsrc;
+-	newrange.min_proto   = mr->range[0].min;
+-	newrange.max_proto   = mr->range[0].max;
++	range.flags = mr->range[0].flags;
++	range.min_proto = mr->range[0].min;
++	range.max_proto = mr->range[0].max;
+ 
+-	/* Hand modified range to generic setup. */
+-	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC);
++	return nf_nat_masquerade_ipv4(skb, par->hooknum, &range, par->out);
  }
-@@ -82,6 +85,7 @@ static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
- 	[NFTA_NAT_REG_ADDR_MAX]	 = { .type = NLA_U32 },
- 	[NFTA_NAT_REG_PROTO_MIN] = { .type = NLA_U32 },
- 	[NFTA_NAT_REG_PROTO_MAX] = { .type = NLA_U32 },
-+	[NFTA_NAT_FLAGS]	 = { .type = NLA_U32 },
- };
  
- static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
-@@ -149,6 +153,12 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	} else
- 		priv->sreg_proto_max = priv->sreg_proto_min;
+-static int
+-device_cmp(struct nf_conn *i, void *ifindex)
+-{
+-	const struct nf_conn_nat *nat = nfct_nat(i);
+-
+-	if (!nat)
+-		return 0;
+-	if (nf_ct_l3num(i) != NFPROTO_IPV4)
+-		return 0;
+-	return nat->masq_index == (int)(long)ifindex;
+-}
+-
+-static int masq_device_event(struct notifier_block *this,
+-			     unsigned long event,
+-			     void *ptr)
+-{
+-	const struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+-	struct net *net = dev_net(dev);
+-
+-	if (event == NETDEV_DOWN) {
+-		/* Device was downed.  Search entire table for
+-		   conntracks which were associated with that device,
+-		   and forget them. */
+-		NF_CT_ASSERT(dev->ifindex != 0);
+-
+-		nf_ct_iterate_cleanup(net, device_cmp,
+-				      (void *)(long)dev->ifindex, 0, 0);
+-	}
+-
+-	return NOTIFY_DONE;
+-}
+-
+-static int masq_inet_event(struct notifier_block *this,
+-			   unsigned long event,
+-			   void *ptr)
+-{
+-	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
+-	struct netdev_notifier_info info;
+-
+-	netdev_notifier_info_init(&info, dev);
+-	return masq_device_event(this, event, &info);
+-}
+-
+-static struct notifier_block masq_dev_notifier = {
+-	.notifier_call	= masq_device_event,
+-};
+-
+-static struct notifier_block masq_inet_notifier = {
+-	.notifier_call	= masq_inet_event,
+-};
+-
+ static struct xt_target masquerade_tg_reg __read_mostly = {
+ 	.name		= "MASQUERADE",
+ 	.family		= NFPROTO_IPV4,
+@@ -160,12 +75,8 @@ static int __init masquerade_tg_init(void)
  
-+	if (tb[NFTA_NAT_FLAGS]) {
-+		priv->flags = ntohl(nla_get_be32(tb[NFTA_NAT_FLAGS]));
-+		if (priv->flags & ~NF_NAT_RANGE_MASK)
-+			return -EINVAL;
+ 	ret = xt_register_target(&masquerade_tg_reg);
+ 
+-	if (ret == 0) {
+-		/* Register for device down reports */
+-		register_netdevice_notifier(&masq_dev_notifier);
+-		/* Register IP address change reports */
+-		register_inetaddr_notifier(&masq_inet_notifier);
+-	}
++	if (ret == 0)
++		nf_nat_masquerade_ipv4_register_notifier();
+ 
+ 	return ret;
+ }
+@@ -173,8 +84,7 @@ static int __init masquerade_tg_init(void)
+ static void __exit masquerade_tg_exit(void)
+ {
+ 	xt_unregister_target(&masquerade_tg_reg);
+-	unregister_netdevice_notifier(&masq_dev_notifier);
+-	unregister_inetaddr_notifier(&masq_inet_notifier);
++	nf_nat_masquerade_ipv4_unregister_notifier();
+ }
+ 
+ module_init(masquerade_tg_init);
+diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+new file mode 100644
+index 0000000..38f8ac1
+--- /dev/null
++++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+@@ -0,0 +1,155 @@
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
++ * (C) 2014 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.om>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/module.h>
++#include <linux/atomic.h>
++#include <linux/inetdevice.h>
++#include <linux/ip.h>
++#include <linux/timer.h>
++#include <linux/netfilter.h>
++#include <net/protocol.h>
++#include <net/ip.h>
++#include <net/checksum.h>
++#include <net/route.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter/x_tables.h>
++#include <net/netfilter/nf_nat.h>
++#include <net/netfilter/ipv4/nf_nat_masquerade_ipv4.h>
++
++unsigned int
++nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
++		       const struct nf_nat_range *range,
++		       const struct net_device *out)
++{
++	struct nf_conn *ct;
++	struct nf_conn_nat *nat;
++	enum ip_conntrack_info ctinfo;
++	struct nf_nat_range newrange;
++	const struct rtable *rt;
++	__be32 newsrc, nh;
++
++	NF_CT_ASSERT(hooknum == NF_INET_POST_ROUTING);
++
++	ct = nf_ct_get(skb, &ctinfo);
++	nat = nfct_nat(ct);
++
++	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
++			    ctinfo == IP_CT_RELATED_REPLY));
++
++	/* Source address is 0.0.0.0 - locally generated packet that is
++	 * probably not supposed to be masqueraded.
++	 */
++	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip == 0)
++		return NF_ACCEPT;
++
++	rt = skb_rtable(skb);
++	nh = rt_nexthop(rt, ip_hdr(skb)->daddr);
++	newsrc = inet_select_addr(out, nh, RT_SCOPE_UNIVERSE);
++	if (!newsrc) {
++		pr_info("%s ate my IP address\n", out->name);
++		return NF_DROP;
 +	}
 +
- 	return 0;
- }
- 
-@@ -183,6 +193,12 @@ static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 				 htonl(priv->sreg_proto_max)))
- 			goto nla_put_failure;
- 	}
++	nat->masq_index = out->ifindex;
 +
-+	if (priv->flags != 0) {
-+		if (nla_put_be32(skb, NFTA_NAT_FLAGS, htonl(priv->flags)))
-+			goto nla_put_failure;
++	/* Transfer from original range. */
++	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
++	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
++	newrange.flags       = range->flags | NF_NAT_RANGE_MAP_IPS;
++	newrange.min_addr.ip = newsrc;
++	newrange.max_addr.ip = newsrc;
++	newrange.min_proto   = range->min_proto;
++	newrange.max_proto   = range->max_proto;
++
++	/* Hand modified range to generic setup. */
++	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC);
++}
++EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4);
++
++static int
++device_cmp(struct nf_conn *i, void *ifindex)
++{
++	const struct nf_conn_nat *nat = nfct_nat(i);
++
++	if (!nat)
++		return 0;
++	if (nf_ct_l3num(i) != NFPROTO_IPV4)
++		return 0;
++	return nat->masq_index == (int)(long)ifindex;
++}
++
++static int masq_device_event(struct notifier_block *this,
++			     unsigned long event,
++			     void *ptr)
++{
++	const struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct net *net = dev_net(dev);
++
++	if (event == NETDEV_DOWN) {
++		/* Device was downed.  Search entire table for
++		 * conntracks which were associated with that device,
++		 * and forget them.
++		 */
++		NF_CT_ASSERT(dev->ifindex != 0);
++
++		nf_ct_iterate_cleanup(net, device_cmp,
++				      (void *)(long)dev->ifindex, 0, 0);
 +	}
 +
- 	return 0;
- 
- nla_put_failure:
++	return NOTIFY_DONE;
++}
++
++static int masq_inet_event(struct notifier_block *this,
++			   unsigned long event,
++			   void *ptr)
++{
++	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
++	struct netdev_notifier_info info;
++
++	netdev_notifier_info_init(&info, dev);
++	return masq_device_event(this, event, &info);
++}
++
++static struct notifier_block masq_dev_notifier = {
++	.notifier_call	= masq_device_event,
++};
++
++static struct notifier_block masq_inet_notifier = {
++	.notifier_call	= masq_inet_event,
++};
++
++static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
++
++void nf_nat_masquerade_ipv4_register_notifier(void)
++{
++	/* check if the notifier was already set */
++	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
++		return;
++
++	/* Register for device down reports */
++	register_netdevice_notifier(&masq_dev_notifier);
++	/* Register IP address change reports */
++	register_inetaddr_notifier(&masq_inet_notifier);
++}
++EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_register_notifier);
++
++void nf_nat_masquerade_ipv4_unregister_notifier(void)
++{
++	/* check if the notifier still has clients */
++	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
++		return;
++
++	unregister_netdevice_notifier(&masq_dev_notifier);
++	unregister_inetaddr_notifier(&masq_inet_notifier);
++}
++EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_unregister_notifier);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
 
