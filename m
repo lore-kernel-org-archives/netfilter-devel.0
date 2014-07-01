@@ -1,36 +1,72 @@
-From: Quentin Headen <qheaden@phaseshiftsoftware.com>
-Subject: Re: Starting point in netfilter development
-Date: Mon, 30 Jun 2014 21:45:30 -0400
-Message-ID: <CAFgy_YJ8wdPm6P2M_bPVXqbHzJ6oQxWT-3DmfQpikqPma=SDAA@mail.gmail.com>
-References: <CAFgy_YLvGwc3y3R3vv0hdTPsQ+yX7eUW8YUppef9xJQsdH9frw@mail.gmail.com>
-	<20140630152245.GC9515@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [linux PATCH v2 0/5] NAT updates for nf_tables
+Date: Tue, 01 Jul 2014 12:45:48 +0200
+Message-ID: <20140701104524.6831.83230.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:55727 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbaGABpc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2014 21:45:32 -0400
-Received: by mail-la0-f49.google.com with SMTP id gf5so5286935lab.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jun 2014 18:45:31 -0700 (PDT)
-In-Reply-To: <20140630152245.GC9515@breakpoint.cc>
+Received: from smtp4.cica.es ([150.214.5.182]:32927 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755996AbaGAKp5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Jul 2014 06:45:57 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Florian Westphal <fw@strlen.de> wrote:
-> nftables is currently under active development; f.e. you could
-> add one of the missing iptables extensions such as hashlimit
-> or nfacct.
+The following series implements some updates for NAT in nf_tables.
 
-Working on hashlimit for nftables sounds interesting.
+First of all, I add a new flag attribute to allow clients of nft_nat to
+specify additional config flags. This enables implementing port randomization
+and persistence to be set from nft.
 
-> nf.git and nf-next.git from kernel.org. git.netfilter.org
-> mostly hosts the userspace tools like iptables/nftables
-> and the associated libraries.
+Two patches split the masquerade code from ip[6]t_MASQUERADE.c to generic
+modules, so we can use this NAT type from nft_nat.
 
-So to work on hashlimit functionality for nftables, I'm guessing I
-would need to work with the code found on git.netfilter.org? Would it
-be mostly a userspace coding experience?
+Then, the nft_nat code is splitted in AF specific parts, so we avoid potential
+dependencies regarding AF specific symbols in the last patch.
+
+The last patch finally implements masquerade for nft_nat.
+
+This v2 series includes some fixes and additionals checks, as requested
+by Florian Westphal.
+
+Comments are welcomed.
+---
+
+Arturo Borrero Gonzalez (5):
+      netfilter: nft_nat: include a flag attribute
+      netfilter: nf_nat_masquerade_ipv4: code factorization
+      netfilter: nf_nat_masquerade_ipv6: code factorization
+      netfilter: nft_nat: split code in AF parts
+      netfilter: nft_nat: add masquerade support
+
+
+ .../net/netfilter/ipv4/nf_nat_masquerade_ipv4.h    |   14 ++
+ .../net/netfilter/ipv6/nf_nat_masquerade_ipv6.h    |   10 +
+ include/net/netfilter/nft_nat.h                    |   20 ++
+ include/uapi/linux/netfilter/nf_nat.h              |    5 +
+ include/uapi/linux/netfilter/nf_tables.h           |   10 +
+ net/ipv4/netfilter/Kconfig                         |   14 ++
+ net/ipv4/netfilter/Makefile                        |    2 
+ net/ipv4/netfilter/ipt_MASQUERADE.c                |  108 +------------
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c        |  155 ++++++++++++++++++
+ net/ipv4/netfilter/nft_nat_ipv4.c                  |  165 ++++++++++++++++++++
+ net/ipv6/netfilter/Kconfig                         |   14 ++
+ net/ipv6/netfilter/Makefile                        |    2 
+ net/ipv6/netfilter/ip6t_MASQUERADE.c               |   76 +--------
+ net/ipv6/netfilter/nf_nat_masquerade_ipv6.c        |  121 ++++++++++++++
+ net/ipv6/netfilter/nft_nat_ipv6.c                  |  164 ++++++++++++++++++++
+ net/netfilter/nft_nat.c                            |  168 +++-----------------
+ 16 files changed, 735 insertions(+), 313 deletions(-)
+ create mode 100644 include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h
+ create mode 100644 include/net/netfilter/ipv6/nf_nat_masquerade_ipv6.h
+ create mode 100644 include/net/netfilter/nft_nat.h
+ create mode 100644 net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+ create mode 100644 net/ipv4/netfilter/nft_nat_ipv4.c
+ create mode 100644 net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+ create mode 100644 net/ipv6/netfilter/nft_nat_ipv6.c
+
+-- 
+Arturo Borrero Gonzalez
