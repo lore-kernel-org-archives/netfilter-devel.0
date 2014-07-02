@@ -1,32 +1,32 @@
 From: giorgio.nicole@arcor.de
 Subject: patches for an autotooled version of 'nftables'.
-Date: Wed, 2 Jul 2014 15:56:34 +0200 (CEST)
-Message-ID: <1461739797.649798.1404309394361.JavaMail.ngmail@webmail07.arcor-online.net>
+Date: Wed, 2 Jul 2014 17:37:44 +0200 (CEST)
+Message-ID: <1092838908.652005.1404315464881.JavaMail.ngmail@webmail07.arcor-online.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:49795 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753119AbaGBN4f (ORCPT
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:48038 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125AbaGBPhq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jul 2014 09:56:35 -0400
+	Wed, 2 Jul 2014 11:37:46 -0400
 Received: from mail-in-18-z2.arcor-online.net (mail-in-18-z2.arcor-online.net [151.189.8.35])
-	by mx.arcor.de (Postfix) with ESMTP id 704E83AEC40
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 15:56:34 +0200 (CEST)
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net [151.189.21.42])
-	by mail-in-18-z2.arcor-online.net (Postfix) with ESMTP id 6C20933B03F
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 15:56:34 +0200 (CEST)
+	by mx.arcor.de (Postfix) with ESMTP id DD0381975DE
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net [151.189.21.49])
+	by mail-in-18-z2.arcor-online.net (Postfix) with ESMTP id D88FA33B049
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
 Received: from webmail07.arcor-online.net (webmail07.arcor-online.net [151.189.8.8])
-	by mail-in-02.arcor-online.net (Postfix) with ESMTP id 5D12330349
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 15:56:34 +0200 (CEST)
+	by mail-in-09.arcor-online.net (Postfix) with ESMTP id D47D91975DE
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-attached is a git repo with a couple of commits to add autotools support
+attached is a git repo and a couple of commits patches to add autotools support
 to the 'nftables' project.
 
 I would like to have some feedback on it and eventually see the patches
