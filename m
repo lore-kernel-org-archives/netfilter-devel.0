@@ -1,59 +1,45 @@
-From: giorgio.nicole@arcor.de
-Subject: patches for an autotooled version of 'nftables'.
-Date: Wed, 2 Jul 2014 17:37:44 +0200 (CEST)
-Message-ID: <1092838908.652005.1404315464881.JavaMail.ngmail@webmail07.arcor-online.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Starting point in netfilter development
+Date: Wed, 2 Jul 2014 22:43:23 +0200
+Message-ID: <20140702204323.GA22753@breakpoint.cc>
+References: <CAFgy_YLvGwc3y3R3vv0hdTPsQ+yX7eUW8YUppef9xJQsdH9frw@mail.gmail.com>
+ <20140630152245.GC9515@breakpoint.cc>
+ <CAFgy_YJ8wdPm6P2M_bPVXqbHzJ6oQxWT-3DmfQpikqPma=SDAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Quentin Headen <qheaden@phaseshiftsoftware.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:48038 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753125AbaGBPhq (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45967 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751638AbaGBUnZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jul 2014 11:37:46 -0400
-Received: from mail-in-18-z2.arcor-online.net (mail-in-18-z2.arcor-online.net [151.189.8.35])
-	by mx.arcor.de (Postfix) with ESMTP id DD0381975DE
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
-Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net [151.189.21.49])
-	by mail-in-18-z2.arcor-online.net (Postfix) with ESMTP id D88FA33B049
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
-Received: from webmail07.arcor-online.net (webmail07.arcor-online.net [151.189.8.8])
-	by mail-in-09.arcor-online.net (Postfix) with ESMTP id D47D91975DE
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2014 17:37:44 +0200 (CEST)
+	Wed, 2 Jul 2014 16:43:25 -0400
+Content-Disposition: inline
+In-Reply-To: <CAFgy_YJ8wdPm6P2M_bPVXqbHzJ6oQxWT-3DmfQpikqPma=SDAA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Quentin Headen <qheaden@phaseshiftsoftware.com> wrote:
+>  Florian Westphal <fw@strlen.de> wrote:
+> > nftables is currently under active development; f.e. you could
+> > add one of the missing iptables extensions such as hashlimit
+> > or nfacct.
+> 
+> Working on hashlimit for nftables sounds interesting.
 
-attached is a git repo and a couple of commits patches to add autotools support
-to the 'nftables' project.
+Its not very beginner-friendly though.
+nfacct *might* be a bit simpler.
 
-I would like to have some feedback on it and eventually see the patches
-merged on the main 'nftables' repo.
+Maybe someone else has a better idea.
 
-The patches are based on the version 0.3 of nftable.
+> > nf.git and nf-next.git from kernel.org. git.netfilter.org
+> > mostly hosts the userspace tools like iptables/nftables
+> > and the associated libraries.
+> 
+> So to work on hashlimit functionality for nftables, I'm guessing I
+> would need to work with the code found on git.netfilter.org? Would it
+> be mostly a userspace coding experience?
 
-The whole changes are divided in different commits for the sake of clarity
-and documentation but it's not really possible to build any of the tree states
-in between, only the last 'autotool conversion: ...' state is usable.
-
-One of my tests was to unpack the tar under /tmp, then create a new build
-dir., say /tmp/nft_build, and then create a release distribution from there:
-
-# cd /tmp
-# tar xf /tmp/nftables-0.3_autotooled.tar.xz
-# mkdir nft_build
-# cd nft_build
-# /tmp/nftable-0.3_autotooled/autogen.sh
-# /tmp/nftable-0.3_autotooled/configure
-# make distcheck
-
-The 'distcheck' target tries to configure/build/install the package and if it's all
-right it produces a tar archive with all that's needed for a release.
-
-On the top of the 'autotool conversion: ...' commits there are two more commits that fix
-some gcc warnings and a build failure because of the function 'xfree()'; these commits
-obviously do not belong to the added autotools support.
-
-giorgio
+Yes, most of the functionality should be in userspace, but it
+would need kernel support as well.
