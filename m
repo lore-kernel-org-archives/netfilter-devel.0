@@ -1,83 +1,70 @@
-From: Dan Aloni <dan@kernelim.com>
-Subject: Re: net: pretty odd panic in netfilter
-Date: Wed, 2 Jul 2014 10:20:39 +0300
-Message-ID: <20140702072039.GA15488@gmail.com>
-References: <53B37B61.3020901@oracle.com>
+From: Krishna Chaitanya <chaitanya.mgit@gmail.com>
+Subject: Re: Parser stable fix question for CFG80211_INTERNAL_REGDB
+Date: Wed, 2 Jul 2014 13:03:09 +0530
+Message-ID: <CABPxzYL28zyu5D5iYDZy3wcJ-BMa8RfaFCe88HC5867NhpvPnQ@mail.gmail.com>
+References: <CAB=NE6WfTXiScyXHReEWcpQ9EKpu1YCVQypa-B5BBO6aYXh3fA@mail.gmail.com>
+ <CAB=NE6VTN==Ewvf4HhTcadWLzjZnYkF1xSM1Yej6QfotWHKY0A@mail.gmail.com> <20140701144149.GB6358@tuxdriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
-	"David S. Miller" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Dave Jones <davej@redhat.com>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-To: Sasha Levin <sasha.levin@oracle.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>,
+	linux-wireless <linux-wireless@vger.kernel.org>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Felix Fietkau <nbd@openwrt.org>, John Walker <john@x109.net>,
+	netfilter-devel@vger.kernel.org,
+	Richard Fontana <fontana@sharpeleven.org>
+To: "John W. Linville" <linville@tuxdriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:59298 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbaGBHUo (ORCPT
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:39904 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796AbaGBHda (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jul 2014 03:20:44 -0400
-Received: by mail-wi0-f176.google.com with SMTP id n3so9007418wiv.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Jul 2014 00:20:43 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <53B37B61.3020901@oracle.com>
+	Wed, 2 Jul 2014 03:33:30 -0400
+In-Reply-To: <20140701144149.GB6358@tuxdriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 01, 2014 at 11:24:17PM -0400, Sasha Levin wrote:
-> Hi all,
-> 
-> While fuzzing with trinity inside a KVM tools guest running the latest -next
-> kernel I've stumbled on a pretty odd corruption(?) in the code - a pretty odd
-> one.
-> 
-> Here's the issue I've hit:
-> 
-> [ 3640.805823] BUG: unable to handle kernel paging request at ffffffffffffff84
->[..]
-> [ 3640.840752] Code: 4c 89 65 e8 49 89 cc 0f 97 c1 83 fa 01 0f 95 c0 48 89 5d e0 31 db 83 fa 04 4c 89 6d f0 0f 95 c3 4c 89 75 f8 21 55 55 fb 01 48 19 <d2> 48 83 e2 f0 48 83 c2 20 48 89 d0 48 83 f0 30 84 c9 48 0f 45
-> [ 3640.840752] RIP nf_nat_packet (net/netfilter/nf_nat_core.c:482)
-> [ 3640.840752]  RSP <ffff88014608b958>
-> [ 3640.840752] CR2: ffffffffffffff84
-> 
-> Two odd things here:
-> 
-> 1. The code section seems to point mid-instruction:
-> 
->     19dc:       0f 95 c3                setne  %bl
->     19df:       4c 89 75 f8             mov    %r14,-0x8(%rbp)
->     19e3:       21 c3                   and    %eax,%ebx
->     19e5:       83 fb 01                cmp    $0x1,%ebx
->     19e8:       48 19 d2                sbb    %rdx,%rdx  <=== The end of this (0xd2)
->     19eb:       48 83 e2 f0             and    $0xfffffffffffffff0,%rdx
->     19ef:       48 83 c2 20             add    $0x20,%rdx
->     19f3:       48 89 d0                mov    %rdx,%rax
->     19f6:       48 83 f0 30             xor    $0x30,%rax
-> 
-> 2. There isn't anything in that area that dereferences memory:
-> 
->         enum nf_nat_manip_type mtype = HOOK2MANIP(hooknum);
-> 
->         if (mtype == NF_NAT_MANIP_SRC)
->                 statusbit = IPS_SRC_NAT;
->         else
->                 statusbit = IPS_DST_NAT;
+On Tue, Jul 1, 2014 at 8:11 PM, John W. Linville <linville@tuxdriver.com> wrote:
+>
+> On Mon, Jun 30, 2014 at 12:19:08PM -0700, Luis R. Rodriguez wrote:
+> > On Mon, Jun 30, 2014 at 11:55 AM, Luis R. Rodriguez
+> > <mcgrof@do-not-panic.com> wrote:
+> > > For the current kernel we
+> > > could intake the patch below, and I can port the change to no use
+> > > dfs_cac, that would enable older kernels to use new and older versions
+> > > of the ASCII database file.
+> >
+> > Personally I actually rather avoid us accept a patch upstream for a
+> > userspace change. The problem here is that we failed to realize the
+> > impact of CFG80211_INTERNAL_REGDB at build time with a userspace tool,
+> > in this case the db.txt file wireless-regdb provides and its format.
+> >
+> > If we wanted to avoid a stable patch we could require a match between
+> > wireless-regdb input file used for a kernel when
+> > CFG80211_INTERNAL_REGDB is used at build time. That would require
+> > different ASCII files on wireless-regdb or having the users of
+> > CFG80211_INTERNAL_REGDB do the conversion themselves. Upstream would
+> > just follow the wireless-regdb latest format. This then would just
+> > require upstream a Kconfig update to clarify the requirements.
+> >
+> > This seems like a rather lazy option but also one that would be rather
+> > more fair and honest for upstream, we could deal with a proper fix by
+> > reconsidering the implementation of CFG80211_INTERNAL_REGDB completely
+> > for future kernels.
+>
+> I'm shocked that anyone actually uses CFG80211_INTERNAL_REGDB...
+>
 
-Hi Sasha,
+Lot of embedded devices like ours avoid the pain of cross compiling
+crda, udev...
+and resort to internal_regdb as a easy way to get things done.
 
-The fault registers are consistent with the 'rorb %cl,-0x7d(%rax)' starting
-at the place where you have 0xd2. But the problem started earlier:
 
-    "75 f8 21 55 55 fb 01 48 19 <d2> 48 83 e2 f0"
+> Anyway, I don't see the big deal.  We should keep
+> CFG80211_INTERNAL_REGDB (whether implemented in awk or C) up-to-date
+> with current kernels.  Anyone wanting to use an old kernel with an
+> updated wireless-regdb file is responsible for ensuring compatibility.
+> If they can't do that, then they should seek support from a vendor.
+> How is this any different from any other kernel support issue?
 
-What should have been according to objdump:
-
-    "75 f8 21 c3 83 fb 01 48 19 <d2> 48 83 e2 f0"
-              ^^^^^ 
-These instructions should not have been modified, even by relocation. 
-So we only need to figure out what overwrote with '0x5555'.
-
--- 
-Dan Aloni
+Sounds good to me.
