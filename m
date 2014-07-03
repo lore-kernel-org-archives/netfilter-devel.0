@@ -1,39 +1,23 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] set_elem: use proper free function
-Date: Thu, 03 Jul 2014 18:04:21 +0200
-Message-ID: <20140703160421.13770.955.stgit@nfdev.cica.es>
+From: "W. Cheung" <jrobinson@wimberley.txed.net>
+Subject: RE:
+Date: Thu, 3 Jul 2014 17:30:47 +0100
+Message-ID: <1da52c5d-1cd2-4b3d-bbc7-4dea0aa32dfc__31327.3452957676$1404405743$gmane$org@E2K10.wimberley.txed.net>
+Reply-To: <w1cheung@bellsouth.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: <jrobinson@wimberley.txed.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:49823 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756403AbaGCQEd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2014 12:04:33 -0400
+Received: from [208.80.74.236] ([208.80.74.236]:56015 "EHLO
+	wisdmail.wimberley.txed.net" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758183AbaGCQlu convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jul 2014 12:41:50 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's use the proper free function to liberate the set_elem,
-so we avoid potential memory leaks.
+ I have a very lucrative business transaction which requires the utmost discretion. If you are interested, kindly contact me ASAP for full details.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/set_elem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 3b27317..9e3c55f 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -290,7 +290,7 @@ static int nft_set_elems_parse2(struct nft_set *s, const struct nlattr *nest)
- 		}
-         }
- 	if (ret < 0) {
--		xfree(e);
-+		nft_set_elem_free(e);
- 		return -1;
- 	}
- 
-
+Warm Regards,
+William Cheung
