@@ -1,86 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] mnl: check for NLM_F_DUMP_INTR when dumping object lists
-Date: Fri,  4 Jul 2014 12:32:22 +0200
-Message-ID: <1404469942-6263-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [linux PATCH v3 2/5] netfilter: nf_nat_masquerade_ipv4: code
+ factorization
+Date: Fri, 4 Jul 2014 12:41:44 +0200
+Message-ID: <20140704104144.GA6296@localhost>
+References: <20140701162801.2847.14389.stgit@nfdev.cica.es>
+ <20140701163034.2847.53931.stgit@nfdev.cica.es>
+ <698ea380-0754-47de-a4a1-9023ebf8388c@email.android.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55893 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58874 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752468AbaGDKcd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2014 06:32:33 -0400
+	id S1756737AbaGDKlt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2014 06:41:49 -0400
+Content-Disposition: inline
+In-Reply-To: <698ea380-0754-47de-a4a1-9023ebf8388c@email.android.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This flag allows to detect that an update has ocurred while dumping
-any of the object lists.
+Hi Patrick,
 
-<cmdline>:1:1-17: Error: Could not receive rules from kernel: Interrupted system call
-list table filter
-^^^^^^^^^^^^^^^^^
+On Thu, Jul 03, 2014 at 02:23:20PM +0200, Patrick McHardy wrote:
+> On 1. Juli 2014 18:30:54 MESZ, Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+> >Let's refactor the code so we can reach the masquerade functionality
+> >from
+> >outside the xt context (ie, nftables).
+> >
+> >The patch includes adding an atomic counter to the masquerade notifier:
+> >the
+> >stuff to be done by the notifier is the same in any case, and agnostic
+> >about who called it. Only one notification handler is needed.
+> >
+> >This factorization only involves IPv4; a similar patch will follow to
+> >handle
+> >IPv6.
+> 
+> Just a suggestion, the NAT support is parameterizable at  runtime.
+> An alternative would be an expression to load the local address.
 
-Basically, the user has to retry to make sure that it saves the current
-rule-set.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/mnl.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/src/mnl.c b/src/mnl.c
-index a816106..d3c91b4 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -363,6 +363,9 @@ static int rule_cb(const struct nlmsghdr *nlh, void *data)
- 	struct nft_rule_list *nlr_list = data;
- 	struct nft_rule *r;
- 
-+	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
-+		return MNL_CB_ERROR;
-+
- 	r = nft_rule_alloc();
- 	if (r == NULL)
- 		memory_allocation_error();
-@@ -474,6 +477,9 @@ static int chain_cb(const struct nlmsghdr *nlh, void *data)
- 	struct nft_chain_list *nlc_list = data;
- 	struct nft_chain *c;
- 
-+	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
-+		return MNL_CB_ERROR;
-+
- 	c = nft_chain_alloc();
- 	if (c == NULL)
- 		memory_allocation_error();
-@@ -603,6 +609,9 @@ static int table_cb(const struct nlmsghdr *nlh, void *data)
- 	struct nft_table_list *nlt_list = data;
- 	struct nft_table *t;
- 
-+	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
-+		return MNL_CB_ERROR;
-+
- 	t = nft_table_alloc();
- 	if (t == NULL)
- 		memory_allocation_error();
-@@ -736,6 +745,9 @@ static int set_cb(const struct nlmsghdr *nlh, void *data)
- 	struct nft_set_list *nls_list = data;
- 	struct nft_set *s;
- 
-+	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
-+		return MNL_CB_ERROR;
-+
- 	s = nft_set_alloc();
- 	if (s == NULL)
- 		memory_allocation_error();
-@@ -839,6 +851,9 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nft_set *nls,
- 
- static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
- {
-+	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
-+		return MNL_CB_ERROR;
-+
- 	nft_set_elems_nlmsg_parse(nlh, data);
- 	return MNL_CB_OK;
- }
--- 
-1.7.10.4
-
+That seems quite natural way to make it without requiring kernel
+changes, I like it. The only problem that I see is that I don't come
+up with a way to handle the conntrack cleanup case that needs to
+happen if the interface is brought down with this approach.
