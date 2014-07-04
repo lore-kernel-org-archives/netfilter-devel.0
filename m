@@ -1,189 +1,86 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] netfilter: nf_tables: set NLM_F_DUMP_INTR if netlink dumping is stale
-Date: Fri,  4 Jul 2014 12:31:44 +0200
-Message-ID: <1404469904-6200-2-git-send-email-pablo@netfilter.org>
-References: <1404469904-6200-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft] mnl: check for NLM_F_DUMP_INTR when dumping object lists
+Date: Fri,  4 Jul 2014 12:32:22 +0200
+Message-ID: <1404469942-6263-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55737 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55893 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752631AbaGDKcA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2014 06:32:00 -0400
-In-Reply-To: <1404469904-6200-1-git-send-email-pablo@netfilter.org>
+	id S1752468AbaGDKcd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2014 06:32:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-An updater may inter with the dumping of any of the object lists. Fix this
-by using a per-net generation counter and use the nl_dump_check_consistent()
-interface so the NLM_F_DUMP_INTR is set to notify userspace that it
-has to restart the dump since an updater has interfered.
+This flag allows to detect that an update has ocurred while dumping
+any of the object lists.
 
-This patch also replaces the existing consistency checking code in the
-rule dumping path since it is broken. Basically, the value that the dump
-callback returns is not propagated to userspace via netlink_dump_start().
+<cmdline>:1:1-17: Error: Could not receive rules from kernel: Interrupted system call
+list table filter
+^^^^^^^^^^^^^^^^^
+
+Basically, the user has to retry to make sure that it saves the current
+rule-set.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/nftables.h  |    2 +-
- net/netfilter/nf_tables_api.c |   30 +++++++++++++++++++++++-------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+ src/mnl.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-index 26a394c..eee608b 100644
---- a/include/net/netns/nftables.h
-+++ b/include/net/netns/nftables.h
-@@ -13,8 +13,8 @@ struct netns_nftables {
- 	struct nft_af_info	*inet;
- 	struct nft_af_info	*arp;
- 	struct nft_af_info	*bridge;
-+	unsigned int		base_seq;
- 	u8			gencursor;
--	u8			genctr;
- };
+diff --git a/src/mnl.c b/src/mnl.c
+index a816106..d3c91b4 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -363,6 +363,9 @@ static int rule_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_rule_list *nlr_list = data;
+ 	struct nft_rule *r;
  
- #endif
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a27a7c5..ac03d74 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -278,6 +278,8 @@ static int nf_tables_dump_tables(struct sk_buff *skb,
- 	int family = nfmsg->nfgen_family;
- 
- 	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
 +
- 	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
- 		if (family != NFPROTO_UNSPEC && family != afi->family)
- 			continue;
-@@ -295,6 +297,8 @@ static int nf_tables_dump_tables(struct sk_buff *skb,
- 						      NLM_F_MULTI,
- 						      afi->family, table) < 0)
- 				goto done;
-+
-+			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 			idx++;
- 		}
-@@ -767,6 +771,8 @@ static int nf_tables_dump_chains(struct sk_buff *skb,
- 	int family = nfmsg->nfgen_family;
+ 	r = nft_rule_alloc();
+ 	if (r == NULL)
+ 		memory_allocation_error();
+@@ -474,6 +477,9 @@ static int chain_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_chain_list *nlc_list = data;
+ 	struct nft_chain *c;
  
- 	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
 +
- 	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
- 		if (family != NFPROTO_UNSPEC && family != afi->family)
- 			continue;
-@@ -784,6 +790,8 @@ static int nf_tables_dump_chains(struct sk_buff *skb,
- 							      NLM_F_MULTI,
- 							      afi->family, table, chain) < 0)
- 					goto done;
+ 	c = nft_chain_alloc();
+ 	if (c == NULL)
+ 		memory_allocation_error();
+@@ -603,6 +609,9 @@ static int table_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_table_list *nlt_list = data;
+ 	struct nft_table *t;
+ 
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
 +
-+				nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 				idx++;
- 			}
-@@ -1555,10 +1563,10 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 	unsigned int idx = 0, s_idx = cb->args[0];
- 	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
--	u8 genctr = ACCESS_ONCE(net->nft.genctr);
--	u8 gencursor = ACCESS_ONCE(net->nft.gencursor);
+ 	t = nft_table_alloc();
+ 	if (t == NULL)
+ 		memory_allocation_error();
+@@ -736,6 +745,9 @@ static int set_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_set_list *nls_list = data;
+ 	struct nft_set *s;
  
- 	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
 +
- 	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
- 		if (family != NFPROTO_UNSPEC && family != afi->family)
- 			continue;
-@@ -1579,6 +1587,8 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 								      NLM_F_MULTI | NLM_F_APPEND,
- 								      afi->family, table, chain, rule) < 0)
- 						goto done;
-+
-+					nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 					idx++;
- 				}
-@@ -1588,10 +1598,6 @@ cont:
- done:
- 	rcu_read_unlock();
+ 	s = nft_set_alloc();
+ 	if (s == NULL)
+ 		memory_allocation_error();
+@@ -839,6 +851,9 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nft_set *nls,
  
--	/* Invalidate this dump, a transition to the new generation happened */
--	if (gencursor != net->nft.gencursor || genctr != net->nft.genctr)
--		return -EBUSY;
--
- 	cb->args[0] = idx;
- 	return skb->len;
- }
-@@ -2244,6 +2250,8 @@ static int nf_tables_dump_sets_table(struct nft_ctx *ctx, struct sk_buff *skb,
- 		return skb->len;
- 
- 	rcu_read_lock();
-+	cb->seq = ctx->net->nft.base_seq;
-+
- 	list_for_each_entry_rcu(set, &ctx->table->sets, list) {
- 		if (idx < s_idx)
- 			goto cont;
-@@ -2252,6 +2260,7 @@ static int nf_tables_dump_sets_table(struct nft_ctx *ctx, struct sk_buff *skb,
- 			cb->args[0] = idx;
- 			goto done;
- 		}
-+		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 		idx++;
- 	}
-@@ -2272,6 +2281,8 @@ static int nf_tables_dump_sets_family(struct nft_ctx *ctx, struct sk_buff *skb,
- 		return skb->len;
- 
- 	rcu_read_lock();
-+	cb->seq = ctx->net->nft.base_seq;
-+
- 	list_for_each_entry_rcu(table, &ctx->afi->tables, list) {
- 		if (cur_table) {
- 			if (cur_table != table)
-@@ -2290,6 +2301,7 @@ static int nf_tables_dump_sets_family(struct nft_ctx *ctx, struct sk_buff *skb,
- 				cb->args[2] = (unsigned long) table;
- 				goto done;
- 			}
-+			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 			idx++;
- 		}
-@@ -2314,6 +2326,8 @@ static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff *skb,
- 		return skb->len;
- 
- 	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
-+
- 	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
- 		if (cur_family) {
- 			if (afi->family != cur_family)
-@@ -2344,6 +2358,7 @@ static int nf_tables_dump_sets_all(struct nft_ctx *ctx, struct sk_buff *skb,
- 					cb->args[3] = afi->family;
- 					goto done;
- 				}
-+				nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 				idx++;
- 			}
-@@ -3361,7 +3376,7 @@ static int nf_tables_commit(struct sk_buff *skb)
- 	struct nft_set *set;
- 
- 	/* Bump generation counter, invalidate any dump in progress */
--	net->nft.genctr++;
-+	while (++net->nft.base_seq == 0);
- 
- 	/* A new generation has just started */
- 	net->nft.gencursor = gencursor_next(net);
-@@ -3966,6 +3981,7 @@ static int nf_tables_init_net(struct net *net)
+ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
  {
- 	INIT_LIST_HEAD(&net->nft.af_info);
- 	INIT_LIST_HEAD(&net->nft.commit_list);
-+	net->nft.base_seq = 1;
- 	return 0;
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	nft_set_elems_nlmsg_parse(nlh, data);
+ 	return MNL_CB_OK;
  }
- 
 -- 
 1.7.10.4
 
