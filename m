@@ -1,239 +1,170 @@
 From: Giorgio Dal Molin <giorgio.nicole@arcor.de>
-Subject: [PATCH 2/7] autotool conversion: use pkg-config to find 'libmnl', libnftnl' and 'ncurses'.
-Date: Mon,  7 Jul 2014 12:15:39 +0159
-Message-ID: <1404728169-7899-3-git-send-email-giorgio.nicole@arcor.de>
+Subject: [PATCH 5/7] autotool conversion: Converted the support for the 'doc/' subdir.
+Date: Mon,  7 Jul 2014 12:15:42 +0159
+Message-ID: <1404728169-7899-6-git-send-email-giorgio.nicole@arcor.de>
 References: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
 Cc: Giorgio <giorgio.nicole@arcor.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:59698 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752627AbaGGKQt (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:38577 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752648AbaGGKQu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2014 06:16:49 -0400
-Received: from mail-in-01-z2.arcor-online.net (mail-in-01-z2.arcor-online.net [151.189.8.13])
-	by mx.arcor.de (Postfix) with ESMTP id B5783107B52
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2014 12:16:47 +0200 (CEST)
+	Mon, 7 Jul 2014 06:16:50 -0400
+Received: from mail-in-12-z2.arcor-online.net (mail-in-12-z2.arcor-online.net [151.189.8.29])
+	by mx.arcor.de (Postfix) with ESMTP id C217F3AF172
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2014 12:16:48 +0200 (CEST)
 In-Reply-To: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Giorgio <giorgio.nicole@arcor.de>
 
-Use pkg-config to find the compile and link flags for 'libnftnl' and
-'libmnl'.
+To generate the nft.8 man page the configure script searches for the
+tools 'docbookx2-man' and 'db2x_docbook2man'; if at least one is found
+then the man page is generated. To force the system not to generate the
+man page use the option '--disable-man'.
 
-Use the special macro AX_LIB_READLINE to check for libreadline and its
-dependencies.
-
-The macro is part of the 'autoconf-archive' project:
-
-https://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
+To generate the pdf doc file the configure script searches for the tool
+'dblatex'; if it is found then the pdf doc file is generated. To force
+the system not to generate the pdf doc file use the option '--disable-pdf'.
 ---
- configure.ac          |  19 +++++----
- m4/ax_lib_readlibe.m4 | 107 ++++++++++++++++++++++++++++++++++++++++++++++++++
- src/Makefile.am       |  45 +++++++++++++++++++++
- 3 files changed, 163 insertions(+), 8 deletions(-)
- create mode 100644 m4/ax_lib_readlibe.m4
- create mode 100644 src/Makefile.am
+ configure.ac    | 73 +++++++++++++++++++++++++++++++++++++++------------------
+ doc/Makefile.am | 12 ++++++++++
+ doc/Makefile.in | 20 ----------------
+ 3 files changed, 62 insertions(+), 43 deletions(-)
+ create mode 100644 doc/Makefile.am
+ delete mode 100644 doc/Makefile.in
 
 diff --git a/configure.ac b/configure.ac
-index 3a7647f..b31fe46 100644
+index 7070cb8..18f6f51 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -62,17 +62,20 @@ then
- fi
+@@ -27,30 +27,57 @@ AC_PROG_SED
+ AC_PROG_YACC
+ AM_PROG_LEX
+ 
+-AC_CHECK_PROG(CONFIG_MAN1, [docbook2x-man], [y], [n])
+-if test "$CONFIG_MAN1" == "y"
+-then
+-	CONFIG_MAN=y
+-	DB2MAN=docbook2x-man
+-else
+-	AC_CHECK_PROG(CONFIG_MAN2, [db2x_docbook2man], [y], [n])
+-	if test "$CONFIG_MAN2" == "y"
+-	then
+-		CONFIG_MAN=y
+-		DB2MAN=db2x_docbook2man
+-	else
+-		AC_MSG_WARN([docbookx2-man/db2x_docbook2man not found, no manpages will be built])
+-	fi
+-fi
+-AC_SUBST(CONFIG_MAN)
+-AC_SUBST(DB2MAN)
+-
+-AC_CHECK_PROG(CONFIG_PDF, dblatex, y, n)
+-if test "$CONFIG_PDF" != "y"
+-then
+-	AC_MSG_WARN([dblatex not found, no PDF manpages will be built])
+-fi
++AC_CHECK_PROG(DOCBOOK2X_MAN, [docbook2x-man], [found], [no])
++AC_CHECK_PROG(DB2X_DOCBOOK2MAN, [db2x_docbook2man], [found], [no])
++AS_CASE([$DOCBOOK2X_MAN],
++	[found],[
++		DB2MAN=docbook2x-man
++		NFT_8=nft.8
++		],
++	[AS_CASE([$DB2X_DOCBOOK2MAN],
++		[found],[
++			DB2MAN=db2x_docbook2man
++			NFT_8=nft.8
++			],
++		[AC_MSG_WARN([docbookx2-man/db2x_docbook2man not found, no manpages will be built])]
++	)]
++)
++
++AC_ARG_ENABLE([man], AS_HELP_STRING([--enable-man], [Enable generating the man page nft.8. Requires docbook2x-man or db2x_docbook2man.]))
++
++AC_MSG_CHECKING([whether to generate the man page])
++AS_CASE([${enable_man}],
++	[yes],[
++		AS_IF([test -z "$DB2MAN"],AC_MSG_ERROR([No tool found to generate the man page. Please install either docbook2x-man or db2x_docbook2man.]))
++		AC_MSG_RESULT(yes)
++	], [
++	NFT_8=""
++	AC_MSG_RESULT(no)
++	]
++)
+ 
++AC_SUBST(DB2MAN)
++AC_SUBST(NFT_8)
++
++AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
++AS_CASE([$DBLATEX],
++	[found],[NFT_PDF=nft.pdf],
++	[AC_MSG_WARN([dblatex not found, no PDF manpages will be built])]
++)
++
++AC_MSG_CHECKING([whether to generate the pdf doc])
++AC_ARG_ENABLE([pdf], AS_HELP_STRING([--enable-pdf], [Enable generating the pdf doc file nft.pdf. Requires dblatex.]))
++AS_CASE([${enable_pdf}],
++	[yes],[
++		AS_IF([test -z "$DBLATEX"], AC_MSG_ERROR([No tool found to generate the pdf doc. Please install dblatex.]))
++		AC_MSG_RESULT(yes)
++	],[
++	NFT_PDF=""
++	AC_MSG_RESULT(no)
++	]
++)
++
++AC_SUBST(NFT_PDF)
  
  # Checks for libraries.
--AC_CHECK_LIB([mnl], [mnl_socket_open], ,
--	     AC_MSG_ERROR([No suitable version of libmnl found]))
  
--AC_CHECK_LIB([nftnl], [nft_rule_alloc], ,
--	     AC_MSG_ERROR([No suitable version of libnftnl found]))
-+dnl Check for package libnftnl
-+PKG_CHECK_MODULES(LIBMNL, [libmnl], , AC_MSG_ERROR([No suitable version of libmnl found]))
-+AC_SUBST(LIBMNL_CFLAGS)
-+AC_SUBST(LIBMNL_LIBS)
- 
--AC_CHECK_LIB([gmp], [__gmpz_init], ,
--	     AC_MSG_ERROR([No suitable version of libgmp found]))
-+dnl Check for package libnftnl
-+PKG_CHECK_MODULES(LIBNFTNL, [libnftnl], , AC_MSG_ERROR([No suitable version of libnftnl found]))
-+AC_SUBST(LIBNFTNL_CFLAGS)
-+AC_SUBST(LIBNFTNL_LIBS)
- 
--AC_CHECK_LIB([readline], [readline], ,
--	     AC_MSG_ERROR([No suitable version of libreadline found]))
-+AC_CHECK_LIB([gmp], [__gmpz_init], , AC_MSG_ERROR([No suitable version of libgmp found]))
-+
-+AX_LIB_READLINE
- 
- # Checks for header files.
- AC_HEADER_STDC
-diff --git a/m4/ax_lib_readlibe.m4 b/m4/ax_lib_readlibe.m4
+diff --git a/doc/Makefile.am b/doc/Makefile.am
 new file mode 100644
-index 0000000..056f25c
+index 0000000..6ea973a
 --- /dev/null
-+++ b/m4/ax_lib_readlibe.m4
-@@ -0,0 +1,107 @@
-+# ===========================================================================
-+#      http://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
-+# ===========================================================================
-+#
-+# SYNOPSIS
-+#
-+#   AX_LIB_READLINE
-+#
-+# DESCRIPTION
-+#
-+#   Searches for a readline compatible library. If found, defines
-+#   `HAVE_LIBREADLINE'. If the found library has the `add_history' function,
-+#   sets also `HAVE_READLINE_HISTORY'. Also checks for the locations of the
-+#   necessary include files and sets `HAVE_READLINE_H' or
-+#   `HAVE_READLINE_READLINE_H' and `HAVE_READLINE_HISTORY_H' or
-+#   'HAVE_HISTORY_H' if the corresponding include files exists.
-+#
-+#   The libraries that may be readline compatible are `libedit',
-+#   `libeditline' and `libreadline'. Sometimes we need to link a termcap
-+#   library for readline to work, this macro tests these cases too by trying
-+#   to link with `libtermcap', `libcurses' or `libncurses' before giving up.
-+#
-+#   Here is an example of how to use the information provided by this macro
-+#   to perform the necessary includes or declarations in a C file:
-+#
-+#     #ifdef HAVE_LIBREADLINE
-+#     #  if defined(HAVE_READLINE_READLINE_H)
-+#     #    include <readline/readline.h>
-+#     #  elif defined(HAVE_READLINE_H)
-+#     #    include <readline.h>
-+#     #  else /* !defined(HAVE_READLINE_H) */
-+#     extern char *readline ();
-+#     #  endif /* !defined(HAVE_READLINE_H) */
-+#     char *cmdline = NULL;
-+#     #else /* !defined(HAVE_READLINE_READLINE_H) */
-+#       /* no readline */
-+#     #endif /* HAVE_LIBREADLINE */
-+#
-+#     #ifdef HAVE_READLINE_HISTORY
-+#     #  if defined(HAVE_READLINE_HISTORY_H)
-+#     #    include <readline/history.h>
-+#     #  elif defined(HAVE_HISTORY_H)
-+#     #    include <history.h>
-+#     #  else /* !defined(HAVE_HISTORY_H) */
-+#     extern void add_history ();
-+#     extern int write_history ();
-+#     extern int read_history ();
-+#     #  endif /* defined(HAVE_READLINE_HISTORY_H) */
-+#       /* no history */
-+#     #endif /* HAVE_READLINE_HISTORY */
-+#
-+# LICENSE
-+#
-+#   Copyright (c) 2008 Ville Laurikari <vl@iki.fi>
-+#
-+#   Copying and distribution of this file, with or without modification, are
-+#   permitted in any medium without royalty provided the copyright notice
-+#   and this notice are preserved. This file is offered as-is, without any
-+#   warranty.
++++ b/doc/Makefile.am
+@@ -0,0 +1,12 @@
++man_MANS = @NFT_8@
++pdf_DATA = @NFT_PDF@
 +
-+#serial 6
++pdfdir=${docdir}/pdf
 +
-+AU_ALIAS([VL_LIB_READLINE], [AX_LIB_READLINE])
-+AC_DEFUN([AX_LIB_READLINE], [
-+  AC_CACHE_CHECK([for a readline compatible library],
-+                 ax_cv_lib_readline, [
-+    ORIG_LIBS="$LIBS"
-+    for readline_lib in readline edit editline; do
-+      for termcap_lib in "" termcap curses ncurses; do
-+        if test -z "$termcap_lib"; then
-+          TRY_LIB="-l$readline_lib"
-+        else
-+          TRY_LIB="-l$readline_lib -l$termcap_lib"
-+        fi
-+        LIBS="$ORIG_LIBS $TRY_LIB"
-+        AC_TRY_LINK_FUNC(readline, ax_cv_lib_readline="$TRY_LIB")
-+        if test -n "$ax_cv_lib_readline"; then
-+          break
-+        fi
-+      done
-+      if test -n "$ax_cv_lib_readline"; then
-+        break
-+      fi
-+    done
-+    if test -z "$ax_cv_lib_readline"; then
-+      ax_cv_lib_readline="no"
-+    fi
-+    LIBS="$ORIG_LIBS"
-+  ])
++nft.pdf: nft.xml
++	@echo -e "  PDF\t\t$@"
++	@dblatex -q -t pdf -o $@ $<
 +
-+  if test "$ax_cv_lib_readline" != "no"; then
-+    LIBS="$LIBS $ax_cv_lib_readline"
-+    AC_DEFINE(HAVE_LIBREADLINE, 1,
-+              [Define if you have a readline compatible library])
-+    AC_CHECK_HEADERS(readline.h readline/readline.h)
-+    AC_CACHE_CHECK([whether readline supports history],
-+                   ax_cv_lib_readline_history, [
-+      ax_cv_lib_readline_history="no"
-+      AC_TRY_LINK_FUNC(add_history, ax_cv_lib_readline_history="yes")
-+    ])
-+    if test "$ax_cv_lib_readline_history" = "yes"; then
-+      AC_DEFINE(HAVE_READLINE_HISTORY, 1,
-+                [Define if your readline library has \`add_history'])
-+      AC_CHECK_HEADERS(history.h readline/history.h)
-+    fi
-+  fi
-+])dnl
-diff --git a/src/Makefile.am b/src/Makefile.am
-new file mode 100644
-index 0000000..210147e
---- /dev/null
-+++ b/src/Makefile.am
-@@ -0,0 +1,45 @@
-+sbin_PROGRAMS = nft
-+
-+nft_CFLAGS =	-fno-strict-aliasing							\
-+		-Wall									\
-+		-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations		\
-+		-Wdeclaration-after-statement -Wsign-compare -Winit-self		\
-+		-Wformat-nonliteral -Wformat-security -Wmissing-format-attribute	\
-+		-Wcast-align -Wundef -Wbad-function-cast				\
-+		-Waggregate-return -Wunused -Wwrite-strings				\
-+		@LIBMNL_CFLAGS@ @LIBNFTNL_CFLAGS@
-+
-+nft_CPPFLAGS = -I${srcdir}/../include @DEBUG_CPPFLAGS@
-+
-+nft_LDADD = @LIBMNL_LIBS@ @LIBNFTNL_LIBS@
-+
-+AM_YFLAGS = -d
-+BUILT_SOURCES =	scanner.c scanner.h yacc_parser.c yacc_parser.h
-+
-+scanner.h: scanner.c
-+
-+nft_SOURCES = 	main.c				\
-+		cli.c				\
-+		rule.c				\
-+		statement.c			\
-+		datatype.c			\
-+		expression.c			\
-+		evaluate.c			\
-+		proto.c				\
-+		payload.c			\
-+		exthdr.c			\
-+		meta.c				\
-+		ct.c				\
-+		netlink.c			\
-+		netlink_linearize.c		\
-+		netlink_delinearize.c		\
-+		segtree.c			\
-+		rbtree.c			\
-+		gmputil.c			\
-+		utils.c				\
-+		erec.c				\
-+		mnl.c				\
-+		scanner.l			\
-+		yacc_parser.y
-+
-+CLEANFILES = *~ scanner.c scanner.h yacc_parser.c yacc_parser.h
++nft.8: nft.xml
++	@echo -e "  MAN\t\t$@"
++	@$(DB2MAN) --xinclude $<
+diff --git a/doc/Makefile.in b/doc/Makefile.in
+deleted file mode 100644
+index 1ec856c..0000000
+--- a/doc/Makefile.in
++++ /dev/null
+@@ -1,20 +0,0 @@
+-mandocs-@CONFIG_MAN@	+= doc/nft.8
+-pdfdocs-@CONFIG_PDF@	+= doc/nft.pdf
+-
+-all:		$(mandocs-y) $(pdfdocs-y)
+-clean:
+-		@echo -e "  CLEAN\t\tdoc"
+-		$(RM) $(mandocs-y) $(pdfdocs-y)
+-
+-install:	$(mandocs-y) $(pdfdocs-y)
+-		@echo -e "  INSTALL\tdoc"
+-		if test -n "$(mandocs-y)"; then \
+-			$(MKDIR_P) $(DESTDIR)/${mandir}/man8 ;\
+-			$(INSTALL) -m 755 -p $(mandocs-y) \
+-					$(DESTDIR)/${mandir}/man8/ ;\
+-		fi
+-		if test -n "$(pdfdocs-y)"; then \
+-			$(MKDIR_P) $(DESTDIR)/${pdfdir} ;\
+-			$(INSTALL) -m 755 -p $(pdfdocs-y) \
+-					$(DESTDIR)/${pdfdir}/ ;\
+-		fi
 -- 
 2.0.1
 
