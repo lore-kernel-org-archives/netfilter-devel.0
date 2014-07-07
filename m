@@ -1,347 +1,239 @@
 From: Giorgio Dal Molin <giorgio.nicole@arcor.de>
-Subject: [PATCH 4/7] autotools conversion: include the header 'config.h' in every C source file.
-Date: Mon,  7 Jul 2014 12:15:41 +0159
-Message-ID: <1404728169-7899-5-git-send-email-giorgio.nicole@arcor.de>
+Subject: [PATCH 2/7] autotool conversion: use pkg-config to find 'libmnl', libnftnl' and 'ncurses'.
+Date: Mon,  7 Jul 2014 12:15:39 +0159
+Message-ID: <1404728169-7899-3-git-send-email-giorgio.nicole@arcor.de>
 References: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
-Cc: root <giorgio.nicole@rocor.de>
+Cc: Giorgio <giorgio.nicole@arcor.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:54454 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752630AbaGGKQt (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:59698 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752627AbaGGKQt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 7 Jul 2014 06:16:49 -0400
+Received: from mail-in-01-z2.arcor-online.net (mail-in-01-z2.arcor-online.net [151.189.8.13])
+	by mx.arcor.de (Postfix) with ESMTP id B5783107B52
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2014 12:16:47 +0200 (CEST)
 In-Reply-To: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: root <giorgio.nicole@rocor.de>
+From: Giorgio <giorgio.nicole@arcor.de>
 
-Added an #include <config.h> to all the C source files so that the results
-of the tests in the configure script are available to all the compilation
-units.
+Use pkg-config to find the compile and link flags for 'libnftnl' and
+'libmnl'.
 
-We could have added the include also to 'yacc_parser.y' and 'scanner.l'
-but we don't, because it is not strictly needed and to avoid to define
-the variable 'VERSION' two times.
+Use the special macro AX_LIB_READLINE to check for libreadline and its
+dependencies.
+
+The macro is part of the 'autoconf-archive' project:
+
+https://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
 ---
- src/cli.c                 | 3 +++
- src/ct.c                  | 3 +++
- src/datatype.c            | 3 +++
- src/erec.c                | 3 +++
- src/evaluate.c            | 3 +++
- src/expression.c          | 3 +++
- src/exthdr.c              | 3 +++
- src/gmputil.c             | 3 +++
- src/main.c                | 3 +++
- src/meta.c                | 3 +++
- src/mnl.c                 | 3 +++
- src/netlink.c             | 3 +++
- src/netlink_delinearize.c | 3 +++
- src/netlink_linearize.c   | 3 +++
- src/payload.c             | 3 +++
- src/proto.c               | 3 +++
- src/rbtree.c              | 3 +++
- src/rule.c                | 3 +++
- src/segtree.c             | 3 +++
- src/statement.c           | 3 +++
- src/utils.c               | 3 +++
- 21 files changed, 63 insertions(+)
+ configure.ac          |  19 +++++----
+ m4/ax_lib_readlibe.m4 | 107 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/Makefile.am       |  45 +++++++++++++++++++++
+ 3 files changed, 163 insertions(+), 8 deletions(-)
+ create mode 100644 m4/ax_lib_readlibe.m4
+ create mode 100644 src/Makefile.am
 
-diff --git a/src/cli.c b/src/cli.c
-index f748a0e..bf3caea 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -11,6 +11,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+diff --git a/configure.ac b/configure.ac
+index 3a7647f..b31fe46 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -62,17 +62,20 @@ then
+ fi
  
- #include <stdlib.h>
- #include <stdio.h>
-diff --git a/src/ct.c b/src/ct.c
-index 30639b2..98e7fec 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -9,6 +9,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+ # Checks for libraries.
+-AC_CHECK_LIB([mnl], [mnl_socket_open], ,
+-	     AC_MSG_ERROR([No suitable version of libmnl found]))
  
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/datatype.c b/src/datatype.c
-index 55af227..2d773f2 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+-AC_CHECK_LIB([nftnl], [nft_rule_alloc], ,
+-	     AC_MSG_ERROR([No suitable version of libnftnl found]))
++dnl Check for package libnftnl
++PKG_CHECK_MODULES(LIBMNL, [libmnl], , AC_MSG_ERROR([No suitable version of libmnl found]))
++AC_SUBST(LIBMNL_CFLAGS)
++AC_SUBST(LIBMNL_LIBS)
  
- #include <stdlib.h>
- #include <string.h>
-diff --git a/src/erec.c b/src/erec.c
-index 4930085..500691e 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+-AC_CHECK_LIB([gmp], [__gmpz_init], ,
+-	     AC_MSG_ERROR([No suitable version of libgmp found]))
++dnl Check for package libnftnl
++PKG_CHECK_MODULES(LIBNFTNL, [libnftnl], , AC_MSG_ERROR([No suitable version of libnftnl found]))
++AC_SUBST(LIBNFTNL_CFLAGS)
++AC_SUBST(LIBNFTNL_LIBS)
  
- #include <stdio.h>
- #include <string.h>
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 2330bbb..e66e8a2 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+-AC_CHECK_LIB([readline], [readline], ,
+-	     AC_MSG_ERROR([No suitable version of libreadline found]))
++AC_CHECK_LIB([gmp], [__gmpz_init], , AC_MSG_ERROR([No suitable version of libgmp found]))
++
++AX_LIB_READLINE
  
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/expression.c b/src/expression.c
-index fa14d99..b2a2f04 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/exthdr.c b/src/exthdr.c
-index a619ecc..9d73d07 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -9,6 +9,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/gmputil.c b/src/gmputil.c
-index cb46445..38eafde 100644
---- a/src/gmputil.c
-+++ b/src/gmputil.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/main.c b/src/main.c
-index a446bc6..142e99c 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stdlib.h>
- #include <stddef.h>
-diff --git a/src/meta.c b/src/meta.c
-index 80f88ff..d82c524 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -9,6 +9,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/mnl.c b/src/mnl.c
-index a816106..dd5f172 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <libmnl/libmnl.h>
- #include <libnftnl/common.h>
-diff --git a/src/netlink.c b/src/netlink.c
-index 2e7c572..a0d21f6 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -8,6 +8,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <string.h>
- #include <fcntl.h>
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 5c6ca80..7c02138 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -8,6 +8,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stdlib.h>
- #include <stdbool.h>
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 5c1b46d..ae3eb2d 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -8,6 +8,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <linux/netfilter/nf_tables.h>
- 
-diff --git a/src/payload.c b/src/payload.c
-index a1785a5..3d2a2ae 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -9,6 +9,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/proto.c b/src/proto.c
-index 0a37a65..0179ddf 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -8,6 +8,9 @@
-  * published by the Free Software Foundation.
-  *
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/rbtree.c b/src/rbtree.c
-index 325c012..8cb6dd8 100644
---- a/src/rbtree.c
-+++ b/src/rbtree.c
-@@ -18,6 +18,9 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  *
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <rbtree.h>
- 
-diff --git a/src/rule.c b/src/rule.c
-index a7bc6f4..ecaaa2e 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/segtree.c b/src/segtree.c
-index 1785f64..0258684 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stdlib.h>
- #include <inttypes.h>
-diff --git a/src/statement.c b/src/statement.c
-index 2dd3f18..42fb37f 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
-diff --git a/src/utils.c b/src/utils.c
-index 96ff419..f68ab57 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -7,6 +7,9 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
- 
- #include <stddef.h>
- #include <stdlib.h>
+ # Checks for header files.
+ AC_HEADER_STDC
+diff --git a/m4/ax_lib_readlibe.m4 b/m4/ax_lib_readlibe.m4
+new file mode 100644
+index 0000000..056f25c
+--- /dev/null
++++ b/m4/ax_lib_readlibe.m4
+@@ -0,0 +1,107 @@
++# ===========================================================================
++#      http://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
++# ===========================================================================
++#
++# SYNOPSIS
++#
++#   AX_LIB_READLINE
++#
++# DESCRIPTION
++#
++#   Searches for a readline compatible library. If found, defines
++#   `HAVE_LIBREADLINE'. If the found library has the `add_history' function,
++#   sets also `HAVE_READLINE_HISTORY'. Also checks for the locations of the
++#   necessary include files and sets `HAVE_READLINE_H' or
++#   `HAVE_READLINE_READLINE_H' and `HAVE_READLINE_HISTORY_H' or
++#   'HAVE_HISTORY_H' if the corresponding include files exists.
++#
++#   The libraries that may be readline compatible are `libedit',
++#   `libeditline' and `libreadline'. Sometimes we need to link a termcap
++#   library for readline to work, this macro tests these cases too by trying
++#   to link with `libtermcap', `libcurses' or `libncurses' before giving up.
++#
++#   Here is an example of how to use the information provided by this macro
++#   to perform the necessary includes or declarations in a C file:
++#
++#     #ifdef HAVE_LIBREADLINE
++#     #  if defined(HAVE_READLINE_READLINE_H)
++#     #    include <readline/readline.h>
++#     #  elif defined(HAVE_READLINE_H)
++#     #    include <readline.h>
++#     #  else /* !defined(HAVE_READLINE_H) */
++#     extern char *readline ();
++#     #  endif /* !defined(HAVE_READLINE_H) */
++#     char *cmdline = NULL;
++#     #else /* !defined(HAVE_READLINE_READLINE_H) */
++#       /* no readline */
++#     #endif /* HAVE_LIBREADLINE */
++#
++#     #ifdef HAVE_READLINE_HISTORY
++#     #  if defined(HAVE_READLINE_HISTORY_H)
++#     #    include <readline/history.h>
++#     #  elif defined(HAVE_HISTORY_H)
++#     #    include <history.h>
++#     #  else /* !defined(HAVE_HISTORY_H) */
++#     extern void add_history ();
++#     extern int write_history ();
++#     extern int read_history ();
++#     #  endif /* defined(HAVE_READLINE_HISTORY_H) */
++#       /* no history */
++#     #endif /* HAVE_READLINE_HISTORY */
++#
++# LICENSE
++#
++#   Copyright (c) 2008 Ville Laurikari <vl@iki.fi>
++#
++#   Copying and distribution of this file, with or without modification, are
++#   permitted in any medium without royalty provided the copyright notice
++#   and this notice are preserved. This file is offered as-is, without any
++#   warranty.
++
++#serial 6
++
++AU_ALIAS([VL_LIB_READLINE], [AX_LIB_READLINE])
++AC_DEFUN([AX_LIB_READLINE], [
++  AC_CACHE_CHECK([for a readline compatible library],
++                 ax_cv_lib_readline, [
++    ORIG_LIBS="$LIBS"
++    for readline_lib in readline edit editline; do
++      for termcap_lib in "" termcap curses ncurses; do
++        if test -z "$termcap_lib"; then
++          TRY_LIB="-l$readline_lib"
++        else
++          TRY_LIB="-l$readline_lib -l$termcap_lib"
++        fi
++        LIBS="$ORIG_LIBS $TRY_LIB"
++        AC_TRY_LINK_FUNC(readline, ax_cv_lib_readline="$TRY_LIB")
++        if test -n "$ax_cv_lib_readline"; then
++          break
++        fi
++      done
++      if test -n "$ax_cv_lib_readline"; then
++        break
++      fi
++    done
++    if test -z "$ax_cv_lib_readline"; then
++      ax_cv_lib_readline="no"
++    fi
++    LIBS="$ORIG_LIBS"
++  ])
++
++  if test "$ax_cv_lib_readline" != "no"; then
++    LIBS="$LIBS $ax_cv_lib_readline"
++    AC_DEFINE(HAVE_LIBREADLINE, 1,
++              [Define if you have a readline compatible library])
++    AC_CHECK_HEADERS(readline.h readline/readline.h)
++    AC_CACHE_CHECK([whether readline supports history],
++                   ax_cv_lib_readline_history, [
++      ax_cv_lib_readline_history="no"
++      AC_TRY_LINK_FUNC(add_history, ax_cv_lib_readline_history="yes")
++    ])
++    if test "$ax_cv_lib_readline_history" = "yes"; then
++      AC_DEFINE(HAVE_READLINE_HISTORY, 1,
++                [Define if your readline library has \`add_history'])
++      AC_CHECK_HEADERS(history.h readline/history.h)
++    fi
++  fi
++])dnl
+diff --git a/src/Makefile.am b/src/Makefile.am
+new file mode 100644
+index 0000000..210147e
+--- /dev/null
++++ b/src/Makefile.am
+@@ -0,0 +1,45 @@
++sbin_PROGRAMS = nft
++
++nft_CFLAGS =	-fno-strict-aliasing							\
++		-Wall									\
++		-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations		\
++		-Wdeclaration-after-statement -Wsign-compare -Winit-self		\
++		-Wformat-nonliteral -Wformat-security -Wmissing-format-attribute	\
++		-Wcast-align -Wundef -Wbad-function-cast				\
++		-Waggregate-return -Wunused -Wwrite-strings				\
++		@LIBMNL_CFLAGS@ @LIBNFTNL_CFLAGS@
++
++nft_CPPFLAGS = -I${srcdir}/../include @DEBUG_CPPFLAGS@
++
++nft_LDADD = @LIBMNL_LIBS@ @LIBNFTNL_LIBS@
++
++AM_YFLAGS = -d
++BUILT_SOURCES =	scanner.c scanner.h yacc_parser.c yacc_parser.h
++
++scanner.h: scanner.c
++
++nft_SOURCES = 	main.c				\
++		cli.c				\
++		rule.c				\
++		statement.c			\
++		datatype.c			\
++		expression.c			\
++		evaluate.c			\
++		proto.c				\
++		payload.c			\
++		exthdr.c			\
++		meta.c				\
++		ct.c				\
++		netlink.c			\
++		netlink_linearize.c		\
++		netlink_delinearize.c		\
++		segtree.c			\
++		rbtree.c			\
++		gmputil.c			\
++		utils.c				\
++		erec.c				\
++		mnl.c				\
++		scanner.l			\
++		yacc_parser.y
++
++CLEANFILES = *~ scanner.c scanner.h yacc_parser.c yacc_parser.h
 -- 
 2.0.1
 
