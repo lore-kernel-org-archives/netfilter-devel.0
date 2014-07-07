@@ -1,136 +1,56 @@
-From: Giorgio Dal Molin <giorgio.nicole@arcor.de>
-Subject: [PATCH 1/7] autotool conversion: autotools support for the subdir. 'files/nftables'.
-Date: Mon,  7 Jul 2014 12:15:38 +0159
-Message-ID: <1404728169-7899-2-git-send-email-giorgio.nicole@arcor.de>
-References: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
-Cc: root <giorgio.nicole@rocor.de>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/7] autotool conversion: use pkg-config to find 'libmnl',
+ libnftnl' and 'ncurses'.
+Date: Mon, 7 Jul 2014 15:08:32 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1407071505120.20461@nerf08.vanv.qr>
+References: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de> <1404728169-7899-3-git-send-email-giorgio.nicole@arcor.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Giorgio Dal Molin <giorgio.nicole@arcor.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:38566 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752621AbaGGKQt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2014 06:16:49 -0400
-In-Reply-To: <1404728169-7899-1-git-send-email-giorgio.nicole@arcor.de>
+Received: from ares08.inai.de ([46.4.84.70]:57683 "EHLO ares08.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752857AbaGGNId (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Jul 2014 09:08:33 -0400
+In-Reply-To: <1404728169-7899-3-git-send-email-giorgio.nicole@arcor.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: root <giorgio.nicole@rocor.de>
 
-We added the marker @sbindir@ to the first line of the scripts so it
-can be replaced once the scripts are installed.
----
- files/nftables/Makefile.am   | 13 +++++++++++++
- files/nftables/bridge-filter |  2 +-
- files/nftables/inet-filter   |  2 +-
- files/nftables/ipv4-filter   |  2 +-
- files/nftables/ipv4-mangle   |  2 +-
- files/nftables/ipv4-nat      |  2 +-
- files/nftables/ipv6-filter   |  2 +-
- files/nftables/ipv6-mangle   |  2 +-
- files/nftables/ipv6-nat      |  2 +-
- 9 files changed, 21 insertions(+), 8 deletions(-)
- create mode 100644 files/nftables/Makefile.am
+On Monday 2014-07-07 12:16, Giorgio Dal Molin wrote:
+>-	     AC_MSG_ERROR([No suitable version of libnftnl found]))
+>+dnl Check for package libnftnl
+>+PKG_CHECK_MODULES(LIBMNL, [libmnl], , AC_MSG_ERROR([No suitable version of libmnl found]))
+>+AC_SUBST(LIBMNL_CFLAGS)
+>+AC_SUBST(LIBMNL_LIBS)
 
-diff --git a/files/nftables/Makefile.am b/files/nftables/Makefile.am
-new file mode 100644
-index 0000000..32dced3
---- /dev/null
-+++ b/files/nftables/Makefile.am
-@@ -0,0 +1,13 @@
-+
-+pkgsysconfdir = ${sysconfdir}/nftables
-+dist_pkgsysconf_DATA =	bridge-filter	\
-+			inet-filter	\
-+			ipv4-filter	\
-+			ipv4-mangle	\
-+			ipv4-nat	\
-+			ipv6-filter	\
-+			ipv6-mangle	\
-+			ipv6-nat
-+
-+install-data-hook:
-+	${SED} -i 's|@sbindir[@]|${sbindir}|g' ${DESTDIR}${pkgsysconfdir}/*
-diff --git a/files/nftables/bridge-filter b/files/nftables/bridge-filter
-index 54779c4..2add455 100644
---- a/files/nftables/bridge-filter
-+++ b/files/nftables/bridge-filter
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table bridge filter {
- 	chain input		{ type filter hook input priority -200; }
-diff --git a/files/nftables/inet-filter b/files/nftables/inet-filter
-index 9f3108f..f572db5 100644
---- a/files/nftables/inet-filter
-+++ b/files/nftables/inet-filter
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table inet filter {
- 	chain input		{ type filter hook input priority 0; }
-diff --git a/files/nftables/ipv4-filter b/files/nftables/ipv4-filter
-index 3174e7a..a4ca7f2 100644
---- a/files/nftables/ipv4-filter
-+++ b/files/nftables/ipv4-filter
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table filter {
- 	chain input		{ type filter hook input priority 0; }
-diff --git a/files/nftables/ipv4-mangle b/files/nftables/ipv4-mangle
-index 27327d3..be564a5 100644
---- a/files/nftables/ipv4-mangle
-+++ b/files/nftables/ipv4-mangle
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table mangle {
- 	chain output		{ type route hook output priority -150; }
-diff --git a/files/nftables/ipv4-nat b/files/nftables/ipv4-nat
-index 99d6951..01c6c3d 100644
---- a/files/nftables/ipv4-nat
-+++ b/files/nftables/ipv4-nat
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table nat {
- 	chain prerouting	{ type nat hook prerouting priority -150; }
-diff --git a/files/nftables/ipv6-filter b/files/nftables/ipv6-filter
-index 98fce02..ce4d7de 100644
---- a/files/nftables/ipv6-filter
-+++ b/files/nftables/ipv6-filter
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table ip6 filter {
- 	chain input		{ type filter hook input priority 0; }
-diff --git a/files/nftables/ipv6-mangle b/files/nftables/ipv6-mangle
-index 7274353..fa32402 100644
---- a/files/nftables/ipv6-mangle
-+++ b/files/nftables/ipv6-mangle
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table ip6 mangle {
- 	chain output		{ type route hook output priority -150; }
-diff --git a/files/nftables/ipv6-nat b/files/nftables/ipv6-nat
-index 33ecf9b..3f57c56 100644
---- a/files/nftables/ipv6-nat
-+++ b/files/nftables/ipv6-nat
-@@ -1,4 +1,4 @@
--#! nft -f
-+#! @sbindir@nft -f
- 
- table ip6 nat {
- 	chain prerouting	{ type nat hook prerouting priority -150; }
--- 
-2.0.1
+Substing CFLAGS and LIBS is not needed; this is already included
+in PKG_CHECK_MODULES.
+
+>--- /dev/null
+>+++ b/src/Makefile.am
+>@@ -0,0 +1,45 @@
+>+sbin_PROGRAMS = nft
+>+
+>+nft_CFLAGS =	-fno-strict-aliasing							\
+>+		-Wall									\
+>+		-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations		\
+>+		-Wdeclaration-after-statement -Wsign-compare -Winit-self		\
+>+		-Wformat-nonliteral -Wformat-security -Wmissing-format-attribute	\
+>+		-Wcast-align -Wundef -Wbad-function-cast				\
+>+		-Waggregate-return -Wunused -Wwrite-strings				\
+>+		@LIBMNL_CFLAGS@ @LIBNFTNL_CFLAGS@
+>+
+>+nft_CPPFLAGS = -I${srcdir}/../include @DEBUG_CPPFLAGS@
+
+As the pkg-config CFLAGS are really just CPPFLAGS, @LIBMNL_CFLAGS@
+and @LIBNFTNL_CFLAGS@ should be put into nft_CPPFLAGS instead. In
+fact, you can just use ${LIBMNL_CFLAGS} and ${LIBNFTNL_CFLAGS} (same
+for _LIBS) instead, which ensures that you can override them at make
+time. Also, if nft_CPPFLAGS is not strictly necessary, use
+AM_CPPFLAGS (and AM_CFLAGS) instead.
+
+See also the autotooling I had done earlier
+and which you and me have talked about ;)
 
