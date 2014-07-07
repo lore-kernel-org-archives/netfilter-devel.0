@@ -1,124 +1,137 @@
 From: Giorgio Dal Molin <giorgio.nicole@arcor.de>
-Subject: [PATCH 6/7] autotools conversion: commit the rest of the configure.ac changes.
-Date: Mon,  7 Jul 2014 16:19:30 +0200
-Message-ID: <1404742796-8039-7-git-send-email-giorgio.nicole@arcor.de>
+Subject: [PATCH 1/7] autotool conversion: autotools support for the subdir. 'files/nftables'.
+Date: Mon,  7 Jul 2014 16:19:25 +0200
+Message-ID: <1404742796-8039-2-git-send-email-giorgio.nicole@arcor.de>
 References: <1404742796-8039-1-git-send-email-giorgio.nicole@arcor.de>
 Cc: Giorgio Dal Molin <giorgio.nicole@arcor.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:46456 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753442AbaGGOUM (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:42852 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753054AbaGGOUL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2014 10:20:12 -0400
-Received: from mail-in-13-z2.arcor-online.net (mail-in-13-z2.arcor-online.net [151.189.8.30])
-	by mx.arcor.de (Postfix) with ESMTP id BD939212490
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2014 16:20:10 +0200 (CEST)
+	Mon, 7 Jul 2014 10:20:11 -0400
+Received: from mail-in-12-z2.arcor-online.net (mail-in-12-z2.arcor-online.net [151.189.8.29])
+	by mx.arcor.de (Postfix) with ESMTP id 61C785A1EE
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2014 16:20:09 +0200 (CEST)
 In-Reply-To: <1404742796-8039-1-git-send-email-giorgio.nicole@arcor.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Mainly the handling of the option '--enable-debug' and the definition of
-the cpp variable DEFAULT_INCLUDE_PATH; the definition is written to
-the generated header 'config.h', included by all the 'src/*.c'.
-
-Also updated the script 'autogen.sh' to support calling it from a
-build directory different from the package root.
+We added the marker @sbindir@ to the first line of the scripts so it
+can be replaced once the scripts are installed.
 ---
- autogen.sh      | 10 ++++++++--
- configure.ac    | 32 ++++++++++++++++++++++++++------
- src/Makefile.am |  4 ++--
- 3 files changed, 36 insertions(+), 10 deletions(-)
+ files/nftables/Makefile.am   | 13 +++++++++++++
+ files/nftables/bridge-filter |  2 +-
+ files/nftables/inet-filter   |  2 +-
+ files/nftables/ipv4-filter   |  2 +-
+ files/nftables/ipv4-mangle   |  2 +-
+ files/nftables/ipv4-nat      |  2 +-
+ files/nftables/ipv6-filter   |  2 +-
+ files/nftables/ipv6-mangle   |  2 +-
+ files/nftables/ipv6-nat      |  2 +-
+ 9 files changed, 21 insertions(+), 8 deletions(-)
+ create mode 100644 files/nftables/Makefile.am
 
-diff --git a/autogen.sh b/autogen.sh
-index a62e737..ce6243c 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -1,4 +1,10 @@
--#!/bin/bash
-+#! /bin/sh
- 
--autoreconf -fi;
-+srcdir=`dirname $0`
-+test -z "$srcdir" && srcdir=.
+diff --git a/files/nftables/Makefile.am b/files/nftables/Makefile.am
+new file mode 100644
+index 0000000..32dced3
+--- /dev/null
++++ b/files/nftables/Makefile.am
+@@ -0,0 +1,13 @@
 +
-+ORIGDIR=`pwd`
-+cd $srcdir
++pkgsysconfdir = ${sysconfdir}/nftables
++dist_pkgsysconf_DATA =	bridge-filter	\
++			inet-filter	\
++			ipv4-filter	\
++			ipv4-mangle	\
++			ipv4-nat	\
++			ipv6-filter	\
++			ipv6-mangle	\
++			ipv6-nat
 +
-+autoreconf -fvi || exit 1
- rm -Rf autom4te*.cache config.h.in~
-diff --git a/configure.ac b/configure.ac
-index 18ca0a2..f4a6051 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -5,7 +5,13 @@ AC_PREREQ(2.61)
++install-data-hook:
++	${SED} -i 's|@sbindir[@]|${sbindir}|g' ${DESTDIR}${pkgsysconfdir}/*
+diff --git a/files/nftables/bridge-filter b/files/nftables/bridge-filter
+index 54779c4..2add455 100644
+--- a/files/nftables/bridge-filter
++++ b/files/nftables/bridge-filter
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
- AC_COPYRIGHT([Copyright (c) 2008 Patrick McHardy <kaber@trash.net>])
- AC_INIT([nftables], [0.3], [netfilter-devel@vger.kernel.org])
-+AM_INIT_AUTOMAKE([dist-bzip2 dist-xz])
-+AM_MAINTAINER_MODE([disable])
-+AM_SILENT_RULES([yes])
-+AC_CONFIG_MACRO_DIR([m4])
-+
- AC_DEFINE([RELEASE_NAME], ["Support Edward Snowden"], [Release name])
-+AC_DEFINE_UNQUOTED([DEFAULT_INCLUDE_PATH],["$confdir"],[define DEFAULT_INCLUDE_PATH])
+ table bridge filter {
+ 	chain input		{ type filter hook input priority -200; }
+diff --git a/files/nftables/inet-filter b/files/nftables/inet-filter
+index 9f3108f..f572db5 100644
+--- a/files/nftables/inet-filter
++++ b/files/nftables/inet-filter
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
- AC_CONFIG_SRCDIR([src/rule.c])
- AC_CONFIG_HEADER([config.h])
-@@ -14,10 +20,17 @@ AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
- AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
+ table inet filter {
+ 	chain input		{ type filter hook input priority 0; }
+diff --git a/files/nftables/ipv4-filter b/files/nftables/ipv4-filter
+index 3174e7a..a4ca7f2 100644
+--- a/files/nftables/ipv4-filter
++++ b/files/nftables/ipv4-filter
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
- AC_ARG_ENABLE([debug],
--	      AS_HELP_STRING([--enable-debug], [Enable debugging]),
--	      [CONFIG_DEBUG="$(echo $enableval | cut -b1)"],
--	      [CONFIG_DEBUG="y"])
--AC_SUBST([CONFIG_DEBUG])
-+	      AS_HELP_STRING([--enable-debug], [Enable debugging]))
-+
-+AS_CASE([$enable_debug],
-+	[yes],[
-+	AC_DEFINE([DEBUG],1,[Debug enabled])
-+	DEBUG_CPPFLAGS="-DDEBUG"
-+	DEBUG_CFLAGS="-g"
-+	])
-+
-+AC_SUBST(DEBUG_CPPFLAGS)
-+AC_SUBST(DEBUG_CFLAGS)
+ table filter {
+ 	chain input		{ type filter hook input priority 0; }
+diff --git a/files/nftables/ipv4-mangle b/files/nftables/ipv4-mangle
+index 27327d3..be564a5 100644
+--- a/files/nftables/ipv4-mangle
++++ b/files/nftables/ipv4-mangle
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
- # Checks for programs.
- AC_PROG_CC
-@@ -119,6 +132,13 @@ AC_TYPE_UINT64_T
- # Checks for library functions.
- AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
+ table mangle {
+ 	chain output		{ type route hook output priority -150; }
+diff --git a/files/nftables/ipv4-nat b/files/nftables/ipv4-nat
+index 99d6951..01c6c3d 100644
+--- a/files/nftables/ipv4-nat
++++ b/files/nftables/ipv4-nat
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
--AC_CONFIG_FILES([Makefile Makefile.defs Makefile.rules])
--AC_CONFIG_FILES([src/Makefile doc/Makefile files/Makefile])
-+AC_CONFIG_FILES([	Makefile				\
-+			src/Makefile				\
-+			doc/Makefile				\
-+			files/Makefile				\
-+			files/nftables/Makefile			\
-+			include/Makefile			\
-+			include/linux/Makefile			\
-+			include/linux/netfilter/Makefile	\
-+		])
- AC_OUTPUT
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 5f19732..2b2c535 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -6,9 +6,9 @@ nft_CFLAGS =	-fno-strict-aliasing							\
- 		-Wdeclaration-after-statement -Wsign-compare -Winit-self		\
- 		-Wformat-nonliteral -Wformat-security -Wmissing-format-attribute	\
- 		-Wcast-align -Wundef -Wbad-function-cast				\
--		-Waggregate-return -Wunused -Wwrite-strings
-+		-Waggregate-return -Wunused -Wwrite-strings ${DEBUG_CFLAGS}
+ table nat {
+ 	chain prerouting	{ type nat hook prerouting priority -150; }
+diff --git a/files/nftables/ipv6-filter b/files/nftables/ipv6-filter
+index 98fce02..ce4d7de 100644
+--- a/files/nftables/ipv6-filter
++++ b/files/nftables/ipv6-filter
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
--nft_CPPFLAGS = -I${srcdir}/../include ${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS}
-+nft_CPPFLAGS = -I${srcdir}/../include ${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS} ${DEBUG_CPPFLAGS}
+ table ip6 filter {
+ 	chain input		{ type filter hook input priority 0; }
+diff --git a/files/nftables/ipv6-mangle b/files/nftables/ipv6-mangle
+index 7274353..fa32402 100644
+--- a/files/nftables/ipv6-mangle
++++ b/files/nftables/ipv6-mangle
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
- nft_LDADD = ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
+ table ip6 mangle {
+ 	chain output		{ type route hook output priority -150; }
+diff --git a/files/nftables/ipv6-nat b/files/nftables/ipv6-nat
+index 33ecf9b..3f57c56 100644
+--- a/files/nftables/ipv6-nat
++++ b/files/nftables/ipv6-nat
+@@ -1,4 +1,4 @@
+-#! nft -f
++#! @sbindir@nft -f
  
+ table ip6 nat {
+ 	chain prerouting	{ type nat hook prerouting priority -150; }
 -- 
 2.0.1
 
