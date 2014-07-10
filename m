@@ -1,86 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netlink: check and handle errors from netlink_delinearize_set()
-Date: Thu, 10 Jul 2014 12:22:33 +0200
-Message-ID: <1404987753-9252-1-git-send-email-kaber@trash.net>
+From: giorgio.nicole@arcor.de
+Subject: Aw: Re: [PATCH 4/7] autotools conversion: include the header
+ 'config.h' in every C source file.
+Date: Thu, 10 Jul 2014 12:32:18 +0200 (CEST)
+Message-ID: <1421640070.472816.1404988338916.JavaMail.ngmail@webmail23.arcor-online.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43789 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154AbaGJKWg (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:52569 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750966AbaGJKcU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2014 06:22:36 -0400
+	Thu, 10 Jul 2014 06:32:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix segfaults when delinearizing the set fails and abort on error when
-listing sets.
+ 
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/netlink.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 2e7c572..987dd63 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1164,6 +1164,8 @@ static int list_set_cb(struct nft_set *nls, void *arg)
- 
- 	netlink_dump_set(nls);
- 	set = netlink_delinearize_set(ctx, nls);
-+	if (set == NULL)
-+		return -1;
- 	list_add_tail(&set->list, &ctx->list);
- 	return 0;
- }
-@@ -1172,6 +1174,7 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
- 		      const struct location *loc)
- {
- 	struct nft_set_list *set_cache;
-+	int err;
- 
- 	set_cache = mnl_nft_set_dump(nf_sock, h->family, h->table);
- 	if (set_cache == NULL)
-@@ -1179,9 +1182,9 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
- 					"Could not receive sets from kernel: %s",
- 					strerror(errno));
- 
--	nft_set_list_foreach(set_cache, list_set_cb, ctx);
-+	err = nft_set_list_foreach(set_cache, list_set_cb, ctx);
- 	nft_set_list_free(set_cache);
--	return 0;
-+	return err;
- }
- 
- int netlink_get_set(struct netlink_ctx *ctx, const struct handle *h,
-@@ -1200,6 +1203,8 @@ int netlink_get_set(struct netlink_ctx *ctx, const struct handle *h,
- 					strerror(errno));
- 
- 	set = netlink_delinearize_set(ctx, nls);
-+	if (set == NULL)
-+		return -1;
- 	list_add_tail(&set->list, &ctx->list);
- 	nft_set_free(nls);
- 
-@@ -1586,6 +1591,8 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
- 		if (type == NFT_MSG_NEWSET) {
- 			printf("add ");
- 			set = netlink_delinearize_set(monh->ctx, nls);
-+			if (set == NULL)
-+				return MNL_CB_ERROR;
- 			set_print_plain(set);
- 			set_free(set);
- 		} else {
-@@ -1770,6 +1777,8 @@ static void netlink_events_cache_addset(struct netlink_mon_handler *monh,
- 	set_tmpctx.msgs = &msgs;
- 
- 	s = netlink_delinearize_set(&set_tmpctx, nls);
-+	if (s == NULL)
-+		return;
- 	s->init = set_expr_alloc(monh->loc);
- 
- 	t = table_lookup(&s->handle);
--- 
-1.9.3
+----- Original Nachricht ----
+Von:     Patrick McHardy <kaber@trash.net>
+An:      Giorgio Dal Molin <giorgio.nicole@arcor.de>
+Datum:   10.07.2014 12:04
+Betreff: Re: [PATCH 4/7] autotools conversion: include the header 'config.h'
+ in every C source file.
 
+> On Mon, Jul 07, 2014 at 04:19:28PM +0200, Giorgio Dal Molin wrote:
+> > Added an #include <config.h> to all the C source files so that the
+> results
+> > of the tests in the configure script are available to all the compilation
+> > units.
+> > 
+> > We could have added the include also to 'yacc_parser.y' and 'scanner.l'
+> > but we don't, because it is not strictly needed and to avoid to define
+> > the variable 'VERSION' two times.
+> 
+> > --- a/src/cli.c
+> > +++ b/src/cli.c
+> > @@ -11,6 +11,9 @@
+> >   *
+> >   * Development of this code funded by Astaro AG (http://www.astaro.com/)
+> >   */
+> > +#ifdef HAVE_CONFIG_H
+> > +#include <config.h>
+> > +#endif
+> 
+> Do we really need those ifdefs?
+>
+
+Hi,
+
+do you mean just the #ifdefs or the whole #include <config.h> ?
+
+The config.h should be included, unless there are real problems with it; one I've found
+is the preprocessor variable VERSION defined in the yacc source 'src/yacc_parser.y':
+it would conflict with the same variable defined in the 'config.h'.
+
+Actually, if you just build the package under linux, using the ./configure... && make all install
+you will always generate / include the config.h, so the #ifdef is not strictly needed.
+
+giorgio
