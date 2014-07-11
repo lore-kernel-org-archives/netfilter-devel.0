@@ -1,35 +1,80 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 4/7] autotools conversion: include the header 'config.h'
- in every C source file.
-Date: Fri, 11 Jul 2014 09:24:41 +0200 (CEST)
-Message-ID: <alpine.LSU.2.11.1407110921430.777@nerf08.vanv.qr>
-References: <1404742796-8039-1-git-send-email-giorgio.nicole@arcor.de> <1404742796-8039-5-git-send-email-giorgio.nicole@arcor.de> <20140710100409.GA13741@macbook.localnet>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Giorgio Dal Molin <giorgio.nicole@arcor.de>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:51934 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797AbaGKHYn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jul 2014 03:24:43 -0400
-In-Reply-To: <20140710100409.GA13741@macbook.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch V1 04/30] mm, netfilter: Use cpu_to_mem()/numa_mem_id() to support memoryless node
+Date: Fri, 11 Jul 2014 15:37:21 +0800
+Message-ID: <1405064267-11678-5-git-send-email-jiang.liu@linux.intel.com>
+References: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>,
+	Tony Luck <tony.luck@intel.com>,
+	linux-mm@kvack.org,
+	linux-hotplug@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Mel Gorman <mgorman@suse.de>,
+	David Rientjes <rientjes@google.com>,
+	Mike Galbraith <umgwanakikbuti@gmail.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 2014-07-10 12:04, Patrick McHardy wrote:
->> --- a/src/cli.c
->> +++ b/src/cli.c
->> @@ -11,6 +11,9 @@
->>   *
->>   * Development of this code funded by Astaro AG (http://www.astaro.com/)
->>   */
->> +#ifdef HAVE_CONFIG_H
->> +#include <config.h>
->> +#endif
->
->Do we really need those ifdefs?
+When CONFIG_HAVE_MEMORYLESS_NODES is enabled, cpu_to_node()/numa_node_id()
+may return a node without memory, and later cause system failure/panic
+when calling kmalloc_node() and friends with returned node id.
+So use cpu_to_mem()/numa_mem_id() instead to get the nearest node with
+memory for the/current cpu.
 
-Practically no, since AC_CONFIG_HEADERS is unconditionally called in 
-configure.ac.
+If CONFIG_HAVE_MEMORYLESS_NODES is disabled, cpu_to_mem()/numa_mem_id()
+is the same as cpu_to_node()/numa_node_id().
+
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ net/netfilter/x_tables.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 227aa11e8409..6e7d4bc81422 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -692,10 +692,10 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 		if (size <= PAGE_SIZE)
+ 			newinfo->entries[cpu] = kmalloc_node(size,
+ 							GFP_KERNEL,
+-							cpu_to_node(cpu));
++							cpu_to_mem(cpu));
+ 		else
+ 			newinfo->entries[cpu] = vmalloc_node(size,
+-							cpu_to_node(cpu));
++							cpu_to_mem(cpu));
+ 
+ 		if (newinfo->entries[cpu] == NULL) {
+ 			xt_free_table_info(newinfo);
+@@ -801,10 +801,10 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
+ 	for_each_possible_cpu(cpu) {
+ 		if (size > PAGE_SIZE)
+ 			i->jumpstack[cpu] = vmalloc_node(size,
+-				cpu_to_node(cpu));
++				cpu_to_mem(cpu));
+ 		else
+ 			i->jumpstack[cpu] = kmalloc_node(size,
+-				GFP_KERNEL, cpu_to_node(cpu));
++				GFP_KERNEL, cpu_to_mem(cpu));
+ 		if (i->jumpstack[cpu] == NULL)
+ 			/*
+ 			 * Freeing will be done later on by the callers. The
+-- 
+1.7.10.4
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
