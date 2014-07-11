@@ -1,152 +1,328 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: Re: [nft PATCH 1/2] proto: add protocol key in some proto_desc for
- identifying it
-Date: Fri, 11 Jul 2014 11:21:00 +0200
-Message-ID: <CADjjUBO_WRF6NsimrnG+g8DHuaO28RiF2jVG4ir7Q16JrAvGeQ@mail.gmail.com>
-References: <1405068166-7174-1-git-send-email-alvaroneay@gmail.com>
-	<20140711091430.GA4268@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft, v2] mnl: check for NLM_F_DUMP_INTR when dumping object lists
+Date: Fri, 11 Jul 2014 13:08:34 +0200
+Message-ID: <1405076914-5573-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:49936 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbaGKJVD convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:21:03 -0400
-Received: by mail-la0-f51.google.com with SMTP id mc6so639189lab.38
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2014 02:21:00 -0700 (PDT)
-In-Reply-To: <20140711091430.GA4268@localhost>
+Received: from mail.us.es ([193.147.175.20]:41387 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752112AbaGKLIn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Jul 2014 07:08:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2014-07-11 11:14 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Fri, Jul 11, 2014 at 10:42:45AM +0200, Alvaro Neira Ayuso wrote:
->> From: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
->>
->> I have added this protocol_key for having more information
->> for making more easy identify it
->
-> You cannot add something which is left unused.
->
-> IOW, the policy is to add something that you start using from the sam=
-e
-> patch.
+This flag allows to detect that an update has ocurred while dumping
+any of the object lists. In case of interference, nft cancels the
+netlink socket to skip processing the remaining stale entries and
+it retries to obtain fresh list of objects.
 
-Catched, I'm going to use that in a future patch for the reject. I'm
-going to send this patch when I finish the other. Sorry and thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/netlink.h |    2 ++
+ src/main.c        |    8 ++++++-
+ src/mnl.c         |   15 +++++++++++++
+ src/netlink.c     |   30 +++++++++++++++++++++----
+ src/rule.c        |   64 +++++++++++++++++++++++++++++++----------------------
+ 5 files changed, 88 insertions(+), 31 deletions(-)
 
->
->> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
->> ---
->>  src/proto.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/src/proto.c b/src/proto.c
->> index 546ef10..4192108 100644
->> --- a/src/proto.c
->> +++ b/src/proto.c
->> @@ -249,6 +249,7 @@ const struct proto_desc proto_ah =3D {
->>  const struct proto_desc proto_esp =3D {
->>       .name           =3D "esp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_ESP,
->>       .templates      =3D {
->>               [ESPHDR_SPI]            =3D ESPHDR_FIELD("spi", spi),
->>               [ESPHDR_SEQUENCE]       =3D ESPHDR_FIELD("sequence", s=
-eq_no),
->> @@ -326,6 +327,7 @@ static const struct datatype icmp_type_type =3D =
-{
->>  const struct proto_desc proto_icmp =3D {
->>       .name           =3D "icmp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_ICMP,
->>       .templates      =3D {
->>               [ICMPHDR_TYPE]          =3D ICMPHDR_TYPE("type", &icmp=
-_type_type, type),
->>               [ICMPHDR_CODE]          =3D ICMPHDR_FIELD("code", code=
-),
->> @@ -348,6 +350,7 @@ const struct proto_desc proto_icmp =3D {
->>  const struct proto_desc proto_udp =3D {
->>       .name           =3D "udp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_UDP,
->>       .templates      =3D {
->>               [UDPHDR_SPORT]          =3D INET_SERVICE("sport", stru=
-ct udphdr, source),
->>               [UDPHDR_DPORT]          =3D INET_SERVICE("dport", stru=
-ct udphdr, dest),
->> @@ -359,6 +362,7 @@ const struct proto_desc proto_udp =3D {
->>  const struct proto_desc proto_udplite =3D {
->>       .name           =3D "udplite",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_UDPLITE,
->>       .templates      =3D {
->>               [UDPHDR_SPORT]          =3D INET_SERVICE("sport", stru=
-ct udphdr, source),
->>               [UDPHDR_DPORT]          =3D INET_SERVICE("dport", stru=
-ct udphdr, dest),
->> @@ -403,6 +407,7 @@ static const struct datatype tcp_flag_type =3D {
->>  const struct proto_desc proto_tcp =3D {
->>       .name           =3D "tcp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_TCP,
->>       .templates      =3D {
->>               [TCPHDR_SPORT]          =3D INET_SERVICE("sport", stru=
-ct tcphdr, source),
->>               [TCPHDR_DPORT]          =3D INET_SERVICE("dport", stru=
-ct tcphdr, dest),
->> @@ -456,6 +461,7 @@ static const struct datatype dccp_pkttype_type =3D=
+diff --git a/include/netlink.h b/include/netlink.h
+index 4ef7365..af5dcd9 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -137,6 +137,8 @@ extern void netlink_dump_expr(struct nft_rule_expr *nle);
+ extern void netlink_dump_set(struct nft_set *nls);
+ 
+ extern int netlink_batch_send(struct list_head *err_list);
++
++extern void netlink_restart(void);
+ extern void netlink_abi_error(void) __noreturn;
+ extern int netlink_io_error(struct netlink_ctx *ctx,
+ 			    const struct location *loc, const char *fmt, ...);
+diff --git a/src/main.c b/src/main.c
+index a446bc6..30ea2c6 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -223,8 +223,14 @@ int nft_run(void *scanner, struct parser_state *state, struct list_head *msgs)
+ 	ret = nft_parse(scanner, state);
+ 	if (ret != 0 || state->nerrs > 0)
+ 		return -1;
++retry:
++	ret = nft_netlink(state, msgs);
++	if (ret < 0 && errno == EINTR) {
++		netlink_restart();
++		goto retry;
++	}
+ 
+-	return nft_netlink(state, msgs);
++	return ret;
+ }
+ 
+ int main(int argc, char * const *argv)
+diff --git a/src/mnl.c b/src/mnl.c
+index a816106..d3c91b4 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -363,6 +363,9 @@ static int rule_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_rule_list *nlr_list = data;
+ 	struct nft_rule *r;
+ 
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	r = nft_rule_alloc();
+ 	if (r == NULL)
+ 		memory_allocation_error();
+@@ -474,6 +477,9 @@ static int chain_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_chain_list *nlc_list = data;
+ 	struct nft_chain *c;
+ 
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	c = nft_chain_alloc();
+ 	if (c == NULL)
+ 		memory_allocation_error();
+@@ -603,6 +609,9 @@ static int table_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_table_list *nlt_list = data;
+ 	struct nft_table *t;
+ 
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	t = nft_table_alloc();
+ 	if (t == NULL)
+ 		memory_allocation_error();
+@@ -736,6 +745,9 @@ static int set_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_set_list *nls_list = data;
+ 	struct nft_set *s;
+ 
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	s = nft_set_alloc();
+ 	if (s == NULL)
+ 		memory_allocation_error();
+@@ -839,6 +851,9 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nft_set *nls,
+ 
+ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
  {
->>  const struct proto_desc proto_dccp =3D {
->>       .name           =3D "dccp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_DCCP,
->>       .templates      =3D {
->>               [DCCPHDR_SPORT]         =3D INET_SERVICE("sport", stru=
-ct dccp_hdr, dccph_sport),
->>               [DCCPHDR_DPORT]         =3D INET_SERVICE("dport", stru=
-ct dccp_hdr, dccph_dport),
->> @@ -473,6 +479,7 @@ const struct proto_desc proto_dccp =3D {
->>  const struct proto_desc proto_sctp =3D {
->>       .name           =3D "sctp",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_SCTP,
->>       .templates      =3D {
->>               [SCTPHDR_SPORT]         =3D INET_SERVICE("sport", stru=
-ct sctphdr, source),
->>               [SCTPHDR_DPORT]         =3D INET_SERVICE("dport", stru=
-ct sctphdr, dest),
->> @@ -566,6 +573,7 @@ static const struct datatype icmp6_type_type =3D=
++	if (nlh->nlmsg_flags & NLM_F_DUMP_INTR)
++		return MNL_CB_ERROR;
++
+ 	nft_set_elems_nlmsg_parse(nlh, data);
+ 	return MNL_CB_OK;
+ }
+diff --git a/src/netlink.c b/src/netlink.c
+index 987dd63..5bc4669 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -70,6 +70,12 @@ static void __exit netlink_close_sock(void)
+ 		mnl_socket_close(nf_mon_sock);
+ }
+ 
++void netlink_restart(void)
++{
++	netlink_close_sock();
++	netlink_open_sock();
++}
++
+ static void netlink_open_mon_sock(void)
  {
->>  const struct proto_desc proto_icmp6 =3D {
->>       .name           =3D "icmpv6",
->>       .base           =3D PROTO_BASE_TRANSPORT_HDR,
->> +     .protocol_key   =3D IPPROTO_ICMPV6,
->>       .templates      =3D {
->>               [ICMP6HDR_TYPE]         =3D ICMP6HDR_TYPE("type", &icm=
-p6_type_type, icmp6_type),
->>               [ICMP6HDR_CODE]         =3D ICMP6HDR_FIELD("code", icm=
-p6_code),
->> --
->> 1.7.10.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-=
-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	nf_mon_sock = nfsock_open();
+@@ -443,10 +449,14 @@ static int netlink_list_rules(struct netlink_ctx *ctx, const struct handle *h,
+ 	struct nft_rule_list *rule_cache;
+ 
+ 	rule_cache = mnl_nft_rule_dump(nf_sock, h->family);
+-	if (rule_cache == NULL)
++	if (rule_cache == NULL) {
++		if (errno == EINTR)
++			return -1;
++
+ 		return netlink_io_error(ctx, loc,
+ 					"Could not receive rules from kernel: %s",
+ 					strerror(errno));
++	}
+ 
+ 	ctx->data = h;
+ 	nft_rule_list_foreach(rule_cache, list_rule_cb, ctx);
+@@ -704,10 +714,14 @@ int netlink_list_chains(struct netlink_ctx *ctx, const struct handle *h,
+ 	struct chain *chain;
+ 
+ 	chain_cache = mnl_nft_chain_dump(nf_sock, h->family);
+-	if (chain_cache == NULL)
++	if (chain_cache == NULL) {
++		if (errno == EINTR)
++			return -1;
++
+ 		return netlink_io_error(ctx, loc,
+ 					"Could not receive chains from kernel: %s",
+ 					strerror(errno));
++	}
+ 
+ 	ctx->data = h;
+ 	nft_chain_list_foreach(chain_cache, list_chain_cb, ctx);
+@@ -907,10 +921,14 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
+ 	struct nft_table_list *table_cache;
+ 
+ 	table_cache = mnl_nft_table_dump(nf_sock, h->family);
+-	if (table_cache == NULL)
++	if (table_cache == NULL) {
++		if (errno == EINTR)
++			return -1;
++
+ 		return netlink_io_error(ctx, loc,
+ 					"Could not receive tables from kernel: %s",
+ 					strerror(errno));
++	}
+ 
+ 	nft_table_list_foreach(table_cache, list_table_cb, ctx);
+ 	nft_table_list_free(table_cache);
+@@ -1177,10 +1195,14 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
+ 	int err;
+ 
+ 	set_cache = mnl_nft_set_dump(nf_sock, h->family, h->table);
+-	if (set_cache == NULL)
++	if (set_cache == NULL) {
++		if (errno == EINTR)
++			return -1;
++
+ 		return netlink_io_error(ctx, loc,
+ 					"Could not receive sets from kernel: %s",
+ 					strerror(errno));
++	}
+ 
+ 	err = nft_set_list_foreach(set_cache, list_set_cb, ctx);
+ 	nft_set_list_free(set_cache);
+diff --git a/src/rule.c b/src/rule.c
+index a7bc6f4..1e54526 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -14,6 +14,7 @@
+ #include <stdint.h>
+ #include <string.h>
+ #include <inttypes.h>
++#include <errno.h>
+ 
+ #include <statement.h>
+ #include <rule.h>
+@@ -701,12 +702,28 @@ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	return 0;
+ }
+ 
++static void do_command_list_cleanup(struct table *table)
++{
++	struct chain *chain, *nchain;
++	struct set *set, *nset;
++
++	list_for_each_entry_safe(chain, nchain, &table->chains, list) {
++		list_del(&chain->list);
++		chain_free(chain);
++	}
++
++	list_for_each_entry_safe(set, nset, &table->sets, list) {
++		list_del(&set->list);
++		set_free(set);
++	}
++}
++
+ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table = NULL;
+-	struct chain *chain, *nchain;
++	struct chain *chain;
+ 	struct rule *rule, *nrule;
+-	struct set *set, *nset;
++	struct set *set;
+ 
+ 	/* No need to allocate the table object when listing all tables */
+ 	if (cmd->handle.table != NULL) {
+@@ -726,7 +743,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ 			if (netlink_list_tables(ctx, &cmd->handle,
+ 						&cmd->location) < 0)
+-				return -1;
++				goto err;
+ 
+ 			list_for_each_entry(table, &ctx->list, list) {
+ 				printf("table %s\n", table->handle.table);
+@@ -735,39 +752,41 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		}
+ 		/* List content of this table */
+ 		if (do_list_sets(ctx, &cmd->location, table) < 0)
+-			return -1;
++			goto err;
+ 		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		list_splice_tail_init(&ctx->list, &table->chains);
+ 		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		break;
+ 	case CMD_OBJ_CHAIN:
+ 		if (do_list_sets(ctx, &cmd->location, table) < 0)
+-			return -1;
++			goto err;
+ 		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		list_splice_tail_init(&ctx->list, &table->chains);
+ 		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		break;
+ 	case CMD_OBJ_SETS:
+ 		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		list_for_each_entry(set, &ctx->list, list){
+ 			if (netlink_get_setelems(ctx, &set->handle,
+-						 &cmd->location, set) < 0)
+-				return -1;
++						 &cmd->location, set) < 0) {
++				goto err;
++			}
+ 			set_print(set);
+ 		}
+ 		return 0;
+ 	case CMD_OBJ_SET:
+ 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
+-			return -1;
++			goto err;
+ 		list_for_each_entry(set, &ctx->list, list) {
+ 			if (netlink_get_setelems(ctx, &cmd->handle,
+-						 &cmd->location, set) < 0)
+-				return -1;
++						 &cmd->location, set) < 0) {
++				goto err;
++			}
+ 			set_print(set);
+ 		}
+ 		return 0;
+@@ -787,18 +806,11 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	}
+ 
+ 	table_print(table);
+-
+-	list_for_each_entry_safe(chain, nchain, &table->chains, list) {
+-		list_del(&chain->list);
+-		chain_free(chain);
+-	}
+-
+-	list_for_each_entry_safe(set, nset, &table->sets, list) {
+-		list_del(&set->list);
+-		set_free(set);
+-	}
+-
++	do_command_list_cleanup(table);
+ 	return 0;
++err:
++	do_command_list_cleanup(table);
++	return -1;
+ }
+ 
+ static int do_command_flush(struct netlink_ctx *ctx, struct cmd *cmd)
+-- 
+1.7.10.4
 
-
-
---=20
-=C3=81lvaro Neira Ayuso
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
