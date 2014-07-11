@@ -1,80 +1,110 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V1 04/30] mm, netfilter: Use cpu_to_mem()/numa_mem_id() to support memoryless node
-Date: Fri, 11 Jul 2014 15:37:21 +0800
-Message-ID: <1405064267-11678-5-git-send-email-jiang.liu@linux.intel.com>
-References: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>,
-	Tony Luck <tony.luck@intel.com>,
-	linux-mm@kvack.org,
-	linux-hotplug@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Mel Gorman <mgorman@suse.de>,
-	David Rientjes <rientjes@google.com>,
-	Mike Galbraith <umgwanakikbuti@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 1/2] proto: add protocol key in some proto_desc for identifying it
+Date: Fri, 11 Jul 2014 10:42:45 +0200
+Message-ID: <1405068166-7174-1-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:42218 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbaGKInP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Jul 2014 04:43:15 -0400
+Received: by mail-pd0-f170.google.com with SMTP id z10so1040304pdj.29
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2014 01:43:14 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When CONFIG_HAVE_MEMORYLESS_NODES is enabled, cpu_to_node()/numa_node_id()
-may return a node without memory, and later cause system failure/panic
-when calling kmalloc_node() and friends with returned node id.
-So use cpu_to_mem()/numa_mem_id() instead to get the nearest node with
-memory for the/current cpu.
+=46rom: =C3=81lvaro Neira Ayuso <alvaroneay@gmail.com>
 
-If CONFIG_HAVE_MEMORYLESS_NODES is disabled, cpu_to_mem()/numa_mem_id()
-is the same as cpu_to_node()/numa_node_id().
+I have added this protocol_key for having more information
+for making more easy identify it
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- net/netfilter/x_tables.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ src/proto.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 227aa11e8409..6e7d4bc81422 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -692,10 +692,10 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 		if (size <= PAGE_SIZE)
- 			newinfo->entries[cpu] = kmalloc_node(size,
- 							GFP_KERNEL,
--							cpu_to_node(cpu));
-+							cpu_to_mem(cpu));
- 		else
- 			newinfo->entries[cpu] = vmalloc_node(size,
--							cpu_to_node(cpu));
-+							cpu_to_mem(cpu));
- 
- 		if (newinfo->entries[cpu] == NULL) {
- 			xt_free_table_info(newinfo);
-@@ -801,10 +801,10 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
- 	for_each_possible_cpu(cpu) {
- 		if (size > PAGE_SIZE)
- 			i->jumpstack[cpu] = vmalloc_node(size,
--				cpu_to_node(cpu));
-+				cpu_to_mem(cpu));
- 		else
- 			i->jumpstack[cpu] = kmalloc_node(size,
--				GFP_KERNEL, cpu_to_node(cpu));
-+				GFP_KERNEL, cpu_to_mem(cpu));
- 		if (i->jumpstack[cpu] == NULL)
- 			/*
- 			 * Freeing will be done later on by the callers. The
--- 
+diff --git a/src/proto.c b/src/proto.c
+index 546ef10..4192108 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -249,6 +249,7 @@ const struct proto_desc proto_ah =3D {
+ const struct proto_desc proto_esp =3D {
+ 	.name		=3D "esp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_ESP,
+ 	.templates	=3D {
+ 		[ESPHDR_SPI]		=3D ESPHDR_FIELD("spi", spi),
+ 		[ESPHDR_SEQUENCE]	=3D ESPHDR_FIELD("sequence", seq_no),
+@@ -326,6 +327,7 @@ static const struct datatype icmp_type_type =3D {
+ const struct proto_desc proto_icmp =3D {
+ 	.name		=3D "icmp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_ICMP,
+ 	.templates	=3D {
+ 		[ICMPHDR_TYPE]		=3D ICMPHDR_TYPE("type", &icmp_type_type, type),
+ 		[ICMPHDR_CODE]		=3D ICMPHDR_FIELD("code", code),
+@@ -348,6 +350,7 @@ const struct proto_desc proto_icmp =3D {
+ const struct proto_desc proto_udp =3D {
+ 	.name		=3D "udp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_UDP,
+ 	.templates	=3D {
+ 		[UDPHDR_SPORT]		=3D INET_SERVICE("sport", struct udphdr, source),
+ 		[UDPHDR_DPORT]		=3D INET_SERVICE("dport", struct udphdr, dest),
+@@ -359,6 +362,7 @@ const struct proto_desc proto_udp =3D {
+ const struct proto_desc proto_udplite =3D {
+ 	.name		=3D "udplite",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_UDPLITE,
+ 	.templates	=3D {
+ 		[UDPHDR_SPORT]		=3D INET_SERVICE("sport", struct udphdr, source),
+ 		[UDPHDR_DPORT]		=3D INET_SERVICE("dport", struct udphdr, dest),
+@@ -403,6 +407,7 @@ static const struct datatype tcp_flag_type =3D {
+ const struct proto_desc proto_tcp =3D {
+ 	.name		=3D "tcp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_TCP,
+ 	.templates	=3D {
+ 		[TCPHDR_SPORT]		=3D INET_SERVICE("sport", struct tcphdr, source),
+ 		[TCPHDR_DPORT]		=3D INET_SERVICE("dport", struct tcphdr, dest),
+@@ -456,6 +461,7 @@ static const struct datatype dccp_pkttype_type =3D =
+{
+ const struct proto_desc proto_dccp =3D {
+ 	.name		=3D "dccp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_DCCP,
+ 	.templates	=3D {
+ 		[DCCPHDR_SPORT]		=3D INET_SERVICE("sport", struct dccp_hdr, dccph_sp=
+ort),
+ 		[DCCPHDR_DPORT]		=3D INET_SERVICE("dport", struct dccp_hdr, dccph_dp=
+ort),
+@@ -473,6 +479,7 @@ const struct proto_desc proto_dccp =3D {
+ const struct proto_desc proto_sctp =3D {
+ 	.name		=3D "sctp",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_SCTP,
+ 	.templates	=3D {
+ 		[SCTPHDR_SPORT]		=3D INET_SERVICE("sport", struct sctphdr, source),
+ 		[SCTPHDR_DPORT]		=3D INET_SERVICE("dport", struct sctphdr, dest),
+@@ -566,6 +573,7 @@ static const struct datatype icmp6_type_type =3D {
+ const struct proto_desc proto_icmp6 =3D {
+ 	.name		=3D "icmpv6",
+ 	.base		=3D PROTO_BASE_TRANSPORT_HDR,
++	.protocol_key	=3D IPPROTO_ICMPV6,
+ 	.templates	=3D {
+ 		[ICMP6HDR_TYPE]		=3D ICMP6HDR_TYPE("type", &icmp6_type_type, icmp6_t=
+ype),
+ 		[ICMP6HDR_CODE]		=3D ICMP6HDR_FIELD("code", icmp6_code),
+--=20
 1.7.10.4
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
