@@ -1,305 +1,149 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nft, v3] mnl: check for NLM_F_DUMP_INTR when dumping object lists
-Date: Sat, 12 Jul 2014 14:47:57 +0200
-Message-ID: <1405169277-5287-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v2] payload: generate dependency with wrong byteorder
+ value format
+Date: Sat, 12 Jul 2014 15:10:12 +0200
+Message-ID: <20140712131012.GA5456@localhost>
+References: <1405076974-20899-1-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59383 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32965 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751609AbaGLMsQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Jul 2014 08:48:16 -0400
+	id S1751119AbaGLNKm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Jul 2014 09:10:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1405076974-20899-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This flag allows to detect that an update has ocurred while dumping
-any of the object lists. In case of interference, nft cancels the
-netlink socket to skip processing the remaining stale entries and
-it retries to obtain fresh list of objects.
+Hi Alvaro,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Changes from v3: Missing EINTR handling in netlink_get_setelems and
-netlink_dump_ruleset.
+On Fri, Jul 11, 2014 at 01:09:34PM +0200, Alvaro Neira Ayuso wrote:
+> From: =C1lvaro Neira Ayuso <alvaroneay@gmail.com>
+>
+> In all case that we have added a payload dependency, we have supposed
+> that the byteorder must to be BYTEORDER_HOST_ENDIAN, the problem is
+> when we want to add a dependency that the value has another byteorder=
+=2E
+> For example, if we try to add a new payload dependency in a bridge ta=
+ble
+> and we use ether type, the byteorder is BYTEORDER_BIG_ENDIAN. The val=
+ue
+> of the type ip is 0x0800 in ether but when we add the payload depende=
+ncy
+> for this specific protocol, we will have a payload like this:
+>
+> [ payload load 2b @ link header + 12 =3D> reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>
+> This patch allows to create payload dependency with the byteorder of =
+the
+> template. For that I have updated the function for updating the conte=
+xt for
+> using the byteorder of the template too. With this changes we have a =
+payload
+> with the correct format:
+>
+> [ payload load 2b @ link header + 12 =3D> reg 1 ]
+>   [ cmp eq reg 1 0x00000800 ]
+>
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+> [tested with the rules]
+> nft add rule filter input ip protocol tcp counter
+> nft add rule filter input ip protocol udp counter
+> nft add rule filter input tcp dport 22 counter
+>
+>  src/payload.c |    9 +++++++--
+>  src/proto.c   |    8 ++++++++
+>  2 files changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/src/payload.c b/src/payload.c
+> index a1785a5..fb78ba5 100644
+> --- a/src/payload.c
+> +++ b/src/payload.c
+> @@ -69,13 +69,18 @@ static void payload_expr_pctx_update(struct proto=
+_ctx *ctx,
+>  {
+>  	const struct expr *left =3D expr->left, *right =3D expr->right;
+>  	const struct proto_desc *base, *desc;
+> +	const struct proto_hdr_template *tmpl;
+> +	uint32_t value =3D 0;
+>
+>  	if (!(left->flags & EXPR_F_PROTOCOL))
+>  		return;
+>
+>  	assert(expr->op =3D=3D OP_EQ);
+>  	base =3D ctx->protocol[left->payload.base].desc;
+> -	desc =3D proto_find_upper(base, mpz_get_uint32(right->value));
+> +	tmpl =3D &base->templates[base->protocol_key];
 
- include/netlink.h |    2 ++
- src/main.c        |    8 ++++++-
- src/netlink.c     |   42 ++++++++++++++++++++++++++++++-----
- src/rule.c        |   64 +++++++++++++++++++++++++++++++----------------------
- 4 files changed, 83 insertions(+), 33 deletions(-)
+Note here, you are fetching the template based on the protocol key:
 
-diff --git a/include/netlink.h b/include/netlink.h
-index 4ef7365..af5dcd9 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -137,6 +137,8 @@ extern void netlink_dump_expr(struct nft_rule_expr *nle);
- extern void netlink_dump_set(struct nft_set *nls);
- 
- extern int netlink_batch_send(struct list_head *err_list);
-+
-+extern void netlink_restart(void);
- extern void netlink_abi_error(void) __noreturn;
- extern int netlink_io_error(struct netlink_ctx *ctx,
- 			    const struct location *loc, const char *fmt, ...);
-diff --git a/src/main.c b/src/main.c
-index a446bc6..30ea2c6 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -223,8 +223,14 @@ int nft_run(void *scanner, struct parser_state *state, struct list_head *msgs)
- 	ret = nft_parse(scanner, state);
- 	if (ret != 0 || state->nerrs > 0)
- 		return -1;
-+retry:
-+	ret = nft_netlink(state, msgs);
-+	if (ret < 0 && errno == EINTR) {
-+		netlink_restart();
-+		goto retry;
-+	}
- 
--	return nft_netlink(state, msgs);
-+	return ret;
- }
- 
- int main(int argc, char * const *argv)
-diff --git a/src/netlink.c b/src/netlink.c
-index 987dd63..afad5a4 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -70,6 +70,12 @@ static void __exit netlink_close_sock(void)
- 		mnl_socket_close(nf_mon_sock);
- }
- 
-+void netlink_restart(void)
-+{
-+	netlink_close_sock();
-+	netlink_open_sock();
-+}
-+
- static void netlink_open_mon_sock(void)
- {
- 	nf_mon_sock = nfsock_open();
-@@ -443,10 +449,14 @@ static int netlink_list_rules(struct netlink_ctx *ctx, const struct handle *h,
- 	struct nft_rule_list *rule_cache;
- 
- 	rule_cache = mnl_nft_rule_dump(nf_sock, h->family);
--	if (rule_cache == NULL)
-+	if (rule_cache == NULL) {
-+		if (errno == EINTR)
-+			return -1;
-+
- 		return netlink_io_error(ctx, loc,
- 					"Could not receive rules from kernel: %s",
- 					strerror(errno));
-+	}
- 
- 	ctx->data = h;
- 	nft_rule_list_foreach(rule_cache, list_rule_cb, ctx);
-@@ -704,10 +714,14 @@ int netlink_list_chains(struct netlink_ctx *ctx, const struct handle *h,
- 	struct chain *chain;
- 
- 	chain_cache = mnl_nft_chain_dump(nf_sock, h->family);
--	if (chain_cache == NULL)
-+	if (chain_cache == NULL) {
-+		if (errno == EINTR)
-+			return -1;
-+
- 		return netlink_io_error(ctx, loc,
- 					"Could not receive chains from kernel: %s",
- 					strerror(errno));
-+	}
- 
- 	ctx->data = h;
- 	nft_chain_list_foreach(chain_cache, list_chain_cb, ctx);
-@@ -907,10 +921,14 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
- 	struct nft_table_list *table_cache;
- 
- 	table_cache = mnl_nft_table_dump(nf_sock, h->family);
--	if (table_cache == NULL)
-+	if (table_cache == NULL) {
-+		if (errno == EINTR)
-+			return -1;
-+
- 		return netlink_io_error(ctx, loc,
- 					"Could not receive tables from kernel: %s",
- 					strerror(errno));
-+	}
- 
- 	nft_table_list_foreach(table_cache, list_table_cb, ctx);
- 	nft_table_list_free(table_cache);
-@@ -1177,10 +1195,14 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
- 	int err;
- 
- 	set_cache = mnl_nft_set_dump(nf_sock, h->family, h->table);
--	if (set_cache == NULL)
-+	if (set_cache == NULL) {
-+		if (errno == EINTR)
-+			return -1;
-+
- 		return netlink_io_error(ctx, loc,
- 					"Could not receive sets from kernel: %s",
- 					strerror(errno));
-+	}
- 
- 	err = nft_set_list_foreach(set_cache, list_set_cb, ctx);
- 	nft_set_list_free(set_cache);
-@@ -1393,8 +1415,12 @@ int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	netlink_dump_set(nls);
- 
- 	err = mnl_nft_setelem_get(nf_sock, nls);
--	if (err < 0)
-+	if (err < 0) {
-+		if (errno == EINTR)
-+			return -1;
-+
- 		goto out;
-+	}
- 
- 	ctx->set = set;
- 	set->init = set_expr_alloc(loc);
-@@ -1423,9 +1449,13 @@ struct nft_ruleset *netlink_dump_ruleset(struct netlink_ctx *ctx,
- 	struct nft_ruleset *rs;
- 
- 	rs = mnl_nft_ruleset_dump(nf_sock, h->family);
--	if (rs == NULL)
-+	if (rs == NULL) {
-+		if (errno == EINTR)
-+			return NULL;
-+
- 		netlink_io_error(ctx, loc, "Could not receive ruleset: %s",
- 				 strerror(errno));
-+	}
- 
- 	return rs;
- }
-diff --git a/src/rule.c b/src/rule.c
-index a7bc6f4..1e54526 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -14,6 +14,7 @@
- #include <stdint.h>
- #include <string.h>
- #include <inttypes.h>
-+#include <errno.h>
- 
- #include <statement.h>
- #include <rule.h>
-@@ -701,12 +702,28 @@ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return 0;
- }
- 
-+static void do_command_list_cleanup(struct table *table)
-+{
-+	struct chain *chain, *nchain;
-+	struct set *set, *nset;
-+
-+	list_for_each_entry_safe(chain, nchain, &table->chains, list) {
-+		list_del(&chain->list);
-+		chain_free(chain);
-+	}
-+
-+	list_for_each_entry_safe(set, nset, &table->sets, list) {
-+		list_del(&set->list);
-+		set_free(set);
-+	}
-+}
-+
- static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	struct table *table = NULL;
--	struct chain *chain, *nchain;
-+	struct chain *chain;
- 	struct rule *rule, *nrule;
--	struct set *set, *nset;
-+	struct set *set;
- 
- 	/* No need to allocate the table object when listing all tables */
- 	if (cmd->handle.table != NULL) {
-@@ -726,7 +743,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 			if (netlink_list_tables(ctx, &cmd->handle,
- 						&cmd->location) < 0)
--				return -1;
-+				goto err;
- 
- 			list_for_each_entry(table, &ctx->list, list) {
- 				printf("table %s\n", table->handle.table);
-@@ -735,39 +752,41 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		}
- 		/* List content of this table */
- 		if (do_list_sets(ctx, &cmd->location, table) < 0)
--			return -1;
-+			goto err;
- 		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		list_splice_tail_init(&ctx->list, &table->chains);
- 		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		break;
- 	case CMD_OBJ_CHAIN:
- 		if (do_list_sets(ctx, &cmd->location, table) < 0)
--			return -1;
-+			goto err;
- 		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		list_splice_tail_init(&ctx->list, &table->chains);
- 		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		break;
- 	case CMD_OBJ_SETS:
- 		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		list_for_each_entry(set, &ctx->list, list){
- 			if (netlink_get_setelems(ctx, &set->handle,
--						 &cmd->location, set) < 0)
--				return -1;
-+						 &cmd->location, set) < 0) {
-+				goto err;
-+			}
- 			set_print(set);
- 		}
- 		return 0;
- 	case CMD_OBJ_SET:
- 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
--			return -1;
-+			goto err;
- 		list_for_each_entry(set, &ctx->list, list) {
- 			if (netlink_get_setelems(ctx, &cmd->handle,
--						 &cmd->location, set) < 0)
--				return -1;
-+						 &cmd->location, set) < 0) {
-+				goto err;
-+			}
- 			set_print(set);
- 		}
- 		return 0;
-@@ -787,18 +806,11 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	}
- 
- 	table_print(table);
--
--	list_for_each_entry_safe(chain, nchain, &table->chains, list) {
--		list_del(&chain->list);
--		chain_free(chain);
--	}
--
--	list_for_each_entry_safe(set, nset, &table->sets, list) {
--		list_del(&set->list);
--		set_free(set);
--	}
--
-+	do_command_list_cleanup(table);
- 	return 0;
-+err:
-+	do_command_list_cleanup(table);
-+	return -1;
- }
- 
- static int do_command_flush(struct netlink_ctx *ctx, struct cmd *cmd)
--- 
-1.7.10.4
+struct proto_desc {
+        const char                      *name;
+        enum proto_bases                base;
+        unsigned int                    protocol_key;
+        struct {
+                unsigned int                    num;
+                const struct proto_desc         *desc;
+        }                               protocols[PROTO_UPPER_MAX];
+        struct proto_hdr_template       templates[PROTO_HDRS_MAX]; <---
+};
 
+However, the length of the templates array is:
+
+#define PROTO_HDRS_MAX          20
+
+and now see below:
+
+> +	mpz_export_data(&value, right->value, tmpl->dtype->byteorder,
+> +			div_round_up(tmpl->len, BITS_PER_BYTE));
+> +	desc =3D proto_find_upper(base, value);
+>
+>  	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc=
+);
+>  }
+> @@ -208,7 +213,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, =
+const struct expr *expr,
+>  		left =3D payload_expr_alloc(&expr->location, desc, desc->protocol_=
+key);
+>
+>  	right =3D constant_expr_alloc(&expr->location, tmpl->dtype,
+> -				    BYTEORDER_HOST_ENDIAN,
+> +				    tmpl->dtype->byteorder,
+>  				    tmpl->len,
+>  				    constant_data_ptr(protocol, tmpl->len));
+>
+> diff --git a/src/proto.c b/src/proto.c
+> index 546ef10..4192108 100644
+> --- a/src/proto.c
+> +++ b/src/proto.c
+> @@ -249,6 +249,7 @@ const struct proto_desc proto_ah =3D {
+>  const struct proto_desc proto_esp =3D {
+>  	.name		=3D "esp",
+>  	.base		=3D PROTO_BASE_TRANSPORT_HDR,
+> +	.protocol_key	=3D IPPROTO_ESP,
+
+IPPROTO_ESP is 50, this won't fly since it's over the array boundary,
+so you will be accessing out of boundary memory area.
+
+I think the protocol_key needs to be an internal value defined in
+include/proto.h, for example:
+
+enum transport_protocol {
+        L4PROTO_INVALID,
+        L4PROTO_TCP,
+        L4PROTO_UDP,
+        ...
+};
+
+that you should use instead.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
