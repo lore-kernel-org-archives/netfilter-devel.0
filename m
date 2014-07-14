@@ -1,60 +1,65 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] common: events: be more strict when placing the \0
- character
-Date: Mon, 14 Jul 2014 14:43:35 +0200
-Message-ID: <20140714124335.13205.77982.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:58381 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754250AbaGNMnq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jul 2014 08:43:46 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
+Subject: [PATCH 00/16] net: remove unnecessary break after goto/return
+Date: Mon, 14 Jul 2014 18:30:50 +0200
+Message-ID: <1405355467-7350-1-git-send-email-fabf@skynet.be>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org,
+	Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>,
+	v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-zigbee-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-nfc-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	tipc-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Previous to this patch, the code path can potentially print an empty
-buffer with the \0 at the end of the buffer.
+Small patchset addressing break redundancy on net branch
+(suggested by Joe Perches).
 
-Be more strict and place the \0 character in the first position if the
-buffer is empty.
+Fabian Frederick (16):
+  packet: remove unnecessary break after return
+  tipc: remove unnecessary break after return
+  9P: remove unnecessary break after return
+  af_iucv: remove unnecessary break after goto
+  netlabel: remove unnecessary break after goto
+  pktgen: remove unnecessary break after goto
+  drop_monitor: remove unnecessary break after return
+  mac80211: remove unnecessary break after return
+  af_key: remove unnecessary break after return
+  netfilter: remove unnecessary break after return
+  ipv6: remove unnecessary break after return
+  NFC: remove unnecessary break after goto
+  caif: remove unnecessary break after goto
+  irda: remove unnecessary break after return
+  ieee802154: remove unnecessary break after goto
+  net: sctp: remove unnecessary break after return/goto
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/common.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ net/9p/client.c                      | 1 -
+ net/caif/cfctrl.c                    | 1 -
+ net/core/drop_monitor.c              | 2 --
+ net/core/pktgen.c                    | 1 -
+ net/ieee802154/6lowpan_iphc.c        | 1 -
+ net/ipv6/ipv6_sockglue.c             | 1 -
+ net/ipv6/netfilter/ip6t_ipv6header.c | 1 -
+ net/irda/af_irda.c                   | 1 -
+ net/irda/irlan/irlan_common.c        | 1 -
+ net/iucv/af_iucv.c                   | 1 -
+ net/key/af_key.c                     | 3 ---
+ net/mac80211/mesh_hwmp.c             | 1 -
+ net/netlabel/netlabel_kapi.c         | 1 -
+ net/nfc/digital_dep.c                | 2 --
+ net/packet/af_packet.c               | 2 --
+ net/sctp/outqueue.c                  | 1 -
+ net/sctp/sm_statefuns.c              | 4 ----
+ net/tipc/socket.c                    | 1 -
+ 18 files changed, 26 deletions(-)
 
-diff --git a/src/common.c b/src/common.c
-index 1b600f1..c81a1d8 100644
---- a/src/common.c
-+++ b/src/common.c
-@@ -114,9 +114,10 @@ int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
- int nft_event_header_fprintf(FILE *fp, uint32_t type, uint32_t flags)
- {
- 	char buf[64]; /* enough for the maximum string length above */
-+	int ret;
- 
--	nft_event_header_snprintf(buf, sizeof(buf), type, flags);
--	buf[sizeof(buf) - 1] = '\0';
-+	ret = nft_event_header_snprintf(buf, sizeof(buf), type, flags);
-+	buf[ret] = '\0';
- 
- 	return fprintf(fp, "%s", buf);
- }
-@@ -140,9 +141,10 @@ int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
- int nft_event_footer_fprintf(FILE *fp, uint32_t type, uint32_t flags)
- {
- 	char buf[32]; /* enough for the maximum string length above */
-+	int ret;
- 
--	nft_event_footer_snprintf(buf, sizeof(buf), type, flags);
--	buf[sizeof(buf) - 1] = '\0';
-+	ret = nft_event_footer_snprintf(buf, sizeof(buf), type, flags);
-+	buf[ret] = '\0';
- 
- 	return fprintf(fp, "%s", buf);
- }
+-- 
+1.8.4.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
