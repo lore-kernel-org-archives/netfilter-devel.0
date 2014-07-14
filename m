@@ -1,58 +1,60 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 2/2] monitor: fix how rules with intervals are printed
-Date: Mon, 14 Jul 2014 13:56:52 +0200
-Message-ID: <20140714115651.10384.23718.stgit@nfdev.cica.es>
-References: <20140714115646.10384.69637.stgit@nfdev.cica.es>
+Subject: [libnftnl PATCH] common: events: be more strict when placing the \0
+ character
+Date: Mon, 14 Jul 2014 14:43:35 +0200
+Message-ID: <20140714124335.13205.77982.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55131 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:58381 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754326AbaGNL5A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jul 2014 07:57:00 -0400
-In-Reply-To: <20140714115646.10384.69637.stgit@nfdev.cica.es>
+	id S1754250AbaGNMnq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Jul 2014 08:43:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Previous to this patch, if we add a rule like this:
- nft add rule filter test ip saddr { 1.1.1.1-2.2.2.2 }
+Previous to this patch, the code path can potentially print an empty
+buffer with the \0 at the end of the buffer.
 
-The monitor operation output shows:
- add rule ip filter test ip saddr { 0.0.0.0, 1.1.1.1, 2.2.2.3}
-
-The fix suggested by Pablo is to call interval_map_decompose().
+Be more strict and place the \0 character in the first position if the
+buffer is empty.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/netlink.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ src/common.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 1a5d07b..83a13c3 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1723,6 +1723,12 @@ out:
- 	return MNL_CB_OK;
- }
- 
-+static void rule_map_decompose_cb(struct set *s, void *data)
-+{
-+	if (s->flags & NFT_SET_INTERVAL)
-+		interval_map_decompose(s->init);
-+}
-+
- static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
- 				  struct netlink_mon_handler *monh)
+diff --git a/src/common.c b/src/common.c
+index 1b600f1..c81a1d8 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -114,9 +114,10 @@ int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
+ int nft_event_header_fprintf(FILE *fp, uint32_t type, uint32_t flags)
  {
-@@ -1743,6 +1749,7 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
+ 	char buf[64]; /* enough for the maximum string length above */
++	int ret;
  
- 		if (type == NFT_MSG_NEWRULE) {
- 			r = netlink_delinearize_rule(monh->ctx, nlr);
-+			nlr_for_each_set(nlr, rule_map_decompose_cb, NULL);
+-	nft_event_header_snprintf(buf, sizeof(buf), type, flags);
+-	buf[sizeof(buf) - 1] = '\0';
++	ret = nft_event_header_snprintf(buf, sizeof(buf), type, flags);
++	buf[ret] = '\0';
  
- 			printf("add rule %s %s %s", family, table, chain);
- 			rule_print(r);
+ 	return fprintf(fp, "%s", buf);
+ }
+@@ -140,9 +141,10 @@ int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
+ int nft_event_footer_fprintf(FILE *fp, uint32_t type, uint32_t flags)
+ {
+ 	char buf[32]; /* enough for the maximum string length above */
++	int ret;
+ 
+-	nft_event_footer_snprintf(buf, sizeof(buf), type, flags);
+-	buf[sizeof(buf) - 1] = '\0';
++	ret = nft_event_footer_snprintf(buf, sizeof(buf), type, flags);
++	buf[ret] = '\0';
+ 
+ 	return fprintf(fp, "%s", buf);
+ }
 
