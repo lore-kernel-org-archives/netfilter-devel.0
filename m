@@ -1,156 +1,158 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/3] mnl: add nft_nlmsg_batch_current() helper
-Date: Tue, 15 Jul 2014 17:47:17 +0200
-Message-ID: <1405439238-10186-2-git-send-email-pablo@netfilter.org>
-References: <1405439238-10186-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 1/3] mnl: add nft_batch_continue() helper
+Date: Tue, 15 Jul 2014 17:47:16 +0200
+Message-ID: <1405439238-10186-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, ycnian@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44002 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43992 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752450AbaGOPrU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jul 2014 11:47:20 -0400
-In-Reply-To: <1405439238-10186-1-git-send-email-pablo@netfilter.org>
+	id S1754089AbaGOPrS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jul 2014 11:47:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Save some LOC with this function that wrap typical handling
+after pushing the netlink message into the batch.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/mnl.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ src/mnl.c |   45 +++++++++++++++++----------------------------
+ 1 file changed, 17 insertions(+), 28 deletions(-)
 
 diff --git a/src/mnl.c b/src/mnl.c
-index d9ccff3..e4f0339 100644
+index a843fdc..d9ccff3 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -106,13 +106,18 @@ struct batch_page {
- 	struct mnl_nlmsg_batch *batch;
- };
- 
-+static void *nft_nlmsg_batch_current(void)
-+{
-+	return mnl_nlmsg_batch_current(batch);
-+}
-+
- static void mnl_batch_page_add(void)
- {
- 	struct batch_page *batch_page;
- 	struct nlmsghdr *last_nlh;
- 
- 	/* Get the last message not fitting in the batch */
--	last_nlh = mnl_nlmsg_batch_current(batch);
-+	last_nlh = nft_nlmsg_batch_current();
- 
- 	batch_page = xmalloc(sizeof(struct batch_page));
- 	batch_page->batch = batch;
-@@ -121,7 +126,7 @@ static void mnl_batch_page_add(void)
- 	batch = mnl_batch_alloc();
- 
- 	/* Copy the last message not fitting to the new batch page */
--	memcpy(mnl_nlmsg_batch_current(batch), last_nlh, last_nlh->nlmsg_len);
-+	memcpy(nft_nlmsg_batch_current(), last_nlh, last_nlh->nlmsg_len);
- 	/* No overflow may happen as this is a new empty batch page */
+@@ -126,6 +126,12 @@ static void mnl_batch_page_add(void)
  	mnl_nlmsg_batch_next(batch);
  }
-@@ -137,7 +142,7 @@ static uint32_t mnl_batch_put(int type)
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfg;
  
--	nlh = mnl_nlmsg_put_header(mnl_nlmsg_batch_current(batch));
-+	nlh = mnl_nlmsg_put_header(nft_nlmsg_batch_current());
- 	nlh->nlmsg_type = type;
- 	nlh->nlmsg_flags = NLM_F_REQUEST;
- 	nlh->nlmsg_seq = mnl_seqnum_alloc();
-@@ -301,7 +306,7 @@ int mnl_nft_rule_batch_add(struct nft_rule *nlr, unsigned int flags,
++static void nft_batch_continue(void)
++{
++	if (!mnl_nlmsg_batch_next(batch))
++		mnl_batch_page_add();
++}
++
+ static uint32_t mnl_batch_put(int type)
  {
  	struct nlmsghdr *nlh;
+@@ -140,9 +146,7 @@ static uint32_t mnl_batch_put(int type)
+ 	nfg->nfgen_family = AF_INET;
+ 	nfg->version = NFNETLINK_V0;
+ 	nfg->res_id = NFNL_SUBSYS_NFTABLES;
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_rule_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_NEWRULE,
- 			nft_rule_attr_get_u32(nlr, NFT_RULE_ATTR_FAMILY),
+ 	return nlh->nlmsg_seq;
+ }
+@@ -303,8 +307,7 @@ int mnl_nft_rule_batch_add(struct nft_rule *nlr, unsigned int flags,
  			NLM_F_CREATE | flags, seqnum);
-@@ -317,7 +322,7 @@ int mnl_nft_rule_batch_del(struct nft_rule *nlr, unsigned int flags,
- {
- 	struct nlmsghdr *nlh;
  
--	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_rule_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_DELRULE,
- 			nft_rule_attr_get_u32(nlr, NFT_RULE_ATTR_FAMILY),
+ 	nft_rule_nlmsg_build_payload(nlh, nlr);
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
+ 
+ 	return 0;
+ }
+@@ -320,9 +323,7 @@ int mnl_nft_rule_batch_del(struct nft_rule *nlr, unsigned int flags,
  			0, seqnum);
-@@ -427,7 +432,7 @@ int mnl_nft_chain_batch_add(struct mnl_socket *nf_sock, struct nft_chain *nlc,
- {
- 	struct nlmsghdr *nlh;
  
--	nlh = nft_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_chain_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_NEWCHAIN,
+ 	nft_rule_nlmsg_build_payload(nlh, nlr);
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
+ 
+ 	return 0;
+ }
+@@ -431,9 +432,7 @@ int mnl_nft_chain_batch_add(struct mnl_socket *nf_sock, struct nft_chain *nlc,
  			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_FAMILY),
  			NLM_F_CREATE | flags, seqnum);
-@@ -456,7 +461,7 @@ int mnl_nft_chain_batch_del(struct mnl_socket *nf_sock, struct nft_chain *nlc,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_chain_nlmsg_build_payload(nlh, nlc);
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_chain_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_DELCHAIN,
+ 	return 0;
+ }
+@@ -462,9 +461,7 @@ int mnl_nft_chain_batch_del(struct mnl_socket *nf_sock, struct nft_chain *nlc,
  			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_FAMILY),
  			NLM_F_ACK, seqnum);
-@@ -552,7 +557,7 @@ int mnl_nft_table_batch_add(struct mnl_socket *nf_sock, struct nft_table *nlt,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_chain_nlmsg_build_payload(nlh, nlc);
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_table_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_NEWTABLE,
+ 	return 0;
+ }
+@@ -560,9 +557,7 @@ int mnl_nft_table_batch_add(struct mnl_socket *nf_sock, struct nft_table *nlt,
  			nft_table_attr_get_u32(nlt, NFT_TABLE_ATTR_FAMILY),
  			flags, seqnum);
-@@ -581,7 +586,7 @@ int mnl_nft_table_batch_del(struct mnl_socket *nf_sock, struct nft_table *nlt,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_table_nlmsg_build_payload(nlh, nlt);
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_table_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_DELTABLE,
+ 	return 0;
+ }
+@@ -591,9 +586,7 @@ int mnl_nft_table_batch_del(struct mnl_socket *nf_sock, struct nft_table *nlt,
  			nft_table_attr_get_u32(nlt, NFT_TABLE_ATTR_FAMILY),
  			NLM_F_ACK, seqnum);
-@@ -697,7 +702,7 @@ int mnl_nft_set_batch_add(struct mnl_socket *nf_sock, struct nft_set *nls,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_table_nlmsg_build_payload(nlh, nlt);
+-
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_set_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_NEWSET,
+ 	return 0;
+ }
+@@ -709,8 +702,7 @@ int mnl_nft_set_batch_add(struct mnl_socket *nf_sock, struct nft_set *nls,
  			nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY),
  			NLM_F_CREATE | flags, seqnum);
-@@ -712,7 +717,7 @@ int mnl_nft_set_batch_del(struct mnl_socket *nf_sock, struct nft_set *nls,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_set_nlmsg_build_payload(nlh, nls);
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_set_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_DELSET,
+ 	return 0;
+ }
+@@ -725,8 +717,7 @@ int mnl_nft_set_batch_del(struct mnl_socket *nf_sock, struct nft_set *nls,
  			nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY),
  			flags, seqnum);
-@@ -839,7 +844,7 @@ int mnl_nft_setelem_batch_add(struct mnl_socket *nf_sock, struct nft_set *nls,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_set_nlmsg_build_payload(nlh, nls);
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_set_elem_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_set_elem_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_NEWSETELEM,
+ 	return 0;
+ }
+@@ -853,8 +844,7 @@ int mnl_nft_setelem_batch_add(struct mnl_socket *nf_sock, struct nft_set *nls,
  			nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY),
  			NLM_F_CREATE | flags, seqnum);
-@@ -854,7 +859,7 @@ int mnl_nft_setelem_batch_del(struct mnl_socket *nf_sock, struct nft_set *nls,
- {
- 	struct nlmsghdr *nlh;
+ 	nft_set_elems_nlmsg_build_payload(nlh, nls);
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
  
--	nlh = nft_set_elem_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+	nlh = nft_set_elem_nlmsg_build_hdr(nft_nlmsg_batch_current(),
- 			NFT_MSG_DELSETELEM,
+ 	return 0;
+ }
+@@ -869,8 +859,7 @@ int mnl_nft_setelem_batch_del(struct mnl_socket *nf_sock, struct nft_set *nls,
  			nft_set_attr_get_u32(nls, NFT_SET_ATTR_FAMILY),
  			0, seqnum);
+ 	nft_set_elems_nlmsg_build_payload(nlh, nls);
+-	if (!mnl_nlmsg_batch_next(batch))
+-		mnl_batch_page_add();
++	nft_batch_continue();
+ 
+ 	return 0;
+ }
 -- 
 1.7.10.4
 
