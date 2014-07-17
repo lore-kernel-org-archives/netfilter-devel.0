@@ -1,124 +1,41 @@
-From: Yuxuan Shui <yshuiv7@gmail.com>
-Subject: [nftables PATCH] expr: Interpret OP_NEQ against a set as OP_LOOKUP
-Date: Thu, 17 Jul 2014 23:17:30 +0800
-Message-ID: <1405610250-6631-4-git-send-email-yshuiv7@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH] lookup: Add support for the flag attribute
+Date: Thu, 17 Jul 2014 17:40:39 +0200
+Message-ID: <20140717154039.GA3279@salvia>
 References: <1405610250-6631-1-git-send-email-yshuiv7@gmail.com>
-Cc: pablo@netfilter.org, tomasz.bursztyka@linux.intel.com,
-	Yuxuan Shui <yshuiv7@gmail.com>
-To: netfilter-devel@vger.kernel.org
+ <1405610250-6631-3-git-send-email-yshuiv7@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, tomasz.bursztyka@linux.intel.com
+To: Yuxuan Shui <yshuiv7@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:35572 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932908AbaGQPSD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2014 11:18:03 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w10so3315972pde.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jul 2014 08:18:02 -0700 (PDT)
-In-Reply-To: <1405610250-6631-1-git-send-email-yshuiv7@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:59746 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933145AbaGQPkt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jul 2014 11:40:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1405610250-6631-3-git-send-email-yshuiv7@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes bug 888.
+On Thu, Jul 17, 2014 at 11:17:29PM +0800, Yuxuan Shui wrote:
+> Signed-off-by: Yuxuan Shui <yshuiv7@gmail.com>
+> ---
+>  include/libnftnl/expr.h             |  1 +
+>  include/linux/netfilter/nf_tables.h | 10 +++++++++
+>  src/expr/lookup.c                   | 44 +++++++++++++++++++++++++++++++++++--
+>  3 files changed, 53 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+> index cfa5c66..e3c045b 100644
+> --- a/include/libnftnl/expr.h
+> +++ b/include/libnftnl/expr.h
+> @@ -107,6 +107,7 @@ enum {
+>  	NFT_EXPR_LOOKUP_DREG,
+>  	NFT_EXPR_LOOKUP_SET,
+>  	NFT_EXPR_LOOKUP_SET_ID,
+> +	NFT_EXPR_LOOKUP_FLAG,
 
-Signed-off-by: Yuxuan Shui <yshuiv7@gmail.com>
----
- include/linux/netfilter/nf_tables.h |  9 +++++++++
- src/evaluate.c                      | 12 ++++++++++++
- src/netlink_delinearize.c           |  7 +++++++
- src/netlink_linearize.c             |  5 +++++
- 4 files changed, 33 insertions(+)
+I didn't notice so far, please rename this to NFT_EXPR_LOOKUP_FLAGS.
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index dfdb251..3177b77 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -449,6 +449,15 @@ enum nft_cmp_attributes {
- #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
- 
- /**
-+ * enum nft_lookup_flags - flags for nft_lookup operator
-+ *
-+ * @NFT_LOOKUP_FLAG_NEGATE: negate the result
-+ */
-+enum nft_lookup_flags {
-+	NFT_LOOKUP_F_NEG = 1,
-+};
-+
-+/**
-  * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
-  *
-  * @NFTA_LOOKUP_SET: name of the set where to look for (NLA_STRING)
-diff --git a/src/evaluate.c b/src/evaluate.c
-index e05473a..a0af0f7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -972,6 +972,18 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 			if (byteorder_conversion(ctx, &rel->right, left->byteorder) < 0)
- 				return -1;
- 			break;
-+		case EXPR_SET:
-+			assert(rel->op == OP_NEQ);
-+			right = rel->right =
-+				implicit_set_declaration(ctx, left->dtype, left->len, right);
-+			if (right->set->flags & SET_F_INTERVAL &&
-+			    byteorder_conversion(ctx, &rel->left,
-+						 BYTEORDER_BIG_ENDIAN) < 0)
-+				return -1;
-+			break;
-+		case EXPR_SET_REF:
-+			assert(rel->op == OP_NEQ);
-+			break;
- 		default:
- 			BUG("invalid expression type %s\n", right->ops->name);
- 		}
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 5c6ca80..46e0ab6 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -160,6 +160,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
- 	struct expr *expr, *left, *right;
- 	struct set *set;
- 	enum nft_registers dreg;
-+	uint32_t flag;
- 
- 	left = netlink_get_register(ctx, loc,
- 			nft_rule_expr_get_u32(nle, NFT_EXPR_LOOKUP_SREG));
-@@ -185,6 +186,12 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
- 		expr = relational_expr_alloc(loc, OP_LOOKUP, left, right);
- 	}
- 
-+	if (nft_rule_expr_is_set(nle, NFT_EXPR_LOOKUP_FLAG)) {
-+		flag = nft_rule_expr_get_u32(nle, NFT_EXPR_LOOKUP_FLAG);
-+		if (flag & NFT_LOOKUP_F_NEG)
-+			expr->op = OP_NEQ;
-+	}
-+
- 	stmt = expr_stmt_alloc(loc, expr);
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 5c1b46d..49e705b 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -157,6 +157,8 @@ static void netlink_gen_lookup(struct netlink_linearize_ctx *ctx,
- 			      expr->right->set->handle.set);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SET_ID,
- 			      expr->right->set->handle.set_id);
-+	if (expr->op == OP_NEQ)
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_FLAG, NFT_LOOKUP_F_NEG);
- 
- 	release_register(ctx);
- 	nft_rule_add_expr(ctx->nlr, nle);
-@@ -225,6 +227,9 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 		}
- 	case EXPR_RANGE:
- 		return netlink_gen_range(ctx, expr, dreg);
-+	case EXPR_SET:
-+	case EXPR_SET_REF:
-+		return netlink_gen_lookup(ctx, expr, dreg);
- 	default:
- 		right = expr->right;
- 	}
--- 
-2.0.1
-
+Thanks.
