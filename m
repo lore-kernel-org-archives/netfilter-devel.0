@@ -1,193 +1,79 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 1/2] src: fix byteorder conversions
-Date: Thu, 17 Jul 2014 19:24:20 +0200
-Message-ID: <1405617860-13494-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 2/2] payload: fix update context with wrong byteorder
+Date: Thu, 17 Jul 2014 19:27:39 +0200
+Message-ID: <1405618059-13739-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:39303 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbaGQRYr (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:48534 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbaGQR2A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2014 13:24:47 -0400
-Received: by mail-wi0-f172.google.com with SMTP id n3so8186098wiv.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jul 2014 10:24:46 -0700 (PDT)
+	Thu, 17 Jul 2014 13:28:00 -0400
+Received: by mail-wi0-f173.google.com with SMTP id f8so7250929wiw.12
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Jul 2014 10:27:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the byteorder conversion happens in the parser,
-the evaluation and the code generation steps. This is a problem
-because the expression which are already in big endian byteorder
-are converted again.
+In the evaluation step and delinealize step, we update the protocol
+context. When we update the context, we expect that the expressions
+are in host endian but the expressions are in big endian from this
+two steps.
 
-With this patch, we don't change byteorder in the code generation
-step anymore because we assume that all expressions are in the
-appropriate byteorder. This patch solves rules like:
+To fix this, We do the correct byteorder conversion for finding the
+protocol number for updating the context. Example:
 
 nft add rule bridge filter input ether type ip
 
-With this rule we create a expression like:
-
-[ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000800 ]
-
-With this patch, we have a expresion with the correct conversion:
+We have a expression like this:
 
 [ payload load 2b @ link header + 12 => reg 1 ]
   [ cmp eq reg 1 0x00000008 ]
 
-This is also a problem in the delinearize step because the expression
-are already converted to the correctly byteorder and we change it again.
+The byteorder of this expressions is big endian and it's in
+host endian, for that when we try to update the context, we
+don't find the protocol with this number. This is a output,
+example:
+
+update network layer protocol context:
+ link layer          : ether
+ network layer       : none <-
+ transport layer     : none
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- include/netlink.h         |    3 +--
- src/datatype.c            |    2 +-
- src/gmputil.c             |    2 +-
- src/netlink.c             |   11 +++++++----
- src/netlink_delinearize.c |    2 +-
- src/netlink_linearize.c   |   10 +++++-----
- src/payload.c             |    3 +--
- 7 files changed, 17 insertions(+), 16 deletions(-)
+[Tested with the rules]
+* nft add rule filter input ip protocol tcp counter
+* nft add rule filter input tcp dport 22 counter
+* nft add rule filter bridge input ether type ip
 
-diff --git a/include/netlink.h b/include/netlink.h
-index 4ef7365..1e82fce 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -55,8 +55,7 @@ struct nft_data_delinearize {
- 
- extern void netlink_gen_data(const struct expr *expr,
- 			     struct nft_data_linearize *data);
--extern void netlink_gen_raw_data(const mpz_t value, enum byteorder byteorder,
--				 unsigned int len,
-+extern void netlink_gen_raw_data(const mpz_t value, unsigned int len,
- 				 struct nft_data_linearize *data);
- 
- extern struct expr *netlink_alloc_value(const struct location *loc,
-diff --git a/src/datatype.c b/src/datatype.c
-index 55af227..0a3aa41 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -545,7 +545,7 @@ static struct error_record *inet_service_type_parse(const struct expr *sym,
- 		if (errno == ERANGE || i > UINT16_MAX)
- 			return error(&sym->location, "Service out of range");
- 
--		port = htons(i);
-+		port = i;
- 	} else {
- 		err = getaddrinfo(NULL, sym->identifier, NULL, &ai);
- 		if (err != 0)
-diff --git a/src/gmputil.c b/src/gmputil.c
-index cb46445..2e4438a 100644
---- a/src/gmputil.c
-+++ b/src/gmputil.c
-@@ -127,11 +127,11 @@ void mpz_import_data(mpz_t rop, const void *data,
- 
- 	switch (byteorder) {
- 	case BYTEORDER_BIG_ENDIAN:
--	default:
- 		order  = MPZ_MSWF;
- 		endian = MPZ_BIG_ENDIAN;
- 		break;
- 	case BYTEORDER_HOST_ENDIAN:
-+	default:
- 		order  = MPZ_HWO;
- 		endian = MPZ_HOST_ENDIAN;
- 		break;
-diff --git a/src/netlink.c b/src/netlink.c
-index 987dd63..0547fa5 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -234,11 +234,14 @@ static struct nft_set_elem *alloc_nft_setelem(const struct expr *expr)
- 	return nlse;
- }
- 
--void netlink_gen_raw_data(const mpz_t value, enum byteorder byteorder,
--			  unsigned int len, struct nft_data_linearize *data)
-+void netlink_gen_raw_data(const mpz_t value, unsigned int len,
-+			  struct nft_data_linearize *data)
- {
- 	assert(len > 0);
--	mpz_export_data(data->value, value, byteorder, len);
-+	/* Here, we can suppose that all the values has been converted with the
-+	 * byteorder and all are in HOST_ENDIAN
-+	 */
-+	mpz_export_data(data->value, value, BYTEORDER_HOST_ENDIAN, len);
- 	data->len = len;
- }
- 
-@@ -272,7 +275,7 @@ static void netlink_gen_constant_data(const struct expr *expr,
- 				      struct nft_data_linearize *data)
- {
- 	assert(expr->ops->type == EXPR_VALUE);
--	netlink_gen_raw_data(expr->value, expr->byteorder,
-+	netlink_gen_raw_data(expr->value,
- 			     div_round_up(expr->len, BITS_PER_BYTE), data);
- }
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 5c6ca80..ad74cdb 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -642,7 +642,7 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 		list_for_each_entry(left, &list, list) {
- 			tmp = constant_expr_splice(right, left->len);
- 			expr_set_type(tmp, left->dtype, left->byteorder);
--			if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
-+			if (tmp->byteorder == BYTEORDER_BIG_ENDIAN)
- 				mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
- 
- 			nexpr = relational_expr_alloc(&expr->location, expr->op,
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 5c1b46d..8788813 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -206,8 +206,8 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 
- 		mpz_init(mask);
- 		mpz_prefixmask(mask, expr->right->len, expr->right->prefix_len);
--		netlink_gen_raw_data(mask, expr->right->byteorder,
--				     expr->right->len / BITS_PER_BYTE, &nld);
-+		netlink_gen_raw_data(mask, expr->right->len / BITS_PER_BYTE,
-+				     &nld);
- 		mpz_clear(mask);
- 
- 		zero.len = nld.len;
-@@ -315,7 +315,7 @@ static void netlink_gen_flagcmp(struct netlink_linearize_ctx *ctx,
- 
- 	mpz_init_set_ui(zero, 0);
- 
--	netlink_gen_raw_data(zero, expr->right->byteorder, len, &nld);
-+	netlink_gen_raw_data(zero, len, &nld);
- 	netlink_gen_data(expr->right, &nld2);
- 
- 	nle = alloc_nft_expr("bitwise");
-@@ -423,9 +423,9 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
- 
--	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
-+	netlink_gen_raw_data(mask, len, &nld);
- 	nft_rule_expr_set(nle, NFT_EXPR_BITWISE_MASK, nld.value, nld.len);
--	netlink_gen_raw_data(xor, expr->byteorder, len, &nld);
-+	netlink_gen_raw_data(xor, len, &nld);
- 	nft_rule_expr_set(nle, NFT_EXPR_BITWISE_XOR, nld.value, nld.len);
- 
- 	mpz_clear(tmp);
+ src/payload.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
 diff --git a/src/payload.c b/src/payload.c
-index a1785a5..432ce44 100644
+index 432ce44..8b10a79 100644
 --- a/src/payload.c
 +++ b/src/payload.c
-@@ -208,8 +208,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
+@@ -69,13 +69,18 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
+ {
+ 	const struct expr *left = expr->left, *right = expr->right;
+ 	const struct proto_desc *base, *desc;
++	const struct proto_hdr_template *tmpl;
++	uint32_t value = 0;
  
- 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
--				    BYTEORDER_HOST_ENDIAN,
--				    tmpl->len,
-+				    tmpl->dtype->byteorder, tmpl->len,
- 				    constant_data_ptr(protocol, tmpl->len));
+ 	if (!(left->flags & EXPR_F_PROTOCOL))
+ 		return;
  
- 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
+ 	assert(expr->op == OP_EQ);
+ 	base = ctx->protocol[left->payload.base].desc;
+-	desc = proto_find_upper(base, mpz_get_uint32(right->value));
++	tmpl = left->payload.tmpl;
++	mpz_export_data(&value, right->value, tmpl->dtype->byteorder,
++			div_round_up(tmpl->len, BITS_PER_BYTE));
++	desc = proto_find_upper(base, value);
+ 
+ 	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc);
+ }
 -- 
 1.7.10.4
 
