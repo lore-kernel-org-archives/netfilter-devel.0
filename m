@@ -1,38 +1,85 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter/nf_tables fixes
-Date: Wed, 16 Jul 2014 15:27:41 -0700 (PDT)
-Message-ID: <20140716.152741.1219558548704915796.davem@davemloft.net>
-References: <1405433122-7440-1-git-send-email-pablo@netfilter.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: netfilter: ipset: list:set set type support
+Date: Thu, 17 Jul 2014 11:04:52 +0300
+Message-ID: <20140717080452.GA2751@mwanda>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:55485 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664AbaGPW1m (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:37404 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754624AbaGQIFl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jul 2014 18:27:42 -0400
-In-Reply-To: <1405433122-7440-1-git-send-email-pablo@netfilter.org>
+	Thu, 17 Jul 2014 04:05:41 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 15 Jul 2014 16:05:18 +0200
+Hello Jozsef Kadlecsik,
 
-> The following patchset contains nf_tables fixes, they are:
-> 
-> 1) Fix wrong transaction handling when the table flags are not
->    modified.
-> 
-> 2) Fix missing rcu read_lock section in the netlink dump path, which
->    is not protected by the nfnl_lock.
-> 
-> 3) Set NLM_F_DUMP_INTR in the netlink dump path to indicate
->    interferences with updates.
-> 
-> 4) Fix 64 bits chain counters when they are retrieved from a 32 bits
->    arch, from Eric Dumazet.
+The patch f830837f0eed: "netfilter: ipset: list:set set type support"
+from Feb 1, 2011, leads to the following static checker warning:
 
-Pulled, thanks a lot Pablo.
+	net/netfilter/ipset/ip_set_list_set.c:600 init_list_set()
+	warn: integer overflows 'sizeof(*map) + size * set->dsize'
+
+net/netfilter/ipset/ip_set_list_set.c
+   594  init_list_set(struct net *net, struct ip_set *set, u32 size)
+   595  {
+   596          struct list_set *map;
+   597          struct set_elem *e;
+   598          u32 i;
+   599  
+   600          map = kzalloc(sizeof(*map) + size * set->dsize, GFP_KERNEL);
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This can overflow.  size is a number between 4-u32max.
+
+   601          if (!map)
+   602                  return false;
+   603  
+   604          map->size = size;
+   605          map->net = net;
+   606          set->data = map;
+   607  
+   608          for (i = 0; i < size; i++) {
+   609                  e = list_set_elem(set, map, i);
+   610                  e->id = IPSET_INVALID_ID;
+   611          }
+   612  
+   613          return true;
+   614  }
+   615  
+   616  static int
+   617  list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+   618                  u32 flags)
+   619  {
+   620          u32 size = IP_SET_LIST_DEFAULT_SIZE;
+   621  
+   622          if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_SIZE) ||
+   623                       !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+   624                       !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+   625                  return -IPSET_ERR_PROTOCOL;
+   626  
+   627          if (tb[IPSET_ATTR_SIZE])
+   628                  size = ip_set_get_h32(tb[IPSET_ATTR_SIZE]);
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+size is set here.
+
+   629          if (size < IP_SET_LIST_MIN_SIZE)
+   630                  size = IP_SET_LIST_MIN_SIZE;
+
+There should be a IP_SET_LIST_MAX_SIZE probably, but I don't know what
+a reasonable upper bound should be.
+
+   631  
+   632          set->variant = &set_variant;
+   633          set->dsize = ip_set_elem_len(set, tb, sizeof(struct set_elem));
+   634          if (!init_list_set(net, set, size))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Function call.
+
+   635                  return -ENOMEM;
+
+regards,
+dan carpenter
