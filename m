@@ -1,34 +1,29 @@
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Subject: Re: [PATCH 3/5] net/netfilter/ipvs/ip_vs_ctl.c: drop argument range
- check just before the check for equality
-Date: Sun, 20 Jul 2014 02:03:21 +0300
-Message-ID: <CANZNk83+o9Sc2rir3_2_aTgE65VadY3104a9ve8EMvXWv2ZzUg@mail.gmail.com>
-References: <1405697638-23767-1-git-send-email-andrey.krieger.utkin@gmail.com>
-	<alpine.LFD.2.11.1407182339160.2273@ja.home.ssi.bg>
-	<CANZNk83dJCXAWrQ+i5rh=sdUuiiD5ZhzDua-rjJpBZCzzNGDJA@mail.gmail.com>
-	<CANZNk83yhnbw0c77UPnisaJr8AO8XtmUon78vEKGe=PBDrfWMw@mail.gmail.com>
+From: Pascal Hambourg <pascal@plouf.fr.eu.org>
+Subject: Re: [RFC PATCH iptables] Hide FORWARD chain if forwarding is not
+ enabled
+Date: Sun, 20 Jul 2014 10:58:15 +0200
+Message-ID: <53CB84A7.10103@plouf.fr.eu.org>
+References: <53AE6FFD.5080109@jbeekman.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, dcb314@hotmail.com,
-	David Miller <davem@davemloft.net>, kadlec@blackhole.kfki.hu,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
-	Simon Horman <horms@verge.net.au>, wensong@linux-vs.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANZNk83yhnbw0c77UPnisaJr8AO8XtmUon78vEKGe=PBDrfWMw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jethro Beekman <kernel@jbeekman.nl>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bamako.nerim.net ([178.132.17.28]:50988 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750865AbaGTI6U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Jul 2014 04:58:20 -0400
+In-Reply-To: <53AE6FFD.5080109@jbeekman.nl>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2014-07-20 1:59 GMT+03:00 Andrey Utkin <andrey.krieger.utkin@gmail.com>:
-> This approach doesn't work, looks because sizeof() values are not
-> calculated at preprocessing stage.
+Jethro Beekman a =E9crit :
+> The FORWARD chain is pretty much useless with forwarding disabled
 
-What about adding equivalent BUG_ON() statement to __init
-ip_vs_register_nl_ioctl(), which "registers" do_ip_vs_set_ctl()
-callback?
-
--- 
-Andrey Utkin
+Not on a bridge with bridge-nf enabled (which is the default).
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
