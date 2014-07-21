@@ -1,29 +1,35 @@
-From: Pascal Hambourg <pascal@plouf.fr.eu.org>
-Subject: Re: [RFC PATCH iptables] Hide FORWARD chain if forwarding is not
- enabled
-Date: Sun, 20 Jul 2014 10:58:15 +0200
-Message-ID: <53CB84A7.10103@plouf.fr.eu.org>
-References: <53AE6FFD.5080109@jbeekman.nl>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/18] Netfilter updates for net-next
+Date: Sun, 20 Jul 2014 21:41:59 -0700 (PDT)
+Message-ID: <20140720.214159.2234980689155341101.davem@davemloft.net>
+References: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jethro Beekman <kernel@jbeekman.nl>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([178.132.17.28]:50988 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865AbaGTI6U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Jul 2014 04:58:20 -0400
-In-Reply-To: <53AE6FFD.5080109@jbeekman.nl>
+Received: from shards.monkeyblade.net ([149.20.54.216]:53357 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbaGUEmA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jul 2014 00:42:00 -0400
+In-Reply-To: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jethro Beekman a =E9crit :
-> The FORWARD chain is pretty much useless with forwarding disabled
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 18 Jul 2014 13:00:54 +0200
 
-Not on a bridge with bridge-nf enabled (which is the default).
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Pulled, thanks Pablo.
+
+> BTW, I would need that you pull net into net-next after this batch, most
+> likely we'll have another round of nf_tables updates for net-next
+> that depend on changes that are available in your net tree.
+
+I will work on doing this merge soon, thanks for asking.
+
