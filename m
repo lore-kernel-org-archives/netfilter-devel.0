@@ -1,35 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/18] Netfilter updates for net-next
-Date: Sun, 20 Jul 2014 21:41:59 -0700 (PDT)
-Message-ID: <20140720.214159.2234980689155341101.davem@davemloft.net>
-References: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net] IPVS fix pull request
+Date: Mon, 21 Jul 2014 14:15:07 +0200
+Message-ID: <1405944908-4487-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53357 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078AbaGUEmA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2014 00:42:00 -0400
-In-Reply-To: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:54232 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754216AbaGUMPK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jul 2014 08:15:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 18 Jul 2014 13:00:54 +0200
+Hi David,
 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+Via Simon Horman, I received the following one-liner for your net tree:
 
-Pulled, thanks Pablo.
+1) Fix crash when exiting from netns that uses IPVS and conntrack,
+   from Julian Anastasov via Simon Horman.
 
-> BTW, I would need that you pull net into net-next after this batch, most
-> likely we'll have another round of nf_tables updates for net-next
-> that depend on changes that are available in your net tree.
+You can pull this change from:
 
-I will work on doing this merge soon, thanks for asking.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit ce355e209feb030945dae4c358c02f29a84f3f8b:
+
+  netfilter: nf_tables: 64bit stats need some extra synchronization (2014-07-14 12:00:17 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 2627b7e15c5064ddd5e578e4efd948d48d531a3f:
+
+  ipvs: avoid netns exit crash on ip_vs_conn_drop_conntrack (2014-07-16 09:39:28 +0900)
+
+----------------------------------------------------------------
+Julian Anastasov (1):
+      ipvs: avoid netns exit crash on ip_vs_conn_drop_conntrack
+
+ net/netfilter/ipvs/ip_vs_conn.c |    1 -
+ 1 file changed, 1 deletion(-)
