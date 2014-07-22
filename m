@@ -1,226 +1,230 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 3/5] net/netfilter/ipvs/ip_vs_ctl.c: drop argument range
- check just before the check for equality
-Date: Mon, 21 Jul 2014 23:01:56 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1407212253100.2358@ja.home.ssi.bg>
-References: <1405697638-23767-1-git-send-email-andrey.krieger.utkin@gmail.com> <alpine.LFD.2.11.1407182339160.2273@ja.home.ssi.bg> <CANZNk83dJCXAWrQ+i5rh=sdUuiiD5ZhzDua-rjJpBZCzzNGDJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, dcb314@hotmail.com,
-	David Miller <davem@davemloft.net>, kadlec@blackhole.kfki.hu,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
-	Simon Horman <horms@verge.net.au>, wensong@linux-vs.org
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANZNk83dJCXAWrQ+i5rh=sdUuiiD5ZhzDua-rjJpBZCzzNGDJA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Josh Hunt <johunt@akamai.com>
+Subject: [PATCH] netfilter: xt_hashlimit: handle iptables-restore of hash with same name
+Date: Tue, 22 Jul 2014 00:54:10 -0400
+Message-ID: <1406004850-31336-1-git-send-email-johunt@akamai.com>
+Cc: Josh Hunt <johunt@akamai.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Harald Welte <laforge@netfilter.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:60285 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750742AbaGVFAC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jul 2014 01:00:02 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Below is a first pass attempt at fixing a problem we've come across when
+trying to do an iptables-restore where the hashlimit name stays the same, but
+one of the hashlimit parameters changes but does not take affect.
 
-	Hello,
+For ex, if you have an existing hashlimit rule, do an iptables-save, change the
+rate for that rule, and then do an iptables-restore the new rate will not be
+enforced.
 
-On Sat, 19 Jul 2014, Andrey Utkin wrote:
+This appears to be due to a problem where hashlimit only checks for existing
+hashes by name and family and does not consider any of the other config
+parameters.
 
-> 2014-07-18 23:48 GMT+03:00 Julian Anastasov <ja@ssi.bg>:
-> >         The above check ensures the set_arglen[] value (some
-> > struct size) does not exceed the arg[MAX_ARG_LEN] space. You can check
-> > commit 04bcef2a83f40c ("ipvs: Add boundary check on ioctl arguments")
-> > for more info.
-> 
-> Thanks for info.
-> What about static check at compilation time?
-> 
-> #if (DAEMON_ARG_LEN > MAX_ARG_LEN) \
->  || (SERVICE_ARG_LEN > MAX_ARG_LEN) \
->  || (SVCDEST_ARG_LEN > MAX_ARG_LEN)
-> #error MAX_ARG_LEN exceeded in set_arglen table
-> #endif
+I've attempted to fix this by having it check for all hashlimit config params,
+this way it doesn't accidentally match just on name. This brought up an issue
+of having to make hashlimit aware of how many references there are to its
+proc entry.
 
-	I prefer this to be fixed once and for all.
-Here is my attempt, it appears to work. I use union
-to get the max size to use for stack space. checkpatch.pl
-is noisy... Let me know if you have a better idea.
+I'm not submitting this for inclusion yet, but for feedback. Mainly on the approach
+and if there's possibly a better way of resolving this problem. My handling of
+the proc "problem" is pretty messy right now and possibly incomplete, but the
+patch below allows the case I described above to pass now. I hope to clean up
+the proc handling in a v2.
 
-ipvs: reduce stack usage for sockopt data
+Any feedback is greatly appreciated.
 
-Use macros and union to reserve the required stack space for
-sockopt data. Now the tables for commands should be more safe
-to extend. The checks added for readability are optimized by
-compiler or warn at compile time if command uses too much stack.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Thanks
+Josh
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 98 ++++++++++++++++++++++++------------------
- 1 file changed, 55 insertions(+), 43 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 581a658..08c3389 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2266,28 +2266,34 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
+    netfilter: xt_hashlimit: handle iptables-restore of hash with same name
+
+    We encountered a problem when trying to do an iptables-restore of a ruleset
+    which included a hashlimit match where the name stays the same and one of the
+    other config parameters changed, for ex:
+
+    from:
+    -A INPUT -s 10.18.40.44/32 -i eth1 -p tcp -m hashlimit --hashlimit-upto 10/sec --hashlimit-burst 10 --hashlimit-name test -j ACCEPT
+
+    to:
+    -A INPUT -s 10.18.40.44/32 -i eth1 -p tcp -m hashlimit --hashlimit-upto 1000/sec --hashlimit-burst 10 --hashlimit-name test -j ACCEPT
+
+    Currently when we do do this the new parameters are not enforced.
+
+    The problem stems from how htable_find_get() only checks by name and family.
+    This causes htable_find_get() to return the old hash, instead of creating a
+    new one.
+
+    I've attempted to resolve this by having htable_find_get() check all config
+    parameters b/f it returns a match. In addition, we have to keep the proc
+    file around since it doesn't change b/c the hashes have the same name.
+
+    Here's an example of the rules file:
+        *filter
+        :INPUT ACCEPT [1:1108]
+        :FORWARD ACCEPT [0:0]
+        :OUTPUT ACCEPT [0:0]
+        -A INPUT -s 10.18.40.44/32 -i eth1 -p tcp -m hashlimit --hashlimit-upto 10/sec --hashlimit-burst 10 --hashlimit-name test -j ACCEPT
+        COMMIT
+
+    Signed-off-by: Josh Hunt <johunt@akamai.com>
+---
+ net/netfilter/xt_hashlimit.c |   87 ++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 76 insertions(+), 11 deletions(-)
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index a3910fc..5518018 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -215,6 +215,39 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
  }
+ static void htable_gc(unsigned long htlong);
  
- 
--#define SET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define SERVICE_ARG_LEN		(sizeof(struct ip_vs_service_user))
--#define SVCDEST_ARG_LEN		(sizeof(struct ip_vs_service_user) +	\
--				 sizeof(struct ip_vs_dest_user))
--#define TIMEOUT_ARG_LEN		(sizeof(struct ip_vs_timeout_user))
--#define DAEMON_ARG_LEN		(sizeof(struct ip_vs_daemon_user))
--#define MAX_ARG_LEN		SVCDEST_ARG_LEN
-+#define SET_CMDID(cmd)			(cmd - IP_VS_BASE_CTL)
-+#define IP_VS_SET_CMDID(c, t)		[SET_CMDID(c)] = sizeof(t),
-+#define IP_VS_SET_CMDID_LEN(c, t)	t field_ ## c;
++static int htable_count_name(struct net *net,
++                             const char *name,
++                             u_int8_t family)
++{
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
++	struct xt_hashlimit_htable *hinfo;
++	int count = 0;
 +
-+struct ip_vs_svcdest_user {
-+	struct ip_vs_service_user	s;
-+	struct ip_vs_dest_user		d;
-+};
-+
-+#define IP_VS_SET_CMDID_TABLE(e)					\
-+	e(IP_VS_SO_SET_ADD,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_EDIT,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_DEL,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_ADDDEST,		struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_DELDEST,		struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_EDITDEST,	struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_TIMEOUT,		struct ip_vs_timeout_user)	\
-+	e(IP_VS_SO_SET_STARTDAEMON,	struct ip_vs_daemon_user)	\
-+	e(IP_VS_SO_SET_STOPDAEMON,	struct ip_vs_daemon_user)	\
-+	e(IP_VS_SO_SET_ZERO,		struct ip_vs_service_user)
- 
- static const unsigned char set_arglen[SET_CMDID(IP_VS_SO_SET_MAX)+1] = {
--	[SET_CMDID(IP_VS_SO_SET_ADD)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDIT)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DEL)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_FLUSH)]		= 0,
--	[SET_CMDID(IP_VS_SO_SET_ADDDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DELDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDITDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_TIMEOUT)]	= TIMEOUT_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STARTDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STOPDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_ZERO)]		= SERVICE_ARG_LEN,
-+	IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID)
- };
- 
-+union ip_vs_set_arglen { IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID_LEN) };
-+#define MAX_SET_ARGLEN	sizeof(union ip_vs_set_arglen)
-+
- static void ip_vs_copy_usvc_compat(struct ip_vs_service_user_kern *usvc,
- 				  struct ip_vs_service_user *usvc_compat)
- {
-@@ -2325,7 +2331,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- {
- 	struct net *net = sock_net(sk);
- 	int ret;
--	unsigned char arg[MAX_ARG_LEN];
-+	unsigned char arg[MAX_SET_ARGLEN];
- 	struct ip_vs_service_user *usvc_compat;
- 	struct ip_vs_service_user_kern usvc;
- 	struct ip_vs_service *svc;
-@@ -2333,13 +2339,12 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 	struct ip_vs_dest_user_kern udest;
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-+	BUILD_BUG_ON(sizeof(arg) > 256);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_SET_MAX)
- 		return -EINVAL;
--	if (len < 0 || len >  MAX_ARG_LEN)
--		return -EINVAL;
- 	if (len != set_arglen[SET_CMDID(cmd)]) {
- 		pr_err("set_ctl: len %u != %u\n",
- 		       len, set_arglen[SET_CMDID(cmd)]);
-@@ -2606,49 +2611,56 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
- }
- 
- 
--#define GET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define GET_INFO_ARG_LEN	(sizeof(struct ip_vs_getinfo))
--#define GET_SERVICES_ARG_LEN	(sizeof(struct ip_vs_get_services))
--#define GET_SERVICE_ARG_LEN	(sizeof(struct ip_vs_service_entry))
--#define GET_DESTS_ARG_LEN	(sizeof(struct ip_vs_get_dests))
--#define GET_TIMEOUT_ARG_LEN	(sizeof(struct ip_vs_timeout_user))
--#define GET_DAEMON_ARG_LEN	(sizeof(struct ip_vs_daemon_user) * 2)
-+#define GET_CMDID(cmd)			(cmd - IP_VS_BASE_CTL)
-+#define IP_VS_GET_CMDID(c, t)		[GET_CMDID(c)] = sizeof(t),
-+#define IP_VS_GET_CMDID_LEN(c, t)	t field_ ## c;
-+
-+struct ip_vs_version_user {
-+	char	v[64];
-+};
-+
-+struct ip_vs_daemon_user2 {
-+	struct ip_vs_daemon_user	d1, d2;
-+};
-+
-+#define IP_VS_GET_CMDID_TABLE(e)					\
-+	e(IP_VS_SO_GET_VERSION,		struct ip_vs_version_user)	\
-+	e(IP_VS_SO_GET_INFO,		struct ip_vs_getinfo)		\
-+	e(IP_VS_SO_GET_SERVICES,	struct ip_vs_get_services)	\
-+	e(IP_VS_SO_GET_SERVICE,		struct ip_vs_service_entry)	\
-+	e(IP_VS_SO_GET_DESTS,		struct ip_vs_get_dests)		\
-+	e(IP_VS_SO_GET_TIMEOUT,		struct ip_vs_timeout_user)	\
-+	e(IP_VS_SO_GET_DAEMON,		struct ip_vs_daemon_user2)
- 
- static const unsigned char get_arglen[GET_CMDID(IP_VS_SO_GET_MAX)+1] = {
--	[GET_CMDID(IP_VS_SO_GET_VERSION)]	= 64,
--	[GET_CMDID(IP_VS_SO_GET_INFO)]		= GET_INFO_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICES)]	= GET_SERVICES_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICE)]	= GET_SERVICE_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DESTS)]		= GET_DESTS_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_TIMEOUT)]	= GET_TIMEOUT_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DAEMON)]	= GET_DAEMON_ARG_LEN,
-+	IP_VS_GET_CMDID_TABLE(IP_VS_GET_CMDID)
- };
- 
-+union ip_vs_get_arglen { IP_VS_GET_CMDID_TABLE(IP_VS_GET_CMDID_LEN) };
-+#define MAX_GET_ARGLEN	sizeof(union ip_vs_get_arglen)
-+
- static int
- do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- {
--	unsigned char arg[128];
-+	unsigned char arg[MAX_GET_ARGLEN];
- 	int ret = 0;
- 	unsigned int copylen;
- 	struct net *net = sock_net(sk);
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
- 	BUG_ON(!net);
-+	BUILD_BUG_ON(sizeof(arg) > 256);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_GET_MAX)
- 		return -EINVAL;
- 
--	if (*len < get_arglen[GET_CMDID(cmd)]) {
--		pr_err("get_ctl: len %u < %u\n",
--		       *len, get_arglen[GET_CMDID(cmd)]);
--		return -EINVAL;
--	}
--
- 	copylen = get_arglen[GET_CMDID(cmd)];
--	if (copylen > 128)
-+	if (*len < (int) copylen || *len < 0) {
-+		pr_err("get_ctl: len %d < %u\n", *len, copylen);
- 		return -EINVAL;
++	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node) {
++		if (!strcmp(name, hinfo->name) &&
++			family == hinfo->family) {
++			count++;
++		}
 +	}
++	return count;
++}
++
++static struct proc_dir_entry *htable_get_pde(struct net *net,
++                                       const char *name,
++                                       u_int8_t family)
++{
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
++	struct xt_hashlimit_htable *hinfo;
++
++	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node) {
++		if (!strcmp(name, hinfo->name) &&
++			family == hinfo->family) {
++			return hinfo->pde;
++		}
++	}
++	return NULL;
++}
++
+ static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
+ 			 u_int8_t family)
+ {
+@@ -262,10 +295,13 @@ static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
+ 	}
+ 	spin_lock_init(&hinfo->lock);
  
- 	if (copy_from_user(arg, user, copylen) != 0)
- 		return -EFAULT;
+-	hinfo->pde = proc_create_data(minfo->name, 0,
+-		(family == NFPROTO_IPV4) ?
+-		hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
+-		&dl_file_ops, hinfo);
++	hinfo->pde = htable_get_pde(net, minfo->name, family);
++	if (hinfo->pde == NULL) {
++		hinfo->pde = proc_create_data(minfo->name, 0,
++			(family == NFPROTO_IPV4) ?
++			hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
++			&dl_file_ops, hinfo);
++	}
+ 	if (hinfo->pde == NULL) {
+ 		kfree(hinfo->name);
+ 		vfree(hinfo);
+@@ -339,25 +375,50 @@ static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
+ 		remove_proc_entry(hinfo->name, parent);
+ }
+ 
+-static void htable_destroy(struct xt_hashlimit_htable *hinfo)
++static void htable_destroy(struct xt_hashlimit_htable *hinfo, bool remove_proc)
+ {
+ 	del_timer_sync(&hinfo->timer);
+-	htable_remove_proc_entry(hinfo);
++	if (remove_proc)
++		htable_remove_proc_entry(hinfo);
+ 	htable_selective_cleanup(hinfo, select_all);
+ 	kfree(hinfo->name);
+ 	vfree(hinfo);
+ }
+ 
++static bool htable_compare(struct xt_hashlimit_mtinfo1 *info,
++				u_int8_t family,
++				struct xt_hashlimit_htable *hinfo)
++{
++	struct hashlimit_cfg1 newcfg = info->cfg;
++	struct hashlimit_cfg1 oldcfg = hinfo->cfg;
++
++	if (!strcmp(info->name, hinfo->name) &&
++		family == hinfo->family &&
++		newcfg.mode == oldcfg.mode &&
++		newcfg.avg == oldcfg.avg &&
++		newcfg.burst == oldcfg.burst &&
++		newcfg.size == oldcfg.size &&
++		newcfg.max == oldcfg.max &&
++		newcfg.gc_interval == oldcfg.gc_interval &&
++		newcfg.expire == oldcfg.expire &&
++		newcfg.srcmask == oldcfg.srcmask &&
++		newcfg.dstmask == oldcfg.dstmask ) {
++
++		return true;
++	}
++
++	return false;
++}
++
+ static struct xt_hashlimit_htable *htable_find_get(struct net *net,
+-						   const char *name,
++						   struct xt_hashlimit_mtinfo1 *info,
+ 						   u_int8_t family)
+ {
+ 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 	struct xt_hashlimit_htable *hinfo;
+ 
+ 	hlist_for_each_entry(hinfo, &hashlimit_net->htables, node) {
+-		if (!strcmp(name, hinfo->name) &&
+-		    hinfo->family == family) {
++		if (htable_compare(info, family, hinfo)) {
+ 			hinfo->use++;
+ 			return hinfo;
+ 		}
+@@ -367,10 +428,14 @@ static struct xt_hashlimit_htable *htable_find_get(struct net *net,
+ 
+ static void htable_put(struct xt_hashlimit_htable *hinfo)
+ {
++	bool remove_proc = false;
++
+ 	mutex_lock(&hashlimit_mutex);
+ 	if (--hinfo->use == 0) {
++		if (htable_count_name(hinfo->net, hinfo->name, hinfo->family) == 1)
++			remove_proc = true;
+ 		hlist_del(&hinfo->node);
+-		htable_destroy(hinfo);
++		htable_destroy(hinfo, remove_proc);
+ 	}
+ 	mutex_unlock(&hashlimit_mutex);
+ }
+@@ -698,7 +763,7 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 	}
+ 
+ 	mutex_lock(&hashlimit_mutex);
+-	info->hinfo = htable_find_get(net, info->name, par->family);
++	info->hinfo = htable_find_get(net, info, par->family);
+ 	if (info->hinfo == NULL) {
+ 		ret = htable_create(net, info, par->family);
+ 		if (ret < 0) {
 -- 
-1.9.0
+1.7.9.5
 
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
