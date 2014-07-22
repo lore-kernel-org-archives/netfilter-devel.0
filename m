@@ -1,53 +1,28 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 3/5] net/netfilter/ipvs/ip_vs_ctl.c: drop argument range
- check just before the check for equality
-Date: Tue, 22 Jul 2014 10:42:14 +0300
-Message-ID: <20140722074214.GL25880@mwanda>
-References: <1405697638-23767-1-git-send-email-andrey.krieger.utkin@gmail.com>
- <alpine.LFD.2.11.1407182339160.2273@ja.home.ssi.bg>
- <CANZNk83dJCXAWrQ+i5rh=sdUuiiD5ZhzDua-rjJpBZCzzNGDJA@mail.gmail.com>
- <alpine.LFD.2.11.1407212253100.2358@ja.home.ssi.bg>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/18] Netfilter updates for net-next
+Date: Tue, 22 Jul 2014 01:02:00 -0700 (PDT)
+Message-ID: <20140722.010200.1989938826183718522.davem@davemloft.net>
+References: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, dcb314@hotmail.com,
-	David Miller <davem@davemloft.net>, kadlec@blackhole.kfki.hu,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
-	Simon Horman <horms@verge.net.au>, wensong@linux-vs.org
-To: Julian Anastasov <ja@ssi.bg>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:39511 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743AbaGVHoq (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:42714 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259AbaGVICC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jul 2014 03:44:46 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1407212253100.2358@ja.home.ssi.bg>
+	Tue, 22 Jul 2014 04:02:02 -0400
+In-Reply-To: <1405681272-4994-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 21, 2014 at 11:01:56PM +0300, Julian Anastasov wrote:
-> @@ -2333,13 +2339,12 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
->  	struct ip_vs_dest_user_kern udest;
->  	struct netns_ipvs *ipvs = net_ipvs(net);
->  
-> +	BUILD_BUG_ON(sizeof(arg) > 256);
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 18 Jul 2014 13:00:54 +0200
 
-256 is off-by-one because u8 ranges from 0-255 so we are never able to
-copy 256 bytes into the "arg" buffer.
+> BTW, I would need that you pull net into net-next after this batch, most
+> likely we'll have another round of nf_tables updates for net-next
+> that depend on changes that are available in your net tree.
 
-> -	if (copylen > 128)
-> +	if (*len < (int) copylen || *len < 0) {
-> +		pr_err("get_ctl: len %d < %u\n", *len, copylen);
-
-Don't let users flood dmesg.  Just return an error.  (This can be
-triggered by non-root as well).
-
->  		return -EINVAL;
-> +	}
-
-regards,
-dan carpenter
+I've now done this merge.
