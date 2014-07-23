@@ -1,44 +1,39 @@
-From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-Subject: [PATCH] netfilter: don't output error message redundantly
-Date: Wed, 23 Jul 2014 14:19:09 +0800
-Message-ID: <53CF53DD.6020308@cn.fujitsu.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: netfilter: remnants of ulog targets
+Date: Wed, 23 Jul 2014 11:28:14 +0200
+Message-ID: <1406107694.12441.8.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:18742 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751922AbaGWGXD (ORCPT
+Received: from cpsmtpb-ews07.kpnxchange.com ([213.75.39.10]:60397 "EHLO
+	cpsmtpb-ews07.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932406AbaGWJ2R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2014 02:23:03 -0400
+	Wed, 23 Jul 2014 05:28:17 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo,
 
-The function led_trigger_register() will only return -EEXIST when
-error arises.
+Your commit 7200135bc1e6 ("netfilter: kill ulog targets") landed in
+today's linux-next (ie, next-20140723). It removes two Kconfig symbols:
+IP_NF_TARGET_ULOG and BRIDGE_EBT_ULOG.
 
-Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
----
- net/netfilter/xt_LED.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+It left a few references to the related macros untouched:
+    $ git grep -n -e IP_NF_TARGET_ULOG -e BRIDGE_EBT_ULOG next-20140723 | grep -v defconf
+    next-20140723:include/net/netns/x_tables.h:18:#if IS_ENABLED(CONFIG_IP_NF_TARGET_ULOG)
+    next-20140723:include/net/netns/x_tables.h:21:#if IS_ENABLED(CONFIG_BRIDGE_EBT_ULOG)
+    next-20140723:net/bridge/netfilter/Makefile:39:obj-$(CONFIG_BRIDGE_EBT_ULOG) += ebt_ulog.o
+    next-20140723:net/ipv4/netfilter/Makefile:60:obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
 
-diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-index 993de2b..b47a58c 100644
---- a/net/netfilter/xt_LED.c
-+++ b/net/netfilter/xt_LED.c
-@@ -133,9 +133,7 @@ static int led_tg_check(const struct xt_tgchk_param *par)
- 
- 	err = led_trigger_register(&ledinternal->netfilter_led_trigger);
- 	if (err) {
--		pr_warning("led_trigger_register() failed\n");
--		if (err == -EEXIST)
--			pr_warning("Trigger name is already in use.\n");
-+		pr_warning("Trigger name is already in use.\n");
- 		goto exit_alloc;
- 	}
- 
--- 
-1.8.3.1
+Is the trivial patch to clean up these remnants of the ulog targets
+queued somewhere? If not, should I submit it?
+
+
+Paul Bolle
+
