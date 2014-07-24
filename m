@@ -1,30 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] set: add support for set mechanism selection
-Date: Thu, 24 Jul 2014 13:02:21 +0200
-Message-ID: <20140724110221.GA15239@salvia>
-References: <20140714084126.4434.20059.stgit@nfdev.cica.es>
+Subject: Re: [PATCH nf-next] netfilter: xt_hashlimit: perform garbage
+ collection from process context
+Date: Thu, 24 Jul 2014 13:08:04 +0200
+Message-ID: <20140724110804.GA15610@salvia>
+References: <1406176610.3363.29.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20140724082744.GA18404@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58464 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60345 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758545AbaGXLCR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 07:02:17 -0400
+	id S1751303AbaGXLH4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2014 07:07:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20140714084126.4434.20059.stgit@nfdev.cica.es>
+In-Reply-To: <20140724082744.GA18404@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 14, 2014 at 10:41:26AM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds support to select the set mechanism.
-> The kernel support was added in commit:
->  c50b960 netfilter: nf_tables: implement proper set selection
+On Thu, Jul 24, 2014 at 10:27:44AM +0200, Florian Westphal wrote:
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > From: Eric Dumazet <edumazet@google.com>
+> > 
+> > xt_hashlimit cannot be used with large hash tables, because garbage
+> > collector is run from a timer. If table is really big, its possible
+> > to hold cpu for more than 500 msec, which is unacceptable.
+> > 
+> > Switch to a work queue, and use proper scheduling points to remove
+> > latencies spikes.
+> > 
+> > Later, we also could switch to a smoother garbage collection done
+> > at lookup time, one bucket at a time...
+> > 
+> > Signed-off-by: Eric Dumazet <edumazet@google.com>
+> 
+> Reviewed-by: Florian Westphal <fw@strlen.de>
 
-I have moved the policy out of the desc area so we have a 1:1 mapping
-with what we have in the kernel.
-
-I also fixed a compilation warning in XML code.
-
-Applied, thanks Arturo.
+Applied, thanks Eric!
