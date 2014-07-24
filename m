@@ -1,48 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: xt_hashlimit: handle iptables-restore of hash
- with same name
-Date: Thu, 24 Jul 2014 13:48:46 +0200
-Message-ID: <20140724114846.GE18404@breakpoint.cc>
-References: <1406004850-31336-1-git-send-email-johunt@akamai.com>
- <20140724084927.GB18404@breakpoint.cc>
- <ffaf5ee3-2af6-4747-bdd1-481ed87e68aa@email.android.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: don't output error message redundantly
+Date: Thu, 24 Jul 2014 13:49:46 +0200
+Message-ID: <20140724114946.GA21812@salvia>
+References: <53CF53DD.6020308@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Josh Hunt <johunt@akamai.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Harald Welte <laforge@netfilter.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Duan Jiong <duanj.fnst@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34564 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771AbaGXLsx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 07:48:53 -0400
+Received: from mail.us.es ([193.147.175.20]:44413 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751058AbaGXLth (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2014 07:49:37 -0400
 Content-Disposition: inline
-In-Reply-To: <ffaf5ee3-2af6-4747-bdd1-481ed87e68aa@email.android.com>
+In-Reply-To: <53CF53DD.6020308@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> On 24. Juli 2014 09:49:27 GMT+01:00, Florian Westphal <fw@strlen.de> wrote:
-> >Josh Hunt <johunt@akamai.com> wrote: 
-> >>     Currently when we do do this the new parameters are not enforced.
-> >
-> >Note that:
-> >
-> >-A INPUT -m hashlimit --hashlimit-upto 10/sec --hashlimit-burst 10
-> >--hashlimit-name test
-> >-A INPUT -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 10
-> >--hashlimit-name test
-> >
-> >doesn't work as expected either (rule #2 uses config options of #1).
-> >
-> >I think is behaviour is so unexpected that I would consider this a
-> >bug...
+On Wed, Jul 23, 2014 at 02:19:09PM +0800, Duan Jiong wrote:
 > 
-> True, but it's a bug that has existed forever and I've seen scripts that actually rely on this.
+> The function led_trigger_register() will only return -EEXIST when
+> error arises.
+> 
+> Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+> ---
+>  net/netfilter/xt_LED.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+> index 993de2b..b47a58c 100644
+> --- a/net/netfilter/xt_LED.c
+> +++ b/net/netfilter/xt_LED.c
+> @@ -133,9 +133,7 @@ static int led_tg_check(const struct xt_tgchk_param *par)
+>  
+>  	err = led_trigger_register(&ledinternal->netfilter_led_trigger);
+>  	if (err) {
+> -		pr_warning("led_trigger_register() failed\n");
+> -		if (err == -EEXIST)
+> -			pr_warning("Trigger name is already in use.\n");
+> +		pr_warning("Trigger name is already in use.\n");
 
-Too bad.  In that case it seems like we really cannot fix this 8-(
+This should be pr_err() since the rule fails to be loaded if
+led_trigger_register() fails.
+
