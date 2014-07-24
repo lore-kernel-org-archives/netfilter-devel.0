@@ -1,47 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xt_hashlimit: handle iptables-restore of hash with same name
-Date: Thu, 24 Jul 2014 11:53:15 +0100
-Message-ID: <ffaf5ee3-2af6-4747-bdd1-481ed87e68aa@email.android.com>
-References: <1406004850-31336-1-git-send-email-johunt@akamai.com> <20140724084927.GB18404@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH] set: add support for set mechanism selection
+Date: Thu, 24 Jul 2014 13:02:21 +0200
+Message-ID: <20140724110221.GA15239@salvia>
+References: <20140714084126.4434.20059.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Harald Welte <laforge@netfilter.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Florian Westphal <fw@strlen.de>, Josh Hunt <johunt@akamai.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45004 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756005AbaGXKxX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 06:53:23 -0400
-In-Reply-To: <20140724084927.GB18404@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:58464 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758545AbaGXLCR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2014 07:02:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20140714084126.4434.20059.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24. Juli 2014 09:49:27 GMT+01:00, Florian Westphal <fw@strlen.de> wrote:
->Josh Hunt <johunt@akamai.com> wrote: 
->>     Currently when we do do this the new parameters are not enforced.
->
->Note that:
->
->-A INPUT -m hashlimit --hashlimit-upto 10/sec --hashlimit-burst 10
->--hashlimit-name test
->-A INPUT -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 10
->--hashlimit-name test
->
->doesn't work as expected either (rule #2 uses config options of #1).
->
->I think is behaviour is so unexpected that I would consider this a
->bug...
+On Mon, Jul 14, 2014 at 10:41:26AM +0200, Arturo Borrero Gonzalez wrote:
+> This patch adds support to select the set mechanism.
+> The kernel support was added in commit:
+>  c50b960 netfilter: nf_tables: implement proper set selection
 
-True, but it's a bug that has existed forever and I've seen scripts that actually rely on this.
+I have moved the policy out of the desc area so we have a 1:1 mapping
+with what we have in the kernel.
 
-I'm not sure if we can silently change this behaviour.
+I also fixed a compilation warning in XML code.
 
-
-
+Applied, thanks Arturo.
