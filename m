@@ -1,42 +1,162 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_hashlimit: perform garbage
- collection from process context
-Date: Thu, 24 Jul 2014 13:08:04 +0200
-Message-ID: <20140724110804.GA15610@salvia>
-References: <1406176610.3363.29.camel@edumazet-glaptop2.roam.corp.google.com>
- <20140724082744.GA18404@breakpoint.cc>
+Subject: Re: [libnftnl PATCH] src: improve printing of XML/JSON event wrapper
+ header/footer
+Date: Thu, 24 Jul 2014 13:18:07 +0200
+Message-ID: <20140724111807.GA20917@salvia>
+References: <20140718110806.29103.18161.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60345 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35374 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751303AbaGXLH4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 07:07:56 -0400
+	id S1758699AbaGXLSJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2014 07:18:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20140724082744.GA18404@breakpoint.cc>
+In-Reply-To: <20140718110806.29103.18161.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 24, 2014 at 10:27:44AM +0200, Florian Westphal wrote:
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > From: Eric Dumazet <edumazet@google.com>
-> > 
-> > xt_hashlimit cannot be used with large hash tables, because garbage
-> > collector is run from a timer. If table is really big, its possible
-> > to hold cpu for more than 500 msec, which is unacceptable.
-> > 
-> > Switch to a work queue, and use proper scheduling points to remove
-> > latencies spikes.
-> > 
-> > Later, we also could switch to a smoother garbage collection done
-> > at lookup time, one bucket at a time...
-> > 
-> > Signed-off-by: Eric Dumazet <edumazet@google.com>
-> 
-> Reviewed-by: Florian Westphal <fw@strlen.de>
+Hi Arturo,
 
-Applied, thanks Eric!
+On Fri, Jul 18, 2014 at 01:08:06PM +0200, Arturo Borrero Gonzalez wrote:
+> Every snprintf() call is warranteed to put the trailing \0 character, unless
+> the output was truncated, ie ret == bufsiz. In case of output truncated, the
+> caller must reallocate a buffer and start again.
+> This \0 character is used by other functions like fputs() and fprintf() to
+> know where a string ends, so they avoid adding garbage to the output.
+> 
+> The XML/JSON event wrapper header/footer is printed for each object, meaning
+> that the header is the first thing to be written to the buffer and the footer
+> the last; all objects share this code path.
+> 
+> A new helper function nft_fprintf2() is added because:
+>  * we need to handle the needed buffer resizing.
+>  * so, we can ignore about what string the header/footer are composed of.
+>  * nft_fprint() requires an object; the signature of the function differs.
+> 
+> There were two cases we weren't considering in the header/footer fprintf
+> functions: if the nft_event_[head|foot]er_snprintf() call returned 0 and/or if
+> returned < 0. Previous to this patch, we unconditionally do a fprintf().
+> 
+> Now with this patch, we avoid doing fprintf() if the inner snprintf() call:
+>  * failed (ret < 0)
+>  * didn't print nothing (ret == 0) to the buffer (even a \0 character)
+> 
+> Also, we were unconditionally adding a \0 character at buf[sizeof(buf) - 1],
+> meaning that if the inner snprintf() returned 0, we get sizeof(buf) - 2
+> characters of unknown value.
+> 
+> A side effect of this patch is that we avoid 2 syscall (2 fprintf() calls) per
+> nft object to be printed if the header/footer is empty (ie, no events flags
+> set).
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  src/common.c   |   14 ++------------
+>  src/internal.h |    3 +++
+>  src/utils.c    |   33 +++++++++++++++++++++++++++++++++
+>  3 files changed, 38 insertions(+), 12 deletions(-)
+> 
+> diff --git a/src/common.c b/src/common.c
+> index 1b600f1..2ebb7d1 100644
+> --- a/src/common.c
+> +++ b/src/common.c
+> @@ -113,12 +113,7 @@ int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
+>  
+>  int nft_event_header_fprintf(FILE *fp, uint32_t type, uint32_t flags)
+>  {
+> -	char buf[64]; /* enough for the maximum string length above */
+> -
+> -	nft_event_header_snprintf(buf, sizeof(buf), type, flags);
+> -	buf[sizeof(buf) - 1] = '\0';
+> -
+> -	return fprintf(fp, "%s", buf);
+> +	return nft_fprintf2(fp, type, flags, nft_event_header_snprintf);
+>  }
+>  
+>  int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
+> @@ -139,10 +134,5 @@ int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
+>  
+>  int nft_event_footer_fprintf(FILE *fp, uint32_t type, uint32_t flags)
+>  {
+> -	char buf[32]; /* enough for the maximum string length above */
+> -
+> -	nft_event_footer_snprintf(buf, sizeof(buf), type, flags);
+> -	buf[sizeof(buf) - 1] = '\0';
+> -
+> -	return fprintf(fp, "%s", buf);
+> +	return nft_fprintf2(fp, type, flags, nft_event_footer_snprintf);
+>  }
+> diff --git a/src/internal.h b/src/internal.h
+> index b8ed616..04c3ef9 100644
+> --- a/src/internal.h
+> +++ b/src/internal.h
+> @@ -136,6 +136,9 @@ int nft_get_value(enum nft_type type, void *val, void *out);
+>  
+>  #include <stdio.h>
+>  int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj, uint32_t type, uint32_t flags));
+> +int nft_fprintf2(FILE *fp, uint32_t type, uint32_t flags,
+> +		 int (*snprintf_cb)(char *buf, size_t bufsiz, uint32_t type,
+> +				    uint32_t flags));
+>  int nft_event_header_snprintf(char *buf, size_t bufsize,
+>  			      uint32_t format, uint32_t flags);
+>  int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags);
+> diff --git a/src/utils.c b/src/utils.c
+> index 20a2fa3..94268c3 100644
+> --- a/src/utils.c
+> +++ b/src/utils.c
+> @@ -219,6 +219,39 @@ out:
+>  	return ret;
+>  }
+>  
+> +int nft_fprintf2(FILE *fp, uint32_t type, uint32_t flags,
+> +		 int (*snprintf_cb)(char *buf, size_t bufsiz, uint32_t type,
+> +				    uint32_t flags))
+> +{
+> +	char _buf[NFT_SNPRINTF_BUFSIZ];
+> +	char *buf = _buf;
+> +	size_t bufsiz = sizeof(_buf);
+> +	int ret;
+> +
+> +	ret = snprintf_cb(buf, bufsiz, type, flags);
+> +	if (ret <= 0)
+> +		goto out;
+> +
+> +	if (ret >= NFT_SNPRINTF_BUFSIZ) {
+> +		bufsiz = ret + 1;
+> +
+> +		buf = malloc(bufsiz);
+> +		if (buf == NULL)
+> +			return -1;
+> +
+> +		ret = snprintf_cb(buf, bufsiz, type, flags);
+> +		if (ret <= 0)
+> +			goto out;
+> +	}
+> +
+> +	ret = fprintf(fp, "%s", buf);
+> +out:
+> +	if (buf != _buf)
+> +		xfree(buf);
+> +
+> +	return ret;
+> +}
+> +
+
+This function looks almost exactly the same like nft_fprintf. We can
+save line of code with some initial code refactorization.
+
+So please, let us have one single nft_fprintf function. Hint: You
+can generalise the snprintf_cb callback, ie.
+
+        int (*snprintf_cb)(char *buf, size_t bufsiz, uint32_t type,
+                           uint32_t flags, void *data);
+
+The nft_fprintf should look like:
+
+int nft_fprintf(FILE *fp, uint32_t type, uint32_t flags, void *data, ...)
+
+The data pointer is generic and it is interpreted by the callback
+function.
