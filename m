@@ -1,62 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_sockopt_find() should return ERESTARTSYS
-Date: Thu, 24 Jul 2014 18:19:35 +0100
-Message-ID: <3ff5bf70-5db3-4dc4-9f02-abb07843ab81@email.android.com>
-References: <1406155995.3363.19.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: [PATCH] netfilter: nf_conntrack: remove exceptional & on function
+ name
+Date: Fri, 25 Jul 2014 01:47:16 +0530
+Message-ID: <20140724201716.GA16213@himangi-Dell>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47768 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933903AbaGXRTl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 13:19:41 -0400
-In-Reply-To: <1406155995.3363.19.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 23. Juli 2014 23:53:15 GMT+01:00, Eric Dumazet <eric.dumazet@gmail.com> wrote:
->From: Eric Dumazet <edumazet@google.com>
->
->getsockopt() or setsockopt() sometimes returns -EINTR instead of
->-ENOPROTOOPT, causing headaches to application developers.
->
->This is because unsupported commands might go through nf_sockopt_find()
->and this function returns -EINTR instead of -ERESTARTSYS if
->a signal is pending.
->
+In this file, function names are otherwise used as pointers without &.
 
-I'd propose to simply use the non interruptable mutex functions. We
-have many instances where this is really completely unnecessary.
+A simplified version of the Coccinelle semantic patch that makes this
+change is as follows: 
 
-I can take care of this (once my notebook has been repaired).
+// <smpl>
+@r@
+identifier f;
+@@
 
->Signed-off-by: Eric Dumazet <edumazet@google.com>
->---
-> net/netfilter/nf_sockopt.c |    2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
->
->diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
->index f042ae521557..37181447715b 100644
->--- a/net/netfilter/nf_sockopt.c
->+++ b/net/netfilter/nf_sockopt.c
->@@ -66,7 +66,7 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct
->sock *sk, u_int8_t pf,
-> 	struct nf_sockopt_ops *ops;
-> 
-> 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
->-		return ERR_PTR(-EINTR);
->+		return ERR_PTR(-ERESTARTSYS);
-> 
-> 	list_for_each_entry(ops, &nf_sockopts, list) {
-> 		if (ops->pf == pf) {
->
->
+f(...) { ... }
 
+@@
+identifier r.f;
+@@
 
+- &f
++ f
+// </smpl>
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+---
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 8127dc8..41744cd 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -358,7 +358,7 @@ static struct nf_sockopt_ops so_getorigdst = {
+ 	.pf		= PF_INET,
+ 	.get_optmin	= SO_ORIGINAL_DST,
+ 	.get_optmax	= SO_ORIGINAL_DST+1,
+-	.get		= &getorigdst,
++	.get		= getorigdst,
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-- 
+1.9.1
