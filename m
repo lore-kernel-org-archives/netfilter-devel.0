@@ -1,45 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: don't output error message redundantly
-Date: Thu, 24 Jul 2014 13:49:46 +0200
-Message-ID: <20140724114946.GA21812@salvia>
-References: <53CF53DD.6020308@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: nf_sockopt_find() should return ERESTARTSYS
+Date: Thu, 24 Jul 2014 18:19:35 +0100
+Message-ID: <3ff5bf70-5db3-4dc4-9f02-abb07843ab81@email.android.com>
+References: <1406155995.3363.19.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44413 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058AbaGXLth (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2014 07:49:37 -0400
-Content-Disposition: inline
-In-Reply-To: <53CF53DD.6020308@cn.fujitsu.com>
+Received: from stinky.trash.net ([213.144.137.162]:47768 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933903AbaGXRTl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2014 13:19:41 -0400
+In-Reply-To: <1406155995.3363.19.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 23, 2014 at 02:19:09PM +0800, Duan Jiong wrote:
-> 
-> The function led_trigger_register() will only return -EEXIST when
-> error arises.
-> 
-> Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-> ---
->  net/netfilter/xt_LED.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-> index 993de2b..b47a58c 100644
-> --- a/net/netfilter/xt_LED.c
-> +++ b/net/netfilter/xt_LED.c
-> @@ -133,9 +133,7 @@ static int led_tg_check(const struct xt_tgchk_param *par)
->  
->  	err = led_trigger_register(&ledinternal->netfilter_led_trigger);
->  	if (err) {
-> -		pr_warning("led_trigger_register() failed\n");
-> -		if (err == -EEXIST)
-> -			pr_warning("Trigger name is already in use.\n");
-> +		pr_warning("Trigger name is already in use.\n");
+On 23. Juli 2014 23:53:15 GMT+01:00, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>From: Eric Dumazet <edumazet@google.com>
+>
+>getsockopt() or setsockopt() sometimes returns -EINTR instead of
+>-ENOPROTOOPT, causing headaches to application developers.
+>
+>This is because unsupported commands might go through nf_sockopt_find()
+>and this function returns -EINTR instead of -ERESTARTSYS if
+>a signal is pending.
+>
 
-This should be pr_err() since the rule fails to be loaded if
-led_trigger_register() fails.
+I'd propose to simply use the non interruptable mutex functions. We
+have many instances where this is really completely unnecessary.
+
+I can take care of this (once my notebook has been repaired).
+
+>Signed-off-by: Eric Dumazet <edumazet@google.com>
+>---
+> net/netfilter/nf_sockopt.c |    2 +-
+> 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+>diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+>index f042ae521557..37181447715b 100644
+>--- a/net/netfilter/nf_sockopt.c
+>+++ b/net/netfilter/nf_sockopt.c
+>@@ -66,7 +66,7 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct
+>sock *sk, u_int8_t pf,
+> 	struct nf_sockopt_ops *ops;
+> 
+> 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+>-		return ERR_PTR(-EINTR);
+>+		return ERR_PTR(-ERESTARTSYS);
+> 
+> 	list_for_each_entry(ops, &nf_sockopts, list) {
+> 		if (ops->pf == pf) {
+>
+>
+
 
