@@ -1,42 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL] Third Round of IPVS Fixes for v3.16
-Date: Fri, 25 Jul 2014 14:45:25 +0200
-Message-ID: <20140725124525.GA6738@salvia>
-References: <1406013952-18522-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH v2] nf: xt_LED: fix too short led-always-blink
+Date: Fri, 25 Jul 2014 14:59:16 +0200
+Message-ID: <20140725125916.GA13813@salvia>
+References: <53A2AABD.8000109@aksignal.cz>
+ <20140630105419.GA7671@localhost>
+ <CAK5ve-Kc_Kv_EnenJSNA9J60QoTtH-zEjPowrOPuUrsWkh3ACQ@mail.gmail.com>
+ <53D2055D.3040200@aksignal.cz>
+ <20140725122212.GA5347@salvia>
+ <53D2504A.20003@aksignal.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Bryan Wu <cooloney@gmail.com>, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, Richard Purdie <rpurdie@rpsys.net>,
+	linux-leds@vger.kernel.org
+To: =?utf-8?B?SmnFmcOt?= Prchal <jiri.prchal@aksignal.cz>
+Return-path: <linux-leds-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1406013952-18522-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <53D2504A.20003@aksignal.cz>
+Sender: linux-leds-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 22, 2014 at 04:25:51PM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider this third round of IPVS fixes for v3.16.
-> 
-> It includes one change from Alex Gartrell to:
-> 
-> * Maintain all DSCP and ECN bits for IPv6 tun forwarding
->   This resolves an inconsistency between IPv4 and IPv6 behaviour.
->   This behaviour was added when IPv6 support was added to IPVS
->   in v2.6.27.
-> 
-> This pull request is for an unsigned, unannotated tag.
-> Please let me know if this doesn't work with your work flow.
-> 
-> The following changes since commit 2627b7e15c5064ddd5e578e4efd948d48d531a3f:
-> 
->   ipvs: avoid netns exit crash on ip_vs_conn_drop_conntrack (2014-07-16 09:39:28 +0900)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes3-for-v3.16
+On Fri, Jul 25, 2014 at 02:40:42PM +0200, Ji=C5=99=C3=AD Prchal wrote:
+> If led-always-blink is set, then between switch led OFF and ON
+> is almost zero time. So blink is invisible. This use oneshot led trig=
+ger
+> with fixed time 50ms witch is enough to see blink.
+>=20
+> Signed-off-by: Jiri <jiri.prchal@aksignal.cz>
+>=20
+> v2:
+> defined constant XT_LED_BLINK_DELAY and use it instead of number
 
-Pulled, thanks Simon.
+Strange, this doesn't apply. Perhaps your MUA is mangling the
+attachment? Or using a very old tree as reference?
+
+$ patch -p1 < /tmp/v2-nf-xt_LED-fix-too-short-led-always-blink.patch=20
+patching file net/netfilter/xt_LED.c
+Hunk #1 FAILED at 28.
+Hunk #2 FAILED at 55.
+Hunk #3 FAILED at 62.
+3 out of 3 hunks FAILED -- saving rejects to file net/netfilter/xt_LED.=
+c.rej
