@@ -1,77 +1,95 @@
-From: Alexey Perevalov <a.perevalov@samsung.com>
-Subject: Re: reset nfacct counters
-Date: Fri, 25 Jul 2014 20:39:04 +0400
-Message-ID: <53D28828.9070003@samsung.com>
-References: <53D20FB8.9050606@samsung.com> <20140725160123.GA20548@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [linux PATCH v3 0/5] NAT updates for nf_tables
+Date: Fri, 25 Jul 2014 18:48:06 +0200
+Message-ID: <20140725164806.GA22375@salvia>
+References: <20140701162801.2847.14389.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: mathieu.poirier@linaro.org, netfilter-devel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	alexey.perevalov@hotmail.com,
-	=?UTF-8?B?J+qzoO2YhOyEsSc=?= <hs81.go@samsung.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:52014 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753004AbaGYQjI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 12:39:08 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9A001T80WW1420@mailout4.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Fri, 25 Jul 2014 17:38:56 +0100 (BST)
-In-reply-to: <20140725160123.GA20548@salvia>
+Received: from mail.us.es ([193.147.175.20]:39019 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934705AbaGYQr5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 12:47:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20140701162801.2847.14389.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07/25/2014 08:01 PM, Pablo Neira Ayuso wrote:
-> Hi Alexey,
->
-> On Fri, Jul 25, 2014 at 12:05:12PM +0400, Alexey Perevalov wrote:
->> Hello Pablo and Mathieu.
->> I would like to thank you for quota with notification implementation
->> in nfacct.
->>
->> But also I want to discuss about resetting counters value. Right now
->> nfacct has 2 way to get counter
->> NFNL_MSG_ACCT_GET and NFNL_MSG_ACCT_GET_CTRZERO, last one is
->> intended to nullify accumulated counter.
->> It resets counters with and without populated quota value. After
->> commit 683399eddb nfacct really operates
->> with 2 different entities: pure counter and quota based counter. If
->> so, why not to operate with it separately,
->> maybe by some filter (flag).
->>
->> Also it was strange for me, why reset is not a command of command
->> line tool nfacct, like get? Ok, if it's an argument of get, why not
->> it's a flag (attribute) in netlink serialization?
->>
->> Why I'm asking such questions. My use case requires periodic reset
->> of the counters, also I have quota based counters and I don't want
->> to reset them.
->>
->> I could work around it from user space, for example, I could get
->> quota based counter before I'm going to reset counters, delete it
->> and key it in after counters reset. As you could see too much
->> operations. Or I could could avoid reseting, but in this case I need
->> to operates with deltas in user space and it's not robust in
->> situation when my daemon is restarting. Every variant in user space
->> leads to more run time complexity.
->>
->> And my final question, will you accept a patch, which will move
->> CTRZERO to netlink attribute and CTRZERO will be expanded to
->> CTRZERO_OVERAL, CTRZERO_COUNTER and CTRZERO_QUOTA? For both kernel
->> side and user space part (nfacct tool with libraries).
-> You can make a patch that uses NFACCT_FLAGS in the nfnl_acct_get()
-> path to specify the filtering criteria. In the nfnl_acct_get() path,
-> you can use c->data in struct netlink_dump_control to attach the
-> filter, which needs to be allocated before the dump_start() call and
-> released through the dump_done() callback. If no NFACCT_FLAGS are
-> specified, no filter is specified and all counters should be cleared
-> as it happens now.
->
-Thank you Pablo for such detailed advice, I hope I'll send patches next 
-week.
+Hi Patrick,
 
+Would you be OK if we push this patchset into mainstream? I think we
+can investigate the fetch interface address and store in register
+approach that you proposed to implement masquerading later on. The
+missing bits are the conntrack cleanup routine, I think that needs
+some "scratchpad" area to store the last address/interface that have
+been used. We can probably revisit this later once that generic state
+infrastructure for nf_tables (to support stateful expressions in some
+generic way) is in place?
+
+If you don't like the idea, please let me know, and I'll defer this
+masquerading patchset.
+
+Thanks!
+
+On Tue, Jul 01, 2014 at 06:29:13PM +0200, Arturo Borrero Gonzalez wrote:
+> The following series implements some updates for NAT in nf_tables.
+> 
+> First of all, I add a new flag attribute to allow clients of nft_nat to
+> specify additional config flags. This enables implementing port randomization
+> and persistence to be set from nft.
+> 
+> Two patches split the masquerade code from ip[6]t_MASQUERADE.c to generic
+> modules, so we can use this NAT type from nft_nat.
+> 
+> Then, the nft_nat code is splitted in AF specific parts, so we avoid potential
+> dependencies regarding AF specific symbols in the last patch.
+> 
+> The last patch finally implements masquerade for nft_nat.
+> 
+> The v2 series included some fixes and additionals checks, as requested
+> by Florian Westphal.
+> 
+> This v3 series includes changes requested by Pablo Neira.
+> 
+> Comments are welcomed.
+> 
+> ---
+> 
+> Arturo Borrero Gonzalez (5):
+>       netfilter: nft_nat: include a flag attribute
+>       netfilter: nf_nat_masquerade_ipv4: code factorization
+>       netfilter: nf_nat_masquerade_ipv6: code factorization
+>       netfilter: nft_nat: split code in AF parts
+>       netfilter: nft_nat: add masquerade support
+> 
+> 
+>  .../net/netfilter/ipv4/nf_nat_masquerade_ipv4.h    |   14 ++
+>  .../net/netfilter/ipv6/nf_nat_masquerade_ipv6.h    |   10 +
+>  include/net/netfilter/nft_nat.h                    |   22 +++
+>  include/uapi/linux/netfilter/nf_nat.h              |    5 +
+>  include/uapi/linux/netfilter/nf_tables.h           |   10 +
+>  net/ipv4/netfilter/Kconfig                         |   14 ++
+>  net/ipv4/netfilter/Makefile                        |    2 
+>  net/ipv4/netfilter/ipt_MASQUERADE.c                |  108 +-------------
+>  net/ipv4/netfilter/nf_nat_masquerade_ipv4.c        |  155 ++++++++++++++++++++
+>  net/ipv4/netfilter/nft_nat_ipv4.c                  |  133 +++++++++++++++++
+>  net/ipv6/netfilter/Kconfig                         |   14 ++
+>  net/ipv6/netfilter/Makefile                        |    2 
+>  net/ipv6/netfilter/ip6t_MASQUERADE.c               |   76 +---------
+>  net/ipv6/netfilter/nf_nat_masquerade_ipv6.c        |  121 ++++++++++++++++
+>  net/ipv6/netfilter/nft_nat_ipv6.c                  |  132 +++++++++++++++++
+>  net/netfilter/nft_nat.c                            |  156 ++++++--------------
+>  16 files changed, 688 insertions(+), 286 deletions(-)
+>  create mode 100644 include/net/netfilter/ipv4/nf_nat_masquerade_ipv4.h
+>  create mode 100644 include/net/netfilter/ipv6/nf_nat_masquerade_ipv6.h
+>  create mode 100644 include/net/netfilter/nft_nat.h
+>  create mode 100644 net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+>  create mode 100644 net/ipv4/netfilter/nft_nat_ipv4.c
+>  create mode 100644 net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+>  create mode 100644 net/ipv6/netfilter/nft_nat_ipv6.c
+> 
+> -- 
+> Arturo Borrero Gonzalez
