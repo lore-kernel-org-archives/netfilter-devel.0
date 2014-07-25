@@ -1,85 +1,85 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nf: xt_LED: fix too short led-always-blink
-Date: Fri, 25 Jul 2014 14:22:12 +0200
-Message-ID: <20140725122212.GA5347@salvia>
-References: <53A2AABD.8000109@aksignal.cz>
- <20140630105419.GA7671@localhost>
- <CAK5ve-Kc_Kv_EnenJSNA9J60QoTtH-zEjPowrOPuUrsWkh3ACQ@mail.gmail.com>
- <53D2055D.3040200@aksignal.cz>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] [linux-next] netfilter: kill remnants of ulog
+	targets
+Date: Fri, 25 Jul 2014 14:25:31 +0200
+Message-ID: <1406291131.8231.20.camel@x220>
+References: <1406107694.12441.8.camel@x220> <20140723093949.GA3754@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Bryan Wu <cooloney@gmail.com>, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, Richard Purdie <rpurdie@rpsys.net>,
-	linux-leds@vger.kernel.org
-To: =?utf-8?B?SmnFmcOt?= Prchal <jiri.prchal@aksignal.cz>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51358 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751966AbaGYMWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 08:22:11 -0400
-Content-Disposition: inline
-In-Reply-To: <53D2055D.3040200@aksignal.cz>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	bridge@lists.linux-foundation.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>, "David S. Miller"
+	<davem@davemloft.net>, Patrick McHardy <kaber@trash.net>, Jozsef Kadlecsik
+	<kadlec@blackhole.kfki.hu>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <20140723093949.GA3754@salvia>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+The ulog targets were recently killed. A few references to the Kconfig
+macros CONFIG_IP_NF_TARGET_ULOG and CONFIG_BRIDGE_EBT_ULOG were left
+untouched. Kill these too.
 
-On Fri, Jul 25, 2014 at 09:21:01AM +0200, Ji=C5=99=C3=AD Prchal wrote:
-> If led-always-blink is set, then between switch led OFF and ON
-> is almost zero time. So blink is invisible. This use oneshot led trig=
-ger
-> with fixed time 50ms witch is enough to see blink.
->=20
-> Signed-off-by: Jiri <jiri.prchal@aksignal.cz>
-> ---
->  net/netfilter/xt_LED.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
->=20
-> diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-> index 993de2b..29b5af4 100644
-> --- a/net/netfilter/xt_LED.c
-> +++ b/net/netfilter/xt_LED.c
-> @@ -55,6 +55,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_=
-param *par)
->  {
->  	const struct xt_led_info *ledinfo =3D par->targinfo;
->  	struct xt_led_info_internal *ledinternal =3D ledinfo->internal_data=
-;
-> +	unsigned long t=3D50; /* always blink 50ms */
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Note that ulog_warn_deprecated and ebt_ulog_warn_deprecated do not exist
+anymore. Neither do */ebt_ulog.c and */ipt_ULOG.c.
 
-Please, define:
+ include/net/netns/x_tables.h  | 6 ------
+ net/bridge/netfilter/Makefile | 1 -
+ net/ipv4/netfilter/Makefile   | 1 -
+ 3 files changed, 8 deletions(-)
 
-#define XT_LED_BLINK_DELAY 50 /* ms */
-
-And use it in this way:
-
-        unsigned long led_delay =3D XT_LED_BLINK_DELAY;
-
-so it's consistent with what we have in net/mac80211/led.c
-
->  	/*
->  	 * If "always blink" is enabled, and there's still some time until =
-the
-> @@ -62,9 +63,10 @@ led_tg(struct sk_buff *skb, const struct xt_action=
-_param *par)
->  	 */
->  	if ((ledinfo->delay > 0) && ledinfo->always_blink &&
->  	    timer_pending(&ledinternal->timer))
-> -		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-> -
-> -	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
-> +		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
-> +					  &t, &t, 1);
-> +        else
-   ^^^^^^^^
-
-Make sure you use tab identations of 8-chars. I see spaces there :-)
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index 02fe40f8c8fd..c24060ee411e 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -15,11 +15,5 @@ struct netns_xt {
+ 	struct ebt_table *frame_filter;
+ 	struct ebt_table *frame_nat;
+ #endif
+-#if IS_ENABLED(CONFIG_IP_NF_TARGET_ULOG)
+-	bool ulog_warn_deprecated;
+-#endif
+-#if IS_ENABLED(CONFIG_BRIDGE_EBT_ULOG)
+-	bool ebt_ulog_warn_deprecated;
+-#endif
+ };
+ #endif
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index 1f78ea0d90e4..e0560a60cad4 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -36,5 +36,4 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_snat.o
+ 
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+-obj-$(CONFIG_BRIDGE_EBT_ULOG) += ebt_ulog.o
+ obj-$(CONFIG_BRIDGE_EBT_NFLOG) += ebt_nflog.o
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 245db9df3337..33001621465b 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -57,7 +57,6 @@ obj-$(CONFIG_IP_NF_TARGET_ECN) += ipt_ECN.o
+ obj-$(CONFIG_IP_NF_TARGET_MASQUERADE) += ipt_MASQUERADE.o
+ obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
+ obj-$(CONFIG_IP_NF_TARGET_SYNPROXY) += ipt_SYNPROXY.o
+-obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
+ 
+ # generic ARP tables
+ obj-$(CONFIG_IP_NF_ARPTABLES) += arp_tables.o
+-- 
+1.9.3
