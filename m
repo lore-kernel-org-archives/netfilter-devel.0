@@ -1,62 +1,70 @@
-From: Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
- 'struct bpf_prog'
-Date: Fri, 25 Jul 2014 09:53:48 -0400
-Message-ID: <CA+FuTScUJ-oJKAZ-MO_t9Rmah3U6G4sjHXLJSMrXVK5+fN0zyg@mail.gmail.com>
-References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
- <53D23EAF.4000001@redhat.com> <20140725115414.GA4770@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Daniel Borkmann <dborkman@redhat.com>,
-	Alexei Starovoitov <ast@plumgrid.com>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jiri Prchal <jiri.prchal@aksignal.cz>
+Subject: [PATCH resend] nf: xt_LED: fix too short led-always-blink
+Date: Fri, 25 Jul 2014 15:58:33 +0200
+Message-ID: <945bac3162d5842491848f3d3ab43ba4c5fac157.1406291927.git.jiri.prchal@aksignal.cz>
+Cc: Jiri <jiri.prchal@aksignal.cz>
+To: linux-leds@vger.kernel.org, rpurdie@rpsys.net, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, cooloney@gmail.com, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:47058 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932873AbaGYNyT (ORCPT
+Received: from router.aksignal.cz ([188.175.113.102]:33220 "EHLO
+	router.aksignal.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbaGYN7J (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 09:54:19 -0400
-Received: by mail-vc0-f171.google.com with SMTP id hq11so7457570vcb.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Jul 2014 06:54:18 -0700 (PDT)
-In-Reply-To: <20140725115414.GA4770@salvia>
+	Fri, 25 Jul 2014 09:59:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> >alternative fix for xt_bpf.h could be to replace:
->> >         /* only used in the kernel */
->> >     struct sk_filter *filter __attribute__((aligned(8)));
->> >with
->> >         /* only used in the kernel */
->> >     void *filter __attribute__((aligned(8)));
->> >
->> >but this 'void *' approach may further break broken userspace,
->> >whereas the fix implemented here is more seamless.
->>
->> Yep, that's not good, 'struct sk_filter' should never have been in a uapi
->> file actually.
+From: Jiri <jiri.prchal@aksignal.cz>
 
-This follows a convention in include/uapi/linux/netfilter/*.h that
-likely predates the introduction of uapi. A search for "Used
-internally by the kernel" shows many more examples. I should not have
-included filter.h, however. The common behavior when using pointers
-to kernel-internal structures is to have a forward declaration. I suggest
-making that change, instead of changing to void *. This avoids having
-to add casts where xt_bpf_info is used in net/netfilter/xt_bpf.c:
+If led-always-blink is set, then between switch led OFF and ON
+is almost zero time. So blink is invisible. This use oneshot led trigger
+with fixed time 50ms witch is enough to see blink.
 
--#include <linux/filter.h>
- #include <linux/types.h>
+Signed-off-by: Jiri <jiri.prchal@aksignal.cz>
 
- #define XT_BPF_MAX_NUM_INSTR   64
+v2:
+defined constant XT_LED_BLINK_DELAY and use it instead of number
+Hope this time sould be OK.
+---
+ net/netfilter/xt_LED.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-+struct sk_filter;
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 993de2b..9c12f16 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -28,6 +28,8 @@
+
+ #include <linux/netfilter/xt_LED.h>
+
++#define XT_LED_BLINK_DELAY 50 /* ms */
 +
- struct xt_bpf_info {
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Adam Nielsen <a.nielsen@shikadi.net>");
+ MODULE_DESCRIPTION("Xtables: trigger LED devices on packet match");
+@@ -55,6 +57,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_led_info *ledinfo = par->targinfo;
+ 	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
++	unsigned long led_delay = XT_LED_BLINK_DELAY;
 
-I can send this as a separate patch to net-next, if that helps.
+ 	/*
+ 	 * If "always blink" is enabled, and there's still some time until the
+@@ -62,9 +65,10 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 	 */
+ 	if ((ledinfo->delay > 0) && ledinfo->always_blink &&
+ 	    timer_pending(&ledinternal->timer))
+-		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
+-
+-	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
++		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
++					  &led_delay, &led_delay, 1);
++	else
++		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
 
-> You can just send me a patch to change it to void. It's an internal
-> kernel pointer as the comment states. There is **no** way that
-> userspace can lurk with that from iptables at all.
+ 	/* If there's a positive delay, start/update the timer */
+ 	if (ledinfo->delay > 0) {
+--
+1.9.1
+
