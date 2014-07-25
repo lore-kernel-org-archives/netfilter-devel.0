@@ -1,56 +1,63 @@
-From: =?UTF-8?B?SmnFmcOtIFByY2hhbA==?= <jiri.prchal@aksignal.cz>
-Subject: [PATCH] nf: xt_LED: fix too short led-always-blink
-Date: Fri, 25 Jul 2014 09:21:01 +0200
-Message-ID: <53D2055D.3040200@aksignal.cz>
-References: <53A2AABD.8000109@aksignal.cz> <20140630105419.GA7671@localhost> <CAK5ve-Kc_Kv_EnenJSNA9J60QoTtH-zEjPowrOPuUrsWkh3ACQ@mail.gmail.com>
-Reply-To: jiri.prchal@aksignal.cz
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: reset nfacct counters
+Date: Fri, 25 Jul 2014 12:05:12 +0400
+Message-ID: <53D20FB8.9050606@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net,
-	Richard Purdie <rpurdie@rpsys.net>, linux-leds@vger.kernel.org
-To: Bryan Wu <cooloney@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <CAK5ve-Kc_Kv_EnenJSNA9J60QoTtH-zEjPowrOPuUrsWkh3ACQ@mail.gmail.com>
-Sender: linux-leds-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	alexey.perevalov@hotmail.com,
+	=?UTF-8?B?J+qzoO2YhOyEsSc=?= <hs81.go@samsung.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, mathieu.poirier@linaro.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26252 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759830AbaGYIFR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 04:05:17 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N99006TRD4G4140@mailout4.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Fri, 25 Jul 2014 09:05:04 +0100 (BST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-If led-always-blink is set, then between switch led OFF and ON
-is almost zero time. So blink is invisible. This use oneshot led trigger
-with fixed time 50ms witch is enough to see blink.
+Hello Pablo and Mathieu.
+I would like to thank you for quota with notification implementation in 
+nfacct.
 
-Signed-off-by: Jiri <jiri.prchal@aksignal.cz>
----
-  net/netfilter/xt_LED.c | 8 +++++---
-  1 file changed, 5 insertions(+), 3 deletions(-)
+But also I want to discuss about resetting counters value. Right now 
+nfacct has 2 way to get counter
+NFNL_MSG_ACCT_GET and NFNL_MSG_ACCT_GET_CTRZERO, last one is intended to 
+nullify accumulated counter.
+It resets counters with and without populated quota value. After commit 
+683399eddb nfacct really operates
+with 2 different entities: pure counter and quota based counter. If so, 
+why not to operate with it separately,
+maybe by some filter (flag).
 
-diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-index 993de2b..29b5af4 100644
---- a/net/netfilter/xt_LED.c
-+++ b/net/netfilter/xt_LED.c
-@@ -55,6 +55,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
-  {
-  	const struct xt_led_info *ledinfo = par->targinfo;
-  	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+	unsigned long t=50; /* always blink 50ms */
+Also it was strange for me, why reset is not a command of command line 
+tool nfacct, like get? Ok, if it's an argument of get, why not it's a 
+flag (attribute) in netlink serialization?
 
-  	/*
-  	 * If "always blink" is enabled, and there's still some time until the
-@@ -62,9 +63,10 @@ led_tg(struct sk_buff *skb, const struct xt_action_param *par)
-  	 */
-  	if ((ledinfo->delay > 0) && ledinfo->always_blink &&
-  	    timer_pending(&ledinternal->timer))
--		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
--
--	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
-+		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
-+					  &t, &t, 1);
-+        else
-+		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
+Why I'm asking such questions. My use case requires periodic reset of 
+the counters, also I have quota based counters and I don't want to reset 
+them.
+I could work around it from user space, for example, I could get quota 
+based counter before I'm going to reset counters, delete it and key it 
+in after counters reset. As you could see too much operations. Or I 
+could could avoid reseting, but in this case I need to operates with 
+deltas in user space and it's not robust in situation when my daemon is 
+restarting. Every variant in user space leads to more run time complexity.
 
-  	/* If there's a positive delay, start/update the timer */
-  	if (ledinfo->delay > 0) {
+And my final question, will you accept a patch, which will move CTRZERO 
+to netlink attribute and CTRZERO will be expanded to CTRZERO_OVERAL, 
+CTRZERO_COUNTER and CTRZERO_QUOTA? For both kernel side and user space 
+part (nfacct tool with libraries).
+
+
 -- 
-1.9.1
+Best regards,
+Alexey Perevalov
