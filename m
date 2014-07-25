@@ -1,32 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] [linux-next] netfilter: kill remnants of ulog targets
-Date: Fri, 25 Jul 2014 15:01:34 +0200
-Message-ID: <20140725130134.GC13940@salvia>
-References: <1406107694.12441.8.camel@x220>
- <20140723093949.GA3754@salvia>
- <1406291131.8231.20.camel@x220>
+From: Willem de Bruijn <willemb@google.com>
+Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
+ 'struct bpf_prog'
+Date: Fri, 25 Jul 2014 09:53:48 -0400
+Message-ID: <CA+FuTScUJ-oJKAZ-MO_t9Rmah3U6G4sjHXLJSMrXVK5+fN0zyg@mail.gmail.com>
+References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
+ <53D23EAF.4000001@redhat.com> <20140725115414.GA4770@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1406291131.8231.20.camel@x220>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	Alexei Starovoitov <ast@plumgrid.com>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:47058 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932873AbaGYNyT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 09:54:19 -0400
+Received: by mail-vc0-f171.google.com with SMTP id hq11so7457570vcb.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Jul 2014 06:54:18 -0700 (PDT)
+In-Reply-To: <20140725115414.GA4770@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 25, 2014 at 02:25:31PM +0200, Paul Bolle wrote:
-> The ulog targets were recently killed. A few references to the Kconfig
-> macros CONFIG_IP_NF_TARGET_ULOG and CONFIG_BRIDGE_EBT_ULOG were left
-> untouched. Kill these too.
+>> >alternative fix for xt_bpf.h could be to replace:
+>> >         /* only used in the kernel */
+>> >     struct sk_filter *filter __attribute__((aligned(8)));
+>> >with
+>> >         /* only used in the kernel */
+>> >     void *filter __attribute__((aligned(8)));
+>> >
+>> >but this 'void *' approach may further break broken userspace,
+>> >whereas the fix implemented here is more seamless.
+>>
+>> Yep, that's not good, 'struct sk_filter' should never have been in a uapi
+>> file actually.
 
-Those were my fault, applied, thanks Paul.
+This follows a convention in include/uapi/linux/netfilter/*.h that
+likely predates the introduction of uapi. A search for "Used
+internally by the kernel" shows many more examples. I should not have
+included filter.h, however. The common behavior when using pointers
+to kernel-internal structures is to have a forward declaration. I suggest
+making that change, instead of changing to void *. This avoids having
+to add casts where xt_bpf_info is used in net/netfilter/xt_bpf.c:
+
+-#include <linux/filter.h>
+ #include <linux/types.h>
+
+ #define XT_BPF_MAX_NUM_INSTR   64
+
++struct sk_filter;
++
+ struct xt_bpf_info {
+
+I can send this as a separate patch to net-next, if that helps.
+
+> You can just send me a patch to change it to void. It's an internal
+> kernel pointer as the comment states. There is **no** way that
+> userspace can lurk with that from iptables at all.
