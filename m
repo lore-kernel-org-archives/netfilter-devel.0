@@ -1,68 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: check for unset NFTA_SET_ELEM_LIST_ELEMENTS attribute
-Date: Fri, 25 Jul 2014 13:15:36 +0200
-Message-ID: <1406286936-4154-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
+ 'struct bpf_prog'
+Date: Fri, 25 Jul 2014 13:54:37 +0200
+Message-ID: <20140725115414.GA4770@salvia>
+References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
+ <53D23EAF.4000001@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Alexei Starovoitov <ast@plumgrid.com>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, willemb@google.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <dborkman@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33406 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43598 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713AbaGYLPf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 07:15:35 -0400
+	id S1760098AbaGYLye (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 07:54:34 -0400
+Content-Disposition: inline
+In-Reply-To: <53D23EAF.4000001@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Otherwise, the kernel oopses in nla_for_each_nested when iterating over
-the unset attribute NFTA_SET_ELEM_LIST_ELEMENTS in the
-nf_tables_{new,del}setelem() path.
+On Fri, Jul 25, 2014 at 01:25:35PM +0200, Daniel Borkmann wrote:
+> [ also Cc'ing Willem, Pablo ]
+> 
+> On 07/25/2014 10:04 AM, Alexei Starovoitov wrote:
+> >'sk_filter' name is used as 'struct sk_filter', function sk_filter() and
+> >as variable 'sk_filter', which makes code hard to read.
+> >Also it's easily confused with 'struct sock_filter'
+> >Rename 'struct sk_filter' to 'struct bpf_prog' to clarify semantics and
+> >align the name with generic BPF use model.
+> 
+> Agreed, as we went for kernel/bpf/, renaming makes absolutely sense.
 
-netlink: 65524 bytes leftover after parsing attributes in process `nft'.
-[...]
-Oops: 0000 [#1] SMP
-[...]
-CPU: 2 PID: 6287 Comm: nft Not tainted 3.16.0-rc2+ #169
-RIP: 0010:[<ffffffffa0526e61>]  [<ffffffffa0526e61>] nf_tables_newsetelem+0x82/0xec [nf_tables]
-[...]
-Call Trace:
- [<ffffffffa05178c4>] nfnetlink_rcv+0x2e7/0x3d7 [nfnetlink]
- [<ffffffffa0517939>] ? nfnetlink_rcv+0x35c/0x3d7 [nfnetlink]
- [<ffffffff8137d300>] netlink_unicast+0xf8/0x17a
- [<ffffffff8137d6a5>] netlink_sendmsg+0x323/0x351
-[...]
+My nft socket filtering changes are accomodated into struct sk_filter,
+and will still be, so I still need some generic name there...
 
-Fix this by returning -EINVAL if this attribute is not set, which
-doesn't make sense at all since those commands are there to add and to
-delete elements from the set.
+Please, leave this as it is.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+> >The only ugly place is uapi/linux/netfilter/xt_bpf.h which
+> >managed to expose kernel internal structure into uapi header.
+> >Though it shouldn't even compile in user space, preserve the mess by
+> >adding empty 'struct sk_filter;' there and type cast it to 'struct bpf_prog'
+> >inside kernel in net/netfilter/xt_bpf.c
+> >
+> >Signed-off-by: Alexei Starovoitov <ast@plumgrid.com>
+> >---
+> >
+> >alternative fix for xt_bpf.h could be to replace:
+> >         /* only used in the kernel */
+> >	struct sk_filter *filter __attribute__((aligned(8)));
+> >with
+> >         /* only used in the kernel */
+> >	void *filter __attribute__((aligned(8)));
+> >
+> >but this 'void *' approach may further break broken userspace,
+> >whereas the fix implemented here is more seamless.
+> 
+> Yep, that's not good, 'struct sk_filter' should never have been in a uapi
+> file actually.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ecffb26..93692d6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3073,6 +3073,9 @@ static int nf_tables_newsetelem(struct sock *nlsk, struct sk_buff *skb,
- 	struct nft_ctx ctx;
- 	int rem, err = 0;
- 
-+	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
-+		return -EINVAL;
-+
- 	err = nft_ctx_init_from_elemattr(&ctx, skb, nlh, nla, true);
- 	if (err < 0)
- 		return err;
-@@ -3156,6 +3159,9 @@ static int nf_tables_delsetelem(struct sock *nlsk, struct sk_buff *skb,
- 	struct nft_ctx ctx;
- 	int rem, err = 0;
- 
-+	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
-+		return -EINVAL;
-+
- 	err = nft_ctx_init_from_elemattr(&ctx, skb, nlh, nla, false);
- 	if (err < 0)
- 		return err;
--- 
-1.7.10.4
-
+You can just send me a patch to change it to void. It's an internal
+kernel pointer as the comment states. There is **no** way that
+userspace can lurk with that from iptables at all.
