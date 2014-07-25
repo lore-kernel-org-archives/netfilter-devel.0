@@ -1,66 +1,85 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
- 'struct bpf_prog'
-Date: Fri, 25 Jul 2014 13:54:37 +0200
-Message-ID: <20140725115414.GA4770@salvia>
-References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
- <53D23EAF.4000001@redhat.com>
+Subject: Re: [PATCH] nf: xt_LED: fix too short led-always-blink
+Date: Fri, 25 Jul 2014 14:22:12 +0200
+Message-ID: <20140725122212.GA5347@salvia>
+References: <53A2AABD.8000109@aksignal.cz>
+ <20140630105419.GA7671@localhost>
+ <CAK5ve-Kc_Kv_EnenJSNA9J60QoTtH-zEjPowrOPuUrsWkh3ACQ@mail.gmail.com>
+ <53D2055D.3040200@aksignal.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Alexei Starovoitov <ast@plumgrid.com>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, willemb@google.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <dborkman@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Bryan Wu <cooloney@gmail.com>, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, Richard Purdie <rpurdie@rpsys.net>,
+	linux-leds@vger.kernel.org
+To: =?utf-8?B?SmnFmcOt?= Prchal <jiri.prchal@aksignal.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43598 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51358 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760098AbaGYLye (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 07:54:34 -0400
+	id S1751966AbaGYMWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 08:22:11 -0400
 Content-Disposition: inline
-In-Reply-To: <53D23EAF.4000001@redhat.com>
+In-Reply-To: <53D2055D.3040200@aksignal.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 25, 2014 at 01:25:35PM +0200, Daniel Borkmann wrote:
-> [ also Cc'ing Willem, Pablo ]
-> 
-> On 07/25/2014 10:04 AM, Alexei Starovoitov wrote:
-> >'sk_filter' name is used as 'struct sk_filter', function sk_filter() and
-> >as variable 'sk_filter', which makes code hard to read.
-> >Also it's easily confused with 'struct sock_filter'
-> >Rename 'struct sk_filter' to 'struct bpf_prog' to clarify semantics and
-> >align the name with generic BPF use model.
-> 
-> Agreed, as we went for kernel/bpf/, renaming makes absolutely sense.
+Hi,
 
-My nft socket filtering changes are accomodated into struct sk_filter,
-and will still be, so I still need some generic name there...
+On Fri, Jul 25, 2014 at 09:21:01AM +0200, Ji=C5=99=C3=AD Prchal wrote:
+> If led-always-blink is set, then between switch led OFF and ON
+> is almost zero time. So blink is invisible. This use oneshot led trig=
+ger
+> with fixed time 50ms witch is enough to see blink.
+>=20
+> Signed-off-by: Jiri <jiri.prchal@aksignal.cz>
+> ---
+>  net/netfilter/xt_LED.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+> index 993de2b..29b5af4 100644
+> --- a/net/netfilter/xt_LED.c
+> +++ b/net/netfilter/xt_LED.c
+> @@ -55,6 +55,7 @@ led_tg(struct sk_buff *skb, const struct xt_action_=
+param *par)
+>  {
+>  	const struct xt_led_info *ledinfo =3D par->targinfo;
+>  	struct xt_led_info_internal *ledinternal =3D ledinfo->internal_data=
+;
+> +	unsigned long t=3D50; /* always blink 50ms */
 
-Please, leave this as it is.
+Please, define:
 
-> >The only ugly place is uapi/linux/netfilter/xt_bpf.h which
-> >managed to expose kernel internal structure into uapi header.
-> >Though it shouldn't even compile in user space, preserve the mess by
-> >adding empty 'struct sk_filter;' there and type cast it to 'struct bpf_prog'
-> >inside kernel in net/netfilter/xt_bpf.c
-> >
-> >Signed-off-by: Alexei Starovoitov <ast@plumgrid.com>
-> >---
-> >
-> >alternative fix for xt_bpf.h could be to replace:
-> >         /* only used in the kernel */
-> >	struct sk_filter *filter __attribute__((aligned(8)));
-> >with
-> >         /* only used in the kernel */
-> >	void *filter __attribute__((aligned(8)));
-> >
-> >but this 'void *' approach may further break broken userspace,
-> >whereas the fix implemented here is more seamless.
-> 
-> Yep, that's not good, 'struct sk_filter' should never have been in a uapi
-> file actually.
+#define XT_LED_BLINK_DELAY 50 /* ms */
 
-You can just send me a patch to change it to void. It's an internal
-kernel pointer as the comment states. There is **no** way that
-userspace can lurk with that from iptables at all.
+And use it in this way:
+
+        unsigned long led_delay =3D XT_LED_BLINK_DELAY;
+
+so it's consistent with what we have in net/mac80211/led.c
+
+>  	/*
+>  	 * If "always blink" is enabled, and there's still some time until =
+the
+> @@ -62,9 +63,10 @@ led_tg(struct sk_buff *skb, const struct xt_action=
+_param *par)
+>  	 */
+>  	if ((ledinfo->delay > 0) && ledinfo->always_blink &&
+>  	    timer_pending(&ledinternal->timer))
+> -		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
+> -
+> -	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
+> +		led_trigger_blink_oneshot(&ledinternal->netfilter_led_trigger,
+> +					  &t, &t, 1);
+> +        else
+   ^^^^^^^^
+
+Make sure you use tab identations of 8-chars. I see spaces there :-)
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
