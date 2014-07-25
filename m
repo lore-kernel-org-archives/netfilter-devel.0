@@ -1,30 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/7] patches for an autotooled version of 'nftables'.
- (vers. 2)
-Date: Fri, 25 Jul 2014 19:16:46 +0200
-Message-ID: <20140725171646.GA5718@salvia>
-References: <1404742796-8039-1-git-send-email-giorgio.nicole@arcor.de>
+From: Alexei Starovoitov <ast@plumgrid.com>
+Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
+ 'struct bpf_prog'
+Date: Fri, 25 Jul 2014 10:24:29 -0700
+Message-ID: <CAMEtUux+dw_GoafXE3ukvmOK2JmZWWf-y0VMobe60TSTfZeNmw@mail.gmail.com>
+References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
+	<53D23EAF.4000001@redhat.com>
+	<20140725115414.GA4770@salvia>
+	<53D254D9.9030905@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giorgio Dal Molin <giorgio.nicole@arcor.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44055 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753245AbaGYRQh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 13:16:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1404742796-8039-1-git-send-email-giorgio.nicole@arcor.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Network Development <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, willemb@google.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <dborkman@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53D254D9.9030905@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 07, 2014 at 04:19:24PM +0200, Giorgio Dal Molin wrote:
-> Hi,
-> 
-> I'm sending a couple of patches to add autotools support to the 'nftables' project.
+On Fri, Jul 25, 2014 at 6:00 AM, Daniel Borkmann <dborkman@redhat.com> wrote:
+> On 07/25/2014 01:54 PM, Pablo Neira Ayuso wrote:
+>>
+>> On Fri, Jul 25, 2014 at 01:25:35PM +0200, Daniel Borkmann wrote:
+>>>
+>>> [ also Cc'ing Willem, Pablo ]
+>>>
+>>> On 07/25/2014 10:04 AM, Alexei Starovoitov wrote:
+>>>>
+>>>> 'sk_filter' name is used as 'struct sk_filter', function sk_filter() and
+>>>> as variable 'sk_filter', which makes code hard to read.
+>>>> Also it's easily confused with 'struct sock_filter'
+>>>> Rename 'struct sk_filter' to 'struct bpf_prog' to clarify semantics and
+>>>> align the name with generic BPF use model.
+>>>
+>>>
+>>> Agreed, as we went for kernel/bpf/, renaming makes absolutely sense.
+>>
+>>
+>> My nft socket filtering changes are accomodated into struct sk_filter,
+>> and will still be, so I still need some generic name there...
+>
+>
+> All the parts from filter.c which is BPF's core engine have been moved
+> into kernel/bpf/ to get it ready for tracing et al, since there is not
+> always a socket context anymore. The *whole* infrastructure around struct
+> sk_filter is [e]BPF and used in non-net related contexts as well, whereas
+> nft socket filtering is *only* for sockets. Due to the socket-only specific
+> use case why doesn't it make more sense to have a union in struct sock
+> around sk_filter (or however we name it) and only allow one of the two
+> being loaded on a socket?
 
-This patchset doesn't remove the the old makefiles and it's missing
-several new ones (most likely forgot to 'git add') in the include/
-irectory. I think this needs another spin.
-
-Thanks.
+yep.
+Adding nft specific things to struct sk_filter/bpf_prog is not correct,
+since this struct is already part of seccomp and will be used
+in net-less configurations. SK_RUN_FILTER() macro will also be
+renamed into something like RUN_BPF_RPOG(). It's one and only
+way to invoke eBPF programs. Adding nft selector cannot work,
+since eBPF is used with generic context whereas nft is skb specific.
+If you want to add nft filtering capabilities to sockets, you'd need
+to add union around 'struct bpf_prog' inside 'struct sock', which will be
+much cleaner way.
