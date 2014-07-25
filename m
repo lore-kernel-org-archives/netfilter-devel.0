@@ -1,63 +1,68 @@
-From: Alexey Perevalov <a.perevalov@samsung.com>
-Subject: reset nfacct counters
-Date: Fri, 25 Jul 2014 12:05:12 +0400
-Message-ID: <53D20FB8.9050606@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	alexey.perevalov@hotmail.com,
-	=?UTF-8?B?J+qzoO2YhOyEsSc=?= <hs81.go@samsung.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, mathieu.poirier@linaro.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: check for unset NFTA_SET_ELEM_LIST_ELEMENTS attribute
+Date: Fri, 25 Jul 2014 13:15:36 +0200
+Message-ID: <1406286936-4154-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:26252 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759830AbaGYIFR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2014 04:05:17 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N99006TRD4G4140@mailout4.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Fri, 25 Jul 2014 09:05:04 +0100 (BST)
+Received: from mail.us.es ([193.147.175.20]:33406 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751713AbaGYLPf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2014 07:15:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo and Mathieu.
-I would like to thank you for quota with notification implementation in 
-nfacct.
+Otherwise, the kernel oopses in nla_for_each_nested when iterating over
+the unset attribute NFTA_SET_ELEM_LIST_ELEMENTS in the
+nf_tables_{new,del}setelem() path.
 
-But also I want to discuss about resetting counters value. Right now 
-nfacct has 2 way to get counter
-NFNL_MSG_ACCT_GET and NFNL_MSG_ACCT_GET_CTRZERO, last one is intended to 
-nullify accumulated counter.
-It resets counters with and without populated quota value. After commit 
-683399eddb nfacct really operates
-with 2 different entities: pure counter and quota based counter. If so, 
-why not to operate with it separately,
-maybe by some filter (flag).
+netlink: 65524 bytes leftover after parsing attributes in process `nft'.
+[...]
+Oops: 0000 [#1] SMP
+[...]
+CPU: 2 PID: 6287 Comm: nft Not tainted 3.16.0-rc2+ #169
+RIP: 0010:[<ffffffffa0526e61>]  [<ffffffffa0526e61>] nf_tables_newsetelem+0x82/0xec [nf_tables]
+[...]
+Call Trace:
+ [<ffffffffa05178c4>] nfnetlink_rcv+0x2e7/0x3d7 [nfnetlink]
+ [<ffffffffa0517939>] ? nfnetlink_rcv+0x35c/0x3d7 [nfnetlink]
+ [<ffffffff8137d300>] netlink_unicast+0xf8/0x17a
+ [<ffffffff8137d6a5>] netlink_sendmsg+0x323/0x351
+[...]
 
-Also it was strange for me, why reset is not a command of command line 
-tool nfacct, like get? Ok, if it's an argument of get, why not it's a 
-flag (attribute) in netlink serialization?
+Fix this by returning -EINVAL if this attribute is not set, which
+doesn't make sense at all since those commands are there to add and to
+delete elements from the set.
 
-Why I'm asking such questions. My use case requires periodic reset of 
-the counters, also I have quota based counters and I don't want to reset 
-them.
-I could work around it from user space, for example, I could get quota 
-based counter before I'm going to reset counters, delete it and key it 
-in after counters reset. As you could see too much operations. Or I 
-could could avoid reseting, but in this case I need to operates with 
-deltas in user space and it's not robust in situation when my daemon is 
-restarting. Every variant in user space leads to more run time complexity.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-And my final question, will you accept a patch, which will move CTRZERO 
-to netlink attribute and CTRZERO will be expanded to CTRZERO_OVERAL, 
-CTRZERO_COUNTER and CTRZERO_QUOTA? For both kernel side and user space 
-part (nfacct tool with libraries).
-
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ecffb26..93692d6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3073,6 +3073,9 @@ static int nf_tables_newsetelem(struct sock *nlsk, struct sk_buff *skb,
+ 	struct nft_ctx ctx;
+ 	int rem, err = 0;
+ 
++	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
++		return -EINVAL;
++
+ 	err = nft_ctx_init_from_elemattr(&ctx, skb, nlh, nla, true);
+ 	if (err < 0)
+ 		return err;
+@@ -3156,6 +3159,9 @@ static int nf_tables_delsetelem(struct sock *nlsk, struct sk_buff *skb,
+ 	struct nft_ctx ctx;
+ 	int rem, err = 0;
+ 
++	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
++		return -EINVAL;
++
+ 	err = nft_ctx_init_from_elemattr(&ctx, skb, nlh, nla, false);
+ 	if (err < 0)
+ 		return err;
 -- 
-Best regards,
-Alexey Perevalov
+1.7.10.4
+
