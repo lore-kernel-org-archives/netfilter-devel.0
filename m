@@ -1,84 +1,24 @@
-From: Alexei Starovoitov <ast@plumgrid.com>
-Subject: Re: [PATCH v3 net-next] net: filter: cleanup sk_* and bpf_* names
-Date: Tue, 29 Jul 2014 10:25:25 -0700
-Message-ID: <CAMEtUuxsFdmWM5DFXNRMnDKzqfgsaEashsMvDsKcjnF=T8pbpA@mail.gmail.com>
-References: <1406615380-3488-1-git-send-email-ast@plumgrid.com>
-	<20140729153124.GA3231@salvia>
-	<CAMEtUuwO0nGox4Mfj8Gs2fVudBpYtZ_NSwyFQCFz5NeYKgAdpA@mail.gmail.com>
-	<20140729164226.GA6069@salvia>
+From: "Mr. David Hale" <hale.dave01@gmail.com>
+Subject: Our mutual benefits
+Date: Sun, 27 Jul 2014 22:22:38 +0200
+Message-ID: <20140729155631.366E7305DB9@puerta.congresotlaxcala.gob.mx>
+Reply-To: hale.dave02@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Willem de Bruijn <willemb@google.com>,
-	Kees Cook <keescook@chromium.org>,
-	Network Development <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:60196 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbaG2RZ1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jul 2014 13:25:27 -0400
-Received: by mail-we0-f173.google.com with SMTP id q58so9520648wes.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2014 10:25:26 -0700 (PDT)
-In-Reply-To: <20140729164226.GA6069@salvia>
+Received: from mail.congresotlaxcala.gob.mx ([187.174.251.4]:54698 "EHLO
+	puerta.congresotlaxcala.gob.mx" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751728AbaG2UAC convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jul 2014 16:00:02 -0400
+Received: from [192.168.1.151] (zux221-121-043.adsl.green.ch [81.221.121.43])
+	by puerta.congresotlaxcala.gob.mx (Postfix) with ESMTPA id 2183055B006
+	for <netfilter-devel@vger.kernel.org>; Sun, 27 Jul 2014 14:51:40 -0500 (CDT)
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 29, 2014 at 9:42 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Jul 29, 2014 at 08:55:04AM -0700, Alexei Starovoitov wrote:
->> > I don't think this is the right moment to add this, but we have to
->> > keep in mind that something similar to this will need to be
->> > accomodated in struct sk_filter at some point to avoid sloppy changes
->> > that may result in reintroducing code later on.
->>
->> I thought in v1 series you were arguing exactly about introducing them now...
->> ok, I will drop callbacks and keep refcnt,rcu,filter_size and bpf_prog pointer
->> in there. Sounds good?
->
-> Agreed.
->
->> > Next step should be to wrap the specific bpf fields in struct
->> > bpf_prog in some clean way IMO, which was partially the aim of this
->> > patch.
->>
->> it seems your only objection is 'rcu_head' still being there and rebasing
->> on top of yours will fix it...
->
-> Almost. I just wanted to leave in place struct sk_filter for the
-> coming up generalization, that structure should contain the refcnt,
-> rcu_head and the struct bpf_prog after some of your follow up patches.
-
-Yes. something like:
-struct sk_filter {
-        atomic_t refcnt;
-        struct rcu_head rcu;
-        u32 filter_size;
-        struct bpf_prog *prog;
-};
-filter_size also makes sense to add right now to cleanup charging.
-
-> Please, also leave sk_filter_charge/uncharge/get_filter whatever will
-> provide the room the generalization under net/core/filter.c, not need
-> to move these to kernel/bpf/
-
-of course, that was never the intent.
-all socket related stuff should keep sk_* prefix and stay in net/
-only net-independent things makes sense to move.
-
-> After my patch (and your follow up), we don't have sloppy usage of
-> rcu_head for unattached filter anymore and I guess Willem is going to
-> same save bytes in his iptables/bpf rules given that he can directly
-> use bpf_prog instead of sk_filter.
-
-yes. exactly.
-
-btw, Dave may request to do a fresh repost of both of your
-patches with v2 tag... Alternatively I can do rebase + fix what we
-discussed above + split and repost yours and mine as single
-series, since they're addressing one area...
-Also I want to do some more testing of your #2 patch for seccomp
-to make sure all is clean.
+Hello, i am seeking your assistance in collecting a fixed deposit. I can give you more details if you are interested. Regards,
+David.
