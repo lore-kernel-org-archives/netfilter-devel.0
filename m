@@ -1,157 +1,546 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 3/4] src: fix byteorder conversions in range values
-Date: Mon, 28 Jul 2014 13:51:50 +0200
-Message-ID: <1406548311-31354-4-git-send-email-alvaroneay@gmail.com>
-References: <1406548311-31354-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH] nft: add reject support
+Date: Mon, 28 Jul 2014 19:11:14 +0200
+Message-ID: <1406567474-6024-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:63484 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbaG1LwB (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:50856 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985AbaG1RLZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jul 2014 07:52:01 -0400
-Received: by mail-wg0-f50.google.com with SMTP id n12so7015716wgh.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2014 04:52:00 -0700 (PDT)
-In-Reply-To: <1406548311-31354-1-git-send-email-alvaroneay@gmail.com>
+	Mon, 28 Jul 2014 13:11:25 -0400
+Received: by mail-wi0-f182.google.com with SMTP id d1so4743981wiv.9
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2014 10:11:21 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently if we try to use range values in nft rules doesn't
-work correctly. Usually this problems are for doing incorrect byteorder
-conversion or for having not too much info for converting the values in
-the correct byteorder.
+This patch allows to use reject in rules. Example:
 
-I have designed some solutions for the different kind of datatype:
+nft add rule filter input udp dport 22 reject
 
-* If we have a rule that the byteorder are big endian
+In this rule, we assume that the reason is network unreachable. Also
+we can specify the reason with the option "with" and the reason. Example:
 
-  nft add rule filter input tcp dport 22-25
+nft add rule filter input tcp dport 22 reject with host-unreach
 
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ payload load 2b @ transport header + 2 => reg 1 ]
-  [ cmp gte reg 1 0x00001600 ]
-  [ cmp lte reg 1 0x00001900 ]
+In the bridge tables and inet tables, we can use this action too. Example:
 
-  In this case, we have sufficient for changing the values in the byteorder,
-  that we expect and we change it without problem.
+nft add rule inet filter input reject with icmp-host-unreach
 
-* If we have a rule that we use integer_type, in this case the byteorder
-  associate to this value are INVALID:
-
-  nft add rule filter input tcp checksum 22-25
-
-  We usually expect this values from the network in big endian, for that I have
-  added a unary expression for changing the register. That solves the problem
-  that we have had in delinealize step for having the same rule that we have
-  added (usually we have had byteorder problem and we show the rules values in
-  wrong byteorder format)
-
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ payload load 2b @ transport header + 16 => reg 1 ]
-  [ byteorder reg 1 = hton(reg 1, 2, 2) ]
-  [ cmp gte reg 1 0x00000016 ]
-  [ cmp lte reg 1 0x00000019 ]
+In this two tables, we generate a meta or payload dependency for
+enclosing which kind of traffic we must matching. We add this dependency
+only in the case that we must to add more context to this rule.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/evaluate.c            |   27 +++++++++++++++++++--------
- src/netlink_delinearize.c |   22 +++++++++++++++++++++-
- 2 files changed, 40 insertions(+), 9 deletions(-)
+[Tested with the rules]
+[Error ways]
+Reject not supported for arp
+  * nft add rule arp filter input reject (reject not supported for arp)
 
+Use icmp code field in a ipv6 table or icmpv6 code field in ipv4 table
+  * nft add rule ip filter input reject with icmpv6-no-route
+  * nft add rule ip6 filter input reject with icmp-host-unreach
+
+Insufficient context for using reject
+  * nft add rule inet filter input reject
+  * nft add rule bridge filter input reject
+
+Use tcp reset with a udp rule
+  * nft add rule ip filter input udp dport 9999 reject with tcp-reset X
+
+[Hits ways]
+IPV4
+  * nft add rule ip filter input udp dport 9999 reject with icmp-host-unreach
+  * nft add rule ip filter input tcp dport 9999 reject
+  * nft add rule ip filter input reject
+IPV6
+  * nft add rule ip6 filter input udp dport 9999 reject
+  * nft add rule ip6 filter input tcp dport 9999 /
+    reject with icmpv6-admin-prohibited
+  * nft add rule ip6 filter input reject
+INET
+  * nft add rule inet filter input reject with icmp-host-unreach
+  * nft add rule inet filter input reject with icmpv6-no-route
+  * nft add rule inet filter input udp dport 9999 counter /
+    reject with icmpv6-no-route
+BRIDGE
+  * nft add rule bridge filter input reject with icmp-host-unreach
+  * nft add rule bridge filter input reject with icmpv6-no-route
+
+ include/statement.h       |    2 +
+ src/evaluate.c            |  116 +++++++++++++++++++++++++++++++++++++++++++--
+ src/netlink_delinearize.c |   37 +++++++++++++++
+ src/netlink_linearize.c   |    2 +-
+ src/parser.y              |   73 ++++++++++++++++++++++++++--
+ src/payload.c             |   31 ++++++++++--
+ src/scanner.l             |    1 +
+ src/statement.c           |   29 ++++++++++++
+ 8 files changed, 279 insertions(+), 12 deletions(-)
+
+diff --git a/include/statement.h b/include/statement.h
+index 480b719..c971aa5 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -47,6 +47,8 @@ extern struct stmt *limit_stmt_alloc(const struct location *loc);
+ 
+ struct reject_stmt {
+ 	enum nft_reject_types	type;
++	int8_t			icmp_code;
++	unsigned int		family;
+ };
+ 
+ extern struct stmt *reject_stmt_alloc(const struct location *loc);
 diff --git a/src/evaluate.c b/src/evaluate.c
-index ecd7dfa..74a7506 100644
+index a423b17..570ef4c 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -149,8 +149,15 @@ static enum ops byteorder_conversion_op(struct expr *expr,
- 	default:
- 		break;
- 	}
--	BUG("invalid byte order conversion %u => %u\n",
--	    expr->byteorder, byteorder);
-+	/* If we have a value with INVALID format, we must to say what
-+	 * kind of unary expression we want to add for comparing the
-+	 * value with the register
-+	 */
-+	if (byteorder != BYTEORDER_HOST_ENDIAN)
-+		return OP_NTOH;
-+
-+	expr->byteorder = BYTEORDER_HOST_ENDIAN;
-+	return OP_HTON;
+@@ -17,6 +17,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <netinet/ip_icmp.h>
+ 
+ #include <expression.h>
+ #include <statement.h>
+@@ -269,6 +270,18 @@ static int expr_evaluate_primary(struct eval_ctx *ctx, struct expr **expr)
+ 	return 0;
  }
  
- static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
-@@ -1031,12 +1038,16 @@ range:
- 			break;
- 		}
++static struct stmt *expr_stmt_alloc_eval(struct eval_ctx *ctx,
++					 struct expr *expr)
++{
++	struct stmt *nstmt;
++
++	nstmt = expr_stmt_alloc(&expr->location, expr);
++	if (stmt_evaluate(ctx, nstmt) < 0)
++		BUG("malformed dependency statement");
++
++	return nstmt;
++}
++
+ /*
+  * Payload expression: check whether dependencies are fulfilled, otherwise
+  * generate the necessary relational expression and prepend it to the current
+@@ -284,9 +297,7 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
+ 	if (ctx->pctx.protocol[base].desc == NULL) {
+ 		if (payload_gen_dependency(ctx, payload, &nexpr) < 0)
+ 			return -1;
+-		nstmt = expr_stmt_alloc(&nexpr->location, nexpr);
+-		if (stmt_evaluate(ctx, nstmt) < 0)
+-			return -1;
++		nstmt = expr_stmt_alloc_eval(ctx, nexpr);
+ 		list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	} else if (ctx->pctx.protocol[base].desc != payload->payload.desc)
+ 		return expr_error(ctx->msgs, payload,
+@@ -1147,8 +1158,107 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return 0;
+ }
  
--		if (byteorder_conversion(ctx, &rel->left, BYTEORDER_BIG_ENDIAN) < 0)
--			return -1;
--		if (byteorder_conversion(ctx, &right->left, BYTEORDER_BIG_ENDIAN) < 0)
--			return -1;
--		if (byteorder_conversion(ctx, &right->right, BYTEORDER_BIG_ENDIAN) < 0)
--			return -1;
-+		switch (rel->left->dtype->byteorder) {
-+		case BYTEORDER_INVALID:
-+			if (byteorder_conversion(ctx, &rel->left,
-+						 BYTEORDER_HOST_ENDIAN) < 0)
++static int stmt_reject_gen_dependency(struct stmt *stmt, struct expr *expr,
++				      struct eval_ctx *ctx)
++{
++	struct expr *payload, *nexpr;
++	struct stmt *nstmt;
++
++	if (stmt->reject.icmp_code < 0)
++		return stmt_error(ctx, stmt, "missing icmp error type");
++
++	switch (stmt->reject.family) {
++	case NFPROTO_IPV4:
++		payload = payload_expr_alloc(&stmt->location, &proto_ip,
++					     IPHDR_PROTOCOL);
++		break;
++	case NFPROTO_IPV6:
++		payload = payload_expr_alloc(&stmt->location, &proto_ip6,
++					     IP6HDR_NEXTHDR);
++		break;
++	default:
++		BUG("unknown reject family");
++	}
++
++	if (payload_gen_dependency(ctx, payload, &nexpr) < 0)
++		BUG("error creating reject payload dependency");
++
++	nstmt = expr_stmt_alloc_eval(ctx, nexpr);
++	list_add(&nstmt->list, &ctx->cmd->rule->stmts);
++	return 0;
++}
++
+ static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
+ {
++	struct proto_ctx *pctx = &ctx->pctx;
++	const struct proto_desc *desc, *base;
++	struct expr *expr = ctx->cmd->expr;
++	int protonum;
++
++	switch (ctx->pctx.family) {
++	case NFPROTO_ARP:
++		return stmt_error(ctx, stmt, "cannot use reject with arp");
++	case NFPROTO_INET:
++	case NFPROTO_BRIDGE:
++		if (stmt->reject.type != NFT_REJECT_TCP_RST) {
++			desc = pctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
++			if (desc == NULL &&
++			    stmt_reject_gen_dependency(stmt, expr, ctx) < 0)
 +				return -1;
-+			break;
-+		case BYTEORDER_BIG_ENDIAN:
-+		default:
-+			break;
 +		}
- 		break;
- 	default:
- 		BUG("invalid relational operation %u\n", rel->op);
++		break;
++	case NFPROTO_IPV4:
++		if (stmt->reject.icmp_code >= 0 &&
++		    stmt->reject.family != NFPROTO_IPV4 &&
++		    stmt->reject.type != NFT_REJECT_TCP_RST) {
++			return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++		}
++		break;
++	case NFPROTO_IPV6:
++		if (stmt->reject.icmp_code >= 0 &&
++		    stmt->reject.family != NFPROTO_IPV6 &&
++		    stmt->reject.type != NFT_REJECT_TCP_RST) {
++			return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip6 vs ip");
++		}
++		break;
++	}
++
++	base = pctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
++	desc = pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
++	/* No sufficient network and transport context */
++	if (base == NULL || desc == NULL) {
++		if (stmt->reject.type == NFT_REJECT_TCP_RST) {
++			return stmt_error(ctx, stmt,
++				    "insufficient context for using tcp-reset");
++		}
++		if (stmt->reject.icmp_code < 0) {
++			stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
++			stmt->reject.icmp_code = ICMP_NET_UNREACH;
++		}
++	} else {
++		protonum = proto_find_num(base, desc);
++		switch (protonum) {
++		case IPPROTO_TCP:
++			if (stmt->reject.icmp_code >= 0 &&
++			    stmt->reject.type != NFT_REJECT_TCP_RST) {
++				stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
++				break;
++			} else
++				stmt->reject.type = NFT_REJECT_TCP_RST;
++			break;
++		default:
++			if (stmt->reject.type == NFT_REJECT_TCP_RST) {
++				return stmt_error(ctx, stmt,
++				     "cannot use tcp-reset without a tcp rule");
++			}
++			if (stmt->reject.type != NFT_REJECT_ICMP_UNREACH) {
++				stmt->reject.type = NFT_REJECT_ICMP_UNREACH;
++				stmt->reject.icmp_code = ICMP_NET_UNREACH;
++			}
++		}
++	}
+ 	stmt->flags |= STMT_F_TERMINAL;
+ 	return 0;
+ }
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index c45b3b4..5fdf7e2 100644
+index 53e957d..d966b92 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -627,6 +627,18 @@ static void payload_dependency_store(struct rule_pp_ctx *ctx,
- 	ctx->pdep  = stmt;
+@@ -14,6 +14,9 @@
+ #include <string.h>
+ #include <limits.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <arpa/inet.h>
++#include <linux/netfilter.h>
++#include <net/ethernet.h>
+ #include <netlink.h>
+ #include <rule.h>
+ #include <statement.h>
+@@ -456,6 +459,9 @@ static void netlink_parse_reject(struct netlink_parse_ctx *ctx,
+ 	struct stmt *stmt;
+ 
+ 	stmt = reject_stmt_alloc(loc);
++	stmt->reject.type = nft_rule_expr_get_u32(expr, NFT_EXPR_REJECT_TYPE);
++	stmt->reject.icmp_code = nft_rule_expr_get_u8(expr,
++						      NFT_EXPR_REJECT_CODE);
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
  }
  
-+static void expr_payload_elem_postprocess(struct expr *expr)
+@@ -912,6 +918,34 @@ static void expr_postprocess(struct rule_pp_ctx *ctx,
+ 	}
+ }
+ 
++static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
 +{
-+	switch (expr->ops->type) {
-+	case EXPR_VALUE:
-+		if (expr->dtype->byteorder == BYTEORDER_BIG_ENDIAN)
-+			mpz_switch_expr_byteorder(expr);
++	const struct proto_desc *desc, *base;
++	int protocol;
++
++	switch (rctx.pctx.family) {
++	case NFPROTO_IPV4:
++	case NFPROTO_IPV6:
++		stmt->reject.family = rctx.pctx.family;
++		break;
++	case NFPROTO_INET:
++	case NFPROTO_BRIDGE:
++		if (rctx.pbase != PROTO_BASE_INVALID) {
++			base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
++			desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++			protocol = proto_find_num(base, desc);
++			if (protocol == ETH_P_IP)
++				stmt->reject.family = NFPROTO_IPV4;
++			else if (protocol == ETH_P_IPV6)
++				stmt->reject.family = NFPROTO_IPV6;
++			else
++				stmt->reject.family = protocol;
++		}
 +		break;
 +	default:
 +		break;
 +	}
 +}
-+
- static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 				      struct stmt *stmt, struct expr *expr)
+ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *rule)
  {
-@@ -648,7 +660,6 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 			if (expr->op == OP_EQ)
- 				left->ops->pctx_update(&ctx->pctx, nexpr);
+ 	struct rule_pp_ctx rctx;
+@@ -939,6 +973,9 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 			if (stmt->nat.proto != NULL)
+ 				expr_postprocess(&rctx, stmt, &stmt->nat.proto);
+ 			break;
++		case STMT_REJECT:
++			stmt_reject_postprocess(rctx, stmt);
++			break;
+ 		default:
+ 			break;
+ 		}
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 8788813..f63043b 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -609,7 +609,7 @@ static void netlink_gen_reject_stmt(struct netlink_linearize_ctx *ctx,
  
--
- 	 /* We have to convert the values that we obtained from the kernel to
- 	  * host byteorder. Therefore, we assume that the values are in host
- 	  * endian after the delinearization.
-@@ -677,6 +688,15 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 		payload_expr_complete(left, &ctx->pctx);
- 		expr_set_type(expr->right, expr->left->dtype,
- 			      expr->left->byteorder);
+ 	nle = alloc_nft_expr("reject");
+ 	nft_rule_expr_set_u32(nle, NFT_EXPR_REJECT_TYPE, stmt->reject.type);
+-	nft_rule_expr_set_u8(nle, NFT_EXPR_REJECT_CODE, 0);
++	nft_rule_expr_set_u8(nle, NFT_EXPR_REJECT_CODE, stmt->reject.icmp_code);
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+ 
+diff --git a/src/parser.y b/src/parser.y
+index 3e08e21..8820c84 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -18,6 +18,8 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
++#include <netinet/ip_icmp.h>
++#include <netinet/icmp6.h>
+ #include <libnftnl/common.h>
+ 
+ #include <rule.h>
+@@ -359,6 +361,7 @@ static int monitor_lookup_event(const char *event)
+ %token WEEK			"week"
+ 
+ %token _REJECT			"reject"
++%token WITH			"with"
+ 
+ %token SNAT			"snat"
+ %token DNAT			"dnat"
+@@ -419,8 +422,8 @@ static int monitor_lookup_event(const char *event)
+ %type <stmt>			limit_stmt
+ %destructor { stmt_free($$); }	limit_stmt
+ %type <val>			time_unit
+-%type <stmt>			reject_stmt
+-%destructor { stmt_free($$); }	reject_stmt
++%type <stmt>			reject_stmt reject_stmt_alloc
++%destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
+ %type <stmt>			nat_stmt nat_stmt_alloc
+ %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc
+ %type <stmt>			queue_stmt queue_stmt_alloc queue_range
+@@ -1396,12 +1399,76 @@ time_unit		:	SECOND		{ $$ = 1ULL; }
+ 			|	WEEK		{ $$ = 1ULL * 60 * 60 * 24 * 7; }
+ 			;
+ 
+-reject_stmt		:	_REJECT
++reject_stmt		:	reject_stmt_alloc	reject_opts
++			;
 +
-+		/* If we have rules that we have used payload with ranges or set
-+		 * we must to convert it to host endian for representing it
-+		 * correctly
-+		 */
-+		if (left->dtype->byteorder == BYTEORDER_BIG_ENDIAN)
-+			expr_payload_elem_postprocess(expr->right);
++reject_stmt_alloc	:	_REJECT
+ 			{
+ 				$$ = reject_stmt_alloc(&@$);
+ 			}
+ 			;
+ 
++reject_opts		:       /* empty */
++			{
++				$<stmt>0->reject.type = -1;
++				$<stmt>0->reject.icmp_code = -1;
++			}
++			|	WITH	STRING
++			{
++				if (strcmp($2, "icmp-net-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_NET_UNREACH;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-host-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_HOST_UNREACH;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-prot-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_PROT_UNREACH;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-port-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_PORT_UNREACH;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-net-prohibited") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_NET_ANO;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-host-prohibited") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_HOST_ANO;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmp-admin-prohibited") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP_PKT_FILTERED;
++					$<stmt>0->reject.family = NFPROTO_IPV4;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmpv6-no-route") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP6_DST_UNREACH_NOROUTE;
++					$<stmt>0->reject.family = NFPROTO_IPV6;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmpv6-admin-prohibited") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP6_DST_UNREACH_ADMIN;
++					$<stmt>0->reject.family = NFPROTO_IPV6;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmpv6-addr-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP6_DST_UNREACH_ADDR;
++					$<stmt>0->reject.family = NFPROTO_IPV6;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "icmpv6-port-unreach") == 0) {
++					$<stmt>0->reject.icmp_code = ICMP6_DST_UNREACH_NOPORT;
++					$<stmt>0->reject.family = NFPROTO_IPV6;
++					$<stmt>0->reject.type = NFT_REJECT_ICMP_UNREACH;
++				} else if (strcmp($2, "tcp-reset") == 0) {
++					$<stmt>0->reject.type = NFT_REJECT_TCP_RST;
++				} else {
++					erec_queue(error(&@2, "invalid icmp code type '%s'",
++							 $2), state->msgs);
++					YYERROR;
++				}
++			}
++			;
 +
- 		payload_dependency_kill(ctx, expr->left);
- 		break;
+ nat_stmt		:	nat_stmt_alloc	nat_stmt_args
+ 			;
+ 
+diff --git a/src/payload.c b/src/payload.c
+index 8b10a79..faf6708 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -188,11 +188,32 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
  	}
+ 
+ 	desc = ctx->pctx.protocol[expr->payload.base - 1].desc;
+-	/* Special case for mixed IPv4/IPv6 tables: use meta L4 proto */
+-	if (desc == NULL &&
+-	    ctx->pctx.family == NFPROTO_INET &&
+-	    expr->payload.base == PROTO_BASE_TRANSPORT_HDR)
+-		desc = &proto_inet_service;
++	/* Special case for mixed IPv4/IPv6 and bridge tables */
++	if (desc == NULL) {
++		switch (ctx->pctx.family) {
++		case NFPROTO_INET:
++			switch (expr->payload.base) {
++			case PROTO_BASE_TRANSPORT_HDR:
++				desc = &proto_inet_service;
++				break;
++			case PROTO_BASE_LL_HDR:
++				desc = &proto_inet;
++				break;
++			default:
++				break;
++			}
++			break;
++		case NFPROTO_BRIDGE:
++			switch (expr->payload.base) {
++			case PROTO_BASE_LL_HDR:
++				desc = &proto_eth;
++				break;
++			default:
++				break;
++			}
++			break;
++		}
++	}
+ 
+ 	if (desc == NULL)
+ 		return expr_error(ctx->msgs, expr,
+diff --git a/src/scanner.l b/src/scanner.l
+index 73a1a3f..f91886c 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -295,6 +295,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "week"			{ return WEEK; }
+ 
+ "reject"		{ return _REJECT; }
++"with"			{ return WITH; }
+ 
+ "snat"			{ return SNAT; }
+ "dnat"			{ return DNAT; }
+diff --git a/src/statement.c b/src/statement.c
+index 2dd3f18..846287f 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -15,9 +15,15 @@
+ #include <inttypes.h>
+ #include <string.h>
+ 
++#include <netinet/ip_icmp.h>
++#include <netinet/icmp6.h>
+ #include <statement.h>
+ #include <utils.h>
+ #include <list.h>
++#include <arpa/inet.h>
++#include <linux/netfilter.h>
++#include <net/ethernet.h>
++#include <utils.h>
+ 
+ struct stmt *stmt_alloc(const struct location *loc,
+ 			const struct stmt_ops *ops)
+@@ -196,9 +202,32 @@ struct stmt *queue_stmt_alloc(const struct location *loc)
+ 	return stmt_alloc(loc, &queue_stmt_ops);
+ }
+ 
++const char *reject_stmt_code_ip[] = {
++	[ICMP_NET_UNREACH]	= "icmp-net-unreach",
++	[ICMP_HOST_UNREACH]	= "icmp-host-unreach",
++	[ICMP_PROT_UNREACH]	= "icmp-prot-unreach",
++	[ICMP_PORT_UNREACH]	= "icmp-port-unreach",
++	[ICMP_NET_ANO]		= "icmp-net-prohibited",
++	[ICMP_HOST_ANO]		= "icmp-host-prohibited",
++	[ICMP_PKT_FILTERED]	= "icmp-admin-prohibited",
++};
++
++const char *reject_stmt_code_ip6[] = {
++	[ICMP6_DST_UNREACH_NOROUTE]	= "icmpv6-no-route",
++	[ICMP6_DST_UNREACH_ADMIN]	= "icmpv6-admin-prohibited",
++	[ICMP6_DST_UNREACH_ADDR]	= "icmpv6-addr-unreach",
++	[ICMP6_DST_UNREACH_NOPORT]	= "icmpv6-port-unreach",
++};
++
+ static void reject_stmt_print(const struct stmt *stmt)
+ {
+ 	printf("reject");
++	if (stmt->reject.icmp_code >= 0 && stmt->reject.family == NFPROTO_IPV4)
++		printf(" with %s",
++		       reject_stmt_code_ip[stmt->reject.icmp_code]);
++	if (stmt->reject.icmp_code >= 0 && stmt->reject.family == NFPROTO_IPV6)
++		printf(" with %s",
++		       reject_stmt_code_ip6[stmt->reject.icmp_code]);
+ }
+ 
+ static const struct stmt_ops reject_stmt_ops = {
 -- 
 1.7.10.4
 
