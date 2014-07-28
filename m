@@ -1,58 +1,123 @@
-From: Alexey Perevalov <a.perevalov@samsung.com>
-Subject: [PATCH] reset nfacct counters
-Date: Mon, 28 Jul 2014 21:57:50 +0400
-Message-ID: <1406570272-3704-1-git-send-email-a.perevalov@samsung.com>
-References: <20140725160123.GA20548@salvia>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>,
-	kyungmin.park@samsung.com, hs81.go@samsung.com,
-	netfilter-devel@vger.kernel.org, alexey.perevalov@hotmail.com,
-	mathieu.poirier@linaro.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:30825 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbaG1R55 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jul 2014 13:57:57 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9F0088VOK1J8B0@mailout2.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Mon, 28 Jul 2014 18:57:37 +0100 (BST)
-In-reply-to: <20140725160123.GA20548@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
+ 'struct bpf_prog'
+Date: Mon, 28 Jul 2014 23:45:52 +0200
+Message-ID: <20140728214552.GA4049@salvia>
+References: <1406275499-7822-1-git-send-email-ast@plumgrid.com>
+ <53D23EAF.4000001@redhat.com>
+ <20140725115414.GA4770@salvia>
+ <53D254D9.9030905@redhat.com>
+ <CAMEtUux+dw_GoafXE3ukvmOK2JmZWWf-y0VMobe60TSTfZeNmw@mail.gmail.com>
+ <20140725221512.GA3729@salvia>
+ <CAMEtUux8F4xZ77_HQADfoeV-9sibaEWm=XJcAaY+cQyDWb2caA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Network Development <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Willem de Bruijn <willemb@google.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Alexei Starovoitov <ast@plumgrid.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMEtUux8F4xZ77_HQADfoeV-9sibaEWm=XJcAaY+cQyDWb2caA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello Pablo,
-I used you guidance on flags usage for separate counters reset.
-If no flags were specified we'll have old behaviour. I wanted to remove
-NFNL_MSG_ACCT_GET_CTRZERO and use combination of (NFACCT_F_RESET_COUNTERS |
-NFACCT_F_RESET_QUOTAS). But in this case I didn't find how to solve backward
-compatibility issue.
+On Sat, Jul 26, 2014 at 10:41:04PM -0700, Alexei Starovoitov wrote:
+> On Fri, Jul 25, 2014 at 3:17 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > The struct sk_filter is almost providing the generic framework, it
+> > just needs to be generalized, a quick layout for it:
+> >
+> > struct sk_filter {
+> >         struct sk_filter_cb     *cb;
+> >         atomic_t                refcnt;
+> >         struct rcu_head         head;
+> >         char                    data[0]; /* here, you specific struct bpf_prog */
+> > };
+> >
+> > The refcnt is required sk_filter_{charge,uncharge,release}. The struct
+> > rcu_head is also need from sk_filter_release().
+> >
+> > struct sk_filter_cb {
+> >         int type;
+> >         struct module *me;
+> >         void (*charge)(struct sock *sk, struct sk_filter *fp);
+> >         void (*uncharge)(struct sock *sk, struct sk_filter *fp);
+> >         unsigned int (*run_filter)(struct sk_filter *fp, struct sk_buff *skb);
+> > };
+>
+> Pablo,
+>
+> I don't think you understand the scope of BPF.
+> 'struct module *'? to attach nft to sockets? ouch.
 
-You proposed to allocate memory for filter entity to use it with
-netlink_dump_control, but netlink_dump_start is synchronous all the way,
-and stack variable could be used there. But I could be wrong here and
-there is a use case where netlink_dump_control's callback is calling from
-another thread.
+The idea is that there will be one sk_filter_cb per socket filtering
+approach. The structure module is just there in case one of the
+approach is loadable as kernel module, it's the typical code pattern
+in the kernel. You can git grep for similar code.
 
-Due nfnetlink_acct header was modified, I think I need to send additional patches
-for nfacct and libnetfilter_acct git reposotories. I saw such practice,
-nfnetlink_acct.h duplicates in these repositories.
+> if you need to do it, go ahead, but please don't present such mess
+> as a 'generic' infra.
 
-This patch was made for git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-repository, on top of 633594bb2d3890711a887897f2003f41735f0dfa commit.
+This is extracted from one of your recent patches:
 
-Do you need a patch for nfacct command line tool to support following behaviour:
-nfacct list reset [counter|quota] ?
+ void sk_filter_uncharge(struct sock *sk, struct sk_filter *fp)
+ {
+-       atomic_sub(sk_filter_size(fp->len), &sk->sk_omem_alloc);
++       if (!fp->ebpf)
++               atomic_sub(sk_filter_size(fp->len), &sk->sk_omem_alloc);
+        sk_filter_release(fp);
+ }
 
-Alexey Perevalov (1):
-  netfilter: nfnetlink_acct: use flag to reset counters
+ void sk_filter_charge(struct sock *sk, struct sk_filter *fp)
+ {
+        atomic_inc(&fp->refcnt);
+-       atomic_add(sk_filter_size(fp->len), &sk->sk_omem_alloc);
++       if (!fp->ebpf)
++               atomic_add(sk_filter_size(fp->len), &sk->sk_omem_alloc);
+ }
 
- include/uapi/linux/netfilter/nfnetlink_acct.h |    2 ++
- net/netfilter/nfnetlink_acct.c                |   30 ++++++++++++++++++++-----
- 2 files changed, 27 insertions(+), 5 deletions(-)
+Basically, that looks to me like two different socket filtering
+approach. You only have to define the struct sock_filter_cb, set the
+fields to point to the functions and register the approach in the
+socket filtering engine. That will allow a simple way to look up the
+filtering approach when loading the filter from userspace.
 
--- 
-1.7.9.5
+[...]
+> What you're proposing won't work even for classic bpf.
+> 'struct sock *' and 'struct module *' are totally redundant and won't
+> work for seccomp, tracing and pretty much everything, but pure
+> socket filtering.
+> Somehow you think that 'struct sk_filter' is only used in sockets.
+[...]
+> > If you straight forward rename the entire structure, you'll take
+> > things that are not specific from bpf such as refcnt and rcu_head.
+>
+> sorry Pablo, I don't think you understand what you're talking about.
+> refcnt and rcu_head are key parts of bpf/ebpf infra.
+> Programs are refcnt'ed not only by charging sockets. BPF is relying
+> on rcu for safe execution as well.
+> For example see my tracing filter patch that does:
+> void trace_filter_call_bpf(struct event_filter *filter, void *ctx)
+> {
+>         rcu_read_lock();
+>         SK_RUN_FILTER(filter->prog, ctx);
+>         rcu_read_unlock();
+> }
+> One eBPF program can be attached to multiple 'events' where event
+> is kprobe, tracepoint, syscall, etc The act of attaching increments
+> 'struct sk_filter/bpf_prog -> refcnt'.
 
+By quick git grepping you already can find clients of this that do not
+need rcu / refcount: cls_bpf.c, net_cls.c, xt_bpf.c and
+ptp_classifier.  Moreover, I only see the refcnt bumped from
+sk_filter_charge(), I didn't find it neither in git nor in your
+patches. I don't think rcu_head and refcnt are really part of the
+filter *in any case*, they just provide the way to link/unlink objects
+in a safe way in some situations.
+
+By renaming this, you're not fixing up things the semantics. It seems
+to me you just want to find a quick path to solve inconsistencies in
+your code.
