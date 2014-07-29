@@ -1,60 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] reset nfacct counters
-Date: Tue, 29 Jul 2014 00:03:19 +0200
-Message-ID: <20140728220319.GB4093@salvia>
-References: <20140725160123.GA20548@salvia>
- <1406570272-3704-1-git-send-email-a.perevalov@samsung.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: filter: rename 'struct sk_filter' to
+ 'struct bpf_prog'
+Date: Mon, 28 Jul 2014 17:12:13 -0700 (PDT)
+Message-ID: <20140728.171213.1219772609929469928.davem@davemloft.net>
+References: <20140725221512.GA3729@salvia>
+	<CAMEtUux8F4xZ77_HQADfoeV-9sibaEWm=XJcAaY+cQyDWb2caA@mail.gmail.com>
+	<20140728214552.GA4049@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kyungmin.park@samsung.com, hs81.go@samsung.com,
-	netfilter-devel@vger.kernel.org, alexey.perevalov@hotmail.com,
-	mathieu.poirier@linaro.org
-To: Alexey Perevalov <a.perevalov@samsung.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47618 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbaG1WDH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jul 2014 18:03:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1406570272-3704-1-git-send-email-a.perevalov@samsung.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: ast@plumgrid.com, dborkman@redhat.com, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, willemb@google.com,
+	netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140728214552.GA4049@salvia>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 28, 2014 at 09:57:50PM +0400, Alexey Perevalov wrote:
-> Hello Pablo,
-> I used you guidance on flags usage for separate counters reset.
-> If no flags were specified we'll have old behaviour. I wanted to remove
-> NFNL_MSG_ACCT_GET_CTRZERO and use combination of (NFACCT_F_RESET_COUNTERS |
-> NFACCT_F_RESET_QUOTAS). But in this case I didn't find how to solve backward
-> compatibility issue.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 28 Jul 2014 23:45:52 +0200
 
-Just made a proposal to avoid adding these new flags.
+> By renaming this, you're not fixing up things the semantics. It seems
+> to me you just want to find a quick path to solve inconsistencies in
+> your code.
 
-> You proposed to allocate memory for filter entity to use it with
-> netlink_dump_control, but netlink_dump_start is synchronous all the way,
-> and stack variable could be used there. But I could be wrong here and
-> there is a use case where netlink_dump_control's callback is calling from
-> another thread.
+Agreed, this looks just like messing around with naming to me.
 
-You can't do that. The dumping happens per recvmsg() call in netlink,
-if the number of nfacct objects is larger than one page
-(NLMSG_GOODSIZE), the next call to recvmsg() will reference to an
-invalid memory area. You really need to allocate this, which is a bit
-overkill for just one u32 flags filter, but I guess we'll have more
-selectors to filter out nfacct objects in the future.
+But to the original issue, that of xt_bpf, I wonder about a few things:
 
-> Due nfnetlink_acct header was modified, I think I need to send additional patches
-> for nfacct and libnetfilter_acct git reposotories. I saw such practice,
-> nfnetlink_acct.h duplicates in these repositories.
-> 
-> This patch was made for git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-> repository, on top of 633594bb2d3890711a887897f2003f41735f0dfa commit.
+1) If we have a kernel pointer embedded in a user provided datastructure,
+   what takes care of 32-bit compat applications uploading xt_bpf rules
+   on a 64-bit kernel?  Won't the size be wrong or does it not matter
+   and is in some way helped by that 8-byte alignment thing there?
 
-That tree is fine in this case, there is no changes in nf-next that
-can clash with this.
+2) The user can't care about the type of "filter" in xt_bpf_info, so
+   we can use whatever name we want for the type.
 
-> Do you need a patch for nfacct command line tool to support following behaviour:
-> nfacct list reset [counter|quota] ?
+   Therefore you can just do something like:
 
-Yes please :-), it would be great so others in the community can
-benefit from this new feature, it's just little extra work. Thanks.
+
+struct bpf_prog;
+
+struct xt_bpf_info {
+	__u16 bpf_program_num_elem;
+	struct sock_filter bpf_program[XT_BPF_MAX_NUM_INSTR];
+
+	/* only used in the kernel */
+	struct bpf_prog *filter __attribute__((aligned(8)));
+};
+
+   and then you won't need any casting.
