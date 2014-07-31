@@ -1,47 +1,72 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2] netfilter: nf_sockopt_find() / nf_register_sockopt() should not return EINTR
-Date: Thu, 31 Jul 2014 12:05:53 +0100
-Message-ID: <e0634e99-e1e9-47b7-9a99-1f053d66e2f0@email.android.com>
-References: <1406155995.3363.19.camel@edumazet-glaptop2.roam.corp.google.com> <3ff5bf70-5db3-4dc4-9f02-abb07843ab81@email.android.com> <1406234495.3363.79.camel@edumazet-glaptop2.roam.corp.google.com> <20140731105525.GA4680@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140731105525.GA4680@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: [PATCH v2] Fix overquota output result
+Date: Thu, 31 Jul 2014 17:12:33 +0400
+Message-ID: <1406812353-2930-1-git-send-email-a.perevalov@samsung.com>
+References: <20140730170115.GA6364@salvia>
+Cc: Alexey Perevalov <a.perevalov@samsung.com>,
+	alexey.perevalov@hotmail.com, mathieu.poirier@linaro.org,
+	netfilter-devel@vger.kernel.org, kyungmin.park@samsung.com,
+	hs81.go@samsung.com
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:52239 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255AbaGaNMk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jul 2014 09:12:40 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9K006EYVCWL970@mailout1.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Thu, 31 Jul 2014 14:12:32 +0100 (BST)
+In-reply-to: <20140730170115.GA6364@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31. Juli 2014 11:55:25 GMT+01:00, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->On Thu, Jul 24, 2014 at 10:41:35PM +0200, Eric Dumazet wrote:
->> From: Eric Dumazet <edumazet@google.com>
->> 
->> getsockopt() or setsockopt() sometimes returns -EINTR instead of
->> -ENOPROTOOPT, causing headaches to application developers.
->> 
->> This is because unsupported commands might go through
->nf_sockopt_find()
->> and this function returns -EINTR if a signal is pending.
->> 
->> Just use non interruptible mutex functions, as there is no reason
->> we should sleep for a long time here.
->
->On top of this patch, I think that at least we can also ged rid of
->these interruptible mutex from the netfilter/core code too (see
->preliminary patch attached).
+Current implementation shows "packet" for none byte quota type.
+It means "packet" was used for overquota counter as well and it
+wasn't so informative.
 
-Agreed. I think there are actually no cases at all where using the
-interruptable variants makes sense.
+This commmit adds additional column - overquota with yes/no value.
 
->I can also adapt the callers so they don't check anymore the return
->value as they will always succeed.
->
->Comments? Thanks.
+Signed-off-by: Alexey Perevalov <a.perevalov@samsung.com>
+---
+ src/libnetfilter_acct.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-I'd leave checks in the callers at least for all init/registration functions.
-Quite possible future changes will add back error conditions and its
-more consistent to follow this convention in all cases.
+diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
+index 7f539b6..0156c9a 100644
+--- a/src/libnetfilter_acct.c
++++ b/src/libnetfilter_acct.c
+@@ -266,15 +266,22 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
+ 		SNPRINTF_CHECK(ret, rem, offset, len);
+ 
+ 		if (nfacct->flags) {
+-			uint32_t mode;
+-
+-			mode = nfacct_attr_get_u64(nfacct, NFACCT_ATTR_FLAGS);
++			const uint32_t mode = nfacct_attr_get_u64(nfacct,
++				NFACCT_ATTR_FLAGS);
++			char *mode_name = NULL;
++			if (mode & NFACCT_F_QUOTA_PKTS)
++				mode_name = "packet";
++			else if (mode & NFACCT_F_QUOTA_BYTES)
++				mode_name = "byte";
++			else
++				mode_name = "unknown";
+ 
+ 			ret = snprintf(buf + offset, rem,
+-				", quota = %.20"PRIu64", mode = %s",
++				", quota = %.20"PRIu64", mode = %s"\
++				", overquota = %s",
+ 				nfacct_attr_get_u64(nfacct, NFACCT_ATTR_QUOTA),
+-				mode == NFACCT_F_QUOTA_BYTES ?
+-				"byte" : "packet");
++				mode_name,
++				mode & NFACCT_F_OVERQUOTA ? "yes" : "no");
+ 			SNPRINTF_CHECK(ret, rem, offset, len);
+ 		}
+ 
+-- 
+1.7.9.5
+
