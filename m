@@ -1,124 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/9] netfilter: xt_hashlimit: perform garbage collection from process context
-Date: Thu, 31 Jul 2014 21:27:02 +0200
-Message-ID: <1406834828-8500-4-git-send-email-pablo@netfilter.org>
-References: <1406834828-8500-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35658 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751459AbaGaT1M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2014 15:27:12 -0400
-In-Reply-To: <1406834828-8500-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [PATCH v4 net-next 5/5] net: filter: split 'struct sk_filter'
+ into socket and bpf parts
+Date: Thu, 31 Jul 2014 21:40:59 +0200
+Message-ID: <20140731194059.GA8681@salvia>
+References: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
+ <1406777656-27755-6-git-send-email-ast@plumgrid.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Daniel Borkmann <dborkman@redhat.com>,
+	Willem de Bruijn <willemb@google.com>,
+	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Alexei Starovoitov <ast@plumgrid.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1406777656-27755-6-git-send-email-ast@plumgrid.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+On Wed, Jul 30, 2014 at 08:34:16PM -0700, Alexei Starovoitov wrote:
+> clean up names related to socket filtering and bpf in the following way:
+> - everything that deals with sockets keeps 'sk_*' prefix
+> - everything that is pure BPF is changed to 'bpf_*' prefix
+> 
+> split 'struct sk_filter' into
+> struct sk_filter {
+> 	atomic_t        refcnt;
+> 	struct rcu_head rcu;
+> 	struct bpf_prog *prog;
+> };
 
-xt_hashlimit cannot be used with large hash tables, because garbage
-collector is run from a timer. If table is really big, its possible
-to hold cpu for more than 500 msec, which is unacceptable.
+I think you can use 'struct bpf_prog prog' instead so the entire
+sk_filter remains in the same memory blob (as it is before this
+patch).
 
-Switch to a work queue, and use proper scheduling points to remove
-latencies spikes.
+You can add an inline function to retrieve the bpg prog from the
+filter:
 
-Later, we also could switch to a smoother garbage collection done
-at lookup time, one bucket at a time...
+static inline struct bpf_prog *sk_filter_bpf(struct sk_filter *)
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Patrick McHardy <kaber@trash.net>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_hashlimit.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index a3910fc..47dc683 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -104,7 +104,7 @@ struct xt_hashlimit_htable {
- 	spinlock_t lock;		/* lock for list_head */
- 	u_int32_t rnd;			/* random seed for hash */
- 	unsigned int count;		/* number entries in table */
--	struct timer_list timer;	/* timer for gc */
-+	struct delayed_work gc_work;
- 
- 	/* seq_file stuff */
- 	struct proc_dir_entry *pde;
-@@ -213,7 +213,7 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
- 	call_rcu_bh(&ent->rcu, dsthash_free_rcu);
- 	ht->count--;
- }
--static void htable_gc(unsigned long htlong);
-+static void htable_gc(struct work_struct *work);
- 
- static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
- 			 u_int8_t family)
-@@ -273,9 +273,9 @@ static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
- 	}
- 	hinfo->net = net;
- 
--	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
--	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
--	add_timer(&hinfo->timer);
-+	INIT_DEFERRABLE_WORK(&hinfo->gc_work, htable_gc);
-+	queue_delayed_work(system_power_efficient_wq, &hinfo->gc_work,
-+			   msecs_to_jiffies(hinfo->cfg.gc_interval));
- 
- 	hlist_add_head(&hinfo->node, &hashlimit_net->htables);
- 
-@@ -300,29 +300,30 @@ static void htable_selective_cleanup(struct xt_hashlimit_htable *ht,
- {
- 	unsigned int i;
- 
--	/* lock hash table and iterate over it */
--	spin_lock_bh(&ht->lock);
- 	for (i = 0; i < ht->cfg.size; i++) {
- 		struct dsthash_ent *dh;
- 		struct hlist_node *n;
-+
-+		spin_lock_bh(&ht->lock);
- 		hlist_for_each_entry_safe(dh, n, &ht->hash[i], node) {
- 			if ((*select)(ht, dh))
- 				dsthash_free(ht, dh);
- 		}
-+		spin_unlock_bh(&ht->lock);
-+		cond_resched();
- 	}
--	spin_unlock_bh(&ht->lock);
- }
- 
--/* hash table garbage collector, run by timer */
--static void htable_gc(unsigned long htlong)
-+static void htable_gc(struct work_struct *work)
- {
--	struct xt_hashlimit_htable *ht = (struct xt_hashlimit_htable *)htlong;
-+	struct xt_hashlimit_htable *ht;
-+
-+	ht = container_of(work, struct xt_hashlimit_htable, gc_work.work);
- 
- 	htable_selective_cleanup(ht, select_gc);
- 
--	/* re-add the timer accordingly */
--	ht->timer.expires = jiffies + msecs_to_jiffies(ht->cfg.gc_interval);
--	add_timer(&ht->timer);
-+	queue_delayed_work(system_power_efficient_wq,
-+			   &ht->gc_work, msecs_to_jiffies(ht->cfg.gc_interval));
- }
- 
- static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
-@@ -341,7 +342,7 @@ static void htable_remove_proc_entry(struct xt_hashlimit_htable *hinfo)
- 
- static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- {
--	del_timer_sync(&hinfo->timer);
-+	cancel_delayed_work_sync(&hinfo->gc_work);
- 	htable_remove_proc_entry(hinfo);
- 	htable_selective_cleanup(hinfo, select_all);
- 	kfree(hinfo->name);
--- 
-1.7.10.4
-
+and use it whenever possible to fetch the bpf program. I'm suggesting
+this because we can use the zero array size in the socket filtering
+abstraction later on, if the function above is used, this just needs
+one line in that function to be updated to fetch the program from the
+placeholder.
