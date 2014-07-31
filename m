@@ -1,84 +1,124 @@
-From: Alexei Starovoitov <ast@plumgrid.com>
-Subject: [PATCH v4 net-next 0/5] net: filter: split sk_filter into socket and bpf, cleanup names
-Date: Wed, 30 Jul 2014 20:34:11 -0700
-Message-ID: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
-Cc: Daniel Borkmann <dborkman@redhat.com>,
-	Willem de Bruijn <willemb@google.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH 0/6] tests: Automated regression testing
+Date: Thu, 31 Jul 2014 11:08:05 +0200
+Message-ID: <1406797691-1080-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:60549 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932239AbaGaJI1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jul 2014 05:08:27 -0400
+Received: by mail-wg0-f43.google.com with SMTP id l18so2403383wgh.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2014 02:08:24 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The main goal of the series is to split 'struct sk_filter' into socket and
-bpf parts and cleanup names in the following way:
-- everything that deals with sockets keeps 'sk_*' prefix
-- everything that is pure BPF is changed to 'bpf_*' prefix
+This is the automated regression testing of nftables.
 
-split 'struct sk_filter' into
-struct sk_filter {
-	atomic_t        refcnt;
-	struct rcu_head rcu;
-	struct bpf_prog *prog;
-};
-and
-struct bpf_prog {
-        u32                     jited:1,
-                                len:31;
-        struct sock_fprog_kern  *orig_prog;
-        unsigned int            (*bpf_func)(const struct sk_buff *skb,
-                                            const struct bpf_insn *filter);
-        union {
-                struct sock_filter      insns[0];
-                struct bpf_insn         insnsi[0];
-                struct work_struct      work;
-        };
-};
-so that 'struct bpf_prog' can be used independent of sockets and cleans up
-'unattached' bpf use cases:
-isdn, ppp, team, seccomp, ptp, xt_bpf, cls_bpf, test_bpf
-which don't need refcnt/rcu fields.
+In all development is important to have a good system to let us
+check all features in our tools automatically. In nftables, there is
+not an automated tests to check it so far.
 
-It's a follow up to the rcu cleanup started by Pablo in
-commit 34c5bd66e5 ("net: filter: don't release unattached filter through call_rcu()")
+There is not system to let us check all options/features in nft. So,
+If anyone sends a patch, we can not check all nft-tool automatically.
+It's impossible check if anything is broken, or if a change adds a fail
+in the system, or fix a problem in all cases.
 
-Patch 1 - cleans up socket memory charging and makes it possible for functions
-  sk(bpf)_migrate_filter(), sk(bpf)_prepare_filter() to be socket independent
-Patches 2-4 - trivial renames
-Patch 5 - sk_filter split and renames of related sk_*() functions
+I send in this patchset the nftables automated regression tests. It
+contains a python script (nft-add.py) and a set of test files.
 
-Alexei Starovoitov (5):
-  net: filter: simplify socket charging
-  net: filter: rename sk_filter_proglen -> bpf_classic_proglen
-  net: filter: rename sk_chk_filter() -> bpf_check_classic()
-  net: filter: rename sk_convert_filter() -> bpf_convert_filter()
-  net: filter: split 'struct sk_filter' into socket and bpf parts
+This let us check the input of rules of nft-tool from the command-line
+and the output from nft-tool of this rule. Then, It compares if the
+rule input matches the rule output automatically. And, the most
+important things: It do it automatically.
 
- Documentation/networking/filter.txt      |   12 +-
- arch/arm/net/bpf_jit_32.c                |    8 +-
- arch/mips/net/bpf_jit.c                  |    8 +-
- arch/powerpc/net/bpf_jit_comp.c          |    8 +-
- arch/s390/net/bpf_jit_comp.c             |    4 +-
- arch/sparc/net/bpf_jit_comp.c            |    4 +-
- arch/x86/net/bpf_jit_comp.c              |   14 +--
- drivers/isdn/i4l/isdn_ppp.c              |   26 ++---
- drivers/net/ppp/ppp_generic.c            |   28 ++---
- drivers/net/team/team_mode_loadbalance.c |   14 +--
- include/linux/filter.h                   |   51 +++++----
- include/linux/isdn_ppp.h                 |    4 +-
- include/uapi/linux/netfilter/xt_bpf.h    |    4 +-
- kernel/bpf/core.c                        |   34 +++---
- kernel/seccomp.c                         |   18 +--
- lib/test_bpf.c                           |   24 ++--
- net/core/filter.c                        |  183 +++++++++++++++---------------
- net/core/ptp_classifier.c                |    6 +-
- net/core/sock.c                          |    9 +-
- net/core/sock_diag.c                     |    4 +-
- net/netfilter/xt_bpf.c                   |    6 +-
- net/sched/cls_bpf.c                      |   12 +-
- 22 files changed, 243 insertions(+), 238 deletions(-)
+We also have plans to add automated regression testing in the packet
+path in the future, which should come in a follow up step.
+
+Comments welcome, thanks
+
+Ana Rey (6):
+  [nft] tests: Add Automated regression testing
+  [nft] tests: Add ip6 folder with test files.
+  [nft] tests: Add inet folder with test files.
+  [nft] tests: Add any folder with test files.
+  [nft] tests: Add arp folder with test files.
+  [nft] tests: Add bridge folder with test files.
+
+ tests/any/ct.t        | 113 +++++++
+ tests/any/frag.t      |  69 +++++
+ tests/any/limit.t     |  13 +
+ tests/any/log.t       |  14 +
+ tests/any/meta.t      | 157 ++++++++++
+ tests/any/queue.t     |  15 +
+ tests/arp/arp.t       |  58 ++++
+ tests/arp/chains.t    |   5 +
+ tests/bridge/chains.t |   8 +
+ tests/inet/ah.t       |  63 ++++
+ tests/inet/comp.t     |  31 ++
+ tests/inet/dccp.t     |  31 ++
+ tests/inet/esp.t      |  23 ++
+ tests/inet/sctp.t     |  42 +++
+ tests/inet/tcp.t      | 104 +++++++
+ tests/inet/udp.t      |  49 +++
+ tests/inet/udplite.t  |  42 +++
+ tests/ip/chains.t     |  22 ++
+ tests/ip/icmp.t       |  98 ++++++
+ tests/ip/ip.t         | 108 +++++++
+ tests/ip/nat.t        |  18 ++
+ tests/ip/reject.t     |   5 +
+ tests/ip/sets.t       |  31 ++
+ tests/ip6/chains.t    |  16 +
+ tests/ip6/dst.t       |  25 ++
+ tests/ip6/hbh.t       |  17 +
+ tests/ip6/icmpv6.t    | 115 +++++++
+ tests/ip6/ip6.t       | 141 +++++++++
+ tests/ip6/mh.t        |  50 +++
+ tests/ip6/nat.t       |   8 +
+ tests/ip6/reject.t    |   5 +
+ tests/ip6/rt.t        |  50 +++
+ tests/ip6/sets.t      |  27 ++
+ tests/ip6/vmap.t      |  54 ++++
+ tests/nft-test.py     | 842 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 35 files changed, 2469 insertions(+)
+ create mode 100644 tests/any/ct.t
+ create mode 100644 tests/any/frag.t
+ create mode 100644 tests/any/limit.t
+ create mode 100644 tests/any/log.t
+ create mode 100644 tests/any/meta.t
+ create mode 100644 tests/any/queue.t
+ create mode 100644 tests/arp/arp.t
+ create mode 100644 tests/arp/chains.t
+ create mode 100644 tests/bridge/chains.t
+ create mode 100644 tests/inet/ah.t
+ create mode 100644 tests/inet/comp.t
+ create mode 100644 tests/inet/dccp.t
+ create mode 100644 tests/inet/esp.t
+ create mode 100644 tests/inet/sctp.t
+ create mode 100644 tests/inet/tcp.t
+ create mode 100644 tests/inet/udp.t
+ create mode 100644 tests/inet/udplite.t
+ create mode 100644 tests/ip/chains.t
+ create mode 100644 tests/ip/icmp.t
+ create mode 100644 tests/ip/ip.t
+ create mode 100644 tests/ip/nat.t
+ create mode 100644 tests/ip/reject.t
+ create mode 100644 tests/ip/sets.t
+ create mode 100644 tests/ip6/chains.t
+ create mode 100644 tests/ip6/dst.t
+ create mode 100644 tests/ip6/hbh.t
+ create mode 100644 tests/ip6/icmpv6.t
+ create mode 100644 tests/ip6/ip6.t
+ create mode 100644 tests/ip6/mh.t
+ create mode 100644 tests/ip6/nat.t
+ create mode 100644 tests/ip6/reject.t
+ create mode 100644 tests/ip6/rt.t
+ create mode 100644 tests/ip6/sets.t
+ create mode 100644 tests/ip6/vmap.t
+ create mode 100755 tests/nft-test.py
 
 -- 
-1.7.9.5
+2.0.0
+
