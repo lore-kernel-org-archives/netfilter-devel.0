@@ -1,63 +1,102 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 2/2] net: filter: don't release unattached
- filter through call_rcu()
-Date: Wed, 30 Jul 2014 19:57:16 -0700 (PDT)
-Message-ID: <20140730.195716.246796820845840784.davem@davemloft.net>
-References: <1406648188-3681-1-git-send-email-pablo@netfilter.org>
-	<1406648188-3681-2-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	ast@plumgrid.com, dborkman@redhat.com, willemb@google.com,
-	keescook@chromium.org
-To: pablo@netfilter.org
+From: Alexei Starovoitov <ast@plumgrid.com>
+Subject: [PATCH v4 net-next 2/5] net: filter: rename sk_filter_proglen -> bpf_classic_proglen
+Date: Wed, 30 Jul 2014 20:34:13 -0700
+Message-ID: <1406777656-27755-3-git-send-email-ast@plumgrid.com>
+References: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
+Cc: Daniel Borkmann <dborkman@redhat.com>,
+	Willem de Bruijn <willemb@google.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Kees Cook <keescook@chromium.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:38801 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755956AbaGaC5R (ORCPT
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:42022 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932188AbaGaDea (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2014 22:57:17 -0400
-In-Reply-To: <1406648188-3681-2-git-send-email-pablo@netfilter.org>
+	Wed, 30 Jul 2014 23:34:30 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w10so2612808pde.23
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2014 20:34:30 -0700 (PDT)
+In-Reply-To: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 29 Jul 2014 17:36:28 +0200
+trivial rename to better match semantics of macro
 
-> sk_unattached_filter_destroy() does not always need to release the
-> filter object via rcu. Since this filter is never attached to the
-> socket, the caller should be responsible for releasing the filter
-> in a safe way, which may not necessarily imply rcu.
-> 
-> This is a short summary of clients of this function:
-> 
-> 1) xt_bpf.c and cls_bpf.c use the bpf matchers from rules, these rules
->    are removed from the packet path before the filter is released. Thus,
->    the framework makes sure the filter is safely removed.
-> 
-> 2) In the ppp driver, the ppp_lock ensures serialization between the
->    xmit and filter attachment/detachment path. This doesn't use rcu
->    so deferred release via rcu makes no sense.
-> 
-> 3) In the isdn/ppp driver, it is called from isdn_ppp_release()
->    the isdn_ppp_ioctl(). This driver uses mutex and spinlocks, no rcu.
->    Thus, deferred rcu makes no sense to me either, the deferred releases
->    may be just masking the effects of wrong locking strategy, which
->    should be fixed in the driver itself.
-> 
-> 4) In the team driver, this is the only place where the rcu
->    synchronization with unattached filter is used. Therefore, this
->    patch introduces synchronize_rcu() which is called from the
->    genetlink path to make sure the filter doesn't go away while packets
->    are still walking over it. I think we can revisit this once struct
->    bpf_prog (that only wraps specific bpf code bits) is in place, then
->    add some specific struct rcu_head in the scope of the team driver if
->    Jiri thinks this is needed.
-> 
-> Deferred rcu release for unattached filters was originally introduced
-> in 302d663 ("filter: Allow to create sk-unattached filters").
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Alexei Starovoitov <ast@plumgrid.com>
+---
+ include/linux/filter.h |    3 +--
+ net/core/filter.c      |    8 ++++----
+ net/core/sock_diag.c   |    2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-Also applied, thanks.
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 00640edc166f..3769341a745d 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -344,8 +344,7 @@ static inline unsigned int sk_filter_size(unsigned int proglen)
+ 		   offsetof(struct sk_filter, insns[proglen]));
+ }
+ 
+-#define sk_filter_proglen(fprog)			\
+-		(fprog->len * sizeof(fprog->filter[0]))
++#define bpf_classic_proglen(fprog) (fprog->len * sizeof(fprog->filter[0]))
+ 
+ int sk_filter(struct sock *sk, struct sk_buff *skb);
+ 
+diff --git a/net/core/filter.c b/net/core/filter.c
+index 5a6aeb1d40b8..d6cb287e4f59 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -813,7 +813,7 @@ EXPORT_SYMBOL(sk_chk_filter);
+ static int sk_store_orig_filter(struct sk_filter *fp,
+ 				const struct sock_fprog *fprog)
+ {
+-	unsigned int fsize = sk_filter_proglen(fprog);
++	unsigned int fsize = bpf_classic_proglen(fprog);
+ 	struct sock_fprog_kern *fkprog;
+ 
+ 	fp->orig_prog = kmalloc(sizeof(*fkprog), GFP_KERNEL);
+@@ -1001,7 +1001,7 @@ static struct sk_filter *__sk_prepare_filter(struct sk_filter *fp)
+ int sk_unattached_filter_create(struct sk_filter **pfp,
+ 				struct sock_fprog_kern *fprog)
+ {
+-	unsigned int fsize = sk_filter_proglen(fprog);
++	unsigned int fsize = bpf_classic_proglen(fprog);
+ 	struct sk_filter *fp;
+ 
+ 	/* Make sure new filter is there and in the right amounts. */
+@@ -1053,7 +1053,7 @@ EXPORT_SYMBOL_GPL(sk_unattached_filter_destroy);
+ int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
+ {
+ 	struct sk_filter *fp, *old_fp;
+-	unsigned int fsize = sk_filter_proglen(fprog);
++	unsigned int fsize = bpf_classic_proglen(fprog);
+ 	unsigned int sk_fsize = sk_filter_size(fprog->len);
+ 	int err;
+ 
+@@ -1154,7 +1154,7 @@ int sk_get_filter(struct sock *sk, struct sock_filter __user *ubuf,
+ 		goto out;
+ 
+ 	ret = -EFAULT;
+-	if (copy_to_user(ubuf, fprog->filter, sk_filter_proglen(fprog)))
++	if (copy_to_user(ubuf, fprog->filter, bpf_classic_proglen(fprog)))
+ 		goto out;
+ 
+ 	/* Instead of bytes, the API requests to return the number
+diff --git a/net/core/sock_diag.c b/net/core/sock_diag.c
+index a4216a4c9572..57d922320c59 100644
+--- a/net/core/sock_diag.c
++++ b/net/core/sock_diag.c
+@@ -69,7 +69,7 @@ int sock_diag_put_filterinfo(bool may_report_filterinfo, struct sock *sk,
+ 		goto out;
+ 
+ 	fprog = filter->orig_prog;
+-	flen = sk_filter_proglen(fprog);
++	flen = bpf_classic_proglen(fprog);
+ 
+ 	attr = nla_reserve(skb, attrtype, flen);
+ 	if (attr == NULL) {
+-- 
+1.7.9.5
+
