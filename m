@@ -1,30 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] Fix overquota output result
-Date: Thu, 31 Jul 2014 20:46:43 +0200
-Message-ID: <20140731184643.GA7770@salvia>
-References: <20140730170115.GA6364@salvia>
- <1406812353-2930-1-git-send-email-a.perevalov@samsung.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH nf-next] netfilter: don't use
+ mutex_lock_interruptible()
+Date: Thu, 31 Jul 2014 22:12:02 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1407312207280.1630@ja.home.ssi.bg>
+References: <1406831926-7249-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: alexey.perevalov@hotmail.com, mathieu.poirier@linaro.org,
-	netfilter-devel@vger.kernel.org, kyungmin.park@samsung.com,
-	hs81.go@samsung.com
-To: Alexey Perevalov <a.perevalov@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	edumazet@google.com, horms@verge.net.au
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60982 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750952AbaGaSqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2014 14:46:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1406812353-2930-1-git-send-email-a.perevalov@samsung.com>
+Received: from ja.ssi.bg ([178.16.129.10]:33695 "EHLO ja.home.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750781AbaGaTMr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jul 2014 15:12:47 -0400
+In-Reply-To: <1406831926-7249-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 31, 2014 at 05:12:33PM +0400, Alexey Perevalov wrote:
-> Current implementation shows "packet" for none byte quota type.
-> It means "packet" was used for overquota counter as well and it
-> wasn't so informative.
-> 
-> This commmit adds additional column - overquota with yes/no value.
 
-Applied, thanks.
+	Hello,
+
+On Thu, 31 Jul 2014, Pablo Neira Ayuso wrote:
+
+> Eric Dumazet reports that getsockopt() or setsockopt() sometimes
+> returns -EINTR instead of -ENOPROTOOPT, causing headaches to
+> application developers.
+> 
+> This patch replaces all the mutex_lock_interruptible() by mutex_lock()
+> in the netfilter tree, as there is no reason we should sleep for a
+> long time there.
+> 
+> Reported-by: Eric Dumazet <edumazet@google.com>
+> Suggested-by: Patrick McHardy <kaber@trash.net>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+
+	IPVS part looks ok, here is ack if needed:
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+>  net/bridge/netfilter/ebtables.c |   10 ++-------
+>  net/netfilter/core.c            |   11 ++-------
+>  net/netfilter/ipvs/ip_vs_ctl.c  |   19 ++++------------
+>  net/netfilter/nf_sockopt.c      |    8 ++-----
+>  net/netfilter/x_tables.c        |   47 ++++++++++-----------------------------
+>  5 files changed, 22 insertions(+), 73 deletions(-)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
