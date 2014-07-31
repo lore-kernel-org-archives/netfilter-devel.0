@@ -1,45 +1,40 @@
 From: Yuxuan Shui <yshuiv7@gmail.com>
-Subject: [PATCH] nftables: Add a flags attribute for lookup operator
-Date: Fri,  1 Aug 2014 00:40:19 +0800
-Message-ID: <1406824821-16111-1-git-send-email-yshuiv7@gmail.com>
+Subject: [nftables PATCH] expr: Interpret OP_NEQ against a set as OP_LOOKUP
+Date: Fri,  1 Aug 2014 00:40:21 +0800
+Message-ID: <1406824821-16111-3-git-send-email-yshuiv7@gmail.com>
+References: <1406824821-16111-1-git-send-email-yshuiv7@gmail.com>
 Cc: tomasz.bursztyka@linux.intel.com, netfilter-devel@vger.kernel.org,
 	Yuxuan Shui <yshuiv7@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:62479 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751818AbaGaQki (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:45131 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818AbaGaQkk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2014 12:40:38 -0400
-Received: by mail-pd0-f172.google.com with SMTP id ft15so3778909pdb.17
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2014 09:40:34 -0700 (PDT)
+	Thu, 31 Jul 2014 12:40:40 -0400
+Received: by mail-pa0-f43.google.com with SMTP id lf10so3972578pab.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2014 09:40:40 -0700 (PDT)
+In-Reply-To: <1406824821-16111-1-git-send-email-yshuiv7@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So that we could modify the behaviour of the lookup operator using
-flags.
+Fixes bug 888.
 
-The only flag available now is a negation flag which negates the result
-of lookup operation.
-
-v2: Rename the flags, reorder members in struct nft_lookup, check
-for invaild flags.
-
-v3: Fix checking for invaild flags.
-
-v4: Fix macro naming.
+v2: Fix macro naming.
 
 Signed-off-by: Yuxuan Shui <yshuiv7@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 10 ++++++++++
- net/netfilter/nft_lookup.c               | 22 +++++++++++++++++++---
- 2 files changed, 29 insertions(+), 3 deletions(-)
+ include/linux/netfilter/nf_tables.h |  9 +++++++++
+ src/evaluate.c                      | 12 ++++++++++++
+ src/netlink_delinearize.c           |  7 +++++++
+ src/netlink_linearize.c             |  5 +++++
+ 4 files changed, 33 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index d41880f..9e6617e 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -479,6 +479,15 @@ enum nft_cmp_attributes {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index dfdb251..3177b77 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -449,6 +449,15 @@ enum nft_cmp_attributes {
  #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
  
  /**
@@ -55,73 +50,77 @@ index d41880f..9e6617e 100644
   * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
   *
   * @NFTA_LOOKUP_SET: name of the set where to look for (NLA_STRING)
-@@ -490,6 +499,7 @@ enum nft_lookup_attributes {
- 	NFTA_LOOKUP_SET,
- 	NFTA_LOOKUP_SREG,
- 	NFTA_LOOKUP_DREG,
-+	NFTA_LOOKUP_FLAGS,
- 	__NFTA_LOOKUP_MAX
- };
- #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 7fd2bea..0702f73 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -22,6 +22,8 @@ struct nft_lookup {
- 	struct nft_set			*set;
- 	enum nft_registers		sreg:8;
- 	enum nft_registers		dreg:8;
-+	s8				match_verdict;
-+	s8				no_match_verdict;
- 	struct nft_set_binding		binding;
- };
+diff --git a/src/evaluate.c b/src/evaluate.c
+index e05473a..a0af0f7 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -972,6 +972,18 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 			if (byteorder_conversion(ctx, &rel->right, left->byteorder) < 0)
+ 				return -1;
+ 			break;
++		case EXPR_SET:
++			assert(rel->op == OP_NEQ);
++			right = rel->right =
++				implicit_set_declaration(ctx, left->dtype, left->len, right);
++			if (right->set->flags & SET_F_INTERVAL &&
++			    byteorder_conversion(ctx, &rel->left,
++						 BYTEORDER_BIG_ENDIAN) < 0)
++				return -1;
++			break;
++		case EXPR_SET_REF:
++			assert(rel->op == OP_NEQ);
++			break;
+ 		default:
+ 			BUG("invalid expression type %s\n", right->ops->name);
+ 		}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 5c6ca80..46e0ab6 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -160,6 +160,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+ 	struct expr *expr, *left, *right;
+ 	struct set *set;
+ 	enum nft_registers dreg;
++	uint32_t flag;
  
-@@ -32,15 +34,18 @@ static void nft_lookup_eval(const struct nft_expr *expr,
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
- 	const struct nft_set *set = priv->set;
+ 	left = netlink_get_register(ctx, loc,
+ 			nft_rule_expr_get_u32(nle, NFT_EXPR_LOOKUP_SREG));
+@@ -185,6 +186,12 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+ 		expr = relational_expr_alloc(loc, OP_LOOKUP, left, right);
+ 	}
  
--	if (set->ops->lookup(set, &data[priv->sreg], &data[priv->dreg]))
-+	if (set->ops->lookup(set, &data[priv->sreg], &data[priv->dreg])) {
-+		data[NFT_REG_VERDICT].verdict = priv->match_verdict;
- 		return;
--	data[NFT_REG_VERDICT].verdict = NFT_BREAK;
++	if (nft_rule_expr_is_set(nle, NFT_EXPR_LOOKUP_FLAGS)) {
++		flag = nft_rule_expr_get_u32(nle, NFT_EXPR_LOOKUP_FLAGS);
++		if (flag & NFT_LOOKUP_F_NEG)
++			expr->op = OP_NEQ;
 +	}
-+	data[NFT_REG_VERDICT].verdict = priv->no_match_verdict;
++
+ 	stmt = expr_stmt_alloc(loc, expr);
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
  }
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 5c1b46d..49e705b 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -157,6 +157,8 @@ static void netlink_gen_lookup(struct netlink_linearize_ctx *ctx,
+ 			      expr->right->set->handle.set);
+ 	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SET_ID,
+ 			      expr->right->set->handle.set_id);
++	if (expr->op == OP_NEQ)
++		nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_FLAGS, NFT_LOOKUP_F_NEG);
  
- static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
- 	[NFTA_LOOKUP_SET]	= { .type = NLA_STRING },
- 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
-+	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static int nft_lookup_init(const struct nft_ctx *ctx,
-@@ -49,12 +54,23 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 	struct nft_set *set;
--	int err;
-+	int err, flags;
- 
- 	if (tb[NFTA_LOOKUP_SET] == NULL ||
- 	    tb[NFTA_LOOKUP_SREG] == NULL)
- 		return -EINVAL;
- 
-+	priv->match_verdict = NFT_CONTINUE;
-+	priv->no_match_verdict = NFT_BREAK;
-+
-+	flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
-+	if (flags & ~NFT_LOOKUP_F_NEG)
-+		return -EINVAL;
-+	if (flags & NFT_LOOKUP_F_NEG) {
-+		priv->match_verdict = NFT_BREAK;
-+		priv->no_match_verdict = NFT_CONTINUE;
-+	}
-+
- 	set = nf_tables_set_lookup(ctx->table, tb[NFTA_LOOKUP_SET]);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
+ 	release_register(ctx);
+ 	nft_rule_add_expr(ctx->nlr, nle);
+@@ -225,6 +227,9 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
+ 		}
+ 	case EXPR_RANGE:
+ 		return netlink_gen_range(ctx, expr, dreg);
++	case EXPR_SET:
++	case EXPR_SET_REF:
++		return netlink_gen_lookup(ctx, expr, dreg);
+ 	default:
+ 		right = expr->right;
+ 	}
 -- 
 2.0.1
 
