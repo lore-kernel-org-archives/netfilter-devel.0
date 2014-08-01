@@ -1,32 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nftables: Avoid duplicate call to nft_data_uninit() for
- same key
-Date: Fri, 1 Aug 2014 18:14:06 +0200
-Message-ID: <20140801161406.GB4679@salvia>
-References: <b7a5a0e246bbe94de1f14594586e1ce75dc311bb.1406906631.git.tgraf@suug.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH 0/3] Netfilter/IPVS fixes for net
+Date: Fri,  1 Aug 2014 18:40:36 +0200
+Message-ID: <1406911239-6250-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43998 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47119 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751858AbaHAQOA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Aug 2014 12:14:00 -0400
-Content-Disposition: inline
-In-Reply-To: <b7a5a0e246bbe94de1f14594586e1ce75dc311bb.1406906631.git.tgraf@suug.ch>
+	id S1751602AbaHAQkZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Aug 2014 12:40:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 01, 2014 at 05:25:38PM +0200, Thomas Graf wrote:
-> nft_del_setelem() currently calls nft_data_uninit() twice on the same
-> key. Once to release the key which is guaranteed to be NFT_DATA_VALUE
-> and a second time in the error path to which it falls through.
-> 
-> The second call has been harmless so far though because the type
-> passed is always NFT_DATA_VALUE which is currently a no-op.
+Hi David,
 
-Applied, thanks Thomas.
+The following patchset contains Netfilter/IPVS fixes for your net tree,
+they are:
 
-BTW, this bug seems to be there since the very beginning:
-http://lxr.free-electrons.com/source/net/netfilter/nf_tables_api.c?v=3.13#L2735
+1) Maintain all DSCP and ECN bits for IPv6 tun forwarding. This
+   resolves an inconsistency between IPv4 and IPv6 behaviour.
+   Patch from Alex Gartrell via Simon Horman.
+
+2) Fix unnoticeable blink in xt_LED when the led-always-blink option is
+   used, from Jiri Prchal.
+
+3) Add missing return in nft_del_setelem(), otherwise this results in a
+   double call of nft_data_uninit() in the nf_tables code, from Thomas Graf.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 2627b7e15c5064ddd5e578e4efd948d48d531a3f:
+
+  ipvs: avoid netns exit crash on ip_vs_conn_drop_conntrack (2014-07-16 09:39:28 +0900)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 0dc1362562a2e8b82a6be8d3ae307a234f28f9bc:
+
+  netfilter: nf_tables: Avoid duplicate call to nft_data_uninit() for same key (2014-08-01 18:14:49 +0200)
+
+----------------------------------------------------------------
+Alex Gartrell (1):
+      ipvs: Maintain all DSCP and ECN bits for ipv6 tun forwarding
+
+Jiri Prchal (1):
+      netfilter: xt_LED: fix too short led-always-blink
+
+Thomas Graf (1):
+      netfilter: nf_tables: Avoid duplicate call to nft_data_uninit() for same key
+
+ net/netfilter/ipvs/ip_vs_xmit.c |    2 +-
+ net/netfilter/nf_tables_api.c   |    1 +
+ net/netfilter/xt_LED.c          |   10 +++++++---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
