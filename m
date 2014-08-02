@@ -1,31 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v4 net-next 5/5] net: filter: split 'struct sk_filter'
- into socket and bpf parts
-Date: Sat, 02 Aug 2014 15:10:24 -0700 (PDT)
-Message-ID: <20140802.151024.636036304502082388.davem@davemloft.net>
-References: <CAMEtUuympZm+qVOc+4MJoSnAwSZ-Gx=tSOaHwudtP7Q92eHAtw@mail.gmail.com>
-	<20140801190341.GA28642@salvia>
-	<CAMEtUuxDSGysNKr12qYQAXjmb4qP45trh3qVx41W7WVduPS5zw@mail.gmail.com>
+From: "Admin. webmail" <eyuksel@nku.edu.tr>
+Subject: A webes MAIL TEAM
+Date: Sun, 3 Aug 2014 01:48:51 +0300 (EEST)
+Message-ID: <477464320.10228407.1407019731681.JavaMail.zimbra__17661.3673721024$1407021516$gmane$org@nku.edu.tr>
+Reply-To: "Admin. webmail" <chevroletclaimsdepartment@taxcolandia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, dborkman@redhat.com, willemb@google.com,
-	keescook@chromium.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: ast@plumgrid.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMEtUuxDSGysNKr12qYQAXjmb4qP45trh3qVx41W7WVduPS5zw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: unlisted-recipients:; (no To-header on input)
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from astaromail.nku.edu.tr ([193.255.68.1]:41203 "EHLO
+	posta3.nku.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750812AbaHBXSU convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Aug 2014 19:18:20 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alexei Starovoitov <ast@plumgrid.com>
-Date: Fri, 1 Aug 2014 12:12:36 -0700
+A webes MAIL TEAM
 
-> Dave, this patch has trivial conflict with Daniel's
-> ("team: fix releasing uninitialized pointer to BPF prog") fix.
-> Let me know if you want me to respin the series or you'll patch up
-> the conflict yourself.
+=46igyelem!
 
-I took care of this, it was easy to resolve.
+Ez a web-mail rendszergazda. K=C3=A9rj=C3=BCk, t=C3=A1j=C3=A9koztatni k=
+ell, hogy az e-mail szerver most lett friss=C3=ADtve, =C3=A9s az e-mail=
+ kell friss=C3=ADteni immediately.This folyamat az, hogy a c=C3=A9g e-m=
+ail szerver friss=C3=ADtik, =C3=A9s a v=C3=A9dett, mint mindig. K=C3=A9=
+rj=C3=BCk kattintson az al=C3=A1bbi linkre =C3=A9s k=C3=B6vesse az utas=
+=C3=ADt=C3=A1sokat, hogy friss=C3=ADtse a sz=C3=A1mla
 
-Thanks.
+http://mailupdate123.jigsy.com/=20
+
+=C3=9Cdv=C3=B6zlettel,
+Admin.
+webmail
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
