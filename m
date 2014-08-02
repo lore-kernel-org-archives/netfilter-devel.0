@@ -1,40 +1,59 @@
-From: Nikolay Aleksandrov <nikolay-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH net-next 3/3] nftables: Convert nft_hash to
- use generic rhashtable
-Date: Sat, 02 Aug 2014 12:56:15 +0200
-Message-ID: <53DCC3CF.4000003@redhat.com>
-References: <cover.1406971567.git.tgraf@suug.ch>
- <583cb5fc8f1bc2f47d338dfba06f514e7b89a548.1406971567.git.tgraf@suug.ch>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 net-next 0/5] net: filter: split sk_filter into
+ socket and bpf, cleanup names
+Date: Sat, 02 Aug 2014 15:09:56 -0700 (PDT)
+Message-ID: <20140802.150956.747835720193799195.davem@davemloft.net>
+References: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
- walpole-sKt6ljEC1JY3uPMLIKxrzw@public.gmane.org
-To: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <583cb5fc8f1bc2f47d338dfba06f514e7b89a548.1406971567.git.tgraf-G/eBtMaohhA@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+Cc: dborkman@redhat.com, willemb@google.com, pablo@netfilter.org,
+	keescook@chromium.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: ast@plumgrid.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 08/02/2014 11:47 AM, Thomas Graf wrote:
-> The sizing of the hash table and the practice of requiring a lookup
-> to retrieve the pprev to be stored in the element cookie before the
-> deletion of an entry is left intact.
-> 
-> Signed-off-by: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
-> Acked-by: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-> ---
->  net/netfilter/nft_hash.c | 291 +++++++++--------------------------------------
->  1 file changed, 55 insertions(+), 236 deletions(-)
-> 
+From: Alexei Starovoitov <ast@plumgrid.com>
+Date: Wed, 30 Jul 2014 20:34:11 -0700
 
-Reviewed-by: Nikolay Aleksandrov <nikolay-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> The main goal of the series is to split 'struct sk_filter' into socket and
+> bpf parts and cleanup names in the following way:
+> - everything that deals with sockets keeps 'sk_*' prefix
+> - everything that is pure BPF is changed to 'bpf_*' prefix
+> 
+> split 'struct sk_filter' into
+> struct sk_filter {
+> 	atomic_t        refcnt;
+> 	struct rcu_head rcu;
+> 	struct bpf_prog *prog;
+> };
+> and
+> struct bpf_prog {
+>         u32                     jited:1,
+>                                 len:31;
+>         struct sock_fprog_kern  *orig_prog;
+>         unsigned int            (*bpf_func)(const struct sk_buff *skb,
+>                                             const struct bpf_insn *filter);
+>         union {
+>                 struct sock_filter      insns[0];
+>                 struct bpf_insn         insnsi[0];
+>                 struct work_struct      work;
+>         };
+> };
+> so that 'struct bpf_prog' can be used independent of sockets and cleans up
+> 'unattached' bpf use cases:
+> isdn, ppp, team, seccomp, ptp, xt_bpf, cls_bpf, test_bpf
+> which don't need refcnt/rcu fields.
+> 
+> It's a follow up to the rcu cleanup started by Pablo in
+> commit 34c5bd66e5 ("net: filter: don't release unattached filter through call_rcu()")
+> 
+> Patch 1 - cleans up socket memory charging and makes it possible for functions
+>   sk(bpf)_migrate_filter(), sk(bpf)_prepare_filter() to be socket independent
+> Patches 2-4 - trivial renames
+> Patch 5 - sk_filter split and renames of related sk_*() functions
+
+Series applied, thanks Alexei.
