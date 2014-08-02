@@ -1,61 +1,80 @@
-From: Alexei Starovoitov <ast@plumgrid.com>
-Subject: Re: [PATCH v4 net-next 5/5] net: filter: split 'struct sk_filter'
- into socket and bpf parts
-Date: Fri, 1 Aug 2014 12:12:36 -0700
-Message-ID: <CAMEtUuxDSGysNKr12qYQAXjmb4qP45trh3qVx41W7WVduPS5zw@mail.gmail.com>
-References: <1406777656-27755-1-git-send-email-ast@plumgrid.com>
-	<1406777656-27755-6-git-send-email-ast@plumgrid.com>
-	<20140731194059.GA8681@salvia>
-	<CAMEtUuy+iABzHagoono+CPB=Ex4Ew4vQBK65x1jDRC9_W9L7Dw@mail.gmail.com>
-	<20140801160612.GA4679@salvia>
-	<CAMEtUuympZm+qVOc+4MJoSnAwSZ-Gx=tSOaHwudtP7Q92eHAtw@mail.gmail.com>
-	<20140801190341.GA28642@salvia>
+From: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
+Subject: [PATCH net-next v5 0/3] Lockless netlink_lookup() with
+	new concurrent hash table
+Date: Sat,  2 Aug 2014 11:47:43 +0200
+Message-ID: <cover.1406971567.git.tgraf@suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Willem de Bruijn <willemb@google.com>,
-	Kees Cook <keescook@chromium.org>,
-	Network Development <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:42729 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754809AbaHATMh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Aug 2014 15:12:37 -0400
-Received: by mail-wg0-f51.google.com with SMTP id b13so4719021wgh.22
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Aug 2014 12:12:36 -0700 (PDT)
-In-Reply-To: <20140801190341.GA28642@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org,
+ nikolay-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, walpole-sKt6ljEC1JY3uPMLIKxrzw@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
+	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 1, 2014 at 12:03 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > I think you can allocate the sk_filter once you get the final bpf
->> > program, then you can memcpy() it. This adds some extra overhead in
->> > the sk_attach_filter(), but that path is executed from user context
->> > and it's also a rare operation (only once to attach the filter). It's
->> > still not going to be a beauty, but IMO it's worth to focus on getting
->> > that little speed up in the packet path at the cost of adding some
->> > overhead on the socket attach path.
->>
->> memcpy of 'bpf_prog' is not just 'not a beauty', it won't work, since
->> bpf_prog is freed via work_queue due to JIT. See bpf_jit_free()
-> [...]
->
-> I see, in this patch you renamed sk_filter to bpf_prog in
-> bpf_jit_free() so no access to sk_filter anymore and alignment needs a
-> closer look.
->
-> OK... let's stick to the struct bpf_prog pointer.
+Netlink sockets are maintained in a hash table to allow efficient lookup
+via the port ID for unicast messages. However, lookups currently require
+a read lock to be taken. This series adds a new generic, resizable,
+scalable, concurrent hash table based on the paper referenced in the first
+patch. It then makes use of the new data type to implement lockless
+netlink_lookup().
 
-great. Once nft comes along we can always revisit this bit.
+Patch 3/3 to convert nft_hash is included for reference but should be
+merged via the netfilter tree. Inclusion in this series is to provide
+context for the suggested API.
 
-Dave, this patch has trivial conflict with Daniel's
-("team: fix releasing uninitialized pointer to BPF prog") fix.
-Let me know if you want me to respin the series or you'll patch up
-the conflict yourself.
+Against net-next since the initial user of the new hash table is in net/
 
-Thanks
+Changes:
+v4-v5:
+ - use GFP_KERNEL to alloc Netlink buckets as suggested by Nikolay
+   Aleksandrov
+ - free nft hash element on removal as spotted by Nikolay Aleksandrov
+   and Patrick McHardy
+v3-v4:
+ - fixed wrong shift assignment placement as spotted by Nikolay Aleksandrov
+ - reverted default size of nft_hash to 4 as requested by Patrick McHardy,
+   default size for other hash tables remains at 64 if no hint is given
+ - fixed copyright as requested by Patrick McHardy
+v2-v3:
+ - fixed typo in nft_hash_destroy() when passing rhashtable handle
+v1-v2:
+ - fixed traversal off-by-one as spotted by Tobias Klauser
+ - removed unlikely() from BUG_ON() as spotted by Josh Triplett
+ - new 3rd patch to convert nft_hash to rhashtable
+ - make rhashtable_insert() return void
+ - nl_sk_hash_lock must be a mutex
+ - fixed wrong name of rht_shrink_below_30()
+ - exported symbols rht_grow_above_75() and rht_shrink_below_30()
+ - allow table freeing with RCU callback
+
+Thomas Graf (3):
+  lib: Resizable, Scalable, Concurrent Hash Table
+  netlink: Convert netlink_lookup() to use RCU protected hash table
+  nftables: Convert nft_hash to use generic rhashtable
+
+ include/linux/rhashtable.h | 213 ++++++++++++
+ lib/Kconfig.debug          |   8 +
+ lib/Makefile               |   2 +-
+ lib/rhashtable.c           | 797 +++++++++++++++++++++++++++++++++++++++++++++
+ net/netfilter/nft_hash.c   | 291 ++++-------------
+ net/netlink/af_netlink.c   | 285 ++++++----------
+ net/netlink/af_netlink.h   |  18 +-
+ net/netlink/diag.c         |  11 +-
+ 8 files changed, 1193 insertions(+), 432 deletions(-)
+ create mode 100644 include/linux/rhashtable.h
+ create mode 100644 lib/rhashtable.c
+
+-- 
+1.9.3
