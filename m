@@ -1,41 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter/IPVS fixes for net
-Date: Sat, 02 Aug 2014 16:49:46 -0700 (PDT)
-Message-ID: <20140802.164946.1059611435908084703.davem@davemloft.net>
-References: <1406911239-6250-1-git-send-email-pablo@netfilter.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next v5 0/3] Lockless netlink_lookup()
+ with new concurrent hash table
+Date: Sat, 02 Aug 2014 19:53:37 -0700 (PDT)
+Message-ID: <20140802.195337.1579267101961188813.davem@davemloft.net>
+References: <cover.1406971567.git.tgraf@suug.ch>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:50157 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbaHBXtr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Aug 2014 19:49:47 -0400
-In-Reply-To: <1406911239-6250-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org, nikolay-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, walpole-sKt6ljEC1JY3uPMLIKxrzw@public.gmane.org
+To: tgraf-G/eBtMaohhA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <cover.1406971567.git.tgraf-G/eBtMaohhA@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri,  1 Aug 2014 18:40:36 +0200
+From: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
+Date: Sat,  2 Aug 2014 11:47:43 +0200
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree,
-> they are:
+> Netlink sockets are maintained in a hash table to allow efficient lookup
+> via the port ID for unicast messages. However, lookups currently require
+> a read lock to be taken. This series adds a new generic, resizable,
+> scalable, concurrent hash table based on the paper referenced in the first
+> patch. It then makes use of the new data type to implement lockless
+> netlink_lookup().
 > 
-> 1) Maintain all DSCP and ECN bits for IPv6 tun forwarding. This
->    resolves an inconsistency between IPv4 and IPv6 behaviour.
->    Patch from Alex Gartrell via Simon Horman.
+> Patch 3/3 to convert nft_hash is included for reference but should be
+> merged via the netfilter tree. Inclusion in this series is to provide
+> context for the suggested API.
 > 
-> 2) Fix unnoticeable blink in xt_LED when the led-always-blink option is
->    used, from Jiri Prchal.
-> 
-> 3) Add missing return in nft_del_setelem(), otherwise this results in a
->    double call of nft_data_uninit() in the nf_tables code, from Thomas Graf.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> Against net-next since the initial user of the new hash table is in net/
 
-Pulled, thanks Pablo.
+Applied, thanks Thomas.
