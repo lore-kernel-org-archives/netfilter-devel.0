@@ -1,82 +1,148 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 4/5 v2] src: fix byteorder conversions in range values
-Date: Mon,  4 Aug 2014 18:00:10 +0200
-Message-ID: <1407168011-6424-5-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 5/5 v2] src: fix byteorder conversions in sets
+Date: Mon,  4 Aug 2014 18:00:11 +0200
+Message-ID: <1407168011-6424-6-git-send-email-alvaroneay@gmail.com>
 References: <1407168011-6424-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:41118 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbaHDQBD (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:45639 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751634AbaHDQBP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Aug 2014 12:01:03 -0400
-Received: by mail-wg0-f44.google.com with SMTP id m15so7857477wgh.27
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Aug 2014 09:00:58 -0700 (PDT)
+	Mon, 4 Aug 2014 12:01:15 -0400
+Received: by mail-wg0-f51.google.com with SMTP id b13so7927303wgh.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Aug 2014 09:01:12 -0700 (PDT)
 In-Reply-To: <1407168011-6424-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently when we try to use range values in nft rules doesn't
-work correctly. Usually this problem is related to incorrect byteorder
-conversion. I make the following solution for showing the range in
-the correct byteorder.
+In some rules if we use sets, we don't convert the values inside the set.
+Usually, rule like the datatype is integer_type. For example:
 
-Example:
-* nft add rule filter input tcp checksum 22-55
-* nft list table filter
-    tcp checksum >= 5632 tcp checksum <= 14080
+nft add rule filter input tcp checksum {22-55}
 
-And now, if we show it:
-* nft add rule filter input tcp checksum 22-55
-* nft list table filter
-    tcp checksum >= 22 tcp checksum <= 55
+set%d filter 7
+set%d filter 0
+element 00000000:1 [end] element 00000016: 0 [end] element 00000038  : 1 [end]
+ip filter input
+[ payload load 1b @ network header + 9 => reg 1 ]
+[ cmp eq reg 1 0x00000006 ]
+[ payload load 2b @ transport header + 16 => reg 1 ]
+[ lookup reg 1 set set%d ]
+
+Currently, we are going to do the byteorder conversion the values inside the set
+like:
+
+set%d filter 7
+set%d filter 0
+element 00000000 : 1 [end] element 00001600 : 0 [end] element 00003701: 1 [end]
+ip filter input
+[ payload load 1b @ network header + 9 => reg 1 ]
+[ cmp eq reg 1 0x00000006 ]
+[ payload load 2b @ transport header + 16 => reg 1 ]
+[ lookup reg 1 set set%d ]
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
 [changes in v2]
 * Changed the solution for big endian and host endian cases.
 
- src/netlink_delinearize.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ src/evaluate.c            |   32 +++++++++++++++++++++++++++-----
+ src/netlink_delinearize.c |   12 ++++++++++++
+ 2 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 1035e32..af18dcc 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -627,6 +627,17 @@ static void payload_dependency_store(struct rule_pp_ctx *ctx,
- 	ctx->pdep  = stmt;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8aaf1bf..d973cb8 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -670,6 +670,29 @@ static int expr_evaluate_list(struct eval_ctx *ctx, struct expr **expr)
+ 	return 0;
  }
  
-+static void payload_elem_postprocess(struct expr *expr)
++static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr *expr)
 +{
 +	switch (expr->ops->type) {
 +	case EXPR_VALUE:
-+		expr_switch_byteorder(expr);
++		if (byteorder_conversion(ctx, &expr,
++					 BYTEORDER_BIG_ENDIAN) < 0)
++			return -1;
++		break;
++	case EXPR_RANGE:
++		if (byteorder_conversion(ctx, &expr->right,
++					 BYTEORDER_BIG_ENDIAN) < 0)
++			return -1;
++		if (byteorder_conversion(ctx, &expr->left,
++					 BYTEORDER_BIG_ENDIAN) < 0)
++			return -1;
 +		break;
 +	default:
 +		break;
 +	}
++
++	return 0;
 +}
 +
- static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 				      struct stmt *stmt, struct expr *expr)
+ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
  {
-@@ -677,6 +688,14 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 		payload_expr_complete(left, &ctx->pctx);
- 		expr_set_type(expr->right, expr->left->dtype,
- 			      expr->left->byteorder);
+ 	struct expr *set = *expr, *i, *next;
+@@ -691,6 +714,10 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 			expr_free(i);
+ 		} else if (!expr_is_singleton(i))
+ 			set->set_flags |= SET_F_INTERVAL;
 +
-+		/* If we have rules that we have used payload with ranges or set
-+		 * we must to convert it to host endian for representing it
-+		 * correctly
-+		 */
-+		if (left->dtype->byteorder == BYTEORDER_BIG_ENDIAN)
-+			payload_elem_postprocess(expr->right);
++		/* Byteorder conversion of the set elements */
++		if (i->ops->type != EXPR_SET)
++			expr_evaluate_set_elem(ctx, i);
+ 	}
+ 
+ 	set->dtype = ctx->ectx.dtype;
+@@ -927,11 +954,6 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 						 left->dtype->desc,
+ 						 right->dtype->desc);
+ 
+-		/* Data for range lookups needs to be in big endian order */
+-		if (right->set->flags & SET_F_INTERVAL &&
+-		    byteorder_conversion(ctx, &rel->left,
+-					 BYTEORDER_BIG_ENDIAN) < 0)
+-			return -1;
+ 		left = rel->left;
+ 		break;
+ 	case OP_EQ:
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index af18dcc..f7961ad 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -629,10 +629,20 @@ static void payload_dependency_store(struct rule_pp_ctx *ctx,
+ 
+ static void payload_elem_postprocess(struct expr *expr)
+ {
++	struct expr *i;
 +
- 		payload_dependency_kill(ctx, expr->left);
+ 	switch (expr->ops->type) {
+ 	case EXPR_VALUE:
+ 		expr_switch_byteorder(expr);
+ 		break;
++	case EXPR_SET_REF:
++		list_for_each_entry(i, &expr->set->init->expressions, list)
++			payload_elem_postprocess(i);
++		break;
++	case EXPR_RANGE:
++		payload_elem_postprocess(expr->right);
++		payload_elem_postprocess(expr->left);
++		break;
+ 	default:
  		break;
  	}
+@@ -889,6 +899,8 @@ static void expr_postprocess(struct rule_pp_ctx *ctx,
+ 		expr_postprocess(ctx, stmt, &expr->right);
+ 		break;
+ 	case EXPR_SET_REF:
++		expr_postprocess(ctx, stmt, &expr->set->init);
++		break;
+ 	case EXPR_EXTHDR:
+ 	case EXPR_META:
+ 	case EXPR_CT:
 -- 
 1.7.10.4
 
