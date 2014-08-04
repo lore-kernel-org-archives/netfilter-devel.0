@@ -1,49 +1,57 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 2/5] payload: generate dependency in the correct byteorder
-Date: Mon,  4 Aug 2014 18:00:08 +0200
-Message-ID: <1407168011-6424-3-git-send-email-alvaroneay@gmail.com>
-References: <1407168011-6424-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 0/5] Changes in nft byteorder conversions
+Date: Mon,  4 Aug 2014 18:00:06 +0200
+Message-ID: <1407168011-6424-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:57190 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbaHDQAb (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:38522 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093AbaHDQAa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Aug 2014 12:00:31 -0400
-Received: by mail-wg0-f50.google.com with SMTP id n12so7948028wgh.33
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Aug 2014 09:00:30 -0700 (PDT)
-In-Reply-To: <1407168011-6424-1-git-send-email-alvaroneay@gmail.com>
+	Mon, 4 Aug 2014 12:00:30 -0400
+Received: by mail-wi0-f179.google.com with SMTP id f8so5295352wiw.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Aug 2014 09:00:26 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, we suppose that all the dependency are in host endian. The problem
-is if we try to add a dependency with big endian byteorder, we create
-this dependency wrong. For example, if we add a ether type dependency in bridge,
-we must use big endian byteorder and we use host endian and we create wrong the
-payload.
+Currently, if we add a rule, we do some byteorder conversions in the parser,
+evaluation and linealize steps. So, if we try to add rules, we do wrong
+byteorder conversions. Therefore, we have matching problems or we show
+the rules with wrong byteorder. Usually, we have these problems with sets
+and ranges.
 
-Now, we are going to create the dependency taking account the byteorder.
+These series of patches changes the policy for doing byteorder conversions in our
+rules. We are going to do all the conversions in two steps, parser and
+evaluation. That changes remove consecutive byteorder conversions. Thus, these
+patches fixing these problems for adding and for showing rules. Too, fix some
+case that we don't update correctly the context for using values without
+correctly byteorder conversions. These patches enables to use ranges and sets
+with the rules without problems.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- src/payload.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Comments are welcome.
 
-diff --git a/src/payload.c b/src/payload.c
-index be3d610..8b10a79 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -213,8 +213,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
- 
- 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
--				    BYTEORDER_HOST_ENDIAN,
--				    tmpl->len,
-+				    tmpl->dtype->byteorder, tmpl->len,
- 				    constant_data_ptr(protocol, tmpl->len));
- 
- 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
+Alvaro Neira Ayuso (5):
+  payload: fix update context with wrong byteorder
+  payload: generate dependency in the correct byteorder
+  src: fix byteorder conversions in constant values
+  src: fix byteorder conversions in range values
+  src: fix byteorder conversions in sets
+
+ include/datatype.h        |    1 +
+ include/expression.h      |    2 ++
+ include/netlink.h         |    3 +--
+ src/datatype.c            |   16 +++++++++++++--
+ src/evaluate.c            |   37 ++++++++++++++++++++++++++++-------
+ src/expression.c          |   17 ++++++++++++++--
+ src/gmputil.c             |    9 +++++++--
+ src/netlink.c             |   13 +++++++++----
+ src/netlink_delinearize.c |   47 +++++++++++++++++++++++++++++++++++++++++----
+ src/netlink_linearize.c   |   10 +++++-----
+ src/payload.c             |   10 +++++++---
+ src/proto.c               |    2 +-
+ 12 files changed, 135 insertions(+), 32 deletions(-)
+
 -- 
 1.7.10.4
 
