@@ -1,64 +1,221 @@
-From: Matteo Croce <technoboy85@gmail.com>
-Subject: Re: nftables null pointer
-Date: Tue, 5 Aug 2014 12:21:30 +0200
-Message-ID: <CAFnufp3mVBFVfLOmb3QofpPDubCYgzmOUc4u4vGM6gXv+6Rezg@mail.gmail.com>
-References: <CAFnufp1157iUqOpax6Po-PZivC_7TQSeQqtmJnnpNLVm3hzH9w@mail.gmail.com>
- <20140805100141.GA3480@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: [nf-next 1/2] net/netfilter/ipset: Resolve missing-field-initializer warnings
+Date: Tue,  5 Aug 2014 04:56:21 -0700
+Message-ID: <1407239782-14078-1-git-send-email-jeffrey.t.kirsher@intel.com>
+Cc: Mark Rustad <mark.d.rustad@intel.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:60803 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757584AbaHEKWL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Aug 2014 06:22:11 -0400
-Received: by mail-qa0-f51.google.com with SMTP id k15so675636qaq.24
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Aug 2014 03:22:10 -0700 (PDT)
-In-Reply-To: <20140805100141.GA3480@salvia>
+Received: from mga02.intel.com ([134.134.136.20]:9342 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284AbaHEL4Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Aug 2014 07:56:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yes it's reproducible with two config and two list:
+From: Mark Rustad <mark.d.rustad@intel.com>
 
-# nft -f /dev/stdin <<EOF
-table ip nat {
-        chain post {
-                type nat hook postrouting priority 0;
-                ip saddr 192.168.0.0/24 oif eth0 snat 192.168.1.2
-        }
-}
-EOF
+Resolve missing-field-initializer warnings by providing a
+directed initializer.
 
-# nft -n list table nat
+Signed-off-by: Mark Rustad <mark.d.rustad@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+---
+ net/netfilter/ipset/ip_set_bitmap_ip.c     | 4 ++--
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c  | 4 ++--
+ net/netfilter/ipset/ip_set_bitmap_port.c   | 4 ++--
+ net/netfilter/ipset/ip_set_hash_ip.c       | 8 ++++----
+ net/netfilter/ipset/ip_set_hash_ipport.c   | 8 ++++----
+ net/netfilter/ipset/ip_set_hash_ipportip.c | 8 ++++----
+ 6 files changed, 18 insertions(+), 18 deletions(-)
 
-# nft -f /dev/stdin <<EOF
-table ip nat {
-        chain post {
-                type nat hook postrouting priority 0;
-                ip saddr 192.168.0.0/24 oif eth0 snat 192.168.1.2
-        }
-}
-EOF
-
-# nft -n list table nat
-
-2014-08-05 12:01 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Tue, Aug 05, 2014 at 10:01:56AM +0200, Matteo Croce wrote:
->> with vanilla linux 3.16.0 and  ntf 0.3:
->>
->> # nft list table nat
->> Killed
->> nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>
->> BUG: unable to handle kernel NULL pointer dereference at 00000008
->> IP: [<d0b4beef>] nf_tables_fill_chain_info+0x27f/0x350 [nf_tables]
->
-> Is this reproducible? If so, please indicate the sequence of commands.
-> Thanks.
-
-
-
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 6f1f9f4..dafdb39 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -112,7 +112,7 @@ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
+ {
+ 	struct bitmap_ip *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct bitmap_ip_adt_elem e = { };
++	struct bitmap_ip_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 	u32 ip;
+ 
+@@ -132,7 +132,7 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct bitmap_ip *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	u32 ip = 0, ip_to = 0;
+-	struct bitmap_ip_adt_elem e = { };
++	struct bitmap_ip_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret = 0;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 740eabe..dbad505 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -203,7 +203,7 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+ {
+ 	struct bitmap_ipmac *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct bitmap_ipmac_adt_elem e = {};
++	struct bitmap_ipmac_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 	u32 ip;
+ 
+@@ -232,7 +232,7 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct bitmap_ipmac *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct bitmap_ipmac_adt_elem e = {};
++	struct bitmap_ipmac_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0;
+ 	int ret = 0;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index cf99676..a4b65ae 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -104,7 +104,7 @@ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
+ {
+ 	struct bitmap_port *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct bitmap_port_adt_elem e = {};
++	struct bitmap_port_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 	__be16 __port;
+ 	u16 port = 0;
+@@ -129,7 +129,7 @@ bitmap_port_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	struct bitmap_port *map = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct bitmap_port_adt_elem e = {};
++	struct bitmap_port_adt_elem e = { .id = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 port;	/* wraparound */
+ 	u16 port_to;
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index dd40607..e527399 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -84,7 +84,7 @@ hash_ip4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ {
+ 	const struct hash_ip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ip4_elem e = {};
++	struct hash_ip4_elem e = { 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 	__be32 ip;
+ 
+@@ -103,7 +103,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ip4_elem e = {};
++	struct hash_ip4_elem e = { 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, hosts;
+ 	int ret = 0;
+@@ -222,7 +222,7 @@ hash_ip6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ {
+ 	const struct hash_ip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ip6_elem e = {};
++	struct hash_ip6_elem e = { { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+@@ -239,7 +239,7 @@ hash_ip6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ip6_elem e = {};
++	struct hash_ip6_elem e = { { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 7597b82..f37a5ae 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -94,7 +94,7 @@ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipport4_elem e = { };
++	struct hash_ipport4_elem e = { .ip = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+@@ -111,7 +111,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ipport *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipport4_elem e = { };
++	struct hash_ipport4_elem e = { .ip = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip, ip_to = 0, p = 0, port, port_to;
+ 	bool with_ports = false;
+@@ -258,7 +258,7 @@ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipport6_elem e = { };
++	struct hash_ipport6_elem e = { .ip = { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+@@ -275,7 +275,7 @@ hash_ipport6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ipport *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipport6_elem e = { };
++	struct hash_ipport6_elem e = { .ip = { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 port, port_to;
+ 	bool with_ports = false;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 672655f..41ef00e 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -95,7 +95,7 @@ hash_ipportip4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		    enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipportip4_elem e = { };
++	struct hash_ipportip4_elem e = { .ip = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+@@ -113,7 +113,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ipportip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipportip4_elem e = { };
++	struct hash_ipportip4_elem e = { .ip = 0 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip, ip_to = 0, p = 0, port, port_to;
+ 	bool with_ports = false;
+@@ -265,7 +265,7 @@ hash_ipportip6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		    enum ipset_adt adt, struct ip_set_adt_opt *opt)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipportip6_elem e = { };
++	struct hash_ipportip6_elem e = { .ip = { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+ 	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+@@ -283,7 +283,7 @@ hash_ipportip6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_ipportip *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_ipportip6_elem e = { };
++	struct hash_ipportip6_elem e = {  .ip = { .all = { 0 } } };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 port, port_to;
+ 	bool with_ports = false;
 -- 
-Matteo Croce
-OpenWrt Developer
+1.9.3
+
