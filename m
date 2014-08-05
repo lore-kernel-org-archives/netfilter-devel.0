@@ -1,32 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nftables null pointer
-Date: Tue, 5 Aug 2014 17:25:36 +0200
-Message-ID: <20140805152536.GA3219@salvia>
-References: <CAFnufp1157iUqOpax6Po-PZivC_7TQSeQqtmJnnpNLVm3hzH9w@mail.gmail.com>
- <20140805100141.GA3480@salvia>
- <CAFnufp3mVBFVfLOmb3QofpPDubCYgzmOUc4u4vGM6gXv+6Rezg@mail.gmail.com>
- <20140805133907.GA3782@salvia>
- <CAFnufp0Mjc6yXywRVRiU=kYZw=USSQr=VFfG1gyiPXB53ZMMiQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Matteo Croce <technoboy85@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: don't update chain with unset counters
+Date: Tue,  5 Aug 2014 17:30:35 +0200
+Message-ID: <1407252636-3459-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, technoboy85@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54772 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55083 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753221AbaHEPZQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Aug 2014 11:25:16 -0400
-Content-Disposition: inline
-In-Reply-To: <CAFnufp0Mjc6yXywRVRiU=kYZw=USSQr=VFfG1gyiPXB53ZMMiQ@mail.gmail.com>
+	id S1753300AbaHEPaT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Aug 2014 11:30:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 05, 2014 at 05:07:28PM +0200, Matteo Croce wrote:
-> 2014-08-05 15:39 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> > Could you give a try to the following patch? Thanks.
-> 
-> yes it works, but the rules are appended every time, not overwritten,
-> is it the intended behaviour?
+Fix possible replacemen of the per-cpu chain counters by null
+pointer when updating an existing chain in the commit path.
 
-Yes. You have to flush the table before nft -f, eg. nft flush table ip
-nat, before you load your ruleset again.
+Reported-by: Matteo Croce <technoboy85@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f95dc95..f7dce2b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -899,6 +899,9 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
+ static void nft_chain_stats_replace(struct nft_base_chain *chain,
+ 				    struct nft_stats __percpu *newstats)
+ {
++	if (newstats == NULL)
++		return;
++
+ 	if (chain->stats) {
+ 		struct nft_stats __percpu *oldstats =
+ 				nft_dereference(chain->stats);
+-- 
+1.7.10.4
+
