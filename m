@@ -1,49 +1,56 @@
-From: David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: ip6tables filter breakage.
-Date: Wed, 06 Aug 2014 13:13:54 -0700 (PDT)
-Message-ID: <20140806.131354.1888027200650409969.davem@davemloft.net>
+Date: Thu, 7 Aug 2014 00:01:35 +0200
+Message-ID: <20140806215638.GA31519@salvia>
 References: <20140806195222.GA10618@redhat.com>
+ <20140806.131354.1888027200650409969.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: davej@redhat.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140806195222.GA10618@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: davej@redhat.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, therbert@google.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:53204 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754005AbaHFWEK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Aug 2014 18:04:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20140806.131354.1888027200650409969.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Dave Jones <davej@redhat.com>
-Date: Wed, 6 Aug 2014 15:52:22 -0400
+On Wed, Aug 06, 2014 at 01:13:54PM -0700, David Miller wrote:
+> From: Dave Jones <davej@redhat.com>
+> Date: Wed, 6 Aug 2014 15:52:22 -0400
+> 
+> CC:'ing netfilter-devel, Dave please do this in the future for
+> netfilter reports, thanks.
+> 
+> > After updating to Linus' current tree with todays net/ merge,
+> > I noticed that ip6tables doesn't work any more..
+> > 
+> > # ip6tables -F
+> > ip6tables v1.4.19.1: can't initialize ip6tables table `filter': No
+> > chain/target/match by that name
+> > Perhaps ip6tables or your kernel needs to be upgraded
+> > 
+> > My config has CONFIG_IP6_NF_FILTER=m
+> > I also note that ip6table_filter.ko doesn't get auto-loaded now.
+> > But even after modprobing it, I get the same message.
+> > 
+> > Is there some additional option I now need to enable ?
+> > 
+> > 
+> > I was a little surprised by how CONFIG_NF_TABLES is mandatory
+> > for iptables to keep working, even if you don't have nft userspace.
+> > (The only relevant thing in the Kconfig was related to x_tables,
+> >  which I wasn't using).
+> > 
+> > Perhaps either some select's, or additional help text ?
 
-CC:'ing netfilter-devel, Dave please do this in the future for
-netfilter reports, thanks.
+Cc'ing Tom:
 
-> After updating to Linus' current tree with todays net/ merge,
-> I noticed that ip6tables doesn't work any more..
-> 
-> # ip6tables -F
-> ip6tables v1.4.19.1: can't initialize ip6tables table `filter': No
-> chain/target/match by that name
-> Perhaps ip6tables or your kernel needs to be upgraded
-> 
-> My config has CONFIG_IP6_NF_FILTER=m
-> I also note that ip6table_filter.ko doesn't get auto-loaded now.
-> But even after modprobing it, I get the same message.
-> 
-> Is there some additional option I now need to enable ?
-> 
-> 
-> I was a little surprised by how CONFIG_NF_TABLES is mandatory
-> for iptables to keep working, even if you don't have nft userspace.
-> (The only relevant thing in the Kconfig was related to x_tables,
->  which I wasn't using).
-> 
-> Perhaps either some select's, or additional help text ?
-> 
-> 	Dave
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cb1ce2e ipv6: Implement automatic flow label generation on transmit
+has allocated socket option 64 which is already reserved by ip6tables.
+
+I'm going to send a patch to fix this.
