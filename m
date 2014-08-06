@@ -1,13 +1,13 @@
 From: Valentina Giusti <valentina.giusti@microon.de>
-Subject: [PATCH 1/3] netfilter: nft_meta: add attribute to match cpu handling the packet
-Date: Wed,  6 Aug 2014 23:59:50 +0200
-Message-ID: <1407362392-24837-2-git-send-email-valentina.giusti@microon.de>
+Subject: [PATCH 2/3] libnftnl: add attribute for cpu handling the packet
+Date: Wed,  6 Aug 2014 23:59:51 +0200
+Message-ID: <1407362392-24837-3-git-send-email-valentina.giusti@microon.de>
 References: <1407362392-24837-1-git-send-email-valentina.giusti@microon.de>
 To: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.microon.de ([37.252.125.21]:54652 "EHLO gattino.microon.de"
+Received: from mail.microon.de ([37.252.125.21]:54654 "EHLO gattino.microon.de"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753378AbaHFWGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753916AbaHFWGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 6 Aug 2014 18:06:13 -0400
 In-Reply-To: <1407362392-24837-1-git-send-email-valentina.giusti@microon.de>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -15,23 +15,15 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Valentina Giusti <valentina.giusti@microon.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nft_meta.c                 | 4 ++++
- 2 files changed, 6 insertions(+)
+ include/linux/netfilter/nf_tables.h | 1 +
+ src/expr/meta.c                     | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 801bdd1..0570284 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -571,6 +571,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_L4PROTO: layer 4 protocol number
-  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
-  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
-+ * @NFT_META_CPU: cpu handling the packet
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -592,6 +593,7 @@ enum nft_meta_keys {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 801bdd1..6058a8a 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -592,6 +592,7 @@ enum nft_meta_keys {
  	NFT_META_L4PROTO,
  	NFT_META_BRI_IIFNAME,
  	NFT_META_BRI_OIFNAME,
@@ -39,28 +31,27 @@ index 801bdd1..0570284 100644
  };
  
  /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 852b178..b99f714 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -124,6 +124,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		dest->data[0] = skb->secmark;
- 		break;
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 85097b5..6a2f299 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -23,7 +23,7 @@
+ #include "expr_ops.h"
+ 
+ #ifndef NFT_META_MAX
+-#define NFT_META_MAX (NFT_META_BRI_OIFNAME + 1)
++#define NFT_META_MAX (NFT_META_CPU + 1)
  #endif
-+	case NFT_META_CPU:
-+		dest->data[0] = smp_processor_id();
-+		break;
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -195,6 +198,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- #ifdef CONFIG_NETWORK_SECMARK
- 	case NFT_META_SECMARK:
- #endif
-+	case NFT_META_CPU:
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
+ 
+ struct nft_expr_meta {
+@@ -153,6 +153,7 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
+ 	[NFT_META_SECMARK]	= "secmark",
+ 	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
+ 	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
++	[NFT_META_CPU]		= "cpu",
+ };
+ 
+ static const char *meta_key2str(uint8_t key)
 -- 
 2.0.0.rc2
 
