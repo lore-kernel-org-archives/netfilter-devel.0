@@ -1,56 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ip6tables filter breakage.
-Date: Thu, 7 Aug 2014 00:01:35 +0200
-Message-ID: <20140806215638.GA31519@salvia>
-References: <20140806195222.GA10618@redhat.com>
- <20140806.131354.1888027200650409969.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davej@redhat.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, therbert@google.com
-To: David Miller <davem@davemloft.net>
+From: Valentina Giusti <valentina.giusti@microon.de>
+Subject: [PATCH 1/3] netfilter: nft_meta: add attribute to match cpu handling the packet
+Date: Wed,  6 Aug 2014 23:59:50 +0200
+Message-ID: <1407362392-24837-2-git-send-email-valentina.giusti@microon.de>
+References: <1407362392-24837-1-git-send-email-valentina.giusti@microon.de>
+To: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53204 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754005AbaHFWEK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Aug 2014 18:04:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20140806.131354.1888027200650409969.davem@davemloft.net>
+Received: from mail.microon.de ([37.252.125.21]:54652 "EHLO gattino.microon.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753378AbaHFWGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Aug 2014 18:06:13 -0400
+In-Reply-To: <1407362392-24837-1-git-send-email-valentina.giusti@microon.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 06, 2014 at 01:13:54PM -0700, David Miller wrote:
-> From: Dave Jones <davej@redhat.com>
-> Date: Wed, 6 Aug 2014 15:52:22 -0400
-> 
-> CC:'ing netfilter-devel, Dave please do this in the future for
-> netfilter reports, thanks.
-> 
-> > After updating to Linus' current tree with todays net/ merge,
-> > I noticed that ip6tables doesn't work any more..
-> > 
-> > # ip6tables -F
-> > ip6tables v1.4.19.1: can't initialize ip6tables table `filter': No
-> > chain/target/match by that name
-> > Perhaps ip6tables or your kernel needs to be upgraded
-> > 
-> > My config has CONFIG_IP6_NF_FILTER=m
-> > I also note that ip6table_filter.ko doesn't get auto-loaded now.
-> > But even after modprobing it, I get the same message.
-> > 
-> > Is there some additional option I now need to enable ?
-> > 
-> > 
-> > I was a little surprised by how CONFIG_NF_TABLES is mandatory
-> > for iptables to keep working, even if you don't have nft userspace.
-> > (The only relevant thing in the Kconfig was related to x_tables,
-> >  which I wasn't using).
-> > 
-> > Perhaps either some select's, or additional help text ?
+Signed-off-by: Valentina Giusti <valentina.giusti@microon.de>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nft_meta.c                 | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-Cc'ing Tom:
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 801bdd1..0570284 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -571,6 +571,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_L4PROTO: layer 4 protocol number
+  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
+  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
++ * @NFT_META_CPU: cpu handling the packet
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -592,6 +593,7 @@ enum nft_meta_keys {
+ 	NFT_META_L4PROTO,
+ 	NFT_META_BRI_IIFNAME,
+ 	NFT_META_BRI_OIFNAME,
++	NFT_META_CPU,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 852b178..b99f714 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -124,6 +124,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		dest->data[0] = skb->secmark;
+ 		break;
+ #endif
++	case NFT_META_CPU:
++		dest->data[0] = smp_processor_id();
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -195,6 +198,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ #ifdef CONFIG_NETWORK_SECMARK
+ 	case NFT_META_SECMARK:
+ #endif
++	case NFT_META_CPU:
+ 		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+-- 
+2.0.0.rc2
 
-cb1ce2e ipv6: Implement automatic flow label generation on transmit
-has allocated socket option 64 which is already reserved by ip6tables.
-
-I'm going to send a patch to fix this.
