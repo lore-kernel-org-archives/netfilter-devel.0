@@ -1,52 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] net: reallocate new socket option number for IPV6_AUTOFLOWLABEL
-Date: Thu,  7 Aug 2014 00:10:50 +0200
-Message-ID: <1407363050-3573-1-git-send-email-pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	davej@redhat.com, netdev@vger.kernel.org
-To: therbert@google.com
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] net: reallocate new socket option number for
+ IPV6_AUTOFLOWLABEL
+Date: Thu, 7 Aug 2014 00:13:13 +0200
+Message-ID: <20140806221313.GA4426@breakpoint.cc>
+References: <1407363050-3573-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: therbert@google.com, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, davej@redhat.com, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53752 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbaHFWKm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Aug 2014 18:10:42 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35709 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754266AbaHFWNU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Aug 2014 18:13:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1407363050-3573-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-cb1ce2e ("ipv6: Implement automatic flow label generation on transmit")
-accidentally uses socket option 64, which is already used by ip6tables:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> cb1ce2e ("ipv6: Implement automatic flow label generation on transmit")
+> accidentally uses socket option 64, which is already used by ip6tables:
+> 
+>  IP6T_SO_SET_REPLACE / IP6T_SO_GET_INFO               64
+>  IP6T_SO_SET_ADD_COUNTERS / IP6T_SO_GET_ENTRIES       65
+> 
+> There is comment include/uapi/linux/in6.h warning about that.
+> 
+> Cc: Tom Herbert <therbert@google.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/uapi/linux/in6.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/in6.h b/include/uapi/linux/in6.h
+> index 22b7a69..1d929c0 100644
+> --- a/include/uapi/linux/in6.h
+> +++ b/include/uapi/linux/in6.h
+> @@ -233,7 +233,6 @@ struct in6_flowlabel_req {
+>  #if 0	/* not yet */
+>  #define IPV6_USE_MIN_MTU	63
+>  #endif
+> -#define IPV6_AUTOFLOWLABEL	64
+>  
+>  /*
+>   * Netfilter (1)
+> @@ -250,6 +249,7 @@ struct in6_flowlabel_req {
+>   */
+>  #define IPV6_RECVTCLASS		66
+>  #define IPV6_TCLASS		67
+> +#define IPV6_AUTOFLOWLABEL	68
 
- IP6T_SO_SET_REPLACE / IP6T_SO_GET_INFO               64
- IP6T_SO_SET_ADD_COUNTERS / IP6T_SO_GET_ENTRIES       65
-
-There is comment include/uapi/linux/in6.h warning about that.
-
-Cc: Tom Herbert <therbert@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/in6.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/in6.h b/include/uapi/linux/in6.h
-index 22b7a69..1d929c0 100644
---- a/include/uapi/linux/in6.h
-+++ b/include/uapi/linux/in6.h
-@@ -233,7 +233,6 @@ struct in6_flowlabel_req {
- #if 0	/* not yet */
- #define IPV6_USE_MIN_MTU	63
- #endif
--#define IPV6_AUTOFLOWLABEL	64
- 
- /*
-  * Netfilter (1)
-@@ -250,6 +249,7 @@ struct in6_flowlabel_req {
-  */
- #define IPV6_RECVTCLASS		66
- #define IPV6_TCLASS		67
-+#define IPV6_AUTOFLOWLABEL	68
- 
- /*
-  * Netfilter (2)
--- 
-1.7.10.4
-
+This clashes with IP6T_SO_GET_REVISION_MATCH 8-}
