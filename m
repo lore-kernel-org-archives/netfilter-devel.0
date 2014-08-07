@@ -1,45 +1,51 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: Add cpu attribute support to meta expresion.
-Date: Thu,  7 Aug 2014 09:00:56 +0200
-Message-ID: <1407394858-26841-2-git-send-email-anarey@gmail.com>
+Subject: [PATCH] [nft] src: Add support for cpu in meta expresion
+Date: Thu,  7 Aug 2014 09:00:57 +0200
+Message-ID: <1407394858-26841-3-git-send-email-anarey@gmail.com>
 References: <1407394858-26841-1-git-send-email-anarey@gmail.com>
 Cc: eric.dumazet@gmail.com, Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37983 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416AbaHGG67 (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:59598 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753416AbaHGG7B (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Aug 2014 02:58:59 -0400
-Received: by mail-we0-f174.google.com with SMTP id x48so3751582wes.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Aug 2014 23:58:58 -0700 (PDT)
+	Thu, 7 Aug 2014 02:59:01 -0400
+Received: by mail-wg0-f41.google.com with SMTP id z12so3690431wgg.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Aug 2014 23:59:00 -0700 (PDT)
 In-Reply-To: <1407394858-26841-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add cpu support to meta expresion.
+This allows you to match cpu handling with a packet.
 
-This allows you to match packets with cpu number.
+This is an example of the syntax for this new attribute:
+
+nft add rule ip test input meta cpu 1 counter
+nft add rule ip test input meta cpu 1-3 counter
+nft add rule ip test input meta cpu { 1, 3} counter
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |    2 ++
- net/netfilter/nft_meta.c                 |    5 +++++
- 2 files changed, 7 insertions(+)
+ include/linux/netfilter/nf_tables.h |    2 ++
+ src/meta.c                          |    3 +++
+ src/parser.y                        |    2 ++
+ src/scanner.l                       |    1 +
+ 4 files changed, 8 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 72ad208..67218f3 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -572,6 +572,7 @@ enum nft_exthdr_attributes {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index fbc7904..9e67c14 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -536,6 +536,7 @@ enum nft_exthdr_attributes {
   * @NFT_META_BRI_IIFNAME: packet input bridge interface name
   * @NFT_META_BRI_OIFNAME: packet output bridge interface name
-  * @NFT_META_PKTTYPE: Packet type
-+ * @NFT_META_CPU: Packet cpu
+  * @NFT_META_PKTTYPE: packet type
++ * @NFT_META_CPU: packet cpu
   */
  enum nft_meta_keys {
  	NFT_META_LEN,
-@@ -594,6 +595,7 @@ enum nft_meta_keys {
+@@ -558,6 +559,7 @@ enum nft_meta_keys {
  	NFT_META_BRI_IIFNAME,
  	NFT_META_BRI_OIFNAME,
  	NFT_META_PKTTYPE,
@@ -47,36 +53,52 @@ index 72ad208..67218f3 100644
  };
  
  /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index dbf7fe1..34a587e 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -17,6 +17,7 @@
- #include <linux/in.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <linux/smp.h>
- #include <net/dst.h>
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
-@@ -150,6 +151,9 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			goto err;
- 		}
- 		break;
-+	case NFT_META_CPU:
-+		dest->data[0] = smp_processor_id();
-+		break;
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -222,6 +226,7 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_SECMARK:
- #endif
- 	case NFT_META_PKTTYPE:
-+	case NFT_META_CPU:
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
+diff --git a/src/meta.c b/src/meta.c
+index 2c61455..75a16ee 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -393,6 +393,9 @@ static const struct meta_template meta_templates[] = {
+ 	[NFT_META_PKTTYPE]	= META_TEMPLATE("pkttype",  &pkttype_type,
+ 						BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
++	[NFT_META_CPU]		= META_TEMPLATE("cpu",  &integer_type,
++						BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN),
+ };
+ 
+ static void meta_expr_print(const struct expr *expr)
+diff --git a/src/parser.y b/src/parser.y
+index 6da6e98..bf32c4e 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -325,6 +325,7 @@ static int monitor_lookup_event(const char *event)
+ %token IBRIPORT			"ibriport"
+ %token OBRIPORT			"obriport"
+ %token PKTTYPE			"pkttype"
++%token CPU			"cpu"
+ 
+ %token CT			"ct"
+ %token DIRECTION		"direction"
+@@ -1786,6 +1787,7 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
+ 			|	IBRIPORT	{ $$ = NFT_META_BRI_IIFNAME; }
+ 			|       OBRIPORT	{ $$ = NFT_META_BRI_OIFNAME; }
+ 			|       PKTTYPE		{ $$ = NFT_META_PKTTYPE; }
++			|       CPU		{ $$ = NFT_META_CPU; }
+ 			;
+ 
+ meta_stmt		:	META	meta_key	SET	expr
+diff --git a/src/scanner.l b/src/scanner.l
+index 1d2be76..ad0b58d 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -407,6 +407,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "ibriport"		{ return IBRIPORT; }
+ "obriport"		{ return OBRIPORT; }
+ "pkttype"		{ return PKTTYPE; }
++"cpu"			{ return CPU; }
+ 
+ "ct"			{ return CT; }
+ "direction"		{ return DIRECTION; }
 -- 
 1.7.10.4
 
