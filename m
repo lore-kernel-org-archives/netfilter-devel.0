@@ -1,36 +1,56 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH v2] net: reallocate new socket option number for
- IPV6_AUTOFLOWLABEL
-Date: Wed, 6 Aug 2014 19:00:22 -0400
-Message-ID: <20140806230022.GA23144@redhat.com>
-References: <1407363429-3870-1-git-send-email-pablo@netfilter.org>
+From: Tom Herbert <therbert@google.com>
+Subject: Re: ip6tables filter breakage.
+Date: Wed, 6 Aug 2014 18:13:17 -0700
+Message-ID: <CA+mtBx91JyKzMwTVsc-xuKj1jFxi1mdiWZCRHUHTYVU3Uw-U1g@mail.gmail.com>
+References: <20140806195222.GA10618@redhat.com>
+	<20140806.131354.1888027200650409969.davem@davemloft.net>
+	<20140806215638.GA31519@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: therbert@google.com, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: David Miller <davem@davemloft.net>, davej@redhat.com,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1407363429-3870-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20140806215638.GA31519@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 07, 2014 at 12:17:09AM +0200, Pablo Neira Ayuso wrote:
- > cb1ce2e ("ipv6: Implement automatic flow label generation on transmit")
- > accidentally uses socket option 64, which is already used by ip6tables:
- > 
- >  IP6T_SO_SET_REPLACE / IP6T_SO_GET_INFO               64
- >  IP6T_SO_SET_ADD_COUNTERS / IP6T_SO_GET_ENTRIES       65
- > 
- > There is comment include/uapi/linux/in6.h warning about that.
- > 
- > Allocate 70 for this, which seems to be unused instead.
- > 
- > Cc: Tom Herbert <therbert@google.com>
- > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Thanks for catch an fix!
 
-Just tested this, ip6tables works fine now.
-
-thanks Pablo.
-
-	Dave
+On Wed, Aug 6, 2014 at 3:01 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Aug 06, 2014 at 01:13:54PM -0700, David Miller wrote:
+>> From: Dave Jones <davej@redhat.com>
+>> Date: Wed, 6 Aug 2014 15:52:22 -0400
+>>
+>> CC:'ing netfilter-devel, Dave please do this in the future for
+>> netfilter reports, thanks.
+>>
+>> > After updating to Linus' current tree with todays net/ merge,
+>> > I noticed that ip6tables doesn't work any more..
+>> >
+>> > # ip6tables -F
+>> > ip6tables v1.4.19.1: can't initialize ip6tables table `filter': No
+>> > chain/target/match by that name
+>> > Perhaps ip6tables or your kernel needs to be upgraded
+>> >
+>> > My config has CONFIG_IP6_NF_FILTER=m
+>> > I also note that ip6table_filter.ko doesn't get auto-loaded now.
+>> > But even after modprobing it, I get the same message.
+>> >
+>> > Is there some additional option I now need to enable ?
+>> >
+>> >
+>> > I was a little surprised by how CONFIG_NF_TABLES is mandatory
+>> > for iptables to keep working, even if you don't have nft userspace.
+>> > (The only relevant thing in the Kconfig was related to x_tables,
+>> >  which I wasn't using).
+>> >
+>> > Perhaps either some select's, or additional help text ?
+>
+> Cc'ing Tom:
+>
+> cb1ce2e ipv6: Implement automatic flow label generation on transmit
+> has allocated socket option 64 which is already reserved by ip6tables.
+>
+> I'm going to send a patch to fix this.
