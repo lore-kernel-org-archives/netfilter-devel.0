@@ -1,56 +1,71 @@
-From: Tom Herbert <therbert@google.com>
-Subject: Re: ip6tables filter breakage.
-Date: Wed, 6 Aug 2014 18:13:17 -0700
-Message-ID: <CA+mtBx91JyKzMwTVsc-xuKj1jFxi1mdiWZCRHUHTYVU3Uw-U1g@mail.gmail.com>
-References: <20140806195222.GA10618@redhat.com>
-	<20140806.131354.1888027200650409969.davem@davemloft.net>
-	<20140806215638.GA31519@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: David Miller <davem@davemloft.net>, davej@redhat.com,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140806215638.GA31519@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] [libnftnl] expr: meta: Add cpu support for meta expresion
+Date: Thu,  7 Aug 2014 09:00:55 +0200
+Message-ID: <1407394858-26841-1-git-send-email-anarey@gmail.com>
+Cc: eric.dumazet@gmail.com, Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:60667 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314AbaHGG6z (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Aug 2014 02:58:55 -0400
+Received: by mail-we0-f170.google.com with SMTP id w62so3659293wes.29
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Aug 2014 23:58:54 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for catch an fix!
+The cpu attribute does not set.
 
-On Wed, Aug 6, 2014 at 3:01 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Aug 06, 2014 at 01:13:54PM -0700, David Miller wrote:
->> From: Dave Jones <davej@redhat.com>
->> Date: Wed, 6 Aug 2014 15:52:22 -0400
->>
->> CC:'ing netfilter-devel, Dave please do this in the future for
->> netfilter reports, thanks.
->>
->> > After updating to Linus' current tree with todays net/ merge,
->> > I noticed that ip6tables doesn't work any more..
->> >
->> > # ip6tables -F
->> > ip6tables v1.4.19.1: can't initialize ip6tables table `filter': No
->> > chain/target/match by that name
->> > Perhaps ip6tables or your kernel needs to be upgraded
->> >
->> > My config has CONFIG_IP6_NF_FILTER=m
->> > I also note that ip6table_filter.ko doesn't get auto-loaded now.
->> > But even after modprobing it, I get the same message.
->> >
->> > Is there some additional option I now need to enable ?
->> >
->> >
->> > I was a little surprised by how CONFIG_NF_TABLES is mandatory
->> > for iptables to keep working, even if you don't have nft userspace.
->> > (The only relevant thing in the Kconfig was related to x_tables,
->> >  which I wasn't using).
->> >
->> > Perhaps either some select's, or additional help text ?
->
-> Cc'ing Tom:
->
-> cb1ce2e ipv6: Implement automatic flow label generation on transmit
-> has allocated socket option 64 which is already reserved by ip6tables.
->
-> I'm going to send a patch to fix this.
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ include/linux/netfilter/nf_tables.h |    2 ++
+ src/expr/meta.c                     |    5 +++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 72ad208..67218f3 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -572,6 +572,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_BRI_IIFNAME: packet input bridge interface name
+  * @NFT_META_BRI_OIFNAME: packet output bridge interface name
+  * @NFT_META_PKTTYPE: Packet type
++ * @NFT_META_CPU: Packet cpu
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -594,6 +595,7 @@ enum nft_meta_keys {
+ 	NFT_META_BRI_IIFNAME,
+ 	NFT_META_BRI_OIFNAME,
+ 	NFT_META_PKTTYPE,
++	NFT_META_CPU,
+ };
+ 
+ /**
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 35ca177..9e884d6 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -23,7 +23,7 @@
+ #include "expr_ops.h"
+ 
+ #ifndef NFT_META_MAX
+-#define NFT_META_MAX (NFT_META_PKTTYPE + 1)
++#define NFT_META_MAX (NFT_META_CPU + 1)
+ #endif
+ 
+ struct nft_expr_meta {
+@@ -153,7 +153,8 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
+ 	[NFT_META_SECMARK]	= "secmark",
+ 	[NFT_META_BRI_IIFNAME]	= "bri_iifname",
+ 	[NFT_META_BRI_OIFNAME]	= "bri_oifname",
+-	[NFT_META_PKTTYPE]	= "pkttype"
++	[NFT_META_PKTTYPE]	= "pkttype",
++	[NFT_META_CPU]		= "cpu",
+ };
+ 
+ static const char *meta_key2str(uint8_t key)
+-- 
+1.7.10.4
+
