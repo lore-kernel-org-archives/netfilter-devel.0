@@ -1,56 +1,55 @@
-From: Takero Funaki <raphanus@gmail.com>
-Subject: [PATCH] netfilter: xt_u32: Accept negative offset in AT operation
-Date: Fri,  8 Aug 2014 02:24:37 +0900
-Message-ID: <1407432277-2032-1-git-send-email-raphanus@gmail.com>
-Cc: Takero Funaki <raphanus@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org (open list:NETFILTER/IPTABLES),
-	netfilter@vger.kernel.org (open list:NETFILTER/IPTABLES),
-	coreteam@netfilter.org (open list:NETFILTER/IPTABLES),
-	netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
-	linux-kernel@vger.kernel.org (open list)
-To: davem@davemloft.net
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [PATCH] nft-arp: remove wrong conditions
+Date: Sat,  9 Aug 2014 01:04:17 +0200
+Message-ID: <1407539057-4781-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:33053 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753158AbaHHXAz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Aug 2014 19:00:55 -0400
+Received: by mail-wg0-f41.google.com with SMTP id z12so6210147wgg.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 08 Aug 2014 16:00:54 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove unnecessary uint wraparound checks which prohibited two's
-complement representation of negative number in "@" operation.
-It is required to test last N bytes of variable length formats and to be
-consistent with libxt parser which silently replaces negative number by
-its compliment.
+Removes wrong conditions in flags translating functions
+that doesn't permit to delete rule with inverse flags set.
 
-For example, --u32 '0&0xFFFF@-4=0' will read IPv4 total length header
-then add complement of -4 to test if the last 4 bytes are 0. Previously,
-it would never match as (total length)+0xFFFFFFFC always overflow.
+For instance, the following command doesn't remove the rule:
+arptables-compat -D INPUT -i ! eth1 -j ACCEPT
 
-Signed-off-by: Takero Funaki <raphanus@gmail.com>
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- net/netfilter/xt_u32.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ iptables/nft-arp.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index a95b5034..9de339d 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -57,12 +57,12 @@ static bool u32_match_it(const struct xt_u32 *data,
- 				val >>= number;
- 				break;
- 			case XT_U32_AT:
--				if (at + val < at)
--					return false;
- 				at += val;
- 				pos = number;
--				if (at + 4 < at || skb->len < at + 4 ||
--				    pos > skb->len - at - 4)
-+				/* unsigned integer may wraparound
-+				 * to represent negative offset
-+				 */
-+				if (at + pos > skb->len - 4)
- 					return false;
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index c1cbbc0..c3cfee9 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -155,9 +155,6 @@ static uint8_t arpt_to_ipt_flags(uint16_t invflags)
+ 	if (invflags & ARPT_INV_ARPPRO)
+ 		result |= IPT_INV_PROTO;
  
- 				if (skb_copy_bits(skb, at + pos, &n,
+-	if (invflags & ARPT_INV_MASK)
+-		result |= IPT_INV_MASK;
+-
+ 	return result;
+ }
+ 
+@@ -257,9 +254,6 @@ static uint16_t ipt_to_arpt_flags(uint8_t invflags)
+ 	if (invflags & IPT_INV_PROTO)
+ 		result |= ARPT_INV_ARPPRO;
+ 
+-	if (invflags & IPT_INV_MASK)
+-		result |= ARPT_INV_MASK;
+-
+ 	return result;
+ }
+ 
 -- 
-1.9.1
+1.8.3.2
+
