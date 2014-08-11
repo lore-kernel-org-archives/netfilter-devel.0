@@ -1,138 +1,136 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: [OOPS,xt_owner,V2]: Oops accessing socket in owner_mt()
-Date: Mon, 11 Aug 2014 14:40:36 +0200
-Message-ID: <20140811124035.GP3549@imap.eitzenberger.org>
-References: <20140415133220.GG6576@imap.eitzenberger.org>
- <20140428155731.GA29816@localhost>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH 1/4] examples: fix nft-set-del by adding batching
+ support
+Date: Mon, 11 Aug 2014 18:19:37 +0200
+Message-ID: <20140811161937.17035.21877.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:51733 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbaHKMkk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2014 08:40:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20140428155731.GA29816@localhost>
+Received: from smtp3.cica.es ([150.214.5.190]:37281 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750991AbaHKQTq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2014 12:19:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This code example doesn't work, as the kernel API is only listening to messages
+in batches.
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch updates the example to add the needed batching support.
 
-Hi Pablo,
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ examples/nft-set-del.c |   58 ++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 46 insertions(+), 12 deletions(-)
 
-> Not your fault, but I think we should also check for ...
-> 
->         ... || skb->sk->sk_state == TCP_TIME_WAIT)
-> 
-> since early demux was introduced, we may have skb->sk pointing to a
-> timewait socket.
-
-the following patch is still in my patch queue.  I have updated
-it to handle TIME_WAIT sockets, like you requested.
-
-In the meantime I have had some more systems requiring this
-patch, issue didn't occur afterwards.   Please apply.
-
-Thanks!
-
-/Holger
-
-
---nFreZHaLTZJo0R7j
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="xt_owner-fix.diff"
-
-xt_owner: fix race with sock_orphan()
-
-By using a read_lock on sk->sk_callback_lock we can avoid Oops
-due to someone else calling sock_orphan() at same time on
-another CPU, e. g. when using TPROXY.
-
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-
-Index: linux-3.8.y/net/netfilter/xt_owner.c
-===================================================================
---- linux-3.8.y.orig/net/netfilter/xt_owner.c
-+++ linux-3.8.y/net/netfilter/xt_owner.c
-@@ -14,6 +14,7 @@
- #include <linux/skbuff.h>
- #include <linux/file.h>
- #include <net/sock.h>
-+#include <net/tcp.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_owner.h>
+diff --git a/examples/nft-set-del.c b/examples/nft-set-del.c
+index 5abd3b1..6a78ddb 100644
+--- a/examples/nft-set-del.c
++++ b/examples/nft-set-del.c
+@@ -16,13 +16,31 @@
  
-@@ -32,21 +33,32 @@ static bool
- owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter/nfnetlink.h>
+ 
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/set.h>
+ 
++static void nft_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
++{
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfg;
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = type;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++	nlh->nlmsg_seq = seq;
++
++	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
++	nfg->nfgen_family = AF_INET;
++	nfg->version = NFNETLINK_V0;
++	nfg->res_id = NFNL_SUBSYS_NFTABLES;
++}
++
+ int main(int argc, char *argv[])
  {
- 	const struct xt_owner_match_info *info = par->matchinfo;
-+	struct sock *sk = skb->sk;
- 	const struct file *filp;
- 
--	if (skb->sk == NULL || skb->sk->sk_socket == NULL)
-+	if (sk == NULL || sk->sk_state == TCP_TIME_WAIT)
- 		return (info->match ^ info->invert) == 0;
--	else if (info->match & info->invert & XT_OWNER_SOCKET)
-+
-+	read_lock_bh(&sk->sk_callback_lock);
-+
-+	if (sk->sk_socket == NULL) {
-+		read_unlock_bh(&sk->sk_callback_lock);
-+		return (info->match ^ info->invert) == 0;
-+	}
-+
-+	if (info->match & info->invert & XT_OWNER_SOCKET)
- 		/*
- 		 * Socket exists but user wanted ! --socket-exists.
- 		 * (Single ampersands intended.)
- 		 */
--		return false;
-+		goto out_false;
- 
--	filp = skb->sk->sk_socket->file;
--	if (filp == NULL)
-+	filp = sk->sk_socket->file;
-+	if (filp == NULL) {
-+		read_unlock_bh(&sk->sk_callback_lock);
- 		return ((info->match ^ info->invert) &
- 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
-+	}
- 
- 	if (info->match & XT_OWNER_UID) {
- 		kuid_t uid_min = make_kuid(&init_user_ns, info->uid_min);
-@@ -54,7 +66,7 @@ owner_mt(const struct sk_buff *skb, stru
- 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
- 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
- 		    !(info->invert & XT_OWNER_UID))
--			return false;
-+			goto out_false;
+ 	struct mnl_socket *nl;
++	struct mnl_nlmsg_batch *batch;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	uint32_t portid, seq, family;
+@@ -40,7 +58,6 @@ int main(int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
  	}
  
- 	if (info->match & XT_OWNER_GID) {
-@@ -63,10 +75,16 @@ owner_mt(const struct sk_buff *skb, stru
- 		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
- 		     gid_lte(filp->f_cred->fsgid, gid_max)) ^
- 		    !(info->invert & XT_OWNER_GID))
--			return false;
-+			goto out_false;
+-	seq = time(NULL);
+ 	if (strcmp(argv[1], "ip") == 0)
+ 		family = NFPROTO_IPV4;
+ 	else if (strcmp(argv[1], "ip6") == 0)
+@@ -54,13 +71,26 @@ int main(int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
  	}
  
-+	read_unlock_bh(&sk->sk_callback_lock);
+-	nlh = nft_set_nlmsg_build_hdr(buf, NFT_MSG_DELSET, family,
+-					NLM_F_ACK, seq);
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
 +
- 	return true;
++	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
++			  NFNL_MSG_BATCH_BEGIN, seq++);
++	mnl_nlmsg_batch_next(batch);
 +
-+out_false:
-+	read_unlock_bh(&sk->sk_callback_lock);
-+	return false;
- }
++	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				      NFT_MSG_DELSET, family,
++				      NLM_F_ACK, seq++);
+ 	nft_set_attr_set(t, NFT_SET_ATTR_TABLE, argv[2]);
+ 	nft_set_attr_set(t, NFT_SET_ATTR_NAME, argv[3]);
  
- static struct xt_match owner_mt_reg __read_mostly = {
+ 	nft_set_nlmsg_build_payload(nlh, t);
+ 	nft_set_free(t);
++	mnl_nlmsg_batch_next(batch);
++
++	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
++			  NFNL_MSG_BATCH_END, seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	nl = mnl_socket_open(NETLINK_NETFILTER);
+ 	if (nl == NULL) {
+@@ -74,20 +104,24 @@ int main(int argc, char *argv[])
+ 	}
+ 	portid = mnl_socket_get_portid(nl);
+ 
+-	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+-		perror("mnl_socket_send");
++	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				mnl_nlmsg_batch_size(batch));
++	if (ret == -1) {
++		perror("mnl_socket_sendto");
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
++	mnl_nlmsg_batch_stop(batch);
++
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
+-		if (ret <= 0)
+-			break;
+-		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-	}
+ 	if (ret == -1) {
+-		perror("error");
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
++	if (ret < 0) {
++		perror("mnl_cb_run");
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	mnl_socket_close(nl);
 
---nFreZHaLTZJo0R7j--
