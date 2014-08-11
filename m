@@ -1,181 +1,251 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH 4/4] examples: fix nft-set-elem-del.c by adding
- batching support
-Date: Mon, 11 Aug 2014 18:19:53 +0200
-Message-ID: <20140811161953.17035.65083.stgit@nfdev.cica.es>
-References: <20140811161937.17035.21877.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/2] netfilter: move NAT Kconfig switches out of the iptables scope
+Date: Mon, 11 Aug 2014 18:21:49 +0200
+Message-ID: <1407774110-7467-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, Matteo Croce <technoboy85@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:51995 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752573AbaHKQUB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2014 12:20:01 -0400
-In-Reply-To: <20140811161937.17035.21877.stgit@nfdev.cica.es>
+Received: from mail.us.es ([193.147.175.20]:35362 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751754AbaHKQVm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2014 12:21:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's add batching support to this code example. The kernel API only
-understand messages in batch format.
+Currently, the NAT configs depend on iptables and ip6tables. However,
+users should be capable of enabling NAT for nft without having to
+switch on iptables.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Fix this by adding new specific IP_NF_NAT and IP6_NF_NAT config
+switches for iptables and ip6tables NAT support. I have also moved
+the original NF_NAT_IPV4 and NF_NAT_IPV6 configs out of the scope
+of iptables to make them independent of it.
+
+Reported-by: Matteo Croce <technoboy85@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- examples/nft-set-elem-del.c |  107 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 74 insertions(+), 33 deletions(-)
+ net/ipv4/netfilter/Kconfig  |  101 +++++++++++++++++++++++--------------------
+ net/ipv4/netfilter/Makefile |    2 +-
+ net/ipv6/netfilter/Kconfig  |   25 ++++++++---
+ net/ipv6/netfilter/Makefile |    2 +-
+ 4 files changed, 74 insertions(+), 56 deletions(-)
 
-diff --git a/examples/nft-set-elem-del.c b/examples/nft-set-elem-del.c
-index af70cde..9da6f08 100644
---- a/examples/nft-set-elem-del.c
-+++ b/examples/nft-set-elem-del.c
-@@ -16,18 +16,64 @@
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index fb17312..b0db134 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -82,6 +82,52 @@ config NF_TABLES_ARP
+ 	help
+ 	  This option enables the ARP support for nf_tables.
  
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/netfilter/nfnetlink.h>
++config NF_NAT_IPV4
++	tristate "IPv4 NAT"
++	depends on NF_CONNTRACK_IPV4
++	default m if NETFILTER_ADVANCED=n
++	select NF_NAT
++	help
++	  The IPv4 NAT option allows masquerading, port forwarding and other
++	  forms of full Network Address Port Translation. This can be
++	  controlled by iptables or nft.
++
++if NF_NAT_IPV4
++
++config NF_NAT_SNMP_BASIC
++	tristate "Basic SNMP-ALG support"
++	depends on NF_CONNTRACK_SNMP
++	depends on NETFILTER_ADVANCED
++	default NF_NAT && NF_CONNTRACK_SNMP
++	---help---
++
++	  This module implements an Application Layer Gateway (ALG) for
++	  SNMP payloads.  In conjunction with NAT, it allows a network
++	  management system to access multiple private networks with
++	  conflicting addresses.  It works by modifying IP addresses
++	  inside SNMP payloads to match IP-layer NAT mapping.
++
++	  This is the "basic" form of SNMP-ALG, as described in RFC 2962
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++config NF_NAT_PROTO_GRE
++	tristate
++	depends on NF_CT_PROTO_GRE
++
++config NF_NAT_PPTP
++	tristate
++	depends on NF_CONNTRACK
++	default NF_CONNTRACK_PPTP
++	select NF_NAT_PROTO_GRE
++
++config NF_NAT_H323
++	tristate
++	depends on NF_CONNTRACK
++	default NF_CONNTRACK_H323
++
++endif # NF_NAT_IPV4
++
+ config IP_NF_IPTABLES
+ 	tristate "IP tables support (required for filtering/masq/NAT)"
+ 	default m if NETFILTER_ADVANCED=n
+@@ -170,19 +216,20 @@ config IP_NF_TARGET_SYNPROXY
+ 	  To compile it as a module, choose M here. If unsure, say N.
  
- #include <libmnl/libmnl.h>
- #include <libnftnl/set.h>
+ # NAT + specific targets: nf_conntrack
+-config NF_NAT_IPV4
+-	tristate "IPv4 NAT"
++config IP_NF_NAT
++	tristate "iptables NAT support"
+ 	depends on NF_CONNTRACK_IPV4
+ 	default m if NETFILTER_ADVANCED=n
+ 	select NF_NAT
++	select NF_NAT_IPV4
+ 	help
+-	  The IPv4 NAT option allows masquerading, port forwarding and other
+-	  forms of full Network Address Port Translation.  It is controlled by
+-	  the `nat' table in iptables: see the man page for iptables(8).
++	  This enables the `nat' table in iptables. This allows masquerading,
++	  port forwarding and other forms of full Network Address Port
++	  Translation.
  
-+static void setup_set(struct nft_set *s, const char *table, const char *name)
-+{
-+	uint32_t data;
-+	struct nft_set_elem *e;
-+
-+	nft_set_attr_set(s, NFT_SET_ATTR_TABLE, table);
-+	nft_set_attr_set(s, NFT_SET_ATTR_NAME, name);
-+
-+	/* Add to dummy elements to set */
-+	e = nft_set_elem_alloc();
-+	if (e == NULL) {
-+		perror("OOM");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	data = 0x1;
-+	nft_set_elem_attr_set(e, NFT_SET_ELEM_ATTR_KEY, &data, sizeof(data));
-+	nft_set_elem_add(s, e);
-+
-+	e = nft_set_elem_alloc();
-+	if (e == NULL) {
-+		perror("OOM");
-+		exit(EXIT_FAILURE);
-+	}
-+	data = 0x2;
-+	nft_set_elem_attr_set(e, NFT_SET_ELEM_ATTR_KEY, &data, sizeof(data));
-+	nft_set_elem_add(s, e);
-+}
-+
-+static void nft_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
-+{
-+	struct nlmsghdr *nlh;
-+	struct nfgenmsg *nfg;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = type;
-+	nlh->nlmsg_flags = NLM_F_REQUEST;
-+	nlh->nlmsg_seq = seq;
-+
-+	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
-+	nfg->nfgen_family = AF_INET;
-+	nfg->version = NFNETLINK_V0;
-+	nfg->res_id = NFNL_SUBSYS_NFTABLES;
-+}
-+
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-+	struct mnl_nlmsg_batch *batch;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
--	uint32_t portid, seq, family, data;
-+	uint32_t portid, seq, family;
- 	struct nft_set *s;
--	struct nft_set_elem *e;
- 	int ret;
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	if (argc != 4) {
-@@ -55,33 +101,24 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
+-if NF_NAT_IPV4
++if IP_NF_NAT
  
--	nft_set_attr_set(s, NFT_SET_ATTR_TABLE, argv[2]);
--	nft_set_attr_set(s, NFT_SET_ATTR_NAME, argv[3]);
+ config IP_NF_TARGET_MASQUERADE
+ 	tristate "MASQUERADE target support"
+@@ -214,47 +261,7 @@ config IP_NF_TARGET_REDIRECT
+ 	(e.g. when running oldconfig). It selects
+ 	CONFIG_NETFILTER_XT_TARGET_REDIRECT.
+ 
+-endif
 -
--	/* Add to dummy elements to set */
--	e = nft_set_elem_alloc();
--	if (e == NULL) {
--		perror("OOM");
--		exit(EXIT_FAILURE);
--	}
-+	setup_set(s, argv[2], argv[3]);
+-config NF_NAT_SNMP_BASIC
+-	tristate "Basic SNMP-ALG support"
+-	depends on NF_CONNTRACK_SNMP && NF_NAT_IPV4
+-	depends on NETFILTER_ADVANCED
+-	default NF_NAT && NF_CONNTRACK_SNMP
+-	---help---
+-
+-	  This module implements an Application Layer Gateway (ALG) for
+-	  SNMP payloads.  In conjunction with NAT, it allows a network
+-	  management system to access multiple private networks with
+-	  conflicting addresses.  It works by modifying IP addresses
+-	  inside SNMP payloads to match IP-layer NAT mapping.
+-
+-	  This is the "basic" form of SNMP-ALG, as described in RFC 2962
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+-# If they want FTP, set to $CONFIG_IP_NF_NAT (m or y),
+-# or $CONFIG_IP_NF_FTP (m or y), whichever is weaker.
+-# From kconfig-language.txt:
+-#
+-#           <expr> '&&' <expr>                   (6)
+-#
+-# (6) Returns the result of min(/expr/, /expr/).
+-
+-config NF_NAT_PROTO_GRE
+-	tristate
+-	depends on NF_NAT_IPV4 && NF_CT_PROTO_GRE
+-
+-config NF_NAT_PPTP
+-	tristate
+-	depends on NF_CONNTRACK && NF_NAT_IPV4
+-	default NF_NAT_IPV4 && NF_CONNTRACK_PPTP
+-	select NF_NAT_PROTO_GRE
+-
+-config NF_NAT_H323
+-	tristate
+-	depends on NF_CONNTRACK && NF_NAT_IPV4
+-	default NF_NAT_IPV4 && NF_CONNTRACK_H323
++endif # IP_NF_NAT
  
--	data = 0x1;
--	nft_set_elem_attr_set(e, NFT_SET_ELEM_ATTR_KEY, &data, sizeof(data));
--	nft_set_elem_add(s, e);
-+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+ # mangle + specific targets
+ config IP_NF_MANGLE
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 3300162..edf4af3 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -43,7 +43,7 @@ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
+ # the three instances of ip_tables
+ obj-$(CONFIG_IP_NF_FILTER) += iptable_filter.o
+ obj-$(CONFIG_IP_NF_MANGLE) += iptable_mangle.o
+-obj-$(CONFIG_NF_NAT_IPV4) += iptable_nat.o
++obj-$(CONFIG_IP_NF_NAT) += iptable_nat.o
+ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ obj-$(CONFIG_IP_NF_SECURITY) += iptable_security.o
  
--	e = nft_set_elem_alloc();
--	if (e == NULL) {
--		perror("OOM");
--		exit(EXIT_FAILURE);
--	}
--	data = 0x2;
--	nft_set_elem_attr_set(e, NFT_SET_ELEM_ATTR_KEY, &data, sizeof(data));
--	nft_set_elem_add(s, e);
-+	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
-+			  NFNL_MSG_BATCH_BEGIN, seq++);
-+	mnl_nlmsg_batch_next(batch);
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index ac93df1..02a2989 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -60,6 +60,16 @@ config NF_LOG_IPV6
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_LOG_COMMON
  
--	nlh = nft_set_nlmsg_build_hdr(buf, NFT_MSG_DELSETELEM, family,
--				      NLM_F_ACK, seq);
-+	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+				      NFT_MSG_DELSETELEM, family,
-+				      NLM_F_ACK, seq++);
- 	nft_set_elems_nlmsg_build_payload(nlh, s);
- 	nft_set_free(s);
-+	mnl_nlmsg_batch_next(batch);
++config NF_NAT_IPV6
++	tristate "IPv6 NAT"
++	depends on NF_CONNTRACK_IPV6
++	depends on NETFILTER_ADVANCED
++	select NF_NAT
++	help
++	  The IPv6 NAT option allows masquerading, port forwarding and other
++	  forms of full Network Address Port Translation. This can be
++	  controlled by iptables or nft.
 +
-+	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
-+			  NFNL_MSG_BATCH_END, seq++);
-+	mnl_nlmsg_batch_next(batch);
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+ 	depends on INET && IPV6
+@@ -232,19 +242,20 @@ config IP6_NF_SECURITY
  
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-@@ -95,20 +132,24 @@ int main(int argc, char *argv[])
- 	}
- 	portid = mnl_socket_get_portid(nl);
+          If unsure, say N.
  
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--		perror("mnl_socket_send");
-+	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
-+				mnl_nlmsg_batch_size(batch));
-+	if (ret == -1) {
-+		perror("mnl_socket_sendto");
- 		exit(EXIT_FAILURE);
- 	}
+-config NF_NAT_IPV6
+-	tristate "IPv6 NAT"
++config IP6_NF_NAT
++	tristate "ip6tables NAT support"
+ 	depends on NF_CONNTRACK_IPV6
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_NAT
++	select NF_NAT_IPV6
+ 	help
+-	  The IPv6 NAT option allows masquerading, port forwarding and other
+-	  forms of full Network Address Port Translation. It is controlled by
+-	  the `nat' table in ip6tables, see the man page for ip6tables(8).
++	  This enables the `nat' table in ip6tables. This allows masquerading,
++	  port forwarding and other forms of full Network Address Port
++	  Translation.
  
-+	mnl_nlmsg_batch_stop(batch);
-+
- 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
--		if (ret <= 0)
--			break;
--		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
--	}
- 	if (ret == -1) {
--		perror("error");
-+		perror("mnl_socket_recvfrom");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
-+	if (ret < 0) {
-+		perror("mnl_cb_run");
- 		exit(EXIT_FAILURE);
- 	}
- 	mnl_socket_close(nl);
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-if NF_NAT_IPV6
++if IP6_NF_NAT
+ 
+ config IP6_NF_TARGET_MASQUERADE
+ 	tristate "MASQUERADE target support"
+@@ -265,7 +276,7 @@ config IP6_NF_TARGET_NPT
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-endif # NF_NAT_IPV6
++endif # IP6_NF_NAT
+ 
+ endif # IP6_NF_IPTABLES
+ 
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index c0b2631..c3d3286 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -8,7 +8,7 @@ obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
+ obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+ obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
+-obj-$(CONFIG_NF_NAT_IPV6) += ip6table_nat.o
++obj-$(CONFIG_IP6_NF_NAT) += ip6table_nat.o
+ 
+ # objects for l3 independent conntrack
+ nf_conntrack_ipv6-y  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o
+-- 
+1.7.10.4
 
