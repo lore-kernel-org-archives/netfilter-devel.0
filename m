@@ -1,46 +1,33 @@
-From: Yanchuan Nian <ycnian@gmail.com>
-Subject: Bug: nft cannot identify elements in set correctly
-Date: Mon, 11 Aug 2014 17:18:31 +0800
-Message-ID: <1407748711-21183-1-git-send-email-ycnian@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, Yanchuan Nian <ycnian@gmail.com>
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Bug: nft cannot identify elements in set correctly
+Date: Mon, 11 Aug 2014 11:32:17 +0200
+Message-ID: <20140811093217.GB14182@breakpoint.cc>
+References: <1407748711-21183-1-git-send-email-ycnian@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Yanchuan Nian <ycnian@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:35667 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751464AbaHKJPY (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43170 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752457AbaHKJcT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2014 05:15:24 -0400
-Received: by mail-pa0-f44.google.com with SMTP id eu11so10855692pac.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2014 02:15:24 -0700 (PDT)
+	Mon, 11 Aug 2014 05:32:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1407748711-21183-1-git-send-email-ycnian@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft cannot identify elements in set correctly, look at the result of
-following commands.
+Yanchuan Nian <ycnian@gmail.com> wrote:
+> [root@localhost ~]# nft add set ip filter servicelist {type inet_service \;}
+> [root@localhost ~]# nft add element ip filter servicelist {ftp,ssh}
+> <cmdline>:1:35-37: Error: syntax error, unexpected string, expecting '{'
+> add element ip filter servicelist ftp ssh
 
-[root@localhost ~]# nft add set ip filter servicelist {type inet_service \;}
-[root@localhost ~]# nft add element ip filter servicelist {ftp,ssh}
-<cmdline>:1:35-37: Error: syntax error, unexpected string, expecting '{'
-add element ip filter servicelist ftp ssh
-                                  ^^^
-[root@localhost ~]# nft add element ip filter servicelist {ftp, ssh}
+Missing escape ("\{"), see echo foo{bar,baz}
 
-There must be a space between ftp and ssh, otherwise bison ignores "{".
-But it's strange that this bug doesn't exist in interactive mode.
+> [root@localhost ~]# nft add element ip filter servicelist {ftp, ssh}
+> 
+> There must be a space between ftp and ssh, otherwise bison ignores "{".
 
-[root@localhost nftables]# nft -i
-nft> delete element ip filter servicelist {ftp,ssh}
-nft> add element ip filter servicelist {ftp,ssh}
-nft> 
-nft> list table ip filter
-table ip filter {
-	set servicelist { 
-		type inet_service
-		elements = { ssh, ftp}
-	}
-}
-nft> 
-
-What's the difference between shell mode and interactive mode? I thought
-they are the same except you don't need to type "nft" at the beginning
-of each command in interactive mode.
+The { got removed by your shell before passing the arguments to nft.
