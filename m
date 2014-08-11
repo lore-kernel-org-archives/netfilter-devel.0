@@ -1,70 +1,62 @@
 From: Yanchuan Nian <ycnian@gmail.com>
-Subject: [nft PATCH] Remove unused function netlink_get_table
-Date: Mon, 11 Aug 2014 10:37:14 +0800
-Message-ID: <1407724634-21515-1-git-send-email-ycnian@gmail.com>
+Subject: Bug: Some anonymous sets aren't displayed correctly
+Date: Mon, 11 Aug 2014 15:51:12 +0800
+Message-ID: <1407743472-9165-1-git-send-email-ycnian@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, Yanchuan Nian <ycnian@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:62006 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaHKCeP (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:37235 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101AbaHKHsp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Aug 2014 22:34:15 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so9804884pdj.8
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Aug 2014 19:34:14 -0700 (PDT)
+	Mon, 11 Aug 2014 03:48:45 -0400
+Received: by mail-pa0-f47.google.com with SMTP id kx10so10688049pab.34
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2014 00:48:44 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netlink_get_table is defined but not used anywhere. Just remove it.
+Some anonymous sets aren't displayed correctly, look at the result of
+following commands.
 
-Signed-off-by: Yanchuan Nian <ycnian@gmail.com>
----
- include/netlink.h |  2 --
- src/netlink.c     | 18 ------------------
- 2 files changed, 20 deletions(-)
+nft> add rule ip filter input meta length {1000, 2000} counter
+nft> add rule ip filter input meta iifname {eth0, eth1} counter
+nft> list table ip filter
+table ip filter {
+        chain input {
+                 type filter hook input priority 0;
+                 meta length { 3892510720, 3490119680} counter packets 0 bytes 0
+                 iifname { "", ""} counter packets 0 bytes 0
+        }
+}
 
-diff --git a/include/netlink.h b/include/netlink.h
-index af5dcd9..29cd45c 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -107,8 +107,6 @@ extern int netlink_delete_table(struct netlink_ctx *ctx, const struct handle *h,
- 				const struct location *loc);
- extern int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
- 			       const struct location *loc);
--extern int netlink_get_table(struct netlink_ctx *ctx, const struct handle *h,
--			     const struct location *loc);
- extern int netlink_list_table(struct netlink_ctx *ctx, const struct handle *h,
- 			      const struct location *loc);
- extern int netlink_flush_table(struct netlink_ctx *ctx, const struct handle *h,
-diff --git a/src/netlink.c b/src/netlink.c
-index dc7a7c4..5ada2fd 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -936,24 +936,6 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
- 	return 0;
- }
- 
--int netlink_get_table(struct netlink_ctx *ctx, const struct handle *h,
--		      const struct location *loc)
--{
--	struct nft_table *nlt;
--	int err;
--
--	nlt = alloc_nft_table(h);
--	err = mnl_nft_table_get(nf_sock, nlt, 0);
--	nft_table_free(nlt);
--
--	if (err < 0)
--		return netlink_io_error(ctx, loc,
--					"Could not receive table from kernel: %s",
--					strerror(errno));
--	return err;
--}
--
--
- int netlink_list_table(struct netlink_ctx *ctx, const struct handle *h,
- 		       const struct location *loc)
- {
--- 
-1.9.3
+This is because the data types used in meta length and meta iifname are
+integer and string, whose byteorders are BYTEORDER_INVALID.
+In netlink_delinearize_setelem, the value stored in expr cannot be converted
+to host byte order, so the value cannot be displayed correctly. In order to fix
+this bug, just set the byteorder of integer_type and string_type to
+BYTEORDER_HOST_ENDIAN.
+
+But I have some questions. As anonymous sets can be used with meta ifname,
+should we add a new datatype as follows, so normal sets can be created and then
+used by meta ifname?
+
+static const struct datatype ifname_type = {
+        .type           = TYPE_IFNAME,
+        .name           = "ifname",
+        .desc           = "interface name",
+        .byteorder      = BYTEORDER_HOST_ENDIAN,
+        .size           = IFNAMSIZ * BITS_PER_BYTE,
+        .basetype       = &string_type,
+};
+
+Besides meta ifname, many other selectors appear to be suffering from the same
+problem, such as: meta length, tcp window, {icmp, udp, tcp, ip, ...} checksum,
+{ah, icmp, tcp, ...} sequence. Should we add new datatypes for them? Who
+is interested in packets with exact checksum or sequence? I wonder.
+
+So, is it a better way to forbid such anonymous sets completely? We can do some
+work in implicit_set_declaration. If set->keylen != set->keytype->size, return
+with a error message.
+
+Pablo, what's your opinion?
 
