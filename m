@@ -1,27 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/5] netfilter: nf_tables: fix error return code
-Date: Mon, 11 Aug 2014 18:41:14 +0200
-Message-ID: <20140811164114.GA7770@salvia>
-References: <1407415749-19978-1-git-send-email-Julia.Lawall@lip6.fr>
- <1407415749-19978-5-git-send-email-Julia.Lawall@lip6.fr>
+Subject: Re: [PATCH] nft-arp: remove wrong conditions
+Date: Mon, 11 Aug 2014 18:44:41 +0200
+Message-ID: <20140811164441.GA8422@salvia>
+References: <1407539057-4781-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kernel-janitors@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Giuseppe Longo <giuseppelng@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:37609 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751100AbaHKQoT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2014 12:44:19 -0400
 Content-Disposition: inline
-In-Reply-To: <1407415749-19978-5-git-send-email-Julia.Lawall@lip6.fr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1407539057-4781-1-git-send-email-giuseppelng@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 07, 2014 at 02:49:08PM +0200, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
+On Sat, Aug 09, 2014 at 01:04:17AM +0200, Giuseppe Longo wrote:
+> Removes wrong conditions in flags translating functions
+> that doesn't permit to delete rule with inverse flags set.
 > 
-> Convert a zero return value on error to a negative one, as returned
-> elsewhere in the function.
+> For instance, the following command doesn't remove the rule:
+> arptables-compat -D INPUT -i ! eth1 -j ACCEPT
 
-Applied, thanks Julia.
+Applied, thanks.
+
+There's another bug in arptables-compat:
+
+arptables: Bad rule (does a matching rule exist in that chain?)
+
+It doesn't say that if you try to delete an unexistent rule.
+
+Please, have a look at it and fix it, thanks.
+
