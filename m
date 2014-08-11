@@ -1,36 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft-arp: remove wrong conditions
-Date: Mon, 11 Aug 2014 18:44:41 +0200
-Message-ID: <20140811164441.GA8422@salvia>
-References: <1407539057-4781-1-git-send-email-giuseppelng@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [PATCH 0/4] Netfilter fixes for net
+Date: Mon, 11 Aug 2014 19:06:15 +0200
+Message-ID: <1407776779-9113-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37609 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39987 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100AbaHKQoT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2014 12:44:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1407539057-4781-1-git-send-email-giuseppelng@gmail.com>
+	id S1753699AbaHKRGA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2014 13:06:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 09, 2014 at 01:04:17AM +0200, Giuseppe Longo wrote:
-> Removes wrong conditions in flags translating functions
-> that doesn't permit to delete rule with inverse flags set.
-> 
-> For instance, the following command doesn't remove the rule:
-> arptables-compat -D INPUT -i ! eth1 -j ACCEPT
+Hi David,
 
-Applied, thanks.
+The following patchset contains fixes for your net tree, they are:
 
-There's another bug in arptables-compat:
+1) Unitialize the set element key and data from the commit path,
+   otherwise this leaks chain refcount if the transaction is aborted,
+   reported by Thomas Graf.
 
-arptables: Bad rule (does a matching rule exist in that chain?)
+2) Fix crash when updating chains without no counters in nf_tables,
+   this slipped through in the new transaction infrastructure, reported
+   by Matteo Croce.
 
-It doesn't say that if you try to delete an unexistent rule.
+3) Replace all mutex_lock_interruptible() by mutex_lock() in the Netfilter
+   tree, suggested by Patrick McHardy. This implicitly fixes the problem
+   that Eric Dumazet reported in: http://patchwork.ozlabs.org/patch/373076/
 
-Please, have a look at it and fix it, thanks.
+4) Fix error return code in nf_tables when deleting set element in
+   nf_tables if the transaction cannot be allocated, from Julia Lawall.
 
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 33caee39925b887a99a2400dc5c980097c3573f9:
+
+  Merge branch 'akpm' (patchbomb from Andrew Morton) (2014-08-06 21:14:42 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 609ccf087747de48ef52160f93e0df864c532a61:
+
+  netfilter: nf_tables: fix error return code (2014-08-08 16:47:29 +0200)
+
+----------------------------------------------------------------
+Julia Lawall (1):
+      netfilter: nf_tables: fix error return code
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: uninitialize element key/data from the commit path
+      netfilter: nf_tables: don't update chain with unset counters
+      netfilter: don't use mutex_lock_interruptible()
+
+ net/bridge/netfilter/ebtables.c |   10 ++-------
+ net/netfilter/core.c            |   11 ++-------
+ net/netfilter/ipvs/ip_vs_ctl.c  |   19 ++++------------
+ net/netfilter/nf_sockopt.c      |    8 ++-----
+ net/netfilter/nf_tables_api.c   |   30 ++++++++++++++-----------
+ net/netfilter/x_tables.c        |   47 ++++++++++-----------------------------
+ 6 files changed, 39 insertions(+), 86 deletions(-)
