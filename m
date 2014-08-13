@@ -1,280 +1,359 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCHv2 1/2] netfilter: move NAT Kconfig switches out of the iptables scope
-Date: Tue, 12 Aug 2014 12:25:44 +0200
-Message-ID: <1407839144-4595-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, Matteo Croce <technoboy85@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft RFC PATCH] src: add set optimization options
+Date: Wed, 13 Aug 2014 10:17:06 +0200
+Message-ID: <20140813081649.25737.82564.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53840 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666AbaHLKZb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Aug 2014 06:25:31 -0400
+Received: from smtp4.cica.es ([150.214.5.182]:58121 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750916AbaHMIRM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Aug 2014 04:17:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, the NAT configs depend on iptables and ip6tables. However,
-users should be capable of enabling NAT for nft without having to
-switch on iptables.
+This patch adds options to choose set optimization mechanisms.
 
-Fix this by adding new specific IP_NF_NAT and IP6_NF_NAT config
-switches for iptables and ip6tables NAT support. I have also moved
-the original NF_NAT_IPV4 and NF_NAT_IPV6 configs out of the scope
-of iptables to make them independent of it.
+The syntax is one of:
 
-This patch also adds NETFILTER_XT_NAT which selects the xt_nat
-combo that provides snat/dnat for iptables. We cannot use NF_NAT
-anymore since nf_tables can select this.
+ nft add set filter set1 { type ipv4_addr size 1024 ; }
+ nft add set filter set1 { type ipv4_addr policy memory ; }
+ nft add set filter set1 { type ipv4_addr policy performance ; }
+ nft add set filter set1 { type ipv4_addr policy memory size 1024 ; }
+ nft add set filter set1 { type ipv4_addr size 1024 policy memory ; }
+ nft add set filter set1 { type ipv4_addr policy performance size 1024 ; }
+ nft add set filter set1 { type ipv4_addr size 1024 policy performance ; }
 
-Reported-by: Matteo Croce <technoboy85@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Also valid for maps:
+
+ nft add map filter map1 { type ipv4_addr : verdict policy performace ; }
+ [...]
+
+
+This is the output format, which can be imported later with `nft -f':
+
+table filter {
+	set set1 {
+		type ipv4_addr policy memory size 1024
+	}
+}
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-v2: Fixes compilation issue reported by Matteo Croce. This new round introduces
-    CONFIG_NETFILTER_XT_NAT to enable the net/netfilter/xt_nat.c snat/dnat
-    targets.
 
- Building modules, stage 2.
-   MODPOST 112 modules
- ERROR: "xt_unregister_targets" [net/netfilter/xt_nat.ko] undefined!
- ERROR: "xt_register_targets" [net/netfilter/xt_nat.ko] undefined!
+This is my proposal for set internal mechanism selection in nft.
 
- net/ipv4/netfilter/Kconfig  |  102 +++++++++++++++++++++++--------------------
- net/ipv4/netfilter/Makefile |    2 +-
- net/ipv6/netfilter/Kconfig  |   26 ++++++++---
- net/ipv6/netfilter/Makefile |    2 +-
- net/netfilter/Makefile      |    2 +-
- 5 files changed, 77 insertions(+), 57 deletions(-)
+My idea is: given the kernel uses optional arguments to choose the
+set mechanism, in userspace the configuration should be also optional.
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index fb17312..7cbcaf4 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -82,6 +82,52 @@ config NF_TABLES_ARP
- 	help
- 	  This option enables the ARP support for nf_tables.
+The patch is not fully tested, there are still some issues; It seems that the
+kernel is lacking some details.
+For example, it doesn't dump back to userspace the policy configuration.
+
+In my opinion, we should be able to inform userspace of the configuration, in a
+way that userspace can differentiate between default values and fixed ones.
+For example, NFT_SET_POL_PERFORMANCE seems to be the default in kernel, but
+we don't want every set to be printed with "policy performance".
+
+Please, feel free to comment.
+
+ include/linux/netfilter/nf_tables.h |   29 +++++++++++++++++++++
+ include/rule.h                      |    8 ++++++
+ src/netlink.c                       |   19 ++++++++++++++
+ src/parser.y                        |   49 ++++++++++++++++++++++++++++++++++-
+ src/rule.c                          |   21 +++++++++++++++
+ src/scanner.l                       |    5 ++++
+ 6 files changed, 129 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index a5f8ec0..fce770c 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -209,6 +209,29 @@ enum nft_set_flags {
+ };
  
-+config NF_NAT_IPV4
-+	tristate "IPv4 NAT"
-+	depends on NF_CONNTRACK_IPV4
-+	default m if NETFILTER_ADVANCED=n
-+	select NF_NAT
-+	help
-+	  The IPv4 NAT option allows masquerading, port forwarding and other
-+	  forms of full Network Address Port Translation. This can be
-+	  controlled by iptables or nft.
+ /**
++ * enum nft_set_policies - set selection policy
++ *
++ * @NFT_SET_POL_PERFORMANCE: prefer high performance over low memory use
++ * @NFT_SET_POL_MEMORY: prefer low memory use over high performance
++ */
++enum nft_set_policies {
++	NFT_SET_POL_PERFORMANCE,
++	NFT_SET_POL_MEMORY,
++};
 +
-+if NF_NAT_IPV4
++/**
++ * enum nft_set_desc_attributes - set element description
++ *
++ * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
++ */
++enum nft_set_desc_attributes {
++	NFTA_SET_DESC_UNSPEC,
++	NFTA_SET_DESC_SIZE,
++	__NFTA_SET_DESC_MAX
++};
++#define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
 +
-+config NF_NAT_SNMP_BASIC
-+	tristate "Basic SNMP-ALG support"
-+	depends on NF_CONNTRACK_SNMP
-+	depends on NETFILTER_ADVANCED
-+	default NF_NAT && NF_CONNTRACK_SNMP
-+	---help---
++/**
+  * enum nft_set_attributes - nf_tables set netlink attributes
+  *
+  * @NFTA_SET_TABLE: table name (NLA_STRING)
+@@ -218,6 +241,9 @@ enum nft_set_flags {
+  * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
+  * @NFTA_SET_DATA_TYPE: mapping data type (NLA_U32)
+  * @NFTA_SET_DATA_LEN: mapping data length (NLA_U32)
++ * @NFTA_SET_POLICY: selection policy (NLA_U32)
++ * @NFTA_SET_DESC: set description (NLA_NESTED)
++ * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
+  */
+ enum nft_set_attributes {
+ 	NFTA_SET_UNSPEC,
+@@ -228,6 +254,9 @@ enum nft_set_attributes {
+ 	NFTA_SET_KEY_LEN,
+ 	NFTA_SET_DATA_TYPE,
+ 	NFTA_SET_DATA_LEN,
++	NFTA_SET_POLICY,
++	NFTA_SET_DESC,
++	NFTA_SET_ID,
+ 	__NFTA_SET_MAX
+ };
+ #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+diff --git a/include/rule.h b/include/rule.h
+index db91406..646e634 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -180,6 +180,7 @@ enum set_flags {
+  * @datatype:	mapping data type
+  * @datalen:	mapping data len
+  * @init:	initializer
++ * @mechanism:	internal mechanism
+  */
+ struct set {
+ 	struct list_head	list;
+@@ -192,6 +193,13 @@ struct set {
+ 	const struct datatype	*datatype;
+ 	unsigned int		datalen;
+ 	struct expr		*init;
++	struct {
++		uint32_t	flags;
++		uint32_t	policy;
++		struct {
++			uint32_t	size;
++		} desc;
++	} mechanism;
+ };
+ 
+ extern struct set *set_alloc(const struct location *loc);
+diff --git a/src/netlink.c b/src/netlink.c
+index e149215..e8ae324 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1044,6 +1044,17 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 		set->datalen = data_len * BITS_PER_BYTE;
+ 	}
+ 
++	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_POLICY)) {
++		set->mechanism.policy = nft_set_attr_get_u32(nls, NFT_SET_ATTR_POLICY);
++		set->mechanism.flags |= (1 << NFT_SET_ATTR_POLICY);
++	}
 +
-+	  This module implements an Application Layer Gateway (ALG) for
-+	  SNMP payloads.  In conjunction with NAT, it allows a network
-+	  management system to access multiple private networks with
-+	  conflicting addresses.  It works by modifying IP addresses
-+	  inside SNMP payloads to match IP-layer NAT mapping.
++	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_DESC_SIZE)) {
++		set->mechanism.desc.size = nft_set_attr_get_u32(nls,
++						     NFT_SET_ATTR_DESC_SIZE);
++		set->mechanism.flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
++	}
 +
-+	  This is the "basic" form of SNMP-ALG, as described in RFC 2962
+ 	return set;
+ }
+ 
+@@ -1102,6 +1113,14 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ 	}
+ 	set->handle.set_id = ++set_id;
+ 	nft_set_attr_set_u32(nls, NFT_SET_ATTR_ID, set->handle.set_id);
 +
-+	  To compile it as a module, choose M here.  If unsure, say N.
++	if (set->mechanism.flags & (1 << NFT_SET_ATTR_POLICY))
++		nft_set_attr_set_u32(nls, NFT_SET_ATTR_POLICY,
++				     set->mechanism.policy);
++	if (set->mechanism.flags & (1 << NFT_SET_ATTR_DESC_SIZE))
++		nft_set_attr_set_u32(nls, NFT_SET_ATTR_DESC_SIZE,
++				     set->mechanism.desc.size);
 +
-+config NF_NAT_PROTO_GRE
-+	tristate
-+	depends on NF_CT_PROTO_GRE
+ 	netlink_dump_set(nls);
+ 
+ 	err = mnl_nft_set_batch_add(nf_sock, nls, NLM_F_EXCL, ctx->seqnum);
+diff --git a/src/parser.y b/src/parser.y
+index 26d2879..cc4efd7 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -20,6 +20,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+ #include <libnftnl/common.h>
++#include <libnftnl/set.h>
+ 
+ #include <rule.h>
+ #include <statement.h>
+@@ -212,6 +213,11 @@ static int monitor_lookup_event(const char *event)
+ %token INTERVAL			"interval"
+ %token ELEMENTS			"elements"
+ 
++%token POLICY			"policy"
++%token MEMORY			"memory"
++%token PERFORMANCE		"performance"
++%token SIZE			"size"
 +
-+config NF_NAT_PPTP
-+	tristate
-+	depends on NF_CONNTRACK
-+	default NF_CONNTRACK_PPTP
-+	select NF_NAT_PROTO_GRE
+ %token <val> NUM		"number"
+ %token <string> STRING		"string"
+ %token <string> QUOTED_STRING
+@@ -408,6 +414,9 @@ static int monitor_lookup_event(const char *event)
+ 
+ %type <val>			set_flag_list	set_flag
+ 
++%type <val>			set_policy_spec
++%type <val>			set_size_spec
 +
-+config NF_NAT_H323
-+	tristate
-+	depends on NF_CONNTRACK
-+	default NF_CONNTRACK_H323
+ %type <set>			set_block_alloc set_block
+ %destructor { set_free($$); }	set_block_alloc
+ 
+@@ -1042,7 +1051,8 @@ set_block_alloc		:	/* empty */
+ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			|	set_block	common_block
+ 			|	set_block	stmt_seperator
+-			|	set_block	TYPE		identifier	stmt_seperator
++			|	set_block	TYPE		identifier
++						set_mechanism	stmt_seperator
+ 			{
+ 				$1->keytype = datatype_lookup_byname($3);
+ 				if ($1->keytype == NULL) {
+@@ -1050,6 +1060,7 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 						   state->msgs);
+ 					YYERROR;
+ 				}
 +
-+endif # NF_NAT_IPV4
+ 				$$ = $1;
+ 			}
+ 			|	set_block	FLAGS		set_flag_list	stmt_seperator
+@@ -1087,7 +1098,7 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			|	map_block	stmt_seperator
+ 			|	map_block	TYPE
+ 						identifier	COLON	identifier
+-						stmt_seperator
++						set_mechanism	stmt_seperator
+ 			{
+ 				$1->keytype = datatype_lookup_byname($3);
+ 				if ($1->keytype == NULL) {
+@@ -1117,6 +1128,40 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			}
+ 			;
+ 
++set_mechanism		:	/* empty */
++			|	set_policy_spec
++			{
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_POLICY);
++				$<set>0->mechanism.policy = $1;
++			}
++			|	set_size_spec
++			{
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
++				$<set>0->mechanism.desc.size = $1;
++			}
++			|	set_policy_spec	set_size_spec
++			{
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_POLICY);
++				$<set>0->mechanism.policy = $1;
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
++				$<set>0->mechanism.desc.size = $2;
++			}
++			|	set_size_spec	set_policy_spec
++			{
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
++				$<set>0->mechanism.desc.size = $1;
++				$<set>0->mechanism.flags |= (1 << NFT_SET_ATTR_POLICY);
++				$<set>0->mechanism.policy = $2;
++			}
++			;
 +
- config IP_NF_IPTABLES
- 	tristate "IP tables support (required for filtering/masq/NAT)"
- 	default m if NETFILTER_ADVANCED=n
-@@ -170,19 +216,21 @@ config IP_NF_TARGET_SYNPROXY
- 	  To compile it as a module, choose M here. If unsure, say N.
- 
- # NAT + specific targets: nf_conntrack
--config NF_NAT_IPV4
--	tristate "IPv4 NAT"
-+config IP_NF_NAT
-+	tristate "iptables NAT support"
- 	depends on NF_CONNTRACK_IPV4
- 	default m if NETFILTER_ADVANCED=n
- 	select NF_NAT
-+	select NF_NAT_IPV4
-+	select NETFILTER_XT_NAT
- 	help
--	  The IPv4 NAT option allows masquerading, port forwarding and other
--	  forms of full Network Address Port Translation.  It is controlled by
--	  the `nat' table in iptables: see the man page for iptables(8).
-+	  This enables the `nat' table in iptables. This allows masquerading,
-+	  port forwarding and other forms of full Network Address Port
-+	  Translation.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
--if NF_NAT_IPV4
-+if IP_NF_NAT
- 
- config IP_NF_TARGET_MASQUERADE
- 	tristate "MASQUERADE target support"
-@@ -214,47 +262,7 @@ config IP_NF_TARGET_REDIRECT
- 	(e.g. when running oldconfig). It selects
- 	CONFIG_NETFILTER_XT_TARGET_REDIRECT.
- 
--endif
--
--config NF_NAT_SNMP_BASIC
--	tristate "Basic SNMP-ALG support"
--	depends on NF_CONNTRACK_SNMP && NF_NAT_IPV4
--	depends on NETFILTER_ADVANCED
--	default NF_NAT && NF_CONNTRACK_SNMP
--	---help---
--
--	  This module implements an Application Layer Gateway (ALG) for
--	  SNMP payloads.  In conjunction with NAT, it allows a network
--	  management system to access multiple private networks with
--	  conflicting addresses.  It works by modifying IP addresses
--	  inside SNMP payloads to match IP-layer NAT mapping.
--
--	  This is the "basic" form of SNMP-ALG, as described in RFC 2962
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
--# If they want FTP, set to $CONFIG_IP_NF_NAT (m or y),
--# or $CONFIG_IP_NF_FTP (m or y), whichever is weaker.
--# From kconfig-language.txt:
--#
--#           <expr> '&&' <expr>                   (6)
--#
--# (6) Returns the result of min(/expr/, /expr/).
--
--config NF_NAT_PROTO_GRE
--	tristate
--	depends on NF_NAT_IPV4 && NF_CT_PROTO_GRE
--
--config NF_NAT_PPTP
--	tristate
--	depends on NF_CONNTRACK && NF_NAT_IPV4
--	default NF_NAT_IPV4 && NF_CONNTRACK_PPTP
--	select NF_NAT_PROTO_GRE
--
--config NF_NAT_H323
--	tristate
--	depends on NF_CONNTRACK && NF_NAT_IPV4
--	default NF_NAT_IPV4 && NF_CONNTRACK_H323
-+endif # IP_NF_NAT
- 
- # mangle + specific targets
- config IP_NF_MANGLE
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 3300162..edf4af3 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -43,7 +43,7 @@ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
- # the three instances of ip_tables
- obj-$(CONFIG_IP_NF_FILTER) += iptable_filter.o
- obj-$(CONFIG_IP_NF_MANGLE) += iptable_mangle.o
--obj-$(CONFIG_NF_NAT_IPV4) += iptable_nat.o
-+obj-$(CONFIG_IP_NF_NAT) += iptable_nat.o
- obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
- obj-$(CONFIG_IP_NF_SECURITY) += iptable_security.o
- 
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index ac93df1..cf0b88f 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -60,6 +60,16 @@ config NF_LOG_IPV6
- 	depends on NETFILTER_ADVANCED
- 	select NF_LOG_COMMON
- 
-+config NF_NAT_IPV6
-+	tristate "IPv6 NAT"
-+	depends on NF_CONNTRACK_IPV6
-+	depends on NETFILTER_ADVANCED
-+	select NF_NAT
-+	help
-+	  The IPv6 NAT option allows masquerading, port forwarding and other
-+	  forms of full Network Address Port Translation. This can be
-+	  controlled by iptables or nft.
++set_policy_spec		:	POLICY	PERFORMANCE	{ $$ = NFT_SET_POL_PERFORMANCE; }
++			|	POLICY	MEMORY		{ $$ = NFT_SET_POL_MEMORY; }
++			;
 +
- config IP6_NF_IPTABLES
- 	tristate "IP6 tables support (required for filtering)"
- 	depends on INET && IPV6
-@@ -232,19 +242,21 @@ config IP6_NF_SECURITY
++set_size_spec		:	SIZE	NUM	{ $$ = $2; }
++			;
++
+ hook_spec		:	TYPE		STRING		HOOK		STRING		PRIORITY	NUM
+ 			{
+ 				$<chain>0->type		= chain_type_name_lookup($2);
+diff --git a/src/rule.c b/src/rule.c
+index 1e54526..9195a01 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -75,6 +75,7 @@ void set_free(struct set *set)
+ 	if (--set->refcnt > 0)
+ 		return;
+ 	handle_free(&set->handle);
++
+ 	xfree(set);
+ }
  
-          If unsure, say N.
+@@ -90,6 +91,7 @@ struct set *set_clone(const struct set *set)
+ 	newset->datatype = set->datatype;
+ 	newset->datalen = set->datalen;
+ 	newset->init = expr_clone(set->init);
++	newset->mechanism = set->mechanism;
  
--config NF_NAT_IPV6
--	tristate "IPv6 NAT"
-+config IP6_NF_NAT
-+	tristate "ip6tables NAT support"
- 	depends on NF_CONNTRACK_IPV6
- 	depends on NETFILTER_ADVANCED
- 	select NF_NAT
-+	select NF_NAT_IPV6
-+	select NETFILTER_XT_NAT
- 	help
--	  The IPv6 NAT option allows masquerading, port forwarding and other
--	  forms of full Network Address Port Translation. It is controlled by
--	  the `nat' table in ip6tables, see the man page for ip6tables(8).
-+	  This enables the `nat' table in ip6tables. This allows masquerading,
-+	  port forwarding and other forms of full Network Address Port
-+	  Translation.
+ 	return newset;
+ }
+@@ -134,6 +136,18 @@ struct print_fmt_options {
+ 	const char	*stmt_separator;
+ };
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
++static const char *set_policy2str(uint32_t policy)
++{
++	switch (policy) {
++	case NFT_SET_POL_PERFORMANCE:
++		return "performance";
++	case NFT_SET_POL_MEMORY:
++		return "memory";
++	default:
++		return "unknown";
++	}
++}
++
+ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ {
+ 	const char *delim = "";
+@@ -153,6 +167,13 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ 	printf("%s%stype %s", opts->tab, opts->tab, set->keytype->name);
+ 	if (set->flags & SET_F_MAP)
+ 		printf(" : %s", set->datatype->name);
++
++	if (set->mechanism.flags & NFT_SET_ATTR_POLICY)
++		printf(" policy %s",
++		       set_policy2str(set->mechanism.policy));
++	if (set->mechanism.flags & NFT_SET_ATTR_DESC_SIZE)
++		printf(" size %d", set->mechanism.desc.size);
++
+ 	printf("%s", opts->stmt_separator);
  
--if NF_NAT_IPV6
-+if IP6_NF_NAT
+ 	if (set->flags & (SET_F_CONSTANT | SET_F_INTERVAL)) {
+diff --git a/src/scanner.l b/src/scanner.l
+index 4eec92f..846fc34 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -267,6 +267,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "interval"		{ return INTERVAL; }
+ "elements"		{ return ELEMENTS; }
  
- config IP6_NF_TARGET_MASQUERADE
- 	tristate "MASQUERADE target support"
-@@ -265,7 +277,7 @@ config IP6_NF_TARGET_NPT
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
--endif # NF_NAT_IPV6
-+endif # IP6_NF_NAT
- 
- endif # IP6_NF_IPTABLES
- 
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index c0b2631..c3d3286 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -8,7 +8,7 @@ obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
- obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
- obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
- obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
--obj-$(CONFIG_NF_NAT_IPV6) += ip6table_nat.o
-+obj-$(CONFIG_IP6_NF_NAT) += ip6table_nat.o
- 
- # objects for l3 independent conntrack
- nf_conntrack_ipv6-y  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 8308624..fad5fdb 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -95,7 +95,7 @@ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
- obj-$(CONFIG_NETFILTER_XT_MARK) += xt_mark.o
- obj-$(CONFIG_NETFILTER_XT_CONNMARK) += xt_connmark.o
- obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
--obj-$(CONFIG_NF_NAT) += xt_nat.o
-+obj-$(CONFIG_NETFILTER_XT_NAT) += xt_nat.o
- 
- # targets
- obj-$(CONFIG_NETFILTER_XT_TARGET_AUDIT) += xt_AUDIT.o
--- 
-1.7.10.4
++"policy"		{ return POLICY; }
++"size"			{ return SIZE; }
++"performance"		{ return PERFORMANCE; }
++"memory"		{ return MEMORY; }
++
+ "counter"		{ return COUNTER; }
+ "packets"		{ return PACKETS; }
+ "bytes"			{ return BYTES; }
 
