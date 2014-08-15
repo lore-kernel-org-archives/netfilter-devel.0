@@ -1,58 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] More extensive error checking on base chain
-Date: Thu, 14 Aug 2014 20:59:43 +0200
-Message-ID: <20140814185943.GA11516@salvia>
-References: <1407836244-30480-1-git-send-email-ycnian@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] netfilter: xt_hashlimit: handle iptables-restore of hash
+ with same name
+Date: Fri, 15 Aug 2014 05:58:10 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1408150545340.8983@nerf08.vanv.qr>
+References: <1406004850-31336-1-git-send-email-johunt@akamai.com> <20140724084927.GB18404@breakpoint.cc> <ffaf5ee3-2af6-4747-bdd1-481ed87e68aa@email.android.com> <53D28C97.9000009@akamai.com> <20140814140956.GA16567@imap.eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Yanchuan Nian <ycnian@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Josh Hunt <johunt@akamai.com>, Patrick McHardy <kaber@trash.net>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	Harald Welte <laforge@netfilter.org>
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47542 "EHLO mail.us.es"
+Received: from ares08.inai.de ([46.4.84.70]:49918 "EHLO ares08.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753829AbaHNS7W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Aug 2014 14:59:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1407836244-30480-1-git-send-email-ycnian@gmail.com>
+	id S1754315AbaHOD6O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Aug 2014 23:58:14 -0400
+In-Reply-To: <20140814140956.GA16567@imap.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 12, 2014 at 05:37:24PM +0800, Yanchuan Nian wrote:
-> The evaluation of base chain isn't extensive enough. It cannot
-> detect whether a chain type is supported or not in certain families.
-> It also cannot deletect whether a hook is supported or not in certain
-> chains. The evaluation is done by kernel, and the information is unclear.
-> 
-> nft> add chain arp arptable chain1 {type nat hook input priority 0 ;}
-> <cli>:1:1-64: Error: Could not add chain: No such file or directory
-> add chain arp arptable chain1 {type nat hook input priority 0 ;}
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> nft> add chain ip iptable chain1 {type nat hook forward priority 0 ;}
-> <cli>:1:1-64: Error: Could not add chain: Operation not supported
-> add chain ip iptable chain1 {type nat hook forward priority 0 ;}
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> This patch performs more extensive error checking, so the information
-> is more clear.
-> 
-> nft> add chain arp arptable chain1 {type nat hook input priority 0 ;}
-> <cli>:1:31-63: Error: invalid type name nat
-> add chain arp arptable chain1 {type nat hook input priority 0 ;}
->                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> nft> add chain ip iptable chain1 {type nat hook forward priority 0 ;}
-> <cli>:1:29-63: Error: invalid hook name forward
-> add chain ip iptable chain1 {type nat hook forward priority 0 ;}
->                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-I don't think this belongs to userspace.  Patrick and I have been
-discussing some extension for netlink to provide better error
-reporting to userspace, such as the offset to the attribute that has
-caused the problem. This should provide enough context to userspace to
-display more accurate error reporting.
+On Thursday 2014-08-14 16:09, Holger Eitzenberger wrote:
+>
+>For case 2) the behaviour is unexpected: when using iptables-restore
+>to update an already existing hashtable <NAME> the updates are
+>ignored.
 
-On top of that, this is not going to help to catch the chain type
-module is missing case.
+Well, in a way, this is expected. If ruletable A references hashtable
+G and you restore ruletable B also referencing G, you don't
+necessarily want to clear out G.
 
-Meanwhile, I have documented this here:
+The sensible fix is to have atomic replace of the entire ruleset
+compassing all ruletables. Then, since all ruletables are going to
+get replaced, replacing G with new parameters is also permissible.
 
-http://wiki.nftables.org/wiki-nftables/index.php/Troubleshooting
+At which point you may just question why the archaic concept of
+separate ruletables was carried over to nf_tables;
+compatibility for iptables to know which chain belongs to which table
+is just another label on the object of a (modern) chain.
