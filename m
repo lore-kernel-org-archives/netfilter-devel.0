@@ -1,49 +1,42 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: [PATCH] netfilter: xt_hashlimit: handle iptables-restore of hash
- with same name
-Date: Fri, 15 Aug 2014 09:24:43 +0200
-Message-ID: <20140815072443.GT3549@imap.eitzenberger.org>
-References: <1406004850-31336-1-git-send-email-johunt@akamai.com>
- <20140724084927.GB18404@breakpoint.cc>
- <ffaf5ee3-2af6-4747-bdd1-481ed87e68aa@email.android.com>
- <53D28C97.9000009@akamai.com>
- <20140814140956.GA16567@imap.eitzenberger.org>
- <alpine.LSU.2.11.1408150545340.8983@nerf08.vanv.qr>
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: none zero check of the classid in xt_cgroup
+Date: Sat, 16 Aug 2014 10:11:36 +0400
+Message-ID: <53EEF618.6020103@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Josh Hunt <johunt@akamai.com>, Patrick McHardy <kaber@trash.net>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	Harald Welte <laforge@netfilter.org>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <dborkman@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:54990 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbaHOHYs (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:26140 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095AbaHPGLn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2014 03:24:48 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.11.1408150545340.8983@nerf08.vanv.qr>
+	Sat, 16 Aug 2014 02:11:43 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NAD00KV2YJ7UK90@mailout1.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Sat, 16 Aug 2014 07:11:31 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello Daniel,
 
-> >For case 2) the behaviour is unexpected: when using iptables-restore
-> >to update an already existing hashtable <NAME> the updates are
-> >ignored.
-> 
-> Well, in a way, this is expected. If ruletable A references hashtable
-> G and you restore ruletable B also referencing G, you don't
-> necessarily want to clear out G.
+I have a question regarding xt_cgroup, again )
 
-I agree when having multiple rules accessing same hashtable.  But on
-rule update it is a bug.
+I'm interesting why did you add check for none zero id into 
+cgroup_mt_check. With it, it's impossible
+to introduce some rules, like -m cgroup ! --cgroup 0. It could be useful 
+for end user, for example, to block
+all processes which was under cgroups, but not whole traffic.
+Of course it could be made by ROOT_CGROUP with none 0 classid, which 
+will contain all processes in the system.
+But, I think, in this case OS will be faced with little overhead to mark 
+every packet.
 
-I am fine maintaining the patch adressing the rule update, as I am
-aware of the change in behaviour for the other case.
 
- /Holger
+-- 
+Best regards,
+Alexey Perevalov
 
