@@ -1,39 +1,34 @@
 From: Daniel Borkmann <dborkman@redhat.com>
-Subject: [PATCH] netfilter: x_tables: allow to use default cgroup match
-Date: Mon, 18 Aug 2014 15:46:28 +0200
-Message-ID: <1408369588-12363-1-git-send-email-dborkman@redhat.com>
-Cc: a.perevalov@samsung.com, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Subject: Re: none zero check of the classid in xt_cgroup
+Date: Mon, 18 Aug 2014 15:52:29 +0200
+Message-ID: <53F2051D.7080607@redhat.com>
+References: <53EEF618.6020103@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Alexey Perevalov <a.perevalov@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11990 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:14712 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762AbaHRNql (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2014 09:46:41 -0400
+	id S1750709AbaHRNwh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Aug 2014 09:52:37 -0400
+In-Reply-To: <53EEF618.6020103@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There's actually no good reason why we cannot use cgroup id 0,
-so lets just remove this artificial barrier.
+On 08/16/2014 08:11 AM, Alexey Perevalov wrote:
+> Hello Daniel,
+>
+> I have a question regarding xt_cgroup, again )
+>
+> I'm interesting why did you add check for none zero id into cgroup_mt_check. With it, it's impossible
+> to introduce some rules, like -m cgroup ! --cgroup 0. It could be useful for end user, for example, to block
+> all processes which was under cgroups, but not whole traffic.
 
-Reported-by: Alexey Perevalov <a.perevalov@samsung.com>
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
----
- net/netfilter/xt_cgroup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Yes, indeed, probably I was too focussed on [1] when in combination
+with cls_cgroup (as they use the same cgroup) it's non-zero anyway;
+but that doesn't make sense when in use as xt_cgroup stand-alone.
+I've sent a patch, thanks.
 
-diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-index f4e8330..7198d66 100644
---- a/net/netfilter/xt_cgroup.c
-+++ b/net/netfilter/xt_cgroup.c
-@@ -31,7 +31,7 @@ static int cgroup_mt_check(const struct xt_mtchk_param *par)
- 	if (info->invert & ~1)
- 		return -EINVAL;
- 
--	return info->id ? 0 : -EINVAL;
-+	return 0;
- }
- 
- static bool
--- 
-1.7.11.7
-
+   [1] Documentation/cgroups/net_cls.txt
