@@ -1,66 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] verdict type: handle verdict flags and encoded additional information
-Date: Tue, 19 Aug 2014 00:37:20 +0100
-Message-ID: <1408405040-9505-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: Re: [PATCH] netfilter: x_tables: allow to use default cgroup match
+Date: Tue, 19 Aug 2014 15:26:46 +0400
+Message-ID: <53F33476.8070904@samsung.com>
+References: <1408369588-12363-1-git-send-email-dborkman@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Daniel Borkmann <dborkman@redhat.com>, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53330 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbaHRXhY (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:48337 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751528AbaHSL0u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2014 19:37:24 -0400
+	Tue, 19 Aug 2014 07:26:50 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NAJ004ELX4N90C0@mailout3.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Tue, 19 Aug 2014 12:26:47 +0100 (BST)
+In-reply-to: <1408369588-12363-1-git-send-email-dborkman@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The kernel can handle this, nftables should also.
+On 08/18/2014 05:46 PM, Daniel Borkmann wrote:
+> There's actually no good reason why we cannot use cgroup id 0,
+> so lets just remove this artificial barrier.
+>
+> Reported-by: Alexey Perevalov <a.perevalov@samsung.com>
+> Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+> ---
+>   net/netfilter/xt_cgroup.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+>
+Thank you, Daniel, I tested it on my environment, patch is fine.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/datatype.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+Tested-by: Alexey Perevalov <a.perevalov@samsung.com>
 
-diff --git a/src/datatype.c b/src/datatype.c
-index 36d5985..fdfee54 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -176,15 +176,6 @@ const struct datatype invalid_type = {
- static void verdict_type_print(const struct expr *expr)
- {
- 	switch (expr->verdict) {
--	case NF_ACCEPT:
--		printf("accept");
--		break;
--	case NF_DROP:
--		printf("drop");
--		break;
--	case NF_QUEUE:
--		printf("queue");
--		break;
- 	case NFT_CONTINUE:
- 		printf("continue");
- 		break;
-@@ -201,7 +192,19 @@ static void verdict_type_print(const struct expr *expr)
- 		printf("return");
- 		break;
- 	default:
--		BUG("invalid verdict value %u\n", expr->verdict);
-+		switch (expr->verdict & NF_VERDICT_MASK) {
-+		case NF_ACCEPT:
-+			printf("accept");
-+			break;
-+		case NF_DROP:
-+			printf("drop");
-+			break;
-+		case NF_QUEUE:
-+			printf("queue");
-+			break;
-+		default:
-+			BUG("invalid verdict value %u\n", expr->verdict);
-+		}
- 	}
- }
- 
 -- 
-1.9.3
-
+Best regards,
+Alexey Perevalov
