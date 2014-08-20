@@ -1,41 +1,35 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+From: Jan Engelhardt <jengelh@inai.de>
 Subject: Re: [libnftnl PATCH] Rename xfree() to libnftnl_xfree() to avoid
  symbol naming conflict
-Date: Wed, 20 Aug 2014 14:07:05 +0200
-Message-ID: <20140820140705.26f64dbb@free-electrons.com>
-References: <1408196389-15559-1-git-send-email-thomas.petazzoni@free-electrons.com>
-	<20140819220236.GA7136@salvia>
+Date: Wed, 20 Aug 2014 15:00:18 +0200 (CEST)
+Message-ID: <alpine.LSU.2.11.1408201459330.23974@nerf08.vanv.qr>
+References: <1408196389-15559-1-git-send-email-thomas.petazzoni@free-electrons.com> <20140819220236.GA7136@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:36828 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753447AbaHTMHI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2014 08:07:08 -0400
+Received: from ares08.inai.de ([46.4.84.70]:50493 "EHLO ares08.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752387AbaHTNAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Aug 2014 09:00:20 -0400
 In-Reply-To: <20140819220236.GA7136@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear Pablo Neira Ayuso,
+On Wednesday 2014-08-20 00:02, Pablo Neira Ayuso wrote:
 
-On Wed, 20 Aug 2014 00:02:36 +0200, Pablo Neira Ayuso wrote:
+>On Sat, Aug 16, 2014 at 03:39:49PM +0200, Thomas Petazzoni wrote:
+>> [...] the xfree() symbols of libnftnl
+>> becomes visible to the outside world, causing a conflict with the
+>> xfree() symbol defined by nftables.
+>> 
+>> To solve this, this patch renames the libnftnl xfree() function to
+>> libnftnl_xfree().
+>
+>Would this small patch solve your problem too?
+>
+>[non-inline attachment]
 
-> > To solve this, this patch renames the libnftnl xfree() function to
-> > libnftnl_xfree().
-> 
-> Would this small patch solve your problem too?
-
-Yes, I believe this would work as well, as long as this definition
-doesn't get exposed to public headers of the library.
-
-Thanks!
-
-Thomas
--- 
-Thomas Petazzoni, CTO, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+It would, but why add the redundant cast?
