@@ -1,63 +1,45 @@
-From: "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH 1/1] netfilter/jump_label: use HAVE_JUMP_LABEL?
-Date: Thu, 21 Aug 2014 20:53:19 +0800 (GMT+08:00)
-Message-ID: <1498523.4b875.147f8a0e3c8.Coremail.yizhouzhou@ict.ac.cn>
+Date: Thu, 21 Aug 2014 17:24:35 +0200
+Message-ID: <20140821152435.GB16498@breakpoint.cc>
 References: <1408589568-27046-1-git-send-email-yizhouzhou@ict.ac.cn>
  <20140821121132.GA16498@breakpoint.cc>
+ <1498523.4b875.147f8a0e3c8.Coremail.yizhouzhou@ict.ac.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: "Zhouyi Zhou" <zhouzhouyi@gmail.com>, pablo@netfilter.org,
+Cc: Florian Westphal <fw@strlen.de>,
+	Zhouyi Zhou <zhouzhouyi@gmail.com>, pablo@netfilter.org,
 	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	jbaron@akamai.com
-To: "Florian Westphal" <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140821121132.GA16498@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45176 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751222AbaHUPYn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Aug 2014 11:24:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1498523.4b875.147f8a0e3c8.Coremail.yizhouzhou@ict.ac.cn>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks Florian for reviewing
-
-> -----Original Messages-----
-> From: "Florian Westphal" <fw@strlen.de>
-
+Zhouyi Zhou <yizhouzhou@ict.ac.cn> wrote:
+> > > 
+> > > CONFIG_JUMP_LABEL doesn't ensure HAVE_JUMP_LABEL, if it
+> > > is not the case use maintainers's own mutex to guard
+> > > the modification of global values.
 > 
-> Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
-> > 
-> > CONFIG_JUMP_LABEL doesn't ensure HAVE_JUMP_LABEL, if it
-> > is not the case use maintainers's own mutex to guard
-> > the modification of global values.
-
-CONFIG_JUMP_LABEL says the user wants to use jump labels.
-But we also need the toolchain to support it.
-
-That is reflected in CC_HAVE_ASM_GOTO=y, and if both are
-set then HAVE_JUMP_LABEL is set to true.
-
-> I don't understand this patch.
+> CONFIG_JUMP_LABEL says the user wants to use jump labels.
+> But we also need the toolchain to support it.
 > 
-> What is the problem you are fixing?
+> That is reflected in CC_HAVE_ASM_GOTO=y, and if both are
+> set then HAVE_JUMP_LABEL is set to true.
 
-There is basically no real problem here.
-This patch only tries to make kernel code that using 
-static_key infrastructure appears "unified"
-> 
-> The intent is to only use static_key infrastructure
-> if user has enabled CONFIG_JUMP_LABEL.
+Please resubmit and update the changelog to reflect this,
+e.g. add something like
 
-The other parts of kernel either use #ifdef HAVE_JUMP_LABEL,
-or use no "#ifdef" at all(the two exceptions are netfilter 
-and powerpc modules which I send patches to both).
-
-Jason has suggested me to make the patches:
-https://lkml.org/lkml/2014/8/20/761
-
-"Unified" is the reason, I guess :-)
-so rookies like me can have unified examples to follow
-
-
- 
-Cheers
-Zhouyi
+Use HAVE_JUMP_LABEL as elsewhere in the kernel to ensure
+that the toolchain has the required support in addition to
+CONFIG_JUMP_LABEL being set.
