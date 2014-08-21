@@ -1,170 +1,87 @@
-From: Alexey Perevalov <a.perevalov@samsung.com>
-Subject: [[PATCH v3]] netfilter: nfnetlink_acct: add filter support to nfacct
- counter list/reset
-Date: Wed, 20 Aug 2014 22:03:18 +0400
-Message-ID: <1408557798-6455-1-git-send-email-a.perevalov@samsung.com>
-References: <20140820133401.GA7422@salvia>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>,
-	alexey.perevalov@hotmail.com, mathieu.poirier@linaro.org,
-	netfilter-devel@vger.kernel.org, kyungmin.park@samsung.com,
-	hs81.go@samsung.com
-To: pablo@netfilter.org
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: [PATCH 1/1] netfilter/jump_label: use HAVE_JUMP_LABEL?
+Date: Thu, 21 Aug 2014 10:52:48 +0800
+Message-ID: <1408589568-27046-1-git-send-email-yizhouzhou@ict.ac.cn>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: <pablo@netfilter.org>, <kaber@trash.net>,
+	<kadlec@blackhole.kfki.hu>, <davem@davemloft.net>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<jbaron@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:22612 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbaHTSDX (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:39228 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753081AbaHUCxR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2014 14:03:23 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAM006SAAAE2K80@mailout2.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Wed, 20 Aug 2014 19:06:14 +0100 (BST)
-In-reply-to: <20140820133401.GA7422@salvia>
+	Wed, 20 Aug 2014 22:53:17 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Filtering covers following cases:
-	1. no filter specified. In this case client will get old
-behaviour
-	2. filter specified for getting only counters:
-		in this case marks should be NFACCT_F_QUOTAS and value 0
-	3. filter specified for getting quotas:
-		for packet based quota mask should be
-NFACCT_F_QUOTA_PKTS and value - the same,
-		for byte based quota mask should be
-NFACCT_F_QUOTA_BYTES and value - the same.
-	Bit set for quota is't supported in this patch. NFACCT_F_QUOTA didn't
-expose for user space program in public header as well. In case of
-NFACCT_F_QUOTA two request is necessary, one for NFACCT_F_QUOTA_PKTS and another
-one for NFACCT_F_QUOTA_BYTES.
 
-Signed-off-by: Alexey Perevalov <a.perevalov@samsung.com>
+CONFIG_JUMP_LABEL doesn't ensure HAVE_JUMP_LABEL, if it
+is not the case use maintainers's own mutex to guard
+the modification of global values.
+
+Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
 ---
- include/uapi/linux/netfilter/nfnetlink_acct.h |    8 ++++
- net/netfilter/nfnetlink_acct.c                |   51 +++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ include/linux/netfilter.h |    5 +++--
+ net/netfilter/core.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_acct.h b/include/uapi/linux/netfilter/nfnetlink_acct.h
-index 51404ec..f3e34db 100644
---- a/include/uapi/linux/netfilter/nfnetlink_acct.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_acct.h
-@@ -28,9 +28,17 @@ enum nfnl_acct_type {
- 	NFACCT_USE,
- 	NFACCT_FLAGS,
- 	NFACCT_QUOTA,
-+	NFACCT_FILTER,
- 	__NFACCT_MAX
- };
- #define NFACCT_MAX (__NFACCT_MAX - 1)
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 2077489..83a1952 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -9,6 +9,7 @@
+ #include <linux/in6.h>
+ #include <linux/wait.h>
+ #include <linux/list.h>
++#include <linux/static_key.h>
+ #include <uapi/linux/netfilter.h>
+ #ifdef CONFIG_NETFILTER
+ static inline int NF_DROP_GETERR(int verdict)
+@@ -99,8 +100,8 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
  
-+enum nfnl_attr_filter_type {
-+	NFACCT_FILTER_UNSPEC,
-+	NFACCT_FILTER_MASK,
-+	NFACCT_FILTER_VALUE,
-+	__NFACCT_FILTER_MAX
-+};
-+#define NFACCT_FILTER_MAX (__NFACCT_FILTER_MAX - 1)
+ extern struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
  
- #endif /* _UAPI_NFNL_ACCT_H_ */
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 3ea0eac..0f7159f 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -40,6 +40,11 @@ struct nf_acct {
- 	char			data[0];
- };
- 
-+struct nfacct_filter {
-+	u32 value;
-+	u32 mask;
-+};
+-#if defined(CONFIG_JUMP_LABEL)
+-#include <linux/static_key.h>
++#ifdef HAVE_JUMP_LABEL
 +
- #define NFACCT_F_QUOTA (NFACCT_F_QUOTA_PKTS | NFACCT_F_QUOTA_BYTES)
- #define NFACCT_OVERQUOTA_BIT	2	/* NFACCT_F_OVERQUOTA */
- 
-@@ -181,6 +186,7 @@ static int
- nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ static inline bool nf_hooks_active(u_int8_t pf, unsigned int hook)
  {
- 	struct nf_acct *cur, *last;
-+	const struct nfacct_filter *filter = cb->data;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a93c97f..024a2e2 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -54,7 +54,7 @@ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
+ struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
+ EXPORT_SYMBOL(nf_hooks);
  
- 	if (cb->args[2])
- 		return 0;
-@@ -197,6 +203,10 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 			last = NULL;
- 		}
-+
-+		if (filter && (cur->flags & filter->mask) != filter->value)
-+			continue;
-+
- 		if (nfnl_acct_fill_info(skb, NETLINK_CB(cb->skb).portid,
- 				       cb->nlh->nlmsg_seq,
- 				       NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
-@@ -212,6 +222,32 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
- }
- 
- static int
-+nfnl_acct_done(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+	return 0;
-+}
-+
-+static const struct nla_policy filter_policy[NFACCT_FILTER_MAX + 1] = {
-+	[NFACCT_FILTER_MASK]	= { .type = NLA_U32 },
-+	[NFACCT_FILTER_VALUE]	= { .type = NLA_U32 },
-+};
-+
-+static struct nfacct_filter *
-+nfacct_filter_alloc(struct nlattr *attrs[NFACCT_FILTER_MAX + 1])
-+{
-+	struct nfacct_filter *filter = kzalloc(sizeof(struct nfacct_filter),
-+					       GFP_KERNEL);
-+	if (!filter)
-+		return ERR_PTR(-ENOMEM);
-+
-+	filter->mask = nla_get_be32(attrs[NFACCT_FILTER_MASK]);
-+	filter->value = nla_get_be32(attrs[NFACCT_FILTER_VALUE]);
-+
-+	return filter;
-+}
-+
-+static int
- nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
- 	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
- {
-@@ -222,7 +258,21 @@ nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
- 			.dump = nfnl_acct_dump,
-+			.done = nfnl_acct_done,
- 		};
-+		if (tb[NFACCT_FILTER]) {
-+			struct nlattr *attrs[NFACCT_FILTER_MAX + 1];
-+			ret = nla_parse_nested(attrs, NFACCT_FILTER_MAX,
-+					       tb[NFACCT_FILTER],
-+					       filter_policy);
-+			if (ret < 0)
-+				return ret;
-+
-+			c.data = nfacct_filter_alloc(attrs);
-+			if (IS_ERR(c.data))
-+				return PTR_ERR(c.data);
-+		}
-+
- 		return netlink_dump_start(nfnl, skb, nlh, &c);
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ EXPORT_SYMBOL(nf_hooks_needed);
+ #endif
+@@ -72,7 +72,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
  	}
- 
-@@ -314,6 +364,7 @@ static const struct nla_policy nfnl_acct_policy[NFACCT_MAX+1] = {
- 	[NFACCT_PKTS] = { .type = NLA_U64 },
- 	[NFACCT_FLAGS] = { .type = NLA_U32 },
- 	[NFACCT_QUOTA] = { .type = NLA_U64 },
-+	[NFACCT_FILTER] = {.type = NLA_NESTED },
- };
- 
- static const struct nfnl_callback nfnl_acct_cb[NFNL_MSG_ACCT_MAX] = {
+ 	list_add_rcu(&reg->list, elem->list.prev);
+ 	mutex_unlock(&nf_hook_mutex);
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+ 	return 0;
+@@ -84,7 +84,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
+ 	mutex_lock(&nf_hook_mutex);
+ 	list_del_rcu(&reg->list);
+ 	mutex_unlock(&nf_hook_mutex);
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+ 	synchronize_net();
 -- 
-1.7.9.5
+1.7.10.4
 
