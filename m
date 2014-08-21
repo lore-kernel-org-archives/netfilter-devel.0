@@ -1,87 +1,45 @@
-From: Zhouyi Zhou <zhouzhouyi@gmail.com>
-Subject: [PATCH 1/1] netfilter/jump_label: use HAVE_JUMP_LABEL?
-Date: Thu, 21 Aug 2014 10:52:48 +0800
-Message-ID: <1408589568-27046-1-git-send-email-yizhouzhou@ict.ac.cn>
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-To: <pablo@netfilter.org>, <kaber@trash.net>,
-	<kadlec@blackhole.kfki.hu>, <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<jbaron@akamai.com>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Easy network (config) breakage with 3.17-rc1: NETFILTER_XT_TARGET_LOG
+Date: Thu, 21 Aug 2014 12:49:33 +0200
+Message-ID: <CACna6rymZjgex0p1snf3e-GvK2xHrQST3roGiA3F__y3DvYhKw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:39228 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081AbaHUCxR (ORCPT
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:44218 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646AbaHUKte convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2014 22:53:17 -0400
+	Thu, 21 Aug 2014 06:49:34 -0400
+Received: by mail-ie0-f175.google.com with SMTP id x19so4471642ier.34
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2014 03:49:33 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+=46ew days ago I updated my 3.16 to 3.17-rc1 (both self compiled) and I
+was using it until I noticed my machine doesn't respond to pings. I
+rebooted to 3.16 and it was working again.
 
-CONFIG_JUMP_LABEL doesn't ensure HAVE_JUMP_LABEL, if it
-is not the case use maintainers's own mutex to guard
-the modification of global values.
+I bisected between 3.16 and 3.17-rc1 but it has failed. After all I
+got 3.16 not working anymore as well.
 
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
----
- include/linux/netfilter.h |    5 +++--
- net/netfilter/core.c      |    6 +++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+It took me few hours to find the one to blame:
+CONFIG_NETFILTER_XT_TARGET_LOG. After moving my config from 3.16 to
+3.17-rc1 CONFIG_NETFILTER_XT_TARGET_LOG got disabled because of two
+new dependencies: NF_LOG_IPV4 && NF_LOG_IPV6.
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 2077489..83a1952 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -9,6 +9,7 @@
- #include <linux/in6.h>
- #include <linux/wait.h>
- #include <linux/list.h>
-+#include <linux/static_key.h>
- #include <uapi/linux/netfilter.h>
- #ifdef CONFIG_NETFILTER
- static inline int NF_DROP_GETERR(int verdict)
-@@ -99,8 +100,8 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
- 
- extern struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- 
--#if defined(CONFIG_JUMP_LABEL)
--#include <linux/static_key.h>
-+#ifdef HAVE_JUMP_LABEL
-+
- extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- static inline bool nf_hooks_active(u_int8_t pf, unsigned int hook)
- {
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a93c97f..024a2e2 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -54,7 +54,7 @@ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
- struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
- EXPORT_SYMBOL(nf_hooks);
- 
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- EXPORT_SYMBOL(nf_hooks_needed);
- #endif
-@@ -72,7 +72,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
- 	}
- 	list_add_rcu(&reg->list, elem->list.prev);
- 	mutex_unlock(&nf_hook_mutex);
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
- #endif
- 	return 0;
-@@ -84,7 +84,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
- 	mutex_lock(&nf_hook_mutex);
- 	list_del_rcu(&reg->list);
- 	mutex_unlock(&nf_hook_mutex);
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
- #endif
- 	synchronize_net();
--- 
-1.7.10.4
+It would be nice if you could try to use "select" instead of "depends
+on" in such cases in the future. I bet fix my problem would be trivial
+since the beginning, but end-users may spent hours or days tracking
+such things :(
 
+Please, treat it as an advise/request, not a blaming :)
+
+--=20
+Rafa=C5=82
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
