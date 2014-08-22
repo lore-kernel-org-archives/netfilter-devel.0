@@ -1,45 +1,82 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] netfilter/jump_label: use HAVE_JUMP_LABEL?
-Date: Thu, 21 Aug 2014 17:24:35 +0200
-Message-ID: <20140821152435.GB16498@breakpoint.cc>
-References: <1408589568-27046-1-git-send-email-yizhouzhou@ict.ac.cn>
- <20140821121132.GA16498@breakpoint.cc>
- <1498523.4b875.147f8a0e3c8.Coremail.yizhouzhou@ict.ac.cn>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Zhouyi Zhou <zhouzhouyi@gmail.com>, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jbaron@akamai.com
-To: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45176 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222AbaHUPYn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Aug 2014 11:24:43 -0400
-Content-Disposition: inline
-In-Reply-To: <1498523.4b875.147f8a0e3c8.Coremail.yizhouzhou@ict.ac.cn>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-Zhouyi Zhou <yizhouzhou@ict.ac.cn> wrote:
-> > > 
-> > > CONFIG_JUMP_LABEL doesn't ensure HAVE_JUMP_LABEL, if it
-> > > is not the case use maintainers's own mutex to guard
-> > > the modification of global values.
-> 
-> CONFIG_JUMP_LABEL says the user wants to use jump labels.
-> But we also need the toolchain to support it.
-> 
-> That is reflected in CC_HAVE_ASM_GOTO=y, and if both are
-> set then HAVE_JUMP_LABEL is set to true.
-
-Please resubmit and update the changelog to reflect this,
-e.g. add something like
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: [PATCH V2 1/1] netfilter/jump_label: HAVE_JUMP_LABEL instead of CONFIG_JUMP_LABEL
+Date: Fri, 22 Aug 2014 10:40:15 +0800
+Message-ID: <1408675215-2893-1-git-send-email-yizhouzhou@ict.ac.cn>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: <fw@strlen.de>, <pablo@netfilter.org>, <kaber@trash.net>,
+	<kadlec@blackhole.kfki.hu>, <davem@davemloft.net>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<jbaron@akamai.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Use HAVE_JUMP_LABEL as elsewhere in the kernel to ensure
 that the toolchain has the required support in addition to
 CONFIG_JUMP_LABEL being set.
+
+
+Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter.h |    5 +++--
+ net/netfilter/core.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 2077489..83a1952 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -9,6 +9,7 @@
+ #include <linux/in6.h>
+ #include <linux/wait.h>
+ #include <linux/list.h>
++#include <linux/static_key.h>
+ #include <uapi/linux/netfilter.h>
+ #ifdef CONFIG_NETFILTER
+ static inline int NF_DROP_GETERR(int verdict)
+@@ -99,8 +100,8 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
+ 
+ extern struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ 
+-#if defined(CONFIG_JUMP_LABEL)
+-#include <linux/static_key.h>
++#ifdef HAVE_JUMP_LABEL
++
+ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ static inline bool nf_hooks_active(u_int8_t pf, unsigned int hook)
+ {
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a93c97f..024a2e2 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -54,7 +54,7 @@ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
+ struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
+ EXPORT_SYMBOL(nf_hooks);
+ 
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ EXPORT_SYMBOL(nf_hooks_needed);
+ #endif
+@@ -72,7 +72,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
+ 	}
+ 	list_add_rcu(&reg->list, elem->list.prev);
+ 	mutex_unlock(&nf_hook_mutex);
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+ 	return 0;
+@@ -84,7 +84,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
+ 	mutex_lock(&nf_hook_mutex);
+ 	list_del_rcu(&reg->list);
+ 	mutex_unlock(&nf_hook_mutex);
+-#if defined(CONFIG_JUMP_LABEL)
++#ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+ 	synchronize_net();
+-- 
+1.7.10.4
