@@ -1,22 +1,39 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: net-next is OPEN
-Date: Fri, 22 Aug 2014 12:47:06 -0700 (PDT)
-Message-ID: <20140822.124706.567707701471565629.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Kevin Fenzi <kevin@scrye.com>
+Subject: [PATCH] Fix trivial error in man page where flush should be rename
+Date: Sat, 23 Aug 2014 09:59:52 -0600
+Message-ID: <1408809592-22140-1-git-send-email-kevin@scrye.com>
+Cc: Kevin Fenzi <kevin@scrye.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 75-148-32-185-Colorado.hfc.comcastbusiness.net ([75.148.32.185]:37179
+	"EHLO mail.scrye.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751091AbaHWQSX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Aug 2014 12:18:23 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Trivial fix, but someone filed a bug on it, and it should be fixed. ;) 
+https://bugzilla.redhat.com/show_bug.cgi?id=1132917
 
-The net-next GIT tree is now open again, please feel free to submit
-new features and cleanups.
+Signed-off-by: Kevin Fenzi <kevin@scrye.com>
+---
+ doc/nft.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 41c0840..cec5ef3 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -508,7 +508,7 @@ filter input iif $int_ifs accept
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>flush</option></term>
++				<term><option>rename</option></term>
+ 				<listitem>
+ 					<para>
+ 						Rename the specified chain.
+-- 
+2.1.0
+
