@@ -1,26 +1,23 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Fix trivial error in man page where flush should be
- rename
-Date: Sun, 24 Aug 2014 14:58:50 +0200
-Message-ID: <20140824125850.GA7934@salvia>
-References: <1408809592-22140-1-git-send-email-kevin@scrye.com>
+Subject: Re: [libnftnl PATCH 1/6] examples: merge nft-table-{xml|json}-add.c
+Date: Sun, 24 Aug 2014 15:01:00 +0200
+Message-ID: <20140824130100.GA7973@salvia>
+References: <20140822093929.1524.32948.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Kevin Fenzi <kevin@scrye.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59818 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59914 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbaHXM6F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Aug 2014 08:58:05 -0400
+	id S1752499AbaHXNAP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Aug 2014 09:00:15 -0400
 Content-Disposition: inline
-In-Reply-To: <1408809592-22140-1-git-send-email-kevin@scrye.com>
+In-Reply-To: <20140822093929.1524.32948.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 23, 2014 at 09:59:52AM -0600, Kevin Fenzi wrote:
-> Trivial fix, but someone filed a bug on it, and it should be fixed. ;) 
-> https://bugzilla.redhat.com/show_bug.cgi?id=1132917
+I have applied these series (from 1 to 6).
 
-Applied, thanks.
+Thanks Arturo.
 
