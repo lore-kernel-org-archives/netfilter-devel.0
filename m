@@ -1,70 +1,58 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/4] ipset patches for nf-next
-Date: Sun, 24 Aug 2014 19:49:39 +0200
-Message-ID: <1408902583-22451-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 4/4] netfilter: ipset: Fix warn: integer overflows 'sizeof(*map) + size * set->dsize'
+Date: Sun, 24 Aug 2014 19:49:43 +0200
+Message-ID: <1408902583-22451-5-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1408902583-22451-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:52356 "EHLO smtp0.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:49435 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752738AbaHXR4I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Aug 2014 13:56:08 -0400
+	id S1752941AbaHXR4W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Aug 2014 13:56:22 -0400
+In-Reply-To: <1408902583-22451-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Dan Carpenter reported that the static checker emits the warning
 
-Please consider to apply the next series of patches:
+        net/netfilter/ipset/ip_set_list_set.c:600 init_list_set()
+        warn: integer overflows 'sizeof(*map) + size * set->dsize'
 
-- Dan Carpenter reported that the static checker emits a warning
-  about integer overflows in ip_set_list_set.c, fixed by me
-- missing-field-initializer warnings resolved, from Mark Rustad
-- In netnet and netportnet hash types the range support for IPv4
-  was broken, fixed by Sergey Popovich
-- A smatch warning about IPSET_ATTR_MARKMASK validation is fixed
-  by Vytas Dauksa.
+Limit the maximal number of elements in list type of sets.
 
-You can pull the changes from
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/ip_set_list.h | 1 +
+ net/netfilter/ipset/ip_set_list_set.c       | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-        git://blackhole.kfki.hu/nf-next master
+diff --git a/include/linux/netfilter/ipset/ip_set_list.h b/include/linux/netfilter/ipset/ip_set_list.h
+index 68c2aea..fe2622a 100644
+--- a/include/linux/netfilter/ipset/ip_set_list.h
++++ b/include/linux/netfilter/ipset/ip_set_list.h
+@@ -6,5 +6,6 @@
+ 
+ #define IP_SET_LIST_DEFAULT_SIZE	8
+ #define IP_SET_LIST_MIN_SIZE		4
++#define IP_SET_LIST_MAX_SIZE		65536
+ 
+ #endif /* __IP_SET_LIST_H */
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 3e2317f..f87adba 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -597,7 +597,9 @@ init_list_set(struct net *net, struct ip_set *set, u32 size)
+ 	struct set_elem *e;
+ 	u32 i;
+ 
+-	map = kzalloc(sizeof(*map) + size * set->dsize, GFP_KERNEL);
++	map = kzalloc(sizeof(*map) +
++		      min_t(u32, size, IP_SET_LIST_MAX_SIZE) * set->dsize,
++		      GFP_KERNEL);
+ 	if (!map)
+ 		return false;
+ 
+-- 
+1.8.5.1
 
-Thanks,
-Jozsef
-----------------------------------------------------------------
-The following changes since commit afc5be3079796b024823bad42dc5ebf716453575:
-
-  netfilter: nft_meta: Add cpu attribute support (2014-08-24 14:08:46 +0200)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 1b05756c48ea07ced9604ef01d11194d936da163:
-
-  netfilter: ipset: Fix warn: integer overflows 'sizeof(*map) + size * set->dsize' (2014-08-24 19:33:10 +0200)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Fix warn: integer overflows 'sizeof(*map) + size * set->dsize'
-
-Mark Rustad (1):
-      netfilter: ipset: Resolve missing-field-initializer warnings
-
-Sergey Popovich (1):
-      netfilter: ipset: netnet,netportnet: Fix value range support for IPv4
-
-Vytas Dauksa (1):
-      netfilter: ipset: Removed invalid IPSET_ATTR_MARKMASK validation
-
- include/linux/netfilter/ipset/ip_set_list.h  |  1 +
- net/netfilter/ipset/ip_set_bitmap_ip.c       |  4 ++--
- net/netfilter/ipset/ip_set_bitmap_ipmac.c    |  4 ++--
- net/netfilter/ipset/ip_set_bitmap_port.c     |  4 ++--
- net/netfilter/ipset/ip_set_hash_gen.h        |  2 +-
- net/netfilter/ipset/ip_set_hash_ip.c         |  8 ++++----
- net/netfilter/ipset/ip_set_hash_ipport.c     |  8 ++++----
- net/netfilter/ipset/ip_set_hash_ipportip.c   |  8 ++++----
- net/netfilter/ipset/ip_set_hash_netnet.c     | 13 +++++++------
- net/netfilter/ipset/ip_set_hash_netportnet.c |  6 ++++--
- net/netfilter/ipset/ip_set_list_set.c        |  4 +++-
- 11 files changed, 34 insertions(+), 28 deletions(-)
