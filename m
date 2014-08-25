@@ -1,61 +1,159 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 2/4] netfilter: nft_chain_nat_ipv4: use generic IPv4 NAT code from core
-Date: Mon, 25 Aug 2014 14:29:19 +0200
-Message-ID: <1408969761-4556-2-git-send-email-pablo@netfilter.org>
-References: <1408969761-4556-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 1/4] netfilter: nat: move specific NAT IPv4 to core
+Date: Mon, 25 Aug 2014 14:29:18 +0200
+Message-ID: <1408969761-4556-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60246 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60242 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932217AbaHYM2y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Aug 2014 08:28:54 -0400
-In-Reply-To: <1408969761-4556-1-git-send-email-pablo@netfilter.org>
+	id S932211AbaHYM2x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Aug 2014 08:28:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the exported IPv4 NAT functions that are provided by the core. This
-removes duplicated code so iptables and nft use the same NAT codebase.
+Move the specific NAT IPv4 core functions that are called from the
+hooks from iptable_nat.c to nf_nat_l3proto_ipv4.c. This prepares the
+ground to allow iptables and nft to use the same NAT engine code that
+comes in a follow up patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nft_chain_nat_ipv4.c |  157 ++++++++-----------------------
- 1 file changed, 37 insertions(+), 120 deletions(-)
+ include/net/netfilter/nf_nat_l3proto.h   |   38 +++++
+ net/ipv4/netfilter/iptable_nat.c         |  233 +++++-------------------------
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c |  199 +++++++++++++++++++++++++
+ 3 files changed, 271 insertions(+), 199 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-index 3964157..df547bf 100644
---- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-@@ -26,136 +26,53 @@
- #include <net/netfilter/nf_nat_l3proto.h>
- #include <net/ip.h>
+diff --git a/include/net/netfilter/nf_nat_l3proto.h b/include/net/netfilter/nf_nat_l3proto.h
+index 5a2919b..bc2d515 100644
+--- a/include/net/netfilter/nf_nat_l3proto.h
++++ b/include/net/netfilter/nf_nat_l3proto.h
+@@ -42,6 +42,44 @@ const struct nf_nat_l3proto *__nf_nat_l3proto_find(u8 l3proto);
+ int nf_nat_icmp_reply_translation(struct sk_buff *skb, struct nf_conn *ct,
+ 				  enum ip_conntrack_info ctinfo,
+ 				  unsigned int hooknum);
++
++unsigned int nf_nat_ipv4_in(const struct nf_hook_ops *ops, struct sk_buff *skb,
++			    const struct net_device *in,
++			    const struct net_device *out,
++			    unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++						     struct sk_buff *skb,
++						     const struct net_device *in,
++						     const struct net_device *out,
++						     struct nf_conn *ct));
++
++unsigned int nf_nat_ipv4_out(const struct nf_hook_ops *ops, struct sk_buff *skb,
++			     const struct net_device *in,
++			     const struct net_device *out,
++			     unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++						      struct sk_buff *skb,
++						      const struct net_device *in,
++						      const struct net_device *out,
++						      struct nf_conn *ct));
++
++unsigned int nf_nat_ipv4_local_fn(const struct nf_hook_ops *ops,
++				  struct sk_buff *skb,
++				  const struct net_device *in,
++				  const struct net_device *out,
++				  unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++							   struct sk_buff *skb,
++							   const struct net_device *in,
++							   const struct net_device *out,
++							   struct nf_conn *ct));
++
++unsigned int nf_nat_ipv4_fn(const struct nf_hook_ops *ops, struct sk_buff *skb,
++			    const struct net_device *in,
++			    const struct net_device *out,
++			    unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++						     struct sk_buff *skb,
++						     const struct net_device *in,
++						     const struct net_device *out,
++						     struct nf_conn *ct));
++
+ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb, struct nf_conn *ct,
+ 				    enum ip_conntrack_info ctinfo,
+ 				    unsigned int hooknum, unsigned int hdrlen);
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index f1787c0..6b67d7e 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -28,222 +28,57 @@ static const struct xt_table nf_nat_ipv4_table = {
+ 	.af		= NFPROTO_IPV4,
+ };
  
--/*
-- * NAT chains
-- */
+-static unsigned int alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
+-{
+-	/* Force range to this IP; let proto decide mapping for
+-	 * per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
+-	 */
+-	struct nf_nat_range range;
 -
--static unsigned int nf_nat_fn(const struct nf_hook_ops *ops,
--			      struct sk_buff *skb,
--			      const struct net_device *in,
--			      const struct net_device *out,
--			      int (*okfn)(struct sk_buff *))
-+static unsigned int nft_nat_do_chain(const struct nf_hook_ops *ops,
-+				      struct sk_buff *skb,
-+				      const struct net_device *in,
-+				      const struct net_device *out,
-+				      struct nf_conn *ct)
+-	range.flags = 0;
+-	pr_debug("Allocating NULL binding for %p (%pI4)\n", ct,
+-		 HOOK2MANIP(hooknum) == NF_NAT_MANIP_SRC ?
+-		 &ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip :
+-		 &ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip);
+-
+-	return nf_nat_setup_info(ct, &range, HOOK2MANIP(hooknum));
+-}
+-
+-static unsigned int nf_nat_rule_find(struct sk_buff *skb, unsigned int hooknum,
+-				     const struct net_device *in,
+-				     const struct net_device *out,
+-				     struct nf_conn *ct)
++static unsigned int iptable_nat_do_chain(const struct nf_hook_ops *ops,
++					 struct sk_buff *skb,
++					 const struct net_device *in,
++					 const struct net_device *out,
++					 struct nf_conn *ct)
  {
--	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
--	struct nf_conn_nat *nat;
--	enum nf_nat_manip_type maniptype = HOOK2MANIP(ops->hooknum);
- 	struct nft_pktinfo pkt;
+ 	struct net *net = nf_ct_net(ct);
 -	unsigned int ret;
+ 
+-	ret = ipt_do_table(skb, hooknum, in, out, net->ipv4.nat_table);
+-	if (ret == NF_ACCEPT) {
+-		if (!nf_nat_initialized(ct, HOOK2MANIP(hooknum)))
+-			ret = alloc_null_binding(ct, hooknum);
+-	}
+-	return ret;
++	return ipt_do_table(skb, ops->hooknum, in, out, net->ipv4.nat_table);
+ }
+ 
+-static unsigned int
+-nf_nat_ipv4_fn(const struct nf_hook_ops *ops,
+-	       struct sk_buff *skb,
+-	       const struct net_device *in,
+-	       const struct net_device *out,
+-	       int (*okfn)(struct sk_buff *))
++static unsigned int iptable_nat_ipv4_fn(const struct nf_hook_ops *ops,
++					struct sk_buff *skb,
++					const struct net_device *in,
++					const struct net_device *out,
++					int (*okfn)(struct sk_buff *))
+ {
+-	struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_conn_nat *nat;
+-	/* maniptype == SRC for postrouting. */
+-	enum nf_nat_manip_type maniptype = HOOK2MANIP(ops->hooknum);
 -
--	if (ct == NULL || nf_ct_is_untracked(ct))
+-	/* We never see fragments: conntrack defrags on pre-routing
+-	 * and local-out, and nf_nat_out protects post-routing.
+-	 */
+-	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	/* Can't track?  It's not due to stress, or conntrack would
+-	 * have dropped it.  Hence it's the user's responsibilty to
+-	 * packet filter it out, or implement conntrack/NAT for that
+-	 * protocol. 8) --RR
+-	 */
+-	if (!ct)
 -		return NF_ACCEPT;
 -
--	NF_CT_ASSERT(!(ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)));
+-	/* Don't try to NAT if this packet is not conntracked */
+-	if (nf_ct_is_untracked(ct))
+-		return NF_ACCEPT;
 -
 -	nat = nf_ct_nat_ext_add(ct);
 -	if (nat == NULL)
@@ -63,7 +161,7 @@ index 3964157..df547bf 100644
 -
 -	switch (ctinfo) {
 -	case IP_CT_RELATED:
--	case IP_CT_RELATED + IP_CT_IS_REPLY:
+-	case IP_CT_RELATED_REPLY:
 -		if (ip_hdr(skb)->protocol == IPPROTO_ICMP) {
 -			if (!nf_nat_icmp_reply_translation(skb, ct, ctinfo,
 -							   ops->hooknum))
@@ -71,146 +169,405 @@ index 3964157..df547bf 100644
 -			else
 -				return NF_ACCEPT;
 -		}
--		/* Fall through */
+-		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
 -	case IP_CT_NEW:
--		if (nf_nat_initialized(ct, maniptype))
--			break;
- 
--		nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
- 
--		ret = nft_do_chain(&pkt, ops);
--		if (ret != NF_ACCEPT)
--			return ret;
+-		/* Seen it before?  This can happen for loopback, retrans,
+-		 * or local packets.
+-		 */
 -		if (!nf_nat_initialized(ct, maniptype)) {
--			ret = nf_nat_alloc_null_binding(ct, ops->hooknum);
+-			unsigned int ret;
+-
+-			ret = nf_nat_rule_find(skb, ops->hooknum, in, out, ct);
 -			if (ret != NF_ACCEPT)
 -				return ret;
+-		} else {
+-			pr_debug("Already setup manip %s for ct %p\n",
+-				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
+-				 ct);
+-			if (nf_nat_oif_changed(ops->hooknum, ctinfo, nat, out))
+-				goto oif_changed;
 -		}
--	default:
 -		break;
+-
+-	default:
+-		/* ESTABLISHED */
+-		NF_CT_ASSERT(ctinfo == IP_CT_ESTABLISHED ||
+-			     ctinfo == IP_CT_ESTABLISHED_REPLY);
+-		if (nf_nat_oif_changed(ops->hooknum, ctinfo, nat, out))
+-			goto oif_changed;
 -	}
 -
 -	return nf_nat_packet(ct, ctinfo, ops->hooknum, skb);
-+	return nft_do_chain(&pkt, ops);
+-
+-oif_changed:
+-	nf_ct_kill_acct(ct, ctinfo, skb);
+-	return NF_DROP;
++	return nf_nat_ipv4_fn(ops, skb, in, out, iptable_nat_do_chain);
  }
  
--static unsigned int nf_nat_prerouting(const struct nf_hook_ops *ops,
--				      struct sk_buff *skb,
--				      const struct net_device *in,
--				      const struct net_device *out,
--				      int (*okfn)(struct sk_buff *))
-+static unsigned int nft_nat_ipv4_fn(const struct nf_hook_ops *ops,
-+				    struct sk_buff *skb,
-+				    const struct net_device *in,
-+				    const struct net_device *out,
-+				    int (*okfn)(struct sk_buff *))
+-static unsigned int
+-nf_nat_ipv4_in(const struct nf_hook_ops *ops,
+-	       struct sk_buff *skb,
+-	       const struct net_device *in,
+-	       const struct net_device *out,
+-	       int (*okfn)(struct sk_buff *))
++static unsigned int iptable_nat_ipv4_in(const struct nf_hook_ops *ops,
++					struct sk_buff *skb,
++					const struct net_device *in,
++					const struct net_device *out,
++					int (*okfn)(struct sk_buff *))
  {
+-	unsigned int ret;
 -	__be32 daddr = ip_hdr(skb)->daddr;
--	unsigned int ret;
 -
--	ret = nf_nat_fn(ops, skb, in, out, okfn);
+-	ret = nf_nat_ipv4_fn(ops, skb, in, out, okfn);
 -	if (ret != NF_DROP && ret != NF_STOLEN &&
--	    ip_hdr(skb)->daddr != daddr) {
+-	    daddr != ip_hdr(skb)->daddr)
 -		skb_dst_drop(skb);
--	}
+-
 -	return ret;
-+	return nf_nat_ipv4_fn(ops, skb, in, out, nft_nat_do_chain);
++	return nf_nat_ipv4_in(ops, skb, in, out, iptable_nat_do_chain);
  }
  
--static unsigned int nf_nat_postrouting(const struct nf_hook_ops *ops,
--				       struct sk_buff *skb,
--				       const struct net_device *in,
--				       const struct net_device *out,
--				       int (*okfn)(struct sk_buff *))
-+static unsigned int nft_nat_ipv4_in(const struct nf_hook_ops *ops,
-+				    struct sk_buff *skb,
-+				    const struct net_device *in,
-+				    const struct net_device *out,
-+				    int (*okfn)(struct sk_buff *))
+-static unsigned int
+-nf_nat_ipv4_out(const struct nf_hook_ops *ops,
+-		struct sk_buff *skb,
+-		const struct net_device *in,
+-		const struct net_device *out,
+-		int (*okfn)(struct sk_buff *))
++static unsigned int iptable_nat_ipv4_out(const struct nf_hook_ops *ops,
++					 struct sk_buff *skb,
++					 const struct net_device *in,
++					 const struct net_device *out,
++					 int (*okfn)(struct sk_buff *))
  {
--	enum ip_conntrack_info ctinfo __maybe_unused;
--	const struct nf_conn *ct __maybe_unused;
+-#ifdef CONFIG_XFRM
+-	const struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+-	int err;
+-#endif
 -	unsigned int ret;
 -
--	ret = nf_nat_fn(ops, skb, in, out, okfn);
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+-	ret = nf_nat_ipv4_fn(ops, skb, in, out, okfn);
 -#ifdef CONFIG_XFRM
 -	if (ret != NF_DROP && ret != NF_STOLEN &&
+-	    !(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
 -	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
 -		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
 -
--		if (ct->tuplehash[dir].tuple.src.u3.ip !=
--		    ct->tuplehash[!dir].tuple.dst.u3.ip ||
--		    ct->tuplehash[dir].tuple.src.u.all !=
--		    ct->tuplehash[!dir].tuple.dst.u.all)
--			return nf_xfrm_me_harder(skb, AF_INET) == 0 ?
--								ret : NF_DROP;
+-		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
+-		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
+-		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
+-		     ct->tuplehash[dir].tuple.src.u.all !=
+-		     ct->tuplehash[!dir].tuple.dst.u.all)) {
+-			err = nf_xfrm_me_harder(skb, AF_INET);
+-			if (err < 0)
+-				ret = NF_DROP_ERR(err);
+-		}
 -	}
 -#endif
 -	return ret;
-+	return nf_nat_ipv4_in(ops, skb, in, out, nft_nat_do_chain);
++	return nf_nat_ipv4_out(ops, skb, in, out, iptable_nat_do_chain);
  }
  
--static unsigned int nf_nat_output(const struct nf_hook_ops *ops,
--				  struct sk_buff *skb,
--				  const struct net_device *in,
--				  const struct net_device *out,
--				  int (*okfn)(struct sk_buff *))
-+static unsigned int nft_nat_ipv4_out(const struct nf_hook_ops *ops,
-+				     struct sk_buff *skb,
-+				     const struct net_device *in,
-+				     const struct net_device *out,
-+				     int (*okfn)(struct sk_buff *))
+-static unsigned int
+-nf_nat_ipv4_local_fn(const struct nf_hook_ops *ops,
+-		     struct sk_buff *skb,
+-		     const struct net_device *in,
+-		     const struct net_device *out,
+-		     int (*okfn)(struct sk_buff *))
++static unsigned int iptable_nat_ipv4_local_fn(const struct nf_hook_ops *ops,
++					      struct sk_buff *skb,
++					      const struct net_device *in,
++					      const struct net_device *out,
++					      int (*okfn)(struct sk_buff *))
  {
--	enum ip_conntrack_info ctinfo;
 -	const struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
 -	unsigned int ret;
+-	int err;
 -
--	ret = nf_nat_fn(ops, skb, in, out, okfn);
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+-	ret = nf_nat_ipv4_fn(ops, skb, in, out, okfn);
 -	if (ret != NF_DROP && ret != NF_STOLEN &&
 -	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
 -		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
-+	return nf_nat_ipv4_out(ops, skb, in, out, nft_nat_do_chain);
-+}
- 
+-
 -		if (ct->tuplehash[dir].tuple.dst.u3.ip !=
 -		    ct->tuplehash[!dir].tuple.src.u3.ip) {
--			if (ip_route_me_harder(skb, RTN_UNSPEC))
--				ret = NF_DROP;
+-			err = ip_route_me_harder(skb, RTN_UNSPEC);
+-			if (err < 0)
+-				ret = NF_DROP_ERR(err);
 -		}
 -#ifdef CONFIG_XFRM
--		else if (ct->tuplehash[dir].tuple.dst.u.all !=
--			 ct->tuplehash[!dir].tuple.src.u.all)
--			if (nf_xfrm_me_harder(skb, AF_INET))
--				ret = NF_DROP;
+-		else if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
+-			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
+-			 ct->tuplehash[dir].tuple.dst.u.all !=
+-			 ct->tuplehash[!dir].tuple.src.u.all) {
+-			err = nf_xfrm_me_harder(skb, AF_INET);
+-			if (err < 0)
+-				ret = NF_DROP_ERR(err);
+-		}
 -#endif
 -	}
 -	return ret;
-+static unsigned int nft_nat_ipv4_local_fn(const struct nf_hook_ops *ops,
++	return nf_nat_ipv4_local_fn(ops, skb, in, out, iptable_nat_do_chain);
+ }
+ 
+ static struct nf_hook_ops nf_nat_ipv4_ops[] __read_mostly = {
+ 	/* Before packet filtering, change destination */
+ 	{
+-		.hook		= nf_nat_ipv4_in,
++		.hook		= iptable_nat_ipv4_in,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+@@ -251,7 +86,7 @@ static struct nf_hook_ops nf_nat_ipv4_ops[] __read_mostly = {
+ 	},
+ 	/* After packet filtering, change source */
+ 	{
+-		.hook		= nf_nat_ipv4_out,
++		.hook		= iptable_nat_ipv4_out,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+@@ -259,7 +94,7 @@ static struct nf_hook_ops nf_nat_ipv4_ops[] __read_mostly = {
+ 	},
+ 	/* Before packet filtering, change destination */
+ 	{
+-		.hook		= nf_nat_ipv4_local_fn,
++		.hook		= iptable_nat_ipv4_local_fn,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+@@ -267,7 +102,7 @@ static struct nf_hook_ops nf_nat_ipv4_ops[] __read_mostly = {
+ 	},
+ 	/* After packet filtering, change source */
+ 	{
+-		.hook		= nf_nat_ipv4_fn,
++		.hook		= iptable_nat_ipv4_fn,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index 14f5ccd..fc37711 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -254,6 +254,205 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_icmp_reply_translation);
+ 
++unsigned int
++nf_nat_ipv4_fn(const struct nf_hook_ops *ops, struct sk_buff *skb,
++	       const struct net_device *in, const struct net_device *out,
++	       unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++					struct sk_buff *skb,
++					const struct net_device *in,
++					const struct net_device *out,
++					struct nf_conn *ct))
++{
++	struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn_nat *nat;
++	/* maniptype == SRC for postrouting. */
++	enum nf_nat_manip_type maniptype = HOOK2MANIP(ops->hooknum);
++
++	/* We never see fragments: conntrack defrags on pre-routing
++	 * and local-out, and nf_nat_out protects post-routing.
++	 */
++	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
++
++	ct = nf_ct_get(skb, &ctinfo);
++	/* Can't track?  It's not due to stress, or conntrack would
++	 * have dropped it.  Hence it's the user's responsibilty to
++	 * packet filter it out, or implement conntrack/NAT for that
++	 * protocol. 8) --RR
++	 */
++	if (!ct)
++		return NF_ACCEPT;
++
++	/* Don't try to NAT if this packet is not conntracked */
++	if (nf_ct_is_untracked(ct))
++		return NF_ACCEPT;
++
++	nat = nf_ct_nat_ext_add(ct);
++	if (nat == NULL)
++		return NF_ACCEPT;
++
++	switch (ctinfo) {
++	case IP_CT_RELATED:
++	case IP_CT_RELATED_REPLY:
++		if (ip_hdr(skb)->protocol == IPPROTO_ICMP) {
++			if (!nf_nat_icmp_reply_translation(skb, ct, ctinfo,
++							   ops->hooknum))
++				return NF_DROP;
++			else
++				return NF_ACCEPT;
++		}
++		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
++	case IP_CT_NEW:
++		/* Seen it before?  This can happen for loopback, retrans,
++		 * or local packets.
++		 */
++		if (!nf_nat_initialized(ct, maniptype)) {
++			unsigned int ret;
++
++			ret = do_chain(ops, skb, in, out, ct);
++			if (ret != NF_ACCEPT)
++				return ret;
++
++			if (nf_nat_initialized(ct, HOOK2MANIP(ops->hooknum)))
++				break;
++
++			ret = nf_nat_alloc_null_binding(ct, ops->hooknum);
++			if (ret != NF_ACCEPT)
++				return ret;
++		} else {
++			pr_debug("Already setup manip %s for ct %p\n",
++				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
++				 ct);
++			if (nf_nat_oif_changed(ops->hooknum, ctinfo, nat, out))
++				goto oif_changed;
++		}
++		break;
++
++	default:
++		/* ESTABLISHED */
++		NF_CT_ASSERT(ctinfo == IP_CT_ESTABLISHED ||
++			     ctinfo == IP_CT_ESTABLISHED_REPLY);
++		if (nf_nat_oif_changed(ops->hooknum, ctinfo, nat, out))
++			goto oif_changed;
++	}
++
++	return nf_nat_packet(ct, ctinfo, ops->hooknum, skb);
++
++oif_changed:
++	nf_ct_kill_acct(ct, ctinfo, skb);
++	return NF_DROP;
++}
++EXPORT_SYMBOL_GPL(nf_nat_ipv4_fn);
++
++unsigned int
++nf_nat_ipv4_in(const struct nf_hook_ops *ops, struct sk_buff *skb,
++	       const struct net_device *in, const struct net_device *out,
++	       unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++					 struct sk_buff *skb,
++					 const struct net_device *in,
++					 const struct net_device *out,
++					 struct nf_conn *ct))
++{
++	unsigned int ret;
++	__be32 daddr = ip_hdr(skb)->daddr;
++
++	ret = nf_nat_ipv4_fn(ops, skb, in, out, do_chain);
++	if (ret != NF_DROP && ret != NF_STOLEN &&
++	    daddr != ip_hdr(skb)->daddr)
++		skb_dst_drop(skb);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_nat_ipv4_in);
++
++unsigned int
++nf_nat_ipv4_out(const struct nf_hook_ops *ops, struct sk_buff *skb,
++		const struct net_device *in, const struct net_device *out,
++		unsigned int (*do_chain)(const struct nf_hook_ops *ops,
 +					  struct sk_buff *skb,
 +					  const struct net_device *in,
 +					  const struct net_device *out,
-+					  int (*okfn)(struct sk_buff *))
++					  struct nf_conn *ct))
 +{
-+	return nf_nat_ipv4_local_fn(ops, skb, in, out, nft_nat_do_chain);
- }
- 
- static const struct nf_chain_type nft_chain_nat_ipv4 = {
-@@ -168,10 +85,10 @@ static const struct nf_chain_type nft_chain_nat_ipv4 = {
- 			  (1 << NF_INET_LOCAL_OUT) |
- 			  (1 << NF_INET_LOCAL_IN),
- 	.hooks		= {
--		[NF_INET_PRE_ROUTING]	= nf_nat_prerouting,
--		[NF_INET_POST_ROUTING]	= nf_nat_postrouting,
--		[NF_INET_LOCAL_OUT]	= nf_nat_output,
--		[NF_INET_LOCAL_IN]	= nf_nat_fn,
-+		[NF_INET_PRE_ROUTING]	= nft_nat_ipv4_in,
-+		[NF_INET_POST_ROUTING]	= nft_nat_ipv4_out,
-+		[NF_INET_LOCAL_OUT]	= nft_nat_ipv4_local_fn,
-+		[NF_INET_LOCAL_IN]	= nft_nat_ipv4_fn,
- 	},
- };
- 
++#ifdef CONFIG_XFRM
++	const struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++	int err;
++#endif
++	unsigned int ret;
++
++	/* root is playing with raw sockets. */
++	if (skb->len < sizeof(struct iphdr) ||
++	    ip_hdrlen(skb) < sizeof(struct iphdr))
++		return NF_ACCEPT;
++
++	ret = nf_nat_ipv4_fn(ops, skb, in, out, do_chain);
++#ifdef CONFIG_XFRM
++	if (ret != NF_DROP && ret != NF_STOLEN &&
++	    !(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
++	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
++		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++
++		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
++		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
++		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++		     ct->tuplehash[dir].tuple.src.u.all !=
++		     ct->tuplehash[!dir].tuple.dst.u.all)) {
++			err = nf_xfrm_me_harder(skb, AF_INET);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
++	}
++#endif
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_nat_ipv4_out);
++
++unsigned int
++nf_nat_ipv4_local_fn(const struct nf_hook_ops *ops, struct sk_buff *skb,
++		     const struct net_device *in, const struct net_device *out,
++		     unsigned int (*do_chain)(const struct nf_hook_ops *ops,
++					       struct sk_buff *skb,
++					       const struct net_device *in,
++					       const struct net_device *out,
++					       struct nf_conn *ct))
++{
++	const struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++	unsigned int ret;
++	int err;
++
++	/* root is playing with raw sockets. */
++	if (skb->len < sizeof(struct iphdr) ||
++	    ip_hdrlen(skb) < sizeof(struct iphdr))
++		return NF_ACCEPT;
++
++	ret = nf_nat_ipv4_fn(ops, skb, in, out, do_chain);
++	if (ret != NF_DROP && ret != NF_STOLEN &&
++	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
++		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++
++		if (ct->tuplehash[dir].tuple.dst.u3.ip !=
++		    ct->tuplehash[!dir].tuple.src.u3.ip) {
++			err = ip_route_me_harder(skb, RTN_UNSPEC);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
++#ifdef CONFIG_XFRM
++		else if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
++			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++			 ct->tuplehash[dir].tuple.dst.u.all !=
++			 ct->tuplehash[!dir].tuple.src.u.all) {
++			err = nf_xfrm_me_harder(skb, AF_INET);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
++#endif
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_nat_ipv4_local_fn);
++
+ static int __init nf_nat_l3proto_ipv4_init(void)
+ {
+ 	int err;
 -- 
 1.7.10.4
 
