@@ -1,98 +1,97 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH v3 1/5] netfilter: nf_tables: refactor rule
- deletion helper
-Date: Tue, 26 Aug 2014 17:05:56 +0200
-Message-ID: <20140826150500.3669.95959.stgit@nfdev.cica.es>
+Subject: [nf_tables PATCH v3 2/5] netfilter: nf_tables: add helper to
+ unregister chain hooks
+Date: Tue, 26 Aug 2014 17:06:28 +0200
+Message-ID: <20140826150603.3669.79325.stgit@nfdev.cica.es>
+References: <20140826150500.3669.95959.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38386 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:38398 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751665AbaHZPGH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 11:06:07 -0400
+	id S1751665AbaHZPGg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 11:06:36 -0400
+In-Reply-To: <20140826150500.3669.95959.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This helper function always schedule the rule to be removed in the following
-transaction.
-In follow-up patches, it is interesting to handle separately the logic of rule
-activation/disactivation from the transaction mechanism.
+This patch adds a helper function to unregister chain hooks in the chain
+deletion path. Basically, a code factorization.
 
-So, this patch simply splits the original nf_tables_delrule_one() in two
-functions, allowing further control.
-
-While at it, for the sake of homigeneize the function naming scheme, let's
-rename nf_tables_delrule_one() to nft_delrule().
+The new function is useful in follow-up patches.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-v2: no changes, resending the series.
-v3: change 'disactivate' and use 'deactivate'. Requested by Patrick.
+v2: rebased
+v3: no changes, resending the series.
 
- net/netfilter/nf_tables_api.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index deeb95f..3664bab 100644
+index 3664bab..90e3496 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1868,12 +1868,10 @@ err1:
+@@ -127,6 +127,15 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
  }
  
- static int
--nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
-+nf_tables_delrule_deactivate(struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	/* You cannot delete the same rule twice */
- 	if (nft_rule_is_active_next(ctx->net, rule)) {
--		if (nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule) == NULL)
--			return -ENOMEM;
- 		nft_rule_disactivate_next(ctx->net, rule);
- 		ctx->chain->use--;
- 		return 0;
-@@ -1881,13 +1879,31 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
- 	return -ENOENT;
- }
- 
-+static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
++static void nf_tables_unregister_hooks(const struct nft_table *table,
++				       const struct nft_chain *chain,
++				       unsigned int hook_nops)
 +{
-+	struct nft_trans *trans;
-+	int err;
-+
-+	trans = nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule);
-+	if (trans == NULL)
-+		return -ENOMEM;
-+
-+	err = nf_tables_delrule_deactivate(ctx, rule);
-+	if (err < 0) {
-+		nft_trans_destroy(trans);
-+		return err;
-+	}
-+
-+	return 0;
++	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
++	    chain->flags & NFT_BASE_CHAIN)
++		nf_unregister_hooks(nft_base_chain(chain)->ops, hook_nops);
 +}
 +
- static int nf_table_delrule_by_chain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule;
- 	int err;
- 
- 	list_for_each_entry(rule, &ctx->chain->rules, list) {
--		err = nf_tables_delrule_one(ctx, rule);
-+		err = nft_delrule(ctx, rule);
- 		if (err < 0)
- 			return err;
- 	}
-@@ -1932,7 +1948,7 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
- 			if (IS_ERR(rule))
- 				return PTR_ERR(rule);
- 
--			err = nf_tables_delrule_one(&ctx, rule);
-+			err = nft_delrule(&ctx, rule);
- 		} else {
- 			err = nf_table_delrule_by_chain(&ctx);
- 		}
+ /*
+  * Tables
+  */
+@@ -1157,11 +1166,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	list_add_tail_rcu(&chain->list, &table->chains);
+ 	return 0;
+ err2:
+-	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+-	    chain->flags & NFT_BASE_CHAIN) {
+-		nf_unregister_hooks(nft_base_chain(chain)->ops,
+-				    afi->nops);
+-	}
++	nf_tables_unregister_hooks(table, chain, afi->nops);
+ err1:
+ 	nf_tables_chain_destroy(chain);
+ 	return err;
+@@ -3368,11 +3373,9 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+-			if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-			    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-				nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-						    trans->ctx.afi->nops);
+-			}
++			nf_tables_unregister_hooks(trans->ctx.table,
++						   trans->ctx.chain,
++						   trans->ctx.afi->nops);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			nft_rule_clear(trans->ctx.net, nft_trans_rule(trans));
+@@ -3495,11 +3498,9 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 			} else {
+ 				trans->ctx.table->use--;
+ 				list_del_rcu(&trans->ctx.chain->list);
+-				if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-				    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-					nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-							    trans->ctx.afi->nops);
+-				}
++				nf_tables_unregister_hooks(trans->ctx.table,
++							   trans->ctx.chain,
++							   trans->ctx.afi->nops);
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
 
