@@ -1,61 +1,94 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [{ip,ip6}tables-compat PATCH] nft: fix network prefixes
-Date: Tue, 26 Aug 2014 10:55:13 +0200
-Message-ID: <20140826085513.GA3800@salvia>
-References: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH 2/5] netfilter: nf_tables: add helper to unregister
+ chain hooks
+Date: Tue, 26 Aug 2014 11:56:45 +0200
+Message-ID: <20140826095644.3266.53765.stgit@nfdev.cica.es>
+References: <20140826095238.3266.80742.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55178 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932421AbaHZIyi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 04:54:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:47541 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757298AbaHZJ4s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 05:56:48 -0400
+In-Reply-To: <20140826095238.3266.80742.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 25, 2014 at 10:54:56PM +0200, Giuseppe Longo wrote:
-> This is fixing the network prefixes (eg. /24) in the {ip,ip6} compat utility
-> 
-> The following below
+This patch adds a helper function to unregister chain hooks in the chain
+deletion path. Basically, a code factorization.
 
-Please, include the command line that generates this code as well.
+The new function is useful in follow-up patches.
 
-> generate respectively the following netlink code:
-> ip filter INPUT 20
->   [ payload load 1b @ network header + 9 => reg 1 ]
->   [ cmp eq reg 1 0x00000006 ]
->   [ payload load 4b @ network header + 12 => reg 1 ]
->   [ cmp eq reg 1 0x0000a8c0 ]
->   [ match name tcp rev 0 ]
->   [ match name conntrack rev 3 ]
->   [ counter pkts 0 bytes 0 ]
->   [ immediate reg 0 accept ]
-> 
-> ip6 filter INPUT 36
->   [ payload load 16b @ network header + 8 => reg 1 ]
->   [ cmp eq reg 1 0x00004023 0x00000000 0x00000000 0x00000000 ]
->   [ counter pkts 0 bytes 0 ]
->   [ immediate reg 0 accept ]
-> 
-> With this patch the netlink code becomes:
-> 
-> ip filter INPUT 20
->   [ payload load 1b @ network header + 9 => reg 1 ]
->   [ cmp eq reg 1 0x00000006 ]
->   [ payload load 4b @ network header + 12 => reg 1 ]
->   [ cmp eq reg 1 0x0000a8c0 ]
->   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ net/netfilter/nf_tables_api.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-# nft --debug=netlink add rule filter test ip saddr 192.168.0.0/24
-ip filter test 
-  [ payload load 4b @ network header + 12 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
-  [ cmp eq reg 1 0x0000a8c0 ]
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 76c2c45..df024dd 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -127,6 +127,15 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
++static void nf_tables_unregister_hooks(const struct nft_table *table,
++				       const struct nft_chain *chain,
++				       unsigned int hook_nops)
++{
++	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
++	    chain->flags & NFT_BASE_CHAIN)
++		nf_unregister_hooks(nft_base_chain(chain)->ops, hook_nops);
++}
++
+ /*
+  * Tables
+  */
+@@ -1133,11 +1142,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	list_add_tail(&chain->list, &table->chains);
+ 	return 0;
+ err2:
+-	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+-	    chain->flags & NFT_BASE_CHAIN) {
+-		nf_unregister_hooks(nft_base_chain(chain)->ops,
+-				    afi->nops);
+-	}
++	nf_tables_unregister_hooks(table, chain, afi->nops);
+ err1:
+ 	nf_tables_chain_destroy(chain);
+ 	return err;
+@@ -3396,11 +3401,9 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+-			if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-			    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-				nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-						    trans->ctx.afi->nops);
+-			}
++			nf_tables_unregister_hooks(trans->ctx.table,
++						   trans->ctx.chain,
++						   trans->ctx.afi->nops);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			nft_rule_clear(trans->ctx.net, nft_trans_rule(trans));
+@@ -3519,11 +3522,9 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 			} else {
+ 				trans->ctx.table->use--;
+ 				list_del(&trans->ctx.chain->list);
+-				if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-				    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-					nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-							    trans->ctx.afi->nops);
+-				}
++				nf_tables_unregister_hooks(trans->ctx.table,
++							   trans->ctx.chain,
++							   trans->ctx.afi->nops);
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
 
-The bitwise has to come before the cmp.
-
-Fix this a send a v2. Thanks.
