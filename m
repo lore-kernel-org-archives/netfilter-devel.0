@@ -1,37 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [{ip,ip6}tables-compat PATCH] nft: fix network prefixes
-Date: Tue, 26 Aug 2014 21:29:18 +0200
-Message-ID: <20140826192918.GA3394@salvia>
-References: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
- <20140826085513.GA3800@salvia>
- <CAFpD06RPw3pMaLHzXWdMZ7BnzXH1Sh7n68biqpR+o4k5j9=Nkg@mail.gmail.com>
- <CAFpD06SEXxqe2297-N-129tK2=Z2tAiV5fs_1Xc9AvWLnsEuVg@mail.gmail.com>
+Subject: Re: [[PATCH v3]] netfilter: nfnetlink_acct: add filter support to
+ nfacct counter list/reset
+Date: Tue, 26 Aug 2014 21:38:19 +0200
+Message-ID: <20140826193819.GA4757@salvia>
+References: <20140820133401.GA7422@salvia>
+ <1408557798-6455-1-git-send-email-a.perevalov@samsung.com>
+ <20140824131537.GA8144@salvia>
+ <BLU436-SMTP8877E9030BB0C55BBF4CC28DDC0@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Giuseppe Longo <giuseppelng@gmail.com>
+Cc: Alexey Perevalov <a.perevalov@samsung.com>,
+	mathieu.poirier@linaro.org, netfilter-devel@vger.kernel.org,
+	kyungmin.park@samsung.com, hs81.go@samsung.com
+To: Alexey Perevalov <alexey.perevalov@hotmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55199 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55774 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753671AbaHZT2s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 15:28:48 -0400
+	id S1752379AbaHZThk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 15:37:40 -0400
 Content-Disposition: inline
-In-Reply-To: <CAFpD06SEXxqe2297-N-129tK2=Z2tAiV5fs_1Xc9AvWLnsEuVg@mail.gmail.com>
+In-Reply-To: <BLU436-SMTP8877E9030BB0C55BBF4CC28DDC0@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 26, 2014 at 01:45:42PM +0200, Giuseppe Longo wrote:
-> I forgot to say that netlink code seems correct:
-> ip filter INPUT 26
->   [ payload load 1b @ network header + 9 => reg 1 ]
->   [ cmp eq reg 1 0x00000006 ]
->   [ payload load 4b @ network header + 12 => reg 1 ]
->   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
->   [ cmp eq reg 1 0x0000a8c0 ]
->   [ match name tcp rev 0 ]
->   [ match name conntrack rev 3 ]
->   [ counter pkts 0 bytes 0 ]
->   [ immediate reg 0 accept ]
+On Tue, Aug 26, 2014 at 11:15:04PM +0400, Alexey Perevalov wrote:
+> Hi
+> On 08/24/2014 05:15 PM, Pablo Neira Ayuso wrote:
+> >Hi,
+> >
+> >On Wed, Aug 20, 2014 at 10:03:18PM +0400, Alexey Perevalov wrote:
+> >>+static struct nfacct_filter *
+> >>+nfacct_filter_alloc(struct nlattr *attrs[NFACCT_FILTER_MAX + 1])
+> >>+{
+> >>+	struct nfacct_filter *filter = kzalloc(sizeof(struct nfacct_filter),
+> >>+					       GFP_KERNEL);
+> >>+	if (!filter)
+> >>+		return ERR_PTR(-ENOMEM);
+> >>+
+> >>+	filter->mask = nla_get_be32(attrs[NFACCT_FILTER_MASK]);
+> >>+	filter->value = nla_get_be32(attrs[NFACCT_FILTER_VALUE]);
+> >We have to use ntohl() here, it's the convention for nfnetlink.
+> >
+> >I'm attaching a patch that resolves this plus some cleanups.
+> >
+> >Please, let me know if you're OK with it. Thanks.
+>
+> Yes, I'm ok with it.
 
-Then, fix the patch description and resubmit, thanks Giuseppe.
-
+Applied, thanks.
