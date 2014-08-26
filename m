@@ -1,36 +1,49 @@
-From: "Mrs Christine Lagarde(IMF DIRECTOR)	" <Christine@imf.org>
-Subject: REGARDING TO YOUR FUNDS ONHOLD WITH IMF==)
-Date: Tue, 26 Aug 2014 11:14:50 -0400
-Message-ID: <9188bc77-1582-44ea-8f53-b0964d05d80b__34824.9060837135$1409067095$gmane$org@ANC-EX1301.apps.ad.alaska.edu>
-Reply-To: <christinelegarde@aol.com>
+From: Alexey Perevalov <alexey.perevalov@hotmail.com>
+Subject: Re: [[PATCH v3]] netfilter: nfnetlink_acct: add filter support to
+ nfacct counter list/reset
+Date: Tue, 26 Aug 2014 23:15:04 +0400
+Message-ID: <BLU436-SMTP8877E9030BB0C55BBF4CC28DDC0@phx.gbl>
+References: <20140820133401.GA7422@salvia> <1408557798-6455-1-git-send-email-a.perevalov@samsung.com> <20140824131537.GA8144@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1251"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Undisclosed recipients:;
+Cc: mathieu.poirier@linaro.org, netfilter-devel@vger.kernel.org,
+	kyungmin.park@samsung.com, hs81.go@samsung.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Alexey Perevalov <a.perevalov@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bl2hn0248.outbound.protection.outlook.com ([65.55.169.248]:34434
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755879AbaHZPbL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 11:31:11 -0400
+Received: from blu004-omc1s25.hotmail.com ([65.55.116.36]:49665 "EHLO
+	BLU004-OMC1S25.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752339AbaHZTUS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 15:20:18 -0400
+In-Reply-To: <20140824131537.GA8144@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Attention: Beneficiary
+Hi
+On 08/24/2014 05:15 PM, Pablo Neira Ayuso wrote:
+> Hi,
+>
+> On Wed, Aug 20, 2014 at 10:03:18PM +0400, Alexey Perevalov wrote:
+>> +static struct nfacct_filter *
+>> +nfacct_filter_alloc(struct nlattr *attrs[NFACCT_FILTER_MAX + 1])
+>> +{
+>> +	struct nfacct_filter *filter = kzalloc(sizeof(struct nfacct_filter),
+>> +					       GFP_KERNEL);
+>> +	if (!filter)
+>> +		return ERR_PTR(-ENOMEM);
+>> +
+>> +	filter->mask = nla_get_be32(attrs[NFACCT_FILTER_MASK]);
+>> +	filter->value = nla_get_be32(attrs[NFACCT_FILTER_VALUE]);
+> We have to use ntohl() here, it's the convention for nfnetlink.
+>
+> I'm attaching a patch that resolves this plus some cleanups.
+>
+> Please, let me know if you're OK with it. Thanks.
+Yes, I'm ok with it.
 
-I am sorry for my late response towards your unpaid fund which Dr. Kahn placed it ONHOLD when he was on sit before his resignation.
+sorry for double braces )
 
-Firstly we introduce this commission, INTERNATIONAL MONETARY FUND (IMF), we fight cuber crime, Internet fraud, scam and money laundering in any part of the world, Our commission has been in existences since 2002 and our duty is to stop internet fraud. We have over 7,500 of them in our jails around Africa and we are still looking for these internet fraudsters and we are aware that a lot of foreigners have been deceived and huge amount of money has also been lost to this fraudsters after promising you percentages in their letters for you to help them move funds and they will end up demanding for money from you and in return you will get nothing.
-
-The Leaders of the Africa Crime fighters, INTERNATIONAL MONETARY FUND (IMF) has come together to inform the world what is going on now and we have recovered over $422 Million Dollars (Four Hundred and Twenty two Million Dollars) from the people we have apprehended. The reason we are writing you this letter is because your name was given to us by one of the fraudsters in our detention room after serious investigation and our aim is to refund all lost fund to its legitimate owner.
-
-However, It is my pleasure to inform you that i have your file on my desk as the new appointed IMF director and i will look forward to hearing from you soon for further question and information before releasing your fund to your designated bank account.
-
-You can know more about me here:http://en.wikipedia.org/wiki/Christine_Lagarde
-
-I wish you and your family wondeful day
-
-Your's Faithfully,
-
-Mrs Christine Lagarde
-Director, IMF
+BR,
+Alexey
