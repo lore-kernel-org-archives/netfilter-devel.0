@@ -1,67 +1,61 @@
-From: Paul Robert Marino <prmarino1@gmail.com>
-Subject: Re: ARP flux on bond interface
-Date: Mon, 25 Aug 2014 17:20:24 -0400
-Message-ID: <CAPJdpdAuF4Db-SJbjnx90qmETBanCZMPv5mVutd=Bxm2Pufytg@mail.gmail.com>
-References: <CAMRqRqwzKEe4-L4Zxp8fciVQc_aN02uBuR9kSWmr3vQHc3xJBA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [{ip,ip6}tables-compat PATCH] nft: fix network prefixes
+Date: Tue, 26 Aug 2014 10:55:13 +0200
+Message-ID: <20140826085513.GA3800@salvia>
+References: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Max Dmitrichenko <dmitrmax@gmail.com>
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:35292 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933469AbaHYVUZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Aug 2014 17:20:25 -0400
-Received: by mail-qg0-f42.google.com with SMTP id j5so13996925qga.29
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Aug 2014 14:20:24 -0700 (PDT)
-In-Reply-To: <CAMRqRqwzKEe4-L4Zxp8fciVQc_aN02uBuR9kSWmr3vQHc3xJBA@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:55178 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932421AbaHZIyi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 04:54:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-That sounds like you have forwarding enabled. disable ip forwarding if
-you can and that should go away.
-In /etc/sysctl.conf set the following "net.ipv4.ip_forward = 0",
-"net.ipv4.conf.all.mc_forwarding = 0", "net.ipv4.ip_forward = 0",
-"net.ipv6.conf.all.forwarding = 0", "net.ipv6.conf.all.mc_forwarding =
-0", etc. which should be the default in SL 6
-In short if you run " sysctl -a |grep forward" and any thing has a 1
-next to it set it to 0 in /etc/sysctl.conf
+On Mon, Aug 25, 2014 at 10:54:56PM +0200, Giuseppe Longo wrote:
+> This is fixing the network prefixes (eg. /24) in the {ip,ip6} compat utility
+> 
+> The following below
 
-then run "sysctl -p"
+Please, include the command line that generates this code as well.
 
-If that does not work you may have a bug, or it could be just a funkie
-routing table. this is why you gennerally dont put 2 or more
-interfaces on the same subnet with different IP addresses if you can
-avoid it.
+> generate respectively the following netlink code:
+> ip filter INPUT 20
+>   [ payload load 1b @ network header + 9 => reg 1 ]
+>   [ cmp eq reg 1 0x00000006 ]
+>   [ payload load 4b @ network header + 12 => reg 1 ]
+>   [ cmp eq reg 1 0x0000a8c0 ]
+>   [ match name tcp rev 0 ]
+>   [ match name conntrack rev 3 ]
+>   [ counter pkts 0 bytes 0 ]
+>   [ immediate reg 0 accept ]
+> 
+> ip6 filter INPUT 36
+>   [ payload load 16b @ network header + 8 => reg 1 ]
+>   [ cmp eq reg 1 0x00004023 0x00000000 0x00000000 0x00000000 ]
+>   [ counter pkts 0 bytes 0 ]
+>   [ immediate reg 0 accept ]
+> 
+> With this patch the netlink code becomes:
+> 
+> ip filter INPUT 20
+>   [ payload load 1b @ network header + 9 => reg 1 ]
+>   [ cmp eq reg 1 0x00000006 ]
+>   [ payload load 4b @ network header + 12 => reg 1 ]
+>   [ cmp eq reg 1 0x0000a8c0 ]
+>   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
 
+# nft --debug=netlink add rule filter test ip saddr 192.168.0.0/24
+ip filter test 
+  [ payload load 4b @ network header + 12 => reg 1 ]
+  [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
+  [ cmp eq reg 1 0x0000a8c0 ]
 
+The bitwise has to come before the cmp.
 
-On Mon, Aug 25, 2014 at 4:47 AM, Max Dmitrichenko <dmitrmax@gmail.com> wrote:
-> Hi!
->
-> There is a strange problem on the following setup.
->
-> There is two bond interfaces in the same IP-subnet (I know this is a
-> little bit weird). Let's say first has IP-address Ai and MAC-address
-> Am and the second Bi and Bm respectively.
->
-> Sometimes when interface B makes an ARP-request, the same request
-> appears on the interface A, but with source MAC-address of B, i.e. Bm.
-> This event poisons the ARP-table of the upstream switch and it sends
-> to A packets addressed to B which are dropped by my host system.
->
-> I've set arp_ignore=1 and tried to set arp_announce to 1 and 2, but
-> neither combination helps.
->
-> Is it kind of bug or it is expected behavior?
->
-> The kernel version is 2.6.32 from Scientific Linux 6.5 (i.e. it is
-> very close to one from RHEL 6).
->
-> --
-> Max
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix this a send a v2. Thanks.
