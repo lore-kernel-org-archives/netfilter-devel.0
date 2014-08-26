@@ -1,8 +1,8 @@
 From: Alexey Perevalov <alexey.perevalov@hotmail.com>
 Subject: Re: [[PATCH v3]] netfilter: nfnetlink_acct: add filter support to
  nfacct counter list/reset
-Date: Tue, 26 Aug 2014 23:15:04 +0400
-Message-ID: <BLU436-SMTP8877E9030BB0C55BBF4CC28DDC0@phx.gbl>
+Date: Tue, 26 Aug 2014 23:24:51 +0400
+Message-ID: <BLU436-SMTP2576F24E6F9020C5D0851AA8DDC0@phx.gbl>
 References: <20140820133401.GA7422@salvia> <1408557798-6455-1-git-send-email-a.perevalov@samsung.com> <20140824131537.GA8144@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
@@ -12,16 +12,17 @@ Cc: mathieu.poirier@linaro.org, netfilter-devel@vger.kernel.org,
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Alexey Perevalov <a.perevalov@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from blu004-omc1s25.hotmail.com ([65.55.116.36]:49665 "EHLO
-	BLU004-OMC1S25.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752339AbaHZTUS (ORCPT
+Received: from blu004-omc1s24.hotmail.com ([65.55.116.35]:55003 "EHLO
+	BLU004-OMC1S24.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753870AbaHZT1R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 15:20:18 -0400
+	Tue, 26 Aug 2014 15:27:17 -0400
 In-Reply-To: <20140824131537.GA8144@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi
+Hi,
+
 On 08/24/2014 05:15 PM, Pablo Neira Ayuso wrote:
 > Hi,
 >
@@ -44,6 +45,7 @@ On 08/24/2014 05:15 PM, Pablo Neira Ayuso wrote:
 Yes, I'm ok with it.
 
 sorry for double braces )
+and thanks  for correction.
 
 BR,
 Alexey
