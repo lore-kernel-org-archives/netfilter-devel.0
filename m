@@ -1,141 +1,54 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH v3 5/5] netfilter: nf_tables: extend
- NFT_MSG_DELTABLE to support flushing the ruleset
-Date: Tue, 26 Aug 2014 17:08:22 +0200
-Message-ID: <20140826150758.3669.81528.stgit@nfdev.cica.es>
-References: <20140826150500.3669.95959.stgit@nfdev.cica.es>
+Subject: Re: [nf_tables PATCH v3 4/5] netfilter: nf_tables: add helpers to
+ schedule objects deletion
+Date: Tue, 26 Aug 2014 17:11:55 +0200
+Message-ID: <CAOkSjBgGPkXiLObGpEcu6UjJEGw4G+wieEGpxQ664hU+5pD7DA@mail.gmail.com>
+References: <20140826150500.3669.95959.stgit@nfdev.cica.es> <20140826150711.3669.25631.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38435 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758540AbaHZPIa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 11:08:30 -0400
-In-Reply-To: <20140826150500.3669.95959.stgit@nfdev.cica.es>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:34616 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933975AbaHZPMR convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 11:12:17 -0400
+Received: by mail-la0-f52.google.com with SMTP id b17so14857932lan.25
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2014 08:12:16 -0700 (PDT)
+In-Reply-To: <20140826150711.3669.25631.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch extend the NFT_MSG_DELTABLE call to support flushing the entire
-ruleset.
+On 26 August 2014 17:07, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> This patch refactor the code to schedule objects deletion.
+>
+> They are useful in follow-up patches.
+>
+> In order to be able to use these new helper functions in all the code=
+,
+> they are placed in the top of the file, with all the dependant functi=
+ons
+> and symbols.
+>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
+>
+> ---
+> v2: rebased: now, nft_del*() functions use list_del_rcu().
+> v3: rebased on top of patch 1/5.
+>
 
-The options now are:
- * No family speficied, no table specified: flush all the ruleset.
- * Family specified, no table specified: flush all tables in the AF.
- * Family specified, table specified: flush the given table.
+Oops, please forget this patch. I sent the wrong series, with this
+patch in bad state.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: address comments by Pablo:
-    * don't return EINVAL if called with AF_UNSPEC and a concrete table.
-    * A more generic function, nft_flush()
-
-v3: no changes, resending the series.
-
- net/netfilter/nf_tables_api.c |   74 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 70 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c0181db..1b90cc7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -705,6 +705,68 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 	return 0;
- }
- 
-+static int nft_flush_table(struct nft_ctx *ctx)
-+{
-+	int err;
-+	struct nft_chain *chain, *nc;
-+	struct nft_set *set, *ns;
-+
-+	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
-+		ctx->chain = chain;
-+
-+		err = nft_delrule_by_chain(ctx);
-+		if (err < 0)
-+			goto out;
-+
-+		err = nft_delchain(ctx);
-+		if (err < 0)
-+			goto out;
-+	}
-+
-+	list_for_each_entry_safe(set, ns, &ctx->table->sets, list) {
-+		if (set->flags & NFT_SET_ANONYMOUS)
-+			continue;
-+
-+		err = nft_delset(ctx, set);
-+		if (err < 0)
-+			goto out;
-+	}
-+
-+	err = nft_deltable(ctx);
-+out:
-+	return err;
-+}
-+
-+static int nft_flush(struct nft_ctx *ctx, int family)
-+{
-+	struct nft_af_info *afi;
-+	struct nft_table *table, *nt;
-+	const struct nlattr * const *nla = ctx->nla;
-+	int err = 0;
-+
-+	list_for_each_entry(afi, &ctx->net->nft.af_info, list) {
-+		if (family != AF_UNSPEC && afi->family != family)
-+			continue;
-+
-+		ctx->afi = afi;
-+
-+		list_for_each_entry_safe(table, nt, &afi->tables, list) {
-+			if (nla[NFTA_TABLE_NAME] &&
-+			    nla_strcmp(nla[NFTA_TABLE_NAME], table->name) != 0)
-+				continue;
-+
-+			ctx->table = table;
-+
-+			err = nft_flush_table(ctx);
-+			if (err < 0)
-+				goto out;
-+		}
-+	}
-+
-+out:
-+	return err;
-+}
-+
- static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 			      const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[])
-@@ -716,6 +778,11 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 	int family = nfmsg->nfgen_family;
- 	struct nft_ctx ctx;
- 
-+	nft_ctx_init(&ctx, skb, nlh, NULL, NULL, NULL, nla);
-+	if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL)
-+		return nft_flush(&ctx, family);
-+
-+
- 	afi = nf_tables_afinfo_lookup(net, family, false);
- 	if (IS_ERR(afi))
- 		return PTR_ERR(afi);
-@@ -725,12 +792,11 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 		return PTR_ERR(table);
- 	if (table->flags & NFT_TABLE_INACTIVE)
- 		return -ENOENT;
--	if (table->use > 0)
--		return -EBUSY;
- 
--	nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
-+	ctx.afi = afi;
-+	ctx.table = table;
- 
--	return nft_deltable(&ctx);
-+	return nft_flush_table(&ctx);
- }
- 
- static void nf_tables_table_destroy(struct nft_ctx *ctx)
-
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
