@@ -1,52 +1,48 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: Re: [{ip,ip6}tables-compat PATCH] nft: fix network prefixes
-Date: Tue, 26 Aug 2014 13:45:42 +0200
-Message-ID: <CAFpD06SEXxqe2297-N-129tK2=Z2tAiV5fs_1Xc9AvWLnsEuVg@mail.gmail.com>
-References: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
-	<20140826085513.GA3800@salvia>
-	<CAFpD06RPw3pMaLHzXWdMZ7BnzXH1Sh7n68biqpR+o4k5j9=Nkg@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nft option to flush out the existing ruleset [was Re: [libnftnl
+ PATCH] examples: add nft-ruleset-replace]
+Date: Tue, 26 Aug 2014 13:14:20 +0100
+Message-ID: <20140826121420.GA22955@acer.localdomain>
+References: <20140826095716.3463.89684.stgit@nfdev.cica.es>
+ <20140826110954.GA5648@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:47118 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415AbaHZLpn (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:62122 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934323AbaHZMO0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 07:45:43 -0400
-Received: by mail-vc0-f175.google.com with SMTP id ik5so16472105vcb.20
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2014 04:45:42 -0700 (PDT)
-In-Reply-To: <CAFpD06RPw3pMaLHzXWdMZ7BnzXH1Sh7n68biqpR+o4k5j9=Nkg@mail.gmail.com>
+	Tue, 26 Aug 2014 08:14:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20140826110954.GA5648@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I forgot to say that netlink code seems correct:
-ip filter INPUT 26
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ payload load 4b @ network header + 12 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
-  [ cmp eq reg 1 0x0000a8c0 ]
-  [ match name tcp rev 0 ]
-  [ match name conntrack rev 3 ]
-  [ counter pkts 0 bytes 0 ]
-  [ immediate reg 0 accept ]
+On Tue, Aug 26, 2014 at 01:09:54PM +0200, Pablo Neira Ayuso wrote:
+> Renaming the subject to make it to start a new discussion on something
+> related. Cc'ing Patrick too, perhaps he can pull some better idea out
+> of his hat.
+> 
+> On Tue, Aug 26, 2014 at 11:57:16AM +0200, Arturo Borrero Gonzalez wrote:
+> > This code examples uses the new NFT_MSG_DELTABLE functionality to replace
+> > an entire ruleset in a single transaction/batch.
+> 
+> Thanks for the example but we already have quite a lot of them, and
+> this is yet another almost copy and paste that would need to be
+> maintained.
+> 
+> Please, implement this in nft. I think we can probably have an -x
+> option, eg.
 
-2014-08-26 13:43 GMT+02:00 Giuseppe Longo <giuseppelng@gmail.com>:
-> Hi Pablo,
-> To fix that the add_cmp_ptr() function should be called after
-> add_bitwise_* in add_addr() function.
-> But this change make the output wrong, see below:
->
-> # iptables-compat -A INPUT -p tcp -s 192.168.0.0/24 --dport 22 -m
-> conntrack --ctstate NEW -j ACCEPT
-> # iptables-compat -L
-> Chain INPUT (policy ACCEPT)
-> target     prot opt source               destination
-> ACCEPT     tcp  --  anywhere             anywhere             tcp
-> dpt:ssh ctstate NEW
->
-> I'm going to investigate more in depth.
->
-> Regards
+Agreed. The naive aproach seems to be something like this:
+
+- add a generation ID to the ruleset
+- dump the entire ruleset
+- generate delete commands for each existing rule/chain/set...
+- generate add commands for each new rule/chain/set...
+- send the entire thing to the kernel, including the generation ID
+- if the generation ID doesn't match, meaning the ruleset has changed
+  since the last dump, return an error to userspace, retry
