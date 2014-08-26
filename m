@@ -1,54 +1,36 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nf_tables PATCH v3 4/5] netfilter: nf_tables: add helpers to
- schedule objects deletion
-Date: Tue, 26 Aug 2014 17:11:55 +0200
-Message-ID: <CAOkSjBgGPkXiLObGpEcu6UjJEGw4G+wieEGpxQ664hU+5pD7DA@mail.gmail.com>
-References: <20140826150500.3669.95959.stgit@nfdev.cica.es> <20140826150711.3669.25631.stgit@nfdev.cica.es>
+From: "Mrs Christine Lagarde(IMF DIRECTOR)	" <Christine@imf.org>
+Subject: REGARDING TO YOUR FUNDS ONHOLD WITH IMF==)
+Date: Tue, 26 Aug 2014 11:14:50 -0400
+Message-ID: <9188bc77-1582-44ea-8f53-b0964d05d80b__34824.9060837135$1409067095$gmane$org@ANC-EX1301.apps.ad.alaska.edu>
+Reply-To: <christinelegarde@aol.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: Undisclosed recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:34616 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933975AbaHZPMR convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Aug 2014 11:12:17 -0400
-Received: by mail-la0-f52.google.com with SMTP id b17so14857932lan.25
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2014 08:12:16 -0700 (PDT)
-In-Reply-To: <20140826150711.3669.25631.stgit@nfdev.cica.es>
+Received: from mail-bl2hn0248.outbound.protection.outlook.com ([65.55.169.248]:34434
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755879AbaHZPbL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Aug 2014 11:31:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26 August 2014 17:07, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> This patch refactor the code to schedule objects deletion.
->
-> They are useful in follow-up patches.
->
-> In order to be able to use these new helper functions in all the code=
-,
-> they are placed in the top of the file, with all the dependant functi=
-ons
-> and symbols.
->
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
->
-> ---
-> v2: rebased: now, nft_del*() functions use list_del_rcu().
-> v3: rebased on top of patch 1/5.
->
+Attention: Beneficiary
 
-Oops, please forget this patch. I sent the wrong series, with this
-patch in bad state.
+I am sorry for my late response towards your unpaid fund which Dr. Kahn placed it ONHOLD when he was on sit before his resignation.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Firstly we introduce this commission, INTERNATIONAL MONETARY FUND (IMF), we fight cuber crime, Internet fraud, scam and money laundering in any part of the world, Our commission has been in existences since 2002 and our duty is to stop internet fraud. We have over 7,500 of them in our jails around Africa and we are still looking for these internet fraudsters and we are aware that a lot of foreigners have been deceived and huge amount of money has also been lost to this fraudsters after promising you percentages in their letters for you to help them move funds and they will end up demanding for money from you and in return you will get nothing.
+
+The Leaders of the Africa Crime fighters, INTERNATIONAL MONETARY FUND (IMF) has come together to inform the world what is going on now and we have recovered over $422 Million Dollars (Four Hundred and Twenty two Million Dollars) from the people we have apprehended. The reason we are writing you this letter is because your name was given to us by one of the fraudsters in our detention room after serious investigation and our aim is to refund all lost fund to its legitimate owner.
+
+However, It is my pleasure to inform you that i have your file on my desk as the new appointed IMF director and i will look forward to hearing from you soon for further question and information before releasing your fund to your designated bank account.
+
+You can know more about me here:http://en.wikipedia.org/wiki/Christine_Lagarde
+
+I wish you and your family wondeful day
+
+Your's Faithfully,
+
+Mrs Christine Lagarde
+Director, IMF
