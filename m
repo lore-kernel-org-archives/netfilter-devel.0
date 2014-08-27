@@ -1,142 +1,51 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH v4 5/5] netfilter: nf_tables: extend
- NFT_MSG_DELTABLE to support flushing the ruleset
-Date: Wed, 27 Aug 2014 09:26:28 +0200
-Message-ID: <20140827072603.2762.62702.stgit@nfdev.cica.es>
-References: <20140827072217.2762.69989.stgit@nfdev.cica.es>
+Subject: Re: [nf_tables PATCH v4 4/5] helpers
+Date: Wed, 27 Aug 2014 09:54:15 +0200
+Message-ID: <CAOkSjBjV5ZJgqGCudbShfv8QuTTM+Jv4XmZ=qb3TZSvMb1Q8pw@mail.gmail.com>
+References: <20140827072217.2762.69989.stgit@nfdev.cica.es> <20140827072447.2762.61934.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55364 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753203AbaH0H0h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Aug 2014 03:26:37 -0400
-In-Reply-To: <20140827072217.2762.69989.stgit@nfdev.cica.es>
+Received: from mail-la0-f54.google.com ([209.85.215.54]:40065 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbaH0Hyh convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Aug 2014 03:54:37 -0400
+Received: by mail-la0-f54.google.com with SMTP id hz20so16375296lab.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2014 00:54:35 -0700 (PDT)
+In-Reply-To: <20140827072447.2762.61934.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch extend the NFT_MSG_DELTABLE call to support flushing the entire
-ruleset.
+On 27 August 2014 09:25, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> This patch refactor the code to schedule objects deletion.
+>
+> They are useful in follow-up patches.
+>
+> In order to be able to use these new helper functions in all the code=
+,
+> they are placed in the top of the file, with all the dependant functi=
+ons
+> and symbols.
+>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
+>
 
-The options now are:
- * No family speficied, no table specified: flush all the ruleset.
- * Family specified, no table specified: flush all tables in the AF.
- * Family specified, table specified: flush the given table.
+The title of the patch is 'netfilter: nf_tables: add helpers to
+schedule objects deletion'.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: address comments by Pablo:
-    * don't return EINVAL if called with AF_UNSPEC and a concrete table.
-    * A more generic function, nft_flush()
+Could you please Pablo amend it?
 
-v3: no changes, resending the series.
-v4: no changes, resending the series because v3 series was invalid.
-
- net/netfilter/nf_tables_api.c |   74 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 70 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8f9bcce..e3410e8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -707,6 +707,68 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 	return 0;
- }
- 
-+static int nft_flush_table(struct nft_ctx *ctx)
-+{
-+	int err;
-+	struct nft_chain *chain, *nc;
-+	struct nft_set *set, *ns;
-+
-+	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
-+		ctx->chain = chain;
-+
-+		err = nft_delrule_by_chain(ctx);
-+		if (err < 0)
-+			goto out;
-+
-+		err = nft_delchain(ctx);
-+		if (err < 0)
-+			goto out;
-+	}
-+
-+	list_for_each_entry_safe(set, ns, &ctx->table->sets, list) {
-+		if (set->flags & NFT_SET_ANONYMOUS)
-+			continue;
-+
-+		err = nft_delset(ctx, set);
-+		if (err < 0)
-+			goto out;
-+	}
-+
-+	err = nft_deltable(ctx);
-+out:
-+	return err;
-+}
-+
-+static int nft_flush(struct nft_ctx *ctx, int family)
-+{
-+	struct nft_af_info *afi;
-+	struct nft_table *table, *nt;
-+	const struct nlattr * const *nla = ctx->nla;
-+	int err = 0;
-+
-+	list_for_each_entry(afi, &ctx->net->nft.af_info, list) {
-+		if (family != AF_UNSPEC && afi->family != family)
-+			continue;
-+
-+		ctx->afi = afi;
-+
-+		list_for_each_entry_safe(table, nt, &afi->tables, list) {
-+			if (nla[NFTA_TABLE_NAME] &&
-+			    nla_strcmp(nla[NFTA_TABLE_NAME], table->name) != 0)
-+				continue;
-+
-+			ctx->table = table;
-+
-+			err = nft_flush_table(ctx);
-+			if (err < 0)
-+				goto out;
-+		}
-+	}
-+
-+out:
-+	return err;
-+}
-+
- static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 			      const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[])
-@@ -718,6 +780,11 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 	int family = nfmsg->nfgen_family;
- 	struct nft_ctx ctx;
- 
-+	nft_ctx_init(&ctx, skb, nlh, NULL, NULL, NULL, nla);
-+	if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL)
-+		return nft_flush(&ctx, family);
-+
-+
- 	afi = nf_tables_afinfo_lookup(net, family, false);
- 	if (IS_ERR(afi))
- 		return PTR_ERR(afi);
-@@ -727,12 +794,11 @@ static int nf_tables_deltable(struct sock *nlsk, struct sk_buff *skb,
- 		return PTR_ERR(table);
- 	if (table->flags & NFT_TABLE_INACTIVE)
- 		return -ENOENT;
--	if (table->use > 0)
--		return -EBUSY;
- 
--	nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
-+	ctx.afi = afi;
-+	ctx.table = table;
- 
--	return nft_deltable(&ctx);
-+	return nft_flush_table(&ctx);
- }
- 
- static void nf_tables_table_destroy(struct nft_ctx *ctx)
-
+thanks.
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
