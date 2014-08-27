@@ -1,212 +1,99 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next] ipvs: reduce stack usage for sockopt data
-Date: Wed, 27 Aug 2014 15:20:43 +0900
-Message-ID: <1409120443-978-2-git-send-email-horms@verge.net.au>
-References: <1409120443-978-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	David Binderman <dcb314@hotmail.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH v4 1/5] netfilter: nf_tables: refactor rule
+ deletion helper
+Date: Wed, 27 Aug 2014 09:23:23 +0200
+Message-ID: <20140827072217.2762.69989.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:34560 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932862AbaH0GUs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Aug 2014 02:20:48 -0400
-In-Reply-To: <1409120443-978-1-git-send-email-horms@verge.net.au>
+Received: from smtp3.cica.es ([150.214.5.190]:38755 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752705AbaH0HXd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Aug 2014 03:23:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+This helper function always schedule the rule to be removed in the following
+transaction.
+In follow-up patches, it is interesting to handle separately the logic of rule
+activation/disactivation from the transaction mechanism.
 
-Use macros and union to reserve the required stack space for
-sockopt data. Now the tables for commands should be more safe
-to extend. The checks added for readability are optimized by
-compiler, others warn at compile time if command uses too much
-stack or exceeds the storage of set_arglen and get_arglen.
+So, this patch simply splits the original nf_tables_delrule_one() in two
+functions, allowing further control.
 
-As Dan Carpenter points out, we can run for unprivileged user,
-so we can silent some error messages.
+While at it, for the sake of homigeneize the function naming scheme, let's
+rename nf_tables_delrule_one() to nft_delrule().
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-CC: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-CC: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 102 +++++++++++++++++++++++------------------
- 1 file changed, 57 insertions(+), 45 deletions(-)
+v2: no changes, resending the series.
+v3: change 'disactivate' and use 'deactivate'. Requested by Patrick.
+v4: no changes, resending the series because v3 series is invalid.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fd3f444..0140e09 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2180,28 +2180,34 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
+ net/netfilter/nf_tables_api.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index deeb95f..3664bab 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1868,12 +1868,10 @@ err1:
  }
  
- 
--#define SET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define SERVICE_ARG_LEN		(sizeof(struct ip_vs_service_user))
--#define SVCDEST_ARG_LEN		(sizeof(struct ip_vs_service_user) +	\
--				 sizeof(struct ip_vs_dest_user))
--#define TIMEOUT_ARG_LEN		(sizeof(struct ip_vs_timeout_user))
--#define DAEMON_ARG_LEN		(sizeof(struct ip_vs_daemon_user))
--#define MAX_ARG_LEN		SVCDEST_ARG_LEN
-+#define SET_CMDID(cmd)			(cmd - IP_VS_BASE_CTL)
-+#define IP_VS_SET_CMDID(c, t)		[SET_CMDID(c)] = sizeof(t),
-+#define IP_VS_SET_CMDID_LEN(c, t)	t field_ ## c;
-+
-+struct ip_vs_svcdest_user {
-+	struct ip_vs_service_user	s;
-+	struct ip_vs_dest_user		d;
-+};
-+
-+#define IP_VS_SET_CMDID_TABLE(e)					\
-+	e(IP_VS_SO_SET_ADD,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_EDIT,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_DEL,		struct ip_vs_service_user)	\
-+	e(IP_VS_SO_SET_ADDDEST,		struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_DELDEST,		struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_EDITDEST,	struct ip_vs_svcdest_user)	\
-+	e(IP_VS_SO_SET_TIMEOUT,		struct ip_vs_timeout_user)	\
-+	e(IP_VS_SO_SET_STARTDAEMON,	struct ip_vs_daemon_user)	\
-+	e(IP_VS_SO_SET_STOPDAEMON,	struct ip_vs_daemon_user)	\
-+	e(IP_VS_SO_SET_ZERO,		struct ip_vs_service_user)
- 
- static const unsigned char set_arglen[SET_CMDID(IP_VS_SO_SET_MAX)+1] = {
--	[SET_CMDID(IP_VS_SO_SET_ADD)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDIT)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DEL)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_FLUSH)]		= 0,
--	[SET_CMDID(IP_VS_SO_SET_ADDDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DELDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDITDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_TIMEOUT)]	= TIMEOUT_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STARTDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STOPDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_ZERO)]		= SERVICE_ARG_LEN,
-+	IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID)
- };
- 
-+union ip_vs_set_arglen { IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID_LEN) };
-+#define MAX_SET_ARGLEN	sizeof(union ip_vs_set_arglen)
-+
- static void ip_vs_copy_usvc_compat(struct ip_vs_service_user_kern *usvc,
- 				  struct ip_vs_service_user *usvc_compat)
- {
-@@ -2239,7 +2245,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- {
- 	struct net *net = sock_net(sk);
- 	int ret;
--	unsigned char arg[MAX_ARG_LEN];
-+	unsigned char arg[MAX_SET_ARGLEN];
- 	struct ip_vs_service_user *usvc_compat;
- 	struct ip_vs_service_user_kern usvc;
- 	struct ip_vs_service *svc;
-@@ -2247,16 +2253,15 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 	struct ip_vs_dest_user_kern udest;
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-+	BUILD_BUG_ON(sizeof(arg) > 255);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_SET_MAX)
- 		return -EINVAL;
--	if (len < 0 || len >  MAX_ARG_LEN)
--		return -EINVAL;
- 	if (len != set_arglen[SET_CMDID(cmd)]) {
--		pr_err("set_ctl: len %u != %u\n",
--		       len, set_arglen[SET_CMDID(cmd)]);
-+		IP_VS_DBG(1, "set_ctl: len %u != %u\n",
-+			  len, set_arglen[SET_CMDID(cmd)]);
- 		return -EINVAL;
- 	}
- 
-@@ -2513,49 +2518,56 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
- }
- 
- 
--#define GET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define GET_INFO_ARG_LEN	(sizeof(struct ip_vs_getinfo))
--#define GET_SERVICES_ARG_LEN	(sizeof(struct ip_vs_get_services))
--#define GET_SERVICE_ARG_LEN	(sizeof(struct ip_vs_service_entry))
--#define GET_DESTS_ARG_LEN	(sizeof(struct ip_vs_get_dests))
--#define GET_TIMEOUT_ARG_LEN	(sizeof(struct ip_vs_timeout_user))
--#define GET_DAEMON_ARG_LEN	(sizeof(struct ip_vs_daemon_user) * 2)
-+#define GET_CMDID(cmd)			(cmd - IP_VS_BASE_CTL)
-+#define IP_VS_GET_CMDID(c, t)		[GET_CMDID(c)] = sizeof(t),
-+#define IP_VS_GET_CMDID_LEN(c, t)	t field_ ## c;
-+
-+struct ip_vs_version_user {
-+	char	v[64];
-+};
-+
-+struct ip_vs_daemon_user2 {
-+	struct ip_vs_daemon_user	d1, d2;
-+};
-+
-+#define IP_VS_GET_CMDID_TABLE(e)					\
-+	e(IP_VS_SO_GET_VERSION,		struct ip_vs_version_user)	\
-+	e(IP_VS_SO_GET_INFO,		struct ip_vs_getinfo)		\
-+	e(IP_VS_SO_GET_SERVICES,	struct ip_vs_get_services)	\
-+	e(IP_VS_SO_GET_SERVICE,		struct ip_vs_service_entry)	\
-+	e(IP_VS_SO_GET_DESTS,		struct ip_vs_get_dests)		\
-+	e(IP_VS_SO_GET_TIMEOUT,		struct ip_vs_timeout_user)	\
-+	e(IP_VS_SO_GET_DAEMON,		struct ip_vs_daemon_user2)
- 
- static const unsigned char get_arglen[GET_CMDID(IP_VS_SO_GET_MAX)+1] = {
--	[GET_CMDID(IP_VS_SO_GET_VERSION)]	= 64,
--	[GET_CMDID(IP_VS_SO_GET_INFO)]		= GET_INFO_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICES)]	= GET_SERVICES_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICE)]	= GET_SERVICE_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DESTS)]		= GET_DESTS_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_TIMEOUT)]	= GET_TIMEOUT_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DAEMON)]	= GET_DAEMON_ARG_LEN,
-+	IP_VS_GET_CMDID_TABLE(IP_VS_GET_CMDID)
- };
- 
-+union ip_vs_get_arglen { IP_VS_GET_CMDID_TABLE(IP_VS_GET_CMDID_LEN) };
-+#define MAX_GET_ARGLEN	sizeof(union ip_vs_get_arglen)
-+
  static int
- do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+-nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
++nf_tables_delrule_deactivate(struct nft_ctx *ctx, struct nft_rule *rule)
  {
--	unsigned char arg[128];
-+	unsigned char arg[MAX_GET_ARGLEN];
- 	int ret = 0;
- 	unsigned int copylen;
- 	struct net *net = sock_net(sk);
- 	struct netns_ipvs *ipvs = net_ipvs(net);
+ 	/* You cannot delete the same rule twice */
+ 	if (nft_rule_is_active_next(ctx->net, rule)) {
+-		if (nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule) == NULL)
+-			return -ENOMEM;
+ 		nft_rule_disactivate_next(ctx->net, rule);
+ 		ctx->chain->use--;
+ 		return 0;
+@@ -1881,13 +1879,31 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
+ 	return -ENOENT;
+ }
  
- 	BUG_ON(!net);
-+	BUILD_BUG_ON(sizeof(arg) > 255);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_GET_MAX)
- 		return -EINVAL;
- 
--	if (*len < get_arglen[GET_CMDID(cmd)]) {
--		pr_err("get_ctl: len %u < %u\n",
--		       *len, get_arglen[GET_CMDID(cmd)]);
--		return -EINVAL;
--	}
--
- 	copylen = get_arglen[GET_CMDID(cmd)];
--	if (copylen > 128)
-+	if (*len < (int) copylen || *len < 0) {
-+		IP_VS_DBG(1, "get_ctl: len %d < %u\n", *len, copylen);
- 		return -EINVAL;
++static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
++{
++	struct nft_trans *trans;
++	int err;
++
++	trans = nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule);
++	if (trans == NULL)
++		return -ENOMEM;
++
++	err = nf_tables_delrule_deactivate(ctx, rule);
++	if (err < 0) {
++		nft_trans_destroy(trans);
++		return err;
 +	}
++
++	return 0;
++}
++
+ static int nf_table_delrule_by_chain(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule;
+ 	int err;
  
- 	if (copy_from_user(arg, user, copylen) != 0)
- 		return -EFAULT;
--- 
-2.0.1
+ 	list_for_each_entry(rule, &ctx->chain->rules, list) {
+-		err = nf_tables_delrule_one(ctx, rule);
++		err = nft_delrule(ctx, rule);
+ 		if (err < 0)
+ 			return err;
+ 	}
+@@ -1932,7 +1948,7 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
+ 			if (IS_ERR(rule))
+ 				return PTR_ERR(rule);
+ 
+-			err = nf_tables_delrule_one(&ctx, rule);
++			err = nft_delrule(&ctx, rule);
+ 		} else {
+ 			err = nf_table_delrule_by_chain(&ctx);
+ 		}
 
