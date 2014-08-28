@@ -1,44 +1,48 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: Re: [{ip,ip6}tables-compat PATCH] nft: fix network prefixes
-Date: Wed, 27 Aug 2014 13:17:14 +0200
-Message-ID: <CAFpD06STYKUKz1UL+ND0yj+XMLU0v3GJy9pu1_fEpnuVCx3RtQ@mail.gmail.com>
-References: <1409000096-4335-1-git-send-email-giuseppelng@gmail.com>
-	<20140826085513.GA3800@salvia>
-	<CAFpD06RPw3pMaLHzXWdMZ7BnzXH1Sh7n68biqpR+o4k5j9=Nkg@mail.gmail.com>
-	<CAFpD06SEXxqe2297-N-129tK2=Z2tAiV5fs_1Xc9AvWLnsEuVg@mail.gmail.com>
-	<20140826192918.GA3394@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] Second round of IPVS fixes for v3.17
+Date: Thu, 28 Aug 2014 11:04:27 +0900
+Message-ID: <1409191468-28013-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yh0-f41.google.com ([209.85.213.41]:62829 "EHLO
-	mail-yh0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148AbaH0LRP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Aug 2014 07:17:15 -0400
-Received: by mail-yh0-f41.google.com with SMTP id b6so55048yha.14
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2014 04:17:14 -0700 (PDT)
-In-Reply-To: <20140826192918.GA3394@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Hi Pablo,
-I catched the mistake.
 
-The nft_ipv*_parse_payload function calls get_cmp_data(),
-and it gets the next expression, that's bitwise instead of cmp.
+please consider this fix IPVS fix for v3.17.
 
-So in nft_rule_to_iptables_command_state() the bitwise expr is skipped.
+This pull request is based on the first round of fixes for IPVS for v3.17,
+tagged as ipvs-fixes2-for-v3.17, which I sent yesterday.
 
-I could add an operation family like nft_*_parse_cmp, but in this way
-I can't set the inverse flag when parsing the payload.
 
-Otherwise, I can implement the parse_bitwise as function and not as
-operation family and call it in parse_payload (as done for get_cmp_data).
+This fix resolves a problem with conflicting hooks whereby DNAT support for
+the local server would drop outgoing IPv4 packets if the kernel was
+compiled CONFIG_IP_VS_IPV6=y.
 
-Another solution could be to add the inverse flag in nft context.
+This problem dates back to v3.6.37 when the feature in question was added.
 
-Do you have any hint?
+I would like this fix considered for -stable.
 
-Thanks
+
+The following changes since commit ea1d5d7755a3e556de78cc757d1895d5c7180548:
+
+  ipvs: properly declare tunnel encapsulation (2014-08-27 14:31:56 +0900)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.17
+
+for you to fetch changes up to eb90b0c734ad793d5f5bf230a9e9a4dcc48df8aa:
+
+  ipvs: fix ipv6 hook registration for local replies (2014-08-28 10:52:37 +0900)
+
+----------------------------------------------------------------
+Julian Anastasov (1):
+      ipvs: fix ipv6 hook registration for local replies
+
+ net/netfilter/ipvs/ip_vs_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
