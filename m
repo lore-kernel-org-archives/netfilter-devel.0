@@ -1,42 +1,28 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] Second round of IPVS fixes for v3.17
-Date: Sat, 30 Aug 2014 13:08:45 +0200
-Message-ID: <20140830110845.GB4601@salvia>
-References: <1409191468-28013-1-git-send-email-horms@verge.net.au>
+From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Subject: does "iptables -t filter -A INPUT --match conntrack --ctstate RELATED,ESTABLISHED
+ -j ACCEPT" gives a false sense of security ?
+Date: Sun, 31 Aug 2014 13:52:48 +0200
+Message-ID: <54030C90.4090300@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47004 "EHLO mail.us.es"
+Received: from mout.gmx.net ([212.227.17.21]:54671 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425AbaH3LIG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Aug 2014 07:08:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1409191468-28013-1-git-send-email-horms@verge.net.au>
+	id S1751254AbaHaLww (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 31 Aug 2014 07:52:52 -0400
+Received: from [192.168.178.21] ([85.177.149.110]) by mail.gmx.com (mrgmx102)
+ with ESMTPSA (Nemesis) id 0LsOsW-1YQ5Pd3WZ6-011xiP for
+ <netfilter-devel@vger.kernel.org>; Sun, 31 Aug 2014 13:52:49 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 28, 2014 at 11:04:27AM +0900, Simon Horman wrote:
-> This fix resolves a problem with conflicting hooks whereby DNAT support for
-> the local server would drop outgoing IPv4 packets if the kernel was
-> compiled CONFIG_IP_VS_IPV6=y.
-> 
-> This problem dates back to v3.6.37 when the feature in question was added.
-> 
-> I would like this fix considered for -stable.
+I misconfigured my Gentoo iptables script and could therefore not download source code archives via ftp. I "repaired" that script and restarted it - ftp was possible. After a reboot however ftp won't work again. I realized that probably a parallel Gentoo emerge job jumped into the restart sequence of the iptables script and therefore the ftp download could be finished.
 
-Enqueue for -stable.
+Now I'm wondering if this is a "works as desigend" feature and how this racy mischance can be avoided.
 
-> The following changes since commit ea1d5d7755a3e556de78cc757d1895d5c7180548:
-> 
->   ipvs: properly declare tunnel encapsulation (2014-08-27 14:31:56 +0900)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.17
+-- 
+Toralf
+pgp key: 0076 E94E
 
-Pulled, thanks Simon.
