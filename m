@@ -1,55 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_*
-Date: Mon,  1 Sep 2014 13:45:28 +0200
-Message-ID: <1409571928-13365-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: nft option to flush out the existing ruleset [was Re: [libnftnl
+ PATCH] examples: add nft-ruleset-replace]
+Date: Mon, 1 Sep 2014 17:07:23 +0200
+Message-ID: <CAOkSjBhJQGyJOJ=VwZmr-vhtPF5LRiCqD54XfOteHDo68X4dWw@mail.gmail.com>
+References: <20140826095716.3463.89684.stgit@nfdev.cica.es> <20140826110954.GA5648@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: zajec5@gmail.com
-To: netfilter-devel@vger.kernel.org
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57569 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752985AbaIALoq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Sep 2014 07:44:46 -0400
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:39891 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282AbaIAPHp convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Sep 2014 11:07:45 -0400
+Received: by mail-lb0-f180.google.com with SMTP id w7so6113779lbi.11
+        for <netfilter-devel@vger.kernel.org>; Mon, 01 Sep 2014 08:07:43 -0700 (PDT)
+In-Reply-To: <20140826110954.GA5648@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Pablo Neira Ayuso <pablo@soleta.eu>
+On 26 August 2014 13:09, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Please, implement this in nft. I think we can probably have an -x
+> option, eg.
+>
+> nft -f -x ruleset-file
+>
+> The '-x' indicates that you want to flush any previous existing
+> configuration before loading this 'ruleset-file'.
+>
+> -xx could also be used to remove any configuration regarding the
+> existing families in the ruleset-file, ie. if the ruleset-file only
+> contains a configuration for 'ip', all remaining families are left
+> untouched.
+>
 
-CONFIG_NETFILTER_XT_TARGET_LOG is not selected anymore when jumping
-from 3.16 to 3.17-rc1 if you don't set on the new NF_LOG_IPV4 and
-NF_LOG_IPV6 switches.
+Hi Pablo, Patrick.
 
-Change this to select the three new symbols NF_LOG_COMMON, NF_LOG_IPV4
-and NF_LOG_IPV6 instead, so NETFILTER_XT_TARGET_LOG remains enabled
-when moving from old to new kernels.
+I've looked into how to implement this '-x' option.
 
-Reported-by: Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@soleta.eu>
----
- net/netfilter/Kconfig |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I wonder if it worth having better a "formal" command, like
+ % nft flush ruleset
+ % nft flush ruleset ip
+ % nft flush ruleset ip6
+ % nft flush ruleset arp
+ [...]
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 05eb177..4bef6eb 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -747,7 +747,9 @@ config NETFILTER_XT_TARGET_LED
-=20
- config NETFILTER_XT_TARGET_LOG
- 	tristate "LOG target support"
--	depends on NF_LOG_IPV4 && NF_LOG_IPV6
-+	select NF_LOG_COMMON
-+	select NF_LOG_IPV4
-+	select NF_LOG_IPV6 if IPV6
- 	default m if NETFILTER_ADVANCED=3Dn
- 	help
- 	  This option adds a `LOG' target, which allows you to create rules i=
-n
+This way, a user loading a new ruleset with -f can just put a first
+line like this:
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
+nft flush ruleset
+nft add table ip filter
+nft add chain ip filter input
+nft add rule ip filter input counter
+nft add table ip6 filter
+nft add chain ip6 filter input
+[...]
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+Or flush per family, as Pablo suggested:
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
+nft flush ruleset inet
+nft add table inet filter
+[...]
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+Some benefits of this approach is that we have a concrete order to
+flush the ruleset, in the case the user wants no ruleset.
+The lack of this shortcut seem an actual concern of some users.
+
 --=20
-1.7.10.4
-
+Arturo Borrero Gonz=C3=A1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
