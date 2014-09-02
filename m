@@ -1,88 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/7] netfilter: HAVE_JUMP_LABEL instead of CONFIG_JUMP_LABEL
-Date: Tue,  2 Sep 2014 12:14:01 +0200
-Message-ID: <1409652844-10289-5-git-send-email-pablo@netfilter.org>
-References: <1409652844-10289-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
+ destroy path
+Date: Tue, 2 Sep 2014 11:14:41 +0100
+Message-ID: <20140902101440.GA12450@acer.localdomain>
+References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48068 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753334AbaIBKNZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 06:13:25 -0400
-In-Reply-To: <1409652844-10289-1-git-send-email-pablo@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:63015 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461AbaIBKOq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 06:14:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+On Tue, Sep 02, 2014 at 11:38:39AM +0200, Pablo Neira Ayuso wrote:
+> The sets are released from the rcu callback, after the rule is removed
+> from the chain list, which implies that nfnetlink cannot update the
+> hashes (thus, no resizing may occur) and no packets are walking on the
+> set anymore.
 
-Use HAVE_JUMP_LABEL as elsewhere in the kernel to ensure
-that the toolchain has the required support in addition to
-CONFIG_JUMP_LABEL being set.
-
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter.h |    5 +++--
- net/netfilter/core.c      |    6 +++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 2077489..2517ece 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -9,6 +9,7 @@
- #include <linux/in6.h>
- #include <linux/wait.h>
- #include <linux/list.h>
-+#include <linux/static_key.h>
- #include <uapi/linux/netfilter.h>
- #ifdef CONFIG_NETFILTER
- static inline int NF_DROP_GETERR(int verdict)
-@@ -99,9 +100,9 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
- 
- extern struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- 
--#if defined(CONFIG_JUMP_LABEL)
--#include <linux/static_key.h>
-+#ifdef HAVE_JUMP_LABEL
- extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
-+
- static inline bool nf_hooks_active(u_int8_t pf, unsigned int hook)
- {
- 	if (__builtin_constant_p(pf) &&
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a93c97f..024a2e2 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -54,7 +54,7 @@ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
- struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
- EXPORT_SYMBOL(nf_hooks);
- 
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- EXPORT_SYMBOL(nf_hooks_needed);
- #endif
-@@ -72,7 +72,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
- 	}
- 	list_add_rcu(&reg->list, elem->list.prev);
- 	mutex_unlock(&nf_hook_mutex);
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
- #endif
- 	return 0;
-@@ -84,7 +84,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
- 	mutex_lock(&nf_hook_mutex);
- 	list_del_rcu(&reg->list);
- 	mutex_unlock(&nf_hook_mutex);
--#if defined(CONFIG_JUMP_LABEL)
-+#ifdef HAVE_JUMP_LABEL
- 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
- #endif
- 	synchronize_net();
--- 
-1.7.10.4
-
+Unrelated to your patch, but to the RCU destruction: how does that make
+sure that nfnetlink notifications are received in the proper order?
+I mean, theoretically a new set with the same name could exist at that
+time. The same problem exists for all objects that have user defined
+identifiers or refer to them.
