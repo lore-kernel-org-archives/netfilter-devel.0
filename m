@@ -1,57 +1,58 @@
-From: Thomas Graf <tgraf@suug.ch>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
  destroy path
-Date: Tue, 2 Sep 2014 12:02:13 +0100
-Message-ID: <20140902110213.GA6778@casper.infradead.org>
+Date: Tue, 2 Sep 2014 11:59:22 +0100
+Message-ID: <20140902105920.GB12450@acer.localdomain>
 References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
+ <20140902101440.GA12450@acer.localdomain>
+ <20140902103856.GA10730@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33269 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbaIBLCO (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:63305 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753046AbaIBK70 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 07:02:14 -0400
+	Tue, 2 Sep 2014 06:59:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20140902103856.GA10730@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09/02/14 at 11:38am, Pablo Neira Ayuso wrote:
-> The sets are released from the rcu callback, after the rule is removed
-> from the chain list, which implies that nfnetlink cannot update the
-> hashes (thus, no resizing may occur) and no packets are walking on the
-> set anymore.
+On Tue, Sep 02, 2014 at 12:38:56PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 02, 2014 at 11:14:41AM +0100, Patrick McHardy wrote:
+> > On Tue, Sep 02, 2014 at 11:38:39AM +0200, Pablo Neira Ayuso wrote:
+> > > The sets are released from the rcu callback, after the rule is removed
+> > > from the chain list, which implies that nfnetlink cannot update the
+> > > hashes (thus, no resizing may occur) and no packets are walking on the
+> > > set anymore.
+> > 
+> > Unrelated to your patch, but to the RCU destruction: how does that make
+> > sure that nfnetlink notifications are received in the proper order?
+> > I mean, theoretically a new set with the same name could exist at that
+> > time. The same problem exists for all objects that have user defined
+> > identifiers or refer to them.
 > 
-> This resolves a lockdep splat in the nft_hash_destroy() path since the
-> nfnl mutex is not held there.
-> 
-> ===============================
-> [ INFO: suspicious RCU usage. ]
-> 3.16.0-rc2+ #168 Not tainted
-> -------------------------------
-> net/netfilter/nft_hash.c:362 suspicious rcu_dereference_protected() usage!
-> 
-> other info that might help us debug this:
-> 
-> rcu_scheduler_active = 1, debug_locks = 1
-> 1 lock held by ksoftirqd/0/3:
->  #0:  (rcu_callback){......}, at: [<ffffffff81096393>] rcu_process_callbacks+0x27e/0x4c7
-> 
-> stack backtrace:
-> CPU: 0 PID: 3 Comm: ksoftirqd/0 Not tainted 3.16.0-rc2+ #168
-> Hardware name: LENOVO 23259H1/23259H1, BIOS G2ET32WW (1.12 ) 05/30/2012
->  0000000000000001 ffff88011769bb98 ffffffff8142c922 0000000000000006
->  ffff880117694090 ffff88011769bbc8 ffffffff8107c3ff ffff8800cba52400
->  ffff8800c476bea8 ffff8800c476bea8 ffff8800cba52400 ffff88011769bc08
-> Call Trace:
->  [<ffffffff8142c922>] dump_stack+0x4e/0x68
->  [<ffffffff8107c3ff>] lockdep_rcu_suspicious+0xfa/0x103
->  [<ffffffffa079931e>] nft_hash_destroy+0x50/0x137 [nft_hash]
->  [<ffffffffa078cd57>] nft_set_destroy+0x11/0x2a [nf_tables]
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> All the events (with the exception of anonymous sets) are sent in
+> order from the commit path, so they are delivered in order.
 
-Acked-by: Thomas Graf <tgraf@suug.ch>
+Sure, I was talking about independant additions:
+
+- delete set X
+- RCU callback delayed
+- add set X, notify
+- RCU callback executes, notifies for delete set X
+
+Same thing applies to all other objects that don't have a unique identifier
+chosen by the kernel.
+
+> The anonymous sets are problematic, we need to notify this from the
+> commit path too to ensure the right ordering. I was trying to avoid
+> some specific notify() interface in expr->ops but it seems we need it
+> for nft_lookup.c.
+> 
+> Can you think of a better solution?
+
+No, unless we can come up with a way that's synchronous.
