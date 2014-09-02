@@ -1,71 +1,98 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
- destroy path
-Date: Tue, 2 Sep 2014 15:00:42 +0100
-Message-ID: <20140902140042.GD29359@acer.localdomain>
-References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
- <20140902101440.GA12450@acer.localdomain>
- <20140902103856.GA10730@salvia>
- <20140902105920.GB12450@acer.localdomain>
- <20140902122207.GA11880@salvia>
- <20140902132813.GA29330@acer.localdomain>
- <20140902134152.GA8790@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH 2/6 v5] netfilter: nf_tables: add helper to unregister chain hooks
+Date: Tue,  2 Sep 2014 16:42:23 +0200
+Message-ID: <1409668946-8168-3-git-send-email-arturo.borrero.glez@gmail.com>
+References: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64508 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbaIBOAs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 10:00:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20140902134152.GA8790@salvia>
+Received: from smtp4.cica.es ([150.214.5.182]:49434 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753525AbaIBOmw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 10:42:52 -0400
+In-Reply-To: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 02, 2014 at 03:41:52PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Sep 02, 2014 at 02:28:14PM +0100, Patrick McHardy wrote:
-> > > > Same thing applies to all other objects that don't have a unique identifier
-> > > > chosen by the kernel.
-> > >
-> > > All other objects are always notified in order from the commit path,
-> > > so they seem fine to me.
-> >
-> > You're right, this only seems to affect sets.
-> 
-> Yes, but only the sets that are released through
-> nf_tables_unbind_set().
-> 
-> > > > > The anonymous sets are problematic, we need to notify this from the
-> > > > > commit path too to ensure the right ordering. I was trying to avoid
-> > > > > some specific notify() interface in expr->ops but it seems we need it
-> > > > > for nft_lookup.c.
-> > > > >
-> > > > > Can you think of a better solution?
-> > > >
-> > > > No, unless we can come up with a way that's synchronous.
-> > >
-> > > I would really like not to go back to the two nearly consecutive
-> > > synchronize_rcu() calls, it's slow.  I've been thinking on replacing
-> > > the current check in the packet path by static keys, but I didn't
-> > > manage to find the way yet.
-> >
-> > Which check exactly are you referring to?
-> 
-> >From the nft_do_chain:
-> 
->         list_for_each_entry_continue_rcu(rule, &chain->rules, list) {
-> 
->                 /* This rule is not active, skip. */
->                 if (unlikely(rule->genmask & (1 << gencursor)))
->                         continue;
-> 
-> Plus the trick that uses the synchronize_rcu() from the commit path to
-> make sure all packets have left the previous generation to deactivate
-> the rule before we start removing them from the list.
+This patch adds a helper function to unregister chain hooks in the chain
+deletion path. Basically, a code factorization.
 
-This won't work. Static keys can't be dynamically allocated, which would
-be necessary for this to work. This about it, the code that needs to be
-patches is global, but the activeness is a property of a rule.
+The new function is useful in follow-up patches.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: rebased
+v3: no changes, resending the series.
+v4: no changes, resending the series because v3 series is invalid.
+v5: no changes, resending the series.
+
+ net/netfilter/nf_tables_api.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3664bab..90e3496 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -127,6 +127,15 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
+ }
+ 
++static void nf_tables_unregister_hooks(const struct nft_table *table,
++				       const struct nft_chain *chain,
++				       unsigned int hook_nops)
++{
++	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
++	    chain->flags & NFT_BASE_CHAIN)
++		nf_unregister_hooks(nft_base_chain(chain)->ops, hook_nops);
++}
++
+ /*
+  * Tables
+  */
+@@ -1157,11 +1166,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	list_add_tail_rcu(&chain->list, &table->chains);
+ 	return 0;
+ err2:
+-	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+-	    chain->flags & NFT_BASE_CHAIN) {
+-		nf_unregister_hooks(nft_base_chain(chain)->ops,
+-				    afi->nops);
+-	}
++	nf_tables_unregister_hooks(table, chain, afi->nops);
+ err1:
+ 	nf_tables_chain_destroy(chain);
+ 	return err;
+@@ -3368,11 +3373,9 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+-			if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-			    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-				nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-						    trans->ctx.afi->nops);
+-			}
++			nf_tables_unregister_hooks(trans->ctx.table,
++						   trans->ctx.chain,
++						   trans->ctx.afi->nops);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			nft_rule_clear(trans->ctx.net, nft_trans_rule(trans));
+@@ -3495,11 +3498,9 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 			} else {
+ 				trans->ctx.table->use--;
+ 				list_del_rcu(&trans->ctx.chain->list);
+-				if (!(trans->ctx.table->flags & NFT_TABLE_F_DORMANT) &&
+-				    trans->ctx.chain->flags & NFT_BASE_CHAIN) {
+-					nf_unregister_hooks(nft_base_chain(trans->ctx.chain)->ops,
+-							    trans->ctx.afi->nops);
+-				}
++				nf_tables_unregister_hooks(trans->ctx.table,
++							   trans->ctx.chain,
++							   trans->ctx.afi->nops);
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+-- 
+1.7.10.4
+
