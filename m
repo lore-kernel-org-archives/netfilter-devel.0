@@ -1,130 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] ipvs: reduce stack usage for sockopt data
-Date: Tue, 2 Sep 2014 13:31:40 +0200
-Message-ID: <20140902113140.GA11323@salvia>
-References: <1409120443-978-1-git-send-email-horms@verge.net.au>
- <1409120443-978-2-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
+ destroy path
+Date: Tue, 2 Sep 2014 14:22:07 +0200
+Message-ID: <20140902122207.GA11880@salvia>
+References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
+ <20140902101440.GA12450@acer.localdomain>
+ <20140902103856.GA10730@salvia>
+ <20140902105920.GB12450@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	David Binderman <dcb314@hotmail.com>
-To: Simon Horman <horms@verge.net.au>
+Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37336 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753132AbaIBLhI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 07:37:08 -0400
+	id S1751345AbaIBMV2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 08:21:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1409120443-978-2-git-send-email-horms@verge.net.au>
+In-Reply-To: <20140902105920.GB12450@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Simon, Julian,
-
-On Wed, Aug 27, 2014 at 03:20:43PM +0900, Simon Horman wrote:
-> From: Julian Anastasov <ja@ssi.bg>
+On Tue, Sep 02, 2014 at 11:59:22AM +0100, Patrick McHardy wrote:
+> On Tue, Sep 02, 2014 at 12:38:56PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Sep 02, 2014 at 11:14:41AM +0100, Patrick McHardy wrote:
+> > > On Tue, Sep 02, 2014 at 11:38:39AM +0200, Pablo Neira Ayuso wrote:
+> > > > The sets are released from the rcu callback, after the rule is removed
+> > > > from the chain list, which implies that nfnetlink cannot update the
+> > > > hashes (thus, no resizing may occur) and no packets are walking on the
+> > > > set anymore.
+> > > 
+> > > Unrelated to your patch, but to the RCU destruction: how does that make
+> > > sure that nfnetlink notifications are received in the proper order?
+> > > I mean, theoretically a new set with the same name could exist at that
+> > > time. The same problem exists for all objects that have user defined
+> > > identifiers or refer to them.
+> > 
+> > All the events (with the exception of anonymous sets) are sent in
+> > order from the commit path, so they are delivered in order.
 > 
-> Use macros and union to reserve the required stack space for
-> sockopt data. Now the tables for commands should be more safe
-> to extend. The checks added for readability are optimized by
-> compiler, others warn at compile time if command uses too much
-> stack or exceeds the storage of set_arglen and get_arglen.
+> Sure, I was talking about independant additions:
 > 
-> As Dan Carpenter points out, we can run for unprivileged user,
-> so we can silent some error messages.
+> - delete set X
+> - RCU callback delayed
+> - add set X, notify
+> - RCU callback executes, notifies for delete set X
+
+Right, that's indeed a problem for bound-to-rule anonymous sets.
+
+> Same thing applies to all other objects that don't have a unique identifier
+> chosen by the kernel.
+
+All other objects are always notified in order from the commit path,
+so they seem fine to me.
+
+> > The anonymous sets are problematic, we need to notify this from the
+> > commit path too to ensure the right ordering. I was trying to avoid
+> > some specific notify() interface in expr->ops but it seems we need it
+> > for nft_lookup.c.
+> > 
+> > Can you think of a better solution?
 > 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> CC: Dan Carpenter <dan.carpenter@oracle.com>
-> CC: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-> CC: David Binderman <dcb314@hotmail.com>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 102 +++++++++++++++++++++++------------------
->  1 file changed, 57 insertions(+), 45 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index fd3f444..0140e09 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2180,28 +2180,34 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
->  }
->  
->  
-> -#define SET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
-> -#define SERVICE_ARG_LEN		(sizeof(struct ip_vs_service_user))
-> -#define SVCDEST_ARG_LEN		(sizeof(struct ip_vs_service_user) +	\
-> -				 sizeof(struct ip_vs_dest_user))
-> -#define TIMEOUT_ARG_LEN		(sizeof(struct ip_vs_timeout_user))
-> -#define DAEMON_ARG_LEN		(sizeof(struct ip_vs_daemon_user))
-> -#define MAX_ARG_LEN		SVCDEST_ARG_LEN
-> +#define SET_CMDID(cmd)			(cmd - IP_VS_BASE_CTL)
-> +#define IP_VS_SET_CMDID(c, t)		[SET_CMDID(c)] = sizeof(t),
-> +#define IP_VS_SET_CMDID_LEN(c, t)	t field_ ## c;
-> +
-> +struct ip_vs_svcdest_user {
-> +	struct ip_vs_service_user	s;
-> +	struct ip_vs_dest_user		d;
-> +};
-> +
-> +#define IP_VS_SET_CMDID_TABLE(e)					\
-> +	e(IP_VS_SO_SET_ADD,		struct ip_vs_service_user)	\
-> +	e(IP_VS_SO_SET_EDIT,		struct ip_vs_service_user)	\
-> +	e(IP_VS_SO_SET_DEL,		struct ip_vs_service_user)	\
-> +	e(IP_VS_SO_SET_ADDDEST,		struct ip_vs_svcdest_user)	\
-> +	e(IP_VS_SO_SET_DELDEST,		struct ip_vs_svcdest_user)	\
-> +	e(IP_VS_SO_SET_EDITDEST,	struct ip_vs_svcdest_user)	\
-> +	e(IP_VS_SO_SET_TIMEOUT,		struct ip_vs_timeout_user)	\
-> +	e(IP_VS_SO_SET_STARTDAEMON,	struct ip_vs_daemon_user)	\
-> +	e(IP_VS_SO_SET_STOPDAEMON,	struct ip_vs_daemon_user)	\
-> +	e(IP_VS_SO_SET_ZERO,		struct ip_vs_service_user)
->  
->  static const unsigned char set_arglen[SET_CMDID(IP_VS_SO_SET_MAX)+1] = {
-> -	[SET_CMDID(IP_VS_SO_SET_ADD)]		= SERVICE_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_EDIT)]		= SERVICE_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_DEL)]		= SERVICE_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_FLUSH)]		= 0,
-> -	[SET_CMDID(IP_VS_SO_SET_ADDDEST)]	= SVCDEST_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_DELDEST)]	= SVCDEST_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_EDITDEST)]	= SVCDEST_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_TIMEOUT)]	= TIMEOUT_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_STARTDAEMON)]	= DAEMON_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_STOPDAEMON)]	= DAEMON_ARG_LEN,
-> -	[SET_CMDID(IP_VS_SO_SET_ZERO)]		= SERVICE_ARG_LEN,
-> +	IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID)
->  };
->  
-> +union ip_vs_set_arglen { IP_VS_SET_CMDID_TABLE(IP_VS_SET_CMDID_LEN) };
+> No, unless we can come up with a way that's synchronous.
 
-I see, basically, ip_vs_set_arglen expands to:
-
-union ip_vs_set_arglen {
-        struct struct ip_vs_service_user field_IP_VS_SO_SET_ADD;
-        ...
-};
-
-> +#define MAX_SET_ARGLEN	sizeof(union ip_vs_set_arglen)
-
-So MAX_SET_ARGLEN is set accordingly to allocate the maximum data size
-that you can get from userspace in the stack, this seems correct to me.
-
-I guess the target of these macros is to avoid code duplication, since
-without the macros you also need:
-
-static const unsigned char set_arglen[...] = {
-        [SET_CMDID(IP_VS_SO_SET_ADD)] = sizeof(struct ip_vs_service_user),
-        ...
-};
-
-which is quite similar to union ip_vs_set_arglen in the sense that
-they relate the commands and the structure size in different ways.
-
-However, unless this is saving us from more hassle that I'm
-overlooking, I think it's better (in terms of readability) IMO to keep
-the explicit definitions.
-
-Let me know, thanks!
+I would really like not to go back to the two nearly consecutive
+synchronize_rcu() calls, it's slow.  I've been thinking on replacing
+the current check in the packet path by static keys, but I didn't
+manage to find the way yet.
