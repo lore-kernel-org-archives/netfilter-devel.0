@@ -1,52 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf_tables PATCH 4/6 v5] netfilter: nf_tables: add helpers to
- schedule objects deletion
-Date: Tue, 2 Sep 2014 17:47:08 +0200
-Message-ID: <20140902154708.GA10540@salvia>
-References: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
- <1409668946-8168-5-git-send-email-arturo.borrero.glez@gmail.com>
- <20140902152001.GD29716@acer.localdomain>
+From: leroy christophe <christophe.leroy@c-s.fr>
+Subject: Re: 3.16/3.16.1: Kernel Oops in nft_do_chain
+Date: Tue, 02 Sep 2014 18:44:57 +0200
+Message-ID: <5405F409.70107@c-s.fr>
+References: <54059883.4060309@c-s.fr> <20140902104114.GA10805@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33591 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754102AbaIBPqT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 11:46:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20140902152001.GD29716@acer.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140902104114.GA10805@salvia>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Sep 02, 2014 at 04:20:01PM +0100, Patrick McHardy wrote:
-> On Tue, Sep 02, 2014 at 04:42:25PM +0200, Arturo Borrero Gonzalez wrote:
-> > This patch refactor the code to schedule objects deletion.
-> > 
-> > They are useful in follow-up patches.
-> > 
-> > In order to be able to use these new helper functions in all the code,
-> > they are placed in the top of the file, with all the dependant functions
-> > and symbols.
-> > 
-> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> > ---
-> > v2: rebased: now, nft_del*() functions use list_del_rcu().
-> > v3: rebased on top of patch 1/5.
-> > v4: The v3 version had several issues due to the rebase. Fixed in this v4.
-> > v5: no changes, resending the series.
-> 
-> 
-> > +static inline void
-> > +nft_rule_disactivate_next(struct net *net, struct nft_rule *rule)
-> > +{
-> > +	rule->genmask = (1 << gencursor_next(net));
-> > +}
-> 
-> Since you're touching this anyway please get rid of the disactivate here as
-> well and use deactivate consistently.
 
-Arturo, I can fix that here. That word I made up myself (which looks
-to Spanish...) was my fault after all :).
+Le 02/09/2014 12:41, Pablo Neira Ayuso a =E9crit :
+> On Tue, Sep 02, 2014 at 12:14:27PM +0200, leroy christophe wrote:
+>> Calling 'iptables-compat -L', first time nothing is listed on the sc=
+reen.
+>> Second try, it generates following Oops.
+> I'm going to pass this patch to -stable asap:
+>
+> commit b88825de8545ad252c31543fef13cadf4de7a2bc
+> Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date:   Tue Aug 5 17:25:59 2014 +0200
+>
+>      netfilter: nf_tables: don't update chain with unset counters
+>     =20
+>      Fix possible replacement of the per-cpu chain counters by null
+>      pointer when updating an existing chain in the commit path.
+>     =20
+>      Reported-by: Matteo Croce <technoboy85@gmail.com>
+>      Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>
+> I think it's the root cause for this problem.
+Thanks, it does fix the Oops I had.
+
+Christophe
