@@ -1,42 +1,40 @@
-From: leroy christophe <christophe.leroy@c-s.fr>
-Subject: Re: 3.16/3.16.1: Kernel Oops in nft_do_chain
-Date: Tue, 02 Sep 2014 18:44:57 +0200
-Message-ID: <5405F409.70107@c-s.fr>
-References: <54059883.4060309@c-s.fr> <20140902104114.GA10805@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140902104114.GA10805@salvia>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] src: meta: Fix the size of cpu attribute.
+Date: Tue,  2 Sep 2014 20:13:25 +0200
+Message-ID: <1409681605-8277-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:41770 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbaIBSK7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 14:10:59 -0400
+Received: by mail-la0-f45.google.com with SMTP id pn19so8331287lab.32
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Sep 2014 11:10:57 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Fix the size of cpu attribute in meta_template struct.
 
-Le 02/09/2014 12:41, Pablo Neira Ayuso a =E9crit :
-> On Tue, Sep 02, 2014 at 12:14:27PM +0200, leroy christophe wrote:
->> Calling 'iptables-compat -L', first time nothing is listed on the sc=
-reen.
->> Second try, it generates following Oops.
-> I'm going to pass this patch to -stable asap:
->
-> commit b88825de8545ad252c31543fef13cadf4de7a2bc
-> Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date:   Tue Aug 5 17:25:59 2014 +0200
->
->      netfilter: nf_tables: don't update chain with unset counters
->     =20
->      Fix possible replacement of the per-cpu chain counters by null
->      pointer when updating an existing chain in the commit path.
->     =20
->      Reported-by: Matteo Croce <technoboy85@gmail.com>
->      Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> I think it's the root cause for this problem.
-Thanks, it does fix the Oops I had.
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ src/meta.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Christophe
+diff --git a/src/meta.c b/src/meta.c
+index 1f7217f..bf41ac4 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -394,7 +394,7 @@ static const struct meta_template meta_templates[] = {
+ 						BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_CPU]		= META_TEMPLATE("cpu",  &integer_type,
+-						BITS_PER_BYTE,
++						4 * BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
+ };
+ 
+-- 
+1.7.10.4
+
