@@ -1,45 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: fix missing dependencies in NETFILTER_XT_TARGET_LOG
-Date: Tue,  2 Sep 2014 14:26:17 +0200
-Message-ID: <1409660777-14999-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
+ destroy path
+Date: Tue, 2 Sep 2014 13:36:08 +0100
+Message-ID: <20140902123608.GA18850@casper.infradead.org>
+References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
+ <20140902101440.GA12450@acer.localdomain>
+ <20140902103856.GA10730@salvia>
+ <20140902105920.GB12450@acer.localdomain>
+ <20140902122207.GA11880@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:33779 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753930AbaIBMgJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 08:36:09 -0400
+Content-Disposition: inline
+In-Reply-To: <20140902122207.GA11880@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-make defconfig reports:
+On 09/02/14 at 02:22pm, Pablo Neira Ayuso wrote:
+> On Tue, Sep 02, 2014 at 11:59:22AM +0100, Patrick McHardy wrote:
+> > > The anonymous sets are problematic, we need to notify this from the
+> > > commit path too to ensure the right ordering. I was trying to avoid
+> > > some specific notify() interface in expr->ops but it seems we need it
+> > > for nft_lookup.c.
+> > > 
+> > > Can you think of a better solution?
+> > 
+> > No, unless we can come up with a way that's synchronous.
+> 
+> I would really like not to go back to the two nearly consecutive
+> synchronize_rcu() calls, it's slow.  I've been thinking on replacing
+> the current check in the packet path by static keys, but I didn't
+> manage to find the way yet.
 
-warning: (NETFILTER_XT_TARGET_LOG) selects NF_LOG_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NETFILTER_ADVANCED)
-
-Fixes: d79a61d netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_*
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-~
-@David, if you pull this request:
-
-http://patchwork.ozlabs.org/patch/385042/
-
-Could you also manually apply this patch to calm down kbuild robot?
-
-Thanks!
-
- net/ipv6/netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index cf0b88f..2812816 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -57,7 +57,7 @@ config NFT_REJECT_IPV6
- 
- config NF_LOG_IPV6
- 	tristate "IPv6 packet logging"
--	depends on NETFILTER_ADVANCED
-+	default m if NETFILTER_ADVANCED=n
- 	select NF_LOG_COMMON
- 
- config NF_NAT_IPV6
--- 
-1.7.10.4
+Slight warning on additional complexity down the road: I'm about to
+propose a rhashtable enhancement to move expansion/shrinking to a
+async worker thread and protect insertion/removal by an array of
+spinlocks. It will allow for much faster parallel inclusion/removal
+but will require a sync on destruction to cancel/wait for any
+outstanding/ongoing maintenance on the hash table.
