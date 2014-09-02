@@ -1,78 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nft option to flush out the existing ruleset [was Re: [libnftnl
- PATCH] examples: add nft-ruleset-replace]
-Date: Mon, 1 Sep 2014 16:17:32 +0100
-Message-ID: <20140901151731.GA19729@acer.localdomain>
-References: <20140826095716.3463.89684.stgit@nfdev.cica.es>
- <20140826110954.GA5648@salvia>
- <CAOkSjBhJQGyJOJ=VwZmr-vhtPF5LRiCqD54XfOteHDo68X4dWw@mail.gmail.com>
+From: Yanchuan Nian <ycnian@gmail.com>
+Subject: Re: [nft] Byteorder problem still exists in nft
+Date: Tue, 2 Sep 2014 14:55:33 +0800
+Message-ID: <20140902065533.GA15959@localhost.localdomain>
+References: <1409563554-1563-1-git-send-email-ycnian@gmail.com>
+ <CADjjUBMbgdmaGGos1JyHiRwqf-PH9sfa2LKwxLfnXz5BPJyV9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55220 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998AbaIAPRh (ORCPT
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:61831 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbaIBGws (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Sep 2014 11:17:37 -0400
+	Tue, 2 Sep 2014 02:52:48 -0400
+Received: by mail-pd0-f179.google.com with SMTP id z10so7844796pdj.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 01 Sep 2014 23:52:46 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBhJQGyJOJ=VwZmr-vhtPF5LRiCqD54XfOteHDo68X4dWw@mail.gmail.com>
+In-Reply-To: <CADjjUBMbgdmaGGos1JyHiRwqf-PH9sfa2LKwxLfnXz5BPJyV9Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 01, 2014 at 05:07:23PM +0200, Arturo Borrero Gonzalez wrote:
-> On 26 August 2014 13:09, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Please, implement this in nft. I think we can probably have an -x
-> > option, eg.
+On Mon, Sep 01, 2014 at 01:54:38PM +0200, Alvaro Neira Ayuso wrote:
+> Hello
+>=20
+> El 01/09/2014 11:25, "Yanchuan Nian" <ycnian@gmail.com> escribi=F3:
 > >
-> > nft -f -x ruleset-file
+> > Hi,
+> > There are still some byteorder prolems in nft.
 > >
-> > The '-x' indicates that you want to flush any previous existing
-> > configuration before loading this 'ruleset-file'.
+> > The first one:
+> > nft> add rule bridge filter input ip saddr 192.168.1.1 counter
+> > nft> list table bridge filter
+> > table bridge filter {
+> >         chain input {
+> >                  type filter hook input priority 0;
+> >                  unknown unknown 0xc0a80101 [invalid type] counter
+> packets 0 bytes 0
+> >         }
+> > }
+> > nft>
+> > I guess this error occurs in payload_gen_dependency() which set the
+> byteorder
+> > host endian but ether type is big endian.
 > >
-> > -xx could also be used to remove any configuration regarding the
-> > existing families in the ruleset-file, ie. if the ruleset-file only
-> > contains a configuration for 'ip', all remaining families are left
-> > untouched.
-> >
-> 
-> Hi Pablo, Patrick.
-> 
-> I've looked into how to implement this '-x' option.
-> 
-> I wonder if it worth having better a "formal" command, like
->  % nft flush ruleset
->  % nft flush ruleset ip
->  % nft flush ruleset ip6
->  % nft flush ruleset arp
->  [...]
-> 
-> This way, a user loading a new ruleset with -f can just put a first
-> line like this:
-> 
-> =========
-> nft flush ruleset
-> nft add table ip filter
-> nft add chain ip filter input
-> nft add rule ip filter input counter
-> nft add table ip6 filter
-> nft add chain ip6 filter input
-> [...]
-> =========
-> 
-> Or flush per family, as Pablo suggested:
-> 
-> =========
-> nft flush ruleset inet
-> nft add table inet filter
-> [...]
-> =========
-> 
-> Some benefits of this approach is that we have a concrete order to
-> flush the ruleset, in the case the user wants no ruleset.
-> The lack of this shortcut seem an actual concern of some users.
+> > The second one:
+> > nft> add rule ip filter input ip length > 10 counter
+> > BUG: invalid byte order conversion 0 =3D> 2
+> > nft: src/evaluate.c:153: byteorder_conversion_op: Assertion `0' fai=
+led.
+> > This is because the datatype of ip length is integer_type whose byt=
+eorder
+> is invalid.
+>=20
+> I have already reported this bug. I have sent some patches but Patric=
+k
+> showed me the best way to fix it and I'm working in some patches.
+>=20
+> Regards
+>=20
+> Alvaro
 
-I agree, this sounds better than a command line option.
+Oh, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
