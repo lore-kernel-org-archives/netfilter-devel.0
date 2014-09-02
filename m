@@ -1,60 +1,98 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH 3/6 v5] netfilter: nf_tables: rename nf_table_delrule_by_chain()
-Date: Tue,  2 Sep 2014 16:42:24 +0200
-Message-ID: <1409668946-8168-4-git-send-email-arturo.borrero.glez@gmail.com>
-References: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH 1/6 v5] netfilter: nf_tables: refactor rule deletion helper
+Date: Tue,  2 Sep 2014 16:42:21 +0200
+Message-ID: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
 Cc: pablo@netfilter.org, kaber@trash.net,
 	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:49433 "EHLO smtp.cica.es"
+Received: from smtp4.cica.es ([150.214.5.182]:49437 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753935AbaIBOmw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753937AbaIBOmw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 2 Sep 2014 10:42:52 -0400
-In-Reply-To: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For the sake of homogenize the function naming scheme, let's rename
-nf_table_delrule_by_chain() to nft_delrule_by_chain().
+This helper function always schedule the rule to be removed in the following
+transaction.
+In follow-up patches, it is interesting to handle separately the logic of rule
+activation/disactivation from the transaction mechanism.
+
+So, this patch simply splits the original nf_tables_delrule_one() in two
+functions, allowing further control.
+
+While at it, for the sake of homigeneize the function naming scheme, let's
+rename nf_tables_delrule_one() to nft_delrule().
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
 v2: no changes, resending the series.
-v3: no changes, resending the series.
-v4: no changes, resending the series, v3 series was invalid.
+v3: change 'disactivate' and use 'deactivate'. Requested by Patrick.
+v4: no changes, resending the series because v3 series is invalid.
 v5: no changes, resending the series.
 
- net/netfilter/nf_tables_api.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 90e3496..eac4fab 100644
+index deeb95f..3664bab 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1902,7 +1902,7 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
- 	return 0;
+@@ -1868,12 +1868,10 @@ err1:
  }
  
--static int nf_table_delrule_by_chain(struct nft_ctx *ctx)
-+static int nft_delrule_by_chain(struct nft_ctx *ctx)
+ static int
+-nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
++nf_tables_delrule_deactivate(struct nft_ctx *ctx, struct nft_rule *rule)
+ {
+ 	/* You cannot delete the same rule twice */
+ 	if (nft_rule_is_active_next(ctx->net, rule)) {
+-		if (nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule) == NULL)
+-			return -ENOMEM;
+ 		nft_rule_disactivate_next(ctx->net, rule);
+ 		ctx->chain->use--;
+ 		return 0;
+@@ -1881,13 +1879,31 @@ nf_tables_delrule_one(struct nft_ctx *ctx, struct nft_rule *rule)
+ 	return -ENOENT;
+ }
+ 
++static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
++{
++	struct nft_trans *trans;
++	int err;
++
++	trans = nft_trans_rule_add(ctx, NFT_MSG_DELRULE, rule);
++	if (trans == NULL)
++		return -ENOMEM;
++
++	err = nf_tables_delrule_deactivate(ctx, rule);
++	if (err < 0) {
++		nft_trans_destroy(trans);
++		return err;
++	}
++
++	return 0;
++}
++
+ static int nf_table_delrule_by_chain(struct nft_ctx *ctx)
  {
  	struct nft_rule *rule;
  	int err;
-@@ -1955,12 +1955,12 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
  
- 			err = nft_delrule(&ctx, rule);
+ 	list_for_each_entry(rule, &ctx->chain->rules, list) {
+-		err = nf_tables_delrule_one(ctx, rule);
++		err = nft_delrule(ctx, rule);
+ 		if (err < 0)
+ 			return err;
+ 	}
+@@ -1932,7 +1948,7 @@ static int nf_tables_delrule(struct sock *nlsk, struct sk_buff *skb,
+ 			if (IS_ERR(rule))
+ 				return PTR_ERR(rule);
+ 
+-			err = nf_tables_delrule_one(&ctx, rule);
++			err = nft_delrule(&ctx, rule);
  		} else {
--			err = nf_table_delrule_by_chain(&ctx);
-+			err = nft_delrule_by_chain(&ctx);
- 		}
- 	} else {
- 		list_for_each_entry(chain, &table->chains, list) {
- 			ctx.chain = chain;
--			err = nf_table_delrule_by_chain(&ctx);
-+			err = nft_delrule_by_chain(&ctx);
- 			if (err < 0)
- 				break;
+ 			err = nf_table_delrule_by_chain(&ctx);
  		}
 -- 
 1.7.10.4
