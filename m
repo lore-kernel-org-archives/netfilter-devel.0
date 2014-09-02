@@ -1,69 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set
- destroy path
-Date: Tue, 2 Sep 2014 14:22:07 +0200
-Message-ID: <20140902122207.GA11880@salvia>
-References: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
- <20140902101440.GA12450@acer.localdomain>
- <20140902103856.GA10730@salvia>
- <20140902105920.GB12450@acer.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50944 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345AbaIBMV2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 08:21:28 -0400
-Content-Disposition: inline
-In-Reply-To: <20140902105920.GB12450@acer.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH] netfilter: fix missing dependencies in NETFILTER_XT_TARGET_LOG
+Date: Tue,  2 Sep 2014 14:26:17 +0200
+Message-ID: <1409660777-14999-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Sep 02, 2014 at 11:59:22AM +0100, Patrick McHardy wrote:
-> On Tue, Sep 02, 2014 at 12:38:56PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Sep 02, 2014 at 11:14:41AM +0100, Patrick McHardy wrote:
-> > > On Tue, Sep 02, 2014 at 11:38:39AM +0200, Pablo Neira Ayuso wrote:
-> > > > The sets are released from the rcu callback, after the rule is removed
-> > > > from the chain list, which implies that nfnetlink cannot update the
-> > > > hashes (thus, no resizing may occur) and no packets are walking on the
-> > > > set anymore.
-> > > 
-> > > Unrelated to your patch, but to the RCU destruction: how does that make
-> > > sure that nfnetlink notifications are received in the proper order?
-> > > I mean, theoretically a new set with the same name could exist at that
-> > > time. The same problem exists for all objects that have user defined
-> > > identifiers or refer to them.
-> > 
-> > All the events (with the exception of anonymous sets) are sent in
-> > order from the commit path, so they are delivered in order.
-> 
-> Sure, I was talking about independant additions:
-> 
-> - delete set X
-> - RCU callback delayed
-> - add set X, notify
-> - RCU callback executes, notifies for delete set X
+make defconfig reports:
 
-Right, that's indeed a problem for bound-to-rule anonymous sets.
+warning: (NETFILTER_XT_TARGET_LOG) selects NF_LOG_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NETFILTER_ADVANCED)
 
-> Same thing applies to all other objects that don't have a unique identifier
-> chosen by the kernel.
+Fixes: d79a61d netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_*
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+~
+@David, if you pull this request:
 
-All other objects are always notified in order from the commit path,
-so they seem fine to me.
+http://patchwork.ozlabs.org/patch/385042/
 
-> > The anonymous sets are problematic, we need to notify this from the
-> > commit path too to ensure the right ordering. I was trying to avoid
-> > some specific notify() interface in expr->ops but it seems we need it
-> > for nft_lookup.c.
-> > 
-> > Can you think of a better solution?
-> 
-> No, unless we can come up with a way that's synchronous.
+Could you also manually apply this patch to calm down kbuild robot?
 
-I would really like not to go back to the two nearly consecutive
-synchronize_rcu() calls, it's slow.  I've been thinking on replacing
-the current check in the packet path by static keys, but I didn't
-manage to find the way yet.
+Thanks!
+
+ net/ipv6/netfilter/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index cf0b88f..2812816 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -57,7 +57,7 @@ config NFT_REJECT_IPV6
+ 
+ config NF_LOG_IPV6
+ 	tristate "IPv6 packet logging"
+-	depends on NETFILTER_ADVANCED
++	default m if NETFILTER_ADVANCED=n
+ 	select NF_LOG_COMMON
+ 
+ config NF_NAT_IPV6
+-- 
+1.7.10.4
