@@ -1,81 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: nft_hash: no need for rcu in the hash set destroy path
-Date: Tue,  2 Sep 2014 11:38:39 +0200
-Message-ID: <1409650721-9621-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, tgraf@suug.ch
+Subject: [PATCH 0/7] pull request: Netfilter/IPVS fixes for net
+Date: Tue,  2 Sep 2014 12:13:57 +0200
+Message-ID: <1409652844-10289-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34669 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47982 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903AbaIBJh4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2014 05:37:56 -0400
+	id S1752272AbaIBKNS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2014 06:13:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The sets are released from the rcu callback, after the rule is removed
-from the chain list, which implies that nfnetlink cannot update the
-hashes (thus, no resizing may occur) and no packets are walking on the
-set anymore.
+Hi David,
 
-This resolves a lockdep splat in the nft_hash_destroy() path since the
-nfnl mutex is not held there.
+The following patchset contains seven Netfilter fixes for your net
+tree, they are:
 
-===============================
-[ INFO: suspicious RCU usage. ]
-3.16.0-rc2+ #168 Not tainted
--------------------------------
-net/netfilter/nft_hash.c:362 suspicious rcu_dereference_protected() usage!
+1) Make the NAT infrastructure independent of x_tables, some users are
+   already starting to test nf_tables with NAT without enabling x_table=
+s.
+   Without this patch for Kconfig, there's a superfluous dependency
+   between NAT and x_tables.
+2) Allow to use 0 in the cgroup match, the kernel rejects with -EINVAL
+   with no good reason. From Daniel Borkmann.
 
-other info that might help us debug this:
+3) Select CONFIG_NF_NAT from the nf_tables NAT expression, this also
+   resolves another NAT dependency with x_tables.
 
-rcu_scheduler_active = 1, debug_locks = 1
-1 lock held by ksoftirqd/0/3:
- #0:  (rcu_callback){......}, at: [<ffffffff81096393>] rcu_process_callbacks+0x27e/0x4c7
+4) Use HAVE_JUMP_LABEL instead of CONFIG_JUMP_LABEL in the Netfilter ho=
+ok
+   code as elsewhere in the kernel to resolve toolchain problems, from
+   Zhouyi Zhou.
 
-stack backtrace:
-CPU: 0 PID: 3 Comm: ksoftirqd/0 Not tainted 3.16.0-rc2+ #168
-Hardware name: LENOVO 23259H1/23259H1, BIOS G2ET32WW (1.12 ) 05/30/2012
- 0000000000000001 ffff88011769bb98 ffffffff8142c922 0000000000000006
- ffff880117694090 ffff88011769bbc8 ffffffff8107c3ff ffff8800cba52400
- ffff8800c476bea8 ffff8800c476bea8 ffff8800cba52400 ffff88011769bc08
-Call Trace:
- [<ffffffff8142c922>] dump_stack+0x4e/0x68
- [<ffffffff8107c3ff>] lockdep_rcu_suspicious+0xfa/0x103
- [<ffffffffa079931e>] nft_hash_destroy+0x50/0x137 [nft_hash]
- [<ffffffffa078cd57>] nft_set_destroy+0x11/0x2a [nf_tables]
+5) Use iptunnel_handle_offloads() to set up tunnel encapsulation
+   depending on the offload capabilities, reported by Alex Gartrell
+   patch from Julian Anastasov.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_hash.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+6) Fix wrong family when registering the ip_vs_local_reply6() hook,
+   also from Julian.
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 28fb8f3..8892b7b 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -180,15 +180,17 @@ static int nft_hash_init(const struct nft_set *set,
- static void nft_hash_destroy(const struct nft_set *set)
- {
- 	const struct rhashtable *priv = nft_set_priv(set);
--	const struct bucket_table *tbl;
-+	const struct bucket_table *tbl = priv->tbl;
- 	struct nft_hash_elem *he, *next;
- 	unsigned int i;
- 
--	tbl = rht_dereference(priv->tbl, priv);
--	for (i = 0; i < tbl->size; i++)
--		rht_for_each_entry_safe(he, next, tbl->buckets[i], priv, node)
-+	for (i = 0; i < tbl->size; i++) {
-+		for (he = rht_entry(tbl->buckets[i], struct nft_hash_elem, node);
-+		     he != NULL; he = next) {
-+			next = rht_entry(he->node.next, struct nft_hash_elem, node);
- 			nft_hash_elem_destroy(set, he);
--
-+		}
-+	}
- 	rhashtable_destroy(priv);
- }
- 
--- 
-1.7.10.4
+7) Select the NF_LOG_* symbols from NETFILTER_XT_TARGET_LOG. Rafa=C5=82
+   Mi=C5=82ecki reported that when jumping from 3.16 to 3.17-rc, his lo=
+g
+   target is not selected anymore due to changes in the previous
+   development cycle to accomodate the full logging support for
+   nf_tables.
 
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 21009686662fd21412ca35def7cb3cc8346e=
+1c3d:
+
+  net: phy: smsc: move smsc_phy_config_init reset part in a soft_reset =
+function (2014-08-16 20:15:54 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to d79a61d646db950b68dd79ecc627cb5f11e0d8ac=
+:
+
+  netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_* (2014-09-01 13:46=
+:31 +0200)
+
+----------------------------------------------------------------
+Daniel Borkmann (1):
+      netfilter: x_tables: allow to use default cgroup match
+
+Julian Anastasov (2):
+      ipvs: properly declare tunnel encapsulation
+      ipvs: fix ipv6 hook registration for local replies
+
+Pablo Neira Ayuso (3):
+      netfilter: move NAT Kconfig switches out of the iptables scope
+      netfilter: nf_tables: nat expression must select CONFIG_NF_NAT
+      netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_*
+
+Zhouyi Zhou (1):
+      netfilter: HAVE_JUMP_LABEL instead of CONFIG_JUMP_LABEL
+
+ include/linux/netfilter.h       |    5 +-
+ net/ipv4/netfilter/Kconfig      |  102 +++++++++++++++++++++----------=
+--------
+ net/ipv4/netfilter/Makefile     |    2 +-
+ net/ipv6/netfilter/Kconfig      |   26 +++++++---
+ net/ipv6/netfilter/Makefile     |    2 +-
+ net/netfilter/Kconfig           |    6 ++-
+ net/netfilter/Makefile          |    2 +-
+ net/netfilter/core.c            |    6 +--
+ net/netfilter/ipvs/ip_vs_core.c |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c |   20 ++++++--
+ net/netfilter/xt_cgroup.c       |    2 +-
+ 11 files changed, 105 insertions(+), 70 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
