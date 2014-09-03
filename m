@@ -1,28 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: fix missing dependencies in
- NETFILTER_XT_TARGET_LOG
-Date: Tue, 02 Sep 2014 14:00:11 -0700 (PDT)
-Message-ID: <20140902.140011.1524495054200764419.davem@davemloft.net>
-References: <1409660777-14999-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1409660777-14999-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  2 Sep 2014 14:26:17 +0200
+Subject: Re: [nf_tables PATCH 1/6 v5] netfilter: nf_tables: refactor rule
+ deletion helper
+Date: Wed, 3 Sep 2014 11:46:08 +0200
+Message-ID: <20140903094608.GA14063@salvia>
+References: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34245 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755341AbaICJpZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Sep 2014 05:45:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> make defconfig reports:
+On Tue, Sep 02, 2014 at 04:42:21PM +0200, Arturo Borrero Gonzalez wrote:
+> This helper function always schedule the rule to be removed in the following
+> transaction.
+> In follow-up patches, it is interesting to handle separately the logic of rule
+> activation/disactivation from the transaction mechanism.
 > 
-> warning: (NETFILTER_XT_TARGET_LOG) selects NF_LOG_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NETFILTER_ADVANCED)
+> So, this patch simply splits the original nf_tables_delrule_one() in two
+> functions, allowing further control.
 > 
-> Fixes: d79a61d netfilter: NETFILTER_XT_TARGET_LOG selects NF_LOG_*
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> While at it, for the sake of homigeneize the function naming scheme, let's
+> rename nf_tables_delrule_one() to nft_delrule().
 
 Applied, thanks.
+
