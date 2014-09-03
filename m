@@ -1,33 +1,56 @@
-From: Maninder Singh <maninder.tiet@gmail.com>
-Subject: Required : Documentation of extension header related functions in
- Linux Kernel
-Date: Wed, 3 Sep 2014 22:47:56 +0530
-Message-ID: <CAHzLHWptHjkckd7COi+=y7iBvAdFKkRzNTmZWNiZTnxvZJk9Nw@mail.gmail.com>
+From: Husam Al Sayed <oscar55@post.sk>
+Subject: FROM: Husam Al Sayed.
+Date: Wed, 3 Sep 2014 20:38:34 +0200 (CEST)
+Message-ID: <1977830556.347170.1409769513972.JavaMail.root@mbox05>
+Reply-To: "alsayedhusa@hotmail.com" <alsayedhusa@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Cc: microblaze-uclinux@itee.uq.edu.au, linux-mips@linux-mips.org,
+	eli@mellanox.com, klimov.linux@gmail.com, jlee@suse.com,
+	anisse@astier.eu, lee.jones@linaro.org, andrewtv@usa.net,
+	hykim@myri.com, zonque@gmail.com, petr@vandrovec.name,
+	James.Bottomley@HansenPartnership.com, faisal.latif@intel.com,
+	stephen@networkplumber.org, netem@lists.linux-foundation.org,
+	jdmason@kudzu.us, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, Paul.Clements@steeleye.com,
+	nbd-general@lists.sourceforge.net, kuznet@ms2.inr.ac.ru,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	herbert@gondor.apana.org.au, manish.chopra@qlogic.com,
+	lauro.venancio@openbossa.org, aloisio.almeida@openbossa.org
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:61362 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932670AbaICRR6 (ORCPT
+Received: from smtp01.post.sk ([195.146.144.201]:52135 "EHLO smtp01.post.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754433AbaICSje convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Sep 2014 13:17:58 -0400
-Received: by mail-la0-f54.google.com with SMTP id b17so10273899lan.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Sep 2014 10:17:56 -0700 (PDT)
+	Wed, 3 Sep 2014 14:39:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi developers,
+FROM: Husam Al Sayed.
 
-I need some documentation around the functions that can help parse the
-extension headers in kernel. I need this for some research work but
-could not find a consolidated text which contains information about
-such functions. Basically, I want to develop a hook function which
-will be capable of reading the options present in HBH header of
-packets being forwarded through the router and optionally change
-option data (value) according to my logic before forwarding.
+EMAIL:alsayedhusa@hotmail.com
+ 
+Hello,
+ 
+I decided to write you this proposal in good faith, believing that you will
+not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
+ 
+One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do 
+ about his funds, if to renew the contract.
+ 
+I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let 
+ me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
+ 
+ 
+ 
+Have a nice day and God bless. Anticipating your communication.
+ 
+Regards,
+FROM: Husam Al Sayed.
+EMAIL: alsayedhusa@hotmail.com
+_____________________________________________________________________
 
-Any pointers will be appreciated.
-
-Thanks
-Maninder Singh
+Hladate vazny vztah? Zaregistrujte sa na - http://dvaja.sme.sk
