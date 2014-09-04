@@ -1,89 +1,138 @@
-From: Kevin Fenzi <kevin@scrye.com>
-Subject: nft: crash in describe?
-Date: Wed, 3 Sep 2014 14:21:54 -0600
-Message-ID: <20140903142154.0a2b32ad@voldemort.scrye.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH v4 1/5] netfilter: nft_nat: include a flag
+ attribute
+Date: Thu, 04 Sep 2014 14:06:14 +0200
+Message-ID: <20140904120518.5971.77791.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/zbUhwKtd8RRhCn8XL2_9.px"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from scrye.com ([75.148.32.185]:42561 "EHLO mail.scrye.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753991AbaICUa0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Sep 2014 16:30:26 -0400
-Received: from voldemort.scrye.com (voldemort [10.99.3.2])
-	by mail.scrye.com (Postfix) with ESMTP id 712F6658315
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2014 14:21:55 -0600 (MDT)
-Received: from voldemort.scrye.com (localhost [IPv6:::1])
-	by voldemort.scrye.com (Postfix) with ESMTP id 5BD3524FAC
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2014 14:21:55 -0600 (MDT)
+Received: from smtp3.cica.es ([150.214.5.190]:52574 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753774AbaIDMGY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Sep 2014 08:06:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/zbUhwKtd8RRhCn8XL2_9.px
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Both SNAT and DNAT (and the upcoming masquerade) can have additional
+configuration parameters, such as port randomization or NAT addressing
+persistence.
+We can cover these scenarios by simply adding a flag attribute for
+userspace to fill when needed.
 
-Greetings.=20
+The flags to use are defined in include/uapi/linux/netfilter/nf_nat.h,
+ NF_NAT_RANGE_MAP_IPS
+ NF_NAT_RANGE_PROTO_SPECIFIED
+ NF_NAT_RANGE_PROTO_RANDOM
+ NF_NAT_RANGE_PERSISTENT
+ NF_NAT_RANGE_PROTO_RANDOM_FULLY
+ NF_NAT_RANGE_PROTO_RANDOM_ALL
 
-I'm seeing a crash here in nft:=20
+The caller must take care of not messing up with the flags, as they are
+added unconditionally to the final resulting nf_nat_range.
 
-(ask it to describe something like flags, works fine)
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: address Florian Westphal's comments: check all flag bits to be known.
+v3: style cleanup requested by Pablo Neira. Mask name shortened.
+v4: nf-next rebase.
 
-% nft describe tcp flags
-payload expression, datatype tcp_flag (TCP flag) (basetype bitmask,
-integer), 8 bits
+ include/uapi/linux/netfilter/nf_nat.h    |    5 +++++
+ include/uapi/linux/netfilter/nf_tables.h |    2 ++
+ net/netfilter/nft_nat.c                  |   16 ++++++++++++++++
+ 3 files changed, 23 insertions(+)
 
-pre-defined symbolic constants:
-        fin                             0x01
-        syn                             0x02
-        rst                             0x04
-        psh                             0x08
-        ack                             0x10
-        urg                             0x20
-        ecn                             0x40
-        cwr                             0x80
+diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
+index 1ad3659..898db2d 100644
+--- a/include/uapi/linux/netfilter/nf_nat.h
++++ b/include/uapi/linux/netfilter/nf_nat.h
+@@ -13,6 +13,11 @@
+ #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
+ 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+ 
++#define NF_NAT_RANGE_MASK					\
++	(NF_NAT_RANGE_MAP_IPS|NF_NAT_RANGE_PROTO_SPECIFIED	\
++	 |NF_NAT_RANGE_PROTO_RANDOM|NF_NAT_RANGE_PERSISTENT	\
++	 |NF_NAT_RANGE_PROTO_RANDOM_FULLY)
++
+ struct nf_nat_ipv4_range {
+ 	unsigned int			flags;
+ 	__be32				min_ip;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c000947..62ea48d 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -785,6 +785,7 @@ enum nft_nat_types {
+  * @NFTA_NAT_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+  * @NFTA_NAT_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+  * @NFTA_NAT_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
++ * @NFTA_NAT_FLAGS: additional NAT configuration (NF_NAT_RANGE_*) (NLA_U32)
+  */
+ enum nft_nat_attributes {
+ 	NFTA_NAT_UNSPEC,
+@@ -794,6 +795,7 @@ enum nft_nat_attributes {
+ 	NFTA_NAT_REG_ADDR_MAX,
+ 	NFTA_NAT_REG_PROTO_MIN,
+ 	NFTA_NAT_REG_PROTO_MAX,
++	NFTA_NAT_FLAGS,
+ 	__NFTA_NAT_MAX
+ };
+ #define NFTA_NAT_MAX		(__NFTA_NAT_MAX - 1)
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index 79ff58c..799550b 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -33,6 +33,7 @@ struct nft_nat {
+ 	enum nft_registers      sreg_proto_max:8;
+ 	enum nf_nat_manip_type  type:8;
+ 	u8			family;
++	u16			flags;
+ };
+ 
+ static void nft_nat_eval(const struct nft_expr *expr,
+@@ -71,6 +72,8 @@ static void nft_nat_eval(const struct nft_expr *expr,
+ 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 	}
+ 
++	range.flags |= priv->flags;
++
+ 	data[NFT_REG_VERDICT].verdict =
+ 		nf_nat_setup_info(ct, &range, priv->type);
+ }
+@@ -82,6 +85,7 @@ static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
+ 	[NFTA_NAT_REG_ADDR_MAX]	 = { .type = NLA_U32 },
+ 	[NFTA_NAT_REG_PROTO_MIN] = { .type = NLA_U32 },
+ 	[NFTA_NAT_REG_PROTO_MAX] = { .type = NLA_U32 },
++	[NFTA_NAT_FLAGS]	 = { .type = NLA_U32 },
+ };
+ 
+ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+@@ -149,6 +153,12 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	} else
+ 		priv->sreg_proto_max = priv->sreg_proto_min;
+ 
++	if (tb[NFTA_NAT_FLAGS]) {
++		priv->flags = ntohl(nla_get_be32(tb[NFTA_NAT_FLAGS]));
++		if (priv->flags & ~NF_NAT_RANGE_MASK)
++			return -EINVAL;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -183,6 +193,12 @@ static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 				 htonl(priv->sreg_proto_max)))
+ 			goto nla_put_failure;
+ 	}
++
++	if (priv->flags != 0) {
++		if (nla_put_be32(skb, NFTA_NAT_FLAGS, htonl(priv->flags)))
++			goto nla_put_failure;
++	}
++
+ 	return 0;
+ 
+ nla_put_failure:
 
-(pass anything invalid and boom):
-
-%  nft describe tcp foobar
-value expression, datatype inet_proto (Internet protocol) (basetype
-integer), 8 bits [1]    2028 segmentation fault (core dumped)  nft
-describe tcp foobar
-
-0x0000000000406a84 in handle_free ()
-(gdb) where
-#0  0x0000000000406a84 in handle_free ()
-#1  0x0000000000407822 in cmd_free ()
-#2  0x000000000041a3d1 in nft_parse ()
-#3  0x0000000000405e40 in nft_run ()
-#4  0x0000000000405a98 in main ()
-
-Happy to gather more info if it will help...=20
-
-kevin
-
-
---Sig_/zbUhwKtd8RRhCn8XL2_9.px
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCgAGBQJUB3hjAAoJEEs3sNgP+7teSqoQAKy4U+BSTt4KN6qQHHiCfnLY
-SYTva4Ky/dAGKiSg4nYTFQ59qOhTeUKeYqBUvDAXoUKqCjU5K2AOol5lbvDCBOZI
-sP0d8TvKypxH0DwtLpRi4stHfZImq3TGhjNtM/UNiuJ7kr5+IRLuPzicgdIy+K9G
-Dk5ZUeXfjTCAKrAK//+Qgg92c6OPYLTsIgJU36F2FUHmSN0yU3YrXtsPSUpz4tNK
-+0cMfUCx2yIEJ8wkGuLyzu5OpvEAWPYc00WWd/dwzAEi0djgJIJgohD7HvEwdyOG
-S9rhnS8drXL6IYUnKtmXinGzUhQ86+veGnXgWv4V6T4XpoRhdfo8Edw9V6kBUR/e
-YShOvuyUgptQ7a/2QXwT8WA3kdkFebpffli6Z3Ch5H6HCFnk7UE04Hnn51S8lNdx
-rHGN/Vt5EjGd81apgKgAp7hpwZast8ykDn6/Flzw/ueO2yS58VMO6d71KEcRwqPF
-PiQoIbBIDWvelehOzzs4bzeTnJlwsgw32sAP1HUyEH5uWrPeWdEOr4oB+S04yIgu
-feIl1PCTWHzHEt3nuYYy4lauK9FJDNOb+QXVK6FaTlDlVvb9sf9dx5dy4zSf0DMo
-w/v/e+loBxCOtRu0OMQF8EncW6t5GhsvfvZGm3E37IYBxeE13bKcknlWQ2QULmUU
-h4t7oCZqUwQkOwRBH6Nl
-=x/oD
------END PGP SIGNATURE-----
-
---Sig_/zbUhwKtd8RRhCn8XL2_9.px--
