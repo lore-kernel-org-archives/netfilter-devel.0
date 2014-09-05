@@ -1,45 +1,100 @@
-From: Thomas De Schampheleire <patrickdepinguin@gmail.com>
-Subject: Re: iptables: missing connlabel.conf causes unnecessary error messages
-Date: Fri, 5 Sep 2014 12:11:16 +0200
-Message-ID: <CAAXf6LWOqA5276mD4v0QLuHp7vBh7tpyZS4y=57iffy8Z4k+uA@mail.gmail.com>
-References: <CAAXf6LW4zfxOMeUO4=UPFUX=0VGjLbM_wKhdb3L7DK4SPBmbhg@mail.gmail.com>
- <20140905091305.GB934@breakpoint.cc> <CAAXf6LVWzjt_becB7dwFNtcevGZn-nsGxACtZHqrv+4MUSsSaA@mail.gmail.com>
- <20140905095137.GC934@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: Add bridge interface physical index and name
+Date: Fri,  5 Sep 2014 12:44:48 +0200
+Message-ID: <1409913888-5145-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:42542 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756557AbaIEKLj (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:61106 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557AbaIEKmZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Sep 2014 06:11:39 -0400
-Received: by mail-la0-f53.google.com with SMTP id q1so5013024lam.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Sep 2014 03:11:36 -0700 (PDT)
-In-Reply-To: <20140905095137.GC934@breakpoint.cc>
+	Fri, 5 Sep 2014 06:42:25 -0400
+Received: by mail-wg0-f44.google.com with SMTP id m15so11483508wgh.27
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Sep 2014 03:42:24 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 5, 2014 at 11:51 AM, Florian Westphal <fw@strlen.de> wrote:
-> Thomas De Schampheleire <patrickdepinguin@gmail.com> wrote:
->> On Fri, Sep 5, 2014 at 11:13 AM, Florian Westphal <fw@strlen.de> wrote:
->> > Thomas De Schampheleire <patrickdepinguin@gmail.com> wrote:
->> >> Commit http://git.netfilter.org/iptables/commit/?id=51340f7b6a1103b12d86ef488f7140406d80401e
->> >> removed the default /etc/xtables/connlabel.conf file distributed with netfilter.
->> >>
->> >> From this commit onwards, every call to iptables will show the message:
->> >>     cannot open connlabel.conf, not registering 'connlabel' match: No
->> >> such file or directory
->> >
->> > Right, this happens for static builds.
->>
->> If with 'static' you mean 'statically linked', then this is not correct.
->> My iptables application is dynamically linked:
->
-> I meant --enable-static during configure stage.
+This  allows us to match the packets that enter or leave through a
+bridge physical interface by name or index.
 
-Ok, I see, this is indeed a flag passed in my configure step.
+This reuses the NFT_META_IIFNAME, NFT_META_OIFNAME, NFT_META_IIF and
+NFT_META_OIF labels. In the bridge context, these labels have a special
+meaning. The kernel chooses the behaviour depending on the family.
 
-Thanks,
-Thomas
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ net/bridge/netfilter/nft_meta_bridge.c |   36 +++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 4f02109..247c0ef 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -26,21 +26,51 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 	const struct net_device *in = pkt->in, *out = pkt->out;
+ 	struct nft_data *dest = &data[priv->dreg];
+ 	const struct net_bridge_port *p;
++	struct nf_bridge_info *nf_bridge;
+ 
+ 	switch (priv->key) {
+ 	case NFT_META_BRI_IIFNAME:
+ 		if (in == NULL || (p = br_port_get_rcu(in)) == NULL)
+ 			goto err;
++		strncpy((char *)dest->data, p->br->dev->name,
++			sizeof(dest->data));
+ 		break;
+ 	case NFT_META_BRI_OIFNAME:
+ 		if (out == NULL || (p = br_port_get_rcu(out)) == NULL)
+ 			goto err;
++		strncpy((char *)dest->data, p->br->dev->name,
++			sizeof(dest->data));
++		break;
++	case NFT_META_IIF:
++		nf_bridge = pkt->skb->nf_bridge;
++		if (nf_bridge == NULL || nf_bridge->physindev == NULL)
++			goto err;
++		dest->data[0] = nf_bridge->physindev->ifindex;
++		break;
++	case NFT_META_OIF:
++		nf_bridge = pkt->skb->nf_bridge;
++		if (nf_bridge == NULL || nf_bridge->physoutdev == NULL)
++			goto err;
++		dest->data[0] = nf_bridge->physoutdev->ifindex;
++		break;
++	case NFT_META_IIFNAME:
++		nf_bridge = pkt->skb->nf_bridge;
++		if (nf_bridge == NULL || nf_bridge->physindev == NULL)
++			goto err;
++		strncpy((char *)dest->data, nf_bridge->physindev->name,
++			sizeof(dest->data));
++		break;
++	case NFT_META_OIFNAME:
++		nf_bridge = pkt->skb->nf_bridge;
++		if (nf_bridge == NULL || nf_bridge->physoutdev == NULL)
++			goto err;
++		strncpy((char *)dest->data, nf_bridge->physoutdev->name,
++			sizeof(dest->data));
+ 		break;
+ 	default:
+ 		goto out;
+ 	}
+ 
+-	strncpy((char *)dest->data, p->br->dev->name, sizeof(dest->data));
+ 	return;
+ out:
+ 	return nft_meta_get_eval(expr, data, pkt);
+@@ -59,6 +89,10 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
+ 	switch (priv->key) {
+ 	case NFT_META_BRI_IIFNAME:
+ 	case NFT_META_BRI_OIFNAME:
++	case NFT_META_IIF:
++	case NFT_META_OIF:
++	case NFT_META_IIFNAME:
++	case NFT_META_OIFNAME:
+ 		break;
+ 	default:
+ 		return nft_meta_get_init(ctx, expr, tb);
+-- 
+1.7.10.4
+
