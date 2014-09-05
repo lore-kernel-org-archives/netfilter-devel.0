@@ -1,258 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2 net-next] ipvs: reduce stack usage for sockopt data
-Date: Fri, 5 Sep 2014 11:52:44 +0200
-Message-ID: <20140905095244.GA29432@salvia>
-References: <1409691769-4413-1-git-send-email-ja@ssi.bg>
- <20140903091121.GA3735@salvia>
- <alpine.LFD.2.11.1409032055520.1750@ja.home.ssi.bg>
- <20140903190300.GN6549@mwanda>
+From: Thomas De Schampheleire <patrickdepinguin@gmail.com>
+Subject: Re: iptables: missing connlabel.conf causes unnecessary error messages
+Date: Fri, 5 Sep 2014 12:11:16 +0200
+Message-ID: <CAAXf6LWOqA5276mD4v0QLuHp7vBh7tpyZS4y=57iffy8Z4k+uA@mail.gmail.com>
+References: <CAAXf6LW4zfxOMeUO4=UPFUX=0VGjLbM_wKhdb3L7DK4SPBmbhg@mail.gmail.com>
+ <20140905091305.GB934@breakpoint.cc> <CAAXf6LVWzjt_becB7dwFNtcevGZn-nsGxACtZHqrv+4MUSsSaA@mail.gmail.com>
+ <20140905095137.GC934@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="gBBFr7Ir9EOA20Yy"
-Cc: Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>,
-	lvs-devel@vger.kernel.org,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	David Binderman <dcb314@hotmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140903190300.GN6549@mwanda>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:42542 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557AbaIEKLj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Sep 2014 06:11:39 -0400
+Received: by mail-la0-f53.google.com with SMTP id q1so5013024lam.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Sep 2014 03:11:36 -0700 (PDT)
+In-Reply-To: <20140905095137.GC934@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Fri, Sep 5, 2014 at 11:51 AM, Florian Westphal <fw@strlen.de> wrote:
+> Thomas De Schampheleire <patrickdepinguin@gmail.com> wrote:
+>> On Fri, Sep 5, 2014 at 11:13 AM, Florian Westphal <fw@strlen.de> wrote:
+>> > Thomas De Schampheleire <patrickdepinguin@gmail.com> wrote:
+>> >> Commit http://git.netfilter.org/iptables/commit/?id=51340f7b6a1103b12d86ef488f7140406d80401e
+>> >> removed the default /etc/xtables/connlabel.conf file distributed with netfilter.
+>> >>
+>> >> From this commit onwards, every call to iptables will show the message:
+>> >>     cannot open connlabel.conf, not registering 'connlabel' match: No
+>> >> such file or directory
+>> >
+>> > Right, this happens for static builds.
+>>
+>> If with 'static' you mean 'statically linked', then this is not correct.
+>> My iptables application is dynamically linked:
+>
+> I meant --enable-static during configure stage.
 
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Ok, I see, this is indeed a flag passed in my configure step.
 
-On Wed, Sep 03, 2014 at 10:03:00PM +0300, Dan Carpenter wrote:
-> On Wed, Sep 03, 2014 at 09:17:38PM +0300, Julian Anastasov wrote:
-> > > An another question, in do_ip_vs_get_ctl() I can see:
-> > > 
-> > > +       copylen = get_arglen[CMDID(cmd)];
-> > > +       if (*len < (int) copylen || *len < 0) {
-> > > 
-> > > len is signed, the casting also enforces signed arithmetics. copylen
-> > > can be 0 at worst case for unused options. Perhaps I'm overlooking
-> > > something but I think *len < 0 is redundant.
-> > 
-> > 	Yes, I added it for readability, it can be
-> > removed, I checked that it does not generate code when
-> > I added it. IIRC, Arjan van de Ven mentioned
-> > about gcc reporting for missing range checks when
-> > commit 04bcef2a83f40c6db24222b
-> > ("ipvs: Add boundary check on ioctl arguments") was
-> > discussed. This is his posting:
-> > 
-> > http://marc.info/?l=linux-netdev&m=125443389131548&w=2
-> > 
-> > 	But I don't know how to check for such warnings
-> > and if they are still reported.
-> > 
-> 
-> I think you mean CONFIG_DEBUG_STRICT_USER_COPY_CHECKS.  Unfortunately
-> it's been turned off on recent versions of GCC since 2fb0815c9ee6
-> ('gcc4: disable __compiletime_object_size for GCC 4.6+')
-
-OK, then I'm going to remove it.
-
-Please, see patch attached. Let me know if you have any concern with
-it. Thanks!
-
---gBBFr7Ir9EOA20Yy
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-ipvs-reduce-stack-usage-for-sockopt-data.patch"
-
->From 6063b0ee7096d5b650e00c0f22220290c94b24ec Mon Sep 17 00:00:00 2001
-From: Julian Anastasov <ja@ssi.bg>
-Date: Wed, 3 Sep 2014 00:02:49 +0300
-Subject: [PATCH] ipvs: reduce stack usage for sockopt data
-
-Use union to reserve the required stack space for sockopt data
-which is less than the currently hardcoded value of 128.
-Now the tables for commands should be more readable.
-The checks added for readability are optimized by compiler,
-others warn at compile time if command uses too much
-stack or exceeds the storage of set_arglen and get_arglen.
-
-As Dan Carpenter points out, we can run for unprivileged user,
-so we can silent some error messages.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-CC: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-CC: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipvs/ip_vs_ctl.c |  112 ++++++++++++++++++++++------------------
- 1 file changed, 62 insertions(+), 50 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fd3f444..d3e21fb 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2180,28 +2180,41 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
- }
- 
- 
--#define SET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define SERVICE_ARG_LEN		(sizeof(struct ip_vs_service_user))
--#define SVCDEST_ARG_LEN		(sizeof(struct ip_vs_service_user) +	\
--				 sizeof(struct ip_vs_dest_user))
--#define TIMEOUT_ARG_LEN		(sizeof(struct ip_vs_timeout_user))
--#define DAEMON_ARG_LEN		(sizeof(struct ip_vs_daemon_user))
--#define MAX_ARG_LEN		SVCDEST_ARG_LEN
--
--static const unsigned char set_arglen[SET_CMDID(IP_VS_SO_SET_MAX)+1] = {
--	[SET_CMDID(IP_VS_SO_SET_ADD)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDIT)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DEL)]		= SERVICE_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_FLUSH)]		= 0,
--	[SET_CMDID(IP_VS_SO_SET_ADDDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_DELDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_EDITDEST)]	= SVCDEST_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_TIMEOUT)]	= TIMEOUT_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STARTDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_STOPDAEMON)]	= DAEMON_ARG_LEN,
--	[SET_CMDID(IP_VS_SO_SET_ZERO)]		= SERVICE_ARG_LEN,
-+#define CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
-+
-+struct ip_vs_svcdest_user {
-+	struct ip_vs_service_user	s;
-+	struct ip_vs_dest_user		d;
-+};
-+
-+static const unsigned char set_arglen[CMDID(IP_VS_SO_SET_MAX) + 1] = {
-+	[CMDID(IP_VS_SO_SET_ADD)]         = sizeof(struct ip_vs_service_user),
-+	[CMDID(IP_VS_SO_SET_EDIT)]        = sizeof(struct ip_vs_service_user),
-+	[CMDID(IP_VS_SO_SET_DEL)]         = sizeof(struct ip_vs_service_user),
-+	[CMDID(IP_VS_SO_SET_ADDDEST)]     = sizeof(struct ip_vs_svcdest_user),
-+	[CMDID(IP_VS_SO_SET_DELDEST)]     = sizeof(struct ip_vs_svcdest_user),
-+	[CMDID(IP_VS_SO_SET_EDITDEST)]    = sizeof(struct ip_vs_svcdest_user),
-+	[CMDID(IP_VS_SO_SET_TIMEOUT)]     = sizeof(struct ip_vs_timeout_user),
-+	[CMDID(IP_VS_SO_SET_STARTDAEMON)] = sizeof(struct ip_vs_daemon_user),
-+	[CMDID(IP_VS_SO_SET_STOPDAEMON)]  = sizeof(struct ip_vs_daemon_user),
-+	[CMDID(IP_VS_SO_SET_ZERO)]        = sizeof(struct ip_vs_service_user),
- };
- 
-+union ip_vs_set_arglen {
-+	struct ip_vs_service_user	field_IP_VS_SO_SET_ADD;
-+	struct ip_vs_service_user	field_IP_VS_SO_SET_EDIT;
-+	struct ip_vs_service_user	field_IP_VS_SO_SET_DEL;
-+	struct ip_vs_svcdest_user	field_IP_VS_SO_SET_ADDDEST;
-+	struct ip_vs_svcdest_user	field_IP_VS_SO_SET_DELDEST;
-+	struct ip_vs_svcdest_user	field_IP_VS_SO_SET_EDITDEST;
-+	struct ip_vs_timeout_user	field_IP_VS_SO_SET_TIMEOUT;
-+	struct ip_vs_daemon_user	field_IP_VS_SO_SET_STARTDAEMON;
-+	struct ip_vs_daemon_user	field_IP_VS_SO_SET_STOPDAEMON;
-+	struct ip_vs_service_user	field_IP_VS_SO_SET_ZERO;
-+};
-+
-+#define MAX_SET_ARGLEN	sizeof(union ip_vs_set_arglen)
-+
- static void ip_vs_copy_usvc_compat(struct ip_vs_service_user_kern *usvc,
- 				  struct ip_vs_service_user *usvc_compat)
- {
-@@ -2239,7 +2252,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- {
- 	struct net *net = sock_net(sk);
- 	int ret;
--	unsigned char arg[MAX_ARG_LEN];
-+	unsigned char arg[MAX_SET_ARGLEN];
- 	struct ip_vs_service_user *usvc_compat;
- 	struct ip_vs_service_user_kern usvc;
- 	struct ip_vs_service *svc;
-@@ -2247,16 +2260,15 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 	struct ip_vs_dest_user_kern udest;
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-+	BUILD_BUG_ON(sizeof(arg) > 255);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_SET_MAX)
- 		return -EINVAL;
--	if (len < 0 || len >  MAX_ARG_LEN)
--		return -EINVAL;
--	if (len != set_arglen[SET_CMDID(cmd)]) {
--		pr_err("set_ctl: len %u != %u\n",
--		       len, set_arglen[SET_CMDID(cmd)]);
-+	if (len != set_arglen[CMDID(cmd)]) {
-+		IP_VS_DBG(1, "set_ctl: len %u != %u\n",
-+			  len, set_arglen[CMDID(cmd)]);
- 		return -EINVAL;
- 	}
- 
-@@ -2512,51 +2524,51 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
- #endif
- }
- 
-+static const unsigned char get_arglen[CMDID(IP_VS_SO_GET_MAX) + 1] = {
-+	[CMDID(IP_VS_SO_GET_VERSION)]  = 64,
-+	[CMDID(IP_VS_SO_GET_INFO)]     = sizeof(struct ip_vs_getinfo),
-+	[CMDID(IP_VS_SO_GET_SERVICES)] = sizeof(struct ip_vs_get_services),
-+	[CMDID(IP_VS_SO_GET_SERVICE)]  = sizeof(struct ip_vs_service_entry),
-+	[CMDID(IP_VS_SO_GET_DESTS)]    = sizeof(struct ip_vs_get_dests),
-+	[CMDID(IP_VS_SO_GET_TIMEOUT)]  = sizeof(struct ip_vs_timeout_user),
-+	[CMDID(IP_VS_SO_GET_DAEMON)]   = 2 * sizeof(struct ip_vs_daemon_user),
-+};
- 
--#define GET_CMDID(cmd)		(cmd - IP_VS_BASE_CTL)
--#define GET_INFO_ARG_LEN	(sizeof(struct ip_vs_getinfo))
--#define GET_SERVICES_ARG_LEN	(sizeof(struct ip_vs_get_services))
--#define GET_SERVICE_ARG_LEN	(sizeof(struct ip_vs_service_entry))
--#define GET_DESTS_ARG_LEN	(sizeof(struct ip_vs_get_dests))
--#define GET_TIMEOUT_ARG_LEN	(sizeof(struct ip_vs_timeout_user))
--#define GET_DAEMON_ARG_LEN	(sizeof(struct ip_vs_daemon_user) * 2)
--
--static const unsigned char get_arglen[GET_CMDID(IP_VS_SO_GET_MAX)+1] = {
--	[GET_CMDID(IP_VS_SO_GET_VERSION)]	= 64,
--	[GET_CMDID(IP_VS_SO_GET_INFO)]		= GET_INFO_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICES)]	= GET_SERVICES_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_SERVICE)]	= GET_SERVICE_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DESTS)]		= GET_DESTS_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_TIMEOUT)]	= GET_TIMEOUT_ARG_LEN,
--	[GET_CMDID(IP_VS_SO_GET_DAEMON)]	= GET_DAEMON_ARG_LEN,
-+union ip_vs_get_arglen {
-+	char				field_IP_VS_SO_GET_VERSION[64];
-+	struct ip_vs_getinfo		field_IP_VS_SO_GET_INFO;
-+	struct ip_vs_get_services	field_IP_VS_SO_GET_SERVICES;
-+	struct ip_vs_service_entry	field_IP_VS_SO_GET_SERVICE;
-+	struct ip_vs_get_dests		field_IP_VS_SO_GET_DESTS;
-+	struct ip_vs_timeout_user	field_IP_VS_SO_GET_TIMEOUT;
-+	struct ip_vs_daemon_user	field_IP_VS_SO_GET_DAEMON[2];
- };
- 
-+#define MAX_GET_ARGLEN	sizeof(union ip_vs_get_arglen)
-+
- static int
- do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- {
--	unsigned char arg[128];
-+	unsigned char arg[MAX_GET_ARGLEN];
- 	int ret = 0;
- 	unsigned int copylen;
- 	struct net *net = sock_net(sk);
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
- 	BUG_ON(!net);
-+	BUILD_BUG_ON(sizeof(arg) > 255);
- 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
- 		return -EPERM;
- 
- 	if (cmd < IP_VS_BASE_CTL || cmd > IP_VS_SO_GET_MAX)
- 		return -EINVAL;
- 
--	if (*len < get_arglen[GET_CMDID(cmd)]) {
--		pr_err("get_ctl: len %u < %u\n",
--		       *len, get_arglen[GET_CMDID(cmd)]);
-+	copylen = get_arglen[CMDID(cmd)];
-+	if (*len < (int) copylen) {
-+		IP_VS_DBG(1, "get_ctl: len %d < %u\n", *len, copylen);
- 		return -EINVAL;
- 	}
- 
--	copylen = get_arglen[GET_CMDID(cmd)];
--	if (copylen > 128)
--		return -EINVAL;
---gBBFr7Ir9EOA20Yy--
+Thanks,
+Thomas
