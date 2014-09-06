@@ -1,28 +1,33 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCHv2 net-next] ipvs: reduce stack usage for sockopt data
-Date: Fri, 5 Sep 2014 21:52:42 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1409052149280.2350@ja.home.ssi.bg>
-References: <1409691769-4413-1-git-send-email-ja@ssi.bg> <20140903091121.GA3735@salvia> <alpine.LFD.2.11.1409032055520.1750@ja.home.ssi.bg> <20140903190300.GN6549@mwanda> <20140905095244.GA29432@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: add explicit Kconfig for NETFILTER_XT_NAT
+Date: Fri, 05 Sep 2014 17:23:45 -0700 (PDT)
+Message-ID: <20140905.172345.529961051265036163.davem@davemloft.net>
+References: <1409816841-6446-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	David Binderman <dcb314@hotmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20140905095244.GA29432@salvia>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	pebolle@tiscali.nl
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:57896 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797AbaIFAXp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Sep 2014 20:23:45 -0400
+In-Reply-To: <1409816841-6446-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu,  4 Sep 2014 09:47:21 +0200
 
-	Hello,
+> Paul Bolle reports that 'select NETFILTER_XT_NAT' from the IPV4 and IPV6
+> NAT tables becomes noop since there is no Kconfig switch for it. Add the
+> Kconfig switch to resolve this problem.
+> 
+> Fixes: 8993cf8 netfilter: move NAT Kconfig switches out of the iptables scope
+> Reported-by: Paul Bolle <pebolle@tiscali.nl>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On Fri, 5 Sep 2014, Pablo Neira Ayuso wrote:
-
-> Please, see patch attached. Let me know if you have any concern with
-> it. Thanks!
-
-	Patch looks good to me. Thanks!
-
+Applied, thanks Pablo.
