@@ -1,36 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2 net-next] ipvs: reduce stack usage for sockopt data
-Date: Sat, 6 Sep 2014 16:25:59 +0200
-Message-ID: <20140906142559.GA6347@salvia>
-References: <1409691769-4413-1-git-send-email-ja@ssi.bg>
- <20140903091121.GA3735@salvia>
- <alpine.LFD.2.11.1409032055520.1750@ja.home.ssi.bg>
- <20140903190300.GN6549@mwanda>
- <20140905095244.GA29432@salvia>
- <alpine.LFD.2.11.1409052149280.2350@ja.home.ssi.bg>
+From: Alexey Perevalov <alexey.perevalov@hotmail.com>
+Subject: Re: nfacct: add filter in to the list operation
+Date: Sun, 7 Sep 2014 10:32:59 +0400
+Message-ID: <BLU436-SMTP19F461BF570CCFBE9D09658DC00@phx.gbl>
+References: <20140826194501.GA4789@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	David Binderman <dcb314@hotmail.com>,
+Content-Type: text/plain
+Cc: Alexey Perevalov <a.perevalov@samsung.com>,
+	kyungmin.park@samsung.com, hs81.go@samsung.com,
 	netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1409052149280.2350@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from blu004-omc1s17.hotmail.com ([65.55.116.28]:61070 "EHLO
+	BLU004-OMC1S17.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751903AbaIGGde (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 7 Sep 2014 02:33:34 -0400
+In-Reply-To: <20140826194501.GA4789@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 05, 2014 at 09:52:42PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Fri, 5 Sep 2014, Pablo Neira Ayuso wrote:
-> 
-> > Please, see patch attached. Let me know if you have any concern with
-> > it. Thanks!
-> 
-> 	Patch looks good to me. Thanks!
+Hello Pablo,
 
-Great. Applied, thanks Julian!
+Also I have several remarks about command line parsing of the nfacct tool,
+ in general.
+1. reset and other options, including new, they are position insensetive.
+e.g. reset could follow after counters
+2. option occurrences, e.g. #nfacct list reset reset reset.
+Maybe it wasn't so important before, but now for filter options it's important.
+For example #nfacct list counters overquota
+will show overquoted counters only, end user, in this case, will not get any
+error.
+
+So, do you think it worth to fix?
+Also do you plan to include nfacct functionality into nft tool?
+
+ps. Sorry I forgot in previous mail to cc netfilter-devel.
+
+Alexey Perevalov (1):
+  nfacct: add filter in to the list operation
+
+ include/linux/netfilter/nfnetlink_acct.h |    8 ++++
+ src/nfacct.c                             |   63 ++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+)
+
+-- 
+1.7.9.5
+
