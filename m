@@ -1,73 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] netfilter: create audit records for ebtables
- replaces
-Date: Sun, 7 Sep 2014 18:07:28 +0200
-Message-ID: <20140907160728.GA4589@salvia>
-References: <1409907015-6145-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-	stephen@networkplumber.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, linux-audit@redhat.com
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41717 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478AbaIGQGj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Sep 2014 12:06:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1409907015-6145-1-git-send-email-nicolas.dichtel@6wind.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Bojan Prtvar <prtvar.b@gmail.com>
+Subject: [PATCH] netfilter: xtables:  Remove unnecessary initialization of struct ts_state
+Date: Mon,  8 Sep 2014 09:51:12 +0200
+Message-ID: <1410162672-5040-1-git-send-email-prtvar.b@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 05, 2014 at 10:50:15AM +0200, Nicolas Dichtel wrote:
-> This is already done for x_tables (family AF_INET and AF_INET6), let's do it
-> for AF_BRIDGE also.
-> 
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> ---
->  net/bridge/netfilter/ebtables.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 6d69631b9f4d..4ba0c5c78778 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -26,6 +26,7 @@
->  #include <asm/uaccess.h>
->  #include <linux/smp.h>
->  #include <linux/cpumask.h>
-> +#include <linux/audit.h>
->  #include <net/sock.h>
->  /* needed for logical [in,out]-dev filtering */
->  #include "../br_private.h"
-> @@ -1126,6 +1127,20 @@ static int do_replace(struct net *net, const void __user *user,
->  	}
->  
->  	ret = do_replace_finish(net, &tmp, newinfo);
-> +#ifdef CONFIG_AUDIT
-> +	if (audit_enabled) {
-> +		struct audit_buffer *ab;
-> +
-> +		ab = audit_log_start(current->audit_context, GFP_KERNEL,
-> +				     AUDIT_NETFILTER_CFG);
-> +		if (ab) {
-> +			audit_log_format(ab, "table=%s family=%u entries=%u",
-> +					 tmp.name, AF_BRIDGE,
-> +					 tmp.nentries);
-> +			audit_log_end(ab);
-> +		}
-> +	}
-> +#endif
+The skb_find_text() accepts uninitialized textsearch state variable.
 
-This chunks belongs to do_replace_finish(). We still need the audit
-code for compat_do_replace() and iff there are no errors when
-replacing the table.
+Signed-off-by: Bojan Prtvar <prtvar.b@gmail.com>
+---
+ net/netfilter/xt_string.c | 1 -
+ 1 file changed, 1 deletion(-)
 
->  	if (ret == 0)
->  		return ret;
->  free_entries:
-> -- 
-> 1.9.0
-> 
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index d3c48b1..5699adb 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -29,7 +29,6 @@ string_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	struct ts_state state;
+ 	bool invert;
+ 
+-	memset(&state, 0, sizeof(struct ts_state));
+ 	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
+ 
+ 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
+-- 
+1.9.1.286.g5172cb3
