@@ -1,158 +1,208 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH] src: add specific byteorder to the struct proto_hdr_template
-Date: Tue,  9 Sep 2014 18:01:19 +0200
-Message-ID: <1410278479-25864-1-git-send-email-alvaroneay@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] mnl: consistency checks across several netlink dumps
+Date: Tue,  9 Sep 2014 19:00:15 +0200
+Message-ID: <1410282015-12773-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:49157 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914AbaIIQB0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Sep 2014 12:01:26 -0400
-Received: by mail-we0-f181.google.com with SMTP id w62so913250wes.26
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Sep 2014 09:01:25 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:59024 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754492AbaIIQ7b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Sep 2014 12:59:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we try to add a rule like:
+Obtain the generation ID before dumping the object lists. Then,
+check for generation ID updates when dumping the several lists that
+this needs. In case of interference, nft has to remove the stale
+objects and retry from scratch.
 
-nft add rule filter input udp length {55-9999}
-
-nft shows:
-
-BUG: invalid byte order conversion 0 => 2
-nft: src/evaluate.c:153: byteorder_conversion_op: Assertion `0' failed.
-
-Some of the existing payload fields rely on BYTEORDER_INVALID. Therefore, if we
-try to convert it in evaluation step, we hit this bug.
-
-This patch allows to add a specific byteorder to the struct proto_hdr_template. If
-we create a expression with a invalid byteorder, we will use the byteorder
-added to the proto_hdr_template structure.
-
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-[Tested with the rules]
-* nft add rule ip filter input ip length 10-55 counter
-* nft add rule ip filter input ip length 55-1000 counter
-* nft add rule ip filter input udp length {0-100} udp dport 9999 counter
-* nft add rule ip filter input udp length {100-9999} udp dport 9999 counter
-* Tested with Ana Rey's tests.
+ include/linux/netfilter/nf_tables.h |    2 ++
+ include/mnl.h                       |    1 +
+ include/netlink.h                   |    1 +
+ src/main.c                          |    1 +
+ src/mnl.c                           |   51 +++++++++++++++++++++++++++++++++++
+ src/netlink.c                       |    5 ++++
+ 6 files changed, 61 insertions(+)
 
- include/proto.h |    5 ++++-
- src/exthdr.c    |    6 +++++-
- src/payload.c   |    2 +-
- src/proto.c     |    6 ++++--
- 4 files changed, 14 insertions(+), 5 deletions(-)
-
-diff --git a/include/proto.h b/include/proto.h
-index bd3701e..cc1f51f 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -2,6 +2,7 @@
- #define NFTABLES_PROTO_H
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index e8b9d19..9f11558 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -50,6 +50,7 @@ enum nft_verdicts {
+  * @NFT_MSG_NEWSETELEM: create a new set element (enum nft_set_elem_attributes)
+  * @NFT_MSG_GETSETELEM: get a set element (enum nft_set_elem_attributes)
+  * @NFT_MSG_DELSETELEM: delete a set element (enum nft_set_elem_attributes)
++ * @NFT_MSG_GENID: get the rule-set generation ID (no attributes)
+  */
+ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWTABLE,
+@@ -67,6 +68,7 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWSETELEM,
+ 	NFT_MSG_GETSETELEM,
+ 	NFT_MSG_DELSETELEM,
++	NFT_MSG_GENID,
+ 	NFT_MSG_MAX,
+ };
  
+diff --git a/include/mnl.h b/include/mnl.h
+index ed5a718..03d1876 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -6,6 +6,7 @@
+ struct mnl_socket;
+ 
+ uint32_t mnl_seqnum_alloc(void);
++void mnl_genid_get(struct mnl_socket *nf_sock);
+ 
+ struct mnl_err {
+ 	struct list_head	head;
+diff --git a/include/netlink.h b/include/netlink.h
+index f611452..7f99370 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -139,6 +139,7 @@ extern void netlink_dump_set(struct nft_set *nls);
+ extern int netlink_batch_send(struct list_head *err_list);
+ 
+ extern void netlink_restart(void);
++extern void netlink_genid_get(void);
+ extern void netlink_abi_error(void) __noreturn;
+ extern int netlink_io_error(struct netlink_ctx *ctx,
+ 			    const struct location *loc, const char *fmt, ...);
+diff --git a/src/main.c b/src/main.c
+index 04a98e3..2685b0d 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -173,6 +173,7 @@ static int nft_netlink(struct parser_state *state, struct list_head *msgs)
+ 	bool batch_supported = netlink_batch_supported();
+ 	int ret = 0;
+ 
++	netlink_genid_get();
+ 	mnl_batch_init();
+ 
+ 	batch_seqnum = mnl_batch_begin();
+diff --git a/src/mnl.c b/src/mnl.c
+index febf7c2..b01f517 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -22,6 +22,7 @@
+ 
+ #include <mnl.h>
+ #include <string.h>
++#include <arpa/inet.h>
+ #include <errno.h>
+ #include <utils.h>
  #include <nftables.h>
-+#include <datatype.h>
- #include <linux/netfilter/nf_tables.h>
+@@ -81,6 +82,41 @@ nft_mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
+ }
  
- /**
-@@ -38,13 +39,15 @@ struct proto_hdr_template {
- 	const struct datatype		*dtype;
- 	uint16_t			offset;
- 	uint16_t			len;
-+	enum byteorder			byteorder;
- 	enum nft_meta_keys		meta_key;
- };
+ /*
++ * Rule-set consistency across several netlink dumps
++ */
++static uint16_t nft_genid;
++
++static int genid_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nfgenmsg *nfh = mnl_nlmsg_get_payload(nlh);
++
++	nft_genid = ntohs(nfh->res_id);
++
++	return MNL_CB_OK;
++}
++
++void mnl_genid_get(struct mnl_socket *nf_sock)
++{
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++
++	nlh = nft_nlmsg_build_hdr(buf, NFT_MSG_GENID, AF_UNSPEC, 0, seq);
++	/* Skip error checking, old kernels sets res_id field to zero. */
++	nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, genid_cb, NULL);
++}
++
++static int check_genid(const struct nlmsghdr *nlh)
++{
++	struct nfgenmsg *nfh = mnl_nlmsg_get_payload(nlh);
++
++	if (nft_genid != ntohs(nfh->res_id)) {
++		errno = EINTR;
++		return -1;
++	}
++	return 0;
++}
++
++/*
+  * Batching
+  */
  
--#define PROTO_HDR_TEMPLATE(__token, __dtype,  __offset, __len)		\
-+#define PROTO_HDR_TEMPLATE(__token, __dtype,  __byteorder, __offset, __len)\
- 	{								\
- 		.token		= (__token),				\
- 		.dtype		= (__dtype),				\
-+		.byteorder	= (__byteorder),			\
- 		.offset		= (__offset),				\
- 		.len		= (__len),				\
- 	}
-diff --git a/src/exthdr.c b/src/exthdr.c
-index a619ecc..9ed0b6a 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -48,7 +48,7 @@ static const struct expr_ops exthdr_expr_ops = {
- };
+@@ -387,6 +423,9 @@ static int rule_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_rule_list *nlr_list = data;
+ 	struct nft_rule *r;
  
- static const struct proto_hdr_template exthdr_unknown_template =
--	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
-+	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
+ 	r = nft_rule_alloc();
+ 	if (r == NULL)
+ 		memory_allocation_error();
+@@ -494,6 +533,9 @@ static int chain_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_chain_list *nlc_list = data;
+ 	struct nft_chain *c;
  
- struct expr *exthdr_expr_alloc(const struct location *loc,
- 			       const struct exthdr_desc *desc,
-@@ -102,6 +102,7 @@ void exthdr_init_raw(struct expr *expr, uint8_t type,
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
+ 	c = nft_chain_alloc();
+ 	if (c == NULL)
+ 		memory_allocation_error();
+@@ -619,6 +661,9 @@ static int table_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_table_list *nlt_list = data;
+ 	struct nft_table *t;
  
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
-+			   BYTEORDER_BIG_ENDIAN,			\
- 			   offsetof(__type, __member) * 8,		\
- 			   field_sizeof(__type, __member) * 8)
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
+ 	t = nft_table_alloc();
+ 	if (t == NULL)
+ 		memory_allocation_error();
+@@ -750,6 +795,9 @@ static int set_cb(const struct nlmsghdr *nlh, void *data)
+ 	struct nft_set_list *nls_list = data;
+ 	struct nft_set *s;
  
-@@ -179,10 +180,13 @@ const struct exthdr_desc exthdr_frag = {
- 		[FRAGHDR_NEXTHDR]	= FRAG_FIELD("nexthdr", ip6f_nxt, &inet_protocol_type),
- 		[FRAGHDR_RESERVED]	= FRAG_FIELD("reserved", ip6f_reserved, &integer_type),
- 		[FRAGHDR_FRAG_OFF]	= PROTO_HDR_TEMPLATE("frag-off", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  16, 13),
- 		[FRAGHDR_RESERVED2]	= PROTO_HDR_TEMPLATE("reserved2", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  29, 2),
- 		[FRAGHDR_MFRAGS]	= PROTO_HDR_TEMPLATE("more-fragments", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  31, 1),
- 		[FRAGHDR_ID]		= FRAG_FIELD("id", ip6f_ident, &integer_type),
- 	},
-diff --git a/src/payload.c b/src/payload.c
-index 7297520..a3bbe51 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -117,7 +117,7 @@ struct expr *payload_expr_alloc(const struct location *loc,
- 	}
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
+ 	s = nft_set_alloc();
+ 	if (s == NULL)
+ 		memory_allocation_error();
+@@ -864,6 +912,9 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nft_set *nls,
  
- 	expr = expr_alloc(loc, &payload_expr_ops, tmpl->dtype,
--			  tmpl->dtype->byteorder, tmpl->len);
-+			  tmpl->byteorder, tmpl->len);
- 	expr->flags |= flags;
+ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
+ {
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
+ 	nft_set_elems_nlmsg_parse(nlh, data);
+ 	return MNL_CB_OK;
+ }
+diff --git a/src/netlink.c b/src/netlink.c
+index 7d3e71f..06c97e8 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -75,6 +75,11 @@ void netlink_restart(void)
+ 	netlink_open_sock();
+ }
  
- 	expr->payload.desc   = desc;
-diff --git a/src/proto.c b/src/proto.c
-index 15a456a..4f22d40 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -38,7 +38,7 @@ const char *proto_base_tokens[] = {
- };
- 
- const struct proto_hdr_template proto_unknown_template =
--	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
-+	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
- 
- const struct proto_desc proto_unknown = {
- 	.name		= "unknown",
-@@ -186,13 +186,15 @@ void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
- 
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
-+			   BYTEORDER_BIG_ENDIAN,			\
- 			   offsetof(__type, __member) * 8,		\
- 			   field_sizeof(__type, __member) * 8)
- 
- #define HDR_FIELD(__name, __struct, __member)				\
- 	HDR_TEMPLATE(__name, &integer_type, __struct, __member)
- #define HDR_BITFIELD(__name, __dtype,  __offset, __len)			\
--	PROTO_HDR_TEMPLATE(__name, __dtype, __offset, __len)
-+	PROTO_HDR_TEMPLATE(__name, __dtype, BYTEORDER_BIG_ENDIAN,	\
-+			   __offset, __len)
- #define HDR_TYPE(__name, __dtype, __struct, __member)			\
- 	HDR_TEMPLATE(__name, __dtype, __struct, __member)
- 
++void netlink_genid_get(void)
++{
++	mnl_genid_get(nf_sock);
++}
++
+ static void netlink_open_mon_sock(void)
+ {
+ 	nf_mon_sock = nfsock_open();
 -- 
 1.7.10.4
 
