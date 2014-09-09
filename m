@@ -1,34 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf_tables PATCH 4/6 v5] netfilter: nf_tables: add helpers to
- schedule objects deletion
-Date: Tue, 9 Sep 2014 16:04:43 +0200
-Message-ID: <20140909140443.GA22864@salvia>
-References: <1409668946-8168-1-git-send-email-arturo.borrero.glez@gmail.com>
- <1409668946-8168-5-git-send-email-arturo.borrero.glez@gmail.com>
+Subject: [HEADS UP] rebase nf-next
+Date: Tue, 9 Sep 2014 16:41:05 +0200
+Message-ID: <20140909144105.GA31244@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53581 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59847 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756732AbaIIODw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Sep 2014 10:03:52 -0400
+	id S1753520AbaIIOkS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Sep 2014 10:40:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1409668946-8168-5-git-send-email-arturo.borrero.glez@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 02, 2014 at 04:42:25PM +0200, Arturo Borrero Gonzalez wrote:
-> This patch refactor the code to schedule objects deletion.
-> 
-> They are useful in follow-up patches.
-> 
-> In order to be able to use these new helper functions in all the code,
-> they are placed in the top of the file, with all the dependant functions
-> and symbols.
+Hi,
 
-Applied, thanks Arturo.
+kbuild reported this:
 
-I have also renamed disactivate to deactivate as requested by Patrick.
+Note: the nftables/master HEAD
+cd07f7cc59a0e7f8bba30166acf2c13c6b0ae2e3 builds fine.
+      It only hurts bisectibility.
 
+All error/warnings:
+
+>> net/ipv6/netfilter/nft_chain_nat_ipv6.c:31:21: error: conflicting
+>> types for 'nf_nat_ipv6_fn'
+    static unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
+                        ^
+   In file included from net/ipv6/netfilter/nft_chain_nat_ipv6.c:24:0:
+   include/net/netfilter/nf_nat_l3proto.h:115:14: note: previous declaration of 'nf_nat_ipv6_fn' was here
+    unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops, struct sk_buff *skb,
+
+When generalizing the NAT IPv6 core, I unfortunately clashed with the
+existing nf_nat_ipv6_fn in net/ipv6/netfilter/nft_chain_nat_ipv6.c.
+
+I don't want to pass up this problem in the next pull request, so I'm
+fixing it here by renaming nf_nat_ipv6_fn to nft_nat_ipv6_fn in
+("netfilter: nat: move specific NAT IPv6 to core") and forcing a push.
+
+Sorry for the inconvenience to those that have a working copy of
+nf-next. Thanks.
