@@ -1,44 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/25] netfilter: ipset: Removed invalid IPSET_ATTR_MARKMASK validation
-Date: Wed, 10 Sep 2014 17:10:21 +0200
-Message-ID: <1410361842-4656-5-git-send-email-pablo@netfilter.org>
-References: <1410361842-4656-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: export rule-set generation
+ ID
+Date: Wed, 10 Sep 2014 16:23:48 +0100
+Message-ID: <20140910152348.GA31980@acer.localdomain>
+References: <1410282105-12880-1-git-send-email-pablo@netfilter.org>
+ <20140909182014.GA25039@acer.localdomain>
+ <20140910144054.GA3578@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55789 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740AbaIJPKB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Sep 2014 11:10:01 -0400
-In-Reply-To: <1410361842-4656-1-git-send-email-pablo@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:55067 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751180AbaIJPXx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Sep 2014 11:23:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20140910144054.GA3578@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Vytas Dauksa <vytas.dauksa@smoothwall.net>
+On Wed, Sep 10, 2014 at 04:40:54PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 09, 2014 at 07:20:16PM +0100, Patrick McHardy wrote:
+> > On Tue, Sep 09, 2014 at 07:01:45PM +0200, Pablo Neira Ayuso wrote:
+> > > This patch adds the NFT_MSG_GENID command to nf_tables that exposes
+> > > the 16-bits ruleset generation ID. This ID is incremented in every
+> > > commit. The generation ID is also exposed to userspace through the
+> > > nfnetlink res_id header field when dumping object lists.
+> > > 
+> > > This generation ID allows a userspace client to detect that an update
+> > > has happened between two consecutive object list dumps, so it can
+> > > retry from scratch.
+> > > 
+> > > This is complementary to the NLM_F_DUMP_INTR approach, which allows
+> > > us to detect an interference in the middle one single list dumping.
+> > > There is no way to explicitly check that an interference has occurred
+> > > between two list dumps from the kernel, since it doesn't know how
+> > > many lists the userspace client is actually going to dump.
+> > 
+> > Well, the obvious question is, are we sure that 16 bit is enough?
+> > I mean, sure, it most likely is for almost any usecase, but if you
+> > want to write a reliable piece of software using it, can you be
+> > sure and how could you handle the case that it overflows?
+> > 
+> > If we for instance consider an optimization algorithm that wants to
+> > perform an update and has to dump all objects, perform its change,
+> > reoptimize the resulting ruleset and then insert it. This might take
+> > some considerable amount of time. I guess its at least possible that
+> > 2^16 updates could be performed in the same period.
+> 
+> Right. nf-hipac was taking quite some time to perform those
+> transformations (I remember they were masking the update time by using
+> a kernel thread in the netlink receive path), so it's reasonable to
+> assume that those transformation algorithms may take enough time to
+> see a wrap-around.
+> 
+> I think of several alternatives:
+> 
+> 1) Switch to 2^32. With this approach, I don't see a way to
+> expose it via the existing headers (ie. nfnetlink res_id was easy).
+> Thus, we don't have a way to stop a dump immediately after when we
+> notice the objects we're getting are stale. So the approach should
+> look more like:
+> 
+> request genID and annotate it
+> dump objects
+> request genID and compare what we annotated, if unequal, retry.
+> 
+> This can be expensive when we get an unfortunate update between two
+> list dumps when we operate with large object list though. BTW, the
+> update between two list dumps is unlikely but still possible.
 
-Markmask is an u32, hence it can't be greater then 4294967295 ( i.e.
-0xffffffff ). This was causing smatch warning:
- net/netfilter/ipset/ip_set_hash_gen.h:1084 hash_ipmark_create() warn:
- impossible condition '(markmask > 4294967295) => (0-u32max > u32max)'
+Alternatively put it into an attribute and include that with every
+message or object.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_hash_gen.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> 2) Stick to 2^16 but introduce a commit event. The optimization
+> algorithm can subscribe to this events so it notices when it's been
+> working with stale objects. The optimization software would need to
+> poll for commit events and we still may lose events.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 61c7fb0..0398a92 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1093,7 +1093,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	if (tb[IPSET_ATTR_MARKMASK]) {
- 		markmask = ntohl(nla_get_u32(tb[IPSET_ATTR_MARKMASK]));
- 
--		if ((markmask > 4294967295u) || markmask == 0)
-+		if (markmask == 0)
- 			return -IPSET_ERR_INVALID_MARKMASK;
- 	}
- #endif
--- 
-1.7.10.4
+Since events are unreliable, so this wouldn't work that easily. On
+message loss you'd have to always start over. OTOH probably not
+a big problem, at least currently, because message loss only happens
+when other notifications are sent which, at present, obviously indicates
+some change has been made.
 
+> I think we have to go 1).
+> 
+> Regarding the commit event, Arturo wants this for nft-sync anyway, so
+> he knows where the batch ends to consistently replicate and apply the
+> rules to the other peer. So this can come in a separated patch.
+> 
+> Let me know, thanks!
