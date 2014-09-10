@@ -1,44 +1,24 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH net-next 0/5] net: Convert pr_warning to pr_warn
-Date: Tue,  9 Sep 2014 21:17:27 -0700
-Message-ID: <cover.1410322181.git.joe@perches.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Sage Weil <sage@inktank.com>,
-	Ursula Braun <ursula.braun@de.ibm.com>, linux390@de.ibm.com,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	linux-kernel@vger.kernel.org, ceph-devel@vger.kernel.org,
-	linux-s390@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-To: netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [PATCH lnf-ct 0/2] add new bitmask functions
+Date: Wed, 10 Sep 2014 17:45:25 +0900
+Message-ID: <20140910084525.GA23549@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:54281 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077AbaIJIpc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Sep 2014 04:45:32 -0400
+Received: by mail-pd0-f177.google.com with SMTP id y10so3000708pdj.22
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Sep 2014 01:45:32 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove remaining uses of pr_warning in net/
+ Hello,
 
-Joe Perches (5):
-  atm: Convert pr_warning to pr_warn
-  ceph: Convert pr_warning to pr_warn
-  pktgen: Convert pr_warning to pr_warn
-  iucv: Convert pr_warning to pr_warn
-  netfilter: Convert pr_warning to pr_warn
-
- net/atm/clip.c                        |  4 ++--
- net/atm/common.c                      |  2 +-
- net/ceph/ceph_common.c                | 15 +++++++++------
- net/ceph/messenger.c                  | 19 +++++++++---------
- net/ceph/osd_client.c                 | 15 +++++++--------
- net/ceph/osdmap.c                     | 20 +++++++++----------
- net/core/pktgen.c                     | 24 +++++++++++------------
- net/iucv/iucv.c                       |  9 ++++-----
- net/netfilter/ipset/ip_set_core.c     | 23 +++++++++++-----------
- net/netfilter/ipset/ip_set_hash_gen.h | 12 ++++++------
- net/netfilter/xt_connbytes.c          |  2 +-
- net/netfilter/xt_hashlimit.c          |  2 +-
- net/netfilter/xt_set.c                | 36 ++++++++++++++++-------------------
- 13 files changed, 90 insertions(+), 93 deletions(-)
-
--- 
-1.8.1.2.459.gbcd45b4.dirty
+I've changed nfct_bitmask_equal() from previous to use bool,
+as you adviced. Would you revew again?
