@@ -1,84 +1,108 @@
-From: Alexey Perevalov <a.perevalov@samsung.com>
-Subject: [PATCH v3 1/2] nfacct: check cmd line argument for singleness
-Date: Thu, 11 Sep 2014 19:50:39 +0400
-Message-ID: <1410450640-2414-2-git-send-email-a.perevalov@samsung.com>
-References: <1410450640-2414-1-git-send-email-a.perevalov@samsung.com>
-Cc: Alexey Perevalov <a.perevalov@samsung.com>,
-	alexey.perevalov@hotmail.com, netfilter-devel@vger.kernel.org,
-	kyungmin.park@samsung.com, hs81.go@samsung.com
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 1/2] netfilter: NFT_CHAIN_NAT_IPV* is independent of NFT_NAT
+Date: Thu, 11 Sep 2014 18:02:21 +0200
+Message-ID: <1410451342-5746-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:28061 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756693AbaIKPuq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 11:50:46 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBQ002IZUTECF50@mailout1.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Thu, 11 Sep 2014 16:53:38 +0100 (BST)
-In-reply-to: <1410450640-2414-1-git-send-email-a.perevalov@samsung.com>
+Received: from mail.us.es ([193.147.175.20]:54724 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751042AbaIKQBm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2014 12:01:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It was possible to specify several equal options for list operation.
+Now that we have masquerading support in nf_tables, the NAT chain can
+be use with it, not only for SNAT/DNAT. So make this chain type
+independent of it.
 
-Signed-off-by: Alexey Perevalov <a.perevalov@samsung.com>
+While at it, move it inside the scope of 'if NF_NAT_IPV*' to simplify
+dependencies.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/nfacct.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/Kconfig |   19 +++++++++----------
+ net/ipv6/netfilter/Kconfig |   23 +++++++++++++----------
+ 2 files changed, 22 insertions(+), 20 deletions(-)
 
-diff --git a/src/nfacct.c b/src/nfacct.c
-index 091a5c9..d77a57e 100644
---- a/src/nfacct.c
-+++ b/src/nfacct.c
-@@ -25,6 +25,13 @@
- #include <linux/netfilter/nfnetlink_acct.h>
- #include <linux/netfilter/nfnetlink.h>
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index d189c52..eb6995f 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -61,16 +61,6 @@ config NFT_CHAIN_ROUTE_IPV4
+ 	  fields such as the source, destination, type of service and
+ 	  the packet mark.
  
-+#define CHECK_OPT_PLURARITY(opt_name, msg) \
-+	opt_name += 1; \
-+	if (opt_name > 1) { \
-+		nfacct_perror(msg); \
-+		return -1; \
-+	}
-+
- enum {
- 	NFACCT_CMD_NONE = 0,
- 	NFACCT_CMD_LIST,
-@@ -166,6 +173,8 @@ err:
- 	return MNL_CB_OK;
- }
- 
-+#define NFACCT_F_QUOTAS (NFACCT_F_QUOTA_BYTES | NFACCT_F_QUOTA_PKTS)
-+
- static int nfacct_cmd_list(int argc, char *argv[])
- {
- 	bool zeroctr = false, xml = false;
-@@ -177,8 +186,14 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 
- 	for (i=2; i<argc; i++) {
- 		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
-+			static int opt_reset;
-+			CHECK_OPT_PLURARITY(opt_reset, "reset couldn't be "
-+				            "defined more than once");
- 			zeroctr = true;
- 		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
-+			static int opt_xml;
-+			CHECK_OPT_PLURARITY(opt_xml, "xml couldn't be defined "
-+					    "more than once");
- 			xml = true;
- 		} else {
- 			nfacct_perror("unknown argument");
-@@ -191,7 +206,6 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 					NFNL_MSG_ACCT_GET_CTRZERO :
- 					NFNL_MSG_ACCT_GET,
- 				     NLM_F_DUMP, seq);
+-config NFT_CHAIN_NAT_IPV4
+-	depends on NF_TABLES_IPV4
+-	depends on NF_NAT_IPV4 && NFT_NAT
+-	tristate "IPv4 nf_tables nat chain support"
+-	help
+-	  This option enables the "nat" chain for IPv4 in nf_tables. This
+-	  chain type is used to perform Network Address Translation (NAT)
+-	  packet transformations such as the source, destination address and
+-	  source and destination ports.
 -
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
- 		nfacct_perror("mnl_socket_open");
+ config NFT_REJECT_IPV4
+ 	depends on NF_TABLES_IPV4
+ 	default NFT_REJECT
+@@ -94,6 +84,15 @@ config NF_NAT_IPV4
+ 
+ if NF_NAT_IPV4
+ 
++config NFT_CHAIN_NAT_IPV4
++	depends on NF_TABLES_IPV4
++	tristate "IPv4 nf_tables nat chain support"
++	help
++	  This option enables the "nat" chain for IPv4 in nf_tables. This
++	  chain type is used to perform Network Address Translation (NAT)
++	  packet transformations such as the source, destination address and
++	  source and destination ports.
++
+ config NF_NAT_SNMP_BASIC
+ 	tristate "Basic SNMP-ALG support"
+ 	depends on NF_CONNTRACK_SNMP
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index a8f2530..e854062 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -40,16 +40,6 @@ config NFT_CHAIN_ROUTE_IPV6
+ 	  fields such as the source, destination, flowlabel, hop-limit and
+ 	  the packet mark.
+ 
+-config NFT_CHAIN_NAT_IPV6
+-	depends on NF_TABLES_IPV6
+-	depends on NF_NAT_IPV6 && NFT_NAT
+-	tristate "IPv6 nf_tables nat chain support"
+-	help
+-	  This option enables the "nat" chain for IPv6 in nf_tables. This
+-	  chain type is used to perform Network Address Translation (NAT)
+-	  packet transformations such as the source, destination address and
+-	  source and destination ports.
+-
+ config NFT_REJECT_IPV6
+ 	depends on NF_TABLES_IPV6
+ 	default NFT_REJECT
+@@ -70,6 +60,19 @@ config NF_NAT_IPV6
+ 	  forms of full Network Address Port Translation. This can be
+ 	  controlled by iptables or nft.
+ 
++if NF_NAT_IPV6
++
++config NFT_CHAIN_NAT_IPV6
++	depends on NF_TABLES_IPV6
++	tristate "IPv6 nf_tables nat chain support"
++	help
++	  This option enables the "nat" chain for IPv6 in nf_tables. This
++	  chain type is used to perform Network Address Translation (NAT)
++	  packet transformations such as the source, destination address and
++	  source and destination ports.
++
++endif # NF_NAT_IPV6
++
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+ 	depends on INET && IPV6
 -- 
-1.7.9.5
+1.7.10.4
 
