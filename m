@@ -1,47 +1,41 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH nf-next 2/2] netfilter: masquerading needs to be
- independent of x_tables in Kconfig
-Date: Thu, 11 Sep 2014 18:35:12 +0200
-Message-ID: <CAOkSjBhtH5KOTubNwGzJ8dVn3h06ynFN=r7CrCEXL-5EXf5sZA@mail.gmail.com>
-References: <1410451342-5746-1-git-send-email-pablo@netfilter.org> <1410451342-5746-2-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] log: netlink_linearize: don't set level if user didn't specify
+Date: Thu, 11 Sep 2014 18:45:49 +0200
+Message-ID: <1410453949-6647-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:44712 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbaIKQfe convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 12:35:34 -0400
-Received: by mail-lb0-f176.google.com with SMTP id z11so9509448lbi.21
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2014 09:35:33 -0700 (PDT)
-In-Reply-To: <1410451342-5746-2-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:33733 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755563AbaIKQpI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2014 12:45:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11 September 2014 18:02, Pablo Neira Ayuso <pablo@netfilter.org> wro=
-te:
-> Users are starting to test nf_tables with no x_tables support. Theref=
-ore,
-> masquerading needs to be indenpendent of it from Kconfig.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+The kernel will default on LOG_WARNING, to mimic iptables behaviour.
 
-Hi, my original intention was to nest the masquerade config under
-NF_NAT_IPV[4|6].
+Reported-by: Ana Rey <anarey@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink_linearize.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-I see now that I got confused between NF_NAT_IPV4 / IP_NF_NAT, and so o=
-n.
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 5eecd79..17375a5 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -586,7 +586,10 @@ static void netlink_gen_log_stmt(struct netlink_linearize_ctx *ctx,
+ 			nft_rule_expr_set_u16(nle, NFT_EXPR_LOG_QTHRESHOLD,
+ 					      stmt->log.qthreshold);
+ 	} else {
+-		nft_rule_expr_set_u32(nle, NFT_EXPR_LOG_LEVEL, stmt->log.level);
++		if (stmt->log.flags & STMT_LOG_LEVEL) {
++			nft_rule_expr_set_u32(nle, NFT_EXPR_LOG_LEVEL,
++					      stmt->log.level);
++		}
+ 	}
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+-- 
+1.7.10.4
 
-Thanks for the fixes.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
