@@ -1,36 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/3] netfilter: nf_tables: add NFTA_MASQ_UNSPEC to nft_masq_attributes
-Date: Thu, 11 Sep 2014 17:20:17 +0200
-Message-ID: <1410448819-6694-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next 3/3 v2] netfilter: nf_tables: export rule-set
+ generation ID
+Date: Thu, 11 Sep 2014 16:32:44 +0100
+Message-ID: <20140911153243.GE7600@acer.localdomain>
+References: <1410448819-6694-1-git-send-email-pablo@netfilter.org>
+ <1410448819-6694-3-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, arturo.borrero.glez@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47110 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434AbaIKPT2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 11:19:28 -0400
+Received: from stinky.trash.net ([213.144.137.162]:64854 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106AbaIKPcv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2014 11:32:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1410448819-6694-3-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To keep this consistent with other nft_*_attributes.
+On Thu, Sep 11, 2014 at 05:20:19PM +0200, Pablo Neira Ayuso wrote:
+> This patch exposes the ruleset generation ID in three ways:
+> 
+> 1) The new command NFT_MSG_GETGEN that exposes the 32-bits ruleset
+>    generation ID. This ID is incremented in every commit and it
+>    should be large enough to avoid wraparound problems.
+> 
+> 2) The less significant 16-bits of the generation ID is exposed through
+>    the nfgenmsg->res_id header field. This allows us to quickly catch
+>    if the ruleset has change between two consecutive list dumps from
+>    different object lists (in this specific case I think the risk of
+>    wraparound is unlikely).
+> 
+> 3) Userspace subscribers may receive notifications of new rule-set
+>    generation after every commit. This also provides an alternative
+>    way to monitor the generation ID. If the events are lost, the
+>    userspace process hits a overrun error, so it knows that it is
+>    working with a stale ruleset anyway.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index eeec0ae..66d66dd 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -806,6 +806,7 @@ enum nft_nat_attributes {
-  * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
-  */
- enum nft_masq_attributes {
-+	NFTA_MASQ_UNSPEC,
- 	NFTA_MASQ_FLAGS,
- 	__NFTA_MASQ_MAX
- };
--- 
-1.7.10.4
-
+Correct, there's just one thing to consider here, which is what happens
+once we add active ruleset state notifications, like counters, limit
+etc. At that point its not clear anymore whether changes have happened.
+OTOH it would be just a false positive, so at least things would keep
+working.
