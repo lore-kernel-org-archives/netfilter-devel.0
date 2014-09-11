@@ -1,46 +1,81 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Subject: Re: [PATCH nf-next 3/3 v2] netfilter: nf_tables: export rule-set
  generation ID
-Date: Thu, 11 Sep 2014 16:32:44 +0100
-Message-ID: <20140911153243.GE7600@acer.localdomain>
-References: <1410448819-6694-1-git-send-email-pablo@netfilter.org>
- <1410448819-6694-3-git-send-email-pablo@netfilter.org>
+Date: Thu, 11 Sep 2014 17:46:57 +0200
+Message-ID: <CAOkSjBhc65FVRK5CZSVuGnWz9sN0J1Ot9LOwGat_xKPuO83p_g@mail.gmail.com>
+References: <1410448819-6694-1-git-send-email-pablo@netfilter.org> <1410448819-6694-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, arturo.borrero.glez@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64854 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbaIKPcv (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:48015 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756312AbaIKPrU convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 11:32:51 -0400
-Content-Disposition: inline
+	Thu, 11 Sep 2014 11:47:20 -0400
+Received: by mail-la0-f50.google.com with SMTP id ty20so8706141lab.9
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2014 08:47:18 -0700 (PDT)
 In-Reply-To: <1410448819-6694-3-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 11, 2014 at 05:20:19PM +0200, Pablo Neira Ayuso wrote:
-> This patch exposes the ruleset generation ID in three ways:
-> 
-> 1) The new command NFT_MSG_GETGEN that exposes the 32-bits ruleset
->    generation ID. This ID is incremented in every commit and it
->    should be large enough to avoid wraparound problems.
-> 
-> 2) The less significant 16-bits of the generation ID is exposed through
->    the nfgenmsg->res_id header field. This allows us to quickly catch
->    if the ruleset has change between two consecutive list dumps from
->    different object lists (in this specific case I think the risk of
->    wraparound is unlikely).
-> 
-> 3) Userspace subscribers may receive notifications of new rule-set
->    generation after every commit. This also provides an alternative
->    way to monitor the generation ID. If the events are lost, the
->    userspace process hits a overrun error, so it knows that it is
->    working with a stale ruleset anyway.
+On 11 September 2014 17:20, Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
+> +
+> +static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb=
+, int event)
+> +{
+> +       struct nlmsghdr *nlh =3D nlmsg_hdr(skb);
+> +       struct sk_buff *skb2;
+> +       int err;
+> +
+> +       if (nlmsg_report(nlh) &&
+> +           !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+> +               return 0;
+> +
 
-Correct, there's just one thing to consider here, which is what happens
-once we add active ruleset state notifications, like counters, limit
-etc. At that point its not clear anymore whether changes have happened.
-OTOH it would be just a false positive, so at least things would keep
-working.
+The above logic is different from the other functions.
+
+I don't know if that was deliberate.
+
+
+> +       err =3D -ENOBUFS;
+> +       skb2 =3D nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+> +       if (skb2 =3D=3D NULL)
+> +               goto err;
+> +
+> +       err =3D nf_tables_fill_gen_info(skb2, net, NETLINK_CB(skb).po=
+rtid,
+> +                                     nlh->nlmsg_seq);
+> +       if (err < 0) {
+> +               kfree_skb(skb2);
+> +               goto err;
+> +       }
+> +
+> +       err =3D nfnetlink_send(skb2, net, NETLINK_CB(skb).portid,
+> +                            NFNLGRP_NFTABLES, nlmsg_report(nlh), GFP=
+_KERNEL);
+> +err:
+> +       if (err < 0) {
+> +               nfnetlink_set_err(net, NETLINK_CB(skb).portid, NFNLGR=
+P_NFTABLES,
+> +                                 err);
+> +       }
+> +       return err;
+> +}
+> +
+
+All the xx_notify() functions looks very similar. Do you think it
+worth to factorize the code?
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
