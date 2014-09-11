@@ -1,41 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] log: netlink_linearize: don't set level if user didn't specify
-Date: Thu, 11 Sep 2014 18:45:49 +0200
-Message-ID: <1410453949-6647-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next 3/3 v2] netfilter: nf_tables: export rule-set
+ generation ID
+Date: Thu, 11 Sep 2014 17:45:58 +0100
+Message-ID: <20140911164558.GF7600@acer.localdomain>
+References: <1410448819-6694-1-git-send-email-pablo@netfilter.org>
+ <1410448819-6694-3-git-send-email-pablo@netfilter.org>
+ <20140911153243.GE7600@acer.localdomain>
+ <20140911161040.GA5824@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, arturo.borrero.glez@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33733 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755563AbaIKQpI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 12:45:08 -0400
+Received: from stinky.trash.net ([213.144.137.162]:65273 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751507AbaIKQqE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2014 12:46:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20140911161040.GA5824@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The kernel will default on LOG_WARNING, to mimic iptables behaviour.
+On Thu, Sep 11, 2014 at 06:10:40PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Sep 11, 2014 at 04:32:44PM +0100, Patrick McHardy wrote:
+> > On Thu, Sep 11, 2014 at 05:20:19PM +0200, Pablo Neira Ayuso wrote:
+> > > This patch exposes the ruleset generation ID in three ways:
+> > > 
+> > > 1) The new command NFT_MSG_GETGEN that exposes the 32-bits ruleset
+> > >    generation ID. This ID is incremented in every commit and it
+> > >    should be large enough to avoid wraparound problems.
+> > > 
+> > > 2) The less significant 16-bits of the generation ID is exposed through
+> > >    the nfgenmsg->res_id header field. This allows us to quickly catch
+> > >    if the ruleset has change between two consecutive list dumps from
+> > >    different object lists (in this specific case I think the risk of
+> > >    wraparound is unlikely).
+> > > 
+> > > 3) Userspace subscribers may receive notifications of new rule-set
+> > >    generation after every commit. This also provides an alternative
+> > >    way to monitor the generation ID. If the events are lost, the
+> > >    userspace process hits a overrun error, so it knows that it is
+> > >    working with a stale ruleset anyway.
+> > 
+> > Correct, there's just one thing to consider here, which is what happens
+> > once we add active ruleset state notifications, like counters, limit
+> > etc. At that point its not clear anymore whether changes have happened.
+> > OTOH it would be just a false positive, so at least things would keep
+> > working.
+> 
+> Right, I can put the genid notification in a different nfnetlink
+> multicast group (NFNLGRP_NFTABLES_GENID) to avoid false positives if
+> you like the idea, we have plenty of spare groups.
 
-Reported-by: Ana Rey <anarey@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/netlink_linearize.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 5eecd79..17375a5 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -586,7 +586,10 @@ static void netlink_gen_log_stmt(struct netlink_linearize_ctx *ctx,
- 			nft_rule_expr_set_u16(nle, NFT_EXPR_LOG_QTHRESHOLD,
- 					      stmt->log.qthreshold);
- 	} else {
--		nft_rule_expr_set_u32(nle, NFT_EXPR_LOG_LEVEL, stmt->log.level);
-+		if (stmt->log.flags & STMT_LOG_LEVEL) {
-+			nft_rule_expr_set_u32(nle, NFT_EXPR_LOG_LEVEL,
-+					      stmt->log.level);
-+		}
- 	}
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
--- 
-1.7.10.4
-
+I don't think that's a really good idea since the ordering between the
+rule notifications and the commit notification wouldn't be reliable.
+Same thing is probably true for state notifications, not entirely
+sure yet if they could reasonably be sent to a different group.
