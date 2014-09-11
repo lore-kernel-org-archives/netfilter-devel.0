@@ -1,108 +1,118 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/2] netfilter: NFT_CHAIN_NAT_IPV* is independent of NFT_NAT
-Date: Thu, 11 Sep 2014 18:02:21 +0200
-Message-ID: <1410451342-5746-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/2] netfilter: masquerading needs to be independent of x_tables in Kconfig
+Date: Thu, 11 Sep 2014 18:02:22 +0200
+Message-ID: <1410451342-5746-2-git-send-email-pablo@netfilter.org>
+References: <1410451342-5746-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54724 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54723 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042AbaIKQBm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2014 12:01:42 -0400
+	id S1756264AbaIKQBn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2014 12:01:43 -0400
+In-Reply-To: <1410451342-5746-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that we have masquerading support in nf_tables, the NAT chain can
-be use with it, not only for SNAT/DNAT. So make this chain type
-independent of it.
-
-While at it, move it inside the scope of 'if NF_NAT_IPV*' to simplify
-dependencies.
+Users are starting to test nf_tables with no x_tables support. Therefore,
+masquerading needs to be indenpendent of it from Kconfig.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/Kconfig |   19 +++++++++----------
- net/ipv6/netfilter/Kconfig |   23 +++++++++++++----------
- 2 files changed, 22 insertions(+), 20 deletions(-)
+ net/ipv4/netfilter/Kconfig |   27 +++++++++++++++------------
+ net/ipv6/netfilter/Kconfig |   27 +++++++++++++++------------
+ 2 files changed, 30 insertions(+), 24 deletions(-)
 
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index d189c52..eb6995f 100644
+index eb6995f..345242a 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -61,16 +61,6 @@ config NFT_CHAIN_ROUTE_IPV4
- 	  fields such as the source, destination, type of service and
- 	  the packet mark.
+@@ -93,6 +93,21 @@ config NFT_CHAIN_NAT_IPV4
+ 	  packet transformations such as the source, destination address and
+ 	  source and destination ports.
  
--config NFT_CHAIN_NAT_IPV4
--	depends on NF_TABLES_IPV4
--	depends on NF_NAT_IPV4 && NFT_NAT
--	tristate "IPv4 nf_tables nat chain support"
--	help
--	  This option enables the "nat" chain for IPv4 in nf_tables. This
--	  chain type is used to perform Network Address Translation (NAT)
--	  packet transformations such as the source, destination address and
--	  source and destination ports.
--
- config NFT_REJECT_IPV4
- 	depends on NF_TABLES_IPV4
- 	default NFT_REJECT
-@@ -94,6 +84,15 @@ config NF_NAT_IPV4
- 
- if NF_NAT_IPV4
- 
-+config NFT_CHAIN_NAT_IPV4
-+	depends on NF_TABLES_IPV4
-+	tristate "IPv4 nf_tables nat chain support"
++config NF_NAT_MASQUERADE_IPV4
++	tristate "IPv4 masquerade support"
 +	help
-+	  This option enables the "nat" chain for IPv4 in nf_tables. This
-+	  chain type is used to perform Network Address Translation (NAT)
-+	  packet transformations such as the source, destination address and
-+	  source and destination ports.
++	  This is the kernel functionality to provide NAT in the masquerade
++	  flavour (automatic source address selection).
++
++config NFT_MASQ_IPV4
++	tristate "IPv4 masquerading support for nf_tables"
++	depends on NF_TABLES_IPV4
++	depends on NFT_MASQ
++	select NF_NAT_MASQUERADE_IPV4
++	help
++	  This is the expression that provides IPv4 masquerading support for
++	  nf_tables.
 +
  config NF_NAT_SNMP_BASIC
  	tristate "Basic SNMP-ALG support"
  	depends on NF_CONNTRACK_SNMP
+@@ -231,18 +246,6 @@ config IP_NF_NAT
+ 
+ if IP_NF_NAT
+ 
+-config NF_NAT_MASQUERADE_IPV4
+-	tristate "IPv4 masquerade support"
+-	help
+-	This is the kernel functionality to provide NAT in the masquerade
+-	flavour (automatic source address selection).
+-
+-config NFT_MASQ_IPV4
+-	tristate "IPv4 masquerading support for nf_tables"
+-	depends on NF_TABLES_IPV4
+-	depends on NFT_MASQ
+-	select NF_NAT_MASQUERADE_IPV4
+-
+ config IP_NF_TARGET_MASQUERADE
+ 	tristate "MASQUERADE target support"
+ 	select NF_NAT_MASQUERADE_IPV4
 diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index a8f2530..e854062 100644
+index e854062..bb1a40d 100644
 --- a/net/ipv6/netfilter/Kconfig
 +++ b/net/ipv6/netfilter/Kconfig
-@@ -40,16 +40,6 @@ config NFT_CHAIN_ROUTE_IPV6
- 	  fields such as the source, destination, flowlabel, hop-limit and
- 	  the packet mark.
+@@ -71,6 +71,21 @@ config NFT_CHAIN_NAT_IPV6
+ 	  packet transformations such as the source, destination address and
+ 	  source and destination ports.
  
--config NFT_CHAIN_NAT_IPV6
--	depends on NF_TABLES_IPV6
--	depends on NF_NAT_IPV6 && NFT_NAT
--	tristate "IPv6 nf_tables nat chain support"
--	help
--	  This option enables the "nat" chain for IPv6 in nf_tables. This
--	  chain type is used to perform Network Address Translation (NAT)
--	  packet transformations such as the source, destination address and
--	  source and destination ports.
--
- config NFT_REJECT_IPV6
- 	depends on NF_TABLES_IPV6
- 	default NFT_REJECT
-@@ -70,6 +60,19 @@ config NF_NAT_IPV6
- 	  forms of full Network Address Port Translation. This can be
- 	  controlled by iptables or nft.
- 
-+if NF_NAT_IPV6
-+
-+config NFT_CHAIN_NAT_IPV6
-+	depends on NF_TABLES_IPV6
-+	tristate "IPv6 nf_tables nat chain support"
++config NF_NAT_MASQUERADE_IPV6
++	tristate "IPv6 masquerade support"
 +	help
-+	  This option enables the "nat" chain for IPv6 in nf_tables. This
-+	  chain type is used to perform Network Address Translation (NAT)
-+	  packet transformations such as the source, destination address and
-+	  source and destination ports.
++	  This is the kernel functionality to provide NAT in the masquerade
++	  flavour (automatic source address selection) for IPv6.
 +
-+endif # NF_NAT_IPV6
++config NFT_MASQ_IPV6
++	tristate "IPv6 masquerade support for nf_tables"
++	depends on NF_TABLES_IPV6
++	depends on NFT_MASQ
++	select NF_NAT_MASQUERADE_IPV6
++	help
++	  This is the expression that provides IPv4 masquerading support for
++	  nf_tables.
 +
+ endif # NF_NAT_IPV6
+ 
  config IP6_NF_IPTABLES
- 	tristate "IP6 tables support (required for filtering)"
- 	depends on INET && IPV6
+@@ -261,18 +276,6 @@ config IP6_NF_NAT
+ 
+ if IP6_NF_NAT
+ 
+-config NF_NAT_MASQUERADE_IPV6
+-	tristate "IPv6 masquerade support"
+-	help
+-	 This is the kernel functionality to provide NAT in the masquerade
+-	 flavour (automatic source address selection) for IPv6.
+-
+-config NFT_MASQ_IPV6
+-	tristate "IPv6 masquerade support for nf_tables"
+-	depends on NF_TABLES_IPV6
+-	depends on NFT_MASQ
+-	select NF_NAT_MASQUERADE_IPV6
+-
+ config IP6_NF_TARGET_MASQUERADE
+ 	tristate "MASQUERADE target support"
+ 	select NF_NAT_MASQUERADE_IPV6
 -- 
 1.7.10.4
 
