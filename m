@@ -1,102 +1,453 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3 1/2] nfacct: check cmd line argument for singleness
-Date: Fri, 12 Sep 2014 10:36:05 +0200
-Message-ID: <20140912083605.GA7666@salvia>
-References: <1410450640-2414-1-git-send-email-a.perevalov@samsung.com>
- <1410450640-2414-2-git-send-email-a.perevalov@samsung.com>
- <20140911165537.GA6897@salvia>
- <5412ADD3.4080203@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: alexey.perevalov@hotmail.com, netfilter-devel@vger.kernel.org,
-	kyungmin.park@samsung.com, hs81.go@samsung.com
-To: Alexey Perevalov <a.perevalov@samsung.com>
+Subject: [PATCH libnftnl] src: add ruleset generation class
+Date: Fri, 12 Sep 2014 12:49:02 +0200
+Message-ID: <1410518942-6197-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53138 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48257 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752728AbaILIfS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Sep 2014 04:35:18 -0400
-Content-Disposition: inline
-In-Reply-To: <5412ADD3.4080203@samsung.com>
+	id S1754001AbaILKsT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Sep 2014 06:48:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 12, 2014 at 12:24:51PM +0400, Alexey Perevalov wrote:
-> On 09/11/2014 08:55 PM, Pablo Neira Ayuso wrote:
-> >On Thu, Sep 11, 2014 at 07:50:39PM +0400, Alexey Perevalov wrote:
-> >>It was possible to specify several equal options for list operation.
-> >>
-> >>Signed-off-by: Alexey Perevalov <a.perevalov@samsung.com>
-> >>---
-> >>  src/nfacct.c |   16 +++++++++++++++-
-> >>  1 file changed, 15 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/src/nfacct.c b/src/nfacct.c
-> >>index 091a5c9..d77a57e 100644
-> >>--- a/src/nfacct.c
-> >>+++ b/src/nfacct.c
-> >>@@ -25,6 +25,13 @@
-> >>  #include <linux/netfilter/nfnetlink_acct.h>
-> >>  #include <linux/netfilter/nfnetlink.h>
-> >>+#define CHECK_OPT_PLURARITY(opt_name, msg) \
-> >>+	opt_name += 1; \
-> >>+	if (opt_name > 1) { \
-> >>+		nfacct_perror(msg); \
-> >>+		return -1; \
-> >>+	}
-> >>+
-> >>  enum {
-> >>  	NFACCT_CMD_NONE = 0,
-> >>  	NFACCT_CMD_LIST,
-> >>@@ -166,6 +173,8 @@ err:
-> >>  	return MNL_CB_OK;
-> >>  }
-> >>+#define NFACCT_F_QUOTAS (NFACCT_F_QUOTA_BYTES | NFACCT_F_QUOTA_PKTS)
-> >>+
-> >>  static int nfacct_cmd_list(int argc, char *argv[])
-> >>  {
-> >>  	bool zeroctr = false, xml = false;
-> >>@@ -177,8 +186,14 @@ static int nfacct_cmd_list(int argc, char *argv[])
-> >>  	for (i=2; i<argc; i++) {
-> >>  		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
-> >>+			static int opt_reset;
-> >>+			CHECK_OPT_PLURARITY(opt_reset, "reset couldn't be "
-> >>+				            "defined more than once");
-> >I prefer if you add something similar to what iproute2 provides:
-> >
-> >void duparg2(const char *key, const char *arg)
-> >{
-> >         fprintf(stderr, "Error: either \"%s\" is duplicate, or \"%s\" is a garbage.\n", key, arg);
-> >         exit(-1);
-> >}
-> >
-> >You can probably check:
-> >
-> >                         if (zeroctr)
-> >                                 duparg2("reset", argv[i]);
-> >
-> >>  			zeroctr = true;
-> >>  		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
-> >>+			static int opt_xml;
-> >>+			CHECK_OPT_PLURARITY(opt_xml, "xml couldn't be defined "
-> >>+					    "more than once");
-> >Similar thing here.
-> >
-> >I always wanted to get this code more in line iproute2, but failed to
-> >find the time, later.
-> >
-> >So please, do it the way I'm proposing so we start looking into
-> >converging to iproute2.
-> ok, but now nfacct doesn't use iprout2, so suggested function should
-> by copy-pasted, maybe with modification,
-> because "is a garbage" I think no necessary.
+The generation object currently only contains the uint32_t that
+indicates the generation ID. I could have just add the API to return
+the uint32_t ID instead, but I think this API is easier to extend
+without adding new APIs.
 
-Right, that was just an example. Actually, duparg (instead of duparg2)
-should better fit that.
+We can probably include meaningful statistics in the generation
+message in the future without much hassle.
 
-> Do you want to make nfacct code more similar with iproute2 code, to
-> merge it in future?
+This patch also extends examples/nft-events.c.
 
-No for merge, I'm just pointing to it as a coding style reference. The
-parser is very simple, error reporting and so on is rather simple, and
-it matches with what we have in nfacct.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ examples/nft-events.c               |   28 +++++
+ include/libnftnl/gen.h              |   51 +++++++++
+ include/linux/netfilter/nf_tables.h |   19 +++-
+ src/Makefile.am                     |    1 +
+ src/gen.c                           |  199 +++++++++++++++++++++++++++++++++++
+ src/libnftnl.map                    |   14 +++
+ 6 files changed, 310 insertions(+), 2 deletions(-)
+ create mode 100644 include/libnftnl/gen.h
+ create mode 100644 src/gen.c
+
+diff --git a/examples/nft-events.c b/examples/nft-events.c
+index fb18e55..ef860d3 100644
+--- a/examples/nft-events.c
++++ b/examples/nft-events.c
+@@ -22,6 +22,7 @@
+ #include <libnftnl/chain.h>
+ #include <libnftnl/rule.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/gen.h>
+ #include <libnftnl/common.h>
+ 
+ static uint32_t event2flag(uint32_t event)
+@@ -32,6 +33,7 @@ static uint32_t event2flag(uint32_t event)
+ 	case NFT_MSG_NEWRULE:
+ 	case NFT_MSG_NEWSET:
+ 	case NFT_MSG_NEWSETELEM:
++	case NFT_MSG_NEWGEN:
+ 		return NFT_OF_EVENT_NEW;
+ 	case NFT_MSG_DELTABLE:
+ 	case NFT_MSG_DELCHAIN:
+@@ -165,6 +167,29 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
++static int gen_cb(const struct nlmsghdr *nlh, int event, int type)
++{
++	struct nft_gen *gen;
++
++	gen = nft_gen_alloc();
++	if (gen == NULL) {
++		perror("OOM");
++		goto err;
++	}
++
++	if (nft_gen_nlmsg_parse(nlh, gen) < 0) {
++		perror("nft_gen_parse");
++		goto err_free;
++	}
++
++	nft_gen_fprintf(stdout, gen, type, event2flag(event));
++	fprintf(stdout, "\n");
++err_free:
++	nft_gen_free(gen);
++err:
++	return MNL_CB_OK;
++}
++
+ static int events_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	int ret = MNL_CB_OK;
+@@ -192,6 +217,9 @@ static int events_cb(const struct nlmsghdr *nlh, void *data)
+ 	case NFT_MSG_DELSETELEM:
+ 		ret = setelem_cb(nlh, event, type);
+ 		break;
++	case NFT_MSG_NEWGEN:
++		ret = gen_cb(nlh, event, type);
++		break;
+ 	}
+ 
+ 	return ret;
+diff --git a/include/libnftnl/gen.h b/include/libnftnl/gen.h
+new file mode 100644
+index 0000000..00753b0
+--- /dev/null
++++ b/include/libnftnl/gen.h
+@@ -0,0 +1,51 @@
++#ifndef _LIBNFTNL_GEN_H_
++#define _LIBNFTNL_GEN_H_
++
++#include <stdio.h>
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/types.h>
++
++#include <libnftnl/common.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct nft_gen;
++
++struct nft_gen *nft_gen_alloc(void);
++void nft_gen_free(struct nft_gen *);
++
++enum {
++	NFT_GEN_ID 	= 0,
++	__NFT_GEN_MAX
++};
++#define NFT_GEN_MAX (__NFT_GEN_MAX - 1)
++
++bool nft_gen_attr_is_set(const struct nft_gen *gen, uint16_t attr);
++void nft_gen_attr_unset(struct nft_gen *gen, uint16_t attr);
++void nft_gen_attr_set(struct nft_gen *gen, uint16_t attr, const void *data);
++void nft_gen_attr_set_data(struct nft_gen *gen, uint16_t attr,
++			     const void *data, uint32_t data_len);
++const void *nft_gen_attr_get(struct nft_gen *gen, uint16_t attr);
++const void *nft_gen_attr_get_data(struct nft_gen *gen, uint16_t attr,
++				    uint32_t *data_len);
++
++void nft_gen_attr_set_u32(struct nft_gen *gen, uint16_t attr, uint32_t data);
++uint32_t nft_gen_attr_get_u32(struct nft_gen *gen, uint16_t attr);
++
++struct nlmsghdr;
++int nft_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_gen *gen);
++
++int nft_gen_snprintf(char *buf, size_t size, struct nft_gen *gen, uint32_t type, uint32_t flags);
++int nft_gen_fprintf(FILE *fp, struct nft_gen *gen, uint32_t type, uint32_t flags);
++
++#define nft_gen_nlmsg_build_hdr	nft_nlmsg_build_hdr
++int nft_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_gen *gen);
++
++#ifdef __cplusplus
++} /* extern "C" */
++#endif
++
++#endif /* _LIBNFTNL_GEN_H_ */
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 36c4ca2..b72ccfe 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -51,6 +51,8 @@ enum nft_verdicts {
+  * @NFT_MSG_NEWSETELEM: create a new set element (enum nft_set_elem_attributes)
+  * @NFT_MSG_GETSETELEM: get a set element (enum nft_set_elem_attributes)
+  * @NFT_MSG_DELSETELEM: delete a set element (enum nft_set_elem_attributes)
++ * @NFT_MSG_NEWGEN: announce a new generation, only for events (enum nft_gen_attributes)
++ * @NFT_MSG_GETGEN: get the rule-set generation (enum nft_gen_attributes)
+  */
+ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWTABLE,
+@@ -68,6 +70,8 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWSETELEM,
+ 	NFT_MSG_GETSETELEM,
+ 	NFT_MSG_DELSETELEM,
++	NFT_MSG_NEWGEN,
++	NFT_MSG_GETGEN,
+ 	NFT_MSG_MAX,
+ };
+ 
+@@ -785,7 +789,7 @@ enum nft_nat_types {
+  * @NFTA_NAT_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+  * @NFTA_NAT_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+  * @NFTA_NAT_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
+- * @NFTA_NAT_FLAGS: additional NAT configuration (NF_NAT_RANGE_*) (NLA_U32)
++ * @NFTA_NAT_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
+  */
+ enum nft_nat_attributes {
+ 	NFTA_NAT_UNSPEC,
+@@ -803,7 +807,7 @@ enum nft_nat_attributes {
+ /**
+  * enum nft_masq_attributes - nf_tables masquerade expression attributes
+  *
+- * @NFTA_MASQ_FLAGS: additional masquerade configuration (NF_NAT_RANGE_*) (NLA_U32)
++ * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
+  */
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+@@ -812,5 +816,16 @@ enum nft_masq_attributes {
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+ 
++/**
++ * enum nft_gen_attributes - nf_tables ruleset generation attributes
++ *
++ * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
++ */
++enum nft_gen_attributes {
++	NFTA_GEN_UNSPEC,
++	NFTA_GEN_ID,
++	__NFTA_GEN_MAX
++};
++#define NFTA_GEN_MAX		(__NFTA_GEN_MAX - 1)
+ 
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/src/Makefile.am b/src/Makefile.am
+index d57ff96..65bc82a 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -7,6 +7,7 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
+ 
+ libnftnl_la_SOURCES = utils.c		\
+ 		      common.c		\
++		      gen.c		\
+ 		      table.c		\
+ 		      chain.c		\
+ 		      rule.c		\
+diff --git a/src/gen.c b/src/gen.c
+new file mode 100644
+index 0000000..21d3a49
+--- /dev/null
++++ b/src/gen.c
+@@ -0,0 +1,199 @@
++/*
++ * (C) 2012-2014 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include "internal.h"
++
++#include <time.h>
++#include <endian.h>
++#include <stdint.h>
++#include <limits.h>
++#include <stdlib.h>
++#include <string.h>
++#include <netinet/in.h>
++#include <errno.h>
++
++#include <libmnl/libmnl.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libnftnl/gen.h>
++
++struct nft_gen {
++	uint32_t id;
++
++	uint32_t flags;
++};
++
++struct nft_gen *nft_gen_alloc(void)
++{
++	return calloc(1, sizeof(struct nft_gen));
++}
++EXPORT_SYMBOL(nft_gen_alloc);
++
++void nft_gen_free(struct nft_gen *gen)
++{
++	xfree(gen);
++}
++EXPORT_SYMBOL(nft_gen_free);
++
++bool nft_gen_attr_is_set(const struct nft_gen *gen, uint16_t attr)
++{
++	return gen->flags & (1 << attr);
++}
++EXPORT_SYMBOL(nft_gen_attr_is_set);
++
++void nft_gen_attr_unset(struct nft_gen *gen, uint16_t attr)
++{
++	if (!(gen->flags & (1 << attr)))
++		return;
++
++	switch (attr) {
++	case NFT_GEN_ID:
++		break;
++	}
++	gen->flags &= ~(1 << attr);
++}
++EXPORT_SYMBOL(nft_gen_attr_unset);
++
++static uint32_t nft_gen_attr_validate[NFT_GEN_MAX + 1] = {
++	[NFT_GEN_ID]	= sizeof(uint32_t),
++};
++
++void nft_gen_attr_set_data(struct nft_gen *gen, uint16_t attr,
++			   const void *data, uint32_t data_len)
++{
++	if (attr > NFT_GEN_MAX)
++		return;
++
++	nft_assert_validate(data, nft_gen_attr_validate, attr, data_len);
++
++	switch (attr) {
++	case NFT_GEN_ID:
++		gen->id = *((uint32_t *)data);
++		break;
++	}
++	gen->flags |= (1 << attr);
++}
++EXPORT_SYMBOL(nft_gen_attr_set_data);
++
++void nft_gen_attr_set(struct nft_gen *gen, uint16_t attr, const void *data)
++{
++	nft_gen_attr_set_data(gen, attr, data, nft_gen_attr_validate[attr]);
++}
++EXPORT_SYMBOL(nft_gen_attr_set);
++
++void nft_gen_attr_set_u32(struct nft_gen *gen, uint16_t attr, uint32_t val)
++{
++	nft_gen_attr_set_data(gen, attr, &val, sizeof(uint32_t));
++}
++EXPORT_SYMBOL(nft_gen_attr_set_u32);
++
++const void *nft_gen_attr_get_data(struct nft_gen *gen, uint16_t attr,
++				  uint32_t *data_len)
++{
++	if (!(gen->flags & (1 << attr)))
++		return NULL;
++
++	switch(attr) {
++	case NFT_GEN_ID:
++		return &gen->id;
++	}
++	return NULL;
++}
++EXPORT_SYMBOL(nft_gen_attr_get_data);
++
++const void *nft_gen_attr_get(struct nft_gen *gen, uint16_t attr)
++{
++	uint32_t data_len;
++	return nft_gen_attr_get_data(gen, attr, &data_len);
++}
++EXPORT_SYMBOL(nft_gen_attr_get);
++
++uint32_t nft_gen_attr_get_u32(struct nft_gen *gen, uint16_t attr)
++{
++	const void *ret = nft_gen_attr_get(gen, attr);
++	return ret == NULL ? 0 : *((uint32_t *)ret);
++}
++EXPORT_SYMBOL(nft_gen_attr_get_u32);
++
++static int nft_gen_parse_attr_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_GEN_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch(type) {
++	case NFTA_GEN_ID:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++int nft_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_gen *gen)
++{
++	struct nlattr *tb[NFTA_GEN_MAX + 1] = {};
++	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
++
++	if (mnl_attr_parse(nlh, sizeof(*nfg), nft_gen_parse_attr_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_GEN_ID]) {
++		gen->id = ntohl(mnl_attr_get_u32(tb[NFTA_GEN_ID]));
++		gen->flags |= (1 << NFT_GEN_ID);
++	}
++	return 0;
++}
++EXPORT_SYMBOL(nft_gen_nlmsg_parse);
++
++static int nft_gen_snprintf_default(char *buf, size_t size, struct nft_gen *gen)
++{
++	return snprintf(buf, size, "ruleset generation ID %u", gen->id);
++}
++
++int nft_gen_snprintf(char *buf, size_t size, struct nft_gen *gen,
++		       uint32_t type, uint32_t flags)
++{
++	int ret, len = size, offset = 0;
++
++	ret = nft_event_header_snprintf(buf + offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	switch(type) {
++	case NFT_OUTPUT_DEFAULT:
++		ret = nft_gen_snprintf_default(buf + offset, len, gen);
++		break;
++	default:
++		return -1;
++	}
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = nft_event_footer_snprintf(buf + offset, len, type, flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
++}
++EXPORT_SYMBOL(nft_gen_snprintf);
++
++static inline int nft_gen_do_snprintf(char *buf, size_t size, void *gen,
++				      uint32_t type, uint32_t flags)
++{
++	return nft_gen_snprintf(buf, size, gen, type, flags);
++}
++
++int nft_gen_fprintf(FILE *fp, struct nft_gen *gen, uint32_t type,
++		    uint32_t flags)
++{
++	return nft_fprintf(fp, gen, type, flags, nft_gen_do_snprintf);
++}
++EXPORT_SYMBOL(nft_gen_fprintf);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index d8dcf8e..be7b998 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -212,4 +212,18 @@ LIBNFTNL_1.2 {
+   nft_batch_is_supported;
+   nft_batch_begin;
+   nft_batch_end;
++
++  nft_gen_alloc;
++  nft_gen_free;
++  nft_gen_attr_is_set;
++  nft_gen_attr_unset;
++  nft_gen_attr_set_data;
++  nft_gen_attr_set;
++  nft_gen_attr_set_u32;
++  nft_gen_attr_get_data;
++  nft_gen_attr_get;
++  nft_gen_attr_get_u32;
++  nft_gen_nlmsg_parse;
++  nft_gen_snprintf;
++  nft_gen_fprintf;
+ } LIBNFTNL_1.1;
+-- 
+1.7.10.4
+
