@@ -1,83 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft RFC PATCH] src: add set optimization options
-Date: Fri, 12 Sep 2014 19:45:31 +0100
-Message-ID: <20140912184530.GA3740@acer.localdomain>
-References: <20140813081649.25737.82564.stgit@nfdev.cica.es>
- <20140903100959.GA17083@salvia>
- <20140903102233.GC4069@acer.localdomain>
- <CAOkSjBiWRHDx13UW34gMa_wfD2VZseETE+BQss3Qi2JbhAcRCw@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH] utils: nft_fprintf: prevent an empty buffer from
+ being printed
+Date: Fri, 12 Sep 2014 21:41:25 +0200
+Message-ID: <20140912194125.9222.51509.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44032 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbaILSpg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Sep 2014 14:45:36 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBiWRHDx13UW34gMa_wfD2VZseETE+BQss3Qi2JbhAcRCw@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:40156 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752102AbaILTlh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Sep 2014 15:41:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 12, 2014 at 08:35:03PM +0200, Arturo Borrero Gonzalez wrote:
-> On 3 September 2014 12:22, Patrick McHardy <kaber@trash.net> wrote:
-> > On Wed, Sep 03, 2014 at 12:09:59PM +0200, Pablo Neira Ayuso wrote:
-> >> Cc'ing Patrick.
-> >>
-> >> On Wed, Aug 13, 2014 at 10:17:06AM +0200, Arturo Borrero Gonzalez wrote:
-> >> > This patch adds options to choose set optimization mechanisms.
-> >> >
-> >> > The syntax is one of:
-> >> >
-> >> >  nft add set filter set1 { type ipv4_addr size 1024 ; }
-> >> >  nft add set filter set1 { type ipv4_addr policy memory ; }
-> >> >  nft add set filter set1 { type ipv4_addr policy performance ; }
-> >> >  nft add set filter set1 { type ipv4_addr policy memory size 1024 ; }
-> >> >  nft add set filter set1 { type ipv4_addr size 1024 policy memory ; }
-> >> >  nft add set filter set1 { type ipv4_addr policy performance size 1024 ; }
-> >> >  nft add set filter set1 { type ipv4_addr size 1024 policy performance ; }
-> >>
-> >> @Patrick: Does this syntax look reasonable to you?
-> >
-> > I think I would prefer having statements instead of everything combined.
-> >
-> 
-> Could you please elaborate on this?
+If the snprintf_cb() printed 0 characters, no \0 exists in the buffer.
+Also, in that case fprintf() is meant to print nothing, so we can just exit.
 
-Something like this:
+This patch addresses new cases of textual output by libnftnl with trash.
 
-{
-	type ipve_addr
-	size 1024
-	policy performance
-}
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/utils.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-or seperate by colons in case they are on a single line.
+diff --git a/src/utils.c b/src/utils.c
+index 96c8bf2..d70fbf1 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -190,7 +190,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
+ 	int ret;
+ 
+ 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
+-	if (ret < 0)
++	if (ret <= 0)
+ 		goto out;
+ 
+ 	if (ret >= NFT_SNPRINTF_BUFSIZ) {
+@@ -201,7 +201,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
+ 			return -1;
+ 
+ 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
+-		if (ret < 0)
++		if (ret <= 0)
+ 			goto out;
+ 	}
+ 
 
-> >> > Also valid for maps:
-> >> >
-> >> >  nft add map filter map1 { type ipv4_addr : verdict policy performace ; }
-
-This gets a bit unreadable so { type ipv4_addr : verdict; policy performance; }
-seems better to me.
-
-> > This is what I have in my patchset:
-> >
-> > +struct set_desc {
-> > +       unsigned int            size;
-> > +       struct expr             *range;
-> > +};
-> >
-> > Range is another way to express the maximum size and at the same time a
-> > common prefix.
-> >
-> > I can dust off my patch and send it later so we combine what we have.
-> 
-> Would you send that patch?
-
-Yep, just started to work on my tree five minutes ago. I'll forward-port
-everything and will send the patch once I'm done.
