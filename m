@@ -1,44 +1,44 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 4/5] ipset: remove extran newline on debug output
-Date: Sun, 14 Sep 2014 21:11:29 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409142111040.1020@blackhole.kfki.hu>
-References: <20140908142604.16930.94892.stgit@jonathan.eitzenberger.org> <20140908143048.16930.51389.stgit@jonathan.eitzenberger.org>
+Subject: Re: [PATCH net-next 5/5] netfilter: Convert pr_warning to pr_warn
+Date: Sun, 14 Sep 2014 21:13:41 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409142112320.1020@blackhole.kfki.hu>
+References: <cover.1410322181.git.joe@perches.com> <4708b4ef0485c1bc9efe3c0e59924a0f1c3c3bb4.1410322181.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
+Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:48421 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:48726 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752709AbaINTLK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Sep 2014 15:11:10 -0400
-In-Reply-To: <20140908143048.16930.51389.stgit@jonathan.eitzenberger.org>
+	id S1752694AbaINTNY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Sep 2014 15:13:24 -0400
+In-Reply-To: <4708b4ef0485c1bc9efe3c0e59924a0f1c3c3bb4.1410322181.git.joe@perches.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 8 Sep 2014, Holger Eitzenberger wrote:
+On Tue, 9 Sep 2014, Joe Perches wrote:
 
-> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+> Use the more common pr_warn.
+> 
+> Other miscellanea:
+> 
+> o Coalesce formats
+> o Realign arguments
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 > ---
->  lib/session.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/session.c b/lib/session.c
-> index d4fe836..8d79a96 100644
-> --- a/lib/session.c
-> +++ b/lib/session.c
-> @@ -804,7 +804,7 @@ list_adt(struct ipset_session *session, struct nlattr *nla[])
->  		safe_snprintf(session, "</elem>");
->  
->  	for (arg = type->args[IPSET_ADD]; arg != NULL && arg->opt; arg++) {
-> -		D("print arg opt %u %s\n", arg->opt,
-> +		D("print arg opt %u %s", arg->opt,
->  		   ipset_data_test(data, arg->opt) ? "(yes)" : "(missing)");
->  		if (!(arg->print && ipset_data_test(data, arg->opt)))
->  			continue;
-> 
+>  net/netfilter/ipset/ip_set_core.c     | 23 +++++++++++-----------
+>  net/netfilter/ipset/ip_set_hash_gen.h | 12 ++++++------
+>  net/netfilter/xt_connbytes.c          |  2 +-
+>  net/netfilter/xt_hashlimit.c          |  2 +-
+>  net/netfilter/xt_set.c                | 36 ++++++++++++++++-------------------
+>  5 files changed, 35 insertions(+), 40 deletions(-)
 
-This patch is also applied, thanks Holger.
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
 Best regards,
 Jozsef
