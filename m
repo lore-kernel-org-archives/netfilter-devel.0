@@ -1,51 +1,50 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] utils: nft_fprintf: prevent an empty buffer from
- being printed
-Date: Fri, 12 Sep 2014 21:41:25 +0200
-Message-ID: <20140912194125.9222.51509.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/5] Remove a duplicate debug print
+Date: Sun, 14 Sep 2014 21:08:35 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409142108010.1020@blackhole.kfki.hu>
+References: <20140908142604.16930.94892.stgit@jonathan.eitzenberger.org> <20140908143033.16930.26216.stgit@jonathan.eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40156 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752102AbaILTlh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Sep 2014 15:41:37 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.26]:36004 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752694AbaINTIT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Sep 2014 15:08:19 -0400
+In-Reply-To: <20140908143033.16930.26216.stgit@jonathan.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the snprintf_cb() printed 0 characters, no \0 exists in the buffer.
-Also, in that case fprintf() is meant to print nothing, so we can just exit.
+On Mon, 8 Sep 2014, Holger Eitzenberger wrote:
 
-This patch addresses new cases of textual output by libnftnl with trash.
+> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+> ---
+>  lib/session.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/lib/session.c b/lib/session.c
+> index d2957a5..7a719b2 100644
+> --- a/lib/session.c
+> +++ b/lib/session.c
+> @@ -1038,8 +1038,7 @@ callback_list(struct ipset_session *session, struct nlattr *nla[],
+>  		ipset_data_flags_unset(data, IPSET_CREATE_FLAGS);
+>  		D("nla typename %s",
+>  		  (char *) mnl_attr_get_payload(nla[IPSET_ATTR_TYPENAME]));
+> -		D("nla typename %s",
+> -		  (char *) mnl_attr_get_payload(nla[IPSET_ATTR_TYPENAME]));
+> +
+>  		ATTR2DATA(session, nla, IPSET_ATTR_FAMILY, cmd_attrs);
+>  		ATTR2DATA(session, nla, IPSET_ATTR_TYPENAME, cmd_attrs);
+>  		ATTR2DATA(session, nla, IPSET_ATTR_REVISION, cmd_attrs);
+> 
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/utils.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Patch is applied, thanks!
 
-diff --git a/src/utils.c b/src/utils.c
-index 96c8bf2..d70fbf1 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -190,7 +190,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
- 	int ret;
- 
- 	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
--	if (ret < 0)
-+	if (ret <= 0)
- 		goto out;
- 
- 	if (ret >= NFT_SNPRINTF_BUFSIZ) {
-@@ -201,7 +201,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
- 			return -1;
- 
- 		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
--		if (ret < 0)
-+		if (ret <= 0)
- 			goto out;
- 	}
- 
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
