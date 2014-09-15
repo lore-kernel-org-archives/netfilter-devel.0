@@ -1,220 +1,93 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 6/8] netfilter: ipset: Add skbinfo extension support to SET target.
-Date: Mon, 15 Sep 2014 23:02:52 +0200
-Message-ID: <1410814974-9918-7-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 6.22 released
+Date: Mon, 15 Sep 2014 23:13:12 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409152304001.10006@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:51005 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:40498 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757728AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Sep 2014 17:02:37 -0400
-In-Reply-To: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1754277AbaIOVMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Sep 2014 17:12:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Anton Danilov <littlesmilingcloud@gmail.com>
+Hi,
 
-Signed-off-by: Anton Danilov <littlesmilingcloud@gmail.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- include/uapi/linux/netfilter/xt_set.h |  10 +++
- net/netfilter/xt_set.c                | 155 ++++++++++++++++++++++++++++++++++
- 2 files changed, 165 insertions(+)
+I'm happy to announce ipset 6.22, which, besides bugfixes and corrections, 
+includes the new set type hash:mac and the skbinfo extension from Anton 
+Danilov. The skbinfo extension makes possible to store fw mark, tc class 
+and/or hardware queue parameters together with the set elements and then 
+attach them to the matchig packets by the SET target. Example
 
-diff --git a/include/uapi/linux/netfilter/xt_set.h b/include/uapi/linux/netfilter/xt_set.h
-index 964d3d4..d6a1df1 100644
---- a/include/uapi/linux/netfilter/xt_set.h
-+++ b/include/uapi/linux/netfilter/xt_set.h
-@@ -71,4 +71,14 @@ struct xt_set_info_match_v3 {
- 	__u32 flags;
- };
- 
-+/* Revision 3 target */
-+
-+struct xt_set_info_target_v3 {
-+	struct xt_set_info add_set;
-+	struct xt_set_info del_set;
-+	struct xt_set_info map_set;
-+	__u32 flags;
-+	__u32 timeout;
-+};
-+
- #endif /*_XT_SET_H*/
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index cb70f6e..5732cd6 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -366,6 +366,140 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
- #define set_target_v2_checkentry	set_target_v1_checkentry
- #define set_target_v2_destroy		set_target_v1_destroy
- 
-+/* Revision 3 target */
-+
-+static unsigned int
-+set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct xt_set_info_target_v3 *info = par->targinfo;
-+	ADT_OPT(add_opt, par->family, info->add_set.dim,
-+		info->add_set.flags, info->flags, info->timeout);
-+	ADT_OPT(del_opt, par->family, info->del_set.dim,
-+		info->del_set.flags, 0, UINT_MAX);
-+	ADT_OPT(map_opt, par->family, info->map_set.dim,
-+		info->map_set.flags, 0, UINT_MAX);
-+
-+	int ret;
-+
-+	/* Normalize to fit into jiffies */
-+	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
-+	    add_opt.ext.timeout > UINT_MAX/MSEC_PER_SEC)
-+		add_opt.ext.timeout = UINT_MAX/MSEC_PER_SEC;
-+	if (info->add_set.index != IPSET_INVALID_ID)
-+		ip_set_add(info->add_set.index, skb, par, &add_opt);
-+	if (info->del_set.index != IPSET_INVALID_ID)
-+		ip_set_del(info->del_set.index, skb, par, &del_opt);
-+	if (info->map_set.index != IPSET_INVALID_ID) {
-+		map_opt.cmdflags |= info->flags & (IPSET_FLAG_MAP_SKBMARK |
-+						   IPSET_FLAG_MAP_SKBPRIO |
-+						   IPSET_FLAG_MAP_SKBQUEUE);
-+		ret = match_set(info->map_set.index, skb, par, &map_opt,
-+				info->map_set.flags & IPSET_INV_MATCH);
-+		if (!ret)
-+			return XT_CONTINUE;
-+		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBMARK)
-+			skb->mark = (skb->mark & ~(map_opt.ext.skbmarkmask))
-+				    ^ (map_opt.ext.skbmark);
-+		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBPRIO)
-+			skb->priority = map_opt.ext.skbprio;
-+		if ((map_opt.cmdflags & IPSET_FLAG_MAP_SKBQUEUE) &&
-+		    skb->dev &&
-+		    skb->dev->real_num_tx_queues > map_opt.ext.skbqueue)
-+			skb_set_queue_mapping(skb, map_opt.ext.skbqueue);
-+	}
-+	return XT_CONTINUE;
-+}
-+
-+
-+static int
-+set_target_v3_checkentry(const struct xt_tgchk_param *par)
-+{
-+	const struct xt_set_info_target_v3 *info = par->targinfo;
-+	ip_set_id_t index;
-+
-+	if (info->add_set.index != IPSET_INVALID_ID) {
-+		index = ip_set_nfnl_get_byindex(par->net,
-+						info->add_set.index);
-+		if (index == IPSET_INVALID_ID) {
-+			pr_warn("Cannot find add_set index %u as target\n",
-+				info->add_set.index);
-+			return -ENOENT;
-+		}
-+	}
-+
-+	if (info->del_set.index != IPSET_INVALID_ID) {
-+		index = ip_set_nfnl_get_byindex(par->net,
-+						info->del_set.index);
-+		if (index == IPSET_INVALID_ID) {
-+			pr_warn("Cannot find del_set index %u as target\n",
-+				info->del_set.index);
-+			if (info->add_set.index != IPSET_INVALID_ID)
-+				ip_set_nfnl_put(par->net,
-+						info->add_set.index);
-+			return -ENOENT;
-+		}
-+	}
-+
-+	if (info->map_set.index != IPSET_INVALID_ID) {
-+		if (strncmp(par->table, "mangle", 7)) {
-+			pr_warn("--map-set only usable from mangle table\n");
-+			return -EINVAL;
-+		}
-+		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
-+		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
-+		     !(par->hook_mask & (1 << NF_INET_FORWARD |
-+					 1 << NF_INET_LOCAL_OUT |
-+					 1 << NF_INET_POST_ROUTING))) {
-+			pr_warn("mapping of prio or/and queue is allowed only"
-+				"from OUTPUT/FORWARD/POSTROUTING chains\n");
-+			return -EINVAL;
-+		}
-+		index = ip_set_nfnl_get_byindex(par->net,
-+						info->map_set.index);
-+		if (index == IPSET_INVALID_ID) {
-+			pr_warn("Cannot find map_set index %u as target\n",
-+				info->map_set.index);
-+			if (info->add_set.index != IPSET_INVALID_ID)
-+				ip_set_nfnl_put(par->net,
-+						info->add_set.index);
-+			if (info->del_set.index != IPSET_INVALID_ID)
-+				ip_set_nfnl_put(par->net,
-+						info->del_set.index);
-+			return -ENOENT;
-+		}
-+	}
-+
-+	if (info->add_set.dim > IPSET_DIM_MAX ||
-+	    info->del_set.dim > IPSET_DIM_MAX ||
-+	    info->map_set.dim > IPSET_DIM_MAX) {
-+		pr_warn("Protocol error: SET target dimension "
-+			"is over the limit!\n");
-+		if (info->add_set.index != IPSET_INVALID_ID)
-+			ip_set_nfnl_put(par->net, info->add_set.index);
-+		if (info->del_set.index != IPSET_INVALID_ID)
-+			ip_set_nfnl_put(par->net, info->del_set.index);
-+		if (info->map_set.index != IPSET_INVALID_ID)
-+			ip_set_nfnl_put(par->net, info->map_set.index);
-+		return -ERANGE;
-+	}
-+
-+	return 0;
-+}
-+
-+static void
-+set_target_v3_destroy(const struct xt_tgdtor_param *par)
-+{
-+	const struct xt_set_info_target_v3 *info = par->targinfo;
-+
-+	if (info->add_set.index != IPSET_INVALID_ID)
-+		ip_set_nfnl_put(par->net, info->add_set.index);
-+	if (info->del_set.index != IPSET_INVALID_ID)
-+		ip_set_nfnl_put(par->net, info->del_set.index);
-+	if (info->map_set.index != IPSET_INVALID_ID)
-+		ip_set_nfnl_put(par->net, info->map_set.index);
-+}
-+
-+
- static struct xt_match set_matches[] __read_mostly = {
- 	{
- 		.name		= "set",
-@@ -493,6 +627,27 @@ static struct xt_target set_targets[] __read_mostly = {
- 		.destroy	= set_target_v2_destroy,
- 		.me		= THIS_MODULE
- 	},
-+	/* --map-set support */
-+	{
-+		.name		= "SET",
-+		.revision	= 3,
-+		.family		= NFPROTO_IPV4,
-+		.target		= set_target_v3,
-+		.targetsize	= sizeof(struct xt_set_info_target_v3),
-+		.checkentry	= set_target_v3_checkentry,
-+		.destroy	= set_target_v3_destroy,
-+		.me		= THIS_MODULE
-+	},
-+	{
-+		.name		= "SET",
-+		.revision	= 3,
-+		.family		= NFPROTO_IPV6,
-+		.target		= set_target_v3,
-+		.targetsize	= sizeof(struct xt_set_info_target_v3),
-+		.checkentry	= set_target_v3_checkentry,
-+		.destroy	= set_target_v3_destroy,
-+		.me		= THIS_MODULE
-+	},
- };
- 
- static int __init xt_set_init(void)
--- 
-1.8.5.1
+ipset create mark_values hash:net skbinfo
+ipset add mark_values 8.8.8.8/32 skbmark 0x1/0xffff
+...
+iptables -t mangle -A OUTPUT -p tcp -o iface \
+	-j SET --map-set mark_values dst --map-mark
 
+(At the moment the support of the --map-set options of
+the SET target is available in the ipset branch of the iptables
+git tree.)
+
+Userspace changes:
+  - hash:mac type added to ipset
+  - Add test to check mark mapping
+  - ipset: remove extran newline on debug output (Holger Eitzenberger)
+  - ipset: avoid duplicate command flags (Holger Eitzenberger)
+  - Remove a duplicate debug print (Holger Eitzenberger)
+  - ipset: man: Add the skbinfo extension documentation. (Anton Danilov)
+  - libipset: Add userspace support of the skbinfo extension of the list
+    set type. (Anton Danilov)
+  - libipset: Add userspace support of the skbinfo extension of the hash
+    set types. (Anton Danilov)
+  - libipset: Add userspace support of the skbinfo extension of the
+    bitmap set types. (Anton Danilov)
+  - libipset: Add userspace code for the skbinfo extension support.
+    (Anton Danilov)
+  - Make possible to compile ipset with IPSET_DEBUG from the dist.
+    (Clinton Roy)
+  - libipset: print third element in debugging (Sergey Popovich)
+  - ipset: Handle missing leading zeros in ethernet address parser
+    (Janeks Jaunups)
+  - ipset: Pass IPSET_BIN to test scripts to change binary location
+    (Neutron Soutmun)
+  - ipset: Fix grammar error in manpage (Neutron Soutmun)
+  - ipset: Fix printf format warning (Neutron Soutmun)
+
+Kernel part changes:
+  - hash:mac type added to ipset
+  - skbinfo extension: send nonzero extension elements only to userspace
+  - netfilter: Convert pr_warning to pr_warn (Joe Perches)
+  - netfilter: ipset: Add skbinfo extension support to SET target.
+    (Anton Danilov)
+  - netfilter: ipset: Add skbinfo extension kernel support for the list
+    set type. (Anton Danilov)
+  - netfilter: ipset: Add skbinfo extension kernel support for the hash
+    set types. (Anton Danilov)
+  - netfilter: ipset: Add skbinfo extension kernel support for the
+    bitmap set types. (Anton Danilov)
+  - netfilter: ipset: Add skbinfo extension kernel support in the ipset
+    core. (Anton Danilov)
+  - Fix static checker warning in ip_set_core.c (reported by Dan 
+    Carpenter)
+  - Fix warn: integer overflows 'sizeof(*map) + size * set->dsize'
+    (reported by Dan Carpenter)
+  - net/netfilter/ipset: Resolve missing-field-initializer warnings
+    (Mark Rustad)
+  - netnet,netportnet: Fix value range support for IPv4 (Sergey Popovich)
+  - Removed invalid IPSET_ATTR_MARKMASK validation (Vytas Dauksa) 
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
