@@ -1,100 +1,163 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/8] ipset patches for nf-next
-Date: Mon, 15 Sep 2014 23:02:46 +0200
-Message-ID: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 3/8] netfilter: ipset: Add skbinfo extension kernel support for the bitmap set types.
+Date: Mon, 15 Sep 2014 23:02:49 +0200
+Message-ID: <1410814974-9918-4-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:50010 "EHLO smtp0.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:39086 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757614AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756555AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 15 Sep 2014 17:02:37 -0400
+In-Reply-To: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Anton Danilov <littlesmilingcloud@gmail.com>
 
-Please consider to apply the next series of patches:
+Add skbinfo extension kernel support for the bitmap set types.
+Inroduce the new revisions of bitmap_ip, bitmap_ipmac and bitmap_port set types.
 
-- the new hash:mac type by which it's easy to store
-  just the MAC addresses in a set
-- an optimization to the skbinfo expression, which
-  suppresses sending zero valued extensions
-- the skbinfo extension support to the SET
-  target from Anton Danilov
-- the skbinfo extension support for the list,
-  hash and bitmap types separatedly
-  from Anton Danilov
-- the skbinfo extension support in the ipset
-  core from Anton Danilov
-- a fix for a static checker warning in
-  ip_set_core.c, reported by Dan Carpenter
+Signed-off-by: Anton Danilov <littlesmilingcloud@gmail.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_bitmap_gen.h   |  4 ++++
+ net/netfilter/ipset/ip_set_bitmap_ip.c    | 11 +++++++++--
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 11 +++++++++--
+ net/netfilter/ipset/ip_set_bitmap_port.c  | 11 +++++++++--
+ 4 files changed, 31 insertions(+), 6 deletions(-)
 
-The skbinfo extension makes possible to store
-fw mark, tc class and/or hardware queue parameters
-together with the set elements and then attach
-them to the matchig packets by the SET target.
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index f2c7d83..6f024a8 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -128,6 +128,8 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		return 0;
+ 	if (SET_WITH_COUNTER(set))
+ 		ip_set_update_counter(ext_counter(x, set), ext, mext, flags);
++	if (SET_WITH_SKBINFO(set))
++		ip_set_get_skbinfo(ext_skbinfo(x, set), ext, mext, flags);
+ 	return 1;
+ }
+ 
+@@ -161,6 +163,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		ip_set_init_counter(ext_counter(x, set), ext);
+ 	if (SET_WITH_COMMENT(set))
+ 		ip_set_init_comment(ext_comment(x, set), ext);
++	if (SET_WITH_SKBINFO(set))
++		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index dafdb39..55b083e 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -27,7 +27,8 @@
+ 
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1	   Counter support added */
+-#define IPSET_TYPE_REV_MAX	2	/* Comment support added */
++/*				2	   Comment support added */
++#define IPSET_TYPE_REV_MAX	3	/* skbinfo support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+@@ -139,7 +140,10 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -357,6 +361,9 @@ static struct ip_set_type bitmap_ip_type __read_mostly = {
+ 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
++		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
++		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
++		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },
+ 	},
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index dbad505..8610474 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -27,7 +27,8 @@
+ 
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1	   Counter support added */
+-#define IPSET_TYPE_REV_MAX	2	/* Comment support added */
++/*				2	   Comment support added */
++#define IPSET_TYPE_REV_MAX	3	/* skbinfo support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+@@ -240,7 +241,10 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -394,6 +398,9 @@ static struct ip_set_type bitmap_ipmac_type = {
+ 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
++		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
++		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
++		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },
+ 	},
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index a4b65ae..005dd36 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -22,7 +22,8 @@
+ 
+ #define IPSET_TYPE_REV_MIN	0
+ /*				1	   Counter support added */
+-#define IPSET_TYPE_REV_MAX	2	/* Comment support added */
++/*				2	   Comment support added */
++#define IPSET_TYPE_REV_MAX	3	/* skbinfo support added */
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+@@ -139,7 +140,10 @@ bitmap_port_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -291,6 +295,9 @@ static struct ip_set_type bitmap_port_type = {
+ 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
+ 		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
++		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
++		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
++		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },
+ 	},
+ 	.me		= THIS_MODULE,
+ };
+-- 
+1.8.5.1
 
-You can pull the changes from
-
-        git://blackhole.kfki.hu/nf-next master
-
-The iptables part of the new SET target functionality
-can be found in the iptables git tree, in the ipset
-branch.
-
-Thanks,
-Jozsef
-
-============================================================================
-The following changes since commit 0bbe80e571c7b866afd92a98edd32a969467a7a9:
-
-  netfilter: masquerading needs to be independent of x_tables in Kconfig (2014-09-12 09:40:18 +0200)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 07034aeae152de52c29f032ca995bf9dafbe24e2:
-
-  netfilter: ipset: hash:mac type added to ipset (2014-09-15 22:20:21 +0200)
-
-----------------------------------------------------------------
-Anton Danilov (5):
-      netfilter: ipset: Add skbinfo extension kernel support in the ipset core.
-      netfilter: ipset: Add skbinfo extension kernel support for the bitmap set types.
-      netfilter: ipset: Add skbinfo extension kernel support for the hash set types.
-      netfilter: ipset: Add skbinfo extension kernel support for the list set type.
-      netfilter: ipset: Add skbinfo extension support to SET target.
-
-Jozsef Kadlecsik (3):
-      netfilter: ipset: Fix static checker warning in ip_set_core.c
-      netfilter: ipset: send nonzero skbinfo extensions only
-      netfilter: ipset: hash:mac type added to ipset
-
- include/linux/netfilter/ipset/ip_set.h       |  60 +++++++++-
- include/uapi/linux/netfilter/ipset/ip_set.h  |  12 ++
- include/uapi/linux/netfilter/xt_set.h        |  10 ++
- net/netfilter/ipset/Kconfig                  |   9 ++
- net/netfilter/ipset/Makefile                 |   1 +
- net/netfilter/ipset/ip_set_bitmap_gen.h      |   4 +
- net/netfilter/ipset/ip_set_bitmap_ip.c       |  11 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c    |  11 +-
- net/netfilter/ipset/ip_set_bitmap_port.c     |  11 +-
- net/netfilter/ipset/ip_set_core.c            |  30 ++++-
- net/netfilter/ipset/ip_set_hash_gen.h        |  16 ++-
- net/netfilter/ipset/ip_set_hash_ip.c         |  14 ++-
- net/netfilter/ipset/ip_set_hash_ipmark.c     |  14 ++-
- net/netfilter/ipset/ip_set_hash_ipport.c     |  14 ++-
- net/netfilter/ipset/ip_set_hash_ipportip.c   |  14 ++-
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |  14 ++-
- net/netfilter/ipset/ip_set_hash_mac.c        | 173 +++++++++++++++++++++++++++
- net/netfilter/ipset/ip_set_hash_net.c        |  16 ++-
- net/netfilter/ipset/ip_set_hash_netiface.c   |  16 ++-
- net/netfilter/ipset/ip_set_hash_netnet.c     |  16 ++-
- net/netfilter/ipset/ip_set_hash_netport.c    |  16 ++-
- net/netfilter/ipset/ip_set_hash_netportnet.c |  16 ++-
- net/netfilter/ipset/ip_set_list_set.c        |  19 ++-
- net/netfilter/xt_set.c                       | 155 ++++++++++++++++++++++++
- 24 files changed, 635 insertions(+), 37 deletions(-)
- create mode 100644 net/netfilter/ipset/ip_set_hash_mac.c
