@@ -1,606 +1,462 @@
 From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH nft v2 2/6] tests: Add ip6 folder with test files.
-Date: Mon, 15 Sep 2014 14:47:06 +0200
-Message-ID: <1410785230-8498-3-git-send-email-anarey@gmail.com>
+Subject: [PATCH nft v2 6/6] tests: Add any folder with test files.
+Date: Mon, 15 Sep 2014 14:47:10 +0200
+Message-ID: <1410785230-8498-7-git-send-email-anarey@gmail.com>
 References: <1410785230-8498-1-git-send-email-anarey@gmail.com>
 Cc: Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:50297 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649AbaIOMpH (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:38472 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752663AbaIOMpH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 15 Sep 2014 08:45:07 -0400
-Received: by mail-we0-f180.google.com with SMTP id t60so3914848wes.11
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2014 05:44:59 -0700 (PDT)
+Received: by mail-wi0-f170.google.com with SMTP id em10so2357313wid.5
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2014 05:45:06 -0700 (PDT)
 In-Reply-To: <1410785230-8498-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-"ip6" folder contains the test files that are executed in ip6 and inet
-family of tables.
+"any" folder contains the test files that are executed in ipv4, ipv6,
+inet, arp, bridge family of tables.
 
 These test files are executed with nft-tests.py
 
 Signed-off-by: Ana Rey <anarey@gmail.com>
 ---
- tests/regression/ip6/chains.t |   18 ++++++
- tests/regression/ip6/dst.t    |   25 ++++++++
- tests/regression/ip6/hbh.t    |   25 ++++++++
- tests/regression/ip6/icmpv6.t |   96 ++++++++++++++++++++++++++++
- tests/regression/ip6/ip6.t    |  142 +++++++++++++++++++++++++++++++++++++++++
- tests/regression/ip6/mh.t     |   49 ++++++++++++++
- tests/regression/ip6/nat.t    |    6 ++
- tests/regression/ip6/reject.t |    5 ++
- tests/regression/ip6/rt.t     |   45 +++++++++++++
- tests/regression/ip6/sets.t   |   22 +++++++
- tests/regression/ip6/vmap.t   |   54 ++++++++++++++++
- 11 files changed, 487 insertions(+)
- create mode 100644 tests/regression/ip6/chains.t
- create mode 100644 tests/regression/ip6/dst.t
- create mode 100644 tests/regression/ip6/hbh.t
- create mode 100644 tests/regression/ip6/icmpv6.t
- create mode 100644 tests/regression/ip6/ip6.t
- create mode 100644 tests/regression/ip6/mh.t
- create mode 100644 tests/regression/ip6/nat.t
- create mode 100644 tests/regression/ip6/reject.t
- create mode 100644 tests/regression/ip6/rt.t
- create mode 100644 tests/regression/ip6/sets.t
- create mode 100644 tests/regression/ip6/vmap.t
+ tests/regression/any/ct.t    |  105 +++++++++++++++++++++++++++
+ tests/regression/any/frag.t  |   64 +++++++++++++++++
+ tests/regression/any/limit.t |   12 ++++
+ tests/regression/any/log.t   |   27 +++++++
+ tests/regression/any/meta.t  |  160 ++++++++++++++++++++++++++++++++++++++++++
+ tests/regression/any/queue.t |   15 ++++
+ 6 files changed, 383 insertions(+)
+ create mode 100644 tests/regression/any/ct.t
+ create mode 100644 tests/regression/any/frag.t
+ create mode 100644 tests/regression/any/limit.t
+ create mode 100644 tests/regression/any/log.t
+ create mode 100644 tests/regression/any/meta.t
+ create mode 100644 tests/regression/any/queue.t
 
-diff --git a/tests/regression/ip6/chains.t b/tests/regression/ip6/chains.t
+diff --git a/tests/regression/any/ct.t b/tests/regression/any/ct.t
 new file mode 100644
-index 0000000..ef975b2
+index 0000000..512ca78
 --- /dev/null
-+++ b/tests/regression/ip6/chains.t
-@@ -0,0 +1,18 @@
-+*ip6;test-ip6
-+-*inet;test-inet
-+
-+# filter chains available are: input, output, forward, forward, prerouting and postrouting.
-+:filter-input;type filter hook input priority 0
-+:filter-prer;type filter hook prerouting priority 0
-+:filter-forw-t;type filter hook forward priority 0
-+:filter-out-t;type filter hook output priority 0
-+:filter-post-t;type filter hook postrouting priority 0
-+
-+# nat chains available are: input, output, forward, prerouting and postrouting.
-+:nat-input;type nat hook input priority 0
-+:nat-prerouting;type nat hook prerouting priority 0
-+:nat-output;type nat hook output priority 0
-+:nat-postrou;type nat hook postrouting priority 0
-+
-+# route chain available is output.
-+:route-out;type route hook output priority 0
-diff --git a/tests/regression/ip6/dst.t b/tests/regression/ip6/dst.t
-new file mode 100644
-index 0000000..1b1bc52
---- /dev/null
-+++ b/tests/regression/ip6/dst.t
-@@ -0,0 +1,25 @@
++++ b/tests/regression/any/ct.t
+@@ -0,0 +1,105 @@
++*ip;test-ip4
 +*ip6;test-ip6
 +*inet;test-inet
-+:input;type filter hook input priority 0
++# ct expresion is not supported in arp and bridge family yet.
++- *arp;test-arp
++- *bridge;test-bridge
 +
-+dst nexthdr 22;ok
-+dst nexthdr != 233;ok
-+dst nexthdr 33-45;ok;dst nexthdr >= 33 dst nexthdr <= 45
-+dst nexthdr != 33-45;ok;dst nexthdr < 33 dst nexthdr > 45
-+dst nexthdr { 33, 55, 67, 88};ok
-+- dst nexthdr != { 33, 55, 67, 88};ok
-+dst nexthdr { 33-55};ok
-+- dst nexthdr != { 33-55};ok
-+dst nexthdr { udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp};ok;dst nexthdr { 51, 50, 17, 136, 58, 6, 33, 132, 108}
-+- dst nexthdr != { udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp};ok
-+dst nexthdr icmp;ok;dst nexthdr 1
-+dst nexthdr != icmp;ok;dst nexthdr != 1
-+
-+dst hdrlength 22;ok
-+dst hdrlength != 233;ok
-+dst hdrlength 33-45;ok;dst hdrlength >= 33 dst hdrlength <= 45
-+dst hdrlength != 33-45;ok;dst hdrlength < 33 dst hdrlength > 45
-+dst hdrlength { 33, 55, 67, 88};ok
-+- dst hdrlength != { 33, 55, 67, 88};ok
-+dst hdrlength { 33-55};ok
-+- dst hdrlength != { 33-55};ok
-diff --git a/tests/regression/ip6/hbh.t b/tests/regression/ip6/hbh.t
-new file mode 100644
-index 0000000..b274b8b
---- /dev/null
-+++ b/tests/regression/ip6/hbh.t
-@@ -0,0 +1,25 @@
-+*ip6;test-ip6
-+*inet;test-inet
-+:filter-input;type filter hook input priority 0
-+
-+hbh hdrlength 22;ok
-+hbh hdrlength != 233;ok
-+hbh hdrlength 33-45;ok;hbh hdrlength >= 33 hbh hdrlength <= 45
-+hbh hdrlength != 33-45;ok;hbh hdrlength < 33 hbh hdrlength > 45
-+hbh hdrlength {33, 55, 67, 88};ok
-+- hbh hdrlength != {33, 55, 67, 88};ok
-+hbh hdrlength { 33-55};ok
-+- hbh hdrlength != {33-55};ok
-+
-+hbh nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp, icmpv6};ok;hbh nexthdr { 58, 136, 51, 50, 6, 17, 132, 33, 108}
-+- hbh nexthdr != {esp, ah, comp, udp, udplite, tcp, dccp, sctp, icmpv6};ok
-+hbh nexthdr 22;ok
-+hbh nexthdr != 233;ok
-+hbh nexthdr 33-45;ok;hbh nexthdr >= 33 hbh nexthdr <= 45
-+hbh nexthdr != 33-45;ok;hbh nexthdr < 33 hbh nexthdr > 45
-+hbh nexthdr {33, 55, 67, 88};ok
-+- hbh nexthdr != {33, 55, 67, 88};ok
-+hbh nexthdr { 33-55};ok
-+- hbh nexthdr != {33-55};ok
-+hbh nexthdr ip;ok;hbh nexthdr 0
-+hbh nexthdr != ip;ok;hbh nexthdr != 0
-diff --git a/tests/regression/ip6/icmpv6.t b/tests/regression/ip6/icmpv6.t
-new file mode 100644
-index 0000000..18b256e
---- /dev/null
-+++ b/tests/regression/ip6/icmpv6.t
-@@ -0,0 +1,96 @@
-+*ip6;test-ip4
-+# BUG: There is a bug with icmpv6 and inet tables
-+- *inet;test-inet
-+:input;type filter hook input priority 0
-+
-+icmpv6 type destination-unreachable accept;ok
-+icmpv6 type packet-too-big accept;ok
-+icmpv6 type time-exceeded accept;ok
-+icmpv6 type echo-request accept;ok
-+icmpv6 type echo-reply accept;ok
-+icmpv6 type mld-listener-query accept;ok
-+icmpv6 type mld-listener-report accept;ok
-+icmpv6 type mld-listener-reduction accept;ok
-+icmpv6 type nd-router-solicit accept;ok
-+icmpv6 type nd-router-advert accept;ok
-+icmpv6 type nd-neighbor-solicit accept;ok
-+icmpv6 type nd-neighbor-advert accept;ok
-+icmpv6 type nd-redirect accept;ok
-+icmpv6 type router-renumbering accept;ok
-+icmpv6 type {destination-unreachable, time-exceeded, nd-router-solicit} accept;ok
-+icmpv6 type {router-renumbering, mld-listener-reduction, time-exceeded, nd-router-solicit} accept;ok
-+icmpv6 type {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
-+- icmpv6 type != {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
-+
-+icmpv6 code 4;ok
-+icmpv6 code 3-66;ok;icmpv6 code >= 3 icmpv6 code <= 66
-+icmpv6 code {5, 6, 7} accept;ok
-+- icmpv6 code != {3, 66, 34};ok
-+icmpv6 code { 3-66};ok
-+- icmpv6 code != { 3-44};ok
-+
-+icmpv6 checksum 2222 log;ok
-+icmpv6 checksum != 2222 log;ok
-+icmpv6 checksum 222-226;ok;icmpv6 checksum >= 222 icmpv6 checksum <= 226
-+icmpv6 checksum != 2222 log;ok
-+icmpv6 checksum { 222, 226};ok
-+- icmpv6 checksum != { 222, 226};ok
-+icmpv6 checksum { 222-226};ok
-+- icmpv6 checksum != { 222-226};ok
-+
-+# BUG: icmpv6 parameter-problem, pptr, mtu, packet-too-big
-+# [ICMP6HDR_PPTR]         = ICMP6HDR_FIELD("parameter-problem", icmp6_pptr),
-+# [ICMP6HDR_MTU]          = ICMP6HDR_FIELD("packet-too-big", icmp6_mtu),
-+# $ sudo nft add rule ip6 test6 input icmpv6 parameter-problem 35
-+# <cmdline>:1:53-53: Error: syntax error, unexpected end of file
-+# add rule ip6 test6 input icmpv6 parameter-problem 35
-+#                                                    ^
-+# $ sudo nft add rule ip6 test6 input icmpv6 parameter-problem
-+# <cmdline>:1:26-31: Error: Value 58 exceeds valid range 0-0
-+# add rule ip6 test6 input icmpv6 parameter-problem
-+#                         ^^^^^^
-+# $ sudo nft add rule ip6 test6 input icmpv6 parameter-problem 2-4
-+# <cmdline>:1:54-54: Error: syntax error, unexpected end of file
-+# add rule ip6 test6 input icmpv6 parameter-problem 2-4
-+
-+# BUG: packet-too-big
-+# $ sudo nft add rule ip6 test6 input icmpv6 packet-too-big 34
-+# <cmdline>:1:50-50: Error: syntax error, unexpected end of file
-+# add rule ip6 test6 input icmpv6 packet-too-big 34
-+
-+icmpv6 mtu 22;ok
-+icmpv6 mtu != 233;ok
-+icmpv6 mtu 33-45;ok
-+icmpv6 mtu != 33-45;ok
-+icmpv6 mtu {33, 55, 67, 88};ok
-+- icmpv6 mtu != {33, 55, 67, 88};ok
-+icmpv6 mtu {33-55};ok
-+- icmpv6 mtu != {33-55};ok
-+
-+icmpv6 id 2;ok
-+icmpv6 id != 233;ok
-+icmpv6 id 33-45;ok
-+icmpv6 id != 33-45;ok
-+icmpv6 id {33, 55, 67, 88};ok
-+- icmpv6 id != {33, 55, 67, 88};ok
-+icmpv6 id {33-55};ok
-+- icmpv6 id != {33-55};ok
-+
-+icmpv6 sequence 2;ok
-+icmpv6 sequence {3, 4, 5, 6, 7} accept;ok
-+
-+icmpv6 sequence {2, 4};ok
-+- icmpv6 sequence != {2, 4};ok
-+icmpv6 sequence 2-4;ok;icmpv6 sequence >= 2 icmpv6 sequence <= 4
-+icmpv6 sequence != 2-4;ok;icmpv6 sequence < 2 icmpv6 sequence > 4
-+icmpv6 sequence { 2-4};ok
-+- icmpv6 sequence != {2-4};ok
-+
-+icmpv6 max-delay 22;ok
-+icmpv6 max-delay != 233;ok
-+icmpv6 max-delay 33-45;ok
-+icmpv6 max-delay != 33-45;ok
-+icmpv6 max-delay {33, 55, 67, 88};ok
-+- icmpv6 max-delay != {33, 55, 67, 88};ok
-+icmpv6 max-delay {33-55};ok
-+- icmpv6 max-delay != {33-55};ok
-diff --git a/tests/regression/ip6/ip6.t b/tests/regression/ip6/ip6.t
-new file mode 100644
-index 0000000..243c789
---- /dev/null
-+++ b/tests/regression/ip6/ip6.t
-@@ -0,0 +1,142 @@
-+*ip6;test-ip6
-+*inet;test-inet
-+:input;type filter hook input priority 0
-+
-+# BUG: Problem with version, priority
-+# <cmdline>:1:1-38: Error: Could not process rule: Invalid argument
-+# add rule ip6 test6 input ip6 version 1
-+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+- ip6 version 6;ok
-+- ip6 priority 3;ok
-+
-+# $ sudo nft add rule ip6 test6 input ip6 priority 33
-+# <cmdline>:1:39-40: Error: Value 33 exceeds valid range 0-15
-+# $ sudo nft add rule ip6 test6 input ip6 priority 3
-+# <cmdline>:1:1-39: Error: Could not process rule: Invalid argument
-+# add rule ip6 test6 input ip6 priority 3
-+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+ip6 flowlabel 22;ok
-+ip6 flowlabel != 233;ok
-+- ip6 flowlabel 33-45;ok
-+- ip6 flowlabel != 33-45;ok
-+ip6 flowlabel { 33, 55, 67, 88};ok
-+# BUG ip6 flowlabel { 5046528, 2883584, 13522432 }
-+- ip6 flowlabel != { 33, 55, 67, 88};ok
-+ip6 flowlabel { 33-55};ok
-+- ip6 flowlabel != { 33-55};ok
-+
-+ip6 length 22;ok
-+ip6 length != 233;ok
-+ip6 length 33-45;ok;ip6 length >= 33 ip6 length <= 45
-+ip6 length != 33-45;ok;ip6 length < 33 ip6 length > 45
-+- ip6 length { 33, 55, 67, 88};ok
-+- ip6 length != {33, 55, 67, 88};ok
-+ip6 length { 33-55};ok
-+- ip6 length != { 33-55};ok
-+
-+ip6 nexthdr {udp, ah, comp, udplite, tcp, dccp, sctp} log;ok;ip6 nexthdr { 132, 51, 108, 136, 17, 33, 6} log
-+ip6 nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp, icmpv6};ok;ip6 nexthdr { 6, 136, 108, 33, 50, 17, 132, 58, 51}
-+- ip6 nexthdr != {esp, ah, comp, udp, udplite, tcp, dccp, sctp, icmpv6};ok
-+ip6 nexthdr esp;ok;ip6 nexthdr 50
-+ip6 nexthdr != esp;ok;ip6 nexthdr != 50
-+ip6 nexthdr { 33-44};ok
-+- p6 nexthdr != { 33-44};ok
-+ip6 nexthdr 33-44;ok;ip6 nexthdr >= 33 ip6 nexthdr <= 44
-+ip6 nexthdr != 33-44;ok;ip6 nexthdr < 33 ip6 nexthdr > 44
-+
-+ip6 hoplimit 1 log;ok
-+ip6 hoplimit != 233;ok
-+ip6 hoplimit 33-45;ok;ip6 hoplimit >= 33 ip6 hoplimit <= 45
-+ip6 hoplimit != 33-45;ok;ip6 hoplimit < 33 ip6 hoplimit > 45
-+ip6 hoplimit {33, 55, 67, 88};ok
-+- ip6 hoplimit != {33, 55, 67, 88};ok
-+ip6 hoplimit {33-55};ok
-+- ip6 hoplimit != {33-55};ok
-+
-+# from src/scanner.l
-+# v680		(({hex4}:){7}{hex4})
-+ip6 saddr 1234:1234:1234:1234:1234:1234:1234:1234;ok
-+# v670		((:)(:{hex4}{7}))
-+ip6 saddr ::1234:1234:1234:1234:1234:1234:1234;ok
-+# v671		((({hex4}:){1})(:{hex4}{6}))
-+ip6 saddr 1234::1234:1234:1234:1234:1234:1234;ok
-+# v672		((({hex4}:){2})(:{hex4}{5}))
-+ip6 saddr 1234:1234::1234:1234:1234:1234:1234;ok
-+# v673		((({hex4}:){3})(:{hex4}{4}))
-+ip6 saddr 1234:1234:1234::1234:1234:1234:1234;ok
-+# v674		((({hex4}:){4})(:{hex4}{3}))
-+ip6 saddr 1234:1234:1234:1234::1234:1234:1234;ok
-+# v675		((({hex4}:){5})(:{hex4}{2}))
-+ip6 saddr 1234:1234:1234:1234:1234::1234:1234;ok
-+# v676		((({hex4}:){6})(:{hex4}{1}))
-+ip6 saddr 1234:1234:1234:1234:1234:1234::1234;ok
-+# v677		((({hex4}:){7})(:))
-+ip6 saddr 1234:1234:1234:1234:1234:1234:1234::;ok
-+# v67		({v670}|{v671}|{v672}|{v673}|{v674}|{v675}|{v676}|{v677})
-+# v660		((:)(:{hex4}{6}))
-+ip6 saddr ::1234:1234:1234:1234:1234:1234;ok
-+# v661		((({hex4}:){1})(:{hex4}{5}))
-+ip6 saddr 1234::1234:1234:1234:1234:1234;ok
-+# v662		((({hex4}:){2})(:{hex4}{4}))
-+ip6 saddr 1234:1234::1234:1234:1234:1234;ok
-+# v663		((({hex4}:){3})(:{hex4}{3}))
-+ip6 saddr 1234:1234:1234::1234:1234:1234;ok
-+# v664		((({hex4}:){4})(:{hex4}{2}))
-+ip6 saddr 1234:1234:1234:1234::1234:1234;ok
-+# v665		((({hex4}:){5})(:{hex4}{1}))
-+ip6 saddr 1234:1234:1234:1234:1234::1234;ok
-+# v666		((({hex4}:){6})(:))
-+ip6 saddr 1234:1234:1234:1234:1234:1234::;ok
-+# v66		({v660}|{v661}|{v662}|{v663}|{v664}|{v665}|{v666})
-+# v650		((:)(:{hex4}{5}))
-+ip6 saddr ::1234:1234:1234:1234:1234;ok
-+# v651		((({hex4}:){1})(:{hex4}{4}))
-+ip6 saddr 1234::1234:1234:1234:1234;ok
-+# v652		((({hex4}:){2})(:{hex4}{3}))
-+ip6 saddr 1234:1234::1234:1234:1234;ok
-+# v653		((({hex4}:){3})(:{hex4}{2}))
-+ip6 saddr 1234:1234:1234::1234:1234;ok
-+# v654		((({hex4}:){4})(:{hex4}{1}))
-+ip6 saddr 1234:1234:1234:1234::1234;ok
-+# v655		((({hex4}:){5})(:))
-+ip6 saddr 1234:1234:1234:1234:1234::;ok
-+# v65		({v650}|{v651}|{v652}|{v653}|{v654}|{v655})
-+# v640		((:)(:{hex4}{4}))
-+ip6 saddr ::1234:1234:1234:1234;ok
-+# v641		((({hex4}:){1})(:{hex4}{3}))
-+ip6 saddr 1234::1234:1234:1234;ok
-+# v642		((({hex4}:){2})(:{hex4}{2}))
-+ip6 saddr 1234:1234::1234:1234;ok
-+# v643		((({hex4}:){3})(:{hex4}{1}))
-+ip6 saddr 1234:1234:1234::1234;ok
-+# v644		((({hex4}:){4})(:))
-+ip6 saddr 1234:1234:1234:1234::;ok
-+# v64		({v640}|{v641}|{v642}|{v643}|{v644})
-+# v630		((:)(:{hex4}{3}))
-+ip6 saddr ::1234:1234:1234;ok
-+# v631		((({hex4}:){1})(:{hex4}{2}))
-+ip6 saddr 1234::1234:1234;ok
-+# v632		((({hex4}:){2})(:{hex4}{1}))
-+ip6 saddr 1234:1234::1234;ok
-+# v633		((({hex4}:){3})(:))
-+ip6 saddr 1234:1234:1234::;ok
-+# v63		({v630}|{v631}|{v632}|{v633})
-+# v620		((:)(:{hex4}{2}))
-+ip6 saddr ::1234:1234;ok
-+# v621		((({hex4}:){1})(:{hex4}{1}))
-+ip6 saddr 1234::1234;ok
-+# v622		((({hex4}:){2})(:))
-+ip6 saddr 1234:1234::;ok
-+# v62		({v620}|{v621}|{v622})
-+# v610		((:)(:{hex4}{1}))
-+ip6 saddr ::1234;ok
-+# v611		((({hex4}:){1})(:))
-+ip6 saddr 1234::;ok
-+# v61		({v610}|{v611})
-+# v60		(::)
-+ip6 saddr ::/64;ok
-+
-+- ip6 daddr != {::1234:1234:1234:1234:1234:1234:1234, 1234:1234::1234:1234:1234:1234:1234 };ok
-+ip6 daddr != ::1234:1234:1234:1234:1234:1234:1234-1234:1234::1234:1234:1234:1234:1234;ok
-diff --git a/tests/regression/ip6/mh.t b/tests/regression/ip6/mh.t
-new file mode 100644
-index 0000000..4ff58a1
---- /dev/null
-+++ b/tests/regression/ip6/mh.t
-@@ -0,0 +1,49 @@
-+*ip6;test-ip6
-+*inet;test-inet
-+:input;type filter hook input priority 0
-+
-+mh nexthdr 1;ok
-+mh nexthdr != 1;ok
-+mh nexthdr { udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp };ok;mh nexthdr { 58, 17, 108, 6, 51, 136, 50, 132, 33}
-+- mh nexthdr != {udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp};ok
-+mh nexthdr icmp;ok;mh nexthdr 1
-+mh nexthdr != icmp;ok;mh nexthdr != 1
-+mh nexthdr 22;ok
-+mh nexthdr != 233;ok
-+mh nexthdr 33-45;ok;mh nexthdr >= 33 mh nexthdr <= 45
-+mh nexthdr != 33-45;ok;mh nexthdr < 33 mh nexthdr > 45
-+mh nexthdr { 33, 55, 67, 88 };ok
-+- mh nexthdr != { 33, 55, 67, 88 };ok
-+mh nexthdr { 33-55 };ok
-+- mh nexthdr != { 33-55 };ok
-+
-+mh hdrlength 22;ok
-+mh hdrlength != 233;ok
-+mh hdrlength 33-45;ok;mh hdrlength >= 33 mh hdrlength <= 45
-+mh hdrlength != 33-45;ok;mh hdrlength < 33 mh hdrlength > 45
-+mh hdrlength { 33, 55, 67, 88 };ok;mh hdrlength { 67, 33, 88, 55}
-+- mh hdrlength != { 33, 55, 67, 88 };ok
-+mh hdrlength { 33-55 };ok
-+- mh hdrlength != { 33-55 };ok
-+
-+mh type {binding-refresh-request, home-test-init, careof-test-init, home-test, careof-test, binding-update, binding-acknowledgement, binding-error, fast-binding-update, fast-binding-acknowledgement, fast-binding-advertisement, experimental-mobility-header, home-agent-switch-message};ok
-+mh type home-agent-switch-message;ok
-+mh type != home-agent-switch-message;ok
-+
-+mh reserved 22;ok
-+mh reserved != 233;ok
-+mh reserved 33-45;ok;mh reserved >= 33 mh reserved <= 45
-+mh reserved != 33-45;ok;mh reserved < 33 mh reserved > 45
-+mh reserved { 33, 55, 67, 88};ok
-+- mh reserved != {33, 55, 67, 88};ok
-+mh reserved { 33-55};ok
-+- mh reserved != { 33-55};ok
-+
-+mh checksum 22;ok
-+mh checksum != 233;ok
-+mh checksum 33-45;ok;mh checksum >= 33 mh checksum <= 45
-+mh checksum != 33-45;ok;mh checksum < 33 mh checksum > 45
-+mh checksum { 33, 55, 67, 88};ok
-+- mh checksum != { 33, 55, 67, 88};ok
-+mh checksum { 33-55};ok
-+- mh checksum != { 33-55};ok
-diff --git a/tests/regression/ip6/nat.t b/tests/regression/ip6/nat.t
-new file mode 100644
-index 0000000..2fb4ac8
---- /dev/null
-+++ b/tests/regression/ip6/nat.t
-@@ -0,0 +1,6 @@
-+*ip6;test-ip6
-+- *inet;test-inet
-+:input;type nat hook input priority 0
-+
-+tcp dport 80-90 dnat 2001:838:35f:1::-2001:838:35f:2:: :80-100;ok
-+tcp dport 80-90 dnat 2001:838:35f:1::-2001:838:35f:2:: :100;ok
-diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
-new file mode 100644
-index 0000000..b49c50b
---- /dev/null
-+++ b/tests/regression/ip6/reject.t
-@@ -0,0 +1,5 @@
-+*ip6;test-ip6
-+*inet;test-inet
 +:output;type filter hook output priority 0
 +
-+reject;ok
-diff --git a/tests/regression/ip6/rt.t b/tests/regression/ip6/rt.t
++ct state new,established, related, untracked;ok;ct state established,related,new,untracked
++ct state != related;ok
++ct state {new,established, related, untracked};ok
++- ct state != {new,established, related, untracked};ok
++ct state invalid drop;ok
++ct state established accept;ok
++
++ct direction original;ok
++ct direction != original;ok
++ct direction reply;ok
++ct direction != reply;ok
++ct direction {reply, original};ok
++- ct direction != {reply, original};ok
++
++ct status expected;ok
++ct status != expected;ok
++ct status seen-reply;ok
++ct status != seen-reply;ok
++ct status {expected, seen-reply, assured, confirmed, dying};ok
++
++# SYMBOL("snat", IPS_SRC_NAT)
++# SYMBOL("dnat", IPS_DST_NAT)
++- ct status snat;ok
++- ct status dnat;ok
++
++ct mark 0;ok
++ct mark or 0x23 == 0x11;ok
++ct mark or 0x3 != 0x1;ok
++ct mark and 0x23 == 0x11;ok
++ct mark and 0x3 != 0x1;ok
++ct mark xor 0x23 == 0x11;ok
++ct mark xor 0x3 != 0x1;ok
++
++ct mark 0x32;ok
++ct mark != 0x32;ok
++ct mark 0x32-0x45;ok
++ct mark != 0x32-0x43;ok
++ct mark {0x32, 0x2222, 0x42de3};ok
++- ct mark != {0x32, 0x2222, 0x42de3};ok
++
++# ct mark != {0x32, 0x2222, 0x42de3};ok
++# BUG: invalid expression type set
++# nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
++
++ct mark set 0x11 xor 0x1331;ok
++ct mark set 0x11333 and 0x11;ok
++ct mark set 0x12 or 0x11;ok
++ct mark set 0x11;ok
++
++ct expiration 30;ok
++ct expiration 22;ok
++ct expiration != 233;ok
++ct expiration 33-45;ok
++# BUG: ct expiration 33-45 and  ct expiration != 33-45
++# Broken output: ct expiration >= "33s" ct expiration <= "9709d53m20s"
++ct expiration != 33-45;ok
++ct expiration {33, 55, 67, 88};ok
++- ct expiration != {33, 55, 67, 88};ok
++ct expiration {33-55};ok
++# BUG: ct expiration {33-55}
++# Broken output: ct expiration { "4271d23h25m52s"-"8738d3h11m59s" }
++- ct expiration != {33-55};ok
++
++ct helper "ftp";ok
++ct helper "12345678901234567";fail
++
++# BUG: ct l3proto "Layer  3 protocol of the connection"
++# nft add rule ip test input ct l3proto arp
++# <cmdline>:1:35-37: Error: Can t parse symbolic invalid expressions
++
++
++# If table is ip6 or inet or bridge family,, It is failed. I can not test it
++# ct saddr 1.2.3.4;ok
++
++# BUG: ct saddr 192.168.3.4
++# <cmdline>:1:1-43: Error: Could not process rule: Invalid argument
++# add rule ip test input ct saddr 192.168.3.4
++# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++- ct saddr 192.168.3.4;ok
++- ct daddr 192.168.3.4;ok
++
++# BUG: ct protocol tcp
++# <cmdline>:1:1-37: Error: Could not process rule: Invalid argument
++# input ct protocol bgp <cmdline>:1:36-38: Error: Could not resolve protocol name
++# ct protocol tcp;ok
++- ct protocol tcp;ok
++
++- ct proto-src udp;ok
++- ct proto-dst udp;ok
++# BUG: ct proto-src udp and ct proto-dst udp
++# <cmdline>:1:37-39: Error: datatype mismatch, expected invalid, expression has type Internet protocol
++# add rule ip test input ct proto-src udp
++#                       ~~~~~~~~~~~~ ^^^
++# <cmdline>:1:37-39: Error: datatype mismatch, expected invalid, expression has type Internet protocol
++# add rule ip test input ct proto-dst udp
++#                        ~~~~~~~~~~~~ ^^^
+diff --git a/tests/regression/any/frag.t b/tests/regression/any/frag.t
 new file mode 100644
-index 0000000..76579ba
+index 0000000..c7efb57
 --- /dev/null
-+++ b/tests/regression/ip6/rt.t
-@@ -0,0 +1,45 @@
++++ b/tests/regression/any/frag.t
+@@ -0,0 +1,64 @@
++*ip;test-ip4
 +*ip6;test-ip6
 +*inet;test-inet
-+:input;type filter hook input priority 0
++*arp;test-arp
++*bridge;test-bridge
++:output;type filter hook output priority 0
 +
-+rt nexthdr 1;ok
-+rt nexthdr != 1;ok
-+rt nexthdr {udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp};ok;rt nexthdr { 33, 136, 50, 132, 51, 17, 108, 6, 58}
-+- rt nexthdr != {udplite, ipcomp, udp, ah, sctp, esp, dccp, tcp, ipv6-icmp};ok
-+rt nexthdr icmp;ok;rt nexthdr 1
-+rt nexthdr != icmp;ok;rt nexthdr != 1
-+rt nexthdr 22;ok
-+rt nexthdr != 233;ok
-+rt nexthdr 33-45;ok;rt nexthdr >= 33 rt nexthdr <= 45
-+rt nexthdr != 33-45;ok;rt nexthdr < 33 rt nexthdr > 45
-+rt nexthdr { 33, 55, 67, 88};ok
-+- rt nexthdr != { 33, 55, 67, 88};ok
-+rt nexthdr { 33-55};ok;rt nexthdr { 33-55}
-+- rt nexthdr != { 33-55};ok
++frag nexthdr tcp;ok;frag nexthdr 6
++frag nexthdr != icmp;ok;frag nexthdr != 1
++frag nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok;frag nexthdr { 51, 136, 132, 6, 108, 50, 17, 33}
++- frag nexthdr != {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok
++frag nexthdr esp;ok;frag nexthdr 50
++frag nexthdr ah;ok;frag nexthdr 51
 +
-+rt hdrlength 22;ok
-+rt hdrlength != 233;ok
-+rt hdrlength 33-45;ok;rt hdrlength >= 33 rt hdrlength <= 45
-+rt hdrlength != 33-45;ok;rt hdrlength < 33 rt hdrlength > 45
-+rt hdrlength { 33, 55, 67, 88};ok
-+- rt hdrlength != { 33, 55, 67, 88};ok
-+rt hdrlength { 33-55};ok
-+- rt hdrlength != { 33-55};ok
++frag reserved 22;ok
++frag reserved != 233;ok
++frag reserved 33-45;ok;frag reserved >= 33 frag reserved <= 45
++frag reserved != 33-45;ok;frag reserved < 33 frag reserved > 45
++frag reserved { 33, 55, 67, 88};ok;frag reserved { 88, 33, 67, 55}
++- frag reserved != { 33, 55, 67, 88};ok
++frag reserved { 33-55};ok
++- frag reserved != { 33-55};ok
 +
-+rt type 22;ok
-+rt type != 233;ok
-+rt type 33-45;ok;rt type >= 33 rt type <= 45
-+rt type != 33-45;ok;rt type < 33 rt type > 45
-+rt type { 33, 55, 67, 88};ok
-+- rt type != { 33, 55, 67, 88};ok
-+rt type { 33-55};ok
-+- rt type != { 33-55};ok
++# BUG: frag frag-off 22 and frag frag-off { 33-55}
++# This breaks table listing: "netlink: Error: Relational expression size mismatch"
 +
-+rt seg-left 22;ok
-+rt seg-left != 233;ok
-+rt seg-left 33-45;ok;rt seg-left >= 33 rt seg-left <= 45
-+rt seg-left != 33-45;ok;rt seg-left < 33 rt seg-left > 45
-+rt seg-left { 33, 55, 67, 88};ok
-+- rt seg-left != { 33, 55, 67, 88};ok
-+rt seg-left { 33-55};ok
-+- rt seg-left != { 33-55};ok
-diff --git a/tests/regression/ip6/sets.t b/tests/regression/ip6/sets.t
++frag frag-off 22;ok
++frag frag-off != 233;ok
++frag frag-off 33-45;ok
++frag frag-off != 33-45;ok
++- frag frag-off { 33, 55, 67, 88};ok
++- frag frag-off != { 33, 55, 67, 88};ok
++- frag frag-off { 33-55};ok
++- frag frag-off != { 33-55};ok
++
++# BUG  frag reserved2 33 and frag reserved2 1
++# $ sudo nft add rule ip test input frag reserved2 33
++# <cmdline>:1:39-40: Error: Value 33 exceeds valid range 0-3
++# add rule ip test input frag reserved2 33
++#                                      ^^
++# sudo nft add rule ip test input frag reserved2 1
++# <cmdline>:1:1-39: Error: Could not process rule: Invalid argument
++# add rule ip test input frag reserved2 1
++# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++# BUG more-fragments 1 and frag more-fragments 4
++# frag more-fragments 1
++# <cmdline>:1:1-44: Error: Could not process rule: Invalid argument
++# add rule ip test input frag more-fragments 1
++# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++# $ sudo nft add rule ip test input frag more-fragments 4
++# <cmdline>:1:44-44: Error: Value 4 exceeds valid range 0-1
++# add rule ip test input frag more-fragments 4
++#                                           ^
++
++frag id 1;ok
++frag id 22;ok
++frag id != 33;ok
++frag id 33-45;ok;frag id >= 33 frag id <= 45
++frag id != 33-45;ok;frag id < 33 frag id > 45
++frag id { 33, 55, 67, 88};ok
++- frag id != { 33, 55, 67, 88};ok
++frag id { 33-55};ok
++- frag id != { 33-55};ok
+diff --git a/tests/regression/any/limit.t b/tests/regression/any/limit.t
 new file mode 100644
-index 0000000..4938929
+index 0000000..9af1ea8
 --- /dev/null
-+++ b/tests/regression/ip6/sets.t
-@@ -0,0 +1,22 @@
++++ b/tests/regression/any/limit.t
+@@ -0,0 +1,12 @@
++*ip;test-ip4
 +*ip6;test-ip6
 +*inet;test-inet
-+:input;type filter hook input priority 0
++*arp;test-arp
++*bridge;test-bridge
++:output;type filter hook output priority 0
 +
-+!set_ipv6_add1 ipv6_addr;ok
-+!set_inet1 inet_proto;ok
-+!set_inet inet_service;ok
-+!set_time time;ok
-+
-+?set2 192.168.3.4;fail
-+!set2 ipv6_addr;ok
-+?set2 1234:1234::1234:1234:1234:1234:1234;ok
-+?set2 1234:1234::1234:1234:1234:1234:1234;fail
-+?set2 1234::1234:1234:1234;ok
-+?set2 1234:1234:1234:1234:1234::1234:1234 1234:1234::123;ok
-+?set2 192.168.3.8 192.168.3.9;fail
-+?set2 1234:1234::1234:1234:1234:1234;ok
-+?set2 1234:1234::1234:1234:1234:1234;fail
-+?set2 1234:1234:1234::1234;ok
-+
-+ip6 saddr @set2 drop;ok
-+ip6 saddr @set33 drop;fail
-diff --git a/tests/regression/ip6/vmap.t b/tests/regression/ip6/vmap.t
++limit rate 400/minute;ok
++limit rate 20/second;ok
++limit rate 400/hour;ok
++limit rate 400/week;ok
++limit rate 40/day;ok
+diff --git a/tests/regression/any/log.t b/tests/regression/any/log.t
 new file mode 100644
-index 0000000..705f369
+index 0000000..2bc2543
 --- /dev/null
-+++ b/tests/regression/ip6/vmap.t
-@@ -0,0 +1,54 @@
++++ b/tests/regression/any/log.t
+@@ -0,0 +1,27 @@
++*ip;test-ip4
 +*ip6;test-ip6
 +*inet;test-inet
++- *arp;test-arp
++- *bridge;test-bridge
++:output;type filter hook output priority 0
++
++ct direction original log;ok
++log;ok
++log level emerg;ok
++log level alert;ok
++log level crit;ok
++log level err;ok
++log level warn;ok;log
++log level notice;ok
++log level info;ok
++log level debug;ok
++
++log level emerg group 2;fail
++log level alert group 2 prefix "log test2";fail
++
++udp dport 200 log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;udp dport 200 log prefix "aaaaa-aaaaaa" group 2 snaplen 33
++# TODO: Add an exception: 'queue-threshold' attribute needs 'group' attribute
++# The correct rule is log group 2 queue-threshold 2
++log group 2 queue-threshold 2;ok
++log group 2 snaplen 33;ok
++tcp dport 300 log group 2 prefix \"IPTABLES-NFT SSH\";ok;tcp dport 300 log prefix "IPTABLES-NFT SSH" group 2
+diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
+new file mode 100644
+index 0000000..3d5e1f8
+--- /dev/null
++++ b/tests/regression/any/meta.t
+@@ -0,0 +1,160 @@
++*ip;test-ip4
++*ip6;test-ip6
++*inet;test-inet
++*arp;test-arp
++*bridge;test-bridge
++
 +:input;type filter hook input priority 0
 +
-+ip6 saddr vmap { abcd::3 : accept };ok
-+ip6 saddr 1234:1234:1234:1234:1234:1234:1234:1234:1234;fail
++meta length 1000;ok
++meta length 22;ok
++meta length != 233;ok
++meta length 33-45;ok
++meta length != 33-45;ok
++meta length { 33, 55, 67, 88};ok
++- meta length != { 33, 55, 67, 88};ok
++meta length { 33-55};ok
++- meta length != { 33-55};ok
 +
-+# Ipv6 address combinations
-+# from src/scanner.l
-+ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { ::1234:1234:1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234:1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234::1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234::1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234::1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234:1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:: : accept};ok
-+ip6 saddr vmap { ::1234:1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234::1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234::1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:: : accept};ok
-+ip6 saddr vmap { ::1234:1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234::1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:1234::  : accept};ok
-+ip6 saddr vmap { ::1234:1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:1234:: : accept};ok
-+ip6 saddr vmap { ::1234:1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234:1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:1234:: : accept};ok
-+ip6 saddr vmap { ::1234:1234 : accept};ok
-+ip6 saddr vmap { 1234::1234 : accept};ok
-+ip6 saddr vmap { 1234:1234:: : accept};ok
-+ip6 saddr vmap { ::1234 : accept};ok
-+ip6 saddr vmap { 1234:: : accept};ok
-+ip6 saddr vmap { ::/64 : accept};ok
++meta protocol { ip, arp, ip6, vlan };ok;meta protocol { ip6, ip, vlan, arp}
++- meta protocol != {ip, arp, ip6, vlan};ok
++meta protocol ip;ok
++meta protocol != ip;ok
 +
-+ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:: : accept, ::aaaa : drop};ok
-+ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept, ::bbbb : drop};ok
-+ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::cccc : drop};ok
-+ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::dddd: drop};ok
++meta nfproto ipv4;ok
++meta nfproto ipv6;ok
++meta nfproto {ipv4, ipv6};ok
 +
-+# rule without comma:
-+filter-input ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:bbbb:::accept::adda : drop};fail
++meta l4proto 22;ok
++meta l4proto != 233;ok
++meta l4proto 33-45;ok;meta l4proto >= 33 meta l4proto <= 45
++meta l4proto != 33-45;ok;meta l4proto < 33 meta l4proto > 45
++meta l4proto { 33, 55, 67, 88};ok;meta l4proto { 33, 55, 67, 88}
++- meta l4proto != { 33, 55, 67, 88};ok
++meta l4proto { 33-55};ok
++- meta l4proto != { 33-55};ok
++
++meta priority 22;ok
++meta priority 22;ok
++meta priority != 233;ok
++meta priority 33-45;ok
++
++meta priority != 33-45;ok
++meta priority { 33, 55, 67, 88};ok
++- meta priority != { 33, 55, 67, 88};ok
++meta priority { 33-55};ok
++- meta priority != { 33-55};ok
++
++meta mark 0x4;ok
++meta mark 0x32;ok
++meta mark and 0x03 == 0x01;ok
++meta mark and 0x03 != 0x01;ok
++meta mark 0x10;ok
++meta mark != 0x10;ok
++
++meta mark or 0x03 == 0x01;ok
++meta mark or 0x03 != 0x01;ok
++meta mark xor 0x03 == 0x01;ok
++meta mark xor 0x03 != 0x01;ok
++
++meta iif wlan0 accept;ok;iif wlan0 accept
++meta iif eth0 accept;ok;iif eth0 accept
++meta iif != wlan0 accept;ok;iif != wlan0 accept
++meta iif != eth0 accept;ok;iif != eth0 accept
++
++meta iifname "eth0";ok;iifname "eth0"
++meta iifname != "eth0";ok;iifname != "eth0"
++meta iifname {"eth0", "wlan0"};ok
++- meta iifname != {"eth0", "wlan0"};ok
++
++meta iiftype {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
++- meta iiftype != {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
++meta iiftype != ether;ok;iiftype != ether
++meta iiftype ether;ok;iiftype ether
++meta iiftype != ppp;ok;iiftype != ppp
++meta iiftype ppp;ok;iiftype ppp
++
++meta oif lo accept;ok;oif lo accept
++meta oif != lo accept;ok;oif != lo accept
++meta oif {wlan0, eth0, lo} accept;ok
++- meta oif != {wlan0, eth0, lo} accept;ok
++
++meta oifname "eth0";ok;oifname "eth0"
++meta oifname != "eth0";ok;oifname != "eth0"
++meta oifname { "eth0", "wlan0"};ok
++- meta iifname != {"eth0", "wlan0"};ok
++
++meta oiftype {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
++- meta oiftype != {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
++meta oiftype != ether;ok;oiftype != ether
++meta oiftype ether;ok;oiftype ether
++
++meta skuid {man, root, backup} accept;ok;skuid { 0, 6, 34} accept
++- meta skuid != {man, root, backup} accept;ok
++meta skuid man;ok;skuid 6
++meta skuid != man;ok;skuid != 6
++meta skuid lt 3000 accept;ok;skuid < 3000 accept
++meta skuid gt 3000 accept;ok;skuid > 3000 accept
++meta skuid eq 3000 accept;ok;skuid 3000 accept
++meta skuid 3001-3005 accept;ok
++meta skuid != 2001-2005 accept;ok
++meta skuid { 2001-2005} accept;ok
++- meta skuid != { 2001-2005} accept;ok
++
++meta skgid {man, root, backup} accept;ok;skgid { 34, 12, 0} accept
++- meta skgid != {man, root, backup} accept;ok
++meta skgid man;ok;skgid 12
++meta skgid != man;ok;skgid != 12
++meta skgid lt 3000 accept;ok;skgid < 3000 accept
++meta skgid gt 3000 accept;ok;skgid > 3000 accept
++meta skgid eq 3000 accept;ok;skgid 3000 accept
++meta skgid 2001-2005 accept;ok
++meta skgid != 2001-2005 accept;ok
++meta skgid { 2001-2005} accept;ok
++- meta skgid != { 2001-2005} accept
++
++# BUG: meta nftrace 2 and meta nftrace 1
++# $ sudo nft add rule ip test input meta nftrace 2
++# <cmdline>:1:37-37: Error: Value 2 exceeds valid range 0-1
++# add rule ip test input meta nftrace 2
++#                                    ^
++# $ sudo nft add rule ip test input meta nftrace 1
++# <cmdline>:1:1-37: Error: Could not process rule: Operation not supported
++# add rule ip test input meta nftrace 1
++# -^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++meta mark set 0xffffffc8 xor 0x16;ok
++meta mark set 0x16 and 0x16;ok
++meta mark set 0xffffffe9 or 0x16;ok
++meta mark set 0xffffffde and 0x16;ok
++meta mark set 0xf045ffde or 0x10;ok
++meta mark set 0xffffffde or 0x16;ok
++meta mark set 0x32 or 0xfffff;ok
++meta mark set 0xfffe xor 0x16;ok
++
++meta iif lo;ok;iif lo
++meta oif lo;ok;oif lo
++meta oifname "eth2" accept;ok;oifname "eth2" accept
++meta skuid 3000;ok;skuid 3000
++meta skgid 3000;ok;skgid 3000
++# BUG:  meta nftrace 1;ok
++# <cmdline>:1:1-37: Error: Could not process rule: Operation not supported
++- meta nftrace 1;ok
++meta rtclassid cosmos;ok;rtclassid cosmos
++
++meta pkttype broadcast;ok;pkttype broadcast
++meta pkttype unicast;ok;pkttype unicast
++meta pkttype multicast;ok;pkttype multicast
++meta pkttype != broadcast;ok;pkttype != broadcast
++meta pkttype != unicast;ok;pkttype != unicast
++meta pkttype != multicast;ok;pkttype != multicast
++meta pkttype broadcastttt;fail
++-meta pkttype { broadcast, multicast} accept;ok
++
++meta cpu 1;ok;cpu 1
++meta cpu != 1;ok;cpu != 1
++meta cpu 1-3;ok;cpu >= 1 cpu <= 3
++# BUG: there is not matching of packets with this rule.
++meta cpu != 1-2;ok;cpu < 1 cpu > 2
++meta cpu { 2,3};ok;cpu { 2, 3}
++-meta cpu != { 2,3};ok
+diff --git a/tests/regression/any/queue.t b/tests/regression/any/queue.t
+new file mode 100644
+index 0000000..8307411
+--- /dev/null
++++ b/tests/regression/any/queue.t
+@@ -0,0 +1,15 @@
++*ip;test-ip4
++*ip6;test-ip6
++*inet;test-inet
++*arp;test-arp
++*bridge;test-bridge
++
++:output;type filter hook output priority 0
++
++queue;ok;queue num 0
++queue num 2;ok
++queue num 2-3;ok
++- queue num {3, 4, 6};ok
++queue num 4-5 fanout bypass;ok;queue num 4-5 bypass fanout
++queue num 4-5 fanout;ok
++queue num 4-5 bypass;ok
 -- 
 1.7.10.4
 
