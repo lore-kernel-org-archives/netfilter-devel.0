@@ -1,253 +1,220 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/8] netfilter: ipset: Add skbinfo extension kernel support in the ipset core.
-Date: Mon, 15 Sep 2014 23:02:48 +0200
-Message-ID: <1410814974-9918-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 6/8] netfilter: ipset: Add skbinfo extension support to SET target.
+Date: Mon, 15 Sep 2014 23:02:52 +0200
+Message-ID: <1410814974-9918-7-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:50018 "EHLO smtp0.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:51005 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757761AbaIOVCj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Sep 2014 17:02:39 -0400
+	id S1757728AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Sep 2014 17:02:37 -0400
 In-Reply-To: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Anton Danilov <littlesmilingcloud@gmail.com>
 
-Skbinfo extension provides mapping of metainformation with lookup in the ipset tables.
-This patch defines the flags, the constants, the functions and the structures
-for the data type independent support of the extension.
-Note the firewall mark stores in the kernel structures as two 32bit values,
-but transfered through netlink as one 64bit value.
-
 Signed-off-by: Anton Danilov <littlesmilingcloud@gmail.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      | 56 ++++++++++++++++++++++++++++-
- include/uapi/linux/netfilter/ipset/ip_set.h | 12 +++++++
- net/netfilter/ipset/ip_set_core.c           | 27 +++++++++++++-
- 3 files changed, 93 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter/xt_set.h |  10 +++
+ net/netfilter/xt_set.c                | 155 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 165 insertions(+)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 96afc29..b97aac5 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -57,6 +57,8 @@ enum ip_set_extension {
- 	IPSET_EXT_COUNTER = (1 << IPSET_EXT_BIT_COUNTER),
- 	IPSET_EXT_BIT_COMMENT = 2,
- 	IPSET_EXT_COMMENT = (1 << IPSET_EXT_BIT_COMMENT),
-+	IPSET_EXT_BIT_SKBINFO = 3,
-+	IPSET_EXT_SKBINFO = (1 << IPSET_EXT_BIT_SKBINFO),
- 	/* Mark set with an extension which needs to call destroy */
- 	IPSET_EXT_BIT_DESTROY = 7,
- 	IPSET_EXT_DESTROY = (1 << IPSET_EXT_BIT_DESTROY),
-@@ -65,12 +67,14 @@ enum ip_set_extension {
- #define SET_WITH_TIMEOUT(s)	((s)->extensions & IPSET_EXT_TIMEOUT)
- #define SET_WITH_COUNTER(s)	((s)->extensions & IPSET_EXT_COUNTER)
- #define SET_WITH_COMMENT(s)	((s)->extensions & IPSET_EXT_COMMENT)
-+#define SET_WITH_SKBINFO(s)	((s)->extensions & IPSET_EXT_SKBINFO)
- #define SET_WITH_FORCEADD(s)	((s)->flags & IPSET_CREATE_FLAG_FORCEADD)
- 
- /* Extension id, in size order */
- enum ip_set_ext_id {
- 	IPSET_EXT_ID_COUNTER = 0,
- 	IPSET_EXT_ID_TIMEOUT,
-+	IPSET_EXT_ID_SKBINFO,
- 	IPSET_EXT_ID_COMMENT,
- 	IPSET_EXT_ID_MAX,
- };
-@@ -92,6 +96,10 @@ struct ip_set_ext {
- 	u64 packets;
- 	u64 bytes;
- 	u32 timeout;
-+	u32 skbmark;
-+	u32 skbmarkmask;
-+	u32 skbprio;
-+	u16 skbqueue;
- 	char *comment;
+diff --git a/include/uapi/linux/netfilter/xt_set.h b/include/uapi/linux/netfilter/xt_set.h
+index 964d3d4..d6a1df1 100644
+--- a/include/uapi/linux/netfilter/xt_set.h
++++ b/include/uapi/linux/netfilter/xt_set.h
+@@ -71,4 +71,14 @@ struct xt_set_info_match_v3 {
+ 	__u32 flags;
  };
  
-@@ -104,6 +112,13 @@ struct ip_set_comment {
- 	char *str;
- };
- 
-+struct ip_set_skbinfo {
-+	u32 skbmark;
-+	u32 skbmarkmask;
-+	u32 skbprio;
-+	u16 skbqueue;
++/* Revision 3 target */
++
++struct xt_set_info_target_v3 {
++	struct xt_set_info add_set;
++	struct xt_set_info del_set;
++	struct xt_set_info map_set;
++	__u32 flags;
++	__u32 timeout;
 +};
 +
- struct ip_set;
+ #endif /*_XT_SET_H*/
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index cb70f6e..5732cd6 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -366,6 +366,140 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ #define set_target_v2_checkentry	set_target_v1_checkentry
+ #define set_target_v2_destroy		set_target_v1_destroy
  
- #define ext_timeout(e, s)	\
-@@ -112,7 +127,8 @@ struct ip_set;
- (struct ip_set_counter *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_COUNTER])
- #define ext_comment(e, s)	\
- (struct ip_set_comment *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_COMMENT])
--
-+#define ext_skbinfo(e, s)	\
-+(struct ip_set_skbinfo *)(((void *)(e)) + (s)->offset[IPSET_EXT_ID_SKBINFO])
- 
- typedef int (*ipset_adtfn)(struct ip_set *set, void *value,
- 			   const struct ip_set_ext *ext,
-@@ -256,6 +272,8 @@ ip_set_put_flags(struct sk_buff *skb, struct ip_set *set)
- 		cadt_flags |= IPSET_FLAG_WITH_COUNTERS;
- 	if (SET_WITH_COMMENT(set))
- 		cadt_flags |= IPSET_FLAG_WITH_COMMENT;
-+	if (SET_WITH_SKBINFO(set))
-+		cadt_flags |= IPSET_FLAG_WITH_SKBINFO;
- 	if (SET_WITH_FORCEADD(set))
- 		cadt_flags |= IPSET_FLAG_WITH_FORCEADD;
- 
-@@ -304,6 +322,39 @@ ip_set_update_counter(struct ip_set_counter *counter,
- 	}
- }
- 
-+static inline void
-+ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
-+		      const struct ip_set_ext *ext,
-+		      struct ip_set_ext *mext, u32 flags)
-+{
-+		mext->skbmark = skbinfo->skbmark;
-+		mext->skbmarkmask = skbinfo->skbmarkmask;
-+		mext->skbprio = skbinfo->skbprio;
-+		mext->skbqueue = skbinfo->skbqueue;
-+}
-+static inline bool
-+ip_set_put_skbinfo(struct sk_buff *skb, struct ip_set_skbinfo *skbinfo)
-+{
-+	return nla_put_net64(skb, IPSET_ATTR_SKBMARK,
-+			     cpu_to_be64((u64)skbinfo->skbmark << 32 |
-+					 skbinfo->skbmarkmask)) ||
-+	       nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
-+			     cpu_to_be32(skbinfo->skbprio)) ||
-+	       nla_put_net16(skb, IPSET_ATTR_SKBQUEUE,
-+			     cpu_to_be16(skbinfo->skbqueue));
++/* Revision 3 target */
 +
-+}
-+
-+static inline void
-+ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
-+		    const struct ip_set_ext *ext)
++static unsigned int
++set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
 +{
-+	skbinfo->skbmark = ext->skbmark;
-+	skbinfo->skbmarkmask = ext->skbmarkmask;
-+	skbinfo->skbprio = ext->skbprio;
-+	skbinfo->skbqueue = ext->skbqueue;
++	const struct xt_set_info_target_v3 *info = par->targinfo;
++	ADT_OPT(add_opt, par->family, info->add_set.dim,
++		info->add_set.flags, info->flags, info->timeout);
++	ADT_OPT(del_opt, par->family, info->del_set.dim,
++		info->del_set.flags, 0, UINT_MAX);
++	ADT_OPT(map_opt, par->family, info->map_set.dim,
++		info->map_set.flags, 0, UINT_MAX);
++
++	int ret;
++
++	/* Normalize to fit into jiffies */
++	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
++	    add_opt.ext.timeout > UINT_MAX/MSEC_PER_SEC)
++		add_opt.ext.timeout = UINT_MAX/MSEC_PER_SEC;
++	if (info->add_set.index != IPSET_INVALID_ID)
++		ip_set_add(info->add_set.index, skb, par, &add_opt);
++	if (info->del_set.index != IPSET_INVALID_ID)
++		ip_set_del(info->del_set.index, skb, par, &del_opt);
++	if (info->map_set.index != IPSET_INVALID_ID) {
++		map_opt.cmdflags |= info->flags & (IPSET_FLAG_MAP_SKBMARK |
++						   IPSET_FLAG_MAP_SKBPRIO |
++						   IPSET_FLAG_MAP_SKBQUEUE);
++		ret = match_set(info->map_set.index, skb, par, &map_opt,
++				info->map_set.flags & IPSET_INV_MATCH);
++		if (!ret)
++			return XT_CONTINUE;
++		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBMARK)
++			skb->mark = (skb->mark & ~(map_opt.ext.skbmarkmask))
++				    ^ (map_opt.ext.skbmark);
++		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBPRIO)
++			skb->priority = map_opt.ext.skbprio;
++		if ((map_opt.cmdflags & IPSET_FLAG_MAP_SKBQUEUE) &&
++		    skb->dev &&
++		    skb->dev->real_num_tx_queues > map_opt.ext.skbqueue)
++			skb_set_queue_mapping(skb, map_opt.ext.skbqueue);
++	}
++	return XT_CONTINUE;
 +}
 +
- static inline bool
- ip_set_put_counter(struct sk_buff *skb, struct ip_set_counter *counter)
- {
-@@ -497,6 +548,9 @@ ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
- 	if (SET_WITH_COMMENT(set) &&
- 	    ip_set_put_comment(skb, ext_comment(e, set)))
- 		return -EMSGSIZE;
-+	if (SET_WITH_SKBINFO(set) &&
-+	    ip_set_put_skbinfo(skb, ext_skbinfo(e, set)))
-+		return -EMSGSIZE;
- 	return 0;
- }
- 
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index 78c2f2e..ca03119 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -115,6 +115,9 @@ enum {
- 	IPSET_ATTR_BYTES,
- 	IPSET_ATTR_PACKETS,
- 	IPSET_ATTR_COMMENT,
-+	IPSET_ATTR_SKBMARK,
-+	IPSET_ATTR_SKBPRIO,
-+	IPSET_ATTR_SKBQUEUE,
- 	__IPSET_ATTR_ADT_MAX,
- };
- #define IPSET_ATTR_ADT_MAX	(__IPSET_ATTR_ADT_MAX - 1)
-@@ -147,6 +150,7 @@ enum ipset_errno {
- 	IPSET_ERR_COUNTER,
- 	IPSET_ERR_COMMENT,
- 	IPSET_ERR_INVALID_MARKMASK,
-+	IPSET_ERR_SKBINFO,
- 
- 	/* Type specific error codes */
- 	IPSET_ERR_TYPE_SPECIFIC = 4352,
-@@ -170,6 +174,12 @@ enum ipset_cmd_flags {
- 	IPSET_FLAG_MATCH_COUNTERS = (1 << IPSET_FLAG_BIT_MATCH_COUNTERS),
- 	IPSET_FLAG_BIT_RETURN_NOMATCH = 7,
- 	IPSET_FLAG_RETURN_NOMATCH = (1 << IPSET_FLAG_BIT_RETURN_NOMATCH),
-+	IPSET_FLAG_BIT_MAP_SKBMARK = 8,
-+	IPSET_FLAG_MAP_SKBMARK = (1 << IPSET_FLAG_BIT_MAP_SKBMARK),
-+	IPSET_FLAG_BIT_MAP_SKBPRIO = 9,
-+	IPSET_FLAG_MAP_SKBPRIO = (1 << IPSET_FLAG_BIT_MAP_SKBPRIO),
-+	IPSET_FLAG_BIT_MAP_SKBQUEUE = 10,
-+	IPSET_FLAG_MAP_SKBQUEUE = (1 << IPSET_FLAG_BIT_MAP_SKBQUEUE),
- 	IPSET_FLAG_CMD_MAX = 15,
- };
- 
-@@ -187,6 +197,8 @@ enum ipset_cadt_flags {
- 	IPSET_FLAG_WITH_COMMENT = (1 << IPSET_FLAG_BIT_WITH_COMMENT),
- 	IPSET_FLAG_BIT_WITH_FORCEADD = 5,
- 	IPSET_FLAG_WITH_FORCEADD = (1 << IPSET_FLAG_BIT_WITH_FORCEADD),
-+	IPSET_FLAG_BIT_WITH_SKBINFO = 6,
-+	IPSET_FLAG_WITH_SKBINFO = (1 << IPSET_FLAG_BIT_WITH_SKBINFO),
- 	IPSET_FLAG_CADT_MAX	= 15,
- };
- 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 4ca4e5c..26c795e 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -337,6 +337,12 @@ const struct ip_set_ext_type ip_set_extensions[] = {
- 		.len	= sizeof(unsigned long),
- 		.align	= __alignof__(unsigned long),
++
++static int
++set_target_v3_checkentry(const struct xt_tgchk_param *par)
++{
++	const struct xt_set_info_target_v3 *info = par->targinfo;
++	ip_set_id_t index;
++
++	if (info->add_set.index != IPSET_INVALID_ID) {
++		index = ip_set_nfnl_get_byindex(par->net,
++						info->add_set.index);
++		if (index == IPSET_INVALID_ID) {
++			pr_warn("Cannot find add_set index %u as target\n",
++				info->add_set.index);
++			return -ENOENT;
++		}
++	}
++
++	if (info->del_set.index != IPSET_INVALID_ID) {
++		index = ip_set_nfnl_get_byindex(par->net,
++						info->del_set.index);
++		if (index == IPSET_INVALID_ID) {
++			pr_warn("Cannot find del_set index %u as target\n",
++				info->del_set.index);
++			if (info->add_set.index != IPSET_INVALID_ID)
++				ip_set_nfnl_put(par->net,
++						info->add_set.index);
++			return -ENOENT;
++		}
++	}
++
++	if (info->map_set.index != IPSET_INVALID_ID) {
++		if (strncmp(par->table, "mangle", 7)) {
++			pr_warn("--map-set only usable from mangle table\n");
++			return -EINVAL;
++		}
++		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
++		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
++		     !(par->hook_mask & (1 << NF_INET_FORWARD |
++					 1 << NF_INET_LOCAL_OUT |
++					 1 << NF_INET_POST_ROUTING))) {
++			pr_warn("mapping of prio or/and queue is allowed only"
++				"from OUTPUT/FORWARD/POSTROUTING chains\n");
++			return -EINVAL;
++		}
++		index = ip_set_nfnl_get_byindex(par->net,
++						info->map_set.index);
++		if (index == IPSET_INVALID_ID) {
++			pr_warn("Cannot find map_set index %u as target\n",
++				info->map_set.index);
++			if (info->add_set.index != IPSET_INVALID_ID)
++				ip_set_nfnl_put(par->net,
++						info->add_set.index);
++			if (info->del_set.index != IPSET_INVALID_ID)
++				ip_set_nfnl_put(par->net,
++						info->del_set.index);
++			return -ENOENT;
++		}
++	}
++
++	if (info->add_set.dim > IPSET_DIM_MAX ||
++	    info->del_set.dim > IPSET_DIM_MAX ||
++	    info->map_set.dim > IPSET_DIM_MAX) {
++		pr_warn("Protocol error: SET target dimension "
++			"is over the limit!\n");
++		if (info->add_set.index != IPSET_INVALID_ID)
++			ip_set_nfnl_put(par->net, info->add_set.index);
++		if (info->del_set.index != IPSET_INVALID_ID)
++			ip_set_nfnl_put(par->net, info->del_set.index);
++		if (info->map_set.index != IPSET_INVALID_ID)
++			ip_set_nfnl_put(par->net, info->map_set.index);
++		return -ERANGE;
++	}
++
++	return 0;
++}
++
++static void
++set_target_v3_destroy(const struct xt_tgdtor_param *par)
++{
++	const struct xt_set_info_target_v3 *info = par->targinfo;
++
++	if (info->add_set.index != IPSET_INVALID_ID)
++		ip_set_nfnl_put(par->net, info->add_set.index);
++	if (info->del_set.index != IPSET_INVALID_ID)
++		ip_set_nfnl_put(par->net, info->del_set.index);
++	if (info->map_set.index != IPSET_INVALID_ID)
++		ip_set_nfnl_put(par->net, info->map_set.index);
++}
++
++
+ static struct xt_match set_matches[] __read_mostly = {
+ 	{
+ 		.name		= "set",
+@@ -493,6 +627,27 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.destroy	= set_target_v2_destroy,
+ 		.me		= THIS_MODULE
  	},
-+	[IPSET_EXT_ID_SKBINFO] = {
-+		.type	= IPSET_EXT_SKBINFO,
-+		.flag	= IPSET_FLAG_WITH_SKBINFO,
-+		.len	= sizeof(struct ip_set_skbinfo),
-+		.align	= __alignof__(struct ip_set_skbinfo),
++	/* --map-set support */
++	{
++		.name		= "SET",
++		.revision	= 3,
++		.family		= NFPROTO_IPV4,
++		.target		= set_target_v3,
++		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.checkentry	= set_target_v3_checkentry,
++		.destroy	= set_target_v3_destroy,
++		.me		= THIS_MODULE
 +	},
- 	[IPSET_EXT_ID_COMMENT] = {
- 		.type	 = IPSET_EXT_COMMENT | IPSET_EXT_DESTROY,
- 		.flag	 = IPSET_FLAG_WITH_COMMENT,
-@@ -382,6 +388,7 @@ int
- ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- 		      struct ip_set_ext *ext)
- {
-+	u64 fullmark;
- 	if (tb[IPSET_ATTR_TIMEOUT]) {
- 		if (!(set->extensions & IPSET_EXT_TIMEOUT))
- 			return -IPSET_ERR_TIMEOUT;
-@@ -402,7 +409,25 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- 			return -IPSET_ERR_COMMENT;
- 		ext->comment = ip_set_comment_uget(tb[IPSET_ATTR_COMMENT]);
- 	}
--
-+	if (tb[IPSET_ATTR_SKBMARK]) {
-+		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+			return -IPSET_ERR_SKBINFO;
-+		fullmark = be64_to_cpu(nla_get_be64(tb[IPSET_ATTR_SKBMARK]));
-+		ext->skbmark = fullmark >> 32;
-+		ext->skbmarkmask = fullmark & 0xffffffff;
-+	}
-+	if (tb[IPSET_ATTR_SKBPRIO]) {
-+		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+			return -IPSET_ERR_SKBINFO;
-+		ext->skbprio = be32_to_cpu(nla_get_be32(
-+					    tb[IPSET_ATTR_SKBPRIO]));
-+	}
-+	if (tb[IPSET_ATTR_SKBQUEUE]) {
-+		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+			return -IPSET_ERR_SKBINFO;
-+		ext->skbqueue = be16_to_cpu(nla_get_be16(
-+					    tb[IPSET_ATTR_SKBQUEUE]));
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(ip_set_get_extensions);
++	{
++		.name		= "SET",
++		.revision	= 3,
++		.family		= NFPROTO_IPV6,
++		.target		= set_target_v3,
++		.targetsize	= sizeof(struct xt_set_info_target_v3),
++		.checkentry	= set_target_v3_checkentry,
++		.destroy	= set_target_v3_destroy,
++		.me		= THIS_MODULE
++	},
+ };
+ 
+ static int __init xt_set_init(void)
 -- 
 1.8.5.1
 
