@@ -1,95 +1,55 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 5/8] netfilter: ipset: Add skbinfo extension kernel support for the list set type.
-Date: Mon, 15 Sep 2014 23:02:51 +0200
-Message-ID: <1410814974-9918-6-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 7/8] netfilter: ipset: send nonzero skbinfo extensions only
+Date: Mon, 15 Sep 2014 23:02:53 +0200
+Message-ID: <1410814974-9918-8-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:39097 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:39094 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757664AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1757637AbaIOVCh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 15 Sep 2014 17:02:37 -0400
 In-Reply-To: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Anton Danilov <littlesmilingcloud@gmail.com>
+Do not send zero valued skbinfo extensions to userspace at listing.
 
-Add skbinfo extension kernel support for the list set type.
-Introduce the new revision of the list set type.
-
-Signed-off-by: Anton Danilov <littlesmilingcloud@gmail.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_list_set.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index f87adba..f8f6828 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -17,7 +17,8 @@
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index b97aac5..f1606fa 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -335,13 +335,17 @@ ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
+ static inline bool
+ ip_set_put_skbinfo(struct sk_buff *skb, struct ip_set_skbinfo *skbinfo)
+ {
+-	return nla_put_net64(skb, IPSET_ATTR_SKBMARK,
+-			     cpu_to_be64((u64)skbinfo->skbmark << 32 |
+-					 skbinfo->skbmarkmask)) ||
+-	       nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
+-			     cpu_to_be32(skbinfo->skbprio)) ||
+-	       nla_put_net16(skb, IPSET_ATTR_SKBQUEUE,
+-			     cpu_to_be16(skbinfo->skbqueue));
++	/* Send nonzero parameters only */
++	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
++		nla_put_net64(skb, IPSET_ATTR_SKBMARK,
++			      cpu_to_be64((u64)skbinfo->skbmark << 32 |
++					  skbinfo->skbmarkmask))) ||
++	       (skbinfo->skbprio &&
++	        nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
++			      cpu_to_be32(skbinfo->skbprio))) ||
++	       (skbinfo->skbqueue &&
++	        nla_put_net16(skb, IPSET_ATTR_SKBQUEUE,
++			     cpu_to_be16(skbinfo->skbqueue)));
  
- #define IPSET_TYPE_REV_MIN	0
- /*				1    Counters support added */
--#define IPSET_TYPE_REV_MAX	2 /* Comments support added */
-+/*				2    Comments support added */
-+#define IPSET_TYPE_REV_MAX	3 /* skbinfo support added */
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-@@ -73,6 +74,10 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
- 				ip_set_update_counter(ext_counter(e, set),
- 						      ext, &opt->ext,
- 						      cmdflags);
-+			if (SET_WITH_SKBINFO(set))
-+				ip_set_get_skbinfo(ext_skbinfo(e, set),
-+						   ext, &opt->ext,
-+						   cmdflags);
- 			return ret;
- 		}
- 	}
-@@ -197,6 +202,8 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
- 		ip_set_init_counter(ext_counter(e, set), ext);
- 	if (SET_WITH_COMMENT(set))
- 		ip_set_init_comment(ext_comment(e, set), ext);
-+	if (SET_WITH_SKBINFO(set))
-+		ip_set_init_skbinfo(ext_skbinfo(e, set), ext);
- 	return 0;
  }
  
-@@ -307,6 +314,8 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 			ip_set_init_counter(ext_counter(e, set), ext);
- 		if (SET_WITH_COMMENT(set))
- 			ip_set_init_comment(ext_comment(e, set), ext);
-+		if (SET_WITH_SKBINFO(set))
-+			ip_set_init_skbinfo(ext_skbinfo(e, set), ext);
- 		/* Set is already added to the list */
- 		ip_set_put_byindex(map->net, d->id);
- 		return 0;
-@@ -378,7 +387,10 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -667,6 +679,9 @@ static struct ip_set_type list_set_type __read_mostly = {
- 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
- 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
- 		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
-+		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },
- 	},
- 	.me		= THIS_MODULE,
- };
 -- 
 1.8.5.1
 
