@@ -1,167 +1,178 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: fix 'describe' command when passing wrong expressions
-Date: Tue, 16 Sep 2014 11:03:57 +0200
-Message-ID: <1410858237-6841-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, kevin@scrye.com
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH v2] src: add specific byteorder to the struct proto_hdr_template
+Date: Tue, 16 Sep 2014 14:21:19 +0200
+Message-ID: <1410870079-11421-1-git-send-email-alvaroneay@gmail.com>
+References: <1410278479-25864-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53106 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752686AbaIPJDM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Sep 2014 05:03:12 -0400
+Received: from mail-we0-f179.google.com ([74.125.82.179]:58521 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbaIPMVZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Sep 2014 08:21:25 -0400
+Received: by mail-we0-f179.google.com with SMTP id u56so5559272wes.24
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2014 05:21:23 -0700 (PDT)
+In-Reply-To: <1410278479-25864-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Before this patch:
+If we try to add a rule like:
 
- # nft describe tcp foo
- value expression, datatype inet_proto (Internet protocol) (basetype integer), 8 bits
- Segmentation fault
+nft add rule filter input udp length {55-9999}
 
-After this patch:
+nftable shows:
 
- # nft describe tcp foo
- <cmdline>:1:14-16: Error: syntax error, unexpected string, expecting end of file or newline or semicolon
- describe tcp foo
-              ^^^
+BUG: invalid byte order conversion 0 => 2
+nft: src/evaluate.c:153: byteorder_conversion_op: Assertion `0' failed.
 
-Reported-by: Kevin Fenzi <kevin@scrye.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Some of the existing payload fields rely on BYTEORDER_INVALID. Therefore, if we
+try to convert it in evaluation step, we hit this bug.
+
+This patch allows to add a specific byteorder to the struct proto_hdr_template. If
+we create a expression with a invalid byteorder, we will use the byteorder
+added to the proto_hdr_template structure.
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- include/rule.h |    4 ++++
- src/evaluate.c |    1 +
- src/parser.y   |   19 +++++++++++--------
- src/rule.c     |   11 +++++++++++
- 4 files changed, 27 insertions(+), 8 deletions(-)
+[Changes in v2]
+* Use host endian byteorder in the ether saddr/daddr rules.
 
-diff --git a/include/rule.h b/include/rule.h
-index db91406..88aefc6 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -218,6 +218,7 @@ extern void set_print_plain(const struct set *s);
-  * @CMD_RENAME:		rename object
-  * @CMD_EXPORT:		export the ruleset in a given format
-  * @CMD_MONITOR:	event listener
-+ * @CMD_DESCRIBE:	describe an expression
-  */
- enum cmd_ops {
- 	CMD_INVALID,
-@@ -230,6 +231,7 @@ enum cmd_ops {
- 	CMD_RENAME,
- 	CMD_EXPORT,
- 	CMD_MONITOR,
-+	CMD_DESCRIBE,
- };
+[Tested with the rules]
+nft add rule ip filter input ip length 10-55 counter
+nft add rule ip filter input ip length 55-1000 counter
+nft add rule ip filter input udp length {0-100} udp dport 9999 counter
+nft add rule ip filter input udp length {100-9999} udp dport 9999 counter
+nft add rule bridge filter input ether type 0x0800 counter
+nft add rule bridge filter input ether saddr 12:34:56:78.9a:bc counter
+nft add rule bridge filter input ether daddr 12:34:56:78:9a:bc counter
+Tested with the Ana Rey's tests
+
+ include/proto.h |    5 ++++-
+ src/exthdr.c    |    6 +++++-
+ src/payload.c   |    2 +-
+ src/proto.c     |   11 ++++++++---
+ 4 files changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/include/proto.h b/include/proto.h
+index bd3701e..cc1f51f 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -2,6 +2,7 @@
+ #define NFTABLES_PROTO_H
+ 
+ #include <nftables.h>
++#include <datatype.h>
+ #include <linux/netfilter/nf_tables.h>
  
  /**
-@@ -243,6 +245,7 @@ enum cmd_ops {
-  * @CMD_OBJ_CHAIN:	chain
-  * @CMD_OBJ_TABLE:	table
-  * @CMD_OBJ_RULESET:	ruleset
-+ * @CMD_OBJ_EXPR:	expression
-  */
- enum cmd_obj {
- 	CMD_OBJ_INVALID,
-@@ -253,6 +256,7 @@ enum cmd_obj {
- 	CMD_OBJ_CHAIN,
- 	CMD_OBJ_TABLE,
- 	CMD_OBJ_RULESET,
-+	CMD_OBJ_EXPR,
+@@ -38,13 +39,15 @@ struct proto_hdr_template {
+ 	const struct datatype		*dtype;
+ 	uint16_t			offset;
+ 	uint16_t			len;
++	enum byteorder			byteorder;
+ 	enum nft_meta_keys		meta_key;
  };
  
- /**
-diff --git a/src/evaluate.c b/src/evaluate.c
-index f66a8ea..34558fc 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1443,6 +1443,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_RENAME:
- 	case CMD_EXPORT:
- 	case CMD_MONITOR:
-+	case CMD_DESCRIBE:
- 		return 0;
- 	default:
- 		BUG("invalid command operation %u\n", cmd->op);
-diff --git a/src/parser.y b/src/parser.y
-index 6737aad..5e3c960 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -395,8 +395,8 @@ static int monitor_lookup_event(const char *event)
- %type <cmd>			line
- %destructor { cmd_free($$); }	line
- 
--%type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd
--%destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd
-+%type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
-+%destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- 
- %type <handle>			table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
- %destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
-@@ -626,12 +626,7 @@ base_cmd		:	/* empty */	add_cmd		{ $$ = $1; }
- 			|	RENAME		rename_cmd	{ $$ = $2; }
- 			|	EXPORT		export_cmd	{ $$ = $2; }
- 			|	MONITOR		monitor_cmd	{ $$ = $2; }
--			|	DESCRIBE	primary_expr
--			{
--				expr_describe($2);
--				expr_free($2);
--				$$ = NULL;
--			}
-+			|	DESCRIBE	describe_cmd	{ $$ = $2; }
- 			;
- 
- add_cmd			:	TABLE		table_spec
-@@ -974,6 +969,14 @@ monitor_flags		:	/* empty */
- 			}
- 			;
- 
-+describe_cmd		:	primary_expr
-+			{
-+				struct handle h = { .family = NFPROTO_UNSPEC };
-+				$$ = cmd_alloc(CMD_DESCRIBE, CMD_OBJ_EXPR, &h, &@$, NULL);
-+				$$->expr = $1;
-+			}
-+			;
-+
- output_format		:	/* empty */
- 			{
- 				$$ = NFT_OUTPUT_DEFAULT;
-diff --git a/src/rule.c b/src/rule.c
-index cb2a228..80deb1b 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -548,6 +548,9 @@ void cmd_free(struct cmd *cmd)
- 		case CMD_OBJ_TABLE:
- 			table_free(cmd->table);
- 			break;
-+		case CMD_OBJ_EXPR:
-+			expr_free(cmd->expr);
-+			break;
- 		default:
- 			BUG("invalid command object type %u\n", cmd->obj);
- 		}
-@@ -909,6 +912,12 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return netlink_monitor(&monhandler);
- }
- 
-+static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
-+{
-+	expr_describe(cmd->expr);
-+	return 0;
-+}
-+
- int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	switch (cmd->op) {
-@@ -930,6 +939,8 @@ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
- 		return do_command_export(ctx, cmd);
- 	case CMD_MONITOR:
- 		return do_command_monitor(ctx, cmd);
-+	case CMD_DESCRIBE:
-+		return do_command_describe(ctx, cmd);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
+-#define PROTO_HDR_TEMPLATE(__token, __dtype,  __offset, __len)		\
++#define PROTO_HDR_TEMPLATE(__token, __dtype,  __byteorder, __offset, __len)\
+ 	{								\
+ 		.token		= (__token),				\
+ 		.dtype		= (__dtype),				\
++		.byteorder	= (__byteorder),			\
+ 		.offset		= (__offset),				\
+ 		.len		= (__len),				\
  	}
+diff --git a/src/exthdr.c b/src/exthdr.c
+index a619ecc..9ed0b6a 100644
+--- a/src/exthdr.c
++++ b/src/exthdr.c
+@@ -48,7 +48,7 @@ static const struct expr_ops exthdr_expr_ops = {
+ };
+ 
+ static const struct proto_hdr_template exthdr_unknown_template =
+-	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
++	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
+ 
+ struct expr *exthdr_expr_alloc(const struct location *loc,
+ 			       const struct exthdr_desc *desc,
+@@ -102,6 +102,7 @@ void exthdr_init_raw(struct expr *expr, uint8_t type,
+ 
+ #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
+ 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
++			   BYTEORDER_BIG_ENDIAN,			\
+ 			   offsetof(__type, __member) * 8,		\
+ 			   field_sizeof(__type, __member) * 8)
+ 
+@@ -179,10 +180,13 @@ const struct exthdr_desc exthdr_frag = {
+ 		[FRAGHDR_NEXTHDR]	= FRAG_FIELD("nexthdr", ip6f_nxt, &inet_protocol_type),
+ 		[FRAGHDR_RESERVED]	= FRAG_FIELD("reserved", ip6f_reserved, &integer_type),
+ 		[FRAGHDR_FRAG_OFF]	= PROTO_HDR_TEMPLATE("frag-off", &integer_type,
++							  BYTEORDER_BIG_ENDIAN,
+ 							  16, 13),
+ 		[FRAGHDR_RESERVED2]	= PROTO_HDR_TEMPLATE("reserved2", &integer_type,
++							  BYTEORDER_BIG_ENDIAN,
+ 							  29, 2),
+ 		[FRAGHDR_MFRAGS]	= PROTO_HDR_TEMPLATE("more-fragments", &integer_type,
++							  BYTEORDER_BIG_ENDIAN,
+ 							  31, 1),
+ 		[FRAGHDR_ID]		= FRAG_FIELD("id", ip6f_ident, &integer_type),
+ 	},
+diff --git a/src/payload.c b/src/payload.c
+index 7297520..a3bbe51 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -117,7 +117,7 @@ struct expr *payload_expr_alloc(const struct location *loc,
+ 	}
+ 
+ 	expr = expr_alloc(loc, &payload_expr_ops, tmpl->dtype,
+-			  tmpl->dtype->byteorder, tmpl->len);
++			  tmpl->byteorder, tmpl->len);
+ 	expr->flags |= flags;
+ 
+ 	expr->payload.desc   = desc;
+diff --git a/src/proto.c b/src/proto.c
+index 15a456a..6eb4bb2 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -38,7 +38,7 @@ const char *proto_base_tokens[] = {
+ };
+ 
+ const struct proto_hdr_template proto_unknown_template =
+-	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
++	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
+ 
+ const struct proto_desc proto_unknown = {
+ 	.name		= "unknown",
+@@ -186,13 +186,15 @@ void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
+ 
+ #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
+ 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
++			   BYTEORDER_BIG_ENDIAN,			\
+ 			   offsetof(__type, __member) * 8,		\
+ 			   field_sizeof(__type, __member) * 8)
+ 
+ #define HDR_FIELD(__name, __struct, __member)				\
+ 	HDR_TEMPLATE(__name, &integer_type, __struct, __member)
+ #define HDR_BITFIELD(__name, __dtype,  __offset, __len)			\
+-	PROTO_HDR_TEMPLATE(__name, __dtype, __offset, __len)
++	PROTO_HDR_TEMPLATE(__name, __dtype, BYTEORDER_BIG_ENDIAN,	\
++			   __offset, __len)
+ #define HDR_TYPE(__name, __dtype, __struct, __member)			\
+ 	HDR_TEMPLATE(__name, __dtype, __struct, __member)
+ 
+@@ -785,7 +787,10 @@ const struct datatype ethertype_type = {
+ #define ETHHDR_TYPE(__name, __member) \
+ 	ETHHDR_TEMPLATE(__name, &ethertype_type, __member)
+ #define ETHHDR_ADDR(__name, __member) \
+-	ETHHDR_TEMPLATE(__name, &etheraddr_type, __member)
++	PROTO_HDR_TEMPLATE(__name, &etheraddr_type,		\
++			   BYTEORDER_HOST_ENDIAN,		\
++			   offsetof(struct ether_header, __member) * 8,	\
++			   field_sizeof(struct ether_header, __member) * 8)
+ 
+ const struct proto_desc proto_eth = {
+ 	.name		= "ether",
 -- 
 1.7.10.4
 
