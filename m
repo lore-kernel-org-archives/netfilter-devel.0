@@ -1,178 +1,280 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH v2] src: add specific byteorder to the struct proto_hdr_template
-Date: Tue, 16 Sep 2014 14:21:19 +0200
-Message-ID: <1410870079-11421-1-git-send-email-alvaroneay@gmail.com>
-References: <1410278479-25864-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/2 nf-next] net: bridge: don't register netfilter call_iptables hooks by default
+Date: Tue, 16 Sep 2014 17:47:36 +0200
+Message-ID: <1410882457-16641-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:58521 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752662AbaIPMVZ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58281 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753824AbaIPPro (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Sep 2014 08:21:25 -0400
-Received: by mail-we0-f179.google.com with SMTP id u56so5559272wes.24
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2014 05:21:23 -0700 (PDT)
-In-Reply-To: <1410278479-25864-1-git-send-email-alvaroneay@gmail.com>
+	Tue, 16 Sep 2014 11:47:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we try to add a rule like:
+Jesper reports that kernels with CONFIG_BRIDGE_NETFILTER=n show significantly
+better performance vs. CONFIG_BRIDGE_NETFILTER=y, even with
+bridge-nf-call-iptables=0.
 
-nft add rule filter input udp length {55-9999}
+This is because bridge registers some bridge netfilter hooks at
+module load time, so the static key to bypass nf rule evaluation
+via NF_HOOK() is false.
 
-nftable shows:
+The hooks serve no purpose, unless iptables filtering for bridges is
+desired (i.e., bridge-nf-call-*=1 and active iptables rules present).
 
-BUG: invalid byte order conversion 0 => 2
-nft: src/evaluate.c:153: byteorder_conversion_op: Assertion `0' failed.
+The proper solution would be to just change the bridge-nf-call-iptables sysctl
+default value to 0 and then register the hooks when user enables call-iptables
+sysctl.  We cannot do that though since it breaks existing setups.
 
-Some of the existing payload fields rely on BYTEORDER_INVALID. Therefore, if we
-try to convert it in evaluation step, we hit this bug.
+The next best solution is to delay registering of the hooks until
+we know that
 
-This patch allows to add a specific byteorder to the struct proto_hdr_template. If
-we create a expression with a invalid byteorder, we will use the byteorder
-added to the proto_hdr_template structure.
+a) call-iptables sysctl is enabled (this is the default)
+AND
+b) ip(6)tables rules are loaded.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+This adds br_nf_check_call_iptables() helper in bridge input before
+bridge 'prerouting' (sic) hooks to perform this check.
+
+IOW, if user does not turn off call-iptables sysctl on the bridge, hook
+registering is only done if NFPROTO_IPV4/IPV6 hooks are registered as
+well once the first packet arrives on a bridge port.
+
+Doing this check for every packet is still faster than registering
+the hooks unconditionally.  To not add overhead for setups where
+the call-iptables hooks are required, a static key shortcut is provided.
+
+As its not possible to register hooks from bh context (grabs mutex)
+its scheduled via workqueue.
+
+Note that, to not make this overly complicated, the hooks are not
+unregistered again when the sysctl is disabled later on.
+
+If user toggles call-iptables sysctl to 0 before adding any ports
+to the bridge, those hooks are not registered even if iptables rules
+are loaded.
+
+Daniel reports following results for super_netperf/200/TCP_RR:
+CONFIG_BRIDGE_NETFILTER=n: ~988k TPS
+CONFIG_BRIDGE_NETFILTER=y: ~971k TPS
+CONFIG_BRIDGE_NETFILTER=y /w patch: ~988k TPS
+
+Reported-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Tested-by: Daniel Borkmann <dborkman@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-[Changes in v2]
-* Use host endian byteorder in the ether saddr/daddr rules.
+ net/bridge/br_input.c     | 41 +++++++++++++++++++++++++++++
+ net/bridge/br_netfilter.c | 67 ++++++++++++++++++++++++++++++++++++++---------
+ net/bridge/br_private.h   | 11 ++++++++
+ 3 files changed, 106 insertions(+), 13 deletions(-)
 
-[Tested with the rules]
-nft add rule ip filter input ip length 10-55 counter
-nft add rule ip filter input ip length 55-1000 counter
-nft add rule ip filter input udp length {0-100} udp dport 9999 counter
-nft add rule ip filter input udp length {100-9999} udp dport 9999 counter
-nft add rule bridge filter input ether type 0x0800 counter
-nft add rule bridge filter input ether saddr 12:34:56:78.9a:bc counter
-nft add rule bridge filter input ether daddr 12:34:56:78:9a:bc counter
-Tested with the Ana Rey's tests
-
- include/proto.h |    5 ++++-
- src/exthdr.c    |    6 +++++-
- src/payload.c   |    2 +-
- src/proto.c     |   11 ++++++++---
- 4 files changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/include/proto.h b/include/proto.h
-index bd3701e..cc1f51f 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -2,6 +2,7 @@
- #define NFTABLES_PROTO_H
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 366c436..bd770b7 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -18,6 +18,11 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/export.h>
+ #include <linux/rculist.h>
++
++#ifdef CONFIG_BRIDGE_NETFILTER
++#include <linux/jump_label.h>
++#endif
++
+ #include "br_private.h"
  
- #include <nftables.h>
-+#include <datatype.h>
- #include <linux/netfilter/nf_tables.h>
+ /* Hook for brouter */
+@@ -153,6 +158,39 @@ static int br_handle_local_finish(struct sk_buff *skb)
+ 	return 0;	 /* process further */
+ }
  
- /**
-@@ -38,13 +39,15 @@ struct proto_hdr_template {
- 	const struct datatype		*dtype;
- 	uint16_t			offset;
- 	uint16_t			len;
-+	enum byteorder			byteorder;
- 	enum nft_meta_keys		meta_key;
++#ifdef CONFIG_BRIDGE_NETFILTER
++extern struct static_key brnf_hooks_active;
++
++static inline int br_nf_check_call_iptables(const struct net_bridge *br)
++{
++	bool ip, ip6, arp;
++	int i;
++
++	if (static_key_true(&brnf_hooks_active))
++		return 0;
++
++	ip  = brnf_call_iptables  || br->nf_call_iptables;
++	ip6 = brnf_call_ip6tables || br->nf_call_ip6tables;
++	arp = brnf_call_arptables || br->nf_call_arptables;
++
++	for (i=0; i < NF_MAX_HOOKS; i++) {
++		if (nf_hooks_active(NFPROTO_IPV4, i) && ip)
++			break;
++		if (nf_hooks_active(NFPROTO_IPV6, i) && ip6)
++			break;
++		if (nf_hooks_active(NFPROTO_ARP, i) && arp)
++			break;
++	}
++
++	if (i < NF_MAX_HOOKS)
++		return br_netfiler_hooks_init();
++
++	return 0;
++}
++#else
++static inline int br_nf_check_call_iptables(const struct net_bridge *br){}
++#endif
++
+ /*
+  * Return NULL if skb is handled
+  * note: already called with rcu_read_lock
+@@ -176,6 +214,9 @@ rx_handler_result_t br_handle_frame(struct sk_buff **pskb)
+ 
+ 	p = br_port_get_rcu(skb->dev);
+ 
++	if (br_nf_check_call_iptables(p->br))
++		goto drop;
++
+ 	if (unlikely(is_link_local_ether_addr(dest))) {
+ 		u16 fwd_mask = p->br->group_fwd_mask_required;
+ 
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index a615264..c6715a2 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -31,6 +31,8 @@
+ #include <linux/netfilter_arp.h>
+ #include <linux/in_route.h>
+ #include <linux/inetdevice.h>
++#include <linux/workqueue.h>
++#include <linux/jump_label.h>
+ 
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+@@ -47,18 +49,19 @@
+ #define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = ip_hdr(skb)->daddr)
+ #define dnat_took_place(skb)	 (skb_origaddr(skb) != ip_hdr(skb)->daddr)
+ 
++struct static_key brnf_hooks_active __read_mostly;
++static DEFINE_MUTEX(brnf_hook_mutex);
++
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+-static int brnf_call_iptables __read_mostly = 1;
+-static int brnf_call_ip6tables __read_mostly = 1;
+-static int brnf_call_arptables __read_mostly = 1;
+ static int brnf_filter_vlan_tagged __read_mostly = 0;
+ static int brnf_filter_pppoe_tagged __read_mostly = 0;
+ static int brnf_pass_vlan_indev __read_mostly = 0;
++
++int brnf_call_iptables __read_mostly = 1;
++int brnf_call_ip6tables __read_mostly = 1;
++int brnf_call_arptables __read_mostly = 1;
+ #else
+-#define brnf_call_iptables 1
+-#define brnf_call_ip6tables 1
+-#define brnf_call_arptables 1
+ #define brnf_filter_vlan_tagged 0
+ #define brnf_filter_pppoe_tagged 0
+ #define brnf_pass_vlan_indev 0
+@@ -1059,6 +1062,45 @@ static struct ctl_table brnf_table[] = {
  };
+ #endif
  
--#define PROTO_HDR_TEMPLATE(__token, __dtype,  __offset, __len)		\
-+#define PROTO_HDR_TEMPLATE(__token, __dtype,  __byteorder, __offset, __len)\
- 	{								\
- 		.token		= (__token),				\
- 		.dtype		= (__dtype),				\
-+		.byteorder	= (__byteorder),			\
- 		.offset		= (__offset),				\
- 		.len		= (__len),				\
++static void __br_register_hooks_init(struct work_struct *w)
++{
++	int ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	if (ret == 0)
++		static_key_slow_inc(&brnf_hooks_active);
++
++	mutex_unlock(&brnf_hook_mutex);
++	kfree(w);
++
++	WARN_ONCE(ret, "could not register bridge netfilter hook (error %d)",
++									ret);
++}
++
++int br_netfiler_hooks_init(void)
++{
++	struct work_struct *w;
++
++	/* called from bh context, cannot sleep */
++	if (!mutex_trylock(&brnf_hook_mutex))
++		return -EBUSY;
++
++	if (static_key_true(&brnf_hooks_active)) {
++		mutex_unlock(&brnf_hook_mutex);
++		return 0;
++	}
++
++	w = kzalloc(sizeof(*w), GFP_ATOMIC);
++	if (!w) {
++		mutex_unlock(&brnf_hook_mutex);
++		return -ENOMEM;
++	}
++
++	INIT_WORK(w, __br_register_hooks_init);
++	schedule_work(w);
++	/* worker will unlock mutex */
++
++	return 0;
++}
++
+ int __init br_netfilter_init(void)
+ {
+ 	int ret;
+@@ -1067,17 +1109,11 @@ int __init br_netfilter_init(void)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+-	if (ret < 0) {
+-		dst_entries_destroy(&fake_dst_ops);
+-		return ret;
+-	}
+ #ifdef CONFIG_SYSCTL
+ 	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
+ 	if (brnf_sysctl_header == NULL) {
+ 		printk(KERN_WARNING
+ 		       "br_netfilter: can't register to sysctl.\n");
+-		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+ 		dst_entries_destroy(&fake_dst_ops);
+ 		return -ENOMEM;
  	}
-diff --git a/src/exthdr.c b/src/exthdr.c
-index a619ecc..9ed0b6a 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -48,7 +48,7 @@ static const struct expr_ops exthdr_expr_ops = {
- };
+@@ -1088,7 +1124,12 @@ int __init br_netfilter_init(void)
  
- static const struct proto_hdr_template exthdr_unknown_template =
--	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
-+	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
- 
- struct expr *exthdr_expr_alloc(const struct location *loc,
- 			       const struct exthdr_desc *desc,
-@@ -102,6 +102,7 @@ void exthdr_init_raw(struct expr *expr, uint8_t type,
- 
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
-+			   BYTEORDER_BIG_ENDIAN,			\
- 			   offsetof(__type, __member) * 8,		\
- 			   field_sizeof(__type, __member) * 8)
- 
-@@ -179,10 +180,13 @@ const struct exthdr_desc exthdr_frag = {
- 		[FRAGHDR_NEXTHDR]	= FRAG_FIELD("nexthdr", ip6f_nxt, &inet_protocol_type),
- 		[FRAGHDR_RESERVED]	= FRAG_FIELD("reserved", ip6f_reserved, &integer_type),
- 		[FRAGHDR_FRAG_OFF]	= PROTO_HDR_TEMPLATE("frag-off", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  16, 13),
- 		[FRAGHDR_RESERVED2]	= PROTO_HDR_TEMPLATE("reserved2", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  29, 2),
- 		[FRAGHDR_MFRAGS]	= PROTO_HDR_TEMPLATE("more-fragments", &integer_type,
-+							  BYTEORDER_BIG_ENDIAN,
- 							  31, 1),
- 		[FRAGHDR_ID]		= FRAG_FIELD("id", ip6f_ident, &integer_type),
- 	},
-diff --git a/src/payload.c b/src/payload.c
-index 7297520..a3bbe51 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -117,7 +117,7 @@ struct expr *payload_expr_alloc(const struct location *loc,
- 	}
- 
- 	expr = expr_alloc(loc, &payload_expr_ops, tmpl->dtype,
--			  tmpl->dtype->byteorder, tmpl->len);
-+			  tmpl->byteorder, tmpl->len);
- 	expr->flags |= flags;
- 
- 	expr->payload.desc   = desc;
-diff --git a/src/proto.c b/src/proto.c
-index 15a456a..6eb4bb2 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -38,7 +38,7 @@ const char *proto_base_tokens[] = {
- };
- 
- const struct proto_hdr_template proto_unknown_template =
--	PROTO_HDR_TEMPLATE("unknown", &invalid_type, 0, 0);
-+	PROTO_HDR_TEMPLATE("unknown", &invalid_type, BYTEORDER_INVALID, 0, 0);
- 
- const struct proto_desc proto_unknown = {
- 	.name		= "unknown",
-@@ -186,13 +186,15 @@ void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
- 
- #define HDR_TEMPLATE(__name, __dtype, __type, __member)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype,				\
-+			   BYTEORDER_BIG_ENDIAN,			\
- 			   offsetof(__type, __member) * 8,		\
- 			   field_sizeof(__type, __member) * 8)
- 
- #define HDR_FIELD(__name, __struct, __member)				\
- 	HDR_TEMPLATE(__name, &integer_type, __struct, __member)
- #define HDR_BITFIELD(__name, __dtype,  __offset, __len)			\
--	PROTO_HDR_TEMPLATE(__name, __dtype, __offset, __len)
-+	PROTO_HDR_TEMPLATE(__name, __dtype, BYTEORDER_BIG_ENDIAN,	\
-+			   __offset, __len)
- #define HDR_TYPE(__name, __dtype, __struct, __member)			\
- 	HDR_TEMPLATE(__name, __dtype, __struct, __member)
- 
-@@ -785,7 +787,10 @@ const struct datatype ethertype_type = {
- #define ETHHDR_TYPE(__name, __member) \
- 	ETHHDR_TEMPLATE(__name, &ethertype_type, __member)
- #define ETHHDR_ADDR(__name, __member) \
--	ETHHDR_TEMPLATE(__name, &etheraddr_type, __member)
-+	PROTO_HDR_TEMPLATE(__name, &etheraddr_type,		\
-+			   BYTEORDER_HOST_ENDIAN,		\
-+			   offsetof(struct ether_header, __member) * 8,	\
-+			   field_sizeof(struct ether_header, __member) * 8)
- 
- const struct proto_desc proto_eth = {
- 	.name		= "ether",
+ void br_netfilter_fini(void)
+ {
+-	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	/* sync with possibly running __br_register_hooks_init() */
++	mutex_lock(&brnf_hook_mutex);
++
++	if (static_key_enabled(&brnf_hooks_active))
++		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	mutex_unlock(&brnf_hook_mutex);
+ #ifdef CONFIG_SYSCTL
+ 	unregister_net_sysctl_table(brnf_sysctl_header);
+ #endif
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 62a7fa2..e3b80ce 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -755,6 +755,17 @@ static inline int br_vlan_enabled(struct net_bridge *br)
+ int br_netfilter_init(void);
+ void br_netfilter_fini(void);
+ void br_netfilter_rtable_init(struct net_bridge *);
++int br_netfiler_hooks_init(void);
++
++#ifdef CONFIG_SYSCTL
++extern int brnf_call_iptables;
++extern int brnf_call_ip6tables;
++extern int brnf_call_arptables;
++#else
++#define brnf_call_iptables 1
++#define brnf_call_ip6tables 1
++#define brnf_call_arptables 1
++#endif
+ #else
+ #define br_netfilter_init()	(0)
+ #define br_netfilter_fini()	do { } while (0)
 -- 
-1.7.10.4
+1.8.1.5
 
