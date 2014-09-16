@@ -1,201 +1,238 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 03/22] netfilter: Replace strnicmp with strncasecmp
-Date: Tue, 16 Sep 2014 22:51:17 +0200
-Message-ID: <1410900696-6481-4-git-send-email-linux@rasmusvillemoes.dk>
-References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
-Cc: linux-kernel@vger.kernel.org,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [GIT PULL nf-next 00/21] Second Round of IPVS Updates for
+ v3.18
+Date: Wed, 17 Sep 2014 00:27:03 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1409170013440.3254@ja.home.ssi.bg>
+References: <1410827675-3637-1-git-send-email-horms@verge.net.au> <20140916172556.GA21545@salvia>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1232113692-1410902826=:3254"
+Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ja.ssi.bg ([178.16.129.10]:39396 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753352AbaIPV1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Sep 2014 17:27:33 -0400
+In-Reply-To: <20140916172556.GA21545@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics
-and a slightly buggy strncasecmp. The latter is the POSIX name, so
-strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
-for the new strncasecmp to avoid breaking existing users.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-To allow the compat wrapper strnicmp to be removed at some point in
-the future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
+---1463811672-1232113692-1410902826=:3254
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- net/netfilter/ipvs/ip_vs_ftp.c   |  6 +++---
- net/netfilter/nf_conntrack_ftp.c |  4 ++--
- net/netfilter/nf_conntrack_sip.c | 22 +++++++++++-----------
- net/netfilter/nf_log.c           |  2 +-
- net/netfilter/nf_nat_sip.c       |  2 +-
- 5 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 77c1732..cce4a51 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -96,13 +96,13 @@ static int ip_vs_ftp_get_addrport(char *data, char *data_limit,
- 
- 	if (data_limit - data < plen) {
- 		/* check if there is partial match */
--		if (strnicmp(data, pattern, data_limit - data) == 0)
-+		if (strncasecmp(data, pattern, data_limit - data) == 0)
- 			return -1;
- 		else
- 			return 0;
- 	}
- 
--	if (strnicmp(data, pattern, plen) != 0) {
-+	if (strncasecmp(data, pattern, plen) != 0) {
- 		return 0;
- 	}
- 	s = data + plen;
-@@ -353,7 +353,7 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 	data_limit = skb_tail_pointer(skb);
- 
- 	while (data <= data_limit - 6) {
--		if (strnicmp(data, "PASV\r\n", 6) == 0) {
-+		if (strncasecmp(data, "PASV\r\n", 6) == 0) {
- 			/* Passive mode on */
- 			IP_VS_DBG(7, "got PASV at %td of %td\n",
- 				  data - data_start,
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index b8a0924..b666959 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -304,12 +304,12 @@ static int find_pattern(const char *data, size_t dlen,
- 
- 	if (dlen <= plen) {
- 		/* Short packet: try for partial? */
--		if (strnicmp(data, pattern, dlen) == 0)
-+		if (strncasecmp(data, pattern, dlen) == 0)
- 			return -1;
- 		else return 0;
- 	}
- 
--	if (strnicmp(data, pattern, plen) != 0) {
-+	if (strncasecmp(data, pattern, plen) != 0) {
- #if 0
- 		size_t i;
- 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 4c3ba1c..885b4ab 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -247,7 +247,7 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- 	for (; dptr < limit - strlen("sip:"); dptr++) {
- 		if (*dptr == '\r' || *dptr == '\n')
- 			return -1;
--		if (strnicmp(dptr, "sip:", strlen("sip:")) == 0) {
-+		if (strncasecmp(dptr, "sip:", strlen("sip:")) == 0) {
- 			dptr += strlen("sip:");
- 			break;
- 		}
-@@ -350,7 +350,7 @@ static const char *ct_sip_header_search(const char *dptr, const char *limit,
- 			continue;
- 		}
- 
--		if (strnicmp(dptr, needle, len) == 0)
-+		if (strncasecmp(dptr, needle, len) == 0)
- 			return dptr;
- 	}
- 	return NULL;
-@@ -383,10 +383,10 @@ int ct_sip_get_header(const struct nf_conn *ct, const char *dptr,
- 		/* Find header. Compact headers must be followed by a
- 		 * non-alphabetic character to avoid mismatches. */
- 		if (limit - dptr >= hdr->len &&
--		    strnicmp(dptr, hdr->name, hdr->len) == 0)
-+		    strncasecmp(dptr, hdr->name, hdr->len) == 0)
- 			dptr += hdr->len;
- 		else if (hdr->cname && limit - dptr >= hdr->clen + 1 &&
--			 strnicmp(dptr, hdr->cname, hdr->clen) == 0 &&
-+			 strncasecmp(dptr, hdr->cname, hdr->clen) == 0 &&
- 			 !isalpha(*(dptr + hdr->clen)))
- 			dptr += hdr->clen;
- 		else
-@@ -620,9 +620,9 @@ static int ct_sip_parse_transport(struct nf_conn *ct, const char *dptr,
- 
- 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
- 			       &matchoff, &matchlen)) {
--		if (!strnicmp(dptr + matchoff, "TCP", strlen("TCP")))
-+		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
- 			*proto = IPPROTO_TCP;
--		else if (!strnicmp(dptr + matchoff, "UDP", strlen("UDP")))
-+		else if (!strncasecmp(dptr + matchoff, "UDP", strlen("UDP")))
- 			*proto = IPPROTO_UDP;
- 		else
- 			return 0;
-@@ -743,10 +743,10 @@ int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
- 
- 		if (term != SDP_HDR_UNSPEC &&
- 		    limit - dptr >= thdr->len &&
--		    strnicmp(dptr, thdr->name, thdr->len) == 0)
-+		    strncasecmp(dptr, thdr->name, thdr->len) == 0)
- 			break;
- 		else if (limit - dptr >= hdr->len &&
--			 strnicmp(dptr, hdr->name, hdr->len) == 0)
-+			 strncasecmp(dptr, hdr->name, hdr->len) == 0)
- 			dptr += hdr->len;
- 		else
- 			continue;
-@@ -1394,7 +1394,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 		if (handler->response == NULL)
- 			continue;
- 		if (*datalen < matchend + handler->len ||
--		    strnicmp(*dptr + matchend, handler->method, handler->len))
-+		    strncasecmp(*dptr + matchend, handler->method, handler->len))
- 			continue;
- 		return handler->response(skb, protoff, dataoff, dptr, datalen,
- 					 cseq, code);
-@@ -1435,7 +1435,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 		if (handler->request == NULL)
- 			continue;
- 		if (*datalen < handler->len ||
--		    strnicmp(*dptr, handler->method, handler->len))
-+		    strncasecmp(*dptr, handler->method, handler->len))
- 			continue;
- 
- 		if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_CSEQ,
-@@ -1462,7 +1462,7 @@ static int process_sip_msg(struct sk_buff *skb, struct nf_conn *ct,
- 	const struct nf_nat_sip_hooks *hooks;
- 	int ret;
- 
--	if (strnicmp(*dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
-+	if (strncasecmp(*dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
- 		ret = process_sip_request(skb, protoff, dataoff, dptr, datalen);
- 	else
- 		ret = process_sip_response(skb, protoff, dataoff, dptr, datalen);
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index daad602..d719764 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -30,7 +30,7 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
- 
- 		log = rcu_dereference_protected(loggers[pf][i],
- 						lockdep_is_held(&nf_log_mutex));
--		if (!strnicmp(str_logger, log->name, strlen(log->name)))
-+		if (!strncasecmp(str_logger, log->name, strlen(log->name)))
- 			return log;
- 	}
- 
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index b4d691d..791fac4 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -155,7 +155,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 	int request, in_header;
- 
- 	/* Basic rules: requests and responses. */
--	if (strnicmp(*dptr, "SIP/2.0", strlen("SIP/2.0")) != 0) {
-+	if (strncasecmp(*dptr, "SIP/2.0", strlen("SIP/2.0")) != 0) {
- 		if (ct_sip_parse_request(ct, *dptr, *datalen,
- 					 &matchoff, &matchlen,
- 					 &addr, &port) > 0 &&
--- 
-2.0.4
+	Hello,
+
+On Tue, 16 Sep 2014, Pablo Neira Ayuso wrote:
+
+> Hi Simon,
+> 
+> On Tue, Sep 16, 2014 at 09:34:14AM +0900, Simon Horman wrote:
+> > Hi Pablo,
+> > 
+> > please consider these IPVS updates for v3.18.
+> > 
+> > * Add simple weighted failover scheduler
+> >   - Thanks to Kenny Mathis
+> > * Support v6 real servers in v4 pools and vice versa
+> >   - Thanks to Alex Gartrell and Julian Anastasov
+> 
+> I need a slightly larger description of this series.
+> 
+> I think you can merge patches 13-19 too. They are mostly two liners
+> with a similar description, so they naturally belong to the same
+> logical change. I would like to reduce the patchbomb pull request for
+> David.
+
+	Good idea, done.
+
+	Simon, I'm attaching such patch that replaces all
+these "ipvs: use correct address family in * logs".
+It additionally changes the new ip_vs_fo.c scheduler
+and ip_vs_wrr.c which was missed.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1232113692-1410902826=:3254
+Content-Type: TEXT/plain; name=0001-ipvs-use-correct-address-family-in-scheduler-logs.txt
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.LFD.2.11.1409170027030.3254@ja.home.ssi.bg>
+Content-Description: sched logs
+Content-Disposition: attachment; filename=0001-ipvs-use-correct-address-family-in-scheduler-logs.txt
+
+RnJvbSAxOGU3ZTkyYzk5NzJmZjk4ZGM1NTQ3YjlmZmRmYmQ0NTQyMDYzMWMy
+IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogSnVsaWFuIEFuYXN0
+YXNvdiA8amFAc3NpLmJnPg0KRGF0ZTogV2VkLCAxNyBTZXAgMjAxNCAwMDow
+OTowMCArMDMwMA0KU3ViamVjdDogW1BBVENIIG5ldC1uZXh0XSBpcHZzOiB1
+c2UgY29ycmVjdCBhZGRyZXNzIGZhbWlseSBpbiBzY2hlZHVsZXIgbG9ncw0K
+DQpOZWVkZWQgdG8gc3VwcG9ydCBzdmMtPmFmICE9IGRlc3QtPmFmLg0KDQpT
+aWduZWQtb2ZmLWJ5OiBKdWxpYW4gQW5hc3Rhc292IDxqYUBzc2kuYmc+DQpT
+aWduZWQtb2ZmLWJ5OiBBbGV4IEdhcnRyZWxsIDxhZ2FydHJlbGxAZmIuY29t
+Pg0KLS0tDQogbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2RoLmMgIHwgMiAr
+LQ0KIG5ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19mby5jICB8IDIgKy0NCiBu
+ZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfbGMuYyAgfCAyICstDQogbmV0L25l
+dGZpbHRlci9pcHZzL2lwX3ZzX25xLmMgIHwgMyArKy0NCiBuZXQvbmV0Zmls
+dGVyL2lwdnMvaXBfdnNfcnIuYyAgfCAyICstDQogbmV0L25ldGZpbHRlci9p
+cHZzL2lwX3ZzX3NlZC5jIHwgMyArKy0NCiBuZXQvbmV0ZmlsdGVyL2lwdnMv
+aXBfdnNfc2guYyAgfCA4ICsrKystLS0tDQogbmV0L25ldGZpbHRlci9pcHZz
+L2lwX3ZzX3dsYy5jIHwgMyArKy0NCiBuZXQvbmV0ZmlsdGVyL2lwdnMvaXBf
+dnNfd3JyLmMgfCAyICstDQogOSBmaWxlcyBjaGFuZ2VkLCAxNSBpbnNlcnRp
+b25zKCspLCAxMiBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL25ldC9u
+ZXRmaWx0ZXIvaXB2cy9pcF92c19kaC5jIGIvbmV0L25ldGZpbHRlci9pcHZz
+L2lwX3ZzX2RoLmMNCmluZGV4IGMzYjg0NTQuLjZiZTVjNTMgMTAwNjQ0DQot
+LS0gYS9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfZGguYw0KKysrIGIvbmV0
+L25ldGZpbHRlci9pcHZzL2lwX3ZzX2RoLmMNCkBAIC0yMzQsNyArMjM0LDcg
+QEAgaXBfdnNfZGhfc2NoZWR1bGUoc3RydWN0IGlwX3ZzX3NlcnZpY2UgKnN2
+YywgY29uc3Qgc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiANCiAJSVBfVlNfREJH
+X0JVRig2LCAiREg6IGRlc3RpbmF0aW9uIElQIGFkZHJlc3MgJXMgLS0+IHNl
+cnZlciAlczolZFxuIiwNCiAJCSAgICAgIElQX1ZTX0RCR19BRERSKHN2Yy0+
+YWYsICZpcGgtPmRhZGRyKSwNCi0JCSAgICAgIElQX1ZTX0RCR19BRERSKHN2
+Yy0+YWYsICZkZXN0LT5hZGRyKSwNCisJCSAgICAgIElQX1ZTX0RCR19BRERS
+KGRlc3QtPmFmLCAmZGVzdC0+YWRkciksDQogCQkgICAgICBudG9ocyhkZXN0
+LT5wb3J0KSk7DQogDQogCXJldHVybiBkZXN0Ow0KZGlmZiAtLWdpdCBhL25l
+dC9uZXRmaWx0ZXIvaXB2cy9pcF92c19mby5jIGIvbmV0L25ldGZpbHRlci9p
+cHZzL2lwX3ZzX2ZvLmMNCmluZGV4IDZhMjY0N2QuLmUwOTg3NGQgMTAwNjQ0
+DQotLS0gYS9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfZm8uYw0KKysrIGIv
+bmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2ZvLmMNCkBAIC00NCw3ICs0NCw3
+IEBAIGlwX3ZzX2ZvX3NjaGVkdWxlKHN0cnVjdCBpcF92c19zZXJ2aWNlICpz
+dmMsIGNvbnN0IHN0cnVjdCBza19idWZmICpza2IsDQogDQogCWlmIChod2Vp
+Z2h0KSB7DQogCQlJUF9WU19EQkdfQlVGKDYsICJGTzogc2VydmVyICVzOiV1
+IGFjdGl2ZWNvbm5zICVkIHdlaWdodCAlZFxuIiwNCi0JCQkgICAgICBJUF9W
+U19EQkdfQUREUihzdmMtPmFmLCAmaHdlaWdodC0+YWRkciksDQorCQkJICAg
+ICAgSVBfVlNfREJHX0FERFIoaHdlaWdodC0+YWYsICZod2VpZ2h0LT5hZGRy
+KSwNCiAJCQkgICAgICBudG9ocyhod2VpZ2h0LT5wb3J0KSwNCiAJCQkgICAg
+ICBhdG9taWNfcmVhZCgmaHdlaWdodC0+YWN0aXZlY29ubnMpLA0KIAkJCSAg
+ICAgIGF0b21pY19yZWFkKCZod2VpZ2h0LT53ZWlnaHQpKTsNCmRpZmYgLS1n
+aXQgYS9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfbGMuYyBiL25ldC9uZXRm
+aWx0ZXIvaXB2cy9pcF92c19sYy5jDQppbmRleCAyYmRjYjFjLi4xOWEwNzY5
+IDEwMDY0NA0KLS0tIGEvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2xjLmMN
+CisrKyBiL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19sYy5jDQpAQCAtNTks
+NyArNTksNyBAQCBpcF92c19sY19zY2hlZHVsZShzdHJ1Y3QgaXBfdnNfc2Vy
+dmljZSAqc3ZjLCBjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0KIAllbHNl
+DQogCQlJUF9WU19EQkdfQlVGKDYsICJMQzogc2VydmVyICVzOiV1IGFjdGl2
+ZWNvbm5zICVkICINCiAJCQkgICAgICAiaW5hY3Rjb25ucyAlZFxuIiwNCi0J
+CQkgICAgICBJUF9WU19EQkdfQUREUihzdmMtPmFmLCAmbGVhc3QtPmFkZHIp
+LA0KKwkJCSAgICAgIElQX1ZTX0RCR19BRERSKGxlYXN0LT5hZiwgJmxlYXN0
+LT5hZGRyKSwNCiAJCQkgICAgICBudG9ocyhsZWFzdC0+cG9ydCksDQogCQkJ
+ICAgICAgYXRvbWljX3JlYWQoJmxlYXN0LT5hY3RpdmVjb25ucyksDQogCQkJ
+ICAgICAgYXRvbWljX3JlYWQoJmxlYXN0LT5pbmFjdGNvbm5zKSk7DQpkaWZm
+IC0tZ2l0IGEvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX25xLmMgYi9uZXQv
+bmV0ZmlsdGVyL2lwdnMvaXBfdnNfbnEuYw0KaW5kZXggOTYxYTZkZS4uYThi
+NjM0MCAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19u
+cS5jDQorKysgYi9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfbnEuYw0KQEAg
+LTEwNyw3ICsxMDcsOCBAQCBpcF92c19ucV9zY2hlZHVsZShzdHJ1Y3QgaXBf
+dnNfc2VydmljZSAqc3ZjLCBjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0K
+ICAgb3V0Og0KIAlJUF9WU19EQkdfQlVGKDYsICJOUTogc2VydmVyICVzOiV1
+ICINCiAJCSAgICAgICJhY3RpdmVjb25ucyAlZCByZWZjbnQgJWQgd2VpZ2h0
+ICVkIG92ZXJoZWFkICVkXG4iLA0KLQkJICAgICAgSVBfVlNfREJHX0FERFIo
+c3ZjLT5hZiwgJmxlYXN0LT5hZGRyKSwgbnRvaHMobGVhc3QtPnBvcnQpLA0K
+KwkJICAgICAgSVBfVlNfREJHX0FERFIobGVhc3QtPmFmLCAmbGVhc3QtPmFk
+ZHIpLA0KKwkJICAgICAgbnRvaHMobGVhc3QtPnBvcnQpLA0KIAkJICAgICAg
+YXRvbWljX3JlYWQoJmxlYXN0LT5hY3RpdmVjb25ucyksDQogCQkgICAgICBh
+dG9taWNfcmVhZCgmbGVhc3QtPnJlZmNudCksDQogCQkgICAgICBhdG9taWNf
+cmVhZCgmbGVhc3QtPndlaWdodCksIGxvaCk7DQpkaWZmIC0tZ2l0IGEvbmV0
+L25ldGZpbHRlci9pcHZzL2lwX3ZzX3JyLmMgYi9uZXQvbmV0ZmlsdGVyL2lw
+dnMvaXBfdnNfcnIuYw0KaW5kZXggMTc2Yjg3Yy4uNThiYWNmYyAxMDA2NDQN
+Ci0tLSBhL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19yci5jDQorKysgYi9u
+ZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfcnIuYw0KQEAgLTk1LDcgKzk1LDcg
+QEAgc3RvcDoNCiAJc3Bpbl91bmxvY2tfYmgoJnN2Yy0+c2NoZWRfbG9jayk7
+DQogCUlQX1ZTX0RCR19CVUYoNiwgIlJSOiBzZXJ2ZXIgJXM6JXUgIg0KIAkJ
+ICAgICAgImFjdGl2ZWNvbm5zICVkIHJlZmNudCAlZCB3ZWlnaHQgJWRcbiIs
+DQotCQkgICAgICBJUF9WU19EQkdfQUREUihzdmMtPmFmLCAmZGVzdC0+YWRk
+ciksIG50b2hzKGRlc3QtPnBvcnQpLA0KKwkJICAgICAgSVBfVlNfREJHX0FE
+RFIoZGVzdC0+YWYsICZkZXN0LT5hZGRyKSwgbnRvaHMoZGVzdC0+cG9ydCks
+DQogCQkgICAgICBhdG9taWNfcmVhZCgmZGVzdC0+YWN0aXZlY29ubnMpLA0K
+IAkJICAgICAgYXRvbWljX3JlYWQoJmRlc3QtPnJlZmNudCksIGF0b21pY19y
+ZWFkKCZkZXN0LT53ZWlnaHQpKTsNCiANCmRpZmYgLS1naXQgYS9uZXQvbmV0
+ZmlsdGVyL2lwdnMvaXBfdnNfc2VkLmMgYi9uZXQvbmV0ZmlsdGVyL2lwdnMv
+aXBfdnNfc2VkLmMNCmluZGV4IGU0NDZiOWYuLmY4ZTJkMDAgMTAwNjQ0DQot
+LS0gYS9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfc2VkLmMNCisrKyBiL25l
+dC9uZXRmaWx0ZXIvaXB2cy9pcF92c19zZWQuYw0KQEAgLTEwOCw3ICsxMDgs
+OCBAQCBpcF92c19zZWRfc2NoZWR1bGUoc3RydWN0IGlwX3ZzX3NlcnZpY2Ug
+KnN2YywgY29uc3Qgc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiANCiAJSVBfVlNf
+REJHX0JVRig2LCAiU0VEOiBzZXJ2ZXIgJXM6JXUgIg0KIAkJICAgICAgImFj
+dGl2ZWNvbm5zICVkIHJlZmNudCAlZCB3ZWlnaHQgJWQgb3ZlcmhlYWQgJWRc
+biIsDQotCQkgICAgICBJUF9WU19EQkdfQUREUihzdmMtPmFmLCAmbGVhc3Qt
+PmFkZHIpLCBudG9ocyhsZWFzdC0+cG9ydCksDQorCQkgICAgICBJUF9WU19E
+QkdfQUREUihsZWFzdC0+YWYsICZsZWFzdC0+YWRkciksDQorCQkgICAgICBu
+dG9ocyhsZWFzdC0+cG9ydCksDQogCQkgICAgICBhdG9taWNfcmVhZCgmbGVh
+c3QtPmFjdGl2ZWNvbm5zKSwNCiAJCSAgICAgIGF0b21pY19yZWFkKCZsZWFz
+dC0+cmVmY250KSwNCiAJCSAgICAgIGF0b21pY19yZWFkKCZsZWFzdC0+d2Vp
+Z2h0KSwgbG9oKTsNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL2lwdnMv
+aXBfdnNfc2guYyBiL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19zaC5jDQpp
+bmRleCBjYzY1YjJmLi45OGExMzQzIDEwMDY0NA0KLS0tIGEvbmV0L25ldGZp
+bHRlci9pcHZzL2lwX3ZzX3NoLmMNCisrKyBiL25ldC9uZXRmaWx0ZXIvaXB2
+cy9pcF92c19zaC5jDQpAQCAtMTM4LDcgKzEzOCw3IEBAIGlwX3ZzX3NoX2dl
+dF9mYWxsYmFjayhzdHJ1Y3QgaXBfdnNfc2VydmljZSAqc3ZjLCBzdHJ1Y3Qg
+aXBfdnNfc2hfc3RhdGUgKnMsDQogCQlyZXR1cm4gZGVzdDsNCiANCiAJSVBf
+VlNfREJHX0JVRig2LCAiU0g6IHNlbGVjdGVkIHVuYXZhaWxhYmxlIHNlcnZl
+ciAlczolZCwgcmVzZWxlY3RpbmciLA0KLQkJICAgICAgSVBfVlNfREJHX0FE
+RFIoc3ZjLT5hZiwgJmRlc3QtPmFkZHIpLCBudG9ocyhkZXN0LT5wb3J0KSk7
+DQorCQkgICAgICBJUF9WU19EQkdfQUREUihkZXN0LT5hZiwgJmRlc3QtPmFk
+ZHIpLCBudG9ocyhkZXN0LT5wb3J0KSk7DQogDQogCS8qIGlmIHRoZSBvcmln
+aW5hbCBkZXN0IGlzIHVuYXZhaWxhYmxlLCBsb29wIGFyb3VuZCB0aGUgdGFi
+bGUNCiAJICogc3RhcnRpbmcgZnJvbSBpaGFzaCB0byBmaW5kIGEgbmV3IGRl
+c3QNCkBAIC0xNTMsNyArMTUzLDcgQEAgaXBfdnNfc2hfZ2V0X2ZhbGxiYWNr
+KHN0cnVjdCBpcF92c19zZXJ2aWNlICpzdmMsIHN0cnVjdCBpcF92c19zaF9z
+dGF0ZSAqcywNCiAJCQlyZXR1cm4gZGVzdDsNCiAJCUlQX1ZTX0RCR19CVUYo
+NiwgIlNIOiBzZWxlY3RlZCB1bmF2YWlsYWJsZSAiDQogCQkJICAgICAgInNl
+cnZlciAlczolZCAob2Zmc2V0ICVkKSwgcmVzZWxlY3RpbmciLA0KLQkJCSAg
+ICAgIElQX1ZTX0RCR19BRERSKHN2Yy0+YWYsICZkZXN0LT5hZGRyKSwNCisJ
+CQkgICAgICBJUF9WU19EQkdfQUREUihkZXN0LT5hZiwgJmRlc3QtPmFkZHIp
+LA0KIAkJCSAgICAgIG50b2hzKGRlc3QtPnBvcnQpLCByb2Zmc2V0KTsNCiAJ
+fQ0KIA0KQEAgLTE5Miw3ICsxOTIsNyBAQCBpcF92c19zaF9yZWFzc2lnbihz
+dHJ1Y3QgaXBfdnNfc2hfc3RhdGUgKnMsIHN0cnVjdCBpcF92c19zZXJ2aWNl
+ICpzdmMpDQogCQkJUkNVX0lOSVRfUE9JTlRFUihiLT5kZXN0LCBkZXN0KTsN
+CiANCiAJCQlJUF9WU19EQkdfQlVGKDYsICJhc3NpZ25lZCBpOiAlZCBkZXN0
+OiAlcyB3ZWlnaHQ6ICVkXG4iLA0KLQkJCQkgICAgICBpLCBJUF9WU19EQkdf
+QUREUihzdmMtPmFmLCAmZGVzdC0+YWRkciksDQorCQkJCSAgICAgIGksIElQ
+X1ZTX0RCR19BRERSKGRlc3QtPmFmLCAmZGVzdC0+YWRkciksDQogCQkJCSAg
+ICAgIGF0b21pY19yZWFkKCZkZXN0LT53ZWlnaHQpKTsNCiANCiAJCQkvKiBE
+b24ndCBtb3ZlIHRvIG5leHQgZGVzdCB1bnRpbCBmaWxsaW5nIHdlaWdodCAq
+Lw0KQEAgLTM0Miw3ICszNDIsNyBAQCBpcF92c19zaF9zY2hlZHVsZShzdHJ1
+Y3QgaXBfdnNfc2VydmljZSAqc3ZjLCBjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAq
+c2tiLA0KIA0KIAlJUF9WU19EQkdfQlVGKDYsICJTSDogc291cmNlIElQIGFk
+ZHJlc3MgJXMgLS0+IHNlcnZlciAlczolZFxuIiwNCiAJCSAgICAgIElQX1ZT
+X0RCR19BRERSKHN2Yy0+YWYsICZpcGgtPnNhZGRyKSwNCi0JCSAgICAgIElQ
+X1ZTX0RCR19BRERSKHN2Yy0+YWYsICZkZXN0LT5hZGRyKSwNCisJCSAgICAg
+IElQX1ZTX0RCR19BRERSKGRlc3QtPmFmLCAmZGVzdC0+YWRkciksDQogCQkg
+ICAgICBudG9ocyhkZXN0LT5wb3J0KSk7DQogDQogCXJldHVybiBkZXN0Ow0K
+ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c193bGMuYyBi
+L25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c193bGMuYw0KaW5kZXggYjViNDY1
+MC4uNmIzNjZmZCAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvaXB2cy9p
+cF92c193bGMuYw0KKysrIGIvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX3ds
+Yy5jDQpAQCAtODAsNyArODAsOCBAQCBpcF92c193bGNfc2NoZWR1bGUoc3Ry
+dWN0IGlwX3ZzX3NlcnZpY2UgKnN2YywgY29uc3Qgc3RydWN0IHNrX2J1ZmYg
+KnNrYiwNCiANCiAJSVBfVlNfREJHX0JVRig2LCAiV0xDOiBzZXJ2ZXIgJXM6
+JXUgIg0KIAkJICAgICAgImFjdGl2ZWNvbm5zICVkIHJlZmNudCAlZCB3ZWln
+aHQgJWQgb3ZlcmhlYWQgJWRcbiIsDQotCQkgICAgICBJUF9WU19EQkdfQURE
+UihzdmMtPmFmLCAmbGVhc3QtPmFkZHIpLCBudG9ocyhsZWFzdC0+cG9ydCks
+DQorCQkgICAgICBJUF9WU19EQkdfQUREUihsZWFzdC0+YWYsICZsZWFzdC0+
+YWRkciksDQorCQkgICAgICBudG9ocyhsZWFzdC0+cG9ydCksDQogCQkgICAg
+ICBhdG9taWNfcmVhZCgmbGVhc3QtPmFjdGl2ZWNvbm5zKSwNCiAJCSAgICAg
+IGF0b21pY19yZWFkKCZsZWFzdC0+cmVmY250KSwNCiAJCSAgICAgIGF0b21p
+Y19yZWFkKCZsZWFzdC0+d2VpZ2h0KSwgbG9oKTsNCmRpZmYgLS1naXQgYS9u
+ZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfd3JyLmMgYi9uZXQvbmV0ZmlsdGVy
+L2lwdnMvaXBfdnNfd3JyLmMNCmluZGV4IDA1NDZjZDUuLjE3ZTZkNDQgMTAw
+NjQ0DQotLS0gYS9uZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfd3JyLmMNCisr
+KyBiL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c193cnIuYw0KQEAgLTIxNiw3
+ICsyMTYsNyBAQCBpcF92c193cnJfc2NoZWR1bGUoc3RydWN0IGlwX3ZzX3Nl
+cnZpY2UgKnN2YywgY29uc3Qgc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiBmb3Vu
+ZDoNCiAJSVBfVlNfREJHX0JVRig2LCAiV1JSOiBzZXJ2ZXIgJXM6JXUgIg0K
+IAkJICAgICAgImFjdGl2ZWNvbm5zICVkIHJlZmNudCAlZCB3ZWlnaHQgJWRc
+biIsDQotCQkgICAgICBJUF9WU19EQkdfQUREUihzdmMtPmFmLCAmZGVzdC0+
+YWRkciksIG50b2hzKGRlc3QtPnBvcnQpLA0KKwkJICAgICAgSVBfVlNfREJH
+X0FERFIoZGVzdC0+YWYsICZkZXN0LT5hZGRyKSwgbnRvaHMoZGVzdC0+cG9y
+dCksDQogCQkgICAgICBhdG9taWNfcmVhZCgmZGVzdC0+YWN0aXZlY29ubnMp
+LA0KIAkJICAgICAgYXRvbWljX3JlYWQoJmRlc3QtPnJlZmNudCksDQogCQkg
+ICAgICBhdG9taWNfcmVhZCgmZGVzdC0+d2VpZ2h0KSk7DQotLSANCjEuOS4z
+DQoNCg==
+
+---1463811672-1232113692-1410902826=:3254--
