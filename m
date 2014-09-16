@@ -1,48 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/8] ipset patches for nf-next
-Date: Tue, 16 Sep 2014 18:50:48 +0200
-Message-ID: <20140916165048.GA18526@salvia>
-References: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [GIT PULL nf-next 00/21] Second Round of IPVS Updates for v3.18
+Date: Tue, 16 Sep 2014 19:25:56 +0200
+Message-ID: <20140916172556.GA21545@salvia>
+References: <1410827675-3637-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49045 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754482AbaIPQtx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Sep 2014 12:49:53 -0400
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410814974-9918-1-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1410827675-3637-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 15, 2014 at 11:02:46PM +0200, Jozsef Kadlecsik wrote:
+Hi Simon,
+
+On Tue, Sep 16, 2014 at 09:34:14AM +0900, Simon Horman wrote:
 > Hi Pablo,
 > 
-> Please consider to apply the next series of patches:
+> please consider these IPVS updates for v3.18.
 > 
-> - the new hash:mac type by which it's easy to store
->   just the MAC addresses in a set
-> - an optimization to the skbinfo expression, which
->   suppresses sending zero valued extensions
-> - the skbinfo extension support to the SET
->   target from Anton Danilov
-> - the skbinfo extension support for the list,
->   hash and bitmap types separatedly
->   from Anton Danilov
-> - the skbinfo extension support in the ipset
->   core from Anton Danilov
-> - a fix for a static checker warning in
->   ip_set_core.c, reported by Dan Carpenter
-> 
-> The skbinfo extension makes possible to store
-> fw mark, tc class and/or hardware queue parameters
-> together with the set elements and then attach
-> them to the matchig packets by the SET target.
-> 
-> You can pull the changes from
-> 
->         git://blackhole.kfki.hu/nf-next master
+> * Add simple weighted failover scheduler
+>   - Thanks to Kenny Mathis
+> * Support v6 real servers in v4 pools and vice versa
+>   - Thanks to Alex Gartrell and Julian Anastasov
 
-Pulled, thanks Jozsef.
+I need a slightly larger description of this series.
+
+I think you can merge patches 13-19 too. They are mostly two liners
+with a similar description, so they naturally belong to the same
+logical change. I would like to reduce the patchbomb pull request for
+David.
+
+Thanks.
