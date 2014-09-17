@@ -1,52 +1,76 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: Re: [PATCH 03/22] netfilter: Replace strnicmp with strncasecmp
-Date: Wed, 17 Sep 2014 15:16:24 +0200
-Message-ID: <874mw6idzr.fsf@rasmusvillemoes.dk>
-References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
-	<1410900696-6481-4-git-send-email-linux@rasmusvillemoes.dk>
-	<20140917130209.GA4662@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] parser: compact log level grammar
+Date: Wed, 17 Sep 2014 15:26:31 +0200
+Message-ID: <1410960391-17909-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:51917 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754061AbaIQNQ1 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55774 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754720AbaIQN0e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Sep 2014 09:16:27 -0400
-Received: by mail-la0-f44.google.com with SMTP id q1so641451lam.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Sep 2014 06:16:25 -0700 (PDT)
-In-Reply-To: <20140917130209.GA4662@salvia> (Pablo Neira Ayuso's message of
-	"Wed, 17 Sep 2014 15:02:09 +0200")
+	Wed, 17 Sep 2014 09:26:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 17 2014, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Put rule and action on a single line as for other simple mappings.
 
-> On Tue, Sep 16, 2014 at 10:51:17PM +0200, Rasmus Villemoes wrote:
->> The kernel used to contain two functions for length-delimited,
->> case-insensitive string comparison, strnicmp with correct semantics
->> and a slightly buggy strncasecmp. The latter is the POSIX name, so
->> strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
->> for the new strncasecmp to avoid breaking existing users.
->> 
->> To allow the compat wrapper strnicmp to be removed at some point in
->> the future, and to avoid the extra indirection cost, do
->> s/strnicmp/strncasecmp/g.
->
-> I don't manage to find the strnicmp wrapper patch:
->
-> http://thread.gmane.org/gmane.linux.kernel/1775150/focus=1775152
->
-> perhaps I'm looking at the wrong tree? Please clarify. Thanks.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/parser.y | 40 ++++++++--------------------------------
+ 1 file changed, 8 insertions(+), 32 deletions(-)
 
-It's in mmots,
-<http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/commit/?id=7acc5207bcc2fbf0929bd3ee14c414b9defa3382>.
-I thought it had made it to linux-next, but failed to check that. Andrew
-said he'd take that patch as well as the treewide follow-up patches, to
-ensure they'd be applied in the right order.
+diff --git a/src/parser.y b/src/parser.y
+index 653c764..be3b2e9 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -1316,38 +1316,14 @@ log_arg			:	PREFIX			string
+ 			}
+ 			;
+ 
+-level_type		:	LEVEL_EMERG
+-			{
+-				$$ = LOG_EMERG;
+-			}
+-			|	LEVEL_ALERT
+-			{
+-				$$ = LOG_ALERT;
+-			}
+-			|	LEVEL_CRIT
+-			{
+-				$$ = LOG_CRIT;
+-			}
+-			|	LEVEL_ERR
+-			{
+-				$$ = LOG_ERR;
+-			}
+-			|	LEVEL_WARN
+-			{
+-				$$ = LOG_WARNING;
+-			}
+-			|	LEVEL_NOTICE
+-			{
+-				$$ = LOG_NOTICE;
+-			}
+-			|	LEVEL_INFO
+-			{
+-				$$ = LOG_INFO;
+-			}
+-			|	LEVEL_DEBUG
+-			{
+-				$$ = LOG_DEBUG;
+-			}
++level_type		:	LEVEL_EMERG	{ $$ = LOG_EMERG; }
++			|	LEVEL_ALERT	{ $$ = LOG_ALERT; }
++			|	LEVEL_CRIT	{ $$ = LOG_CRIT; }
++			|	LEVEL_ERR	{ $$ = LOG_ERR; }
++			|	LEVEL_WARN	{ $$ = LOG_WARNING; }
++			|	LEVEL_NOTICE	{ $$ = LOG_NOTICE; }
++			|	LEVEL_INFO	{ $$ = LOG_INFO; }
++			|	LEVEL_DEBUG	{ $$ = LOG_DEBUG; }
+ 			;
+ 
+ limit_stmt		:	LIMIT	RATE	NUM	SLASH	time_unit
+-- 
+1.9.3
 
-Sorry for the confusion,
-Rasmus
