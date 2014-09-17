@@ -1,42 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft v2 0/6] tests: Automated regression testing
-Date: Thu, 18 Sep 2014 00:10:33 +0200
-Message-ID: <20140917221033.GA29146@acer.localdomain>
-References: <1410785230-8498-1-git-send-email-anarey@gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-next 00/21] Second Round of IPVS Updates for v3.18
+Date: Thu, 18 Sep 2014 08:56:29 +0900
+Message-ID: <20140917235628.GC600@verge.net.au>
+References: <1410827675-3637-1-git-send-email-horms@verge.net.au>
+ <20140916172556.GA21545@salvia>
+ <alpine.LFD.2.11.1409170013440.3254@ja.home.ssi.bg>
+ <20140917083041.GA4762@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59117 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755815AbaIQWKh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Sep 2014 18:10:37 -0400
+Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410785230-8498-1-git-send-email-anarey@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20140917083041.GA4762@salvia>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 15, 2014 at 02:47:04PM +0200, Ana Rey wrote:
-> This is a new version of the automated regression testing of nftables.
+On Wed, Sep 17, 2014 at 10:30:41AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 17, 2014 at 12:27:03AM +0300, Julian Anastasov wrote:
+> > 
+> > 	Hello,
+> > 
+> > On Tue, 16 Sep 2014, Pablo Neira Ayuso wrote:
+> > 
+> > > Hi Simon,
+> > > 
+> > > On Tue, Sep 16, 2014 at 09:34:14AM +0900, Simon Horman wrote:
+> > > > Hi Pablo,
+> > > > 
+> > > > please consider these IPVS updates for v3.18.
+> > > > 
+> > > > * Add simple weighted failover scheduler
+> > > >   - Thanks to Kenny Mathis
+> > > > * Support v6 real servers in v4 pools and vice versa
+> > > >   - Thanks to Alex Gartrell and Julian Anastasov
+> > > 
+> > > I need a slightly larger description of this series.
+> > > 
+> > > I think you can merge patches 13-19 too. They are mostly two liners
+> > > with a similar description, so they naturally belong to the same
+> > > logical change. I would like to reduce the patchbomb pull request for
+> > > David.
+> > 
+> > 	Good idea, done.
+> > 
+> > 	Simon, I'm attaching such patch that replaces all
+> > these "ipvs: use correct address family in * logs".
+> > It additionally changes the new ip_vs_fo.c scheduler
+> > and ip_vs_wrr.c which was missed.
 > 
-> There is no infrastructure to allow us to check all options/features in
-> nft. So, if anyone sends a patch, we cannot check if it breaks something.
+> Thanks Julian.
 > 
-> I send in this patchset the nftables automated regression tests. It
-> contains a python script (nft-add.py) and a set of test files.
+> @Simon, I can manually apply this batch if that reduces your workload.
+> Please let me know what you prefer.
 > 
-> This allow us to check the input of rules of nft-tool from the
-> command-line and the output from nft-tool of this rule. Then, it
-> compares if the rule input matches the rule output automatically.
-> 
-> We also have plans to add automated regression testing in the packet
-> path in the future, which should come in a follow up step.
-> 
-> Comments welcome, thanks
+> Still I'd really appreciate a longer series description that I can
+> include in the pull-request for David.
 
-I think it's great to have this and would suggest pulling it into the
-tree now and continue the work there.
+Hi Pablo,
 
-So if you don't have any objections, I'll apply the series.
+I should be able to prepare and send a revised pull-request today.
