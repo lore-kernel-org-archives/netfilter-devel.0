@@ -1,48 +1,42 @@
-From: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Subject: Conntrack TW->SS in Reply direction
-Date: Wed, 17 Sep 2014 13:22:30 -0300
-Message-ID: <5419B546.40702@redhat.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft v2 0/6] tests: Automated regression testing
+Date: Thu, 18 Sep 2014 00:10:33 +0200
+Message-ID: <20140917221033.GA29146@acer.localdomain>
+References: <1410785230-8498-1-git-send-email-anarey@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Ana Rey <anarey@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58261 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755449AbaIQQWc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Sep 2014 12:22:32 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s8HGMWAw025383
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Sep 2014 12:22:32 -0400
-Received: from localhost.localdomain (vpn1-4-148.gru2.redhat.com [10.97.4.148])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id s8HGMVE1014403
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Sep 2014 12:22:31 -0400
+Received: from stinky.trash.net ([213.144.137.162]:59117 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755815AbaIQWKh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Sep 2014 18:10:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1410785230-8498-1-git-send-email-anarey@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Mon, Sep 15, 2014 at 02:47:04PM +0200, Ana Rey wrote:
+> This is a new version of the automated regression testing of nftables.
+> 
+> There is no infrastructure to allow us to check all options/features in
+> nft. So, if anyone sends a patch, we cannot check if it breaks something.
+> 
+> I send in this patchset the nftables automated regression tests. It
+> contains a python script (nft-add.py) and a set of test files.
+> 
+> This allow us to check the input of rules of nft-tool from the
+> command-line and the output from nft-tool of this rule. Then, it
+> compares if the rule input matches the rule output automatically.
+> 
+> We also have plans to add automated regression testing in the packet
+> path in the future, which should come in a follow up step.
+> 
+> Comments welcome, thanks
 
-Any reason on why we don't allow TW->SS state change in reply direction? It is 
-currently marked as (since ever it seems) in a comment:
-  *  sTW -> sIV  Reopened connection, but server may not do it.
+I think it's great to have this and would suggest pulling it into the
+tree now and continue the work there.
 
-That is true but just if the server role is never swapped between hosts and I 
-don't see it violating any spec by allowing it..
-
-Thing is, there is this application that needs a connection as a callback on a 
-specified port range. This application is used between 2 servers, using 
-conntrack and only allowing in new connections and its (related) packets. 
-There will be a moment that the port that once was server for the callback, 
-will now originate a callback to the other server.
-
-As Linux stack uses TIME_WAIT timeout as 1min and conntrack as 2mins, there 
-will be a moment on which the port selection allows using a port that, for 
-conntrack, is still not allowed...
-
-Reducing conntrack's TIME_WAIT timeout is more complicated because it may 
-restrain the compatibility with other implementations, but allowing TW->SS 
-imposes no harm?
-
-Thanks,
-Marcelo
+So if you don't have any objections, I'll apply the series.
