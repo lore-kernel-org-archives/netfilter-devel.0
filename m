@@ -1,39 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] parser: simplify monitor command parsing
-Date: Wed, 17 Sep 2014 10:01:15 +0200
-Message-ID: <20140917080115.GB10380@acer.localdomain>
-References: <1410939907-10180-1-git-send-email-kaber@trash.net>
- <CAOkSjBgHZ4aG7Qog1pOtCHS=YDmLiJi11eXPxdY20oDNgPE1bA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf-next 00/21] Second Round of IPVS Updates for v3.18
+Date: Wed, 17 Sep 2014 10:30:41 +0200
+Message-ID: <20140917083041.GA4762@salvia>
+References: <1410827675-3637-1-git-send-email-horms@verge.net.au>
+ <20140916172556.GA21545@salvia>
+ <alpine.LFD.2.11.1409170013440.3254@ja.home.ssi.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53637 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132AbaIQIBT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Sep 2014 04:01:19 -0400
+Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgHZ4aG7Qog1pOtCHS=YDmLiJi11eXPxdY20oDNgPE1bA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.11.1409170013440.3254@ja.home.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 17, 2014 at 09:52:11AM +0200, Arturo Borrero Gonzalez wrote:
-> On 17 September 2014 09:45, Patrick McHardy <kaber@trash.net> wrote:
-> > Add tokens for "new" and "destroy". Split up the monitor flags into an
-> > event and an object to avoid lots of duplicated code.
-> >
-> > Signed-off-by: Patrick McHardy <kaber@trash.net>
-> > ---
+On Wed, Sep 17, 2014 at 12:27:03AM +0300, Julian Anastasov wrote:
 > 
-> I think the 'new' keyword may clash with 'ct new', don't you?. That's
-> why Pablo did the parser that way.
+> 	Hello,
+> 
+> On Tue, 16 Sep 2014, Pablo Neira Ayuso wrote:
+> 
+> > Hi Simon,
+> > 
+> > On Tue, Sep 16, 2014 at 09:34:14AM +0900, Simon Horman wrote:
+> > > Hi Pablo,
+> > > 
+> > > please consider these IPVS updates for v3.18.
+> > > 
+> > > * Add simple weighted failover scheduler
+> > >   - Thanks to Kenny Mathis
+> > > * Support v6 real servers in v4 pools and vice versa
+> > >   - Thanks to Alex Gartrell and Julian Anastasov
+> > 
+> > I need a slightly larger description of this series.
+> > 
+> > I think you can merge patches 13-19 too. They are mostly two liners
+> > with a similar description, so they naturally belong to the same
+> > logical change. I would like to reduce the patchbomb pull request for
+> > David.
+> 
+> 	Good idea, done.
+> 
+> 	Simon, I'm attaching such patch that replaces all
+> these "ipvs: use correct address family in * logs".
+> It additionally changes the new ip_vs_fo.c scheduler
+> and ip_vs_wrr.c which was missed.
 
-Right. The split into event and object still saves a lot of code, I'll
-add back the strcmp if I can't think of a nicer way to fix this.
+Thanks Julian.
 
-I'm working on command line completion based on the bison grammar, so
-I'd prefer to only use strings for identifiers, not for keywords.
+@Simon, I can manually apply this batch if that reduces your workload.
+Please let me know what you prefer.
+
+Still I'd really appreciate a longer series description that I can
+include in the pull-request for David.
+
+Thanks.
