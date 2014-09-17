@@ -1,56 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2 nf-next] net: bridge: deprecate call_iptables=1 default value
-Date: Wed, 17 Sep 2014 17:52:17 +0200
-Message-ID: <1410969137-11885-2-git-send-email-fw@strlen.de>
-References: <1410969137-11885-1-git-send-email-fw@strlen.de>
-Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
+From: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Subject: Conntrack TW->SS in Reply direction
+Date: Wed, 17 Sep 2014 13:22:30 -0300
+Message-ID: <5419B546.40702@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1410969137-11885-1-git-send-email-fw@strlen.de>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:58261 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755449AbaIQQWc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Sep 2014 12:22:32 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s8HGMWAw025383
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Sep 2014 12:22:32 -0400
+Received: from localhost.localdomain (vpn1-4-148.gru2.redhat.com [10.97.4.148])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id s8HGMVE1014403
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Sep 2014 12:22:31 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-add a warning and tell users to set call_iptables to 0 or 1
-depending on desired behaviour before adding ports to the bridge.
+Hi,
 
-In distant future, this might allow to disable call_iptables by default.
+Any reason on why we don't allow TW->SS state change in reply direction? It is 
+currently marked as (since ever it seems) in a comment:
+  *  sTW -> sIV  Reopened connection, but server may not do it.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- no changes since v1.
+That is true but just if the server role is never swapped between hosts and I 
+don't see it violating any spec by allowing it..
 
- net/bridge/br_netfilter.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+Thing is, there is this application that needs a connection as a callback on a 
+specified port range. This application is used between 2 servers, using 
+conntrack and only allowing in new connections and its (related) packets. 
+There will be a moment that the port that once was server for the callback, 
+will now originate a callback to the other server.
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 52c410f..e0b581d 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -58,9 +58,9 @@ static int brnf_filter_vlan_tagged __read_mostly = 0;
- static int brnf_filter_pppoe_tagged __read_mostly = 0;
- static int brnf_pass_vlan_indev __read_mostly = 0;
- 
--int brnf_call_iptables __read_mostly = 1;
--int brnf_call_ip6tables __read_mostly = 1;
--int brnf_call_arptables __read_mostly = 1;
-+int brnf_call_iptables __read_mostly = 2;
-+int brnf_call_ip6tables __read_mostly = 2;
-+int brnf_call_arptables __read_mostly = 2;
- #else
- #define brnf_filter_vlan_tagged 0
- #define brnf_filter_pppoe_tagged 0
-@@ -1075,6 +1075,12 @@ static void __br_register_hooks_init(struct work_struct *w)
- 		return;
- 	}
- 	static_key_slow_inc(&brnf_hooks_active);
-+
-+	if ((brnf_call_iptables|brnf_call_ip6tables|brnf_call_arptables) == 2)
-+		pr_info("bridge: automatic filtering via arp/ip/ip6tables "
-+			"is deprecated and it will be disabled soon. Set "
-+			"bridge-nf-call-{ip,ip6,arp}tables sysctls to 1 or 0 "
-+			"before adding bridge ports if you need this.\n");
- }
- 
- bool br_netfiler_hooks_init(void)
--- 
-1.8.1.5
+As Linux stack uses TIME_WAIT timeout as 1min and conntrack as 2mins, there 
+will be a moment on which the port selection allows using a port that, for 
+conntrack, is still not allowed...
+
+Reducing conntrack's TIME_WAIT timeout is more complicated because it may 
+restrain the compatibility with other implementations, but allowing TW->SS 
+imposes no harm?
+
+Thanks,
+Marcelo
