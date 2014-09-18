@@ -1,109 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/2 v2 nf-next] net: bridge: don't register netfilter
- call_iptables hooks by default
-Date: Thu, 18 Sep 2014 16:31:08 +0200
-Message-ID: <20140918143108.GB8484@breakpoint.cc>
-References: <1410969137-11885-1-git-send-email-fw@strlen.de>
- <20140918133511.GA8740@salvia>
+From: SaRaVanAn <saravanan.nagarajan87@gmail.com>
+Subject: Re: Query on "Add locking to prevent concurrent instances" patch
+Date: Thu, 18 Sep 2014 23:26:36 +0530
+Message-ID: <CA+86yMjXGM=dNpsDjDz03CxXF9gEoC0XnrSn-KOqpuy9pYC4uw@mail.gmail.com>
+References: <CA+86yMj=JY+x6v96wFmS8RrGuqard-kETu57fm-6VvGdvx6b5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34488 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755682AbaIRObK (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:40958 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932117AbaIRR4h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 10:31:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20140918133511.GA8740@salvia>
+	Thu, 18 Sep 2014 13:56:37 -0400
+Received: by mail-we0-f170.google.com with SMTP id u57so1332585wes.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2014 10:56:36 -0700 (PDT)
+In-Reply-To: <CA+86yMj=JY+x6v96wFmS8RrGuqard-kETu57fm-6VvGdvx6b5w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Sep 17, 2014 at 05:52:16PM +0200, Florian Westphal wrote:
-> > Jesper reports that kernels with CONFIG_BRIDGE_NETFILTER=n show significantly
-> > better performance vs. CONFIG_BRIDGE_NETFILTER=y, even with
-> > bridge-nf-call-iptables=0.
-> >
-> > This is because bridge registers some bridge netfilter hooks at
-> > module load time, so the static key to bypass nf rule evaluation
-> > via NF_HOOK() is false.
-> 
-> I'm attaching a patch to decouple bridge netfilter from the bridge
-> core.  The idea is to encapsulate the hook registration and most of
-> its code in a separated module: br_netfilter.
+Hi Team,
+    Any pointers on this?
 
-Right, thats better.
+Patch details
+http://git.netfilter.org/iptables/commit/?id=93587a04d0f2511e108bbc4d87a8b9d28a5c5dd8
+http://git.netfilter.org/iptables/commit/?id=d7aeda5ed45ac7ca959f12180690caa371b5b14b
 
-I did not do this since it means modprobe bridge.ko will no longer
-register the needed sysctls, and I deemed autoloading pointless
-since that means the hooks are registered on bridge.ko load.
-
-Also, it seems to be that we will have to wait forever to eventually
-get rid of the autoload...
-
-> I also guess most distributors will use CONFIG_BRIDGE_NETFILTER=m.
-> Then, users will get a warning message to let them know that they will
-> have to modprobe br_netfilter in the future if they need it, so we can
-> remove the deferred request_module from the br init path.
-
-Hmm, not sure if its safe to do this, e.g. with bridge=y,
-br_netfilter=m, module might not yet be present in such cases?
-
-Also, what about this:
-iptables-restore < rules.txt
-modprobe bridge
-brctl addbr ...
-brctl addif ...
-
-at this point, any packet forwarded by bridge is filtered
-via iptables.
-
-After your patch, this might no longer be the case, if the modprobe
-call is delayed (maybe this is far-fetched and not an issue in practice)?
-
-2nd hypothetical issue:
-modprobe bridge
-sysctl net.bridge.bridge-nf-call-iptables=0
-
-The sysctl could fail when br_nf_core is not yet present.
-
-> Unless I'm missing anything, I think br_netfilter should have been a
-> separated module since the beginning. The hook registration in other
-> netfilter modules is also ruled by rmmod/modprobe, so better if we
-> recover that path in this code.
-
-Agreed.
-
-> Kconfig (bridge=y, br_netfilter=m) and so on, btw. I also may include
-> part of your original patch description if you're OK with it.
-
-Sure, go ahead.
-
-> Please, let me know if I overlook anything. Thanks.
-
-> This patch modularizes br_netfilter so it can be
-> rmmod'ed, thus, the hooks can be unregistered.
-
-I see.  Yes, that makes sense.
-
-Another alternative would be to merge both approaches.
-I.e, use my patch, but move all the hook registration to
-your proposed br_nf_core module.
-
-The sysctls would still be registered from bridge.ko.
-
-Then, if call_iptables is set and iptables rules are active,
-do the module autoload and print the warning from your patch, telling
-people to modprobe br_nf_core if they want the filtering.
-
-Unfortunately, we'd have to export (from bridge.ko) some hook
-to allow br_nf_core to signal that the hooks have been registered.
-
-Then, in two years or so, we would remove the autoload hook
-in the packet procesing path.
-
-The only other disadvantage that I see is that we'd still have
-the bridge-nf-* sysctls in bridge.ko rather than the new glue module.
+On Mon, Sep 15, 2014 at 6:05 PM, SaRaVanAn
+<saravanan.nagarajan87@gmail.com> wrote:
+> Hi Team,
+>    We are using iptables version "1.4.14". We decided to take latest
+> iptables version to resolve "resource temporarily unavailable"
+> issue.We have compiled the latest version "1.4.20-1"  and tried
+> installing it. It seems the latest iptables code needs glibc-2.14.
+>
+> Is it possible to merge the patch alone without going for glibc
+> upgrade? Will it work without glibc upgrade?
+>
+> Glibc upgrade is a major change for us, since it leads to many library
+> upgrades.
+>
+> Please provide your inputs on this.
+>
+>
+> Regards,
+> Saravanan N
