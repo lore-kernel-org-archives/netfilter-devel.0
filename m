@@ -1,178 +1,67 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nf_tables 1/3] netfilter: nf_tables: store and dump sets mechanism options
-Date: Thu, 18 Sep 2014 20:34:15 +0200
-Message-ID: <1de321c7-7c48-4dcb-a445-b27aae8d8bcf@email.android.com>
-References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2 v2 nf-next] net: bridge: don't register netfilter
+ call_iptables hooks by default
+Date: Thu, 18 Sep 2014 20:39:56 +0200
+Message-ID: <20140918183956.GA3989@salvia>
+References: <1410969137-11885-1-git-send-email-fw@strlen.de>
+ <20140918133511.GA8740@salvia>
+ <20140918143108.GB8484@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34343 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932458AbaIRSeY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 14:34:24 -0400
-In-Reply-To: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:49422 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932352AbaIRSiz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 14:38:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20140918143108.GB8484@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18. September 2014 20:18:18 MESZ, Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
->The sets mechanism options was not being stored anywhere.
->
->We want to know in which cases the user explicitly set the mechanism
->options. In that case, we also want to dump back the info.
->
+On Thu, Sep 18, 2014 at 04:31:08PM +0200, Florian Westphal wrote:
+> > I also guess most distributors will use CONFIG_BRIDGE_NETFILTER=m.
+> > Then, users will get a warning message to let them know that they will
+> > have to modprobe br_netfilter in the future if they need it, so we can
+> > remove the deferred request_module from the br init path.
+> 
+> Hmm, not sure if its safe to do this, e.g. with bridge=y,
+> br_netfilter=m, module might not yet be present in such cases?
+> 
+> Also, what about this:
+> iptables-restore < rules.txt
+> modprobe bridge
+> brctl addbr ...
+> brctl addif ...
+> 
+> at this point, any packet forwarded by bridge is filtered
+> via iptables.
+> 
+> After your patch, this might no longer be the case, if the modprobe
+> call is delayed (maybe this is far-fetched and not an issue in practice)?
 
-I don't think this is needed. Basically we always want to dump options for non-constant sets, since they couldn't have been chosen automatically, and don't need to dump them for constant sets, since they can always be determined automatically based on the contents.
+Agreed, I think we can use your static key approach to drop traffic
+from br_handle_frame after the work has called request_module.
 
+> 2nd hypothetical issue:
+> modprobe bridge
+> sysctl net.bridge.bridge-nf-call-iptables=0
+> 
+> The sysctl could fail when br_nf_core is not yet present.
 
+Indeed.
 
->Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
->---
-> include/net/netfilter/nf_tables.h |   12 +++++++++++
->net/netfilter/nf_tables_api.c     |   42
->+++++++++++++++++++++++++++----------
-> 2 files changed, 43 insertions(+), 11 deletions(-)
->
->diff --git a/include/net/netfilter/nf_tables.h
->b/include/net/netfilter/nf_tables.h
->index c4d8619..a9c6387 100644
->--- a/include/net/netfilter/nf_tables.h
->+++ b/include/net/netfilter/nf_tables.h
->@@ -231,6 +231,14 @@ struct nft_set_ops {
-> int nft_register_set(struct nft_set_ops *ops);
-> void nft_unregister_set(struct nft_set_ops *ops);
-> 
->+/* internal flags to know which attributes were originally set
->+ * from userspace.
->+ */
->+enum nft_set_attr {
->+	NFT_SET_ATTR_POLICY	= 0x1,
->+	NFT_SET_ATTR_DESC_SIZE	= 0x2,
->+};
->+
-> /**
->  * 	struct nft_set - nf_tables set instance
->  *
->@@ -241,6 +249,8 @@ void nft_unregister_set(struct nft_set_ops *ops);
->  * 	@dtype: data type (verdict or numeric type defined by userspace)
->  * 	@size: maximum set size
->  * 	@nelems: number of elements
->+ *	@attr_flags: (enum nft_set_flags)
->+ *	@policy: (enum nft_set_policies)
->  * 	@ops: set ops
->  * 	@flags: set flags
->  * 	@klen: key length
->@@ -255,6 +265,8 @@ struct nft_set {
-> 	u32				dtype;
-> 	u32				size;
-> 	u32				nelems;
->+	u16				attr_flags;
->+	u32				policy;
-> 	/* runtime data below here */
-> 	const struct nft_set_ops	*ops ____cacheline_aligned;
-> 	u16				flags;
->diff --git a/net/netfilter/nf_tables_api.c
->b/net/netfilter/nf_tables_api.c
->index 8237460..d1c3f3e 100644
->--- a/net/netfilter/nf_tables_api.c
->+++ b/net/netfilter/nf_tables_api.c
->@@ -2342,13 +2342,24 @@ static int nf_tables_fill_set(struct sk_buff
->*skb, const struct nft_ctx *ctx,
-> 			goto nla_put_failure;
-> 	}
-> 
->-	desc = nla_nest_start(skb, NFTA_SET_DESC);
->-	if (desc == NULL)
->-		goto nla_put_failure;
->-	if (set->size &&
->-	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
->-		goto nla_put_failure;
->-	nla_nest_end(skb, desc);
->+	/* dump policy and desc info only if they were explicitly set */
->+	if (set->attr_flags & (1 << NFT_SET_ATTR_POLICY)) {
->+		if (nla_put_be32(skb, NFTA_SET_POLICY, htonl(set->policy)))
->+			goto nla_put_failure;
->+	}
->+
->+	if (set->attr_flags & (1 << NFT_SET_ATTR_DESC_SIZE)) {
->+		desc = nla_nest_start(skb, NFTA_SET_DESC);
->+		if (desc == NULL)
->+			goto nla_put_failure;
->+
->+		if (set->size &&
->+		    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size))) {
->+			goto nla_put_failure;
->+		}
->+
->+		nla_nest_end(skb, desc);
->+	}
-> 
-> 	return nlmsg_end(skb, nlh);
-> 
->@@ -2519,7 +2530,8 @@ err:
-> 
-> static int nf_tables_set_desc_parse(const struct nft_ctx *ctx,
-> 				    struct nft_set_desc *desc,
->-				    const struct nlattr *nla)
->+				    const struct nlattr *nla,
->+				    u16 *attr_flags)
-> {
-> 	struct nlattr *da[NFTA_SET_DESC_MAX + 1];
-> 	int err;
->@@ -2528,8 +2540,10 @@ static int nf_tables_set_desc_parse(const struct
->nft_ctx *ctx,
-> 	if (err < 0)
-> 		return err;
-> 
->-	if (da[NFTA_SET_DESC_SIZE] != NULL)
->+	if (da[NFTA_SET_DESC_SIZE] != NULL) {
-> 		desc->size = ntohl(nla_get_be32(da[NFTA_SET_DESC_SIZE]));
->+		*attr_flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
->+	}
-> 
-> 	return 0;
-> }
->@@ -2549,6 +2563,7 @@ static int nf_tables_newset(struct sock *nlsk,
->struct sk_buff *skb,
-> 	unsigned int size;
-> 	bool create;
-> 	u32 ktype, dtype, flags, policy;
->+	u16 attr_flags = 0;
-> 	struct nft_set_desc desc;
-> 	int err;
-> 
->@@ -2602,11 +2617,14 @@ static int nf_tables_newset(struct sock *nlsk,
->struct sk_buff *skb,
-> 		return -EINVAL;
-> 
-> 	policy = NFT_SET_POL_PERFORMANCE;
->-	if (nla[NFTA_SET_POLICY] != NULL)
->+	if (nla[NFTA_SET_POLICY] != NULL) {
-> 		policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
->+		attr_flags |= (1 << NFT_SET_ATTR_POLICY);
->+	}
-> 
-> 	if (nla[NFTA_SET_DESC] != NULL) {
->-		err = nf_tables_set_desc_parse(&ctx, &desc, nla[NFTA_SET_DESC]);
->+		err = nf_tables_set_desc_parse(&ctx, &desc, nla[NFTA_SET_DESC],
->+					       &attr_flags);
-> 		if (err < 0)
-> 			return err;
-> 	}
->@@ -2667,6 +2685,8 @@ static int nf_tables_newset(struct sock *nlsk,
->struct sk_buff *skb,
-> 	set->dlen  = desc.dlen;
-> 	set->flags = flags;
-> 	set->size  = desc.size;
->+	set->attr_flags	= attr_flags;
->+	set->policy	= policy;
-> 
-> 	err = ops->init(set, &desc, nla);
-> 	if (err < 0)
+We can keep those sysctls there in bridge.ko and deprecated them in
+favour of br_netlink. I think we can add some IFLA_BRPORT_NF for the
+setlink command to replace the existing global proc nf-call-thing.
+We'll have to enhance the 'bridge' tool in iproute2 to support this.
+I can see this is packaged in testing already by debian at least.
 
+> Then, in two years or so, we would remove the autoload hook
+> in the packet procesing path.
 
+Agreed. By that time, we can kill the bridge.ko <-> br_netfilter.ko
+dependency and the /proc call-nf-bridge stuff in favour of br_netlink.
+
+Let me know if you still have any concern. Thanks.
