@@ -1,25 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl 2/3] set: fix set nlmsg desc parsing
-Date: Thu, 18 Sep 2014 20:43:34 +0200
-Message-ID: <20140918184334.GA5518@salvia>
-References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
- <1411064300-4433-2-git-send-email-arturo.borrero.glez@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2 v2 nf-next] net: bridge: don't register netfilter call_iptables hooks by default
+Date: Thu, 18 Sep 2014 21:31:33 +0200
+Message-ID: <d6c03eac-ce32-4728-85cf-2c385613a7df@email.android.com>
+References: <1410969137-11885-1-git-send-email-fw@strlen.de> <20140918133511.GA8740@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50233 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932424AbaIRSmf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 14:42:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1411064300-4433-2-git-send-email-arturo.borrero.glez@gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:34723 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756232AbaIRTbm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 15:31:42 -0400
+In-Reply-To: <20140918133511.GA8740@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 18, 2014 at 08:18:19PM +0200, Arturo Borrero Gonzalez wrote:
-> In commit [ff62959](set: add support for set mechanism selection) the
-> support for parsing the nested attribute (NFTA_SET_DESC) was invalid.
+On 18. September 2014 15:35:52 MESZ, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Applied this little fix, thanks Arturo.
+>Unless I'm missing anything, I think br_netfilter should have been a
+>separated module since the beginning. 
+
+Yeah absolutely. Basic rule: don't impose the costs of your cool new feature on all the people who will never need it.
+
+Great someone finally fixes this up. Long term we still need a sane design for this though, some direct way of bridging to interact with conntrack, nftables provides for the rest.
+
