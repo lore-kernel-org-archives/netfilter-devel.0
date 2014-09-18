@@ -1,48 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v2 0/6] tests: Automated regression testing
-Date: Thu, 18 Sep 2014 10:52:33 +0200
-Message-ID: <20140918085233.GA4094@salvia>
-References: <1410785230-8498-1-git-send-email-anarey@gmail.com>
- <20140917221033.GA29146@acer.localdomain>
+Subject: Re: [GIT PULL v2 00/15] Second Round of IPVS Updates for v3.18
+Date: Thu, 18 Sep 2014 11:03:31 +0200
+Message-ID: <20140918090331.GA24111@salvia>
+References: <1410999961-7975-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Ana Rey <anarey@gmail.com>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38990 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43513 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755109AbaIRIvq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 04:51:46 -0400
+	id S1754935AbaIRJCc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 05:02:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20140917221033.GA29146@acer.localdomain>
+In-Reply-To: <1410999961-7975-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 18, 2014 at 12:10:33AM +0200, Patrick McHardy wrote:
-> On Mon, Sep 15, 2014 at 02:47:04PM +0200, Ana Rey wrote:
-> > This is a new version of the automated regression testing of nftables.
-> > 
-> > There is no infrastructure to allow us to check all options/features in
-> > nft. So, if anyone sends a patch, we cannot check if it breaks something.
-> > 
-> > I send in this patchset the nftables automated regression tests. It
-> > contains a python script (nft-add.py) and a set of test files.
-> > 
-> > This allow us to check the input of rules of nft-tool from the
-> > command-line and the output from nft-tool of this rule. Then, it
-> > compares if the rule input matches the rule output automatically.
-> > 
-> > We also have plans to add automated regression testing in the packet
-> > path in the future, which should come in a follow up step.
-> > 
-> > Comments welcome, thanks
+On Thu, Sep 18, 2014 at 09:25:46AM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> I think it's great to have this and would suggest pulling it into the
-> tree now and continue the work there.
+> please consider these IPVS updates for v3.18.
 > 
-> So if you don't have any objections, I'll apply the series.
+> I hope that v2 of this pull request addresses the issues you raised
+> in v1. In particular "ipvs: use correct address family in scheduler logs"
+> patch consolidates what was previously 7 patches. And I have provided
+> a longer description: I hope the tone is closer to what you need.
+> 
+> This pull requests makes the following changes:
+> 
+> * Add simple weighted fail-over scheduler.
+>   - Unlike other IPVS schedulers this offers fail-over rather than load
+>     balancing. Connections are directed to the appropriate server based
+>     solely on highest weight value and server availability.
+>   - Thanks to Kenny Mathis
+> 
+> * Support IPv6 real servers in IPv4 virtual-services and vice versa
+>   - This feature is supported in conjunction with the tunnel (IPIP)
+>     forwarding mechanism. That is, IPv4 may be forwarded in IPv6 and
+>     vice versa.
+>   - The motivation for this is to allow more flexibility in the
+>     choice of IP version offered by both virtual-servers and
+>     real-servers as they no longer need to match: An IPv4 connection from an
+>     end-user may be forwarded to a real-server using IPv6 and vice versa.
+>   - Further work need to be done to support this feature in conjunction
+>     with connection synchronisation. For now such configurations are
+>     not allowed.
+>   - This change includes update to netlink protocol, adding a new
+>     destination address family attribute. And the necessary changes
+>     to plumb this information throughout IPVS.
+>   - Thanks to Alex Gartrell and Julian Anastasov
+> 
+> The following changes since commit 0bbe80e571c7b866afd92a98edd32a969467a7a9:
+> 
+>   netfilter: masquerading needs to be independent of x_tables in Kconfig (2014-09-12 09:40:18 +0200)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs2-for-v3.18
 
-Please wait, she's going to send a final v3.
-
-Thanks.
+Pulled, thanks a lot Simon.
 
