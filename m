@@ -1,38 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v3 nft 0/7] tests: Automated regression testing
-Date: Thu, 18 Sep 2014 13:02:09 +0200
-Message-ID: <20140918110209.GA12058@salvia>
-References: <1411036761-26825-1-git-send-email-anarey@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey <anarey@gmail.com>
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] extensions: libxt_devgroup: Fix the path of the mappings file
+Date: Thu, 18 Sep 2014 13:06:42 +0200
+Message-ID: <1411038402-7711-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59546 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756550AbaIRLBO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 07:01:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1411036761-26825-1-git-send-email-anarey@gmail.com>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:50570 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756379AbaIRLEK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 07:04:10 -0400
+Received: by mail-wg0-f46.google.com with SMTP id n12so696125wgh.29
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2014 04:04:09 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 18, 2014 at 12:39:14PM +0200, Ana Rey wrote:
-> This is a new version of the automated regression testing of nftables.
-> 
-> There is no infrastructure to allow us to check all options/features in
-> nft. So, if anyone sends a patch, we cannot check if it breaks something.
-> 
-> I send in this patchset the nftables automated regression tests. It
-> contains a python script (nft-add.py) and a set of test files.
-> 
-> This allow us to check the input of rules of nft-tool from the
-> command-line and the output from nft-tool of this rule. Then, it
-> compares if the rule input matches the rule output automatically.
-> 
-> We also have plans to add automated regression testing in the packet
-> path in the future, which should come in a follow up step.
-> 
-> Comments welcome, thanks
+Use "/etc/iproute2/group" like the path of the mapping file instead of
+"/etc/iproute2/group_map"
 
-Finally :-). Series applied, thanks Ana.
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ extensions/libxt_devgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index 4a69c82..fb1fcb5 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -31,12 +31,12 @@ static const struct xt_option_entry devgroup_opts[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
+-/* array of devgroups from /etc/iproute2/group_map */
++/* array of devgroups from /etc/iproute2/group */
+ static struct xtables_lmap *devgroups;
+ 
+ static void devgroup_init(struct xt_entry_match *match)
+ {
+-	const char file[] = "/etc/iproute2/group_map";
++	const char file[] = "/etc/iproute2/group";
+ 	devgroups = xtables_lmap_init(file);
+ 	if (devgroups == NULL && errno != ENOENT)
+ 		fprintf(stderr, "Warning: %s: %s\n", file, strerror(errno));
+-- 
+1.7.10.4
+
