@@ -1,48 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2 v2 nf-next] net: bridge: don't register netfilter call_iptables hooks by default
-Date: Thu, 18 Sep 2014 21:52:28 +0200
-Message-ID: <d77096fe-7341-41ab-b729-075396813fd3@email.android.com>
-References: <1410969137-11885-1-git-send-email-fw@strlen.de> <20140918133511.GA8740@salvia> <20140918143108.GB8484@breakpoint.cc>
+From: Stig Thormodsrud <stig@ubnt.com>
+Subject: ipset save issue
+Date: Thu, 18 Sep 2014 16:04:19 -0700
+Message-ID: <CAL-yc8-6miUn_dg=cDtUzsJC_XKtTnt78xdcnXtH0AnbuJ-nmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140918143108.GB8484@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54781 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750720AbaIRXEU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 19:04:20 -0400
+Received: by mail-ie0-f179.google.com with SMTP id rl12so2258788iec.24
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2014 16:04:19 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18. September 2014 16:31:08 MESZ, Florian Westphal <fw@strlen.de> wrote:
->Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+I know the max group name length is 32 characters, but I'm running
+into a problem with "save" if the group name is 29 characters.  For
+example:
 
->> This patch modularizes br_netfilter so it can be
->> rmmod'ed, thus, the hooks can be unregistered.
->
->I see.  Yes, that makes sense.
->
->Another alternative would be to merge both approaches.
->I.e, use my patch, but move all the hook registration to
->your proposed br_nf_core module.
->
->The sysctls would still be registered from bridge.ko.
->
->Then, if call_iptables is set and iptables rules are active,
->do the module autoload and print the warning from your patch, telling
->people to modprobe br_nf_core if they want the filtering.
->
->Unfortunately, we'd have to export (from bridge.ko) some hook
->to allow br_nf_core to signal that the hooks have been registered.
->
->Then, in two years or so, we would remove the autoload hook
->in the packet procesing path.
+ubnt@ERL:~$ sudo ipset create  A234567890123456789 bitmap:port range 1-65535
+ubnt@ERL:~$ sudo ipset add  A234567890123456789 4512-65535
+ubnt@ERL:~$ sudo ipset save  A234567890123456789 > file
+ipset v6.21.1: Internal error at printing to output buffer
+ubnt@ERL:~$
 
-I believe basically any transition which relies on people reading feature-removal-schedule or kernel messages and a flag day is just kidding ourselves and things will break for everyone except maybe some distributions at flag day.
+But if I change it to 28 characters it works:
 
-I think taking compatibility seriously means we can't really change the default behaviour, but can only allow people to manually undo the damage and make sure they won't rely on this behaviour for at least nftables.
+ubnt@ERL:~$ sudo ipset create  A23456789012345678 bitmap:port range 1-65535
+ubnt@ERL:~$ sudo ipset add A23456789012345678 4512-65535
+ubnt@ERL:~$ sudo ipset save A23456789012345678 > file
+ubnt@ERL:~$
+ubnt@ERL:~$ sudo ipset -V
+ipset v6.21.1, protocol version: 6
 
-Or we can change it. But then why wait for two years, it won't change anything. 
 
-Is there a way to make the userspace tools detect that the compat behaviour needs to be activated? 
+Ideas?
