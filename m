@@ -1,46 +1,77 @@
-From: SaRaVanAn <saravanan.nagarajan87@gmail.com>
-Subject: Re: Query on "Add locking to prevent concurrent instances" patch
-Date: Thu, 18 Sep 2014 23:26:36 +0530
-Message-ID: <CA+86yMjXGM=dNpsDjDz03CxXF9gEoC0XnrSn-KOqpuy9pYC4uw@mail.gmail.com>
-References: <CA+86yMj=JY+x6v96wFmS8RrGuqard-kETu57fm-6VvGdvx6b5w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl 2/3] set: fix set nlmsg desc parsing
+Date: Thu, 18 Sep 2014 20:18:19 +0200
+Message-ID: <1411064300-4433-2-git-send-email-arturo.borrero.glez@gmail.com>
+References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:40958 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932117AbaIRR4h (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2014 13:56:37 -0400
-Received: by mail-we0-f170.google.com with SMTP id u57so1332585wes.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2014 10:56:36 -0700 (PDT)
-In-Reply-To: <CA+86yMj=JY+x6v96wFmS8RrGuqard-kETu57fm-6VvGdvx6b5w@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:55925 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932117AbaIRSS7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 14:18:59 -0400
+In-Reply-To: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Team,
-    Any pointers on this?
+In commit [ff62959](set: add support for set mechanism selection) the
+support for parsing the nested attribute (NFTA_SET_DESC) was invalid.
 
-Patch details
-http://git.netfilter.org/iptables/commit/?id=93587a04d0f2511e108bbc4d87a8b9d28a5c5dd8
-http://git.netfilter.org/iptables/commit/?id=d7aeda5ed45ac7ca959f12180690caa371b5b14b
+This patch address the issue.
 
-On Mon, Sep 15, 2014 at 6:05 PM, SaRaVanAn
-<saravanan.nagarajan87@gmail.com> wrote:
-> Hi Team,
->    We are using iptables version "1.4.14". We decided to take latest
-> iptables version to resolve "resource temporarily unavailable"
-> issue.We have compiled the latest version "1.4.20-1"  and tried
-> installing it. It seems the latest iptables code needs glibc-2.14.
->
-> Is it possible to merge the patch alone without going for glibc
-> upgrade? Will it work without glibc upgrade?
->
-> Glibc upgrade is a major change for us, since it leads to many library
-> upgrades.
->
-> Please provide your inputs on this.
->
->
-> Regards,
-> Saravanan N
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/set.c |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
+
+diff --git a/src/set.c b/src/set.c
+index 3c38334..223ddec 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -340,7 +340,7 @@ static int nft_set_desc_parse_attr_cb(const struct nlattr *attr, void *data)
+ static int nft_set_desc_parse(struct nft_set *s,
+ 			      const struct nlattr *attr)
+ {
+-	struct nlattr *tb[NFTA_SET_MAX+1] = {};
++	struct nlattr *tb[NFTA_SET_DESC_MAX + 1] = {};
+ 
+ 	if (mnl_attr_parse_nested(attr, nft_set_desc_parse_attr_cb, tb) < 0)
+ 		return -1;
+@@ -353,24 +353,6 @@ static int nft_set_desc_parse(struct nft_set *s,
+ 	return 0;
+ }
+ 
+-static int nft_set_nlmsg_desc_parse(const struct nlattr *nest,
+-				    struct nft_set *s)
+-{
+-	struct nlattr *attr;
+-	int ret = 0;
+-
+-	mnl_attr_for_each_nested(attr, nest) {
+-		if (mnl_attr_get_type(attr) != NFTA_SET_DESC)
+-			return -1;
+-
+-		ret = nft_set_desc_parse(s, attr);
+-		if (ret != 0)
+-			break;
+-	}
+-
+-	return ret;
+-}
+-
+ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
+ {
+ 	struct nlattr *tb[NFTA_SET_MAX+1] = {};
+@@ -417,7 +399,7 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
+ 		s->flags |= (1 << NFT_SET_ATTR_POLICY);
+ 	}
+ 	if (tb[NFTA_SET_DESC])
+-		ret = nft_set_nlmsg_desc_parse(tb[NFTA_SET_DESC], s);
++		ret = nft_set_desc_parse(s, tb[NFTA_SET_DESC]);
+ 
+ 	s->family = nfg->nfgen_family;
+ 	s->flags |= (1 << NFT_SET_ATTR_FAMILY);
+-- 
+1.7.10.4
+
