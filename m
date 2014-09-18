@@ -1,70 +1,48 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 04/15] ipvs: Pass destination address family to ip_vs_trash_get_dest
-Date: Thu, 18 Sep 2014 09:25:50 +0900
-Message-ID: <1410999961-7975-5-git-send-email-horms@verge.net.au>
-References: <1410999961-7975-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Alex Gartrell <agartrell@fb.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1410999961-7975-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft v2 0/6] tests: Automated regression testing
+Date: Thu, 18 Sep 2014 10:52:33 +0200
+Message-ID: <20140918085233.GA4094@salvia>
+References: <1410785230-8498-1-git-send-email-anarey@gmail.com>
+ <20140917221033.GA29146@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Ana Rey <anarey@gmail.com>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38990 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755109AbaIRIvq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2014 04:51:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20140917221033.GA29146@acer.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alex Gartrell <agartrell@fb.com>
+On Thu, Sep 18, 2014 at 12:10:33AM +0200, Patrick McHardy wrote:
+> On Mon, Sep 15, 2014 at 02:47:04PM +0200, Ana Rey wrote:
+> > This is a new version of the automated regression testing of nftables.
+> > 
+> > There is no infrastructure to allow us to check all options/features in
+> > nft. So, if anyone sends a patch, we cannot check if it breaks something.
+> > 
+> > I send in this patchset the nftables automated regression tests. It
+> > contains a python script (nft-add.py) and a set of test files.
+> > 
+> > This allow us to check the input of rules of nft-tool from the
+> > command-line and the output from nft-tool of this rule. Then, it
+> > compares if the rule input matches the rule output automatically.
+> > 
+> > We also have plans to add automated regression testing in the packet
+> > path in the future, which should come in a follow up step.
+> > 
+> > Comments welcome, thanks
+> 
+> I think it's great to have this and would suggest pulling it into the
+> tree now and continue the work there.
+> 
+> So if you don't have any objections, I'll apply the series.
 
-Part of a series of diffs to tease out destination family from virtual
-family.  This diff just adds a parameter to ip_vs_trash_get and then uses
-it for comparison rather than svc->af.
+Please wait, she's going to send a final v3.
 
-Signed-off-by: Alex Gartrell <agartrell@fb.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Thanks.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index c840d89..6bd2cc6 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -657,8 +657,8 @@ static void __ip_vs_dst_cache_reset(struct ip_vs_dest *dest)
-  *  scheduling.
-  */
- static struct ip_vs_dest *
--ip_vs_trash_get_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
--		     __be16 dport)
-+ip_vs_trash_get_dest(struct ip_vs_service *svc, int dest_af,
-+		     const union nf_inet_addr *daddr, __be16 dport)
- {
- 	struct ip_vs_dest *dest;
- 	struct netns_ipvs *ipvs = net_ipvs(svc->net);
-@@ -671,11 +671,11 @@ ip_vs_trash_get_dest(struct ip_vs_service *svc, const union nf_inet_addr *daddr,
- 		IP_VS_DBG_BUF(3, "Destination %u/%s:%u still in trash, "
- 			      "dest->refcnt=%d\n",
- 			      dest->vfwmark,
--			      IP_VS_DBG_ADDR(svc->af, &dest->addr),
-+			      IP_VS_DBG_ADDR(dest->af, &dest->addr),
- 			      ntohs(dest->port),
- 			      atomic_read(&dest->refcnt));
--		if (dest->af == svc->af &&
--		    ip_vs_addr_equal(svc->af, &dest->addr, daddr) &&
-+		if (dest->af == dest_af &&
-+		    ip_vs_addr_equal(dest_af, &dest->addr, daddr) &&
- 		    dest->port == dport &&
- 		    dest->vfwmark == svc->fwmark &&
- 		    dest->protocol == svc->protocol &&
-@@ -950,7 +950,7 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 	 * Check if the dest already exists in the trash and
- 	 * is from the same service
- 	 */
--	dest = ip_vs_trash_get_dest(svc, &daddr, dport);
-+	dest = ip_vs_trash_get_dest(svc, udest->af, &daddr, dport);
- 
- 	if (dest != NULL) {
- 		IP_VS_DBG_BUF(3, "Get destination %s:%u from trash, "
--- 
-2.0.1
