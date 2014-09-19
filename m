@@ -1,63 +1,94 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/2 v2 nf-next] net: bridge: don't register netfilter
- call_iptables hooks by default
-Date: Fri, 19 Sep 2014 12:13:12 +0200
-Message-ID: <20140919101312.GA2054@breakpoint.cc>
-References: <1410969137-11885-1-git-send-email-fw@strlen.de>
- <20140918133511.GA8740@salvia>
- <20140918143108.GB8484@breakpoint.cc>
- <20140918183956.GA3989@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Rob Jones <rob.jones@codethink.co.uk>
+Subject: [PATCH] net/netfilter/x_tables.c: use __seq_open_private()
+Date: Fri, 19 Sep 2014 11:27:51 +0100
+Message-ID: <1411122471-20087-1-git-send-email-rob.jones@codethink.co.uk>
+Cc: linux-kernel@codethink.co.uk, rob.jones@codethink.co.uk
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36002 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147AbaISKNO (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:58081 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756484AbaISK2I (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Sep 2014 06:13:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20140918183956.GA3989@salvia>
+	Fri, 19 Sep 2014 06:28:08 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by ducie-dc1.codethink.co.uk (Postfix) with ESMTP id 3EDF5466F72
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Sep 2014 11:28:06 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> We can keep those sysctls there in bridge.ko and deprecated them in
-> favour of br_netlink. I think we can add some IFLA_BRPORT_NF for the
-> setlink command to replace the existing global proc nf-call-thing.
-> We'll have to enhance the 'bridge' tool in iproute2 to support this.
+Reduce boilerplate code by using __seq_open_private() instead of seq_open()
+in xt_match_open() and xt_target_open().
 
-Not sure this is needed.  Patrick added support for a per-bridge
-sysfs flag a while back.
+Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
+---
 
-> > Then, in two years or so, we would remove the autoload hook
-> > in the packet procesing path.
-> 
-> Agreed. By that time, we can kill the bridge.ko <-> br_netfilter.ko
-> dependency and the /proc call-nf-bridge stuff in favour of br_netlink.
-> 
-> Let me know if you still have any concern. Thanks.
+This patch uses an existing variant of seq_open() to reduce the kernel code
+size.
 
-Yes, well... I am afraid Patrick is right, we cannot remove it without
-breaking some setups.
+The only significant variation from the pre-existing code is the fact that
+__seq_open_private() calls kzalloc() rather than kmalloc(), which could
+conceivably have an impact on timing.
 
-So, what to do?
+** I am sending this to the developers' list now. I failed to transcribe
+the full cc list output by get-maintainer.pl, mea culpa, mea maxima culpa **
 
-I think the first step would be to go ahead and split the hook glue to
-a separate module, and then add the autoprobing from the packet processing
-path (only loading br_nf module when needed).
+ net/netfilter/x_tables.c |   30 ++++--------------------------
+ 1 file changed, 4 insertions(+), 26 deletions(-)
 
-We could still add a deprecation warning later on (aka 'please modprobe
-br_nf_core' instead).  But yes, Patricks probably right, waiting two
-years doesn't make it more 'safe' than waiting 6 months...
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 227aa11..89aa680 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1137,22 +1137,11 @@ static const struct seq_operations xt_match_seq_ops = {
+ 
+ static int xt_match_open(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *seq;
+ 	struct nf_mttg_trav *trav;
+-	int ret;
+-
+-	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+-	if (trav == NULL)
++	trav = __seq_open_private(file, &xt_match_seq_ops, sizeof(*trav));
++	if (!trav)
+ 		return -ENOMEM;
+ 
+-	ret = seq_open(file, &xt_match_seq_ops);
+-	if (ret < 0) {
+-		kfree(trav);
+-		return ret;
+-	}
+-
+-	seq = file->private_data;
+-	seq->private = trav;
+ 	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+@@ -1201,22 +1190,11 @@ static const struct seq_operations xt_target_seq_ops = {
+ 
+ static int xt_target_open(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *seq;
+ 	struct nf_mttg_trav *trav;
+-	int ret;
+-
+-	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+-	if (trav == NULL)
++	trav = __seq_open_private(file, &xt_target_seq_ops, sizeof(*trav));
++	if (!trav)
+ 		return -ENOMEM;
+ 
+-	ret = seq_open(file, &xt_target_seq_ops);
+-	if (ret < 0) {
+-		kfree(trav);
+-		return ret;
+-	}
+-
+-	seq = file->private_data;
+-	seq->private = trav;
+ 	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+-- 
+1.7.10.4
 
-What _might_ help is if there was an easy (and fast) way to tell wheter
-iptables rules are loaded (right now it checks for active netfilter hooks).
-
-Then, we could restrict the autoload to arp/ip(6)tables and not load
-the br_nf glue module when nft is used instead.
-
-That will allow removing autload with iptables removal.  Yes, I know
-this is in a very distant future...
