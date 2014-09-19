@@ -1,94 +1,49 @@
-From: Rob Jones <rob.jones@codethink.co.uk>
-Subject: [PATCH] net/netfilter/x_tables.c: use __seq_open_private()
-Date: Fri, 19 Sep 2014 11:27:51 +0100
-Message-ID: <1411122471-20087-1-git-send-email-rob.jones@codethink.co.uk>
-Cc: linux-kernel@codethink.co.uk, rob.jones@codethink.co.uk
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nft] the -nnn switch
+Date: Fri, 19 Sep 2014 13:25:06 +0200
+Message-ID: <20140919112505.GA1158@acer.localdomain>
+References: <CAOkSjBgOpbJmOXEX=a1kPXqDMs673ZTfB_Qg=q4V5L2JTsg77g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:58081 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756484AbaISK2I (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40928 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753558AbaISLZO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Sep 2014 06:28:08 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by ducie-dc1.codethink.co.uk (Postfix) with ESMTP id 3EDF5466F72
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Sep 2014 11:28:06 +0100 (BST)
+	Fri, 19 Sep 2014 07:25:14 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBgOpbJmOXEX=a1kPXqDMs673ZTfB_Qg=q4V5L2JTsg77g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Reduce boilerplate code by using __seq_open_private() instead of seq_open()
-in xt_match_open() and xt_target_open().
+On Fri, Sep 19, 2014 at 11:49:02AM +0200, Arturo Borrero Gonzalez wrote:
+> Hi,
+> 
+> the -nnn switch in in nftables is IMO a bit annoying.
+> We are bounded to use that switch in every serious usage of nft.
+> 
+> Let me remember the current behaviour:
+> 
+>  -n -> don't translate IP addresses to names.
+>  -nn -> also, don't translate gids/uids to names.
+>  -nnn -> also, don't translate port numbers to names.
+> default -> translate all numbers to names.
+> 
+> I propose here that before nftables goes absolutely mainstream we
+> change the behaviour to the opposite:
+> 
+> -n -> translate IP addresses to names.
+> -nn -> translate gids/uids to names.
+> -nnn -> translate port numbers to names.
+> default -> show all numerically.
+> 
+> What do you think?
 
-Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
----
-
-This patch uses an existing variant of seq_open() to reduce the kernel code
-size.
-
-The only significant variation from the pre-existing code is the fact that
-__seq_open_private() calls kzalloc() rather than kmalloc(), which could
-conceivably have an impact on timing.
-
-** I am sending this to the developers' list now. I failed to transcribe
-the full cc list output by get-maintainer.pl, mea culpa, mea maxima culpa **
-
- net/netfilter/x_tables.c |   30 ++++--------------------------
- 1 file changed, 4 insertions(+), 26 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 227aa11..89aa680 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1137,22 +1137,11 @@ static const struct seq_operations xt_match_seq_ops = {
- 
- static int xt_match_open(struct inode *inode, struct file *file)
- {
--	struct seq_file *seq;
- 	struct nf_mttg_trav *trav;
--	int ret;
--
--	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
--	if (trav == NULL)
-+	trav = __seq_open_private(file, &xt_match_seq_ops, sizeof(*trav));
-+	if (!trav)
- 		return -ENOMEM;
- 
--	ret = seq_open(file, &xt_match_seq_ops);
--	if (ret < 0) {
--		kfree(trav);
--		return ret;
--	}
--
--	seq = file->private_data;
--	seq->private = trav;
- 	trav->nfproto = (unsigned long)PDE_DATA(inode);
- 	return 0;
- }
-@@ -1201,22 +1190,11 @@ static const struct seq_operations xt_target_seq_ops = {
- 
- static int xt_target_open(struct inode *inode, struct file *file)
- {
--	struct seq_file *seq;
- 	struct nf_mttg_trav *trav;
--	int ret;
--
--	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
--	if (trav == NULL)
-+	trav = __seq_open_private(file, &xt_target_seq_ops, sizeof(*trav));
-+	if (!trav)
- 		return -ENOMEM;
- 
--	ret = seq_open(file, &xt_target_seq_ops);
--	if (ret < 0) {
--		kfree(trav);
--		return ret;
--	}
--
--	seq = file->private_data;
--	seq->private = trav;
- 	trav->nfproto = (unsigned long)PDE_DATA(inode);
- 	return 0;
- }
--- 
-1.7.10.4
-
+That seems quite counter intuitive. I'd say the default should be not
+to cause any network traffic for a regular system (not using LDAP or
+whatever), which would be -n. So I would be fine with -n being the
+default and adding an option to also translate hostnames.
