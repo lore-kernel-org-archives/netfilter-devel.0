@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nf_tables 1/3] netfilter: nf_tables: store and dump sets mechanism options
-Date: Fri, 19 Sep 2014 19:20:25 +0200
-Message-ID: <853b5e6a-3244-470f-9ba8-b16970404b2b@email.android.com>
-References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com> <1de321c7-7c48-4dcb-a445-b27aae8d8bcf@email.android.com> <CAOkSjBjbW+vkbLZbOmFAdRxzbPTNQ-BkPdLN2asyAcaXO50arQ@mail.gmail.com>
+Subject: Re: [nft 3/3] src: add set optimization options
+Date: Fri, 19 Sep 2014 19:24:12 +0200
+Message-ID: <359d0a48-619a-47d9-93f6-5f77dc117d39@email.android.com>
+References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com> <1411064300-4433-3-git-send-email-arturo.borrero.glez@gmail.com> <49a03ccd-ddb8-47dc-b455-885ddf607e6a@email.android.com> <CAOkSjBheru+aESGEuqLABAsEJvciBBo_ZqFvoVx0fU7vrpk4UQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
  charset=UTF-8
@@ -12,48 +12,75 @@ Cc: Netfilter Development Mailing list
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43265 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43294 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756810AbaISRUc (ORCPT
+	with ESMTP id S1757276AbaISRYT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Sep 2014 13:20:32 -0400
-In-Reply-To: <CAOkSjBjbW+vkbLZbOmFAdRxzbPTNQ-BkPdLN2asyAcaXO50arQ@mail.gmail.com>
+	Fri, 19 Sep 2014 13:24:19 -0400
+In-Reply-To: <CAOkSjBheru+aESGEuqLABAsEJvciBBo_ZqFvoVx0fU7vrpk4UQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19. September 2014 08:51:48 MESZ, Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
->On 18 September 2014 20:34, Patrick McHardy <kaber@trash.net> wrote:
->> On 18. September 2014 20:18:18 MESZ, Arturo Borrero Gonzalez
+On 19. September 2014 09:04:17 MESZ, Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+>On 18 September 2014 20:39, Patrick McHardy <kaber@trash.net> wrote:
+>> On 18. September 2014 20:18:20 MESZ, Arturo Borrero Gonzalez
 ><arturo.borrero.glez@gmail.com> wrote:
->>>The sets mechanism options was not being stored anywhere.
+>>>This patch adds options to choose set optimization mechanisms.
 >>>
->>>We want to know in which cases the user explicitly set the mechanism
->>>options. In that case, we also want to dump back the info.
+>>>Two new statements are added to the set syntax, and they can be
+>mixed:
 >>>
+>>> nft add set filter set1 { type ipv4_addr ; size 1024 ; }
+>>> nft add set filter set1 { type ipv4_addr ; policy memory ; }
+>>> nft add set filter set1 { type ipv4_addr ; policy performance ; }
+>>>nft add set filter set1 { type ipv4_addr ; policy memory ; size 1024
+>;
+>>>}
+>>>nft add set filter set1 { type ipv4_addr ; size 1024 ; policy memory
+>;
+>>>}
+>>>nft add set filter set1 { type ipv4_addr ; policy performance ; size
+>>>1024 ; }
+>>>nft add set filter set1 { type ipv4_addr ; size 1024 ; policy
+>>>performance ; }
+>>>
+>>>Also valid for maps:
+>>>
+>>>nft add map filter map1 { type ipv4_addr : verdict ; policy
+>performace
+>>>; }
+>>> [...]
+>>>
+>>>
+>>>This is the output format, which can be imported later with `nft -f':
+>>>
+>>>table filter {
+>>>       set set1 {
+>>>               type ipv4_addr
+>>>               policy memory
+>>>               size 1024
+>>>       }
+>>>}
 >>
->> I don't think this is needed. Basically we always want to dump
->options for non-constant sets, since they couldn't have been chosen
->automatically, and don't need to dump them for constant sets, since
->they can always be determined automatically based on the contents.
+>> Conceptually this looks good, I'll have a look at the implementation
+>after dinner.
+
+Sorry, late nicht after dinner, but I'll get to it tommorrow :)
+
+>> What my patch did was only handle the case where limits can be
+>determined automatically, IOW literal sets. Both is needed.
 >>
 >
->Could you please elaborate?
->
->If the set is non-constant, currently the options are by default
->NFT_SET_POL_PERFORMANCE and size 0.
->Do you want these options to be printed to the end user even when the
->user did not originally use the 'policy xx' and 'size xx' statements?
->Or in the other hand, to never print the options even when the user
->gave an explicit config?
+>Do you mean to give the size parameter a value when we know the set
+>has a concrete number of elements?
+>For example:
+>add rule tcp dport {1 , 2 , 3} counter --> then add a set with fixed
+>size 3.
 
-No. When we have literal/constant sets we can automatically determine the options, and we don't need to return them from the kernel. We could, but its useless.
+Yes, this is what my patch is doing, and some further analysis of common prefixes etc for an unfinished feature.
 
-For named sets any options that are not the default must have been specified by the user. So we must always dump them unless they are the default.
+>I realize now the patch includes some newlines included by mistake. So
+>a v2 is likely to be needed.
 
->In the case of constant sets, what If I want to test the performance
->of different policies? I need to know which policy is applied to a
->given set, (in order to change it).
-
-Well, the mechanism is supposed to pick the best implementation. For testing, you can unload modules, the kernel won't autoload if at least one set implementation is available.
-
+Yeah. I've only read it on my mobile so far, but I also noticed some changes which aren't needed, so please hold off with a V2 until tommorrow.
 
