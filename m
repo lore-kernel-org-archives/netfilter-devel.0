@@ -1,83 +1,34 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset save issue
-Date: Sat, 20 Sep 2014 19:54:47 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409201951540.13762@blackhole.kfki.hu>
-References: <CAL-yc8-6miUn_dg=cDtUzsJC_XKtTnt78xdcnXtH0AnbuJ-nmQ@mail.gmail.com>
+Subject: Re: Bug: ipset-6.22 broken with dynamic modules
+Date: Sat, 20 Sep 2014 19:55:15 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409201949550.13749@blackhole.kfki.hu>
+References: <loom.20140920T161855-163@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Stig Thormodsrud <stig@ubnt.com>
+To: Sergei Zhirikov <sfzhi@yahoo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:34452 "EHLO smtp1.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:46074 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756232AbaITRy1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Sep 2014 13:54:27 -0400
-In-Reply-To: <CAL-yc8-6miUn_dg=cDtUzsJC_XKtTnt78xdcnXtH0AnbuJ-nmQ@mail.gmail.com>
+	id S1756232AbaITRyx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Sep 2014 13:54:53 -0400
+In-Reply-To: <loom.20140920T161855-163@post.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 18 Sep 2014, Stig Thormodsrud wrote:
+On Sat, 20 Sep 2014, Sergei Zhirikov wrote:
 
-> I know the max group name length is 32 characters, but I'm running
-> into a problem with "save" if the group name is 29 characters.  For
-> example:
-> 
-> ubnt@ERL:~$ sudo ipset create  A234567890123456789 bitmap:port range 1-65535
-> ubnt@ERL:~$ sudo ipset add  A234567890123456789 4512-65535
-> ubnt@ERL:~$ sudo ipset save  A234567890123456789 > file
-> ipset v6.21.1: Internal error at printing to output buffer
-> ubnt@ERL:~$
-> 
-> But if I change it to 28 characters it works:
-> 
-> ubnt@ERL:~$ sudo ipset create  A23456789012345678 bitmap:port range 1-65535
-> ubnt@ERL:~$ sudo ipset add A23456789012345678 4512-65535
-> ubnt@ERL:~$ sudo ipset save A23456789012345678 > file
-> ubnt@ERL:~$
-> ubnt@ERL:~$ sudo ipset -V
-> ipset v6.21.1, protocol version: 6
->  
-> Ideas?
+> I have just tried building ipset-6.22 and encountered this issue. When
+> configured with --enable-settype-modules --with-settype-modules-list=all the
+> build succeeds, but what it produces is unusable, because the modules
+> require several symbols that are not exported from libipset.so. As far as I
+> can tell, those missing symbols are the five functions introduced with the
+> commit c1dd8442aac6cadb29110f763f23cafc63135a79 (libipset: Add userspace
+> code for the skbinfo extension support).
 
-That's a strange (v)sprintf issue: instead of reporting the length of the 
-string which would have been written, it simply returns an error code.
-
-The patch below fixes it and it'll be in the next release in a few days:
-
-diff --git a/lib/session.c b/lib/session.c
-index cbef026..da162b0 100644
---- a/lib/session.c
-+++ b/lib/session.c
-@@ -716,13 +716,7 @@ retry:
- 			fmt, args);
- 	va_end(args);
- 
--	if (ret < 0) {
--		ipset_err(session,
--			 "Internal error at printing to output buffer");
--		longjmp(printf_failure, 1);
--	}
--
--	if (ret >= IPSET_OUTBUFLEN - len) {
-+	if (ret < 0 || ret >= IPSET_OUTBUFLEN - len) {
- 		/* Buffer was too small, push it out and retry */
- 		D("print buffer and try again: %u", len);
- 		if (loop++) {
-@@ -750,13 +744,7 @@ retry:
- 	ret = fn(session->outbuf + len, IPSET_OUTBUFLEN - len,
- 		 session->data, opt, session->envopts);
- 
--	if (ret < 0) {
--		ipset_err(session,
--			"Internal error at printing to output buffer");
--		longjmp(printf_failure, 1);
--	}
--
--	if (ret >= IPSET_OUTBUFLEN - len) {
-+	if (ret < 0 || ret >= IPSET_OUTBUFLEN - len) {
- 		/* Buffer was too small, push it out and retry */
- 		D("print buffer and try again: %u", len);
- 		if (loop++) {
+Yes, that's right - I have forgotten to update the library map file and 
+bump the library number. I'm going to fix it at the weekend. Thanks for 
+the reporting!
 
 Best regards,
 Jozsef
