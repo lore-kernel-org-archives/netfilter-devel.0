@@ -1,97 +1,98 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nf_tables 1/3] netfilter: nf_tables: store and dump sets
- mechanism options
-Date: Sat, 20 Sep 2014 13:39:19 +0200
-Message-ID: <20140920113919.GA5825@acer.localdomain>
+Subject: Re: [nft 3/3] src: add set optimization options
+Date: Sat, 20 Sep 2014 13:45:05 +0200
+Message-ID: <20140920114505.GB5825@acer.localdomain>
 References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
+ <1411064300-4433-3-git-send-email-arturo.borrero.glez@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51305 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51345 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601AbaITLj2 (ORCPT
+	with ESMTP id S1754082AbaITLpH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Sep 2014 07:39:28 -0400
+	Sat, 20 Sep 2014 07:45:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com>
+In-Reply-To: <1411064300-4433-3-git-send-email-arturo.borrero.glez@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 18, 2014 at 08:18:18PM +0200, Arturo Borrero Gonzalez wrote:
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -231,6 +231,14 @@ struct nft_set_ops {
->  int nft_register_set(struct nft_set_ops *ops);
->  void nft_unregister_set(struct nft_set_ops *ops);
->  
-> +/* internal flags to know which attributes were originally set
-> + * from userspace.
-> + */
-> +enum nft_set_attr {
-> +	NFT_SET_ATTR_POLICY	= 0x1,
-> +	NFT_SET_ATTR_DESC_SIZE	= 0x2,
-> +};
+On Thu, Sep 18, 2014 at 08:18:20PM +0200, Arturo Borrero Gonzalez wrote:
+> This patch adds options to choose set optimization mechanisms.
+> 
+> Two new statements are added to the set syntax, and they can be mixed:
+> 
+>  nft add set filter set1 { type ipv4_addr ; size 1024 ; }
+>  nft add set filter set1 { type ipv4_addr ; policy memory ; }
+>  nft add set filter set1 { type ipv4_addr ; policy performance ; }
+>  nft add set filter set1 { type ipv4_addr ; policy memory ; size 1024 ; }
+>  nft add set filter set1 { type ipv4_addr ; size 1024 ; policy memory ; }
+>  nft add set filter set1 { type ipv4_addr ; policy performance ; size 1024 ; }
+>  nft add set filter set1 { type ipv4_addr ; size 1024 ; policy performance ; }
+> 
+> Also valid for maps:
+> 
+>  nft add map filter map1 { type ipv4_addr : verdict ; policy performace ; }
+>  [...]
 
-We don't need the size, any value != 0 is set by userspace. I'm unsure
-about the policy, we don't really *need* to dump if it is the default,
-and otherwise its obvious that it originated from userspace.
+I'd suggest to also add a global option which is the default unless
+overridden by a specific set instantiation. Doesn't have to be done
+in this patch however.
 
-> @@ -241,6 +249,8 @@ void nft_unregister_set(struct nft_set_ops *ops);
->   * 	@dtype: data type (verdict or numeric type defined by userspace)
->   * 	@size: maximum set size
->   * 	@nelems: number of elements
-> + *	@attr_flags: (enum nft_set_flags)
-> + *	@policy: (enum nft_set_policies)
->   * 	@ops: set ops
->   * 	@flags: set flags
->   * 	@klen: key length
-> @@ -255,6 +265,8 @@ struct nft_set {
->  	u32				dtype;
->  	u32				size;
->  	u32				nelems;
-> +	u16				attr_flags;
-> +	u32				policy;
-
-These are way to big and introduce holes in the structure.
-
->  	/* runtime data below here */
->  	const struct nft_set_ops	*ops ____cacheline_aligned;
->  	u16				flags;
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 8237460..d1c3f3e 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2342,13 +2342,24 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
->  			goto nla_put_failure;
+> @@ -1103,6 +1114,14 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
 >  	}
->  
-> -	desc = nla_nest_start(skb, NFTA_SET_DESC);
-> -	if (desc == NULL)
-> -		goto nla_put_failure;
-> -	if (set->size &&
-> -	    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size)))
-> -		goto nla_put_failure;
-> -	nla_nest_end(skb, desc);
-> +	/* dump policy and desc info only if they were explicitly set */
-> +	if (set->attr_flags & (1 << NFT_SET_ATTR_POLICY)) {
-> +		if (nla_put_be32(skb, NFTA_SET_POLICY, htonl(set->policy)))
-> +			goto nla_put_failure;
-> +	}
+>  	set->handle.set_id = ++set_id;
+>  	nft_set_attr_set_u32(nls, NFT_SET_ATTR_ID, set->handle.set_id);
 > +
-> +	if (set->attr_flags & (1 << NFT_SET_ATTR_DESC_SIZE)) {
-> +		desc = nla_nest_start(skb, NFTA_SET_DESC);
-> +		if (desc == NULL)
-> +			goto nla_put_failure;
+> +	if (set->attr_flags & (1 << NFT_SET_ATTR_POLICY))
+> +		nft_set_attr_set_u32(nls, NFT_SET_ATTR_POLICY, set->policy);
 > +
-> +		if (set->size &&
-> +		    nla_put_be32(skb, NFTA_SET_DESC_SIZE, htonl(set->size))) {
-> +			goto nla_put_failure;
-> +		}
+> +	if (set->attr_flags & (1 << NFT_SET_ATTR_DESC_SIZE))
+> +		nft_set_attr_set_u32(nls, NFT_SET_ATTR_DESC_SIZE,
+> +				     set->desc.size);
 > +
-> +		nla_nest_end(skb, desc);
-> +	}
 
-As mentioned earlier, dumping the parameters is not necessary for sets
-with NFT_SET_CONSTANT as they have been determined automatically. 
+As in the kernel, the size definitely doesn't need an attribute, the policy
+can be argued about.
+
+> @@ -965,6 +975,7 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+>  				$1->init = $4;
+>  				$$ = $1;
+>  			}
+> +			|	set_block	set_mechanism	stmt_seperator
+>  			;
+>  
+>  set_flag_list		:	set_flag_list	COMMA		set_flag
+> @@ -1018,6 +1029,26 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+>  				$1->init = $4;
+>  				$$ = $1;
+>  			}
+> +			|	map_block	set_mechanism	stmt_seperator
+> +			;
+> +
+> +set_mechanism		:	set_policy_spec
+> +			{
+> +				$<set>0->attr_flags |= (1 << NFT_SET_ATTR_POLICY);
+> +				$<set>0->policy = $1;
+> +			}
+> +			|	set_size_spec
+> +			{
+> +				$<set>0->attr_flags |= (1 << NFT_SET_ATTR_DESC_SIZE);
+> +				$<set>0->desc.size = $1;
+> +			}
+> +			;
+> +
+> +set_policy_spec		:	POLICY	PERFORMANCE	{ $$ = NFT_SET_POL_PERFORMANCE; }
+> +			|	POLICY	MEMORY		{ $$ = NFT_SET_POL_MEMORY; }
+> +			;
+> +
+> +set_size_spec		:	SIZE	NUM	{ $$ = $2; }
+
+We usually have rules like this:
+
+set_policy:		PERFORMANCE ...
+			MEMORY
+
+and the keyword POLICY one level above.
