@@ -1,86 +1,90 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft 3/3] src: add set optimization options
-Date: Fri, 19 Sep 2014 19:24:12 +0200
-Message-ID: <359d0a48-619a-47d9-93f6-5f77dc117d39@email.android.com>
-References: <1411064300-4433-1-git-send-email-arturo.borrero.glez@gmail.com> <1411064300-4433-3-git-send-email-arturo.borrero.glez@gmail.com> <49a03ccd-ddb8-47dc-b455-885ddf607e6a@email.android.com> <CAOkSjBheru+aESGEuqLABAsEJvciBBo_ZqFvoVx0fU7vrpk4UQ@mail.gmail.com>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [PATCH libmnl] socket: creating a struct mnl_socket from a
+ pre-existing socket
+Date: Sat, 20 Sep 2014 15:05:37 +0900
+Message-ID: <20140920060536.GA15209@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>
+To: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43294 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757276AbaISRYT (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:64330 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754306AbaITGFp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Sep 2014 13:24:19 -0400
-In-Reply-To: <CAOkSjBheru+aESGEuqLABAsEJvciBBo_ZqFvoVx0fU7vrpk4UQ@mail.gmail.com>
+	Sat, 20 Sep 2014 02:05:45 -0400
+Received: by mail-pd0-f182.google.com with SMTP id p10so1059293pdj.27
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Sep 2014 23:05:45 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19. September 2014 09:04:17 MESZ, Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
->On 18 September 2014 20:39, Patrick McHardy <kaber@trash.net> wrote:
->> On 18. September 2014 20:18:20 MESZ, Arturo Borrero Gonzalez
-><arturo.borrero.glez@gmail.com> wrote:
->>>This patch adds options to choose set optimization mechanisms.
->>>
->>>Two new statements are added to the set syntax, and they can be
->mixed:
->>>
->>> nft add set filter set1 { type ipv4_addr ; size 1024 ; }
->>> nft add set filter set1 { type ipv4_addr ; policy memory ; }
->>> nft add set filter set1 { type ipv4_addr ; policy performance ; }
->>>nft add set filter set1 { type ipv4_addr ; policy memory ; size 1024
->;
->>>}
->>>nft add set filter set1 { type ipv4_addr ; size 1024 ; policy memory
->;
->>>}
->>>nft add set filter set1 { type ipv4_addr ; policy performance ; size
->>>1024 ; }
->>>nft add set filter set1 { type ipv4_addr ; size 1024 ; policy
->>>performance ; }
->>>
->>>Also valid for maps:
->>>
->>>nft add map filter map1 { type ipv4_addr : verdict ; policy
->performace
->>>; }
->>> [...]
->>>
->>>
->>>This is the output format, which can be imported later with `nft -f':
->>>
->>>table filter {
->>>       set set1 {
->>>               type ipv4_addr
->>>               policy memory
->>>               size 1024
->>>       }
->>>}
->>
->> Conceptually this looks good, I'll have a look at the implementation
->after dinner.
+This patch defines a new function mnl_socket_fdopen() which
+creates a struct mnl_socket object from a pre-existing netlink
+socket obtained from other process. Now I think of the socket
+is obtained from child process via send/recvmsg().
 
-Sorry, late nicht after dinner, but I'll get to it tommorrow :)
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+---
+ include/libmnl/libmnl.h |  1 +
+ src/libmnl.map          |  1 +
+ src/socket.c            | 20 ++++++++++++++++++++
+ 3 files changed, 22 insertions(+)
 
->> What my patch did was only handle the case where limits can be
->determined automatically, IOW literal sets. Both is needed.
->>
->
->Do you mean to give the size parameter a value when we know the set
->has a concrete number of elements?
->For example:
->add rule tcp dport {1 , 2 , 3} counter --> then add a set with fixed
->size 3.
-
-Yes, this is what my patch is doing, and some further analysis of common prefixes etc for an unfinished feature.
-
->I realize now the patch includes some newlines included by mistake. So
->a v2 is likely to be needed.
-
-Yeah. I've only read it on my mobile so far, but I also noticed some changes which aren't needed, so please hold off with a V2 until tommorrow.
+diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
+index 223709c..0de6678 100644
+--- a/include/libmnl/libmnl.h
++++ b/include/libmnl/libmnl.h
+@@ -22,6 +22,7 @@ extern "C" {
+ struct mnl_socket;
+ 
+ extern struct mnl_socket *mnl_socket_open(int type);
++extern struct mnl_socket *mnl_socket_fdopen(int fd);
+ extern int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups, pid_t pid);
+ extern int mnl_socket_close(struct mnl_socket *nl);
+ extern int mnl_socket_get_fd(const struct mnl_socket *nl);
+diff --git a/src/libmnl.map b/src/libmnl.map
+index dbc332e..1ea8b8e 100644
+--- a/src/libmnl.map
++++ b/src/libmnl.map
+@@ -71,4 +71,5 @@ local: *;
+ 
+ LIBMNL_1.1 {
+   mnl_attr_parse_payload;
++  mnl_socket_fdopen;
+ } LIBMNL_1.0;
+diff --git a/src/socket.c b/src/socket.c
+index 676a08a..bb9db18 100644
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -129,6 +129,26 @@ struct mnl_socket *mnl_socket_open(int bus)
+ EXPORT_SYMBOL(mnl_socket_open);
+ 
+ /**
++ * mnl_socket_fdopen - associates a mnl_socket object with netlink socket.
++ * \param fd pre-existing netlink socket, obtained from other process.
++ *
++ * On error, it returns NULL and errno is appropriately set. Otherwise, it
++ * returns a valid pointer to the mnl_socket structure.
++ */
++struct mnl_socket *mnl_socket_fdopen(int fd)
++{
++	struct mnl_socket *nl;
++
++	nl = calloc(sizeof(struct mnl_socket), 1);
++	if (nl == NULL)
++		return NULL;
++
++	nl->fd = fd;
++	return nl;
++}
++EXPORT_SYMBOL(mnl_socket_fdopen);
++
++/**
+  * mnl_socket_bind - bind netlink socket
+  * \param nl netlink socket obtained via mnl_socket_open()
+  * \param groups the group of message you're interested in
+-- 
+2.1.0
 
