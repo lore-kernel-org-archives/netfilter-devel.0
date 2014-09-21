@@ -1,39 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Bug: ipset-6.22 broken with dynamic modules
-Date: Sat, 20 Sep 2014 19:55:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409201949550.13749@blackhole.kfki.hu>
-References: <loom.20140920T161855-163@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sergei Zhirikov <sfzhi@yahoo.com>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 1/4] payload: generate dependency in the appropriate byteorder
+Date: Sun, 21 Sep 2014 21:32:34 +0200
+Message-ID: <1411327957-19379-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:46074 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756232AbaITRyx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Sep 2014 13:54:53 -0400
-In-Reply-To: <loom.20140920T161855-163@post.gmane.org>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:60858 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433AbaIUTc1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Sep 2014 15:32:27 -0400
+Received: by mail-wg0-f47.google.com with SMTP id y10so1949942wgg.6
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Sep 2014 12:32:26 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 20 Sep 2014, Sergei Zhirikov wrote:
+If we add a dependency, the constant expression on the right
+hand side must be represented in the appropriate order.
 
-> I have just tried building ipset-6.22 and encountered this issue. When
-> configured with --enable-settype-modules --with-settype-modules-list=all the
-> build succeeds, but what it produces is unusable, because the modules
-> require several symbols that are not exported from libipset.so. As far as I
-> can tell, those missing symbols are the five functions introduced with the
-> commit c1dd8442aac6cadb29110f763f23cafc63135a79 (libipset: Add userspace
-> code for the skbinfo extension support).
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/payload.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Yes, that's right - I have forgotten to update the library map file and 
-bump the library number. I'm going to fix it at the weekend. Thanks for 
-the reporting!
+diff --git a/src/payload.c b/src/payload.c
+index 1eee4e0..a3bbe51 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -216,8 +216,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
+ 
+ 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
+-				    BYTEORDER_HOST_ENDIAN,
+-				    tmpl->len,
++				    tmpl->dtype->byteorder, tmpl->len,
+ 				    constant_data_ptr(protocol, tmpl->len));
+ 
+ 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
+-- 
+1.7.10.4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
