@@ -1,141 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/2] netfilter: bridge: nf_bridge_copy_header as static inline in header
-Date: Mon, 22 Sep 2014 14:16:39 +0200
-Message-ID: <1411388201-12124-2-git-send-email-pablo@netfilter.org>
-References: <1411388201-12124-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 0/2] modularize br_netfilter
+Date: Mon, 22 Sep 2014 14:16:38 +0200
+Message-ID: <1411388201-12124-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53769 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53754 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753491AbaIVMPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Sep 2014 08:15:43 -0400
-In-Reply-To: <1411388201-12124-1-git-send-email-pablo@netfilter.org>
+	id S1753491AbaIVMPl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Sep 2014 08:15:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move nf_bridge_copy_header() as static inline in netfilter_bridge.h
-header file. This patch prepares the modularization of the br_netfilter
-code.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter_bridge.h |   48 ++++++++++++++++++++++++++++++--------
- net/bridge/br_netfilter.c        |   28 ----------------------
- 2 files changed, 38 insertions(+), 38 deletions(-)
+I'm posting this series to take over the discussion on br_netfilter that
+Florian triggered with his initial patch.
 
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-index 8ab1c27..fe996d5 100644
---- a/include/linux/netfilter_bridge.h
-+++ b/include/linux/netfilter_bridge.h
-@@ -24,16 +24,6 @@ enum nf_br_hook_priorities {
- #define BRNF_8021Q			0x10
- #define BRNF_PPPoE			0x20
- 
--/* Only used in br_forward.c */
--int nf_bridge_copy_header(struct sk_buff *skb);
--static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
--{
--	if (skb->nf_bridge &&
--	    skb->nf_bridge->mask & (BRNF_BRIDGED | BRNF_BRIDGED_DNAT))
--		return nf_bridge_copy_header(skb);
--  	return 0;
--}
--
- static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
- {
- 	switch (skb->protocol) {
-@@ -46,6 +36,44 @@ static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
- 	}
- }
- 
-+static inline void nf_bridge_update_protocol(struct sk_buff *skb)
-+{
-+	if (skb->nf_bridge->mask & BRNF_8021Q)
-+		skb->protocol = htons(ETH_P_8021Q);
-+	else if (skb->nf_bridge->mask & BRNF_PPPoE)
-+		skb->protocol = htons(ETH_P_PPP_SES);
-+}
-+
-+/* Fill in the header for fragmented IP packets handled by
-+ * the IPv4 connection tracking code.
-+ *
-+ * Only used in br_forward.c
-+ */
-+static inline int nf_bridge_copy_header(struct sk_buff *skb)
-+{
-+	int err;
-+	unsigned int header_size;
-+
-+	nf_bridge_update_protocol(skb);
-+	header_size = ETH_HLEN + nf_bridge_encap_header_len(skb);
-+	err = skb_cow_head(skb, header_size);
-+	if (err)
-+		return err;
-+
-+	skb_copy_to_linear_data_offset(skb, -header_size,
-+				       skb->nf_bridge->data, header_size);
-+	__skb_push(skb, nf_bridge_encap_header_len(skb));
-+	return 0;
-+}
-+
-+static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
-+{
-+	if (skb->nf_bridge &&
-+	    skb->nf_bridge->mask & (BRNF_BRIDGED | BRNF_BRIDGED_DNAT))
-+		return nf_bridge_copy_header(skb);
-+  	return 0;
-+}
-+
- static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
- {
- 	if (unlikely(skb->nf_bridge->mask & BRNF_PPPoE))
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index a615264..61929a7 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -245,14 +245,6 @@ static inline void nf_bridge_save_header(struct sk_buff *skb)
- 					 skb->nf_bridge->data, header_size);
- }
- 
--static inline void nf_bridge_update_protocol(struct sk_buff *skb)
--{
--	if (skb->nf_bridge->mask & BRNF_8021Q)
--		skb->protocol = htons(ETH_P_8021Q);
--	else if (skb->nf_bridge->mask & BRNF_PPPoE)
--		skb->protocol = htons(ETH_P_PPP_SES);
--}
--
- /* When handing a packet over to the IP layer
-  * check whether we have a skb that is in the
-  * expected format
-@@ -320,26 +312,6 @@ drop:
- 	return -1;
- }
- 
--/* Fill in the header for fragmented IP packets handled by
-- * the IPv4 connection tracking code.
-- */
--int nf_bridge_copy_header(struct sk_buff *skb)
--{
--	int err;
--	unsigned int header_size;
--
--	nf_bridge_update_protocol(skb);
--	header_size = ETH_HLEN + nf_bridge_encap_header_len(skb);
--	err = skb_cow_head(skb, header_size);
--	if (err)
--		return err;
--
--	skb_copy_to_linear_data_offset(skb, -header_size,
--				       skb->nf_bridge->data, header_size);
--	__skb_push(skb, nf_bridge_encap_header_len(skb));
--	return 0;
--}
--
- /* PF_BRIDGE/PRE_ROUTING *********************************************/
- /* Undo the changes made for ip6tables PREROUTING and continue the
-  * bridge PRE_ROUTING hook. */
+At this moment, I see two possibilities:
+
+1) Add glue code to make br_netfilter look like it is still available from
+   the bridge core and spot a warning to announce deprecation in two years
+   or so.
+
+2) Modularize br_netfilter so users can control if this feature is
+   enabled/disabled through modprobe/rmmod.
+
+Regarding 1), Patrick suggested that users may overlook the warning message
+and things will break after that time.
+
+On top of that I'm not sure anymore it is worth the effort to work on 1), given
+that the design problems and limitations of br_netfilter. We cannot obviously
+get rid of br_netfilter, but we can fence it and let users easily undo the
+damage by including 'modprobe br_netfilter' in their scripts if they really
+need it.
+
+Let me know, thanks.
+
+Pablo Neira Ayuso (2):
+  netfilter: bridge: nf_bridge_copy_header as static inline in header
+  netfilter: move br_netfilter out of the bridge core
+
+ include/linux/netfilter_bridge.h       |   50 +++++++++++---
+ include/linux/skbuff.h                 |   12 ++--
+ include/net/neighbour.h                |    2 +-
+ include/net/netfilter/ipv4/nf_reject.h |    2 +-
+ include/net/netfilter/ipv6/nf_reject.h |    2 +-
+ net/Kconfig                            |    2 +-
+ net/bridge/Makefile                    |    5 +-
+ net/bridge/br.c                        |   14 ++--
+ net/bridge/br_device.c                 |    4 +-
+ net/bridge/br_forward.c                |    2 +
+ net/bridge/br_input.c                  |    1 +
+ net/bridge/br_netfilter.c              |  116 +++++---------------------------
+ net/bridge/br_netlink.c                |    2 +-
+ net/bridge/br_nf_core.c                |   96 ++++++++++++++++++++++++++
+ net/bridge/br_private.h                |   12 ++--
+ net/bridge/br_sysfs_br.c               |    4 +-
+ 16 files changed, 186 insertions(+), 140 deletions(-)
+ create mode 100644 net/bridge/br_nf_core.c
+
 -- 
 1.7.10.4
 
