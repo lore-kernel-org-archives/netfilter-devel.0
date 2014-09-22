@@ -1,41 +1,75 @@
-From: =?ISO-8859-1?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [nft PATCH 3/4] datatype: add symbolic_constant_parse_table()
-Date: Mon, 22 Sep 2014 11:05:58 +0200
-Message-ID: <541FE676.6080807@gmail.com>
-References: <1411327957-19379-1-git-send-email-alvaroneay@gmail.com> <1411327957-19379-3-git-send-email-alvaroneay@gmail.com> <20140922075902.GJ4971@acer.localdomain>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft] the -nnn switch
+Date: Mon, 22 Sep 2014 11:54:57 +0200
+Message-ID: <CAOkSjBisG3f4fm3bw2NfX5MyyCR-n8ud_A3zUAhyJJAaXxBA3Q@mail.gmail.com>
+References: <CAOkSjBgOpbJmOXEX=a1kPXqDMs673ZTfB_Qg=q4V5L2JTsg77g@mail.gmail.com>
+ <20140919112505.GA1158@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:41814 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215AbaIVJFq (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:54911 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753166AbaIVJzT convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Sep 2014 05:05:46 -0400
-Received: by mail-wi0-f180.google.com with SMTP id q5so2521169wiv.7
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2014 02:05:45 -0700 (PDT)
-In-Reply-To: <20140922075902.GJ4971@acer.localdomain>
+	Mon, 22 Sep 2014 05:55:19 -0400
+Received: by mail-lb0-f178.google.com with SMTP id z12so3770680lbi.23
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2014 02:55:17 -0700 (PDT)
+In-Reply-To: <20140919112505.GA1158@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-El 22/09/14 09:59, Patrick McHardy escribi=F3:
-> On Sun, Sep 21, 2014 at 09:32:36PM +0200, Alvaro Neira Ayuso wrote:
->> This function finds the symbol inside the table that you pass as par=
-ameter.
->> If the symbol doesn't exist we use the basetype to parse it and
->> symbolic_constant_parse().
+On 19 September 2014 13:25, Patrick McHardy <kaber@trash.net> wrote:
+> On Fri, Sep 19, 2014 at 11:49:02AM +0200, Arturo Borrero Gonzalez wro=
+te:
+>> Hi,
+>>
+>> the -nnn switch in in nftables is IMO a bit annoying.
+>> We are bounded to use that switch in every serious usage of nft.
+>>
+>> Let me remember the current behaviour:
+>>
+>>  -n -> don't translate IP addresses to names.
+>>  -nn -> also, don't translate gids/uids to names.
+>>  -nnn -> also, don't translate port numbers to names.
+>> default -> translate all numbers to names.
+>>
+>> I propose here that before nftables goes absolutely mainstream we
+>> change the behaviour to the opposite:
+>>
+>> -n -> translate IP addresses to names.
+>> -nn -> translate gids/uids to names.
+>> -nnn -> translate port numbers to names.
+>> default -> show all numerically.
+>>
+>> What do you think?
 >
-> I'm thinking that we should probably do this in all cases and not
-> specific to mark and ICMP types. At least I can't see a reason not
-> to.
->
+> That seems quite counter intuitive. I'd say the default should be not
+> to cause any network traffic for a regular system (not using LDAP or
+> whatever), which would be -n. So I would be fine with -n being the
+> default and adding an option to also translate hostnames.
 
-Sorry Patrick, I don't understand your answer. Could you elaborate that=
-?=20
-Looks good for you?
+So, your proposal is to make the current '-n' the default? This is
+what I've understood:
+
+=C2=B7 default (no -n given): show IP addresses (no DNS names), show GI=
+D
+names, port names
+=C2=B7 -n: show DNS names, show GID names, port names
+=C2=B7 -nn: show DNS names, show GID numbers, port names
+=C2=B7 -nnn: show DNS names, show GID numbers, port numbers
+
+That seems pretty counter intuitive to me, actually.
+
+Whit that combination of options you can't show all numerically, which
+I think it should be the default in fact.
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
