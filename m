@@ -1,42 +1,141 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libmnl] socket: creating a struct mnl_socket from a
- pre-existing socket
-Date: Mon, 22 Sep 2014 12:54:56 +0200
-Message-ID: <20140922105456.GA6952@salvia>
-References: <20140920060536.GA15209@gmail.com>
- <20140922102432.GA6074@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [PATCH nf-next 1/2] netfilter: bridge: nf_bridge_copy_header as static inline in header
+Date: Mon, 22 Sep 2014 14:16:39 +0200
+Message-ID: <1411388201-12124-2-git-send-email-pablo@netfilter.org>
+References: <1411388201-12124-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48021 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53769 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753607AbaIVKxu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Sep 2014 06:53:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20140922102432.GA6074@salvia>
+	id S1753491AbaIVMPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Sep 2014 08:15:43 -0400
+In-Reply-To: <1411388201-12124-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 22, 2014 at 12:24:32PM +0200, Pablo Neira Ayuso wrote:
-> On Sat, Sep 20, 2014 at 03:05:37PM +0900, Ken-ichirou MATSUZAWA wrote:
-> > This patch defines a new function mnl_socket_fdopen() which
-> > creates a struct mnl_socket object from a pre-existing netlink
-> > socket obtained from other process. Now I think of the socket
-> > is obtained from child process via send/recvmsg().
-> 
-> OK, you can also use this to send netlink messages using different
-> domain/type sockets from the same process too, I'm going to attach
-> this to the description.
+Move nf_bridge_copy_header() as static inline in netfilter_bridge.h
+header file. This patch prepares the modularization of the br_netfilter
+code.
 
-I just noticed that, for your usecase, nl->addr is going to be left
-unset. So getsockname() is also needed to set nl->addr if the socket
-is of netlink type, otherwise, the portID zero should already tell us
-that this is not a netlink socket, since this portID is reserved to
-the kernel when netlink is used.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter_bridge.h |   48 ++++++++++++++++++++++++++++++--------
+ net/bridge/br_netfilter.c        |   28 ----------------------
+ 2 files changed, 38 insertions(+), 38 deletions(-)
 
-Could you address this and resend the patch including my comments in
-the previous email? Thanks.
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index 8ab1c27..fe996d5 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -24,16 +24,6 @@ enum nf_br_hook_priorities {
+ #define BRNF_8021Q			0x10
+ #define BRNF_PPPoE			0x20
+ 
+-/* Only used in br_forward.c */
+-int nf_bridge_copy_header(struct sk_buff *skb);
+-static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
+-{
+-	if (skb->nf_bridge &&
+-	    skb->nf_bridge->mask & (BRNF_BRIDGED | BRNF_BRIDGED_DNAT))
+-		return nf_bridge_copy_header(skb);
+-  	return 0;
+-}
+-
+ static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
+ {
+ 	switch (skb->protocol) {
+@@ -46,6 +36,44 @@ static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
+ 	}
+ }
+ 
++static inline void nf_bridge_update_protocol(struct sk_buff *skb)
++{
++	if (skb->nf_bridge->mask & BRNF_8021Q)
++		skb->protocol = htons(ETH_P_8021Q);
++	else if (skb->nf_bridge->mask & BRNF_PPPoE)
++		skb->protocol = htons(ETH_P_PPP_SES);
++}
++
++/* Fill in the header for fragmented IP packets handled by
++ * the IPv4 connection tracking code.
++ *
++ * Only used in br_forward.c
++ */
++static inline int nf_bridge_copy_header(struct sk_buff *skb)
++{
++	int err;
++	unsigned int header_size;
++
++	nf_bridge_update_protocol(skb);
++	header_size = ETH_HLEN + nf_bridge_encap_header_len(skb);
++	err = skb_cow_head(skb, header_size);
++	if (err)
++		return err;
++
++	skb_copy_to_linear_data_offset(skb, -header_size,
++				       skb->nf_bridge->data, header_size);
++	__skb_push(skb, nf_bridge_encap_header_len(skb));
++	return 0;
++}
++
++static inline int nf_bridge_maybe_copy_header(struct sk_buff *skb)
++{
++	if (skb->nf_bridge &&
++	    skb->nf_bridge->mask & (BRNF_BRIDGED | BRNF_BRIDGED_DNAT))
++		return nf_bridge_copy_header(skb);
++  	return 0;
++}
++
+ static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
+ {
+ 	if (unlikely(skb->nf_bridge->mask & BRNF_PPPoE))
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index a615264..61929a7 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -245,14 +245,6 @@ static inline void nf_bridge_save_header(struct sk_buff *skb)
+ 					 skb->nf_bridge->data, header_size);
+ }
+ 
+-static inline void nf_bridge_update_protocol(struct sk_buff *skb)
+-{
+-	if (skb->nf_bridge->mask & BRNF_8021Q)
+-		skb->protocol = htons(ETH_P_8021Q);
+-	else if (skb->nf_bridge->mask & BRNF_PPPoE)
+-		skb->protocol = htons(ETH_P_PPP_SES);
+-}
+-
+ /* When handing a packet over to the IP layer
+  * check whether we have a skb that is in the
+  * expected format
+@@ -320,26 +312,6 @@ drop:
+ 	return -1;
+ }
+ 
+-/* Fill in the header for fragmented IP packets handled by
+- * the IPv4 connection tracking code.
+- */
+-int nf_bridge_copy_header(struct sk_buff *skb)
+-{
+-	int err;
+-	unsigned int header_size;
+-
+-	nf_bridge_update_protocol(skb);
+-	header_size = ETH_HLEN + nf_bridge_encap_header_len(skb);
+-	err = skb_cow_head(skb, header_size);
+-	if (err)
+-		return err;
+-
+-	skb_copy_to_linear_data_offset(skb, -header_size,
+-				       skb->nf_bridge->data, header_size);
+-	__skb_push(skb, nf_bridge_encap_header_len(skb));
+-	return 0;
+-}
+-
+ /* PF_BRIDGE/PRE_ROUTING *********************************************/
+ /* Undo the changes made for ip6tables PREROUTING and continue the
+  * bridge PRE_ROUTING hook. */
+-- 
+1.7.10.4
 
