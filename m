@@ -1,98 +1,42 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 3/4] datatype: add symbolic_constant_parse_table()
-Date: Sun, 21 Sep 2014 21:32:36 +0200
-Message-ID: <1411327957-19379-3-git-send-email-alvaroneay@gmail.com>
-References: <1411327957-19379-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
+From: "Benjamin Siaka" <siajaka@gmail.com>
+Subject: HOW ARE YOU?
+Date: Mon, 22 Sep 2014 01:16:16 +0000
+Message-ID: <20140922011627.D0F5A3AE8758@studentsvm0.itb.ac.id>
+Reply-To: bensiaka@she.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:60955 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbaIUTca (ORCPT
+Received: from mx2.itb.ac.id ([167.205.23.7]:15736 "EHLO mx2.itb.ac.id"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752931AbaIVB1w convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Sep 2014 15:32:30 -0400
-Received: by mail-wi0-f169.google.com with SMTP id fb4so1799350wid.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Sep 2014 12:32:28 -0700 (PDT)
-In-Reply-To: <1411327957-19379-1-git-send-email-alvaroneay@gmail.com>
+	Sun, 21 Sep 2014 21:27:52 -0400
+Received: from av1.itb.ac.id (av1.itb.ac.id [167.205.1.71])
+	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1SRZ2JlVz4fcmY
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2014 08:16:58 +0700 (WIT)
+Received: from mx2.itb.ac.id ([167.205.1.67])
+	by av1.itb.ac.id (av1.itb.ac.id [167.205.1.73]) (amavisd-new, port 10002)
+	with ESMTP id VdP8i0MsQlJn for <netfilter-devel@vger.kernel.org>;
+	Mon, 22 Sep 2014 08:19:52 +0700 (WIT)
+Received: from studentsvm0.itb.ac.id (unknown [167.205.50.87])
+	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1SRY2Hb8z4fcjd
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2014 08:16:57 +0700 (WIT)
+Received: from [10.200.21.4] (unknown [79.142.73.220])
+	by studentsvm0.itb.ac.id (Postfix) with ESMTPSA id D0F5A3AE8758
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2014 08:16:27 +0700 (WIB)
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This function finds the symbol inside the table that you pass as parameter.
-If the symbol doesn't exist we use the basetype to parse it and
-symbolic_constant_parse().
+Hello my Dear,
 
-This a refactorization to reuse this code in a follow up patch.
+I will greatly appreciate my correspondence meets you in good health condition.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- src/datatype.c |   47 +++++++++++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 20 deletions(-)
+My name is Mr. Benjamin Siaka. I am seeking for your co-operation for investment partnership in your Country. I shall provide the FUND for the investment. When you acknowledged the receipt of this correspondence, thereafter I will give you the Full Details of my investment proposal.
 
-diff --git a/src/datatype.c b/src/datatype.c
-index fdfee54..1954dd6 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -128,6 +128,32 @@ struct error_record *symbolic_constant_parse(const struct expr *sym,
- 	return NULL;
- }
- 
-+static struct error_record
-+*symbolic_constant_table_parse(const struct symbol_table *table,
-+			       const struct expr *sym, struct expr **res)
-+{
-+	struct error_record *erec;
-+	const struct symbolic_constant *s;
-+
-+	for (s = table->symbols; s->identifier != NULL; s++) {
-+		if (!strcmp(sym->identifier, s->identifier)) {
-+			*res = constant_expr_alloc(&sym->location, sym->dtype,
-+						   sym->dtype->byteorder,
-+						   sym->dtype->size,
-+						   &s->value);
-+			return NULL;
-+		}
-+	}
-+
-+	*res = NULL;
-+	erec = sym->dtype->basetype->parse(sym, res);
-+	if (erec != NULL)
-+		return erec;
-+	if (*res)
-+		return NULL;
-+	return symbolic_constant_parse(sym, table, res);
-+}
-+
- void symbolic_constant_print(const struct symbol_table *tbl,
- 			     const struct expr *expr)
- {
-@@ -660,26 +686,7 @@ static void mark_type_print(const struct expr *expr)
- static struct error_record *mark_type_parse(const struct expr *sym,
- 					    struct expr **res)
- {
--	struct error_record *erec;
--	const struct symbolic_constant *s;
--
--	for (s = mark_tbl->symbols; s->identifier != NULL; s++) {
--		if (!strcmp(sym->identifier, s->identifier)) {
--			*res = constant_expr_alloc(&sym->location, sym->dtype,
--						   sym->dtype->byteorder,
--						   sym->dtype->size,
--						   &s->value);
--			return NULL;
--		}
--	}
--
--	*res = NULL;
--	erec = sym->dtype->basetype->parse(sym, res);
--	if (erec != NULL)
--		return erec;
--	if (*res)
--		return NULL;
--	return symbolic_constant_parse(sym, mark_tbl, res);
-+	return symbolic_constant_table_parse(mark_tbl, sym, res);
- }
- 
- const struct datatype mark_type = {
--- 
-1.7.10.4
+I await your response in earliest.
 
+My regards,
+Mr. Benjamin Siaka.
