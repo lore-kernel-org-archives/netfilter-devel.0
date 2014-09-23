@@ -1,40 +1,102 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 2/5] netfilter: nft_rbtree: no need for spinlock from
- set destroy path
-Date: Tue, 23 Sep 2014 09:29:37 -0700
-Message-ID: <1411489777.15395.1.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
-	 <1411464288-18069-3-git-send-email-pablo@netfilter.org>
-	 <1411465957.26859.179.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140923110159.GA20055@salvia>
-	 <1411473245.26859.188.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20140923161040.GA3609@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20140923161040.GA3609@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Rob Jones <rob.jones@codethink.co.uk>
+Subject: [PATCH v2] net/netfilter/x_tables.c: use __seq_open_private()
+Date: Tue, 23 Sep 2014 18:05:55 +0100
+Message-ID: <1411491955-9131-1-git-send-email-rob.jones@codethink.co.uk>
+Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-kernel@codethink.co.uk,
+	rob.jones@codethink.co.uk
+To: davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:45455 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755293AbaIWRGM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Sep 2014 13:06:12 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2014-09-23 at 18:10 +0200, Pablo Neira Ayuso wrote:
+Reduce boilerplate code by using __seq_open_private() instead of seq_open()
+in xt_match_open() and xt_target_open().
 
-> Actually, I could add to nft_data a pointer in the union area, but I'm
-> not very confortable with adding it for this specific case. At this
-> moment we're releasing this from rcu_callback which is "hiding" the
-> deletion time from the netlink interface.
-> 
-> But I'll keep this back in my head if we later on have some pointer
-> candidate to be reused in a nice way.
-> 
-> I'll send a patch to make the rb_first()/rb_next() conversion though.
+Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
+---
 
-Ah, forget what I said, its actually slower to build a list by 7%, I had
-an error in my test.
+This patch uses an existing variant of seq_open() to reduce the kernel code
+size.
 
-So the rb_first() thing is the easy and fast way.
+The only significant variation from the pre-existing code is the fact that
+__seq_open_private() calls kzalloc() rather than kmalloc(), which could
+conceivably have an impact on timing.
 
-Thanks
+This version 2 incorporates a minor initialisation simplification (resulting
+from kzalloc() being used) requested by netfilter-devel@vger.kernel.org
+
+ net/netfilter/x_tables.c |   31 ++++---------------------------
+ 1 file changed, 4 insertions(+), 27 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 227aa11..393f17b 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1080,7 +1080,6 @@ static void *xt_mttg_seq_start(struct seq_file *seq, loff_t *pos,
+ 	struct nf_mttg_trav *trav = seq->private;
+ 	unsigned int j;
+ 
+-	trav->class = MTTG_TRAV_INIT;
+ 	for (j = 0; j < *pos; ++j)
+ 		if (xt_mttg_seq_next(seq, NULL, NULL, is_target) == NULL)
+ 			return NULL;
+@@ -1137,22 +1136,11 @@ static const struct seq_operations xt_match_seq_ops = {
+ 
+ static int xt_match_open(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *seq;
+ 	struct nf_mttg_trav *trav;
+-	int ret;
+-
+-	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+-	if (trav == NULL)
++	trav = __seq_open_private(file, &xt_match_seq_ops, sizeof(*trav));
++	if (!trav)
+ 		return -ENOMEM;
+ 
+-	ret = seq_open(file, &xt_match_seq_ops);
+-	if (ret < 0) {
+-		kfree(trav);
+-		return ret;
+-	}
+-
+-	seq = file->private_data;
+-	seq->private = trav;
+ 	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+@@ -1201,22 +1189,11 @@ static const struct seq_operations xt_target_seq_ops = {
+ 
+ static int xt_target_open(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *seq;
+ 	struct nf_mttg_trav *trav;
+-	int ret;
+-
+-	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+-	if (trav == NULL)
++	trav = __seq_open_private(file, &xt_target_seq_ops, sizeof(*trav));
++	if (!trav)
+ 		return -ENOMEM;
+ 
+-	ret = seq_open(file, &xt_target_seq_ops);
+-	if (ret < 0) {
+-		kfree(trav);
+-		return ret;
+-	}
+-
+-	seq = file->private_data;
+-	seq->private = trav;
+ 	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
