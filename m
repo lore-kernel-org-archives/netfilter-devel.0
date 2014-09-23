@@ -1,43 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/5] netfilter: xt_TPROXY: undefined reference to `udp6_lib_lookup'
-Date: Tue, 23 Sep 2014 11:24:48 +0200
-Message-ID: <1411464288-18069-6-git-send-email-pablo@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 2/5] netfilter: nft_rbtree: no need for spinlock from
+ set destroy path
+Date: Tue, 23 Sep 2014 02:52:37 -0700
+Message-ID: <1411465957.26859.179.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+	 <1411464288-18069-3-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1411464288-18069-3-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-CONFIG_IPV6=m
-CONFIG_NETFILTER_XT_TARGET_TPROXY=y
+On Tue, 2014-09-23 at 11:24 +0200, Pablo Neira Ayuso wrote:
+> The sets are released from the rcu callback, after the rule is removed
+> from the chain list, which implies that nfnetlink cannot update the
+> rbtree and no packets are walking on the set anymore. Thus, we can get
+> rid of the spinlock in the set destroy path there.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Reviewied-by: Thomas Graf <tgraf@suug.ch>
+> ---
+>  net/netfilter/nft_rbtree.c |    2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+> index e1836ff..46214f2 100644
+> --- a/net/netfilter/nft_rbtree.c
+> +++ b/net/netfilter/nft_rbtree.c
+> @@ -234,13 +234,11 @@ static void nft_rbtree_destroy(const struct nft_set *set)
+>  	struct nft_rbtree_elem *rbe;
+>  	struct rb_node *node;
+>  
+> -	spin_lock_bh(&nft_rbtree_lock);
+>  	while ((node = priv->root.rb_node) != NULL) {
+>  		rb_erase(node, &priv->root);
+>  		rbe = rb_entry(node, struct nft_rbtree_elem, node);
+>  		nft_rbtree_elem_destroy(set, rbe);
+>  	}
+> -	spin_unlock_bh(&nft_rbtree_lock);
+>  }
+>  
+>  static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
 
-   net/built-in.o: In function `nf_tproxy_get_sock_v6.constprop.11':
->> xt_TPROXY.c:(.text+0x583a1): undefined reference to `udp6_lib_lookup'
-   net/built-in.o: In function `tproxy_tg_init':
->> xt_TPROXY.c:(.init.text+0x1dc3): undefined reference to `nf_defrag_ipv6_enable'
+BTW, do you know if destroying an rbtree is faster this way, or using
+rb_first() ?
 
-This fix is similar to 1a5bbfc ("netfilter: Fix build errors with
-xt_socket.c").
+Most cases I see in the kernel use a rb_first instead of taking the
+root.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Examples : (its not an exhaustive list)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 4bef6eb..831f960 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -839,6 +839,7 @@ config NETFILTER_XT_TARGET_TPROXY
- 	tristate '"TPROXY" target transparent proxying support'
- 	depends on NETFILTER_XTABLES
- 	depends on NETFILTER_ADVANCED
-+	depends on (IPV6 || IPV6=n)
- 	depends on IP_NF_MANGLE
- 	select NF_DEFRAG_IPV4
- 	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
--- 
-1.7.10.4
+net/netfilter/xt_connlimit.c:402
+net/sched/sch_netem.c:380
+net/sched/sch_fq.c:519
+drivers/infiniband/hw/mlx4/cm.c:439
+drivers/iommu/iova.c:324
+drivers/md/dm-thin.c:1491
+drivers/mtd/mtdswap.c:625
+drivers/mtd/ubi/attach.c:636
+
+This might be better for large trees, to get better cache locality,
+but I have no experimental data.
