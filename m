@@ -1,103 +1,74 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH 2/2] examples: nft-rule-parse-add: give batching
- support
-Date: Tue, 23 Sep 2014 13:15:26 +0200
-Message-ID: <20140923111526.4630.43942.stgit@nfdev.cica.es>
-References: <20140923111521.4630.78017.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
+Subject: [nf_tables PATCH 1/2 v2] netfilter: nf_tables: store and dump sets policy
+Date: Tue, 23 Sep 2014 13:30:41 +0200
+Message-ID: <1411471842-4854-1-git-send-email-arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:49756 "EHLO smtp.cica.es"
+Received: from smtp4.cica.es ([150.214.5.182]:38837 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754980AbaIWLP2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2014 07:15:28 -0400
-In-Reply-To: <20140923111521.4630.78017.stgit@nfdev.cica.es>
+	id S1752162AbaIWLap (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Sep 2014 07:30:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's add support for current kernels.
+We want to know in which cases the user explicitly set the policy
+options. In that case, we also want to dump back the info.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- examples/nft-rule-parse-add.c |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+v2: address comments by Patrick. Only dump policy if not the default.
+    Also, set size info if != 0.
 
-diff --git a/examples/nft-rule-parse-add.c b/examples/nft-rule-parse-add.c
-index 8b6152a..4160435 100644
---- a/examples/nft-rule-parse-add.c
-+++ b/examples/nft-rule-parse-add.c
-@@ -75,11 +75,12 @@ static struct nft_rule *rule_parse_file(const char *file, uint16_t format)
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-+	struct mnl_nlmsg_batch *batch;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
--	uint32_t portid, seq;
-+	uint32_t portid, seq, rule_seq;
- 	struct nft_rule *r;
--	int ret;
-+	int ret, batching;
- 	uint16_t family, format, outformat;
- 
- 	if (argc < 3) {
-@@ -105,14 +106,33 @@ int main(int argc, char *argv[])
- 	nft_rule_fprintf(stdout, r, outformat, 0);
- 	fprintf(stdout, "\n");
- 
--	family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
-+	batching = nft_batch_is_supported();
-+	if (batching < 0) {
-+		perror("Cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
- 
- 	seq = time(NULL);
-+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
-+
-+	if (batching) {
-+		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	rule_seq = seq;
-+	family = nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY);
- 	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, family,
- 				       NLM_F_CREATE|NLM_F_APPEND|NLM_F_ACK,
--				       seq);
-+				       seq++);
- 	nft_rule_nlmsg_build_payload(nlh, r);
- 	nft_rule_free(r);
-+	mnl_nlmsg_batch_next(batch);
-+
-+	if (batching) {
-+		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-@@ -126,14 +146,17 @@ int main(int argc, char *argv[])
- 	}
- 	portid = mnl_socket_get_portid(nl);
- 
--	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
-+			      mnl_nlmsg_batch_size(batch)) < 0) {
- 		perror("mnl_socket_send");
- 		exit(EXIT_FAILURE);
+ include/net/netfilter/nf_tables.h |    2 ++
+ net/netfilter/nf_tables_api.c     |    6 ++++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index c4d8619..9cfa155 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -241,6 +241,7 @@ void nft_unregister_set(struct nft_set_ops *ops);
+  * 	@dtype: data type (verdict or numeric type defined by userspace)
+  * 	@size: maximum set size
+  * 	@nelems: number of elements
++ *	@policy: (enum nft_set_policies)
+  * 	@ops: set ops
+  * 	@flags: set flags
+  * 	@klen: key length
+@@ -255,6 +256,7 @@ struct nft_set {
+ 	u32				dtype;
+ 	u32				size;
+ 	u32				nelems;
++	u16				policy;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+ 	u16				flags;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a476b99..0534c30 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2344,6 +2344,11 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			goto nla_put_failure;
  	}
  
-+	mnl_nlmsg_batch_stop(batch);
++	if (set->policy != NFT_SET_POL_PERFORMANCE) {
++		if (nla_put_be32(skb, NFTA_SET_POLICY, htonl(set->policy)))
++			goto nla_put_failure;
++	}
 +
- 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
- 	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
-+		ret = mnl_cb_run(buf, ret, rule_seq, portid, NULL, NULL);
- 		if (ret <= 0)
- 			break;
- 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	desc = nla_nest_start(skb, NFTA_SET_DESC);
+ 	if (desc == NULL)
+ 		goto nla_put_failure;
+@@ -2669,6 +2674,7 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+ 	set->dlen  = desc.dlen;
+ 	set->flags = flags;
+ 	set->size  = desc.size;
++	set->policy	= policy;
+ 
+ 	err = ops->init(set, &desc, nla);
+ 	if (err < 0)
+-- 
+1.7.10.4
 
