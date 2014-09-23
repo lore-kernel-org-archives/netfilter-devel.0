@@ -1,50 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.23 released
-Date: Tue, 23 Sep 2014 13:34:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409231328160.30582@blackhole.kfki.hu>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 2/5] netfilter: nft_rbtree: no need for spinlock from
+ set destroy path
+Date: Tue, 23 Sep 2014 04:54:05 -0700
+Message-ID: <1411473245.26859.188.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
+	 <1411464288-18069-3-git-send-email-pablo@netfilter.org>
+	 <1411465957.26859.179.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20140923110159.GA20055@salvia>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:50455 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754684AbaIWLdt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2014 07:33:49 -0400
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:37401 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889AbaIWLyG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Sep 2014 07:54:06 -0400
+In-Reply-To: <20140923110159.GA20055@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Tue, 2014-09-23 at 13:01 +0200, Pablo Neira Ayuso wrote:
 
-Here comes the new version of ipset with small bugfixes, corrections
-and manpage updates. The package contains the updated bash utilities as 
-well:
+> I'll send a follow up patch for nf-next to use rb_first() in that
+> patch. Thanks Eric.
 
-Userspace changes:
-  - The utils are updated from their sources
-  - Order create and add options in manpage so that generic ones
-    come first
-  - Centralise generic create options (family, hashsize, maxelem)
-    on top of man page in the generic options section. (Mart Frauenlob)
-  - Support glibc < 2.9 (fixes bugzilla id #891)
-  - Add description of hash:mac set type to man page. (Mart Frauenlob)
-  - Add missing space for skbinfo option synopsis. (Mart Frauenlob)
-  - The library/API versions were forgotten to bump (reported by
-    Sergei Zhirikov)
-  - Retry printing when sprintf fails (reported by Stig Thormodsrud)
+I did a test, and its indeed a bit faster to use rb_first(), by about 5%
 
-Kernel part changes:
-  - Support updating extensions when the set is full
-    (fixes bugzilla id #880)
+Real win is to be able to build a chain using rb_first()/rb_next(),
+(leaving the tree as is), then deleting the items in the chain, and
+simply reset rb_root.
 
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
+This only needs to reuse one pointer to store the item->next pointer.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+This is then about ~50% faster, because we do not constantly rebalance
+tree for every removed item.
+
+
+
