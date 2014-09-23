@@ -1,53 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH 4/4 v3] nft: complete reject support
-Date: Tue, 23 Sep 2014 08:43:47 +0200
-Message-ID: <20140923064347.GB14535@acer.localdomain>
-References: <1411327957-19379-1-git-send-email-alvaroneay@gmail.com>
- <1411327957-19379-4-git-send-email-alvaroneay@gmail.com>
- <20140922082058.GK4971@acer.localdomain>
- <54204CF6.6050007@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?=C1lvaro?= Neira Ayuso <alvaroneay@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/5] nf pull request for net
+Date: Tue, 23 Sep 2014 11:24:43 +0200
+Message-ID: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44589 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645AbaIWGnv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2014 02:43:51 -0400
-Content-Disposition: inline
-In-Reply-To: <54204CF6.6050007@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:53433 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbaIWJXq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Sep 2014 05:23:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 22, 2014 at 06:23:18PM +0200, =C1lvaro Neira Ayuso wrote:
-> El 22/09/14 10:20, Patrick McHardy escribi=F3:
-> >I actually think we should add full support for this by adding an
-> >inet-specific ICMP type table which is the intersection of the ICMP
-> >and ICMPv6 types for inet and map those to the corresponding real
-> >types:
-> >
-> >nft inet filter input reject with host-unreachable
-> >
->=20
-> I have seen the ICMP and ICMPv6 types and I have done this map:
->=20
-> CODE		 |	ICMPv6		|	ICMPv4
-> admin-prohibited | admin-prohibited	|	admin-prohibited
-> port-unreach	 | port-unreach		|	port-unreach
-> no-route	 | no-route		|	net-unreach
-> host-unreach	 | addr-unreach		|	host-unreach
->=20
-> What do you think?
+Hi David,
 
-Looks reasonable. We need to do mapping to the real codes at runtime
-in nft_reject_inet. I'd suggest to use the same numeric values as
-in IPv4 and only map those for IPv6, so we can avoid the translation
-in at least one case.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This series contains netfilter fixes for net, they are:
+
+1) Fix lockdep splat in nft_hash when releasing sets from the
+   rcu_callback context. We don't the mutex there anymore.
+
+2) Remove unnecessary spinlock_bh in the destroy path of the nf_tables
+   rbtree set type from rcu_callback context.
+
+3) Fix another lockdep splat in rhashtable. None of the callers hold
+   a mutex when calling rhashtable_destroy.
+
+4) Fix duplicated error reporting from nfnetlink when aborting and
+   replaying a batch.
+
+5) Fix a Kconfig issue reported by kbuild robot.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit bec6bfb2437f4676dbaaacba6019e9dafef18962:
+
+  amd-xgbe: Fix initialization of the wrong spin lock (2014-09-02 14:03:37 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 679ab4ddbdfab8af39104e63819db71f428aefd9:
+
+  netfilter: xt_TPROXY: undefined reference to `udp6_lib_lookup' (2014-09-07 17:25:16 +0200)
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (5):
+      netfilter: nft_hash: no need for rcu in the hash set destroy path
+      netfilter: nft_rbtree: no need for spinlock from set destroy path
+      rhashtable: fix lockdep splat in rhashtable_destroy()
+      netfilter: nfnetlink: deliver netlink errors on batch completion
+      netfilter: xt_TPROXY: undefined reference to `udp6_lib_lookup'
+
+ lib/rhashtable.c           |    8 +++---
+ net/netfilter/Kconfig      |    1 +
+ net/netfilter/nfnetlink.c  |   64 +++++++++++++++++++++++++++++++++++++++++++-
+ net/netfilter/nft_hash.c   |   12 +++++----
+ net/netfilter/nft_rbtree.c |    2 --
+ 5 files changed, 75 insertions(+), 12 deletions(-)
