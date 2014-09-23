@@ -1,66 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/5] nf pull request for net
-Date: Tue, 23 Sep 2014 11:24:43 +0200
-Message-ID: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/5] netfilter: nft_rbtree: no need for spinlock from set destroy path
+Date: Tue, 23 Sep 2014 11:24:45 +0200
+Message-ID: <1411464288-18069-3-git-send-email-pablo@netfilter.org>
+References: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53433 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53456 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbaIWJXq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2014 05:23:46 -0400
+	id S1750818AbaIWJXt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Sep 2014 05:23:49 -0400
+In-Reply-To: <1411464288-18069-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+The sets are released from the rcu callback, after the rule is removed
+from the chain list, which implies that nfnetlink cannot update the
+rbtree and no packets are walking on the set anymore. Thus, we can get
+rid of the spinlock in the set destroy path there.
 
-This series contains netfilter fixes for net, they are:
-
-1) Fix lockdep splat in nft_hash when releasing sets from the
-   rcu_callback context. We don't the mutex there anymore.
-
-2) Remove unnecessary spinlock_bh in the destroy path of the nf_tables
-   rbtree set type from rcu_callback context.
-
-3) Fix another lockdep splat in rhashtable. None of the callers hold
-   a mutex when calling rhashtable_destroy.
-
-4) Fix duplicated error reporting from nfnetlink when aborting and
-   replaying a batch.
-
-5) Fix a Kconfig issue reported by kbuild robot.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit bec6bfb2437f4676dbaaacba6019e9dafef18962:
-
-  amd-xgbe: Fix initialization of the wrong spin lock (2014-09-02 14:03:37 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-for you to fetch changes up to 679ab4ddbdfab8af39104e63819db71f428aefd9:
-
-  netfilter: xt_TPROXY: undefined reference to `udp6_lib_lookup' (2014-09-07 17:25:16 +0200)
-
-----------------------------------------------------------------
-Pablo Neira Ayuso (5):
-      netfilter: nft_hash: no need for rcu in the hash set destroy path
-      netfilter: nft_rbtree: no need for spinlock from set destroy path
-      rhashtable: fix lockdep splat in rhashtable_destroy()
-      netfilter: nfnetlink: deliver netlink errors on batch completion
-      netfilter: xt_TPROXY: undefined reference to `udp6_lib_lookup'
-
- lib/rhashtable.c           |    8 +++---
- net/netfilter/Kconfig      |    1 +
- net/netfilter/nfnetlink.c  |   64 +++++++++++++++++++++++++++++++++++++++++++-
- net/netfilter/nft_hash.c   |   12 +++++----
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reviewied-by: Thomas Graf <tgraf@suug.ch>
+---
  net/netfilter/nft_rbtree.c |    2 --
- 5 files changed, 75 insertions(+), 12 deletions(-)
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+index e1836ff..46214f2 100644
+--- a/net/netfilter/nft_rbtree.c
++++ b/net/netfilter/nft_rbtree.c
+@@ -234,13 +234,11 @@ static void nft_rbtree_destroy(const struct nft_set *set)
+ 	struct nft_rbtree_elem *rbe;
+ 	struct rb_node *node;
+ 
+-	spin_lock_bh(&nft_rbtree_lock);
+ 	while ((node = priv->root.rb_node) != NULL) {
+ 		rb_erase(node, &priv->root);
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
+ 		nft_rbtree_elem_destroy(set, rbe);
+ 	}
+-	spin_unlock_bh(&nft_rbtree_lock);
+ }
+ 
+ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+-- 
+1.7.10.4
+
