@@ -1,98 +1,67 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 3/3 v2] src: add list ruleset command
-Date: Wed, 24 Sep 2014 12:32:20 +0200
-Message-ID: <1411554740-16660-3-git-send-email-arturo.borrero.glez@gmail.com>
-References: <1411554740-16660-1-git-send-email-arturo.borrero.glez@gmail.com>
-Cc: pablo@netfilter.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] parser: simplify monitor command parsing
+Date: Wed, 24 Sep 2014 13:42:57 +0200
+Message-ID: <20140924114257.GD18799@acer.localdomain>
+References: <1410939907-10180-1-git-send-email-kaber@trash.net>
+ <CAOkSjBgHZ4aG7Qog1pOtCHS=YDmLiJi11eXPxdY20oDNgPE1bA@mail.gmail.com>
+ <20140917080115.GB10380@acer.localdomain>
+ <1411548406.10103.1.camel@regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:49252 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751228AbaIXKdJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Sep 2014 06:33:09 -0400
-In-Reply-To: <1411554740-16660-1-git-send-email-arturo.borrero.glez@gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:56441 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725AbaIXLnB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Sep 2014 07:43:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1411548406.10103.1.camel@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new command to nft:
-	% nft list ruleset [family]
+On Wed, Sep 24, 2014 at 10:46:46AM +0200, Eric Leblond wrote:
+> Hi,
+> 
+> On Wed, 2014-09-17 at 10:01 +0200, Patrick McHardy wrote:
+> > On Wed, Sep 17, 2014 at 09:52:11AM +0200, Arturo Borrero Gonzalez wrote:
+> > > On 17 September 2014 09:45, Patrick McHardy <kaber@trash.net> wrote:
+> > > > Add tokens for "new" and "destroy". Split up the monitor flags into an
+> > > > event and an object to avoid lots of duplicated code.
+> > > >
+> > > > Signed-off-by: Patrick McHardy <kaber@trash.net>
+> > > > ---
+> > > 
+> > > I think the 'new' keyword may clash with 'ct new', don't you?. That's
+> > > why Pablo did the parser that way.
+> > 
+> > Right. The split into event and object still saves a lot of code, I'll
+> > add back the strcmp if I can't think of a nicer way to fix this.
+> > 
+> > I'm working on command line completion based on the bison grammar, so
+> > I'd prefer to only use strings for identifiers, not for keywords.
+> 
+> I confirm that 102c300 "parser: simplify monitor command parsing" breaks
+> the "ct state new" filter so current nftables git is not usable. 
+> 
+> For the record the error is the following:
+>  nft> add rule inet filter input ct state new
+>  <cli>:1:37-39: Error: syntax error, unexpected new
+>  add rule inet filter input ct state new
+>                                      ^^^ 
+> 
+> And this is also caught by regression tests:
+> nftables/tests/regression# ./nft-test.py any/ct.t 
+> any/ct.t: ERROR: line 10: nft add rule -nnn ip test-ip4 output ct state new,established, related, untracked: This rule should not have failed.
+> any/ct.t: ERROR: line 12: nft add rule -nnn ip test-ip4 output ct state {new,established, related, untracked}: This rule should not have failed.
+> 
+> Patrick, let me know if you can look into it. If not I will try to have
+> a look this week end or next week.
 
-Which list the entire ruleset.
-If no family is specified, all tables of all families are listed.
-
-Users can now make several operations at ruleset level:
-
- % nft list ruleset > ruleset.nft
- % nft -f ruleset.nft
- % nft flush ruleset
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v3: rename function to do_list_ruleset() and use list_splice_tail_init()
-
- src/parser.y |    4 ++++
- src/rule.c   |   25 +++++++++++++++++++++++++
- 2 files changed, 29 insertions(+)
-
-diff --git a/src/parser.y b/src/parser.y
-index e35eede..8f58e3a 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -753,6 +753,10 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
- 			}
-+			|	RULESET		ruleset_spec
-+			{
-+				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
-+			}
- 			;
- 
- flush_cmd		:	TABLE		table_spec
-diff --git a/src/rule.c b/src/rule.c
-index 336c159..c5a117d 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -782,6 +782,29 @@ err:
- 	return -1;
- }
- 
-+static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
-+{
-+	struct table *table, *next;
-+	LIST_HEAD(table_list);
-+
-+	if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
-+		return -1;
-+
-+	list_splice_tail_init(&ctx->list, &table_list);
-+
-+	list_for_each_entry_safe(table, next, &table_list, list) {
-+		table_add_hash(table);
-+
-+		cmd->handle.family = table->handle.family;
-+		cmd->handle.table = table->handle.table;
-+
-+		if (do_list_table(ctx, cmd, table) < 0)
-+			return -1;
-+	}
-+
-+	return 0;
-+}
-+
- static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	struct table *table = NULL;
-@@ -837,6 +860,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 			set_print(set);
- 		}
- 		return 0;
-+	case CMD_OBJ_RULESET:
-+		return do_list_ruleset(ctx, cmd);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
--- 
-1.7.10.4
-
+I have a rather large patchset that reorganizes the parser and fixes
+this for all constants that clash with keywords, but it will take a
+day or two.
