@@ -1,122 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/2] src: add list ruleset command
-Date: Wed, 24 Sep 2014 11:58:02 +0200
-Message-ID: <20140924095802.GB4900@salvia>
-References: <20140924091351.13585.92650.stgit@nfdev.cica.es>
- <20140924091357.13585.3487.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 1/3] rule: rename do_command_list_cleanup() to table_cleanup()
+Date: Wed, 24 Sep 2014 12:32:18 +0200
+Message-ID: <1411554740-16660-1-git-send-email-arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45518 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750940AbaIXJ4y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Sep 2014 05:56:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20140924091357.13585.3487.stgit@nfdev.cica.es>
+Received: from smtp3.cica.es ([150.214.5.190]:49253 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750940AbaIXKdJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Sep 2014 06:33:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 24, 2014 at 11:13:57AM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds a new command to nft:
-> 	% nft list ruleset [family]
-> 
-> Which list the entire ruleset.
-> If no family is specified, all tables of all families are listed.
-> 
-> Users can now make several operations at ruleset level:
-> 
->  % nft list ruleset > ruleset.nft
->  % nft -f ruleset.nft
->  % nft flush ruleset
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  src/parser.y |    4 ++++
->  src/rule.c   |   29 +++++++++++++++++++++++++++++
->  2 files changed, 33 insertions(+)
-> 
-> diff --git a/src/parser.y b/src/parser.y
-> index e35eede..8f58e3a 100644
-> --- a/src/parser.y
-> +++ b/src/parser.y
-> @@ -753,6 +753,10 @@ list_cmd		:	TABLE		table_spec
->  			{
->  				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
->  			}
-> +			|	RULESET		ruleset_spec
-> +			{
-> +				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
-> +			}
->  			;
->  
->  flush_cmd		:	TABLE		table_spec
-> diff --git a/src/rule.c b/src/rule.c
-> index ac72f12..9c13474 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -782,6 +782,33 @@ err:
->  	return -1;
->  }
->  
-> +static int do_command_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
+Let's use a more generic name for this functions, since it has nothing to do
+with commands.
 
-I'd suggest do_list_ruleset.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/rule.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-So we leave the do_command_ prefix for functions that are called from
-do_command().
+diff --git a/src/rule.c b/src/rule.c
+index 2fe2520..ab533da 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -733,7 +733,7 @@ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	return 0;
+ }
+ 
+-static void do_command_list_cleanup(struct table *table)
++static void table_cleanup(struct table *table)
+ {
+ 	struct chain *chain, *nchain;
+ 	struct set *set, *nset;
+@@ -837,10 +837,10 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	}
+ 
+ 	table_print(table);
+-	do_command_list_cleanup(table);
++	table_cleanup(table);
+ 	return 0;
+ err:
+-	do_command_list_cleanup(table);
++	table_cleanup(table);
+ 	return -1;
+ }
+ 
+-- 
+1.7.10.4
 
-> +{
-> +	struct table *table, *nt;
-                              ^
-please, use 'next' whenever possible.
-
-> +	struct netlink_ctx inner_ctx;
-> +	LIST_HEAD(msgs);
-> +
-> +	if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
-> +		return -1;
-> +
-> +	memset(&inner_ctx, 0, sizeof(inner_ctx));
-> +	init_list_head(&inner_ctx.list);
-> +	init_list_head(&msgs);
-> +	inner_ctx.msgs = &msgs;
-
-I think you can skip this inner_ctx if you declare:
-
-        LIST_HEAD(table_list);
-
-and then you use list_splice_tail_init() to migrate the temporary
-ctx->list to table_list.
-
-> +
-> +	list_for_each_entry_safe(table, nt, &ctx->list, list) {
-                                            ^^^^^^^^^^
-Then, use table_list here to iterate over it.
-
-> +		table_add_hash(table);
-> +
-> +		cmd->handle.family = table->handle.family;
-> +		cmd->handle.table = table->handle.table;
-> +
-> +		if (do_command_list_table_content(&inner_ctx, cmd, table) < 0)
-> +			return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
->  {
->  	struct table *table = NULL;
-> @@ -837,6 +864,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
->  			set_print(set);
->  		}
->  		return 0;
-> +	case CMD_OBJ_RULESET:
-> +		return do_command_list_ruleset(ctx, cmd);
->  	default:
->  		BUG("invalid command object type %u\n", cmd->obj);
->  	}
-> 
