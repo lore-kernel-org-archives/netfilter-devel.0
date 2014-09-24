@@ -1,69 +1,121 @@
-From: Rob Jones <rob.jones@codethink.co.uk>
-Subject: Re: [PATCH v2] net/netfilter/x_tables.c: use __seq_open_private()
-Date: Wed, 24 Sep 2014 09:14:53 +0100
-Message-ID: <54227D7D.6020909@codethink.co.uk>
-References: <1411491955-9131-1-git-send-email-rob.jones@codethink.co.uk> <1411494387.32579.138.camel@xylophone> <20140923214021.GA4206@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 1/2] rule: factorize chain and table listing code
+Date: Wed, 24 Sep 2014 11:13:51 +0200
+Message-ID: <20140924091351.13585.92650.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@codethink.co.uk,
-	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Ben Hutchings <ben.hutchings@codethink.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140923214021.GA4206@salvia>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:52001 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753653AbaIXJN7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Sep 2014 05:13:59 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Let's factorize common code. This is also useful in follow-up patches.
 
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/rule.c |   67 +++++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 35 insertions(+), 32 deletions(-)
 
-On 23/09/14 22:40, Pablo Neira Ayuso wrote:
-> On Tue, Sep 23, 2014 at 06:46:27PM +0100, Ben Hutchings wrote:
->> On Tue, 2014-09-23 at 18:05 +0100, Rob Jones wrote:
->>> Reduce boilerplate code by using __seq_open_private() instead of seq_open()
->>> in xt_match_open() and xt_target_open().
->>>
->>> Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
->>> ---
->>>
->>> This patch uses an existing variant of seq_open() to reduce the kernel code
->>> size.
->>>
->>> The only significant variation from the pre-existing code is the fact that
->>> __seq_open_private() calls kzalloc() rather than kmalloc(), which could
->>> conceivably have an impact on timing.
->>>
->>> This version 2 incorporates a minor initialisation simplification (resulting
->>> from kzalloc() being used) requested by netfilter-devel@vger.kernel.org
->> [...]
->>> --- a/net/netfilter/x_tables.c
->>> +++ b/net/netfilter/x_tables.c
->>> @@ -1080,7 +1080,6 @@ static void *xt_mttg_seq_start(struct seq_file *seq, loff_t *pos,
->>>          struct nf_mttg_trav *trav = seq->private;
->>>          unsigned int j;
->>>
->>> -       trav->class = MTTG_TRAV_INIT;
->>>          for (j = 0; j < *pos; ++j)
->>>                  if (xt_mttg_seq_next(seq, NULL, NULL, is_target) == NULL)
->>>                          return NULL;
->> [...]
->>
->> I'm fairly sure this simplification is wrong, as xt_mttg_seq_start() is
->> potentially called multiple times on the same file handle.
+diff --git a/src/rule.c b/src/rule.c
+index 2fe2520..ac72f12 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -749,11 +749,42 @@ static void do_command_list_cleanup(struct table *table)
+ 	}
+ }
+ 
++static int do_command_list_table_content(struct netlink_ctx *ctx,
++					 struct cmd *cmd, struct table *table)
++{
++	struct rule *rule, *nrule;
++	struct chain *chain;
++
++	if (do_list_sets(ctx, &cmd->location, table) < 0)
++		goto err;
++	if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
++		goto err;
++	list_splice_tail_init(&ctx->list, &table->chains);
++	if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
++		goto err;
++
++	list_for_each_entry_safe(rule, nrule, &ctx->list, list) {
++		table = table_lookup(&rule->handle);
++		chain = chain_lookup(table, &rule->handle);
++		if (chain == NULL) {
++			chain = chain_alloc(rule->handle.chain);
++			chain_add_hash(chain, table);
++		}
++
++		list_move_tail(&rule->list, &chain->rules);
++	}
++
++	table_print(table);
++	do_command_list_cleanup(table);
++	return 0;
++err:
++	do_command_list_cleanup(table);
++	return -1;
++}
++
+ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table = NULL;
+-	struct chain *chain;
+-	struct rule *rule, *nrule;
+ 	struct set *set;
+ 
+ 	/* No need to allocate the table object when listing all tables */
+@@ -781,24 +812,9 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 			}
+ 			return 0;
+ 		}
+-		/* List content of this table */
+-		if (do_list_sets(ctx, &cmd->location, table) < 0)
+-			goto err;
+-		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
+-			goto err;
+-		list_splice_tail_init(&ctx->list, &table->chains);
+-		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
+-			goto err;
+-		break;
++		return do_command_list_table_content(ctx, cmd, table);
+ 	case CMD_OBJ_CHAIN:
+-		if (do_list_sets(ctx, &cmd->location, table) < 0)
+-			goto err;
+-		if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
+-			goto err;
+-		list_splice_tail_init(&ctx->list, &table->chains);
+-		if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
+-			goto err;
+-		break;
++		return do_command_list_table_content(ctx, cmd, table);
+ 	case CMD_OBJ_SETS:
+ 		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
+ 			goto err;
+@@ -825,19 +841,6 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+ 
+-	list_for_each_entry_safe(rule, nrule, &ctx->list, list) {
+-		table = table_lookup(&rule->handle);
+-		chain = chain_lookup(table, &rule->handle);
+-		if (chain == NULL) {
+-			chain = chain_alloc(rule->handle.chain);
+-			chain_add_hash(chain, table);
+-		}
+-
+-		list_move_tail(&rule->list, &chain->rules);
+-	}
+-
+-	table_print(table);
+-	do_command_list_cleanup(table);
+ 	return 0;
+ err:
+ 	do_command_list_cleanup(table);
 
-Well spotted Ben.
-
->
-> Right. I'm going to take v1 of this patch instead, sorry for the
-> inconvenience Rob.
-
-No problem at all. It gave me something to do on the train home last
-night :-)
-
--- 
-Rob Jones
-Codethink Ltd
-mailto:rob.jones@codethink.co.uk
-tel:+44 161 236 5575
