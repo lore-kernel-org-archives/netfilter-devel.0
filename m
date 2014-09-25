@@ -1,57 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: conntrack: disable generic protocol
- tracking
-Date: Thu, 25 Sep 2014 17:04:16 +0200
-Message-ID: <20140925150416.GC26716@breakpoint.cc>
-References: <20140925113237.GC25548@breakpoint.cc>
- <alpine.DEB.2.10.1409251404060.14369@blackhole.kfki.hu>
- <20140925125748.GA26716@breakpoint.cc>
- <alpine.DEB.2.10.1409251535470.14369@blackhole.kfki.hu>
- <20140925141314.GB26716@breakpoint.cc>
- <alpine.DEB.2.10.1409251626160.14369@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Allow to compile for < 3.17 kernel version
+Date: Thu, 25 Sep 2014 19:12:57 +0200
+Message-ID: <20140925171257.GA13847@salvia>
+References: <1411606624-8411-1-git-send-email-vadim4j@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	dborkman@redhat.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: Vadim Kochan <vadim4j@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52100 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752865AbaIYPES (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:04:18 -0400
+Received: from mail.us.es ([193.147.175.20]:60886 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752130AbaIYRLt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Sep 2014 13:11:49 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1409251626160.14369@blackhole.kfki.hu>
+In-Reply-To: <1411606624-8411-1-git-send-email-vadim4j@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-> Without conntrack, you don't have NAT.
+On Thu, Sep 25, 2014 at 03:57:04AM +0300, Vadim Kochan wrote:
+> Added declaration checking for NFT_EXPR_LOG_LEVEL enum
+> which was added for 3.17 kernel version.
+> 
+> Signed-off-by: Vadim Kochan <vadim4j@gmail.com>
+> ---
+>  configure.ac              | 2 ++
+>  src/netlink_delinearize.c | 2 ++
+>  src/netlink_linearize.c   | 2 ++
+>  3 files changed, 6 insertions(+)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 3a7647f..d3971c7 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -99,6 +99,8 @@ AC_TYPE_UINT16_T
+>  AC_TYPE_UINT32_T
+>  AC_TYPE_UINT64_T
+>  
+> +AC_CHECK_DECLS([NFT_EXPR_LOG_LEVEL],[],[],[[#include <libnftnl/expr.h>]])
+> +
+>  # Checks for library functions.
+>  AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
+>  
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> index 796b632..cf2ec00 100644
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -447,11 +447,13 @@ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
+>  			nft_rule_expr_get_u16(nle, NFT_EXPR_LOG_QTHRESHOLD);
+>  		stmt->log.flags |= STMT_LOG_QTHRESHOLD;
+>  	}
+> +#if HAVE_DECL_NFT_EXPR_LOG_LEVEL
+>  	if (nft_rule_expr_is_set(nle, NFT_EXPR_LOG_LEVEL)) {
+>  		stmt->log.level =
+>  			nft_rule_expr_get_u32(nle, NFT_EXPR_LOG_LEVEL);
+>  		stmt->log.flags |= STMT_LOG_LEVEL;
+>  	}
+> +#endif
+>  	list_add_tail(&stmt->list, &ctx->rule->stmts);
+>  }
+>  
 
-Right.
+I don't want to pollute the source code with many ifdef's, sorry. And
+if I apply this, more similar follow up patches will come in the
+future.
 
-> Without conntrack, you don't have a direction. So how do you controll who 
-> may initiate the connection for the protocols which are covered by the 
-> generic tracker? We don't have any match for that.
-
-Fair enough,  I'll add autoprobing for the generic tracker instead.
-
-> The generic tracker can know which protocols have an own tracker and when 
-> it's not available can refuse to track that flow (like the proposed patch 
-> but selectively, just in this very case).
-
-OK.  I think this is acceptable compromise.
-
-> Exploitable modules can be blacklisted temporarily, while the fix is not 
-> available. With a generic tracker which refuses to track protocols with 
-> own trackers, the current security issue is not opened up.
-
-Right, thanks Jozsef.
-
-> NEW and ESTABLISHED states, which means directions and thus policies.
-> Those are all lost without the generic tracker.
-
-Yes, that and loss of NAT are sound arguments.
-
-Cheers,
-Florian
+I'll make a patch to some recommended libnftnl version at configure
+stage using PKG_CHECK_MODULES.
