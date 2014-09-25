@@ -1,78 +1,78 @@
-From: Vadim Kochan <vadim4j@gmail.com>
-Subject: [PATCH] Allow to compile for < 3.17 kernel version
-Date: Thu, 25 Sep 2014 03:57:04 +0300
-Message-ID: <1411606624-8411-1-git-send-email-vadim4j@gmail.com>
-Cc: Vadim Kochan <vadim4j@gmail.com>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: [PATCH] ipset: Fix hyphen used as minus sign in manpage
+Date: Thu, 25 Sep 2014 14:56:11 +0700
+Message-ID: <20140925075611.GA12768@nitrogen.neutroncom.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Cc: kadlec@blackhole.kfki.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:42722 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259AbaIYBFc (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:51998 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbaIYH4R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Sep 2014 21:05:32 -0400
-Received: by mail-wi0-f175.google.com with SMTP id r20so7984280wiv.8
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Sep 2014 18:05:31 -0700 (PDT)
+	Thu, 25 Sep 2014 03:56:17 -0400
+Received: by mail-pa0-f50.google.com with SMTP id lj1so1987286pab.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2014 00:56:16 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added declaration checking for NFT_EXPR_LOG_LEVEL enum
-which was added for 3.17 kernel version.
 
-Signed-off-by: Vadim Kochan <vadim4j@gmail.com>
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
 ---
- configure.ac              | 2 ++
- src/netlink_delinearize.c | 2 ++
- src/netlink_linearize.c   | 2 ++
- 3 files changed, 6 insertions(+)
+ src/ipset.8 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index 3a7647f..d3971c7 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -99,6 +99,8 @@ AC_TYPE_UINT16_T
- AC_TYPE_UINT32_T
- AC_TYPE_UINT64_T
- 
-+AC_CHECK_DECLS([NFT_EXPR_LOG_LEVEL],[],[],[[#include <libnftnl/expr.h>]])
-+
- # Checks for library functions.
- AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 796b632..cf2ec00 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -447,11 +447,13 @@ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
- 			nft_rule_expr_get_u16(nle, NFT_EXPR_LOG_QTHRESHOLD);
- 		stmt->log.flags |= STMT_LOG_QTHRESHOLD;
- 	}
-+#if HAVE_DECL_NFT_EXPR_LOG_LEVEL
- 	if (nft_rule_expr_is_set(nle, NFT_EXPR_LOG_LEVEL)) {
- 		stmt->log.level =
- 			nft_rule_expr_get_u32(nle, NFT_EXPR_LOG_LEVEL);
- 		stmt->log.flags |= STMT_LOG_LEVEL;
- 	}
-+#endif
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
- 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index c46b6d4..2b116f9 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -586,10 +586,12 @@ static void netlink_gen_log_stmt(struct netlink_linearize_ctx *ctx,
- 			nft_rule_expr_set_u16(nle, NFT_EXPR_LOG_QTHRESHOLD,
- 					      stmt->log.qthreshold);
- 	} else {
-+#if HAVE_DECL_NFT_EXPR_LOG_LEVEL
- 		if (stmt->log.flags & STMT_LOG_LEVEL) {
- 			nft_rule_expr_set_u32(nle, NFT_EXPR_LOG_LEVEL,
- 					      stmt->log.level);
- 		}
-+#endif
- 	}
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
--- 
+diff --git a/src/ipset.8 b/src/ipset.8
+index a7bd94f..c923956 100644
+--- a/src/ipset.8
++++ b/src/ipset.8
+@@ -319,7 +319,7 @@ the above would appear as: "allow access to SMB share o=
+n \\\\fileserv\\"
+ .SS "skbinfo, skbmark, skbprio, skbqueue"
+ All set types support the optional \fBskbinfo\fR extension. This extension=
+ allow to
+ store the metainfo (firewall mark, tc class and hardware queue) with every=
+ entry and map it to
+-packets by usage of SET netfilter target with --map-set option.
++packets by usage of SET netfilter target with \-\-map\-set option.
+ \fBskbmark\fR option format: \fBMARK\fR or \fBMARK/MASK\fR, where \fBMARK\=
+fR and \fBMASK\fR are 32bit hex
+ numbers with 0x prefix. If only \fBmark\fR is specified mask 0xffffffff ar=
+e used.
+ \fBskbprio\fR option has tc class format: \fBMAJOR:MINOR\fR, where \fBmajo=
+r\fR and \fBminor\fR numbers
+--=20
 2.1.0
 
+
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCAAGBQJUI8qbAAoJEJ0EcL2mzcRXz3EQANEhFoIoIbrqBFVSu88mUUlA
+4LWjuvM3jWIHwAGps02sy2IgpMhPAM0eoBe4Z8ITdU4G38SWm1z7jFWgzWBESB/F
+sh7uzaik4WRFZ2X4yt34ANTcYCSwD/CKlck72esVBX/nIT0SYyr4t0rp1vSVww6i
+MIJZwiBEPG5WsZs9CMb8A0VHYVF3KL47UtF7g5MXR1oCD6L84aL0biUcW7FjXMU4
+i7oMewyTXMXp1WtxjeNRqDRtd9s12JNjGa33ewCVipEDVwbY0CfPkH+EySvPvgtJ
+CxMZEFmkAv/Tjd1EqYcTs5YkBJEquTp7SrkY5ZNA9dMOBDf1MVgQp/5Vef8MjK+G
+tWEWqA2aWyxQowUmCNAVdPy4iSIckeb8XF6NvtXPk+zCREcYA0goGVQttrN+Q+GF
+9n25ExfMMvDR7Dm5rzO6kme1HHEXl+yK28OV8BKVmcq6hVI9hTD9/eOlsYNI8eEA
++7xTMe0ZeQv+OxGz+D6MTA/GWonjWMxlvl7NOFUeyfBOppffLlFOuIb5k29dr1BV
+PU48cwOcVLrv1+yQH1di8XbgtcPjawllbIZOlVvOXwUjzqrIULTDHcLANCUykBtG
+Qp9ti5YrE4wmYdMAc4LD2LCBk5DxmLk2E/A9CUGUjJI9rBqK3rzYSItfYHg/bfVJ
+UC1YML6Ic6JxA0i/2K/m
+=jH+4
+-----END PGP SIGNATURE-----
+
+--sdtB3X0nJg68CQEu--
