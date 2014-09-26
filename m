@@ -1,429 +1,100 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2 nf-next] netfilter: nft_reject: introduce icmp code abstraction for inet and bridge
-Date: Fri, 26 Sep 2014 14:35:14 +0200
-Message-ID: <1411734915-3768-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 3/3 v3] src: add list ruleset command
+Date: Fri, 26 Sep 2014 18:30:08 +0200
+Message-ID: <1411749008-924-1-git-send-email-arturo.borrero.glez@gmail.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53140 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753707AbaIZMeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Sep 2014 08:34:10 -0400
+Received: from smtp4.cica.es ([150.214.5.182]:38275 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755196AbaIZQaZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Sep 2014 12:30:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch introduces the NFT_REJECT_ICMPX_UNREACH type which provides
-an abstraction to the ICMP and ICMPv6 codes that you can use from the
-inet and bridge tables, they are:
+This patch adds a new command to nft:
+	% nft list ruleset [family]
 
-* NFT_REJECT_ICMPX_NO_ROUTE: no route to host - network unreachable
-* NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
-* NFT_REJECT_ICMPX_HOST_UNREACH: host unreachable
-* NFT_REJECT_ICMPX_ADMIN_PROHIBITED: administratevely prohibited
+Which list the entire ruleset.
+If no family is specified, all tables of all families are listed.
 
-You can still use the specific codes when restricting the rule to match
-the corresponding layer 3 protocol.
+Users can now make several operations at ruleset level:
 
-I decided to not overload the existing NFT_REJECT_ICMP_UNREACH to have
-different semantics depending on the table family and to allow the user
-to specify ICMP family specific codes if they restrict it to the
-corresponding family.
+ % nft list ruleset > ruleset.nft
+ % nft -f ruleset.nft
+ % nft flush ruleset
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-@Patrick: Alvaro should send the userspace part he's been working on soon.
+v2: rename function to do_list_ruleset() and use list_splice_tail_init().
+v3: fixed clash with static list "table_list", and double free() of a handle.
 
- include/net/netfilter/ipv4/nf_reject.h   |    1 +
- include/net/netfilter/nft_reject.h       |    9 +--
- include/uapi/linux/netfilter/nf_tables.h |   21 +++++++
- net/bridge/netfilter/nft_reject_bridge.c |   95 ++++++++++++++++++++++++++++--
- net/ipv4/netfilter/nft_reject_ipv4.c     |    1 -
- net/netfilter/nft_reject.c               |   37 ++++++++++++
- net/netfilter/nft_reject_inet.c          |   94 +++++++++++++++++++++++++++--
- 7 files changed, 241 insertions(+), 17 deletions(-)
+ src/parser.y |    4 ++++
+ src/rule.c   |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
-diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
-index f713b5a..8ce0638 100644
---- a/include/net/netfilter/ipv4/nf_reject.h
-+++ b/include/net/netfilter/ipv4/nf_reject.h
-@@ -5,6 +5,7 @@
- #include <net/tcp.h>
- #include <net/route.h>
- #include <net/dst.h>
-+#include <net/icmp.h>
+diff --git a/src/parser.y b/src/parser.y
+index e35eede..8f58e3a 100644
+--- a/src/parser.y
++++ b/src/parser.y
+@@ -753,6 +753,10 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	RULESET		ruleset_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
++			}
+ 			;
  
- static inline void nf_send_unreach(struct sk_buff *skb_in, int code)
- {
-diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
-index 36b0da2..60fa153 100644
---- a/include/net/netfilter/nft_reject.h
-+++ b/include/net/netfilter/nft_reject.h
-@@ -14,12 +14,7 @@ int nft_reject_init(const struct nft_ctx *ctx,
+ flush_cmd		:	TABLE		table_spec
+diff --git a/src/rule.c b/src/rule.c
+index 336c159..43355ee 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -782,6 +782,32 @@ err:
+ 	return -1;
+ }
  
- int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr);
- 
--void nft_reject_ipv4_eval(const struct nft_expr *expr,
--			  struct nft_data data[NFT_REG_MAX + 1],
--			  const struct nft_pktinfo *pkt);
--
--void nft_reject_ipv6_eval(const struct nft_expr *expr,
--			  struct nft_data data[NFT_REG_MAX + 1],
--			  const struct nft_pktinfo *pkt);
-+int nft_reject_icmp_code(u8 code);
-+int nft_reject_icmpv6_code(u8 code);
- 
- #endif
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b72ccfe..c26df67 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -749,13 +749,34 @@ enum nft_queue_attributes {
-  *
-  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
-  * @NFT_REJECT_TCP_RST: reject using TCP RST
-+ * @NFT_REJECT_ICMPX_UNREACH: abstracted ICMP unreachable for bridge and inet
-  */
- enum nft_reject_types {
- 	NFT_REJECT_ICMP_UNREACH,
- 	NFT_REJECT_TCP_RST,
-+	NFT_REJECT_ICMPX_UNREACH,
- };
- 
- /**
-+ * enum nft_reject_code - Generic reject codes for IPv4/IPv6
-+ *
-+ * @NFT_REJECT_ICMPX_NO_ROUTE: no route to host / network unreachable
-+ * @NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
-+ * @NFT_REJECT_ICMPX_HOST_UNREACH: host unreachable
-+ * @NFT_REJECT_ICMPX_ADMIN_PROHIBITED: administratively prohibited
-+ *
-+ * These codes are mapped to real ICMP and ICMPv6 codes.
-+ */
-+enum nft_reject_inet_code {
-+	NFT_REJECT_ICMPX_NO_ROUTE	= 0,
-+	NFT_REJECT_ICMPX_PORT_UNREACH,
-+	NFT_REJECT_ICMPX_HOST_UNREACH,
-+	NFT_REJECT_ICMPX_ADMIN_PROHIBITED,
-+	__NFT_REJECT_ICMPX_MAX
-+};
-+#define NFT_REJECT_ICMPX_MAX	(__NFT_REJECT_ICMPX_MAX + 1)
++static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
++{
++	struct table *table, *next;
++	LIST_HEAD(tables);
 +
-+/**
-  * enum nft_reject_attributes - nf_tables reject expression netlink attributes
-  *
-  * @NFTA_REJECT_TYPE: packet type to use (NLA_U32: nft_reject_types)
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index ee3ffe9..a764795 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -14,21 +14,106 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
-+#include <net/netfilter/ipv4/nf_reject.h>
-+#include <net/netfilter/ipv6/nf_reject.h>
- 
- static void nft_reject_bridge_eval(const struct nft_expr *expr,
- 				 struct nft_data data[NFT_REG_MAX + 1],
- 				 const struct nft_pktinfo *pkt)
- {
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
++	if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
++		return -1;
 +
- 	switch (eth_hdr(pkt->skb)->h_proto) {
- 	case htons(ETH_P_IP):
--		return nft_reject_ipv4_eval(expr, data, pkt);
-+		switch (priv->type) {
-+		case NFT_REJECT_ICMP_UNREACH:
-+			nf_send_unreach(pkt->skb, priv->icmp_code);
-+			break;
-+		case NFT_REJECT_TCP_RST:
-+			nf_send_reset(pkt->skb, pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_ICMPX_UNREACH:
-+			nf_send_unreach(pkt->skb,
-+					nft_reject_icmp_code(priv->icmp_code));
-+			break;
-+		}
-+		break;
- 	case htons(ETH_P_IPV6):
--		return nft_reject_ipv6_eval(expr, data, pkt);
-+		switch (priv->type) {
-+		case NFT_REJECT_ICMP_UNREACH:
-+			nf_send_unreach6(net, pkt->skb, priv->icmp_code,
-+					 pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_TCP_RST:
-+			nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_ICMPX_UNREACH:
-+			nf_send_unreach6(net, pkt->skb,
-+					 nft_reject_icmpv6_code(priv->icmp_code),
-+					 pkt->ops->hooknum);
-+			break;
-+		}
-+		break;
++	list_splice_tail_init(&ctx->list, &tables);
++
++	list_for_each_entry_safe(table, next, &tables, list) {
++		table_add_hash(table);
++
++		cmd->handle.family = table->handle.family;
++		cmd->handle.table = xstrdup(table->handle.table);
++
++		if (do_list_table(ctx, cmd, table) < 0)
++			return -1;
++
++		list_del(&table->list);
++		table_free(table);
++	}
++
++	return 0;
++}
++
+ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table = NULL;
+@@ -837,6 +863,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 			set_print(set);
+ 		}
+ 		return 0;
++	case CMD_OBJ_RULESET:
++		return do_list_ruleset(ctx, cmd);
  	default:
- 		/* No explicit way to reject this protocol, drop it. */
--		data[NFT_REG_VERDICT].verdict = NF_DROP;
- 		break;
+ 		BUG("invalid command object type %u\n", cmd->obj);
  	}
-+	data[NFT_REG_VERDICT].verdict = NF_DROP;
-+}
-+
-+static int nft_reject_bridge_init(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr,
-+				  const struct nlattr * const tb[])
-+{
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+	int icmp_code;
-+
-+	if (tb[NFTA_REJECT_TYPE] == NULL)
-+		return -EINVAL;
-+
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
-+			return -EINVAL;
-+
-+		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
-+		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
-+		    icmp_code > NFT_REJECT_ICMPX_MAX)
-+			return -EINVAL;
-+
-+		priv->icmp_code = icmp_code;
-+		break;
-+	case NFT_REJECT_TCP_RST:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int nft_reject_bridge_dump(struct sk_buff *skb,
-+				  const struct nft_expr *expr)
-+{
-+	const struct nft_reject *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
-+		goto nla_put_failure;
-+
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
-+			goto nla_put_failure;
-+		break;
-+	}
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
- }
- 
- static struct nft_expr_type nft_reject_bridge_type;
-@@ -36,8 +121,8 @@ static const struct nft_expr_ops nft_reject_bridge_ops = {
- 	.type		= &nft_reject_bridge_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
- 	.eval		= nft_reject_bridge_eval,
--	.init		= nft_reject_init,
--	.dump		= nft_reject_dump,
-+	.init		= nft_reject_bridge_init,
-+	.dump		= nft_reject_bridge_dump,
- };
- 
- static struct nft_expr_type nft_reject_bridge_type __read_mostly = {
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index e79718a..ed33299 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -16,7 +16,6 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
--#include <net/icmp.h>
- #include <net/netfilter/ipv4/nf_reject.h>
- #include <net/netfilter/nft_reject.h>
- 
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index f3448c2..ec8a456 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -17,6 +17,8 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
-+#include <linux/icmp.h>
-+#include <linux/icmpv6.h>
- 
- const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
- 	[NFTA_REJECT_TYPE]		= { .type = NLA_U32 },
-@@ -70,5 +72,40 @@ nla_put_failure:
- }
- EXPORT_SYMBOL_GPL(nft_reject_dump);
- 
-+static u8 icmp_code_v4[NFT_REJECT_ICMPX_MAX] = {
-+	[NFT_REJECT_ICMPX_NO_ROUTE]		= ICMP_NET_UNREACH,
-+	[NFT_REJECT_ICMPX_PORT_UNREACH]		= ICMP_PORT_UNREACH,
-+	[NFT_REJECT_ICMPX_HOST_UNREACH]		= ICMP_HOST_UNREACH,
-+	[NFT_REJECT_ICMPX_ADMIN_PROHIBITED]	= ICMP_PKT_FILTERED,
-+};
-+
-+int nft_reject_icmp_code(u8 code)
-+{
-+	if (code > NFT_REJECT_ICMPX_MAX)
-+		return -EINVAL;
-+
-+	return icmp_code_v4[code];
-+}
-+
-+EXPORT_SYMBOL_GPL(nft_reject_icmp_code);
-+
-+
-+static u8 icmp_code_v6[NFT_REJECT_ICMPX_MAX] = {
-+	[NFT_REJECT_ICMPX_NO_ROUTE]		= ICMPV6_NOROUTE,
-+	[NFT_REJECT_ICMPX_PORT_UNREACH]		= ICMPV6_PORT_UNREACH,
-+	[NFT_REJECT_ICMPX_HOST_UNREACH]		= ICMPV6_ADDR_UNREACH,
-+	[NFT_REJECT_ICMPX_ADMIN_PROHIBITED]	= ICMPV6_ADM_PROHIBITED,
-+};
-+
-+int nft_reject_icmpv6_code(u8 code)
-+{
-+	if (code > NFT_REJECT_ICMPX_MAX)
-+		return -EINVAL;
-+
-+	return icmp_code_v6[code];
-+}
-+
-+EXPORT_SYMBOL_GPL(nft_reject_icmpv6_code);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index b718a52..7b5f9d5 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -14,17 +14,103 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
-+#include <net/netfilter/ipv4/nf_reject.h>
-+#include <net/netfilter/ipv6/nf_reject.h>
- 
- static void nft_reject_inet_eval(const struct nft_expr *expr,
- 				 struct nft_data data[NFT_REG_MAX + 1],
- 				 const struct nft_pktinfo *pkt)
- {
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
-+
- 	switch (pkt->ops->pf) {
- 	case NFPROTO_IPV4:
--		return nft_reject_ipv4_eval(expr, data, pkt);
-+		switch (priv->type) {
-+		case NFT_REJECT_ICMP_UNREACH:
-+			nf_send_unreach(pkt->skb, priv->icmp_code);
-+			break;
-+		case NFT_REJECT_TCP_RST:
-+			nf_send_reset(pkt->skb, pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_ICMPX_UNREACH:
-+			nf_send_unreach(pkt->skb,
-+					nft_reject_icmp_code(priv->icmp_code));
-+			break;
-+		}
-+		break;
- 	case NFPROTO_IPV6:
--		return nft_reject_ipv6_eval(expr, data, pkt);
-+		switch (priv->type) {
-+		case NFT_REJECT_ICMP_UNREACH:
-+			nf_send_unreach6(net, pkt->skb, priv->icmp_code,
-+					 pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_TCP_RST:
-+			nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
-+			break;
-+		case NFT_REJECT_ICMPX_UNREACH:
-+			nf_send_unreach6(net, pkt->skb,
-+					 nft_reject_icmpv6_code(priv->icmp_code),
-+					 pkt->ops->hooknum);
-+			break;
-+		}
-+		break;
-+	}
-+	data[NFT_REG_VERDICT].verdict = NF_DROP;
-+}
-+
-+static int nft_reject_inet_init(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				const struct nlattr * const tb[])
-+{
-+	struct nft_reject *priv = nft_expr_priv(expr);
-+	int icmp_code;
-+
-+	if (tb[NFTA_REJECT_TYPE] == NULL)
-+		return -EINVAL;
-+
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
-+			return -EINVAL;
-+
-+		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
-+		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
-+		    icmp_code > NFT_REJECT_ICMPX_MAX)
-+			return -EINVAL;
-+
-+		priv->icmp_code = icmp_code;
-+		break;
-+	case NFT_REJECT_TCP_RST:
-+		break;
-+	default:
-+		return -EINVAL;
- 	}
-+	return 0;
-+}
-+
-+static int nft_reject_inet_dump(struct sk_buff *skb,
-+				const struct nft_expr *expr)
-+{
-+	const struct nft_reject *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
-+		goto nla_put_failure;
-+
-+	switch (priv->type) {
-+	case NFT_REJECT_ICMP_UNREACH:
-+	case NFT_REJECT_ICMPX_UNREACH:
-+		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
-+			goto nla_put_failure;
-+		break;
-+	}
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
- }
- 
- static struct nft_expr_type nft_reject_inet_type;
-@@ -32,8 +118,8 @@ static const struct nft_expr_ops nft_reject_inet_ops = {
- 	.type		= &nft_reject_inet_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
- 	.eval		= nft_reject_inet_eval,
--	.init		= nft_reject_init,
--	.dump		= nft_reject_dump,
-+	.init		= nft_reject_inet_init,
-+	.dump		= nft_reject_inet_dump,
- };
- 
- static struct nft_expr_type nft_reject_inet_type __read_mostly = {
 -- 
 1.7.10.4
 
