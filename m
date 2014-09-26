@@ -1,553 +1,429 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf-next] netfilter: move nf_send_resetX() code to nf_reject_ipvX modules
-Date: Fri, 26 Sep 2014 14:35:15 +0200
-Message-ID: <1411734915-3768-2-git-send-email-pablo@netfilter.org>
-References: <1411734915-3768-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/2 nf-next] netfilter: nft_reject: introduce icmp code abstraction for inet and bridge
+Date: Fri, 26 Sep 2014 14:35:14 +0200
+Message-ID: <1411734915-3768-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53151 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53140 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724AbaIZMeN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Sep 2014 08:34:13 -0400
-In-Reply-To: <1411734915-3768-1-git-send-email-pablo@netfilter.org>
+	id S1753707AbaIZMeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Sep 2014 08:34:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Move nf_send_reset() and nf_send_reset6() to nf_reject_ipv4 and
-nf_reject_ipv6 respectively. This code is shared by x_tables and
-nf_tables.
+This patch introduces the NFT_REJECT_ICMPX_UNREACH type which provides
+an abstraction to the ICMP and ICMPv6 codes that you can use from the
+inet and bridge tables, they are:
+
+* NFT_REJECT_ICMPX_NO_ROUTE: no route to host - network unreachable
+* NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
+* NFT_REJECT_ICMPX_HOST_UNREACH: host unreachable
+* NFT_REJECT_ICMPX_ADMIN_PROHIBITED: administratevely prohibited
+
+You can still use the specific codes when restricting the rule to match
+the corresponding layer 3 protocol.
+
+I decided to not overload the existing NFT_REJECT_ICMP_UNREACH to have
+different semantics depending on the table family and to allow the user
+to specify ICMP family specific codes if they restrict it to the
+corresponding family.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ipv4/nf_reject.h |  118 +----------------------
- net/ipv4/netfilter/Kconfig             |    6 ++
- net/ipv4/netfilter/Makefile            |    3 +
- net/ipv4/netfilter/nf_reject_ipv4.c    |  127 +++++++++++++++++++++++++
- net/ipv6/netfilter/Kconfig             |    6 ++
- net/ipv6/netfilter/Makefile            |    3 +
- net/ipv6/netfilter/nf_reject_ipv6.c    |  163 ++++++++++++++++++++++++++++++++
- 7 files changed, 309 insertions(+), 117 deletions(-)
- create mode 100644 net/ipv4/netfilter/nf_reject_ipv4.c
- create mode 100644 net/ipv6/netfilter/nf_reject_ipv6.c
+@Patrick: Alvaro should send the userspace part he's been working on soon.
+
+ include/net/netfilter/ipv4/nf_reject.h   |    1 +
+ include/net/netfilter/nft_reject.h       |    9 +--
+ include/uapi/linux/netfilter/nf_tables.h |   21 +++++++
+ net/bridge/netfilter/nft_reject_bridge.c |   95 ++++++++++++++++++++++++++++--
+ net/ipv4/netfilter/nft_reject_ipv4.c     |    1 -
+ net/netfilter/nft_reject.c               |   37 ++++++++++++
+ net/netfilter/nft_reject_inet.c          |   94 +++++++++++++++++++++++++++--
+ 7 files changed, 241 insertions(+), 17 deletions(-)
 
 diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
-index 8ce0638..e842719 100644
+index f713b5a..8ce0638 100644
 --- a/include/net/netfilter/ipv4/nf_reject.h
 +++ b/include/net/netfilter/ipv4/nf_reject.h
-@@ -1,10 +1,6 @@
- #ifndef _IPV4_NF_REJECT_H
- #define _IPV4_NF_REJECT_H
- 
--#include <net/ip.h>
--#include <net/tcp.h>
--#include <net/route.h>
--#include <net/dst.h>
- #include <net/icmp.h>
+@@ -5,6 +5,7 @@
+ #include <net/tcp.h>
+ #include <net/route.h>
+ #include <net/dst.h>
++#include <net/icmp.h>
  
  static inline void nf_send_unreach(struct sk_buff *skb_in, int code)
-@@ -12,118 +8,6 @@ static inline void nf_send_unreach(struct sk_buff *skb_in, int code)
- 	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+ {
+diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
+index 36b0da2..60fa153 100644
+--- a/include/net/netfilter/nft_reject.h
++++ b/include/net/netfilter/nft_reject.h
+@@ -14,12 +14,7 @@ int nft_reject_init(const struct nft_ctx *ctx,
+ 
+ int nft_reject_dump(struct sk_buff *skb, const struct nft_expr *expr);
+ 
+-void nft_reject_ipv4_eval(const struct nft_expr *expr,
+-			  struct nft_data data[NFT_REG_MAX + 1],
+-			  const struct nft_pktinfo *pkt);
+-
+-void nft_reject_ipv6_eval(const struct nft_expr *expr,
+-			  struct nft_data data[NFT_REG_MAX + 1],
+-			  const struct nft_pktinfo *pkt);
++int nft_reject_icmp_code(u8 code);
++int nft_reject_icmpv6_code(u8 code);
+ 
+ #endif
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b72ccfe..c26df67 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -749,13 +749,34 @@ enum nft_queue_attributes {
+  *
+  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
+  * @NFT_REJECT_TCP_RST: reject using TCP RST
++ * @NFT_REJECT_ICMPX_UNREACH: abstracted ICMP unreachable for bridge and inet
+  */
+ enum nft_reject_types {
+ 	NFT_REJECT_ICMP_UNREACH,
+ 	NFT_REJECT_TCP_RST,
++	NFT_REJECT_ICMPX_UNREACH,
+ };
+ 
+ /**
++ * enum nft_reject_code - Generic reject codes for IPv4/IPv6
++ *
++ * @NFT_REJECT_ICMPX_NO_ROUTE: no route to host / network unreachable
++ * @NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
++ * @NFT_REJECT_ICMPX_HOST_UNREACH: host unreachable
++ * @NFT_REJECT_ICMPX_ADMIN_PROHIBITED: administratively prohibited
++ *
++ * These codes are mapped to real ICMP and ICMPv6 codes.
++ */
++enum nft_reject_inet_code {
++	NFT_REJECT_ICMPX_NO_ROUTE	= 0,
++	NFT_REJECT_ICMPX_PORT_UNREACH,
++	NFT_REJECT_ICMPX_HOST_UNREACH,
++	NFT_REJECT_ICMPX_ADMIN_PROHIBITED,
++	__NFT_REJECT_ICMPX_MAX
++};
++#define NFT_REJECT_ICMPX_MAX	(__NFT_REJECT_ICMPX_MAX + 1)
++
++/**
+  * enum nft_reject_attributes - nf_tables reject expression netlink attributes
+  *
+  * @NFTA_REJECT_TYPE: packet type to use (NLA_U32: nft_reject_types)
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index ee3ffe9..a764795 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -14,21 +14,106 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_reject.h>
++#include <net/netfilter/ipv4/nf_reject.h>
++#include <net/netfilter/ipv6/nf_reject.h>
+ 
+ static void nft_reject_bridge_eval(const struct nft_expr *expr,
+ 				 struct nft_data data[NFT_REG_MAX + 1],
+ 				 const struct nft_pktinfo *pkt)
+ {
++	struct nft_reject *priv = nft_expr_priv(expr);
++	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
++
+ 	switch (eth_hdr(pkt->skb)->h_proto) {
+ 	case htons(ETH_P_IP):
+-		return nft_reject_ipv4_eval(expr, data, pkt);
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nf_send_unreach(pkt->skb, priv->icmp_code);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nf_send_reset(pkt->skb, pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nf_send_unreach(pkt->skb,
++					nft_reject_icmp_code(priv->icmp_code));
++			break;
++		}
++		break;
+ 	case htons(ETH_P_IPV6):
+-		return nft_reject_ipv6_eval(expr, data, pkt);
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nf_send_unreach6(net, pkt->skb, priv->icmp_code,
++					 pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nf_send_unreach6(net, pkt->skb,
++					 nft_reject_icmpv6_code(priv->icmp_code),
++					 pkt->ops->hooknum);
++			break;
++		}
++		break;
+ 	default:
+ 		/* No explicit way to reject this protocol, drop it. */
+-		data[NFT_REG_VERDICT].verdict = NF_DROP;
+ 		break;
+ 	}
++	data[NFT_REG_VERDICT].verdict = NF_DROP;
++}
++
++static int nft_reject_bridge_init(const struct nft_ctx *ctx,
++				  const struct nft_expr *expr,
++				  const struct nlattr * const tb[])
++{
++	struct nft_reject *priv = nft_expr_priv(expr);
++	int icmp_code;
++
++	if (tb[NFTA_REJECT_TYPE] == NULL)
++		return -EINVAL;
++
++	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
++	switch (priv->type) {
++	case NFT_REJECT_ICMP_UNREACH:
++	case NFT_REJECT_ICMPX_UNREACH:
++		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
++			return -EINVAL;
++
++		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
++		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
++		    icmp_code > NFT_REJECT_ICMPX_MAX)
++			return -EINVAL;
++
++		priv->icmp_code = icmp_code;
++		break;
++	case NFT_REJECT_TCP_RST:
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int nft_reject_bridge_dump(struct sk_buff *skb,
++				  const struct nft_expr *expr)
++{
++	const struct nft_reject *priv = nft_expr_priv(expr);
++
++	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
++		goto nla_put_failure;
++
++	switch (priv->type) {
++	case NFT_REJECT_ICMP_UNREACH:
++	case NFT_REJECT_ICMPX_UNREACH:
++		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
++			goto nla_put_failure;
++		break;
++	}
++
++	return 0;
++
++nla_put_failure:
++	return -1;
  }
  
--/* Send RST reply */
--static void nf_send_reset(struct sk_buff *oldskb, int hook)
--{
--	struct sk_buff *nskb;
--	const struct iphdr *oiph;
--	struct iphdr *niph;
--	const struct tcphdr *oth;
--	struct tcphdr _otcph, *tcph;
--
--	/* IP header checks: fragment. */
--	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
--		return;
--
--	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
--				 sizeof(_otcph), &_otcph);
--	if (oth == NULL)
--		return;
--
--	/* No RST for RST. */
--	if (oth->rst)
--		return;
--
--	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
--		return;
--
--	/* Check checksum */
--	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
--		return;
--	oiph = ip_hdr(oldskb);
--
--	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
--			 LL_MAX_HEADER, GFP_ATOMIC);
--	if (!nskb)
--		return;
--
--	skb_reserve(nskb, LL_MAX_HEADER);
--
--	skb_reset_network_header(nskb);
--	niph = (struct iphdr *)skb_put(nskb, sizeof(struct iphdr));
--	niph->version	= 4;
--	niph->ihl	= sizeof(struct iphdr) / 4;
--	niph->tos	= 0;
--	niph->id	= 0;
--	niph->frag_off	= htons(IP_DF);
--	niph->protocol	= IPPROTO_TCP;
--	niph->check	= 0;
--	niph->saddr	= oiph->daddr;
--	niph->daddr	= oiph->saddr;
--
--	skb_reset_transport_header(nskb);
--	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
--	memset(tcph, 0, sizeof(*tcph));
--	tcph->source	= oth->dest;
--	tcph->dest	= oth->source;
--	tcph->doff	= sizeof(struct tcphdr) / 4;
--
--	if (oth->ack)
--		tcph->seq = oth->ack_seq;
--	else {
--		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
--				      oldskb->len - ip_hdrlen(oldskb) -
--				      (oth->doff << 2));
--		tcph->ack = 1;
--	}
--
--	tcph->rst	= 1;
--	tcph->check = ~tcp_v4_check(sizeof(struct tcphdr), niph->saddr,
--				    niph->daddr, 0);
--	nskb->ip_summed = CHECKSUM_PARTIAL;
--	nskb->csum_start = (unsigned char *)tcph - nskb->head;
--	nskb->csum_offset = offsetof(struct tcphdr, check);
--
--	/* ip_route_me_harder expects skb->dst to be set */
--	skb_dst_set_noref(nskb, skb_dst(oldskb));
--
--	nskb->protocol = htons(ETH_P_IP);
--	if (ip_route_me_harder(nskb, RTN_UNSPEC))
--		goto free_nskb;
--
--	niph->ttl	= ip4_dst_hoplimit(skb_dst(nskb));
--
--	/* "Never happens" */
--	if (nskb->len > dst_mtu(skb_dst(nskb)))
--		goto free_nskb;
--
--	nf_ct_attach(nskb, oldskb);
--
--#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	/* If we use ip_local_out for bridged traffic, the MAC source on
--	 * the RST will be ours, instead of the destination's.  This confuses
--	 * some routers/firewalls, and they drop the packet.  So we need to
--	 * build the eth header using the original destination's MAC as the
--	 * source, and send the RST packet directly.
--	 */
--	if (oldskb->nf_bridge) {
--		struct ethhdr *oeth = eth_hdr(oldskb);
--		nskb->dev = oldskb->nf_bridge->physindev;
--		niph->tot_len = htons(nskb->len);
--		ip_send_check(niph);
--		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
--				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
--			goto free_nskb;
--		dev_queue_xmit(nskb);
--	} else
--#endif
--		ip_local_out(nskb);
--
--	return;
--
-- free_nskb:
--	kfree_skb(nskb);
--}
--
-+void nf_send_reset(struct sk_buff *oldskb, int hook);
+ static struct nft_expr_type nft_reject_bridge_type;
+@@ -36,8 +121,8 @@ static const struct nft_expr_ops nft_reject_bridge_ops = {
+ 	.type		= &nft_reject_bridge_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
+ 	.eval		= nft_reject_bridge_eval,
+-	.init		= nft_reject_init,
+-	.dump		= nft_reject_dump,
++	.init		= nft_reject_bridge_init,
++	.dump		= nft_reject_bridge_dump,
+ };
  
- #endif /* _IPV4_NF_REJECT_H */
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 345242a..4c019d5 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -61,8 +61,13 @@ config NFT_CHAIN_ROUTE_IPV4
- 	  fields such as the source, destination, type of service and
- 	  the packet mark.
+ static struct nft_expr_type nft_reject_bridge_type __read_mostly = {
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
+index e79718a..ed33299 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -16,7 +16,6 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+-#include <net/icmp.h>
+ #include <net/netfilter/ipv4/nf_reject.h>
+ #include <net/netfilter/nft_reject.h>
  
-+config NF_REJECT_IPV4
-+	tristate "IPv4 packet rejection"
-+	default m if NETFILTER_ADVANCED=n
-+
- config NFT_REJECT_IPV4
- 	depends on NF_TABLES_IPV4
-+	select NF_REJECT_IPV4
- 	default NFT_REJECT
- 	tristate
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index f3448c2..ec8a456 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -17,6 +17,8 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_reject.h>
++#include <linux/icmp.h>
++#include <linux/icmpv6.h>
  
-@@ -208,6 +213,7 @@ config IP_NF_FILTER
- config IP_NF_TARGET_REJECT
- 	tristate "REJECT target support"
- 	depends on IP_NF_FILTER
-+	select NF_REJECT_IPV4
- 	default m if NETFILTER_ADVANCED=n
- 	help
- 	  The REJECT target allows a filtering rule to specify that an ICMP
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 14488cc..f4cef5a 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -23,6 +23,9 @@ obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
- obj-$(CONFIG_NF_LOG_ARP) += nf_log_arp.o
- obj-$(CONFIG_NF_LOG_IPV4) += nf_log_ipv4.o
+ const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
+ 	[NFTA_REJECT_TYPE]		= { .type = NLA_U32 },
+@@ -70,5 +72,40 @@ nla_put_failure:
+ }
+ EXPORT_SYMBOL_GPL(nft_reject_dump);
  
-+# reject
-+obj-$(CONFIG_NF_REJECT_IPV4) += nf_reject_ipv4.o
++static u8 icmp_code_v4[NFT_REJECT_ICMPX_MAX] = {
++	[NFT_REJECT_ICMPX_NO_ROUTE]		= ICMP_NET_UNREACH,
++	[NFT_REJECT_ICMPX_PORT_UNREACH]		= ICMP_PORT_UNREACH,
++	[NFT_REJECT_ICMPX_HOST_UNREACH]		= ICMP_HOST_UNREACH,
++	[NFT_REJECT_ICMPX_ADMIN_PROHIBITED]	= ICMP_PKT_FILTERED,
++};
 +
- # NAT helpers (nf_conntrack)
- obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
- obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-new file mode 100644
-index 0000000..b023b4e
---- /dev/null
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -0,0 +1,127 @@
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <net/ip.h>
-+#include <net/tcp.h>
-+#include <net/route.h>
-+#include <net/dst.h>
-+#include <linux/netfilter_ipv4.h>
-+
-+/* Send RST reply */
-+void nf_send_reset(struct sk_buff *oldskb, int hook)
++int nft_reject_icmp_code(u8 code)
 +{
-+	struct sk_buff *nskb;
-+	const struct iphdr *oiph;
-+	struct iphdr *niph;
-+	const struct tcphdr *oth;
-+	struct tcphdr _otcph, *tcph;
++	if (code > NFT_REJECT_ICMPX_MAX)
++		return -EINVAL;
 +
-+	/* IP header checks: fragment. */
-+	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
-+		return;
-+
-+	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
-+				 sizeof(_otcph), &_otcph);
-+	if (oth == NULL)
-+		return;
-+
-+	/* No RST for RST. */
-+	if (oth->rst)
-+		return;
-+
-+	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
-+		return;
-+
-+	/* Check checksum */
-+	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), IPPROTO_TCP))
-+		return;
-+	oiph = ip_hdr(oldskb);
-+
-+	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
-+			 LL_MAX_HEADER, GFP_ATOMIC);
-+	if (!nskb)
-+		return;
-+
-+	skb_reserve(nskb, LL_MAX_HEADER);
-+
-+	skb_reset_network_header(nskb);
-+	niph = (struct iphdr *)skb_put(nskb, sizeof(struct iphdr));
-+	niph->version	= 4;
-+	niph->ihl	= sizeof(struct iphdr) / 4;
-+	niph->tos	= 0;
-+	niph->id	= 0;
-+	niph->frag_off	= htons(IP_DF);
-+	niph->protocol	= IPPROTO_TCP;
-+	niph->check	= 0;
-+	niph->saddr	= oiph->daddr;
-+	niph->daddr	= oiph->saddr;
-+
-+	skb_reset_transport_header(nskb);
-+	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
-+	memset(tcph, 0, sizeof(*tcph));
-+	tcph->source	= oth->dest;
-+	tcph->dest	= oth->source;
-+	tcph->doff	= sizeof(struct tcphdr) / 4;
-+
-+	if (oth->ack)
-+		tcph->seq = oth->ack_seq;
-+	else {
-+		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn + oth->fin +
-+				      oldskb->len - ip_hdrlen(oldskb) -
-+				      (oth->doff << 2));
-+		tcph->ack = 1;
-+	}
-+
-+	tcph->rst	= 1;
-+	tcph->check = ~tcp_v4_check(sizeof(struct tcphdr), niph->saddr,
-+				    niph->daddr, 0);
-+	nskb->ip_summed = CHECKSUM_PARTIAL;
-+	nskb->csum_start = (unsigned char *)tcph - nskb->head;
-+	nskb->csum_offset = offsetof(struct tcphdr, check);
-+
-+	/* ip_route_me_harder expects skb->dst to be set */
-+	skb_dst_set_noref(nskb, skb_dst(oldskb));
-+
-+	nskb->protocol = htons(ETH_P_IP);
-+	if (ip_route_me_harder(nskb, RTN_UNSPEC))
-+		goto free_nskb;
-+
-+	niph->ttl	= ip4_dst_hoplimit(skb_dst(nskb));
-+
-+	/* "Never happens" */
-+	if (nskb->len > dst_mtu(skb_dst(nskb)))
-+		goto free_nskb;
-+
-+	nf_ct_attach(nskb, oldskb);
-+
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	/* If we use ip_local_out for bridged traffic, the MAC source on
-+	 * the RST will be ours, instead of the destination's.  This confuses
-+	 * some routers/firewalls, and they drop the packet.  So we need to
-+	 * build the eth header using the original destination's MAC as the
-+	 * source, and send the RST packet directly.
-+	 */
-+	if (oldskb->nf_bridge) {
-+		struct ethhdr *oeth = eth_hdr(oldskb);
-+		nskb->dev = oldskb->nf_bridge->physindev;
-+		niph->tot_len = htons(nskb->len);
-+		ip_send_check(niph);
-+		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
-+				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
-+			goto free_nskb;
-+		dev_queue_xmit(nskb);
-+	} else
-+#endif
-+		ip_local_out(nskb);
-+
-+	return;
-+
-+ free_nskb:
-+	kfree_skb(nskb);
++	return icmp_code_v4[code];
 +}
-+EXPORT_SYMBOL_GPL(nf_send_reset);
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index bb1a40d..6af874f 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -40,8 +40,13 @@ config NFT_CHAIN_ROUTE_IPV6
- 	  fields such as the source, destination, flowlabel, hop-limit and
- 	  the packet mark.
- 
-+config NF_REJECT_IPV6
-+	tristate "IPv6 packet rejection"
-+	default m if NETFILTER_ADVANCED=n
 +
- config NFT_REJECT_IPV6
- 	depends on NF_TABLES_IPV6
-+	select NF_REJECT_IPV6
- 	default NFT_REJECT
- 	tristate
- 
-@@ -208,6 +213,7 @@ config IP6_NF_FILTER
- config IP6_NF_TARGET_REJECT
- 	tristate "REJECT target support"
- 	depends on IP6_NF_FILTER
-+	select NF_REJECT_IPV6
- 	default m if NETFILTER_ADVANCED=n
- 	help
- 	  The REJECT target allows a filtering rule to specify that an ICMPv6
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 0f7e5b3..fbb25f0 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -27,6 +27,9 @@ obj-$(CONFIG_NF_DEFRAG_IPV6) += nf_defrag_ipv6.o
- # logging
- obj-$(CONFIG_NF_LOG_IPV6) += nf_log_ipv6.o
- 
-+# reject
-+obj-$(CONFIG_NF_REJECT_IPV6) += nf_reject_ipv6.o
++EXPORT_SYMBOL_GPL(nft_reject_icmp_code);
 +
- # nf_tables
- obj-$(CONFIG_NF_TABLES_IPV6) += nf_tables_ipv6.o
- obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV6) += nft_chain_route_ipv6.o
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-new file mode 100644
-index 0000000..5f5f043
---- /dev/null
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -0,0 +1,163 @@
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <net/ipv6.h>
-+#include <net/ip6_route.h>
-+#include <net/ip6_fib.h>
-+#include <net/ip6_checksum.h>
-+#include <linux/netfilter_ipv6.h>
 +
-+void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
++static u8 icmp_code_v6[NFT_REJECT_ICMPX_MAX] = {
++	[NFT_REJECT_ICMPX_NO_ROUTE]		= ICMPV6_NOROUTE,
++	[NFT_REJECT_ICMPX_PORT_UNREACH]		= ICMPV6_PORT_UNREACH,
++	[NFT_REJECT_ICMPX_HOST_UNREACH]		= ICMPV6_ADDR_UNREACH,
++	[NFT_REJECT_ICMPX_ADMIN_PROHIBITED]	= ICMPV6_ADM_PROHIBITED,
++};
++
++int nft_reject_icmpv6_code(u8 code)
 +{
-+	struct sk_buff *nskb;
-+	struct tcphdr otcph, *tcph;
-+	unsigned int otcplen, hh_len;
-+	int tcphoff, needs_ack;
-+	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
-+	struct ipv6hdr *ip6h;
-+#define DEFAULT_TOS_VALUE	0x0U
-+	const __u8 tclass = DEFAULT_TOS_VALUE;
-+	struct dst_entry *dst = NULL;
-+	u8 proto;
-+	__be16 frag_off;
-+	struct flowi6 fl6;
++	if (code > NFT_REJECT_ICMPX_MAX)
++		return -EINVAL;
 +
-+	if ((!(ipv6_addr_type(&oip6h->saddr) & IPV6_ADDR_UNICAST)) ||
-+	    (!(ipv6_addr_type(&oip6h->daddr) & IPV6_ADDR_UNICAST))) {
-+		pr_debug("addr is not unicast.\n");
-+		return;
-+	}
-+
-+	proto = oip6h->nexthdr;
-+	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data), &proto, &frag_off);
-+
-+	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
-+		pr_debug("Cannot get TCP header.\n");
-+		return;
-+	}
-+
-+	otcplen = oldskb->len - tcphoff;
-+
-+	/* IP header checks: fragment, too short. */
-+	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
-+		pr_debug("proto(%d) != IPPROTO_TCP, "
-+			 "or too short. otcplen = %d\n",
-+			 proto, otcplen);
-+		return;
-+	}
-+
-+	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
-+		BUG();
-+
-+	/* No RST for RST. */
-+	if (otcph.rst) {
-+		pr_debug("RST is set\n");
-+		return;
-+	}
-+
-+	/* Check checksum. */
-+	if (nf_ip6_checksum(oldskb, hook, tcphoff, IPPROTO_TCP)) {
-+		pr_debug("TCP checksum is invalid\n");
-+		return;
-+	}
-+
-+	memset(&fl6, 0, sizeof(fl6));
-+	fl6.flowi6_proto = IPPROTO_TCP;
-+	fl6.saddr = oip6h->daddr;
-+	fl6.daddr = oip6h->saddr;
-+	fl6.fl6_sport = otcph.dest;
-+	fl6.fl6_dport = otcph.source;
-+	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
-+	dst = ip6_route_output(net, NULL, &fl6);
-+	if (dst == NULL || dst->error) {
-+		dst_release(dst);
-+		return;
-+	}
-+	dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), NULL, 0);
-+	if (IS_ERR(dst))
-+		return;
-+
-+	hh_len = (dst->dev->hard_header_len + 15)&~15;
-+	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
-+			 + sizeof(struct tcphdr) + dst->trailer_len,
-+			 GFP_ATOMIC);
-+
-+	if (!nskb) {
-+		net_dbg_ratelimited("cannot alloc skb\n");
-+		dst_release(dst);
-+		return;
-+	}
-+
-+	skb_dst_set(nskb, dst);
-+
-+	skb_reserve(nskb, hh_len + dst->header_len);
-+
-+	skb_put(nskb, sizeof(struct ipv6hdr));
-+	skb_reset_network_header(nskb);
-+	ip6h = ipv6_hdr(nskb);
-+	ip6_flow_hdr(ip6h, tclass, 0);
-+	ip6h->hop_limit = ip6_dst_hoplimit(dst);
-+	ip6h->nexthdr = IPPROTO_TCP;
-+	ip6h->saddr = oip6h->daddr;
-+	ip6h->daddr = oip6h->saddr;
-+
-+	skb_reset_transport_header(nskb);
-+	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
-+	/* Truncate to length (no data) */
-+	tcph->doff = sizeof(struct tcphdr)/4;
-+	tcph->source = otcph.dest;
-+	tcph->dest = otcph.source;
-+
-+	if (otcph.ack) {
-+		needs_ack = 0;
-+		tcph->seq = otcph.ack_seq;
-+		tcph->ack_seq = 0;
-+	} else {
-+		needs_ack = 1;
-+		tcph->ack_seq = htonl(ntohl(otcph.seq) + otcph.syn + otcph.fin
-+				      + otcplen - (otcph.doff<<2));
-+		tcph->seq = 0;
-+	}
-+
-+	/* Reset flags */
-+	((u_int8_t *)tcph)[13] = 0;
-+	tcph->rst = 1;
-+	tcph->ack = needs_ack;
-+	tcph->window = 0;
-+	tcph->urg_ptr = 0;
-+	tcph->check = 0;
-+
-+	/* Adjust TCP checksum */
-+	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
-+				      &ipv6_hdr(nskb)->daddr,
-+				      sizeof(struct tcphdr), IPPROTO_TCP,
-+				      csum_partial(tcph,
-+						   sizeof(struct tcphdr), 0));
-+
-+	nf_ct_attach(nskb, oldskb);
-+
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	/* If we use ip6_local_out for bridged traffic, the MAC source on
-+	 * the RST will be ours, instead of the destination's.  This confuses
-+	 * some routers/firewalls, and they drop the packet.  So we need to
-+	 * build the eth header using the original destination's MAC as the
-+	 * source, and send the RST packet directly.
-+	 */
-+	if (oldskb->nf_bridge) {
-+		struct ethhdr *oeth = eth_hdr(oldskb);
-+		nskb->dev = oldskb->nf_bridge->physindev;
-+		nskb->protocol = htons(ETH_P_IPV6);
-+		ip6h->payload_len = htons(sizeof(struct tcphdr));
-+		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
-+				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
-+			return;
-+		dev_queue_xmit(nskb);
-+	} else
-+#endif
-+		ip6_local_out(nskb);
++	return icmp_code_v6[code];
 +}
-+EXPORT_SYMBOL_GPL(nf_send_reset6);
++
++EXPORT_SYMBOL_GPL(nft_reject_icmpv6_code);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
+index b718a52..7b5f9d5 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -14,17 +14,103 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_reject.h>
++#include <net/netfilter/ipv4/nf_reject.h>
++#include <net/netfilter/ipv6/nf_reject.h>
+ 
+ static void nft_reject_inet_eval(const struct nft_expr *expr,
+ 				 struct nft_data data[NFT_REG_MAX + 1],
+ 				 const struct nft_pktinfo *pkt)
+ {
++	struct nft_reject *priv = nft_expr_priv(expr);
++	struct net *net = dev_net((pkt->in != NULL) ? pkt->in : pkt->out);
++
+ 	switch (pkt->ops->pf) {
+ 	case NFPROTO_IPV4:
+-		return nft_reject_ipv4_eval(expr, data, pkt);
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nf_send_unreach(pkt->skb, priv->icmp_code);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nf_send_reset(pkt->skb, pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nf_send_unreach(pkt->skb,
++					nft_reject_icmp_code(priv->icmp_code));
++			break;
++		}
++		break;
+ 	case NFPROTO_IPV6:
+-		return nft_reject_ipv6_eval(expr, data, pkt);
++		switch (priv->type) {
++		case NFT_REJECT_ICMP_UNREACH:
++			nf_send_unreach6(net, pkt->skb, priv->icmp_code,
++					 pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_TCP_RST:
++			nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
++			break;
++		case NFT_REJECT_ICMPX_UNREACH:
++			nf_send_unreach6(net, pkt->skb,
++					 nft_reject_icmpv6_code(priv->icmp_code),
++					 pkt->ops->hooknum);
++			break;
++		}
++		break;
++	}
++	data[NFT_REG_VERDICT].verdict = NF_DROP;
++}
++
++static int nft_reject_inet_init(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				const struct nlattr * const tb[])
++{
++	struct nft_reject *priv = nft_expr_priv(expr);
++	int icmp_code;
++
++	if (tb[NFTA_REJECT_TYPE] == NULL)
++		return -EINVAL;
++
++	priv->type = ntohl(nla_get_be32(tb[NFTA_REJECT_TYPE]));
++	switch (priv->type) {
++	case NFT_REJECT_ICMP_UNREACH:
++	case NFT_REJECT_ICMPX_UNREACH:
++		if (tb[NFTA_REJECT_ICMP_CODE] == NULL)
++			return -EINVAL;
++
++		icmp_code = nla_get_u8(tb[NFTA_REJECT_ICMP_CODE]);
++		if (priv->type == NFT_REJECT_ICMPX_UNREACH &&
++		    icmp_code > NFT_REJECT_ICMPX_MAX)
++			return -EINVAL;
++
++		priv->icmp_code = icmp_code;
++		break;
++	case NFT_REJECT_TCP_RST:
++		break;
++	default:
++		return -EINVAL;
+ 	}
++	return 0;
++}
++
++static int nft_reject_inet_dump(struct sk_buff *skb,
++				const struct nft_expr *expr)
++{
++	const struct nft_reject *priv = nft_expr_priv(expr);
++
++	if (nla_put_be32(skb, NFTA_REJECT_TYPE, htonl(priv->type)))
++		goto nla_put_failure;
++
++	switch (priv->type) {
++	case NFT_REJECT_ICMP_UNREACH:
++	case NFT_REJECT_ICMPX_UNREACH:
++		if (nla_put_u8(skb, NFTA_REJECT_ICMP_CODE, priv->icmp_code))
++			goto nla_put_failure;
++		break;
++	}
++
++	return 0;
++
++nla_put_failure:
++	return -1;
+ }
+ 
+ static struct nft_expr_type nft_reject_inet_type;
+@@ -32,8 +118,8 @@ static const struct nft_expr_ops nft_reject_inet_ops = {
+ 	.type		= &nft_reject_inet_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_reject)),
+ 	.eval		= nft_reject_inet_eval,
+-	.init		= nft_reject_init,
+-	.dump		= nft_reject_dump,
++	.init		= nft_reject_inet_init,
++	.dump		= nft_reject_inet_dump,
+ };
+ 
+ static struct nft_expr_type nft_reject_inet_type __read_mostly = {
 -- 
 1.7.10.4
 
