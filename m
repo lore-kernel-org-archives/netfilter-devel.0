@@ -1,65 +1,101 @@
-From: Vadim Kochan <vadim4j@gmail.com>
-Subject: Re: [PATCH] Allow to compile for < 3.17 kernel version
-Date: Thu, 25 Sep 2014 20:33:42 +0300
-Message-ID: <CAMw6YJJ-y0Lp8Wq253EOw03hon172BqhnU+o6ZuggA-fO-7Qpg@mail.gmail.com>
-References: <1411606624-8411-1-git-send-email-vadim4j@gmail.com>
-	<20140925171257.GA13847@salvia>
-	<20140925171647.GB13847@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf v2] netfilter: conntrack: disable generic tracking for
+ known protocols
+Date: Fri, 26 Sep 2014 11:35:42 +0200
+Message-ID: <20140926093542.GD26716@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: dborkman@redhat.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:54129 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbaIYRdn (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54462 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753697AbaIZJfo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Sep 2014 13:33:43 -0400
-Received: by mail-wi0-f173.google.com with SMTP id r20so9428129wiv.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2014 10:33:42 -0700 (PDT)
-In-Reply-To: <20140925171647.GB13847@salvia>
+	Fri, 26 Sep 2014 05:35:44 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for response, I agree.
+Given following iptables ruleset:
 
-On Thu, Sep 25, 2014 at 8:16 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Sep 25, 2014 at 07:12:57PM +0200, Pablo Neira Ayuso wrote:
->> On Thu, Sep 25, 2014 at 03:57:04AM +0300, Vadim Kochan wrote:
->> > Added declaration checking for NFT_EXPR_LOG_LEVEL enum
->> > which was added for 3.17 kernel version.
->> >
-> [...]
->> > diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
->> > index 796b632..cf2ec00 100644
->> > --- a/src/netlink_delinearize.c
->> > +++ b/src/netlink_delinearize.c
->> > @@ -447,11 +447,13 @@ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
->> >                     nft_rule_expr_get_u16(nle, NFT_EXPR_LOG_QTHRESHOLD);
->> >             stmt->log.flags |= STMT_LOG_QTHRESHOLD;
->> >     }
->> > +#if HAVE_DECL_NFT_EXPR_LOG_LEVEL
->> >     if (nft_rule_expr_is_set(nle, NFT_EXPR_LOG_LEVEL)) {
->> >             stmt->log.level =
->> >                     nft_rule_expr_get_u32(nle, NFT_EXPR_LOG_LEVEL);
->> >             stmt->log.flags |= STMT_LOG_LEVEL;
->> >     }
->> > +#endif
->> >     list_add_tail(&stmt->list, &ctx->rule->stmts);
->> >  }
->> >
->>
->> I don't want to pollute the source code with many ifdef's, sorry. And
->> if I apply this, more similar follow up patches will come in the
->> future.
->>
->> I'll make a patch to some recommended libnftnl version at configure
->> stage using PKG_CHECK_MODULES.
->
-> BTW, regarding the patch title, you should be able to compile libnftnl
-> and nftables with no matter kernel version since we're caching the
-> header files.
->
-> So the subject is innacurate. The real problem is that you cannot
-> compile new nftables with old library version since
-> NFT_EXPR_LOG_LEVEL, which is a different thing.
+-P FORWARD DROP
+-A FORWARD -m sctp --dport 9 -j ACCEPT
+-A FORWARD -p tcp --dport 80 -j ACCEPT
+-A FORWARD -p tcp -m conntrack -m state ESTABLISHED,RELATED -j ACCEPT
+
+One would assume that this allows SCTP on port 9 and TCP on port 80.
+Unfortunately, if the SCTP conntrack module is not loaded, this allows
+*all* SCTP communication, to pass though, i.e. -p sctp -j ACCEPT,
+which we think is a security issue.
+
+This is because on the first SCTP packet on port 9, we create a dummy
+"generic l4" conntrack entry without any port information (since
+conntrack doesn't know how to extract this information).
+
+All subsequent packets that are unknown will then be in established
+state since they will fallback to proto_generic and will match the
+'generic' entry.
+
+Our originally proposed version [1] completely disabled generic protocol
+tracking, but Jozsef suggests to not track protocols for which a more
+suitable helper is available, hence we now mitigate the issue for in
+tree known ct protocol helpers only, so that at least NAT and direction
+information will still be preserved for others.
+
+ [1] http://www.spinics.net/lists/netfilter-devel/msg33430.html
+
+Joint work with Daniel Borkmann.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+---
+ net/netfilter/nf_conntrack_proto_generic.c |   26 +++++++++++++++++++++++++-
+ 1 files changed, 25 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index d25f293..957c1db 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -14,6 +14,30 @@
+ 
+ static unsigned int nf_ct_generic_timeout __read_mostly = 600*HZ;
+ 
++static bool nf_generic_should_process(u8 proto)
++{
++	switch (proto) {
++#ifdef CONFIG_NF_CT_PROTO_SCTP_MODULE
++	case IPPROTO_SCTP:
++		return false;
++#endif
++#ifdef CONFIG_NF_CT_PROTO_DCCP_MODULE
++	case IPPROTO_DCCP:
++		return false;
++#endif
++#ifdef CONFIG_NF_CT_PROTO_GRE_MODULE
++	case IPPROTO_GRE:
++		return false;
++#endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE_MODULE
++	case IPPROTO_UDPLITE:
++		return false;
++#endif
++	default:
++		return true;
++	}
++}
++
+ static inline struct nf_generic_net *generic_pernet(struct net *net)
+ {
+ 	return &net->ct.nf_ct_proto.generic;
+@@ -67,7 +91,7 @@ static int generic_packet(struct nf_conn *ct,
+ static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			unsigned int dataoff, unsigned int *timeouts)
+ {
+-	return true;
++	return nf_generic_should_process(nf_ct_protonum(ct));
+ }
+ 
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+-- 
+1.7.1
