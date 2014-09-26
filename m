@@ -1,114 +1,55 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: disable generic tracking
- for known protocols
-Date: Fri, 26 Sep 2014 12:13:44 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409261212510.18634@blackhole.kfki.hu>
-References: <20140926093542.GD26716@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, dborkman@redhat.com
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/6 -stable] netfilter/ipvs patches
+Date: Fri, 26 Sep 2014 13:43:38 +0200
+Message-ID: <1411731824-15051-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:56771 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:36232 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753515AbaIZKNV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Sep 2014 06:13:21 -0400
-In-Reply-To: <20140926093542.GD26716@breakpoint.cc>
+	id S1753813AbaIZLmn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Sep 2014 07:42:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 26 Sep 2014, Florian Westphal wrote:
+Hi David,
 
-> Given following iptables ruleset:
-> 
-> -P FORWARD DROP
-> -A FORWARD -m sctp --dport 9 -j ACCEPT
-> -A FORWARD -p tcp --dport 80 -j ACCEPT
-> -A FORWARD -p tcp -m conntrack -m state ESTABLISHED,RELATED -j ACCEPT
-> 
-> One would assume that this allows SCTP on port 9 and TCP on port 80.
-> Unfortunately, if the SCTP conntrack module is not loaded, this allows
-> *all* SCTP communication, to pass though, i.e. -p sctp -j ACCEPT,
-> which we think is a security issue.
-> 
-> This is because on the first SCTP packet on port 9, we create a dummy
-> "generic l4" conntrack entry without any port information (since
-> conntrack doesn't know how to extract this information).
-> 
-> All subsequent packets that are unknown will then be in established
-> state since they will fallback to proto_generic and will match the
-> 'generic' entry.
-> 
-> Our originally proposed version [1] completely disabled generic protocol
-> tracking, but Jozsef suggests to not track protocols for which a more
-> suitable helper is available, hence we now mitigate the issue for in
-> tree known ct protocol helpers only, so that at least NAT and direction
-> information will still be preserved for others.
-> 
->  [1] http://www.spinics.net/lists/netfilter-devel/msg33430.html
-> 
-> Joint work with Daniel Borkmann.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+This patchset for -stable contains:
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+1) Fix a crash in IPVS when exitting from netns. This applies cleanly
+   starting 3.2.
 
-> ---
->  net/netfilter/nf_conntrack_proto_generic.c |   26 +++++++++++++++++++++++++-
->  1 files changed, 25 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-> index d25f293..957c1db 100644
-> --- a/net/netfilter/nf_conntrack_proto_generic.c
-> +++ b/net/netfilter/nf_conntrack_proto_generic.c
-> @@ -14,6 +14,30 @@
->  
->  static unsigned int nf_ct_generic_timeout __read_mostly = 600*HZ;
->  
-> +static bool nf_generic_should_process(u8 proto)
-> +{
-> +	switch (proto) {
-> +#ifdef CONFIG_NF_CT_PROTO_SCTP_MODULE
-> +	case IPPROTO_SCTP:
-> +		return false;
-> +#endif
-> +#ifdef CONFIG_NF_CT_PROTO_DCCP_MODULE
-> +	case IPPROTO_DCCP:
-> +		return false;
-> +#endif
-> +#ifdef CONFIG_NF_CT_PROTO_GRE_MODULE
-> +	case IPPROTO_GRE:
-> +		return false;
-> +#endif
-> +#ifdef CONFIG_NF_CT_PROTO_UDPLITE_MODULE
-> +	case IPPROTO_UDPLITE:
-> +		return false;
-> +#endif
-> +	default:
-> +		return true;
-> +	}
-> +}
-> +
->  static inline struct nf_generic_net *generic_pernet(struct net *net)
->  {
->  	return &net->ct.nf_ct_proto.generic;
-> @@ -67,7 +91,7 @@ static int generic_packet(struct nf_conn *ct,
->  static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
->  			unsigned int dataoff, unsigned int *timeouts)
->  {
-> -	return true;
-> +	return nf_generic_should_process(nf_ct_protonum(ct));
->  }
->  
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-> -- 
-> 1.7.1
+2) Perform garbage collection from process context in hashlimit,
+   otherwise this match can hold the cpu for 500ms with large tables.
+   Patch applies to 3.14 and 3.16.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+3) Maintain all DSCP and ECN bits for ipv6 tun forwarding in ipvs.
+   Patch applies starting 3.4.
+
+4) The cgroup match rejects the id 0 for no good reason and Samsumg
+   people needs this to get cgroup match working in previous kernels.
+   This one-liner applies starting 3.14.
+
+5) Fix wrong family in hook registration in ipvs, according to my
+   scripts, this patch applies cleanly starting 3.10.
+
+6) Fix crash in nf_tables when updating unset chain counters.
+   Patch applies to 3.16 only.
+
+I'm sending this batch for -stable submission to netdev in the way I
+interpreted from Documentation/networking/netdev-FAQ.txt.
+
+Every patch contains the upstream commit and the tag that indicates
+the kernel version as specified by the tag:
+
+Cc: <stable@vger.kernel.org> # x.y.x
+
+Which is the tag I've been using in -stable submissions so far.
+
+Let me know if the way I made is fine with you. Alternatively, I can
+make upcoming submissions for -stable in a better way. I can also submit
+netfilter/ipvs patches myself, including you, the netdev and the stable
+lists in the CC, so you can ack this if you consider they are OK and
+people can follow track of what is submitted to -stable from my side.
+
+Thanks!
