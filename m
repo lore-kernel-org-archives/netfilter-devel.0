@@ -1,100 +1,66 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 3/3 v3] src: add list ruleset command
-Date: Fri, 26 Sep 2014 18:30:08 +0200
-Message-ID: <1411749008-924-1-git-send-email-arturo.borrero.glez@gmail.com>
-Cc: pablo@netfilter.org, kaber@trash.net,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 1/4 v2] payload: generate dependency in the appropriate byteorder
+Date: Fri, 26 Sep 2014 18:50:52 +0200
+Message-ID: <1411750255-7663-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:38275 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755196AbaIZQaZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Sep 2014 12:30:25 -0400
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:34050 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872AbaIZQun (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Sep 2014 12:50:43 -0400
+Received: by mail-wi0-f179.google.com with SMTP id d1so12010408wiv.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Sep 2014 09:50:42 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new command to nft:
-	% nft list ruleset [family]
+If we add a dependency, the constant expression on the right
+hand side must be represented in the appropriate order.
 
-Which list the entire ruleset.
-If no family is specified, all tables of all families are listed.
+Example without this patch:
 
-Users can now make several operations at ruleset level:
+  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
 
- % nft list ruleset > ruleset.nft
- % nft -f ruleset.nft
- % nft flush ruleset
+  [ payload load 2b @ link header + 12 => reg 1 ]
+  [ cmp eq reg 1 0x00000800 ]
+  [ reject type 0 code 1 ]
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+When we create the payload expression we have the right value in host endian but
+this has to be in big endian.
+
+With this patch, if we add the same rule:
+
+  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
+
+  [ payload load 2b @ link header + 12 => reg 1 ]
+  [ cmp eq reg 1 0x00000008 ]
+  [ reject type 0 code 1 ]
+
+The new dependency is converted to big endian.
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
-v2: rename function to do_list_ruleset() and use list_splice_tail_init().
-v3: fixed clash with static list "table_list", and double free() of a handle.
+[Changes in v2]
+* Added a example with the problem and the fix in the description
 
- src/parser.y |    4 ++++
- src/rule.c   |   28 ++++++++++++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ src/payload.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/src/parser.y b/src/parser.y
-index e35eede..8f58e3a 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -753,6 +753,10 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
- 			}
-+			|	RULESET		ruleset_spec
-+			{
-+				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
-+			}
- 			;
+diff --git a/src/payload.c b/src/payload.c
+index 1eee4e0..a3bbe51 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -216,8 +216,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
  
- flush_cmd		:	TABLE		table_spec
-diff --git a/src/rule.c b/src/rule.c
-index 336c159..43355ee 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -782,6 +782,32 @@ err:
- 	return -1;
- }
+ 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
+-				    BYTEORDER_HOST_ENDIAN,
+-				    tmpl->len,
++				    tmpl->dtype->byteorder, tmpl->len,
+ 				    constant_data_ptr(protocol, tmpl->len));
  
-+static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
-+{
-+	struct table *table, *next;
-+	LIST_HEAD(tables);
-+
-+	if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
-+		return -1;
-+
-+	list_splice_tail_init(&ctx->list, &tables);
-+
-+	list_for_each_entry_safe(table, next, &tables, list) {
-+		table_add_hash(table);
-+
-+		cmd->handle.family = table->handle.family;
-+		cmd->handle.table = xstrdup(table->handle.table);
-+
-+		if (do_list_table(ctx, cmd, table) < 0)
-+			return -1;
-+
-+		list_del(&table->list);
-+		table_free(table);
-+	}
-+
-+	return 0;
-+}
-+
- static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	struct table *table = NULL;
-@@ -837,6 +863,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 			set_print(set);
- 		}
- 		return 0;
-+	case CMD_OBJ_RULESET:
-+		return do_list_ruleset(ctx, cmd);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
+ 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
 -- 
 1.7.10.4
 
