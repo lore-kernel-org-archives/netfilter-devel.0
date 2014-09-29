@@ -1,296 +1,147 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 2/7] netfilter: Convert print_tuple functions to return void
-Date: Mon, 29 Sep 2014 16:08:22 -0700
-Message-ID: <f2e8cf8df433a197daa62cbaf124c900c708edc7.1412031505.git.joe@perches.com>
-References: <20140929124246.3e39dac8@gandalf.local.home> <cover.1412031505.git.joe@perches.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Petr Mladek <pmladek@suse.cz>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1412031505.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 32/34] netfilter: bridge: move br_netfilter out of the
+ core
+Date: Tue, 30 Sep 2014 01:17:48 +0200
+Message-ID: <20140929231748.GA11709@breakpoint.cc>
+References: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
+ <1411994363-8451-33-git-send-email-pablo@netfilter.org>
+ <1412028266.30721.44.camel@edumazet-glaptop2.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:32890 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754205AbaI2XRw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Sep 2014 19:17:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1412028266.30721.44.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Since adding a new function to seq_file (seq_is_full)
-there isn't any value for functions called from seq_show to
-return anything.   Remove the int returns of the various
-print_tuple/<foo>_print_tuple functions.
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Mon, 2014-09-29 at 14:39 +0200, Pablo Neira Ayuso wrote:
+> > Jesper reported that br_netfilter always registers the hooks since
+> > this is part of the bridge core. This harms performance for people =
+that
+> > don't need this.
+> >=20
+> > This patch modularizes br_netfilter so it can be rmmod'ed, thus,
+> > the hooks can be unregistered. I think the bridge netfilter should =
+have
+> > been a separated module since the beginning, Patrick agreed on that=
+=2E
+> >=20
+> > Note that this is breaking compatibility for users that expect that
+> > bridge netfilter is going to be available after explicitly 'modprob=
+e
+> > bridge' or via automatic load through brctl.
+> >=20
+> > However, the damage can be easily undone by modprobing br_netfilter=
+=2E
+> > The bridge core also spots a message to provide a clue to people th=
+at
+> > didn't notice that this has been deprecated.
+> >=20
+> > On top of that, the plan is that nftables will not rely on this sof=
+tware
+> > layer, but integrate the connection tracking into the bridge layer =
+to
+> > enable stateful filtering and NAT, which is was bridge netfilter us=
+ers
+> > seem to require.
+> >=20
+> > This patch still keeps the fake_dst_ops in the bridge core, since t=
+his
+> > is required by when the bridge port is initialized. So we can safel=
+y
+> > modprobe/rmmod br_netfilter anytime.
+> >=20
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Acked-by: Florian Westphal <fw@strlen.de>
+> > ---
+>=20
+> Hmm... What am I missing here ?
+> # CONFIG_BRIDGE_NETFILTER is not set
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Nothing.  Our fault.  br_nf_core.o should not be built in this case.
+
+> $ make net/bridge/br_nf_core.o
+[..]
+>   CC [M]  net/bridge/br_nf_core.o
+> net/bridge/br_nf_core.c:77:1: error: expected identifier or =E2=80=98=
+(=E2=80=99 before =E2=80=98{=E2=80=99 token
+> net/bridge/br_nf_core.c:88:12: error: redefinition of =E2=80=98br_nf_=
+core_init=E2=80=99
+
+This patch seems to fix it for me.  Pablo, can you double-check?
+
+Thanks!
+
+Subject: [PATCH nf-next] netfilter: bridge: build br_nf_core only if re=
+quired
+
+Eric reports build failure with
+CONFIG_BRIDGE_NETFILTER=3Dn
+
+We insist to build br_nf_core.o unconditionally, but we must only do so
+if br_netfilter was enabled, else it fails to build due to
+functions being defined to empty stubs (and some structure members
+being defined out).
+
+Also, BRIDGE_NETFILTER=3Dy|m makes no sense when BRIDGE=3Dn.
+
+=46ixes: 34666d467 (netfilter: bridge: move br_netfilter out of the cor=
+e)
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_core.h    |  2 +-
- include/net/netfilter/nf_conntrack_l3proto.h |  4 ++--
- include/net/netfilter/nf_conntrack_l4proto.h |  4 ++--
- net/netfilter/nf_conntrack_l3proto_generic.c |  5 ++---
- net/netfilter/nf_conntrack_proto_dccp.c      | 10 +++++-----
- net/netfilter/nf_conntrack_proto_generic.c   |  5 ++---
- net/netfilter/nf_conntrack_proto_gre.c       | 10 +++++-----
- net/netfilter/nf_conntrack_proto_sctp.c      | 10 +++++-----
- net/netfilter/nf_conntrack_proto_tcp.c       | 10 +++++-----
- net/netfilter/nf_conntrack_proto_udp.c       | 10 +++++-----
- net/netfilter/nf_conntrack_proto_udplite.c   | 10 +++++-----
- net/netfilter/nf_conntrack_standalone.c      | 15 +++++++--------
- 12 files changed, 46 insertions(+), 49 deletions(-)
+ net/Kconfig         | 2 +-
+ net/bridge/Makefile | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index cc0c188..f2f0fa3 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -72,7 +72,7 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
- 	return ret;
- }
- 
--int
-+void
- print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-             const struct nf_conntrack_l3proto *l3proto,
-             const struct nf_conntrack_l4proto *proto);
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index adc1fa3..cdc920b 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -38,8 +38,8 @@ struct nf_conntrack_l3proto {
- 			     const struct nf_conntrack_tuple *orig);
- 
- 	/* Print out the per-protocol part of the tuple. */
--	int (*print_tuple)(struct seq_file *s,
--			   const struct nf_conntrack_tuple *);
-+	void (*print_tuple)(struct seq_file *s,
-+			    const struct nf_conntrack_tuple *);
- 
- 	/*
- 	 * Called before tracking. 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 4c8d573..fead8ee 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -56,8 +56,8 @@ struct nf_conntrack_l4proto {
- 		     u_int8_t pf, unsigned int hooknum);
- 
- 	/* Print out the per-protocol part of the tuple. Return like seq_* */
--	int (*print_tuple)(struct seq_file *s,
--			   const struct nf_conntrack_tuple *);
-+	void (*print_tuple)(struct seq_file *s,
-+			    const struct nf_conntrack_tuple *);
- 
- 	/* Print out the private part of the conntrack. */
- 	int (*print_conntrack)(struct seq_file *s, struct nf_conn *);
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
-index e7eb807..cf9ace7 100644
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -49,10 +49,9 @@ static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
- 	return true;
- }
- 
--static int generic_print_tuple(struct seq_file *s,
--			    const struct nf_conntrack_tuple *tuple)
-+static void generic_print_tuple(struct seq_file *s,
-+				const struct nf_conntrack_tuple *tuple)
- {
--	return 0;
- }
- 
- static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index cb372f9..40d96f9 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -618,12 +618,12 @@ out_invalid:
- 	return -NF_ACCEPT;
- }
- 
--static int dccp_print_tuple(struct seq_file *s,
--			    const struct nf_conntrack_tuple *tuple)
-+static void dccp_print_tuple(struct seq_file *s,
-+			     const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "sport=%hu dport=%hu ",
--			  ntohs(tuple->src.u.dccp.port),
--			  ntohs(tuple->dst.u.dccp.port));
-+	seq_printf(s, "sport=%hu dport=%hu ",
-+		   ntohs(tuple->src.u.dccp.port),
-+		   ntohs(tuple->dst.u.dccp.port));
- }
- 
- static int dccp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index d25f293..0a3ded1 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -39,10 +39,9 @@ static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
- }
- 
- /* Print out the per-protocol part of the tuple. */
--static int generic_print_tuple(struct seq_file *s,
--			       const struct nf_conntrack_tuple *tuple)
-+static void generic_print_tuple(struct seq_file *s,
-+				const struct nf_conntrack_tuple *tuple)
- {
--	return 0;
- }
- 
- static unsigned int *generic_get_timeouts(struct net *net)
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index d566573..cd85336 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -226,12 +226,12 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- }
- 
- /* print gre part of tuple */
--static int gre_print_tuple(struct seq_file *s,
--			   const struct nf_conntrack_tuple *tuple)
-+static void gre_print_tuple(struct seq_file *s,
-+			    const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "srckey=0x%x dstkey=0x%x ",
--			  ntohs(tuple->src.u.gre.key),
--			  ntohs(tuple->dst.u.gre.key));
-+	seq_printf(s, "srckey=0x%x dstkey=0x%x ",
-+		   ntohs(tuple->src.u.gre.key),
-+		   ntohs(tuple->dst.u.gre.key));
- }
- 
- /* print private data for conntrack */
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 1314d33..1b1d0e9 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -166,12 +166,12 @@ static bool sctp_invert_tuple(struct nf_conntrack_tuple *tuple,
- }
- 
- /* Print out the per-protocol part of the tuple. */
--static int sctp_print_tuple(struct seq_file *s,
--			    const struct nf_conntrack_tuple *tuple)
-+static void sctp_print_tuple(struct seq_file *s,
-+			     const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "sport=%hu dport=%hu ",
--			  ntohs(tuple->src.u.sctp.port),
--			  ntohs(tuple->dst.u.sctp.port));
-+	seq_printf(s, "sport=%hu dport=%hu ",
-+		   ntohs(tuple->src.u.sctp.port),
-+		   ntohs(tuple->dst.u.sctp.port));
- }
- 
- /* Print out the private part of the conntrack. */
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 44d1ea3..c2693e78 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -302,12 +302,12 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
- }
- 
- /* Print out the per-protocol part of the tuple. */
--static int tcp_print_tuple(struct seq_file *s,
--			   const struct nf_conntrack_tuple *tuple)
-+static void tcp_print_tuple(struct seq_file *s,
-+			    const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "sport=%hu dport=%hu ",
--			  ntohs(tuple->src.u.tcp.port),
--			  ntohs(tuple->dst.u.tcp.port));
-+	seq_printf(s, "sport=%hu dport=%hu ",
-+		   ntohs(tuple->src.u.tcp.port),
-+		   ntohs(tuple->dst.u.tcp.port));
- }
- 
- /* Print out the private part of the conntrack. */
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 9d7721c..6957281 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -63,12 +63,12 @@ static bool udp_invert_tuple(struct nf_conntrack_tuple *tuple,
- }
- 
- /* Print out the per-protocol part of the tuple. */
--static int udp_print_tuple(struct seq_file *s,
--			   const struct nf_conntrack_tuple *tuple)
-+static void udp_print_tuple(struct seq_file *s,
-+			    const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "sport=%hu dport=%hu ",
--			  ntohs(tuple->src.u.udp.port),
--			  ntohs(tuple->dst.u.udp.port));
-+	seq_printf(s, "sport=%hu dport=%hu ",
-+		   ntohs(tuple->src.u.udp.port),
-+		   ntohs(tuple->dst.u.udp.port));
- }
- 
- static unsigned int *udp_get_timeouts(struct net *net)
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 2750e6c..c5903d1 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -71,12 +71,12 @@ static bool udplite_invert_tuple(struct nf_conntrack_tuple *tuple,
- }
- 
- /* Print out the per-protocol part of the tuple. */
--static int udplite_print_tuple(struct seq_file *s,
--			       const struct nf_conntrack_tuple *tuple)
-+static void udplite_print_tuple(struct seq_file *s,
-+				const struct nf_conntrack_tuple *tuple)
- {
--	return seq_printf(s, "sport=%hu dport=%hu ",
--			  ntohs(tuple->src.u.udp.port),
--			  ntohs(tuple->dst.u.udp.port));
-+	seq_printf(s, "sport=%hu dport=%hu ",
-+		   ntohs(tuple->src.u.udp.port),
-+		   ntohs(tuple->dst.u.udp.port));
- }
- 
- static unsigned int *udplite_get_timeouts(struct net *net)
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index cf65a1e..3c2ce5c 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -36,12 +36,13 @@
- MODULE_LICENSE("GPL");
- 
- #ifdef CONFIG_NF_CONNTRACK_PROCFS
--int
-+void
- print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-             const struct nf_conntrack_l3proto *l3proto,
-             const struct nf_conntrack_l4proto *l4proto)
- {
--	return l3proto->print_tuple(s, tuple) || l4proto->print_tuple(s, tuple);
-+	l3proto->print_tuple(s, tuple);
-+	l4proto->print_tuple(s, tuple);
- }
- EXPORT_SYMBOL_GPL(print_tuple);
- 
-@@ -202,9 +203,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (l4proto->print_conntrack && l4proto->print_conntrack(s, ct))
- 		goto release;
- 
--	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
--			l3proto, l4proto))
--		goto release;
-+	print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+		    l3proto, l4proto);
- 
- 	if (seq_print_acct(s, ct, IP_CT_DIR_ORIGINAL))
- 		goto release;
-@@ -213,9 +213,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 		if (seq_printf(s, "[UNREPLIED] "))
- 			goto release;
- 
--	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
--			l3proto, l4proto))
--		goto release;
-+	print_tuple(s, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
-+		    l3proto, l4proto);
- 
- 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
- 		goto release;
--- 
-1.8.1.2.459.gbcd45b4.dirty
+diff --git a/net/Kconfig b/net/Kconfig
+index dc5d700..d6b138e 100644
+--- a/net/Kconfig
++++ b/net/Kconfig
+@@ -177,7 +177,7 @@ config NETFILTER_ADVANCED
+=20
+ config BRIDGE_NETFILTER
+ 	tristate "Bridged IP/ARP packets filtering"
+-	depends on (BRIDGE || BRIDGE=3Dn)
++	depends on BRIDGE
+ 	depends on NETFILTER && INET
+ 	depends on NETFILTER_ADVANCED
+ 	default m
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index 5e3eac5..fd7ee03 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -6,11 +6,12 @@ obj-$(CONFIG_BRIDGE) +=3D bridge.o
+=20
+ bridge-y	:=3D br.o br_device.o br_fdb.o br_forward.o br_if.o br_input.=
+o \
+ 			br_ioctl.o br_stp.o br_stp_bpdu.o \
+-			br_stp_if.o br_stp_timer.o br_netlink.o \
+-			br_nf_core.o
++			br_stp_if.o br_stp_timer.o br_netlink.o
+=20
+ bridge-$(CONFIG_SYSFS) +=3D br_sysfs_if.o br_sysfs_br.o
+=20
++bridge-$(subst m,y,$(CONFIG_BRIDGE_NETFILTER)) +=3D br_nf_core.o
++
+ obj-$(CONFIG_BRIDGE_NETFILTER) +=3D br_netfilter.o
+=20
+ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) +=3D br_multicast.o br_mdb.o
+--=20
+1.8.1.5
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
