@@ -1,88 +1,73 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 32/34] netfilter: bridge: move br_netfilter out of the
- core
-Date: Mon, 29 Sep 2014 15:04:26 -0700
-Message-ID: <1412028266.30721.44.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
-	 <1411994363-8451-33-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:33688 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbaI2WE2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Sep 2014 18:04:28 -0400
-In-Reply-To: <1411994363-8451-33-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 0/7] seq_printf cleanups
+Date: Mon, 29 Sep 2014 16:08:20 -0700
+Message-ID: <cover.1412031505.git.joe@perches.com>
+References: <20140929124246.3e39dac8@gandalf.local.home>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>, Petr Mladek <pmladek@suse.cz>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+	cluster-devel@redhat.com, linux-fsdevel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140929124246.3e39dac8@gandalf.local.home>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2014-09-29 at 14:39 +0200, Pablo Neira Ayuso wrote:
-> Jesper reported that br_netfilter always registers the hooks since
-> this is part of the bridge core. This harms performance for people th=
-at
-> don't need this.
->=20
-> This patch modularizes br_netfilter so it can be rmmod'ed, thus,
-> the hooks can be unregistered. I think the bridge netfilter should ha=
-ve
-> been a separated module since the beginning, Patrick agreed on that.
->=20
-> Note that this is breaking compatibility for users that expect that
-> bridge netfilter is going to be available after explicitly 'modprobe
-> bridge' or via automatic load through brctl.
->=20
-> However, the damage can be easily undone by modprobing br_netfilter.
-> The bridge core also spots a message to provide a clue to people that
-> didn't notice that this has been deprecated.
->=20
-> On top of that, the plan is that nftables will not rely on this softw=
-are
-> layer, but integrate the connection tracking into the bridge layer to
-> enable stateful filtering and NAT, which is was bridge netfilter user=
-s
-> seem to require.
->=20
-> This patch still keeps the fake_dst_ops in the bridge core, since thi=
-s
-> is required by when the bridge port is initialized. So we can safely
-> modprobe/rmmod br_netfilter anytime.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Acked-by: Florian Westphal <fw@strlen.de>
-> ---
+seq_printf should return void.
 
-Hmm... What am I missing here ?
+Add a public bool seq_is_full function that can be used to shortcut
+unnecesary seq_printf/seq_puts calls when the seq buffer is full.
 
-$ grep CONFIG_BRIDGE_NETFILTER .config
-# CONFIG_BRIDGE_NETFILTER is not set
+Start removing the misuses of the seq_printf/seq_puts return value.
 
-$ make net/bridge/br_nf_core.o
-  CHK     include/config/kernel.release
-  CHK     include/generated/uapi/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CC [M]  net/bridge/br_nf_core.o
-net/bridge/br_nf_core.c:77:1: error: expected identifier or =E2=80=98(=E2=
-=80=99 before =E2=80=98{=E2=80=99 token
-net/bridge/br_nf_core.c:88:12: error: redefinition of =E2=80=98br_nf_co=
-re_init=E2=80=99
-net/bridge/br_private.h:762:19: note: previous definition of =E2=80=98b=
-r_nf_core_init=E2=80=99 was here
-net/bridge/br_nf_core.c:93:6: error: redefinition of =E2=80=98br_nf_cor=
-e_fini=E2=80=99
-net/bridge/br_private.h:763:20: note: previous definition of =E2=80=98b=
-r_nf_core_fini=E2=80=99 was here
-make[1]: *** [net/bridge/br_nf_core.o] Error 1
-make: *** [net/bridge/br_nf_core.o] Error 2
+Patchset brought forward from an unreplied to set of changes from
+back in December 2013.
 
+https://lkml.org/lkml/2013/12/11/713
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Renamed seq_is_buf_full to seq_is_full.
+
+Joe Perches (7):
+  seq_file: Rename static bool seq_overflow to public bool seq_is_full
+  netfilter: Convert print_tuple functions to return void
+  dlm: Use seq_is_full - remove seq_printf returns
+  dlm: Use seq_puts, remove unnecessary trailing spaces
+  fs: Convert show_fdinfo functions to void
+  debugfs: Fix misuse of seq_printf return value
+  docg3: Fix mixuse of seq_printf return value
+
+ Documentation/filesystems/seq_file.txt       |  28 +--
+ Documentation/filesystems/vfs.txt            |   2 +-
+ drivers/mtd/devices/docg3.c                  | 112 ++++++------
+ drivers/net/tun.c                            |   4 +-
+ fs/debugfs/file.c                            |  14 +-
+ fs/dlm/debug_fs.c                            | 260 +++++++++++++--------------
+ fs/eventfd.c                                 |  15 +-
+ fs/eventpoll.c                               |  19 +-
+ fs/notify/fdinfo.c                           |  76 ++++----
+ fs/notify/fdinfo.h                           |   4 +-
+ fs/proc/fd.c                                 |   2 +-
+ fs/seq_file.c                                |  28 +--
+ fs/signalfd.c                                |  10 +-
+ fs/timerfd.c                                 |  27 +--
+ include/linux/fs.h                           |   2 +-
+ include/linux/seq_file.h                     |   8 +
+ include/net/netfilter/nf_conntrack_core.h    |   2 +-
+ include/net/netfilter/nf_conntrack_l3proto.h |   4 +-
+ include/net/netfilter/nf_conntrack_l4proto.h |   4 +-
+ net/netfilter/nf_conntrack_l3proto_generic.c |   5 +-
+ net/netfilter/nf_conntrack_proto_dccp.c      |  10 +-
+ net/netfilter/nf_conntrack_proto_generic.c   |   5 +-
+ net/netfilter/nf_conntrack_proto_gre.c       |  10 +-
+ net/netfilter/nf_conntrack_proto_sctp.c      |  10 +-
+ net/netfilter/nf_conntrack_proto_tcp.c       |  10 +-
+ net/netfilter/nf_conntrack_proto_udp.c       |  10 +-
+ net/netfilter/nf_conntrack_proto_udplite.c   |  10 +-
+ net/netfilter/nf_conntrack_standalone.c      |  15 +-
+ 28 files changed, 333 insertions(+), 373 deletions(-)
+
+-- 
+1.8.1.2.459.gbcd45b4.dirty
