@@ -1,78 +1,35 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 18/34] ipvs: prevent mixing heterogeneous pools and synchronization
-Date: Mon, 29 Sep 2014 20:17:26 +0400
-Message-ID: <54298616.7080307@cogentembedded.com>
-References: <1411994363-8451-1-git-send-email-pablo@netfilter.org> <1411994363-8451-19-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/34] pull request: netfilter/ipvs updates for net-next
+Date: Mon, 29 Sep 2014 14:54:24 -0400 (EDT)
+Message-ID: <20140929.145424.1355091301129121293.davem@davemloft.net>
+References: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:35271 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754324AbaI2QRb (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:60573 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752538AbaI2Sy0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Sep 2014 12:17:31 -0400
-Received: by mail-lb0-f171.google.com with SMTP id l4so18391312lbv.30
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Sep 2014 09:17:29 -0700 (PDT)
-In-Reply-To: <1411994363-8451-19-git-send-email-pablo@netfilter.org>
+	Mon, 29 Sep 2014 14:54:26 -0400
+In-Reply-To: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09/29/2014 04:39 PM, Pablo Neira Ayuso wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 29 Sep 2014 14:38:49 +0200
 
-> From: Alex Gartrell <agartrell@fb.com>
+> The following patchset contains Netfilter/IPVS updates for net-next,
+> most relevantly they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-> The synchronization protocol is not compatible with heterogeneous pools, so
-> we need to verify that we're not turning both on at the same time.
+Pulled, thanks Pablo.
 
-> Signed-off-by: Alex Gartrell <agartrell@fb.com>
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> ---
->   include/net/ip_vs.h            |    4 ++++
->   net/netfilter/ipvs/ip_vs_ctl.c |   15 +++++++++++++++
->   2 files changed, 19 insertions(+)
+Please address Sergei's coding style comments.
 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 7600dbe..576d7f0 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -990,6 +990,10 @@ struct netns_ipvs {
->   	char			backup_mcast_ifn[IP_VS_IFNAME_MAXLEN];
->   	/* net name space ptr */
->   	struct net		*net;            /* Needed by timer routines */
-> +	/* Number of heterogeneous destinations, needed because
-> +	 * heterogeneous are not supported when synchronization is
-> +	 * enabled */
-
-    Multi-line comment style in the networking code is:
-
-/* bla
-  * bla
-  */
-
-
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 6bd2cc6..462760e 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-[...]
-> @@ -3256,6 +3265,12 @@ static int ip_vs_genl_new_daemon(struct net *net, struct nlattr **attrs)
->   	      attrs[IPVS_DAEMON_ATTR_SYNC_ID]))
->   		return -EINVAL;
->
-> +	/* The synchronization protocol is incompatible with mixed family
-> +	 * services
-> +	 */
-
-    Here you got it right. :-)
-
-> +	if (net_ipvs(net)->mixed_address_family_dests > 0)
-> +		return -EINVAL;
-> +
-
-WBR, Sergei
-
+Thanks again.
