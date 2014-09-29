@@ -1,35 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/34] pull request: netfilter/ipvs updates for net-next
-Date: Mon, 29 Sep 2014 14:54:24 -0400 (EDT)
-Message-ID: <20140929.145424.1355091301129121293.davem@davemloft.net>
-References: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH] examples: nft-table-add: fix wrong buffer pointer
+Date: Mon, 29 Sep 2014 22:41:05 +0200
+Message-ID: <20140929204104.16927.59891.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:60573 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538AbaI2Sy0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:54:26 -0400
-In-Reply-To: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
+Received: from smtp3.cica.es ([150.214.5.190]:48395 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751742AbaI2UlJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Sep 2014 16:41:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 29 Sep 2014 14:38:49 +0200
+We should point to the batch buffer as returned by the libmnl helper.
 
-> The following patchset contains Netfilter/IPVS updates for net-next,
-> most relevantly they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ examples/nft-table-add.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Pulled, thanks Pablo.
+diff --git a/examples/nft-table-add.c b/examples/nft-table-add.c
+index 828091e..9340128 100644
+--- a/examples/nft-table-add.c
++++ b/examples/nft-table-add.c
+@@ -85,7 +85,8 @@ int main(int argc, char *argv[])
+ 
+ 	table_seq = seq;
+ 	family = nft_table_attr_get_u32(t, NFT_TABLE_ATTR_FAMILY);
+-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, family,
++	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					NFT_MSG_NEWTABLE, family,
+ 					NLM_F_ACK, seq++);
+ 	nft_table_nlmsg_build_payload(nlh, t);
+ 	nft_table_free(t);
 
-Please address Sergei's coding style comments.
-
-Thanks again.
