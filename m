@@ -1,39 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 2/2] examples: nft-set-parse-add: give batching
- support
-Date: Mon, 29 Sep 2014 17:03:23 +0200
-Message-ID: <20140929150323.GA4591@salvia>
-References: <20140926183442.3333.62136.stgit@nfdev.cica.es>
- <20140926183448.3333.64808.stgit@nfdev.cica.es>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 30/34] net/netfilter/x_tables.c: use __seq_open_private()
+Date: Mon, 29 Sep 2014 20:07:44 +0400
+Message-ID: <542983D0.8060701@cogentembedded.com>
+References: <1411994363-8451-1-git-send-email-pablo@netfilter.org> <1411994363-8451-31-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, alvaroneay@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39877 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753247AbaI2PCM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Sep 2014 11:02:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20140926183448.3333.64808.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1411994363-8451-31-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 26, 2014 at 08:34:48PM +0200, Arturo Borrero Gonzalez wrote:
-> @@ -66,6 +67,8 @@ static struct nft_set *set_parse_file(const char *file, uint16_t format)
->  	}
->  
->  	nft_parse_err_free(err);
-> +
-> +	nft_set_attr_set_u32(s, NFT_SET_ATTR_ID, 1);
->  	return s;
->  
->  }
+Hello.
 
-I guess this works if you parse one single set definition in a file.
-With more than one set, this will break.
+On 09/29/2014 04:39 PM, Pablo Neira Ayuso wrote:
 
-IIRC, Alvaro started a patch time ago to add a new interface to
-libnftnl to handle the set internal id which was incomplete.
+> From: Rob Jones <rob.jones@codethink.co.uk>
 
-Cc'ing him to know its status.
+> Reduce boilerplate code by using __seq_open_private() instead of seq_open()
+> in xt_match_open() and xt_target_open().
+
+> Signed-off-by: Rob Jones <rob.jones@codethink.co.uk>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>   net/netfilter/x_tables.c |   30 ++++--------------------------
+>   1 file changed, 4 insertions(+), 26 deletions(-)
+
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index 272ae4d..133eb47 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1101,22 +1101,11 @@ static const struct seq_operations xt_match_seq_ops = {
+>
+>   static int xt_match_open(struct inode *inode, struct file *file)
+>   {
+> -	struct seq_file *seq;
+>   	struct nf_mttg_trav *trav;
+> -	int ret;
+> -
+
+    Please don't remove this empty line after declaration.
+
+> -	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+> -	if (trav == NULL)
+> +	trav = __seq_open_private(file, &xt_match_seq_ops, sizeof(*trav));
+> +	if (!trav)
+>   		return -ENOMEM;
+>
+> -	ret = seq_open(file, &xt_match_seq_ops);
+> -	if (ret < 0) {
+> -		kfree(trav);
+> -		return ret;
+> -	}
+> -
+> -	seq = file->private_data;
+> -	seq->private = trav;
+>   	trav->nfproto = (unsigned long)PDE_DATA(inode);
+>   	return 0;
+>   }
+> @@ -1165,22 +1154,11 @@ static const struct seq_operations xt_target_seq_ops = {
+>
+>   static int xt_target_open(struct inode *inode, struct file *file)
+>   {
+> -	struct seq_file *seq;
+>   	struct nf_mttg_trav *trav;
+> -	int ret;
+> -
+
+    Likewise.
+
+> -	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
+> -	if (trav == NULL)
+> +	trav = __seq_open_private(file, &xt_target_seq_ops, sizeof(*trav));
+> +	if (!trav)
+>   		return -ENOMEM;
+
+WBR, Sergei
