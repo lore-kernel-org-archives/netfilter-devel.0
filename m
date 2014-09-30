@@ -1,71 +1,65 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 2/7] netfilter: Convert print_tuple functions to return
- void
-Date: Tue, 30 Sep 2014 06:04:56 -0700
-Message-ID: <1412082296.4302.101.camel@joe-AO725>
-References: <20140929124246.3e39dac8@gandalf.local.home>
-	 <cover.1412031505.git.joe@perches.com>
-	 <f2e8cf8df433a197daa62cbaf124c900c708edc7.1412031505.git.joe@perches.com>
-	 <20140930102221.GB2707@dhcp128.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Steven Rostedt <rostedt@goodmis.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Petr Mladek <pmladek@suse.cz>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 1/4 v3] payload: generate dependency in the appropriate byteorder
+Date: Tue, 30 Sep 2014 17:21:37 +0200
+Message-ID: <1412090500-4564-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0070.hostedemail.com ([216.40.44.70]:42165 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751306AbaI3NFB (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:51692 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbaI3PVg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2014 09:05:01 -0400
-In-Reply-To: <20140930102221.GB2707@dhcp128.suse.cz>
+	Tue, 30 Sep 2014 11:21:36 -0400
+Received: by mail-wi0-f174.google.com with SMTP id cc10so2658131wib.7
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2014 08:21:34 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2014-09-30 at 12:22 +0200, Petr Mladek wrote:
-> On Mon 29-09-14 16:08:22, Joe Perches wrote:
-> > Since adding a new function to seq_file (seq_is_full)
-> > there isn't any value for functions called from seq_show to
-> > return anything.   Remove the int returns of the various
-> > print_tuple/<foo>_print_tuple functions.
+If we add a dependency, the constant expression on the right
+hand side must be represented in the appropriate order.
 
-[a bunch of quoted stuff]
+Example without this patch:
 
-Please remember to cut out from your replies the unnecessary old stuff.
-It can take quite awhile to scan through looking for your comments.
+  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
 
-> > diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-[]
-> > @@ -202,9 +203,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
-> >  	if (l4proto->print_conntrack && l4proto->print_conntrack(s, ct))
-> >  		goto release;
-> >  
-> > -	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-> > -			l3proto, l4proto))
-> > -		goto release;
-> > +	print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-> > +		    l3proto, l4proto);
-> 
-> To be precise, we should add:
-> 
-> 	if (seq_overflow(s))
-> 		goto release;
+  [ payload load 2b @ link header + 12 => reg 1 ]
+  [ cmp eq reg 1 0x00000800 ]
+  [ reject type 0 code 1 ]
 
-Precision isn't all that useful when checking seq_<output>.
+When we create the payload expression we have the right value in host endian but
+this has to be in big endian.
 
-There really isn't much value in checking each possible
-overflow site.  A periodic check prior to or in the middle
-of a more costly/longish operation should be acceptable.
+With this patch, if we add the same rule:
 
-The entire block that precedes any seq buffer full test will
-be redone when the buffer is expanded.
+  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
+
+  [ payload load 2b @ link header + 12 => reg 1 ]
+  [ cmp eq reg 1 0x00000008 ]
+  [ reject type 0 code 1 ]
+
+The new dependency is converted to big endian.
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+[no changes in v3]
+
+ src/payload.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/payload.c b/src/payload.c
+index 1eee4e0..a3bbe51 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -216,8 +216,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
+ 
+ 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
+-				    BYTEORDER_HOST_ENDIAN,
+-				    tmpl->len,
++				    tmpl->dtype->byteorder, tmpl->len,
+ 				    constant_data_ptr(protocol, tmpl->len));
+ 
+ 	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
+-- 
+1.7.10.4
 
