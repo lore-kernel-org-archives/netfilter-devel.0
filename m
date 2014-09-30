@@ -1,65 +1,156 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 1/4 v3] payload: generate dependency in the appropriate byteorder
-Date: Tue, 30 Sep 2014 17:21:37 +0200
-Message-ID: <1412090500-4564-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 2/4 v3] src: Enhance payload_gen_dependency()
+Date: Tue, 30 Sep 2014 17:21:38 +0200
+Message-ID: <1412090500-4564-2-git-send-email-alvaroneay@gmail.com>
+References: <1412090500-4564-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:51692 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbaI3PVg (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:51090 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbaI3PVh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2014 11:21:36 -0400
-Received: by mail-wi0-f174.google.com with SMTP id cc10so2658131wib.7
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2014 08:21:34 -0700 (PDT)
+	Tue, 30 Sep 2014 11:21:37 -0400
+Received: by mail-wg0-f51.google.com with SMTP id a1so584023wgh.34
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2014 08:21:36 -0700 (PDT)
+In-Reply-To: <1412090500-4564-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we add a dependency, the constant expression on the right
-hand side must be represented in the appropriate order.
+With this patch, this function returns a statement with the new dependency
+that we want to add, instead of an expression.
 
-Example without this patch:
-
-  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
-
-  [ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000800 ]
-  [ reject type 0 code 1 ]
-
-When we create the payload expression we have the right value in host endian but
-this has to be in big endian.
-
-With this patch, if we add the same rule:
-
-  nft add rule bridge filter input reject with icmp-host-unreach --debug netlink
-
-  [ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ reject type 0 code 1 ]
-
-The new dependency is converted to big endian.
+This change is needed in a follow up patch.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
 [no changes in v3]
 
- src/payload.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/payload.h   |    3 ++-
+ include/statement.h |    1 +
+ src/evaluate.c      |    9 ++-------
+ src/payload.c       |   18 +++++++++++++++---
+ 4 files changed, 20 insertions(+), 11 deletions(-)
 
+diff --git a/include/payload.h b/include/payload.h
+index d47e564..95364af 100644
+--- a/include/payload.h
++++ b/include/payload.h
+@@ -11,8 +11,9 @@ extern void payload_init_raw(struct expr *expr, enum proto_bases base,
+ 			     unsigned int offset, unsigned int len);
+ 
+ struct eval_ctx;
++struct stmt;
+ extern int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+-				  struct expr **res);
++				  struct stmt **res);
+ 
+ extern bool payload_is_adjacent(const struct expr *e1, const struct expr *e2);
+ extern struct expr *payload_expr_join(const struct expr *e1,
+diff --git a/include/statement.h b/include/statement.h
+index e2f02b8..7a57f7d 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -166,6 +166,7 @@ struct stmt {
+ 
+ extern struct stmt *stmt_alloc(const struct location *loc,
+ 			       const struct stmt_ops *ops);
++int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt);
+ extern void stmt_free(struct stmt *stmt);
+ extern void stmt_list_free(struct list_head *list);
+ extern void stmt_print(const struct stmt *stmt);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 284ee72..52ce548 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -26,7 +26,6 @@
+ #include <utils.h>
+ 
+ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr);
+-static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt);
+ 
+ static const char *byteorder_names[] = {
+ 	[BYTEORDER_INVALID]		= "invalid",
+@@ -271,13 +270,9 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
+ 	struct expr *payload = *expr;
+ 	enum proto_bases base = payload->payload.base;
+ 	struct stmt *nstmt;
+-	struct expr *nexpr;
+ 
+ 	if (ctx->pctx.protocol[base].desc == NULL) {
+-		if (payload_gen_dependency(ctx, payload, &nexpr) < 0)
+-			return -1;
+-		nstmt = expr_stmt_alloc(&nexpr->location, nexpr);
+-		if (stmt_evaluate(ctx, nstmt) < 0)
++		if (payload_gen_dependency(ctx, payload, &nstmt) < 0)
+ 			return -1;
+ 		list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	} else if (ctx->pctx.protocol[base].desc != payload->payload.desc)
+@@ -1205,7 +1200,7 @@ static int stmt_evaluate_log(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return 0;
+ }
+ 
+-static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
++int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ #ifdef DEBUG
+ 	if (debug_level & DEBUG_EVALUATION) {
 diff --git a/src/payload.c b/src/payload.c
-index 1eee4e0..a3bbe51 100644
+index a3bbe51..b7b74ed 100644
 --- a/src/payload.c
 +++ b/src/payload.c
-@@ -216,8 +216,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 		left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
+@@ -21,6 +21,7 @@
  
- 	right = constant_expr_alloc(&expr->location, tmpl->dtype,
--				    BYTEORDER_HOST_ENDIAN,
--				    tmpl->len,
-+				    tmpl->dtype->byteorder, tmpl->len,
+ #include <rule.h>
+ #include <expression.h>
++#include <statement.h>
+ #include <payload.h>
+ #include <gmputil.h>
+ #include <utils.h>
+@@ -160,12 +161,13 @@ void payload_init_raw(struct expr *expr, enum proto_bases base,
+  *   in the input path though.
+  */
+ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+-			   struct expr **res)
++			   struct stmt **res)
+ {
+ 	const struct hook_proto_desc *h = &hook_proto_desc[ctx->pctx.family];
+ 	const struct proto_desc *desc;
+ 	const struct proto_hdr_template *tmpl;
+ 	struct expr *dep, *left, *right;
++	struct stmt *stmt;
+ 	int protocol;
+ 	uint16_t type;
+ 
+@@ -186,7 +188,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 					    2 * BITS_PER_BYTE, &type);
+ 
+ 		dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
+-		*res = dep;
++		stmt = expr_stmt_alloc(&dep->location, dep);
++		if (stmt_evaluate(ctx, stmt) < 0) {
++			return expr_error(ctx->msgs, expr,
++					  "dependency statement is invalid");
++		}
++		*res = stmt;
+ 		return 0;
+ 	}
+ 
+@@ -220,8 +227,13 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
  				    constant_data_ptr(protocol, tmpl->len));
  
  	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
++	stmt = expr_stmt_alloc(&dep->location, dep);
++	if (stmt_evaluate(ctx, stmt) < 0) {
++		return expr_error(ctx->msgs, expr,
++					  "dependency statement is invalid");
++	}
+ 	left->ops->pctx_update(&ctx->pctx, dep);
+-	*res = dep;
++	*res = stmt;
+ 	return 0;
+ }
+ 
 -- 
 1.7.10.4
 
