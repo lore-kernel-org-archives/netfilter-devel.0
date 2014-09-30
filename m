@@ -1,73 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next] netfilter: bridge: build br_nf_core only if required
-Date: Tue, 30 Sep 2014 10:59:18 +0200
-Message-ID: <1412067559-28733-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Tom Herbert <therbert@google.com>,
-	Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH] examples: nft-table-add: fix wrong buffer
+ pointer
+Date: Tue, 30 Sep 2014 11:02:34 +0200
+Message-ID: <20140930090234.GA7059@salvia>
+References: <20140929204104.16927.59891.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50706 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52001 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904AbaI3I6P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2014 04:58:15 -0400
+	id S1751208AbaI3JB2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Sep 2014 05:01:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20140929204104.16927.59891.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+On Mon, Sep 29, 2014 at 10:41:05PM +0200, Arturo Borrero Gonzalez wrote:
+> We should point to the batch buffer as returned by the libmnl helper.
 
-Eric reports build failure with
-CONFIG_BRIDGE_NETFILTER=n
-
-We insist to build br_nf_core.o unconditionally, but we must only do so
-if br_netfilter was enabled, else it fails to build due to
-functions being defined to empty stubs (and some structure members
-being defined out).
-
-Also, BRIDGE_NETFILTER=y|m makes no sense when BRIDGE=n.
-
-Fixes: 34666d467 (netfilter: bridge: move br_netfilter out of the core)
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/Kconfig         |    2 +-
- net/bridge/Makefile |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/net/Kconfig b/net/Kconfig
-index dc5d700..d6b138e 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -177,7 +177,7 @@ config NETFILTER_ADVANCED
- 
- config BRIDGE_NETFILTER
- 	tristate "Bridged IP/ARP packets filtering"
--	depends on (BRIDGE || BRIDGE=n)
-+	depends on BRIDGE
- 	depends on NETFILTER && INET
- 	depends on NETFILTER_ADVANCED
- 	default m
-diff --git a/net/bridge/Makefile b/net/bridge/Makefile
-index 5e3eac5..fd7ee03 100644
---- a/net/bridge/Makefile
-+++ b/net/bridge/Makefile
-@@ -6,11 +6,12 @@ obj-$(CONFIG_BRIDGE) += bridge.o
- 
- bridge-y	:= br.o br_device.o br_fdb.o br_forward.o br_if.o br_input.o \
- 			br_ioctl.o br_stp.o br_stp_bpdu.o \
--			br_stp_if.o br_stp_timer.o br_netlink.o \
--			br_nf_core.o
-+			br_stp_if.o br_stp_timer.o br_netlink.o
- 
- bridge-$(CONFIG_SYSFS) += br_sysfs_if.o br_sysfs_br.o
- 
-+bridge-$(subst m,y,$(CONFIG_BRIDGE_NETFILTER)) += br_nf_core.o
-+
- obj-$(CONFIG_BRIDGE_NETFILTER) += br_netfilter.o
- 
- bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
--- 
-1.7.10.4
+Applied, thanks.
 
