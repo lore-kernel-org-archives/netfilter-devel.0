@@ -1,75 +1,315 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH lnfct] qa: build unshared nfct environment
-Date: Tue, 30 Sep 2014 12:16:56 +0200
-Message-ID: <20140930101656.GE11709@breakpoint.cc>
-References: <20140930090222.GA8470@gmail.com>
+From: Petr Mladek <pmladek@suse.cz>
+Subject: Re: [PATCH 2/7] netfilter: Convert print_tuple functions to return
+ void
+Date: Tue, 30 Sep 2014 12:22:21 +0200
+Message-ID: <20140930102221.GB2707@dhcp128.suse.cz>
+References: <20140929124246.3e39dac8@gandalf.local.home>
+ <cover.1412031505.git.joe@perches.com>
+ <f2e8cf8df433a197daa62cbaf124c900c708edc7.1412031505.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>,
+Cc: Steven Rostedt <rostedt@goodmis.org>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34033 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014AbaI3KQ5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2014 06:16:57 -0400
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140930090222.GA8470@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <f2e8cf8df433a197daa62cbaf124c900c708edc7.1412031505.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Ken-ichirou MATSUZAWA <chamaken@gmail.com> wrote:
-> nssocket forks and change netns pre-establishd by ip(8), serves its
-> socket descriptor to parent via nssocket().  Since this socket is
-> isolated, it can be used to create regression tests for conntrack.
+On Mon 29-09-14 16:08:22, Joe Perches wrote:
+> Since adding a new function to seq_file (seq_is_full)
+> there isn't any value for functions called from seq_show to
+> return anything.   Remove the int returns of the various
+> print_tuple/<foo>_print_tuple functions.
 > 
-> This also adds a conntrack event testcase as a first user.
-> A ct_echo_event.sh script is provided to build and run this test
-> automatically:
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  include/net/netfilter/nf_conntrack_core.h    |  2 +-
+>  include/net/netfilter/nf_conntrack_l3proto.h |  4 ++--
+>  include/net/netfilter/nf_conntrack_l4proto.h |  4 ++--
+>  net/netfilter/nf_conntrack_l3proto_generic.c |  5 ++---
+>  net/netfilter/nf_conntrack_proto_dccp.c      | 10 +++++-----
+>  net/netfilter/nf_conntrack_proto_generic.c   |  5 ++---
+>  net/netfilter/nf_conntrack_proto_gre.c       | 10 +++++-----
+>  net/netfilter/nf_conntrack_proto_sctp.c      | 10 +++++-----
+>  net/netfilter/nf_conntrack_proto_tcp.c       | 10 +++++-----
+>  net/netfilter/nf_conntrack_proto_udp.c       | 10 +++++-----
+>  net/netfilter/nf_conntrack_proto_udplite.c   | 10 +++++-----
+>  net/netfilter/nf_conntrack_standalone.c      | 15 +++++++--------
+>  12 files changed, 46 insertions(+), 49 deletions(-)
 > 
->   # ./qa/ct_echo_event.sh
->   make: Entering directory...
->   ...debug output like:
->       [NEW] tcp      6 2 SYN_SENT src=10.255.255.249 dst=10.255.255.250 sport...
->    [UPDATE] tcp      6 2 SYN_RECV src=10.255.255.249 dst=10.255.255.250 sport...
->   ...
->   [DESTROY] icmp     1 src=10.255.255.249 dst=10.255.255.250 type=8 code=0...
->   # echo $?
->   0
+> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+> index cc0c188..f2f0fa3 100644
+> --- a/include/net/netfilter/nf_conntrack_core.h
+> +++ b/include/net/netfilter/nf_conntrack_core.h
+> @@ -72,7 +72,7 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+>  	return ret;
+>  }
+>  
+> -int
+> +void
+>  print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+>              const struct nf_conntrack_l3proto *l3proto,
+>              const struct nf_conntrack_l4proto *proto);
+> diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+> index adc1fa3..cdc920b 100644
+> --- a/include/net/netfilter/nf_conntrack_l3proto.h
+> +++ b/include/net/netfilter/nf_conntrack_l3proto.h
+> @@ -38,8 +38,8 @@ struct nf_conntrack_l3proto {
+>  			     const struct nf_conntrack_tuple *orig);
+>  
+>  	/* Print out the per-protocol part of the tuple. */
+> -	int (*print_tuple)(struct seq_file *s,
+> -			   const struct nf_conntrack_tuple *);
+> +	void (*print_tuple)(struct seq_file *s,
+> +			    const struct nf_conntrack_tuple *);
+>  
+>  	/*
+>  	 * Called before tracking. 
+> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+> index 4c8d573..fead8ee 100644
+> --- a/include/net/netfilter/nf_conntrack_l4proto.h
+> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+> @@ -56,8 +56,8 @@ struct nf_conntrack_l4proto {
+>  		     u_int8_t pf, unsigned int hooknum);
+>  
+>  	/* Print out the per-protocol part of the tuple. Return like seq_* */
+> -	int (*print_tuple)(struct seq_file *s,
+> -			   const struct nf_conntrack_tuple *);
+> +	void (*print_tuple)(struct seq_file *s,
+> +			    const struct nf_conntrack_tuple *);
+>  
+>  	/* Print out the private part of the conntrack. */
+>  	int (*print_conntrack)(struct seq_file *s, struct nf_conn *);
+> diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
+> index e7eb807..cf9ace7 100644
+> --- a/net/netfilter/nf_conntrack_l3proto_generic.c
+> +++ b/net/netfilter/nf_conntrack_l3proto_generic.c
+> @@ -49,10 +49,9 @@ static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  	return true;
+>  }
+>  
+> -static int generic_print_tuple(struct seq_file *s,
+> -			    const struct nf_conntrack_tuple *tuple)
+> +static void generic_print_tuple(struct seq_file *s,
+> +				const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return 0;
+>  }
+>  
+>  static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+> diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+> index cb372f9..40d96f9 100644
+> --- a/net/netfilter/nf_conntrack_proto_dccp.c
+> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
+> @@ -618,12 +618,12 @@ out_invalid:
+>  	return -NF_ACCEPT;
+>  }
+>  
+> -static int dccp_print_tuple(struct seq_file *s,
+> -			    const struct nf_conntrack_tuple *tuple)
+> +static void dccp_print_tuple(struct seq_file *s,
+> +			     const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "sport=%hu dport=%hu ",
+> -			  ntohs(tuple->src.u.dccp.port),
+> -			  ntohs(tuple->dst.u.dccp.port));
+> +	seq_printf(s, "sport=%hu dport=%hu ",
+> +		   ntohs(tuple->src.u.dccp.port),
+> +		   ntohs(tuple->dst.u.dccp.port));
+>  }
+>  
+>  static int dccp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+> diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+> index d25f293..0a3ded1 100644
+> --- a/net/netfilter/nf_conntrack_proto_generic.c
+> +++ b/net/netfilter/nf_conntrack_proto_generic.c
+> @@ -39,10 +39,9 @@ static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  }
+>  
+>  /* Print out the per-protocol part of the tuple. */
+> -static int generic_print_tuple(struct seq_file *s,
+> -			       const struct nf_conntrack_tuple *tuple)
+> +static void generic_print_tuple(struct seq_file *s,
+> +				const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return 0;
+>  }
+>  
+>  static unsigned int *generic_get_timeouts(struct net *net)
+> diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+> index d566573..cd85336 100644
+> --- a/net/netfilter/nf_conntrack_proto_gre.c
+> +++ b/net/netfilter/nf_conntrack_proto_gre.c
+> @@ -226,12 +226,12 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
+>  }
+>  
+>  /* print gre part of tuple */
+> -static int gre_print_tuple(struct seq_file *s,
+> -			   const struct nf_conntrack_tuple *tuple)
+> +static void gre_print_tuple(struct seq_file *s,
+> +			    const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "srckey=0x%x dstkey=0x%x ",
+> -			  ntohs(tuple->src.u.gre.key),
+> -			  ntohs(tuple->dst.u.gre.key));
+> +	seq_printf(s, "srckey=0x%x dstkey=0x%x ",
+> +		   ntohs(tuple->src.u.gre.key),
+> +		   ntohs(tuple->dst.u.gre.key));
+>  }
+>  
+>  /* print private data for conntrack */
+> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+> index 1314d33..1b1d0e9 100644
+> --- a/net/netfilter/nf_conntrack_proto_sctp.c
+> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
+> @@ -166,12 +166,12 @@ static bool sctp_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  }
+>  
+>  /* Print out the per-protocol part of the tuple. */
+> -static int sctp_print_tuple(struct seq_file *s,
+> -			    const struct nf_conntrack_tuple *tuple)
+> +static void sctp_print_tuple(struct seq_file *s,
+> +			     const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "sport=%hu dport=%hu ",
+> -			  ntohs(tuple->src.u.sctp.port),
+> -			  ntohs(tuple->dst.u.sctp.port));
+> +	seq_printf(s, "sport=%hu dport=%hu ",
+> +		   ntohs(tuple->src.u.sctp.port),
+> +		   ntohs(tuple->dst.u.sctp.port));
+>  }
+>  
+>  /* Print out the private part of the conntrack. */
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 44d1ea3..c2693e78 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -302,12 +302,12 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  }
+>  
+>  /* Print out the per-protocol part of the tuple. */
+> -static int tcp_print_tuple(struct seq_file *s,
+> -			   const struct nf_conntrack_tuple *tuple)
+> +static void tcp_print_tuple(struct seq_file *s,
+> +			    const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "sport=%hu dport=%hu ",
+> -			  ntohs(tuple->src.u.tcp.port),
+> -			  ntohs(tuple->dst.u.tcp.port));
+> +	seq_printf(s, "sport=%hu dport=%hu ",
+> +		   ntohs(tuple->src.u.tcp.port),
+> +		   ntohs(tuple->dst.u.tcp.port));
+>  }
+>  
+>  /* Print out the private part of the conntrack. */
+> diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+> index 9d7721c..6957281 100644
+> --- a/net/netfilter/nf_conntrack_proto_udp.c
+> +++ b/net/netfilter/nf_conntrack_proto_udp.c
+> @@ -63,12 +63,12 @@ static bool udp_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  }
+>  
+>  /* Print out the per-protocol part of the tuple. */
+> -static int udp_print_tuple(struct seq_file *s,
+> -			   const struct nf_conntrack_tuple *tuple)
+> +static void udp_print_tuple(struct seq_file *s,
+> +			    const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "sport=%hu dport=%hu ",
+> -			  ntohs(tuple->src.u.udp.port),
+> -			  ntohs(tuple->dst.u.udp.port));
+> +	seq_printf(s, "sport=%hu dport=%hu ",
+> +		   ntohs(tuple->src.u.udp.port),
+> +		   ntohs(tuple->dst.u.udp.port));
+>  }
+>  
+>  static unsigned int *udp_get_timeouts(struct net *net)
+> diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+> index 2750e6c..c5903d1 100644
+> --- a/net/netfilter/nf_conntrack_proto_udplite.c
+> +++ b/net/netfilter/nf_conntrack_proto_udplite.c
+> @@ -71,12 +71,12 @@ static bool udplite_invert_tuple(struct nf_conntrack_tuple *tuple,
+>  }
+>  
+>  /* Print out the per-protocol part of the tuple. */
+> -static int udplite_print_tuple(struct seq_file *s,
+> -			       const struct nf_conntrack_tuple *tuple)
+> +static void udplite_print_tuple(struct seq_file *s,
+> +				const struct nf_conntrack_tuple *tuple)
+>  {
+> -	return seq_printf(s, "sport=%hu dport=%hu ",
+> -			  ntohs(tuple->src.u.udp.port),
+> -			  ntohs(tuple->dst.u.udp.port));
+> +	seq_printf(s, "sport=%hu dport=%hu ",
+> +		   ntohs(tuple->src.u.udp.port),
+> +		   ntohs(tuple->dst.u.udp.port));
+>  }
+>  
+>  static unsigned int *udplite_get_timeouts(struct net *net)
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index cf65a1e..3c2ce5c 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -36,12 +36,13 @@
+>  MODULE_LICENSE("GPL");
+>  
+>  #ifdef CONFIG_NF_CONNTRACK_PROCFS
+> -int
+> +void
+>  print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+>              const struct nf_conntrack_l3proto *l3proto,
+>              const struct nf_conntrack_l4proto *l4proto)
+>  {
+> -	return l3proto->print_tuple(s, tuple) || l4proto->print_tuple(s, tuple);
+> +	l3proto->print_tuple(s, tuple);
+> +	l4proto->print_tuple(s, tuple);
+>  }
+>  EXPORT_SYMBOL_GPL(print_tuple);
+>  
+> @@ -202,9 +203,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
+>  	if (l4proto->print_conntrack && l4proto->print_conntrack(s, ct))
+>  		goto release;
+>  
+> -	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
+> -			l3proto, l4proto))
+> -		goto release;
+> +	print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
+> +		    l3proto, l4proto);
 
-make: Entering directory `git/netfilter.org/libnetfilter_conntrack/qa'
-  CC       ct_echo_event.o
-ct_echo_event.c:231:12: warning: 'cb_tcp_last_ack' defined but not used [-Wunused-function]
-ct_echo_event.c:241:12: warning: 'cb_tcp_time_wait' defined but not used [-Wunused-function]
-ct_echo_event.c:251:12: warning: 'cb_tcp_after_finwait' defined but not used [-Wunused-function]
-  CCLD     ct_echo_event
-make: Leaving directory `git/netfilter.org/libnetfilter_conntrack/qa'
-modprobe: FATAL: Module nfnetlink_cttimeout not found.
-(UNKNOWN) [10.255.255.250] 7 (echo) : Connection refused
-    [NEW] tcp      6 2 SYN_SENT src=10.255.255.249 dst=10.255.255.250 sport=55576 dport=7 [UNREPLIED] src=10.255.255.250 dst=10.255.255.249 sport=7 dport=55576
-[DESTROY] tcp      6 src=10.255.255.249 dst=10.255.255.250 sport=55576 dport=7 [UNREPLIED] src=10.255.255.250 dst=10.255.255.249 sport=7 dport=55576
-ct_echo_event: ct_echo_event.c:95: author_update: Assertion `(nlh->nlmsg_type & 0xFF) == IPCTNL_MSG_CT_NEW' failed.
-qa/ct_echo_event.sh: line 56:  2182 Aborted                 ${dname}/ct_echo_event $NETNS $PRE_FIFO $POST_FIFO
-qa/ct_echo_event.sh: line 62: qa_post_fifo: No such file or directory
-qa/ct_echo_event.sh: line 65: qa_pre_fifo: No such file or directory
-qa/ct_echo_event.sh: line 67: qa_post_fifo: No such file or directory
-qa/ct_echo_event.sh: line 70: qa_pre_fifo: No such file or directory
-qa/ct_echo_event.sh: line 72: qa_post_fifo: No such file or directory
-Killed
+To be precise, we should add:
 
-Seems like this depends on inetd to provide tcp/udp echo services.
-Thats fine, I don't have any objections.
+	if (seq_overflow(s))
+		goto release;
+  
+>  	if (seq_print_acct(s, ct, IP_CT_DIR_ORIGINAL))
+>  		goto release;
+> @@ -213,9 +213,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
+>  		if (seq_printf(s, "[UNREPLIED] "))
+>  			goto release;
+>  
+> -	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+> -			l3proto, l4proto))
+> -		goto release;
+> +	print_tuple(s, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+> +		    l3proto, l4proto);
 
-The ICMP test passes when I remove tcp/udp test.
+same here
 
-Could you please either remove the unused functions or provide some
-comment in the commit message why these helpers are there, but currently
-unused? (I see you commented out the calls).
+>  	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
+>  		goto release;
+> -- 
+> 1.8.1.2.459.gbcd45b4.dirty
+> 
 
-[ the modprobe error is because I don't have cttimeout but it does appear to have no immediate
- ill effect ]
-
-Thanks!
+Best Regards,
+Petr
