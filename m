@@ -1,68 +1,82 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] mnl: use nft_batch_begin and nft_batch_end from libnftnl
-Date: Tue, 30 Sep 2014 19:34:37 +0200
-Message-ID: <1412098477-8811-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+Subject: [PATCH iptables-compat 2/2] iptables-compat: fix use after free in the batch send path
+Date: Tue, 30 Sep 2014 19:35:46 +0200
+Message-ID: <1412098546-8952-2-git-send-email-pablo@netfilter.org>
+References: <1412098546-8952-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53154 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53306 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751636AbaI3Rdc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2014 13:33:32 -0400
+	id S1751636AbaI3Ren (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Sep 2014 13:34:43 -0400
+In-Reply-To: <1412098546-8952-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the existing functions in libnftnl to begin and end a batch.
+Release the batch pages once they have been sent via sendmsg().
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/mnl.c |   25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ iptables/nft.c |   27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index b01e91c..bc8b7ea 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -192,33 +192,20 @@ static void nft_batch_continue(void)
- 		nft_batch_page_add();
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 8c91e99..a4cea22 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -142,6 +142,18 @@ static void mnl_nft_set_sndbuffer(const struct mnl_socket *nl)
+ 	nlbuffsiz = newbuffsiz;
  }
  
--static uint32_t mnl_batch_put(int type)
-+uint32_t mnl_batch_begin(void)
++static void mnl_nft_batch_reset(void)
++{
++	struct batch_page *batch_page, *next;
++
++	list_for_each_entry_safe(batch_page, next, &batch_page_list, head) {
++		list_del(&batch_page->head);
++		free(batch_page->batch);
++		free(batch_page);
++		batch_num_pages--;
++	}
++}
++
+ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
  {
--	struct nlmsghdr *nlh;
--	struct nfgenmsg *nfg;
--
--	nlh = mnl_nlmsg_put_header(nft_nlmsg_batch_current());
--	nlh->nlmsg_type = type;
--	nlh->nlmsg_flags = NLM_F_REQUEST;
--	nlh->nlmsg_seq = mnl_seqnum_alloc();
-+	uint32_t seq = mnl_seqnum_alloc();
+ 	static const struct sockaddr_nl snl = {
+@@ -154,12 +166,12 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
+ 		.msg_iov	= iov,
+ 		.msg_iovlen	= batch_num_pages,
+ 	};
+-	struct batch_page *batch_page, *next;
+-	int i = 0;
++	struct batch_page *batch_page;
++	int i = 0, ret;
  
--	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
--	nfg->nfgen_family = AF_INET;
--	nfg->version = NFNETLINK_V0;
--	nfg->res_id = NFNL_SUBSYS_NFTABLES;
-+	nft_batch_begin(nft_nlmsg_batch_current(), seq);
- 	nft_batch_continue();
+ 	mnl_nft_set_sndbuffer(nl);
  
--	return nlh->nlmsg_seq;
--}
--
--uint32_t mnl_batch_begin(void)
--{
--	return mnl_batch_put(NFNL_MSG_BATCH_BEGIN);
-+	return seq;
+-	list_for_each_entry_safe(batch_page, next, &batch_page_list, head) {
++	list_for_each_entry(batch_page, &batch_page_list, head) {
+ 		iov[i].iov_base = mnl_nlmsg_batch_head(batch_page->batch);
+ 		iov[i].iov_len = mnl_nlmsg_batch_size(batch_page->batch);
+ 		i++;
+@@ -169,13 +181,12 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
+ 				  mnl_nlmsg_batch_size(batch_page->batch),
+ 				  sizeof(struct nfgenmsg));
+ #endif
+-		list_del(&batch_page->head);
+-		free(batch_page->batch);
+-		free(batch_page);
+-		batch_num_pages--;
+ 	}
+ 
+-	return sendmsg(mnl_socket_get_fd(nl), &msg, 0);
++	ret = sendmsg(mnl_socket_get_fd(nl), &msg, 0);
++	mnl_nft_batch_reset();
++
++	return ret;
  }
  
- void mnl_batch_end(void)
- {
--	mnl_batch_put(NFNL_MSG_BATCH_END);
-+	nft_batch_end(nft_nlmsg_batch_current(), mnl_seqnum_alloc());
-+	nft_batch_continue();
- }
- 
- bool mnl_batch_ready(void)
+ static int cb_err(const struct nlmsghdr *nlh, void *data)
 -- 
 1.7.10.4
 
