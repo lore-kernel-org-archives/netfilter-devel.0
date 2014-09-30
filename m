@@ -1,52 +1,68 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [PATCH 32/34] netfilter: bridge: move br_netfilter out of the
- core
-Date: Tue, 30 Sep 2014 08:58:02 -0700
-Message-ID: <20140930085802.15460008@urahara>
-References: <1411994363-8451-1-git-send-email-pablo@netfilter.org>
-	<1411994363-8451-33-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1411994363-8451-33-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] mnl: use nft_batch_begin and nft_batch_end from libnftnl
+Date: Tue, 30 Sep 2014 19:34:37 +0200
+Message-ID: <1412098477-8811-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:53154 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751636AbaI3Rdc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Sep 2014 13:33:32 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 29 Sep 2014 14:39:21 +0200
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Use the existing functions in libnftnl to begin and end a batch.
 
-> Jesper reported that br_netfilter always registers the hooks since
-> this is part of the bridge core. This harms performance for people that
-> don't need this.
-> 
-> This patch modularizes br_netfilter so it can be rmmod'ed, thus,
-> the hooks can be unregistered. I think the bridge netfilter should have
-> been a separated module since the beginning, Patrick agreed on that.
-> 
-> Note that this is breaking compatibility for users that expect that
-> bridge netfilter is going to be available after explicitly 'modprobe
-> bridge' or via automatic load through brctl.
-> 
-> However, the damage can be easily undone by modprobing br_netfilter.
-> The bridge core also spots a message to provide a clue to people that
-> didn't notice that this has been deprecated.
-> 
-> On top of that, the plan is that nftables will not rely on this software
-> layer, but integrate the connection tracking into the bridge layer to
-> enable stateful filtering and NAT, which is was bridge netfilter users
-> seem to require.
-> 
-> This patch still keeps the fake_dst_ops in the bridge core, since this
-> is required by when the bridge port is initialized. So we can safely
-> modprobe/rmmod br_netfilter anytime.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/mnl.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-I think this is a good idea but you can't break users.
+diff --git a/src/mnl.c b/src/mnl.c
+index b01e91c..bc8b7ea 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -192,33 +192,20 @@ static void nft_batch_continue(void)
+ 		nft_batch_page_add();
+ }
+ 
+-static uint32_t mnl_batch_put(int type)
++uint32_t mnl_batch_begin(void)
+ {
+-	struct nlmsghdr *nlh;
+-	struct nfgenmsg *nfg;
+-
+-	nlh = mnl_nlmsg_put_header(nft_nlmsg_batch_current());
+-	nlh->nlmsg_type = type;
+-	nlh->nlmsg_flags = NLM_F_REQUEST;
+-	nlh->nlmsg_seq = mnl_seqnum_alloc();
++	uint32_t seq = mnl_seqnum_alloc();
+ 
+-	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+-	nfg->nfgen_family = AF_INET;
+-	nfg->version = NFNETLINK_V0;
+-	nfg->res_id = NFNL_SUBSYS_NFTABLES;
++	nft_batch_begin(nft_nlmsg_batch_current(), seq);
+ 	nft_batch_continue();
+ 
+-	return nlh->nlmsg_seq;
+-}
+-
+-uint32_t mnl_batch_begin(void)
+-{
+-	return mnl_batch_put(NFNL_MSG_BATCH_BEGIN);
++	return seq;
+ }
+ 
+ void mnl_batch_end(void)
+ {
+-	mnl_batch_put(NFNL_MSG_BATCH_END);
++	nft_batch_end(nft_nlmsg_batch_current(), mnl_seqnum_alloc());
++	nft_batch_continue();
+ }
+ 
+ bool mnl_batch_ready(void)
+-- 
+1.7.10.4
 
-We need to figure out a way to autoload br_netfilter module on first use.
