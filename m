@@ -1,39 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/4] netfilter: nf_tables: wait for call_rcu completion on module removal
-Date: Thu,  2 Oct 2014 11:49:52 +0200
-Message-ID: <1412243394-4596-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/4] netfilter: nf_tables: allow to filter from prerouting and postrouting
+Date: Thu,  2 Oct 2014 11:49:54 +0200
+Message-ID: <1412243394-4596-4-git-send-email-pablo@netfilter.org>
 References: <1412243394-4596-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53146 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53159 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075AbaJBJsq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Oct 2014 05:48:46 -0400
+	id S1752075AbaJBJss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Oct 2014 05:48:48 -0400
 In-Reply-To: <1412243394-4596-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Make sure the objects have been released before the nf_tables modules
-is removed.
+This allows us to emulate the NAT table in ebtables, which is actually
+a plain filter chain that hooks at prerouting, output and postrouting.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/bridge/netfilter/nf_tables_bridge.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 19e79f0..556a0df 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4163,6 +4163,7 @@ static void __exit nf_tables_module_exit(void)
- {
- 	unregister_pernet_subsys(&nf_tables_net_ops);
- 	nfnetlink_subsys_unregister(&nf_tables_subsys);
-+	rcu_barrier();
- 	nf_tables_core_module_exit();
- 	kfree(info);
- }
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 5bcc0d8..da17a5e 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -34,9 +34,11 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.nops		= 1,
+ 	.hooks		= {
++		[NF_BR_PRE_ROUTING]	= nft_do_chain_bridge,
+ 		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
+ 		[NF_BR_FORWARD]		= nft_do_chain_bridge,
+ 		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
++		[NF_BR_POST_ROUTING]	= nft_do_chain_bridge,
+ 	},
+ };
+ 
 -- 
 1.7.10.4
 
