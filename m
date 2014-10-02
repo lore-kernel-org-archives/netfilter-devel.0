@@ -1,42 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: explicit module dependency between br_netfilter and physdev
-Date: Thu, 02 Oct 2014 13:16:03 +0200
-Message-ID: <F9B207C3-A2C6-484C-9EA8-C412CD3066C6@trash.net>
-References: <1412242912-3622-1-git-send-email-pablo@netfilter.org> <20141002105103.GF1803@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH 1/3] expr: masq: optional printing of flags attr in
+ snprintf_default
+Date: Thu, 02 Oct 2014 13:58:36 +0200
+Message-ID: <20141002115836.10972.3637.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, stephen@networkplumber.org
-To: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, anayrey@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37265 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705AbaJBLQJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Oct 2014 07:16:09 -0400
-In-Reply-To: <20141002105103.GF1803@breakpoint.cc>
+Received: from smtp3.cica.es ([150.214.5.190]:59076 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751176AbaJBL6q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Oct 2014 07:58:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 2. Oktober 2014 12:51:03 MESZ, schrieb Florian Westphal <fw@strlen.de>:
->Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> You can use physdev to match the physical interface enslaved to the
->> bridge device. This information is stored in skb->nf_bridge and it is
->> set up by br_netfilter. So, this is only available when iptables is
->> used from the bridge netfilter path.
->> 
->> Since 34666d4 ("netfilter: bridge: move br_netfilter out of the
->core"),
->> the br_netfilter code is modular. To reduce the impact of this
->change,
->> we can autoload the br_netfilter if the physdev match is used since
->> we assume that the users need br_netfilter in place.
->
->Good idea.  I'd suggest to add a dummy dependency and have userspace
->take
->care of this -- just like we do for nf_defrag.
+The flags attribute is optional. Thus we should print only if it
+was originally set.
 
-Yes, the symbol dependency is enough, we don't need any manual module refcounting.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ 0 files changed
+
+diff --git a/src/expr/masq.c b/src/expr/masq.c
+index 6a1c609..c8a6a8d 100644
+--- a/src/expr/masq.c
++++ b/src/expr/masq.c
+@@ -169,8 +169,10 @@ static int nft_rule_expr_masq_snprintf_default(char *buf, size_t len,
+ {
+ 	struct nft_expr_masq *masq = nft_expr_data(e);
+ 
+-	return snprintf(buf, len, " flags %u ",
+-			 masq->flags);
++	if (e->flags & (1 << NFT_EXPR_MASQ_FLAGS))
++		return snprintf(buf, len, "flags %u", masq->flags);
++
++	return 0;
+ }
+ 
+ static int nft_rule_expr_masq_snprintf(char *buf, size_t len, uint32_t type,
 
