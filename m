@@ -1,56 +1,87 @@
-From: Anuradha Ratnaweera <anuradha@taprobane.org>
-Subject: Migrating an established TCP connection to a different port
-Date: Thu, 2 Oct 2014 18:00:30 +0530
-Message-ID: <CAOjeTett6rWmVVLy_OqU55YLsJ8BeKcMtzdCYE+PZ3atiEiyCA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2] netfilter: explicit module dependency between br_netfilter and physdev
+Date: Thu,  2 Oct 2014 14:32:27 +0200
+Message-ID: <1412253147-10025-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de, stephen@networkplumber.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:39242 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbaJBMbL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Oct 2014 08:31:11 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hi2so1351619wib.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Oct 2014 05:31:10 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:56583 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751283AbaJBMbR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Oct 2014 08:31:17 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello there,
+You can use physdev to match the physical interface enslaved to the
+bridge device. This information is stored in skb->nf_bridge and it is
+set up by br_netfilter. So, this is only available when iptables is
+used from the bridge netfilter path.
 
-I have partly written a netfilter module and the relevant userspace
-module to migrate a TCP connection to a different port, or not,
-depending on the contents of the first application level packet.  I
-want this to be totally transparent to the client, and the two servers
-involved.
+Since 34666d4 ("netfilter: bridge: move br_netfilter out of the core"),
+the br_netfilter code is modular. To reduce the impact of this change,
+we can autoload the br_netfilter if the physdev match is used since
+we assume that the users need br_netfilter in place.
 
-The module borrows from the REDIRECT target code for both user and
-kernel space, and I am currently going through similar projects such
-as sockmi.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Changes in v2: Remove module refcount, we don't need this. Suggested by Florian
+and Patrick.
 
-The logic of the kernel space is as follows:
-- It is activated at the the "mangle" table during pre-routing.
-- It lets the TCP handshake happen (should we save something here in
-conntrack for latter replay?).
-- It inspects the first application level packet and decides whether
-to migrate the connection or not.
-- If the decision is to migrate to a different port:
-  - "Replay" the TCP handshake with the new port.
-  - Close the connection with the old port.
-  - Setup NAT so future packets also will go to the new port.
+ include/net/netfilter/br_netfilter.h |    6 ++++++
+ net/bridge/br_netfilter.c            |    5 +++++
+ net/netfilter/xt_physdev.c           |    3 +++
+ 3 files changed, 14 insertions(+)
+ create mode 100644 include/net/netfilter/br_netfilter.h
 
-What is the best way to do that "replay" of the TCP handshake?  Should
-I save the skb of the first packet into connection tracking, so I can
-retrieve it and send to the redirected port?  And what's the correct
-method to create and inject new packets for the TCP handshake?
-
-As we do the migration at the *first* application level packet,
-application level support is not necessary, which I hope would
-simplify matters when compared to a more general purpose setup such as
-in sockmi.
-
-Thanks in advance!
-
-        Anuradha
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+new file mode 100644
+index 0000000..2aa6048
+--- /dev/null
++++ b/include/net/netfilter/br_netfilter.h
+@@ -0,0 +1,6 @@
++#ifndef _BR_NETFILTER_H_
++#define _BR_NETFILTER_H_
++
++void br_netfilter_enable(void);
++
++#endif /* _BR_NETFILTER_H_ */
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 97e4393..fa1270c 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -856,6 +856,11 @@ static unsigned int ip_sabotage_in(const struct nf_hook_ops *ops,
+ 	return NF_ACCEPT;
+ }
+ 
++void br_netfilter_enable(void)
++{
++}
++EXPORT_SYMBOL_GPL(br_netfilter_enable);
++
+ /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
+  * br_dev_queue_push_xmit is called afterwards */
+ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index d7ca16b..f440f57 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -13,6 +13,7 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/netfilter/xt_physdev.h>
+ #include <linux/netfilter/x_tables.h>
++#include <net/netfilter/br_netfilter.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+@@ -87,6 +88,8 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+ 
++	br_netfilter_enable();
++
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+ 		return -EINVAL;
 -- 
-https://www.sayura.net/anuradha/
+1.7.10.4
+
