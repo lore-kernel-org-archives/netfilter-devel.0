@@ -1,80 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/2] src: add masquerade support
-Date: Fri, 3 Oct 2014 15:10:25 +0200
-Message-ID: <20141003131025.GA31587@salvia>
-References: <20141003124641.9409.9789.stgit@nfdev.cica.es>
- <20141003124646.9409.50292.stgit@nfdev.cica.es>
+Subject: Re: [nf-next PATCH] netfilter: nft_masq: fix register/unregister
+ notifier on module _init and _exit
+Date: Fri, 3 Oct 2014 15:16:18 +0200
+Message-ID: <20141003131618.GA3353@salvia>
+References: <20141003121335.2864.5519.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34965 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36091 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751462AbaJCNJW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Oct 2014 09:09:22 -0400
+	id S1752022AbaJCNPB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Oct 2014 09:15:01 -0400
 Content-Disposition: inline
-In-Reply-To: <20141003124646.9409.50292.stgit@nfdev.cica.es>
+In-Reply-To: <20141003121335.2864.5519.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 03, 2014 at 02:46:46PM +0200, Arturo Borrero Gonzalez wrote:
-> +
->  struct queue_stmt {
->  	struct expr		*queue;
->  	uint16_t		flags;
-> @@ -100,6 +106,7 @@ extern struct stmt *ct_stmt_alloc(const struct location *loc,
->   * @STMT_LOG:		log statement
->   * @STMT_REJECT:	REJECT statement
->   * @STMT_NAT:		NAT statement
-> + * @STMT_NAT:		masquerade statement
-       ^
-      typo
+On Fri, Oct 03, 2014 at 02:13:36PM +0200, Arturo Borrero Gonzalez wrote:
+> Let's mimic the behaviour of ipt_MASQUERADE and ip6t_MASQUERADE and
+> register/unregister the masquerade notifiers on module _init and _exit.
+> 
+> The configuration previous to this patch may lead to spurious kernel crashes.
 
->   * @STMT_QUEUE:		QUEUE statement
->   * @STMT_CT:		conntrack statement
->   */
-> @@ -113,6 +120,7 @@ enum stmt_types {
->  	STMT_LOG,
->  	STMT_REJECT,
->  	STMT_NAT,
-> +	STMT_MASQ,
->  	STMT_QUEUE,
->  	STMT_CT,
->  };
-> @@ -160,6 +168,7 @@ struct stmt {
->  		struct limit_stmt	limit;
->  		struct reject_stmt	reject;
->  		struct nat_stmt		nat;
-> +		struct masq_stmt	masq;
->  		struct queue_stmt	queue;
->  		struct ct_stmt		ct;
->  	};
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 284ee72..0afbe8d 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -1171,6 +1171,21 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
->  	return 0;
->  }
+Applied, thanks Arturo.
+
+I have slightly rewritten the patch title and description.
+
+And another comment below:
+
+> @@ -73,12 +52,19 @@ static struct nft_expr_type nft_masq_ipv4_type __read_mostly = {
 >  
-> +static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
-> +{
-> +	struct proto_ctx *pctx = &ctx->pctx;
+>  static int __init nft_masq_ipv4_module_init(void)
+>  {
+> -	return nft_register_expr(&nft_masq_ipv4_type);
+> +	int ret;
 > +
-> +	if (pctx && (pctx->family == AF_INET))
-> +		expr_set_context(&ctx->ectx, &ipaddr_type,
-> +				4 * BITS_PER_BYTE);
-> +	else
-> +		expr_set_context(&ctx->ectx, &ip6addr_type,
-> +				 16 * BITS_PER_BYTE);
+> +	ret = nft_register_expr(&nft_masq_ipv4_type);
+> +	if (ret == 0)
+> +		nf_nat_masquerade_ipv4_register_notifier();
 
-Could you use a switch to check pctx->family?
+The convention is to check for errors, ie.
 
-Spot an error for unsupported family, so we don't crash badly if
-someone tries to use this from a different context.
+        ret = foo();
+        if (ret < 0)
+                return ret;
 
-> +	stmt->flags |= STMT_F_TERMINAL;
-> +	return 0;
-> +}
-> +
+        bar();
+
+So the branch path returns the error or goes to error handling part to
+undo things that we couldn't finish.
