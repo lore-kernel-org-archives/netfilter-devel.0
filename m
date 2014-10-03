@@ -1,38 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/9] netfilter: nf_tables: allow to filter from prerouting and postrouting
-Date: Fri,  3 Oct 2014 19:20:21 +0200
-Message-ID: <1412356824-6362-7-git-send-email-pablo@netfilter.org>
-References: <1412356824-6362-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 1/2] ruleset: add the set_id to the parsed sets
+Date: Fri,  3 Oct 2014 20:02:39 +0200
+Message-ID: <1412359360-30695-1-git-send-email-alvaroneay@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1412356824-6362-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:38183 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754501AbaJCSC1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Oct 2014 14:02:27 -0400
+Received: by mail-wg0-f51.google.com with SMTP id b13so2099464wgh.34
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Oct 2014 11:02:26 -0700 (PDT)
+Received: from localhost.localdomain (152.88.221.87.dynamic.jazztel.es. [87.221.88.152])
+        by mx.google.com with ESMTPSA id lf1sm8681623wjb.24.2014.10.03.11.02.25
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 03 Oct 2014 11:02:25 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows us to emulate the NAT table in ebtables, which is actually
-a plain filter chain that hooks at prerouting, output and postrouting.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- net/bridge/netfilter/nf_tables_bridge.c |    2 ++
- 1 file changed, 2 insertions(+)
+ src/ruleset.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 5bcc0d8..da17a5e 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -34,9 +34,11 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
- 	.owner		= THIS_MODULE,
- 	.nops		= 1,
- 	.hooks		= {
-+		[NF_BR_PRE_ROUTING]	= nft_do_chain_bridge,
- 		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
- 		[NF_BR_FORWARD]		= nft_do_chain_bridge,
- 		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
-+		[NF_BR_POST_ROUTING]	= nft_do_chain_bridge,
- 	},
- };
+diff --git a/src/ruleset.c b/src/ruleset.c
+index a19cbc1..8cc0c40 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -234,6 +234,7 @@ static int nft_ruleset_json_parse_sets(struct nft_ruleset *rs, json_t *array,
+ 				       struct nft_parse_err *err)
+ {
+ 	int i, len;
++	uint32_t set_id = 0;
+ 	json_t *node;
+ 	struct nft_set *s = NULL;
+ 	struct nft_set_list *list = nft_set_list_alloc();
+@@ -265,6 +266,7 @@ static int nft_ruleset_json_parse_sets(struct nft_ruleset *rs, json_t *array,
+ 			goto err;
+ 		}
+ 
++		nft_set_attr_set_u32(s, NFT_SET_ATTR_ID, set_id++);
+ 		nft_set_list_add_tail(s, list);
+ 	}
+ 
+@@ -457,6 +459,7 @@ static int
+ nft_ruleset_xml_parse_sets(struct nft_ruleset *rs, mxml_node_t *tree,
+ 			   struct nft_parse_err *err)
+ {
++	uint32_t set_id = 0;
+ 	mxml_node_t *node;
+ 	struct nft_set *s;
+ 	struct nft_set_list *set_list = nft_set_list_alloc();
+@@ -479,6 +482,7 @@ nft_ruleset_xml_parse_sets(struct nft_ruleset *rs, mxml_node_t *tree,
+ 			goto err_free;
+ 		}
+ 
++		nft_set_attr_set_u32(s, NFT_SET_ATTR_ID, set_id++);
+ 		nft_set_list_add_tail(s, set_list);
+ 	}
  
 -- 
 1.7.10.4
+
