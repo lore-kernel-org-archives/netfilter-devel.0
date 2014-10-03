@@ -1,298 +1,275 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 1/2] src: add nat persistent and random options
-Date: Fri, 03 Oct 2014 14:46:41 +0200
-Message-ID: <20141003124641.9409.9789.stgit@nfdev.cica.es>
+Subject: [nft PATCH 2/2] src: add masquerade support
+Date: Fri, 03 Oct 2014 14:46:46 +0200
+Message-ID: <20141003124646.9409.50292.stgit@nfdev.cica.es>
+References: <20141003124641.9409.9789.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60513 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:60520 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752004AbaJCMqu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Oct 2014 08:46:50 -0400
+	id S1752063AbaJCMqz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Oct 2014 08:46:55 -0400
+In-Reply-To: <20141003124641.9409.9789.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds more configuration options to the nat expression.
+This patch adds masquerade support for nft.
 
-The syntax is as follow:
- % nft add rule nat postrouting <snat|dnat> <nat_arguments> [flags]
+The syntax is:
 
-Flags are: random, persistent, random-fully.
+ % nft add rule nat postrouting masquerade [flags]
+
+Currently, flags are:
+ random, random-fully, persistent
+
 Example:
-
- % nft add rule nat postrouting dnat 1.1.1.1 random,persistent
-
-A requirement is to cache some [recent] copies of kernel headers.
+ % nft add rule nat postrouting masquerade random,persistent
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- .../linux/netfilter/nf_conntrack_tuple_common.h    |   32 ++++++++++++++-
- include/linux/netfilter/nf_nat.h                   |   42 ++++++++++++++++++++
- include/statement.h                                |    1 
- src/netlink_delinearize.c                          |    4 ++
- src/netlink_linearize.c                            |    3 +
- src/parser.y                                       |   21 ++++++++++
- src/scanner.l                                      |    3 +
- src/statement.c                                    |   26 ++++++++++++
- 8 files changed, 130 insertions(+), 2 deletions(-)
- create mode 100644 include/linux/netfilter/nf_nat.h
+ include/statement.h       |    9 +++++++++
+ src/evaluate.c            |   17 +++++++++++++++++
+ src/netlink_delinearize.c |   16 ++++++++++++++++
+ src/netlink_linearize.c   |   15 +++++++++++++++
+ src/parser.y              |   18 ++++++++++++++++--
+ src/scanner.l             |    1 +
+ src/statement.c           |   18 ++++++++++++++++++
+ 7 files changed, 92 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_tuple_common.h b/include/linux/netfilter/nf_conntrack_tuple_common.h
-index 8e145f0..8ab3118 100644
---- a/include/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -1,13 +1,41 @@
- #ifndef _NF_CONNTRACK_TUPLE_COMMON_H
- #define _NF_CONNTRACK_TUPLE_COMMON_H
- 
--enum ip_conntrack_dir
--{
-+#include <linux/types.h>
-+
-+enum ip_conntrack_dir {
- 	IP_CT_DIR_ORIGINAL,
- 	IP_CT_DIR_REPLY,
- 	IP_CT_DIR_MAX
- };
- 
-+/* The protocol-specific manipulable parts of the tuple: always in
-+ * network order
-+ */
-+union nf_conntrack_man_proto {
-+	/* Add other protocols here. */
-+	__be16 all;
-+
-+	struct {
-+		__be16 port;
-+	} tcp;
-+	struct {
-+		__be16 port;
-+	} udp;
-+	struct {
-+		__be16 id;
-+	} icmp;
-+	struct {
-+		__be16 port;
-+	} dccp;
-+	struct {
-+		__be16 port;
-+	} sctp;
-+	struct {
-+		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
-+	} gre;
-+};
-+
- #define CTINFO2DIR(ctinfo) ((ctinfo) >= IP_CT_IS_REPLY ? IP_CT_DIR_REPLY : IP_CT_DIR_ORIGINAL)
- 
- #endif /* _NF_CONNTRACK_TUPLE_COMMON_H */
-diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
-new file mode 100644
-index 0000000..0880781
---- /dev/null
-+++ b/include/linux/netfilter/nf_nat.h
-@@ -0,0 +1,42 @@
-+#ifndef _NETFILTER_NF_NAT_H
-+#define _NETFILTER_NF_NAT_H
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_conntrack_tuple_common.h>
-+
-+#define NF_NAT_RANGE_MAP_IPS			(1 << 0)
-+#define NF_NAT_RANGE_PROTO_SPECIFIED		(1 << 1)
-+#define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
-+#define NF_NAT_RANGE_PERSISTENT			(1 << 3)
-+#define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
-+
-+#define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
-+	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
-+
-+#define NF_NAT_RANGE_MASK					\
-+	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
-+	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
-+	 NF_NAT_RANGE_PROTO_RANDOM_FULLY)
-+
-+struct nf_nat_ipv4_range {
-+	unsigned int			flags;
-+	__be32				min_ip;
-+	__be32				max_ip;
-+	union nf_conntrack_man_proto	min;
-+	union nf_conntrack_man_proto	max;
-+};
-+
-+struct nf_nat_ipv4_multi_range_compat {
-+	unsigned int			rangesize;
-+	struct nf_nat_ipv4_range	range[1];
-+};
-+
-+struct nf_nat_range {
-+	unsigned int			flags;
-+	union nf_inet_addr		min_addr;
-+	union nf_inet_addr		max_addr;
-+	union nf_conntrack_man_proto	min_proto;
-+	union nf_conntrack_man_proto	max_proto;
-+};
-+
-+#endif /* _NETFILTER_NF_NAT_H */
 diff --git a/include/statement.h b/include/statement.h
-index e2f02b8..e04ab7d 100644
+index e04ab7d..8728ab6 100644
 --- a/include/statement.h
 +++ b/include/statement.h
-@@ -65,6 +65,7 @@ struct nat_stmt {
- 	enum nft_nat_types	type;
- 	struct expr		*addr;
- 	struct expr		*proto;
-+	uint32_t		flags;
- };
+@@ -70,6 +70,12 @@ struct nat_stmt {
  
  extern struct stmt *nat_stmt_alloc(const struct location *loc);
+ 
++struct masq_stmt {
++	uint32_t		flags;
++};
++
++extern struct stmt *masq_stmt_alloc(const struct location *loc);
++
+ struct queue_stmt {
+ 	struct expr		*queue;
+ 	uint16_t		flags;
+@@ -100,6 +106,7 @@ extern struct stmt *ct_stmt_alloc(const struct location *loc,
+  * @STMT_LOG:		log statement
+  * @STMT_REJECT:	REJECT statement
+  * @STMT_NAT:		NAT statement
++ * @STMT_NAT:		masquerade statement
+  * @STMT_QUEUE:		QUEUE statement
+  * @STMT_CT:		conntrack statement
+  */
+@@ -113,6 +120,7 @@ enum stmt_types {
+ 	STMT_LOG,
+ 	STMT_REJECT,
+ 	STMT_NAT,
++	STMT_MASQ,
+ 	STMT_QUEUE,
+ 	STMT_CT,
+ };
+@@ -160,6 +168,7 @@ struct stmt {
+ 		struct limit_stmt	limit;
+ 		struct reject_stmt	reject;
+ 		struct nat_stmt		nat;
++		struct masq_stmt	masq;
+ 		struct queue_stmt	queue;
+ 		struct ct_stmt		ct;
+ 	};
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 284ee72..0afbe8d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1171,6 +1171,21 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return 0;
+ }
+ 
++static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
++{
++	struct proto_ctx *pctx = &ctx->pctx;
++
++	if (pctx && (pctx->family == AF_INET))
++		expr_set_context(&ctx->ectx, &ipaddr_type,
++				4 * BITS_PER_BYTE);
++	else
++		expr_set_context(&ctx->ectx, &ip6addr_type,
++				 16 * BITS_PER_BYTE);
++
++	stmt->flags |= STMT_F_TERMINAL;
++	return 0;
++}
++
+ static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	expr_set_context(&ctx->ectx, stmt->ct.tmpl->dtype,
+@@ -1231,6 +1246,8 @@ static int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return stmt_evaluate_reject(ctx, stmt);
+ 	case STMT_NAT:
+ 		return stmt_evaluate_nat(ctx, stmt);
++	case STMT_MASQ:
++		return stmt_evaluate_masq(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return stmt_evaluate_queue(ctx, stmt);
+ 	case STMT_CT:
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 796b632..e2a13d3 100644
+index e2a13d3..7785ce4 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -491,6 +491,10 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+@@ -558,6 +558,21 @@ static void netlink_parse_nat(struct netlink_parse_ctx *ctx,
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
+ }
  
- 	family = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_FAMILY);
- 
-+	if (nft_rule_expr_is_set(nle, NFT_EXPR_NAT_FLAGS))
-+		stmt->nat.flags = nft_rule_expr_get_u32(nle,
-+							NFT_EXPR_NAT_FLAGS);
++static void netlink_parse_masq(struct netlink_parse_ctx *ctx,
++			       const struct location *loc,
++			       const struct nft_rule_expr *nle)
++{
++	struct stmt *stmt;
 +
- 	reg1 = nft_rule_expr_get_u32(nle, NFT_EXPR_NAT_REG_ADDR_MIN);
- 	if (reg1) {
- 		addr = netlink_get_register(ctx, loc, reg1);
++	stmt = masq_stmt_alloc(loc);
++
++	if (nft_rule_expr_is_set(nle, NFT_EXPR_MASQ_FLAGS))
++		stmt->masq.flags = nft_rule_expr_get_u32(nle,
++							 NFT_EXPR_MASQ_FLAGS);
++
++	list_add_tail(&stmt->list, &ctx->rule->stmts);
++}
++
+ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
+ 			      const struct location *loc,
+ 			      const struct nft_rule_expr *nle)
+@@ -604,6 +619,7 @@ static const struct {
+ 	{ .name = "limit",	.parse = netlink_parse_limit },
+ 	{ .name = "reject",	.parse = netlink_parse_reject },
+ 	{ .name = "nat",	.parse = netlink_parse_nat },
++	{ .name = "masq",	.parse = netlink_parse_masq },
+ 	{ .name = "queue",	.parse = netlink_parse_queue },
+ };
+ 
 diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index c46b6d4..36b56ff 100644
+index 36b56ff..c5aa0b4 100644
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
-@@ -631,6 +631,9 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 	family = nft_rule_attr_get_u32(ctx->nlr, NFT_RULE_ATTR_FAMILY);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_FAMILY, family);
+@@ -685,6 +685,19 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
  
-+	if (stmt->nat.flags != 0)
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_FLAGS, stmt->nat.flags);
++static void netlink_gen_masq_stmt(struct netlink_linearize_ctx *ctx,
++				  const struct stmt *stmt)
++{
++	struct nft_rule_expr *nle;
 +
- 	if (stmt->nat.addr) {
- 		amin_reg = get_register(ctx);
- 		registers++;
++	nle = alloc_nft_expr("masq");
++	if (stmt->masq.flags != 0)
++		nft_rule_expr_set_u32(nle, NFT_EXPR_MASQ_FLAGS,
++				      stmt->masq.flags);
++
++	nft_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+ 				 const struct stmt *stmt)
+ {
+@@ -749,6 +762,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_reject_stmt(ctx, stmt);
+ 	case STMT_NAT:
+ 		return netlink_gen_nat_stmt(ctx, stmt);
++	case STMT_MASQ:
++		return netlink_gen_masq_stmt(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return netlink_gen_queue_stmt(ctx, stmt);
+ 	case STMT_CT:
 diff --git a/src/parser.y b/src/parser.y
-index 4a8df7b..9fda571 100644
+index 9fda571..0a698f0 100644
 --- a/src/parser.y
 +++ b/src/parser.y
-@@ -19,6 +19,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
-+#include <linux/netfilter/nf_nat.h>
- #include <libnftnl/common.h>
- #include <libnftnl/set.h>
- 
-@@ -371,6 +372,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+@@ -372,6 +372,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  
  %token SNAT			"snat"
  %token DNAT			"dnat"
-+%token RANDOM			"random"
-+%token RANDOM_FULLY		"random-fully"
-+%token PERSISTENT		"persistent"
- 
- %token QUEUE			"queue"
- %token QUEUENUM			"num"
-@@ -435,6 +439,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
++%token MASQUERADE		"masquerade"
+ %token RANDOM			"random"
+ %token RANDOM_FULLY		"random-fully"
+ %token PERSISTENT		"persistent"
+@@ -437,9 +438,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <val>			time_unit
+ %type <stmt>			reject_stmt
  %destructor { stmt_free($$); }	reject_stmt
- %type <stmt>			nat_stmt nat_stmt_alloc
- %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc
-+%type <val>			nf_nat_flags nf_nat_flag
+-%type <stmt>			nat_stmt nat_stmt_alloc
+-%destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc
++%type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc
++%destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc
+ %type <val>			nf_nat_flags nf_nat_flag
++
  %type <stmt>			queue_stmt queue_stmt_alloc
  %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
  %type <val>			queue_stmt_flags queue_stmt_flag
-@@ -1408,6 +1413,22 @@ nat_stmt_args		:	expr
- 			{
- 				$<stmt>0->nat.proto = $2;
- 			}
-+			|	nat_stmt_args	nf_nat_flags
-+			{
-+				$<stmt>0->nat.flags = $2;
-+			}
-+			;
-+
-+nf_nat_flags		:	nf_nat_flag
-+			|	nf_nat_flags	COMMA	nf_nat_flag
-+			{
-+				$$ = $1 | $3;
-+			}
-+			;
-+
-+nf_nat_flag		:	RANDOM		{ $$ = NF_NAT_RANGE_PROTO_RANDOM; }
-+			|	RANDOM_FULLY	{ $$ = NF_NAT_RANGE_PROTO_RANDOM_FULLY; }
-+			|	PERSISTENT 	{ $$ = NF_NAT_RANGE_PERSISTENT; }
+@@ -1239,6 +1241,7 @@ stmt			:	verdict_stmt
+ 			|	nat_stmt
+ 			|	queue_stmt
+ 			|	ct_stmt
++			|	masq_stmt
  			;
  
- queue_stmt		:	queue_stmt_alloc
+ verdict_stmt		:	verdict_expr
+@@ -1419,6 +1422,17 @@ nat_stmt_args		:	expr
+ 			}
+ 			;
+ 
++masq_stmt		:	masq_stmt_alloc
++			|	masq_stmt_alloc	nf_nat_flags
++			{
++				$$ = $1;
++				$$->masq.flags = $2;
++			}
++			;
++
++masq_stmt_alloc		:	MASQUERADE 	{ $$ = masq_stmt_alloc(&@$); }
++			;
++
+ nf_nat_flags		:	nf_nat_flag
+ 			|	nf_nat_flags	COMMA	nf_nat_flag
+ 			{
 diff --git a/src/scanner.l b/src/scanner.l
-index 35c9446..440b0ed 100644
+index 440b0ed..9c957c0 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -316,6 +316,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+@@ -316,6 +316,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
  
  "snat"			{ return SNAT; }
  "dnat"			{ return DNAT; }
-+"random"		{ return RANDOM; }
-+"random-fully"		{ return RANDOM_FULLY; }
-+"persistent"		{ return PERSISTENT; }
- 
- "ll"			{ return LL_HDR; }
- "nh"			{ return NETWORK_HDR; }
++"masquerade"		{ return MASQUERADE; }
+ "random"		{ return RANDOM; }
+ "random-fully"		{ return RANDOM_FULLY; }
+ "persistent"		{ return PERSISTENT; }
 diff --git a/src/statement.c b/src/statement.c
-index 8e4b49e..1b2c31c 100644
+index 1b2c31c..3fa6d66 100644
 --- a/src/statement.c
 +++ b/src/statement.c
-@@ -20,6 +20,9 @@
- #include <utils.h>
- #include <list.h>
- 
-+#include <netinet/in.h>
-+#include <linux/netfilter/nf_nat.h>
-+
- struct stmt *stmt_alloc(const struct location *loc,
- 			const struct stmt_ops *ops)
+@@ -299,3 +299,21 @@ struct stmt *nat_stmt_alloc(const struct location *loc)
  {
-@@ -240,6 +243,27 @@ struct stmt *reject_stmt_alloc(const struct location *loc)
- 	return stmt_alloc(loc, &reject_stmt_ops);
+ 	return stmt_alloc(loc, &nat_stmt_ops);
  }
- 
-+static void print_nf_nat_flags(uint32_t flags)
++
++static void masq_stmt_print(const struct stmt *stmt)
 +{
-+	const char *delim = " ";
++	printf("masquerade");
 +
-+	if (flags == 0)
-+		return;
-+
-+	if (flags & NF_NAT_RANGE_PROTO_RANDOM) {
-+		printf("%srandom", delim);
-+		delim = ",";
-+	}
-+
-+	if (flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
-+		printf("%srandom-fully", delim);
-+		delim = ",";
-+	}
-+
-+	if (flags & NF_NAT_RANGE_PERSISTENT)
-+		printf("%spersistent", delim);
++	print_nf_nat_flags(stmt->masq.flags);
 +}
 +
- static void nat_stmt_print(const struct stmt *stmt)
- {
- 	static const char *nat_types[] = {
-@@ -254,6 +278,8 @@ static void nat_stmt_print(const struct stmt *stmt)
- 		printf(":");
- 		expr_print(stmt->nat.proto);
- 	}
++static const struct stmt_ops masq_stmt_ops = {
++	.type		= STMT_MASQ,
++	.name		= "masq",
++	.print		= masq_stmt_print,
++};
 +
-+	print_nf_nat_flags(stmt->nat.flags);
- }
- 
- static void nat_stmt_destroy(struct stmt *stmt)
++struct stmt *masq_stmt_alloc(const struct location *loc)
++{
++	return stmt_alloc(loc, &masq_stmt_ops);
++}
 
