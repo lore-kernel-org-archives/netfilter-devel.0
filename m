@@ -1,53 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH] netfilter: nft_masq: fix register/unregister
- notifier on module _init and _exit
-Date: Fri, 3 Oct 2014 15:16:18 +0200
-Message-ID: <20141003131618.GA3353@salvia>
-References: <20141003121335.2864.5519.stgit@nfdev.cica.es>
+From: Phuong Cao <phuong.m.cao@gmail.com>
+Subject: How to generate statistics for a TCP flow using netfilter conntrack?
+Date: Fri, 3 Oct 2014 08:36:15 -0700
+Message-ID: <CAKMo2zZWZbCnK1EnWEmR4QTh2VXBn5cAcKGb+8UvM48p2+ws3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36091 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752022AbaJCNPB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Oct 2014 09:15:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20141003121335.2864.5519.stgit@nfdev.cica.es>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:56759 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808AbaJCPg5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Oct 2014 11:36:57 -0400
+Received: by mail-lb0-f178.google.com with SMTP id w7so1202707lbi.23
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Oct 2014 08:36:55 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 03, 2014 at 02:13:36PM +0200, Arturo Borrero Gonzalez wrote:
-> Let's mimic the behaviour of ipt_MASQUERADE and ip6t_MASQUERADE and
-> register/unregister the masquerade notifiers on module _init and _exit.
-> 
-> The configuration previous to this patch may lead to spurious kernel crashes.
+Hi there,
 
-Applied, thanks Arturo.
+I am asking for your instructions to generate statistics for a TCP
+flow using conntrack?
+In my use case, a TCP flow consists of packets from host_a:port_a to
+host_b:port_b and statistics could be average packet size or average
+window size, per TCP flow.
 
-I have slightly rewritten the patch title and description.
+My plan is to add a hook into TCP connection tracking module
+(nf_conntrack_proto_tcp.c) and collect statistics per TCP flow.
+However, I don't know how conntrack relates to netfilter. Can I write
+a netfilter hook and access the tcp_conntracks table? Or should I  put
+the hook in the tcp_new() function in nf_conntrack_proto_tcp.c?
 
-And another comment below:
+Please let me know your suggestions on this issue.
 
-> @@ -73,12 +52,19 @@ static struct nft_expr_type nft_masq_ipv4_type __read_mostly = {
->  
->  static int __init nft_masq_ipv4_module_init(void)
->  {
-> -	return nft_register_expr(&nft_masq_ipv4_type);
-> +	int ret;
-> +
-> +	ret = nft_register_expr(&nft_masq_ipv4_type);
-> +	if (ret == 0)
-> +		nf_nat_masquerade_ipv4_register_notifier();
-
-The convention is to check for errors, ie.
-
-        ret = foo();
-        if (ret < 0)
-                return ret;
-
-        bar();
-
-So the branch path returns the error or goes to error handling part to
-undo things that we couldn't finish.
+Thanks!
+- PC
