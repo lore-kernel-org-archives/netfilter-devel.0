@@ -1,434 +1,235 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/2] src: interpret the event type from the evaluation step
-Date: Mon,  6 Oct 2014 19:53:33 +0200
-Message-ID: <1412618014-3895-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] netlink: use switch whenever possible in the monitor code
+Date: Mon,  6 Oct 2014 19:53:34 +0200
+Message-ID: <1412618014-3895-2-git-send-email-pablo@netfilter.org>
+References: <1412618014-3895-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56070 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56069 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753153AbaJFRwW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753186AbaJFRwW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 6 Oct 2014 13:52:22 -0400
+In-Reply-To: <1412618014-3895-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Postpone the event type interpretation to the evaluation step.
-This patch also fixes the combination of event and object types,
-which was broken. The export code needed to be adjusted too.
-
-The new and destroy are not tokens that can be recognized by
-the scanner anymore, so this also implicitly restores 'ct state'.
+This is more robust than the current 'else' fallback. If we run a
+newer kernel with old nft binaries, unknown messages will be
+misinterpreted as deletions.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-@Patrick: After giving a closer look to Arturo's monitor code, it seems
-to me that we really need an evaluation phase to support event and object
-type combinations. Note this removes the 'new' and 'destroy' tokens from
-the scanner, which is causing us problems. This reduces the size of the
-monitor code in the parser by ~75 LOC.
+ src/netlink.c |   87 ++++++++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 58 insertions(+), 29 deletions(-)
 
- include/rule.h |   36 ++++++++++++++++++++--
- src/evaluate.c |   71 ++++++++++++++++++++++++++++++++++++++++++-
- src/parser.y   |   92 ++++++++++----------------------------------------------
- src/rule.c     |   51 +++++++++++++++++++++++++++----
- src/scanner.l  |    3 --
- 5 files changed, 165 insertions(+), 88 deletions(-)
-
-diff --git a/include/rule.h b/include/rule.h
-index a1d5890..936177b 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -252,6 +252,8 @@ enum cmd_ops {
-  * @CMD_OBJ_TABLE:	table
-  * @CMD_OBJ_RULESET:	ruleset
-  * @CMD_OBJ_EXPR:	expression
-+ * @CMD_OBJ_MONITOR:	monitor
-+ * @CMD_OBJ_EXPORT:	export
-  */
- enum cmd_obj {
- 	CMD_OBJ_INVALID,
-@@ -263,8 +265,38 @@ enum cmd_obj {
- 	CMD_OBJ_TABLE,
- 	CMD_OBJ_RULESET,
- 	CMD_OBJ_EXPR,
-+	CMD_OBJ_MONITOR,
-+	CMD_OBJ_EXPORT,
- };
+diff --git a/src/netlink.c b/src/netlink.c
+index 64960ad..0797174 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1632,7 +1632,8 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+ 	uint32_t family;
+ 	struct nft_table *nlt = netlink_table_alloc(nlh);
  
-+struct export {
-+	uint32_t	format;
-+};
-+
-+struct export *export_alloc(uint32_t format);
-+void export_free(struct export *e);
-+
-+enum {
-+	CMD_MONITOR_OBJ_ANY,
-+	CMD_MONITOR_OBJ_TABLES,
-+	CMD_MONITOR_OBJ_CHAINS,
-+	CMD_MONITOR_OBJ_RULES,
-+	CMD_MONITOR_OBJ_SETS,
-+	CMD_MONITOR_OBJ_ELEMS,
-+	CMD_MONITOR_OBJ_MAX
-+};
-+
-+struct monitor {
-+	struct location	location;
-+	uint32_t	format;
-+	uint32_t	flags;
-+	uint32_t	type;
-+	const char	*event;
-+};
-+
-+struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event);
-+void monitor_free(struct monitor *m);
-+
- /**
-  * struct cmd - command statement
-  *
-@@ -292,10 +324,10 @@ struct cmd {
- 		struct rule	*rule;
- 		struct chain	*chain;
- 		struct table	*table;
-+		struct monitor	*monitor;
-+		struct export	*export;
- 	};
- 	const void		*arg;
--	uint32_t		format;
--	uint32_t		monitor_flags;
- };
+-	if (monh->format == NFT_OUTPUT_DEFAULT) {
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
+ 		if (type == NFT_MSG_NEWTABLE) {
+ 			if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 				printf("update table ");
+@@ -1646,10 +1647,13 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
  
- extern struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 284ee72..0004008 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -58,6 +58,8 @@ static int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
- 	__stmt_binary_error(ctx, &(s1)->location, &(s2)->location, fmt, ## args)
- #define chain_error(ctx, s1, fmt, args...) \
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
-+#define monitor_error(ctx, s1, fmt, args...) \
-+	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- 
- static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
- 				       const struct set *set,
-@@ -1433,6 +1435,72 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	}
- }
- 
-+enum {
-+	CMD_MONITOR_EVENT_ANY,
-+	CMD_MONITOR_EVENT_NEW,
-+	CMD_MONITOR_EVENT_DEL,
-+	CMD_MONITOR_EVENT_MAX
-+};
-+
-+static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
-+	[CMD_MONITOR_EVENT_ANY] = {
-+		[CMD_MONITOR_OBJ_ANY]		= 0xffffffff,
-+		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_NEWTABLE) |
-+						  (1 << NFT_MSG_DELTABLE),
-+		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_NEWCHAIN) |
-+						  (1 << NFT_MSG_DELCHAIN),
-+		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE) |
-+						  (1 << NFT_MSG_DELRULE),
-+		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_NEWSET) |
-+						  (1 << NFT_MSG_DELSET),
-+		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_NEWSETELEM) |
-+						  (1 << NFT_MSG_DELSETELEM),
-+	},
-+	[CMD_MONITOR_EVENT_NEW] = {
-+		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
-+						  (1 << NFT_MSG_NEWCHAIN) |
-+						  (1 << NFT_MSG_NEWRULE)  |
-+						  (1 << NFT_MSG_NEWSET)   |
-+						  (1 << NFT_MSG_NEWSETELEM),
-+		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_NEWTABLE),
-+		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_NEWCHAIN),
-+		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE),
-+		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_NEWSET),
-+		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_NEWSETELEM),
-+	},
-+	[CMD_MONITOR_EVENT_DEL] = {
-+		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_DELTABLE) |
-+						  (1 << NFT_MSG_DELCHAIN) |
-+						  (1 << NFT_MSG_DELRULE)  |
-+						  (1 << NFT_MSG_DELSET)   |
-+						  (1 << NFT_MSG_DELSETELEM),
-+		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_DELTABLE),
-+		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_DELCHAIN),
-+		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_DELRULE),
-+		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_DELSET),
-+		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_DELSETELEM),
-+	},
-+};
-+
-+static int cmd_evaluate_monitor(struct eval_ctx *ctx, struct cmd *cmd)
-+{
-+	uint32_t event;
-+
-+	if (cmd->monitor->event == NULL)
-+		event = CMD_MONITOR_EVENT_ANY;
-+	else if (strcmp(cmd->monitor->event, "new") == 0)
-+		event = CMD_MONITOR_EVENT_NEW;
-+	else if (strcmp(cmd->monitor->event, "destroy") == 0)
-+		event = CMD_MONITOR_EVENT_DEL;
-+	else {
-+		return monitor_error(ctx, cmd->monitor, "invalid event %s",
-+				     cmd->monitor->event);
-+	}
-+
-+	cmd->monitor->flags = monitor_flags[event][cmd->monitor->type];
-+	return 0;
-+}
-+
- int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- {
- #ifdef DEBUG
-@@ -1455,9 +1523,10 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_FLUSH:
- 	case CMD_RENAME:
- 	case CMD_EXPORT:
--	case CMD_MONITOR:
- 	case CMD_DESCRIBE:
- 		return 0;
-+	case CMD_MONITOR:
-+		return cmd_evaluate_monitor(ctx, cmd);
- 	default:
- 		BUG("invalid command operation %u\n", cmd->op);
- 	};
-diff --git a/src/parser.y b/src/parser.y
-index 4a8df7b..d3e1bc0 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -195,9 +195,6 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token GOTO			"goto"
- %token RETURN			"return"
- 
--%token NEW			"new"
--%token DESTROY			"destroy"
--
- %token CONSTANT			"constant"
- %token INTERVAL			"interval"
- %token ELEMENTS			"elements"
-@@ -522,7 +519,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <val>			ct_key
- 
- %type <val>			export_format
--%type <val>			monitor_event	monitor_object		monitor_format
-+%type <string>			monitor_event
-+%destructor { xfree($$); }	monitor_event
-+%type <val>			monitor_object	monitor_format
- 
- %%
- 
-@@ -788,89 +787,30 @@ rename_cmd		:	CHAIN		chain_spec	identifier
- export_cmd		:	export_format
- 			{
- 				struct handle h = { .family = NFPROTO_UNSPEC };
--				$$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_RULESET, &h, &@$, NULL);
--				$$->format = $1;
-+				struct export *export = export_alloc($1);
-+				$$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_EXPORT, &h, &@$, export);
- 			}
- 			;
- 
- monitor_cmd		:	monitor_event	monitor_object	monitor_format
- 			{
- 				struct handle h = { .family = NFPROTO_UNSPEC };
--				$$ = cmd_alloc(CMD_MONITOR, CMD_OBJ_RULESET, &h, &@$, NULL);
--				$$->monitor_flags = $1 & $2;
--				$$->format = $3;
-+				struct monitor *m = monitor_alloc($3, $2, $1);
-+				m->location = @1;
-+				$$ = cmd_alloc(CMD_MONITOR, CMD_OBJ_MONITOR, &h, &@$, m);
- 			}
- 			;
- 
--monitor_event		:	/* empty */
--			{
--				$$ = (1 << NFT_MSG_NEWRULE)	|
--				     (1 << NFT_MSG_DELRULE)	|
--				     (1 << NFT_MSG_NEWSET)	|
--				     (1 << NFT_MSG_DELSET)	|
--				     (1 << NFT_MSG_NEWSETELEM)	|
--				     (1 << NFT_MSG_DELSETELEM)	|
--				     (1 << NFT_MSG_NEWCHAIN)	|
--				     (1 << NFT_MSG_DELCHAIN)	|
--				     (1 << NFT_MSG_NEWTABLE)	|
--				     (1 << NFT_MSG_DELTABLE);
--			}
--			|	NEW
--			{
--				$$ = (1 << NFT_MSG_NEWTABLE)	|
--				     (1 << NFT_MSG_NEWCHAIN)	|
--				     (1 << NFT_MSG_NEWRULE)	|
--				     (1 << NFT_MSG_NEWSET)	|
--				     (1 << NFT_MSG_NEWSETELEM);
--			}
--			|	DESTROY
--			{
--				$$ = (1 << NFT_MSG_DELTABLE)	|
--				     (1 << NFT_MSG_DELCHAIN)	|
--				     (1 << NFT_MSG_DELRULE)	|
--				     (1 << NFT_MSG_DELSET)	|
--				     (1 << NFT_MSG_DELSETELEM);
--			}
-+monitor_event		:	/* empty */	{ $$ = NULL; }
-+			|       STRING		{ $$ = $1; }
- 			;
- 
--monitor_object		:	/* empty */
--			{
--				$$ = (1 << NFT_MSG_NEWRULE)	|
--				     (1 << NFT_MSG_DELRULE)	|
--				     (1 << NFT_MSG_NEWSET)	|
--				     (1 << NFT_MSG_DELSET)	|
--				     (1 << NFT_MSG_NEWSETELEM)	|
--				     (1 << NFT_MSG_DELSETELEM)	|
--				     (1 << NFT_MSG_NEWCHAIN)	|
--				     (1 << NFT_MSG_DELCHAIN)	|
--				     (1 << NFT_MSG_NEWTABLE)	|
--				     (1 << NFT_MSG_DELTABLE);
--			}
--			|	TABLES
--			{
--				$$ = (1 << NFT_MSG_NEWTABLE) |
--				     (1 << NFT_MSG_DELTABLE);
--			}
--			|	CHAINS
--			{
--				$$ = (1 << NFT_MSG_NEWCHAIN) |
--				     (1 << NFT_MSG_DELCHAIN);
--			}
--			|	SETS
--			{
--				$$ = (1 << NFT_MSG_NEWSET) |
--				     (1 << NFT_MSG_DELSET);
--			}
--			|	RULES
--			{
--				$$ = (1 << NFT_MSG_NEWRULE) |
--				     (1 << NFT_MSG_DELRULE);
--			}
--			|	ELEMENTS
--			{
--				$$ = (1 << NFT_MSG_NEWSETELEM) |
--				     (1 << NFT_MSG_DELSETELEM);
--			}
-+monitor_object		:	/* empty */	{ $$ = CMD_MONITOR_OBJ_ANY; }
-+			| 	TABLES		{ $$ = CMD_MONITOR_OBJ_TABLES; }
-+			| 	CHAINS		{ $$ = CMD_MONITOR_OBJ_CHAINS; }
-+			| 	SETS		{ $$ = CMD_MONITOR_OBJ_SETS; }
-+			|	RULES		{ $$ = CMD_MONITOR_OBJ_RULES; }
-+			|	ELEMENTS	{ $$ = CMD_MONITOR_OBJ_ELEMS; }
- 			;
- 
- monitor_format		:	/* empty */	{ $$ = NFT_OUTPUT_DEFAULT; }
-diff --git a/src/rule.c b/src/rule.c
-index 43355ee..a79a420 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -556,6 +556,39 @@ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
- 	return cmd;
- }
- 
-+struct export *export_alloc(uint32_t format)
-+{
-+	struct export *export;
-+
-+	export = xmalloc(sizeof(struct export));
-+	export->format = format;
-+
-+	return export;
-+}
-+
-+void export_free(struct export *e)
-+{
-+	xfree(e);
-+}
-+
-+struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event)
-+{
-+	struct monitor *mon;
-+
-+	mon = xmalloc(sizeof(struct monitor));
-+	mon->format = format;
-+	mon->type = type;
-+	mon->event = event;
-+	mon->flags = 0;
-+
-+	return mon;
-+}
-+
-+void monitor_free(struct monitor *m)
-+{
-+	xfree(m);
-+}
-+
- void cmd_free(struct cmd *cmd)
- {
- 	handle_free(&cmd->handle);
-@@ -579,6 +612,12 @@ void cmd_free(struct cmd *cmd)
- 		case CMD_OBJ_EXPR:
- 			expr_free(cmd->expr);
- 			break;
-+		case CMD_OBJ_MONITOR:
-+			monitor_free(cmd->monitor);
-+			break;
-+		case CMD_OBJ_EXPORT:
-+			export_free(cmd->export);
-+			break;
- 		default:
- 			BUG("invalid command object type %u\n", cmd->obj);
- 		}
-@@ -726,7 +765,7 @@ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
- 	if (rs == NULL)
- 		return -1;
- 
--	nft_ruleset_fprintf(stdout, rs, cmd->format, 0);
-+	nft_ruleset_fprintf(stdout, rs, cmd->export->format, 0);
- 	fprintf(stdout, "\n");
- 
- 	nft_ruleset_free(rs);
-@@ -929,9 +968,9 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- 	 *  - new rules in default format
- 	 *  - new elements
- 	 */
--	if (((cmd->monitor_flags & (1 << NFT_MSG_NEWRULE)) &&
--	    (cmd->format == NFT_OUTPUT_DEFAULT)) ||
--	    (cmd->monitor_flags & (1 << NFT_MSG_NEWSETELEM)))
-+	if (((cmd->monitor->flags & (1 << NFT_MSG_NEWRULE)) &&
-+	    (cmd->monitor->format == NFT_OUTPUT_DEFAULT)) ||
-+	    (cmd->monitor->flags & (1 << NFT_MSG_NEWSETELEM)))
- 		monhandler.cache_needed = true;
- 	else
- 		monhandler.cache_needed = false;
-@@ -963,8 +1002,8 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- 		}
+ 		printf("%s %s\n", family2str(family),
+ 		       nft_table_attr_get_str(nlt, NFT_TABLE_ATTR_NAME));
+-	} else {
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
+ 		nft_table_fprintf(stdout, nlt, monh->format,
+ 				  netlink_msg2nftnl_of(type));
+ 		fprintf(stdout, "\n");
++		break;
  	}
  
--	monhandler.monitor_flags = cmd->monitor_flags;
--	monhandler.format = cmd->format;
-+	monhandler.monitor_flags = cmd->monitor->flags;
-+	monhandler.format = cmd->monitor->format;
- 	monhandler.ctx = ctx;
- 	monhandler.loc = &cmd->location;
+ 	nft_table_free(nlt);
+@@ -1663,8 +1667,10 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 	uint32_t family;
+ 	struct nft_chain *nlc = netlink_chain_alloc(nlh);
  
-diff --git a/src/scanner.l b/src/scanner.l
-index 35c9446..a00c1ca 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -261,9 +261,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "export"		{ return EXPORT; }
- "monitor"		{ return MONITOR; }
+-	if (monh->format == NFT_OUTPUT_DEFAULT) {
+-		if (type == NFT_MSG_NEWCHAIN) {
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
++		switch (type) {
++		case NFT_MSG_NEWCHAIN:
+ 			if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 				printf("update ");
+ 			else
+@@ -1673,7 +1679,8 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 			c = netlink_delinearize_chain(monh->ctx, nlc);
+ 			chain_print_plain(c);
+ 			chain_free(c);
+-		} else {
++			break;
++		case NFT_MSG_DELCHAIN:
+ 			family = nft_chain_attr_get_u32(nlc,
+ 							NFT_CHAIN_ATTR_FAMILY);
+ 			printf("delete chain %s %s %s\n", family2str(family),
+@@ -1681,11 +1688,15 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 						      NFT_CHAIN_ATTR_TABLE),
+ 			       nft_chain_attr_get_str(nlc,
+ 						      NFT_CHAIN_ATTR_NAME));
++			break;
+ 		}
+-	} else {
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
+ 		nft_chain_fprintf(stdout, nlc, monh->format,
+ 				  netlink_msg2nftnl_of(type));
+ 		fprintf(stdout, "\n");
++		break;
+ 	}
  
--"new"			{ return NEW; }
--"destroy"		{ return DESTROY; }
+ 	nft_chain_free(nlc);
+@@ -1703,31 +1714,35 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
+ 	if (flags & SET_F_ANONYMOUS)
+ 		goto out;
+ 
+-	if (monh->format == NFT_OUTPUT_DEFAULT) {
+-		if (type == NFT_MSG_NEWSET) {
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
++		switch (type) {
++		case NFT_MSG_NEWSET:
+ 			printf("add ");
+ 			set = netlink_delinearize_set(monh->ctx, nls);
+ 			if (set == NULL)
+ 				return MNL_CB_ERROR;
+ 			set_print_plain(set);
+ 			set_free(set);
+-		} else {
++			printf("\n");
++			break;
++		case NFT_MSG_DELSET:
+ 			family = nft_set_attr_get_u32(nls,
+ 						      NFT_SET_ATTR_FAMILY);
+-			printf("delete set %s %s %s",
++			printf("delete set %s %s %s\n",
+ 			       family2str(family),
+ 			       nft_set_attr_get_str(nls, NFT_SET_ATTR_TABLE),
+ 			       nft_set_attr_get_str(nls, NFT_SET_ATTR_NAME));
++			break;
+ 		}
 -
- "position"		{ return POSITION; }
- "comment"		{ return COMMENT; }
+-		printf("\n");
+-
+-	} else {
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
+ 		nft_set_fprintf(stdout, nls, monh->format,
+ 				netlink_msg2nftnl_of(type));
+ 		fprintf(stdout, "\n");
++		break;
+ 	}
+-
+ out:
+ 	nft_set_free(nls);
+ 	return MNL_CB_OK;
+@@ -1754,7 +1769,8 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		goto out;
+ 	}
  
+-	if (monh->format == NFT_OUTPUT_DEFAULT) {
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
+ 		if (set->flags & SET_F_ANONYMOUS)
+ 			goto out;
+ 
+@@ -1782,22 +1798,30 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		}
+ 		nft_set_elems_iter_destroy(nlsei);
+ 
+-		if (type == NFT_MSG_NEWSETELEM)
++		switch (type) {
++		case NFT_MSG_NEWSETELEM:
+ 			printf("add ");
+-		else
++			break;
++		case NFT_MSG_DELSETELEM:
+ 			printf("delete ");
+-
++			break;
++		default:
++			set_free(dummyset);
++			goto out;
++		}
+ 		printf("element %s %s %s ", family2str(family), table, setname);
+ 		expr_print(dummyset->init);
+ 		printf("\n");
+ 
+ 		set_free(dummyset);
+-	} else {
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
+ 		nft_set_fprintf(stdout, nls, monh->format,
+ 				netlink_msg2nftnl_of(type));
+ 		fprintf(stdout, "\n");
++		break;
+ 	}
+-
+ out:
+ 	nft_set_free(nls);
+ 	return MNL_CB_OK;
+@@ -1820,14 +1844,16 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
+ 	uint64_t handle;
+ 	struct nft_rule *nlr = netlink_rule_alloc(nlh);
+ 
+-	if (monh->format == NFT_OUTPUT_DEFAULT) {
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
+ 		fam = nft_rule_attr_get_u32(nlr, NFT_RULE_ATTR_FAMILY);
+ 		family = family2str(fam);
+ 		table = nft_rule_attr_get_str(nlr, NFT_RULE_ATTR_TABLE);
+ 		chain = nft_rule_attr_get_str(nlr, NFT_RULE_ATTR_CHAIN);
+ 		handle = nft_rule_attr_get_u64(nlr, NFT_RULE_ATTR_HANDLE);
+ 
+-		if (type == NFT_MSG_NEWRULE) {
++		switch (type) {
++		case NFT_MSG_NEWRULE:
+ 			r = netlink_delinearize_rule(monh->ctx, nlr);
+ 			nlr_for_each_set(nlr, rule_map_decompose_cb, NULL);
+ 
+@@ -1836,18 +1862,21 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
+ 			printf("\n");
+ 
+ 			rule_free(r);
+-			goto out;
++			break;
++		case NFT_MSG_DELRULE:
++			printf("delete rule %s %s %s handle %u\n",
++			       family, table, chain, (unsigned int)handle);
++			break;
+ 		}
+-
+-		printf("delete rule %s %s %s handle %u\n",
+-		       family, table, chain, (unsigned int)handle);
+-	} else {
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
+ 		nft_rule_fprintf(stdout, nlr, monh->format,
+ 				 netlink_msg2nftnl_of(type));
+ 		fprintf(stdout, "\n");
++		break;
+ 	}
+ 
+-out:
+ 	nft_rule_free(nlr);
+ 	return MNL_CB_OK;
+ }
 -- 
 1.7.10.4
 
