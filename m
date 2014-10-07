@@ -1,77 +1,48 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: netfilter: nft_reject: introduce icmp code abstraction for inet
- and bridge
-Date: Tue, 7 Oct 2014 17:26:51 +0300
-Message-ID: <20141007142651.GA29598@mwanda>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 2/9] netfilter: move nf_send_resetX() code to
+ nf_reject_ipvX modules
+Date: Tue, 07 Oct 2014 07:45:47 -0700
+Message-ID: <1412693147.11091.125.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1412356824-6362-1-git-send-email-pablo@netfilter.org>
+	 <1412356824-6362-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:20746 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbaJGO1H (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Oct 2014 10:27:07 -0400
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1412356824-6362-3-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello Pablo Neira Ayuso,
+On Fri, 2014-10-03 at 19:20 +0200, Pablo Neira Ayuso wrote:
+> Move nf_send_reset() and nf_send_reset6() to nf_reject_ipv4 and
+> nf_reject_ipv6 respectively. This code is shared by x_tables and
+> nf_tables.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/net/netfilter/ipv4/nf_reject.h |  118 +----------------------
+>  net/ipv4/netfilter/Kconfig             |    6 ++
+>  net/ipv4/netfilter/Makefile            |    3 +
+>  net/ipv4/netfilter/nf_reject_ipv4.c    |  127 +++++++++++++++++++++++++
+>  net/ipv6/netfilter/Kconfig             |    6 ++
+>  net/ipv6/netfilter/Makefile            |    3 +
+>  net/ipv6/netfilter/nf_reject_ipv6.c    |  163 ++++++++++++++++++++++++++++++++
+>  7 files changed, 309 insertions(+), 117 deletions(-)
+>  create mode 100644 net/ipv4/netfilter/nf_reject_ipv4.c
+>  create mode 100644 net/ipv6/netfilter/nf_reject_ipv6.c
 
-The patch 51b0a5d8c21a: "netfilter: nft_reject: introduce icmp code
-abstraction for inet and bridge" from Sep 26, 2014, leads to the
-following static checker warning:
+I am confused
 
-	net/netfilter/nft_reject.c:87 nft_reject_icmp_code()
-	error: buffer overflow 'icmp_code_v4' 5 <= 5
+We now have two copies of nf_send_reset6()
 
-net/netfilter/nft_reject.c
-    75  static u8 icmp_code_v4[NFT_REJECT_ICMPX_MAX] = {
-    76          [NFT_REJECT_ICMPX_NO_ROUTE]             = ICMP_NET_UNREACH,
-    77          [NFT_REJECT_ICMPX_PORT_UNREACH]         = ICMP_PORT_UNREACH,
-    78          [NFT_REJECT_ICMPX_HOST_UNREACH]         = ICMP_HOST_UNREACH,
-    79          [NFT_REJECT_ICMPX_ADMIN_PROHIBITED]     = ICMP_PKT_FILTERED,
-    80  };
-    81  
-    82  int nft_reject_icmp_code(u8 code)
-    83  {
-    84          if (code > NFT_REJECT_ICMPX_MAX)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Obviously this should be >= instead of >, but I also had a question
-about NFT_REJECT_ICMPX_MAX.
-
-#define NFT_REJECT_ICMPX_MAX   (__NFT_REJECT_ICMPX_MAX + 1)
-
-__NFT_REJECT_ICMPX_MAX is already plus one so it feels like
-NFT_REJECT_ICMPX_MAX is one higher than needed.  (But it also has been a
-long day and I'm no longer sure I know how to add 1 + 4).
-
-    85                  return -EINVAL;
-    86  
-    87          return icmp_code_v4[code];
-    88  }
-    89  
-    90  EXPORT_SYMBOL_GPL(nft_reject_icmp_code);
-    91  
-    92  
-    93  static u8 icmp_code_v6[NFT_REJECT_ICMPX_MAX] = {
-    94          [NFT_REJECT_ICMPX_NO_ROUTE]             = ICMPV6_NOROUTE,
-    95          [NFT_REJECT_ICMPX_PORT_UNREACH]         = ICMPV6_PORT_UNREACH,
-    96          [NFT_REJECT_ICMPX_HOST_UNREACH]         = ICMPV6_ADDR_UNREACH,
-    97          [NFT_REJECT_ICMPX_ADMIN_PROHIBITED]     = ICMPV6_ADM_PROHIBITED,
-    98  };
-    99  
-   100  int nft_reject_icmpv6_code(u8 code)
-   101  {
-   102          if (code > NFT_REJECT_ICMPX_MAX)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Same thing.
-
-   103                  return -EINVAL;
-   104  
-   105          return icmp_code_v6[code];
-   106  }
-
-regards,
-dan carpenter
+$ git grep -n nf_send_reset6
+include/net/netfilter/ipv6/nf_reject.h:21:static void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+net/bridge/netfilter/nft_reject_bridge.c:49:                    nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
+net/ipv6/netfilter/ip6t_REJECT.c:66:            nf_send_reset6(net, skb, par->hooknum);
+net/ipv6/netfilter/nf_reject_ipv6.c:14:void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+net/ipv6/netfilter/nf_reject_ipv6.c:163:EXPORT_SYMBOL_GPL(nf_send_reset6);
+net/ipv6/netfilter/nft_reject_ipv6.c:35:                nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
+net/netfilter/nft_reject_inet.c:49:                     nf_send_reset6(net, pkt->skb, pkt->ops->hooknum);
