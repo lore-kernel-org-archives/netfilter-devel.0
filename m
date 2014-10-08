@@ -1,54 +1,73 @@
-From: Bpost Bank <vasilenkova@afinox.sk>
-Subject: Bpost Bank Alert - Uw Internet Bankieren op slot
-Date: Wed, 08 Oct 2014 11:40:24 +0200
-Message-ID: <20141008114024.20626icelu7qv2x4@webmail.afinox.sk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] tests: regression: Delete all reference to wlan0 in test files.
+Date: Wed,  8 Oct 2014 14:52:09 +0200
+Message-ID: <1412772730-29161-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout-7.websupport.sk ([37.9.172.136]:34397 "EHLO
-	mailout-7.websupport.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755490AbaJHJvr convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:56391 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932134AbaJHMwN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2014 05:51:47 -0400
-Content-Disposition: inline
+	Wed, 8 Oct 2014 08:52:13 -0400
+Received: by mail-wi0-f173.google.com with SMTP id fb4so10507420wid.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Oct 2014 05:52:12 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+There are false errors if it uses the automated regression testing
+without a wlan0 device in the system.
 
+Deletes references to 'wlan0' in test files and replaces 'wlan0' by 'lo'
+or 'eth0' in the test files if it is possible.
 
-Bpost Bank Geachte klant,
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ tests/regression/any/meta.t |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Onlangs heeft onze gegevens blijkt dat er een derde partij / illegale =20
-binnenkomst op uw Online Bpost Bank / Account.
+diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
+index 2c2609d..5bc3872 100644
+--- a/tests/regression/any/meta.t
++++ b/tests/regression/any/meta.t
+@@ -57,15 +57,15 @@ meta mark or 0x03 != 0x01;ok;mark | 0x00000003 != 0x00000001
+ meta mark xor 0x03 == 0x01;ok;mark 0x00000002
+ meta mark xor 0x03 != 0x01;ok;mark != 0x00000002
+ 
+-meta iif wlan0 accept;ok;iif wlan0 accept
+ meta iif eth0 accept;ok;iif eth0 accept
+-meta iif != wlan0 accept;ok;iif != wlan0 accept
++meta iif eth0 accept;ok;iif eth0 accept
++meta iif != eth0 accept;ok;iif != eth0 accept
+ meta iif != eth0 accept;ok;iif != eth0 accept
+ 
+ meta iifname "eth0";ok;iifname "eth0"
+ meta iifname != "eth0";ok;iifname != "eth0"
+-meta iifname {"eth0", "wlan0"};ok
+-- meta iifname != {"eth0", "wlan0"};ok
++meta iifname {"eth0", "lo"};ok
++- meta iifname != {"eth0", "lo"};ok
+ 
+ meta iiftype {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+ - meta iiftype != {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+@@ -76,13 +76,13 @@ meta iiftype ppp;ok;iiftype ppp
+ 
+ meta oif lo accept;ok;oif lo accept
+ meta oif != lo accept;ok;oif != lo accept
+-meta oif {wlan0, eth0, lo} accept;ok
+-- meta oif != {wlan0, eth0, lo} accept;ok
++meta oif {eth0, lo} accept;ok
++- meta oif != {eth0, lo} accept;ok
+ 
+ meta oifname "eth0";ok;oifname "eth0"
+ meta oifname != "eth0";ok;oifname != "eth0"
+-meta oifname { "eth0", "wlan0"};ok
+-- meta iifname != {"eth0", "wlan0"};ok
++meta oifname { "eth0", "lo"};ok
++- meta iifname != {"eth0", "lo"};ok
+ 
+ meta oiftype {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+ - meta oiftype != {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+-- 
+1.7.10.4
 
-De veiligheid van uw account is onze primaire zorg, hebben we besloten =
-=20
-om actief te handhaven uw toegang tot uw Online Bpost Bank / Account, =20
-de actieve toegang tot je account om zo snel mogelijk via de =20
-onderstaande link om uw account te krijgen en krijg toegang.
-
-    Bpost Bank Online Access:  http://lapineco.com/bposte/index.html
-
-
-
-Zodra uw gegevens zijn gecontroleerd en bevestigd, en een behoefte aan =
-=20
-verdere activering, kunt u gecontacteerd door
-
-voor volledige toegang tot uw Online Bpost Bank / Account herstellen =20
-van onze medewerkers.
-
-Met vriendelijke groet,
-
-Bpost Bank Online
-
-Copyright =A9 2014 Bpost Bank Belgi=EB
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
