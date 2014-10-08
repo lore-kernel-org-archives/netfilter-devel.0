@@ -1,47 +1,80 @@
-From: Ana Rey <anarey@gmail.com>
-Subject: [PATCH] tests: regression: nft-test.py: Delete an unnecessary whitespace in an output messages.
-Date: Wed,  8 Oct 2014 14:52:10 +0200
-Message-ID: <1412772730-29161-2-git-send-email-anarey@gmail.com>
-References: <1412772730-29161-1-git-send-email-anarey@gmail.com>
-Cc: Ana Rey <anarey@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH xtables-compat 2/4] iptables-compat: nft: fix error reporting
+Date: Wed,  8 Oct 2014 22:17:49 +0200
+Message-ID: <1412799471-7721-2-git-send-email-pablo@netfilter.org>
+References: <1412799471-7721-1-git-send-email-pablo@netfilter.org>
+Cc: giuseppelng@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:56427 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932134AbaJHMwO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2014 08:52:14 -0400
-Received: by mail-wi0-f180.google.com with SMTP id em10so10612844wid.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Oct 2014 05:52:13 -0700 (PDT)
-In-Reply-To: <1412772730-29161-1-git-send-email-anarey@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:48382 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752777AbaJHUQd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Oct 2014 16:16:33 -0400
+In-Reply-To: <1412799471-7721-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the script is run with -e options,output messages show an unnecessary
-white-space. This path fixes this mistake.
+This fixes
 
-sudo ./nft-test.py -e
-[...] "line 34: nft add rule -nnn arp test-arp  input arp plen != {33-55} " [...]
-                                             ^^^^
+ # iptables-compat -X test4345
+ iptables: No chain/target/match by that name.
 
-Signed-off-by: Ana Rey <anarey@gmail.com>
+ # iptables-compat -N test4345
+ # iptables-compat -N test4345
+ iptables: File exists.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/regression/nft-test.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/nft.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index d4929f0..00c33f3 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -694,7 +694,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
-             if line[1:].find("*") != -1:
-                 continue
-             if need_fix_option:
--                rule[0] = rule[0].rstrip()[1:]
-+                rule[0] = rule[0].rstrip()[1:].strip()
-                 result = rule_add(rule, table_list, chain_list, filename,
-                                   lineno, force_all_family_option)
-                 tests += 1
+diff --git a/iptables/nft.c b/iptables/nft.c
+index ad4e5f9..6686a9b 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -187,17 +187,6 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
+ 	return ret;
+ }
+ 
+-static int cb_err(const struct nlmsghdr *nlh, void *data)
+-{
+-	/* We can provide better error reporting than iptables-restore */
+-	errno = EINVAL;
+-	return MNL_CB_ERROR;
+-}
+-
+-static mnl_cb_t cb_ctl_array[NLMSG_MIN_TYPE] = {
+-	[NLMSG_ERROR] = cb_err,
+-};
+-
+ static int mnl_nft_batch_talk(struct nft_handle *h)
+ {
+ 	int ret, fd = mnl_socket_get_fd(h->nl);
+@@ -226,11 +215,11 @@ static int mnl_nft_batch_talk(struct nft_handle *h)
+ 		if (ret == -1)
+ 			return -1;
+ 
+-		ret = mnl_cb_run2(rcv_buf, ret, 0, h->portid,
+-				  NULL, NULL, cb_ctl_array,
+-				  MNL_ARRAY_SIZE(cb_ctl_array));
+-		/* Continue on error, make sure we get all acknoledgments */
+-		if (ret == -1)
++		ret = mnl_cb_run(rcv_buf, ret, 0, h->portid, NULL, NULL);
++		/* Annotate first error and continue, make sure we get all
++		 * acknoledgments.
++		 */
++		if (!err && ret == -1)
+ 			err = errno;
+ 
+ 		ret = select(fd+1, &readfds, NULL, NULL, &tv);
+@@ -240,6 +229,7 @@ static int mnl_nft_batch_talk(struct nft_handle *h)
+ 		FD_ZERO(&readfds);
+ 		FD_SET(fd, &readfds);
+ 	}
++	errno = err;
+ 	return err ? -1 : 0;
+ }
+ 
 -- 
 1.7.10.4
 
