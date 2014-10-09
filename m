@@ -1,203 +1,101 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2] netfilter: kill nf_send_reset6() from include/net/netfilter/ipv6/nf_reject.h
-Date: Thu,  9 Oct 2014 20:27:40 +0200
-Message-ID: <1412879261-25045-2-git-send-email-pablo@netfilter.org>
-References: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Steven Barth <cyrus@openwrt.org>
+Subject: [nft PATCHv2] build: allow disabling libreadline-support
+Date: Thu,  9 Oct 2014 22:48:27 +0200
+Message-ID: <1412887707-28754-1-git-send-email-cyrus@openwrt.org>
+References: <20141009163310.GA10706@salvia>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Steven Barth <cyrus@openwrt.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35843 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141AbaJIS00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2014 14:26:26 -0400
-In-Reply-To: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
+Received: from chi.subsignal.org ([188.40.166.11]:48873 "EHLO
+	chi.subsignal.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262AbaJIUtC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Oct 2014 16:49:02 -0400
+In-Reply-To: <20141009163310.GA10706@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_send_reset6() now resides in net/ipv6/netfilter/nf_reject_ipv6.c
+This makes nftables a bit more embedded-friendly.
 
-Fixes: c8d7b98 ("netfilter: move nf_send_resetX() code to nf_reject_ipvX modules")
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Steven Barth <cyrus@openwrt.org>
 ---
- include/net/netfilter/ipv6/nf_reject.h |  157 +-------------------------------
- 1 file changed, 2 insertions(+), 155 deletions(-)
+ configure.ac       | 9 +++++++--
+ include/nftables.h | 7 +++++++
+ src/Makefile.in    | 2 ++
+ src/main.c         | 6 +++++-
+ 4 files changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/ipv6/nf_reject.h b/include/net/netfilter/ipv6/nf_reject.h
-index 7a10cfc..48e1881 100644
---- a/include/net/netfilter/ipv6/nf_reject.h
-+++ b/include/net/netfilter/ipv6/nf_reject.h
-@@ -1,11 +1,7 @@
- #ifndef _IPV6_NF_REJECT_H
- #define _IPV6_NF_REJECT_H
+diff --git a/configure.ac b/configure.ac
+index 3a7647f..a2dd415 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -71,8 +71,13 @@ AC_CHECK_LIB([nftnl], [nft_rule_alloc], ,
+ AC_CHECK_LIB([gmp], [__gmpz_init], ,
+ 	     AC_MSG_ERROR([No suitable version of libgmp found]))
  
--#include <net/ipv6.h>
--#include <net/ip6_route.h>
--#include <net/ip6_fib.h>
--#include <net/ip6_checksum.h>
--#include <linux/netfilter_ipv6.h>
-+#include <linux/icmpv6.h>
+-AC_CHECK_LIB([readline], [readline], ,
+-	     AC_MSG_ERROR([No suitable version of libreadline found]))
++AC_ARG_WITH([cli], [AS_HELP_STRING([--without-cli],
++            [disable interactive CLI (libreadline support)])],
++            [], [with_cli=yes])
++AS_IF([test "x$with_cli" != xno], [
++AC_CHECK_LIB([readline],[readline], , AC_MSG_ERROR([No suitable version of libreadline found]))
++])
++AC_SUBST(with_cli)
  
- static inline void
- nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
-@@ -17,155 +13,6 @@ nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
- 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
- }
+ # Checks for header files.
+ AC_HEADER_STDC
+diff --git a/include/nftables.h b/include/nftables.h
+index 3394e32..c3d3dbf 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -31,7 +31,14 @@ extern unsigned int debug_level;
+ extern const char *include_paths[INCLUDE_PATHS_MAX];
  
--/* Send RST reply */
--static void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
--{
--	struct sk_buff *nskb;
--	struct tcphdr otcph, *tcph;
--	unsigned int otcplen, hh_len;
--	int tcphoff, needs_ack;
--	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
--	struct ipv6hdr *ip6h;
--#define DEFAULT_TOS_VALUE	0x0U
--	const __u8 tclass = DEFAULT_TOS_VALUE;
--	struct dst_entry *dst = NULL;
--	u8 proto;
--	__be16 frag_off;
--	struct flowi6 fl6;
--
--	if ((!(ipv6_addr_type(&oip6h->saddr) & IPV6_ADDR_UNICAST)) ||
--	    (!(ipv6_addr_type(&oip6h->daddr) & IPV6_ADDR_UNICAST))) {
--		pr_debug("addr is not unicast.\n");
--		return;
--	}
--
--	proto = oip6h->nexthdr;
--	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data), &proto, &frag_off);
--
--	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
--		pr_debug("Cannot get TCP header.\n");
--		return;
--	}
--
--	otcplen = oldskb->len - tcphoff;
--
--	/* IP header checks: fragment, too short. */
--	if (proto != IPPROTO_TCP || otcplen < sizeof(struct tcphdr)) {
--		pr_debug("proto(%d) != IPPROTO_TCP, "
--			 "or too short. otcplen = %d\n",
--			 proto, otcplen);
--		return;
--	}
--
--	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
--		BUG();
--
--	/* No RST for RST. */
--	if (otcph.rst) {
--		pr_debug("RST is set\n");
--		return;
--	}
--
--	/* Check checksum. */
--	if (nf_ip6_checksum(oldskb, hook, tcphoff, IPPROTO_TCP)) {
--		pr_debug("TCP checksum is invalid\n");
--		return;
--	}
--
--	memset(&fl6, 0, sizeof(fl6));
--	fl6.flowi6_proto = IPPROTO_TCP;
--	fl6.saddr = oip6h->daddr;
--	fl6.daddr = oip6h->saddr;
--	fl6.fl6_sport = otcph.dest;
--	fl6.fl6_dport = otcph.source;
--	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
--	dst = ip6_route_output(net, NULL, &fl6);
--	if (dst == NULL || dst->error) {
--		dst_release(dst);
--		return;
--	}
--	dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), NULL, 0);
--	if (IS_ERR(dst))
--		return;
--
--	hh_len = (dst->dev->hard_header_len + 15)&~15;
--	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
--			 + sizeof(struct tcphdr) + dst->trailer_len,
--			 GFP_ATOMIC);
--
--	if (!nskb) {
--		net_dbg_ratelimited("cannot alloc skb\n");
--		dst_release(dst);
--		return;
--	}
--
--	skb_dst_set(nskb, dst);
--
--	skb_reserve(nskb, hh_len + dst->header_len);
--
--	skb_put(nskb, sizeof(struct ipv6hdr));
--	skb_reset_network_header(nskb);
--	ip6h = ipv6_hdr(nskb);
--	ip6_flow_hdr(ip6h, tclass, 0);
--	ip6h->hop_limit = ip6_dst_hoplimit(dst);
--	ip6h->nexthdr = IPPROTO_TCP;
--	ip6h->saddr = oip6h->daddr;
--	ip6h->daddr = oip6h->saddr;
--
--	skb_reset_transport_header(nskb);
--	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
--	/* Truncate to length (no data) */
--	tcph->doff = sizeof(struct tcphdr)/4;
--	tcph->source = otcph.dest;
--	tcph->dest = otcph.source;
--
--	if (otcph.ack) {
--		needs_ack = 0;
--		tcph->seq = otcph.ack_seq;
--		tcph->ack_seq = 0;
--	} else {
--		needs_ack = 1;
--		tcph->ack_seq = htonl(ntohl(otcph.seq) + otcph.syn + otcph.fin
--				      + otcplen - (otcph.doff<<2));
--		tcph->seq = 0;
--	}
--
--	/* Reset flags */
--	((u_int8_t *)tcph)[13] = 0;
--	tcph->rst = 1;
--	tcph->ack = needs_ack;
--	tcph->window = 0;
--	tcph->urg_ptr = 0;
--	tcph->check = 0;
--
--	/* Adjust TCP checksum */
--	tcph->check = csum_ipv6_magic(&ipv6_hdr(nskb)->saddr,
--				      &ipv6_hdr(nskb)->daddr,
--				      sizeof(struct tcphdr), IPPROTO_TCP,
--				      csum_partial(tcph,
--						   sizeof(struct tcphdr), 0));
--
--	nf_ct_attach(nskb, oldskb);
--
--#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	/* If we use ip6_local_out for bridged traffic, the MAC source on
--	 * the RST will be ours, instead of the destination's.  This confuses
--	 * some routers/firewalls, and they drop the packet.  So we need to
--	 * build the eth header using the original destination's MAC as the
--	 * source, and send the RST packet directly.
--	 */
--	if (oldskb->nf_bridge) {
--		struct ethhdr *oeth = eth_hdr(oldskb);
--		nskb->dev = oldskb->nf_bridge->physindev;
--		nskb->protocol = htons(ETH_P_IPV6);
--		ip6h->payload_len = htons(sizeof(struct tcphdr));
--		if (dev_hard_header(nskb, nskb->dev, ntohs(nskb->protocol),
--				    oeth->h_source, oeth->h_dest, nskb->len) < 0)
--			return;
--		dev_queue_xmit(nskb);
--	} else
--#endif
--		ip6_local_out(nskb);
--}
-+void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook);
+ struct parser_state;
++#ifdef HAVE_LIBREADLINE
+ extern int cli_init(struct parser_state *state);
++#else
++static inline int cli_init(struct parser_state *state)
++{
++	return -1;
++}
++#endif
+ extern void cli_exit(void);
+ extern void cli_display(const char *fmt, va_list ap) __fmtstring(1, 0);
  
- #endif /* _IPV6_NF_REJECT_H */
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 8ac2b46..7ecc5f2 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -3,7 +3,9 @@ PROGRAMS		+= nft
+ nft-destdir		:= @sbindir@
+ 
+ nft-obj			+= main.o
++ifeq (@with_cli@,yes)
+ nft-obj			+= cli.o
++endif
+ nft-obj			+= rule.o
+ nft-obj			+= statement.o
+ nft-obj			+= datatype.o
+diff --git a/src/main.c b/src/main.c
+index 2685b0d..ee684ce 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -335,7 +335,11 @@ int main(int argc, char * const *argv)
+ 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
+ 			goto out;
+ 	} else if (interactive) {
+-		cli_init(&state);
++		if (cli_init(&state) < 0) {
++			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
++			argv[0]);
++			exit(NFT_EXIT_FAILURE);
++		}
+ 		return 0;
+ 	} else {
+ 		fprintf(stderr, "%s: no command specified\n", argv[0]);
 -- 
-1.7.10.4
+2.1.1
 
