@@ -1,82 +1,137 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH arptables-compat] arptables-compat: remove save code
-Date: Thu,  9 Oct 2014 13:12:12 +0200
-Message-ID: <1412853132-13747-1-git-send-email-pablo@netfilter.org>
-Cc: giuseppelng@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 4/4 v5] nft: complete reject support
+Date: Thu, 9 Oct 2014 14:01:44 +0200
+Message-ID: <20141009120144.GA16528@salvia>
+References: <1412090500-4564-1-git-send-email-alvaroneay@gmail.com>
+ <1412090500-4564-4-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38263 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58172 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385AbaJILK6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2014 07:10:58 -0400
+	id S1751540AbaJIMA1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Oct 2014 08:00:27 -0400
+Content-Disposition: inline
+In-Reply-To: <1412090500-4564-4-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There is not native arptables-save. The original author provides
-perl scripts to implement arptables-save and arptables-restore.
-We should use them to mimic arptables behaviour.
+On Tue, Sep 30, 2014 at 05:21:40PM +0200, Alvaro Neira Ayuso wrote:
+> This patch allows to use the reject action in rules. For example:
+> 
+>   nft add rule filter input udp dport 22 reject
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- iptables/nft-arp.c |   31 ++-----------------------------
- 1 file changed, 2 insertions(+), 29 deletions(-)
+Series applies with some minor glitches, Thanks Alvaro.
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 3345877..f45ad0f 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -609,25 +609,6 @@ nft_arp_print_firewall(struct nft_rule *r, unsigned int num,
- 		fputc('\n', stdout);
- }
- 
--static void nft_arp_save_firewall(const void *data,
--				  unsigned int format)
--{
--	const struct arptables_command_state *cs = data;
--	const struct arpt_entry *fw = &cs->fw;
--
--	print_fw_details((struct arpt_entry *)fw, format);
--
--	if (cs->target) {
--		if (cs->target->print)
--			/* Print the target information. */
--			cs->target->print(&fw->arp, cs->target->t,
--					  format & FMT_NUMERIC);
--	} else if (strlen(cs->jumpto) > 0) {
--		printf("-j %s", cs->jumpto);
--	}
--	printf("\n");
--}
--
- static bool nft_arp_is_same(const void *data_a,
- 			    const void *data_b)
- {
-@@ -675,14 +656,6 @@ static bool nft_arp_rule_find(struct nft_family_ops *ops, struct nft_rule *r,
- 	return true;
- }
- 
--static void nft_arp_save_counters(const void *data)
--{
--	const struct arptables_command_state *cs = data;
--	const struct arpt_entry *fw = &cs->fw;
--
--	save_counters(fw->counters.pcnt, fw->counters.bcnt);
--}
--
- struct nft_family_ops nft_family_ops_arp = {
- 	.add			= nft_arp_add,
- 	.is_same		= nft_arp_is_same,
-@@ -692,8 +665,8 @@ struct nft_family_ops nft_family_ops_arp = {
- 	.parse_immediate	= nft_arp_parse_immediate,
- 	.print_header		= nft_arp_print_header,
- 	.print_firewall		= nft_arp_print_firewall,
--	.save_firewall		= nft_arp_save_firewall,
--	.save_counters		= nft_arp_save_counters,
-+	.save_firewall		= NULL,
-+	.save_counters		= NULL,
- 	.post_parse		= NULL,
- 	.rule_find		= nft_arp_rule_find,
- 	.parse_target		= nft_arp_parse_target,
--- 
-1.7.10.4
+See comments below.
 
+> diff --git a/include/proto.h b/include/proto.h
+> index cc1f51f..0e531b2 100644
+> --- a/include/proto.h
+> +++ b/include/proto.h
+> @@ -252,6 +252,7 @@ enum udp_hdr_fields {
+>  
+>  enum tcp_hdr_fields {
+>  	TCPHDR_INVALID,
+> +	TCPHDR_UNSPEC = TCPHDR_INVALID,
+
+I think we can rename all _INVALID to _UNSPEC in a follow up patch,
+given that we use this to generate the dependencies.
+
+> +static const struct symbol_table icmp_code_tbl = {
+> +	.symbols	= {
+> +		SYMBOL("port-unreach",		ICMP_PORT_UNREACH),
+
+This one is shortened.
+
+> +		SYMBOL("net-prohibited",	ICMP_NET_ANO),
+
+This one is full long name.
+
+I have mangled the patch to use long names all the time for
+consistency. Once we get autocompletion I guess this shouldn't be a
+problem.
+
+> +static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+> +				      struct expr *expr)
+> +{
+> +	struct expr *payload = NULL;
+> +	struct stmt *nstmt;
+> +
+> +	switch (stmt->reject.type) {
+> +	case NFT_REJECT_TCP_RST:
+> +		if (reject_payload_gen_dependency_tcp(ctx, stmt, &payload) < 0)
+> +			return -1;
+> +		break;
+> +	default:
+> +		if (reject_payload_gen_dependency_family(ctx, stmt,
+> +							 &payload) < 0)
+> +			return -1;
+> +		break;
+> +	}
+
+Beware with using 'default' in switch().
+
+This is actually catching the NFT_REJECT_ICMP_UNREACH. And
+NFT_REJECT_ICMPX_UNREACH seems not possible.
+
+I mangled this to catch NFT_REJECT_ICMP_UNREACH and the default case
+(which should not happen displays a bug).
+
+> @@ -899,6 +909,59 @@ static void expr_postprocess(struct rule_pp_ctx *ctx,
+>  	}
+>  }
+>  
+> +static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
+> +{
+> +	const struct proto_desc *desc, *base;
+> +	int protocol;
+> +
+> +	switch (rctx.pctx.family) {
+> +	case NFPROTO_IPV4:
+> +		stmt->reject.family = rctx.pctx.family;
+> +		stmt->reject.expr->dtype = &icmp_code_type;
+> +		break;
+> +	case NFPROTO_IPV6:
+> +		stmt->reject.family = rctx.pctx.family;
+> +		stmt->reject.expr->dtype = &icmpv6_code_type;
+> +		break;
+> +	case NFPROTO_INET:
+> +		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+> +			break;
+> +		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
+> +		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+> +		protocol = proto_find_num(base, desc);
+> +		switch (protocol) {
+> +		case NFPROTO_IPV4:
+> +			stmt->reject.expr->dtype = &icmp_code_type;
+> +			break;
+> +		case NFPROTO_IPV6:
+> +			stmt->reject.expr->dtype = &icmpv6_code_type;
+> +			break;
+> +		}
+> +		stmt->reject.family = protocol;
+> +		break;
+> +	case NFPROTO_BRIDGE:
+> +		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+> +			break;
+> +		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
+> +		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+> +		protocol = proto_find_num(base, desc);
+> +		switch (protocol) {
+> +		case __constant_htons(ETH_P_IP):
+> +			stmt->reject.family = NFPROTO_IPV4;
+> +			stmt->reject.expr->dtype = &icmp_code_type;
+> +			break;
+> +		case __constant_htons(ETH_P_IPV6):
+> +			stmt->reject.family = NFPROTO_IPV6;
+> +			stmt->reject.expr->dtype = &icmpv6_code_type;
+> +			break;
+> +		default:
+> +			break;
+
+Please, have a closer look to this 'default' case. We may have
+different ethertype in bridge (not just ipv4 and ipv6). Check if this
+works fine in that case.
