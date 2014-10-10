@@ -1,101 +1,83 @@
-From: Steven Barth <cyrus@openwrt.org>
-Subject: [nft PATCHv2] build: allow disabling libreadline-support
-Date: Thu,  9 Oct 2014 22:48:27 +0200
-Message-ID: <1412887707-28754-1-git-send-email-cyrus@openwrt.org>
-References: <20141009163310.GA10706@salvia>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Steven Barth <cyrus@openwrt.org>
-To: netfilter-devel@vger.kernel.org
+From: Vitezslav Samel <vitezslav@samel.cz>
+Subject: ipset: bad timeout assignments
+Date: Fri, 10 Oct 2014 10:56:21 +0200
+Message-ID: <20141010085621.GA9211@pc11.op.pod.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from chi.subsignal.org ([188.40.166.11]:48873 "EHLO
-	chi.subsignal.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbaJIUtC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2014 16:49:02 -0400
-In-Reply-To: <20141009163310.GA10706@salvia>
+Received: from mail.pod.cz ([213.155.227.146]:54777 "EHLO mail.pod.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751744AbaJJJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Oct 2014 05:06:13 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This makes nftables a bit more embedded-friendly.
+	Hi!
 
-Signed-off-by: Steven Barth <cyrus@openwrt.org>
----
- configure.ac       | 9 +++++++--
- include/nftables.h | 7 +++++++
- src/Makefile.in    | 2 ++
- src/main.c         | 6 +++++-
- 4 files changed, 21 insertions(+), 3 deletions(-)
+  I'm using ipset's hash:ip with timeout to ban bad behaving clients.
+When using very long timeout ( > 2147483 ) the ipset's timeout gets
+weird:
 
-diff --git a/configure.ac b/configure.ac
-index 3a7647f..a2dd415 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -71,8 +71,13 @@ AC_CHECK_LIB([nftnl], [nft_rule_alloc], ,
- AC_CHECK_LIB([gmp], [__gmpz_init], ,
- 	     AC_MSG_ERROR([No suitable version of libgmp found]))
- 
--AC_CHECK_LIB([readline], [readline], ,
--	     AC_MSG_ERROR([No suitable version of libreadline found]))
-+AC_ARG_WITH([cli], [AS_HELP_STRING([--without-cli],
-+            [disable interactive CLI (libreadline support)])],
-+            [], [with_cli=yes])
-+AS_IF([test "x$with_cli" != xno], [
-+AC_CHECK_LIB([readline],[readline], , AC_MSG_ERROR([No suitable version of libreadline found]))
-+])
-+AC_SUBST(with_cli)
- 
- # Checks for header files.
- AC_HEADER_STDC
-diff --git a/include/nftables.h b/include/nftables.h
-index 3394e32..c3d3dbf 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -31,7 +31,14 @@ extern unsigned int debug_level;
- extern const char *include_paths[INCLUDE_PATHS_MAX];
- 
- struct parser_state;
-+#ifdef HAVE_LIBREADLINE
- extern int cli_init(struct parser_state *state);
-+#else
-+static inline int cli_init(struct parser_state *state)
-+{
-+	return -1;
-+}
-+#endif
- extern void cli_exit(void);
- extern void cli_display(const char *fmt, va_list ap) __fmtstring(1, 0);
- 
-diff --git a/src/Makefile.in b/src/Makefile.in
-index 8ac2b46..7ecc5f2 100644
---- a/src/Makefile.in
-+++ b/src/Makefile.in
-@@ -3,7 +3,9 @@ PROGRAMS		+= nft
- nft-destdir		:= @sbindir@
- 
- nft-obj			+= main.o
-+ifeq (@with_cli@,yes)
- nft-obj			+= cli.o
-+endif
- nft-obj			+= rule.o
- nft-obj			+= statement.o
- nft-obj			+= datatype.o
-diff --git a/src/main.c b/src/main.c
-index 2685b0d..ee684ce 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -335,7 +335,11 @@ int main(int argc, char * const *argv)
- 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
- 			goto out;
- 	} else if (interactive) {
--		cli_init(&state);
-+		if (cli_init(&state) < 0) {
-+			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
-+			argv[0]);
-+			exit(NFT_EXIT_FAILURE);
-+		}
- 		return 0;
- 	} else {
- 		fprintf(stderr, "%s: no command specified\n", argv[0]);
--- 
-2.1.1
+-- TEST 1 ----------------
++ uname -r
+3.15.6
++ ipset --version
+ipset v6.23, protocol version: 6
++ ipset create test hash:ip timeout 1111111
++ ipset add test 10.0.0.1
++ ipset add test 10.0.0.2 timeout 2000000
++ ipset add test 10.0.0.3 timeout 3000000
++ ipset list test
+Name: test
+Type: hash:ip
+Revision: 3
+Header: family inet hashsize 1024 maxelem 65536 timeout 1111111
+Size in memory: 16720
+References: 0
+Members:
+10.0.0.1 timeout 1111111
+10.0.0.2 timeout 2000000
+10.0.0.3 timeout 4294967
++ ipset destroy test
+--------------------------
 
+The 10.0.0.3 gets 4294967 timeout although I wanted timeout 3000000.
+
+With hash:ip default timeout being >2147483 the test looks like this:
+
+-- TEST 2 ----------------
++ ipset create test2 hash:ip timeout 3333333
++ ipset add test2 10.0.0.1
++ ipset add test2 10.0.0.2 timeout 2000000
++ ipset add test2 10.0.0.3 timeout 3000000
++ ipset list test2
+Name: test2
+Type: hash:ip
+Revision: 3
+Header: family inet hashsize 1024 maxelem 65536 timeout 3333333
+Size in memory: 16720
+References: 0
+Members:
+10.0.0.1 timeout 4294967
+10.0.0.2 timeout 2000000
+10.0.0.3 timeout 4294967
++ ipset destroy test2
+--------------------------
+
+Now 10.0.0.1 gets wrong timeout and 10.0.0.3 also.
+The magic number 2147483 is (UINT_MAX/1000)/2 which makes me think this
+is some signed/unsigned int problem somewhere.
+
+The above tests were run on x86_64 machine; the same problem is on i686,
+but wrongly assigned timeout is 2147483 instead of 4294967.
+
+I also tried 3.16.2 kernel, but the bug is here too.
+
+  Could you, please, have a look at this problem?
+
+	Thanks,
+
+		Vita
