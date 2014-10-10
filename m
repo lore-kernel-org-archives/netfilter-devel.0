@@ -1,37 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] Netfilter fixes for net-next
-Date: Fri, 10 Oct 2014 15:01:28 -0400 (EDT)
-Message-ID: <20141010.150128.999718046890657580.davem@davemloft.net>
-References: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH] src: cleanup in mxml and jansson regarding set_id
+ parsing
+Date: Fri, 10 Oct 2014 21:43:44 +0200
+Message-ID: <20141010194344.31948.59069.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: pablo@netfilter.org, alvaroneay@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:56060 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbaJJTBb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Oct 2014 15:01:31 -0400
-In-Reply-To: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
+Received: from smtp3.cica.es ([150.214.5.190]:45976 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753961AbaJJTny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Oct 2014 15:43:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu,  9 Oct 2014 20:27:39 +0200
+jansson.c: In function 'nft_jansson_expr_parse':
+jansson.c:212:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
+In file included from jansson.c:10:0:
+./internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
+jansson.c:195:18: warning: unused variable 'set_cur' [-Wunused-variable]
+mxml.c: In function 'nft_mxml_expr_parse':
+mxml.c:97:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
+In file included from mxml.c:12:0:
+internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
+mxml.c:68:18: warning: unused variable 'set_cur' [-Wunused-variable]
 
-> This batch contains two fixes for what you have in your net-next,
-> they are:
-> 
-> 1) Remove nf_send_reset6() from header file. This function now resides
->    in the nf_reject_ipv6 module. Reported by Eric Dumazet.
-> 
-> 2) Fix wrong NFT_REJECT_ICMPX_MAX definition and adjust code to fix
->    errors reported by Dan Carpenter's static analysis tools.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+Spotted with: gcc (Debian 4.7.2-5) 4.7.2
 
-Pulled, thanks Pablo.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/jansson.c |    4 ++--
+ src/mxml.c    |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/jansson.c b/src/jansson.c
+index 728de12..4c7968a 100644
+--- a/src/jansson.c
++++ b/src/jansson.c
+@@ -192,8 +192,8 @@ struct nft_rule_expr *nft_jansson_expr_parse(json_t *root,
+ {
+ 	struct nft_rule_expr *e;
+ 	const char *type;
+-	struct nft_set *set_cur = NULL;
+-	int ret, set_id;
++	uint32_t set_id;
++	int ret;
+ 
+ 	type = nft_jansson_parse_str(root, "type", err);
+ 	if (type == NULL)
+diff --git a/src/mxml.c b/src/mxml.c
+index 22d482f..a97d380 100644
+--- a/src/mxml.c
++++ b/src/mxml.c
+@@ -65,8 +65,8 @@ struct nft_rule_expr *nft_mxml_expr_parse(mxml_node_t *node,
+ 	struct nft_rule_expr *e;
+ 	const char *expr_name;
+ 	char *xml_text;
+-	struct nft_set *set_cur = NULL;
+-	int ret, set_id;
++	uint32_t set_id;
++	int ret;
+ 
+ 	expr_name = mxmlElementGetAttr(node, "type");
+ 	if (expr_name == NULL) {
+
