@@ -1,83 +1,111 @@
-From: Vitezslav Samel <vitezslav@samel.cz>
-Subject: ipset: bad timeout assignments
-Date: Fri, 10 Oct 2014 10:56:21 +0200
-Message-ID: <20141010085621.GA9211@pc11.op.pod.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nf_reject_ipv4: module license 'unspecified' taints kernel
+Date: Fri, 10 Oct 2014 11:56:16 +0200
+Message-ID: <20141010095520.GA3126@salvia>
+References: <20141010091904.GD1981@darkstar.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed; boundary="mojUlQ0s9EVzWg2t"
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Dave Young <dyoung@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.pod.cz ([213.155.227.146]:54777 "EHLO mail.pod.cz"
+Received: from mail.us.es ([193.147.175.20]:60546 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751744AbaJJJGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Oct 2014 05:06:13 -0400
+	id S1751347AbaJJJyz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Oct 2014 05:54:55 -0400
 Content-Disposition: inline
+In-Reply-To: <20141010091904.GD1981@darkstar.nay.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-	Hi!
 
-  I'm using ipset's hash:ip with timeout to ban bad behaving clients.
-When using very long timeout ( > 2147483 ) the ipset's timeout gets
-weird:
+--mojUlQ0s9EVzWg2t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- TEST 1 ----------------
-+ uname -r
-3.15.6
-+ ipset --version
-ipset v6.23, protocol version: 6
-+ ipset create test hash:ip timeout 1111111
-+ ipset add test 10.0.0.1
-+ ipset add test 10.0.0.2 timeout 2000000
-+ ipset add test 10.0.0.3 timeout 3000000
-+ ipset list test
-Name: test
-Type: hash:ip
-Revision: 3
-Header: family inet hashsize 1024 maxelem 65536 timeout 1111111
-Size in memory: 16720
-References: 0
-Members:
-10.0.0.1 timeout 1111111
-10.0.0.2 timeout 2000000
-10.0.0.3 timeout 4294967
-+ ipset destroy test
---------------------------
+On Fri, Oct 10, 2014 at 05:19:04PM +0800, Dave Young wrote:
+> Hi,
+> 
+> With today's linus tree, I got below kmsg:
+> [   23.545204] nf_reject_ipv4: module license 'unspecified' taints kernel.
+> 
+> It could be caused by below commit:
+> 
+> commit c8d7b98bec43faaa6583c3135030be5eb4693acb
+> Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date:   Fri Sep 26 14:35:15 2014 +0200
+> 
+>     netfilter: move nf_send_resetX() code to nf_reject_ipvX modules
+>     
+>     Move nf_send_reset() and nf_send_reset6() to nf_reject_ipv4 and
+>     nf_reject_ipv6 respectively. This code is shared by x_tables and
+>     nf_tables.
+>     
+>     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-The 10.0.0.3 gets 4294967 timeout although I wanted timeout 3000000.
+Patch attached, thanks for reporting.
 
-With hash:ip default timeout being >2147483 the test looks like this:
+P.S: Please, Cc netfilter-devel@vger.kernel.org in future reports, so
+we make sure things don't get lost.
 
--- TEST 2 ----------------
-+ ipset create test2 hash:ip timeout 3333333
-+ ipset add test2 10.0.0.1
-+ ipset add test2 10.0.0.2 timeout 2000000
-+ ipset add test2 10.0.0.3 timeout 3000000
-+ ipset list test2
-Name: test2
-Type: hash:ip
-Revision: 3
-Header: family inet hashsize 1024 maxelem 65536 timeout 3333333
-Size in memory: 16720
-References: 0
-Members:
-10.0.0.1 timeout 4294967
-10.0.0.2 timeout 2000000
-10.0.0.3 timeout 4294967
-+ ipset destroy test2
---------------------------
+--mojUlQ0s9EVzWg2t
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-missing-module-license-in-the-nf_reject_ip.patch"
 
-Now 10.0.0.1 gets wrong timeout and 10.0.0.3 also.
-The magic number 2147483 is (UINT_MAX/1000)/2 which makes me think this
-is some signed/unsigned int problem somewhere.
+>From d4358bcf64ba7a64d4de4e1dc5533c4c8f88ea82 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 10 Oct 2014 11:25:20 +0200
+Subject: [PATCH] netfilter: missing module license in the nf_reject_ipvX
+ modules
 
-The above tests were run on x86_64 machine; the same problem is on i686,
-but wrongly assigned timeout is 2147483 instead of 4294967.
+[   23.545204] nf_reject_ipv4: module license 'unspecified' taints kernel.
 
-I also tried 3.16.2 kernel, but the bug is here too.
+Reported-by: Dave Young <dyoung@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/nf_reject_ipv4.c |    3 +++
+ net/ipv6/netfilter/nf_reject_ipv6.c |    4 ++++
+ 2 files changed, 7 insertions(+)
 
-  Could you, please, have a look at this problem?
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index b023b4e..92b303d 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -6,6 +6,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/module.h>
+ #include <net/ip.h>
+ #include <net/tcp.h>
+ #include <net/route.h>
+@@ -125,3 +126,5 @@ void nf_send_reset(struct sk_buff *oldskb, int hook)
+ 	kfree_skb(nskb);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset);
++
++MODULE_LICENSE("GPL");
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 5f5f043..20d9def 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -5,6 +5,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++
++#include <linux/module.h>
+ #include <net/ipv6.h>
+ #include <net/ip6_route.h>
+ #include <net/ip6_fib.h>
+@@ -161,3 +163,5 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ 		ip6_local_out(nskb);
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset6);
++
++MODULE_LICENSE("GPL");
+-- 
+1.7.10.4
 
-	Thanks,
 
-		Vita
+--mojUlQ0s9EVzWg2t--
