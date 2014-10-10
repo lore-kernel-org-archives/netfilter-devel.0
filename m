@@ -1,68 +1,41 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] src: cleanup in mxml and jansson regarding set_id
- parsing
-Date: Fri, 10 Oct 2014 21:43:44 +0200
-Message-ID: <20141010194344.31948.59069.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset: bad timeout assignments
+Date: Fri, 10 Oct 2014 23:19:15 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1410102317060.23228@blackhole.kfki.hu>
+References: <20141010085621.GA9211@pc11.op.pod.cz> <alpine.DEB.2.10.1410101256230.18124@blackhole.kfki.hu> <20141010111404.GA15011@pc11.op.pod.cz> <alpine.DEB.2.10.1410101856580.21928@blackhole.kfki.hu>
+ <CAJ26g5RuSpQBzZ+L8LCx7daSorSiY0uqGPb044HLzmbrV=Rhnw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, alvaroneay@gmail.com
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	Vitezslav Samel <vitezslav@samel.cz>
+To: Patrick Schaaf <netdev@bof.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:45976 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753961AbaJJTny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Oct 2014 15:43:54 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.25]:52203 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750810AbaJJVSq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Oct 2014 17:18:46 -0400
+In-Reply-To: <CAJ26g5RuSpQBzZ+L8LCx7daSorSiY0uqGPb044HLzmbrV=Rhnw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jansson.c: In function 'nft_jansson_expr_parse':
-jansson.c:212:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
-In file included from jansson.c:10:0:
-./internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
-jansson.c:195:18: warning: unused variable 'set_cur' [-Wunused-variable]
-mxml.c: In function 'nft_mxml_expr_parse':
-mxml.c:97:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
-In file included from mxml.c:12:0:
-internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
-mxml.c:68:18: warning: unused variable 'set_cur' [-Wunused-variable]
+On Fri, 10 Oct 2014, Patrick Schaaf wrote:
 
-Spotted with: gcc (Debian 4.7.2-5) 4.7.2
+> > You are right, I'll look into it. Part of the problem comes from a bad 
+> > protocol decision, because ipset passes timeout values as an u32 value 
+> > between userspace and kernel.
+>
+> Not sure whether it makes sense, but maybe an intermediate "fix" would 
+> be to recognize, in userlevel, the too-large values, and properly clamp 
+> them to the highest value representable by the protocol. Better than 
+> wraparound that causes unexpectedly low timeouts, I think.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/jansson.c |    4 ++--
- src/mxml.c    |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+I'm thinking on just introducing a new attribute to carry u64 sized 
+timeout values.
 
-diff --git a/src/jansson.c b/src/jansson.c
-index 728de12..4c7968a 100644
---- a/src/jansson.c
-+++ b/src/jansson.c
-@@ -192,8 +192,8 @@ struct nft_rule_expr *nft_jansson_expr_parse(json_t *root,
- {
- 	struct nft_rule_expr *e;
- 	const char *type;
--	struct nft_set *set_cur = NULL;
--	int ret, set_id;
-+	uint32_t set_id;
-+	int ret;
- 
- 	type = nft_jansson_parse_str(root, "type", err);
- 	if (type == NULL)
-diff --git a/src/mxml.c b/src/mxml.c
-index 22d482f..a97d380 100644
---- a/src/mxml.c
-+++ b/src/mxml.c
-@@ -65,8 +65,8 @@ struct nft_rule_expr *nft_mxml_expr_parse(mxml_node_t *node,
- 	struct nft_rule_expr *e;
- 	const char *expr_name;
- 	char *xml_text;
--	struct nft_set *set_cur = NULL;
--	int ret, set_id;
-+	uint32_t set_id;
-+	int ret;
- 
- 	expr_name = mxmlElementGetAttr(node, "type");
- 	if (expr_name == NULL) {
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
