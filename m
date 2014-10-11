@@ -1,33 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] src: cleanup in mxml and jansson regarding
- set_id parsing
-Date: Sat, 11 Oct 2014 12:27:29 +0200
-Message-ID: <20141011102729.GA11661@salvia>
-References: <20141010194344.31948.59069.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, alvaroneay@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 2/3] delinearize: list the icmpx reason with the string associated
+Date: Sat, 11 Oct 2014 16:11:11 +0200
+Message-ID: <1413036673-23022-2-git-send-email-alvaroneay@gmail.com>
+References: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37995 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751976AbaJKK0M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2014 06:26:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20141010194344.31948.59069.stgit@nfdev.cica.es>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:63655 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105AbaJKOLA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Oct 2014 10:11:00 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hi2so6325261wib.5
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:58 -0700 (PDT)
+In-Reply-To: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 10, 2014 at 09:43:44PM +0200, Arturo Borrero Gonzalez wrote:
-> jansson.c: In function 'nft_jansson_expr_parse':
-> jansson.c:212:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
-> In file included from jansson.c:10:0:
-> ./internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
-> jansson.c:195:18: warning: unused variable 'set_cur' [-Wunused-variable]
-> mxml.c: In function 'nft_mxml_expr_parse':
-> mxml.c:97:6: warning: pointer targets in passing argument 3 of 'nft_set_lookup_id' differ in signedness [-Wpointer-sign]
-> In file included from mxml.c:12:0:
-> internal.h:95:5: note: expected 'uint32_t *' but argument is of type 'int *'
-> mxml.c:68:18: warning: unused variable 'set_cur' [-Wunused-variable]
+If you add the rule:
+  nft add rule inet filter input reject with icmpx type host-unreachable
+  nft list table inet filter
 
-Oops, thanks Arturo.
+shows:
+  table inet filter {
+	chain input {
+		reject with icmpx type 2
+	}
+  }
+
+We have to attach the icmpx datatype when we list the rules that use it. With
+this patch if we list the ruleset, the output is:
+
+  table inet filter {
+	chain input {
+		reject with icmpx type host-unreachable
+	}
+  }
+
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/netlink_delinearize.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4bb4697..3e7aed4 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -928,8 +928,10 @@ static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
+ 		stmt->reject.expr->dtype = &icmpv6_code_type;
+ 		break;
+ 	case NFPROTO_INET:
+-		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
++		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
++			stmt->reject.expr->dtype = &icmpx_code_type;
+ 			break;
++		}
+ 		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
+ 		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+ 		protocol = proto_find_num(base, desc);
+@@ -944,8 +946,10 @@ static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
+ 		stmt->reject.family = protocol;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
++		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
++			stmt->reject.expr->dtype = &icmpx_code_type;
+ 			break;
++		}
+ 		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
+ 		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+ 		protocol = proto_find_num(base, desc);
+-- 
+1.7.10.4
+
