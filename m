@@ -1,41 +1,37 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: bad timeout assignments
-Date: Fri, 10 Oct 2014 23:19:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1410102317060.23228@blackhole.kfki.hu>
-References: <20141010085621.GA9211@pc11.op.pod.cz> <alpine.DEB.2.10.1410101256230.18124@blackhole.kfki.hu> <20141010111404.GA15011@pc11.op.pod.cz> <alpine.DEB.2.10.1410101856580.21928@blackhole.kfki.hu>
- <CAJ26g5RuSpQBzZ+L8LCx7daSorSiY0uqGPb044HLzmbrV=Rhnw@mail.gmail.com>
+From: =?UTF-8?B?c3TDqXBoYW5lIGJyeWFudA==?= <stephane.ml.bryant@gmail.com>
+Subject: queuing to userspace for the bridge family, using nftables
+Date: Sat, 11 Oct 2014 09:00:44 +0200
+Message-ID: <5438D59C.1030706@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org,
-	Vitezslav Samel <vitezslav@samel.cz>
-To: Patrick Schaaf <netdev@bof.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: kaber@trash.net, pablo@netfilter.org, marc@petit-huguenin.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:52203 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750810AbaJJVSq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Oct 2014 17:18:46 -0400
-In-Reply-To: <CAJ26g5RuSpQBzZ+L8LCx7daSorSiY0uqGPb044HLzmbrV=Rhnw@mail.gmail.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:38792 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973AbaJKHAx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Oct 2014 03:00:53 -0400
+Received: by mail-wi0-f174.google.com with SMTP id cc10so3807161wib.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 00:00:52 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 10 Oct 2014, Patrick Schaaf wrote:
+Hello,
 
-> > You are right, I'll look into it. Part of the problem comes from a bad 
-> > protocol decision, because ipset passes timeout values as an u32 value 
-> > between userspace and kernel.
->
-> Not sure whether it makes sense, but maybe an intermediate "fix" would 
-> be to recognize, in userlevel, the too-large values, and properly clamp 
-> them to the highest value representable by the protocol. Better than 
-> wraparound that causes unexpectedly low timeouts, I think.
+We are currently working on a project which may need the use of nftables
+to queue AF_BRIDGE packets to the userspace and back. Apparently this is
+already supported in the nftables code itself, but not in the bridge
+netfilter code (the corresponding nf_afinfo is missing, at least).
 
-I'm thinking on just introducing a new attribute to carry u64 sized 
-timeout values.
+I would like to know if there are plans to support this? If yes, in what
+timeframe? If no, would you be interested if we were to submit a patch
+to that effect?
+Also, a. what should be included in the payload send to userspace?
+(starting from the 802.3 LLC/protocol header, or also including up to
+the MAC addresses ?) b. alternatively, shouldn't the dest MAC address be
+added to the netlink attributes sent to userspace?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+regards
+stephane bryant
