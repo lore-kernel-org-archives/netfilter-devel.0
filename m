@@ -1,95 +1,114 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 3/3] test: update and add the reject tests for ip, ip6, bridge and inet.
-Date: Sat, 11 Oct 2014 16:11:12 +0200
-Message-ID: <1413036673-23022-3-git-send-email-alvaroneay@gmail.com>
-References: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 1/3] evaluate: fix a crash if we specify ether type or meta nfproto in reject
+Date: Sat, 11 Oct 2014 16:11:10 +0200
+Message-ID: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:44486 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbaJKOLB (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:46394 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592AbaJKOK7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2014 10:11:01 -0400
-Received: by mail-wi0-f169.google.com with SMTP id h11so229690wiw.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:59 -0700 (PDT)
-In-Reply-To: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
+	Sat, 11 Oct 2014 10:10:59 -0400
+Received: by mail-wg0-f41.google.com with SMTP id b13so5848500wgh.12
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:57 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+If we use a rule:
+nft add rule bridge filter input \
+	ether type ip reject with icmp type host-unreachable
+
+or this:
+
+nft add rule inet filter input \
+	meta nfproto ipv4 reject with icmp type host-unreachable
+
+we have a segfault because we add a network dependency when we already have
+network context.
+
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- tests/regression/bridge/reject.t |    9 +++++++++
- tests/regression/inet/reject.t   |   12 ++++++++++++
- tests/regression/ip/reject.t     |    6 +++++-
- tests/regression/ip6/reject.t    |    6 +++++-
- 4 files changed, 31 insertions(+), 2 deletions(-)
- create mode 100644 tests/regression/bridge/reject.t
- create mode 100644 tests/regression/inet/reject.t
+ src/evaluate.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 50 insertions(+), 1 deletion(-)
 
-diff --git a/tests/regression/bridge/reject.t b/tests/regression/bridge/reject.t
-new file mode 100644
-index 0000000..5676755
---- /dev/null
-+++ b/tests/regression/bridge/reject.t
-@@ -0,0 +1,9 @@
-+*bridge;test-bridge
-+:input;type filter hook input priority 0
-+
-+reject with icmp type host-unreachable;ok;ether type ip reject with icmp type host-unreachable
-+reject with icmpv6 type no-route;ok;ether type ip6 reject with icmpv6 type no-route
-+ether type ip reject with icmp type host-unreachable;ok
-+ether type ip6 reject with icmp type host-unreachable;fail
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-diff --git a/tests/regression/inet/reject.t b/tests/regression/inet/reject.t
-new file mode 100644
-index 0000000..6e5d593
---- /dev/null
-+++ b/tests/regression/inet/reject.t
-@@ -0,0 +1,12 @@
-+*inet;test-inet
-+:input;type filter hook input priority 0
-+
-+reject with icmp type host-unreachable;ok;meta nfproto ipv4 reject with icmp type host-unreachable
-+reject with icmpv6 type no-route;ok;meta nfproto ipv6 reject with icmpv6 type no-route
-+udp dport 9999 reject with icmpv6 type no-route;ok;meta nfproto ipv6 meta l4proto 17 udp dport 9999 reject with icmpv6 type no-route
-+reject with tcp reset;ok;meta l4proto 6 reject with tcp reset
-+reject;ok
-+meta nfproto ipv4 reject with icmp type host-unreachable;ok
-+meta nfproto ipv6 reject with icmp type host-unreachable;fail
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-diff --git a/tests/regression/ip/reject.t b/tests/regression/ip/reject.t
-index e7fb15b..13fb4a3 100644
---- a/tests/regression/ip/reject.t
-+++ b/tests/regression/ip/reject.t
-@@ -1,5 +1,9 @@
- *ip;test-ip4
--*ip;test-inet
- :output;type filter hook output priority 0
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 83ef749..3e4471e 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -19,6 +19,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <netinet/ip_icmp.h>
+ #include <netinet/icmp6.h>
++#include <net/ethernet.h>
  
- reject;ok
-+udp dport 9999 reject with icmp type host-unreachable;ok
-+tcp dport 9999 reject;ok
-+reject with tcp reset;ok;ip protocol 6 reject with tcp reset
-+reject with icmp type no-route;fail
-+reject with icmpv6 type no-route;fail
-diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
-index b49c50b..92edcb7 100644
---- a/tests/regression/ip6/reject.t
-+++ b/tests/regression/ip6/reject.t
-@@ -1,5 +1,9 @@
- *ip6;test-ip6
--*inet;test-inet
- :output;type filter hook output priority 0
- 
- reject;ok
-+reject with icmpv6 type host-unreachable;fail
-+reject with icmp type host-unreachable;fail
-+tcp dport 9999 reject with icmpv6 type admin-prohibited;ok
-+udp dport 9999 reject;ok
-+reject with tcp reset;ok;ip6 nexthdr 6 reject with tcp reset
+ #include <expression.h>
+ #include <statement.h>
+@@ -1204,6 +1205,9 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
+ 				       struct expr *expr)
+ {
++	const struct proto_desc *desc, *base;
++	int protocol;
++
+ 	switch (ctx->pctx.family) {
+ 	case NFPROTO_ARP:
+ 		return stmt_error(ctx, stmt, "cannot use reject with arp");
+@@ -1224,8 +1228,53 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
+ 			break;
+ 		}
+ 		break;
+-	case NFPROTO_INET:
+ 	case NFPROTO_BRIDGE:
++		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
++		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++		if (desc != NULL) {
++			protocol = proto_find_num(base, desc);
++			switch (protocol) {
++			case __constant_htons(ETH_P_IP):
++				if (NFPROTO_IPV4 == stmt->reject.family)
++					break;
++			case __constant_htons(ETH_P_IPV6):
++				if (NFPROTO_IPV6 == stmt->reject.family)
++					break;
++				return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++			default:
++				return stmt_error(ctx, stmt,
++						"cannot reject this ether type");
++			}
++			break;
++		}
++		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
++			break;
++		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
++			return -1;
++		break;
++	case NFPROTO_INET:
++		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
++		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++		if (desc != NULL) {
++			protocol = proto_find_num(base, desc);
++			switch (protocol) {
++			case NFPROTO_IPV4:
++				if (stmt->reject.family == NFPROTO_IPV4)
++					break;
++				return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++				break;
++			case NFPROTO_IPV6:
++				if (stmt->reject.family == NFPROTO_IPV6)
++					break;
++				return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++			default:
++				BUG("unsupported family");
++			}
++			break;
++		}
+ 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+ 			break;
+ 		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
 -- 
 1.7.10.4
 
