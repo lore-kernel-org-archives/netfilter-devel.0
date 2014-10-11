@@ -1,75 +1,95 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 2/3] delinearize: list the icmpx reason with the string associated
-Date: Sat, 11 Oct 2014 16:11:11 +0200
-Message-ID: <1413036673-23022-2-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 3/3] test: update and add the reject tests for ip, ip6, bridge and inet.
+Date: Sat, 11 Oct 2014 16:11:12 +0200
+Message-ID: <1413036673-23022-3-git-send-email-alvaroneay@gmail.com>
 References: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:63655 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105AbaJKOLA (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:44486 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592AbaJKOLB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2014 10:11:00 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hi2so6325261wib.5
-        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:58 -0700 (PDT)
+	Sat, 11 Oct 2014 10:11:01 -0400
+Received: by mail-wi0-f169.google.com with SMTP id h11so229690wiw.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:59 -0700 (PDT)
 In-Reply-To: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If you add the rule:
-  nft add rule inet filter input reject with icmpx type host-unreachable
-  nft list table inet filter
-
-shows:
-  table inet filter {
-	chain input {
-		reject with icmpx type 2
-	}
-  }
-
-We have to attach the icmpx datatype when we list the rules that use it. With
-this patch if we list the ruleset, the output is:
-
-  table inet filter {
-	chain input {
-		reject with icmpx type host-unreachable
-	}
-  }
-
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/netlink_delinearize.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ tests/regression/bridge/reject.t |    9 +++++++++
+ tests/regression/inet/reject.t   |   12 ++++++++++++
+ tests/regression/ip/reject.t     |    6 +++++-
+ tests/regression/ip6/reject.t    |    6 +++++-
+ 4 files changed, 31 insertions(+), 2 deletions(-)
+ create mode 100644 tests/regression/bridge/reject.t
+ create mode 100644 tests/regression/inet/reject.t
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 4bb4697..3e7aed4 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -928,8 +928,10 @@ static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
- 		stmt->reject.expr->dtype = &icmpv6_code_type;
- 		break;
- 	case NFPROTO_INET:
--		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
-+		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
-+			stmt->reject.expr->dtype = &icmpx_code_type;
- 			break;
-+		}
- 		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
- 		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
- 		protocol = proto_find_num(base, desc);
-@@ -944,8 +946,10 @@ static void stmt_reject_postprocess(struct rule_pp_ctx rctx, struct stmt *stmt)
- 		stmt->reject.family = protocol;
- 		break;
- 	case NFPROTO_BRIDGE:
--		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
-+		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
-+			stmt->reject.expr->dtype = &icmpx_code_type;
- 			break;
-+		}
- 		base = rctx.pctx.protocol[PROTO_BASE_LL_HDR].desc;
- 		desc = rctx.pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
- 		protocol = proto_find_num(base, desc);
+diff --git a/tests/regression/bridge/reject.t b/tests/regression/bridge/reject.t
+new file mode 100644
+index 0000000..5676755
+--- /dev/null
++++ b/tests/regression/bridge/reject.t
+@@ -0,0 +1,9 @@
++*bridge;test-bridge
++:input;type filter hook input priority 0
++
++reject with icmp type host-unreachable;ok;ether type ip reject with icmp type host-unreachable
++reject with icmpv6 type no-route;ok;ether type ip6 reject with icmpv6 type no-route
++ether type ip reject with icmp type host-unreachable;ok
++ether type ip6 reject with icmp type host-unreachable;fail
++reject with icmpx type host-unreachable;ok
++reject with icmpx type no-route;ok
+diff --git a/tests/regression/inet/reject.t b/tests/regression/inet/reject.t
+new file mode 100644
+index 0000000..6e5d593
+--- /dev/null
++++ b/tests/regression/inet/reject.t
+@@ -0,0 +1,12 @@
++*inet;test-inet
++:input;type filter hook input priority 0
++
++reject with icmp type host-unreachable;ok;meta nfproto ipv4 reject with icmp type host-unreachable
++reject with icmpv6 type no-route;ok;meta nfproto ipv6 reject with icmpv6 type no-route
++udp dport 9999 reject with icmpv6 type no-route;ok;meta nfproto ipv6 meta l4proto 17 udp dport 9999 reject with icmpv6 type no-route
++reject with tcp reset;ok;meta l4proto 6 reject with tcp reset
++reject;ok
++meta nfproto ipv4 reject with icmp type host-unreachable;ok
++meta nfproto ipv6 reject with icmp type host-unreachable;fail
++reject with icmpx type host-unreachable;ok
++reject with icmpx type no-route;ok
+diff --git a/tests/regression/ip/reject.t b/tests/regression/ip/reject.t
+index e7fb15b..13fb4a3 100644
+--- a/tests/regression/ip/reject.t
++++ b/tests/regression/ip/reject.t
+@@ -1,5 +1,9 @@
+ *ip;test-ip4
+-*ip;test-inet
+ :output;type filter hook output priority 0
+ 
+ reject;ok
++udp dport 9999 reject with icmp type host-unreachable;ok
++tcp dport 9999 reject;ok
++reject with tcp reset;ok;ip protocol 6 reject with tcp reset
++reject with icmp type no-route;fail
++reject with icmpv6 type no-route;fail
+diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
+index b49c50b..92edcb7 100644
+--- a/tests/regression/ip6/reject.t
++++ b/tests/regression/ip6/reject.t
+@@ -1,5 +1,9 @@
+ *ip6;test-ip6
+-*inet;test-inet
+ :output;type filter hook output priority 0
+ 
+ reject;ok
++reject with icmpv6 type host-unreachable;fail
++reject with icmp type host-unreachable;fail
++tcp dport 9999 reject with icmpv6 type admin-prohibited;ok
++udp dport 9999 reject;ok
++reject with tcp reset;ok;ip6 nexthdr 6 reject with tcp reset
 -- 
 1.7.10.4
 
