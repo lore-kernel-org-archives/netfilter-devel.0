@@ -1,51 +1,39 @@
-From: Houcheng Lin <houcheng@gmail.com>
-Subject: [PATCH] netfilter: release skbuf when nlmsg put fail
-Date: Mon, 13 Oct 2014 14:50:32 +0800
-Message-ID: <CAL8JtxAqDhOXooLtOebSBHtKxwE=sLFqW8B-VgtCzsr-M4OD7g@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: release skbuf when nlmsg put fail
+Date: Mon, 13 Oct 2014 13:42:56 +0200
+Message-ID: <20141013114256.GB6560@breakpoint.cc>
+References: <CAL8JtxAqDhOXooLtOebSBHtKxwE=sLFqW8B-VgtCzsr-M4OD7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:57219 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbaJMGud (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2014 02:50:33 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Houcheng Lin <houcheng@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAL8JtxAqDhOXooLtOebSBHtKxwE=sLFqW8B-VgtCzsr-M4OD7g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When system is under heavy loading, the __nfulnl_send() may may failed
-to put nlmsg into skbuf of nfulnl_instance. If not clear the skbuff on failed,
-the __nfulnl_send() will still try to put next nlmsg onto this half-full skbuf
-and cause the user program can never receive packet.
+Houcheng Lin <houcheng@gmail.com> wrote:
+> When system is under heavy loading, the __nfulnl_send() may may failed
+> to put nlmsg into skbuf of nfulnl_instance. If not clear the skbuff on failed,
+> the __nfulnl_send() will still try to put next nlmsg onto this half-full skbuf
+> and cause the user program can never receive packet.
+> 
+> This patch fix this issue by releasing skbuf immediately after nlmst put
+> failed.
 
-This patch fix this issue by releasing skbuf immediately after nlmst put
-failed.
+Did you observe such problem or is this based on code reading?
+I ask because nflog should make sure we always have enough room left in
+skb to append a done message, see nfulnl_log_packet():
 
-Signed-off-by: Houcheng Lin <houcheng@gmail.com>
+if (inst->skb &&
+    size > skb_tailroom(inst->skb) - sizeof(struct nfgenmsg)) {
+	/* flush skb */
 
----
- net/netfilter/nfnetlink_log.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index a11c5ff..0cb9ede 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -358,10 +358,9 @@ __nfulnl_send(struct nfulnl_instance *inst)
-     }
-     status = nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
-                    MSG_DONTWAIT);
--
-+out:
-     inst->qlen = 0;
-     inst->skb = NULL;
--out:
-     return status;
- }
-
--- 
-1.7.9.5
+Your patch fixes such 'can never send' skb condition by leaking the
+skb.  So at the very least you would need to call kfree_skb(), and
+perhaps also add WARN_ON() so we catch this and can fix up the size
+accounting?
