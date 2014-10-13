@@ -1,64 +1,61 @@
-From: Josh Boyer <jwboyer@fedoraproject.org>
-Subject: Re: [PATCH 1/2] netfilter: kill nf_send_reset6() from include/net/netfilter/ipv6/nf_reject.h
-Date: Mon, 13 Oct 2014 12:01:37 -0400
-Message-ID: <CA+5PVA72ME31+CAzcM46JyvrP19dawTO4LSmta6Jt2eDZVbWaA@mail.gmail.com>
-References: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
-	<1412879261-25045-2-git-send-email-pablo@netfilter.org>
-	<CA+5PVA7-k-HFGUUeZ3LTCmVcmR1h_=8W-_PzRO4-2dcc_cRHaQ@mail.gmail.com>
-	<20141013155510.GA26105@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>,
-	Eric Dumazet <edumazet@google.com>
-To: Florian Westphal <fw@strlen.de>
+From: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Subject: [PATCH] nf_conntrack_proto_tcp: allow server to become a client in TW handling
+Date: Mon, 13 Oct 2014 13:09:28 -0300
+Message-ID: <a9618c5db692413c2970201b5206bcd357438399.1413216136.git.mleitner@redhat.com>
+References: <5419B546.40702@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:59863 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752779AbaJMQBi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2014 12:01:38 -0400
-In-Reply-To: <20141013155510.GA26105@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:27375 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753854AbaJMQJi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Oct 2014 12:09:38 -0400
+In-Reply-To: <5419B546.40702@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 13, 2014 at 11:55 AM, Florian Westphal <fw@strlen.de> wrote:
-> Josh Boyer <jwboyer@fedoraproject.org> wrote:
->> On Thu, Oct 9, 2014 at 2:27 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > nf_send_reset6() now resides in net/ipv6/netfilter/nf_reject_ipv6.c
->> >
->> > Fixes: c8d7b98 ("netfilter: move nf_send_resetX() code to nf_reject_ipvX modules")
->> > Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
->> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->> > Acked-by: Eric Dumazet <edumazet@google.com>
->> > ---
->> >  include/net/netfilter/ipv6/nf_reject.h |  157 +-------------------------------
->> >  1 file changed, 2 insertions(+), 155 deletions(-)
->>
->> Hi All,
->>
->> This morning I was testing a kernel build from Linus' tree as of Linux
->> v3.17-7639-g90eac7eee2f4.  When I rebooted my test machines, I
->> couldn't ssh back into any of them.  I poked around a bit and noticed
->> that it seems the iptables rules weren't getting loaded properly.
->> Traffic out worked fine, and I could ping the machine, but other
->> incoming traffic was blocked.  Then I saw that the ip6t_REJECT and
->> ip6t_rpfilter modules were not being loaded on the bad kernel.
->> Looking in dmesg I see:
->>
->> [   14.619028] nf_reject_ipv6: module license 'unspecified' taints kernel.
->> [   14.619125] nf_reject_ipv6: Unknown symbol ip6_local_out (err 0)
->
-> Ouch. ip6_local_is EXPORT_SYMBOL_GPL.
->
-> http://patchwork.ozlabs.org/patch/398501/
->
-> should fix this.
+When a port that was used to listen for inbound connections gets closed
+and reused for outgoing connections (like rsh ends up doing for stderr
+flow), current we may reject the SYN/ACK packet for the new connection
+because tcp_conntracks states forbirds a port to become a client while
+there is still a TIME_WAIT entry in there for it.
 
-I believe you're correct.  I dug in some more and I was just about to
-send a similar patch.  I'll add it on top of my builds and test it
-out.  Thanks for the pointer.
+As TCP may expire the TIME_WAIT socket in 60s and conntrack's timeout
+for it is 120s, there is a ~60s window that the application can end up
+opening a port that conntrack will end up blocking.
 
-josh
+This patch fixes this by simply allowing such state transition: if we
+see a SYN, in TIME_WAIT state, on REPLY direction, move it to sSS. Note
+that the rest of the code already handles this situation, more
+specificly in tcp_packet(), first switch clause.
+
+Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 44d1ea32570a07338dc39f34624bd823b6f76916..d87b6423ffb21e0f8f9b6ef25ef51c1cb5f54ad6 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -213,7 +213,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
+ 	{
+ /* REPLY */
+ /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+-/*syn*/	   { sIV, sS2, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sS2 },
++/*syn*/	   { sIV, sS2, sIV, sIV, sIV, sIV, sIV, sSS, sIV, sS2 },
+ /*
+  *	sNO -> sIV	Never reached.
+  *	sSS -> sS2	Simultaneous open
+@@ -223,7 +223,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
+  *	sFW -> sIV
+  *	sCW -> sIV
+  *	sLA -> sIV
+- *	sTW -> sIV	Reopened connection, but server may not do it.
++ *	sTW -> sSS	Reopened connection, but server may have switched role
+  *	sCL -> sIV
+  */
+ /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+-- 
+1.9.3
+
