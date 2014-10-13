@@ -1,69 +1,183 @@
-From: Josh Boyer <jwboyer@fedoraproject.org>
-Subject: Re: [PATCH 1/2] netfilter: kill nf_send_reset6() from include/net/netfilter/ipv6/nf_reject.h
-Date: Mon, 13 Oct 2014 13:18:06 -0400
-Message-ID: <CA+5PVA7HprKjQBDvjximvzfHU5tXuV7ovJHA9n2FE6qF7ZnMag@mail.gmail.com>
-References: <1412879261-25045-1-git-send-email-pablo@netfilter.org>
-	<1412879261-25045-2-git-send-email-pablo@netfilter.org>
-	<CA+5PVA7-k-HFGUUeZ3LTCmVcmR1h_=8W-_PzRO4-2dcc_cRHaQ@mail.gmail.com>
-	<20141013155510.GA26105@breakpoint.cc>
-	<CA+5PVA72ME31+CAzcM46JyvrP19dawTO4LSmta6Jt2eDZVbWaA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>,
-	Eric Dumazet <edumazet@google.com>
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: restrict nat/masq expressions to nat chain type
+Date: Mon, 13 Oct 2014 20:39:41 +0200
+Message-ID: <1413225581-19320-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:45723 "EHLO
-	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710AbaJMRSH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2014 13:18:07 -0400
-In-Reply-To: <CA+5PVA72ME31+CAzcM46JyvrP19dawTO4LSmta6Jt2eDZVbWaA@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:49580 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753225AbaJMSiW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Oct 2014 14:38:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 13, 2014 at 12:01 PM, Josh Boyer <jwboyer@fedoraproject.org> wrote:
-> On Mon, Oct 13, 2014 at 11:55 AM, Florian Westphal <fw@strlen.de> wrote:
->> Josh Boyer <jwboyer@fedoraproject.org> wrote:
->>> On Thu, Oct 9, 2014 at 2:27 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>> > nf_send_reset6() now resides in net/ipv6/netfilter/nf_reject_ipv6.c
->>> >
->>> > Fixes: c8d7b98 ("netfilter: move nf_send_resetX() code to nf_reject_ipvX modules")
->>> > Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
->>> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>> > Acked-by: Eric Dumazet <edumazet@google.com>
->>> > ---
->>> >  include/net/netfilter/ipv6/nf_reject.h |  157 +-------------------------------
->>> >  1 file changed, 2 insertions(+), 155 deletions(-)
->>>
->>> Hi All,
->>>
->>> This morning I was testing a kernel build from Linus' tree as of Linux
->>> v3.17-7639-g90eac7eee2f4.  When I rebooted my test machines, I
->>> couldn't ssh back into any of them.  I poked around a bit and noticed
->>> that it seems the iptables rules weren't getting loaded properly.
->>> Traffic out worked fine, and I could ping the machine, but other
->>> incoming traffic was blocked.  Then I saw that the ip6t_REJECT and
->>> ip6t_rpfilter modules were not being loaded on the bad kernel.
->>> Looking in dmesg I see:
->>>
->>> [   14.619028] nf_reject_ipv6: module license 'unspecified' taints kernel.
->>> [   14.619125] nf_reject_ipv6: Unknown symbol ip6_local_out (err 0)
->>
->> Ouch. ip6_local_is EXPORT_SYMBOL_GPL.
->>
->> http://patchwork.ozlabs.org/patch/398501/
->>
->> should fix this.
->
-> I believe you're correct.  I dug in some more and I was just about to
-> send a similar patch.  I'll add it on top of my builds and test it
-> out.  Thanks for the pointer.
+This adds the missing validation code to avoid the use of nat/masq from
+non-nat chains. The validation assumes two possible configuration
+scenarios:
 
-The patch you pointed to does indeed fix the issues I was seeing.
-Thank you very much for the fast response.
+1) Use of nat from base chain that is not of nat type. Reject this
+   configuration from the nft_*_init() path of the expression.
 
-josh
+2) Use of nat from non-base chain. In this case, we have to wait until
+   the non-base chain is referenced by at least one base chain via
+   jump/goto. This is resolved from the nft_*_validate() path which is
+   called from nf_tables_check_loops().
+
+The user gets an -EOPNOTSUPP in both cases.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h  |    3 +++
+ include/net/netfilter/nft_masq.h   |    3 +++
+ net/ipv4/netfilter/nft_masq_ipv4.c |    1 +
+ net/ipv6/netfilter/nft_masq_ipv6.c |    1 +
+ net/netfilter/nf_tables_api.c      |   14 ++++++++++++++
+ net/netfilter/nft_masq.c           |   12 ++++++++++++
+ net/netfilter/nft_nat.c            |   12 ++++++++++++
+ 7 files changed, 46 insertions(+)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 3d72923..845c596 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -530,6 +530,9 @@ enum nft_chain_type {
+ 	NFT_CHAIN_T_MAX
+ };
+ 
++int nft_chain_validate_dependency(const struct nft_chain *chain,
++				  enum nft_chain_type type);
++
+ struct nft_stats {
+ 	u64			bytes;
+ 	u64			pkts;
+diff --git a/include/net/netfilter/nft_masq.h b/include/net/netfilter/nft_masq.h
+index c72729f..e2a518b 100644
+--- a/include/net/netfilter/nft_masq.h
++++ b/include/net/netfilter/nft_masq.h
+@@ -13,4 +13,7 @@ int nft_masq_init(const struct nft_ctx *ctx,
+ 
+ int nft_masq_dump(struct sk_buff *skb, const struct nft_expr *expr);
+ 
++int nft_masq_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
++		      const struct nft_data **data);
++
+ #endif /* _NFT_MASQ_H_ */
+diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
+index 1c636d6..c1023c4 100644
+--- a/net/ipv4/netfilter/nft_masq_ipv4.c
++++ b/net/ipv4/netfilter/nft_masq_ipv4.c
+@@ -39,6 +39,7 @@ static const struct nft_expr_ops nft_masq_ipv4_ops = {
+ 	.eval		= nft_masq_ipv4_eval,
+ 	.init		= nft_masq_init,
+ 	.dump		= nft_masq_dump,
++	.validate	= nft_masq_validate,
+ };
+ 
+ static struct nft_expr_type nft_masq_ipv4_type __read_mostly = {
+diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
+index 556262f..8a7ac68 100644
+--- a/net/ipv6/netfilter/nft_masq_ipv6.c
++++ b/net/ipv6/netfilter/nft_masq_ipv6.c
+@@ -39,6 +39,7 @@ static const struct nft_expr_ops nft_masq_ipv6_ops = {
+ 	.eval		= nft_masq_ipv6_eval,
+ 	.init		= nft_masq_init,
+ 	.dump		= nft_masq_dump,
++	.validate	= nft_masq_validate,
+ };
+ 
+ static struct nft_expr_type nft_masq_ipv6_type __read_mostly = {
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 556a0df..65eb2a1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3744,6 +3744,20 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.abort		= nf_tables_abort,
+ };
+ 
++int nft_chain_validate_dependency(const struct nft_chain *chain,
++				  enum nft_chain_type type)
++{
++	const struct nft_base_chain *basechain;
++
++	if (chain->flags & NFT_BASE_CHAIN) {
++		basechain = nft_base_chain(chain);
++		if (basechain->type->type != type)
++			return -EOPNOTSUPP;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nft_chain_validate_dependency);
++
+ /*
+  * Loop detection - walk through the ruleset beginning at the destination chain
+  * of a new jump until either the source chain is reached (loop) or all
+diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
+index 6637bab..d1ffd5e 100644
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -26,6 +26,11 @@ int nft_masq_init(const struct nft_ctx *ctx,
+ 		  const struct nlattr * const tb[])
+ {
+ 	struct nft_masq *priv = nft_expr_priv(expr);
++	int err;
++
++	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
++	if (err < 0)
++		return err;
+ 
+ 	if (tb[NFTA_MASQ_FLAGS] == NULL)
+ 		return 0;
+@@ -55,5 +60,12 @@ nla_put_failure:
+ }
+ EXPORT_SYMBOL_GPL(nft_masq_dump);
+ 
++int nft_masq_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
++		      const struct nft_data **data)
++{
++	return nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
++}
++EXPORT_SYMBOL_GPL(nft_masq_validate);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>");
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index 799550b..0f0af6e 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -95,6 +95,10 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	u32 family;
+ 	int err;
+ 
++	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
++	if (err < 0)
++		return err;
++
+ 	if (tb[NFTA_NAT_TYPE] == NULL)
+ 		return -EINVAL;
+ 
+@@ -205,6 +209,13 @@ nla_put_failure:
+ 	return -1;
+ }
+ 
++static int nft_nat_validate(const struct nft_ctx *ctx,
++			    const struct nft_expr *expr,
++			    const struct nft_data **data)
++{
++	return nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
++}
++
+ static struct nft_expr_type nft_nat_type;
+ static const struct nft_expr_ops nft_nat_ops = {
+ 	.type           = &nft_nat_type,
+@@ -212,6 +223,7 @@ static const struct nft_expr_ops nft_nat_ops = {
+ 	.eval           = nft_nat_eval,
+ 	.init           = nft_nat_init,
+ 	.dump           = nft_nat_dump,
++	.validate	= nft_nat_validate,
+ };
+ 
+ static struct nft_expr_type nft_nat_type __read_mostly = {
+-- 
+1.7.10.4
+
