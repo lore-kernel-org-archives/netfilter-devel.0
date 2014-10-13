@@ -1,114 +1,51 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 1/3] evaluate: fix a crash if we specify ether type or meta nfproto in reject
-Date: Sat, 11 Oct 2014 16:11:10 +0200
-Message-ID: <1413036673-23022-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Houcheng Lin <houcheng@gmail.com>
+Subject: [PATCH] netfilter: release skbuf when nlmsg put fail
+Date: Mon, 13 Oct 2014 14:50:32 +0800
+Message-ID: <CAL8JtxAqDhOXooLtOebSBHtKxwE=sLFqW8B-VgtCzsr-M4OD7g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:46394 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbaJKOK7 (ORCPT
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:57219 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751937AbaJMGud (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2014 10:10:59 -0400
-Received: by mail-wg0-f41.google.com with SMTP id b13so5848500wgh.12
-        for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2014 07:10:57 -0700 (PDT)
+	Mon, 13 Oct 2014 02:50:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we use a rule:
-nft add rule bridge filter input \
-	ether type ip reject with icmp type host-unreachable
+When system is under heavy loading, the __nfulnl_send() may may failed
+to put nlmsg into skbuf of nfulnl_instance. If not clear the skbuff on failed,
+the __nfulnl_send() will still try to put next nlmsg onto this half-full skbuf
+and cause the user program can never receive packet.
 
-or this:
+This patch fix this issue by releasing skbuf immediately after nlmst put
+failed.
 
-nft add rule inet filter input \
-	meta nfproto ipv4 reject with icmp type host-unreachable
+Signed-off-by: Houcheng Lin <houcheng@gmail.com>
 
-we have a segfault because we add a network dependency when we already have
-network context.
-
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/evaluate.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 50 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_log.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 83ef749..3e4471e 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -19,6 +19,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <netinet/ip_icmp.h>
- #include <netinet/icmp6.h>
-+#include <net/ethernet.h>
- 
- #include <expression.h>
- #include <statement.h>
-@@ -1204,6 +1205,9 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
- static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
- 				       struct expr *expr)
- {
-+	const struct proto_desc *desc, *base;
-+	int protocol;
-+
- 	switch (ctx->pctx.family) {
- 	case NFPROTO_ARP:
- 		return stmt_error(ctx, stmt, "cannot use reject with arp");
-@@ -1224,8 +1228,53 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
- 			break;
- 		}
- 		break;
--	case NFPROTO_INET:
- 	case NFPROTO_BRIDGE:
-+		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
-+		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (desc != NULL) {
-+			protocol = proto_find_num(base, desc);
-+			switch (protocol) {
-+			case __constant_htons(ETH_P_IP):
-+				if (NFPROTO_IPV4 == stmt->reject.family)
-+					break;
-+			case __constant_htons(ETH_P_IPV6):
-+				if (NFPROTO_IPV6 == stmt->reject.family)
-+					break;
-+				return stmt_error(ctx, stmt,
-+				  "conflicting protocols specified: ip vs ip6");
-+			default:
-+				return stmt_error(ctx, stmt,
-+						"cannot reject this ether type");
-+			}
-+			break;
-+		}
-+		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
-+			break;
-+		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
-+			return -1;
-+		break;
-+	case NFPROTO_INET:
-+		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
-+		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (desc != NULL) {
-+			protocol = proto_find_num(base, desc);
-+			switch (protocol) {
-+			case NFPROTO_IPV4:
-+				if (stmt->reject.family == NFPROTO_IPV4)
-+					break;
-+				return stmt_error(ctx, stmt,
-+				  "conflicting protocols specified: ip vs ip6");
-+				break;
-+			case NFPROTO_IPV6:
-+				if (stmt->reject.family == NFPROTO_IPV6)
-+					break;
-+				return stmt_error(ctx, stmt,
-+				  "conflicting protocols specified: ip vs ip6");
-+			default:
-+				BUG("unsupported family");
-+			}
-+			break;
-+		}
- 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
- 			break;
- 		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index a11c5ff..0cb9ede 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -358,10 +358,9 @@ __nfulnl_send(struct nfulnl_instance *inst)
+     }
+     status = nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
+                    MSG_DONTWAIT);
+-
++out:
+     inst->qlen = 0;
+     inst->skb = NULL;
+-out:
+     return status;
+ }
+
 -- 
-1.7.10.4
-
+1.7.9.5
