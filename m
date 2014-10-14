@@ -1,183 +1,103 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: restrict nat/masq expressions to nat chain type
-Date: Mon, 13 Oct 2014 20:39:41 +0200
-Message-ID: <1413225581-19320-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49580 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753225AbaJMSiW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2014 14:38:22 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: nf_reject_ipv4: module license 'unspecified' taints kernel
+Date: Tue, 14 Oct 2014 16:11:09 +0800
+Message-ID: <20141014081109.GA5357@dhcp-16-198.nay.redhat.com>
+References: <20141010091904.GD1981@darkstar.nay.redhat.com>
+ <20141010095520.GA3126@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141010095520.GA3126@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This adds the missing validation code to avoid the use of nat/masq from
-non-nat chains. The validation assumes two possible configuration
-scenarios:
+On 10/10/14 at 11:56am, Pablo Neira Ayuso wrote:
+> On Fri, Oct 10, 2014 at 05:19:04PM +0800, Dave Young wrote:
+> > Hi,
+> > 
+> > With today's linus tree, I got below kmsg:
+> > [   23.545204] nf_reject_ipv4: module license 'unspecified' taints kernel.
+> > 
+> > It could be caused by below commit:
+> > 
+> > commit c8d7b98bec43faaa6583c3135030be5eb4693acb
+> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Date:   Fri Sep 26 14:35:15 2014 +0200
+> > 
+> >     netfilter: move nf_send_resetX() code to nf_reject_ipvX modules
+> >     
+> >     Move nf_send_reset() and nf_send_reset6() to nf_reject_ipv4 and
+> >     nf_reject_ipv6 respectively. This code is shared by x_tables and
+> >     nf_tables.
+> >     
+> >     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Patch attached, thanks for reporting.
 
-1) Use of nat from base chain that is not of nat type. Reject this
-   configuration from the nft_*_init() path of the expression.
+Tested-by: Dave Young <dyoung@redhat.com>
 
-2) Use of nat from non-base chain. In this case, we have to wait until
-   the non-base chain is referenced by at least one base chain via
-   jump/goto. This is resolved from the nft_*_validate() path which is
-   called from nf_tables_check_loops().
+> 
+> P.S: Please, Cc netfilter-devel@vger.kernel.org in future reports, so
+> we make sure things don't get lost.
 
-The user gets an -EOPNOTSUPP in both cases.
+Sure. Thanks.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h  |    3 +++
- include/net/netfilter/nft_masq.h   |    3 +++
- net/ipv4/netfilter/nft_masq_ipv4.c |    1 +
- net/ipv6/netfilter/nft_masq_ipv6.c |    1 +
- net/netfilter/nf_tables_api.c      |   14 ++++++++++++++
- net/netfilter/nft_masq.c           |   12 ++++++++++++
- net/netfilter/nft_nat.c            |   12 ++++++++++++
- 7 files changed, 46 insertions(+)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 3d72923..845c596 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -530,6 +530,9 @@ enum nft_chain_type {
- 	NFT_CHAIN_T_MAX
- };
- 
-+int nft_chain_validate_dependency(const struct nft_chain *chain,
-+				  enum nft_chain_type type);
-+
- struct nft_stats {
- 	u64			bytes;
- 	u64			pkts;
-diff --git a/include/net/netfilter/nft_masq.h b/include/net/netfilter/nft_masq.h
-index c72729f..e2a518b 100644
---- a/include/net/netfilter/nft_masq.h
-+++ b/include/net/netfilter/nft_masq.h
-@@ -13,4 +13,7 @@ int nft_masq_init(const struct nft_ctx *ctx,
- 
- int nft_masq_dump(struct sk_buff *skb, const struct nft_expr *expr);
- 
-+int nft_masq_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+		      const struct nft_data **data);
-+
- #endif /* _NFT_MASQ_H_ */
-diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
-index 1c636d6..c1023c4 100644
---- a/net/ipv4/netfilter/nft_masq_ipv4.c
-+++ b/net/ipv4/netfilter/nft_masq_ipv4.c
-@@ -39,6 +39,7 @@ static const struct nft_expr_ops nft_masq_ipv4_ops = {
- 	.eval		= nft_masq_ipv4_eval,
- 	.init		= nft_masq_init,
- 	.dump		= nft_masq_dump,
-+	.validate	= nft_masq_validate,
- };
- 
- static struct nft_expr_type nft_masq_ipv4_type __read_mostly = {
-diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
-index 556262f..8a7ac68 100644
---- a/net/ipv6/netfilter/nft_masq_ipv6.c
-+++ b/net/ipv6/netfilter/nft_masq_ipv6.c
-@@ -39,6 +39,7 @@ static const struct nft_expr_ops nft_masq_ipv6_ops = {
- 	.eval		= nft_masq_ipv6_eval,
- 	.init		= nft_masq_init,
- 	.dump		= nft_masq_dump,
-+	.validate	= nft_masq_validate,
- };
- 
- static struct nft_expr_type nft_masq_ipv6_type __read_mostly = {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 556a0df..65eb2a1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3744,6 +3744,20 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
- 	.abort		= nf_tables_abort,
- };
- 
-+int nft_chain_validate_dependency(const struct nft_chain *chain,
-+				  enum nft_chain_type type)
-+{
-+	const struct nft_base_chain *basechain;
-+
-+	if (chain->flags & NFT_BASE_CHAIN) {
-+		basechain = nft_base_chain(chain);
-+		if (basechain->type->type != type)
-+			return -EOPNOTSUPP;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nft_chain_validate_dependency);
-+
- /*
-  * Loop detection - walk through the ruleset beginning at the destination chain
-  * of a new jump until either the source chain is reached (loop) or all
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index 6637bab..d1ffd5e 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -26,6 +26,11 @@ int nft_masq_init(const struct nft_ctx *ctx,
- 		  const struct nlattr * const tb[])
- {
- 	struct nft_masq *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
-+	if (err < 0)
-+		return err;
- 
- 	if (tb[NFTA_MASQ_FLAGS] == NULL)
- 		return 0;
-@@ -55,5 +60,12 @@ nla_put_failure:
- }
- EXPORT_SYMBOL_GPL(nft_masq_dump);
- 
-+int nft_masq_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+		      const struct nft_data **data)
-+{
-+	return nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
-+}
-+EXPORT_SYMBOL_GPL(nft_masq_validate);
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>");
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 799550b..0f0af6e 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -95,6 +95,10 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	u32 family;
- 	int err;
- 
-+	err = nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
-+	if (err < 0)
-+		return err;
-+
- 	if (tb[NFTA_NAT_TYPE] == NULL)
- 		return -EINVAL;
- 
-@@ -205,6 +209,13 @@ nla_put_failure:
- 	return -1;
- }
- 
-+static int nft_nat_validate(const struct nft_ctx *ctx,
-+			    const struct nft_expr *expr,
-+			    const struct nft_data **data)
-+{
-+	return nft_chain_validate_dependency(ctx->chain, NFT_CHAIN_T_NAT);
-+}
-+
- static struct nft_expr_type nft_nat_type;
- static const struct nft_expr_ops nft_nat_ops = {
- 	.type           = &nft_nat_type,
-@@ -212,6 +223,7 @@ static const struct nft_expr_ops nft_nat_ops = {
- 	.eval           = nft_nat_eval,
- 	.init           = nft_nat_init,
- 	.dump           = nft_nat_dump,
-+	.validate	= nft_nat_validate,
- };
- 
- static struct nft_expr_type nft_nat_type __read_mostly = {
--- 
-1.7.10.4
-
+> From d4358bcf64ba7a64d4de4e1dc5533c4c8f88ea82 Mon Sep 17 00:00:00 2001
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Fri, 10 Oct 2014 11:25:20 +0200
+> Subject: [PATCH] netfilter: missing module license in the nf_reject_ipvX
+>  modules
+> 
+> [   23.545204] nf_reject_ipv4: module license 'unspecified' taints kernel.
+> 
+> Reported-by: Dave Young <dyoung@redhat.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/ipv4/netfilter/nf_reject_ipv4.c |    3 +++
+>  net/ipv6/netfilter/nf_reject_ipv6.c |    4 ++++
+>  2 files changed, 7 insertions(+)
+> 
+> diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+> index b023b4e..92b303d 100644
+> --- a/net/ipv4/netfilter/nf_reject_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+> @@ -6,6 +6,7 @@
+>   * published by the Free Software Foundation.
+>   */
+>  
+> +#include <linux/module.h>
+>  #include <net/ip.h>
+>  #include <net/tcp.h>
+>  #include <net/route.h>
+> @@ -125,3 +126,5 @@ void nf_send_reset(struct sk_buff *oldskb, int hook)
+>  	kfree_skb(nskb);
+>  }
+>  EXPORT_SYMBOL_GPL(nf_send_reset);
+> +
+> +MODULE_LICENSE("GPL");
+> diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+> index 5f5f043..20d9def 100644
+> --- a/net/ipv6/netfilter/nf_reject_ipv6.c
+> +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+> @@ -5,6 +5,8 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> +
+> +#include <linux/module.h>
+>  #include <net/ipv6.h>
+>  #include <net/ip6_route.h>
+>  #include <net/ip6_fib.h>
+> @@ -161,3 +163,5 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+>  		ip6_local_out(nskb);
+>  }
+>  EXPORT_SYMBOL_GPL(nf_send_reset6);
+> +
+> +MODULE_LICENSE("GPL");
+> -- 
+> 1.7.10.4
+> 
