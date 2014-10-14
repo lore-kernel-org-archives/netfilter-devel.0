@@ -1,166 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf] netfilter: nft_compat: validate chain type in match/target
-Date: Tue, 14 Oct 2014 12:53:28 +0200
-Message-ID: <1413284008-3761-2-git-send-email-pablo@netfilter.org>
-References: <1413284008-3761-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/2 nf] netfilter: nft_compat: fix hook validation for non-base chains
+Date: Tue, 14 Oct 2014 12:53:27 +0200
+Message-ID: <1413284008-3761-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36171 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36170 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755067AbaJNKwO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754846AbaJNKwO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 14 Oct 2014 06:52:14 -0400
-In-Reply-To: <1413284008-3761-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have to validate the real chain type to ensure that matches/targets
-that are not used out from their scope (eg. MASQUERADE in nat chain
-type). The existing validation relies on the table name, but this is
-not sufficient since userspace can fool us by using the appropriate
-chain name with a different chain type.
+Set hook_mask to zero for non-base chains, otherwise people may hit
+bogus errors from the xt_check_target() and xt_check_match() when
+validating the uninitialized hook_mask.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c |   80 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 71 insertions(+), 9 deletions(-)
+ net/netfilter/nft_compat.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 44ae273..a3adcc8 100644
+index 7e2683c..44ae273 100644
 --- a/net/netfilter/nft_compat.c
 +++ b/net/netfilter/nft_compat.c
-@@ -19,9 +19,57 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
--#include <asm/uaccess.h> /* for set_fs */
- #include <net/netfilter/nf_tables.h>
- 
-+static const struct {
-+       const char	*name;
-+       u8		type;
-+} table_to_chaintype[] = {
-+       { "filter",     NFT_CHAIN_T_DEFAULT },
-+       { "raw",        NFT_CHAIN_T_DEFAULT },
-+       { "security",   NFT_CHAIN_T_DEFAULT },
-+       { "mangle",     NFT_CHAIN_T_ROUTE },
-+       { "nat",        NFT_CHAIN_T_NAT },
-+       { },
-+};
-+
-+static int nft_compat_table_to_chaintype(const char *table)
-+{
-+	int i;
-+
-+	if (table == NULL)
-+		return NFT_CHAIN_T_MAX;
-+
-+	for (i = 0; table_to_chaintype[i].name != NULL; i++) {
-+		if (strcmp(table_to_chaintype[i].name, table) == 0)
-+			return table_to_chaintype[i].type;
-+	}
-+
-+	return -1;
-+}
-+
-+static int nft_compat_chain_validate_dependency(const char *tablename,
-+						const struct nft_chain *chain)
-+{
-+	enum nft_chain_type type;
-+	const struct nft_base_chain *basechain;
-+
-+	if (!(chain->flags & NFT_BASE_CHAIN))
-+		return 0;
-+
-+	type = nft_compat_table_to_chaintype(tablename);
-+	if (type < 0)
-+		return -EINVAL;
-+
-+	if (type != NFT_CHAIN_T_MAX) {
-+		basechain = nft_base_chain(chain);
-+		if (basechain->type->type != type)
-+			return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- union nft_entry {
- 	struct ipt_entry e4;
- 	struct ip6t_entry e6;
-@@ -153,6 +201,10 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	union nft_entry e = {};
- 	int ret;
- 
-+	ret = nft_compat_chain_validate_dependency(target->table, ctx->chain);
-+	if (ret < 0)
-+		goto err;
-+
- 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
- 
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
-@@ -218,6 +270,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- {
- 	struct xt_target *target = expr->ops->data;
- 	unsigned int hook_mask = 0;
-+	int ret;
- 
- 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
- 		const struct nft_base_chain *basechain =
-@@ -225,11 +278,13 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+@@ -95,6 +95,8 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
  		const struct nf_hook_ops *ops = &basechain->ops[0];
  
- 		hook_mask = 1 << ops->hooknum;
--		if (hook_mask & target->hooks)
--			return 0;
-+		if (!(hook_mask & target->hooks))
-+			return -EINVAL;
- 
--		/* This target is being called from an invalid chain */
--		return -EINVAL;
-+		ret = nft_compat_chain_validate_dependency(target->table,
-+							   ctx->chain);
-+		if (ret < 0)
-+			return ret;
+ 		par->hook_mask = 1 << ops->hooknum;
++	} else {
++		par->hook_mask = 0;
  	}
- 	return 0;
+ 	par->family	= ctx->afi->family;
  }
-@@ -324,6 +379,10 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	union nft_entry e = {};
- 	int ret;
- 
-+	ret = nft_compat_chain_validate_dependency(match->name, ctx->chain);
-+	if (ret < 0)
-+		goto err;
-+
- 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
- 
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
-@@ -383,6 +442,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- {
- 	struct xt_match *match = expr->ops->data;
- 	unsigned int hook_mask = 0;
-+	int ret;
- 
- 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
- 		const struct nft_base_chain *basechain =
-@@ -390,11 +450,13 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+@@ -293,6 +295,8 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
  		const struct nf_hook_ops *ops = &basechain->ops[0];
  
- 		hook_mask = 1 << ops->hooknum;
--		if (hook_mask & match->hooks)
--			return 0;
-+		if (!(hook_mask & match->hooks))
-+			return -EINVAL;
- 
--		/* This match is being called from an invalid chain */
--		return -EINVAL;
-+		ret = nft_compat_chain_validate_dependency(match->name,
-+							   ctx->chain);
-+		if (ret < 0)
-+			return ret;
+ 		par->hook_mask = 1 << ops->hooknum;
++	} else {
++		par->hook_mask = 0;
  	}
- 	return 0;
+ 	par->family	= ctx->afi->family;
  }
 -- 
 1.7.10.4
