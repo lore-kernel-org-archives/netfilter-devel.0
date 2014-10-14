@@ -1,56 +1,167 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: release skbuf when nlmsg put fail
-Date: Tue, 14 Oct 2014 12:49:23 +0200
-Message-ID: <20141014104923.GA30916@breakpoint.cc>
-References: <CAL8JtxD=Vopo7fvKEnfKgOa3T=WyVH=mb_YqX9mES+n-6dJbrQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, Patrick McHardy <kaber@trash.net>,
-	kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Houcheng Lin <houcheng@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAL8JtxD=Vopo7fvKEnfKgOa3T=WyVH=mb_YqX9mES+n-6dJbrQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/2 nf] netfilter: nft_compat: validate chain type in match/target
+Date: Tue, 14 Oct 2014 12:53:28 +0200
+Message-ID: <1413284008-3761-2-git-send-email-pablo@netfilter.org>
+References: <1413284008-3761-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36171 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755067AbaJNKwO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Oct 2014 06:52:14 -0400
+In-Reply-To: <1413284008-3761-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Houcheng Lin <houcheng@gmail.com> wrote:
-> When system is under heavy loading, the __nfulnl_send() may may failed
-> to put nlmsg into skbuf of nfulnl_instance. If not clear the skbuff on failed,
-> the __nfulnl_send() will still try to put next nlmsg onto this half-full skbuf
-> and cause the user program can never receive packet.
-> 
-> This patch fix this issue by releasing skbuf immediately after nlmst put
-> failed.
+We have to validate the real chain type to ensure that matches/targets
+that are not used out from their scope (eg. MASQUERADE in nat chain
+type). The existing validation relies on the table name, but this is
+not sufficient since userspace can fool us by using the appropriate
+chain name with a different chain type.
 
-Could you please try this patch on top of this one and see if the
-WARN_ON goes away?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_compat.c |   80 +++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 71 insertions(+), 9 deletions(-)
 
-Thanks
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -649,7 +649,8 @@ nfulnl_log_packet(struct net *net,
- 		+ nla_total_size(sizeof(u_int32_t))	/* gid */
- 		+ nla_total_size(plen)			/* prefix */
- 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hw))
--		+ nla_total_size(sizeof(struct nfulnl_msg_packet_timestamp));
-+		+ nla_total_size(sizeof(struct nfulnl_msg_packet_timestamp))
-+		+ nla_total_size(sizeof(struct nfgenmsg));	/* NLMSG_DONE */
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 44ae273..a3adcc8 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -19,9 +19,57 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+-#include <asm/uaccess.h> /* for set_fs */
+ #include <net/netfilter/nf_tables.h>
  
- 	if (in && skb_mac_header_was_set(skb)) {
- 		size +=   nla_total_size(skb->dev->hard_header_len)
-@@ -692,8 +693,7 @@ nfulnl_log_packet(struct net *net,
- 		goto unlock_and_release;
++static const struct {
++       const char	*name;
++       u8		type;
++} table_to_chaintype[] = {
++       { "filter",     NFT_CHAIN_T_DEFAULT },
++       { "raw",        NFT_CHAIN_T_DEFAULT },
++       { "security",   NFT_CHAIN_T_DEFAULT },
++       { "mangle",     NFT_CHAIN_T_ROUTE },
++       { "nat",        NFT_CHAIN_T_NAT },
++       { },
++};
++
++static int nft_compat_table_to_chaintype(const char *table)
++{
++	int i;
++
++	if (table == NULL)
++		return NFT_CHAIN_T_MAX;
++
++	for (i = 0; table_to_chaintype[i].name != NULL; i++) {
++		if (strcmp(table_to_chaintype[i].name, table) == 0)
++			return table_to_chaintype[i].type;
++	}
++
++	return -1;
++}
++
++static int nft_compat_chain_validate_dependency(const char *tablename,
++						const struct nft_chain *chain)
++{
++	enum nft_chain_type type;
++	const struct nft_base_chain *basechain;
++
++	if (!(chain->flags & NFT_BASE_CHAIN))
++		return 0;
++
++	type = nft_compat_table_to_chaintype(tablename);
++	if (type < 0)
++		return -EINVAL;
++
++	if (type != NFT_CHAIN_T_MAX) {
++		basechain = nft_base_chain(chain);
++		if (basechain->type->type != type)
++			return -EINVAL;
++	}
++
++	return 0;
++}
++
+ union nft_entry {
+ 	struct ipt_entry e4;
+ 	struct ip6t_entry e6;
+@@ -153,6 +201,10 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	union nft_entry e = {};
+ 	int ret;
+ 
++	ret = nft_compat_chain_validate_dependency(target->table, ctx->chain);
++	if (ret < 0)
++		goto err;
++
+ 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
+ 
+ 	if (ctx->nla[NFTA_RULE_COMPAT]) {
+@@ -218,6 +270,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ {
+ 	struct xt_target *target = expr->ops->data;
+ 	unsigned int hook_mask = 0;
++	int ret;
+ 
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+@@ -225,11 +278,13 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		hook_mask = 1 << ops->hooknum;
+-		if (hook_mask & target->hooks)
+-			return 0;
++		if (!(hook_mask & target->hooks))
++			return -EINVAL;
+ 
+-		/* This target is being called from an invalid chain */
+-		return -EINVAL;
++		ret = nft_compat_chain_validate_dependency(target->table,
++							   ctx->chain);
++		if (ret < 0)
++			return ret;
  	}
+ 	return 0;
+ }
+@@ -324,6 +379,10 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	union nft_entry e = {};
+ 	int ret;
  
--	if (inst->skb &&
--	    size > skb_tailroom(inst->skb) - sizeof(struct nfgenmsg)) {
-+	if (inst->skb && size > skb_tailroom(inst->skb)) {
- 		/* either the queue len is too high or we don't have
- 		 * enough room in the skb left. flush to userspace. */
- 		__nfulnl_flush(inst);
++	ret = nft_compat_chain_validate_dependency(match->name, ctx->chain);
++	if (ret < 0)
++		goto err;
++
+ 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
+ 
+ 	if (ctx->nla[NFTA_RULE_COMPAT]) {
+@@ -383,6 +442,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ {
+ 	struct xt_match *match = expr->ops->data;
+ 	unsigned int hook_mask = 0;
++	int ret;
+ 
+ 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
+ 		const struct nft_base_chain *basechain =
+@@ -390,11 +450,13 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 
+ 		hook_mask = 1 << ops->hooknum;
+-		if (hook_mask & match->hooks)
+-			return 0;
++		if (!(hook_mask & match->hooks))
++			return -EINVAL;
+ 
+-		/* This match is being called from an invalid chain */
+-		return -EINVAL;
++		ret = nft_compat_chain_validate_dependency(match->name,
++							   ctx->chain);
++		if (ret < 0)
++			return ret;
+ 	}
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
