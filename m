@@ -1,105 +1,235 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: bad timeout assignments
-Date: Wed, 15 Oct 2014 11:32:45 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1410151123290.20170@blackhole.kfki.hu>
-References: <20141010085621.GA9211@pc11.op.pod.cz> <alpine.DEB.2.10.1410101256230.18124@blackhole.kfki.hu> <20141010111404.GA15011@pc11.op.pod.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf_tables PATCH 1/3] netfilter: refactor NAT's redirect IPv4
+ code
+Date: Wed, 15 Oct 2014 11:50:29 +0200
+Message-ID: <20141015095029.GA4885@salvia>
+References: <20141014172231.5983.37941.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Vitezslav Samel <vitezslav@samel.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:59698 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:36826 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751554AbaJOJcN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2014 05:32:13 -0400
-In-Reply-To: <20141010111404.GA15011@pc11.op.pod.cz>
+	id S1751292AbaJOJtK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Oct 2014 05:49:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20141014172231.5983.37941.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 10 Oct 2014, Vitezslav Samel wrote:
-
-> On Fri, Oct 10, 2014 at 01:04:03PM +0200, Jozsef Kadlecsik wrote:
-> > On Fri, 10 Oct 2014, Vitezslav Samel wrote:
-> > 
-> > >   I'm using ipset's hash:ip with timeout to ban bad behaving clients.
-> > > When using very long timeout ( > 2147483 ) the ipset's timeout gets
-> > > weird:
-> > > 
-> > > -- TEST 1 ----------------
-> > > + uname -r
-> > > 3.15.6
-> > > + ipset --version
-> > > ipset v6.23, protocol version: 6
-> > > + ipset create test hash:ip timeout 1111111
-> > > + ipset add test 10.0.0.1
-> > > + ipset add test 10.0.0.2 timeout 2000000
-> > > + ipset add test 10.0.0.3 timeout 3000000
-> > > + ipset list test
-> > > Name: test
-> > > Type: hash:ip
-> > > Revision: 3
-> > > Header: family inet hashsize 1024 maxelem 65536 timeout 1111111
-> > > Size in memory: 16720
-> > > References: 0
-> > > Members:
-> > > 10.0.0.1 timeout 1111111
-> > > 10.0.0.2 timeout 2000000
-> > > 10.0.0.3 timeout 4294967
-> > > + ipset destroy test
-> > > --------------------------
-> > > 
-> > > The 10.0.0.3 gets 4294967 timeout although I wanted timeout 3000000.
-> > > 
-> > > With hash:ip default timeout being >2147483 the test looks like this:
-> > > 
-> > > -- TEST 2 ----------------
-> > > + ipset create test2 hash:ip timeout 3333333
-> > > + ipset add test2 10.0.0.1
-> > > + ipset add test2 10.0.0.2 timeout 2000000
-> > > + ipset add test2 10.0.0.3 timeout 3000000
-> > > + ipset list test2
-> > > Name: test2
-> > > Type: hash:ip
-> > > Revision: 3
-> > > Header: family inet hashsize 1024 maxelem 65536 timeout 3333333
-> > > Size in memory: 16720
-> > > References: 0
-> > > Members:
-> > > 10.0.0.1 timeout 4294967
-> > > 10.0.0.2 timeout 2000000
-> > > 10.0.0.3 timeout 4294967
-> > > + ipset destroy test2
-> > > --------------------------
-> > > 
-> > > Now 10.0.0.1 gets wrong timeout and 10.0.0.3 also.
-> > > The magic number 2147483 is (UINT_MAX/1000)/2 which makes me think this
-> > > is some signed/unsigned int problem somewhere.
-> > > 
-> > > The above tests were run on x86_64 machine; the same problem is on i686,
-> > > but wrongly assigned timeout is 2147483 instead of 4294967.
-> > > 
-> > > I also tried 3.16.2 kernel, but the bug is here too.
-> > 
-> > Too large jiffies are converted automatically to MAX_JIFFY_OFFSET (i.e. 
-> > ((LONG_MAX >> 1)-1)). That's a limitation in the kernel which cannot be 
-> > worked around. The only thing I could do is not to accept too large 
-> > timeout values.
+On Tue, Oct 14, 2014 at 07:22:31PM +0200, Arturo Borrero Gonzalez wrote:
+> The xt_REDIRECT can be seen as a NAT flavour (like masquerade).
 > 
->   Even on machines with 64-bit long? That is weird.
+> This patch refactors the IPv4 code so it can be usable both from xt and
+> nf_tables.
+> 
+> A similar patch follows-up to handle IPv6.
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  include/net/netfilter/ipv4/nf_nat_redirect.h |    9 +++
+>  net/ipv4/netfilter/Kconfig                   |    6 ++
+>  net/ipv4/netfilter/Makefile                  |    1 
+>  net/ipv4/netfilter/nf_nat_redirect_ipv4.c    |   80 ++++++++++++++++++++++++++
+>  net/netfilter/Kconfig                        |    1 
+>  net/netfilter/xt_REDIRECT.c                  |   44 +-------------
+>  6 files changed, 99 insertions(+), 42 deletions(-)
+>  create mode 100644 include/net/netfilter/ipv4/nf_nat_redirect.h
+>  create mode 100644 net/ipv4/netfilter/nf_nat_redirect_ipv4.c
+> 
+> diff --git a/include/net/netfilter/ipv4/nf_nat_redirect.h b/include/net/netfilter/ipv4/nf_nat_redirect.h
+> new file mode 100644
+> index 0000000..19e1df3
+> --- /dev/null
+> +++ b/include/net/netfilter/ipv4/nf_nat_redirect.h
+> @@ -0,0 +1,9 @@
+> +#ifndef _NF_NAT_REDIRECT_IPV4_H_
+> +#define _NF_NAT_REDIRECT_IPV4_H_
+> +
+> +unsigned int
+> +nf_nat_redirect_ipv4(struct sk_buff *skb,
+> +		     const struct nf_nat_ipv4_multi_range_compat *mr,
+> +		     unsigned int hooknum);
+> +
+> +#endif /* _NF_NAT_REDIRECT_IPV4_H_ */
+> diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+> index 4c019d5..a300e2c 100644
+> --- a/net/ipv4/netfilter/Kconfig
+> +++ b/net/ipv4/netfilter/Kconfig
+> @@ -104,6 +104,12 @@ config NF_NAT_MASQUERADE_IPV4
+>  	  This is the kernel functionality to provide NAT in the masquerade
+>  	  flavour (automatic source address selection).
+>  
+> +config NF_NAT_REDIRECT_IPV4
+> +	tristate "IPv4 redirect support"
+> +	help
+> +	  This is the kernel functionality to provide NAT in the redirect
+> +	  flavour (redirect packets to local machine).
+> +
+>  config NFT_MASQ_IPV4
+>  	tristate "IPv4 masquerading support for nf_tables"
+>  	depends on NF_TABLES_IPV4
+> diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+> index f4cef5a..34e436c 100644
+> --- a/net/ipv4/netfilter/Makefile
+> +++ b/net/ipv4/netfilter/Makefile
+> @@ -31,6 +31,7 @@ obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
+>  obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
+>  obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
+>  obj-$(CONFIG_NF_NAT_MASQUERADE_IPV4) += nf_nat_masquerade_ipv4.o
+> +obj-$(CONFIG_NF_NAT_REDIRECT_IPV4) += nf_nat_redirect_ipv4.o
+>  
+>  # NAT protocols (nf_nat)
+>  obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
+> diff --git a/net/ipv4/netfilter/nf_nat_redirect_ipv4.c b/net/ipv4/netfilter/nf_nat_redirect_ipv4.c
+> new file mode 100644
+> index 0000000..317f59c
+> --- /dev/null
+> +++ b/net/ipv4/netfilter/nf_nat_redirect_ipv4.c
+> @@ -0,0 +1,80 @@
+> +/*
+> + * (C) 1999-2001 Paul `Rusty' Russell
+> + * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
+> + * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * Based on Rusty Russell's IPv4 REDIRECT target. Development of IPv6
+> + * NAT funded by Astaro.
+> + */
+> +
+> +#include <linux/if.h>
+> +#include <linux/inetdevice.h>
+> +#include <linux/ip.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/netdevice.h>
+> +#include <linux/netfilter.h>
+> +#include <linux/types.h>
+> +#include <linux/netfilter_ipv4.h>
+> +#include <linux/netfilter/x_tables.h>
+> +#include <net/addrconf.h>
+> +#include <net/checksum.h>
+> +#include <net/protocol.h>
+> +#include <net/netfilter/nf_nat.h>
+> +#include <net/netfilter/ipv4/nf_nat_redirect.h>
+> +
+> +unsigned int
+> +nf_nat_redirect_ipv4(struct sk_buff *skb,
+> +		     const struct nf_nat_ipv4_multi_range_compat *mr,
+> +		     unsigned int hooknum)
+> +{
+> +	struct nf_conn *ct;
+> +	enum ip_conntrack_info ctinfo;
+> +	__be32 newdst;
+> +	struct nf_nat_range newrange;
+> +
+> +	NF_CT_ASSERT(hooknum == NF_INET_PRE_ROUTING ||
+> +		     hooknum == NF_INET_LOCAL_OUT);
+> +
+> +	ct = nf_ct_get(skb, &ctinfo);
+> +	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+> +
+> +	/* Local packets: make them go to loopback */
+> +	if (hooknum == NF_INET_LOCAL_OUT)
+> +		newdst = htonl(0x7F000001);
 
-I have re-checked and it is so: time values are stored in unsigned int 
-(see msecs_to_jiffies), so the maximal value in seconds is UINT_MAX/1000.
-However, msecs_to_jiffies limits it further by checking negative values, 
-which halves the maximal value.
+Please, fix coding style. This needs to be:
 
-So this is beyond ipset itself. All I can do is to correct in the "ipset" 
-library what is the accepted maximal timeout value and change it from the 
-current UINT_MAX/1000 to (UINT_MAX/1000)/2.
+	if (hooknum == NF_INET_LOCAL_OUT) {
+		newdst = htonl(0x7F000001);
+        } else {
+                ...
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Basically, if any of the branches contains more than one line, we have
+to use the bracket in both.
+
+I know this is not your fault since you're just copying and pasting
+this code. But I think this is a good chance to address this.
+
+
+> +	else {
+> +		struct in_device *indev;
+> +		struct in_ifaddr *ifa;
+> +
+> +		newdst = 0;
+> +
+> +		rcu_read_lock();
+> +		indev = __in_dev_get_rcu(skb->dev);
+> +		if (indev && (ifa = indev->ifa_list))
+> +			newdst = ifa->ifa_local;
+> +		rcu_read_unlock();
+> +
+> +		if (!newdst)
+> +			return NF_DROP;
+> +	}
+> +
+> +	/* Transfer from original range. */
+> +	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
+> +	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
+> +	newrange.flags	     = mr->range[0].flags | NF_NAT_RANGE_MAP_IPS;
+> +	newrange.min_addr.ip = newdst;
+> +	newrange.max_addr.ip = newdst;
+> +	newrange.min_proto   = mr->range[0].min;
+> +	newrange.max_proto   = mr->range[0].max;
+> +
+> +	/* Hand modified range to generic setup. */
+> +	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
+> +}
+> +EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv4);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index ae5096a..bc0726d 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -835,6 +835,7 @@ config NETFILTER_XT_TARGET_RATEEST
+>  config NETFILTER_XT_TARGET_REDIRECT
+>  	tristate "REDIRECT target support"
+>  	depends on NF_NAT
+> +	depends on NF_NAT_REDIRECT_IPV4
+
+This needs to be 'select NF_NAT_REDIRECT_IPV4' instead.
+
+>  	---help---
+>  	REDIRECT is a special case of NAT: all incoming connections are
+>  	mapped onto the incoming interface's address, causing the packets to
+> diff --git a/net/netfilter/xt_REDIRECT.c b/net/netfilter/xt_REDIRECT.c
+> index 22a1030..b4ffac5 100644
+> --- a/net/netfilter/xt_REDIRECT.c
+> +++ b/net/netfilter/xt_REDIRECT.c
+> @@ -26,6 +26,7 @@
+>  #include <net/checksum.h>
+>  #include <net/protocol.h>
+>  #include <net/netfilter/nf_nat.h>
+> +#include <net/netfilter/ipv4/nf_nat_redirect.h>
+>  
+>  static const struct in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
+>  
+> @@ -98,48 +99,7 @@ static int redirect_tg4_check(const struct xt_tgchk_param *par)
+>  static unsigned int
+>  redirect_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+> -	struct nf_conn *ct;
+> -	enum ip_conntrack_info ctinfo;
+> -	__be32 newdst;
+> -	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+> -	struct nf_nat_range newrange;
+> -
+> -	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
+> -		     par->hooknum == NF_INET_LOCAL_OUT);
+> -
+> -	ct = nf_ct_get(skb, &ctinfo);
+> -	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+> -
+> -	/* Local packets: make them go to loopback */
+> -	if (par->hooknum == NF_INET_LOCAL_OUT)
+> -		newdst = htonl(0x7F000001);
+
+Same coding style nitpick here.
+
+Apart from those comment, this looks good to me. Thanks Arturo.
