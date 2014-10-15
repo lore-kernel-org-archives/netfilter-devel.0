@@ -1,90 +1,111 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests: add tests for masquerade
-Date: Wed, 15 Oct 2014 12:01:27 +0200
-Message-ID: <20141015100127.26222.55158.stgit@nfdev.cica.es>
+From: Vitezslav Samel <vitezslav@samel.cz>
+Subject: Re: ipset: bad timeout assignments
+Date: Wed, 15 Oct 2014 12:05:04 +0200
+Message-ID: <20141015100504.GA19970@pc11.op.pod.cz>
+References: <20141010085621.GA9211@pc11.op.pod.cz>
+ <alpine.DEB.2.10.1410101256230.18124@blackhole.kfki.hu>
+ <20141010111404.GA15011@pc11.op.pod.cz>
+ <alpine.DEB.2.10.1410151123290.20170@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: anarey@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:35346 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751793AbaJOKBp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2014 06:01:45 -0400
+Received: from mail.pod.cz ([213.155.227.146]:38834 "EHLO mail.pod.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752488AbaJOKFH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Oct 2014 06:05:07 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.10.1410151123290.20170@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Let's test the new masquerade option in nftables.
+On Wed, Oct 15, 2014 at 11:32:45AM +0200, Jozsef Kadlecsik wrote:
+> On Fri, 10 Oct 2014, Vitezslav Samel wrote:
+> 
+> > On Fri, Oct 10, 2014 at 01:04:03PM +0200, Jozsef Kadlecsik wrote:
+> > > On Fri, 10 Oct 2014, Vitezslav Samel wrote:
+> > > 
+> > > >   I'm using ipset's hash:ip with timeout to ban bad behaving clients.
+> > > > When using very long timeout ( > 2147483 ) the ipset's timeout gets
+> > > > weird:
+> > > > 
+> > > > -- TEST 1 ----------------
+> > > > + uname -r
+> > > > 3.15.6
+> > > > + ipset --version
+> > > > ipset v6.23, protocol version: 6
+> > > > + ipset create test hash:ip timeout 1111111
+> > > > + ipset add test 10.0.0.1
+> > > > + ipset add test 10.0.0.2 timeout 2000000
+> > > > + ipset add test 10.0.0.3 timeout 3000000
+> > > > + ipset list test
+> > > > Name: test
+> > > > Type: hash:ip
+> > > > Revision: 3
+> > > > Header: family inet hashsize 1024 maxelem 65536 timeout 1111111
+> > > > Size in memory: 16720
+> > > > References: 0
+> > > > Members:
+> > > > 10.0.0.1 timeout 1111111
+> > > > 10.0.0.2 timeout 2000000
+> > > > 10.0.0.3 timeout 4294967
+> > > > + ipset destroy test
+> > > > --------------------------
+> > > > 
+> > > > The 10.0.0.3 gets 4294967 timeout although I wanted timeout 3000000.
+> > > > 
+> > > > With hash:ip default timeout being >2147483 the test looks like this:
+> > > > 
+> > > > -- TEST 2 ----------------
+> > > > + ipset create test2 hash:ip timeout 3333333
+> > > > + ipset add test2 10.0.0.1
+> > > > + ipset add test2 10.0.0.2 timeout 2000000
+> > > > + ipset add test2 10.0.0.3 timeout 3000000
+> > > > + ipset list test2
+> > > > Name: test2
+> > > > Type: hash:ip
+> > > > Revision: 3
+> > > > Header: family inet hashsize 1024 maxelem 65536 timeout 3333333
+> > > > Size in memory: 16720
+> > > > References: 0
+> > > > Members:
+> > > > 10.0.0.1 timeout 4294967
+> > > > 10.0.0.2 timeout 2000000
+> > > > 10.0.0.3 timeout 4294967
+> > > > + ipset destroy test2
+> > > > --------------------------
+> > > > 
+> > > > Now 10.0.0.1 gets wrong timeout and 10.0.0.3 also.
+> > > > The magic number 2147483 is (UINT_MAX/1000)/2 which makes me think this
+> > > > is some signed/unsigned int problem somewhere.
+> > > > 
+> > > > The above tests were run on x86_64 machine; the same problem is on i686,
+> > > > but wrongly assigned timeout is 2147483 instead of 4294967.
+> > > > 
+> > > > I also tried 3.16.2 kernel, but the bug is here too.
+> > > 
+> > > Too large jiffies are converted automatically to MAX_JIFFY_OFFSET (i.e. 
+> > > ((LONG_MAX >> 1)-1)). That's a limitation in the kernel which cannot be 
+> > > worked around. The only thing I could do is not to accept too large 
+> > > timeout values.
+> > 
+> >   Even on machines with 64-bit long? That is weird.
+> 
+> I have re-checked and it is so: time values are stored in unsigned int 
+> (see msecs_to_jiffies), so the maximal value in seconds is UINT_MAX/1000.
+> However, msecs_to_jiffies limits it further by checking negative values, 
+> which halves the maximal value.
+> 
+> So this is beyond ipset itself. All I can do is to correct in the "ipset" 
+> library what is the accepted maximal timeout value and change it from the 
+> current UINT_MAX/1000 to (UINT_MAX/1000)/2.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- tests/regression/ip/masquerade.t  |   25 +++++++++++++++++++++++++
- tests/regression/ip6/masquerade.t |   25 +++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
- create mode 100644 tests/regression/ip/masquerade.t
- create mode 100644 tests/regression/ip6/masquerade.t
+  OK. So for me and other users the only solution to this problem is to
+wait if you try to make some other way to specify the timeout greater
+than (UINT_MAX/1000)/2 (i.e. about 24 days for current archs) - either
+using u64 variables or something other.
 
-diff --git a/tests/regression/ip/masquerade.t b/tests/regression/ip/masquerade.t
-new file mode 100644
-index 0000000..c1371b5
---- /dev/null
-+++ b/tests/regression/ip/masquerade.t
-@@ -0,0 +1,25 @@
-+*ip;test-ip4
-+:output;type nat hook output priority 0
-+
-+# nf_nat flags combination
-+udp dport 53 masquerade ;ok
-+udp dport 53 masquerade random ;ok
-+udp dport 53 masquerade random,persistent ;ok
-+udp dport 53 masquerade random,persistent,random-fully ;ok ;udp dport 53 masquerade random,random-fully,persistent
-+udp dport 53 masquerade random,random-fully ;ok
-+udp dport 53 masquerade random,random-fully,persistent ;ok
-+udp dport 53 masquerade persistent ;ok
-+udp dport 53 masquerade persistent,random ;ok ;udp dport 53 masquerade random,persistent
-+udp dport 53 masquerade persistent,random,random-fully ;ok ;udp dport 53 masquerade random,random-fully,persistent
-+udp dport 53 masquerade persistent,random-fully ;ok ;udp dport 53 masquerade random-fully,persistent
-+udp dport 53 masquerade persistent,random-fully,random;ok ;udp dport 53 masquerade random,random-fully,persistent
-+
-+# masquerade is a terminal statement
-+tcp dport 22 masquerade counter packets 0 bytes 0 accept ;nok
-+tcp sport 22 masquerade accept ;nok
-+ip saddr 10.1.1.1 masquerade drop ;nok
-+
-+# masquerade with sets
-+tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} masquerade ;ok
-+ip daddr 10.0.0.0-10.2.3.4 udp dport 53 counter packets 0 bytes 0 masquerade ;ok ;ip daddr >= 10.0.0.0 ip daddr <= 10.2.3.4 udp dport 53 counter packets 0 bytes 0 masquerade
-+iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } masquerade ;ok
-diff --git a/tests/regression/ip6/masquerade.t b/tests/regression/ip6/masquerade.t
-new file mode 100644
-index 0000000..edbf317
---- /dev/null
-+++ b/tests/regression/ip6/masquerade.t
-@@ -0,0 +1,25 @@
-+*ip6;test-ip6
-+:output;type nat hook output priority 0
-+
-+# nf_nat flags combination
-+udp dport 53 masquerade ;ok
-+udp dport 53 masquerade random ;ok
-+udp dport 53 masquerade random,persistent ;ok
-+udp dport 53 masquerade random,persistent,random-fully ;ok ;udp dport 53 masquerade random,random-fully,persistent
-+udp dport 53 masquerade random,random-fully ;ok
-+udp dport 53 masquerade random,random-fully,persistent ;ok
-+udp dport 53 masquerade persistent ;ok
-+udp dport 53 masquerade persistent,random ;ok ;udp dport 53 masquerade random,persistent
-+udp dport 53 masquerade persistent,random,random-fully ;ok ;udp dport 53 masquerade random,random-fully,persistent
-+udp dport 53 masquerade persistent,random-fully ;ok ;udp dport 53 masquerade random-fully,persistent
-+udp dport 53 masquerade persistent,random-fully,random;ok ;udp dport 53 masquerade random,random-fully,persistent
-+
-+# masquerade is a terminal statement
-+tcp dport 22 masquerade counter packets 0 bytes 0 accept ;nok
-+tcp sport 22 masquerade accept ;nok
-+ip6 saddr ::1 masquerade drop ;nok
-+
-+# masquerade with sets
-+tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} masquerade ;ok
-+ip6 daddr fe00::1-fe00::200 udp dport 53 counter packets 0 bytes 0 masquerade ;ok ;ip6 daddr >= fe00::1 ip6 daddr <= fe00::200 udp dport 53 counter packets 0 bytes 0 masquerade
-+iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } masquerade ;ok
+	Thank you very much,
 
+		Vita Samel
