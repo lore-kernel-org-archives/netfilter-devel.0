@@ -1,185 +1,87 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH 2/2] tests: add tests for nft_redir expression
-Date: Tue, 14 Oct 2014 19:36:22 +0200
-Message-ID: <20141014173622.12044.59088.stgit@nfdev.cica.es>
-References: <20141014173616.12044.90963.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] nf_conntrack_proto_tcp: allow server to become a client
+ in TW handling
+Date: Wed, 15 Oct 2014 09:27:43 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1410150854460.19251@blackhole.kfki.hu>
+References: <5419B546.40702@redhat.com> <a9618c5db692413c2970201b5206bcd357438399.1413216136.git.mleitner@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38894 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754438AbaJNRgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Oct 2014 13:36:31 -0400
-In-Reply-To: <20141014173616.12044.90963.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <a9618c5db692413c2970201b5206bcd357438399.1413216136.git.mleitner@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch add some tests for the nft_redir expression.
+On Mon, 13 Oct 2014, Marcelo Ricardo Leitner wrote:
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- tests/Makefile.am                  |    4 +
- tests/jsonfiles/69-rule-redir.json |    1 
- tests/nft-expr_redir-test.c        |   97 ++++++++++++++++++++++++++++++++++++
- tests/test-script.sh               |    1 
- tests/xmlfiles/80-rule-redir.xml   |    1 
- 5 files changed, 104 insertions(+)
- create mode 100644 tests/jsonfiles/69-rule-redir.json
- create mode 100644 tests/nft-expr_redir-test.c
- create mode 100644 tests/xmlfiles/80-rule-redir.xml
+> When a port that was used to listen for inbound connections gets closed
+> and reused for outgoing connections (like rsh ends up doing for stderr
+> flow), current we may reject the SYN/ACK packet for the new connection
+> because tcp_conntracks states forbirds a port to become a client while
+> there is still a TIME_WAIT entry in there for it.
+> 
+> As TCP may expire the TIME_WAIT socket in 60s and conntrack's timeout
+> for it is 120s, there is a ~60s window that the application can end up
+> opening a port that conntrack will end up blocking.
+> 
+> This patch fixes this by simply allowing such state transition: if we
+> see a SYN, in TIME_WAIT state, on REPLY direction, move it to sSS. Note
+> that the rest of the code already handles this situation, more
+> specificly in tcp_packet(), first switch clause.
 
-diff --git a/tests/Makefile.am b/tests/Makefile.am
-index d4f44af..bac2106 100644
---- a/tests/Makefile.am
-+++ b/tests/Makefile.am
-@@ -21,6 +21,7 @@ check_PROGRAMS = 	nft-parsing-test		\
- 			nft-expr_log-test		\
- 			nft-expr_match-test		\
- 			nft-expr_masq-test		\
-+			nft-expr_redir-test		\
- 			nft-expr_meta-test		\
- 			nft-expr_nat-test		\
- 			nft-expr_payload-test		\
-@@ -79,6 +80,9 @@ nft_expr_match_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- nft_expr_masq_test_SOURCES = nft-expr_masq-test.c
- nft_expr_masq_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-+nft_expr_redir_test_SOURCES = nft-expr_redir-test.c
-+nft_expr_redir_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
- nft_expr_meta_test_SOURCES = nft-expr_meta-test.c
- nft_expr_meta_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-diff --git a/tests/jsonfiles/69-rule-redir.json b/tests/jsonfiles/69-rule-redir.json
-new file mode 100644
-index 0000000..043fff2
---- /dev/null
-+++ b/tests/jsonfiles/69-rule-redir.json
-@@ -0,0 +1 @@
-+{"nftables":[{"rule":{"family":"ip6","table":"nat","chain":"prerouting","handle":4,"expr":[{"type":"redir"}]}}]}
-diff --git a/tests/nft-expr_redir-test.c b/tests/nft-expr_redir-test.c
-new file mode 100644
-index 0000000..4d41c61
---- /dev/null
-+++ b/tests/nft-expr_redir-test.c
-@@ -0,0 +1,97 @@
-+/*
-+ * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include <linux/netfilter/nf_tables.h>
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/rule.h>
-+#include <libnftnl/expr.h>
-+
-+static int test_ok = 1;
-+
-+static void print_err(const char *msg)
-+{
-+	test_ok = 0;
-+	printf("\033[31mERROR:\e[0m %s\n", msg);
-+}
-+
-+static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
-+			      struct nft_rule_expr *rule_b)
-+{
-+	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_REDIR_REG_PROTO_MIN) !=
-+	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_REDIR_REG_PROTO_MIN))
-+		print_err("Expr NFT_EXPR_REDIR_REG_PROTO_MIN mismatches");
-+	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_REDIR_REG_PROTO_MAX) !=
-+	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_REDIR_REG_PROTO_MAX))
-+		print_err("Expr NFT_EXPR_REDIR_REG_PROTO_MAX mismatches");
-+	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_REDIR_FLAGS) !=
-+	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_REDIR_FLAGS))
-+		print_err("Expr NFT_EXPR_REDIR_FLAGS mismatches");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct nft_rule *a, *b;
-+	struct nft_rule_expr *ex;
-+	struct nlmsghdr *nlh;
-+	char buf[4096];
-+	struct nft_rule_expr_iter *iter_a, *iter_b;
-+	struct nft_rule_expr *rule_a, *rule_b;
-+
-+	a = nft_rule_alloc();
-+	b = nft_rule_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("OOM");
-+	ex = nft_rule_expr_alloc("redir");
-+	if (ex == NULL)
-+		print_err("OOM");
-+
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_REDIR_REG_PROTO_MIN, 0x1234568);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_REDIR_REG_PROTO_MAX, 0x23456);
-+	nft_rule_expr_set_u32(ex, NFT_EXPR_REDIR_FLAGS, 0x1234568);
-+
-+	nft_rule_add_expr(a, ex);
-+
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
-+	nft_rule_nlmsg_build_payload(nlh, a);
-+
-+	if (nft_rule_nlmsg_parse(nlh, b) < 0)
-+		print_err("Parsing problems");
-+
-+	iter_a = nft_rule_expr_iter_create(a);
-+	iter_b = nft_rule_expr_iter_create(b);
-+	if (iter_a == NULL || iter_b == NULL)
-+		print_err("OOM");
-+
-+	rule_a = nft_rule_expr_iter_next(iter_a);
-+	rule_b = nft_rule_expr_iter_next(iter_b);
-+	if (rule_a == NULL || rule_b == NULL)
-+		print_err("OOM");
-+
-+	cmp_nft_rule_expr(rule_a, rule_b);
-+
-+	if (nft_rule_expr_iter_next(iter_a) != NULL ||
-+	    nft_rule_expr_iter_next(iter_b) != NULL)
-+		print_err("More than 1 expr.");
-+
-+	nft_rule_expr_iter_destroy(iter_a);
-+	nft_rule_expr_iter_destroy(iter_b);
-+	nft_rule_free(a);
-+	nft_rule_free(b);
-+
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
-+	printf("%s: \033[32mOK\e[0m\n", argv[0]);
-+	return EXIT_SUCCESS;
-+}
-diff --git a/tests/test-script.sh b/tests/test-script.sh
-index 93caeb8..b040158 100755
---- a/tests/test-script.sh
-+++ b/tests/test-script.sh
-@@ -12,6 +12,7 @@
- ./nft-expr_match-test
- ./nft-expr_masq-test
- ./nft-expr_meta-test
-+./nft-expr_redir-test
- ./nft-expr_nat-test
- ./nft-expr_payload-test
- ./nft-expr_reject-test
-diff --git a/tests/xmlfiles/80-rule-redir.xml b/tests/xmlfiles/80-rule-redir.xml
-new file mode 100644
-index 0000000..f7dd453
---- /dev/null
-+++ b/tests/xmlfiles/80-rule-redir.xml
-@@ -0,0 +1 @@
-+<nftables><rule><family>ip6</family><table>nat</table><chain>prerouting</chain><handle>4</handle><expr type="redir"></expr></rule></nftables>
+In those code branch if there was a valid FIN in either direction, we 
+destroy the old connection and a new will be created. That way the rules 
+about NEW connections will be applied, so the policies are not bypassed. 
+Otherwise we just ignore the SYN packet, so if it's invalid, we'll catch 
+the RST from the other side and destroy the conntrack entry. The event 
+flow looks OK to me.
 
+> Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
+
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Best regards,
+Jozsef
+
+> ---
+>  net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 44d1ea32570a07338dc39f34624bd823b6f76916..d87b6423ffb21e0f8f9b6ef25ef51c1cb5f54ad6 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -213,7 +213,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
+>  	{
+>  /* REPLY */
+>  /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+> -/*syn*/	   { sIV, sS2, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sS2 },
+> +/*syn*/	   { sIV, sS2, sIV, sIV, sIV, sIV, sIV, sSS, sIV, sS2 },
+>  /*
+>   *	sNO -> sIV	Never reached.
+>   *	sSS -> sS2	Simultaneous open
+> @@ -223,7 +223,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
+>   *	sFW -> sIV
+>   *	sCW -> sIV
+>   *	sLA -> sIV
+> - *	sTW -> sIV	Reopened connection, but server may not do it.
+> + *	sTW -> sSS	Reopened connection, but server may have switched role
+>   *	sCL -> sIV
+>   */
+>  /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+> -- 
+> 1.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
