@@ -1,58 +1,44 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables-compat PATCH 3/3] nft-ipv46: replace offset var with ctx->payload.offset
-Date: Thu, 16 Oct 2014 16:29:53 +0200
-Message-ID: <1413469793-21382-3-git-send-email-giuseppelng@gmail.com>
-References: <1413469793-21382-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
+From: vDev <vijaypas@gmail.com>
+Subject: NAT dropping FIN ACK from remote server
+Date: Thu, 16 Oct 2014 16:57:25 -0500
+Message-ID: <CAC=w+U4bYSJ8d=0GmgmM3miVrd54sN1y0_ppsvs97gd7gLo+2g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:58460 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbaJPOaE (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:57802 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345AbaJPV50 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2014 10:30:04 -0400
-Received: by mail-wi0-f176.google.com with SMTP id hi2so1688755wib.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2014 07:30:02 -0700 (PDT)
-In-Reply-To: <1413469793-21382-1-git-send-email-giuseppelng@gmail.com>
+	Thu, 16 Oct 2014 17:57:26 -0400
+Received: by mail-wi0-f182.google.com with SMTP id n3so576560wiv.15
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2014 14:57:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The offset variable (undefined) is passed to DEBUGP function,
-so you get a compilation error if you try to build iptables
-with debug enabled
+I am experiencing a problem with Linux as a NAT router. A host/client
+on the private LAN establishes a TCP connection to a server on the WAN
+(Internet) through the Linux/NAT router. Here's what happens when
+client attempts to tear down the socket.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- iptables/nft-ipv4.c | 2 +-
- iptables/nft-ipv6.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+1. Client on private LAN opens a TCP connection to the remote server
+on the public network through Linux/NAT router.
+2. Client exchanges data with the remote server.
+3. The server closes the TCP connection by sending a FIN to the
+client. Linux/NAT router successfully forwards the FIN to the client.
+4. The client now sends an ACK to FIN to the remote host, which is
+forwarded by the Linux/NAT router to the server.
+5. The client then sends a FIN to the remote host, which is forwarded
+by the Linux/NAT router to the remote server.
+6. The server now sends an ACK to the client. THE Linux/NAT router
+DOES NOT FORWARD THE ACK TO THE CLIENT. GETS DROPPED!
+7. The client keeps sending FIN to the remote host for a period of time.
+8. The client times out and send a RST to the remote host.
 
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index eedcb50..a2c5806 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -205,7 +205,7 @@ static void nft_ipv4_parse_payload(struct nft_xt_ctx *ctx,
- 			cs->fw.ip.invflags |= IPT_INV_FRAG;
- 		break;
- 	default:
--		DEBUGP("unknown payload offset %d\n", offset);
-+		DEBUGP("unknown payload offset %d\n", ctx->payload.offset);
- 		break;
- 	}
- }
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index 2e50627..5489398 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -142,7 +142,7 @@ static void nft_ipv6_parse_payload(struct nft_xt_ctx *ctx,
- 		if (inv)
- 			cs->fw6.ipv6.invflags |= IPT_INV_PROTO;
- 	default:
--		DEBUGP("unknown payload offset %d\n", offset);
-+		DEBUGP("unknown payload offset %d\n", ctx->payload.offset);
- 		break;
- 	}
- }
--- 
-1.9.1
+I am trying to find out why Linux/NAT router dropped the ACK. This
+seems like a problem where connection tracking is prematurely tearing
+down the mapping and does not forward the ACK back to the client.
 
+Is there a way to resolve this?
+
+Also, any debugging techniques will be helpful.
