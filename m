@@ -1,98 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 2/3] netfilter: nft_nat: NFTA_NAT_REG_ADDR_MAX depends on NFTA_NAT_REG_ADDR_MIN
-Date: Thu, 16 Oct 2014 14:57:17 +0200
-Message-ID: <1413464238-4071-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf 3/3] netfilter: nft_nat: dump attributes if they are set
+Date: Thu, 16 Oct 2014 14:57:18 +0200
+Message-ID: <1413464238-4071-3-git-send-email-pablo@netfilter.org>
 References: <1413464238-4071-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58546 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58552 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966AbaJPM4F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2014 08:56:05 -0400
+	id S1751957AbaJPM4H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2014 08:56:07 -0400
 In-Reply-To: <1413464238-4071-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Interpret NFTA_NAT_REG_ADDR_MAX if NFTA_NAT_REG_ADDR_MIN is present,
-otherwise, skip it. Same thing with NFTA_NAT_REG_PROTO_MAX.
+Dump NFTA_NAT_REG_ADDR_MIN if this is non-zero. Same thing with
+NFTA_NAT_REG_PROTO_MIN.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_nat.c |   50 ++++++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
+ net/netfilter/nft_nat.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 3edb76c..eb1afe0 100644
+index eb1afe0..a7c2ffe 100644
 --- a/net/netfilter/nft_nat.c
 +++ b/net/netfilter/nft_nat.c
-@@ -126,38 +126,44 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	priv->family = family;
+@@ -191,20 +191,20 @@ static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
  
- 	if (tb[NFTA_NAT_REG_ADDR_MIN]) {
--		priv->sreg_addr_min = ntohl(nla_get_be32(
--						tb[NFTA_NAT_REG_ADDR_MIN]));
-+		priv->sreg_addr_min =
-+			ntohl(nla_get_be32(tb[NFTA_NAT_REG_ADDR_MIN]));
+ 	if (nla_put_be32(skb, NFTA_NAT_FAMILY, htonl(priv->family)))
+ 		goto nla_put_failure;
+-	if (nla_put_be32(skb,
+-			 NFTA_NAT_REG_ADDR_MIN, htonl(priv->sreg_addr_min)))
 +
- 		err = nft_validate_input_register(priv->sreg_addr_min);
- 		if (err < 0)
- 			return err;
++	if (priv->sreg_addr_min != 0 &&
++	    nla_put_be32(skb, NFTA_NAT_REG_ADDR_MIN,
++			 htonl(priv->sreg_addr_min)) ||
++	    nla_put_be32(skb, NFTA_NAT_REG_ADDR_MAX,
++			 htonl(priv->sreg_addr_max)))
+ 		goto nla_put_failure;
+-	if (nla_put_be32(skb,
+-			 NFTA_NAT_REG_ADDR_MAX, htonl(priv->sreg_addr_max)))
++
++	if (priv->sreg_proto_min != 0 &&
++	    nla_put_be32(skb, NFTA_NAT_REG_PROTO_MIN,
++			 htonl(priv->sreg_proto_min)) ||
++	    nla_put_be32(skb, NFTA_NAT_REG_PROTO_MAX,
++			 htonl(priv->sreg_proto_max)))
+ 		goto nla_put_failure;
+-	if (priv->sreg_proto_min) {
+-		if (nla_put_be32(skb, NFTA_NAT_REG_PROTO_MIN,
+-				 htonl(priv->sreg_proto_min)))
+-			goto nla_put_failure;
+-		if (nla_put_be32(skb, NFTA_NAT_REG_PROTO_MAX,
+-				 htonl(priv->sreg_proto_max)))
+-			goto nla_put_failure;
 -	}
  
--	if (tb[NFTA_NAT_REG_ADDR_MAX]) {
--		priv->sreg_addr_max = ntohl(nla_get_be32(
--						tb[NFTA_NAT_REG_ADDR_MAX]));
--		err = nft_validate_input_register(priv->sreg_addr_max);
--		if (err < 0)
--			return err;
--	} else
--		priv->sreg_addr_max = priv->sreg_addr_min;
-+		if (tb[NFTA_NAT_REG_ADDR_MAX]) {
-+			priv->sreg_addr_max =
-+				ntohl(nla_get_be32(tb[NFTA_NAT_REG_ADDR_MAX]));
-+
-+			err = nft_validate_input_register(priv->sreg_addr_max);
-+			if (err < 0)
-+				return err;
-+		} else {
-+			priv->sreg_addr_max = priv->sreg_addr_min;
-+		}
-+	}
- 
- 	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
--		priv->sreg_proto_min = ntohl(nla_get_be32(
--						tb[NFTA_NAT_REG_PROTO_MIN]));
-+		priv->sreg_proto_min =
-+			ntohl(nla_get_be32(tb[NFTA_NAT_REG_PROTO_MIN]));
-+
- 		err = nft_validate_input_register(priv->sreg_proto_min);
- 		if (err < 0)
- 			return err;
--	}
- 
--	if (tb[NFTA_NAT_REG_PROTO_MAX]) {
--		priv->sreg_proto_max = ntohl(nla_get_be32(
--						tb[NFTA_NAT_REG_PROTO_MAX]));
--		err = nft_validate_input_register(priv->sreg_proto_max);
--		if (err < 0)
--			return err;
--	} else
--		priv->sreg_proto_max = priv->sreg_proto_min;
-+		if (tb[NFTA_NAT_REG_PROTO_MAX]) {
-+			priv->sreg_proto_max =
-+				ntohl(nla_get_be32(tb[NFTA_NAT_REG_PROTO_MAX]));
-+
-+			err = nft_validate_input_register(priv->sreg_proto_max);
-+			if (err < 0)
-+				return err;
-+		} else {
-+			priv->sreg_proto_max = priv->sreg_proto_min;
-+		}
-+	}
- 
- 	if (tb[NFTA_NAT_FLAGS]) {
- 		priv->flags = ntohl(nla_get_be32(tb[NFTA_NAT_FLAGS]));
+ 	if (priv->flags != 0) {
+ 		if (nla_put_be32(skb, NFTA_NAT_FLAGS, htonl(priv->flags)))
 -- 
 1.7.10.4
 
