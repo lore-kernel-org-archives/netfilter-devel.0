@@ -1,41 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 1/3] netfilter: nft_nat: insufficient attribute validation
-Date: Thu, 16 Oct 2014 14:57:16 +0200
-Message-ID: <1413464238-4071-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables-compat PATCH 1/3] ebtables-compat: fix print_header
+Date: Thu, 16 Oct 2014 16:29:51 +0200
+Message-ID: <1413469793-21382-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58545 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbaJPM4F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2014 08:56:05 -0400
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:45067 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbaJPOaA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2014 10:30:00 -0400
+Received: by mail-wg0-f46.google.com with SMTP id l18so3880371wgh.29
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2014 07:29:59 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have to validate that we at least get an NFTA_NAT_REG_ADDR_MIN or
-NFTA_NFT_REG_PROTO_MIN attribute. Reject the configuration if none
-of them are present.
+This prints the header like ebtables.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- net/netfilter/nft_nat.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ iptables/nft-bridge.c | 3 +--
+ iptables/nft.c        | 7 +++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 0f0af6e..3edb76c 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -99,7 +99,9 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index ab97881..1fe10ed 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -362,8 +362,7 @@ static void nft_bridge_print_header(unsigned int format, const char *chain,
+ 				    const struct xt_counters *counters,
+ 				    bool basechain, uint32_t refs)
+ {
+-	/* FIXME: Giuseppe replace this with ebtables format */
+-	print_header(format, chain, pol, counters, basechain, refs);
++	printf("Bridge chain: %s, entries: %u, policy: %s\n", chain, refs, pol);
+ }
  
--	if (tb[NFTA_NAT_TYPE] == NULL)
-+	if (tb[NFTA_NAT_TYPE] == NULL ||
-+	    (tb[NFTA_NAT_REG_ADDR_MIN] == NULL &&
-+	     tb[NFTA_NFT_REG_PROTO_MIN] == NULL))
- 		return -EINVAL;
+ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
+diff --git a/iptables/nft.c b/iptables/nft.c
+index bab2834..0cdf027 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2006,6 +2006,9 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
+ 	if (iter == NULL)
+ 		goto err;
  
- 	switch (ntohl(nla_get_be32(tb[NFTA_NAT_TYPE]))) {
++	if (h->family == NFPROTO_BRIDGE)
++		printf("Bridge table: %s\n\n", table);
++
+ 	c = nft_chain_list_iter_next(iter);
+ 	while (c != NULL) {
+ 		const char *chain_table =
+@@ -2033,8 +2036,8 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
+ 		if (found)
+ 			printf("\n");
+ 
+-		ops->print_header(format, chain_name, policy_name[policy],
+-				  &ctrs, basechain, refs);
++		ops->print_header(format, chain_name,
++				  policy_name[policy], &ctrs, basechain, refs);
+ 
+ 		__nft_rule_list(h, chain_name, table,
+ 				rulenum, format, ops->print_firewall);
 -- 
-1.7.10.4
+1.9.1
 
