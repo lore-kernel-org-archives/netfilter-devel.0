@@ -1,74 +1,87 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH v2 3/3] netfilter: nf_tables: add new expression
- nft_redir
-Date: Thu, 16 Oct 2014 12:25:08 +0200
-Message-ID: <20141016102403.4715.34436.stgit@nfdev.cica.es>
-References: <20141016102224.4715.64585.stgit@nfdev.cica.es>
+Subject: [libnftnl PATCH v2] src: add support for nft_redir expression
+Date: Thu, 16 Oct 2014 12:39:29 +0200
+Message-ID: <20141016103819.8624.91474.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:46930 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:56355 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752142AbaJPKZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2014 06:25:18 -0400
-In-Reply-To: <20141016102224.4715.64585.stgit@nfdev.cica.es>
+	id S1751538AbaJPKjk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2014 06:39:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new expression provides NAT in the redirect flavour, which is to
-redirect packets to local machine.
+This patch adds support for the new nft_redir expression.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-v2: some cosmetic changes requested by Pablo. Use u16 for flags.
+v2: redirect flags is uint 16.
 
- include/net/netfilter/nft_redir.h        |   18 ++++++
- include/uapi/linux/netfilter/nf_tables.h |   16 ++++++
- net/ipv4/netfilter/Kconfig               |    9 +++
- net/ipv4/netfilter/Makefile              |    1 
- net/ipv4/netfilter/nft_redir_ipv4.c      |   76 +++++++++++++++++++++++++++
- net/ipv6/netfilter/Kconfig               |    9 +++
- net/ipv6/netfilter/Makefile              |    1 
- net/netfilter/Kconfig                    |    9 +++
- net/netfilter/Makefile                   |    1 
- net/netfilter/nft_redir.c                |   86 ++++++++++++++++++++++++++++++
- 10 files changed, 226 insertions(+)
- create mode 100644 include/net/netfilter/nft_redir.h
- create mode 100644 net/ipv4/netfilter/nft_redir_ipv4.c
- create mode 100644 net/netfilter/nft_redir.c
+I'm sorry, diffstat is missing :-(
 
-diff --git a/include/net/netfilter/nft_redir.h b/include/net/netfilter/nft_redir.h
-new file mode 100644
-index 0000000..af0621d
---- /dev/null
-+++ b/include/net/netfilter/nft_redir.h
-@@ -0,0 +1,18 @@
-+#ifndef _NFT_REDIR_H_
-+#define _NFT_REDIR_H_
-+
-+struct nft_redir {
-+	enum nft_registers	sreg_proto_min:8;
-+	enum nft_registers	sreg_proto_max:8;
-+	u16			flags;
+ 0 files changed
+
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 0505dec..9f25993 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -161,6 +161,12 @@ enum {
+ 	NFT_EXPR_MASQ_FLAGS	= NFT_RULE_EXPR_ATTR_BASE,
+ };
+ 
++enum {
++	NFT_EXPR_REDIR_REG_PROTO_MIN	= NFT_RULE_EXPR_ATTR_BASE,
++	NFT_EXPR_REDIR_REG_PROTO_MAX,
++	NFT_EXPR_REDIR_FLAGS,
 +};
 +
-+extern const struct nla_policy nft_redir_policy[];
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index b72ccfe..a1a1f33 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -749,13 +749,34 @@ enum nft_queue_attributes {
+  *
+  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
+  * @NFT_REJECT_TCP_RST: reject using TCP RST
++ * @NFT_REJECT_ICMPX_UNREACH: abstracted ICMP unreachable for bridge and inet
+  */
+ enum nft_reject_types {
+ 	NFT_REJECT_ICMP_UNREACH,
+ 	NFT_REJECT_TCP_RST,
++	NFT_REJECT_ICMPX_UNREACH,
+ };
+ 
+ /**
++ * enum nft_reject_code - Generic reject codes for IPv4/IPv6
++ *
++ * @NFT_REJECT_ICMPX_NO_ROUTE: no route to host / network unreachable
++ * @NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
++ * @NFT_REJECT_ICMPX_HOST_UNREACH: host unreachable
++ * @NFT_REJECT_ICMPX_ADMIN_PROHIBITED: administratively prohibited
++ *
++ * These codes are mapped to real ICMP and ICMPv6 codes.
++ */
++enum nft_reject_inet_code {
++	NFT_REJECT_ICMPX_NO_ROUTE	= 0,
++	NFT_REJECT_ICMPX_PORT_UNREACH,
++	NFT_REJECT_ICMPX_HOST_UNREACH,
++	NFT_REJECT_ICMPX_ADMIN_PROHIBITED,
++	__NFT_REJECT_ICMPX_MAX
++};
++#define NFT_REJECT_ICMPX_MAX	(__NFT_REJECT_ICMPX_MAX + 1)
 +
-+int nft_redir_init(const struct nft_ctx *ctx,
-+		   const struct nft_expr *expr,
-+		   const struct nlattr * const tb[]);
-+
-+int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr);
-+
-+#endif /* _NFT_REDIR_H_ */
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c26df67..bb21315 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -838,6 +838,22 @@ enum nft_masq_attributes {
++/**
+  * enum nft_reject_attributes - nf_tables reject expression netlink attributes
+  *
+  * @NFTA_REJECT_TYPE: packet type to use (NLA_U32: nft_reject_types)
+@@ -817,6 +838,22 @@ enum nft_masq_attributes {
  #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
  
  /**
@@ -76,7 +89,7 @@ index c26df67..bb21315 100644
 + *
 + * @NFTA_REDIR_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
 + * @NFTA_REDIR_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
-+ * @NFTA_REDIR_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
++ * @NFTA_REDIR_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U16)
 + */
 +enum nft_redir_attributes {
 +	NFTA_REDIR_UNSPEC,
@@ -91,274 +104,330 @@ index c26df67..bb21315 100644
   * enum nft_gen_attributes - nf_tables ruleset generation attributes
   *
   * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index a300e2c..8358b2d 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -119,6 +119,15 @@ config NFT_MASQ_IPV4
- 	  This is the expression that provides IPv4 masquerading support for
- 	  nf_tables.
- 
-+config NFT_REDIR_IPV4
-+	tristate "IPv4 redirect support for nf_tables"
-+	depends on NF_TABLES_IPV4
-+	depends on NFT_REDIR
-+	select NF_NAT_REDIRECT_IPV4
-+	help
-+	  This is the expression that provides IPv4 redirect support for
-+	  nf_tables.
-+
- config NF_NAT_SNMP_BASIC
- 	tristate "Basic SNMP-ALG support"
- 	depends on NF_CONNTRACK_SNMP
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 34e436c..902bcd1 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV4) += nft_chain_route_ipv4.o
- obj-$(CONFIG_NFT_CHAIN_NAT_IPV4) += nft_chain_nat_ipv4.o
- obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
- obj-$(CONFIG_NFT_MASQ_IPV4) += nft_masq_ipv4.o
-+obj-$(CONFIG_NFT_REDIR_IPV4) += nft_redir_ipv4.o
- obj-$(CONFIG_NF_TABLES_ARP) += nf_tables_arp.o
- 
- # generic IP tables 
-diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c b/net/ipv4/netfilter/nft_redir_ipv4.c
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 65bc82a..941e69e 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -37,6 +37,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      expr/reject.c	\
+ 		      expr/target.c	\
+ 		      expr/masq.c	\
++		      expr/redir.c	\
+ 		      expr/data_reg.h	\
+ 		      libnftnl.map	\
+ 		      expr_ops.h	\
+diff --git a/src/expr/redir.c b/src/expr/redir.c
 new file mode 100644
-index 0000000..d48690e
+index 0000000..3866701
 --- /dev/null
-+++ b/net/ipv4/netfilter/nft_redir_ipv4.c
-@@ -0,0 +1,76 @@
++++ b/src/expr/redir.c
+@@ -0,0 +1,308 @@
 +/*
-+ * Copyright (c) 2014 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
++ * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <arpa/inet.h>
++#include <errno.h>
++#include <inttypes.h>
++
 +#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_nat.h>
-+#include <net/netfilter/ipv4/nf_nat_redirect.h>
-+#include <net/netfilter/nft_redir.h>
 +
-+static void nft_redir_ipv4_eval(const struct nft_expr *expr,
-+				struct nft_data data[NFT_REG_MAX + 1],
-+				const struct nft_pktinfo *pkt)
++#include "internal.h"
++#include <libmnl/libmnl.h>
++#include <libnftnl/expr.h>
++#include <libnftnl/rule.h>
++#include "expr_ops.h"
++
++struct nft_expr_redir {
++	enum nft_registers sreg_proto_min;
++	enum nft_registers sreg_proto_max;
++	uint16_t	flags;
++};
++
++static int
++nft_rule_expr_redir_set(struct nft_rule_expr *e, uint16_t type,
++			const void *data, uint32_t data_len)
 +{
-+	struct nft_redir *priv = nft_expr_priv(expr);
-+	struct nf_nat_ipv4_multi_range_compat mr;
-+	unsigned int verdict;
++	struct nft_expr_redir *redir = nft_expr_data(e);
 +
-+	memset(&mr, 0, sizeof(mr));
-+	if (priv->sreg_proto_min) {
-+		mr.range[0].min.all = (__force __be16)
-+					data[priv->sreg_proto_min].data[0];
-+		mr.range[0].max.all = (__force __be16)
-+					data[priv->sreg_proto_max].data[0];
-+		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
++	switch (type) {
++	case NFT_EXPR_REDIR_REG_PROTO_MIN:
++		redir->sreg_proto_min = *((uint32_t *)data);
++		break;
++	case NFT_EXPR_REDIR_REG_PROTO_MAX:
++		redir->sreg_proto_max = *((uint32_t *)data);
++		break;
++	case NFT_EXPR_REDIR_FLAGS:
++		redir->flags = *((uint16_t *)data);
++		break;
++	default:
++		return -1;
++	}
++	return 0;
++}
++
++static const void *
++nft_rule_expr_redir_get(const struct nft_rule_expr *e, uint16_t type,
++			uint32_t *data_len)
++{
++	struct nft_expr_redir *redir = nft_expr_data(e);
++
++	switch (type) {
++	case NFT_EXPR_REDIR_REG_PROTO_MIN:
++		*data_len = sizeof(redir->sreg_proto_min);
++		return &redir->sreg_proto_min;
++	case NFT_EXPR_REDIR_REG_PROTO_MAX:
++		*data_len = sizeof(redir->sreg_proto_max);
++		return &redir->sreg_proto_max;
++	case NFT_EXPR_REDIR_FLAGS:
++		*data_len = sizeof(redir->flags);
++		return &redir->flags;
++	}
++	return NULL;
++}
++
++static int nft_rule_expr_redir_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_REDIR_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch (type) {
++	case NFTA_REDIR_REG_PROTO_MIN:
++	case NFTA_REDIR_REG_PROTO_MAX:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	case NFTA_REDIR_FLAGS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
++			abi_breakage();
++		break;
 +	}
 +
-+	mr.range[0].flags |= priv->flags;
-+
-+	verdict = nf_nat_redirect_ipv4(pkt->skb, &mr, pkt->ops->hooknum);
-+	data[NFT_REG_VERDICT].verdict = verdict;
++	tb[type] = attr;
++	return MNL_CB_OK;
 +}
 +
-+static struct nft_expr_type nft_redir_ipv4_type;
-+static const struct nft_expr_ops nft_redir_ipv4_ops = {
-+	.type		= &nft_redir_ipv4_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
-+	.eval		= nft_redir_ipv4_eval,
-+	.init		= nft_redir_init,
-+	.dump		= nft_redir_dump,
-+};
-+
-+static struct nft_expr_type nft_redir_ipv4_type __read_mostly = {
-+	.family		= NFPROTO_IPV4,
-+	.name		= "redir",
-+	.ops		= &nft_redir_ipv4_ops,
-+	.policy		= nft_redir_policy,
-+	.maxattr	= NFTA_REDIR_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_redir_ipv4_module_init(void)
++static void
++nft_rule_expr_redir_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
 +{
-+	return nft_register_expr(&nft_redir_ipv4_type);
++	struct nft_expr_redir *redir = nft_expr_data(e);
++
++	if (e->flags & (1 << NFT_EXPR_REDIR_REG_PROTO_MIN))
++		mnl_attr_put_u32(nlh, NFTA_REDIR_REG_PROTO_MIN,
++				 htobe32(redir->sreg_proto_min));
++	if (e->flags & (1 << NFT_EXPR_REDIR_REG_PROTO_MAX))
++		mnl_attr_put_u32(nlh, NFTA_REDIR_REG_PROTO_MAX,
++				 htobe32(redir->sreg_proto_max));
++	if (e->flags & (1 << NFT_EXPR_REDIR_FLAGS))
++		mnl_attr_put_u16(nlh, NFTA_REDIR_FLAGS, htobe16(redir->flags));
 +}
 +
-+static void __exit nft_redir_ipv4_module_exit(void)
++static int
++nft_rule_expr_redir_parse(struct nft_rule_expr *e, struct nlattr *attr)
 +{
-+	nft_unregister_expr(&nft_redir_ipv4_type);
-+}
++	struct nft_expr_redir *redir = nft_expr_data(e);
++	struct nlattr *tb[NFTA_REDIR_MAX+1] = {};
 +
-+module_init(nft_redir_ipv4_module_init);
-+module_exit(nft_redir_ipv4_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "redir");
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 462eebb..0dbe5c7 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -97,6 +97,15 @@ config NFT_MASQ_IPV6
- 	  This is the expression that provides IPv4 masquerading support for
- 	  nf_tables.
- 
-+config NFT_REDIR_IPV6
-+	tristate "IPv6 redirect support for nf_tables"
-+	depends on NF_TABLES_IPV6
-+	depends on NFT_REDIR
-+	select NF_NAT_REDIRECT_IPV6
-+	help
-+	  This is the expression that provides IPv4 redirect support for
-+	  nf_tables.
-+
- endif # NF_NAT_IPV6
- 
- config IP6_NF_IPTABLES
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 6c2baab..d2ac9f5 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -37,6 +37,7 @@ obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV6) += nft_chain_route_ipv6.o
- obj-$(CONFIG_NFT_CHAIN_NAT_IPV6) += nft_chain_nat_ipv6.o
- obj-$(CONFIG_NFT_REJECT_IPV6) += nft_reject_ipv6.o
- obj-$(CONFIG_NFT_MASQ_IPV6) += nft_masq_ipv6.o
-+obj-$(CONFIG_NFT_REDIR_IPV6) += nft_redir_ipv6.o
- 
- # matches
- obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f54b5f8..05d9475 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -505,6 +505,15 @@ config NFT_MASQ
- 	  This option adds the "masquerade" expression that you can use
- 	  to perform NAT in the masquerade flavour.
- 
-+config NFT_REDIR
-+	depends on NF_TABLES
-+	depends on NF_CONNTRACK
-+	depends on NF_NAT
-+	tristate "Netfilter nf_tables redirect support"
-+	help
-+	  This options adds the "redirect" expression that you can use
-+	  to perform NAT in the redirect flavour.
-+
- config NFT_NAT
- 	depends on NF_TABLES
- 	depends on NF_CONNTRACK
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index a9571be..f3eb468 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -88,6 +88,7 @@ obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
- obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
- obj-$(CONFIG_NFT_LOG)		+= nft_log.o
- obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
-+obj-$(CONFIG_NFT_REDIR)		+= nft_redir.o
- 
- # generic X tables 
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-new file mode 100644
-index 0000000..424cbf1
---- /dev/null
-+++ b/net/netfilter/nft_redir.c
-@@ -0,0 +1,86 @@
-+/*
-+ * Copyright (c) 2014 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_nat.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nft_redir.h>
-+
-+const struct nla_policy nft_redir_policy[NFTA_REDIR_MAX + 1] = {
-+	[NFTA_REDIR_REG_PROTO_MIN]	= { .type = NLA_U32 },
-+	[NFTA_REDIR_REG_PROTO_MAX]	= { .type = NLA_U32 },
-+	[NFTA_REDIR_FLAGS]		= { .type = NLA_U16 },
-+};
-+EXPORT_SYMBOL_GPL(nft_redir_policy);
-+
-+int nft_redir_init(const struct nft_ctx *ctx,
-+		   const struct nft_expr *expr,
-+		   const struct nlattr * const tb[])
-+{
-+	struct nft_redir *priv = nft_expr_priv(expr);
-+	int err;
++	if (mnl_attr_parse_nested(attr, nft_rule_expr_redir_cb, tb) < 0)
++		return -1;
 +
 +	if (tb[NFTA_REDIR_REG_PROTO_MIN]) {
-+		priv->sreg_proto_min =
-+			ntohl(nla_get_be32(tb[NFTA_REDIR_REG_PROTO_MIN]));
-+		err = nft_validate_input_register(priv->sreg_proto_min);
-+		if (err < 0)
-+			return err;
++		redir->sreg_proto_min =
++			ntohl(mnl_attr_get_u32(tb[NFTA_REDIR_REG_PROTO_MIN]));
++		e->flags |= (1 << NFT_EXPR_REDIR_REG_PROTO_MIN);
 +	}
-+
 +	if (tb[NFTA_REDIR_REG_PROTO_MAX]) {
-+		priv->sreg_proto_max =
-+			ntohl(nla_get_be32(tb[NFTA_REDIR_REG_PROTO_MAX]));
-+		err = nft_validate_input_register(priv->sreg_proto_max);
-+		if (err < 0)
-+			return err;
-+	} else {
-+		priv->sreg_proto_max = priv->sreg_proto_min;
++		redir->sreg_proto_max =
++			ntohl(mnl_attr_get_u32(tb[NFTA_REDIR_REG_PROTO_MAX]));
++		e->flags |= (1 << NFT_EXPR_REDIR_REG_PROTO_MAX);
 +	}
-+
 +	if (tb[NFTA_REDIR_FLAGS]) {
-+		priv->flags = ntohl(nla_get_be16(tb[NFTA_REDIR_FLAGS]));
-+		if (priv->flags & ~NF_NAT_RANGE_MASK)
-+			return -EINVAL;
++		redir->flags = be16toh(mnl_attr_get_u16(tb[NFTA_REDIR_FLAGS]));
++		e->flags |= (1 << NFT_EXPR_REDIR_FLAGS);
 +	}
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nft_redir_init);
 +
-+int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int
++nft_rule_expr_redir_json_parse(struct nft_rule_expr *e, json_t *root,
++			       struct nft_parse_err *err)
 +{
-+	const struct nft_redir *priv = nft_expr_priv(expr);
++#ifdef JSON_PARSING
++	uint32_t reg;
++	uint16_t flags;
 +
-+	if (priv->sreg_proto_min) {
-+		if (nla_put_be32(skb, NFTA_REDIR_REG_PROTO_MIN,
-+				 htonl(priv->sreg_proto_min)))
-+			goto nla_put_failure;
-+		if (nla_put_be32(skb, NFTA_REDIR_REG_PROTO_MAX,
-+				 htonl(priv->sreg_proto_max)))
-+			goto nla_put_failure;
-+	}
++	if (nft_jansson_parse_reg(root, "sreg_proto_min", NFT_TYPE_U32,
++				  &reg, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_REDIR_REG_PROTO_MIN, reg);
 +
-+	if (priv->flags != 0 &&
-+	    nla_put_be16(skb, NFTA_REDIR_FLAGS, htonl(priv->flags)))
-+			goto nla_put_failure;
++	if (nft_jansson_parse_reg(root, "sreg_proto_max", NFT_TYPE_U32,
++				  &reg, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_REDIR_REG_PROTO_MAX, reg);
++
++	if (nft_jansson_parse_val(root, "flags", NFT_TYPE_U16, &flags,
++				  err) == 0)
++		nft_rule_expr_set_u16(e, NFT_EXPR_REDIR_FLAGS, flags);
 +
 +	return 0;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
 +
-+nla_put_failure:
++static int
++nft_rule_expr_redir_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
++			      struct nft_parse_err *err)
++{
++#ifdef XML_PARSING
++	uint32_t reg;
++	uint16_t flags;
++
++	if (nft_mxml_reg_parse(tree, "sreg_proto_min", &reg,
++			       MXML_DESCEND, NFT_XML_OPT, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_REDIR_REG_PROTO_MIN, reg);
++
++	if (nft_mxml_reg_parse(tree, "sreg_proto_max", &reg,
++			       MXML_DESCEND, NFT_XML_OPT, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_REDIR_REG_PROTO_MAX, reg);
++
++	if (nft_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
++			       &flags, NFT_TYPE_U16, NFT_XML_OPT, err) == 0)
++		nft_rule_expr_set_u16(e, NFT_EXPR_REDIR_FLAGS, flags);
++
++	return 0;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int nft_rule_expr_redir_snprintf_json(char *buf, size_t len,
++					     struct nft_rule_expr *e)
++{
++	int ret, size = len, offset = 0;
++	struct nft_expr_redir *redir = nft_expr_data(e);
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MIN)) {
++		ret = snprintf(buf + offset, len, "\"sreg_proto_min\":%u,",
++			       redir->sreg_proto_min);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MAX)) {
++		ret = snprintf(buf + offset, len, "\"sreg_proto_max\":%u,",
++			       redir->sreg_proto_max);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_FLAGS)) {
++		ret = snprintf(buf + offset, len, "\"flags\":%u",
++			       redir->flags);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int nft_rule_expr_redir_snprintf_xml(char *buf, size_t len,
++					    struct nft_rule_expr *e)
++{
++	int ret, size = len, offset = 0;
++	struct nft_expr_redir *redir = nft_expr_data(e);
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MIN)) {
++		ret = snprintf(buf + offset, len,
++			       "<sreg_proto_min>%u<sreg_proto_min>",
++			       redir->sreg_proto_min);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MAX)) {
++		ret = snprintf(buf + offset, len,
++			       "<sreg_proto_max>%u</sreg_proto_max>",
++			       redir->sreg_proto_max);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_FLAGS)) {
++		ret = snprintf(buf + offset, len, "<flags>%u</flags>",
++			       redir->flags);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int nft_rule_expr_redir_snprintf_default(char *buf, size_t len,
++						struct nft_rule_expr *e)
++{
++	int ret, size = len, offset = 0;
++	struct nft_expr_redir *redir = nft_expr_data(e);
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MIN)) {
++		ret = snprintf(buf + offset, len, "proto_min reg %u ",
++			       redir->sreg_proto_min);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_REG_PROTO_MAX)) {
++		ret = snprintf(buf + offset, len, "proto_max reg %u ",
++			       redir->sreg_proto_max);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (nft_rule_expr_is_set(e, NFT_EXPR_REDIR_FLAGS)) {
++		ret = snprintf(buf + offset , len, "flags 0x%x ",
++			       redir->flags);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return 0;
++}
++
++static int
++nft_rule_expr_redir_snprintf(char *buf, size_t len, uint32_t type,
++			     uint32_t flags, struct nft_rule_expr *e)
++{
++	switch (type) {
++	case NFT_OUTPUT_DEFAULT:
++		return nft_rule_expr_redir_snprintf_default(buf, len, e);
++	case NFT_OUTPUT_XML:
++		return nft_rule_expr_redir_snprintf_xml(buf, len, e);
++	case NFT_OUTPUT_JSON:
++		return nft_rule_expr_redir_snprintf_json(buf, len, e);
++	default:
++		break;
++	}
 +	return -1;
 +}
-+EXPORT_SYMBOL_GPL(nft_redir_dump);
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>");
++struct expr_ops expr_ops_redir = {
++	.name		= "redir",
++	.alloc_len	= sizeof(struct nft_expr_redir),
++	.max_attr	= NFTA_REDIR_MAX,
++	.set		= nft_rule_expr_redir_set,
++	.get		= nft_rule_expr_redir_get,
++	.parse		= nft_rule_expr_redir_parse,
++	.build		= nft_rule_expr_redir_build,
++	.snprintf	= nft_rule_expr_redir_snprintf,
++	.xml_parse	= nft_rule_expr_redir_xml_parse,
++	.json_parse	= nft_rule_expr_redir_json_parse,
++};
++
++static void __init expr_redir_init(void)
++{
++	nft_expr_ops_register(&expr_ops_redir);
++}
 
