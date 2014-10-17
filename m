@@ -1,147 +1,144 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 4/4 v3] test: update and add the reject tests for ip, ip6, bridge and inet.
-Date: Fri, 17 Oct 2014 15:13:24 +0200
-Message-ID: <1413551604-11275-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/4 v2] evaluate: fix a crash if we specify ether
+ type or meta nfproto in reject
+Date: Fri, 17 Oct 2014 15:38:17 +0200
+Message-ID: <20141017133817.GA4163@salvia>
+References: <1413548677-10287-1-git-send-email-alvaroneay@gmail.com>
+ <20141017125538.GC3644@salvia>
+ <5441134F.6020104@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="qMm9M+Fa2AknHoGS"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: =?iso-8859-1?Q?=C1lvaro?= Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:48583 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbaJQNNO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Oct 2014 09:13:14 -0400
-Received: by mail-wi0-f175.google.com with SMTP id d1so2023929wiv.14
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Oct 2014 06:13:12 -0700 (PDT)
-Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id cz3sm1661741wjb.23.2014.10.17.06.13.11
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 17 Oct 2014 06:13:12 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:44579 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751408AbaJQNhE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Oct 2014 09:37:04 -0400
+Content-Disposition: inline
+In-Reply-To: <5441134F.6020104@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
-[changes in v3]
-* Added and fixed some rules for inet family
 
- tests/regression/bridge/reject.t |   31 +++++++++++++++++++++++++++++++
- tests/regression/inet/reject.t   |   29 +++++++++++++++++++++++++++++
- tests/regression/ip/reject.t     |   11 ++++++++++-
- tests/regression/ip6/reject.t    |    9 ++++++++-
- 4 files changed, 78 insertions(+), 2 deletions(-)
- create mode 100644 tests/regression/bridge/reject.t
- create mode 100644 tests/regression/inet/reject.t
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-diff --git a/tests/regression/bridge/reject.t b/tests/regression/bridge/reject.t
-new file mode 100644
-index 0000000..e5b8aa6
---- /dev/null
-+++ b/tests/regression/bridge/reject.t
-@@ -0,0 +1,31 @@
-+*bridge;test-bridge
-+:input;type filter hook input priority 0
+On Fri, Oct 17, 2014 at 03:02:07PM +0200, Álvaro Neira Ayuso wrote:
+> El 17/10/14 14:55, Pablo Neira Ayuso escribió:
+> >On Fri, Oct 17, 2014 at 02:24:34PM +0200, Alvaro Neira Ayuso wrote:
+> >>If we use a rule:
+> >>nft add rule bridge filter input \
+> >>	ether type ip reject with icmp type host-unreachable
+> >>
+> >>or this:
+> >>
+> >>nft add rule inet filter input \
+> >>	meta nfproto ipv4 reject with icmp type host-unreachable
+> >>
+> >>we have a segfault because we add a network dependency when we already have
+> >>network context.
+> >>
+> >>Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> >>---
+> >>[changes in v2]
+> >>* Fixed a incorrect refactor when we check the family in bridge
+> >>
+> >>  src/evaluate.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+> >>  1 file changed, 56 insertions(+), 1 deletion(-)
+> >>
+> >>diff --git a/src/evaluate.c b/src/evaluate.c
+> >>index 83ef749..4b7bda9 100644
+> >>--- a/src/evaluate.c
+> >>+++ b/src/evaluate.c
+> >>@@ -19,6 +19,7 @@
+> >>  #include <linux/netfilter/nf_tables.h>
+> >>  #include <netinet/ip_icmp.h>
+> >>  #include <netinet/icmp6.h>
+> >>+#include <net/ethernet.h>
+> >>
+> >>  #include <expression.h>
+> >>  #include <statement.h>
+> >>@@ -1193,6 +1194,8 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+> >>  		BUG("cannot generate reject dependency for type %d",
+> >>  		    stmt->reject.type);
+> >>  	}
+> >>+	if (payload == NULL)
+> >>+		return 0;
+> >
+> >Why this check?
+> 
+> If we already have context, the previously functions return a NULL
+> payload. Therefore, if we try to create a dependency with this NULL
+> payload, we have a crash.
+
+I prefer if you can change the return value logic in
+reject_payload_gen_dependency*() to:
+
+  1: payload dependency was created
+  0: no payload dependency needed
+ -1: error
+
+See patch attached.
+
+--qMm9M+Fa2AknHoGS
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d61d76b..71dc767 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1140,9 +1140,10 @@ static int reject_payload_gen_dependency_tcp(struct eval_ctx *ctx,
+ 	desc = ctx->pctx.protocol[PROTO_BASE_TRANSPORT_HDR].desc;
+ 	if (desc != NULL)
+ 		return 0;
 +
-+# The output is specific for bridge family
-+reject with icmp type host-unreachable;ok;ether type ip reject with icmp type host-unreachable
-+reject with icmp type net-unreachable;ok;ether type ip reject with icmp type net-unreachable
-+reject with icmp type prot-unreachable;ok;ether type ip reject with icmp type prot-unreachable
-+reject with icmp type port-unreachable;ok;ether type ip reject
-+reject with icmp type net-prohibited;ok;ether type ip reject with icmp type net-prohibited
-+reject with icmp type host-prohibited;ok;ether type ip reject with icmp type host-prohibited
-+reject with icmp type admin-prohibited;ok;ether type ip reject with icmp type admin-prohibited
-+
-+reject with icmpv6 type no-route;ok;ether type ip6 reject with icmpv6 type no-route
-+reject with icmpv6 type admin-prohibited;ok;ether type ip6 reject with icmpv6 type admin-prohibited
-+reject with icmpv6 type addr-unreachable;ok;ether type ip6 reject with icmpv6 type addr-unreachable
-+reject with icmpv6 type port-unreachable;ok;ether type ip6 reject
-+
-+ip protocol tcp reject with tcp reset;ok;ip protocol 6 reject with tcp reset
-+
-+reject;ok
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-+reject with icmpx type admin-prohibited;ok
-+reject with icmpx type port-unreachable;ok;reject
-+
-+ether type ipv6 reject with icmp type host-unreachable;fail
-+ether type ip6 reject with icmp type host-unreachable;fail
-+ether type ip reject with icmpv6 type no-route;fail
-+ether type vlan reject;fail
-+ether type arp reject;fail
-+ip protocol udp reject with tcp reset;fail
-diff --git a/tests/regression/inet/reject.t b/tests/regression/inet/reject.t
-new file mode 100644
-index 0000000..9d2d381
---- /dev/null
-+++ b/tests/regression/inet/reject.t
-@@ -0,0 +1,29 @@
-+*inet;test-inet
-+:input;type filter hook input priority 0
-+
-+# The output is specific for inet family
-+reject with icmp type host-unreachable;ok;meta nfproto ipv4 reject with icmp type host-unreachable
-+reject with icmp type net-unreachable;ok;meta nfproto ipv4 reject with icmp type net-unreachable
-+reject with icmp type prot-unreachable;ok;meta nfproto ipv4 reject with icmp type prot-unreachable
-+reject with icmp type port-unreachable;ok;meta nfproto ipv4 reject
-+reject with icmp type net-prohibited;ok;meta nfproto ipv4 reject with icmp type net-prohibited
-+reject with icmp type host-prohibited;ok;meta nfproto ipv4 reject with icmp type host-prohibited
-+reject with icmp type admin-prohibited;ok;meta nfproto ipv4 reject with icmp type admin-prohibited
-+
-+reject with icmpv6 type no-route;ok;meta nfproto ipv6 reject with icmpv6 type no-route
-+reject with icmpv6 type admin-prohibited;ok;meta nfproto ipv6 reject with icmpv6 type admin-prohibited
-+reject with icmpv6 type addr-unreachable;ok;meta nfproto ipv6 reject with icmpv6 type addr-unreachable
-+reject with icmpv6 type port-unreachable;ok;meta nfproto ipv6 reject
-+
-+reject with tcp reset;ok;meta l4proto 6 reject with tcp reset
-+
-+reject;ok
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-+reject with icmpx type admin-prohibited;ok
-+reject with icmpx type port-unreachable;ok;reject
-+
-+meta nfproto ipv6 reject with icmp type host-unreachable;fail
-+meta nfproto ipv4 ip protocol icmp reject with icmpv6 type no-route;fail
-+meta nfproto ipv6 ip protocol icmp reject with icmp type host-unreachable;fail
-+meta l4proto udp reject with tcp reset;fail
-diff --git a/tests/regression/ip/reject.t b/tests/regression/ip/reject.t
-index e7fb15b..70a63a0 100644
---- a/tests/regression/ip/reject.t
-+++ b/tests/regression/ip/reject.t
-@@ -1,5 +1,14 @@
- *ip;test-ip4
--*ip;test-inet
- :output;type filter hook output priority 0
+ 	*payload = payload_expr_alloc(&stmt->location, &proto_tcp,
+ 				      TCPHDR_UNSPEC);
+-	return 0;
++	return 1;
+ }
  
- reject;ok
-+reject with icmp type host-unreachable;ok
-+reject with icmp type net-unreachable;ok
-+reject with icmp type prot-unreachable;ok
-+reject with icmp type port-unreachable;ok;reject
-+reject with icmp type net-prohibited;ok
-+reject with icmp type host-prohibited;ok
-+reject with icmp type admin-prohibited;ok
-+
-+reject with icmp type no-route;fail
-+reject with icmpv6 type no-route;fail
-diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
-index b49c50b..60dec90 100644
---- a/tests/regression/ip6/reject.t
-+++ b/tests/regression/ip6/reject.t
-@@ -1,5 +1,12 @@
- *ip6;test-ip6
--*inet;test-inet
- :output;type filter hook output priority 0
+ static int reject_payload_gen_dependency_family(struct eval_ctx *ctx,
+@@ -1171,7 +1172,7 @@ static int reject_payload_gen_dependency_family(struct eval_ctx *ctx,
+ 	default:
+ 		BUG("unknown reject family");
+ 	}
+-	return 0;
++	return 1;
+ }
  
- reject;ok
-+reject with icmpv6 type no-route;ok
-+reject with icmpv6 type admin-prohibited;ok
-+reject with icmpv6 type addr-unreachable;ok
-+reject with icmpv6 type port-unreachable;ok;reject
-+reject with tcp reset;ok;ip6 nexthdr 6 reject with tcp reset
-+
-+reject with icmpv6 type host-unreachable;fail
-+reject with icmp type host-unreachable;fail
--- 
-1.7.10.4
+ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+@@ -1179,21 +1180,21 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+ {
+ 	struct expr *payload = NULL;
+ 	struct stmt *nstmt;
++	int ret;
+ 
+ 	switch (stmt->reject.type) {
+ 	case NFT_REJECT_TCP_RST:
+-		if (reject_payload_gen_dependency_tcp(ctx, stmt, &payload) < 0)
+-			return -1;
++		ret = reject_payload_gen_dependency_tcp(ctx, stmt, &payload);
+ 		break;
+ 	case NFT_REJECT_ICMP_UNREACH:
+-		if (reject_payload_gen_dependency_family(ctx, stmt,
+-							 &payload) < 0)
+-			return -1;
++		ret = reject_payload_gen_dependency_family(ctx, stmt, &payload);
+ 		break;
+ 	default:
+ 		BUG("cannot generate reject dependency for type %d",
+ 		    stmt->reject.type);
+ 	}
++	if (ret <= 0)
++		return ret;
+ 
+ 	if (payload_gen_dependency(ctx, payload, &nstmt) < 0)
+ 		return -1;
 
+--qMm9M+Fa2AknHoGS--
