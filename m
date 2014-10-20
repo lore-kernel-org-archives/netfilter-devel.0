@@ -1,55 +1,100 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/7] netfilter: missing module license in the nf_reject_ipvX
- modules
-Date: Mon, 20 Oct 2014 14:49:35 +0400
-Message-ID: <5444E8BF.20904@cogentembedded.com>
-References: <1413792639-3954-1-git-send-email-pablo@netfilter.org> <1413792639-3954-2-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH v2] utils: fix arp family number
+Date: Mon, 20 Oct 2014 12:51:05 +0200
+Message-ID: <20141020105022.24332.84204.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1413792639-3954-2-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:58075 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753060AbaJTKvP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Oct 2014 06:51:15 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+NFPROTO_ARP = 3 in kernel space.
 
-On 10/20/2014 12:10 PM, Pablo Neira Ayuso wrote:
+We need the same value here in userspace in order to correctly communicate
+with the kernel.
 
-> [   23.545204] nf_reject_ipv4: module license 'unspecified' taints kernel.
+The failure solved by this patch made that {XML|JSON}-parsed tables of ARP
+family unable to be directly injected into kernel.
 
-> Fixes: c8d7b98 ("netfilter: move nf_send_resetX() code to nf_reject_ipvX modules")
-> Reported-by: Dave Young <dyoung@redhat.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   net/ipv4/netfilter/nf_reject_ipv4.c |    3 +++
->   net/ipv6/netfilter/nf_reject_ipv6.c |    4 ++++
->   2 files changed, 7 insertions(+)
+To prevent future errors, this patch changes raw and AF_* values by the mathing
+NFPROTO_* couterpart as seen in linux/netfilter.h in both functions:
+ * nft_family2str()
+ * nft_str2family()
 
-[...]
-> diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-> index 5f5f043..20d9def 100644
-> --- a/net/ipv6/netfilter/nf_reject_ipv6.c
-> +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-> @@ -5,6 +5,8 @@
->    * it under the terms of the GNU General Public License version 2 as
->    * published by the Free Software Foundation.
->    */
-> +
-> +#include <linux/module.h>
->   #include <net/ipv6.h>
->   #include <net/ip6_route.h>
->   #include <net/ip6_fib.h>
-> @@ -161,3 +163,5 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
->   		ip6_local_out(nskb);
->   }
->   EXPORT_SYMBOL_GPL(nf_send_reset6);
-> +
-> +MODULE_LICENSE("GPL");
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: rework+fix using the array-matching approach suggested by Pablo.
 
-    Actually, "GPL v2" as follows from the comment above.
+ src/utils.c |   43 +++++++++++++++++++------------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-WBR, Sergei
+diff --git a/src/utils.c b/src/utils.c
+index d70fbf1..e9ef547 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -20,38 +20,33 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ 
++static const char *nft_family_str[NFPROTO_NUMPROTO] = {
++	[NFPROTO_INET]		= "inet",
++	[NFPROTO_IPV4]		= "ip",
++	[NFPROTO_ARP]		= "arp",
++	[NFPROTO_BRIDGE]	= "bridge",
++	[NFPROTO_IPV6]		= "ip6",
++};
++
+ const char *nft_family2str(uint32_t family)
+ {
+-	switch (family) {
+-	case AF_INET:
+-		return "ip";
+-	case AF_INET6:
+-		return "ip6";
+-	case 1:
+-		return "inet";
+-	case AF_BRIDGE:
+-		return "bridge";
+-	case 3: /* NFPROTO_ARP */
+-		return "arp";
+-	default:
++	if (nft_family_str[family] == NULL)
+ 		return "unknown";
+-	}
++
++	return nft_family_str[family];
+ }
+ 
+ int nft_str2family(const char *family)
+ {
+-	if (strcmp(family, "ip") == 0)
+-		return AF_INET;
+-	else if (strcmp(family, "ip6") == 0)
+-		return AF_INET6;
+-	else if (strcmp(family, "inet") == 0)
+-		return 1;
+-	else if (strcmp(family, "bridge") == 0)
+-		return AF_BRIDGE;
+-	else if (strcmp(family, "arp") == 0)
+-		return 0;
++	int i;
+ 
+-	errno = EAFNOSUPPORT;
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
++		if (nft_family_str[i] == NULL)
++			continue;
++
++		if (strcmp(nft_family_str[i], family) == 0)
++			return i;
++	}
+ 	return -1;
+ }
+ 
+
