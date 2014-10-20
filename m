@@ -1,157 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/7] netfilter: nft_compat: validate chain type in match/target
-Date: Mon, 20 Oct 2014 10:10:36 +0200
-Message-ID: <1413792639-3954-5-git-send-email-pablo@netfilter.org>
-References: <1413792639-3954-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1413792639-3954-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [nft PATCH 2/4 v2] evaluate: fix a crash if we check the
+ transport protocol
+Date: Mon, 20 Oct 2014 10:59:06 +0200
+Message-ID: <20141020085906.GA4578@salvia>
+References: <1413548677-10287-1-git-send-email-alvaroneay@gmail.com>
+ <1413548677-10287-2-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54348 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752871AbaJTI5g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Oct 2014 04:57:36 -0400
+Content-Disposition: inline
+In-Reply-To: <1413548677-10287-2-git-send-email-alvaroneay@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-We have to validate the real chain type to ensure that matches/targets
-are not used out from their scope (eg. MASQUERADE in nat chain type).
-The existing validation relies on the table name, but this is not
-sufficient since userspace can fool us by using the appropriate table
-name with a different chain type.
+On Fri, Oct 17, 2014 at 02:24:35PM +0200, Alvaro Neira Ayuso wrote:
+> Example:
+> 
+> nft add rule inet filter input meta l4proto udp reject with tcp reset
+> 
+> When we check if the transport protocol is tcp, we use the network context.
+> If we don't have this network context, we have a crash.
+> 
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+> [no changes in v2]
+> 
+>  src/evaluate.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 4b7bda9..2f71e9b 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1339,6 +1339,13 @@ static int stmt_evaluate_reset(struct eval_ctx *ctx, struct stmt *stmt)
+>  	if (desc == NULL)
+>  		return 0;
+>  
+> +	if (base == NULL) {
+> +		if (strcmp(desc->name, "tcp") == 0)
+> +			return 0;
+> +		else
+> +			return stmt_error(ctx, stmt,
+> +				 "you cannot use tcp reset with this protocol");
+> +	}
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_compat.c |   75 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 66 insertions(+), 9 deletions(-)
+Can you give a try to this?
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 44ae273..0480f57 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -19,9 +19,52 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
--#include <asm/uaccess.h> /* for set_fs */
- #include <net/netfilter/nf_tables.h>
- 
-+static const struct {
-+       const char	*name;
-+       u8		type;
-+} table_to_chaintype[] = {
-+       { "filter",     NFT_CHAIN_T_DEFAULT },
-+       { "raw",        NFT_CHAIN_T_DEFAULT },
-+       { "security",   NFT_CHAIN_T_DEFAULT },
-+       { "mangle",     NFT_CHAIN_T_ROUTE },
-+       { "nat",        NFT_CHAIN_T_NAT },
-+       { },
-+};
-+
-+static int nft_compat_table_to_chaintype(const char *table)
-+{
-+	int i;
-+
-+	for (i = 0; table_to_chaintype[i].name != NULL; i++) {
-+		if (strcmp(table_to_chaintype[i].name, table) == 0)
-+			return table_to_chaintype[i].type;
-+	}
-+
-+	return -1;
-+}
-+
-+static int nft_compat_chain_validate_dependency(const char *tablename,
-+						const struct nft_chain *chain)
-+{
-+	enum nft_chain_type type;
-+	const struct nft_base_chain *basechain;
-+
-+	if (!tablename || !(chain->flags & NFT_BASE_CHAIN))
-+		return 0;
-+
-+	type = nft_compat_table_to_chaintype(tablename);
-+	if (type < 0)
-+		return -EINVAL;
-+
-+	basechain = nft_base_chain(chain);
-+	if (basechain->type->type != type)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- union nft_entry {
- 	struct ipt_entry e4;
- 	struct ip6t_entry e6;
-@@ -153,6 +196,10 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	union nft_entry e = {};
- 	int ret;
- 
-+	ret = nft_compat_chain_validate_dependency(target->table, ctx->chain);
-+	if (ret < 0)
-+		goto err;
-+
- 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
- 
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
-@@ -218,6 +265,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- {
- 	struct xt_target *target = expr->ops->data;
- 	unsigned int hook_mask = 0;
-+	int ret;
- 
- 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
- 		const struct nft_base_chain *basechain =
-@@ -225,11 +273,13 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		const struct nf_hook_ops *ops = &basechain->ops[0];
- 
- 		hook_mask = 1 << ops->hooknum;
--		if (hook_mask & target->hooks)
--			return 0;
-+		if (!(hook_mask & target->hooks))
-+			return -EINVAL;
- 
--		/* This target is being called from an invalid chain */
--		return -EINVAL;
-+		ret = nft_compat_chain_validate_dependency(target->table,
-+							   ctx->chain);
-+		if (ret < 0)
-+			return ret;
- 	}
- 	return 0;
- }
-@@ -324,6 +374,10 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	union nft_entry e = {};
- 	int ret;
- 
-+	ret = nft_compat_chain_validate_dependency(match->name, ctx->chain);
-+	if (ret < 0)
-+		goto err;
-+
- 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
- 
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
-@@ -383,6 +437,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- {
- 	struct xt_match *match = expr->ops->data;
- 	unsigned int hook_mask = 0;
-+	int ret;
- 
- 	if (ctx->chain->flags & NFT_BASE_CHAIN) {
- 		const struct nft_base_chain *basechain =
-@@ -390,11 +445,13 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		const struct nf_hook_ops *ops = &basechain->ops[0];
- 
- 		hook_mask = 1 << ops->hooknum;
--		if (hook_mask & match->hooks)
--			return 0;
-+		if (!(hook_mask & match->hooks))
-+			return -EINVAL;
- 
--		/* This match is being called from an invalid chain */
--		return -EINVAL;
-+		ret = nft_compat_chain_validate_dependency(match->name,
-+							   ctx->chain);
-+		if (ret < 0)
-+			return ret;
- 	}
- 	return 0;
- }
--- 
-1.7.10.4
+        if (base == NULL &&
+            ctx->table.handle.family == NFPROTO_INET)
+                base = &proto_inet_service;
+
+>  	protonum = proto_find_num(base, desc);
+>  	switch (protonum) {
+>  	case IPPROTO_TCP:
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
