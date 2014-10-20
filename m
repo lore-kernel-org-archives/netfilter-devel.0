@@ -1,56 +1,55 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] ruleset: deconstify _get interface
-Date: Mon, 20 Oct 2014 21:46:09 +0200
-Message-ID: <20141020194515.3402.28281.stgit@nfdev.cica.es>
+From: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Subject: Re: NAT dropping FIN ACK from remote server
+Date: Mon, 20 Oct 2014 19:18:33 -0200
+Message-ID: <54457C29.7040802@redhat.com>
+References: <CAC=w+U4bYSJ8d=0GmgmM3miVrd54sN1y0_ppsvs97gd7gLo+2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+To: vDev <vijaypas@gmail.com>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36388 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751524AbaJTTqX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Oct 2014 15:46:23 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:34500 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753125AbaJTVSg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Oct 2014 17:18:36 -0400
+In-Reply-To: <CAC=w+U4bYSJ8d=0GmgmM3miVrd54sN1y0_ppsvs97gd7gLo+2g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Having this interface returning a const pointer makes very hard to
-modificate the content of a chain contained in a nft_ruleset.
+On 16-10-2014 18:57, vDev wrote:
+> I am experiencing a problem with Linux as a NAT router. A host/client
+> on the private LAN establishes a TCP connection to a server on the WAN
+> (Internet) through the Linux/NAT router. Here's what happens when
+> client attempts to tear down the socket.
+>
+> 1. Client on private LAN opens a TCP connection to the remote server
+> on the public network through Linux/NAT router.
+> 2. Client exchanges data with the remote server.
+> 3. The server closes the TCP connection by sending a FIN to the
+> client. Linux/NAT router successfully forwards the FIN to the client.
+> 4. The client now sends an ACK to FIN to the remote host, which is
+> forwarded by the Linux/NAT router to the server.
+> 5. The client then sends a FIN to the remote host, which is forwarded
+> by the Linux/NAT router to the remote server.
+> 6. The server now sends an ACK to the client. THE Linux/NAT router
+> DOES NOT FORWARD THE ACK TO THE CLIENT. GETS DROPPED!
+> 7. The client keeps sending FIN to the remote host for a period of time.
+> 8. The client times out and send a RST to the remote host.
+>
+> I am trying to find out why Linux/NAT router dropped the ACK. This
+> seems like a problem where connection tracking is prematurely tearing
+> down the mapping and does not forward the ACK back to the client.
+>
+> Is there a way to resolve this?
+>
+> Also, any debugging techniques will be helpful.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
+Try checking if this ignored ack is being marked as invalid by conntrack with 
+something like iptables -I FORWARD -m conntrack --ctstate INVALID -j LOG
 
-Note: I ignore how this affects the current, already released API.
+If it's marked as INVALID, for whatever reason, we won't NAT it.. (and you 
+probably have another rule that ends up dropping the not-NATed packet, if 
+that's the case)
 
- include/libnftnl/ruleset.h |    2 +-
- src/ruleset.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/libnftnl/ruleset.h b/include/libnftnl/ruleset.h
-index 6f89110..1a3e22f 100644
---- a/include/libnftnl/ruleset.h
-+++ b/include/libnftnl/ruleset.h
-@@ -28,7 +28,7 @@ enum {
- bool nft_ruleset_attr_is_set(const struct nft_ruleset *r, uint16_t attr);
- void nft_ruleset_attr_unset(struct nft_ruleset *r, uint16_t attr);
- void nft_ruleset_attr_set(struct nft_ruleset *r, uint16_t attr, void *data);
--const void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr);
-+void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr);
- 
- int nft_ruleset_parse(struct nft_ruleset *rs, enum nft_parse_type type,
- 		      const char *data, struct nft_parse_err *err);
-diff --git a/src/ruleset.c b/src/ruleset.c
-index 4cfeee6..6bb7582 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -111,7 +111,7 @@ void nft_ruleset_attr_set(struct nft_ruleset *r, uint16_t attr, void *data)
- }
- EXPORT_SYMBOL(nft_ruleset_attr_set);
- 
--const void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr)
-+void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr)
- {
- 	if (!(r->flags & (1 << attr)))
- 		return NULL;
+Marcelo
 
