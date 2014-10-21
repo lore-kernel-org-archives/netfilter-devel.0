@@ -1,56 +1,89 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: TCP LAST ACK incorrectly treated as invalid
-Date: Tue, 21 Oct 2014 08:57:42 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1410210852310.27469@blackhole.kfki.hu>
-References: <CAC=w+U7t8K2yjKtj7NDfS-xrCLRxoZ_hPxBU=EiD57v+eQnCMA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 3/4] evaluate: no check the network context in reject
+ with tcp reset reason
+Date: Tue, 21 Oct 2014 09:55:45 +0200
+Message-ID: <20141021075544.GA3220@salvia>
+References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
+ <1413847780-10149-3-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: vDev <vijaypas@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:38187 "EHLO smtp2.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:46907 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752836AbaJUG5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 02:57:08 -0400
-In-Reply-To: <CAC=w+U7t8K2yjKtj7NDfS-xrCLRxoZ_hPxBU=EiD57v+eQnCMA@mail.gmail.com>
+	id S1754210AbaJUHyQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 03:54:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1413847780-10149-3-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 20 Oct 2014, vDev wrote:
+On Tue, Oct 21, 2014 at 01:29:39AM +0200, Alvaro Neira Ayuso wrote:
+> nft add rule -nnn bridge test-bridge input \
+> 			ip protocol tcp reject with tcp reset
+> 
+> If we use in reject the type tcp reset. We don't need to check if the network
+> context is compatible with the reason. This patch fix that.
+> 
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  src/evaluate.c |   80 +++++++++++++++++++++++++++++++++-----------------------
+>  1 file changed, 47 insertions(+), 33 deletions(-)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 20235a8..8b19baf 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1208,24 +1208,31 @@ static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt,
+>  	const struct proto_desc *desc, *base;
+>  	int protocol;
+>  
+> -	base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+> -	desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+> -	if (desc != NULL) {
+> -		protocol = proto_find_num(base, desc);
+> -		switch (protocol) {
+> -		case NFPROTO_IPV4:
+> -			if (stmt->reject.family == NFPROTO_IPV4)
+> -				return 0;
+> -			return stmt_error(ctx, stmt,
+> -			  "conflicting protocols specified: ip vs ip6");
+> -		case NFPROTO_IPV6:
+> -			if (stmt->reject.family == NFPROTO_IPV6)
+> -				return 0;
+> -			return stmt_error(ctx, stmt,
+> -			  "conflicting protocols specified: ip vs ip6");
+> -		default:
+> -			BUG("unsupported family");
+> +	switch (stmt->reject.type) {
+> +	case NFT_REJECT_TCP_RST:
+> +		break;
+> +	case NFT_REJECT_ICMPX_UNREACH:
 
-> It looks like TCP conntrack is incorrectly treating "LAST ACK" (ACK
-> from peer for last FIN) as the sequence number comparison does not
-> take into account that the last ACK sequence number will be one
-> greater than the previous sequence number.
-> 
-> Here's the code that seems to be the cause of it in tcp_in_window()
-> [nf_conntrack_proto_tcp.c]:
-> 
->        pr_debug("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
->                  before(seq, sender->td_maxend + 1),
->                  after(end, sender->td_end - receiver->td_maxwin - 1),
->                  before(sack, receiver->td_end + 1),
->                  after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
-> 
->         if (before(seq, sender->td_maxend + 1) &&
->             after(end, sender->td_end - receiver->td_maxwin - 1) &&
->             before(sack, receiver->td_end + 1) &&
->             after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
-> 
-> III in pr_debug will be 0 as "before(sack, receiver->td_end + 1)" will
-> evaluate to false as sack will be equal to (receiver->td_end + 1) for
-> the last ACK. The sequence number will be one greater in the last ACK.
-> 
-> Any feedback will be helpful. Thanks for looking into this.
+Do you really need to check layer 3 conflicts with icmpx?
 
-Maybe you are not taking into account that the last ACK acks FIN+ACK and 
-FIN is counted in the sequence numbers and it's stored in td_end. Please 
-see segment_seq_plus_len() in nf_conntrack_proto_tcp.c.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+> +	case NFT_REJECT_ICMP_UNREACH:
+> +		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+> +		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+> +		if (desc != NULL) {
+> +			protocol = proto_find_num(base, desc);
+> +			switch (protocol) {
+> +			case NFPROTO_IPV4:
+> +				if (stmt->reject.family == NFPROTO_IPV4)
+> +					return 0;
+> +				return stmt_error(ctx, stmt,
+> +				  "conflicting protocols specified: ip vs ip6");
+> +			case NFPROTO_IPV6:
+> +				if (stmt->reject.family == NFPROTO_IPV6)
+> +					return 0;
+> +				return stmt_error(ctx, stmt,
+> +				  "conflicting protocols specified: ip vs ip6");
+> +			default:
+> +				BUG("unsupported family");
+> +			}
+>  		}
+> +		break;
+>  	}
+>  	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+>  		return 0;
