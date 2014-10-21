@@ -1,36 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH v3] utils: fix arp family number
-Date: Tue, 21 Oct 2014 09:59:27 +0200
-Message-ID: <20141021075927.GA3610@salvia>
-References: <20141020115049.27980.35459.stgit@nfdev.cica.es>
+Subject: Re: [nft PATCH v3] evaluate: fix a crash if we specify ether type or
+ meta nfproto in reject
+Date: Tue, 21 Oct 2014 10:12:25 +0200
+Message-ID: <20141021081225.GA3628@salvia>
+References: <1413811929-21955-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47905 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53608 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754561AbaJUH6A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 03:58:00 -0400
+	id S1753539AbaJUILE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 04:11:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20141020115049.27980.35459.stgit@nfdev.cica.es>
+In-Reply-To: <1413811929-21955-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 20, 2014 at 01:52:18PM +0200, Arturo Borrero Gonzalez wrote:
-> NFPROTO_ARP = 3 in kernel space.
+On Mon, Oct 20, 2014 at 03:32:09PM +0200, Alvaro Neira Ayuso wrote:
+> If we use this rule:
 > 
-> We need the same value here in userspace in order to correctly communicate
-> with the kernel.
+> nft add rule bridge filter input \
+> 	ether type ip reject with icmp type host-unreachable
 > 
-> The failure solved by this patch made that {XML|JSON}-parsed tables of ARP
-> family unable to be directly injected into kernel.
+> or that:
 > 
-> To prevent future errors, this patch changes raw and AF_* values by the mathing
-> NFPROTO_* couterpart as seen in linux/netfilter.h in both functions:
->  * nft_family2str()
->  * nft_str2family()
+> nft add rule inet filter input \
+> 	meta nfproto ipv4 reject with icmp type host-unreachable
+> 
+> we have a segfault because we add a network dependency when we already have
+> network context.
 
 Applied, thanks.
-
-BTW, it would be good to see a similar refactor in nft_verdict2str().
