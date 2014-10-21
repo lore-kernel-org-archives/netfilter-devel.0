@@ -1,54 +1,106 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 4/4 v3] evaluate: fix a crash if we check the transport protocol is tcp
-Date: Tue, 21 Oct 2014 01:29:40 +0200
-Message-ID: <1413847780-10149-4-git-send-email-alvaroneay@gmail.com>
-References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:64961 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044AbaJTX31 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Oct 2014 19:29:27 -0400
-Received: by mail-wi0-f178.google.com with SMTP id r20so343602wiv.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2014 16:29:26 -0700 (PDT)
-In-Reply-To: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: [PATCH] netfilter: Fix wastful cleanup check for unconfirmed conn in get_next_corpse
+Date: Tue, 21 Oct 2014 08:31:51 +0800
+Message-ID: <CA+6hz4ouOLgFwHOM6xeXEaUQpm2xOasDowKLPfZWuG3sAssUvA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=089e01183b602276ec0505e3f54e
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Example:
+--089e01183b602276ec0505e3f54e
+Content-Type: text/plain; charset=UTF-8
 
-nft add rule inet filter input meta l4proto udp reject with tcp reset
+Hi all,
 
-If we try to check if the transport protocol is tcp, we use the network context.
-If we don't have this network context, we have a crash.
+I am sorry to send the patch commit again because the last email is
+not plain text and is rejected by some servers.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
-[changes in v3]
- * Use the proto_inet_service proto in cases that we don't have network context
+This is the patch to branch master of kernel.
 
- src/evaluate.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+The function get_next_corpse is only invoked by nf_ct_iterate_cleanup
+in one while loop, and it will check the per cpu unconfirmed conntrack
+list every time.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8b19baf..fc3b1a2 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1365,6 +1365,12 @@ static int stmt_evaluate_reset(struct eval_ctx *ctx, struct stmt *stmt)
- 	if (desc == NULL)
- 		return 0;
- 
-+	/* If we don't have network context in inet or bridge */
-+	if (base == NULL &&
-+	    (ctx->pctx.family == NFPROTO_INET ||
-+	     ctx->pctx.family == NFPROTO_BRIDGE))
-+		base = &proto_inet_service;
-+
- 	protonum = proto_find_num(base, desc);
- 	switch (protonum) {
- 	case IPPROTO_TCP:
--- 
-1.7.10.4
+I think the whole list of unconfirmed conntracks could be accessed by
+one call, so the others are not necessary.
 
+So I move the checks outside the get_next_corpse, and create one new
+function clean_up_unconfirmed_conntracks.
+Let the nf_ct_iterate_cleanup invokes the
+clean_up_unconfirmed_conntracks after the while loop.
+
+These codes have already exist for a long time. Firstly I think maybe
+there is some reason, but I fail to get it.
+
+
+Best Regards
+Feng
+
+--089e01183b602276ec0505e3f54e
+Content-Type: application/octet-stream;
+	name="0001-netfilter-Fix-wastful-cleanup-check-for-unconfirmed-.patch"
+Content-Disposition: attachment;
+	filename="0001-netfilter-Fix-wastful-cleanup-check-for-unconfirmed-.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i1iioim60
+
+RnJvbSA1MmRlNDU3YjNjZmQxZTk0YTUyZGYxYzNkZmNkOWRiZjM1MTFmYTBkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBmZ2FvIDxnZnJlZS53aW5kQGdtYWlsLmNvbT4KRGF0ZTogTW9u
+LCAyMCBPY3QgMjAxNCAwNzoxODowNSAtMDcwMApTdWJqZWN0OiBbUEFUQ0ggMS8xXSBuZXRmaWx0
+ZXI6IEZpeCB3YXN0ZnVsIGNsZWFudXAgY2hlY2sgZm9yIHVuY29uZmlybWVkIGNvbm4gaW4gZ2V0
+X25leHRfY29ycHNlCgpUaGUgZnVuY3Rpb24gZ2V0X25leHRfY29ycHNlIGlzIHVzZWQgdG8gaXRl
+cmF0ZSB0aGUgY29ubnRyYWNrcy4KSXQgd2lsbCBjaGVjayB0aGUgcGVyIGNwdSB1bmNvbmZpcm1l
+ZCBsaXN0IG9mIGV2ZXJ5IGNwdSB0b28uCk5vdyBpdCBpcyBvbmx5IGludm9rZWQgYnkgbmZfY3Rf
+aXRlcmF0ZV9jbGVhbnVwIGluIG9uZSB3aGlsZSBsb29wLgpBY3R1YWxseSB0aGUgdW5jb25maXJt
+ZWQgbGlzdCBjb3VsZCBiZSBhY2Nlc3NlZCBjb21wbGV0ZWx5IGJ5IG9uZSBjYWxsLCB0aGVuIHRo
+ZSBvdGhlcnMgYXJlIHdhc3RmdWwuCgpTbyBtb3ZlIHRoZSB1bmNvbmZpcm1lZCBsaXN0IGNoZWNr
+IG91dHNpZGUgdGhlIGZ1bmN0aW9uIGdldF9uZXh0X2NvcnBzZSBhbmQgY3JlYXRlIG9uZSBuZXcg
+ZnVuY3Rpb24KTGV0IHRoZSBuZl9jdF9pdGVyYXRlX2NsZWFudXAgaW52b2tlcyB0aGUgbmV3IGZ1
+bmN0aW9uIGNsZWFuX3VwX3VuY29uZmlybWVkX2Nvbm50cmFja3Mgb25jZSBhZnRlciB0aGUgbG9v
+cHMuCgpTaWduZWQtb2ZmLWJ5OiBmZ2FvIDxnZnJlZS53aW5kQGdtYWlsLmNvbT4KLS0tCiBuZXQv
+bmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMgfCAzNiArKysrKysrKysrKysrKysrKysrKysr
+KystLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspLCAxMiBkZWxl
+dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMg
+Yi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMKaW5kZXggNTAxNmE2OS4uYWNlN2My
+YzIgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYworKysgYi9u
+ZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMKQEAgLTEzNDgsNiArMTM0OCwyOCBAQCBz
+dGF0aWMgdm9pZCBuZl9jb25udHJhY2tfYXR0YWNoKHN0cnVjdCBza19idWZmICpuc2tiLCBjb25z
+dCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiKQogCW5mX2Nvbm50cmFja19nZXQobnNrYi0+bmZjdCk7CiB9
+CiAKK3N0YXRpYyB2b2lkIGNsZWFuX3VwX3VuY29uZmlybWVkX2Nvbm50cmFja3Moc3RydWN0IG5l
+dCAqbmV0LAorCQlpbnQgKCppdGVyKShzdHJ1Y3QgbmZfY29ubiAqaSwgdm9pZCAqZGF0YSksCisJ
+CXZvaWQgKmRhdGEpCit7CisJc3RydWN0IG5mX2Nvbm50cmFja190dXBsZV9oYXNoICpoOworCXN0
+cnVjdCBuZl9jb25uICpjdDsKKwlzdHJ1Y3QgaGxpc3RfbnVsbHNfbm9kZSAqbjsKKwlpbnQgY3B1
+OworCisJZm9yX2VhY2hfcG9zc2libGVfY3B1KGNwdSkgeworCQlzdHJ1Y3QgY3RfcGNwdSAqcGNw
+dSA9IHBlcl9jcHVfcHRyKG5ldC0+Y3QucGNwdV9saXN0cywgY3B1KTsKKworCQlzcGluX2xvY2tf
+YmgoJnBjcHUtPmxvY2spOworCQlobGlzdF9udWxsc19mb3JfZWFjaF9lbnRyeShoLCBuLCAmcGNw
+dS0+dW5jb25maXJtZWQsIGhubm9kZSkgeworCQkJY3QgPSBuZl9jdF90dXBsZWhhc2hfdG9fY3Ry
+YWNrKGgpOworCQkJaWYgKGl0ZXIoY3QsIGRhdGEpKQorCQkJCXNldF9iaXQoSVBTX0RZSU5HX0JJ
+VCwgJmN0LT5zdGF0dXMpOworCQl9CisJCXNwaW5fdW5sb2NrX2JoKCZwY3B1LT5sb2NrKTsKKwl9
+Cit9CisKIC8qIEJyaW5nIG91dCB5YSBkZWFkISAqLwogc3RhdGljIHN0cnVjdCBuZl9jb25uICoK
+IGdldF9uZXh0X2NvcnBzZShzdHJ1Y3QgbmV0ICpuZXQsIGludCAoKml0ZXIpKHN0cnVjdCBuZl9j
+b25uICppLCB2b2lkICpkYXRhKSwKQEAgLTEzNTYsNyArMTM3OCw2IEBAIGdldF9uZXh0X2NvcnBz
+ZShzdHJ1Y3QgbmV0ICpuZXQsIGludCAoKml0ZXIpKHN0cnVjdCBuZl9jb25uICppLCB2b2lkICpk
+YXRhKSwKIAlzdHJ1Y3QgbmZfY29ubnRyYWNrX3R1cGxlX2hhc2ggKmg7CiAJc3RydWN0IG5mX2Nv
+bm4gKmN0OwogCXN0cnVjdCBobGlzdF9udWxsc19ub2RlICpuOwotCWludCBjcHU7CiAJc3Bpbmxv
+Y2tfdCAqbG9ja3A7CiAKIAlmb3IgKDsgKmJ1Y2tldCA8IG5ldC0+Y3QuaHRhYmxlX3NpemU7ICgq
+YnVja2V0KSsrKSB7CkBAIC0xMzc2LDE3ICsxMzk3LDYgQEAgZ2V0X25leHRfY29ycHNlKHN0cnVj
+dCBuZXQgKm5ldCwgaW50ICgqaXRlcikoc3RydWN0IG5mX2Nvbm4gKmksIHZvaWQgKmRhdGEpLAog
+CQlsb2NhbF9iaF9lbmFibGUoKTsKIAl9CiAKLQlmb3JfZWFjaF9wb3NzaWJsZV9jcHUoY3B1KSB7
+Ci0JCXN0cnVjdCBjdF9wY3B1ICpwY3B1ID0gcGVyX2NwdV9wdHIobmV0LT5jdC5wY3B1X2xpc3Rz
+LCBjcHUpOwotCi0JCXNwaW5fbG9ja19iaCgmcGNwdS0+bG9jayk7Ci0JCWhsaXN0X251bGxzX2Zv
+cl9lYWNoX2VudHJ5KGgsIG4sICZwY3B1LT51bmNvbmZpcm1lZCwgaG5ub2RlKSB7Ci0JCQljdCA9
+IG5mX2N0X3R1cGxlaGFzaF90b19jdHJhY2soaCk7Ci0JCQlpZiAoaXRlcihjdCwgZGF0YSkpCi0J
+CQkJc2V0X2JpdChJUFNfRFlJTkdfQklULCAmY3QtPnN0YXR1cyk7Ci0JCX0KLQkJc3Bpbl91bmxv
+Y2tfYmgoJnBjcHUtPmxvY2spOwotCX0KIAlyZXR1cm4gTlVMTDsKIGZvdW5kOgogCWF0b21pY19p
+bmMoJmN0LT5jdF9nZW5lcmFsLnVzZSk7CkBAIC0xNDExLDYgKzE0MjEsOCBAQCB2b2lkIG5mX2N0
+X2l0ZXJhdGVfY2xlYW51cChzdHJ1Y3QgbmV0ICpuZXQsCiAKIAkJbmZfY3RfcHV0KGN0KTsKIAl9
+CisKKwljbGVhbl91cF91bmNvbmZpcm1lZF9jb25udHJhY2tzKG5ldCwgaXRlciwgZGF0YSk7CiB9
+CiBFWFBPUlRfU1lNQk9MX0dQTChuZl9jdF9pdGVyYXRlX2NsZWFudXApOwogCi0tIAoxLjkuMQoK
+--089e01183b602276ec0505e3f54e--
