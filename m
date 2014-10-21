@@ -1,50 +1,114 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] netfilter: ipset: off by one in ip_set_nfnl_get_byindex()
-Date: Tue, 21 Oct 2014 11:28:12 +0300
-Message-ID: <20141021082812.GB28426@mwanda>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/4] evaluate: refactor function to check the reject
+ family in inet and bridge
+Date: Tue, 21 Oct 2014 10:45:08 +0200
+Message-ID: <20141021084508.GA4728@salvia>
+References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Ilia Mirkin <imirkin@alum.mit.edu>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Joe Perches <joe@perches.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:30966 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143AbaJUI3g (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 04:29:36 -0400
+Received: from mail.us.es ([193.147.175.20]:38467 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750831AbaJUIni (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 04:43:38 -0400
 Content-Disposition: inline
+In-Reply-To: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The ->ip_set_list[] array is initialized in ip_set_net_init() and it
-has ->ip_set_max elements so this check should be >= instead of >
-otherwise we are off by one.
+On Tue, Oct 21, 2014 at 01:29:37AM +0200, Alvaro Neira Ayuso wrote:
+> This patch make a refactorization of the code to check the reject family in inet
+> and bridge. These changes will be used in follow up patches.
+> 
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  src/evaluate.c |  110 ++++++++++++++++++++++++++++++++------------------------
+>  1 file changed, 63 insertions(+), 47 deletions(-)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 1fec120..977df86 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1202,12 +1202,72 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+>  	return 0;
+>  }
+>  
+> -static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
+> +static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt,
+> +				       struct expr *expr)
+> +{
+> +	const struct proto_desc *desc, *base;
+> +	int protocol;
+> +
+> +	base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-I am not very familiar with this code, so please review cautiously.
-This is an old bug which should go to -stable.
+This base pointer is fetched, but you only need this if desc != NULL.
+Please, while you're refactoring this, it's good if you avoid this.
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 912e5a0..86f9d76 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -659,7 +659,7 @@ ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index)
- 	struct ip_set *set;
- 	struct ip_set_net *inst = ip_set_pernet(net);
- 
--	if (index > inst->ip_set_max)
-+	if (index >= inst->ip_set_max)
- 		return IPSET_INVALID_ID;
- 
- 	nfnl_lock(NFNL_SUBSYS_IPSET);
+> +	desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+> +	if (desc != NULL) {
+
+>From here:
+
+> +		protocol = proto_find_num(base, desc);
+> +		switch (protocol) {
+> +		case NFPROTO_IPV4:
+> +			if (stmt->reject.family == NFPROTO_IPV4)
+> +				return 0;
+> +			return stmt_error(ctx, stmt,
+> +			  "conflicting protocols specified: ip vs ip6");
+> +		case NFPROTO_IPV6:
+> +			if (stmt->reject.family == NFPROTO_IPV6)
+> +				return 0;
+> +			return stmt_error(ctx, stmt,
+> +			  "conflicting protocols specified: ip vs ip6");
+> +		default:
+> +			BUG("unsupported family");
+> +		}
+> +	}
+
+to there. You can put this code in another function, given that you'll
+need it again for your patch 3/4.
+
+static int stmt_evaluate_reject_inet_family(...)
+{
+	int protocol;
+
+	protocol = proto_find_num(base, desc);
+	switch (protocol) {
+	case NFPROTO_IPV4:
+		if (stmt->reject.family != NFPROTO_IPV4)
+			return -1;
+
+                break;
+	case NFPROTO_IPV6:
+		if (stmt->reject.family == NFPROTO_IPV6)
+			return -1;
+
+                break;
+	default:
+		BUG("unsupported family");
+	}
+
+        return 0;
+}
+
+Then, from stmt_evaluate_reject_inet():
+
+        if (desc != NULL &&
+            stmt_evaluate_reject_inet_family(...) < 0)
+                return stmt_error(..., "conflicting protocols...");
+
+> +	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+> +		return 0;
+> +	if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
+> +		return -1;
+> +	return 0;
+> +}
+> +
+> +static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
+>  				       struct expr *expr)
+
+Same thing for the bridge code.
