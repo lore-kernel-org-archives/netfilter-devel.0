@@ -1,9 +1,9 @@
 From: =?ISO-8859-1?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [nft PATCH 4/4 v3] evaluate: fix a crash if we check the transport
- protocol is tcp
-Date: Tue, 21 Oct 2014 14:28:46 +0200
-Message-ID: <5446517E.9070003@gmail.com>
-References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com> <1413847780-10149-4-git-send-email-alvaroneay@gmail.com> <20141021081522.GB3628@salvia>
+Subject: Re: [nft PATCH 3/4] evaluate: no check the network context in reject
+ with tcp reset reason
+Date: Tue, 21 Oct 2014 14:32:58 +0200
+Message-ID: <5446527A.5020900@gmail.com>
+References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com> <1413847780-10149-3-git-send-email-alvaroneay@gmail.com> <20141021075544.GA3220@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1;
 	format=flowed
@@ -11,37 +11,99 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:48810 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191AbaJUM2c (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:38251 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755355AbaJUMcq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 08:28:32 -0400
-Received: by mail-wi0-f178.google.com with SMTP id r20so1650460wiv.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 05:28:26 -0700 (PDT)
-In-Reply-To: <20141021081522.GB3628@salvia>
+	Tue, 21 Oct 2014 08:32:46 -0400
+Received: by mail-wi0-f182.google.com with SMTP id bs8so846101wib.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 05:32:41 -0700 (PDT)
+In-Reply-To: <20141021075544.GA3220@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-El 21/10/14 10:15, Pablo Neira Ayuso escribi=F3:
-> On Tue, Oct 21, 2014 at 01:29:40AM +0200, Alvaro Neira Ayuso wrote:
->> Example:
+El 21/10/14 09:55, Pablo Neira Ayuso escribi=F3:
+> On Tue, Oct 21, 2014 at 01:29:39AM +0200, Alvaro Neira Ayuso wrote:
+>> nft add rule -nnn bridge test-bridge input \
+>> 			ip protocol tcp reject with tcp reset
 >>
->> nft add rule inet filter input meta l4proto udp reject with tcp rese=
-t
+>> If we use in reject the type tcp reset. We don't need to check if th=
+e network
+>> context is compatible with the reason. This patch fix that.
 >>
->> If we try to check if the transport protocol is tcp, we use the netw=
-ork context.
->> If we don't have this network context, we have a crash.
+>> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+>> ---
+>>   src/evaluate.c |   80 +++++++++++++++++++++++++++++++++-----------=
+------------
+>>   1 file changed, 47 insertions(+), 33 deletions(-)
+>>
+>> diff --git a/src/evaluate.c b/src/evaluate.c
+>> index 20235a8..8b19baf 100644
+>> --- a/src/evaluate.c
+>> +++ b/src/evaluate.c
+>> @@ -1208,24 +1208,31 @@ static int stmt_evaluate_reject_inet(struct =
+eval_ctx *ctx, struct stmt *stmt,
+>>   	const struct proto_desc *desc, *base;
+>>   	int protocol;
+>>
+>> -	base =3D ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+>> -	desc =3D ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+>> -	if (desc !=3D NULL) {
+>> -		protocol =3D proto_find_num(base, desc);
+>> -		switch (protocol) {
+>> -		case NFPROTO_IPV4:
+>> -			if (stmt->reject.family =3D=3D NFPROTO_IPV4)
+>> -				return 0;
+>> -			return stmt_error(ctx, stmt,
+>> -			  "conflicting protocols specified: ip vs ip6");
+>> -		case NFPROTO_IPV6:
+>> -			if (stmt->reject.family =3D=3D NFPROTO_IPV6)
+>> -				return 0;
+>> -			return stmt_error(ctx, stmt,
+>> -			  "conflicting protocols specified: ip vs ip6");
+>> -		default:
+>> -			BUG("unsupported family");
+>> +	switch (stmt->reject.type) {
+>> +	case NFT_REJECT_TCP_RST:
+>> +		break;
+>> +	case NFT_REJECT_ICMPX_UNREACH:
 >
-> I have applied this with minor changes.
->
-> Please, select the patch ordering carefully. This is a v3 coming as
-> the 4th patch in a batch.
->
-> Remember: Fixes always come in first place. Thanks.
->
+> Do you really need to check layer 3 conflicts with icmpx?
 
-Catched. Sorry.
+Ups you're right. In Inet tables we don't need to check it. We only hav=
+e=20
+Ipv4 and Ipv6 traffic. I have been focus in bridge and I have followed=20
+the same steps (check the network context) like bridge tables and in=20
+Inet is not necessary.
+
+I'm going to fix it. Thanks Pablo
+
+>
+>> +	case NFT_REJECT_ICMP_UNREACH:
+>> +		base =3D ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+>> +		desc =3D ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+>> +		if (desc !=3D NULL) {
+>> +			protocol =3D proto_find_num(base, desc);
+>> +			switch (protocol) {
+>> +			case NFPROTO_IPV4:
+>> +				if (stmt->reject.family =3D=3D NFPROTO_IPV4)
+>> +					return 0;
+>> +				return stmt_error(ctx, stmt,
+>> +				  "conflicting protocols specified: ip vs ip6");
+>> +			case NFPROTO_IPV6:
+>> +				if (stmt->reject.family =3D=3D NFPROTO_IPV6)
+>> +					return 0;
+>> +				return stmt_error(ctx, stmt,
+>> +				  "conflicting protocols specified: ip vs ip6");
+>> +			default:
+>> +				BUG("unsupported family");
+>> +			}
+>>   		}
+>> +		break;
+>>   	}
+>>   	if (stmt->reject.type =3D=3D NFT_REJECT_ICMPX_UNREACH)
+>>   		return 0;
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
