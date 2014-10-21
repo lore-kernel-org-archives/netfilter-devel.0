@@ -1,66 +1,49 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch] netfilter: ipset: off by one in
- ip_set_nfnl_get_byindex()
-Date: Tue, 21 Oct 2014 11:51:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1410211146160.27469@blackhole.kfki.hu>
-References: <20141021082812.GB28426@mwanda>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH v3] utils: fix arp family number
+Date: Tue, 21 Oct 2014 11:56:49 +0200
+Message-ID: <20141021095649.GA5248@salvia>
+References: <20141020115049.27980.35459.stgit@nfdev.cica.es>
+ <20141021075927.GA3610@salvia>
+ <CAOkSjBgmmE0MUPY10u1iOKgBsN4P3y9mLM3FHcMzA7hL3maP8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Ilia Mirkin <imirkin@alum.mit.edu>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Joe Perches <joe@perches.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:41753 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:44757 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbaJUJuh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 05:50:37 -0400
-In-Reply-To: <20141021082812.GB28426@mwanda>
+	id S1751283AbaJUJzT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 05:55:19 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBgmmE0MUPY10u1iOKgBsN4P3y9mLM3FHcMzA7hL3maP8Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 21 Oct 2014, Dan Carpenter wrote:
-
-> The ->ip_set_list[] array is initialized in ip_set_net_init() and it
-> has ->ip_set_max elements so this check should be >= instead of >
-> otherwise we are off by one.
+On Tue, Oct 21, 2014 at 10:53:19AM +0200, Arturo Borrero Gonzalez wrote:
+> On 21 October 2014 09:59, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > BTW, it would be good to see a similar refactor in nft_verdict2str().
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> I am not very familiar with this code, so please review cautiously.
-> This is an old bug which should go to -stable.
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 912e5a0..86f9d76 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -659,7 +659,7 @@ ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index)
->  	struct ip_set *set;
->  	struct ip_set_net *inst = ip_set_pernet(net);
->  
-> -	if (index > inst->ip_set_max)
-> +	if (index >= inst->ip_set_max)
->  		return IPSET_INVALID_ID;
->  
->  	nfnl_lock(NFNL_SUBSYS_IPSET);
-> 
+> I don't see a clean way to do it, given some verdicts are negative
+> numbers (enum nft_verdicts in nf_tables.h).
+> We may end accessing a negative index, out of bounds of the array.
 
-Absolutely right and it should go to stable too!
+I see, you mean:
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+enum nft_verdicts {
+        NFT_CONTINUE    = -1,
+        NFT_BREAK       = -2,
+        NFT_JUMP        = -3,
+        NFT_GOTO        = -4,
+        NFT_RETURN      = -5,
+};
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+You can add some function to shift the values:
+
+#define nft_verdict_index(base)     (base + 5)
+
+... nft_verdict_array[] = {
+        [nft_verdict_index(NFT_RETURN)]     = "return",
+        ...
+};
