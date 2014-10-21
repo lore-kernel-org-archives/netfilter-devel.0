@@ -1,35 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 4/4 v3] evaluate: fix a crash if we check the
- transport protocol is tcp
-Date: Tue, 21 Oct 2014 10:15:22 +0200
-Message-ID: <20141021081522.GB3628@salvia>
-References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com>
- <1413847780-10149-4-git-send-email-alvaroneay@gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] netfilter: ipset: off by one in ip_set_nfnl_get_byindex()
+Date: Tue, 21 Oct 2014 11:28:12 +0300
+Message-ID: <20141021082812.GB28426@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Ilia Mirkin <imirkin@alum.mit.edu>,
+	Sergey Popovich <popovich_sergei@mail.ru>,
+	Joe Perches <joe@perches.com>,
+	Anton Danilov <littlesmilingcloud@gmail.com>,
+	stephen hemminger <stephen@networkplumber.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54955 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754207AbaJUINv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 04:13:51 -0400
+Received: from aserp1040.oracle.com ([141.146.126.69]:30966 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143AbaJUI3g (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 04:29:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1413847780-10149-4-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 21, 2014 at 01:29:40AM +0200, Alvaro Neira Ayuso wrote:
-> Example:
-> 
-> nft add rule inet filter input meta l4proto udp reject with tcp reset
-> 
-> If we try to check if the transport protocol is tcp, we use the network context.
-> If we don't have this network context, we have a crash.
+The ->ip_set_list[] array is initialized in ip_set_net_init() and it
+has ->ip_set_max elements so this check should be >= instead of >
+otherwise we are off by one.
 
-I have applied this with minor changes.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+I am not very familiar with this code, so please review cautiously.
+This is an old bug which should go to -stable.
 
-Please, select the patch ordering carefully. This is a v3 coming as
-the 4th patch in a batch.
-
-Remember: Fixes always come in first place. Thanks.
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 912e5a0..86f9d76 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -659,7 +659,7 @@ ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index)
+ 	struct ip_set *set;
+ 	struct ip_set_net *inst = ip_set_pernet(net);
+ 
+-	if (index > inst->ip_set_max)
++	if (index >= inst->ip_set_max)
+ 		return IPSET_INVALID_ID;
+ 
+ 	nfnl_lock(NFNL_SUBSYS_IPSET);
