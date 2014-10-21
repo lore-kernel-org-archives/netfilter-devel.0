@@ -1,152 +1,41 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 4/4 v4] test: update and add the reject tests for ip, ip6, bridge and inet.
-Date: Tue, 21 Oct 2014 16:15:46 +0200
-Message-ID: <1413900946-15820-4-git-send-email-alvaroneay@gmail.com>
-References: <1413900946-15820-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xt_hashlimit: Enhance the xt_hashlimit to
+ avoid duplicated codes
+Date: Tue, 21 Oct 2014 17:31:28 +0200
+Message-ID: <20141021153128.GA3657@salvia>
+References: <CA+6hz4o-2vSEzH+hjYAUfWRVqHQ3QfcCr8q11eoRpCTq2uTYtg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: Feng Gao <gfree.wind@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:39840 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932702AbaJUOXx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 10:23:53 -0400
-Received: by mail-wi0-f172.google.com with SMTP id bs8so1259865wib.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 07:23:51 -0700 (PDT)
-In-Reply-To: <1413900946-15820-1-git-send-email-alvaroneay@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:52600 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751561AbaJUPaA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2014 11:30:00 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+6hz4o-2vSEzH+hjYAUfWRVqHQ3QfcCr8q11eoRpCTq2uTYtg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
-[changes in v4]
- * Add rules that we have to check the network context in inet and bridge tables
+On Tue, Oct 21, 2014 at 11:23:16PM +0800, Feng Gao wrote:
+> Hi all,
+> 
+> Enhance the functions "dsthash_alloc_init" and "hashlimit_mt" in file
+> "xt_hashlimit.c" to avoid two duplicated codes following:
+> 
+> -           dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
+> -           rateinfo_recalc(dh, now, hinfo->cfg.mode);
+> 
+> 
+> The whole patch is following
 
- tests/regression/bridge/reject.t |   35 +++++++++++++++++++++++++++++++++++
- tests/regression/inet/reject.t   |   32 ++++++++++++++++++++++++++++++++
- tests/regression/ip/reject.t     |   11 ++++++++++-
- tests/regression/ip6/reject.t    |    9 ++++++++-
- 4 files changed, 85 insertions(+), 2 deletions(-)
- create mode 100644 tests/regression/bridge/reject.t
- create mode 100644 tests/regression/inet/reject.t
+The patch seems mangled by your MUA.
 
-diff --git a/tests/regression/bridge/reject.t b/tests/regression/bridge/reject.t
-new file mode 100644
-index 0000000..11a0f1c
---- /dev/null
-+++ b/tests/regression/bridge/reject.t
-@@ -0,0 +1,35 @@
-+*bridge;test-bridge
-+:input;type filter hook input priority 0
-+
-+# The output is specific for bridge family
-+reject with icmp type host-unreachable;ok;ether type ip reject with icmp type host-unreachable
-+reject with icmp type net-unreachable;ok;ether type ip reject with icmp type net-unreachable
-+reject with icmp type prot-unreachable;ok;ether type ip reject with icmp type prot-unreachable
-+reject with icmp type port-unreachable;ok;ether type ip reject
-+reject with icmp type net-prohibited;ok;ether type ip reject with icmp type net-prohibited
-+reject with icmp type host-prohibited;ok;ether type ip reject with icmp type host-prohibited
-+reject with icmp type admin-prohibited;ok;ether type ip reject with icmp type admin-prohibited
-+
-+reject with icmpv6 type no-route;ok;ether type ip6 reject with icmpv6 type no-route
-+reject with icmpv6 type admin-prohibited;ok;ether type ip6 reject with icmpv6 type admin-prohibited
-+reject with icmpv6 type addr-unreachable;ok;ether type ip6 reject with icmpv6 type addr-unreachable
-+reject with icmpv6 type port-unreachable;ok;ether type ip6 reject
-+
-+ip protocol tcp reject with tcp reset;ok;ip protocol 6 reject with tcp reset
-+
-+reject;ok
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-+reject with icmpx type admin-prohibited;ok
-+reject with icmpx type port-unreachable;ok;reject
-+
-+ether type ipv6 reject with icmp type host-unreachable;fail
-+ether type ip6 reject with icmp type host-unreachable;fail
-+ether type ip reject with icmpv6 type no-route;fail
-+ether type vlan reject;fail
-+ether type arp reject;fail
-+ether type vlan reject;fail
-+ether type arp reject;fail
-+ether type vlan reject with tcp reset;fail
-+ether type arp reject with tcp reset;fail
-+ip protocol udp reject with tcp reset;fail
-diff --git a/tests/regression/inet/reject.t b/tests/regression/inet/reject.t
-new file mode 100644
-index 0000000..2f5aef3
---- /dev/null
-+++ b/tests/regression/inet/reject.t
-@@ -0,0 +1,32 @@
-+*inet;test-inet
-+:input;type filter hook input priority 0
-+
-+# The output is specific for inet family
-+reject with icmp type host-unreachable;ok;meta nfproto ipv4 reject with icmp type host-unreachable
-+reject with icmp type net-unreachable;ok;meta nfproto ipv4 reject with icmp type net-unreachable
-+reject with icmp type prot-unreachable;ok;meta nfproto ipv4 reject with icmp type prot-unreachable
-+reject with icmp type port-unreachable;ok;meta nfproto ipv4 reject
-+reject with icmp type net-prohibited;ok;meta nfproto ipv4 reject with icmp type net-prohibited
-+reject with icmp type host-prohibited;ok;meta nfproto ipv4 reject with icmp type host-prohibited
-+reject with icmp type admin-prohibited;ok;meta nfproto ipv4 reject with icmp type admin-prohibited
-+
-+reject with icmpv6 type no-route;ok;meta nfproto ipv6 reject with icmpv6 type no-route
-+reject with icmpv6 type admin-prohibited;ok;meta nfproto ipv6 reject with icmpv6 type admin-prohibited
-+reject with icmpv6 type addr-unreachable;ok;meta nfproto ipv6 reject with icmpv6 type addr-unreachable
-+reject with icmpv6 type port-unreachable;ok;meta nfproto ipv6 reject
-+
-+reject with tcp reset;ok;meta l4proto 6 reject with tcp reset
-+
-+reject;ok
-+reject with icmpx type host-unreachable;ok
-+reject with icmpx type no-route;ok
-+reject with icmpx type admin-prohibited;ok
-+reject with icmpx type port-unreachable;ok;reject
-+
-+meta nfproto ipv4 reject with icmp type host-unreachable;ok
-+meta nfproto ipv6 reject with icmpv6 type no-route;ok
-+
-+meta nfproto ipv6 reject with icmp type host-unreachable;fail
-+meta nfproto ipv4 ip protocol icmp reject with icmpv6 type no-route;fail
-+meta nfproto ipv6 ip protocol icmp reject with icmp type host-unreachable;fail
-+meta l4proto udp reject with tcp reset;fail
-diff --git a/tests/regression/ip/reject.t b/tests/regression/ip/reject.t
-index e7fb15b..70a63a0 100644
---- a/tests/regression/ip/reject.t
-+++ b/tests/regression/ip/reject.t
-@@ -1,5 +1,14 @@
- *ip;test-ip4
--*ip;test-inet
- :output;type filter hook output priority 0
- 
- reject;ok
-+reject with icmp type host-unreachable;ok
-+reject with icmp type net-unreachable;ok
-+reject with icmp type prot-unreachable;ok
-+reject with icmp type port-unreachable;ok;reject
-+reject with icmp type net-prohibited;ok
-+reject with icmp type host-prohibited;ok
-+reject with icmp type admin-prohibited;ok
-+
-+reject with icmp type no-route;fail
-+reject with icmpv6 type no-route;fail
-diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
-index b49c50b..60dec90 100644
---- a/tests/regression/ip6/reject.t
-+++ b/tests/regression/ip6/reject.t
-@@ -1,5 +1,12 @@
- *ip6;test-ip6
--*inet;test-inet
- :output;type filter hook output priority 0
- 
- reject;ok
-+reject with icmpv6 type no-route;ok
-+reject with icmpv6 type admin-prohibited;ok
-+reject with icmpv6 type addr-unreachable;ok
-+reject with icmpv6 type port-unreachable;ok;reject
-+reject with tcp reset;ok;ip6 nexthdr 6 reject with tcp reset
-+
-+reject with icmpv6 type host-unreachable;fail
-+reject with icmp type host-unreachable;fail
--- 
-1.7.10.4
+BTW, you can just Cc netfilter patches to
+netfilter-devel@vger.kernel.org. No need to Cc that many people.
 
