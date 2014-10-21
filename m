@@ -1,111 +1,164 @@
-From: =?ISO-8859-1?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [nft PATCH 3/4] evaluate: no check the network context in reject
- with tcp reset reason
-Date: Tue, 21 Oct 2014 14:32:58 +0200
-Message-ID: <5446527A.5020900@gmail.com>
-References: <1413847780-10149-1-git-send-email-alvaroneay@gmail.com> <1413847780-10149-3-git-send-email-alvaroneay@gmail.com> <20141021075544.GA3220@salvia>
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: Re: [PATCH] netfilter: Fix wastful cleanup check for unconfirmed conn
+ in get_next_corpse
+Date: Tue, 21 Oct 2014 21:48:24 +0800
+Message-ID: <CA+6hz4pyRzK9fpPjzYWTDHs0whxy6MfT=y-3sg9zTRC07DX1UA@mail.gmail.com>
+References: <CA+6hz4ouOLgFwHOM6xeXEaUQpm2xOasDowKLPfZWuG3sAssUvA@mail.gmail.com>
+	<CA+6hz4oodWXXyWhcR=Zt4Esf1Riwatvy0xYMhFnQ8CkTaqV=Pg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:38251 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755355AbaJUMcq (ORCPT
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:64389 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932529AbaJUNsg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 08:32:46 -0400
-Received: by mail-wi0-f182.google.com with SMTP id bs8so846101wib.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 05:32:41 -0700 (PDT)
-In-Reply-To: <20141021075544.GA3220@salvia>
+	Tue, 21 Oct 2014 09:48:36 -0400
+In-Reply-To: <CA+6hz4oodWXXyWhcR=Zt4Esf1Riwatvy0xYMhFnQ8CkTaqV=Pg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-El 21/10/14 09:55, Pablo Neira Ayuso escribi=F3:
-> On Tue, Oct 21, 2014 at 01:29:39AM +0200, Alvaro Neira Ayuso wrote:
->> nft add rule -nnn bridge test-bridge input \
->> 			ip protocol tcp reject with tcp reset
->>
->> If we use in reject the type tcp reset. We don't need to check if th=
-e network
->> context is compatible with the reason. This patch fix that.
->>
->> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
->> ---
->>   src/evaluate.c |   80 +++++++++++++++++++++++++++++++++-----------=
-------------
->>   1 file changed, 47 insertions(+), 33 deletions(-)
->>
->> diff --git a/src/evaluate.c b/src/evaluate.c
->> index 20235a8..8b19baf 100644
->> --- a/src/evaluate.c
->> +++ b/src/evaluate.c
->> @@ -1208,24 +1208,31 @@ static int stmt_evaluate_reject_inet(struct =
-eval_ctx *ctx, struct stmt *stmt,
->>   	const struct proto_desc *desc, *base;
->>   	int protocol;
->>
->> -	base =3D ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
->> -	desc =3D ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
->> -	if (desc !=3D NULL) {
->> -		protocol =3D proto_find_num(base, desc);
->> -		switch (protocol) {
->> -		case NFPROTO_IPV4:
->> -			if (stmt->reject.family =3D=3D NFPROTO_IPV4)
->> -				return 0;
->> -			return stmt_error(ctx, stmt,
->> -			  "conflicting protocols specified: ip vs ip6");
->> -		case NFPROTO_IPV6:
->> -			if (stmt->reject.family =3D=3D NFPROTO_IPV6)
->> -				return 0;
->> -			return stmt_error(ctx, stmt,
->> -			  "conflicting protocols specified: ip vs ip6");
->> -		default:
->> -			BUG("unsupported family");
->> +	switch (stmt->reject.type) {
->> +	case NFT_REJECT_TCP_RST:
->> +		break;
->> +	case NFT_REJECT_ICMPX_UNREACH:
+Sorry. I get it is not an issue after read the codes again.
+The unconfirmed conn list check is only checked once in the current codes.
+Because it will be checked only when no matched conntracks found in
+function get_next_corpse.
+
+Then I think current codes may confuse the reader. I am an example.
+So could my changes be as the enhancement ?
+
+Best Regards
+Feng
+
+On Tue, Oct 21, 2014 at 10:47 AM, Feng Gao <gfree.wind@gmail.com> wrote:
+> Paste my changes directly instead of the attachment.
 >
-> Do you really need to check layer 3 conflicts with icmpx?
-
-Ups you're right. In Inet tables we don't need to check it. We only hav=
-e=20
-Ipv4 and Ipv6 traffic. I have been focus in bridge and I have followed=20
-the same steps (check the network context) like bridge tables and in=20
-Inet is not necessary.
-
-I'm going to fix it. Thanks Pablo
-
+> Subject: [PATCH 1/1] netfilter: Fix wastful cleanup check for unconfirmed
+> conn in get_next_corpse
 >
->> +	case NFT_REJECT_ICMP_UNREACH:
->> +		base =3D ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
->> +		desc =3D ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
->> +		if (desc !=3D NULL) {
->> +			protocol =3D proto_find_num(base, desc);
->> +			switch (protocol) {
->> +			case NFPROTO_IPV4:
->> +				if (stmt->reject.family =3D=3D NFPROTO_IPV4)
->> +					return 0;
->> +				return stmt_error(ctx, stmt,
->> +				  "conflicting protocols specified: ip vs ip6");
->> +			case NFPROTO_IPV6:
->> +				if (stmt->reject.family =3D=3D NFPROTO_IPV6)
->> +					return 0;
->> +				return stmt_error(ctx, stmt,
->> +				  "conflicting protocols specified: ip vs ip6");
->> +			default:
->> +				BUG("unsupported family");
->> +			}
->>   		}
->> +		break;
->>   	}
->>   	if (stmt->reject.type =3D=3D NFT_REJECT_ICMPX_UNREACH)
->>   		return 0;
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The function get_next_corpse is used to iterate the conntracks.
+> It will check the per cpu unconfirmed list of every cpu too.
+> Now it is only invoked by nf_ct_iterate_cleanup in one while loop.
+> Actually the unconfirmed list could be accessed completely by one call, then
+> the others are wastful.
+>
+> So move the unconfirmed list check outside the function get_next_corpse and
+> create one new function
+> Let the nf_ct_iterate_cleanup invokes the new function
+> clean_up_unconfirmed_conntracks once after the loops.
+>
+> Signed-off-by: fgao <gfree.wind@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_core.c | 36 ++++++++++++++++++++++++------------
+>  1 file changed, 24 insertions(+), 12 deletions(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_core.c
+> b/net/netfilter/nf_conntrack_core.c
+> index 5016a69..ace7c2c2 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1348,6 +1348,28 @@ static void nf_conntrack_attach(struct sk_buff *nskb,
+> const struct sk_buff *skb)
+>   nf_conntrack_get(nskb->nfct);
+>  }
+>
+> +static void clean_up_unconfirmed_conntracks(struct net *net,
+> + int (*iter)(struct nf_conn *i, void *data),
+> + void *data)
+> +{
+> + struct nf_conntrack_tuple_hash *h;
+> + struct nf_conn *ct;
+> + struct hlist_nulls_node *n;
+> + int cpu;
+> +
+> + for_each_possible_cpu(cpu) {
+> + struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
+> +
+> + spin_lock_bh(&pcpu->lock);
+> + hlist_nulls_for_each_entry(h, n, &pcpu->unconfirmed, hnnode) {
+> + ct = nf_ct_tuplehash_to_ctrack(h);
+> + if (iter(ct, data))
+> + set_bit(IPS_DYING_BIT, &ct->status);
+> + }
+> + spin_unlock_bh(&pcpu->lock);
+> + }
+> +}
+> +
+>  /* Bring out ya dead! */
+>  static struct nf_conn *
+>  get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void
+> *data),
+> @@ -1356,7 +1378,6 @@ get_next_corpse(struct net *net, int (*iter)(struct
+> nf_conn *i, void *data),
+>   struct nf_conntrack_tuple_hash *h;
+>   struct nf_conn *ct;
+>   struct hlist_nulls_node *n;
+> - int cpu;
+>   spinlock_t *lockp;
+>
+>   for (; *bucket < net->ct.htable_size; (*bucket)++) {
+> @@ -1376,17 +1397,6 @@ get_next_corpse(struct net *net, int (*iter)(struct
+> nf_conn *i, void *data),
+>   local_bh_enable();
+>   }
+>
+> - for_each_possible_cpu(cpu) {
+> - struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
+> -
+> - spin_lock_bh(&pcpu->lock);
+> - hlist_nulls_for_each_entry(h, n, &pcpu->unconfirmed, hnnode) {
+> - ct = nf_ct_tuplehash_to_ctrack(h);
+> - if (iter(ct, data))
+> - set_bit(IPS_DYING_BIT, &ct->status);
+> - }
+> - spin_unlock_bh(&pcpu->lock);
+> - }
+>   return NULL;
+>  found:
+>   atomic_inc(&ct->ct_general.use);
+> @@ -1411,6 +1421,8 @@ void nf_ct_iterate_cleanup(struct net *net,
+>
+>   nf_ct_put(ct);
+>   }
+> +
+> + clean_up_unconfirmed_conntracks(net, iter, data);
+>  }
+>  EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
+>
+> --
+> 1.9.1
+>
+>
+> On Tue, Oct 21, 2014 at 8:31 AM, Feng Gao <gfree.wind@gmail.com> wrote:
+>>
+>> Hi all,
+>>
+>> I am sorry to send the patch commit again because the last email is
+>> not plain text and is rejected by some servers.
+>>
+>> This is the patch to branch master of kernel.
+>>
+>> The function get_next_corpse is only invoked by nf_ct_iterate_cleanup
+>> in one while loop, and it will check the per cpu unconfirmed conntrack
+>> list every time.
+>>
+>> I think the whole list of unconfirmed conntracks could be accessed by
+>> one call, so the others are not necessary.
+>>
+>> So I move the checks outside the get_next_corpse, and create one new
+>> function clean_up_unconfirmed_conntracks.
+>> Let the nf_ct_iterate_cleanup invokes the
+>> clean_up_unconfirmed_conntracks after the while loop.
+>>
+>> These codes have already exist for a long time. Firstly I think maybe
+>> there is some reason, but I fail to get it.
+>>
+>>
+>> Best Regards
+>> Feng
+>
+>
