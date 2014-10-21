@@ -1,164 +1,191 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH] netfilter: Fix wastful cleanup check for unconfirmed conn
- in get_next_corpse
-Date: Tue, 21 Oct 2014 21:48:24 +0800
-Message-ID: <CA+6hz4pyRzK9fpPjzYWTDHs0whxy6MfT=y-3sg9zTRC07DX1UA@mail.gmail.com>
-References: <CA+6hz4ouOLgFwHOM6xeXEaUQpm2xOasDowKLPfZWuG3sAssUvA@mail.gmail.com>
-	<CA+6hz4oodWXXyWhcR=Zt4Esf1Riwatvy0xYMhFnQ8CkTaqV=Pg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH 1/4 v2] evaluate: refactor function to check the reject family in inet and bridge
+Date: Tue, 21 Oct 2014 16:15:43 +0200
+Message-ID: <1413900946-15820-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:64389 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932529AbaJUNsg (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:56135 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932731AbaJUOPb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 09:48:36 -0400
-In-Reply-To: <CA+6hz4oodWXXyWhcR=Zt4Esf1Riwatvy0xYMhFnQ8CkTaqV=Pg@mail.gmail.com>
+	Tue, 21 Oct 2014 10:15:31 -0400
+Received: by mail-wi0-f174.google.com with SMTP id r20so2343903wiv.7
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 07:15:30 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sorry. I get it is not an issue after read the codes again.
-The unconfirmed conn list check is only checked once in the current codes.
-Because it will be checked only when no matched conntracks found in
-function get_next_corpse.
+This patch make a refactorization of the code to check the reject family in inet
+and bridge. These changes will be used in follow up patches.
 
-Then I think current codes may confuse the reader. I am an example.
-So could my changes be as the enhancement ?
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+[changes in v2]
+ * Refactor the functions in two functions more, to check the reject family in
+   inet and bridge tables.
 
-Best Regards
-Feng
+ src/evaluate.c |  134 ++++++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 86 insertions(+), 48 deletions(-)
 
-On Tue, Oct 21, 2014 at 10:47 AM, Feng Gao <gfree.wind@gmail.com> wrote:
-> Paste my changes directly instead of the attachment.
->
-> Subject: [PATCH 1/1] netfilter: Fix wastful cleanup check for unconfirmed
-> conn in get_next_corpse
->
-> The function get_next_corpse is used to iterate the conntracks.
-> It will check the per cpu unconfirmed list of every cpu too.
-> Now it is only invoked by nf_ct_iterate_cleanup in one while loop.
-> Actually the unconfirmed list could be accessed completely by one call, then
-> the others are wastful.
->
-> So move the unconfirmed list check outside the function get_next_corpse and
-> create one new function
-> Let the nf_ct_iterate_cleanup invokes the new function
-> clean_up_unconfirmed_conntracks once after the loops.
->
-> Signed-off-by: fgao <gfree.wind@gmail.com>
-> ---
->  net/netfilter/nf_conntrack_core.c | 36 ++++++++++++++++++++++++------------
->  1 file changed, 24 insertions(+), 12 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_core.c
-> b/net/netfilter/nf_conntrack_core.c
-> index 5016a69..ace7c2c2 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -1348,6 +1348,28 @@ static void nf_conntrack_attach(struct sk_buff *nskb,
-> const struct sk_buff *skb)
->   nf_conntrack_get(nskb->nfct);
->  }
->
-> +static void clean_up_unconfirmed_conntracks(struct net *net,
-> + int (*iter)(struct nf_conn *i, void *data),
-> + void *data)
-> +{
-> + struct nf_conntrack_tuple_hash *h;
-> + struct nf_conn *ct;
-> + struct hlist_nulls_node *n;
-> + int cpu;
-> +
-> + for_each_possible_cpu(cpu) {
-> + struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-> +
-> + spin_lock_bh(&pcpu->lock);
-> + hlist_nulls_for_each_entry(h, n, &pcpu->unconfirmed, hnnode) {
-> + ct = nf_ct_tuplehash_to_ctrack(h);
-> + if (iter(ct, data))
-> + set_bit(IPS_DYING_BIT, &ct->status);
-> + }
-> + spin_unlock_bh(&pcpu->lock);
-> + }
-> +}
-> +
->  /* Bring out ya dead! */
->  static struct nf_conn *
->  get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void
-> *data),
-> @@ -1356,7 +1378,6 @@ get_next_corpse(struct net *net, int (*iter)(struct
-> nf_conn *i, void *data),
->   struct nf_conntrack_tuple_hash *h;
->   struct nf_conn *ct;
->   struct hlist_nulls_node *n;
-> - int cpu;
->   spinlock_t *lockp;
->
->   for (; *bucket < net->ct.htable_size; (*bucket)++) {
-> @@ -1376,17 +1397,6 @@ get_next_corpse(struct net *net, int (*iter)(struct
-> nf_conn *i, void *data),
->   local_bh_enable();
->   }
->
-> - for_each_possible_cpu(cpu) {
-> - struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-> -
-> - spin_lock_bh(&pcpu->lock);
-> - hlist_nulls_for_each_entry(h, n, &pcpu->unconfirmed, hnnode) {
-> - ct = nf_ct_tuplehash_to_ctrack(h);
-> - if (iter(ct, data))
-> - set_bit(IPS_DYING_BIT, &ct->status);
-> - }
-> - spin_unlock_bh(&pcpu->lock);
-> - }
->   return NULL;
->  found:
->   atomic_inc(&ct->ct_general.use);
-> @@ -1411,6 +1421,8 @@ void nf_ct_iterate_cleanup(struct net *net,
->
->   nf_ct_put(ct);
->   }
-> +
-> + clean_up_unconfirmed_conntracks(net, iter, data);
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
->
-> --
-> 1.9.1
->
->
-> On Tue, Oct 21, 2014 at 8:31 AM, Feng Gao <gfree.wind@gmail.com> wrote:
->>
->> Hi all,
->>
->> I am sorry to send the patch commit again because the last email is
->> not plain text and is rejected by some servers.
->>
->> This is the patch to branch master of kernel.
->>
->> The function get_next_corpse is only invoked by nf_ct_iterate_cleanup
->> in one while loop, and it will check the per cpu unconfirmed conntrack
->> list every time.
->>
->> I think the whole list of unconfirmed conntracks could be accessed by
->> one call, so the others are not necessary.
->>
->> So I move the checks outside the get_next_corpse, and create one new
->> function clean_up_unconfirmed_conntracks.
->> Let the nf_ct_iterate_cleanup invokes the
->> clean_up_unconfirmed_conntracks after the while loop.
->>
->> These codes have already exist for a long time. Firstly I think maybe
->> there is some reason, but I fail to get it.
->>
->>
->> Best Regards
->> Feng
->
->
+diff --git a/src/evaluate.c b/src/evaluate.c
+index ff46fda..e26e2f8 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1202,12 +1202,94 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+ 	return 0;
+ }
+ 
+-static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
++static int stmt_evaluate_reject_inet_family(struct eval_ctx *ctx,
++					    struct stmt *stmt,
++					    const struct proto_desc *desc)
++{
++	const struct proto_desc *base;
++	int protocol;
++
++	base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
++	protocol = proto_find_num(base, desc);
++	switch (protocol) {
++	case NFPROTO_IPV4:
++		if (stmt->reject.family == NFPROTO_IPV4)
++			break;
++		return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++	case NFPROTO_IPV6:
++		if (stmt->reject.family == NFPROTO_IPV6)
++			break;
++		return stmt_error(ctx, stmt,
++				  "conflicting protocols specified: ip vs ip6");
++	default:
++		BUG("unsupported family");
++	}
++
++	return 0;
++}
++
++static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt,
+ 				       struct expr *expr)
+ {
+-	const struct proto_desc *desc, *base;
++	const struct proto_desc *desc;
++
++	desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++	if (desc != NULL &&
++	    stmt_evaluate_reject_inet_family(ctx, stmt, desc) < 0)
++		return -1;
++	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
++		return 0;
++	if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
++		return -1;
++	return 0;
++}
++
++static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
++					      struct stmt *stmt,
++					      const struct proto_desc *desc)
++{
++	const struct proto_desc *base;
+ 	int protocol;
+ 
++	base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
++	protocol = proto_find_num(base, desc);
++	switch (protocol) {
++	case __constant_htons(ETH_P_IP):
++		if (NFPROTO_IPV4 == stmt->reject.family)
++			break;
++	case __constant_htons(ETH_P_IPV6):
++		if (NFPROTO_IPV6 == stmt->reject.family)
++			break;
++		return stmt_error(ctx, stmt,
++			  "conflicting protocols specified: ip vs ip6");
++	default:
++		return stmt_error(ctx, stmt,
++				  "cannot reject this ether type");
++	}
++
++	return 0;
++}
++
++static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
++				       struct expr *expr)
++{
++	const struct proto_desc *desc;
++
++	desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++	if (desc != NULL &&
++	    stmt_evaluate_reject_bridge_family(ctx, stmt, desc) < 0)
++		return -1;
++	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
++		return 0;
++	if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
++		return -1;
++	return 0;
++}
++
++static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
++				       struct expr *expr)
++{
+ 	switch (ctx->pctx.family) {
+ 	case NFPROTO_ARP:
+ 		return stmt_error(ctx, stmt, "cannot use reject with arp");
+@@ -1229,55 +1311,11 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
+ 		}
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+-		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+-		if (desc != NULL) {
+-			protocol = proto_find_num(base, desc);
+-			switch (protocol) {
+-			case __constant_htons(ETH_P_IP):
+-				if (NFPROTO_IPV4 == stmt->reject.family)
+-					break;
+-			case __constant_htons(ETH_P_IPV6):
+-				if (NFPROTO_IPV6 == stmt->reject.family)
+-					break;
+-				return stmt_error(ctx, stmt,
+-				  "conflicting protocols specified: ip vs ip6");
+-			default:
+-				return stmt_error(ctx, stmt,
+-						"cannot reject this ether type");
+-			}
+-			break;
+-		}
+-		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+-			break;
+-		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
++		if (stmt_evaluate_reject_bridge(ctx, stmt, expr) < 0)
+ 			return -1;
+ 		break;
+ 	case NFPROTO_INET:
+-		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
+-		desc = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+-		if (desc != NULL) {
+-			protocol = proto_find_num(base, desc);
+-			switch (protocol) {
+-			case NFPROTO_IPV4:
+-				if (stmt->reject.family == NFPROTO_IPV4)
+-					break;
+-				return stmt_error(ctx, stmt,
+-				  "conflicting protocols specified: ip vs ip6");
+-				break;
+-			case NFPROTO_IPV6:
+-				if (stmt->reject.family == NFPROTO_IPV6)
+-					break;
+-				return stmt_error(ctx, stmt,
+-				  "conflicting protocols specified: ip vs ip6");
+-			default:
+-				BUG("unsupported family");
+-			}
+-			break;
+-		}
+-		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
+-			break;
+-		if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
++		if (stmt_evaluate_reject_inet(ctx, stmt, expr) < 0)
+ 			return -1;
+ 		break;
+ 	}
+-- 
+1.7.10.4
+
