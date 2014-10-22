@@ -1,128 +1,70 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [libnftnl PATCH v3] utils: fix arp family number
-Date: Wed, 22 Oct 2014 16:24:22 +0200
-Message-ID: <CAOkSjBhzYJqihNrbaSCgV+QRXwunjDU60OAJ_X2wusLk+Hnwcw@mail.gmail.com>
-References: <20141020115049.27980.35459.stgit@nfdev.cica.es>
- <20141021075927.GA3610@salvia> <CAOkSjBgmmE0MUPY10u1iOKgBsN4P3y9mLM3FHcMzA7hL3maP8Q@mail.gmail.com>
- <20141021095649.GA5248@salvia> <20141021095741.GA5493@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: log: protect nf_log_register against double
+ registering
+Date: Wed, 22 Oct 2014 18:44:39 +0200
+Message-ID: <20141022164439.GA3698@salvia>
+References: <c7fcb46fa24c1a64f00c9322bb5cddbde977da0a.1413842217.git.mleitner@redhat.com>
+ <20141022120255.GA21821@salvia>
+ <5447A429.3030608@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Marcelo Ricardo Leitner <mleitner@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:32771 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbaJVOYp convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Oct 2014 10:24:45 -0400
-Received: by mail-la0-f48.google.com with SMTP id gi9so2992613lab.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2014 07:24:43 -0700 (PDT)
-In-Reply-To: <20141021095741.GA5493@salvia>
+Received: from mail.us.es ([193.147.175.20]:39508 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751899AbaJVQnJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Oct 2014 12:43:09 -0400
+Content-Disposition: inline
+In-Reply-To: <5447A429.3030608@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 21 October 2014 11:57, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> On Tue, Oct 21, 2014 at 11:56:49AM +0200, Pablo Neira Ayuso wrote:
->> On Tue, Oct 21, 2014 at 10:53:19AM +0200, Arturo Borrero Gonzalez wr=
-ote:
->> > On 21 October 2014 09:59, Pablo Neira Ayuso <pablo@netfilter.org> =
-wrote:
->> > >
->> > > BTW, it would be good to see a similar refactor in nft_verdict2s=
-tr().
->> >
->> > I don't see a clean way to do it, given some verdicts are negative
->> > numbers (enum nft_verdicts in nf_tables.h).
->> > We may end accessing a negative index, out of bounds of the array.
->>
->> I see, you mean:
->>
->> enum nft_verdicts {
->>         NFT_CONTINUE    =3D -1,
->>         NFT_BREAK       =3D -2,
->>         NFT_JUMP        =3D -3,
->>         NFT_GOTO        =3D -4,
->>         NFT_RETURN      =3D -5,
->> };
->>
->> You can add some function to shift the values:
->>
->> #define nft_verdict_index(base)     (base + 5)
->
-> BTW, instead of 5, add:
->
-> #define NFT_VERDICT_BASE        NFT_RETURN
->
-> and use it.
->
->>
->> ... nft_verdict_array[] =3D {
->>         [nft_verdict_index(NFT_RETURN)]     =3D "return",
->>         ...
->> };
+On Wed, Oct 22, 2014 at 10:33:45AM -0200, Marcelo Ricardo Leitner wrote:
+> On 22-10-2014 10:02, Pablo Neira Ayuso wrote:
+> >On Mon, Oct 20, 2014 at 07:58:03PM -0200, Marcelo Ricardo Leitner wrote:
+> >>Currently, despite the comment right before the function,
+> >>nf_log_register allows registering two loggers on with the same type and
+> >>end up overwriting the previous register.
+> >>
+> >>Not a real issue today as current tree doesn't have two loggers for the
+> >>same type but it's better to get this protected.
+> >>
+> >>Also make sure that all of its callers do error checking.
+> >
+> >No major objetions to this sanity check. Some comment below.
+> >
+> >>Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
+> >>---
+> >>
+> >>Notes:
+> >>     Please let me know if you have any issues with the identation on
+> >>     nf_log_register. I just couldn't find a better one.
+> >
+> >You can split nf_log_register() in two functions to avoid this.
+> 
+> Sorry but I don't follow this one. You mean having the check on
+> nf_log_register() and then calling a __nf_log_register() to actually
+> register it?
+> 
+> Now I'm thinking on wrapping
+>             rcu_dereference_protected(loggers[i][logger->type],
+> +					lockdep_is_held(&nf_log_mutex))
+> into a macro or something like that, because that's the issue in
+> there and this construction is called several times. Something like:
+> 
+> #define logger_deref_protected(pf, type) \
+>         rcu_dereference_protected(loggers[pf][type], \
+>                                   lockdep_is_held(&nf_log_mutex));
+> 
+> WDYT?
 
-Ok, following your idea, I end with something like this:
+Seems OK, I think this can be:
 
-/*
- * NF_DROP      =3D 0
- * NF_ACCEPT    =3D 1
- * NFT_JUMP     =3D -3
- * NFT_GOTO     =3D -4
- * NFT_RETURN   =3D -5
- */
+#define nft_log_dereference(logger)
 
-#define NFT_VERDICT_BASE                -NFT_RETURN
-#define nft_verdict_index(base)         (base + NFT_VERDICT_BASE)
-#define NFT_VERDICT_ARRAY_LEN           nft_verdict_index(NF_ACCEPT)
+So you can use this both from net->nf.nf_loggers[x] and
+loggers[x][y] and we have one single macro and we avoid the indent
+issues.
 
-static const char *const nft_verdict_str[NFT_VERDICT_ARRAY_LEN + 1] =3D=
- {
-        [nft_verdict_index(NFT_RETURN)] =3D       "return",       /* 0 =
-*/
-        [nft_verdict_index(NFT_GOTO)]   =3D       "goto",         /* 1 =
-*/
-        [nft_verdict_index(NFT_JUMP)]   =3D       "jump",         /* 2 =
-*/
-        [nft_verdict_index(NF_DROP)]    =3D       "drop",         /* 5 =
-*/
-        [nft_verdict_index(NF_ACCEPT)]  =3D       "accept",       /* 6 =
-*/
-};
-
-const char *nft_verdict2str(int verdict)
-{
-        if (nft_verdict_str[nft_verdict_index(verdict)] =3D=3D NULL)
-                return "unknown";
-
-        return nft_verdict_str[nft_verdict_index(verdict)];
-}
-
-int nft_str2verdict(const char *verdict, int *verdict_num)
-{
-        int i;
-
-        for (i =3D 0; i < NFT_VERDICT_ARRAY_LEN; i++) {
-                if (nft_verdict_str[i] =3D=3D NULL)
-                        continue;
-
-                if (strcmp(nft_verdict_str[i], verdict) =3D=3D 0) {
-                        *verdict_num =3D nft_verdict_index(i);
-                        return 0;
-                }
-        }
-
-        return -1;
-}
-
-I think the current code (the switch based one) is better, don't you?
-That array seems very error prone.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
