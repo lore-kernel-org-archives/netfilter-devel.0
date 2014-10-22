@@ -1,66 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch] netfilter: ipset: off by one in ip_set_nfnl_get_byindex()
-Date: Wed, 22 Oct 2014 14:11:25 +0200
-Message-ID: <20141022121125.GA25804@salvia>
-References: <20141021082812.GB28426@mwanda>
- <alpine.DEB.2.10.1410211146160.27469@blackhole.kfki.hu>
+Subject: Re: [PATCH nf v2] netfilter: conntrack: disable generic tracking for
+ known protocols
+Date: Wed, 22 Oct 2014 14:25:41 +0200
+Message-ID: <20141022122541.GA27265@salvia>
+References: <20140926093542.GD26716@breakpoint.cc>
+ <alpine.DEB.2.10.1409261212510.18634@blackhole.kfki.hu>
+ <20141022120821.GA23643@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Ilia Mirkin <imirkin@alum.mit.edu>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Joe Perches <joe@perches.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	dborkman@redhat.com
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40212 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932865AbaJVMYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Oct 2014 08:24:14 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1410211146160.27469@blackhole.kfki.hu>
-Sender: kernel-janitors-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20141022120821.GA23643@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 21, 2014 at 11:51:12AM +0200, Jozsef Kadlecsik wrote:
-> On Tue, 21 Oct 2014, Dan Carpenter wrote:
-> 
-> > The ->ip_set_list[] array is initialized in ip_set_net_init() and it
-> > has ->ip_set_max elements so this check should be >= instead of >
-> > otherwise we are off by one.
+On Wed, Oct 22, 2014 at 02:08:21PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Sep 26, 2014 at 12:13:44PM +0200, Jozsef Kadlecsik wrote:
+> > On Fri, 26 Sep 2014, Florian Westphal wrote:
 > > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > I am not very familiar with this code, so please review cautiously.
-> > This is an old bug which should go to -stable.
+> > > Given following iptables ruleset:
+> > > 
+> > > -P FORWARD DROP
+> > > -A FORWARD -m sctp --dport 9 -j ACCEPT
+> > > -A FORWARD -p tcp --dport 80 -j ACCEPT
+> > > -A FORWARD -p tcp -m conntrack -m state ESTABLISHED,RELATED -j ACCEPT
+> > > 
+> > > One would assume that this allows SCTP on port 9 and TCP on port 80.
+> > > Unfortunately, if the SCTP conntrack module is not loaded, this allows
+> > > *all* SCTP communication, to pass though, i.e. -p sctp -j ACCEPT,
+> > > which we think is a security issue.
+> > > 
+> > > This is because on the first SCTP packet on port 9, we create a dummy
+> > > "generic l4" conntrack entry without any port information (since
+> > > conntrack doesn't know how to extract this information).
+> > > 
+> > > All subsequent packets that are unknown will then be in established
+> > > state since they will fallback to proto_generic and will match the
+> > > 'generic' entry.
+> > > 
+> > > Our originally proposed version [1] completely disabled generic protocol
+> > > tracking, but Jozsef suggests to not track protocols for which a more
+> > > suitable helper is available, hence we now mitigate the issue for in
+> > > tree known ct protocol helpers only, so that at least NAT and direction
+> > > information will still be preserved for others.
+> > > 
+> > >  [1] http://www.spinics.net/lists/netfilter-devel/msg33430.html
+> > > 
+> > > Joint work with Daniel Borkmann.
+> > > 
+> > > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > > Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
 > > 
-> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > index 912e5a0..86f9d76 100644
-> > --- a/net/netfilter/ipset/ip_set_core.c
-> > +++ b/net/netfilter/ipset/ip_set_core.c
-> > @@ -659,7 +659,7 @@ ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index)
-> >  	struct ip_set *set;
-> >  	struct ip_set_net *inst = ip_set_pernet(net);
-> >  
-> > -	if (index > inst->ip_set_max)
-> > +	if (index >= inst->ip_set_max)
-> >  		return IPSET_INVALID_ID;
-> >  
-> >  	nfnl_lock(NFNL_SUBSYS_IPSET);
-> > 
+> > Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 > 
-> Absolutely right and it should go to stable too!
-> 
-> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Applied, thanks.
 
-Applied, thanks.
-
-My script says this applies cleanly to:
-
-3.14.x
-3.16.x
-3.17.x
-
-So I'll enqueue this for those.
+Forget this, I replied the wrong email.
