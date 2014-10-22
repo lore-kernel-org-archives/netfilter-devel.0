@@ -1,52 +1,29 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] libipset: Add missing ipset_parse_uint16 to map file
-Date: Wed, 22 Oct 2014 21:44:45 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1410222140390.8153@blackhole.kfki.hu>
-References: <20141017040644.GA27263@nitrogen.neutroncom.local>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+From: Daniel Martin <danmartinjoseph@gmail.com>
+Subject: Xtables Getting Started Question
+Date: Wed, 22 Oct 2014 17:06:15 -0400
+Message-ID: <55357FAC-B4EF-4063-8422-B7724EF0D9FD@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:56689 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932161AbaJVToG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Oct 2014 15:44:06 -0400
-In-Reply-To: <20141017040644.GA27263@nitrogen.neutroncom.local>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:52550 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932270AbaJVVGT convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Oct 2014 17:06:19 -0400
+Received: by mail-qa0-f44.google.com with SMTP id w8so1685286qac.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2014 14:06:17 -0700 (PDT)
+Received: from [10.0.64.119] ([12.31.4.250])
+        by mx.google.com with ESMTPSA id g30sm14559574qgg.1.2014.10.22.14.06.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Wed, 22 Oct 2014 14:06:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 17 Oct 2014, Neutron Soutmun wrote:
+Hello,
 
-> The libipset was not included the ipset_parse_uint16 symbol
-> 
-> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
-> ---
->  lib/libipset.map | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/lib/libipset.map b/lib/libipset.map
-> index 58174ec..74069dc 100644
-> --- a/lib/libipset.map
-> +++ b/lib/libipset.map
-> @@ -149,6 +149,7 @@ LIBIPSET_4.3 {
->  global:
->    ipset_parse_skbmark;
->    ipset_parse_skbprio;
-> +  ipset_parse_uint16;
->    ipset_print_skbmark;
->    ipset_print_skbprio;
->  } LIBIPSET_4.2;
+I am writing this message because I have developed a personal interest in Xtables and Netfilter.  I am not a programmer by trade but I wish to develop a custom NAT module using Xtables and Netfilter.  So far I have began reading through existing Xtables code and I have only found one single pdf called Writing Netfilter modules by Jan Engelhardt and Nicolas Bouliane which looks like it will be helpful but I was wondering if there was any other documentation or books out there that can be helpful or is there a way better way to start learning because so far things have been very slow going?  Thanks for your time.
 
-Yes, that's missing from the map file. However, please advance the API 
-curr and age in Make_global.am and add a new section to libipset.map 
-instead of inserting the symbol as above. Better not change the library 
-silently...
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Joe
