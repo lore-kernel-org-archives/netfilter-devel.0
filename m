@@ -1,61 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: disable generic tracking for
- known protocols
-Date: Wed, 22 Oct 2014 14:08:21 +0200
-Message-ID: <20141022120821.GA23643@salvia>
-References: <20140926093542.GD26716@breakpoint.cc>
- <alpine.DEB.2.10.1409261212510.18634@blackhole.kfki.hu>
+Subject: Re: [PATCH nf] netfilter: nf_tables: check for NULL in
+ nf_tables_newchain pcpu stats allocation
+Date: Wed, 22 Oct 2014 14:09:05 +0200
+Message-ID: <20141022120905.GA25795@salvia>
+References: <20141021090821.GA31730@kria>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	dborkman@redhat.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Sabrina Dubroca <sd@queasysnail.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34941 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35176 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932764AbaJVMG5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Oct 2014 08:06:57 -0400
+	id S933007AbaJVMHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Oct 2014 08:07:33 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1409261212510.18634@blackhole.kfki.hu>
+In-Reply-To: <20141021090821.GA31730@kria>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 26, 2014 at 12:13:44PM +0200, Jozsef Kadlecsik wrote:
-> On Fri, 26 Sep 2014, Florian Westphal wrote:
-> 
-> > Given following iptables ruleset:
-> > 
-> > -P FORWARD DROP
-> > -A FORWARD -m sctp --dport 9 -j ACCEPT
-> > -A FORWARD -p tcp --dport 80 -j ACCEPT
-> > -A FORWARD -p tcp -m conntrack -m state ESTABLISHED,RELATED -j ACCEPT
-> > 
-> > One would assume that this allows SCTP on port 9 and TCP on port 80.
-> > Unfortunately, if the SCTP conntrack module is not loaded, this allows
-> > *all* SCTP communication, to pass though, i.e. -p sctp -j ACCEPT,
-> > which we think is a security issue.
-> > 
-> > This is because on the first SCTP packet on port 9, we create a dummy
-> > "generic l4" conntrack entry without any port information (since
-> > conntrack doesn't know how to extract this information).
-> > 
-> > All subsequent packets that are unknown will then be in established
-> > state since they will fallback to proto_generic and will match the
-> > 'generic' entry.
-> > 
-> > Our originally proposed version [1] completely disabled generic protocol
-> > tracking, but Jozsef suggests to not track protocols for which a more
-> > suitable helper is available, hence we now mitigate the issue for in
-> > tree known ct protocol helpers only, so that at least NAT and direction
-> > information will still be preserved for others.
-> > 
-> >  [1] http://www.spinics.net/lists/netfilter-devel/msg33430.html
-> > 
-> > Joint work with Daniel Borkmann.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-> 
-> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+On Tue, Oct 21, 2014 at 11:08:21AM +0200, Sabrina Dubroca wrote:
+> alloc_percpu returns NULL on failure, not a negative error code.
 
-Applied, thanks.
+Good catch. Applied, thanks.
