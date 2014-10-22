@@ -1,65 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: disable generic tracking for
- known protocols
-Date: Wed, 22 Oct 2014 14:25:41 +0200
-Message-ID: <20141022122541.GA27265@salvia>
-References: <20140926093542.GD26716@breakpoint.cc>
- <alpine.DEB.2.10.1409261212510.18634@blackhole.kfki.hu>
- <20141022120821.GA23643@salvia>
+Subject: Re: [PATCH] nf_conntrack_proto_tcp: allow server to become a client
+ in TW handling
+Date: Wed, 22 Oct 2014 14:28:20 +0200
+Message-ID: <20141022122820.GA27299@salvia>
+References: <5419B546.40702@redhat.com>
+ <a9618c5db692413c2970201b5206bcd357438399.1413216136.git.mleitner@redhat.com>
+ <alpine.DEB.2.10.1410150854460.19251@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	dborkman@redhat.com
+Cc: Marcelo Ricardo Leitner <mleitner@redhat.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40212 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932865AbaJVMYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Oct 2014 08:24:14 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141022120821.GA23643@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1410150854460.19251@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 22, 2014 at 02:08:21PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Sep 26, 2014 at 12:13:44PM +0200, Jozsef Kadlecsik wrote:
-> > On Fri, 26 Sep 2014, Florian Westphal wrote:
-> > 
-> > > Given following iptables ruleset:
-> > > 
-> > > -P FORWARD DROP
-> > > -A FORWARD -m sctp --dport 9 -j ACCEPT
-> > > -A FORWARD -p tcp --dport 80 -j ACCEPT
-> > > -A FORWARD -p tcp -m conntrack -m state ESTABLISHED,RELATED -j ACCEPT
-> > > 
-> > > One would assume that this allows SCTP on port 9 and TCP on port 80.
-> > > Unfortunately, if the SCTP conntrack module is not loaded, this allows
-> > > *all* SCTP communication, to pass though, i.e. -p sctp -j ACCEPT,
-> > > which we think is a security issue.
-> > > 
-> > > This is because on the first SCTP packet on port 9, we create a dummy
-> > > "generic l4" conntrack entry without any port information (since
-> > > conntrack doesn't know how to extract this information).
-> > > 
-> > > All subsequent packets that are unknown will then be in established
-> > > state since they will fallback to proto_generic and will match the
-> > > 'generic' entry.
-> > > 
-> > > Our originally proposed version [1] completely disabled generic protocol
-> > > tracking, but Jozsef suggests to not track protocols for which a more
-> > > suitable helper is available, hence we now mitigate the issue for in
-> > > tree known ct protocol helpers only, so that at least NAT and direction
-> > > information will still be preserved for others.
-> > > 
-> > >  [1] http://www.spinics.net/lists/netfilter-devel/msg33430.html
-> > > 
-> > > Joint work with Daniel Borkmann.
-> > > 
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-> > 
-> > Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+On Wed, Oct 15, 2014 at 09:27:43AM +0200, Jozsef Kadlecsik wrote:
+> On Mon, 13 Oct 2014, Marcelo Ricardo Leitner wrote:
 > 
-> Applied, thanks.
+> > When a port that was used to listen for inbound connections gets closed
+> > and reused for outgoing connections (like rsh ends up doing for stderr
+> > flow), current we may reject the SYN/ACK packet for the new connection
+> > because tcp_conntracks states forbirds a port to become a client while
+> > there is still a TIME_WAIT entry in there for it.
+> > 
+> > As TCP may expire the TIME_WAIT socket in 60s and conntrack's timeout
+> > for it is 120s, there is a ~60s window that the application can end up
+> > opening a port that conntrack will end up blocking.
+> > 
+> > This patch fixes this by simply allowing such state transition: if we
+> > see a SYN, in TIME_WAIT state, on REPLY direction, move it to sSS. Note
+> > that the rest of the code already handles this situation, more
+> > specificly in tcp_packet(), first switch clause.
+> 
+> In those code branch if there was a valid FIN in either direction, we 
+> destroy the old connection and a new will be created. That way the rules 
+> about NEW connections will be applied, so the policies are not bypassed. 
+> Otherwise we just ignore the SYN packet, so if it's invalid, we'll catch 
+> the RST from the other side and destroy the conntrack entry. The event 
+> flow looks OK to me.
+> 
+> > Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
+> 
+> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Forget this, I replied the wrong email.
+Applied, thanks.
