@@ -1,141 +1,103 @@
-From: vDev <vijaypas@gmail.com>
-Subject: Re: TCP LAST ACK incorrectly treated as invalid
-Date: Tue, 21 Oct 2014 17:14:29 -0500
-Message-ID: <CAC=w+U6j+V6zLvdVBQKYjBSRq6YXshLPzXyg3G-NYZvk23CCEQ@mail.gmail.com>
-References: <CAC=w+U7t8K2yjKtj7NDfS-xrCLRxoZ_hPxBU=EiD57v+eQnCMA@mail.gmail.com>
-	<alpine.DEB.2.10.1410210852310.27469@blackhole.kfki.hu>
-	<CAC=w+U5v6oj0zJFTZvjPomyf+pFdFCJrXgdWVG7QQDuttuhC1g@mail.gmail.com>
-	<alpine.DEB.2.10.1410212037070.32297@blackhole.kfki.hu>
-	<CAC=w+U7h2njKOB74XwP-C-Y37kcTDLKw2vGCUuK+afzCueqpQg@mail.gmail.com>
-	<alpine.DEB.2.10.1410212228290.741@blackhole.kfki.hu>
-	<alpine.DEB.2.10.1410212248510.938@blackhole.kfki.hu>
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: Re: [PATCH] netfilter: xt_hashlimit: Enhance the xt_hashlimit to
+ avoid duplicated codes
+Date: Wed, 22 Oct 2014 10:17:29 +0800
+Message-ID: <CA+6hz4oNpn0OfuJNiwG_wLBGOZddgEdvvJPPnEot7sRqDV6EnA@mail.gmail.com>
+References: <CA+6hz4o-2vSEzH+hjYAUfWRVqHQ3QfcCr8q11eoRpCTq2uTYtg@mail.gmail.com>
+	<20141021153128.GA3657@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed; boundary=bcaec517c9d8b4af940505f98cd3
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:39830 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932998AbaJUWOb (ORCPT
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:33624 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750731AbaJVCRa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2014 18:14:31 -0400
-In-Reply-To: <alpine.DEB.2.10.1410212248510.938@blackhole.kfki.hu>
+	Tue, 21 Oct 2014 22:17:30 -0400
+Received: by mail-ig0-f169.google.com with SMTP id uq10so120351igb.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2014 19:17:29 -0700 (PDT)
+In-Reply-To: <20141021153128.GA3657@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I am unable to post a pcap file at this point but here is an ASCII
-output. The last ACK (ID: 6200) was considered invalid due to III
-evaluating to 0 and res=0 in the earlier trace.
+--bcaec517c9d8b4af940505f98cd3
+Content-Type: text/plain; charset=UTF-8
 
-tcpdump: listening on eth2, link-type EN10MB (Ethernet), capture size
-262144 bytes
-16:39:34.462344 IP (tos 0x0, ttl 63, id 11, offset 0, flags [none],
-proto TCP (6), length 44)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [S], cksum 0xeaa4
-(correct), seq 1278607360, win 1500, options [mss 536], length 0
-16:39:34.518272 IP (tos 0x0, ttl 52, id 0, offset 0, flags [DF], proto
-TCP (6), length 44)
-    REMOTE_SERVER.63001 > Linux_Router.1026: Flags [S.], cksum 0xaf17
-(correct), seq 913887703, ack 1278607361, win 14600, options [mss
-536], length 0
-16:39:34.529264 IP (tos 0x0, ttl 63, id 12, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [.], cksum 0xf664
-(correct), seq 1, ack 1, win 1500, length 0
-16:39:35.199013 IP (tos 0x0, ttl 63, id 13, offset 0, flags [none],
-proto TCP (6), length 70)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [P.], cksum 0x54a7
-(correct), seq 1:31, ack 1, win 1500, length 30
-16:39:35.255619 IP (tos 0x0, ttl 52, id 6197, offset 0, flags [DF],
-proto TCP (6), length 40)
-    REMOTE_SERVER.63001 > Linux_Router.1026: Flags [.], cksum 0xc31a
-(correct), seq 1, ack 31, win 14600, length 0
-16:39:35.256164 IP (tos 0x0, ttl 52, id 6198, offset 0, flags [DF],
-proto TCP (6), length 58)
-    REMOTE_SERVER.63001 > Linux_Router.1026: Flags [P.], cksum 0xc6ca
-(correct), seq 1:19, ack 31, win 14600, length 18
-16:39:35.256521 IP (tos 0x0, ttl 52, id 6199, offset 0, flags [DF],
-proto TCP (6), length 40)
-    REMOTE_SERVER.63001 > Linux_Router.1026: Flags [F.], cksum 0xc307
-(correct), seq 19, ack 31, win 14600, length 0
-16:39:35.266911 IP (tos 0x0, ttl 63, id 14, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [.], cksum 0xf634
-(correct), seq 31, ack 19, win 1500, length 0
-16:39:35.273232 IP (tos 0x0, ttl 63, id 15, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:35.328857 IP (tos 0x0, ttl 52, id 6200, offset 0, flags [DF],
-proto TCP (6), length 40)
-    REMOTE_SERVER.63001 > Linux_Router.1026: Flags [.], cksum 0xc306
-(correct), seq 20, ack 32, win 14600, length 0
-16:39:35.329297 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto
-TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [R], cksum 0x047f
-(correct), seq 1278607392, win 0, length 0
-16:39:38.293532 IP (tos 0x0, ttl 63, id 16, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:41.333370 IP (tos 0x0, ttl 63, id 17, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:44.373300 IP (tos 0x0, ttl 63, id 18, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:47.413089 IP (tos 0x0, ttl 63, id 19, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:50.452954 IP (tos 0x0, ttl 63, id 20, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:53.492753 IP (tos 0x0, ttl 63, id 21, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:56.532626 IP (tos 0x0, ttl 63, id 22, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:39:59.572464 IP (tos 0x0, ttl 63, id 23, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:40:02.612307 IP (tos 0x0, ttl 63, id 24, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:40:05.652150 IP (tos 0x0, ttl 63, id 25, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [F.], cksum 0xf632
-(correct), seq 31, ack 20, win 1500, length 0
-16:40:08.691960 IP (tos 0x0, ttl 63, id 26, offset 0, flags [none],
-proto TCP (6), length 40)
-    Linux_Router.1026 > REMOTE_SERVER.63001: Flags [R], cksum 0xcb77
-(correct), seq 1278621991, win 0, length 0
+Firstly, I am sorry about many cc lists, and they are gotten by the
+script "scripts/get_maintainer.pl"
 
+Now I send the patch as attachment, is it OK?
 
-On Tue, Oct 21, 2014 at 3:49 PM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> On Tue, 21 Oct 2014, Jozsef Kadlecsik wrote:
->
->> On Tue, 21 Oct 2014, vDev wrote:
+On Tue, Oct 21, 2014 at 11:31 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Oct 21, 2014 at 11:23:16PM +0800, Feng Gao wrote:
+>> Hi all,
 >>
->> > OK. Here it is. Please look for III=0 and subsequent res=0.
+>> Enhance the functions "dsthash_alloc_init" and "hashlimit_mt" in file
+>> "xt_hashlimit.c" to avoid two duplicated codes following:
 >>
->> This is not the dump of the TCP stream. Please send a tcpdump recording!
+>> -           dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
+>> -           rateinfo_recalc(dh, now, hinfo->cfg.mode);
+>>
+>>
+>> The whole patch is following
 >
-> And do not send it as an ascii dump but as a pcap file...
+> The patch seems mangled by your MUA.
 >
-> Best regards,
-> Joysef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
+> BTW, you can just Cc netfilter patches to
+> netfilter-devel@vger.kernel.org. No need to Cc that many people.
+>
+
+--bcaec517c9d8b4af940505f98cd3
+Content-Type: application/octet-stream;
+	name="0001-netfilter-Enhance-the-xt_hashlimit-to-avoid-duplicat.patch"
+Content-Disposition: attachment;
+	filename="0001-netfilter-Enhance-the-xt_hashlimit-to-avoid-duplicat.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i1k1vbkr0
+
+RnJvbSAxZjA4ZmFjOTBlMTkxZjZiYjhiYTIzNmQ0OGRlZWJlM2FjYWQ1MWI0IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBmZ2FvIDxnZnJlZS53aW5kQGdtYWlsLmNvbT4KRGF0ZTogVHVl
+LCAyMSBPY3QgMjAxNCAwODoxMjowMCAtMDcwMApTdWJqZWN0OiBbUEFUQ0ggMS8xXSBuZXRmaWx0
+ZXI6IEVuaGFuY2UgdGhlIHh0X2hhc2hsaW1pdCB0byBhdm9pZCBkdXBsaWNhdGVkCiBjb2RlcwoK
+U2lnbmVkLW9mZi1ieTogZmdhbyA8Z2ZyZWUud2luZEBnbWFpbC5jb20+Ci0tLQogbmV0L25ldGZp
+bHRlci94dF9oYXNobGltaXQuYyB8IDIxICsrKysrKysrKystLS0tLS0tLS0tLQogMSBmaWxlIGNo
+YW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQogbW9kZSBjaGFuZ2UgMTAw
+NjQ0ID0+IDEwMDc1NSBuZXQvbmV0ZmlsdGVyL3h0X2hhc2hsaW1pdC5jCgpkaWZmIC0tZ2l0IGEv
+bmV0L25ldGZpbHRlci94dF9oYXNobGltaXQuYyBiL25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0
+LmMKb2xkIG1vZGUgMTAwNjQ0Cm5ldyBtb2RlIDEwMDc1NQppbmRleCAwNWZiYzJhLi4wNmRlZDE1
+Ci0tLSBhL25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMKKysrIGIvbmV0L25ldGZpbHRlci94
+dF9oYXNobGltaXQuYwpAQCAtMTU4LDcgKzE1OCw3IEBAIGRzdGhhc2hfZmluZChjb25zdCBzdHJ1
+Y3QgeHRfaGFzaGxpbWl0X2h0YWJsZSAqaHQsCiAvKiBhbGxvY2F0ZSBkc3RoYXNoX2VudCwgaW5p
+dGlhbGl6ZSBkc3QsIHB1dCBpbiBodGFibGUgYW5kIGxvY2sgaXQgKi8KIHN0YXRpYyBzdHJ1Y3Qg
+ZHN0aGFzaF9lbnQgKgogZHN0aGFzaF9hbGxvY19pbml0KHN0cnVjdCB4dF9oYXNobGltaXRfaHRh
+YmxlICpodCwKLQkJICAgY29uc3Qgc3RydWN0IGRzdGhhc2hfZHN0ICpkc3QsIGJvb2wgKnJhY2Up
+CisJCSAgIGNvbnN0IHN0cnVjdCBkc3RoYXNoX2RzdCAqZHN0LCBib29sICpuZXdfb25lKQogewog
+CXN0cnVjdCBkc3RoYXNoX2VudCAqZW50OwogCkBAIC0xNzAsNyArMTcwLDYgQEAgZHN0aGFzaF9h
+bGxvY19pbml0KHN0cnVjdCB4dF9oYXNobGltaXRfaHRhYmxlICpodCwKIAllbnQgPSBkc3RoYXNo
+X2ZpbmQoaHQsIGRzdCk7CiAJaWYgKGVudCAhPSBOVUxMKSB7CiAJCXNwaW5fdW5sb2NrKCZodC0+
+bG9jayk7Ci0JCSpyYWNlID0gdHJ1ZTsKIAkJcmV0dXJuIGVudDsKIAl9CiAKQEAgLTE5Niw2ICsx
+OTUsOCBAQCBkc3RoYXNoX2FsbG9jX2luaXQoc3RydWN0IHh0X2hhc2hsaW1pdF9odGFibGUgKmh0
+LAogCQlodC0+Y291bnQrKzsKIAl9CiAJc3Bpbl91bmxvY2soJmh0LT5sb2NrKTsKKwkqbmV3X29u
+ZSA9IHRydWU7CisJCiAJcmV0dXJuIGVudDsKIH0KIApAQCAtNjEwLDcgKzYxMSw3IEBAIGhhc2hs
+aW1pdF9tdChjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFt
+ICpwYXIpCiAJdW5zaWduZWQgbG9uZyBub3cgPSBqaWZmaWVzOwogCXN0cnVjdCBkc3RoYXNoX2Vu
+dCAqZGg7CiAJc3RydWN0IGRzdGhhc2hfZHN0IGRzdDsKLQlib29sIHJhY2UgPSBmYWxzZTsKKwli
+b29sIG5ld19vbmUgPSBmYWxzZTsKIAl1MzIgY29zdDsKIAogCWlmIChoYXNobGltaXRfaW5pdF9k
+c3QoaGluZm8sICZkc3QsIHNrYiwgcGFyLT50aG9mZikgPCAwKQpAQCAtNjE5LDE4ICs2MjAsMTYg
+QEAgaGFzaGxpbWl0X210KGNvbnN0IHN0cnVjdCBza19idWZmICpza2IsIHN0cnVjdCB4dF9hY3Rp
+b25fcGFyYW0gKnBhcikKIAlyY3VfcmVhZF9sb2NrX2JoKCk7CiAJZGggPSBkc3RoYXNoX2ZpbmQo
+aGluZm8sICZkc3QpOwogCWlmIChkaCA9PSBOVUxMKSB7Ci0JCWRoID0gZHN0aGFzaF9hbGxvY19p
+bml0KGhpbmZvLCAmZHN0LCAmcmFjZSk7CisJCWRoID0gZHN0aGFzaF9hbGxvY19pbml0KGhpbmZv
+LCAmZHN0LCAmbmV3X29uZSk7CiAJCWlmIChkaCA9PSBOVUxMKSB7CiAJCQlyY3VfcmVhZF91bmxv
+Y2tfYmgoKTsKIAkJCWdvdG8gaG90ZHJvcDsKLQkJfSBlbHNlIGlmIChyYWNlKSB7Ci0JCQkvKiBB
+bHJlYWR5IGdvdCBhbiBlbnRyeSwgdXBkYXRlIGV4cGlyYXRpb24gdGltZW91dCAqLwotCQkJZGgt
+PmV4cGlyZXMgPSBub3cgKyBtc2Vjc190b19qaWZmaWVzKGhpbmZvLT5jZmcuZXhwaXJlKTsKLQkJ
+CXJhdGVpbmZvX3JlY2FsYyhkaCwgbm93LCBoaW5mby0+Y2ZnLm1vZGUpOwotCQl9IGVsc2Ugewot
+CQkJZGgtPmV4cGlyZXMgPSBqaWZmaWVzICsgbXNlY3NfdG9famlmZmllcyhoaW5mby0+Y2ZnLmV4
+cGlyZSk7Ci0JCQlyYXRlaW5mb19pbml0KGRoLCBoaW5mbyk7CiAJCX0KKwl9CisKKwlpZiAobmV3
+X29uZSkgeworCQlkaC0+ZXhwaXJlcyA9IGppZmZpZXMgKyBtc2Vjc190b19qaWZmaWVzKGhpbmZv
+LT5jZmcuZXhwaXJlKTsKKwkJcmF0ZWluZm9faW5pdChkaCwgaGluZm8pOwogCX0gZWxzZSB7CiAJ
+CS8qIHVwZGF0ZSBleHBpcmF0aW9uIHRpbWVvdXQgKi8KIAkJZGgtPmV4cGlyZXMgPSBub3cgKyBt
+c2Vjc190b19qaWZmaWVzKGhpbmZvLT5jZmcuZXhwaXJlKTsKLS0gCjEuOS4xCgo=
+--bcaec517c9d8b4af940505f98cd3--
