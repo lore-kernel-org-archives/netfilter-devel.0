@@ -1,17 +1,17 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 1/2] evaluate: reject: check the context in reject without reason for bridge and inet tables
-Date: Thu, 23 Oct 2014 18:21:43 +0200
-Message-ID: <1414081304-6593-1-git-send-email-alvaroneay@gmail.com>
+Subject: [nft PATCH 1/2 v2] evaluate: reject: check the context in reject without reason for bridge and inet tables
+Date: Thu, 23 Oct 2014 19:36:56 +0200
+Message-ID: <1414085817-9059-1-git-send-email-alvaroneay@gmail.com>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:53938 "EHLO
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:65334 "EHLO
 	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756181AbaJWQVc (ORCPT
+	with ESMTP id S1755741AbaJWRgp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2014 12:21:32 -0400
-Received: by mail-wi0-f178.google.com with SMTP id q5so1250433wiv.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2014 09:21:31 -0700 (PDT)
+	Thu, 23 Oct 2014 13:36:45 -0400
+Received: by mail-wi0-f178.google.com with SMTP id q5so1445844wiv.17
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2014 10:36:43 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -34,8 +34,13 @@ context.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- src/evaluate.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 42 insertions(+), 2 deletions(-)
+[changes in v2]
+ * Added these new rules into the reject tests for bridge and inet tables.
+
+ src/evaluate.c                   |   44 ++++++++++++++++++++++++++++++++++++--
+ tests/regression/bridge/reject.t |    3 +++
+ tests/regression/inet/reject.t   |    3 +++
+ 3 files changed, 48 insertions(+), 2 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
 index 63ba82e..2dd49fa 100644
@@ -100,6 +105,34 @@ index 63ba82e..2dd49fa 100644
  		break;
  	}
  	return 0;
+diff --git a/tests/regression/bridge/reject.t b/tests/regression/bridge/reject.t
+index 11a0f1c..43e5461 100644
+--- a/tests/regression/bridge/reject.t
++++ b/tests/regression/bridge/reject.t
+@@ -18,6 +18,9 @@ reject with icmpv6 type port-unreachable;ok;ether type ip6 reject
+ ip protocol tcp reject with tcp reset;ok;ip protocol 6 reject with tcp reset
+ 
+ reject;ok
++ether type ip reject;ok
++ether type ip6 reject;ok
++
+ reject with icmpx type host-unreachable;ok
+ reject with icmpx type no-route;ok
+ reject with icmpx type admin-prohibited;ok
+diff --git a/tests/regression/inet/reject.t b/tests/regression/inet/reject.t
+index 2f5aef3..52e7b28 100644
+--- a/tests/regression/inet/reject.t
++++ b/tests/regression/inet/reject.t
+@@ -18,6 +18,9 @@ reject with icmpv6 type port-unreachable;ok;meta nfproto ipv6 reject
+ reject with tcp reset;ok;meta l4proto 6 reject with tcp reset
+ 
+ reject;ok
++meta nfproto ipv4 reject;ok
++meta nfproto ipv6 reject;ok
++
+ reject with icmpx type host-unreachable;ok
+ reject with icmpx type no-route;ok
+ reject with icmpx type admin-prohibited;ok
 -- 
 1.7.10.4
 
