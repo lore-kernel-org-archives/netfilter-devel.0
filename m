@@ -1,78 +1,150 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 3/3] netfilter: nf_log: release skbuff on nlmsg put failure
-Date: Thu, 23 Oct 2014 10:36:08 +0200
-Message-ID: <1414053368-29037-4-git-send-email-fw@strlen.de>
-References: <1414053368-29037-1-git-send-email-fw@strlen.de>
-Cc: Houcheng Lin <houcheng@gmail.com>, Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 3/3] iptables-compat: assume chain policy NF_ACCEPT when creating built-in chains
+Date: Thu, 23 Oct 2014 13:18:49 +0200
+Message-ID: <1414063129-10091-3-git-send-email-pablo@netfilter.org>
+References: <1414063129-10091-1-git-send-email-pablo@netfilter.org>
+Cc: anarey@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49323 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753097AbaJWIgT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2014 04:36:19 -0400
-In-Reply-To: <1414053368-29037-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:58881 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754624AbaJWLRT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Oct 2014 07:17:19 -0400
+In-Reply-To: <1414063129-10091-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Houcheng Lin <houcheng@gmail.com>
+Newly created (emulated) xt built-in chain have to use NF_ACCEPT. Remove
+extra unused chain parameter and rename nft_chain_builtin_init to
+nft_xt_builtin_init too.
 
-The kernel should reserve enough room in the skb so that the DONE
-message can always be appended.  However, in case of e.g. new attribute
-erronously not being size-accounted for, __nfulnl_send() will still
-try to put next nlmsg into this full skbuf, causing the skb to be stuck
-forever and blocking delivery of further messages.
-
-Fix issue by releasing skb immediately after nlmsg_put error and
-WARN() so we can track down the cause of such size mismatch.
-
-[ fw@strlen.de: add tailroom/len info to WARN ]
-
-Signed-off-by: Houcheng Lin <houcheng@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_log.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ iptables/nft.c |   39 +++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 2d02eac3..5f1be5b 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -346,26 +346,25 @@ nfulnl_alloc_skb(struct net *net, u32 peer_portid, unsigned int inst_size,
- 	return skb;
- }
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 33afae4..ac72bfa 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -563,11 +563,11 @@ int nft_chain_add(struct nft_handle *h, struct nft_chain *c, uint16_t flags)
  
--static int
-+static void
- __nfulnl_send(struct nfulnl_instance *inst)
+ static void nft_chain_builtin_add(struct nft_handle *h,
+ 				  struct builtin_table *table,
+-				  struct builtin_chain *chain, int policy)
++				  struct builtin_chain *chain)
  {
--	int status = -1;
--
- 	if (inst->qlen > 1) {
- 		struct nlmsghdr *nlh = nlmsg_put(inst->skb, 0, 0,
- 						 NLMSG_DONE,
- 						 sizeof(struct nfgenmsg),
- 						 0);
--		if (!nlh)
-+		if (WARN_ONCE(!nlh, "bad nlskb size: %u, tailroom %d\n",
-+			      inst->skb->len, skb_tailroom(inst->skb))) {
-+			kfree_skb(inst->skb);
- 			goto out;
-+		}
- 	}
--	status = nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
--				   MSG_DONTWAIT);
--
-+	nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
-+			  MSG_DONTWAIT);
-+out:
- 	inst->qlen = 0;
- 	inst->skb = NULL;
--out:
--	return status;
+ 	struct nft_chain *c;
+ 
+-	c = nft_chain_builtin_alloc(table, chain, policy);
++	c = nft_chain_builtin_alloc(table, chain, NF_ACCEPT);
+ 	if (c == NULL)
+ 		return;
+ 
+@@ -578,8 +578,8 @@ static void nft_chain_builtin_add(struct nft_handle *h,
  }
  
- static void
+ /* find if built-in table already exists */
+-struct builtin_table *
+-nft_table_builtin_find(struct nft_handle *h, const char *table)
++static struct builtin_table *nft_table_builtin_find(struct nft_handle *h,
++						    const char *table)
+ {
+ 	int i;
+ 	bool found = false;
+@@ -615,12 +615,10 @@ nft_chain_builtin_find(struct builtin_table *t, const char *chain)
+ 	return found ? &t->chains[i] : NULL;
+ }
+ 
+-static void
+-__nft_chain_builtin_init(struct nft_handle *h,
+-			 struct builtin_table *table, const char *chain,
+-			 int policy)
++static void nft_chain_builtin_init(struct nft_handle *h,
++				   struct builtin_table *table)
+ {
+-	int i, default_policy;
++	int i;
+ 	struct nft_chain_list *list = nft_chain_dump(h);
+ 	struct nft_chain *c;
+ 
+@@ -632,20 +630,13 @@ __nft_chain_builtin_init(struct nft_handle *h,
+ 		if (c != NULL)
+ 			continue;
+ 
+-		if (chain && strcmp(table->chains[i].name, chain) == 0)
+-			default_policy = policy;
+-		else
+-			default_policy = NF_ACCEPT;
+-
+-		nft_chain_builtin_add(h, table, &table->chains[i],
+-					default_policy);
++		nft_chain_builtin_add(h, table, &table->chains[i]);
+ 	}
+ 
+ 	nft_chain_list_free(list);
+ }
+ 
+-static int nft_chain_builtin_init(struct nft_handle *h, const char *table,
+-				  const char *chain, int policy)
++static int nft_xt_builtin_init(struct nft_handle *h, const char *table)
+ {
+ 	int ret = 0;
+ 	struct builtin_table *t;
+@@ -660,7 +651,7 @@ static int nft_chain_builtin_init(struct nft_handle *h, const char *table,
+ 		if (errno == EEXIST)
+ 			goto out;
+ 	}
+-	__nft_chain_builtin_init(h, t, chain, policy);
++	nft_chain_builtin_init(h, t);
+ out:
+ 	return ret;
+ }
+@@ -1003,7 +994,7 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
+ 
+ 	/* If built-in chains don't exist for this table, create them */
+ 	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
+-		nft_chain_builtin_init(h, table, chain, NF_ACCEPT);
++		nft_xt_builtin_init(h, table);
+ 
+ 	nft_fn = nft_rule_append;
+ 
+@@ -1309,7 +1300,7 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
+ 
+ 	/* If built-in chains don't exist for this table, create them */
+ 	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
+-		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
++		nft_xt_builtin_init(h, table);
+ 
+ 	c = nft_chain_alloc();
+ 	if (c == NULL)
+@@ -1466,7 +1457,7 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
+ 
+ 	/* If built-in chains don't exist for this table, create them */
+ 	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
+-		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
++		nft_xt_builtin_init(h, table);
+ 
+ 	/* Find the old chain to be renamed */
+ 	c = nft_chain_find(h, table, chain);
+@@ -1793,7 +1784,7 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
+ 
+ 	/* If built-in chains don't exist for this table, create them */
+ 	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
+-		nft_chain_builtin_init(h, table, chain, NF_ACCEPT);
++		nft_xt_builtin_init(h, table);
+ 
+ 	nft_fn = nft_rule_insert;
+ 
+@@ -1947,7 +1938,7 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
+ 
+ 	/* If built-in chains don't exist for this table, create them */
+ 	if (nft_xtables_config_load(h, XTABLES_CONFIG_DEFAULT, 0) < 0)
+-		nft_chain_builtin_init(h, table, NULL, NF_ACCEPT);
++		nft_xt_builtin_init(h, table);
+ 
+ 	ops = nft_family_ops_lookup(h->family);
+ 
 -- 
-2.0.4
+1.7.10.4
 
