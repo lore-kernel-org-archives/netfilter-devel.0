@@ -1,65 +1,78 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/3] netfilter: nfnetlink_log: fix maximum packet length logged to userspace
-Date: Thu, 23 Oct 2014 10:36:07 +0200
-Message-ID: <1414053368-29037-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/3] netfilter: nf_log: release skbuff on nlmsg put failure
+Date: Thu, 23 Oct 2014 10:36:08 +0200
+Message-ID: <1414053368-29037-4-git-send-email-fw@strlen.de>
 References: <1414053368-29037-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Cc: Houcheng Lin <houcheng@gmail.com>, Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49322 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49323 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752797AbaJWIgR (ORCPT
+	by vger.kernel.org with ESMTP id S1753097AbaJWIgT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2014 04:36:17 -0400
+	Thu, 23 Oct 2014 04:36:19 -0400
 In-Reply-To: <1414053368-29037-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-don't try to queue payloads > 0xffff - NLA_HDRLEN, it does not work.
-The nla length includes the size of the nla struct, so anything larger
-results in u16 integer overflow.
+From: Houcheng Lin <houcheng@gmail.com>
 
-This patch is similar to
-9cefbbc9c8f9abe (netfilter: nfnetlink_queue: cleanup copy_range usage).
+The kernel should reserve enough room in the skb so that the DONE
+message can always be appended.  However, in case of e.g. new attribute
+erronously not being size-accounted for, __nfulnl_send() will still
+try to put next nlmsg into this full skbuf, causing the skb to be stuck
+forever and blocking delivery of further messages.
 
+Fix issue by releasing skb immediately after nlmsg_put error and
+WARN() so we can track down the cause of such size mismatch.
+
+[ fw@strlen.de: add tailroom/len info to WARN ]
+
+Signed-off-by: Houcheng Lin <houcheng@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_log.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_log.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 8117fba..2d02eac3 100644
+index 2d02eac3..5f1be5b 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -43,7 +43,8 @@
- #define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
- #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
- #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
--#define NFULNL_COPY_RANGE_MAX	0xFFFF	/* max packet size is limited by 16-bit struct nfattr nfa_len field */
-+/* max packet size is limited by 16-bit struct nfattr nfa_len field */
-+#define NFULNL_COPY_RANGE_MAX	(0xFFFF - NLA_HDRLEN)
+@@ -346,26 +346,25 @@ nfulnl_alloc_skb(struct net *net, u32 peer_portid, unsigned int inst_size,
+ 	return skb;
+ }
  
- #define PRINTR(x, args...)	do { if (net_ratelimit()) \
- 				     printk(x, ## args); } while (0);
-@@ -252,6 +253,8 @@ nfulnl_set_mode(struct nfulnl_instance *inst, u_int8_t mode,
+-static int
++static void
+ __nfulnl_send(struct nfulnl_instance *inst)
+ {
+-	int status = -1;
+-
+ 	if (inst->qlen > 1) {
+ 		struct nlmsghdr *nlh = nlmsg_put(inst->skb, 0, 0,
+ 						 NLMSG_DONE,
+ 						 sizeof(struct nfgenmsg),
+ 						 0);
+-		if (!nlh)
++		if (WARN_ONCE(!nlh, "bad nlskb size: %u, tailroom %d\n",
++			      inst->skb->len, skb_tailroom(inst->skb))) {
++			kfree_skb(inst->skb);
+ 			goto out;
++		}
+ 	}
+-	status = nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
+-				   MSG_DONTWAIT);
+-
++	nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid,
++			  MSG_DONTWAIT);
++out:
+ 	inst->qlen = 0;
+ 	inst->skb = NULL;
+-out:
+-	return status;
+ }
  
- 	case NFULNL_COPY_PACKET:
- 		inst->copy_mode = mode;
-+		if (range == 0)
-+			range = NFULNL_COPY_RANGE_MAX;
- 		inst->copy_range = min_t(unsigned int,
- 					 range, NFULNL_COPY_RANGE_MAX);
- 		break;
-@@ -679,8 +682,7 @@ nfulnl_log_packet(struct net *net,
- 		break;
- 
- 	case NFULNL_COPY_PACKET:
--		if (inst->copy_range == 0
--		    || inst->copy_range > skb->len)
-+		if (inst->copy_range > skb->len)
- 			data_len = skb->len;
- 		else
- 			data_len = inst->copy_range;
+ static void
 -- 
 2.0.4
 
