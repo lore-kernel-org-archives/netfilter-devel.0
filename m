@@ -1,77 +1,83 @@
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: [RFC PATCH netfilter] Fix Unknown symbols in nf_reject_ipvX modules
-Date: Fri, 24 Oct 2014 15:28:52 +0800
-Message-ID: <1414135732.19476.10.camel@TP420>
+From: Ana Rey <anarey@gmail.com>
+Subject: Re: [PATCH 1/3] iptables-compat: fix chain policy reset with iptables
+ -L -n
+Date: Fri, 24 Oct 2014 09:49:27 +0200
+Message-ID: <CAD7o0sgY+kuG6Qmf3rq=gDvC_+6-WJOWhdKjbFKm0XMQBGMvDw@mail.gmail.com>
+References: <1414063129-10091-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e06smtp15.uk.ibm.com ([195.75.94.111]:47447 "EHLO
-	e06smtp15.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbaJXH3B (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:45372 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732AbaJXHtt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Oct 2014 03:29:01 -0400
-Received: from /spool/local
-	by e06smtp15.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <zhong@linux.vnet.ibm.com>;
-	Fri, 24 Oct 2014 08:28:59 +0100
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by d06dlp03.portsmouth.uk.ibm.com (Postfix) with ESMTP id 25D691B0805F
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 08:28:59 +0100 (BST)
-Received: from d06av10.portsmouth.uk.ibm.com (d06av10.portsmouth.uk.ibm.com [9.149.37.251])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id s9O7SwZg11731340
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 07:28:58 GMT
-Received: from d06av10.portsmouth.uk.ibm.com (localhost [127.0.0.1])
-	by d06av10.portsmouth.uk.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id s9O7Sv4o007792
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 01:28:57 -0600
+	Fri, 24 Oct 2014 03:49:49 -0400
+Received: by mail-lb0-f180.google.com with SMTP id n15so2063737lbi.25
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 00:49:48 -0700 (PDT)
+In-Reply-To: <1414063129-10091-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit c8d7b98bec43 moved nf_send_resetX() to modules without module
-license, which causes following errors seen on my system: 
+2014-10-23 13:18 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> Initialize built-in tables/chains if they don't exists, otherwise
+> simply skip.
+>
+> This avoids the chain policy reset to NF_ACCEPT by when you call
+> iptables -L -n.
+>
+> Reported-by: Ana Rey <anarey@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[   26.926014] nf_reject_ipv4: Unknown symbol rcu_read_lock_bh_held (err 0)
-[   26.926022] nf_reject_ipv4: Unknown symbol rcu_read_lock_held (err 0)
-[   26.926030] nf_reject_ipv4: Unknown symbol ip_local_out_sk (err 0)
-
-The code below adds MODULE_LICENSE("GPL") to fix this issue. 
-
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
----
- net/ipv4/netfilter/nf_reject_ipv4.c | 3 +++
- net/ipv6/netfilter/nf_reject_ipv6.c | 3 +++
- 2 files changed, 6 insertions(+)
-
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index b023b4e..d5df20d 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -11,6 +11,9 @@
- #include <net/route.h>
- #include <net/dst.h>
- #include <linux/netfilter_ipv4.h>
-+#include <linux/module.h>
-+
-+MODULE_LICENSE("GPL");
- 
- /* Send RST reply */
- void nf_send_reset(struct sk_buff *oldskb, int hook)
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 5f5f043..e3e5683 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -10,6 +10,9 @@
- #include <net/ip6_fib.h>
- #include <net/ip6_checksum.h>
- #include <linux/netfilter_ipv6.h>
-+#include <linux/module.h>
-+
-+MODULE_LICENSE("GPL");
- 
- void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
- {
+Tested-by: Ana Rey <anarey@gmail.com>
 
 
+> ---
+>  iptables/nft.c |   14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/iptables/nft.c b/iptables/nft.c
+> index ca199cd..b68b275 100644
+> --- a/iptables/nft.c
+> +++ b/iptables/nft.c
+> @@ -620,11 +620,17 @@ __nft_chain_builtin_init(struct nft_handle *h,
+>                          int policy)
+>  {
+>         int i, default_policy;
+> +       struct nft_chain_list *list = nft_chain_dump(h);
+> +       struct nft_chain *c;
+>
+> -       /* Initialize all built-in chains. Exception, for e one received as
+> -        * parameter, set the default policy as requested.
+> -        */
+> +       /* Initialize built-in chains if they don't exist yet */
+>         for (i=0; i<NF_IP_NUMHOOKS && table->chains[i].name != NULL; i++) {
+> +
+> +               c = nft_chain_list_find(list, table->name,
+> +                                       table->chains[i].name);
+> +               if (c != NULL)
+> +                       continue;
+> +
+>                 if (chain && strcmp(table->chains[i].name, chain) == 0)
+>                         default_policy = policy;
+>                 else
+> @@ -633,6 +639,8 @@ __nft_chain_builtin_init(struct nft_handle *h,
+>                 nft_chain_builtin_add(h, table, &table->chains[i],
+>                                         default_policy);
+>         }
+> +
+> +       nft_chain_list_free(list);
+>  }
+>
+>  int
+> --
+> 1.7.10.4
+>
 
+
+
+-- 
+Ana Rey (@anaRB)
+http://about.me/anarey
