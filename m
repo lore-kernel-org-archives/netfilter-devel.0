@@ -1,92 +1,69 @@
 From: Neutron Soutmun <neo.neutron@gmail.com>
-Subject: [PATCH] libipset: Bump lib version and update map file
-Date: Fri, 24 Oct 2014 16:36:22 +0700
-Message-ID: <20141024093622.GA5771@nitrogen.neutroncom.local>
+Subject: Re: [PATCH] libipset: Add missing ipset_parse_uint16 to map file
+Date: Fri, 24 Oct 2014 16:43:54 +0700
+Message-ID: <20141024094354.GA5961@nitrogen.neutroncom.local>
+References: <20141017040644.GA27263@nitrogen.neutroncom.local>
+ <alpine.DEB.2.10.1410222140390.8153@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Cc: kadlec@blackhole.kfki.hu
-To: netfilter-devel@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:50990 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461AbaJXJg1 (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:48157 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311AbaJXJn7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Oct 2014 05:36:27 -0400
-Received: by mail-pd0-f171.google.com with SMTP id r10so1167989pdi.16
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 02:36:27 -0700 (PDT)
+	Fri, 24 Oct 2014 05:43:59 -0400
+Received: by mail-pa0-f43.google.com with SMTP id eu11so847644pac.16
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2014 02:43:59 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.10.1410222140390.8153@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---ReaqsoxgOBHFXBhH
+--Nq2Wo0NMKNjxTN9z
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-The ipset_parse_uint16() was introduced but no lib version bumped and
-no map file updated.
-
-Bump lib version to 9:0:6. (current and age was bumped)
-
-Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
----
- Make_global.am   | 2 +-
- lib/libipset.map | 5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/Make_global.am b/Make_global.am
-index 7953451..f9ec7b2 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -69,7 +69,7 @@
- # interface.=20
+On Wed, Oct 22, 2014 at 09:44:45PM +0200, Jozsef Kadlecsik wrote:
+> On Fri, 17 Oct 2014, Neutron Soutmun wrote:
+> Yes, that's missing from the map file. However, please advance the API=20
+> curr and age in Make_global.am and add a new section to libipset.map=20
+> instead of inserting the symbol as above. Better not change the library=
 =20
- #            curr:rev:age
--LIBVERSION =3D 8:0:5
-+LIBVERSION =3D 9:0:6
-=20
- AM_CPPFLAGS =3D $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include=
- \
- 	-I/usr/local/include
-diff --git a/lib/libipset.map b/lib/libipset.map
-index 58174ec..61f6d6e 100644
---- a/lib/libipset.map
-+++ b/lib/libipset.map
-@@ -152,3 +152,8 @@ global:
-   ipset_print_skbmark;
-   ipset_print_skbprio;
- } LIBIPSET_4.2;
-+
-+LIBIPSET_4.4 {
-+global:
-+  ipset_parse_uint16;
-+} LIBIPSET_4.3;
---=20
-2.1.1
+> silently...
 
+The new proposed patch is posted at
+http://marc.info/?l=3Dnetfilter-devel&m=3D141414339032035&w=3D2
 
---ReaqsoxgOBHFXBhH
+Please review again.
+
+Best regards,
+Neutron Soutmun
+
+--Nq2Wo0NMKNjxTN9z
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCAAGBQJUSh2WAAoJEJ0EcL2mzcRX394P/0tkfMRN5GehNMEpuihKfLlE
-q0UQjSV5F9JuSMhvk/TKz2TykRuOORS+odkf3U+/SaNQaRl9clZVCMowagkz9/fz
-F3p2qusnAOzPVFEVEk9jkvUHpAiUpqdqJW8BaYS8P24/CSQhBSBrCEnaQdYSZIek
-jQZh3VLUoCt/eQGFtN6nRo/+N/8XsHTmEB93BDLXFqevvDeyhLr1nb9yCGyoI1fM
-HoOaLUTFjymk3hq8Vewi4j1X2uYtdIwp+GCeqg1O2olY4L+OSWXYyJf36ltPYvvS
-DA532epM/gAxbS447rQ6zUsS3Mab9X6Iw7tco5roSEcUsXHBVq86W/vegPpu2TfT
-Equpk1bl70Xw1GuVkV/YnXNMEzBgCzs6yN/1aa0SI9jOMu1syyvjHxjieF4nDk9o
-yw3shHv2SMXjshXOAnIfv/eOK/Sq1LVbAFoxj1JM084kOdv/N3baYWRepQCaNya+
-2MHVLtFE5YMs/HqEs+lBxnk3EKJ7kiiZeuEsIMO4l1SMLjqjEtHMUoEkpN3FoTmk
-WIlvpmRCbJnjMZjOFL38tDEccjxzEdeZEM+erTDc+1E+gRi3fOSd4pVOv7zs6/Fw
-syMwjLIOlXUI9Kbew6K5QFBLgSJCgXSfwQhWx5DUG1tfOXszL2ZfNtBTHnoW7wdm
-IbE8HRZ9mHJ7WOBV3Fbq
-=1Tks
+iQIcBAEBCAAGBQJUSh9aAAoJEJ0EcL2mzcRXIOoP/0xFd+X6LPjfYOwvzh7c+5MD
+04UQXqlrYp9KvVndxuI3T5GrQpnTfNTNr3UQwXaWXwvH8yN6b0VstJw07hXo/esn
+iQzSS/tFKpcOOC0GHbh106nqbSfEfG2DuvcwMfsLHjDsOwdRLWEZDbDFiaB6SaYw
+tPyIo4+jDnCdKkG7NuoYe3smkLF3huVkUSfeh5GvaZKiOcgbcpHWvl035WMndzw5
+2wmggZQN6WjKTF6Sv4c8NSXkyGqWpwFtQxRY6UQdqoQfbYGeODkJyStkY52wRiNO
+ft+sXT5VKFrFHZB+tfexzrDUD6fMv3FW4Mf5e5+1mQyQz/ZXuyfZsQ1zYmlOQpxy
+iOmYsaf31zniFpJjK4gQuTz1UGjp/mW2mw2C1XToDBzksnlQZuC2TAgWhgxITOS0
+RXULpy/PYzEq9folGnwpm2WN8wgFZAOLkAz08PWKib/FCLqDkTwMhsbre3izbgH0
+1X4OPlwEKrXOWS+lQEt6dnLSugqEiuf4oW6WPwklZ0PFMOqyuwwpwVuT6ZTWcHKB
+4ozVyOrRq69nTp7bQCEt9CLXgyF4fHwTX3oG88fEftk/YKIwW0u5P+jqexW9zcEZ
+PQL7OC3jS1fv0fIsSIU9+igLLdy5qtSTH89IgxNwNx+XuD95tmEIYev4FjtXlp5e
+UYVsx7y6TgeWImNeE49P
+=48aa
 -----END PGP SIGNATURE-----
 
---ReaqsoxgOBHFXBhH--
+--Nq2Wo0NMKNjxTN9z--
