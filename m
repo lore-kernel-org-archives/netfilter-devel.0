@@ -1,89 +1,116 @@
-From: vDev <vijaypas@gmail.com>
-Subject: Re: TCP LAST ACK incorrectly treated as invalid
-Date: Thu, 23 Oct 2014 21:11:13 -0500
-Message-ID: <CAC=w+U6V2ZYOakNKbq-+50EgwKPv88Kd_tuqwqSM9abCqB1_gA@mail.gmail.com>
-References: <CAC=w+U7t8K2yjKtj7NDfS-xrCLRxoZ_hPxBU=EiD57v+eQnCMA@mail.gmail.com>
-	<alpine.DEB.2.10.1410210852310.27469@blackhole.kfki.hu>
-	<CAC=w+U5v6oj0zJFTZvjPomyf+pFdFCJrXgdWVG7QQDuttuhC1g@mail.gmail.com>
-	<alpine.DEB.2.10.1410212037070.32297@blackhole.kfki.hu>
-	<CAC=w+U7h2njKOB74XwP-C-Y37kcTDLKw2vGCUuK+afzCueqpQg@mail.gmail.com>
-	<alpine.DEB.2.10.1410212228290.741@blackhole.kfki.hu>
-	<alpine.DEB.2.10.1410212248510.938@blackhole.kfki.hu>
-	<CAC=w+U6j+V6zLvdVBQKYjBSRq6YXshLPzXyg3G-NYZvk23CCEQ@mail.gmail.com>
-	<alpine.DEB.2.10.1410222039170.7882@blackhole.kfki.hu>
-	<CAC=w+U5K_=-o9t3Q=E_n12XoHuZG77Wm-VUgymU4qbtmG9vjnw@mail.gmail.com>
-	<alpine.DEB.2.10.1410230948180.11401@blackhole.kfki.hu>
+From: "billbonaparte" <programme110@gmail.com>
+Subject: netfilter: NAT: do the optimization for getting curr_tuple in function nf_nat_setup_info
+Date: Fri, 24 Oct 2014 12:01:42 +0800
+Message-ID: <013f01cfef3f$3d4b31f0$b7e195d0$@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0140_01CFEF82.4B6F0E30"
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	<coreteam@netfilter.org>, <linux-kernel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+	"'Patrick McHardy'" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
+	<davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:41654 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759AbaJXCLP (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:33790 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbaJXECN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2014 22:11:15 -0400
-In-Reply-To: <alpine.DEB.2.10.1410230948180.11401@blackhole.kfki.hu>
+	Fri, 24 Oct 2014 00:02:13 -0400
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yes! I believe a piece of code that is machine dependent stole the
-packet and thereby got things messed up in conntrack. A rebuild seems
-to have taken care of the issue. Thanks for taking a look at this. The
-kernel version is 2.6.35. Again, thanks!
+This is a multipart message in MIME format.
 
+------=_NextPart_000_0140_01CFEF82.4B6F0E30
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
+Hi all:
+	In function nf_nat_setup_info, we need to get the current tuple
+which is supposed to send to destination. 
+    If we haven't done any NAT (SNAT or DNAT) for the tuple, then the
+current tuple is equal to original tuple,
+    otherwise, we should get current tuple by invoking
+nf_ct_invert_tuplepr(curr_tuple, &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+    like the existing comment says:
+    /* What we've got will look like inverse of reply. Normally
+	 * this is what is in the conntrack, except for prior
+	 * manipulations (future optimization: if num_manips == 0,
+	 * orig_tp = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)
+	 */
+	nf_ct_invert_tuplepr(&curr_tuple, 
+			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+	
+	So, since it is so, why don't we do the optimization for getting
+current tuple ?
+   
+   As mentioned above, if we have not done DNAT for the tuple, then the
+current tuple is equal to original tuple. 
+   So I add the optimization as following:
 
-On Thu, Oct 23, 2014 at 3:04 AM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> On Wed, 22 Oct 2014, vDev wrote:
->
->> Thanks, Jozsef. Attached is the new packet capture and trace with patch
->> applied.
->
-> Thanks, now packets and conntrack states can be compared.
->
-> Up to packet 6 everything is normal. However, look at packet 7:
->
-> 16:20:21.653783 IP (tos 0x0, ttl 52, id 24152, offset 0, flags [DF],
->     proto TCP (6), length 40)
->     Remote_Server.63001 > Linux_Router.1039: Flags [F.], cksum 0x567b
->     (correct), seq 3661860393, ack 2561327135, win 14600, length 0
->
-> This is the first FIN packet, and the kernel debug log says:
->
-> [  376.950000] tcp_packet:
-> [  376.950000] dir=1, seq=3661860393 ack=2561327135 win=14600 end=3661860394
-> [  376.950000] tcp_conntracks:
-> [  376.950000] syn=0 ack=1 fin=1 rst=0 old=3 new=4
->
-> The previous conntrack state is in "old=3", i.e.
-> TCP_CONNTRACK_ESTABLISHED. The new=4 means TCP_CONNTRACK_FIN_WAIT. However
-> between
->
-> [  376.950000] tcp_packet:
-> [  376.950000] dir=1, seq=3661860393 ack=2561327135 win=14600 end=3661860394
->
-> and
->
-> [  376.950000] tcp_conntracks:
-> [  376.950000] syn=0 ack=1 fin=1 rst=0 old=3 new=4
->
-> there is a missing the call to tcp_in_window()! Therefore the internal
-> counters of conntrack is not updated and later packets won't match the
-> wrong internal states.
->
-> Why the call to tcp_in_window() is missing? Looking at tcp_packet(),
-> there's nothing which could cause skipping it: the big switch about the
-> new_state does not divert the handling of TCP_CONNTRACK_FIN_WAIT.
->
-> So, what's your kernel version number? You have got the source:
-> please post net/netfilter/nf_conntrack_proto_tcp.c
->
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
++	if (!(ct->status & IPS_DST_NAT))  /* we do the optimization, as
+mentioned above */
++		curr_tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	else 
++		nf_ct_invert_tuplepr(curr_tuple,
+ 			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+	
+	the attachment is the detailed diff. 
+
+------=_NextPart_000_0140_01CFEF82.4B6F0E30
+Content-Type: application/octet-stream;
+	name="do the optimization for getting curr_tuple in function nf_nat_setup_info.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="do the optimization for getting curr_tuple in function nf_nat_setup_info.diff"
+
+Index: nf_nat_core.c=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+--- nf_nat_core.c	(mainline version)=0A=
++++ nf_nat_core.c	(working copy)=0A=
+@@ -358,7 +358,8 @@=0A=
+ 		  enum nf_nat_manip_type maniptype)=0A=
+ {=0A=
+ 	struct net *net =3D nf_ct_net(ct);=0A=
+-	struct nf_conntrack_tuple curr_tuple, new_tuple;=0A=
++	struct nf_conntrack_tuple orig_tuple, new_tuple;=0A=
++	struct nf_conntrack_tuple *curr_tuple =3D &orig_tuple;=0A=
+ 	struct nf_conn_nat *nat;=0A=
+ =0A=
+ 	/* nat helper or nfctnetlink also setup binding */=0A=
+@@ -378,14 +379,18 @@=0A=
+ 	/* What we've got will look like inverse of reply. Normally=0A=
+ 	   this is what is in the conntrack, except for prior=0A=
+ 	   manipulations (future optimization: if num_manips =3D=3D 0,=0A=
+-	   orig_tp =3D=0A=
+-	   conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple) */=0A=
+-	nf_ct_invert_tuplepr(&curr_tuple,=0A=
++	   curr_tp =3D orig_tp =3D=0A=
++	   conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple) =0A=
++	*/=0A=
++	if (!(ct->status & IPS_DST_NAT)) /* we do the optimization, as =
+mentioned above */=0A=
++		curr_tuple =3D &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;=0A=
++	else =0A=
++		nf_ct_invert_tuplepr(curr_tuple,=0A=
+ 			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);=0A=
+ =0A=
+-	get_unique_tuple(&new_tuple, &curr_tuple, ranges, ct, maniptype);=0A=
++	get_unique_tuple(&new_tuple, curr_tuple, ranges, ct, maniptype);=0A=
+ =0A=
+-	if (!nf_ct_tuple_equal(&new_tuple, &curr_tuple)) {=0A=
++	if (!nf_ct_tuple_equal(&new_tuple, curr_tuple)) {=0A=
+ 		struct nf_conntrack_tuple reply;=0A=
+ =0A=
+ 		/* Alter conntrack table so will recognize replies. */=0A=
+@@ -405,19 +410,20 @@=0A=
+ 		srchash =3D nat_hash_by_src(net, 0,=0A=
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);=0A=
+ 		spin_lock_bh(&nf_nat_lock);=0A=
+
+------=_NextPart_000_0140_01CFEF82.4B6F0E30--
+
