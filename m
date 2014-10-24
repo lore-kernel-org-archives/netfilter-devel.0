@@ -1,154 +1,89 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH 2/2 v2] evaluate: reject: enhance the error support throwing message with more details
-Date: Thu, 23 Oct 2014 19:36:57 +0200
-Message-ID: <1414085817-9059-2-git-send-email-alvaroneay@gmail.com>
-References: <1414085817-9059-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: vDev <vijaypas@gmail.com>
+Subject: Re: TCP LAST ACK incorrectly treated as invalid
+Date: Thu, 23 Oct 2014 21:11:13 -0500
+Message-ID: <CAC=w+U6V2ZYOakNKbq-+50EgwKPv88Kd_tuqwqSM9abCqB1_gA@mail.gmail.com>
+References: <CAC=w+U7t8K2yjKtj7NDfS-xrCLRxoZ_hPxBU=EiD57v+eQnCMA@mail.gmail.com>
+	<alpine.DEB.2.10.1410210852310.27469@blackhole.kfki.hu>
+	<CAC=w+U5v6oj0zJFTZvjPomyf+pFdFCJrXgdWVG7QQDuttuhC1g@mail.gmail.com>
+	<alpine.DEB.2.10.1410212037070.32297@blackhole.kfki.hu>
+	<CAC=w+U7h2njKOB74XwP-C-Y37kcTDLKw2vGCUuK+afzCueqpQg@mail.gmail.com>
+	<alpine.DEB.2.10.1410212228290.741@blackhole.kfki.hu>
+	<alpine.DEB.2.10.1410212248510.938@blackhole.kfki.hu>
+	<CAC=w+U6j+V6zLvdVBQKYjBSRq6YXshLPzXyg3G-NYZvk23CCEQ@mail.gmail.com>
+	<alpine.DEB.2.10.1410222039170.7882@blackhole.kfki.hu>
+	<CAC=w+U5K_=-o9t3Q=E_n12XoHuZG77Wm-VUgymU4qbtmG9vjnw@mail.gmail.com>
+	<alpine.DEB.2.10.1410230948180.11401@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:52960 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932139AbaJWRgt (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:41654 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759AbaJXCLP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2014 13:36:49 -0400
-Received: by mail-wg0-f48.google.com with SMTP id k14so1671413wgh.7
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2014 10:36:47 -0700 (PDT)
-In-Reply-To: <1414085817-9059-1-git-send-email-alvaroneay@gmail.com>
+	Thu, 23 Oct 2014 22:11:15 -0400
+In-Reply-To: <alpine.DEB.2.10.1410230948180.11401@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we add a rule like:
+Yes! I believe a piece of code that is machine dependent stole the
+packet and thereby got things messed up in conntrack. A rebuild seems
+to have taken care of the issue. Thanks for taking a look at this. The
+kernel version is 2.6.35. Again, thanks!
 
-nft add rule bridge filter input ether type ip reject with icmpv6 type no-route
 
-We throw an error like:
 
-<cmdline>:1:44-49: Error: conflicting protocols specified: ip vs ip6
-add rule bridge filter input ether type ip reject with icmpv6 type no-route
-
-Now, we are going to show in which part of the rule, we have the conflict:
-
-<cmdline>:1:51-75: Error: conflicting protocols specified: ip vs ip6
-add rule bridge filter input ether type ip reject with icmpv6 type no-route
-                             ~~~~~~~~~~~~~        ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
-[changes in v2]
- * Fixed some cosmetics errors.
-
- src/evaluate.c |   43 ++++++++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 17 deletions(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 2dd49fa..b722567 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1213,8 +1213,9 @@ static int stmt_evaluate_reject_inet_family(struct eval_ctx *ctx,
- 	case NFT_REJECT_TCP_RST:
- 		break;
- 	case NFT_REJECT_ICMPX_UNREACH:
--		return stmt_error(ctx, stmt,
--				  "conflicting network protocol specified");
-+		return stmt_binary_error(ctx, stmt->reject.expr,
-+				    &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
-+				    "conflicting network protocol specified");
- 	case NFT_REJECT_ICMP_UNREACH:
- 		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
- 		protocol = proto_find_num(base, desc);
-@@ -1222,12 +1223,14 @@ static int stmt_evaluate_reject_inet_family(struct eval_ctx *ctx,
- 		case NFPROTO_IPV4:
- 			if (stmt->reject.family == NFPROTO_IPV4)
- 				break;
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt->reject.expr,
-+				  &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
- 				  "conflicting protocols specified: ip vs ip6");
- 		case NFPROTO_IPV6:
- 			if (stmt->reject.family == NFPROTO_IPV6)
- 				break;
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt->reject.expr,
-+				  &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
- 				  "conflicting protocols specified: ip vs ip6");
- 		default:
- 			BUG("unsupported family");
-@@ -1263,8 +1266,9 @@ static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
- 
- 	switch (stmt->reject.type) {
- 	case NFT_REJECT_ICMPX_UNREACH:
--		return stmt_error(ctx, stmt,
--				  "conflicting network protocol specified");
-+		return stmt_binary_error(ctx, stmt->reject.expr,
-+				    &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
-+				    "conflicting network protocol specified");
- 	case NFT_REJECT_TCP_RST:
- 		base = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
- 		protocol = proto_find_num(base, desc);
-@@ -1273,8 +1277,9 @@ static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
- 		case __constant_htons(ETH_P_IPV6):
- 			break;
- 		default:
--			return stmt_error(ctx, stmt,
--					  "cannot reject this ether type");
-+			return stmt_binary_error(ctx, stmt->reject.expr,
-+				    &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
-+				    "cannot reject this ether type");
- 		}
- 		break;
- 	case NFT_REJECT_ICMP_UNREACH:
-@@ -1284,16 +1289,19 @@ static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
- 		case __constant_htons(ETH_P_IP):
- 			if (NFPROTO_IPV4 == stmt->reject.family)
- 				break;
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt->reject.expr,
-+				  &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
- 				  "conflicting protocols specified: ip vs ip6");
- 		case __constant_htons(ETH_P_IPV6):
- 			if (NFPROTO_IPV6 == stmt->reject.family)
- 				break;
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt->reject.expr,
-+				  &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
- 				  "conflicting protocols specified: ip vs ip6");
- 		default:
--			return stmt_error(ctx, stmt,
--					  "cannot reject this ether type");
-+			return stmt_binary_error(ctx, stmt,
-+				    &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
-+				    "cannot reject this ether type");
- 		}
- 		break;
- 	}
-@@ -1331,13 +1339,13 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
- 				return -1;
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
- 				   "abstracted ICMP unreachable not supported");
- 		case NFT_REJECT_ICMP_UNREACH:
--			if (stmt->reject.family != ctx->pctx.family)
--				return stmt_error(ctx, stmt,
-+			if (stmt->reject.family == ctx->pctx.family)
-+				break;
-+			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
- 				  "conflicting protocols specified: ip vs ip6");
--			break;
- 		}
- 		break;
- 	case NFPROTO_BRIDGE:
-@@ -1452,7 +1460,8 @@ static int stmt_evaluate_reset(struct eval_ctx *ctx, struct stmt *stmt)
- 		break;
- 	default:
- 		if (stmt->reject.type == NFT_REJECT_TCP_RST) {
--			return stmt_error(ctx, stmt,
-+			return stmt_binary_error(ctx, stmt,
-+				 &ctx->pctx.protocol[PROTO_BASE_TRANSPORT_HDR],
- 				 "you cannot use tcp reset with this protocol");
- 		}
- 		break;
--- 
-1.7.10.4
-
+On Thu, Oct 23, 2014 at 3:04 AM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+> On Wed, 22 Oct 2014, vDev wrote:
+>
+>> Thanks, Jozsef. Attached is the new packet capture and trace with patch
+>> applied.
+>
+> Thanks, now packets and conntrack states can be compared.
+>
+> Up to packet 6 everything is normal. However, look at packet 7:
+>
+> 16:20:21.653783 IP (tos 0x0, ttl 52, id 24152, offset 0, flags [DF],
+>     proto TCP (6), length 40)
+>     Remote_Server.63001 > Linux_Router.1039: Flags [F.], cksum 0x567b
+>     (correct), seq 3661860393, ack 2561327135, win 14600, length 0
+>
+> This is the first FIN packet, and the kernel debug log says:
+>
+> [  376.950000] tcp_packet:
+> [  376.950000] dir=1, seq=3661860393 ack=2561327135 win=14600 end=3661860394
+> [  376.950000] tcp_conntracks:
+> [  376.950000] syn=0 ack=1 fin=1 rst=0 old=3 new=4
+>
+> The previous conntrack state is in "old=3", i.e.
+> TCP_CONNTRACK_ESTABLISHED. The new=4 means TCP_CONNTRACK_FIN_WAIT. However
+> between
+>
+> [  376.950000] tcp_packet:
+> [  376.950000] dir=1, seq=3661860393 ack=2561327135 win=14600 end=3661860394
+>
+> and
+>
+> [  376.950000] tcp_conntracks:
+> [  376.950000] syn=0 ack=1 fin=1 rst=0 old=3 new=4
+>
+> there is a missing the call to tcp_in_window()! Therefore the internal
+> counters of conntrack is not updated and later packets won't match the
+> wrong internal states.
+>
+> Why the call to tcp_in_window() is missing? Looking at tcp_packet(),
+> there's nothing which could cause skipping it: the big switch about the
+> new_state does not divert the handling of TCP_CONNTRACK_FIN_WAIT.
+>
+> So, what's your kernel version number? You have got the source:
+> please post net/netfilter/nf_conntrack_proto_tcp.c
+>
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+>           H-1525 Budapest 114, POB. 49, Hungary
