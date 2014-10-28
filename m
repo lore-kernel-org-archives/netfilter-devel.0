@@ -1,57 +1,70 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf] ipvs: Avoid null-pointer deref in debug code
-Date: Tue, 28 Oct 2014 10:05:34 +0900
-Message-ID: <1414458334-22479-2-git-send-email-horms@verge.net.au>
-References: <1414458334-22479-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Alex Gartrell <agartrell@fb.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: "billbonaparte" <programme110@gmail.com>
+Subject: netfilter: nf_conntrack: there maybe a bug in __nf_conntrack_confirm, when it race against get_next_corpse
+Date: Tue, 28 Oct 2014 11:27:43 +0800
+Message-ID: <02ee01cff25f$28808540$79818fc0$@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "'Changli Gao'" <xiaosuo@gmail.com>,
+	"'Jozsef Kadlecsik'" <kadlec@blackhole.kfki.hu>,
+	"'Jesper Dangaard Brouer'" <brouer@redhat.com>,
+	"'Andrey Vagin'" <avagin@openvz.org>
+To: <linux-kernel@vger.kernel.org>,
+	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	"'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+	"'Patrick McHardy'" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
+	<davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:55448 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866AbaJ1BFs (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:50183 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753461AbaJ1D2P (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Oct 2014 21:05:48 -0400
-In-Reply-To: <1414458334-22479-1-git-send-email-horms@verge.net.au>
+	Mon, 27 Oct 2014 23:28:15 -0400
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alex Gartrell <agartrell@fb.com>
+Hi, all:
+	In function __nf_conntrack_confirm, we check the conntrack if it was
+alreay dead, before insert it into hash-table. 
+	we do this because if we insert an already 'dead' hash,  it will
+block further use of that particular connection.
+	but we don't do that right.
+    let's consider the following case:
+	
+	cpu1
+cpu2
+	__nf_conntrack_confirm
+get_next_corpse
+   		lock corresponding hash-list
+....
+		check nf_ct_is_dying(ct)
+for_each_possible_cpu(cpu) {
+		......
+spin_lock_bh(&pcpu->lock);
+		......
+set_bit(IPS_DYING_BIT, &ct->status);
+		nf_ct_del_from_dying_or_unconfirmed_list(ct);
+spin_unlock_bh(&pcpu_lock);
+		add_timer(&ct->timeout);
+}	
+		ct->status |= IPS_CONFIRMD;
+		__nf_conntrack_hash_insert(ct);
 
-Use daddr instead of reaching into dest.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Alex Gartrell <agartrell@fb.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_xmit.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+	
+	The above case reveal two problems:
+	1. we may insert a dead conntrack to hash-table, it will block
+further use of that particular connection.
+	2. operation on ct->status should be atomic, because it race aginst
+get_next_corpse.
+	  due to this reason, the operation on ct->status in
+nf_nat_setup_info should be atomic as well.
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 91f17c1..437a366 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -316,7 +316,7 @@ __ip_vs_get_out_rt(int skb_af, struct sk_buff *skb, struct ip_vs_dest *dest,
- 	if (unlikely(crosses_local_route_boundary(skb_af, skb, rt_mode,
- 						  local))) {
- 		IP_VS_DBG_RL("We are crossing local and non-local addresses"
--			     " daddr=%pI4\n", &dest->addr.ip);
-+			     " daddr=%pI4\n", &daddr);
- 		goto err_put;
- 	}
- 
-@@ -458,7 +458,7 @@ __ip_vs_get_out_rt_v6(int skb_af, struct sk_buff *skb, struct ip_vs_dest *dest,
- 	if (unlikely(crosses_local_route_boundary(skb_af, skb, rt_mode,
- 						  local))) {
- 		IP_VS_DBG_RL("We are crossing local and non-local addresses"
--			     " daddr=%pI6\n", &dest->addr.in6);
-+			     " daddr=%pI6\n", daddr);
- 		goto err_put;
- 	}
- 
--- 
-2.1.1
+	if we want to resolve the first problem, we must delete the
+unconfirmed conntrack from unconfirmed-list first, then check if it is
+already dead.
+	Am I right to do this ?
+	Appreciate any comments and reply.
 
