@@ -1,64 +1,42 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] libipset: Bump lib version and update map file
-Date: Tue, 28 Oct 2014 19:37:30 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1410281937100.15435@blackhole.kfki.hu>
-References: <20141024093622.GA5771@nitrogen.neutroncom.local>
+Subject: Re: [PATCH v2] add missing ipset_parse_tcp_udp_port to
+ libipset.map
+Date: Tue, 28 Oct 2014 19:38:08 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1410281937430.15435@blackhole.kfki.hu>
+References: <544AA6FF.1000803@mageia.org> <alpine.LSU.2.11.1410242206380.16647@nerf08.vanv.qr> <544AB83A.4070707@mageia.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+To: Thomas Backlund <tmb@mageia.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:44412 "EHLO smtp0.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:38281 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352AbaJ1Sgu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2014 14:36:50 -0400
-In-Reply-To: <20141024093622.GA5771@nitrogen.neutroncom.local>
+	id S1750722AbaJ1Sh0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2014 14:37:26 -0400
+In-Reply-To: <544AB83A.4070707@mageia.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 24 Oct 2014, Neutron Soutmun wrote:
+On Fri, 24 Oct 2014, Thomas Backlund wrote:
 
-> The ipset_parse_uint16() was introduced but no lib version bumped and
-> no map file updated.
 > 
-> Bump lib version to 9:0:6. (current and age was bumped)
+> 2014-10-24 23:07, Jan Engelhardt skrev:
+> > On Friday 2014-10-24 21:23, Thomas Backlund wrote:
+> > 
+> > > Found this issue when we switched from 6.19 static build to 6.21 dynamic
+> > > build,
+> > > and is still there in 6.23
+> > 
+> > What has been released is immutable; after a release, only add
+> > symbols to new sections.
 > 
-> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
-> ---
->  Make_global.am   | 2 +-
->  lib/libipset.map | 5 +++++
->  2 files changed, 6 insertions(+), 1 deletion(-)
+> Ok, so I guess it should be added after the patch:
 > 
-> diff --git a/Make_global.am b/Make_global.am
-> index 7953451..f9ec7b2 100644
-> --- a/Make_global.am
-> +++ b/Make_global.am
-> @@ -69,7 +69,7 @@
->  # interface. 
->  
->  #            curr:rev:age
-> -LIBVERSION = 8:0:5
-> +LIBVERSION = 9:0:6
->  
->  AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include \
->  	-I/usr/local/include
-> diff --git a/lib/libipset.map b/lib/libipset.map
-> index 58174ec..61f6d6e 100644
-> --- a/lib/libipset.map
-> +++ b/lib/libipset.map
-> @@ -152,3 +152,8 @@ global:
->    ipset_print_skbmark;
->    ipset_print_skbprio;
->  } LIBIPSET_4.2;
-> +
-> +LIBIPSET_4.4 {
-> +global:
-> +  ipset_parse_uint16;
-> +} LIBIPSET_4.3;
-> -- 
-> 2.1.1
+> [PATCH] libipset: Bump lib version and update map file
+> 
+> posted today, so something like:
 
-Patch is applied, thanks!
+Patch is applied, thanks.
 
 Best regards,
 Jozsef
