@@ -1,206 +1,69 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat PATCH 1/2] nft-shared: rework inversion of matches
-Date: Tue, 28 Oct 2014 19:32:59 +0100
-Message-ID: <20141028183259.3948.15098.stgit@nfdev.cica.es>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] libipset: Bump lib version and update map file
+Date: Tue, 28 Oct 2014 19:37:30 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1410281937100.15435@blackhole.kfki.hu>
+References: <20141024093622.GA5771@nitrogen.neutroncom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:44365 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751390AbaJ1SdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2014 14:33:16 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.25]:44412 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752352AbaJ1Sgu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2014 14:36:50 -0400
+In-Reply-To: <20141024093622.GA5771@nitrogen.neutroncom.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Previous to this patch, inversion of matches didn't work in ebtables-compat.
+On Fri, 24 Oct 2014, Neutron Soutmun wrote:
 
-A way to solve this is to refactor the logic to calculate the proper NFT_CMP_*
-operation, and let ebtables-compat to use this new logic.
+> The ipset_parse_uint16() was introduced but no lib version bumped and
+> no map file updated.
+> 
+> Bump lib version to 9:0:6. (current and age was bumped)
+> 
+> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
+> ---
+>  Make_global.am   | 2 +-
+>  lib/libipset.map | 5 +++++
+>  2 files changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Make_global.am b/Make_global.am
+> index 7953451..f9ec7b2 100644
+> --- a/Make_global.am
+> +++ b/Make_global.am
+> @@ -69,7 +69,7 @@
+>  # interface. 
+>  
+>  #            curr:rev:age
+> -LIBVERSION = 8:0:5
+> +LIBVERSION = 9:0:6
+>  
+>  AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include \
+>  	-I/usr/local/include
+> diff --git a/lib/libipset.map b/lib/libipset.map
+> index 58174ec..61f6d6e 100644
+> --- a/lib/libipset.map
+> +++ b/lib/libipset.map
+> @@ -152,3 +152,8 @@ global:
+>    ipset_print_skbmark;
+>    ipset_print_skbprio;
+>  } LIBIPSET_4.2;
+> +
+> +LIBIPSET_4.4 {
+> +global:
+> +  ipset_parse_uint16;
+> +} LIBIPSET_4.3;
+> -- 
+> 2.1.1
 
-With this patch, rules like this are correctly sent to the kernel:
- % ebtables-compat -A FORWARD -p ! 0x0800 -j ACCEPT
+Patch is applied, thanks!
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- iptables/nft-bridge.c |   21 ++++++---------------
- iptables/nft-shared.c |   44 ++++++++++++++++++--------------------------
- iptables/nft-shared.h |    1 +
- 3 files changed, 25 insertions(+), 41 deletions(-)
-
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 0e21b46..70501ac 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -99,15 +99,10 @@ static uint16_t ipt_to_ebt_flags(uint8_t invflags)
- static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
- {
- 	int iface_len;
--	uint32_t op;
-+	uint16_t op = invflags2cmp_op(invflags);
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & EBT_ILOGICALIN)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
+Best regards,
+Jozsef
 -
- 	add_meta(r, NFT_META_BRI_IIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -118,15 +113,10 @@ static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
- static void add_logical_outiface(struct nft_rule *r, char *iface, int invflags)
- {
- 	int iface_len;
--	uint32_t op;
-+	uint16_t op = invflags2cmp_op(invflags);
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & EBT_ILOGICALOUT)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_meta(r, NFT_META_BRI_OIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -165,6 +155,7 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
- 	struct ebtables_command_state *cs = data;
- 	struct ebt_entry *fw = &cs->fw;
- 	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
-+	uint32_t op = invflags2cmp_op(flags);
- 	char *addr;
- 
- 	if (fw->in[0] != '\0')
-@@ -182,18 +173,18 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
- 	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
- 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
- 		add_payload(r, offsetof(struct ethhdr, h_source), 6);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
-+		add_cmp_ptr(r, op, fw->sourcemac, 6);
- 	}
- 
- 	addr = ether_ntoa((struct ether_addr *) fw->destmac);
- 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
- 		add_payload(r, offsetof(struct ethhdr, h_dest), 6);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->destmac, 6);
-+		add_cmp_ptr(r, op, fw->destmac, 6);
- 	}
- 
- 	if (fw->ethproto != 0) {
- 		add_payload(r, offsetof(struct ethhdr, h_proto), 2);
--		add_cmp_u16(r, fw->ethproto, NFT_CMP_EQ);
-+		add_cmp_u16(r, fw->ethproto, op);
- 	}
- 
- 	return _add_action(r, cs);
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index d6f838c..2e6bf74 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -34,6 +34,20 @@ extern struct nft_family_ops nft_family_ops_ipv6;
- extern struct nft_family_ops nft_family_ops_arp;
- extern struct nft_family_ops nft_family_ops_bridge;
- 
-+uint16_t invflags2cmp_op(uint16_t invflags)
-+{
-+	if ((invflags & XT_INV_PROTO)
-+	    || (invflags & IPT_INV_PROTO)
-+	    || (invflags & IPT_INV_VIA_IN)
-+	    || (invflags & IPT_INV_VIA_OUT)
-+	    || (invflags & IPT_INV_SRCIP)
-+	    || (invflags & IPT_INV_DSTIP)
-+	    || (invflags & IPT_INV_FRAG))
-+		return NFT_CMP_NEQ;
-+
-+	return NFT_CMP_EQ;
-+}
-+
- void add_meta(struct nft_rule *r, uint32_t key)
- {
- 	struct nft_rule_expr *expr;
-@@ -134,15 +148,10 @@ void add_cmp_u32(struct nft_rule *r, uint32_t val, uint32_t op)
- void add_iniface(struct nft_rule *r, char *iface, int invflags)
- {
- 	int iface_len;
--	uint32_t op;
-+	uint32_t op = invflags2cmp_op(invflags);
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & IPT_INV_VIA_IN)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_meta(r, NFT_META_IIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -153,15 +162,10 @@ void add_iniface(struct nft_rule *r, char *iface, int invflags)
- void add_outiface(struct nft_rule *r, char *iface, int invflags)
- {
- 	int iface_len;
--	uint32_t op;
-+	uint32_t op = invflags2cmp_op(invflags);
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & IPT_INV_VIA_OUT)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_meta(r, NFT_META_OIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -172,31 +176,19 @@ void add_outiface(struct nft_rule *r, char *iface, int invflags)
- void add_addr(struct nft_rule *r, int offset,
- 	      void *data, void *mask, size_t len, int invflags)
- {
--	uint32_t op;
-+	uint32_t op = invflags2cmp_op(invflags);
- 
- 	add_payload(r, offset, len);
- 	add_bitwise(r, mask, len);
--
--	if (invflags & IPT_INV_SRCIP || invflags & IPT_INV_DSTIP)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_cmp_ptr(r, op, data, len);
- }
- 
- void add_proto(struct nft_rule *r, int offset, size_t len,
- 	       uint8_t proto, int invflags)
- {
--	uint32_t op;
-+	uint32_t op = invflags2cmp_op(invflags);
- 
- 	add_payload(r, offset, len);
--
--	if (invflags & XT_INV_PROTO)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_cmp_u8(r, proto, op);
- }
- 
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index f637b6e..1048d3b 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -102,6 +102,7 @@ struct nft_family_ops {
- 			  void *data);
- };
- 
-+uint16_t invflags2cmp_op(uint16_t invflags);
- void add_meta(struct nft_rule *r, uint32_t key);
- void add_payload(struct nft_rule *r, int offset, int len);
- void add_bitwise_u16(struct nft_rule *r, int mask, int xor);
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
