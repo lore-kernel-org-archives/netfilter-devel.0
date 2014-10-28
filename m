@@ -1,47 +1,38 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2] add missing ipset_parse_tcp_udp_port to
- libipset.map
-Date: Tue, 28 Oct 2014 19:38:08 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1410281937430.15435@blackhole.kfki.hu>
-References: <544AA6FF.1000803@mageia.org> <alpine.LSU.2.11.1410242206380.16647@nerf08.vanv.qr> <544AB83A.4070707@mageia.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-To: Thomas Backlund <tmb@mageia.org>
+From: Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH] Make_global.am: Don't include host headers
+Date: Tue, 28 Oct 2014 21:21:34 +0200
+Message-ID: <91631e0597af2d757e8f943c540aaa19cca30b89.1414524094.git.baruch@tkos.co.il>
+Cc: netfilter-devel@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:38281 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722AbaJ1Sh0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2014 14:37:26 -0400
-In-Reply-To: <544AB83A.4070707@mageia.org>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:40693 "EHLO
+	mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660AbaJ1Tbo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2014 15:31:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 24 Oct 2014, Thomas Backlund wrote:
+This is bad for cross compilation.
 
-> 
-> 2014-10-24 23:07, Jan Engelhardt skrev:
-> > On Friday 2014-10-24 21:23, Thomas Backlund wrote:
-> > 
-> > > Found this issue when we switched from 6.19 static build to 6.21 dynamic
-> > > build,
-> > > and is still there in 6.23
-> > 
-> > What has been released is immutable; after a release, only add
-> > symbols to new sections.
-> 
-> Ok, so I guess it should be added after the patch:
-> 
-> [PATCH] libipset: Bump lib version and update map file
-> 
-> posted today, so something like:
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ Make_global.am | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Patch is applied, thanks.
+diff --git a/Make_global.am b/Make_global.am
+index 7953451aeaa3..5922aeeb4fa8 100644
+--- a/Make_global.am
++++ b/Make_global.am
+@@ -71,8 +71,7 @@
+ #            curr:rev:age
+ LIBVERSION = 8:0:5
+ 
+-AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include \
+-	-I/usr/local/include
++AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include
+ 
+ AM_CFLAGS = -std=gnu99
+ 
+-- 
+2.1.1
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
