@@ -1,42 +1,59 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 0/7] seq_printf cleanups
-Date: Tue, 28 Oct 2014 08:51:39 -0700
-Message-ID: <1414511499.6643.11.camel@perches.com>
-References: <20140929124246.3e39dac8@gandalf.local.home>
-	 <cover.1412031505.git.joe@perches.com>
-	 <20141028113240.74dbe5c5@gandalf.local.home>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [ebtables-compat PATCH 2/2] nft-bridge: fix printing of inverted
+ protocols, addresses
+Date: Tue, 28 Oct 2014 19:33:06 +0100
+Message-ID: <20141028183306.3948.5151.stgit@nfdev.cica.es>
+References: <20141028183259.3948.15098.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Petr Mladek <pmladek@suse.cz>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
-	cluster-devel@redhat.com, linux-fsdevel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20141028113240.74dbe5c5@gandalf.local.home>
-Sender: linux-doc-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: giuseppelng@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:44366 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751407AbaJ1SdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2014 14:33:16 -0400
+In-Reply-To: <20141028183259.3948.15098.stgit@nfdev.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2014-10-28 at 11:32 -0400, Steven Rostedt wrote:
-> If you haven't already done so, can you update checkpatch.pl to
-> complain if someone checks the return value of seq_printf(),
-> seq_puts(), or seq_putc().
+Previous to this patch, no '!' is printed in payload comparisions.
+This patch solves it, so we can print for example inverted protocols:
 
-I'm not sure that matters much as a rule because I
-hope soon the compiler will bleat when that happens.
+ % ebtables-compat -L
+[...]
+-p ! 0x800 -j ACCEPT
 
-There are several more too:
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ iptables/nft-bridge.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-	seq_vprintf
-	seq_escape
-	seq_write
-	seq_bitmap
-	seq_cpumask/seq_nodemask (and _list variants),
-	seq_put_decimal_xxx
-
-
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 70501ac..891015a 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -259,15 +259,21 @@ static void nft_bridge_parse_payload(struct nft_xt_ctx *ctx,
+ 		get_cmp_data(e, addr, sizeof(addr), &inv);
+ 		for (i = 0; i < ETH_ALEN; i++)
+ 			fw->destmac[i] = addr[i];
++		if (inv)
++			fw->invflags |= EBT_IDEST;
+ 		break;
+ 	case offsetof(struct ethhdr, h_source):
+ 		get_cmp_data(e, addr, sizeof(addr), &inv);
+ 		for (i = 0; i < ETH_ALEN; i++)
+ 			fw->sourcemac[i] = addr[i];
++		if (inv)
++			fw->invflags |= EBT_ISOURCE;
+ 		break;
+ 	case offsetof(struct ethhdr, h_proto):
+ 		get_cmp_data(e, &ethproto, sizeof(ethproto), &inv);
+ 		fw->ethproto = ethproto;
++		if (inv)
++			fw->invflags |= EBT_IPROTO;
+ 		break;
+ 	}
+ }
 
