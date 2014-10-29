@@ -1,76 +1,131 @@
-From: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Subject: Re: [PATCH v3 2/3] Do error handling if __build_packet_message fails
-Date: Wed, 29 Oct 2014 10:46:10 -0200
-Message-ID: <5450E192.6090600@redhat.com>
-References: <7be00bf663b212d4984414346da216cf17d3443d.1414584011.git.mleitner@redhat.com> <c764c773bc964e4630761f5af7a0587c19d8d8b2.1414584011.git.mleitner@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [ebtables-compat PATCH] build ebtables extensions
+Date: Wed, 29 Oct 2014 15:10:57 +0100
+Message-ID: <1414591857-10738-1-git-send-email-giuseppelng@gmail.com>
+Cc: pablo@netfilter.org, Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54700 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932773AbaJ2MqM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Oct 2014 08:46:12 -0400
-Received: from int-mx13.intmail.prod.int.phx2.redhat.com (int-mx13.intmail.prod.int.phx2.redhat.com [10.5.11.26])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s9TCkBGS001337
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2014 08:46:11 -0400
-Received: from localhost.localdomain (vpn1-7-3.gru2.redhat.com [10.97.7.3])
-	by int-mx13.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id s9TCkAma010031
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2014 08:46:11 -0400
-In-Reply-To: <c764c773bc964e4630761f5af7a0587c19d8d8b2.1414584011.git.mleitner@redhat.com>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:51113 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933135AbaJ2OLE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Oct 2014 10:11:04 -0400
+Received: by mail-wi0-f171.google.com with SMTP id q5so1803204wiv.16
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2014 07:11:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 29-10-2014 10:04, Marcelo Ricardo Leitner wrote:
-> Currently, we don't check if __build_packet_message fails or not and
-> that leaves it prone to sending incomplete messages to userspace.
->
-> This commit fixes it by canceling the new message if there was any issue
-> while building it and makes sure the skb is freed if it was the only
-> messsage in it.
->
-> Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
-> ---
->   net/netfilter/nfnetlink_log.c | 21 +++++++++++++++------
->   1 file changed, 15 insertions(+), 6 deletions(-)
->
-> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-> index b1e3a05794169283ed50d1c0fb4f44d9e7753eeb..05184a3d860885c10c3e977fdc47fb86e3528afa 100644
-> --- a/net/netfilter/nfnetlink_log.c
-> +++ b/net/netfilter/nfnetlink_log.c
-> @@ -568,10 +568,8 @@ __build_packet_message(struct nfnl_log_net *log,
->   		struct nlattr *nla;
->   		int size = nla_attr_size(data_len);
->
-> -		if (skb_tailroom(inst->skb) < nla_total_size(data_len)) {
-> -			printk(KERN_WARNING "nfnetlink_log: no tailroom!\n");
-> -			return -1;
-> -		}
-> +		if (skb_tailroom(inst->skb) < nla_total_size(data_len))
-> +			goto nla_put_failure;
->
->   		nla = (struct nlattr *)skb_put(inst->skb, nla_total_size(data_len));
->   		nla->nla_type = NFULA_PAYLOAD;
-> @@ -586,6 +584,7 @@ __build_packet_message(struct nfnl_log_net *log,
->
->   nla_put_failure:
->   	PRINTR(KERN_ERR "nfnetlink_log: error creating log nlmsg\n");
-> +	nlmsg_cancel(skb, nlh);
->   	return -1;
->   }
->
-> @@ -708,8 +707,9 @@ nfulnl_log_packet(struct net *net,
->
->   	inst->qlen++;
->
-> -	__build_packet_message(log, inst, skb, data_len, pf,
-> -				hooknum, in, out, prefix, plen);
-> +	if (__build_packet_message(log, inst, skb, data_len, pf,
-> +				hooknum, in, out, prefix, plen))
+This permits to build extensions for ebtables-compat layer.
 
-bad alignment, sorry.. I'll fix this.
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+---
+ extensions/GNUmakefile.in | 40 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
 
-Marcelo
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 5291572..7b4f891 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -39,16 +39,20 @@ endif
+ #	Wildcard module list
+ #
+ pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
++pfb_build_mod := $(patsubst ${srcdir}/libebt_%.c,%,$(sort $(wildcard ${srcdir}/libebt_*.c)))
+ pfx_symlinks  := NOTRACK state
+ @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
+ @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
+ pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
++pfb_build_mod := $(filter-out @blacklist_modules@,${pfb_build_mod})
+ pf4_build_mod := $(filter-out @blacklist_modules@,${pf4_build_mod})
+ pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
+ pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
++pfb_objs      := $(patsubst %,libebt_%.o,${pfb_build_mod})
+ pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
+ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
+ pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
++pfb_solibs    := $(patsubst %,libebt_%.so,${pfb_build_mod})
+ pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
+ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+ 
+@@ -59,10 +63,11 @@ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+ targets := libext.a libext4.a libext6.a matches.man targets.man
+ targets_install :=
+ @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
++@ENABLE_STATIC_TRUE@ libextb_objs := ${pfb_objs}
+ @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
+ @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
+-@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
+-@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
++@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
++@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
+ 
+ .SECONDARY:
+ 
+@@ -118,6 +123,9 @@ lib%.o: ${srcdir}/lib%.c
+ libext.a: initext.o ${libext_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+ 
++libextb.a: initextb.o ${libextb_objs}
++	${AM_VERBOSE_AR} ${AR} crs $@ $^;
++
+ libext4.a: initext4.o ${libext4_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+ 
+@@ -125,6 +133,7 @@ libext6.a: initext6.o ${libext6_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+ 
+ initext_func  := $(addprefix xt_,${pfx_build_mod})
++initextb_func := $(addprefix ebt_,${pfb_build_mod})
+ initext4_func := $(addprefix ipt_,${pf4_build_mod})
+ initext6_func := $(addprefix ip6t_,${pf6_build_mod})
+ 
+@@ -133,6 +142,11 @@ initext6_func := $(addprefix ip6t_,${pf6_build_mod})
+ 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
+ 	rm -f $@.tmp;
+ 
++.initextb.dd: FORCE
++	@echo "${initextb_func}" >$@.tmp; \
++	cmp -s $@ $@.tmp || mv $@.tmp $@; \
++	rm -f $@.tmp;
++
+ .initext4.dd: FORCE
+ 	@echo "${initext4_func}" >$@.tmp; \
+ 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
+@@ -159,6 +173,22 @@ initext.c: .initext.dd
+ 	echo "}" >>$@; \
+ 	);
+ 
++initextb.c: .initextb.dd
++	${AM_VERBOSE_GEN}
++	@( \
++	echo "" >$@; \
++	for i in ${initextb_func}; do \
++		echo "extern void lib$${i}_init(void);" >>$@; \
++	done; \
++	echo "void init_extensions(void);" >>$@; \
++	echo "void init_extensions(void)" >>$@; \
++	echo "{" >>$@; \
++	for i in ${initextb_func}; do \
++		echo  " ""lib$${i}_init();" >>$@; \
++	done; \
++	echo "}" >>$@; \
++	);
++
+ initext4.c: .initext4.dd
+ 	${AM_VERBOSE_GEN}
+ 	@( \
+@@ -219,8 +249,8 @@ man_run    = \
+ 		fi; \
+ 	done >$@;
+ 
+-matches.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+-	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
++matches.man: .initext.dd .initextb.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
++	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
+ 
+ targets.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+-	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
++	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
+-- 
+1.9.1
 
