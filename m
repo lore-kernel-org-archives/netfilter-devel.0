@@ -1,131 +1,219 @@
 From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [ebtables-compat PATCH] build ebtables extensions
-Date: Wed, 29 Oct 2014 15:10:57 +0100
-Message-ID: <1414591857-10738-1-git-send-email-giuseppelng@gmail.com>
+Subject: [ebtables-compat PATCH] extensions: libebt_log
+Date: Wed, 29 Oct 2014 16:21:54 +0100
+Message-ID: <1414596114-11301-1-git-send-email-giuseppelng@gmail.com>
 Cc: pablo@netfilter.org, Giuseppe Longo <giuseppelng@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:51113 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933135AbaJ2OLE (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:47544 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933194AbaJ2PWB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Oct 2014 10:11:04 -0400
-Received: by mail-wi0-f171.google.com with SMTP id q5so1803204wiv.16
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2014 07:11:03 -0700 (PDT)
+	Wed, 29 Oct 2014 11:22:01 -0400
+Received: by mail-wg0-f51.google.com with SMTP id l18so3574800wgh.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2014 08:21:59 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This permits to build extensions for ebtables-compat layer.
+This implements libebt_log extensions for ebtables-compat layer.
+Based on the ebt_log code, but adapted for libxtables parser.
 
 Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
 ---
- extensions/GNUmakefile.in | 40 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 35 insertions(+), 5 deletions(-)
+ extensions/libebt_log.c | 184 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 184 insertions(+)
+ create mode 100644 extensions/libebt_log.c
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 5291572..7b4f891 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -39,16 +39,20 @@ endif
- #	Wildcard module list
- #
- pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
-+pfb_build_mod := $(patsubst ${srcdir}/libebt_%.c,%,$(sort $(wildcard ${srcdir}/libebt_*.c)))
- pfx_symlinks  := NOTRACK state
- @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
- @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
- pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
-+pfb_build_mod := $(filter-out @blacklist_modules@,${pfb_build_mod})
- pf4_build_mod := $(filter-out @blacklist_modules@,${pf4_build_mod})
- pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
- pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
-+pfb_objs      := $(patsubst %,libebt_%.o,${pfb_build_mod})
- pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
- pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
- pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
-+pfb_solibs    := $(patsubst %,libebt_%.so,${pfb_build_mod})
- pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
- pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
- 
-@@ -59,10 +63,11 @@ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
- targets := libext.a libext4.a libext6.a matches.man targets.man
- targets_install :=
- @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
-+@ENABLE_STATIC_TRUE@ libextb_objs := ${pfb_objs}
- @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
- @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
--@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
--@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
-+@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
-+@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
- 
- .SECONDARY:
- 
-@@ -118,6 +123,9 @@ lib%.o: ${srcdir}/lib%.c
- libext.a: initext.o ${libext_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
-+libextb.a: initextb.o ${libextb_objs}
-+	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+diff --git a/extensions/libebt_log.c b/extensions/libebt_log.c
+new file mode 100644
+index 0000000..416ad85
+--- /dev/null
++++ b/extensions/libebt_log.c
+@@ -0,0 +1,184 @@
++/*
++ * (C) 2014 Giuseppe Longo <giuseppelng@gmail.com>
++ *
++ * Based on code from ebt_log from:
++ *
++ * Bart De Schuymer <bdschuym@pandora.be>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
 +
- libext4.a: initext4.o ${libext4_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
-@@ -125,6 +133,7 @@ libext6.a: initext6.o ${libext6_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
- initext_func  := $(addprefix xt_,${pfx_build_mod})
-+initextb_func := $(addprefix ebt_,${pfb_build_mod})
- initext4_func := $(addprefix ipt_,${pf4_build_mod})
- initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 
-@@ -133,6 +142,11 @@ initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
- 	rm -f $@.tmp;
- 
-+.initextb.dd: FORCE
-+	@echo "${initextb_func}" >$@.tmp; \
-+	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-+	rm -f $@.tmp;
++#include <stdio.h>
++#include <stdlib.h>
++#include <syslog.h>
++#include <string.h>
++#include <xtables.h>
++#include <linux/netfilter_bridge/ebt_log.h>
 +
- .initext4.dd: FORCE
- 	@echo "${initext4_func}" >$@.tmp; \
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-@@ -159,6 +173,22 @@ initext.c: .initext.dd
- 	echo "}" >>$@; \
- 	);
- 
-+initextb.c: .initextb.dd
-+	${AM_VERBOSE_GEN}
-+	@( \
-+	echo "" >$@; \
-+	for i in ${initextb_func}; do \
-+		echo "extern void lib$${i}_init(void);" >>$@; \
-+	done; \
-+	echo "void init_extensions(void);" >>$@; \
-+	echo "void init_extensions(void)" >>$@; \
-+	echo "{" >>$@; \
-+	for i in ${initextb_func}; do \
-+		echo  " ""lib$${i}_init();" >>$@; \
-+	done; \
-+	echo "}" >>$@; \
-+	);
++#define LOG_DEFAULT_LEVEL LOG_INFO
 +
- initext4.c: .initext4.dd
- 	${AM_VERBOSE_GEN}
- 	@( \
-@@ -219,8 +249,8 @@ man_run    = \
- 		fi; \
- 	done >$@;
- 
--matches.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+matches.man: .initext.dd .initextb.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
- 
- targets.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
++typedef struct _code {
++	char *c_name;
++	int c_val;
++} CODE;
++
++static CODE eight_priority[] = {
++	{ "emerg", LOG_EMERG },
++	{ "alert", LOG_ALERT },
++	{ "crit", LOG_CRIT },
++	{ "error", LOG_ERR },
++	{ "warning", LOG_WARNING },
++	{ "notice", LOG_NOTICE },
++	{ "info", LOG_INFO },
++	{ "debug", LOG_DEBUG }
++};
++
++static int name_to_loglevel(const char *arg)
++{
++	int i;
++
++	for (i = 0; i < 8; i++)
++		if (!strcmp(arg, eight_priority[i].c_name))
++			return eight_priority[i].c_val;
++
++	/* return bad loglevel */
++	return 9;
++}
++
++enum {
++	O_LOG_PREFIX = 1,
++	O_LOG_LEVEL,
++	O_LOG_ARP,
++	O_LOG_IP,
++	O_LOG_LOG,
++	O_LOG_IP6,
++};
++
++#define s struct ebt_log_info
++static const struct xt_option_entry LOG_opts[] = {
++	{.name = "log-prefix", .id = O_LOG_PREFIX, .type = XTTYPE_STRING,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, prefix), .min = 1},
++	{.name = "log-level", .id = O_LOG_LEVEL, .type = XTTYPE_SYSLOGLEVEL,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, loglevel)},
++	{.name = "log-arp", .id = O_LOG_ARP, .type = XTTYPE_NONE},
++	{.name = "log-ip", .id = O_LOG_IP, .type = XTTYPE_NONE},
++	{.name = "log", .id = O_LOG_LOG, .type = XTTYPE_NONE},
++	{.name = "log-ip6", .id = O_LOG_IP6, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
++};
++#undef s
++
++static void LOG_help()
++{
++	int i;
++
++	printf(
++"log options:\n"
++"--log               : use this if you're not specifying anything\n"
++"--log-level level   : level = [1-8] or a string\n"
++"--log-prefix prefix : max. %d chars.\n"
++"--log-ip            : put ip info. in the log for ip packets\n"
++"--log-arp           : put (r)arp info. in the log for (r)arp packets\n"
++"--log-ip6           : put ip6 info. in the log for ip6 packets\n"
++	, EBT_LOG_PREFIX_SIZE - 1);
++	for (i = 0; i < 8; i++)
++		printf("%d = %s\n", eight_priority[i].c_val,
++				    eight_priority[i].c_name);
++}
++
++static void LOG_init(struct xt_entry_target *t)
++{
++	struct ebt_log_info *loginfo = (struct ebt_log_info *)t->data;
++
++	loginfo->bitmask = 0;
++	loginfo->prefix[0] = '\0';
++	loginfo->loglevel = LOG_NOTICE;
++}
++
++static void LOG_print(const struct xt_entry_target *target)
++{
++	const struct ebt_log_info *loginfo
++		= (const struct ebt_log_info *)target->data;
++
++	printf("--log-level %s --log-prefix \"%s\"",
++		eight_priority[loginfo->loglevel].c_name,
++		loginfo->prefix);
++
++	if (loginfo->bitmask & EBT_LOG_IP)
++		printf(" --log-ip");
++	if (loginfo->bitmask & EBT_LOG_ARP)
++		printf(" --log-arp");
++	if (loginfo->bitmask & EBT_LOG_IP6)
++		printf(" --log-ip6");
++	printf(" ");
++}
++
++static void LOG_parse(struct xt_option_call *cb)
++{
++	struct ebt_log_info *loginfo = cb->data;
++	long int i;
++	char *end;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_LOG_PREFIX:
++		if (strlen(cb->arg) > sizeof(loginfo->prefix) -1 )
++			xtables_error(PARAMETER_PROBLEM,
++				      "Prefix too long");
++		if (strchr(cb->arg, '\"') != NULL)
++			xtables_error(PARAMETER_PROBLEM,
++				      "Use of \\\" is not allowed" 
++				      " in the prefix");
++		if (strchr(cb->arg, '\n') != NULL)
++			xtables_error(PARAMETER_PROBLEM,
++				      "Newlines not allowed in --log-prefix");
++
++		strcpy((char *)loginfo->prefix, (char *)cb->arg);
++		break;
++	case O_LOG_LEVEL:
++		i = strtol(cb->arg, &end, 16);
++		if (*end != '\0' || i < 0 || i > 7)
++			loginfo->loglevel = name_to_loglevel(cb->arg);
++		else
++			loginfo->loglevel = i;
++
++		if (loginfo->loglevel == 9) {
++			xtables_error(PARAMETER_PROBLEM,
++				      "Problem with the log-level");
++		break;
++	case O_LOG_IP:
++		loginfo->bitmask |= EBT_LOG_IP;
++		break;
++	case O_LOG_ARP:
++		loginfo->bitmask |= EBT_LOG_ARP;
++	case O_LOG_LOG:
++		break;
++	case O_LOG_IP6:
++		loginfo->bitmask |= EBT_LOG_IP6;
++		break;
++	default:
++		return;
++	}
++}
++
++static struct xtables_target ebt_log_tg_reg = {
++	.name		= "EBT_LOG",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_BRIDGE,
++	.size		= XT_ALIGN(sizeof(struct ebt_log_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct ebt_log_info)),
++	.help		= LOG_help,
++	.init		= LOG_init,
++	.print		= LOG_print,
++	.save		= NULL,
++	.x6_parse	= LOG_parse,
++	.x6_options	= LOG_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&ebt_log_tg_reg);
++}
++
 -- 
 1.9.1
 
