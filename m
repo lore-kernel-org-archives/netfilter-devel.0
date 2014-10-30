@@ -1,8 +1,8 @@
 From: Steven Rostedt <rostedt@goodmis.org>
 Subject: Re: [RFA][PATCH 2/8] netfilter: Remove return values for
  print_conntrack callbacks
-Date: Wed, 29 Oct 2014 19:53:00 -0400
-Message-ID: <20141029195300.52ae0fe6@gandalf.local.home>
+Date: Wed, 29 Oct 2014 21:06:33 -0400
+Message-ID: <20141029210633.4b28faed@gandalf.local.home>
 References: <20141029215602.535533597@goodmis.org>
 	<20141029220107.465008329@goodmis.org>
 	<20141029221601.GB10069@breakpoint.cc>
@@ -73,28 +73,9 @@ Florian Westphal <fw@strlen.de> wrote:
 > 
 > ... while nf_conntrack_standalone does not.
 
-Because I did those two changes separately at different times ;-)
+Oh, looks like it was added here in patch 3/8.
 
-I can add it here too to be consistent. The goto release logic is not
-that critical, as it's really a micro optimization for a slow path.
-
-If we were to remove all the goto release calls, what would happen is
-if the buffer were to fill up, the rest of the code would be done in
-vain, because it would do the work but the result will be thrown away.
-The seq_file code would throw away the buffer completely (does this
-regardless of the goto release call when the buffer fills up), and
-would allocate a new buffer, and then run the code again. This time it
-would hopefully have enough buffer space to hold the entire content,
-otherwise, wash rinse repeat.
-
-As this is to output text from a proc file, and the user will most
-likely never notice this delay. It's probably done as more of a good
-feeling that we didn't waste computer cycles and burn more green house
-gasses than necessary, then anything that is remotely noticeable.
-Although, I haven't run benchmarks to see what the difference is.
-
-I'll make the change for consistency.
-
-Thanks!
+The reason for the two patches is that patch 3/8 is from Joe. I added
+places that he missed, and put that patch before his (2/8).
 
 -- Steve
