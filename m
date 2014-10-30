@@ -1,35 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH v2] src: add redirect support
-Date: Thu, 30 Oct 2014 17:25:20 +0100
-Message-ID: <20141030162520.GA2074@salvia>
-References: <20141016104056.8678.71075.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] extensions: devgroup: fix showing and saving of dst-group
+Date: Thu, 30 Oct 2014 17:26:26 +0100
+Message-ID: <1414686386-7681-1-git-send-email-anarey@gmail.com>
+Cc: axinchan@cnrouter.com, Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33021 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758415AbaJ3QXn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Oct 2014 12:23:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20141016104056.8678.71075.stgit@nfdev.cica.es>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:61055 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbaJ3Q0V (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Oct 2014 12:26:21 -0400
+Received: by mail-wi0-f176.google.com with SMTP id h11so5040591wiw.9
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2014 09:26:19 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 16, 2014 at 12:41:19PM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds redirect support for nft.
-> 
-> The syntax is:
-> 
->  % nft add rule nat prerouting redirect [port|nat_flags]
+Closes bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=985
 
-I prefer if you add a couple of valid examples to the patch
-description. This won't work as the protocol is not specified.
+The --dst-group parameter in devgroup extensions lists and saves
+incorrectly its value. --dst-group always shows "0x0/0x0".
 
-There's also some minor issues with this patch:
+This is an example:
 
-% nft add rule nat prerouting redirect
-Memory allocation failure
+ # iptables -I FORWARD -m devgroup --dst-group 200 -j ACCEPT
 
-Please, address and resubmit, thanks Arturo.
+ # iptables -L FORWARD
+ Chain FORWARD (policy ACCEPT)
+ target     prot opt source               destination
+ ACCEPT     all  --  anywhere             anywhere     src-group 0x64 dst-group 0x0/0x0
+
+ # iptables -S FORWARD
+ -P FORWARD ACCEPT
+ -A FORWARD -m devgroup --dst-group 0x0/0x0 -j ACCEPT
+
+Reporte-by: Axinchan <axinchan@cnrouter.com>
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ extensions/libxt_devgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index fb1fcb5..1a52627 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -124,7 +124,7 @@ static void devgroup_show(const char *pfx, const struct xt_devgroup_info *info,
+ 		if (info->flags & XT_DEVGROUP_INVERT_DST)
+ 			printf(" !");
+ 		printf(" %sdst-group ", pfx);
+-		print_devgroup(info->src_group, info->src_mask, numeric);
++		print_devgroup(info->dst_group, info->dst_mask, numeric);
+ 	}
+ }
+ 
+-- 
+1.7.10.4
+
