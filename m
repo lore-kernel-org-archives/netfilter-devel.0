@@ -1,99 +1,536 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] netfilter: nft_reject_bridge: restrict reject to prerouting and input
-Date: Fri, 31 Oct 2014 13:18:32 +0100
-Message-ID: <1414757912-29150-7-git-send-email-pablo@netfilter.org>
-References: <1414757912-29150-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: eric gisse <jowr.pi@gmail.com>
+Subject: bug report: use after free bug leading to kernel panic
+Date: Fri, 31 Oct 2014 15:28:25 +0000
+Message-ID: <CAHZ_AjsbkkXNMG8oZfOhr6WbUmV=4eK0j23ijbP=cNkfVdoAjQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=089e01494210ecf4710506b9a5e9
+Cc: minipli@googlemail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48008 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759200AbaJaMRJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 Oct 2014 08:17:09 -0400
-In-Reply-To: <1414757912-29150-1-git-send-email-pablo@netfilter.org>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:51920 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932326AbaJaP21 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 31 Oct 2014 11:28:27 -0400
+Received: by mail-la0-f42.google.com with SMTP id gq15so6513545lab.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Oct 2014 08:28:26 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Restrict the reject expression to the prerouting and input bridge
-hooks. If we allow this to be used from forward or any other later
-bridge hook, if the frame is flooded to several ports, we'll end up
-sending several reject packets, one per cloned packet.
+--089e01494210ecf4710506b9a5e9
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/nft_reject_bridge.c |   33 +++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+Background:
 
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index 31b27e1..654c901 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -18,6 +18,7 @@
- #include <net/netfilter/ipv6/nf_reject.h>
- #include <linux/ip.h>
- #include <net/ip.h>
-+#include <linux/netfilter_bridge.h>
- #include "../br_private.h"
- 
- static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
-@@ -305,12 +306,34 @@ out:
- 	data[NFT_REG_VERDICT].verdict = NF_DROP;
- }
- 
-+static int nft_reject_bridge_validate_hooks(const struct nft_chain *chain)
-+{
-+	struct nft_base_chain *basechain;
-+
-+	if (chain->flags & NFT_BASE_CHAIN) {
-+		basechain = nft_base_chain(chain);
-+
-+		switch (basechain->ops[0].hooknum) {
-+		case NF_BR_PRE_ROUTING:
-+		case NF_BR_LOCAL_IN:
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+	}
-+	return 0;
-+}
-+
- static int nft_reject_bridge_init(const struct nft_ctx *ctx,
- 				  const struct nft_expr *expr,
- 				  const struct nlattr * const tb[])
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
--	int icmp_code;
-+	int icmp_code, err;
-+
-+	err = nft_reject_bridge_validate_hooks(ctx->chain);
-+	if (err < 0)
-+		return err;
- 
- 	if (tb[NFTA_REJECT_TYPE] == NULL)
- 		return -EINVAL;
-@@ -359,6 +382,13 @@ nla_put_failure:
- 	return -1;
- }
- 
-+static int nft_reject_bridge_validate(const struct nft_ctx *ctx,
-+				      const struct nft_expr *expr,
-+				      const struct nft_data **data)
-+{
-+	return nft_reject_bridge_validate_hooks(ctx->chain);
-+}
-+
- static struct nft_expr_type nft_reject_bridge_type;
- static const struct nft_expr_ops nft_reject_bridge_ops = {
- 	.type		= &nft_reject_bridge_type,
-@@ -366,6 +396,7 @@ static const struct nft_expr_ops nft_reject_bridge_ops = {
- 	.eval		= nft_reject_bridge_eval,
- 	.init		= nft_reject_bridge_init,
- 	.dump		= nft_reject_bridge_dump,
-+	.validate	= nft_reject_bridge_validate,
- };
- 
- static struct nft_expr_type nft_reject_bridge_type __read_mostly = {
--- 
-1.7.10.4
+This was discovered on a server running a tor exit node (crazy high
+packet flow) with a firewall that uses a few connection tracking rules
+in the INPUT chain:
 
+# iptables-save | grep conn
+-A INPUT -m comment --comment "001-v4 drop invalid traffic" -m
+conntrack --ctstate INVALID -j DROP
+-A INPUT -m comment --comment "990-v4 accept existing connections" -m
+conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+The kernel was not stock, but rather was modified with grsecurity. I
+worked with the grsecurity folks first on this issue (
+https://forums.grsecurity.net/viewtopic.php?f=1&t=4071 ) to isolate
+and explain what's going on. They were very helpful.
+
+One of the developers was nice enough to generate a test case patch
+which I have attached
+
+The bug:
+
+I am using the pax memory sanitization feature (
+https://en.wikibooks.org/wiki/Grsecurity/Appendix/Grsecurity_and_PaX_Configuration_Options#Sanitize_all_freed_memory
+) which, long story short, wipes stuff as soon as it is marked as
+freed in memory.
+
+What happens is that after a few hours of 50k packets per second,
+"something" triggers a GPF with regards to __nf_conntrack_find_get.
+This happens on both 3.16.5 and 3.17.1.
+
+The panics I am dumping here are NOT with the same patch I've attached
+because netconsole is ... inconsistent with when choosing to work. As
+an aside, what is the ideal way to get kernel oops output anyway? It
+is a massive pain in the ass and not the most consistent thing to rely
+on netconsole.
+
+* Patch-specific oops:
+
+https://imgur.com/4li7ePm
+
+This is obviously missing a lot, but looks like the same issue from
+what my semi-educated eye can see.
+
+Note: please Ignore the xt_* modules as they were not in use at the
+time, and were not present for either the 3.16.5 panics or the 3.17.1
++ sanitize test case patch.
+
+* 3.17.1 grsecurity kernel oops via netconsole:
+
+Oct 27 09:52:53 REDACTED [23041.341354] general protection fault: 0000 [#4]
+Oct 27 09:52:53 REDACTED SMP
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED [23041.341413] Modules linked in:
+Oct 27 09:52:53 REDACTED xt_DELUDE(O)
+Oct 27 09:52:53 REDACTED xt_CHAOS(O)
+Oct 27 09:52:53 REDACTED xt_TARPIT(O)
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED [23041.341476] CPU: 6 PID: 3052 Comm: tor
+Tainted: G D O 3.17.1-hardened #1
+Oct 27 09:52:53 REDACTED [23041.341538] Hardware name: Supermicro
+A1SA2-2750F/A1SA2-2750F, BIOS 1.0a 07/14/2014
+Oct 27 09:52:53 REDACTED [23041.341600] task: ffff880276ed6b10 ti:
+ffff880276ed6f60 task.ti: ffff880276ed6f60
+Oct 27 09:52:53 REDACTED [23041.341660] RIP: 0010:[<ffffffff814b58ce>]
+Oct 27 09:52:53 REDACTED [<ffffffff814b58ce>] __nf_conntrack_find_get+0x6e/0x290
+Oct 27 09:52:53 REDACTED [23041.341732] RSP: 0018:ffffc90006073930
+EFLAGS: 00010246
+Oct 27 09:52:53 REDACTED [23041.341770] RAX: 0000000000014230 RBX:
+fefefefefefefefe RCX: 0000000000014a70
+Oct 27 09:52:53 REDACTED [23041.341811] RDX: 000000000000294e RSI:
+00000000000266e2 RDI: 00000000fefefefe
+Oct 27 09:52:53 REDACTED [23041.341852] RBP: ffffc90006073958 R08:
+0000000073a1bccf R09: 00000000bd127271
+Oct 27 09:52:53 REDACTED [23041.341894] R10: ffffc900060739c0 R11:
+ffff880273943f08 R12: ffffc900060739a8
+Oct 27 09:52:53 REDACTED [23041.341935] R13: 0000000000000000 R14:
+00000000a538c88a R15: ffffffff81a7e240
+Oct 27 09:52:53 REDACTED [23041.341976] FS: 0000031cb9d65700(0000)
+GS:ffff88027fd80000(0000) knlGS:0000000000000000
+Oct 27 09:52:53 REDACTED [23041.342037] CS: 0010 DS: 0000 ES: 0000
+CR0: 0000000080050033
+Oct 27 09:52:53 REDACTED [23041.342077] CR2: 000002faa3f38000 CR3:
+0000000001654000 CR4: 00000000001007f0
+Oct 27 09:52:53 REDACTED [23041.342117] Stack:
+Oct 27 09:52:53 REDACTED [23041.342147] ffff880211a540e0
+Oct 27 09:52:53 REDACTED ffffffff81a7e240
+Oct 27 09:52:53 REDACTED 0000000000000014
+Oct 27 09:52:53 REDACTED ffffffff81a9e660
+Oct 27 09:52:53 REDACTED [23041.342225] 0000000000000000
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED ffffc90006073a28
+Oct 27 09:52:53 REDACTED ffffffff814b6d2c
+Oct 27 09:52:53 REDACTED ffffffff81a9e660
+Oct 27 09:52:53 REDACTED [23041.342303] ffffffff81a904a0
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED ffff880079cabc4c
+Oct 27 09:52:53 REDACTED ffff8802a538c88a
+Oct 27 09:52:53 REDACTED ffffffff81a904a0
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED [23041.342380] Call Trace:
+Oct 27 09:52:53 REDACTED [23041.342416] [<ffffffff814b6d2c>]
+nf_conntrack_in+0x1fc/0x990
+Oct 27 09:52:53 REDACTED [23041.342459] [<ffffffff8158bcab>]
+ipv4_conntrack_local+0x4b/0x50
+Oct 27 09:52:53 REDACTED [23041.342501] [<ffffffff814ae7f8>]
+nf_iterate+0xa8/0xc0
+Oct 27 09:52:53 REDACTED [23041.342543] [<ffffffff8152ffe0>] ?
+ip_forward_options+0x1f0/0x1f0
+Oct 27 09:52:53 REDACTED [23041.342585] [<ffffffff814ae885>]
+nf_hook_slow+0x75/0x120
+Oct 27 09:52:53 REDACTED [23041.342625] [<ffffffff8152ffe0>] ?
+ip_forward_options+0x1f0/0x1f0
+Oct 27 09:52:53 REDACTED [23041.342667] [<ffffffff81532503>]
+__ip_local_out+0xa3/0xb0
+Oct 27 09:52:53 REDACTED [23041.342708] [<ffffffff81532525>]
+ip_local_out_sk+0x15/0x50
+Oct 27 09:52:53 REDACTED [23041.342749] [<ffffffff815328cf>]
+ip_queue_xmit+0x14f/0x400
+Oct 27 09:52:53 REDACTED [23041.342791] [<ffffffff8154b99b>]
+tcp_transmit_skb+0x48b/0x930
+Oct 27 09:52:53 REDACTED [23041.342832] [<ffffffff8154bf82>]
+tcp_write_xmit+0x142/0xd10
+Oct 27 09:52:53 REDACTED [23041.342873] [<ffffffff8154cdb9>]
+__tcp_push_pending_frames+0x29/0x90
+Oct 27 09:52:53 REDACTED [23041.342915] [<ffffffff8153b737>] tcp_push+0xe7/0x120
+Oct 27 09:52:53 REDACTED [23041.342954] [<ffffffff8153d027>]
+tcp_sendmsg+0x107/0x11d0
+Oct 27 09:52:53 REDACTED [23041.342995] [<ffffffff8126e1ce>] ?
+selinux_socket_sendmsg+0x1e/0x30
+Oct 27 09:52:53 REDACTED [23041.343037] [<ffffffff8126dbc3>] ?
+avc_has_perm+0xa3/0x190
+Oct 27 09:52:53 REDACTED [23041.343079] [<ffffffff8142b02f>] ?
+sock_sendmsg+0x9f/0xd0
+Oct 27 09:52:53 REDACTED [23041.343120] [<ffffffff8156955e>]
+inet_sendmsg+0x6e/0xc0
+Oct 27 09:52:53 REDACTED [23041.343160] [<ffffffff8126e1ce>] ?
+selinux_socket_sendmsg+0x1e/0x30
+Oct 27 09:52:53 REDACTED [23041.343203] [<ffffffff81429d38>]
+sock_aio_write+0x118/0x150
+Oct 27 09:52:53 REDACTED [23041.343243] [<ffffffff8126fd72>] ?
+inode_has_perm.isra.28+0x22/0x40
+Oct 27 09:52:53 REDACTED [23041.343285] [<ffffffff8126febe>] ?
+file_has_perm+0x8e/0x90
+Oct 27 09:52:53 REDACTED [23041.343327] [<ffffffff81186fd3>]
+do_sync_write+0x63/0x90
+Oct 27 09:52:53 REDACTED [23041.343367] [<ffffffff81187ee2>]
+vfs_write+0x242/0x2b0
+Oct 27 09:52:53 REDACTED [23041.343407] [<ffffffff81188a47>] SyS_write+0x47/0xb0
+Oct 27 09:52:53 REDACTED [23041.343448] [<ffffffff81632dfe>]
+system_call_fastpath+0x16/0x1b
+Oct 27 09:52:53 REDACTED [23041.343487] Code:
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 48
+Oct 27 09:52:53 REDACTED 8b
+Oct 27 09:52:53 REDACTED 18
+Oct 27 09:52:53 REDACTED f6
+Oct 27 09:52:53 REDACTED c3
+Oct 27 09:52:53 REDACTED 01
+Oct 27 09:52:53 REDACTED 74
+Oct 27 09:52:53 REDACTED 21
+Oct 27 09:52:53 REDACTED e9
+Oct 27 09:52:53 REDACTED 56
+Oct 27 09:52:53 REDACTED 01
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 66
+Oct 27 09:52:53 REDACTED 0f
+Oct 27 09:52:53 REDACTED 1f
+Oct 27 09:52:53 REDACTED 44
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 49
+Oct 27 09:52:53 REDACTED 8b
+Oct 27 09:52:53 REDACTED 87
+Oct 27 09:52:53 REDACTED 58
+Oct 27 09:52:53 REDACTED 0d
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 65
+Oct 27 09:52:53 REDACTED ff
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 48
+Oct 27 09:52:53 REDACTED 8b
+Oct 27 09:52:53 REDACTED 1b
+Oct 27 09:52:53 REDACTED f6
+Oct 27 09:52:53 REDACTED c3
+Oct 27 09:52:53 REDACTED 01
+Oct 27 09:52:53 REDACTED 0f
+Oct 27 09:52:53 REDACTED 85
+Oct 27 09:52:53 REDACTED 3a
+Oct 27 09:52:53 REDACTED 01
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 REDACTED 00
+Oct 27 09:52:53 headless syslog-ng[11045]: Error processing log message: <0f>
+Oct 27 09:52:53 REDACTED b6
+Oct 27 09:52:53 REDACTED 43
+Oct 27 09:52:53 REDACTED 37
+Oct 27 09:52:53 REDACTED 8b
+Oct 27 09:52:53 REDACTED 7b
+Oct 27 09:52:53 REDACTED 10
+Oct 27 09:52:53 REDACTED 41
+Oct 27 09:52:53 REDACTED 39
+Oct 27 09:52:53 REDACTED 3c
+Oct 27 09:52:53 REDACTED 24
+Oct 27 09:52:53 REDACTED 75
+Oct 27 09:52:53 REDACTED dd
+Oct 27 09:52:53 REDACTED 8b
+Oct 27 09:52:53 REDACTED 73
+Oct 27 09:52:53 REDACTED 14
+Oct 27 09:52:53 REDACTED 41
+Oct 27 09:52:53 REDACTED 39
+Oct 27 09:52:53 REDACTED 74
+Oct 27 09:52:53 REDACTED 24
+Oct 27 09:52:53 REDACTED 04
+Oct 27 09:52:53 REDACTED [23041.343964] RIP
+Oct 27 09:52:53 REDACTED
+Oct 27 09:52:53 REDACTED [<ffffffff814b58ce>] __nf_conntrack_find_get+0x6e/0x290
+Oct 27 09:52:53 REDACTED [23041.344011] RSP <ffffc90006073930>
+Oct 27 09:52:53 REDACTED [23041.344609] ---[ end trace 874c3cf41b00aa37 ]---
+Oct 27 09:52:53 REDACTED [23041.344717] Kernel panic - not syncing:
+Fatal exception in interrupt
+Oct 27 09:52:53 REDACTED [23041.344832] Kernel Offset: 0x0 from
+0xffffffff81000000 (relocation range:
+0xffffffff80000000-0xffffffff9fffffff)
+Oct 27 09:52:53 REDACTED [23041.344965] ---[ end Kernel panic - not
+syncing: Fatal exception in interrupt
+
+The spot of code that's causing grief:
+
+# addr2line -e vmlinux -fip ffffffff814b58ce
+nf_ct_tuplehash_to_ctrack at
+/usr/src/linux/include/net/netfilter/nf_conntrack.h:122
+ (inlined by) nf_ct_key_equal at
+/usr/src/linux/net/netfilter/nf_conntrack_core.c:393
+ (inlined by) ____nf_conntrack_find at
+/usr/src/linux/net/netfilter/nf_conntrack_core.c:422
+ (inlined by) __nf_conntrack_find_get at
+/usr/src/linux/net/netfilter/nf_conntrack_core.c:453
+
+* 3.16.5 panic:
+
+Oct 25 10:56:25 REDACTED [13480.030174] general protection fault: 0000 [#1]
+Oct 25 10:56:25 REDACTED SMP
+Oct 25 10:56:25 REDACTED [13480.030209] Modules linked in:
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED [13480.030229] CPU: 6 PID: 3945 Comm: tor Not
+tainted 3.16.5-hardened #6
+Oct 25 10:56:25 REDACTED [13480.030248] Hardware name: Supermicro
+A1SA2-2750F/A1SA2-2750F, BIOS 1.0a 07/14/2014
+Oct 25 10:56:25 REDACTED [13480.030270] task: ffff880273de0aa0 ti:
+ffff880273de1100 task.ti: ffff880273de1100
+Oct 25 10:56:25 REDACTED [13480.030291] RIP: 0010:[<ffffffff814ad7ae>]
+Oct 25 10:56:25 REDACTED [<ffffffff814ad7ae>] __nf_conntrack_find_get+0x6e/0x2c0
+Oct 25 10:56:25 REDACTED [13480.030323] RSP: 0018:ffffc900077d3938
+EFLAGS: 00010246
+Oct 25 10:56:25 REDACTED [13480.030338] RAX: 0000000000014758 RBX:
+fefefefefefefefe RCX: 0000000000014240
+Oct 25 10:56:25 REDACTED [13480.030357] RDX: 0000000000002848 RSI:
+000000000002dca2 RDI: 00000000fefefefe
+Oct 25 10:56:25 REDACTED [13480.030376] RBP: ffffc900077d3960 R08:
+000000008ae71bc9 R09: 00000000d83e14ec
+Oct 25 10:56:25 REDACTED [13480.030417] R10: ffffc900077d39c0 R11:
+ffff880273c55f08 R12: ffffc900077d39a8
+Oct 25 10:56:25 REDACTED [13480.030457] R13: 0000000000000000 R14:
+00000000a1227919 R15: ffffffff81a5c040
+Oct 25 10:56:25 REDACTED [13480.030497] FS:  000002fde93dc700(0000)
+GS:ffff88027fd80000(0000) knlGS:0000000000000000
+Oct 25 10:56:25 REDACTED [13480.030557] CS:  0010 DS: 0000 ES: 0000
+CR0: 0000000080050033
+Oct 25 10:56:25 REDACTED [13480.030594] CR2: 000003620f851018 CR3:
+000000000164d000 CR4: 00000000001007f0
+Oct 25 10:56:25 REDACTED [13480.030634] Stack:
+Oct 25 10:56:25 REDACTED [13480.030663]  ffff88006a1cf6e0
+Oct 25 10:56:25 REDACTED ffffffff81a5c040
+Oct 25 10:56:25 REDACTED 0000000000000014
+Oct 25 10:56:25 REDACTED ffffffff81a7a6a0
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED [13480.030739]  0000000000000000
+Oct 25 10:56:25 REDACTED ffffc900077d3a30
+Oct 25 10:56:25 REDACTED ffffffff814aee5a
+Oct 25 10:56:25 REDACTED ffffffff81a7a6a0
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED [13480.030813]  ffffffff81a6c2c0
+Oct 25 10:56:25 REDACTED ffff8802a1227919
+Oct 25 10:56:25 REDACTED ffffffff81a6c2c0
+Oct 25 10:56:25 REDACTED 0000000300000002
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED [13480.030889] Call Trace:
+Oct 25 10:56:25 REDACTED [13480.030924]  [<ffffffff814aee5a>]
+nf_conntrack_in+0x32a/0x980
+Oct 25 10:56:25 REDACTED [13480.030965]  [<ffffffff81584e8b>]
+ipv4_conntrack_local+0x4b/0x50
+Oct 25 10:56:25 REDACTED [13480.031005]  [<ffffffff814a6b08>]
+nf_iterate+0xa8/0xc0
+Oct 25 10:56:25 REDACTED [13480.031045]  [<ffffffff81529ee0>] ?
+ip_forward_options+0x1f0/0x1f0
+Oct 25 10:56:25 REDACTED [13480.031085]  [<ffffffff814a6b95>]
+nf_hook_slow+0x75/0x120
+Oct 25 10:56:25 REDACTED [13480.031124]  [<ffffffff81529ee0>] ?
+ip_forward_options+0x1f0/0x1f0
+Oct 25 10:56:25 REDACTED [13480.031165]  [<ffffffff8152c282>]
+__ip_local_out+0x72/0x80
+Oct 25 10:56:25 REDACTED [13480.031203]  [<ffffffff8152c2a5>]
+ip_local_out_sk+0x15/0x50
+Oct 25 10:56:25 REDACTED [13480.031242]  [<ffffffff8152c650>]
+ip_queue_xmit+0x150/0x3e0
+Oct 25 10:56:25 REDACTED [13480.031281]  [<ffffffff815449bd>]
+tcp_transmit_skb+0x41d/0x8d0
+Oct 25 10:56:25 REDACTED [13480.031320]  [<ffffffff81544fb2>]
+tcp_write_xmit+0x142/0xc10
+Oct 25 10:56:25 REDACTED [13480.031360]  [<ffffffff8142f72f>] ?
+__alloc_skb+0x12f/0x1c0
+Oct 25 10:56:25 REDACTED [13480.031399]  [<ffffffff81545d7b>]
+tcp_push_one+0x2b/0x40
+Oct 25 10:56:25 REDACTED [13480.031438]  [<ffffffff815377c9>]
+tcp_sendmsg+0xba9/0x1580
+Oct 25 10:56:25 REDACTED [13480.031478]  [<ffffffff81244bc0>] ?
+avc_has_perm+0x50/0x130
+Oct 25 10:56:25 REDACTED [13480.031518]  [<ffffffff81561304>]
+inet_sendmsg+0x54/0xc0
+Oct 25 10:56:25 REDACTED [13480.031557]  [<ffffffff8124565e>] ?
+selinux_socket_sendmsg+0x1e/0x30
+Oct 25 10:56:25 REDACTED [13480.031598]  [<ffffffff81424e7b>]
+sock_aio_write+0x10b/0x150
+Oct 25 10:56:25 REDACTED [13480.031639]  [<ffffffff81153eb6>]
+do_sync_write+0x66/0xa0
+Oct 25 10:56:25 REDACTED [13480.031677]  [<ffffffff81154d05>]
+vfs_write+0x255/0x2c0
+Oct 25 10:56:25 REDACTED [13480.031715]  [<ffffffff8115591b>]
+SyS_write+0x4b/0xc0
+Oct 25 10:56:25 REDACTED [13480.031754]  [<ffffffff816288be>]
+system_call_fastpath+0x16/0x1b
+Oct 25 10:56:25 REDACTED [13480.031792] Code:
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 48
+Oct 25 10:56:25 REDACTED 8b
+Oct 25 10:56:25 REDACTED 18
+Oct 25 10:56:25 REDACTED f6
+Oct 25 10:56:25 REDACTED c3
+Oct 25 10:56:25 REDACTED 01
+Oct 25 10:56:25 REDACTED 74
+Oct 25 10:56:25 REDACTED 21
+Oct 25 10:56:25 REDACTED e9
+Oct 25 10:56:25 REDACTED 6e
+Oct 25 10:56:25 REDACTED 01
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 66
+Oct 25 10:56:25 REDACTED 0f
+Oct 25 10:56:25 REDACTED 1f
+Oct 25 10:56:25 REDACTED 44
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 49
+Oct 25 10:56:25 REDACTED 8b
+Oct 25 10:56:25 REDACTED 87
+Oct 25 10:56:25 REDACTED 50
+Oct 25 10:56:25 REDACTED 0b
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 65
+Oct 25 10:56:25 REDACTED ff
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 48
+Oct 25 10:56:25 REDACTED 8b
+Oct 25 10:56:25 REDACTED 1b
+Oct 25 10:56:25 REDACTED f6
+Oct 25 10:56:25 REDACTED c3
+Oct 25 10:56:25 REDACTED 01
+Oct 25 10:56:25 REDACTED 0f
+Oct 25 10:56:25 REDACTED 85
+Oct 25 10:56:25 REDACTED 52
+Oct 25 10:56:25 REDACTED 01
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 REDACTED 00
+Oct 25 10:56:25 headless syslog-ng[11045]: Error processing log message: <0f>
+Oct 25 10:56:25 REDACTED b6
+Oct 25 10:56:25 REDACTED 43
+Oct 25 10:56:25 REDACTED 37
+Oct 25 10:56:25 REDACTED 8b
+Oct 25 10:56:25 REDACTED 7b
+Oct 25 10:56:25 REDACTED 10
+Oct 25 10:56:25 REDACTED 41
+Oct 25 10:56:25 REDACTED 39
+Oct 25 10:56:25 REDACTED 3c
+Oct 25 10:56:25 REDACTED 24
+Oct 25 10:56:25 REDACTED 75
+Oct 25 10:56:25 REDACTED dd
+Oct 25 10:56:25 REDACTED 8b
+Oct 25 10:56:25 REDACTED 73
+Oct 25 10:56:25 REDACTED 14
+Oct 25 10:56:25 REDACTED 41
+Oct 25 10:56:25 REDACTED 39
+Oct 25 10:56:25 REDACTED 74
+Oct 25 10:56:25 REDACTED 24
+Oct 25 10:56:25 REDACTED 04
+Oct 25 10:56:25 REDACTED [13480.032227] RIP
+Oct 25 10:56:25 REDACTED
+Oct 25 10:56:25 REDACTED [<ffffffff814ad7ae>] __nf_conntrack_find_get+0x6e/0x2c0
+Oct 25 10:56:25 REDACTED [13480.032273]  RSP <ffffc900077d3938>
+Oct 25 10:56:25 REDACTED [13480.032859] ---[ end trace c5991a03f3433531 ]---
+Oct 25 10:56:25 REDACTED [13480.032965] Kernel panic - not syncing:
+Fatal exception in interrupt
+Oct 25 10:56:25 REDACTED [13480.033075] Kernel Offset: 0x0 from
+0xffffffff81000000 (relocation range:
+0xffffffff80000000-0xffffffff9fffffff)
+Oct 25 10:56:25 REDACTED [13480.033206] ---[ end Kernel panic - not
+syncing: Fatal exception in interrupt
+
+--089e01494210ecf4710506b9a5e9
+Content-Type: text/plain; charset=US-ASCII; name="v3.17-pax_slab_sanitize_only.diff"
+Content-Disposition: attachment;
+	filename="v3.17-pax_slab_sanitize_only.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i1xp41qt0
+
+ZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24va2VybmVsLXBhcmFtZXRlcnMudHh0IGIvRG9jdW1l
+bnRhdGlvbi9rZXJuZWwtcGFyYW1ldGVycy50eHQKaW5kZXggMWVkZDVmZGM2MjlkLi4xNGVkYTkw
+YWEzOGUgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24va2VybmVsLXBhcmFtZXRlcnMudHh0Cisr
+KyBiL0RvY3VtZW50YXRpb24va2VybmVsLXBhcmFtZXRlcnMudHh0CkBAIC0yNDY3LDYgKzI0Njcs
+MTAgQEAgYnl0ZXMgcmVzcGVjdGl2ZWx5LiBTdWNoIGxldHRlciBzdWZmaXhlcyBjYW4gYWxzbyBi
+ZSBlbnRpcmVseSBvbWl0dGVkLgogCQkJdGhlIHNwZWNpZmllZCBudW1iZXIgb2Ygc2Vjb25kcy4g
+IFRoaXMgaXMgdG8gYmUgdXNlZCBpZgogCQkJeW91ciBvb3BzZXMga2VlcCBzY3JvbGxpbmcgb2Zm
+IHRoZSBzY3JlZW4uCiAKKwlwYXhfc2FuaXRpemVfc2xhYj0KKwkJCTAvMSB0byBkaXNhYmxlL2Vu
+YWJsZSBzbGFiIG9iamVjdCBzYW5pdGl6YXRpb24gKGVuYWJsZWQKKwkJCWJ5IGRlZmF1bHQpLgor
+CiAJcGNiaXQ9CQlbSFcsSVNETl0KIAogCXBjZC4JCVtQQVJJREVdCmRpZmYgLS1naXQgYS9pbmNs
+dWRlL2xpbnV4L3NsYWIuaCBiL2luY2x1ZGUvbGludXgvc2xhYi5oCmluZGV4IDFkOWFiYjdkMjJh
+MC4uMDY3YmQwMWZlZDkyIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L3NsYWIuaAorKysgYi9p
+bmNsdWRlL2xpbnV4L3NsYWIuaApAQCAtMjMsNiArMjMsNyBAQAogI2RlZmluZSBTTEFCX0RFQlVH
+X0ZSRUUJCTB4MDAwMDAxMDBVTAkvKiBERUJVRzogUGVyZm9ybSAoZXhwZW5zaXZlKSBjaGVja3Mg
+b24gZnJlZSAqLwogI2RlZmluZSBTTEFCX1JFRF9aT05FCQkweDAwMDAwNDAwVUwJLyogREVCVUc6
+IFJlZCB6b25lIG9ianMgaW4gYSBjYWNoZSAqLwogI2RlZmluZSBTTEFCX1BPSVNPTgkJMHgwMDAw
+MDgwMFVMCS8qIERFQlVHOiBQb2lzb24gb2JqZWN0cyAqLworI2RlZmluZSBTTEFCX05PX1NBTklU
+SVpFCTB4MDAwMDEwMDBVTAkvKiBQYVg6IERvIG5vdCBzYW5pdGl6ZSBvYmpzIG9uIGZyZWUgKi8K
+ICNkZWZpbmUgU0xBQl9IV0NBQ0hFX0FMSUdOCTB4MDAwMDIwMDBVTAkvKiBBbGlnbiBvYmpzIG9u
+IGNhY2hlIGxpbmVzICovCiAjZGVmaW5lIFNMQUJfQ0FDSEVfRE1BCQkweDAwMDA0MDAwVUwJLyog
+VXNlIEdGUF9ETUEgbWVtb3J5ICovCiAjZGVmaW5lIFNMQUJfU1RPUkVfVVNFUgkJMHgwMDAxMDAw
+MFVMCS8qIERFQlVHOiBTdG9yZSB0aGUgbGFzdCBvd25lciBmb3IgYnVnIGh1bnRpbmcgKi8KZGlm
+ZiAtLWdpdCBhL21tL3NsYWIuYyBiL21tL3NsYWIuYwppbmRleCA3YzUyYjM4OTBkMjUuLjNmMTEx
+NTQxZDFjZSAxMDA2NDQKLS0tIGEvbW0vc2xhYi5jCisrKyBiL21tL3NsYWIuYwpAQCAtMzM4NCw2
+ICszMzg0LDE2IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBfX2NhY2hlX2ZyZWUoc3RydWN0IGttZW1f
+Y2FjaGUgKmNhY2hlcCwgdm9pZCAqb2JqcCwKIAlzdHJ1Y3QgYXJyYXlfY2FjaGUgKmFjID0gY3B1
+X2NhY2hlX2dldChjYWNoZXApOwogCiAJY2hlY2tfaXJxX29mZigpOworCisJaWYgKHBheF9zYW5p
+dGl6ZV9zbGFiKSB7CisJCWlmICghKGNhY2hlcC0+ZmxhZ3MgJiAoU0xBQl9QT0lTT04gfCBTTEFC
+X05PX1NBTklUSVpFKSkpIHsKKwkJCW1lbXNldChvYmpwLCBQQVhfTUVNT1JZX1NBTklUSVpFX1ZB
+TFVFLCBjYWNoZXAtPm9iamVjdF9zaXplKTsKKworCQkJaWYgKGNhY2hlcC0+Y3RvcikKKwkJCQlj
+YWNoZXAtPmN0b3Iob2JqcCk7CisJCX0KKwl9CisKIAlrbWVtbGVha19mcmVlX3JlY3Vyc2l2ZShv
+YmpwLCBjYWNoZXAtPmZsYWdzKTsKIAlvYmpwID0gY2FjaGVfZnJlZV9kZWJ1Z2NoZWNrKGNhY2hl
+cCwgb2JqcCwgY2FsbGVyKTsKIApkaWZmIC0tZ2l0IGEvbW0vc2xhYi5oIGIvbW0vc2xhYi5oCmlu
+ZGV4IDBlMGZkZDM2NTg0MC4uM2EyZDZjYmFlNjAxIDEwMDY0NAotLS0gYS9tbS9zbGFiLmgKKysr
+IGIvbW0vc2xhYi5oCkBAIC0zMiw2ICszMiwxMyBAQCBleHRlcm4gc3RydWN0IGxpc3RfaGVhZCBz
+bGFiX2NhY2hlczsKIC8qIFRoZSBzbGFiIGNhY2hlIHRoYXQgbWFuYWdlcyBzbGFiIGNhY2hlIGlu
+Zm9ybWF0aW9uICovCiBleHRlcm4gc3RydWN0IGttZW1fY2FjaGUgKmttZW1fY2FjaGU7CiAKKyNp
+ZmRlZiBDT05GSUdfWDg2XzY0CisjZGVmaW5lIFBBWF9NRU1PUllfU0FOSVRJWkVfVkFMVUUgICAg
+ICAnXHhmZScKKyNlbHNlCisjZGVmaW5lIFBBWF9NRU1PUllfU0FOSVRJWkVfVkFMVUUgICAgICAn
+XHhmZicKKyNlbmRpZgorZXh0ZXJuIGJvb2wgcGF4X3Nhbml0aXplX3NsYWI7CisKIHVuc2lnbmVk
+IGxvbmcgY2FsY3VsYXRlX2FsaWdubWVudCh1bnNpZ25lZCBsb25nIGZsYWdzLAogCQl1bnNpZ25l
+ZCBsb25nIGFsaWduLCB1bnNpZ25lZCBsb25nIHNpemUpOwogCkBAIC02Nyw3ICs3NCw3IEBAIF9f
+a21lbV9jYWNoZV9hbGlhcyhjb25zdCBjaGFyICpuYW1lLCBzaXplX3Qgc2l6ZSwgc2l6ZV90IGFs
+aWduLAogCiAvKiBMZWdhbCBmbGFnIG1hc2sgZm9yIGttZW1fY2FjaGVfY3JlYXRlKCksIGZvciB2
+YXJpb3VzIGNvbmZpZ3VyYXRpb25zICovCiAjZGVmaW5lIFNMQUJfQ09SRV9GTEFHUyAoU0xBQl9I
+V0NBQ0hFX0FMSUdOIHwgU0xBQl9DQUNIRV9ETUEgfCBTTEFCX1BBTklDIHwgXAotCQkJIFNMQUJf
+REVTVFJPWV9CWV9SQ1UgfCBTTEFCX0RFQlVHX09CSkVDVFMgKQorCQkJIFNMQUJfREVTVFJPWV9C
+WV9SQ1UgfCBTTEFCX0RFQlVHX09CSkVDVFMgfCBTTEFCX05PX1NBTklUSVpFKQogCiAjaWYgZGVm
+aW5lZChDT05GSUdfREVCVUdfU0xBQikKICNkZWZpbmUgU0xBQl9ERUJVR19GTEFHUyAoU0xBQl9S
+RURfWk9ORSB8IFNMQUJfUE9JU09OIHwgU0xBQl9TVE9SRV9VU0VSKQpkaWZmIC0tZ2l0IGEvbW0v
+c2xhYl9jb21tb24uYyBiL21tL3NsYWJfY29tbW9uLmMKaW5kZXggZDMxOTUwMmIyNDAzLi5mODhk
+YmMzZmExZTcgMTAwNjQ0Ci0tLSBhL21tL3NsYWJfY29tbW9uLmMKKysrIGIvbW0vc2xhYl9jb21t
+b24uYwpAQCAtMzAsNiArMzAsMTUgQEAgTElTVF9IRUFEKHNsYWJfY2FjaGVzKTsKIERFRklORV9N
+VVRFWChzbGFiX211dGV4KTsKIHN0cnVjdCBrbWVtX2NhY2hlICprbWVtX2NhY2hlOwogCitib29s
+IHBheF9zYW5pdGl6ZV9zbGFiIF9fcmVhZF9tb3N0bHkgPSB0cnVlOworc3RhdGljIGludCBfX2lu
+aXQgcGF4X3Nhbml0aXplX3NsYWJfc2V0dXAoY2hhciAqc3RyKQoreworCXBheF9zYW5pdGl6ZV9z
+bGFiID0gISFzaW1wbGVfc3RydG9sKHN0ciwgTlVMTCwgMCk7CisJcHJpbnRrKCIlc2FibGVkIFBh
+WCBzbGFiIHNhbml0aXphdGlvblxuIiwgcGF4X3Nhbml0aXplX3NsYWIgPyAiRW4iIDogIkRpcyIp
+OworCXJldHVybiAxOworfQorX19zZXR1cCgicGF4X3Nhbml0aXplX3NsYWI9IiwgcGF4X3Nhbml0
+aXplX3NsYWJfc2V0dXApOworCiAjaWZkZWYgQ09ORklHX0RFQlVHX1ZNCiBzdGF0aWMgaW50IGtt
+ZW1fY2FjaGVfc2FuaXR5X2NoZWNrKGNvbnN0IGNoYXIgKm5hbWUsIHNpemVfdCBzaXplKQogewpk
+aWZmIC0tZ2l0IGEvbW0vc2xvYi5jIGIvbW0vc2xvYi5jCmluZGV4IDIxOTgwZTBmMzlhOC4uYzQ5
+MDdkNzY2MDQ4IDEwMDY0NAotLS0gYS9tbS9zbG9iLmMKKysrIGIvbW0vc2xvYi5jCkBAIC0zNjUs
+NiArMzY1LDkgQEAgc3RhdGljIHZvaWQgc2xvYl9mcmVlKHZvaWQgKmJsb2NrLCBpbnQgc2l6ZSkK
+IAkJcmV0dXJuOwogCX0KIAorCWlmIChwYXhfc2FuaXRpemVfc2xhYikKKwkJbWVtc2V0KGJsb2Nr
+LCBQQVhfTUVNT1JZX1NBTklUSVpFX1ZBTFVFLCBzaXplKTsKKwogCWlmICghc2xvYl9wYWdlX2Zy
+ZWUoc3ApKSB7CiAJCS8qIFRoaXMgc2xvYiBwYWdlIGlzIGFib3V0IHRvIGJlY29tZSBwYXJ0aWFs
+bHkgZnJlZS4gRWFzeSEgKi8KIAkJc3AtPnVuaXRzID0gdW5pdHM7CmRpZmYgLS1naXQgYS9tbS9z
+bHViLmMgYi9tbS9zbHViLmMKaW5kZXggM2U4YWZjYzA3YTc2Li4wOGE3Y2JjZjIyNzQgMTAwNjQ0
+Ci0tLSBhL21tL3NsdWIuYworKysgYi9tbS9zbHViLmMKQEAgLTI2NDMsNiArMjY0MywxMiBAQCBz
+dGF0aWMgX19hbHdheXNfaW5saW5lIHZvaWQgc2xhYl9mcmVlKHN0cnVjdCBrbWVtX2NhY2hlICpz
+LAogCiAJc2xhYl9mcmVlX2hvb2socywgeCk7CiAKKwlpZiAocGF4X3Nhbml0aXplX3NsYWIgJiYg
+IShzLT5mbGFncyAmIFNMQUJfTk9fU0FOSVRJWkUpKSB7CisJCW1lbXNldCh4LCBQQVhfTUVNT1JZ
+X1NBTklUSVpFX1ZBTFVFLCBzLT5vYmplY3Rfc2l6ZSk7CisJCWlmIChzLT5jdG9yKQorCQkJcy0+
+Y3Rvcih4KTsKKwl9CisKIHJlZG86CiAJLyoKIAkgKiBEZXRlcm1pbmUgdGhlIGN1cnJlbnRseSBj
+cHVzIHBlciBjcHUgc2xhYi4KQEAgLTI5ODYsNiArMjk5Miw3IEBAIHN0YXRpYyBpbnQgY2FsY3Vs
+YXRlX3NpemVzKHN0cnVjdCBrbWVtX2NhY2hlICpzLCBpbnQgZm9yY2VkX29yZGVyKQogCXMtPmlu
+dXNlID0gc2l6ZTsKIAogCWlmICgoKGZsYWdzICYgKFNMQUJfREVTVFJPWV9CWV9SQ1UgfCBTTEFC
+X1BPSVNPTikpIHx8CisJCShwYXhfc2FuaXRpemVfc2xhYiAmJiAhKGZsYWdzICYgU0xBQl9OT19T
+QU5JVElaRSkpIHx8CiAJCXMtPmN0b3IpKSB7CiAJCS8qCiAJCSAqIFJlbG9jYXRlIGZyZWUgcG9p
+bnRlciBhZnRlciB0aGUgb2JqZWN0IGlmIGl0IGlzIG5vdApkaWZmIC0tZ2l0IGEvbmV0L2NvcmUv
+c2tidWZmLmMgYi9uZXQvY29yZS9za2J1ZmYuYwppbmRleCA4ZDI4OTY5N2NjN2EuLjdhNGU1MmQ5
+MGVlZCAxMDA2NDQKLS0tIGEvbmV0L2NvcmUvc2tidWZmLmMKKysrIGIvbmV0L2NvcmUvc2tidWZm
+LmMKQEAgLTMyMzcsMTMgKzMyMzcsMTUgQEAgdm9pZCBfX2luaXQgc2tiX2luaXQodm9pZCkKIAlz
+a2J1ZmZfaGVhZF9jYWNoZSA9IGttZW1fY2FjaGVfY3JlYXRlKCJza2J1ZmZfaGVhZF9jYWNoZSIs
+CiAJCQkJCSAgICAgIHNpemVvZihzdHJ1Y3Qgc2tfYnVmZiksCiAJCQkJCSAgICAgIDAsCi0JCQkJ
+CSAgICAgIFNMQUJfSFdDQUNIRV9BTElHTnxTTEFCX1BBTklDLAorCQkJCQkgICAgICBTTEFCX0hX
+Q0FDSEVfQUxJR058U0xBQl9QQU5JQ3wKKwkJCQkJICAgICAgU0xBQl9OT19TQU5JVElaRSwKIAkJ
+CQkJICAgICAgTlVMTCk7CiAJc2tidWZmX2ZjbG9uZV9jYWNoZSA9IGttZW1fY2FjaGVfY3JlYXRl
+KCJza2J1ZmZfZmNsb25lX2NhY2hlIiwKIAkJCQkJCSgyKnNpemVvZihzdHJ1Y3Qgc2tfYnVmZikp
+ICsKIAkJCQkJCXNpemVvZihhdG9taWNfdCksCiAJCQkJCQkwLAotCQkJCQkJU0xBQl9IV0NBQ0hF
+X0FMSUdOfFNMQUJfUEFOSUMsCisJCQkJCQlTTEFCX0hXQ0FDSEVfQUxJR058U0xBQl9QQU5JQ3wK
+KwkJCQkJCVNMQUJfTk9fU0FOSVRJWkUsCiAJCQkJCQlOVUxMKTsKIH0KIAo=
+--089e01494210ecf4710506b9a5e9--
