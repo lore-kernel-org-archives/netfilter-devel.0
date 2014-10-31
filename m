@@ -1,39 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_log: fix sparse warning in nf_logger_find_get()
-Date: Thu, 30 Oct 2014 18:40:02 +0100
-Message-ID: <1414690802-26724-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47009 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932947AbaJ3Ri3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Oct 2014 13:38:29 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [GIT PULL nf] IPVS Fixes for v3.18
+Date: Fri, 31 Oct 2014 12:47:09 +0100
+Message-ID: <20141031114709.GA4510@salvia>
+References: <1414458334-22479-1-git-send-email-horms@verge.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1414458334-22479-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-net/netfilter/nf_log.c:157:16: warning: incorrect type in assignment (different address spaces)
-net/netfilter/nf_log.c:157:16:    expected struct nf_logger *logger
-net/netfilter/nf_log.c:157:16:    got struct nf_logger [noderef] <asn:4>*<noident>
+On Tue, Oct 28, 2014 at 10:05:33AM +0900, Simon Horman wrote:
+> Hi Pablo,
+> 
+> please consider this fix for v3.18.
+> 
+> It fixes a null-pointer dereference that may occur when logging
+> errors.
+> 
+> This problem was introduced by 4a4739d56b0 ("ipvs: Pull out
+> crosses_local_route_boundary logic") in v3.17-rc5. As such I would
+> also like it considered for 3.17-stable.
+> 
+> 
+> The following changes since commit 7965ee93719921ea5978f331da653dfa2d7b99f5:
+> 
+>   netfilter: nft_compat: fix wrong target lookup in nft_target_select_ops() (2014-10-27 22:17:46 +0100)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.18
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_log.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 9562e39..49a6417 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -154,8 +154,7 @@ int nf_logger_find_get(int pf, enum nf_log_type type)
- 	struct nf_logger *logger;
- 	int ret = -ENOENT;
- 
--	logger = loggers[pf][type];
--	if (logger == NULL)
-+	if (rcu_access_pointer(loggers[pf][type]) == NULL)
- 		request_module("nf-logger-%u-%u", pf, type);
- 
- 	rcu_read_lock();
--- 
-1.7.10.4
-
+Pulled, thanks Simon.
