@@ -1,43 +1,45 @@
-From: Jeff Mahoney <jeffm@suse.com>
-Subject: [PATCH] netfilter: nft_reject_bridge: fix missing declaration of
- csum_ipv6_magic
-Date: Sun, 02 Nov 2014 22:11:08 -0500
-Message-ID: <5456F24C.7040604@suse.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: nft_reject_bridge: Fix powerpc
+	build error
+Date: Sun, 02 Nov 2014 23:17:30 -0500 (EST)
+Message-ID: <20141102.231730.2267020727414912465.davem@davemloft.net>
+References: <1414981155-27155-1-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40445 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089AbaKCDLa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Nov 2014 22:11:30 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	stephen@networkplumber.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, kaber@trash.net, pablo@netfilter.org
+To: linux@roeck-us.net
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <1414981155-27155-1-git-send-email-linux@roeck-us.net>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Commit 523b929d544 (netfilter: nft_reject_bridge: don't use IP stack
-to reject traffic) adds a use of csum_ipv6_magic but doesn't include
-net/ip6_checksum.h. On architectures that don't define _HAVE_ARCH_IPV6_CSUM,
-like ppc and s390x, we don't get the prototype declared and the build
-fails.
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun,  2 Nov 2014 18:19:15 -0800
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
----
- net/bridge/netfilter/nft_reject_bridge.c |    1 +
- 1 file changed, 1 insertion(+)
+> Fix:
+> net/bridge/netfilter/nft_reject_bridge.c:
+> In function 'nft_reject_br_send_v6_unreach':
+> net/bridge/netfilter/nft_reject_bridge.c:240:3:
+> 	error: implicit declaration of function 'csum_ipv6_magic'
+>    csum_ipv6_magic(&nip6h->saddr, &nip6h->daddr,
+>    ^
+> make[3]: *** [net/bridge/netfilter/nft_reject_bridge.o] Error 1
+> 
+> Seen with powerpc:allmodconfig.
+> 
+> Fixes: 523b929d5446 ("netfilter: nft_reject_bridge: don't use IP stack to reject traffic")
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -18,6 +18,7 @@
- #include <net/netfilter/ipv6/nf_reject.h>
- #include <linux/ip.h>
- #include <net/ip.h>
-+#include <net/ip6_checksum.h>
- #include <linux/netfilter_bridge.h>
- #include "../br_private.h"
- 
-
--- 
-Jeff Mahoney
-SUSE Labs
+Applied, thanks.
