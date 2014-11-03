@@ -1,92 +1,70 @@
-From: Pietro Paolini <pulsarpietro@aol.com>
-Subject: recent module
-Date: Mon, 3 Nov 2014 05:42:04 -0500
-Message-ID: <8D1C569F1803AFD-7C0-3D4A0@webmail-vm135.sysops.aol.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 8BIT
+From: Ana Rey <anarey@gmail.com>
+Subject: [libnftnf PATCH] expr: meta: Add cgroup support
+Date: Mon,  3 Nov 2014 18:10:49 +0100
+Message-ID: <1415034651-27242-1-git-send-email-anarey@gmail.com>
+Cc: dborkman@redhat.com, Ana Rey <anarey@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from omr-m08.mx.aol.com ([64.12.222.129]:60512 "EHLO
-	omr-m08.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033AbaKCKrL convert rfc822-to-8bit (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:60520 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbaKCRKj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Nov 2014 05:47:11 -0500
-Received: from mtaomg-mad01.mx.aol.com (mtaomg-mad01.mx.aol.com [172.26.221.207])
-	by omr-m08.mx.aol.com (Outbound Mail Relay) with ESMTP id 226CE7032BEA2
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Nov 2014 05:42:05 -0500 (EST)
-Received: from core-aca09b.mail.aol.com (core-aca09.mail.aol.com [172.27.9.9])
-	by mtaomg-mad01.mx.aol.com (OMAG/Core Interface) with ESMTP id D28C238000081
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Nov 2014 05:42:04 -0500 (EST)
+	Mon, 3 Nov 2014 12:10:39 -0500
+Received: by mail-wg0-f42.google.com with SMTP id k14so11642686wgh.15
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2014 09:10:38 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The kernel support is add in the commit:
+netfilter: nft_meta: add cgroup support
 
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ include/linux/netfilter/nf_tables.h |    2 ++
+ src/expr/meta.c                     |    3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index bb21315..a8d3a49 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -579,6 +579,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_CPU: cpu id through smp_processor_id()
+  * @NFT_META_IIFGROUP: packet input interface group
+  * @NFT_META_OIFGROUP: packet output interface group
++ * @NFT_META_CGROUP: packet cgroup (skb->sk->sk_classid)
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -604,6 +605,7 @@ enum nft_meta_keys {
+ 	NFT_META_CPU,
+ 	NFT_META_IIFGROUP,
+ 	NFT_META_OIFGROUP,
++	NFT_META_CGROUP,
+ };
+ 
+ /**
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index 5b5159f..59cb55b 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -23,7 +23,7 @@
+ #include "expr_ops.h"
+ 
+ #ifndef NFT_META_MAX
+-#define NFT_META_MAX (NFT_META_OIFGROUP + 1)
++#define NFT_META_MAX (NFT_META_CGROUP + 1)
+ #endif
+ 
+ struct nft_expr_meta {
+@@ -157,6 +157,7 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
+ 	[NFT_META_CPU]		= "cpu",
+ 	[NFT_META_IIFGROUP]	= "iifgroup",
+ 	[NFT_META_OIFGROUP]	= "oifgroup",
++	[NFT_META_CGROUP]	= "cgroup",
+ };
+ 
+ static const char *meta_key2str(uint8_t key)
+-- 
+1.7.10.4
 
-
-Hi all,
-
-
-
-I am trying to use the recent module to stop the slate of attacks I get
-
-everyday, but I am not sure my understanding of its logic it is correct.
-
-
-
--A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW -m
-
-recent --update --seconds 1800 --hitcount 5 --name ssh-defensive
-
---rsource -j DROP
-
--A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW -m
-
-recent --set --name ssh-defensive --rsource
-
-
-
-I am testing this solution - which works as intended - but the packet
-
-counters do not make  sense to me, during my test
-
-I start the ssh client, I get the prompt asking for the password and I
-
-immediately check the iptables counters:
-
-
-
-Chain INPUT (policy ACCEPT 81 packets, 8996 bytes)
-
-  pkts bytes target     prot opt in     out     source
-
-destination
-
-     1    52 LOG        tcp  --  *      *       0.0.0.0/0
-
-0.0.0.0/0            state NEW tcp dpt:22 LOG flags 0 level 4
-
-     0     0 DROP       tcp  --  eth0   *       0.0.0.0/0
-
-0.0.0.0/0            tcp dpt:22 state NEW recent: UPDATE seconds: 1800
-
-hit_count: 5 name: ssh-defensive side: source
-
-     1    52            tcp  --  eth0   *       0.0.0.0/0
-
-0.0.0.0/0            tcp dpt:22 state NEW recent: SET name:
-
-ssh-defensive side: source
-
-
-
-
-
-I expected to see more packets, what about the TCP handshake ?
-
-
-
-Thanks in advance,
-
-Pietro
