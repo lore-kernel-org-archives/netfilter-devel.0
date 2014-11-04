@@ -1,36 +1,52 @@
-From: =?UTF-8?Q?_Adminisztr=C3=A1tor_e-mail_rendszer=2E?=
-	<karnis@primachlad.sk>
-Subject: E-mail Web Team @ 2014
-Date: Tue, 04 Nov 2014 02:02:51 +0100
-Message-ID: <8f032f9ce247741956c8c5e6717fcbc1@primachlad.sk>
+From: "billbonaparte" <programme110@gmail.com>
+Subject: Re: netfilter: nf_conntrack: there maybe a bug in __nf_conntrack_confirm, when it race against get_next_corpse
+Date: Tue, 4 Nov 2014 09:52:58 +0800
+Message-ID: <01b101cff7d2$1715ef20$4541cd60$@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	"Pablo Neira Ayuso" <pablo@netfilter.org>,
+	"Patrick McHardy" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
+	<davem@davemloft.net>, "Changli Gao" <xiaosuo@gmail.com>,
+	"Andrey Vagin" <avagin@openvz.org>
+To: "Jesper Dangaard Brouer" <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-proxyout-mua-6.websupport.sk ([37.9.172.156]:50807 "EHLO
-	mail-proxyout-mua-6.websupport.sk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750849AbaKDBLd (ORCPT
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:61831 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081AbaKDBxi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Nov 2014 20:11:33 -0500
+	Mon, 3 Nov 2014 20:53:38 -0500
+Received: by mail-pd0-f170.google.com with SMTP id z10so12707767pdj.29
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2014 17:53:38 -0800 (PST)
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+(sorry to send this e-mail again, last mail is rejected by server due to
+non-acceptable content)
 
+Jesper Dangaard Brouer <brouer@redhat.com> wrote:
+>> In function __nf_conntrack_confirm, we check the conntrack if it was 
+>> already dead, before insert it into hash-table.
+>> We do this because if we insert an already 'dead' hash,  it will 
+>> block further use of that particular connection.
 
---=20
-A postafi=C3=B3k t=C3=BAll=C3=A9pte, k=C3=A9rem kattintson ide
+>Have you run into this problem in practice, or is this based on a theory?
 
-http://updattw221.jigsy.com/
+If we insert a dead conntrack into hash-table, let's see what will happen to
+the packet which has the same tuple with that dead conntrack:
+1) if it is a valid packet, it will enter in nf_conntrack_in hook, then
+2) we will find a corresponding conntrack for that packet in
+__nf_conntrack_find_get, and there is no doubt that we will find that dead
+conntrack,
+  according to the current implement, we don't use dead conntrack, so we
+create a new conntrack which is unconfirmed.
+3) because there is already a conntrack with the same tuples in hash-table,
+the new conntrack can not be inserted into hash-table, it will return
+NF_DROP,
+4) the packet will be dropped due to the failure of nf_conntrack_confirm.
+That's why inserting an already 'dead' hash will block further use of that
+particular connection.
 
-ellen=C5=91rizze az e-mail K=C3=B6sz=C3=B6n=C3=B6m
-
-Adminisztr=C3=A1tor e-mail rendszer.
-K=C3=B6sz=C3=B6nj=C3=BCk az egy=C3=BCttm=C5=B1k=C3=B6d=C3=A9st!
-E-mail Web Team @ 2014
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
