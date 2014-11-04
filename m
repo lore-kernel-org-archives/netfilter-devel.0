@@ -1,77 +1,95 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH v2] src: add redirect support
-Date: Tue, 4 Nov 2014 17:11:37 +0100
-Message-ID: <CAOkSjBjOYJDF63ZgQMZuLgRgnMNxGtZ3qy3Ko1zFB+bSzOZLQg@mail.gmail.com>
-References: <20141016104056.8678.71075.stgit@nfdev.cica.es>
- <20141030162520.GA2074@salvia> <CAOkSjBibjQa7A-WEw0NbhmRnKNsDgWxgGVe7EP9V8S600uKMGg@mail.gmail.com>
- <20141104133712.GA9190@salvia> <CAOkSjBhSysvcL_wOwJK=aPaAeGKt02=i0mmX=zQ5xW-PRDxgXg@mail.gmail.com>
- <20141104144455.GB10239@salvia> <CAOkSjBhMU2cw=B69G0=Rf-bC-H8BatAhA_07P=qFUjLYNCE4hg@mail.gmail.com>
- <20141104160452.GA11419@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v4 2/3] Do error handling if __build_packet_message fails
+Date: Tue, 4 Nov 2014 17:47:57 +0100
+Message-ID: <20141104164757.GA15508@salvia>
+References: <7be00bf663b212d4984414346da216cf17d3443d.1414586968.git.mleitner@redhat.com>
+ <8dcee609af0015c15d2a99ab6d076a65d6ec01a8.1414586968.git.mleitner@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Marcelo Ricardo Leitner <mleitner@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:47288 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932122AbaKDQL7 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Nov 2014 11:11:59 -0500
-Received: by mail-la0-f46.google.com with SMTP id hs14so1163523lab.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Nov 2014 08:11:57 -0800 (PST)
-In-Reply-To: <20141104160452.GA11419@salvia>
+Received: from mail.us.es ([193.147.175.20]:42040 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752853AbaKDQqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Nov 2014 11:46:13 -0500
+Content-Disposition: inline
+In-Reply-To: <8dcee609af0015c15d2a99ab6d076a65d6ec01a8.1414586968.git.mleitner@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4 November 2014 17:04, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> On Tue, Nov 04, 2014 at 04:04:11PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> On 4 November 2014 15:44, Pablo Neira Ayuso <pablo@netfilter.org> wr=
-ote:
->> > On Tue, Nov 04, 2014 at 02:56:58PM +0100, Arturo Borrero Gonzalez =
-wrote:
->> >> On 4 November 2014 14:37, Pablo Neira Ayuso <pablo@netfilter.org>=
- wrote:
->> >> >
->> >> > I think this needs to be:
->> >> >
->> >> > % nft add rule nat prerouting redirect [port] [nat_flags]
->> >> >
->> >>
->> >> The port and nat_flags arguments are mutually exclusives. That's =
-why I
->> >> used the [port|nat_flags] syntax.
->> >
->> > iptables allows this:
->> >
->> > -j REDIRECT --to-ports 8000-8010 --random
->>
->> Then, should I change the behaviour of the nft redirect parser?
->> The code in my patch doesn't allow that.
->
-> Yes, you have to fix this.
->
->> I think it makes no sense: "redirect to this port; no sorry, redirec=
-t
->> to a random one."
->
-> --to-ports reads as "redirect all traffic from ports 8000 to 8010"
-> --random refers to --to-ports, it reads as "select the port from the
-> 8000-8010 range at random"
->
-> If --random is not specified, then the NAT engines selects the destin=
-ation
-> port in that range one after another (8000, 8001, 8002, ...) IIRC.
+Hi Marcelo,
 
-Understood, thanks.
+On Wed, Oct 29, 2014 at 10:51:14AM -0200, Marcelo Ricardo Leitner wrote:
+> Currently, we don't check if __build_packet_message fails or not and
+> that leaves it prone to sending incomplete messages to userspace.
+> 
+> This commit fixes it by canceling the new message if there was any issue
+> while building it and makes sure the skb is freed if it was the only
+> message in it.
+> 
+> Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
+> ---
+>  net/netfilter/nfnetlink_log.c | 21 +++++++++++++++------
+>  1 file changed, 15 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index b1e3a05794169283ed50d1c0fb4f44d9e7753eeb..045c5956611f61a3f5dad3e15ca7cf19365e5afa 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -568,10 +568,8 @@ __build_packet_message(struct nfnl_log_net *log,
+>  		struct nlattr *nla;
+>  		int size = nla_attr_size(data_len);
+>  
+> -		if (skb_tailroom(inst->skb) < nla_total_size(data_len)) {
+> -			printk(KERN_WARNING "nfnetlink_log: no tailroom!\n");
+> -			return -1;
+> -		}
+> +		if (skb_tailroom(inst->skb) < nla_total_size(data_len))
+> +			goto nla_put_failure;
+>  
+>  		nla = (struct nlattr *)skb_put(inst->skb, nla_total_size(data_len));
+>  		nla->nla_type = NFULA_PAYLOAD;
+> @@ -586,6 +584,7 @@ __build_packet_message(struct nfnl_log_net *log,
+>  
+>  nla_put_failure:
+>  	PRINTR(KERN_ERR "nfnetlink_log: error creating log nlmsg\n");
+> +	nlmsg_cancel(skb, nlh);
+>  	return -1;
+>  }
+>  
+> @@ -708,8 +707,9 @@ nfulnl_log_packet(struct net *net,
+>  
+>  	inst->qlen++;
+>  
+> -	__build_packet_message(log, inst, skb, data_len, pf,
+> -				hooknum, in, out, prefix, plen);
+> +	if (__build_packet_message(log, inst, skb, data_len, pf,
+> +				   hooknum, in, out, prefix, plen))
+> +		goto build_failure;
+>  
+>  	if (inst->qlen >= qthreshold)
+>  		__nfulnl_flush(inst);
+> @@ -726,6 +726,15 @@ unlock_and_release:
+>  	instance_put(inst);
+>  	return;
+>  
+> +build_failure:
+> +	/* If no other messages in it, we're good to free it. */
+> +	if (!inst->skb->len) {
+> +		kfree_skb(inst->skb);
+> +		inst->skb = NULL;
+> +	}
+> +
+> +	inst->qlen--;
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For each message that we put into the batch, we increase inst->qlen in
+one, so I think this decrement isn't enough to leave things in
+consistent state. If we at least have one message already in the
+batch, I think it's good to give it a try to deliver it to userspace:
+
+        if (inst->skb)
+                __nfulnl_flush(inst);
+
+Then, the WARN_ON that Florian added recently should catch that we
+have size miscalculations from __nfulnl_send().
