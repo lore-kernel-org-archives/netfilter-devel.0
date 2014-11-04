@@ -1,52 +1,32 @@
-From: "billbonaparte" <programme110@gmail.com>
-Subject: Re: netfilter: nf_conntrack: there maybe a bug in __nf_conntrack_confirm, when it race against get_next_corpse
-Date: Tue, 4 Nov 2014 09:52:58 +0800
-Message-ID: <01b101cff7d2$1715ef20$4541cd60$@gmail.com>
+From: Matthew Weber <matthew.weber@rockwellcollins.com>
+Subject: [Repost] Fix userspace compilation of ip_tables.h/ip6_tables.h in C++ mode
+Date: Mon, 3 Nov 2014 22:13:43 -0600
+Message-ID: <CANQCQpb+_Z0U7ko-FKcmA3Zm4VXrG4QG3+Nx_noq3CFt1UfZMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>,
-	"Patrick McHardy" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
-	<davem@davemloft.net>, "Changli Gao" <xiaosuo@gmail.com>,
-	"Andrey Vagin" <avagin@openvz.org>
-To: "Jesper Dangaard Brouer" <brouer@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:61831 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081AbaKDBxi (ORCPT
+Received: from ch3vs01.rockwellcollins.com ([205.175.226.27]:53790 "EHLO
+	ch3vs01.rockwellcollins.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750974AbaKDEXU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Nov 2014 20:53:38 -0500
-Received: by mail-pd0-f170.google.com with SMTP id z10so12707767pdj.29
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2014 17:53:38 -0800 (PST)
-Content-Language: zh-cn
+	Mon, 3 Nov 2014 23:23:20 -0500
+Received: by mail-ie0-f180.google.com with SMTP id y20so6568999ier.25
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2014 20:13:43 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(sorry to send this e-mail again, last mail is rejected by server due to
-non-acceptable content)
+Re-posting a link to a patch that was posted to lkml & linux-netdev at
+first, then posted to netfilter-devel.
 
-Jesper Dangaard Brouer <brouer@redhat.com> wrote:
->> In function __nf_conntrack_confirm, we check the conntrack if it was 
->> already dead, before insert it into hash-table.
->> We do this because if we insert an already 'dead' hash,  it will 
->> block further use of that particular connection.
+http://marc.info/?t=134904906300003&r=1&w=1
 
->Have you run into this problem in practice, or is this based on a theory?
+It seems to have been rejected:   http://patchwork.ozlabs.org/patch/188216/
 
-If we insert a dead conntrack into hash-table, let's see what will happen to
-the packet which has the same tuple with that dead conntrack:
-1) if it is a valid packet, it will enter in nf_conntrack_in hook, then
-2) we will find a corresponding conntrack for that packet in
-__nf_conntrack_find_get, and there is no doubt that we will find that dead
-conntrack,
-  according to the current implement, we don't use dead conntrack, so we
-create a new conntrack which is unconfirmed.
-3) because there is already a conntrack with the same tuples in hash-table,
-the new conntrack can not be inserted into hash-table, it will return
-NF_DROP,
-4) the packet will be dropped due to the failure of nf_conntrack_confirm.
-That's why inserting an already 'dead' hash will block further use of that
-particular connection.
+We're building a custom C++ application which pulls in the iptables
+header that requires this change.  We wanted to see if we could get it
+incorporated so we don't carry the patch as part of our build.  I can
+gladly resubmit the patch but the one in patchworks is still correct.
 
+Thanks,
+Matt Weber
