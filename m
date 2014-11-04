@@ -1,63 +1,59 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [RFA][PATCH 2/8] netfilter: Remove return values for
- print_conntrack callbacks
-Date: Tue, 4 Nov 2014 09:52:50 -0500
-Message-ID: <20141104095250.3a6e1cbd@gandalf.local.home>
-References: <20141029215602.535533597@goodmis.org>
-	<20141029220107.465008329@goodmis.org>
-	<20141104080535.5f651713@gandalf.local.home>
-	<20141104142236.GA10239@salvia>
-	<20141104093150.7410f6d0@gandalf.local.home>
-	<1415112379.24560.6.camel@perches.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH v2] src: add redirect support
+Date: Tue, 4 Nov 2014 16:04:11 +0100
+Message-ID: <CAOkSjBhMU2cw=B69G0=Rf-bC-H8BatAhA_07P=qFUjLYNCE4hg@mail.gmail.com>
+References: <20141016104056.8678.71075.stgit@nfdev.cica.es>
+ <20141030162520.GA2074@salvia> <CAOkSjBibjQa7A-WEw0NbhmRnKNsDgWxgGVe7EP9V8S600uKMGg@mail.gmail.com>
+ <20141104133712.GA9190@salvia> <CAOkSjBhSysvcL_wOwJK=aPaAeGKt02=i0mmX=zQ5xW-PRDxgXg@mail.gmail.com>
+ <20141104144455.GB10239@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Joe Perches <joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415112379.24560.6.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:60400 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153AbaKDPEd convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Nov 2014 10:04:33 -0500
+Received: by mail-lb0-f174.google.com with SMTP id p9so364314lbv.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 04 Nov 2014 07:04:32 -0800 (PST)
+In-Reply-To: <20141104144455.GB10239@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 04 Nov 2014 06:46:19 -0800
-Joe Perches <joe@perches.com> wrote:
+On 4 November 2014 15:44, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> On Tue, Nov 04, 2014 at 02:56:58PM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> On 4 November 2014 14:37, Pablo Neira Ayuso <pablo@netfilter.org> wr=
+ote:
+>> >
+>> > I think this needs to be:
+>> >
+>> > % nft add rule nat prerouting redirect [port] [nat_flags]
+>> >
+>>
+>> The port and nat_flags arguments are mutually exclusives. That's why=
+ I
+>> used the [port|nat_flags] syntax.
+>
+> iptables allows this:
+>
+> -j REDIRECT --to-ports 8000-8010 --random
 
-> On Tue, 2014-11-04 at 09:31 -0500, Steven Rostedt wrote:
-> > On Tue, 4 Nov 2014 15:22:36 +0100
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Tue, Nov 04, 2014 at 08:05:35AM -0500, Steven Rostedt wrote:
-> > > > On Wed, 29 Oct 2014 17:56:04 -0400 Steven Rostedt <rostedt@goodmis.org> wrote:
-> > > > > From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
-> > > > > [ REQUEST FOR ACKS ]
-> > > > Can any of the netfilter folks give me an Acked-by for this?
-> > > If Florian's concern were addressed, then:
-> > Yeah, the change he mentioned was done is 3/8. As that was written by
-> > Joe Perches, I did some work that he missed and put it before his
-> > patch, which showed a discrepancy between the two functions. After all
-> > patches are applied, it should be consistent to his liking.
-> 
-> I think seq_has_overflowed does not need
-> to be used after every seq_<put/print> call.
-> 
-> It interrupts reading code flow and just
-> isn't alll that necessary as every operation
-> before it will be redone anyway.
-> 
-> It should be used before or after a large
-> blocks though.
-> 
+Then, should I change the behaviour of the nft redirect parser?
+The code in my patch doesn't allow that.
 
-It's not used in every occurrence. The problem that Florian had was that
-there were two almost identical functions, and you changed one to have
-the seq_has_overflowed() check, but the other one was left without it.
+I think it makes no sense: "redirect to this port; no sorry, redirect
+to a random one."
 
-It wasn't about checking multiple times, it was about consistency
-between two similar functions.
-
--- Steve
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
