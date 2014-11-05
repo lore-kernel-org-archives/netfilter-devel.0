@@ -1,52 +1,41 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] Make_global.am: Don't include host headers
-Date: Tue, 4 Nov 2014 21:32:57 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1411042132380.30681@blackhole.kfki.hu>
-References: <91631e0597af2d757e8f943c540aaa19cca30b89.1414524094.git.baruch@tkos.co.il>
+From: Sven-Haegar Koch <haegar@sdinet.de>
+Subject: Re: recent module
+Date: Wed, 5 Nov 2014 02:24:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1411050221020.30231@aurora.sdinet.de>
+References: <8D1C569F1803AFD-7C0-3D4A0@webmail-vm135.sysops.aol.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Baruch Siach <baruch@tkos.co.il>
+To: Pietro Paolini <pulsarpietro@aol.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:39959 "EHLO smtp2.kfki.hu"
+Received: from blackhole.sdinet.de ([176.9.52.58]:49548 "EHLO mail.sdinet.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbaKDUcQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Nov 2014 15:32:16 -0500
-In-Reply-To: <91631e0597af2d757e8f943c540aaa19cca30b89.1414524094.git.baruch@tkos.co.il>
+	id S1751303AbaKEBYu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Nov 2014 20:24:50 -0500
+In-Reply-To: <8D1C569F1803AFD-7C0-3D4A0@webmail-vm135.sysops.aol.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 28 Oct 2014, Baruch Siach wrote:
+On Mon, 3 Nov 2014, Pietro Paolini wrote:
 
-> This is bad for cross compilation.
-> 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  Make_global.am | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/Make_global.am b/Make_global.am
-> index 7953451aeaa3..5922aeeb4fa8 100644
-> --- a/Make_global.am
-> +++ b/Make_global.am
-> @@ -71,8 +71,7 @@
->  #            curr:rev:age
->  LIBVERSION = 8:0:5
->  
-> -AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include \
-> -	-I/usr/local/include
-> +AM_CPPFLAGS = $(kinclude_CFLAGS) $(all_includes) -I$(top_srcdir)/include
->  
->  AM_CFLAGS = -std=gnu99
->  
-> -- 
+> -A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW -m
+> recent --update --seconds 1800 --hitcount 5 --name ssh-defensive
+> --rsource -j DROP
 
-Patch is applied, thanks.
+> Chain INPUT (policy ACCEPT 81 packets, 8996 bytes)
+>  pkts bytes target     prot opt in     out     source
+> destination
+>     1    52 LOG        tcp  --  *      *       0.0.0.0/0
+> 0.0.0.0/0            state NEW tcp dpt:22 LOG flags 0 level 4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+> I expected to see more packets, what about the TCP handshake ?
+
+-m state --state NEW means "the first packet in the connection", aka 
+mostly the TCP SYN - not the rest, like SYN-ACK and following.
+
+c'ya
+sven-haegar
+
+-- 
+Three may keep a secret, if two of them are dead.
+- Ben F.
