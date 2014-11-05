@@ -1,27 +1,49 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH] netfilter: bridge: unshare bridge info before change
- it
-Date: Wed, 5 Nov 2014 10:13:17 +0800
-Message-ID: <545987BD.8090400@cn.fujitsu.com>
-References: <1411976114-16812-1-git-send-email-gaofeng@cn.fujitsu.com> <54582195.20209@cn.fujitsu.com> <20141104190055.GA27683@salvia> <545984E6.5050801@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Ana Rey <anarey@gmail.com>
+Subject: [PATCH] iptables-compat: homogenize error messages with 'R' option
+Date: Wed,  5 Nov 2014 16:46:34 +0100
+Message-ID: <1415202394-11031-1-git-send-email-anarey@gmail.com>
+Cc: Ana Rey <anarey@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:30380 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752850AbaKECNU (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:56496 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755362AbaKEPqk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Nov 2014 21:13:20 -0500
-In-Reply-To: <545984E6.5050801@cn.fujitsu.com>
+	Wed, 5 Nov 2014 10:46:40 -0500
+Received: by mail-wi0-f175.google.com with SMTP id ex7so12801992wid.14
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Nov 2014 07:46:39 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/05/2014 10:01 AM, Gao feng wrote:
-> On 11/05/2014 03:00 AM, Pablo Neira Ayuso wrote:
+There is a difference between error messages in iptables and
+iptables-compat:
 
-> but __copy_skb_header may be called in the scene I described above,
+ # iptables -R INPUT 23 -s 192.168.2.140 -j ACCEPT
+iptables: Index of replacement too big.
+ # iptables-compat -R INPUT 23 -s 192.168.2.140 -j ACCEPT
+iptables: No chain/target/match by that name.
 
-I mean __copy_skb_header between br_nf_pre_routing and br_nf_pre_routing_finish
+Now, iptables-compat shows the same error message than iptables in
+this case.
+
+Signed-off-by: Ana Rey <anarey@gmail.com>
+---
+ iptables/nft.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 6cb03a0..64222af 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2358,7 +2358,7 @@ const char *nft_strerror(int err)
+ 	    { nft_chain_user_add, EEXIST, "Chain already exists" },
+ 	    { nft_rule_add, E2BIG, "Index of insertion too big" },
+ 	    { nft_rule_check, ENOENT, "Bad rule (does a matching rule exist in that chain?)" },
+-	    { nft_rule_replace, E2BIG, "Index of replacement too big" },
++	    { nft_rule_replace, ENOENT, "Index of replacement too big" },
+ 	    { nft_rule_delete_num, E2BIG, "Index of deletion too big" },
+ /*	    { TC_READ_COUNTER, E2BIG, "Index of counter too big" },
+ 	    { TC_ZERO_COUNTER, E2BIG, "Index of counter too big" }, */
+-- 
+1.7.10.4
+
