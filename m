@@ -1,67 +1,62 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 3/8] netfilter: Convert print_tuple functions to return
- void
-Date: Wed, 05 Nov 2014 15:26:34 -0800
-Message-ID: <1415229994.6634.35.camel@perches.com>
-References: <20141105192426.348510548@goodmis.org>
-	 <20141105192544.214361386@goodmis.org> <20141105232314.GA3195@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v4 2/3] Do error handling if __build_packet_message fails
+Date: Thu, 6 Nov 2014 02:07:17 +0100
+Message-ID: <20141106010717.GA5205@salvia>
+References: <7be00bf663b212d4984414346da216cf17d3443d.1414586968.git.mleitner@redhat.com>
+ <8dcee609af0015c15d2a99ab6d076a65d6ec01a8.1414586968.git.mleitner@redhat.com>
+ <20141104164757.GA15508@salvia>
+ <54591492.5090205@redhat.com>
+ <20141104182609.GA26344@salvia>
+ <20141104191120.GC6874@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Steven Rostedt <rostedt@goodmis.org>, linux-kernel@vger.kernel.org,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Marcelo Ricardo Leitner <mleitner@redhat.com>,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0155.hostedemail.com ([216.40.44.155]:52223 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750796AbaKEX0i (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Nov 2014 18:26:38 -0500
-In-Reply-To: <20141105232314.GA3195@salvia>
+Received: from mail.us.es ([193.147.175.20]:60628 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750873AbaKFBFh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Nov 2014 20:05:37 -0500
+Content-Disposition: inline
+In-Reply-To: <20141104191120.GC6874@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2014-11-06 at 00:23 +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 05, 2014 at 02:24:29PM -0500, Steven Rostedt wrote:
-> > From: Joe Perches <joe@perches.com>
+On Tue, Nov 04, 2014 at 08:11:20PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > BTW, we should also signal the userspace when we fail to build the
+> > message via:
 > > 
-> > Since adding a new function to seq_file (seq_has_overflowed())
-> > there isn't any value for functions called from seq_show to
-> > return anything.   Remove the int returns of the various
-> > print_tuple/<foo>_print_tuple functions.
-[]
-> I replied to this yesterday, but it seems some spam filter also
-> munched it. One comment below.
+> > nfnetlink_set_err(net, 0, group, -ENOBUFS);
+> > 
+> > so it knows that we're losing log messages for whatever reason.
+> > Basically, userspace hits -ENOBUFS when calling recv(), which means
+> > netlink is losing messages. I don't think we really need the
+> > statistics.
 > 
-> > @@ -202,9 +203,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
-> >  	if (l4proto->print_conntrack)
-> >  		l4proto->print_conntrack(s, ct);
-> >  
-> > -	if (print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-> > -			l3proto, l4proto))
-> > -		goto release;
-> > +	print_tuple(s, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-> > +		    l3proto, l4proto);
-> >  
-> >  	if (seq_print_acct(s, ct, IP_CT_DIR_ORIGINAL))
-> >  		goto release;
+> Not sure if this is a good idea.
 > 
-> seq_print_acct returns seq_printf which is now void. I guess you have
-> to remove this check too.
+> a) __build_packet_message must never fail.
+> If it does, the kernel has a size accoutning bug somewhere.
+> b) I see no meaningful way for userspace to handle this error;
+> there is nothing it can do about it.
+> c) If it happens, it might be that some userspace logging daemon
+> suddently dies because it sees an unexpected 'fatal' error.
 
-seq_printf shouldn't be void yet.
-There are still other places that need conversion.
+userspace should be handling -ENOBUFS already, netlink reports this if
+the buffer overruns. Although there's nothing userspace can do to
+recover lost messages, this reports that the logging became
+unreliable. People that don't mind about this can disable it via
+NETLINK_NO_ENOBUFS socket option.
 
-> >  	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
-> >  		goto release;
-> 
-> And here.
+The new nfnetlink_set_err() will also report skb allocation failures
+to userspace, which is missing. I would remove those printk there to
+report OOM, there's nothing userspace can do with that.
 
-Eventually I trust it will be fixed, but these
-patches are an intermediate step on the way there.
-
-
+For the unlikely size miscalculation case, this probably will make it
+more evident to userspace that we have a bug since userspace will
+receive very frequent ENOBUFS report, even under very low netlink
+traffic. I would also add a WARN_ONCE there as you added if
+__build_packet_message returns an error, so we have two ways to rise
+alarms.
