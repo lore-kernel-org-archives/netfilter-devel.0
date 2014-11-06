@@ -1,58 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/5] build: use PKG_CHECK_MODULES to check for libmnl and libnftnl
-Date: Thu,  6 Nov 2014 19:25:45 +0100
-Message-ID: <1415298349-985-2-git-send-email-pablo@netfilter.org>
-References: <1415298349-985-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 0/5] autotools conversion
+Date: Thu,  6 Nov 2014 19:25:44 +0100
+Message-ID: <1415298349-985-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38975 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38986 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779AbaKFSYJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2014 13:24:09 -0500
-In-Reply-To: <1415298349-985-1-git-send-email-pablo@netfilter.org>
+	id S1751783AbaKFSYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Nov 2014 13:24:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Also check for required library versions.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- Makefile.defs.in |    2 +-
- configure.ac     |    7 ++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+I found some time to work on the autotools support. Initial patches
+were posted by Jan dal Molin here:
 
-diff --git a/Makefile.defs.in b/Makefile.defs.in
-index 915d3d8..b9b115f 100644
---- a/Makefile.defs.in
-+++ b/Makefile.defs.in
-@@ -19,7 +19,7 @@ docdir		= @docdir@
- pdfdir		= @pdfdir@
- confdir		= @sysconfdir@/nftables
- 
--LDFLAGS		+= @LDFLAGS@
-+LDFLAGS		+= -lmnl -lnftnl
- LDFLAGS		+= @LIBS@
- 
- CPPFLAGS	+= @CPPFLAGS@
-diff --git a/configure.ac b/configure.ac
-index 4aa14e3..e68d59f 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -62,11 +62,8 @@ then
- fi
- 
- # Checks for libraries.
--AC_CHECK_LIB([mnl], [mnl_socket_open], ,
--	     AC_MSG_ERROR([No suitable version of libmnl found]))
--
--AC_CHECK_LIB([nftnl], [nft_rule_alloc], ,
--	     AC_MSG_ERROR([No suitable version of libnftnl found]))
-+PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
-+PKG_CHECK_MODULES([LIBNFTNL], [libnftnl >= 1.0.2])
- 
- AC_CHECK_LIB([gmp], [__gmpz_init], ,
- 	     AC_MSG_ERROR([No suitable version of libgmp found]))
+http://marc.info/?l=netfilter-devel&m=140632527026257&w=2
+
+Those were a good start to address this, but I wanted to introduce
+these changes incrementally by avoiding bisectability breakage
+between patches. Moreover, this changeset included quite a lot of
+changes in configure.ac among other things that this patchset avoids.
+
+Note that doc/ and files/ were not converted yet, so those are currently
+disabled. Feel free to send patches to complete that or I'll finish
+it once I find time to work on this again.
+
+I have pushed this to this branch:
+
+http://git.netfilter.org/nftables/log/?h=autotools
+
+Please, review and test. Thanks.
+
+Pablo Neira Ayuso (5):
+  build: use PKG_CHECK_MODULES to check for libmnl and libnftnl
+  build: use AC_PROG_YACC and AM_PROG_LEX
+  rename parser.y to parser_bison.y
+  include: add cli.h
+  build: autotools conversion
+
+ .gitignore                       |   10 +-
+ Make_global.am                   |   10 ++
+ Makefile.am                      |    5 +
+ Makefile.defs.in                 |   42 ------
+ Makefile.in                      |    5 -
+ Makefile.rules.in                |   96 --------------
+ configure.ac                     |   49 ++++---
+ include/cli.h                    |   18 +++
+ include/nftables.h               |   14 +-
+ install-sh                       |  269 --------------------------------------
+ m4/.gitignore                    |    2 +
+ src/Makefile.am                  |   41 ++++++
+ src/Makefile.in                  |   33 -----
+ src/cli.c                        |    2 +
+ src/erec.c                       |    1 +
+ src/main.c                       |    1 +
+ src/{parser.y => parser_bison.y} |    3 +-
+ src/scanner.l                    |    3 +-
+ 18 files changed, 122 insertions(+), 482 deletions(-)
+ create mode 100644 Make_global.am
+ create mode 100644 Makefile.am
+ delete mode 100644 Makefile.defs.in
+ delete mode 100644 Makefile.in
+ delete mode 100644 Makefile.rules.in
+ create mode 100644 include/cli.h
+ delete mode 100755 install-sh
+ create mode 100644 m4/.gitignore
+ create mode 100644 src/Makefile.am
+ delete mode 100644 src/Makefile.in
+ rename src/{parser.y => parser_bison.y} (99%)
+
 -- 
 1.7.10.4
 
