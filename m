@@ -1,64 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/3] netfilter: nfnetlink_log: Make use of pr_fmt where applicable
-Date: Thu,  6 Nov 2014 12:32:30 +0100
-Message-ID: <1415273550-3526-3-git-send-email-pablo@netfilter.org>
-References: <1415273550-3526-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de, mleitner@redhat.com
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH v2] nft: don't resolve hostnames by default
+Date: Thu, 6 Nov 2014 12:38:28 +0100
+Message-ID: <CAOkSjBjGpVfBf+ErLnpXXURnGt1vq9+kHKmwRn9ydF8x9qbVfQ@mail.gmail.com>
+References: <20141106080458.24488.47600.stgit@nfdev.cica.es> <20141106103100.GA4783@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41355 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750828AbaKFLa6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2014 06:30:58 -0500
-In-Reply-To: <1415273550-3526-1-git-send-email-pablo@netfilter.org>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:42969 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750926AbaKFLiu convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Nov 2014 06:38:50 -0500
+Received: by mail-la0-f43.google.com with SMTP id ge10so2438001lab.30
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Nov 2014 03:38:48 -0800 (PST)
+In-Reply-To: <20141106103100.GA4783@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Marcelo Leitner <mleitner@redhat.com>
+On 6 November 2014 11:31, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> On Thu, Nov 06, 2014 at 09:05:28AM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> This patch changes the behaviour of nft to don't translate IP
+>> addresses to hostnames when printing rules.
+>
+> Thanks. I took over this patch and gave it another spin. Find it
+> attached.
 
-Signed-off-by: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_log.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Your patch looks fine. Thanks.
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 551142f..66a2f4c 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -12,6 +12,9 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/if_arp.h>
-@@ -1062,19 +1065,19 @@ static int __init nfnetlink_log_init(void)
- 	netlink_register_notifier(&nfulnl_rtnl_notifier);
- 	status = nfnetlink_subsys_register(&nfulnl_subsys);
- 	if (status < 0) {
--		pr_err("log: failed to create netlink socket\n");
-+		pr_err("failed to create netlink socket\n");
- 		goto cleanup_netlink_notifier;
- 	}
- 
- 	status = nf_log_register(NFPROTO_UNSPEC, &nfulnl_logger);
- 	if (status < 0) {
--		pr_err("log: failed to register logger\n");
-+		pr_err("failed to register logger\n");
- 		goto cleanup_subsys;
- 	}
- 
- 	status = register_pernet_subsys(&nfnl_log_net_ops);
- 	if (status < 0) {
--		pr_err("log: failed to register pernet ops\n");
-+		pr_err("failed to register pernet ops\n");
- 		goto cleanup_logger;
- 	}
- 	return status;
--- 
-1.7.10.4
-
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
