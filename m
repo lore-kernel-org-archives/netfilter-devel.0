@@ -1,77 +1,127 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [PATCH nf] netfilter: conntrack: fix race in __nf_conntrack_confirm
-	against get_next_corpse
-Date: Thu, 06 Nov 2014 14:36:48 +0100
-Message-ID: <20141106133648.2534.1403.stgit@dragon>
-References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
+From: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Subject: Re: [PATCH 2/3] netfilter: nfnetlink_log: improve error handling
+ on __build_packet_message()
+Date: Thu, 06 Nov 2014 15:19:19 -0200
+Message-ID: <545BAD97.2000802@redhat.com>
+References: <1415273550-3526-1-git-send-email-pablo@netfilter.org> <1415273550-3526-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	programme110@gmail.com, netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53771 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44427 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750828AbaKFNg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2014 08:36:56 -0500
-In-Reply-To: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
+	id S1750955AbaKFRT3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Nov 2014 12:19:29 -0500
+In-Reply-To: <1415273550-3526-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: bill bonaparte <programme110@gmail.com>
+On 06-11-2014 09:32, Pablo Neira Ayuso wrote:
+> 1) If there's no enough room in the netlink skbuff, then we have a size
+>     miscalculation bug that needs to be fixed, so warn on this. Kill
+>     PRINTR macro now that this is unused.
+>
+> 2) Cancel the netlink message that didn't fit into the skbuff, so we still
+>     have the chance to deliver what is already included in the batch.
+>
+> 3) Don't increment inst->qlen inconditionally. Otherwise, this will not
+>     show the real number of messages in the log batch on error.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>   net/netfilter/nfnetlink_log.c |   14 ++++++--------
+>   1 file changed, 6 insertions(+), 8 deletions(-)
+>
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index cd99294..551142f 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -46,9 +46,6 @@
+>   /* max packet size is limited by 16-bit struct nfattr nfa_len field */
+>   #define NFULNL_COPY_RANGE_MAX	(0xFFFF - NLA_HDRLEN)
+>
+> -#define PRINTR(x, args...)	do { if (net_ratelimit()) \
+> -				     printk(x, ## args); } while (0);
+> -
+>   struct nfulnl_instance {
+>   	struct hlist_node hlist;	/* global list of instances */
+>   	spinlock_t lock;
+> @@ -402,7 +399,6 @@ __build_packet_message(struct nfnl_log_net *log,
+>   	struct nfulnl_msg_packet_hdr pmsg;
+>   	struct nlmsghdr *nlh;
+>   	struct nfgenmsg *nfmsg;
+> -	sk_buff_data_t old_tail = inst->skb->tail;
+>   	struct sock *sk;
+>   	const unsigned char *hwhdrp;
+>
+> @@ -578,11 +574,15 @@ __build_packet_message(struct nfnl_log_net *log,
+>   			BUG();
+>   	}
+>
+> -	nlh->nlmsg_len = inst->skb->tail - old_tail;
+> +	nlmsg_end(inst->skb, nlh);
+> +	inst->qlen++;
+> +
+>   	return 0;
+>
+>   nla_put_failure:
+> -	PRINTR(KERN_ERR "nfnetlink_log: error creating log nlmsg\n");
+> +	WARN_ONCE(1, "bad nlskb size: %u, tailroom %d\n",
+> +		  inst->skb->len, skb_tailroom(inst->skb));
+> +	nlmsg_cancel(inst->skb, nlh);
+>   	return -1;
+>   }
+>
+> @@ -702,8 +702,6 @@ nfulnl_log_packet(struct net *net,
+>   			goto alloc_failure;
+>   	}
+>
+> -	inst->qlen++;
+> -
+>   	__build_packet_message(log, inst, skb, data_len, pf,
+>   				hooknum, in, out, prefix, plen);
 
-After removal of the central spinlock nf_conntrack_lock, in
-commit 93bb0ceb75be2 ("netfilter: conntrack: remove central
-spinlock nf_conntrack_lock"), it is possible to race against
-get_next_corpse().
+I would prefer if we freed the skbuff if __build_package_message failed, so 
+that the next one is allocated with other params.
 
-The race is against the get_next_corpse() cleanup on
-the "unconfirmed" list (a per-cpu list with seperate locking),
-which set the DYING bit.
+Also, if it's the first message, we may fire the timer for delivering an empty 
+message, as the timer is going to be scheduled and inst->skb is still there.
 
-Fix this race, in __nf_conntrack_confirm(), by removing the CT
-from unconfirmed list before checking the DYING bit.  In case
-race occured, re-add the CT to the dying list.
+Maybe with:
 
-Fixes: 93bb0ceb75be2 ("netfilter: conntrack: remove central spinlock nf_conntrack_lock")
-Reported-by: bill bonaparte <programme110@gmail.com>
-Signed-off-by: bill bonaparte <programme110@gmail.com>
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
----
+  @@ -707,16 +707,19 @@ nfulnl_log_packet(struct net *net,
+                         goto alloc_failure;
+         }
 
- net/netfilter/nf_conntrack_core.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5016a69..1072650 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -611,12 +611,15 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
- 	pr_debug("Confirming conntrack %p\n", ct);
--	/* We have to check the DYING flag inside the lock to prevent
-+
-+	/* We have to check the DYING flag after unlink to prevent
- 	   a race against nf_ct_get_next_corpse() possibly called from
- 	   user context, else we insert an already 'dead' hash, blocking
- 	   further use of that particular connection -JM */
-+	nf_ct_del_from_dying_or_unconfirmed_list(ct);
- 
- 	if (unlikely(nf_ct_is_dying(ct))) {
-+		nf_ct_add_to_dying_list(ct);
- 		nf_conntrack_double_unlock(hash, reply_hash);
- 		local_bh_enable();
- 		return NF_ACCEPT;
-@@ -636,8 +639,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		    zone == nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)))
- 			goto out;
- 
--	nf_ct_del_from_dying_or_unconfirmed_list(ct);
+-       inst->qlen++;
 -
- 	/* Timer relative to confirmation time, not original
- 	   setting time, otherwise we'd get timer wrap in
- 	   weird delay cases. */
+-       __build_packet_message(log, inst, skb, data_len, pf,
+-                               hooknum, in, out, prefix, plen);
++       if (__build_packet_message(log, inst, skb, data_len, pf,
++                                  hooknum, in, out, prefix, plen)) {
++               if (!inst->qlen) {
++                       kfree_skb(inst->skb);
++                       inst->skb = NULL;
++               }
++       }
+
+         if (inst->qlen >= qthreshold)
+                 __nfulnl_flush(inst);
+         /* timer_pending always called within inst->lock, so there
+          * is no chance of a race here */
+-       else if (!timer_pending(&inst->timer)) {
++       else if (inst->qlen && !timer_pending(&inst->timer)) {
+                 instance_get(inst);
+                 inst->timer.expires = jiffies + (inst->flushtimeout*HZ/100);
+                 add_timer(&inst->timer);
+
+but that still wouldn't force a flush if __build_packet_message() failed..
+
+Other than that, set looks great to me. Thanks Pablo!
+
+Marcelo
+
 
