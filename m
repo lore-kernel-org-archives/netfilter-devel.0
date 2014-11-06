@@ -1,42 +1,85 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH v2] nft: don't resolve hostnames by default
-Date: Thu, 6 Nov 2014 12:38:28 +0100
-Message-ID: <CAOkSjBjGpVfBf+ErLnpXXURnGt1vq9+kHKmwRn9ydF8x9qbVfQ@mail.gmail.com>
-References: <20141106080458.24488.47600.stgit@nfdev.cica.es> <20141106103100.GA4783@salvia>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: netfilter: nf_conntrack: there maybe a bug in
+ __nf_conntrack_confirm, when it race against get_next_corpse
+Date: Thu, 6 Nov 2014 14:00:13 +0100
+Message-ID: <20141106140013.5110dd6e@redhat.com>
+References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: <fw@strlen.de>, <linux-kernel@vger.kernel.org>,
+	"Pablo Neira Ayuso" <pablo@netfilter.org>,
+	"Patrick McHardy" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
+	<davem@davemloft.net>, "Changli Gao" <xiaosuo@gmail.com>,
+	"Andrey Vagin" <avagin@openvz.org>, brouer@redhat.com,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: "billbonaparte" <programme110@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:42969 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbaKFLiu convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2014 06:38:50 -0500
-Received: by mail-la0-f43.google.com with SMTP id ge10so2438001lab.30
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Nov 2014 03:38:48 -0800 (PST)
-In-Reply-To: <20141106103100.GA4783@salvia>
+Received: from mx1.redhat.com ([209.132.183.28]:45152 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751021AbaKFNAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Nov 2014 08:00:47 -0500
+In-Reply-To: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 6 November 2014 11:31, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> On Thu, Nov 06, 2014 at 09:05:28AM +0100, Arturo Borrero Gonzalez wro=
-te:
->> This patch changes the behaviour of nft to don't translate IP
->> addresses to hostnames when printing rules.
+On Tue, 4 Nov 2014 09:48:32 +0800
+"billbonaparte" <programme110@gmail.com> wrote:
+
+> (sorry to send this e-mail again, last mail is rejected by server due to
+> non-acceptable content)
+
+There is several issues with your submission.  I'll take care of
+resubmitting a patch in your name (so you will get credit in the git
+log).
+
+If you care to know, issues are:
+ 1. you are not sending to the appropriate mailing lists,
+ 2. patch is as an attachment (should be inlined),
+ 3. the patch have style and white-space issues.
+
+
+> Florian Westphal [mailto:fw@strlen.de] wrote:
+> >Correct.  This is broken since the central spin lock removal, since 
+> >nf_conntrack_lock no longer protects both get_next_corpse and 
+> >conntrack_confirm.
+> > 
+> >Please send a patch, moving dying check after removal of conntrack from 
+> >the percpu list,
 >
-> Thanks. I took over this patch and gave it another spin. Find it
-> attached.
+> Since unconfirmed conntrack is stored in unconfirmed-list which is per-cpu
+> list and protected by per-cpu spin-lock, we can remove it from
+> uncomfirmed-list and insert it into ct-hash-table separately. that is to
+> say, we can remove it from uncomfirmed-list without holding corresponding
+> hash-lock, then check if it is dying.
+> if it is dying, we add it to the dying-list, then quit
+> __nf_conntrack_confirm. we do this to follow the rules that the conntrack
+> must alternatively at unconfirmed-list or dying-list when it is abort to be
+> destroyed.
 
-Your patch looks fine. Thanks.
+In the resubmit. I'll take a slightly more conservative approach, by
+keeping the DYING check under the hash-lock, as it is currently.  I
+guess we could do it without holding the hash-lock, but I want to keep
+the fix as simple as possible.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> >> 	2. operation on ct->status should be atomic, because it race aginst 
+> >> get_next_corpse.
+[...]
+> if there is a race at operating ct->status, there will be in alternative
+> case:
+> 1) IPS_DYING bit which set in get_next_corpse override other bits (e.g.
+> IPS_SRC_NAT_DONE_BIT), or
+> 2) other bits (e.g. IPS_SRC_NAT_DONE_BIT) which set in nf_nat_setup_info
+> override IPS_DYING bit.
+
+Notice the set_bit() is atomic, so we don't have these issues (of bits
+getting overridden).
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
