@@ -1,127 +1,71 @@
-From: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Subject: Re: [PATCH 2/3] netfilter: nfnetlink_log: improve error handling
- on __build_packet_message()
-Date: Thu, 06 Nov 2014 15:19:19 -0200
-Message-ID: <545BAD97.2000802@redhat.com>
-References: <1415273550-3526-1-git-send-email-pablo@netfilter.org> <1415273550-3526-2-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 2/5] build: use AC_PROG_YACC and AM_PROG_LEX
+Date: Thu,  6 Nov 2014 19:25:46 +0100
+Message-ID: <1415298349-985-3-git-send-email-pablo@netfilter.org>
+References: <1415298349-985-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44427 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:38976 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750955AbaKFRT3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2014 12:19:29 -0500
-In-Reply-To: <1415273550-3526-2-git-send-email-pablo@netfilter.org>
+	id S1751780AbaKFSYJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Nov 2014 13:24:09 -0500
+In-Reply-To: <1415298349-985-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 06-11-2014 09:32, Pablo Neira Ayuso wrote:
-> 1) If there's no enough room in the netlink skbuff, then we have a size
->     miscalculation bug that needs to be fixed, so warn on this. Kill
->     PRINTR macro now that this is unused.
->
-> 2) Cancel the netlink message that didn't fit into the skbuff, so we still
->     have the chance to deliver what is already included in the batch.
->
-> 3) Don't increment inst->qlen inconditionally. Otherwise, this will not
->     show the real number of messages in the log batch on error.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   net/netfilter/nfnetlink_log.c |   14 ++++++--------
->   1 file changed, 6 insertions(+), 8 deletions(-)
->
-> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-> index cd99294..551142f 100644
-> --- a/net/netfilter/nfnetlink_log.c
-> +++ b/net/netfilter/nfnetlink_log.c
-> @@ -46,9 +46,6 @@
->   /* max packet size is limited by 16-bit struct nfattr nfa_len field */
->   #define NFULNL_COPY_RANGE_MAX	(0xFFFF - NLA_HDRLEN)
->
-> -#define PRINTR(x, args...)	do { if (net_ratelimit()) \
-> -				     printk(x, ## args); } while (0);
-> -
->   struct nfulnl_instance {
->   	struct hlist_node hlist;	/* global list of instances */
->   	spinlock_t lock;
-> @@ -402,7 +399,6 @@ __build_packet_message(struct nfnl_log_net *log,
->   	struct nfulnl_msg_packet_hdr pmsg;
->   	struct nlmsghdr *nlh;
->   	struct nfgenmsg *nfmsg;
-> -	sk_buff_data_t old_tail = inst->skb->tail;
->   	struct sock *sk;
->   	const unsigned char *hwhdrp;
->
-> @@ -578,11 +574,15 @@ __build_packet_message(struct nfnl_log_net *log,
->   			BUG();
->   	}
->
-> -	nlh->nlmsg_len = inst->skb->tail - old_tail;
-> +	nlmsg_end(inst->skb, nlh);
-> +	inst->qlen++;
-> +
->   	return 0;
->
->   nla_put_failure:
-> -	PRINTR(KERN_ERR "nfnetlink_log: error creating log nlmsg\n");
-> +	WARN_ONCE(1, "bad nlskb size: %u, tailroom %d\n",
-> +		  inst->skb->len, skb_tailroom(inst->skb));
-> +	nlmsg_cancel(inst->skb, nlh);
->   	return -1;
->   }
->
-> @@ -702,8 +702,6 @@ nfulnl_log_packet(struct net *net,
->   			goto alloc_failure;
->   	}
->
-> -	inst->qlen++;
-> -
->   	__build_packet_message(log, inst, skb, data_len, pf,
->   				hooknum, in, out, prefix, plen);
+To check for bison and flex installed on the system.
 
-I would prefer if we freed the skbuff if __build_package_message failed, so 
-that the next one is allocated with other params.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ configure.ac |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-Also, if it's the first message, we may fire the timer for delivering an empty 
-message, as the timer is going to be scheduled and inst->skb is still there.
-
-Maybe with:
-
-  @@ -707,16 +707,19 @@ nfulnl_log_packet(struct net *net,
-                         goto alloc_failure;
-         }
-
--       inst->qlen++;
+diff --git a/configure.ac b/configure.ac
+index e68d59f..ee9cf6c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -24,6 +24,21 @@ AC_PROG_CC
+ AC_PROG_MKDIR_P
+ AC_PROG_INSTALL
+ AC_PROG_SED
++AM_PROG_LEX
++AC_PROG_YACC
++
++if test -z "$ac_cv_prog_YACC"
++then
++        echo "*** Error: No suitable bison/yacc found. ***"
++        echo "    Please install the 'bison' package."
++        exit 1
++fi
++if test -z "$ac_cv_prog_LEX"
++then
++        echo "*** Error: No suitable flex/lex found. ***"
++        echo "    Please install the 'flex' package."
++        exit 1
++fi
+ 
+ AC_CHECK_PROG(CONFIG_MAN1, [docbook2x-man], [y], [n])
+ if test "$CONFIG_MAN1" == "y"
+@@ -49,18 +64,6 @@ then
+ 	AC_MSG_WARN([dblatex not found, no PDF manpages will be built])
+ fi
+ 
+-AC_PATH_PROG(LEX, [flex])
+-if test -z "$LEX"
+-then
+-	AC_MSG_ERROR([No suitable version of flex found])
+-fi
 -
--       __build_packet_message(log, inst, skb, data_len, pf,
--                               hooknum, in, out, prefix, plen);
-+       if (__build_packet_message(log, inst, skb, data_len, pf,
-+                                  hooknum, in, out, prefix, plen)) {
-+               if (!inst->qlen) {
-+                       kfree_skb(inst->skb);
-+                       inst->skb = NULL;
-+               }
-+       }
-
-         if (inst->qlen >= qthreshold)
-                 __nfulnl_flush(inst);
-         /* timer_pending always called within inst->lock, so there
-          * is no chance of a race here */
--       else if (!timer_pending(&inst->timer)) {
-+       else if (inst->qlen && !timer_pending(&inst->timer)) {
-                 instance_get(inst);
-                 inst->timer.expires = jiffies + (inst->flushtimeout*HZ/100);
-                 add_timer(&inst->timer);
-
-but that still wouldn't force a flush if __build_packet_message() failed..
-
-Other than that, set looks great to me. Thanks Pablo!
-
-Marcelo
-
+-AC_PATH_PROG(YACC, [bison])
+-if test -z "$YACC"
+-then
+-	AC_MSG_ERROR([No suitable version of bison found])
+-fi
+-
+ # Checks for libraries.
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+ PKG_CHECK_MODULES([LIBNFTNL], [libnftnl >= 1.0.2])
+-- 
+1.7.10.4
 
