@@ -1,108 +1,54 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 3/3] parser: allow both nat_flags and port specification
- in redirect
-Date: Fri, 07 Nov 2014 12:39:35 +0100
-Message-ID: <20141107113935.8480.16834.stgit@nfdev.cica.es>
-References: <20141107113924.8480.80701.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: [PATCH -nf] nft: masq: fix uninitialized range in nft_masq_{ipv4,ipv6}_eval
+Date: Fri,  7 Nov 2014 15:34:54 +0100
+Message-ID: <1415370894-31528-1-git-send-email-dborkman@redhat.com>
+Cc: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60518 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751222AbaKGLjo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Nov 2014 06:39:44 -0500
-In-Reply-To: <20141107113924.8480.80701.stgit@nfdev.cica.es>
+Received: from mx1.redhat.com ([209.132.183.28]:39285 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555AbaKGOe7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Nov 2014 09:34:59 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch changes the parser to permit both nat_flags and port specification
-in the redirect expression.
+When transferring from the original range in nf_nat_masquerade_{ipv4,ipv6}()
+we copy over values from stack in from min_proto/max_proto due to uninitialized
+range variable in both, nft_masq_{ipv4,ipv6}_eval. As we only initialize
+flags at this time from nft_masq struct, just zero out the rest.
 
-The resulting syntax is:
- % nft add rule nat prerouting redirect [port] [nat_flags]
-
-The port specification requires a bit of context regardin the transport
-protocol. Some examples:
- % nft add rule nat prerouting tcp dport 22 redirect :23
- % nft add rule add prerouting udp dport 53 redirect :5353
-
-The nat_flags argument is the last argument:
- % nft add rule nat prerouting tdp dport 80 redirect :8080 random
-
-The port specification can be a range:
- % nft add rule nat prerouting tcp dport 80 redirect :8080-8090 random
-
-While at it, the regression tests files are updated.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Fixes: 9ba1f726bec09 ("netfilter: nf_tables: add new nft_masq expression")
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/parser.y                    |    5 +++++
- tests/regression/ip/redirect.t  |   14 +++++++++-----
- tests/regression/ip6/redirect.t |    8 +++++---
- 3 files changed, 19 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/nft_masq_ipv4.c | 1 +
+ net/ipv6/netfilter/nft_masq_ipv6.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/src/parser.y b/src/parser.y
-index 6209e9e..3992c6a 100644
---- a/src/parser.y
-+++ b/src/parser.y
-@@ -1437,6 +1437,11 @@ redir_stmt_arg		:	COLON	expr
- 			{
- 				$<stmt>0->redir.flags = $1;
- 			}
-+			|	COLON	expr	nf_nat_flags
-+			{
-+				$<stmt>0->redir.proto = $2;
-+				$<stmt>0->redir.flags = $3;
-+			}
- 			;
+diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
+index c1023c4..665de06 100644
+--- a/net/ipv4/netfilter/nft_masq_ipv4.c
++++ b/net/ipv4/netfilter/nft_masq_ipv4.c
+@@ -24,6 +24,7 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
+ 	struct nf_nat_range range;
+ 	unsigned int verdict;
  
- nf_nat_flags		:	nf_nat_flag
-diff --git a/tests/regression/ip/redirect.t b/tests/regression/ip/redirect.t
-index f69fd07..cb230e2 100644
---- a/tests/regression/ip/redirect.t
-+++ b/tests/regression/ip/redirect.t
-@@ -24,11 +24,15 @@ tcp dport 39128 redirect :993;ok
- redirect :1234;fail
- redirect :12341111;fail
++	memset(&range, 0, sizeof(range));
+ 	range.flags = priv->flags;
  
--# invalid arguments
--tcp dport 9128 redirect :993 random;fail
--tcp dport 9128 redirect :993 random-fully;fail
--tcp dport 9128 redirect persistent :123;fail
--tcp dport 9128 redirect random,persistent :123;fail
-+# both port and nf_nat flags
-+tcp dport 9128 redirect :993 random;ok
-+tcp dport 9128 redirect :993 random-fully;ok
-+tcp dport 9128 redirect :123 persistent;ok
-+tcp dport 9128 redirect :123 random,persistent;ok
-+
-+# nf_nat flags is the last argument
-+udp dport 1234 redirect random :123;fail
-+udp dport 21234 redirect persistent,random-fully :431;fail
+ 	verdict = nf_nat_masquerade_ipv4(pkt->skb, pkt->ops->hooknum,
+diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
+index 8a7ac68..529c119 100644
+--- a/net/ipv6/netfilter/nft_masq_ipv6.c
++++ b/net/ipv6/netfilter/nft_masq_ipv6.c
+@@ -25,6 +25,7 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
+ 	struct nf_nat_range range;
+ 	unsigned int verdict;
  
- # redirect is a terminal statement
- tcp dport 22 redirect counter packets 0 bytes 0 accept;fail
-diff --git a/tests/regression/ip6/redirect.t b/tests/regression/ip6/redirect.t
-index d972871..dce4794 100644
---- a/tests/regression/ip6/redirect.t
-+++ b/tests/regression/ip6/redirect.t
-@@ -25,9 +25,11 @@ tcp dport 39128 redirect :993;ok
- redirect :1234;fail
- redirect :12341111;fail
++	memset(&range, 0, sizeof(range));
+ 	range.flags = priv->flags;
  
--# invalid arguments
--tcp dport 9128 redirect :993 random;fail
--tcp dport 9128 redirect :993 random-fully;fail
-+# both port and nf_nat flags
-+tcp dport 9128 redirect :993 random;ok
-+tcp dport 9128 redirect :993 random-fully,persistent;ok
-+
-+# nf_nat flags are the last argument
- tcp dport 9128 redirect persistent :123;fail
- tcp dport 9128 redirect random,persistent :123;fail
- 
+ 	verdict = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
+-- 
+1.7.11.7
 
