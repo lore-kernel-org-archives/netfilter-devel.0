@@ -1,60 +1,176 @@
-From: "Bill Bonaparte" <programme110@gmail.com>
-Subject: re: netfilter: nf_conntrack: there maybe a bug in __nf_conntrack_confirm, when it race against get_next_corpse
-Date: Fri, 7 Nov 2014 14:47:32 +0800
-Message-ID: <01dd01cffa56$bdb10460$39130d20$@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 2/3] tests/regression: redirect: fix invalid syntax
+Date: Fri, 07 Nov 2014 12:39:30 +0100
+Message-ID: <20141107113930.8480.59102.stgit@nfdev.cica.es>
+References: <20141107113924.8480.80701.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: <fw@strlen.de>, <linux-kernel@vger.kernel.org>,
-	"'Pablo Neira Ayuso'" <pablo@netfilter.org>,
-	"'Patrick McHardy'" <kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
-	<davem@davemloft.net>, "'Changli Gao'" <xiaosuo@gmail.com>,
-	"'Andrey Vagin'" <avagin@openvz.org>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: "'Jesper Dangaard Brouer'" <brouer@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: zh-cn
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:60513 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751232AbaKGLjk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Nov 2014 06:39:40 -0500
+In-Reply-To: <20141107113924.8480.80701.stgit@nfdev.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch fixes invalid syntax in the redirect test files.
 
-On Tue, 6 Nov 2014 21:01:00 
-"Jesper" <brouter@redhat.com> wrote:
->There is several issues with your submission.  I'll take care of
-resubmitting a patch in your name (so you will get credit in the git log).
->
->If you care to know, issues are:
->1. you are not sending to the appropriate mailing lists,  2. patch is as an
-attachment (should be inlined),  3. the patch have style and white-space
-issues.
+I used ' ;ok' instead of ';ok', and ' ;nok' instead of ';fail'.
 
-Thanks, Jesper. This is my first time to submit a patch, not know much about
-the rules.  I will get it soon.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/regression/ip/redirect.t  |   54 +++++++++++++++++++-------------------
+ tests/regression/ip6/redirect.t |   56 ++++++++++++++++++++-------------------
+ 2 files changed, 55 insertions(+), 55 deletions(-)
 
->> if there is a race at operating ct->status, there will be in 
->> alternative
->> case:
->> 1) IPS_DYING bit which set in get_next_corpse override other bits (e.g.
->> IPS_SRC_NAT_DONE_BIT), or
->> 2) other bits (e.g. IPS_SRC_NAT_DONE_BIT) which set in 
->> nf_nat_setup_info override IPS_DYING bit.
+diff --git a/tests/regression/ip/redirect.t b/tests/regression/ip/redirect.t
+index 8e0f783..f69fd07 100644
+--- a/tests/regression/ip/redirect.t
++++ b/tests/regression/ip/redirect.t
+@@ -2,40 +2,40 @@
+ :output;type nat hook output priority 0
+ 
+ # without arguments
+-udp dport 53 redirect ;ok
++udp dport 53 redirect;ok
+ 
+ # nf_nat flags combination
+-udp dport 53 redirect random ;ok
+-udp dport 53 redirect random,persistent ;ok
+-udp dport 53 redirect random,persistent,random-fully ;ok ;udp dport 53 redirect random,random-fully,persistent
+-udp dport 53 redirect random,random-fully ;ok
+-udp dport 53 redirect random,random-fully,persistent ;ok
+-udp dport 53 redirect persistent ;ok
+-udp dport 53 redirect persistent,random ;ok ;udp dport 53 redirect random,persistent
+-udp dport 53 redirect persistent,random,random-fully ;ok ;udp dport 53 redirect random,random-fully,persistent
+-udp dport 53 redirect persistent,random-fully ;ok ;udp dport 53 redirect random-fully,persistent
+-udp dport 53 redirect persistent,random-fully,random;ok ;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect random;ok
++udp dport 53 redirect random,persistent;ok
++udp dport 53 redirect random,persistent,random-fully;ok;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect random,random-fully;ok
++udp dport 53 redirect random,random-fully,persistent;ok
++udp dport 53 redirect persistent;ok
++udp dport 53 redirect persistent,random;ok;udp dport 53 redirect random,persistent
++udp dport 53 redirect persistent,random,random-fully;ok;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect persistent,random-fully;ok;udp dport 53 redirect random-fully,persistent
++udp dport 53 redirect persistent,random-fully,random;ok;udp dport 53 redirect random,random-fully,persistent
+ 
+ # port specification
+-tcp dport 22 redirect :22 ;ok
+-udp dport 1234 redirect :4321 ;ok
+-ip daddr 172.16.0.1 udp dport 9998 redirect :6515 ;ok
+-tcp dport 39128 redirect :993 ;ok
+-redirect :1234 ;nok
+-redirect :12341111 ;nok
++tcp dport 22 redirect :22;ok
++udp dport 1234 redirect :4321;ok
++ip daddr 172.16.0.1 udp dport 9998 redirect :6515;ok
++tcp dport 39128 redirect :993;ok
++redirect :1234;fail
++redirect :12341111;fail
+ 
+ # invalid arguments
+-tcp dport 9128 redirect :993 random ;nok
+-tcp dport 9128 redirect :993 random-fully ;nok
+-tcp dport 9128 redirect persistent :123 ;nok
+-tcp dport 9128 redirect random,persistent :123 ;nok
++tcp dport 9128 redirect :993 random;fail
++tcp dport 9128 redirect :993 random-fully;fail
++tcp dport 9128 redirect persistent :123;fail
++tcp dport 9128 redirect random,persistent :123;fail
+ 
+ # redirect is a terminal statement
+-tcp dport 22 redirect counter packets 0 bytes 0 accept ;nok
+-tcp sport 22 redirect accept ;nok
+-ip saddr 10.1.1.1 redirect drop ;nok
++tcp dport 22 redirect counter packets 0 bytes 0 accept;fail
++tcp sport 22 redirect accept;fail
++ip saddr 10.1.1.1 redirect drop;fail
+ 
+ # redirect with sets
+-tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} redirect ;ok
+-ip daddr 10.0.0.0-10.2.3.4 udp dport 53 counter packets 0 bytes 0 redirect ;ok ;ip daddr >= 10.0.0.0 ip daddr <= 10.2.3.4 udp dport 53 counter packets 0 bytes 0 redirect
+-iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } redirect ;ok
++tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} redirect;ok
++ip daddr 10.0.0.0-10.2.3.4 udp dport 53 counter packets 0 bytes 0 redirect;ok;ip daddr >= 10.0.0.0 ip daddr <= 10.2.3.4 udp dport 53 counter packets 0 bytes 0 redirect
++iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } redirect;ok
+diff --git a/tests/regression/ip6/redirect.t b/tests/regression/ip6/redirect.t
+index 84ed88f..d972871 100644
+--- a/tests/regression/ip6/redirect.t
++++ b/tests/regression/ip6/redirect.t
+@@ -2,41 +2,41 @@
+ :output;type nat hook output priority 0
+ 
+ # with no arguments
+-redirect ;ok
+-udp dport 954 redirect ;ok
+-ip6 saddr fe00::cafe counter packets 0 bytes 0 redirect ;ok
++redirect;ok
++udp dport 954 redirect;ok
++ip6 saddr fe00::cafe counter packets 0 bytes 0 redirect;ok
+ 
+ # nf_nat flags combination
+-udp dport 53 redirect random ;ok
+-udp dport 53 redirect random,persistent ;ok
+-udp dport 53 redirect random,persistent,random-fully ;ok ;udp dport 53 redirect random,random-fully,persistent
+-udp dport 53 redirect random,random-fully ;ok
+-udp dport 53 redirect random,random-fully,persistent ;ok
+-udp dport 53 redirect persistent ;ok
+-udp dport 53 redirect persistent,random ;ok ;udp dport 53 redirect random,persistent
+-udp dport 53 redirect persistent,random,random-fully ;ok ;udp dport 53 redirect random,random-fully,persistent
+-udp dport 53 redirect persistent,random-fully ;ok ;udp dport 53 redirect random-fully,persistent
+-udp dport 53 redirect persistent,random-fully,random;ok ;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect random;ok
++udp dport 53 redirect random,persistent;ok
++udp dport 53 redirect random,persistent,random-fully;ok;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect random,random-fully;ok
++udp dport 53 redirect random,random-fully,persistent;ok
++udp dport 53 redirect persistent;ok
++udp dport 53 redirect persistent,random;ok;udp dport 53 redirect random,persistent
++udp dport 53 redirect persistent,random,random-fully;ok;udp dport 53 redirect random,random-fully,persistent
++udp dport 53 redirect persistent,random-fully;ok;udp dport 53 redirect random-fully,persistent
++udp dport 53 redirect persistent,random-fully,random;ok;udp dport 53 redirect random,random-fully,persistent
+ 
+ # port specification
+-udp dport 1234 redirect :1234 ;ok
+-ip6 daddr fe00::cafe udp dport 9998 redirect :6515 ;ok
+-tcp dport 39128 redirect :993 ;ok
+-redirect :1234 ;nok
+-redirect :12341111 ;nok
++udp dport 1234 redirect :1234;ok
++ip6 daddr fe00::cafe udp dport 9998 redirect :6515;ok
++tcp dport 39128 redirect :993;ok
++redirect :1234;fail
++redirect :12341111;fail
+ 
+ # invalid arguments
+-tcp dport 9128 redirect :993 random ;nok
+-tcp dport 9128 redirect :993 random-fully ;nok
+-tcp dport 9128 redirect persistent :123 ;nok
+-tcp dport 9128 redirect random,persistent :123 ;nok
++tcp dport 9128 redirect :993 random;fail
++tcp dport 9128 redirect :993 random-fully;fail
++tcp dport 9128 redirect persistent :123;fail
++tcp dport 9128 redirect random,persistent :123;fail
+ 
+ # redirect is a terminal statement
+-tcp dport 22 redirect counter packets 0 bytes 0 accept ;nok
+-tcp sport 22 redirect accept ;nok
+-ip6 saddr ::1 redirect drop ;nok
++tcp dport 22 redirect counter packets 0 bytes 0 accept;fail
++tcp sport 22 redirect accept;fail
++ip6 saddr ::1 redirect drop;fail
+ 
+ # redirect with sets
+-tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} redirect ;ok
+-ip6 daddr fe00::1-fe00::200 udp dport 53 counter packets 0 bytes 0 redirect ;ok ;ip6 daddr >= fe00::1 ip6 daddr <= fe00::200 udp dport 53 counter packets 0 bytes 0 redirect
+-iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } redirect ;ok
++tcp dport {1,2,3,4,5,6,7,8,101,202,303,1001,2002,3003} redirect;ok
++ip6 daddr fe00::1-fe00::200 udp dport 53 counter packets 0 bytes 0 redirect;ok;ip6 daddr >= fe00::1 ip6 daddr <= fe00::200 udp dport 53 counter packets 0 bytes 0 redirect
++iifname eth0 ct state new,established tcp dport vmap {22 : drop, 222 : drop } redirect;ok
 
-> Notice the set_bit() is atomic, so we don't have these issues (of bits
-getting overridden).
-
-In most cases, we do the atomic operation on ct->status (with set_bit), but
-in function nf_nat_setup_info, we
-assume that unconfirmed ct is always holded by current cpu, and has no race
-against other cpus, so we don't
-use set_bit.  
-the following code is extracted from the nf_nat_setup_info:
-/* Non-atomic: we own this at the moment. */
-  if (maniptype == NF_NAT_MANIP_SRC)
-	ct->status |= IPS_SRC_NAT;
-  else
-	ct->status |= IPS_DST_NAT;
-
---
-Best regards,
-  Bill Bonaparte
