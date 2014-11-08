@@ -1,71 +1,40 @@
-From: Giorgio <giorgio.nicole@arcor.de>
-Subject: Re: [PATCH nft 5/5] build: autotools conversion
-Date: Fri, 07 Nov 2014 19:17:25 +0100
-Message-ID: <545D0CB5.90909@arcor.de>
-References: <1415298349-985-1-git-send-email-pablo@netfilter.org> <1415298349-985-6-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="8F7dAX5Tw4ADbjH2Xhhv3lMJpRdi86msv"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: [PATCH] arptables: disable dlfcn.h include
+Date: Sat,  8 Nov 2014 10:19:39 -0300
+Message-ID: <1415452779-11721-1-git-send-email-gustavo@zacarias.com.ar>
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:49859 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751459AbaKGSTK (ORCPT
+Received: from www.zacarias.com.ar ([62.210.192.172]:37434 "EHLO
+	www.zacarias.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753622AbaKHNbU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Nov 2014 13:19:10 -0500
-In-Reply-To: <1415298349-985-6-git-send-email-pablo@netfilter.org>
+	Sat, 8 Nov 2014 08:31:20 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---8F7dAX5Tw4ADbjH2Xhhv3lMJpRdi86msv
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+The relevant code is disabled in libarptc_incl.c so it's not required
+and breaks the ability to build it in a pure-static toolchain.
 
-On 11/06/2014 07:25 PM, Pablo Neira Ayuso wrote:
+Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+---
+ arptables.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> diff --git a/Make_global.am b/Make_global.am
-> new file mode 100644
-> index 0000000..8ad0eb0
-> --- /dev/null
-> +++ b/Make_global.am
-> @@ -0,0 +1,10 @@
-> +AM_CPPFLAGS =3D -I$(top_srcdir)/include
-> +AM_CPPFLAGS +=3D -DDEFAULT_INCLUDE_PATH=3D"\"${sysconfdir}\"" -D__USE_=
-GNU
-> +
-> +AM_CFLAGS =3D -Wall	\
-> +	    -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations	\=
+diff --git a/arptables.c b/arptables.c
+index 64ac3aa..fe270bc 100644
+--- a/arptables.c
++++ b/arptables.c
+@@ -35,7 +35,9 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <inttypes.h>
++#if 0
+ #include <dlfcn.h>
++#endif
+ #include <ctype.h>
+ #include <stdarg.h>
+ #include <limits.h>
+-- 
+2.0.4
 
-> +	    -Wdeclaration-after-statement -Wsign-compare -Winit-self		\
-> +	    -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute	=
-\
-> +	    -Wcast-align -Wundef -Wbad-function-cast # -Wshadow			\
-> +	    -Waggregate-return -Wunused -Wwrite-strings				\
-> +	    ${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS}
-
-why do you need this new file? The #include in the main Makefile.am is
-useless because you do not build anything there; the only right place to
-have these definitions is under src/Makefile.am.
-
-giorgio
-
-
-
---8F7dAX5Tw4ADbjH2Xhhv3lMJpRdi86msv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iEYEARECAAYFAlRdDLwACgkQYqbc2h3T5VAbrACdGPWgq05tOBew1yFOEaW/fqYL
-SZsAoL3HWCEhkBieynTH9iUlL+6v9xzg
-=+isE
------END PGP SIGNATURE-----
-
---8F7dAX5Tw4ADbjH2Xhhv3lMJpRdi86msv--
