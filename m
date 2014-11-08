@@ -1,112 +1,86 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH] nft-arp: fix inversion of matches
-Date: Sat, 08 Nov 2014 22:35:49 +0100
-Message-ID: <20141108213434.27991.30805.stgit@nfdev.cica.es>
+Subject: [ebtables-compat-experimental3 PATCH 1/2] nft-bridge: fix inversion
+ of matches
+Date: Sat, 08 Nov 2014 22:39:33 +0100
+Message-ID: <20141108213750.28047.14081.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
+Cc: giuseppelng@gmail.com, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:50227 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:36512 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752501AbaKHVgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Nov 2014 16:36:00 -0500
+	id S1752591AbaKHVjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Nov 2014 16:39:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Inversion of matches is failing because NFT_CMP_EQ is used unconditionally.
+The inversion in bridge specific matches is failing because before this
+patch NFT_CMP_EQ is used unconditionally.
 
-The family agnostic functions don't need this fix, because arp inv flags
-are translated to ipt inv flags, and these flags are well handled there.
+No need to change the invesion in family-agnostic functions, given
+ebt inv flags are translated to ipt inv flags and inversion is properly
+calculated there.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-NOTES: This patch is for the master branch of iptables tree.
-       Compile-tested only. Please comment.
+NOTE: I think the previous patch to fix this isse was wrong in several aspects.
+      This is a new approach. Compile-tested only. Please comment.
 
- iptables/nft-arp.c |   41 ++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 5 deletions(-)
+ iptables/nft-bridge.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index f45ad0f..cb3623d 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -164,6 +164,7 @@ static int nft_arp_add(struct nft_rule *r, void *data)
- 	struct arptables_command_state *cs = data;
- 	struct arpt_entry *fw = &cs->fw;
- 	uint8_t flags = arpt_to_ipt_flags(fw->arp.invflags);
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 0e21b46..66bbefd 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -165,6 +165,7 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
+ 	struct ebtables_command_state *cs = data;
+ 	struct ebt_entry *fw = &cs->fw;
+ 	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
 +	uint32_t op = NFT_CMP_EQ;
- 	int ret = 0;
+ 	char *addr;
  
- 	if (fw->arp.iniface[0] != '\0')
-@@ -174,12 +175,24 @@ static int nft_arp_add(struct nft_rule *r, void *data)
- 
- 	if (fw->arp.arhrd != 0) {
- 		add_payload(r, offsetof(struct arphdr, ar_hrd), 2);
--		add_cmp_u16(r, fw->arp.arhrd, NFT_CMP_EQ);
+ 	if (fw->in[0] != '\0')
+@@ -182,18 +183,36 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
+ 	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
+ 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
+ 		add_payload(r, offsetof(struct ethhdr, h_source), 6);
+-		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
 +
-+		if (fw->arp.invflags & ARPT_INV_ARPHRD)
++		if (fw->invflags & EBT_ISOURCE)
 +			op = NFT_CMP_NEQ;
 +		else
 +			op = NFT_CMP_EQ;
 +
-+		add_cmp_u16(r, fw->arp.arhrd, op);
++		add_cmp_ptr(r, op, fw->sourcemac, 6);
  	}
  
- 	if (fw->arp.arpro != 0) {
- 	        add_payload(r, offsetof(struct arphdr, ar_pro), 2);
--		add_cmp_u16(r, fw->arp.arpro, NFT_CMP_EQ);
+ 	addr = ether_ntoa((struct ether_addr *) fw->destmac);
+ 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
+ 		add_payload(r, offsetof(struct ethhdr, h_dest), 6);
+-		add_cmp_ptr(r, NFT_CMP_EQ, fw->destmac, 6);
 +
-+		if (fw->arp.invflags & ARPT_INV_ARPPRO)
++		if (fw->invflags & EBT_IDEST)
 +			op = NFT_CMP_NEQ;
 +		else
 +			op = NFT_CMP_EQ;
 +
-+		add_cmp_u16(r, fw->arp.arpro, op);
++		add_cmp_ptr(r, op, fw->destmac, 6);
  	}
  
- 	if (fw->arp.arhln != 0)
-@@ -190,12 +203,24 @@ static int nft_arp_add(struct nft_rule *r, void *data)
- 
- 	if (fw->arp.arpop != 0) {
- 		add_payload(r, offsetof(struct arphdr, ar_op), 2);
--		add_cmp_u16(r, fw->arp.arpop, NFT_CMP_EQ);
+ 	if (fw->ethproto != 0) {
+ 		add_payload(r, offsetof(struct ethhdr, h_proto), 2);
+-		add_cmp_u16(r, fw->ethproto, NFT_CMP_EQ);
 +
-+		if (fw->arp.invflags & ARPT_INV_ARPOP)
++		if (fw->invflags & EBT_IPROTO)
 +			op = NFT_CMP_NEQ;
 +		else
 +			op = NFT_CMP_EQ;
 +
-+		add_cmp_u16(r, fw->arp.arpop, op);
++		add_cmp_u16(r, fw->ethproto, op);
  	}
  
- 	if (fw->arp.src_devaddr.addr[0] != '\0') {
- 		add_payload(r, sizeof(struct arphdr), fw->arp.arhln);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->arp.src_devaddr.addr, fw->arp.arhln);
-+
-+		if (fw->arp.invflags & ARPT_INV_SRCDEVADDR)
-+			op = NFT_CMP_NEQ;
-+		else
-+			op = NFT_CMP_EQ;
-+
-+		add_cmp_ptr(r, op, fw->arp.src_devaddr.addr, fw->arp.arhln);
- 	}
- 
- 	if (fw->arp.src.s_addr != 0) {
-@@ -206,7 +231,13 @@ static int nft_arp_add(struct nft_rule *r, void *data)
- 
- 	if (fw->arp.tgt_devaddr.addr[0] != '\0') {
- 		add_payload(r, sizeof(struct arphdr) + fw->arp.arhln + 4, fw->arp.arhln);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->arp.tgt_devaddr.addr, fw->arp.arhln);
-+
-+		if (fw->arp.invflags & ARPT_INV_TGTDEVADDR)
-+			op = NFT_CMP_NEQ;
-+		else
-+			op = NFT_CMP_EQ;
-+
-+		add_cmp_ptr(r, op, fw->arp.tgt_devaddr.addr, fw->arp.arhln);
- 	}
- 
- 	if (fw->arp.tgt.s_addr != 0) {
+ 	return _add_action(r, cs);
 
