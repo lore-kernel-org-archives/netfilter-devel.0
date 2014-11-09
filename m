@@ -1,61 +1,38 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat-experimental3 PATCH 2/2] nft-bridge: fix printing
- of inverted protocols, addresses
-Date: Sat, 08 Nov 2014 22:40:37 +0100
-Message-ID: <20141108213938.28047.60010.stgit@nfdev.cica.es>
-References: <20141108213750.28047.14081.stgit@nfdev.cica.es>
+From: Nguyen Duong Tuan <hoang.su.tk@gmail.com>
+Subject: How to debug libiptc and mechanism for exchanging information between
+ user space and kernel space
+Date: Sun, 9 Nov 2014 18:44:32 +0700
+Message-ID: <CAM_kxqf5EdXQ7+cPFQk5NsaY3F7LDtsTbqEmZCnr11X_nUc9BA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36522 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752591AbaKHVkq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Nov 2014 16:40:46 -0500
-In-Reply-To: <20141108213750.28047.14081.stgit@nfdev.cica.es>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:48491 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbaKILoe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Nov 2014 06:44:34 -0500
+Received: by mail-lb0-f172.google.com with SMTP id w7so4638088lbi.17
+        for <netfilter-devel@vger.kernel.org>; Sun, 09 Nov 2014 03:44:33 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Previous to this patch, no '!' is printed in payload comparisions.
-This patch solves it, so we can print for example inverted protocols:
+Hi all,
 
- % ebtables-compat -L
-[...]
--p ! 0x800 -j ACCEPT
+I'm studying iptables' source code (both user and kernel space) and
+got several questions and statements. I will highly appreciate if
+someone could confirm them.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-NOTE: This patch was already sent. No changes to it, just resending.
+1 - How to debug libiptc? I tried with TC_APPEND_ENTRY in libiptc.c by
+adding a print command and rebuilt iptables source code but it didn't
+show when I added a new rule.
 
- iptables/nft-bridge.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+2 - iptables utility (user space) and ip_tables module (kernel space)
+communicate with each other via getsockopt and setsockopt functions
+defined in TC_INIT of libiptc.c.
 
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 66bbefd..7f0c578 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -287,15 +287,21 @@ static void nft_bridge_parse_payload(struct nft_xt_ctx *ctx,
- 		get_cmp_data(e, addr, sizeof(addr), &inv);
- 		for (i = 0; i < ETH_ALEN; i++)
- 			fw->destmac[i] = addr[i];
-+		if (inv)
-+			fw->invflags |= EBT_IDEST;
- 		break;
- 	case offsetof(struct ethhdr, h_source):
- 		get_cmp_data(e, addr, sizeof(addr), &inv);
- 		for (i = 0; i < ETH_ALEN; i++)
- 			fw->sourcemac[i] = addr[i];
-+		if (inv)
-+			fw->invflags |= EBT_ISOURCE;
- 		break;
- 	case offsetof(struct ethhdr, h_proto):
- 		get_cmp_data(e, &ethproto, sizeof(ethproto), &inv);
- 		fw->ethproto = ethproto;
-+		if (inv)
-+			fw->invflags |= EBT_IPROTO;
- 		break;
- 	}
- }
+3 - Netlink (libnfnetlink) is only used for other modules (log, queue,
+conntrack). Not for iptables.
 
+Regards,
+HTS
