@@ -1,42 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 3/3] parser: allow both nat_flags and port
- specification in redirect
-Date: Mon, 10 Nov 2014 18:22:49 +0100
-Message-ID: <20141110172249.GC28853@salvia>
-References: <20141107113924.8480.80701.stgit@nfdev.cica.es>
- <20141107113935.8480.16834.stgit@nfdev.cica.es>
+Subject: Re: [ebtables-compat-experimental3 PATCH 1/2] nft-bridge: fix
+ inversion of matches
+Date: Mon, 10 Nov 2014 18:33:23 +0100
+Message-ID: <20141110173323.GB29762@salvia>
+References: <20141108213750.28047.14081.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42869 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752785AbaKJRVE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:21:04 -0500
+	id S1752910AbaKJRbf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Nov 2014 12:31:35 -0500
 Content-Disposition: inline
-In-Reply-To: <20141107113935.8480.16834.stgit@nfdev.cica.es>
+In-Reply-To: <20141108213750.28047.14081.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 07, 2014 at 12:39:35PM +0100, Arturo Borrero Gonzalez wrote:
-> This patch changes the parser to permit both nat_flags and port specification
-> in the redirect expression.
+On Sat, Nov 08, 2014 at 10:39:33PM +0100, Arturo Borrero Gonzalez wrote:
+> The inversion in bridge specific matches is failing because before this
+> patch NFT_CMP_EQ is used unconditionally.
 > 
-> The resulting syntax is:
->  % nft add rule nat prerouting redirect [port] [nat_flags]
+> No need to change the invesion in family-agnostic functions, given
+> ebt inv flags are translated to ipt inv flags and inversion is properly
+> calculated there.
 > 
-> The port specification requires a bit of context regardin the transport
-> protocol. Some examples:
->  % nft add rule nat prerouting tcp dport 22 redirect :23
->  % nft add rule add prerouting udp dport 53 redirect :5353
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+> NOTE: I think the previous patch to fix this isse was wrong in several aspects.
+>       This is a new approach. Compile-tested only. Please comment.
 > 
-> The nat_flags argument is the last argument:
->  % nft add rule nat prerouting tdp dport 80 redirect :8080 random
+>  iptables/nft-bridge.c |   25 ++++++++++++++++++++++---
+>  1 file changed, 22 insertions(+), 3 deletions(-)
 > 
-> The port specification can be a range:
->  % nft add rule nat prerouting tcp dport 80 redirect :8080-8090 random
-> 
-> While at it, the regression tests files are updated.
+> diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+> index 0e21b46..66bbefd 100644
+> --- a/iptables/nft-bridge.c
+> +++ b/iptables/nft-bridge.c
+> @@ -165,6 +165,7 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
+>  	struct ebtables_command_state *cs = data;
+>  	struct ebt_entry *fw = &cs->fw;
+>  	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
+> +	uint32_t op = NFT_CMP_EQ;
+>  	char *addr;
+>  
+>  	if (fw->in[0] != '\0')
+> @@ -182,18 +183,36 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
+>  	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
+>  	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
+>  		add_payload(r, offsetof(struct ethhdr, h_source), 6);
+> -		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
+> +
+> +		if (fw->invflags & EBT_ISOURCE)
+> +			op = NFT_CMP_NEQ;
+> +		else
+> +			op = NFT_CMP_EQ;
+> +
+> +		add_cmp_ptr(r, op, fw->sourcemac, 6);
 
-Applied, thanks.
+Please, use ETH_ALEN instead of hardcoded values. I know this code is
+full of this, but when it comes to source code readability, it's
+always better to use something meaningful.
+
+Apart from that, looks good. Please test and resubmit. Thanks.
