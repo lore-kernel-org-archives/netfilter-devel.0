@@ -1,66 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat-experimental3 PATCH 1/2] nft-bridge: fix
- inversion of matches
-Date: Mon, 10 Nov 2014 18:33:23 +0100
-Message-ID: <20141110173323.GB29762@salvia>
-References: <20141108213750.28047.14081.stgit@nfdev.cica.es>
+Subject: Re: [iptables PATCH] nft-arp: fix inversion of matches
+Date: Mon, 10 Nov 2014 18:30:29 +0100
+Message-ID: <20141110173029.GA29762@salvia>
+References: <20141108213434.27991.30805.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
+Cc: netfilter-devel@vger.kernel.org
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44944 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44363 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752910AbaKJRbf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Nov 2014 12:31:35 -0500
+	id S1753835AbaKJR2l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Nov 2014 12:28:41 -0500
 Content-Disposition: inline
-In-Reply-To: <20141108213750.28047.14081.stgit@nfdev.cica.es>
+In-Reply-To: <20141108213434.27991.30805.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Nov 08, 2014 at 10:39:33PM +0100, Arturo Borrero Gonzalez wrote:
-> The inversion in bridge specific matches is failing because before this
-> patch NFT_CMP_EQ is used unconditionally.
+On Sat, Nov 08, 2014 at 10:35:49PM +0100, Arturo Borrero Gonzalez wrote:
+> Inversion of matches is failing because NFT_CMP_EQ is used unconditionally.
 > 
-> No need to change the invesion in family-agnostic functions, given
-> ebt inv flags are translated to ipt inv flags and inversion is properly
-> calculated there.
+> The family agnostic functions don't need this fix, because arp inv flags
+> are translated to ipt inv flags, and these flags are well handled there.
 > 
 > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 > ---
-> NOTE: I think the previous patch to fix this isse was wrong in several aspects.
->       This is a new approach. Compile-tested only. Please comment.
+> NOTES: This patch is for the master branch of iptables tree.
+>        Compile-tested only. Please comment.
+
+Please, no compile-tested patches, submit RFC or tested stuff.
+
+>  iptables/nft-arp.c |   41 ++++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 36 insertions(+), 5 deletions(-)
 > 
->  iptables/nft-bridge.c |   25 ++++++++++++++++++++++---
->  1 file changed, 22 insertions(+), 3 deletions(-)
-> 
-> diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-> index 0e21b46..66bbefd 100644
-> --- a/iptables/nft-bridge.c
-> +++ b/iptables/nft-bridge.c
-> @@ -165,6 +165,7 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
->  	struct ebtables_command_state *cs = data;
->  	struct ebt_entry *fw = &cs->fw;
->  	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
+> diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+> index f45ad0f..cb3623d 100644
+> --- a/iptables/nft-arp.c
+> +++ b/iptables/nft-arp.c
+> @@ -164,6 +164,7 @@ static int nft_arp_add(struct nft_rule *r, void *data)
+>  	struct arptables_command_state *cs = data;
+>  	struct arpt_entry *fw = &cs->fw;
+>  	uint8_t flags = arpt_to_ipt_flags(fw->arp.invflags);
+
+I prefer if you kill arpt_to_ipt_flags(), so add_iniface() uses
+native NFT_CMP_{EQ,NEQ} as third parameter. Thus, add_iniface() will
+be consistent with other existing add_cmp_*() functions.
+
+This will require some extra code in nft-ipv4 and nft-ipv6 though, but
+I'd like to avoid this arpt to ipt flags conversion.
+
 > +	uint32_t op = NFT_CMP_EQ;
->  	char *addr;
+>  	int ret = 0;
 >  
->  	if (fw->in[0] != '\0')
-> @@ -182,18 +183,36 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
->  	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
->  	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
->  		add_payload(r, offsetof(struct ethhdr, h_source), 6);
-> -		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
+>  	if (fw->arp.iniface[0] != '\0')
+> @@ -174,12 +175,24 @@ static int nft_arp_add(struct nft_rule *r, void *data)
+>  
+>  	if (fw->arp.arhrd != 0) {
+>  		add_payload(r, offsetof(struct arphdr, ar_hrd), 2);
+> -		add_cmp_u16(r, fw->arp.arhrd, NFT_CMP_EQ);
 > +
-> +		if (fw->invflags & EBT_ISOURCE)
+> +		if (fw->arp.invflags & ARPT_INV_ARPHRD)
 > +			op = NFT_CMP_NEQ;
 > +		else
 > +			op = NFT_CMP_EQ;
 > +
-> +		add_cmp_ptr(r, op, fw->sourcemac, 6);
+> +		add_cmp_u16(r, fw->arp.arhrd, op);
 
-Please, use ETH_ALEN instead of hardcoded values. I know this code is
-full of this, but when it comes to source code readability, it's
-always better to use something meaningful.
-
-Apart from that, looks good. Please test and resubmit. Thanks.
+This is a good example of what I would like to see in the family
+specific nft code, use this pattern consistently in this code. Thanks.
