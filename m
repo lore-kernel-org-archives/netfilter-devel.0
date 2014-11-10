@@ -1,69 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch -mainline] netfilter: ipset: small potential read beyond
- the end of buffer
-Date: Mon, 10 Nov 2014 15:27:51 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1411101526480.2913@blackhole.kfki.hu>
-References: <20141107062140.GA10905@mwanda> <20141110142446.GA29586@salvia>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernddel.org, kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20141110142446.GA29586@salvia>
-Sender: kernel-janitors-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Giorgio Dal Molin <giorgio.dal.molin@mobotix.com>
+Subject: [PATCH 0/1] autotools conversion: added autotools support for the 'doc' subdir.
+Date: Mon, 10 Nov 2014 15:57:04 +0100
+Message-ID: <1415631425-10121-2-git-send-email-giorgio.dal.molin@mobotix.com>
+References: <1415631425-10121-1-git-send-email-giorgio.dal.molin@mobotix.com>
+Cc: Giorgio <giorgio.nicole@arcor.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:35072 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752545AbaKJO5Z (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Nov 2014 09:57:25 -0500
+Received: from mail-in-10-z2.arcor-online.net (mail-in-10-z2.arcor-online.net [151.189.8.27])
+	by mx.arcor.de (Postfix) with ESMTP id 4CDD0E3E21
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2014 15:57:23 +0100 (CET)
+In-Reply-To: <1415631425-10121-1-git-send-email-giorgio.dal.molin@mobotix.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 10 Nov 2014, Pablo Neira Ayuso wrote:
+From: Giorgio <giorgio.nicole@arcor.de>
 
-> On Fri, Nov 07, 2014 at 09:21:40AM +0300, Dan Carpenter wrote:
-> > We could be reading 8 bytes into a 4 byte buffer here.  It seems
-> > harmless but adding a check is the right thing to do and it silences a
-> > static checker warning.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > 
-> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > index 86f9d76..ac08a3f 100644
-> > --- a/net/netfilter/ipset/ip_set_core.c
-> > +++ b/net/netfilter/ipset/ip_set_core.c
-> > @@ -1863,7 +1863,8 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
-> >  	if (*op < IP_SET_OP_VERSION) {
-> >  		/* Check the version at the beginning of operations */
-> >  		struct ip_set_req_version *req_version = data;
-> > -		if (req_version->version != IPSET_PROTOCOL) {
-> > +		if (*len < sizeof(struct ip_set_req_version) ||
-> > +		    req_version->version != IPSET_PROTOCOL) {
-> >  			ret = -EPROTO;
-> >  			goto done;
-> 
-> Thanks for catching up this.
-> 
-> >From other similar code in that location, I can see Jozsef is using
-> this pattern:
-> 
->                 if (*len != sizeof(struct ip_set_req_version)) {
->                         ret = -EINVAL;
->                         goto done;
->                 }
-> 
-> I think it would be good to stick to that for consistency. Thanks.
+To build the man page 'nft.8' we look for the three programs:
+'docbook2x-man', 'docbook2man' and 'db2x_docbook2man'; in case one was found
+it is used to build the man page with the command:
 
-Absolutely, yes.
+# ${DB2MAN} --xinclude $<
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+giorgio (1):
+  autotools conversion: added autotools support for the 'doc' subdir.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ Makefile.am     |  5 ++---
+ configure.ac    | 45 ++++++++++++++++++++++-----------------------
+ doc/Makefile.am | 19 +++++++++++++++++++
+ doc/Makefile.in | 20 --------------------
+ 4 files changed, 43 insertions(+), 46 deletions(-)
+ create mode 100644 doc/Makefile.am
+ delete mode 100644 doc/Makefile.in
+
+-- 
+2.1.3
+
