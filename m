@@ -1,96 +1,95 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch -mainline] netfilter: ipset: small potential read beyond
- the end of buffer
-Date: Mon, 10 Nov 2014 17:11:21 +0100
-Message-ID: <20141110161121.GA7398@salvia>
-References: <20141107062140.GA10905@mwanda>
- <20141110142446.GA29586@salvia>
- <alpine.DEB.2.10.1411101526480.2913@blackhole.kfki.hu>
+Subject: Re: [PATCH nf] netfilter: conntrack: fix race in
+ __nf_conntrack_confirm against get_next_corpse
+Date: Mon, 10 Nov 2014 17:54:39 +0100
+Message-ID: <20141110165439.GA7788@salvia>
+References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
+ <20141106133648.2534.1403.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="UlVJffcvxoiEqYs2"
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernddel.org, kernel-janitors@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: programme110@gmail.com, netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57530 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37223 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292AbaKJQJg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Nov 2014 11:09:36 -0500
+	id S1751424AbaKJQws (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Nov 2014 11:52:48 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1411101526480.2913@blackhole.kfki.hu>
+In-Reply-To: <20141106133648.2534.1403.stgit@dragon>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 10, 2014 at 03:27:51PM +0100, Jozsef Kadlecsik wrote:
-> On Mon, 10 Nov 2014, Pablo Neira Ayuso wrote:
-> > >From other similar code in that location, I can see Jozsef is using
-> > this pattern:
-> > 
-> >                 if (*len != sizeof(struct ip_set_req_version)) {
-> >                         ret = -EINVAL;
-> >                         goto done;
-> >                 }
-> > 
-> > I think it would be good to stick to that for consistency. Thanks.
+On Thu, Nov 06, 2014 at 02:36:48PM +0100, Jesper Dangaard Brouer wrote:
+> From: bill bonaparte <programme110@gmail.com>
 > 
-> Absolutely, yes.
+> After removal of the central spinlock nf_conntrack_lock, in
+> commit 93bb0ceb75be2 ("netfilter: conntrack: remove central
+> spinlock nf_conntrack_lock"), it is possible to race against
+> get_next_corpse().
 > 
-> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> The race is against the get_next_corpse() cleanup on
+> the "unconfirmed" list (a per-cpu list with seperate locking),
+> which set the DYING bit.
+> 
+> Fix this race, in __nf_conntrack_confirm(), by removing the CT
+> from unconfirmed list before checking the DYING bit.  In case
+> race occured, re-add the CT to the dying list.
 
-OK, then does this look fine to you? I took over Dan's patch and gave
-it another spin. See it attached, thanks.
+This seems correct to me, some side comments.
 
---UlVJffcvxoiEqYs2
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-ipset-small-potential-read-beyond-the-end-.patch"
+> Fixes: 93bb0ceb75be2 ("netfilter: conntrack: remove central spinlock nf_conntrack_lock")
+> Reported-by: bill bonaparte <programme110@gmail.com>
+> Signed-off-by: bill bonaparte <programme110@gmail.com>
+> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> ---
+> 
+>  net/netfilter/nf_conntrack_core.c |    7 ++++---
+>  1 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 5016a69..1072650 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -611,12 +611,15 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+>  	 */
+>  	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
+>  	pr_debug("Confirming conntrack %p\n", ct);
+> -	/* We have to check the DYING flag inside the lock to prevent
+> +
+> +	/* We have to check the DYING flag after unlink to prevent
+>  	   a race against nf_ct_get_next_corpse() possibly called from
+>  	   user context, else we insert an already 'dead' hash, blocking
+>  	   further use of that particular connection -JM */
 
->From d67bad383d4ea9dea8872e3999324ccbeb2a5815 Mon Sep 17 00:00:00 2001
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Fri, 7 Nov 2014 09:21:40 +0300
-Subject: [PATCH] netfilter: ipset: small potential read beyond the end of
- buffer
+While at this, I think it would be good to fix comment style to:
 
-We could be reading 8 bytes into a 4 byte buffer here.  It seems
-harmless but adding a check is the right thing to do and it silences a
-static checker warning.
+        /* We have ...
+         * ...
+         */
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipset/ip_set_core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+I can fix this here, no need to resend, just let me know.
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 86f9d76..d259da3 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1863,6 +1863,12 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
- 	if (*op < IP_SET_OP_VERSION) {
- 		/* Check the version at the beginning of operations */
- 		struct ip_set_req_version *req_version = data;
-+
-+		if (*len < sizeof(struct ip_set_req_version)) {
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+
- 		if (req_version->version != IPSET_PROTOCOL) {
- 			ret = -EPROTO;
- 			goto done;
--- 
-1.7.10.4
+> +	nf_ct_del_from_dying_or_unconfirmed_list(ct);
+>  
+>  	if (unlikely(nf_ct_is_dying(ct))) {
+> +		nf_ct_add_to_dying_list(ct);
+>  		nf_conntrack_double_unlock(hash, reply_hash);
+>  		local_bh_enable();
+>  		return NF_ACCEPT;
 
+Not directly related to your patch, but I don't find a good reason why
+we're accepting this packet.
 
---UlVJffcvxoiEqYs2--
+If the conntrack from the unconfirmed list is dying, then the object
+will be released by when the packet leaves the stack to its
+destination. With stateful filtering depending in place, the follow up
+packet in the reply direction will likely be considered invalid (if
+tcp tracking is on). Fortunately for us, the origin will likely
+retransmit the syn again, so the ct will be setup accordingly.
+
+So, why should we allow this to go through?
+
+This return verdict was introduced in: fc35077 ("netfilter:
+nf_conntrack: fix a race in __nf_conntrack_confirm against
+nf_ct_get_next_corpse()") btw.
