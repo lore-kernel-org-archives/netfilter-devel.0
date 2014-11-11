@@ -1,66 +1,84 @@
-From: Gustavo Zacarias <gustavo@zacarias.com.ar>
-Subject: [PATCH] arptables: remove dead dynamic hooks code
-Date: Tue, 11 Nov 2014 10:20:22 -0300
-Message-ID: <1415712022-31842-1-git-send-email-gustavo@zacarias.com.ar>
-Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/3] netfilter: nft_compat: relax chain type validation
+Date: Tue, 11 Nov 2014 14:24:56 +0100
+Message-ID: <1415712298-8592-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.zacarias.com.ar ([62.210.192.172]:45933 "EHLO
-	www.zacarias.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbaKKNUd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2014 08:20:33 -0500
+Received: from mail.us.es ([193.147.175.20]:39383 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751436AbaKKNXN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Nov 2014 08:23:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The code is unused and #if'ed away, it also breaks pure-static
-builds because of the dlfcn.h include.
+Check for nat chain dependency only, which is the one that can
+actually crash the kernel. Don't care if mangle, filter and security
+specific match and targets are used out of their scope, they are
+harmless.
 
-Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+This restores iptables-compat with mangle specific match/target when
+used out of the OUTPUT chain, that are actually emulated through filter
+chains, which broke when performing strict validation.
+
+Fixes: f3f5dde ("netfilter: nft_compat: validate chain type in match/target")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- arptables.c              |  1 -
- libarptc/libarptc_incl.c | 15 ---------------
- 2 files changed, 16 deletions(-)
+ net/netfilter/nft_compat.c |   32 ++------------------------------
+ 1 file changed, 2 insertions(+), 30 deletions(-)
 
-diff --git a/arptables.c b/arptables.c
-index 64ac3aa..845e226 100644
---- a/arptables.c
-+++ b/arptables.c
-@@ -35,7 +35,6 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <inttypes.h>
--#include <dlfcn.h>
- #include <ctype.h>
- #include <stdarg.h>
- #include <limits.h>
-diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
-index 9c1aeac..1d2e8b7 100644
---- a/libarptc/libarptc_incl.c
-+++ b/libarptc/libarptc_incl.c
-@@ -257,22 +257,7 @@ TC_INIT(const char *tablename)
- 	    == NULL)
- 		return NULL;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 9d6d6f6..2bd4ec7 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -21,45 +21,17 @@
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <net/netfilter/nf_tables.h>
  
--/* Too hard --RR */
--#if 0
--	sprintf(pathname, "%s/%s", ARPT_LIB_DIR, info.name);
--	dynlib = dlopen(pathname, RTLD_NOW);
--	if (!dynlib) {
--		errno = ENOENT;
--		return NULL;
+-static const struct {
+-       const char	*name;
+-       u8		type;
+-} table_to_chaintype[] = {
+-       { "filter",     NFT_CHAIN_T_DEFAULT },
+-       { "raw",        NFT_CHAIN_T_DEFAULT },
+-       { "security",   NFT_CHAIN_T_DEFAULT },
+-       { "mangle",     NFT_CHAIN_T_ROUTE },
+-       { "nat",        NFT_CHAIN_T_NAT },
+-       { },
+-};
+-
+-static int nft_compat_table_to_chaintype(const char *table)
+-{
+-	int i;
+-
+-	for (i = 0; table_to_chaintype[i].name != NULL; i++) {
+-		if (strcmp(table_to_chaintype[i].name, table) == 0)
+-			return table_to_chaintype[i].type;
 -	}
--	h->hooknames = dlsym(dynlib, "hooknames");
--	if (!h->hooknames) {
--		errno = ENOENT;
--		return NULL;
--	}
--#else
- 	h->hooknames = hooknames;
--#endif
+-
+-	return -1;
+-}
+-
+ static int nft_compat_chain_validate_dependency(const char *tablename,
+ 						const struct nft_chain *chain)
+ {
+-	enum nft_chain_type type;
+ 	const struct nft_base_chain *basechain;
  
- 	/* Initialize current state */
- 	h->info = info;
+ 	if (!tablename || !(chain->flags & NFT_BASE_CHAIN))
+ 		return 0;
+ 
+-	type = nft_compat_table_to_chaintype(tablename);
+-	if (type < 0)
+-		return -EINVAL;
+-
+ 	basechain = nft_base_chain(chain);
+-	if (basechain->type->type != type)
++	if (strcmp(tablename, "nat") == 0 &&
++	    basechain->type->type != NFT_CHAIN_T_NAT)
+ 		return -EINVAL;
+ 
+ 	return 0;
 -- 
-2.0.4
+1.7.10.4
 
