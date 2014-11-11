@@ -1,126 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/3] netfilter: nf_tables: restore synchronous object release from commit/abort
-Date: Tue, 11 Nov 2014 14:24:58 +0100
-Message-ID: <1415712298-8592-3-git-send-email-pablo@netfilter.org>
-References: <1415712298-8592-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Petr Mladek <pmladek@suse.cz>
+Subject: Re: [PATCH -next 2/2] seq_putc: Convert to return void and convert
+ uses too.
+Date: Tue, 11 Nov 2014 14:47:40 +0100
+Message-ID: <20141111134740.GB2567@pathway.suse.cz>
+References: <cover.1415645476.git.joe@perches.com>
+ <56c4c0d5ec721134cff4913e5e3f8923169c35ef.1415645477.git.joe@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Steven Rostedt <rostedt@goodmis.org>,
+	Corey Minyard <minyard@acm.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	openipmi-developer@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Joe Perches <joe@perches.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39385 "EHLO mail.us.es"
+Received: from cantor2.suse.de ([195.135.220.15]:40968 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbaKKNXN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2014 08:23:13 -0500
-In-Reply-To: <1415712298-8592-1-git-send-email-pablo@netfilter.org>
+	id S1750829AbaKKNr2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Nov 2014 08:47:28 -0500
+Content-Disposition: inline
+In-Reply-To: <56c4c0d5ec721134cff4913e5e3f8923169c35ef.1415645477.git.joe@perches.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The existing xtables matches and targets, when used from nft_compat, may
-sleep from the destroy path, ie. when removing rules. Since the objects
-are released via call_rcu from softirq context, this results in lockdep
-splats and possible lockups that may be hard to reproduce.
+On Mon 2014-11-10 10:58:57, Joe Perches wrote:
+> Using the return value of seq_putc is error-prone, so
+> make it return void instead.
+> 
+> Reverse the logic in seq_putc to make it like seq_puts.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Patrick also indicated that delayed object release via call_rcu can
-cause us problems in the ordering of event notifications when anonymous
-sets are in place.
+Reviewed-by: Petr Mladek <pmladek@suse.cz>
 
-So, this patch restores the synchronous object release from the commit
-and abort paths. This includes a call to synchronize_rcu() to make sure
-that no packets are walking on the objects that are going to be
-released. This is slowier though, but it's simple and it resolve the
-aforementioned problems.
+The changes are correct. The show() functions should return 0
+even when there is an overflow. They are called by traverse()
+from seq_read() that might increase the buffer size and try again.
 
-This is a partial revert of c7c32e7 ("netfilter: nf_tables: defer all
-object release via rcu") that was introduced in 3.16 to speed up
-interaction with userspace.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |    2 --
- net/netfilter/nf_tables_api.c     |   24 ++++++++----------------
- 2 files changed, 8 insertions(+), 18 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 845c596..3ae969e 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -396,14 +396,12 @@ struct nft_rule {
- /**
-  *	struct nft_trans - nf_tables object update in transaction
-  *
-- *	@rcu_head: rcu head to defer release of transaction data
-  *	@list: used internally
-  *	@msg_type: message type
-  *	@ctx: transaction context
-  *	@data: internal information related to the transaction
-  */
- struct nft_trans {
--	struct rcu_head			rcu_head;
- 	struct list_head		list;
- 	int				msg_type;
- 	struct nft_ctx			ctx;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 11ab4b0..66e8425 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3484,13 +3484,8 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 	}
- }
- 
--/* Schedule objects for release via rcu to make sure no packets are accesing
-- * removed rules.
-- */
--static void nf_tables_commit_release_rcu(struct rcu_head *rt)
-+static void nf_tables_commit_release(struct nft_trans *trans)
- {
--	struct nft_trans *trans = container_of(rt, struct nft_trans, rcu_head);
--
- 	switch (trans->msg_type) {
- 	case NFT_MSG_DELTABLE:
- 		nf_tables_table_destroy(&trans->ctx);
-@@ -3612,10 +3607,11 @@ static int nf_tables_commit(struct sk_buff *skb)
- 		}
- 	}
- 
-+	synchronize_rcu();
-+
- 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
- 		list_del(&trans->list);
--		trans->ctx.nla = NULL;
--		call_rcu(&trans->rcu_head, nf_tables_commit_release_rcu);
-+		nf_tables_commit_release(trans);
- 	}
- 
- 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
-@@ -3623,13 +3619,8 @@ static int nf_tables_commit(struct sk_buff *skb)
- 	return 0;
- }
- 
--/* Schedule objects for release via rcu to make sure no packets are accesing
-- * aborted rules.
-- */
--static void nf_tables_abort_release_rcu(struct rcu_head *rt)
-+static void nf_tables_abort_release(struct nft_trans *trans)
- {
--	struct nft_trans *trans = container_of(rt, struct nft_trans, rcu_head);
--
- 	switch (trans->msg_type) {
- 	case NFT_MSG_NEWTABLE:
- 		nf_tables_table_destroy(&trans->ctx);
-@@ -3725,11 +3716,12 @@ static int nf_tables_abort(struct sk_buff *skb)
- 		}
- 	}
- 
-+	synchronize_rcu();
-+
- 	list_for_each_entry_safe_reverse(trans, next,
- 					 &net->nft.commit_list, list) {
- 		list_del(&trans->list);
--		trans->ctx.nla = NULL;
--		call_rcu(&trans->rcu_head, nf_tables_abort_release_rcu);
-+		nf_tables_abort_release(trans);
- 	}
- 
- 	return 0;
--- 
-1.7.10.4
-
+Best Regards,
+Petr
