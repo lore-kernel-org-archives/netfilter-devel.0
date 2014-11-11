@@ -1,57 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch -mainline] netfilter: ipset: small potential read beyond
- the end of buffer
-Date: Tue, 11 Nov 2014 14:17:11 +0100
-Message-ID: <20141111131702.GA8287@salvia>
-References: <20141107062140.GA10905@mwanda>
- <20141110142446.GA29586@salvia>
- <alpine.DEB.2.10.1411101526480.2913@blackhole.kfki.hu>
- <20141110161121.GA7398@salvia>
- <alpine.DEB.2.10.1411102158430.8333@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Sergey Popovich <popovich_sergei@mail.ru>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	stephen hemminger <stephen@networkplumber.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernddel.org, kernel-janitors@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: [PATCH] arptables: remove dead dynamic hooks code
+Date: Tue, 11 Nov 2014 10:20:22 -0300
+Message-ID: <1415712022-31842-1-git-send-email-gustavo@zacarias.com.ar>
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37497 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbaKKNPS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2014 08:15:18 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1411102158430.8333@blackhole.kfki.hu>
+Received: from www.zacarias.com.ar ([62.210.192.172]:45933 "EHLO
+	www.zacarias.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbaKKNUd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Nov 2014 08:20:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 10:00:20PM +0100, Jozsef Kadlecsik wrote:
-> On Mon, 10 Nov 2014, Pablo Neira Ayuso wrote:
-> 
-> > On Mon, Nov 10, 2014 at 03:27:51PM +0100, Jozsef Kadlecsik wrote:
-> > > On Mon, 10 Nov 2014, Pablo Neira Ayuso wrote:
-> > > > >From other similar code in that location, I can see Jozsef is using
-> > > > this pattern:
-> > > > 
-> > > >                 if (*len != sizeof(struct ip_set_req_version)) {
-> > > >                         ret = -EINVAL;
-> > > >                         goto done;
-> > > >                 }
-> > > > 
-> > > > I think it would be good to stick to that for consistency. Thanks.
-> > > 
-> > > Absolutely, yes.
-> > > 
-> > > Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > 
-> > OK, then does this look fine to you? I took over Dan's patch and gave
-> > it another spin. See it attached, thanks.
-> 
-> Yes, it's better this way, thanks!
+The code is unused and #if'ed away, it also breaks pure-static
+builds because of the dlfcn.h include.
 
-Applied, thanks Dan and Jozsef.
+Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
+---
+ arptables.c              |  1 -
+ libarptc/libarptc_incl.c | 15 ---------------
+ 2 files changed, 16 deletions(-)
+
+diff --git a/arptables.c b/arptables.c
+index 64ac3aa..845e226 100644
+--- a/arptables.c
++++ b/arptables.c
+@@ -35,7 +35,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <inttypes.h>
+-#include <dlfcn.h>
+ #include <ctype.h>
+ #include <stdarg.h>
+ #include <limits.h>
+diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
+index 9c1aeac..1d2e8b7 100644
+--- a/libarptc/libarptc_incl.c
++++ b/libarptc/libarptc_incl.c
+@@ -257,22 +257,7 @@ TC_INIT(const char *tablename)
+ 	    == NULL)
+ 		return NULL;
+ 
+-/* Too hard --RR */
+-#if 0
+-	sprintf(pathname, "%s/%s", ARPT_LIB_DIR, info.name);
+-	dynlib = dlopen(pathname, RTLD_NOW);
+-	if (!dynlib) {
+-		errno = ENOENT;
+-		return NULL;
+-	}
+-	h->hooknames = dlsym(dynlib, "hooknames");
+-	if (!h->hooknames) {
+-		errno = ENOENT;
+-		return NULL;
+-	}
+-#else
+ 	h->hooknames = hooknames;
+-#endif
+ 
+ 	/* Initialize current state */
+ 	h->info = info;
+-- 
+2.0.4
+
