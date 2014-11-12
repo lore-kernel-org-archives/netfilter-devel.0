@@ -1,36 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] iptables/nft-shared.c: kill add_*() invflags
- parameter
-Date: Tue, 11 Nov 2014 20:47:39 +0100
-Message-ID: <20141111194739.GA6293@salvia>
-References: <20141111183028.5708.94480.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59680 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537AbaKKTpz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2014 14:45:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20141111183028.5708.94480.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] Second Round of IPVS Fixes for v3.18
+Date: Wed, 12 Nov 2014 11:21:59 +0900
+Message-ID: <1415758920-32578-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 11, 2014 at 07:30:28PM +0100, Arturo Borrero Gonzalez wrote:
-> diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-> index 468da5c..4872226 100644
-> --- a/iptables/nft-shared.h
-> +++ b/iptables/nft-shared.h
-> @@ -38,6 +38,12 @@
->  
->  struct xtables_args;
->  
-> +#define NFT_INVFLAGS2CMP(op, invflags, flag)	\
-> +	if (invflags & flag)			\
-> +		op = NFT_CMP_NEQ;		\
-> +	else					\
-> +		op = NFT_CMP_EQ;		\
+Hi Pablo,
 
-No macros please, use a function instead and place it in iptables/nft.c
+please consider this fix for v3.18.
+
+It fixes handling of skb->sk which may cause incorrect handling
+of connections from a local process.
+
+This problem was introduced in its current form by 8052ba292559f907e
+("ipvs: support ipv4 in ipv6 and ipv6 in ipv4 tunnel forwarding") in
+v3.18-rc1.
+
+I believe it also exists in a different form in older kernels.
+No fix for that is available at this time.
+
+
+The following changes since commit 2196937e12b1b4ba139806d132647e1651d655df:
+
+  netfilter: ipset: small potential read beyond the end of buffer (2014-11-11 13:46:37 +0100)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.18
+
+for you to fetch changes up to 50656d9df63d69ce399c8be62d4473b039dac36a:
+
+  ipvs: Keep skb->sk when allocating headroom on tunnel xmit (2014-11-12 11:03:04 +0900)
+
+----------------------------------------------------------------
+Calvin Owens (1):
+      ipvs: Keep skb->sk when allocating headroom on tunnel xmit
+
+ net/netfilter/ipvs/ip_vs_xmit.c | 2 ++
+ 1 file changed, 2 insertions(+)
