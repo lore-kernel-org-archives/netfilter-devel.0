@@ -1,144 +1,154 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH -next 2/2] seq_putc: Convert to
- return void and convert uses too.
-Date: Wed, 12 Nov 2014 09:25:00 -0600
-Message-ID: <54637BCC.7040705@acm.org>
-References: <cover.1415645476.git.joe@perches.com>
-	<56c4c0d5ec721134cff4913e5e3f8923169c35ef.1415645477.git.joe@perches.com>
-Reply-To: minyard@acm.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [ebtables-compat-experimental5 PATCH] iptables/nft-bridge.c: fix
+ inversion of builtin matches
+Date: Wed, 12 Nov 2014 17:10:25 +0100
+Message-ID: <20141112161025.9723.51400.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org,
-	James Morris <jmorris@namei.org>, Petr Mladek <pmladek@suse.cz>,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	openipmi-developer@lists.sourceforge.net,
-	"David S. Miller" <davem@davemloft.net>
-To: Joe Perches <joe@perches.com>, Steven Rostedt <rostedt@goodmis.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <56c4c0d5ec721134cff4913e5e3f8923169c35ef.1415645477.git.joe@perches.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:33000 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753141AbaKLQKl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 11:10:41 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Ok by me for the IPMI part.
+This patch fixes inversion of builtin matches by updating the use of add_*()
+functions and using nft_invflags2cmp() as well.
 
-Reviewed-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ iptables/nft-bridge.c |   67 ++++++++++++++++++-------------------------------
+ 1 file changed, 25 insertions(+), 42 deletions(-)
 
-On 11/10/2014 12:58 PM, Joe Perches wrote:
-> Using the return value of seq_putc is error-prone, so
-> make it return void instead.
->
-> Reverse the logic in seq_putc to make it like seq_puts.
->
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/char/ipmi/ipmi_msghandler.c                   |  4 +++-
->  fs/seq_file.c                                         | 11 ++++++-----
->  include/linux/seq_file.h                              |  2 +-
->  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |  4 +++-
->  net/netfilter/nf_conntrack_expect.c                   |  4 +++-
->  5 files changed, 16 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-> index f816211..c12fb30 100644
-> --- a/drivers/char/ipmi/ipmi_msghandler.c
-> +++ b/drivers/char/ipmi/ipmi_msghandler.c
-> @@ -1953,7 +1953,9 @@ static int smi_ipmb_proc_show(struct seq_file *m, void *v)
->  	seq_printf(m, "%x", intf->channels[0].address);
->  	for (i = 1; i < IPMI_MAX_CHANNELS; i++)
->  		seq_printf(m, " %x", intf->channels[i].address);
-> -	return seq_putc(m, '\n');
-> +	seq_putc(m, '\n');
-> +
-> +	return 0;
->  }
->  
->  static int smi_ipmb_proc_open(struct inode *inode, struct file *file)
-> diff --git a/fs/seq_file.c b/fs/seq_file.c
-> index e6be05a..5ca5af9 100644
-> --- a/fs/seq_file.c
-> +++ b/fs/seq_file.c
-> @@ -673,13 +673,14 @@ int seq_open_private(struct file *filp, const struct seq_operations *ops,
->  }
->  EXPORT_SYMBOL(seq_open_private);
->  
-> -int seq_putc(struct seq_file *m, char c)
-> +void seq_putc(struct seq_file *m, char c)
->  {
-> -	if (m->count < m->size) {
-> -		m->buf[m->count++] = c;
-> -		return 0;
-> +	if (m->count >= m->size) {
-> +		seq_set_overflow(m);
-> +		return;
->  	}
-> -	return -1;
-> +
-> +	m->buf[m->count++] = c;
->  }
->  EXPORT_SYMBOL(seq_putc);
->  
-> diff --git a/include/linux/seq_file.h b/include/linux/seq_file.h
-> index 9b02cb6..c1e47ff 100644
-> --- a/include/linux/seq_file.h
-> +++ b/include/linux/seq_file.h
-> @@ -115,7 +115,7 @@ ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
->  loff_t seq_lseek(struct file *, loff_t, int);
->  int seq_release(struct inode *, struct file *);
->  int seq_escape(struct seq_file *, const char *, const char *);
-> -int seq_putc(struct seq_file *m, char c);
-> +void seq_putc(struct seq_file *m, char c);
->  void seq_puts(struct seq_file *m, const char *s);
->  int seq_write(struct seq_file *seq, const void *data, size_t len);
->  
-> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> index a460a87..f0dfe92 100644
-> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> @@ -300,7 +300,9 @@ static int exp_seq_show(struct seq_file *s, void *v)
->  		    __nf_ct_l3proto_find(exp->tuple.src.l3num),
->  		    __nf_ct_l4proto_find(exp->tuple.src.l3num,
->  					 exp->tuple.dst.protonum));
-> -	return seq_putc(s, '\n');
-> +	seq_putc(s, '\n');
-> +
-> +	return 0;
->  }
->  
->  static const struct seq_operations exp_seq_ops = {
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index 91a1837..7a17070 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -561,7 +561,9 @@ static int exp_seq_show(struct seq_file *s, void *v)
->  				   helper->expect_policy[expect->class].name);
->  	}
->  
-> -	return seq_putc(s, '\n');
-> +	seq_putc(s, '\n');
-> +
-> +	return 0;
->  }
->  
->  static const struct seq_operations exp_seq_ops = {
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 3ed6239..b5aec00 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -64,22 +64,6 @@ static void ebt_print_mac_and_mask(const unsigned char *mac, const unsigned char
+ 	}
+ }
+ 
+-static uint8_t ebt_to_ipt_flags(uint16_t invflags)
+-{
+-	uint8_t result = 0;
+-
+-	if (invflags & EBT_IIN)
+-		result |= IPT_INV_VIA_IN;
+-
+-	if (invflags & EBT_IOUT)
+-		result |= IPT_INV_VIA_OUT;
+-
+-	if (invflags & EBT_IPROTO)
+-		result |= IPT_INV_PROTO;
+-
+-	return result;
+-}
+-
+ static uint16_t ipt_to_ebt_flags(uint8_t invflags)
+ {
+ 	uint16_t result = 0;
+@@ -96,18 +80,12 @@ static uint16_t ipt_to_ebt_flags(uint8_t invflags)
+ 	return result;
+ }
+ 
+-static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
++static void add_logical_iniface(struct nft_rule *r, char *iface, uint32_t op)
+ {
+ 	int iface_len;
+-	uint32_t op;
+ 
+ 	iface_len = strlen(iface);
+ 
+-	if (invflags & EBT_ILOGICALIN)
+-		op = NFT_CMP_NEQ;
+-	else
+-		op = NFT_CMP_EQ;
+-
+ 	add_meta(r, NFT_META_BRI_IIFNAME);
+ 	if (iface[iface_len - 1] == '+')
+ 		add_cmp_ptr(r, op, iface, iface_len - 1);
+@@ -115,18 +93,12 @@ static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
+ 		add_cmp_ptr(r, op, iface, iface_len + 1);
+ }
+ 
+-static void add_logical_outiface(struct nft_rule *r, char *iface, int invflags)
++static void add_logical_outiface(struct nft_rule *r, char *iface, uint32_t op)
+ {
+ 	int iface_len;
+-	uint32_t op;
+ 
+ 	iface_len = strlen(iface);
+ 
+-	if (invflags & EBT_ILOGICALOUT)
+-		op = NFT_CMP_NEQ;
+-	else
+-		op = NFT_CMP_EQ;
+-
+ 	add_meta(r, NFT_META_BRI_OIFNAME);
+ 	if (iface[iface_len - 1] == '+')
+ 		add_cmp_ptr(r, op, iface, iface_len - 1);
+@@ -164,36 +136,47 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
+ {
+ 	struct ebtables_command_state *cs = data;
+ 	struct ebt_entry *fw = &cs->fw;
+-	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
++	uint32_t op;
+ 	char *addr;
+ 
+-	if (fw->in[0] != '\0')
+-		add_iniface(r, fw->in, flags);
++	if (fw->in[0] != '\0') {
++		op = nft_invflags2cmp(fw->invflags, EBT_IIN);
++		add_iniface(r, fw->in, op);
++	}
+ 
+-	if (fw->out[0] != '\0')
+-		add_outiface(r, fw->out, flags);
++	if (fw->out[0] != '\0') {
++		op = nft_invflags2cmp(fw->invflags, EBT_IOUT);
++		add_outiface(r, fw->out, op);
++	}
+ 
+-	if (fw->logical_in[0] != '\0')
+-		add_logical_iniface(r, fw->logical_in, flags);
++	if (fw->logical_in[0] != '\0') {
++		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALIN);
++		add_logical_iniface(r, fw->logical_in, op);
++	}
+ 
+-	if (fw->logical_out[0] != '\0')
+-		add_logical_outiface(r, fw->logical_out, flags);
++	if (fw->logical_out[0] != '\0') {
++		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALOUT);
++		add_logical_outiface(r, fw->logical_out, op);
++	}
+ 
+ 	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
+ 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
++		op = nft_invflags2cmp(fw->invflags, EBT_ISOURCE);
+ 		add_payload(r, offsetof(struct ethhdr, h_source), 6);
+-		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
++		add_cmp_ptr(r, op, fw->sourcemac, 6);
+ 	}
+ 
+ 	addr = ether_ntoa((struct ether_addr *) fw->destmac);
+ 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
++		op = nft_invflags2cmp(fw->invflags, EBT_IDEST);
+ 		add_payload(r, offsetof(struct ethhdr, h_dest), 6);
+-		add_cmp_ptr(r, NFT_CMP_EQ, fw->destmac, 6);
++		add_cmp_ptr(r, op, fw->destmac, 6);
+ 	}
+ 
+ 	if (fw->ethproto != 0) {
++		op = nft_invflags2cmp(fw->invflags, EBT_IPROTO);
+ 		add_payload(r, offsetof(struct ethhdr, h_proto), 2);
+-		add_cmp_u16(r, fw->ethproto, NFT_CMP_EQ);
++		add_cmp_u16(r, fw->ethproto, op);
+ 	}
+ 
+ 	return _add_action(r, cs);
 
-
-------------------------------------------------------------------------------
-Comprehensive Server Monitoring with Site24x7.
-Monitor 10 servers for $9/Month.
-Get alerted through email, SMS, voice calls or mobile push notifications.
-Take corrective actions from your mobile device.
-http://pubads.g.doubleclick.net/gampad/clk?id=154624111&iu=/4140/ostg.clktrk
