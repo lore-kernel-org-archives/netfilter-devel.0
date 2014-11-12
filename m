@@ -1,116 +1,92 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix race in
- __nf_conntrack_confirm against get_next_corpse
-Date: Wed, 12 Nov 2014 08:35:00 +0100
-Message-ID: <20141112083500.5404e5f4@redhat.com>
-References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
-	<20141106133648.2534.1403.stgit@dragon>
-	<20141110165439.GA7788@salvia>
+From: =?windows-1252?Q?J=F6rg_Marx?= <joerg.marx@secunet.com>
+Subject: Re: [PATCH nf] netfilter: conntrack: fix race in __nf_conntrack_confirm
+ against get_next_corpse
+Date: Wed, 12 Nov 2014 11:57:31 +0100
+Message-ID: <54633D1B.5090404@secunet.com>
+References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>	<20141106133648.2534.1403.stgit@dragon>	<20141110165439.GA7788@salvia> <20141112083500.5404e5f4@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: programme110@gmail.com, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	brouer@redhat.com, Patrick McHardy <kaber@trash.net>,
-	Joerg Marx <joerg.marx@secunet.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <programme110@gmail.com>, <netfilter-devel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>, <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jesper Dangaard Brouer <brouer@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45724 "EHLO mx1.redhat.com"
+Received: from a.mx.secunet.com ([195.81.216.161]:34951 "EHLO a.mx.secunet.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750895AbaKLHf0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2014 02:35:26 -0500
-In-Reply-To: <20141110165439.GA7788@salvia>
+	id S1752177AbaKLK5i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 05:57:38 -0500
+In-Reply-To: <20141112083500.5404e5f4@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 10 Nov 2014 17:54:39 +0100
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On 12.11.2014 08:35, Jesper Dangaard Brouer wrote:
 
-> On Thu, Nov 06, 2014 at 02:36:48PM +0100, Jesper Dangaard Brouer wrote:
-> > From: bill bonaparte <programme110@gmail.com>
-> > 
-> > After removal of the central spinlock nf_conntrack_lock, in
-> > commit 93bb0ceb75be2 ("netfilter: conntrack: remove central
-> > spinlock nf_conntrack_lock"), it is possible to race against
-> > get_next_corpse().
-> > 
-> > The race is against the get_next_corpse() cleanup on
-> > the "unconfirmed" list (a per-cpu list with seperate locking),
-> > which set the DYING bit.
-> > 
-> > Fix this race, in __nf_conntrack_confirm(), by removing the CT
-> > from unconfirmed list before checking the DYING bit.  In case
-> > race occured, re-add the CT to the dying list.
-> 
-> This seems correct to me, some side comments.
-> 
-> > Fixes: 93bb0ceb75be2 ("netfilter: conntrack: remove central spinlock nf_conntrack_lock")
-> > Reported-by: bill bonaparte <programme110@gmail.com>
-> > Signed-off-by: bill bonaparte <programme110@gmail.com>
-> > Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> > ---
-> > 
-> >  net/netfilter/nf_conntrack_core.c |    7 ++++---
-> >  1 files changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index 5016a69..1072650 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@ -611,12 +611,15 @@ __nf_conntrack_confirm(struct sk_buff *skb)
-> >  	 */
-> >  	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
-> >  	pr_debug("Confirming conntrack %p\n", ct);
-> > -	/* We have to check the DYING flag inside the lock to prevent
-> > +
-> > +	/* We have to check the DYING flag after unlink to prevent
-> >  	   a race against nf_ct_get_next_corpse() possibly called from
-> >  	   user context, else we insert an already 'dead' hash, blocking
-> >  	   further use of that particular connection -JM */
-> 
-> While at this, I think it would be good to fix comment style to:
-> 
->         /* We have ...
->          * ...
->          */
-> 
-> I can fix this here, no need to resend, just let me know.
+Hi,
 
-Okay, I was just trying to keep the changes as minimal as possible, if
-this should go into a stable-kernel.  Your choice.
+I wrote the patch in 2010, so find some arguments below:
 
+>>> > > +	nf_ct_del_from_dying_or_unconfirmed_list(ct);
+>>> > > =20
+>>> > >  	if (unlikely(nf_ct_is_dying(ct))) {
+>>> > > +		nf_ct_add_to_dying_list(ct);
+>>> > >  		nf_conntrack_double_unlock(hash, reply_hash);
+>>> > >  		local_bh_enable();
+>>> > >  		return NF_ACCEPT;
+>> >=20
+>> > Not directly related to your patch, but I don't find a good reason=
+ why
+>> > we're accepting this packet.
+>> >=20
+>> > If the conntrack from the unconfirmed list is dying, then the obje=
+ct
+>> > will be released by when the packet leaves the stack to its
+>> > destination. With stateful filtering depending in place, the follo=
+w up
+>> > packet in the reply direction will likely be considered invalid (i=
+f
+>> > tcp tracking is on). Fortunately for us, the origin will likely
+>> > retransmit the syn again, so the ct will be setup accordingly.
+>> >=20
+>> > So, why should we allow this to go through?
+> True, it also seems strange to me that we accept this packet.
 
-> > +	nf_ct_del_from_dying_or_unconfirmed_list(ct);
-> >  
-> >  	if (unlikely(nf_ct_is_dying(ct))) {
-> > +		nf_ct_add_to_dying_list(ct);
-> >  		nf_conntrack_double_unlock(hash, reply_hash);
-> >  		local_bh_enable();
-> >  		return NF_ACCEPT;
-> 
-> Not directly related to your patch, but I don't find a good reason why
-> we're accepting this packet.
-> 
-> If the conntrack from the unconfirmed list is dying, then the object
-> will be released by when the packet leaves the stack to its
-> destination. With stateful filtering depending in place, the follow up
-> packet in the reply direction will likely be considered invalid (if
-> tcp tracking is on). Fortunately for us, the origin will likely
-> retransmit the syn again, so the ct will be setup accordingly.
-> 
-> So, why should we allow this to go through?
+The raise was triggered in a scenario when we tested high-load IPsec
+tunnels and flushed the conntrack hashs from userspace.
 
-True, it also seems strange to me that we accept this packet.
+=46or me there is little difference in choosing DROP or ACCEPT as verdi=
+ct.
+The packet/skb belongs to a formerly allowed connection, most likely
+this connection is still allowed (but the conntrack hash entry is about
+to be removed due to userspace is flushing the conntrack table).
 
-> This return verdict was introduced in: fc35077 ("netfilter:
-> nf_conntrack: fix a race in __nf_conntrack_confirm against
-> nf_ct_get_next_corpse()") btw.
+To minimize the impact (lost packets -> retransmit) I decided to allow
+the skb in flight, so were is no lost packet at this place.
 
-And the commit does not argue why NF_ACCEPT was chosen...
+When the connection is not allowed anymore (but was allowed up to now,
+because the hash entry exists), the impact is one last packet 'slipping
+through'.
 
--- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
+Today I would still decide the way I did in 2010.
+
+>=20
+>> > This return verdict was introduced in: fc35077 ("netfilter:
+>> > nf_conntrack: fix a race in __nf_conntrack_confirm against
+>> > nf_ct_get_next_corpse()") btw.
+> And the commit does not argue why NF_ACCEPT was chosen...
+>=20
+> -- Best regards, Jesper Dangaard Brouer MSc.CS, Sr. Network Kernel
+> Developer at Red Hat Author of http://www.iptv-analyzer.org LinkedIn:
+> http://www.linkedin.com/in/brouer
+
+best regards
+J=F6rg Marx
+
+--=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
