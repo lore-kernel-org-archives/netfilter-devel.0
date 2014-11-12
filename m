@@ -1,171 +1,57 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] build: add and use a symbol version map
-Date: Wed, 12 Nov 2014 14:06:47 +0100
-Message-ID: <1415797607-28793-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC nft PATCH] src: add import operation
+Date: Wed, 12 Nov 2014 14:17:33 +0100
+Message-ID: <20141112131733.GA1846@salvia>
+References: <20141021112420.11406.7309.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:51430 "EHLO ares08.inai.de"
+Received: from mail.us.es ([193.147.175.20]:54227 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455AbaKLNGt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2014 08:06:49 -0500
+	id S1752337AbaKLNPj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 08:15:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20141021112420.11406.7309.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It was possible to combine e.g. conntrackd-1.2.1 with
-libnetfilter_conntrack-0.0.101, causing libc to issue an exit from
-within conntrackd iff such a conntrackd was promoted to a master and
-tried to call nfexp_send, due to lazy symbol resolution in libc.
+On Tue, Oct 21, 2014 at 01:25:47PM +0200, Arturo Borrero Gonzalez wrote:
+> The import operation reads a XML or JSON file, with syntax:
+>  % nft import {xml|json}
+> 
+> A basic way to test this new functionality is:
+>  % nft export xml | nft import xml
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+> 
+> NOTE: This patchs requires:
+> 	* [nft] mnl: delete useless parameter nf_sock in batch functions
+> 	* [libnftnl] ruleset: deconstify _get interface
+> 
+> Please comment :-)
 
-Symbol versions enforce the checks at program startup, so add one.
+The existing approach doesn't support incremental updates. I think
+it's important to provide a way to say: 'add this and delete that'
+when importing something too, so this interface becomes equivalent to
+nft -f.
 
-$ ldd -r /usr/sbin/conntrackd
-undefined symbol: nfexp_cmp     (/usr/sbin/conntrackd)
-undefined symbol: nfexp_send    (/usr/sbin/conntrackd)
-        libnetfilter_conntrack.so.3 => /usr/lib/libnetfilter_conntrack.so.3 (0x77fe7000)
-        libnfnetlink.so.0 => /usr/lib/libnfnetlink.so.0 (0x77fdf000)
-        libc.so.6 => /lib/libc.so.6 (0x77e7b000)
-        libdl.so.2 => /lib/libdl.so.2 (0x77e76000)
-        /lib/ld.so.1 (0x55555000)
-$ dpkg-query -W conntrackd libnetfilter-conntrack3
-conntrackd      1:1.2.1-1
-libnetfilter-conntrack3 0.0.101-1
+I think we need a new _parse_file() function to takes a callback as
+argument. This callback is invoked per object parsed from the file, so
+we can reuse the existing "struct cmd" in nft. I think it's important
+to consolidate code, the existing approach where we have different
+code to do basically the same is not desirable.
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- src/Makefile.am                |   4 +-
- src/libnetfilter_conntrack.map | 109 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 112 insertions(+), 1 deletion(-)
- create mode 100644 src/libnetfilter_conntrack.map
+> +int mnl_nft_ruleset_batch_add(const struct nft_ruleset *rs,
+> +			      uint32_t table_flags, uint32_t chain_flags,
+> +			      uint32_t set_flags, uint32_t rule_flags)
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 7d6c905..918c2ba 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -12,5 +12,7 @@ libnetfilter_conntrack_la_LIBADD = conntrack/libnfconntrack.la \
- 				   expect/libnfexpect.la \
- 				   ${LIBNFNETLINK_LIBS} ${LIBMNL_LIBS}
- libnetfilter_conntrack_la_LDFLAGS = -Wc,-nostartfiles -lnfnetlink -ldl 	\
--				    -version-info $(LIBVERSION)
-+				    -version-info $(LIBVERSION) \
-+				    -Wl,--version-script=$(srcdir)/libnetfilter_conntrack.map
- libnetfilter_conntrack_la_SOURCES = main.c callback.c
-+libnetfilter_conntrack_la_DEPENDENCIES = libnetfilter_conntrack.map
-diff --git a/src/libnetfilter_conntrack.map b/src/libnetfilter_conntrack.map
-new file mode 100644
-index 0000000..c6404d5
---- /dev/null
-+++ b/src/libnetfilter_conntrack.map
-@@ -0,0 +1,109 @@
-+V_1.0.5 {
-+global:
-+	nfct_attr_grp_is_set;
-+	nfct_attr_grp_unset;
-+	nfct_attr_is_set;
-+	nfct_attr_is_set_array;
-+	nfct_attr_unset;
-+	nfct_bitmask_clear;
-+	nfct_bitmask_clone;
-+	nfct_bitmask_destroy;
-+	nfct_bitmask_equal;
-+	nfct_bitmask_maxbit;
-+	nfct_bitmask_new;
-+	nfct_bitmask_set_bit;
-+	nfct_bitmask_test_bit;
-+	nfct_bitmask_unset_bit;
-+	nfct_build_conntrack;
-+	nfct_build_query;
-+	nfct_build_tuple;
-+	nfct_callback_register;
-+	nfct_callback_register2;
-+	nfct_callback_unregister;
-+	nfct_callback_unregister2;
-+	nfct_catch;
-+	nfct_clone;
-+	nfct_close;
-+	nfct_cmp;
-+	nfct_compare;
-+	nfct_copy;
-+	nfct_copy_attr;
-+	nfct_destroy;
-+	nfct_fd;
-+	nfct_filter_add_attr;
-+	nfct_filter_add_attr_u32;
-+	nfct_filter_attach;
-+	nfct_filter_create;
-+	nfct_filter_destroy;
-+	nfct_filter_detach;
-+	nfct_filter_dump_create;
-+	nfct_filter_dump_destroy;
-+	nfct_filter_dump_set_attr;
-+	nfct_filter_dump_set_attr_u8;
-+	nfct_filter_set_logic;
-+	nfct_get_attr;
-+	nfct_get_attr_grp;
-+	nfct_get_attr_u16;
-+	nfct_get_attr_u32;
-+	nfct_get_attr_u64;
-+	nfct_get_attr_u8;
-+	nfct_getobjopt;
-+	nfct_labelmap_destroy;
-+	nfct_labelmap_get_bit;
-+	nfct_labelmap_get_name;
-+	nfct_labelmap_new;
-+	nfct_maxsize;
-+	nfct_new;
-+	nfct_nfnlh;
-+	nfct_nlmsg_build;
-+	nfct_nlmsg_parse;
-+	nfct_open;
-+	nfct_open_nfnl;
-+	nfct_parse_conntrack;
-+	nfct_parse_tuple;
-+	nfct_payload_parse;
-+	nfct_query;
-+	nfct_send;
-+	nfct_set_attr;
-+	nfct_set_attr_grp;
-+	nfct_set_attr_l;
-+	nfct_set_attr_u16;
-+	nfct_set_attr_u32;
-+	nfct_set_attr_u64;
-+	nfct_set_attr_u8;
-+	nfct_setobjopt;
-+	nfct_sizeof;
-+	nfct_snprintf;
-+	nfct_snprintf_labels;
-+	nfexp_attr_is_set;
-+	nfexp_attr_unset;
-+	nfexp_build_expect;
-+	nfexp_build_query;
-+	nfexp_callback_register;
-+	nfexp_callback_register2;
-+	nfexp_callback_unregister;
-+	nfexp_callback_unregister2;
-+	nfexp_catch;
-+	nfexp_clone;
-+	nfexp_cmp;
-+	nfexp_destroy;
-+	nfexp_get_attr;
-+	nfexp_get_attr_u16;
-+	nfexp_get_attr_u32;
-+	nfexp_get_attr_u8;
-+	nfexp_maxsize;
-+	nfexp_new;
-+	nfexp_nlmsg_build;
-+	nfexp_nlmsg_parse;
-+	nfexp_parse_expect;
-+	nfexp_query;
-+	nfexp_send;
-+	nfexp_set_attr;
-+	nfexp_set_attr_u16;
-+	nfexp_set_attr_u32;
-+	nfexp_set_attr_u8;
-+	nfexp_sizeof;
-+	nfexp_snprintf;
-+local:
-+	*;
-+};
--- 
-2.1.2
+[...]
 
+> +	ret = mnl_nft_ruleset_batch_add(rs, 0, 0, 0, 0);
+
+So we don't make any global assumption on the flags and so on.
+
+Thanks.
