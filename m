@@ -1,28 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH v2] iptables/nft-shared.c: kill add_*() invflags
- parameter
-Date: Wed, 12 Nov 2014 13:18:52 +0100
-Message-ID: <20141112121852.GA1397@salvia>
-References: <20141112115949.3179.82085.stgit@nfdev.cica.es>
+Subject: Re: [PATCH -next 2/2] seq_putc: Convert to return void and convert
+ uses too.
+Date: Wed, 12 Nov 2014 13:29:00 +0100
+Message-ID: <20141112122900.GA1542@salvia>
+References: <cover.1415645476.git.joe@perches.com>
+ <56c4c0d5ec721134cff4913e5e3f8923169c35ef.1415645477.git.joe@perches.com>
+ <20141111134740.GB2567@pathway.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Joe Perches <joe@perches.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Corey Minyard <minyard@acm.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	openipmi-developer@lists.sourceforge.net,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Petr Mladek <pmladek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33493 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37048 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751507AbaKLMRL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2014 07:17:11 -0500
+	id S1752541AbaKLM1E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 07:27:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20141112115949.3179.82085.stgit@nfdev.cica.es>
+In-Reply-To: <20141111134740.GB2567@pathway.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 12, 2014 at 01:00:12PM +0100, Arturo Borrero Gonzalez wrote:
-> Let's kill the invflags parameter and use directly NFT_CMP_[N]EQ.
-> The caller must calculate which kind of cmp operation requires.
+On Tue, Nov 11, 2014 at 02:47:40PM +0100, Petr Mladek wrote:
+> On Mon 2014-11-10 10:58:57, Joe Perches wrote:
+> > Using the return value of seq_putc is error-prone, so
+> > make it return void instead.
+> > 
+> > Reverse the logic in seq_putc to make it like seq_puts.
+> > 
+> > Signed-off-by: Joe Perches <joe@perches.com>
 > 
-> BTW, the this patch solves absence of inversion in some arptables-compat
-> builtin matches. Thus, translating arptables inv flags is no longer needed.
+> Reviewed-by: Petr Mladek <pmladek@suse.cz>
+> 
+> The changes are correct. The show() functions should return 0
+> even when there is an overflow. They are called by traverse()
+> from seq_read() that might increase the buffer size and try again.
 
-Applied, thanks Arturo.
+Just in case you need this for the netfilter chunks:
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Thanks.
