@@ -1,92 +1,44 @@
-From: =?windows-1252?Q?J=F6rg_Marx?= <joerg.marx@secunet.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix race in __nf_conntrack_confirm
- against get_next_corpse
-Date: Wed, 12 Nov 2014 11:57:31 +0100
-Message-ID: <54633D1B.5090404@secunet.com>
-References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>	<20141106133648.2534.1403.stgit@dragon>	<20141110165439.GA7788@salvia> <20141112083500.5404e5f4@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <programme110@gmail.com>, <netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>, <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 1/2] netfilter: fix unmet dependencies in NETFILTER_XT_TARGET_REDIRECT
+Date: Wed, 12 Nov 2014 12:01:35 +0100
+Message-ID: <1415790096-6625-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.mx.secunet.com ([195.81.216.161]:34951 "EHLO a.mx.secunet.com"
+Received: from mail.us.es ([193.147.175.20]:58449 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752177AbaKLK5i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2014 05:57:38 -0500
-In-Reply-To: <20141112083500.5404e5f4@redhat.com>
+	id S1750850AbaKLK7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 05:59:45 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12.11.2014 08:35, Jesper Dangaard Brouer wrote:
+warning: (NETFILTER_XT_TARGET_REDIRECT) selects NF_NAT_REDIRECT_IPV4 which has unmet direct dependencies (NET && INET && NETFILTER && NF_NAT_IPV4)
 
-Hi,
+warning: (NETFILTER_XT_TARGET_REDIRECT) selects NF_NAT_REDIRECT_IPV6 which has unmet direct dependencies (NET && INET && IPV6 && NETFILTER && NF_NAT_IPV6)
 
-I wrote the patch in 2010, so find some arguments below:
+Fixes: 8b13edd ("netfilter: refactor NAT redirect IPv4 to use it from nf_tables")
+Fixes: 9de920e ("netfilter: refactor NAT redirect IPv6 code to use it from nf_tables")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->>> > > +	nf_ct_del_from_dying_or_unconfirmed_list(ct);
->>> > > =20
->>> > >  	if (unlikely(nf_ct_is_dying(ct))) {
->>> > > +		nf_ct_add_to_dying_list(ct);
->>> > >  		nf_conntrack_double_unlock(hash, reply_hash);
->>> > >  		local_bh_enable();
->>> > >  		return NF_ACCEPT;
->> >=20
->> > Not directly related to your patch, but I don't find a good reason=
- why
->> > we're accepting this packet.
->> >=20
->> > If the conntrack from the unconfirmed list is dying, then the obje=
-ct
->> > will be released by when the packet leaves the stack to its
->> > destination. With stateful filtering depending in place, the follo=
-w up
->> > packet in the reply direction will likely be considered invalid (i=
-f
->> > tcp tracking is on). Fortunately for us, the origin will likely
->> > retransmit the syn again, so the ct will be setup accordingly.
->> >=20
->> > So, why should we allow this to go through?
-> True, it also seems strange to me that we accept this packet.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 373486a..57f15a9 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -844,8 +844,8 @@ config NETFILTER_XT_TARGET_RATEEST
+ config NETFILTER_XT_TARGET_REDIRECT
+ 	tristate "REDIRECT target support"
+ 	depends on NF_NAT
+-	select NF_NAT_REDIRECT_IPV4
+-	select NF_NAT_REDIRECT_IPV6 if IP6_NF_IPTABLES
++	select NF_NAT_REDIRECT_IPV4 if NF_NAT_IPV4
++	select NF_NAT_REDIRECT_IPV6 if NF_NAT_IPV6
+ 	---help---
+ 	REDIRECT is a special case of NAT: all incoming connections are
+ 	mapped onto the incoming interface's address, causing the packets to
+-- 
+1.7.10.4
 
-The raise was triggered in a scenario when we tested high-load IPsec
-tunnels and flushed the conntrack hashs from userspace.
-
-=46or me there is little difference in choosing DROP or ACCEPT as verdi=
-ct.
-The packet/skb belongs to a formerly allowed connection, most likely
-this connection is still allowed (but the conntrack hash entry is about
-to be removed due to userspace is flushing the conntrack table).
-
-To minimize the impact (lost packets -> retransmit) I decided to allow
-the skb in flight, so were is no lost packet at this place.
-
-When the connection is not allowed anymore (but was allowed up to now,
-because the hash entry exists), the impact is one last packet 'slipping
-through'.
-
-Today I would still decide the way I did in 2010.
-
->=20
->> > This return verdict was introduced in: fc35077 ("netfilter:
->> > nf_conntrack: fix a race in __nf_conntrack_confirm against
->> > nf_ct_get_next_corpse()") btw.
-> And the commit does not argue why NF_ACCEPT was chosen...
->=20
-> -- Best regards, Jesper Dangaard Brouer MSc.CS, Sr. Network Kernel
-> Developer at Red Hat Author of http://www.iptv-analyzer.org LinkedIn:
-> http://www.linkedin.com/in/brouer
-
-best regards
-J=F6rg Marx
-
---=20
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
