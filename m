@@ -1,154 +1,78 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat-experimental5 PATCH] iptables/nft-bridge.c: fix
- inversion of builtin matches
-Date: Wed, 12 Nov 2014 17:10:25 +0100
-Message-ID: <20141112161025.9723.51400.stgit@nfdev.cica.es>
+From: giorgio.nicole@arcor.de
+Subject: Aw: Re: [PATCH 1/1] autotools conversion fixups
+Date: Wed, 12 Nov 2014 17:36:59 +0100 (CET)
+Message-ID: <414025497.559015.1415810219751.JavaMail.ngmail@webmail12.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:33000 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753141AbaKLQKl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2014 11:10:41 -0500
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:33996 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752898AbaKLQhB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Nov 2014 11:37:01 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes inversion of builtin matches by updating the use of add_*()
-functions and using nft_invflags2cmp() as well.
+ 
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- iptables/nft-bridge.c |   67 ++++++++++++++++++-------------------------------
- 1 file changed, 25 insertions(+), 42 deletions(-)
 
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 3ed6239..b5aec00 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -64,22 +64,6 @@ static void ebt_print_mac_and_mask(const unsigned char *mac, const unsigned char
- 	}
- }
- 
--static uint8_t ebt_to_ipt_flags(uint16_t invflags)
--{
--	uint8_t result = 0;
--
--	if (invflags & EBT_IIN)
--		result |= IPT_INV_VIA_IN;
--
--	if (invflags & EBT_IOUT)
--		result |= IPT_INV_VIA_OUT;
--
--	if (invflags & EBT_IPROTO)
--		result |= IPT_INV_PROTO;
--
--	return result;
--}
--
- static uint16_t ipt_to_ebt_flags(uint8_t invflags)
- {
- 	uint16_t result = 0;
-@@ -96,18 +80,12 @@ static uint16_t ipt_to_ebt_flags(uint8_t invflags)
- 	return result;
- }
- 
--static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
-+static void add_logical_iniface(struct nft_rule *r, char *iface, uint32_t op)
- {
- 	int iface_len;
--	uint32_t op;
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & EBT_ILOGICALIN)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_meta(r, NFT_META_BRI_IIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -115,18 +93,12 @@ static void add_logical_iniface(struct nft_rule *r, char *iface, int invflags)
- 		add_cmp_ptr(r, op, iface, iface_len + 1);
- }
- 
--static void add_logical_outiface(struct nft_rule *r, char *iface, int invflags)
-+static void add_logical_outiface(struct nft_rule *r, char *iface, uint32_t op)
- {
- 	int iface_len;
--	uint32_t op;
- 
- 	iface_len = strlen(iface);
- 
--	if (invflags & EBT_ILOGICALOUT)
--		op = NFT_CMP_NEQ;
--	else
--		op = NFT_CMP_EQ;
--
- 	add_meta(r, NFT_META_BRI_OIFNAME);
- 	if (iface[iface_len - 1] == '+')
- 		add_cmp_ptr(r, op, iface, iface_len - 1);
-@@ -164,36 +136,47 @@ static int nft_bridge_add(struct nft_rule *r, void *data)
- {
- 	struct ebtables_command_state *cs = data;
- 	struct ebt_entry *fw = &cs->fw;
--	uint8_t flags = ebt_to_ipt_flags(fw->invflags);
-+	uint32_t op;
- 	char *addr;
- 
--	if (fw->in[0] != '\0')
--		add_iniface(r, fw->in, flags);
-+	if (fw->in[0] != '\0') {
-+		op = nft_invflags2cmp(fw->invflags, EBT_IIN);
-+		add_iniface(r, fw->in, op);
-+	}
- 
--	if (fw->out[0] != '\0')
--		add_outiface(r, fw->out, flags);
-+	if (fw->out[0] != '\0') {
-+		op = nft_invflags2cmp(fw->invflags, EBT_IOUT);
-+		add_outiface(r, fw->out, op);
-+	}
- 
--	if (fw->logical_in[0] != '\0')
--		add_logical_iniface(r, fw->logical_in, flags);
-+	if (fw->logical_in[0] != '\0') {
-+		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALIN);
-+		add_logical_iniface(r, fw->logical_in, op);
-+	}
- 
--	if (fw->logical_out[0] != '\0')
--		add_logical_outiface(r, fw->logical_out, flags);
-+	if (fw->logical_out[0] != '\0') {
-+		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALOUT);
-+		add_logical_outiface(r, fw->logical_out, op);
-+	}
- 
- 	addr = ether_ntoa((struct ether_addr *) fw->sourcemac);
- 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
-+		op = nft_invflags2cmp(fw->invflags, EBT_ISOURCE);
- 		add_payload(r, offsetof(struct ethhdr, h_source), 6);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->sourcemac, 6);
-+		add_cmp_ptr(r, op, fw->sourcemac, 6);
- 	}
- 
- 	addr = ether_ntoa((struct ether_addr *) fw->destmac);
- 	if (strcmp(addr, "0:0:0:0:0:0") != 0) {
-+		op = nft_invflags2cmp(fw->invflags, EBT_IDEST);
- 		add_payload(r, offsetof(struct ethhdr, h_dest), 6);
--		add_cmp_ptr(r, NFT_CMP_EQ, fw->destmac, 6);
-+		add_cmp_ptr(r, op, fw->destmac, 6);
- 	}
- 
- 	if (fw->ethproto != 0) {
-+		op = nft_invflags2cmp(fw->invflags, EBT_IPROTO);
- 		add_payload(r, offsetof(struct ethhdr, h_proto), 2);
--		add_cmp_u16(r, fw->ethproto, NFT_CMP_EQ);
-+		add_cmp_u16(r, fw->ethproto, op);
- 	}
- 
- 	return _add_action(r, cs);
+----- Original Nachricht ----
+Von:     Pablo Neira Ayuso <pablo@netfilter.org>
+An:      giorgio.nicole@arcor.de
+Datum:   12.11.2014 13:01
+Betreff: Re: [PATCH 1/1] autotools conversion fixups
 
+> On Sun, Nov 09, 2014 at 09:26:12PM +0100, giorgio.nicole@arcor.de wrote:
+> > From: root <root@lord_casco.spaceball>
+> > 
+> > Add some missing Makefile.am's under the include directory.
+> > 
+> > Now it is possible to build 'nftables' from a separate build directory
+> > and produce a release tar archive with a 'make distcheck'.
+> 
+> Thanks. I have merged this update to nftables/autotools branch:
+> 
+> git.netfilter.org/nftables/commit/?h=autotools&id=85035b6c6a1618e7ba726fe630
+> 6c804fc1b6c4e8
+> 
+> > diff --git a/autogen.sh b/autogen.sh
+> > index a62e737..4b6b92d 100755
+> > --- a/autogen.sh
+> > +++ b/autogen.sh
+> > @@ -1,4 +1,11 @@
+> >  #!/bin/bash
+> >  
+> > -autoreconf -fi;
+> > +srcdir=`dirname $0`
+> > +test -z "$srcdir" && srcdir=.
+> > +
+> > +ORIGDIR=`pwd`
+> > +cd $srcdir
+> > +
+> > +autoreconf -vfi || exit 1
+> >  rm -Rf autom4te*.cache config.h.in~
+> > +cd $ORIGDIR || exit $?
+> 
+> The need for this chunk was not justified, I kept this back.
+> 
+Hi,
+
+the use of this slightly more complex 'autogen.sh' is to be able to call it even
+from a different directory, typically an empty build directory, as in the following
+shell session:
+
+# git clone /sources/git/nftables.git -b autotools /tmp/nftables
+# mkdir /tmp/build
+# cd /tmp/build
+# /tmp/nftables/autogen.sh
+# /tmp/nftables/configure --prefix=/tmp/nft_inst
+# make -j
+...
+
+The implementation of the script was taken from the 'libX11.git'
+(see the repo. git://anongit.freedesktop.org/xorg/lib/libX11.git).
+
+giorgio
