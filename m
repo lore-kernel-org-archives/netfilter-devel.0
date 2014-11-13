@@ -1,89 +1,101 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix race in
- __nf_conntrack_confirm against get_next_corpse
-Date: Thu, 13 Nov 2014 13:08:26 +0100
-Message-ID: <20141113120826.GA8224@salvia>
-References: <012601cff7d1$7ce2d620$76a88260$@gmail.com>
- <20141106133648.2534.1403.stgit@dragon>
- <20141110165439.GA7788@salvia>
- <20141112083500.5404e5f4@redhat.com>
- <54633D1B.5090404@secunet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>, programme110@gmail.com,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: =?iso-8859-1?Q?J=F6rg?= Marx <joerg.marx@secunet.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54633D1B.5090404@secunet.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Giorgio Dal Molin <giorgio.nicole@arcor.de>
+Subject: [libnftnl PATCH 1/1] Correctly define the header 'Requires:' in the file 'libnftnl.pc'.
+Date: Thu, 13 Nov 2014 13:09:05 +0100
+Message-ID: <1415880545-19831-1-git-send-email-giorgio.nicole@arcor.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:60872 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932419AbaKMMJP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2014 07:09:15 -0500
+Received: from mail-in-20-z2.arcor-online.net (mail-in-20-z2.arcor-online.net [151.189.8.85])
+	by mx.arcor.de (Postfix) with ESMTP id 5A8EE3AE183
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2014 13:09:13 +0100 (CET)
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net [151.189.21.42])
+	by mail-in-20-z2.arcor-online.net (Postfix) with ESMTP id 597926FA12D
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2014 13:09:13 +0100 (CET)
+Received: from itng-giorgio.wgast.mobotix.net (wwl-pub.mobotixserver.de [213.183.84.172])
+	(Authenticated sender: giorgio.nicole@arcor.de)
+	by mail-in-02.arcor-online.net (Postfix) with ESMTPA id 3F7DB303FD
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2014 13:09:13 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 12, 2014 at 11:57:31AM +0100, J=F6rg Marx wrote:
-> On 12.11.2014 08:35, Jesper Dangaard Brouer wrote:
->=20
-> Hi,
->=20
-> I wrote the patch in 2010, so find some arguments below:
->=20
-> >>> > > +	nf_ct_del_from_dying_or_unconfirmed_list(ct);
-> >>> > > =20
-> >>> > >  	if (unlikely(nf_ct_is_dying(ct))) {
-> >>> > > +		nf_ct_add_to_dying_list(ct);
-> >>> > >  		nf_conntrack_double_unlock(hash, reply_hash);
-> >>> > >  		local_bh_enable();
-> >>> > >  		return NF_ACCEPT;
-> >> >=20
-> >> > Not directly related to your patch, but I don't find a good reas=
-on why
-> >> > we're accepting this packet.
-> >> >=20
-> >> > If the conntrack from the unconfirmed list is dying, then the ob=
-ject
-> >> > will be released by when the packet leaves the stack to its
-> >> > destination. With stateful filtering depending in place, the fol=
-low up
-> >> > packet in the reply direction will likely be considered invalid =
-(if
-> >> > tcp tracking is on). Fortunately for us, the origin will likely
-> >> > retransmit the syn again, so the ct will be setup accordingly.
-> >> >=20
-> >> > So, why should we allow this to go through?
-> > True, it also seems strange to me that we accept this packet.
->=20
-> The raise was triggered in a scenario when we tested high-load IPsec
-> tunnels and flushed the conntrack hashs from userspace.
->=20
-> For me there is little difference in choosing DROP or ACCEPT as verdi=
-ct.
-> The packet/skb belongs to a formerly allowed connection, most likely
-> this connection is still allowed (but the conntrack hash entry is abo=
-ut
-> to be removed due to userspace is flushing the conntrack table).
+'libnftnl' unconditionally requires 'libmnl' and eventually requires
+'mxml' and/or 'jansson' in case XML or JASON parsing was configured.
 
-__nf_conntrack_confirm() is only called for the first packet that we
-see in a flow. If you just invoked the flush command once (which
-should be the common case), then this is likely to be the first packet
-of the flow (unless you already called flush anytime soon in the
-past).
+Without a correctly defined 'Requires:' header failures can happen
+while linking a program against 'libnftnl', expecially while cross compiling.
 
-> To minimize the impact (lost packets -> retransmit) I decided to allo=
-w
-> the skb in flight, so were is no lost packet at this place.
+Here the output of a 'make V=1 all' in a cross compiled (for ARM)
+'nftable' project:
 
-I understand your original motivation was to be conservative.
+# make V=1 all
+...
+arm-926ejs-linux-gnueabi-gcc -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wdeclaration-after-statement -Wsign-compare -Winit-self -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute -Wcast-align -Wundef -Wbad-function-cast -O2 -msoft-float -mabi=aapcs-linux -march=armv5te -mtune=arm926ej-s -mcpu=arm926ej-s -w  -L/tmp/pkg_root/lib -o nft main.o rule.o statement.o datatype.o expression.o evaluate.o proto.o payload.o exthdr.o meta.o ct.o netlink.o netlink_linearize.o netlink_delinearize.o segtree.o rbtree.o gmputil.o utils.o erec.o mnl.o scanner.o parser_bison.o  -L/tmp/pkg_root/lib -lmnl  -L/tmp/pkg_root/lib -lnftnl  -lgmp
+arm-926ejs-linux-gnueabi/bin/ld: warning: libjansson.so.4, needed by /tmp/pkg_root/lib/libnftnl.so, not found (try using -rpath or -rpath-link)
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_integer_value'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_delete'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_string_value'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_array_get'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_loadf'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_loadb'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_array_size'
+/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_object_get'
+collect2: ld returned 1 exit status
+Makefile:396: recipe for target 'nft' failed
+make[6]: *** [nft] Error 1
+#
 
-> When the connection is not allowed anymore (but was allowed up to now=
-,
-> because the hash entry exists), the impact is one last packet 'slippi=
-ng
-> through'.
+Signed-off-by: Giorgio Dal Molin <giorgio.nicole@arcor.de>
+---
+ configure.ac   | 5 +++++
+ libnftnl.pc.in | 2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-The general policy in conntrack is to not drop packets, but in this
-case we'll leave things in inconsistent state (ie. we will likely
-receive a reply packet in response to the original packet that has no
-conntrack yet).
+diff --git a/configure.ac b/configure.ac
+index 55b28ab..ff29200 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -39,19 +39,24 @@ case "$host" in
+ *) AC_MSG_ERROR([Linux only, dude!]);;
+ esac
+ 
++NFTNL_PC_DEPS=libmnl
+ regular_CPPFLAGS="-D_FILE_OFFSET_BITS=64 -D_REENTRANT"
+ AS_IF([test "x$with_xml_parsing" = "xyes"], [
+ 	regular_CPPFLAGS="$regular_CPPFLAGS -DXML_PARSING"
++	NFTNL_PC_DEPS+=" mxml"
+ ])
+ 
+ AS_IF([test "x$with_json_parsing" = "xyes"], [
+ 	regular_CPPFLAGS="$regular_CPPFLAGS -DJSON_PARSING"
++	NFTNL_PC_DEPS+=" jansson"
+ ])
+ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
+ 	-Wmissing-prototypes -Wshadow -Wstrict-prototypes \
+ 	-Wformat=2 -pipe"
++
+ AC_SUBST([regular_CPPFLAGS])
+ AC_SUBST([regular_CFLAGS])
++AC_SUBST([NFTNL_PC_DEPS])
+ AC_CONFIG_FILES([Makefile src/Makefile include/Makefile include/libnftnl/Makefile include/linux/Makefile include/linux/netfilter/Makefile examples/Makefile tests/Makefile libnftnl.pc doxygen.cfg])
+ AC_OUTPUT
+ 
+diff --git a/libnftnl.pc.in b/libnftnl.pc.in
+index fd5cc6a..39c66f9 100644
+--- a/libnftnl.pc.in
++++ b/libnftnl.pc.in
+@@ -9,7 +9,7 @@ Name: libnftnl
+ Description: Netfilter nf_tables infrastructure library
+ URL: http://netfilter.org/projects/libnftnl/
+ Version: @VERSION@
+-Requires:
++Requires: @NFTNL_PC_DEPS@
+ Conflicts:
+ Libs: -L${libdir} -lnftnl
+ Cflags: -I${includedir}
+-- 
+2.1.3
 
-Thanks.
