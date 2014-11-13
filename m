@@ -1,96 +1,65 @@
-From: Pranith Kumar <bobby.prani@gmail.com>
-Subject: [RFC PATCH 00/16] Replace smp_read_barrier_depends() with lockless_derefrence()
-Date: Thu, 13 Nov 2014 14:24:06 -0500
-Message-ID: <1415906662-4576-1-git-send-email-bobby.prani__21652.7326069356$1415907096$gmane$org@gmail.com>
-Cc: paulmck@linux.vnet.ibm.com
-To: Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cristian Stoica <cristian.stoica@freescale.com>,
-	Horia Geanta <horia.geanta@freescale.com>,
-	Ruchika Gupta <ruchika.gupta@freescale.com>,
-	Michael Neuling <mikey@neuling.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	linux-crypto@vger.kernel.org (open list:CRYPTO API),
-	linux-kernel@vger.kernel.org (open list),
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	=?UTF-8?q?Manuel=20Sch=C3=B6lling?= <manuel.schoelling@gmx.de>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Rashika <rashika.kheria@gmail.com>,
-	dmaengine@vger.kernel.org (open list:DMA GENERIC OFFLO...),
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	devel@linuxdriverproject.org (open list:Hyp
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:53509 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933908AbaKMTY4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2014 14:24:56 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: arm64 allmodconfig failures in nft_reject_bridge.c
+Date: Thu, 13 Nov 2014 14:35:13 -0500 (EST)
+Message-ID: <20141113.143513.785778562781935404.davem@davemloft.net>
+References: <20141112233738.GB3815@sirena.org.uk>
+	<20141113113320.GF3815@sirena.org.uk>
+	<20141113114357.GA7857@salvia>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linaro-kernel@lists.linaro.org, coreteam@netfilter.org,
+	kernel-build-reports@lists.linaro.org, netdev@vger.kernel.org,
+	bridge@lists.linux-foundation.org, stephen@networkplumber.org,
+	broonie@kernel.org, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, linux@roeck-us.net
+To: pablo@netfilter.org
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <20141113114357.GA7857@salvia>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Recently lockless_dereference() was added which can be used in place of
-hard-coding smp_read_barrier_depends(). 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 13 Nov 2014 12:43:57 +0100
 
-http://lkml.iu.edu/hypermail/linux/kernel/1410.3/04561.html
+> On Thu, Nov 13, 2014 at 11:33:20AM +0000, Mark Brown wrote:
+>> Since about -rc3 we've been seeing build failures in Linus' tree on
+>> arm64 allmodconfig due to:
+>> 
+>> > 	arm64-allmodconfig
+>> > ../net/bridge/netfilter/nft_reject_bridge.c:240:3: error: implicit declaration of function 'csum_ipv6_magic' [-Werror=implicit-function-declaration]
+>> 
+>> By the time I looked into this it was fixed in -next by c1207c049b204b0
+>> (netfilter: nft_reject_bridge: Fix powerpc build error) from Guenter but
+>> that doesn't seem to have made it into -rc4 so I just wanted to check
+>> that this fix was intended to go to Linus before v3.18?
+> 
+> I can see this in David's tree:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=c1207c049b204b0a96535dc5416aee331b51e0e1
+> 
+> I think this was reported by when -rc4 was already out, so you'll see
+> this by -rc5.
 
-The following series tries to do this.
+I hold changes in my tree for a week or more, because I want them to
+"cook" there before they go to Linus.
 
-There are still some hard-coded locations which I was not sure how to replace
-with. I will send in separate patches/questions regarding them.
+So if it takes a week or two for a bug fix like this to propagate into
+Linus's tree, that's just what sometimes happens.
 
-Pranith Kumar (16):
-  crypto: caam - Remove unnecessary smp_read_barrier_depends()
-  doc: memory-barriers.txt: Document use of lockless_dereference()
-  drivers: dma: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  dcache: Replace smp_read_barrier_depends() with lockless_dereference()
-  overlayfs: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  assoc_array: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  hyperv: Replace smp_read_barrier_depends() with lockless_dereference()
-  rcupdate: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  percpu: Replace smp_read_barrier_depends() with lockless_dereference()
-  perf: Replace smp_read_barrier_depends() with lockless_dereference()
-  seccomp: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  task_work: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  ksm: Replace smp_read_barrier_depends() with lockless_dereference()
-  slab: Replace smp_read_barrier_depends() with lockless_dereference()
-  netfilter: Replace smp_read_barrier_depends() with
-    lockless_dereference()
-  rxrpc: Replace smp_read_barrier_depends() with lockless_dereference()
+In the mean time you can apply the fix locally if you absolutely have
+to have it right at this moment, that is the freedom that everyone
+has.
 
- Documentation/memory-barriers.txt |  2 +-
- drivers/crypto/caam/jr.c          |  3 ---
- drivers/dma/ioat/dma_v2.c         |  3 +--
- drivers/dma/ioat/dma_v3.c         |  3 +--
- fs/dcache.c                       |  7 ++-----
- fs/overlayfs/super.c              |  4 +---
- include/linux/assoc_array_priv.h  | 11 +++++++----
- include/linux/hyperv.h            |  9 ++++-----
- include/linux/percpu-refcount.h   |  4 +---
- include/linux/rcupdate.h          | 10 +++++-----
- kernel/events/core.c              |  3 +--
- kernel/events/uprobes.c           |  8 ++++----
- kernel/seccomp.c                  |  7 +++----
- kernel/task_work.c                |  3 +--
- lib/assoc_array.c                 |  7 -------
- mm/ksm.c                          |  7 +++----
- mm/slab.h                         |  6 +++---
- net/ipv4/netfilter/arp_tables.c   |  3 +--
- net/ipv4/netfilter/ip_tables.c    |  3 +--
- net/ipv6/netfilter/ip6_tables.c   |  3 +--
- net/rxrpc/ar-ack.c                | 22 +++++++++-------------
- security/keys/keyring.c           |  6 ------
- 22 files changed, 50 insertions(+), 84 deletions(-)
+FWIW, I plan to push my tree to Linus some time today, so this will be
+resolved in the next day or so.
 
--- 
-1.9.1
-
+Thanks.
