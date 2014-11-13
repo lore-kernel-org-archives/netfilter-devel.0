@@ -1,68 +1,76 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: arm64 allmodconfig failures in nft_reject_bridge.c
-Date: Thu, 13 Nov 2014 12:51:28 +0000
-Message-ID: <20141113125128.GH3815@sirena.org.uk>
-References: <E1Xm8gR-0005nT-PY@debutante>
- <20141106104616.GU8509@sirena.org.uk>
- <20141112233738.GB3815@sirena.org.uk>
- <20141113113320.GF3815@sirena.org.uk>
- <20141113114357.GA7857@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: bridge: unshare bridge info before change it
+Date: Thu, 13 Nov 2014 15:13:17 +0100
+Message-ID: <20141113141317.GA3470@salvia>
+References: <1411976114-16812-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <54582195.20209@cn.fujitsu.com>
+ <20141104190055.GA27683@salvia>
+ <545984E6.5050801@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EIkFwwKGr1GxMZbQ"
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	linaro-kernel@lists.linaro.org,
-	kernel-build-reports@lists.linaro.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:36391 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932603AbaKMMxH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2014 07:53:07 -0500
+Received: from mail.us.es ([193.147.175.20]:52020 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933066AbaKMOLV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2014 09:11:21 -0500
 Content-Disposition: inline
-In-Reply-To: <20141113114357.GA7857@salvia>
+In-Reply-To: <545984E6.5050801@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Nov 05, 2014 at 10:01:10AM +0800, Gao feng wrote:
+> On 11/05/2014 03:00 AM, Pablo Neira Ayuso wrote:
+> > This doesn't apply cleanly. We modularized br_netfilter by the time
+> > you sent this, see 54dc125. You'll have to rebase this patch.
+> 
+> Get.
+> 
+> > 
+> > Moreover, could you develop what you're noticing a bit more? Thanks.
+> > 
+> 
+> first we setup NFQUEUE rule on ipv4 PREROUTING chain.
+> 
+> when gso packet came in from bridge, br_nf_pre_routing will
+> allocate nf_bridge_info for this gso packet. and call setup_pre_routing
+> to setup nf_bridge_info.(such as nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING)
+> 
+> then this packet goes to ipv4 prerouting chain, nfqnl_enqueue_packet
+> will call skb_segment to segment this gso packet. in skb_segment, the new
+> packets will copy gso packet's header(__copy_skb_header), so there will
+> be many packets share the same nf_bridge_info.
+> 
+> When these segmented packets being reinjected into kernel, they will continue
+> going through bridge netfilter, br_nf_pre_routing_finish will clean the
+> BRNF_NF_BRIDGE_PREROUTING for the first packet, setup it for the secondary
+> packet, clean it for the third packet...
+> 
+> if the dest of these packets is local machine, they will come into br_pass_frame_up.
+> then go to ipv4 prerouting chain again through netif_receive_skb. so ip_sabotage_in
+> will not stop half of these packet.
 
---EIkFwwKGr1GxMZbQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I see, so this is manifesting when the packet follows the bridge input path.
+Please, include this in the patch description.
 
-On Thu, Nov 13, 2014 at 12:43:57PM +0100, Pablo Neira Ayuso wrote:
+> I only met the BRNF_NF_BRIDGE_PREROUTING flag problem, the other flags of nf_bridge_info's
+> mask may cause problem too.
+> 
+> One solution is allocate new bridge_info in nfqnl_enqueue_packet for segmented packet,
+> but __copy_skb_header may be called in the scene I described above, So I decide to
+> allocate new bridge_info before we change it.
 
-> I can see this in David's tree:
+I think the changes should be restricted to the br_netfilter scope.  I
+don't come up with any smaller / better solution at this moment, so
+please rebase and resubmit.
 
-> http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=c1207c049b204b0a96535dc5416aee331b51e0e1
+BTW, br_netfilter seems to be using this:
 
-> I think this was reported by when -rc4 was already out, so you'll see
-> this by -rc5.
+nf_bridge->mask ^= ...
 
-The fix predates -rc4 (sent on the 2nd, committed on the 3rd, -rc4 was
-on the 9th), I'd been expecting to see it turn up there or shortly
-after.
+to always unset a bit that was previously set? In that case, I would
+rename the function to _unset instead of _change, and use &~, at quick
+look the use of xor for this there seems sloppy to me.
 
---EIkFwwKGr1GxMZbQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUZKlPAAoJECTWi3JdVIfQk0sH/3IOqCbsM3iqHZAQ2vrKQI/r
-YXLMkRbS373mZq5f5SNzYGkjV8l9uGWzS7nw+r4DYj2cVygaxSu8vVFA1jKkPCuA
-bv8SUPJduKKVQleEysxYgz3WwUxOiDCaD67aZJeR5qcHdZ0eaueFiDMqbTWxhkSJ
-QVBZNMrGYGJrFo5pp1GNRqcVBtjO3rP52PH2On2e49IeEDNtBnngH1s4TNVQHmwK
-Nz+ugckeEjYxFhqaB0GPK6HQxIzrlTEpaxtnmxGk3mogawW7OxKDc/L8tGK7+lCe
-3QKs8SI8b2OBbnp2fW3oyohyekakUthuBjpQ6gmVfkLGW4AiqCZlYJrkCFjc8xw=
-=bU/a
------END PGP SIGNATURE-----
-
---EIkFwwKGr1GxMZbQ--
+Thanks for your patience.
