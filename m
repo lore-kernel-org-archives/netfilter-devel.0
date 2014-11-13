@@ -1,76 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: bridge: unshare bridge info before change it
-Date: Thu, 13 Nov 2014 15:13:17 +0100
-Message-ID: <20141113141317.GA3470@salvia>
-References: <1411976114-16812-1-git-send-email-gaofeng@cn.fujitsu.com>
- <54582195.20209@cn.fujitsu.com>
- <20141104190055.GA27683@salvia>
- <545984E6.5050801@cn.fujitsu.com>
+From: Ronny Janssen <ronny.janssen@gmail.com>
+Subject: x_tables: eb_tables: limit.0 match: invalid size 32 (kernel) !=
+ (user) 24
+Date: Thu, 13 Nov 2014 15:25:55 +0100
+Message-ID: <CAJsRc6i_vEWAOEUJVrx5t0DtNHZdMg5jj3N726YSOs7zX_pCcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52020 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933066AbaKMOLV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2014 09:11:21 -0500
-Content-Disposition: inline
-In-Reply-To: <545984E6.5050801@cn.fujitsu.com>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:48673 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932910AbaKMOZ5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2014 09:25:57 -0500
+Received: by mail-la0-f41.google.com with SMTP id gf13so1376477lab.14
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2014 06:25:56 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 05, 2014 at 10:01:10AM +0800, Gao feng wrote:
-> On 11/05/2014 03:00 AM, Pablo Neira Ayuso wrote:
-> > This doesn't apply cleanly. We modularized br_netfilter by the time
-> > you sent this, see 54dc125. You'll have to rebase this patch.
-> 
-> Get.
-> 
-> > 
-> > Moreover, could you develop what you're noticing a bit more? Thanks.
-> > 
-> 
-> first we setup NFQUEUE rule on ipv4 PREROUTING chain.
-> 
-> when gso packet came in from bridge, br_nf_pre_routing will
-> allocate nf_bridge_info for this gso packet. and call setup_pre_routing
-> to setup nf_bridge_info.(such as nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING)
-> 
-> then this packet goes to ipv4 prerouting chain, nfqnl_enqueue_packet
-> will call skb_segment to segment this gso packet. in skb_segment, the new
-> packets will copy gso packet's header(__copy_skb_header), so there will
-> be many packets share the same nf_bridge_info.
-> 
-> When these segmented packets being reinjected into kernel, they will continue
-> going through bridge netfilter, br_nf_pre_routing_finish will clean the
-> BRNF_NF_BRIDGE_PREROUTING for the first packet, setup it for the secondary
-> packet, clean it for the third packet...
-> 
-> if the dest of these packets is local machine, they will come into br_pass_frame_up.
-> then go to ipv4 prerouting chain again through netif_receive_skb. so ip_sabotage_in
-> will not stop half of these packet.
+I've come across an issue trying to install an ebtables rules in a
+64bit mips kernel from 32bit userland ebtables.
 
-I see, so this is manifesting when the packet follows the bridge input path.
-Please, include this in the patch description.
+Linux kernel version 3.10.20 mips64 and ebtables mips32 version
+v2.0.10-4 (December 2011).
 
-> I only met the BRNF_NF_BRIDGE_PREROUTING flag problem, the other flags of nf_bridge_info's
-> mask may cause problem too.
-> 
-> One solution is allocate new bridge_info in nfqnl_enqueue_packet for segmented packet,
-> but __copy_skb_header may be called in the scene I described above, So I decide to
-> allocate new bridge_info before we change it.
+when issuing following command:
 
-I think the changes should be restricted to the br_netfilter scope.  I
-don't come up with any smaller / better solution at this moment, so
-please rebase and resubmit.
+/ # ebtables -A FORWARD -i eth0 --limit 10/s -j ACCEPT
 
-BTW, br_netfilter seems to be using this:
+the kernel complains with:
 
-nf_bridge->mask ^= ...
+[  320.376828] x_tables: eb_tables: limit.0 match: invalid size 32
+(kernel) != (user) 24
 
-to always unset a bit that was previously set? In that case, I would
-rename the function to _unset instead of _change, and use &~, at quick
-look the use of xor for this there seems sloppy to me.
+My lame throw at this is to remove the xt_check_match from
+ebt_check_match and for me that works just fine, but I understand this
+is not the proper solution.
+Question is.. what would be the proper solution? In other words.. what
+exaclty is the bug here? Any insight is highly appreciated.
 
-Thanks for your patience.
+Thanks,
+Ronny.
