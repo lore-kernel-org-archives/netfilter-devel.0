@@ -1,37 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] Second Round of IPVS Fixes for v3.18
-Date: Thu, 13 Nov 2014 12:38:18 +0100
-Message-ID: <20141113113818.GA7570@salvia>
-References: <1415758920-32578-1-git-send-email-horms@verge.net.au>
+Subject: Re: [ebtables-compat PATCH] build ebtables extensions
+Date: Thu, 13 Nov 2014 12:39:22 +0100
+Message-ID: <20141113113922.GA7619@salvia>
+References: <1415646188-2549-1-git-send-email-giuseppelng@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Giuseppe Longo <giuseppelng@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59998 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932328AbaKMLh3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2014 06:37:29 -0500
 Content-Disposition: inline
-In-Reply-To: <1415758920-32578-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1415646188-2549-1-git-send-email-giuseppelng@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 12, 2014 at 11:21:59AM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider this fix for v3.18.
-> 
-> It fixes handling of skb->sk which may cause incorrect handling
-> of connections from a local process.
-> 
-> This problem was introduced in its current form by 8052ba292559f907e
-> ("ipvs: support ipv4 in ipv6 and ipv6 in ipv4 tunnel forwarding") in
-> v3.18-rc1.
+On Mon, Nov 10, 2014 at 08:03:08PM +0100, Giuseppe Longo wrote:
+> This permits to build extensions for ebtables-compat layer.
 
-Pulled, thanks Simon.
+I can put this in the ebtables-compat branch if that makes it easier
+for you, but I would really like to see this patch in a small batch
+that at least introduces the first client of it.
 
-> I believe it also exists in a different form in older kernels.
-> No fix for that is available at this time.
-
-AFAIK -stable also accepts backports if there's a clear relation
-between this original patch in mainstream and the backported version.
+Thanks.
