@@ -1,97 +1,113 @@
-From: =?windows-1252?Q?J=F6rg_Marx?= <joerg.marx@secunet.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix race in __nf_conntrack_confirm
- against get_next_corpse
-Date: Thu, 13 Nov 2014 15:33:59 +0100
-Message-ID: <5464C157.7020901@secunet.com>
-References: <012601cff7d1$7ce2d620$76a88260$@gmail.com> <20141106133648.2534.1403.stgit@dragon> <20141110165439.GA7788@salvia> <20141112083500.5404e5f4@redhat.com> <54633D1B.5090404@secunet.com> <20141113120826.GA8224@salvia>
+From: giorgio.nicole@arcor.de
+Subject: Aw: Re: [libnftnl PATCH 1/1] Correctly define the header
+ 'Requires:' in the file 'libnftnl.pc'.
+Date: Thu, 13 Nov 2014 15:36:10 +0100 (CET)
+Message-ID: <786059936.614033.1415889370881.JavaMail.ngmail@webmail11.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
-	<programme110@gmail.com>, <netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>, <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@inai.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.mx.secunet.com ([195.81.216.161]:58990 "EHLO a.mx.secunet.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932910AbaKMOeI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2014 09:34:08 -0500
-In-Reply-To: <20141113120826.GA8224@salvia>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:53473 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932596AbaKMOgN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2014 09:36:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13.11.2014 13:08, Pablo Neira Ayuso wrote:
+Hi, 
 
->> For me there is little difference in choosing DROP or ACCEPT as verd=
-ict.
->> > The packet/skb belongs to a formerly allowed connection, most like=
-ly
->> > this connection is still allowed (but the conntrack hash entry is =
-about
->> > to be removed due to userspace is flushing the conntrack table).
-> __nf_conntrack_confirm() is only called for the first packet that we
-> see in a flow. If you just invoked the flush command once (which
-> should be the common case), then this is likely to be the first packe=
-t
-> of the flow (unless you already called flush anytime soon in the
-> past).
-Yes, you are right. As far as I remember it was very hard to trigger
-that critical moment, when the first packet triggered the insertion int=
-o
-the hash table. But the test and production systems showed this strange
-behaviour, that no traffic was allowed to flow for exactly 600 seconds.
 
->=20
->> > To minimize the impact (lost packets -> retransmit) I decided to a=
-llow
->> > the skb in flight, so were is no lost packet at this place.
-> I understand your original motivation was to be conservative.
-Yes.
+----- Original Nachricht ----
+Von:     Jan Engelhardt <jengelh@inai.de>
+An:      Giorgio Dal Molin <giorgio.nicole@arcor.de>
+Datum:   13.11.2014 13:34
+Betreff: Re: [libnftnl PATCH 1/1] Correctly define the header 'Requires:' in
+ the file 'libnftnl.pc'.
 
->=20
->> > When the connection is not allowed anymore (but was allowed up to =
-now,
->> > because the hash entry exists), the impact is one last packet 'sli=
-pping
->> > through'.
-=46eel free to change the verdict, IMHO it doesn't matter at all as lon=
-g
-as the hash table is in a consistent state. The higher protocol layers
-will deal with the missing packet.
+> 
+> On Thursday 2014-11-13 13:09, Giorgio Dal Molin wrote:
+> >
+> >Without a correctly defined 'Requires:' header failures can happen
+> >while linking a program against 'libnftnl', expecially while cross
+> compiling.
+> >
+> ># make V=1 all
+> >...
+> >arm-926ejs-linux-gnueabi-gcc -Wall -Wstrict-prototypes -Wmissing-prototypes
+> -Wmissing-declarations -Wdeclaration-after-statement -Wsign-compare
+> -Winit-self -Wformat-nonliteral -Wformat-security -Wmissing-format-attribute
+> -Wcast-align -Wundef -Wbad-function-cast -O2 -msoft-float -mabi=aapcs-linux
+> -march=armv5te -mtune=arm926ej-s -mcpu=arm926ej-s -w  -L/tmp/pkg_root/lib -o
+> nft main.o rule.o statement.o datatype.o expression.o evaluate.o proto.o
+> payload.o exthdr.o meta.o ct.o netlink.o netlink_linearize.o
+> netlink_delinearize.o segtree.o rbtree.o gmputil.o utils.o erec.o mnl.o
+> scanner.o parser_bison.o  -L/tmp/pkg_root/lib -lmnl  -L/tmp/pkg_root/lib
+> -lnftnl  -lgmp
+> >arm-926ejs-linux-gnueabi/bin/ld: warning: libjansson.so.4, needed by
+> /tmp/pkg_root/lib/libnftnl.so, not found (try using -rpath or -rpath-link)
+> >/tmp/pkg_root/lib/libnftnl.so: undefined reference to `json_integer_value'
+> 
+> Can you actually check whether `LD_LIBRARY_PATH=/tmp/pkg_root/lib
+> ldd -r /tmp/pkg_root/lib/libnftnl.so` succeeds?
+> 
+> Programs should generally need not be concerned with 3rd-level
+> symbols. Adding json to the command line for linking the nft
+> program seems wrong (when you have a build with shared libraries),
+> because nft does not appear to be using any of the json_* symbols.
+> 
+I'm not really a 'guru' about building sw packages but
+as I understand the pkg-config system there is no *direct* 3rd-level
+dependencies, every package must declare just its own direct deps, pkg-config
+then does the recursion when needed, pulling in the whole tree.
+In this case, the 'nftable' package just needs 'libnftnl', it should not know
+what 'libnftnl' in turn needs.
 
-> The general policy in conntrack is to not drop packets, but in this
-> case we'll leave things in inconsistent state (ie. we will likely
-> receive a reply packet in response to the original packet that has no
-> conntrack yet).
-Under heavy load this can happen anyway I guess?
+Here is how I (cross) build 'nftable' in my own Makefile:
+...
+configure:
+	( cd $(BUILD_DIR) &&									\
+	$(SRC_DIR)/configure									\
+		PKG_CONFIG_LIBDIR="$(PKG_ROOT)/lib/pkgconfig" 		\
+		CFLAGS="$(CROSS_CFLAGS)"						\
+		--prefix= --host="$(CONFIGURE_HOST)"				\
+		--libexecdir=/lib				 					\
+		--enable-assert									\
+		--without-cli									\
+	)
 
-Thanks and best regards
-J=F6rg
+build: configure
+	$(MAKE) -C $(BUILD_DIR) DESTDIR=$(PKG_ROOT) V=1 all
+	$(MAKE) -C $(BUILD_DIR) DESTDIR=$(PKG_ROOT) install-strip
 
---=20
-Dipl.-Inform.
-J=F6rg Marx
-Bereichsleiter
-Entwicklung Client- & Netzwerksicherheit
-Gesch=E4ftsbereich Public Sector
-secunet Security Networks AG
-Ammonstr. 74
-D-01067 Dresden, Germany=20
-Telefon +49 201 54 54-3517
-Telefax +49 201 54 54-1323
-joerg.marx@secunet.com
-www.secunet.com
+I think this should just work, without requiring additional/redundant infos.
 
-secunet Security Networks AG
-Kronprinzenstr. 30
-45128 Essen, Germany=20
-Amtsgericht Essen HRB 13615
+I've tested your 'ldd' with the LD_LIBRARY_PATH explicitly set and it
+actually works but I don't want to fiddle with such env. variables directly
+when I already have a build configuration system.
 
-Vorstand: Dr. Rainer Baumgart (Vors.), Thomas Pleines
-Aufsichtsratsvorsitzender: Dr. Peter Zattler
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+giorgio
+
+> >index 55b28ab..ff29200 100644
+> >--- a/configure.ac
+> >+++ b/configure.ac
+> >@@ -39,19 +39,24 @@ case "$host" in
+> > *) AC_MSG_ERROR([Linux only, dude!]);;
+> > esac
+> > 
+> >+NFTNL_PC_DEPS=libmnl
+> > regular_CPPFLAGS="-D_FILE_OFFSET_BITS=64 -D_REENTRANT"
+> > AS_IF([test "x$with_xml_parsing" = "xyes"], [
+> > 	regular_CPPFLAGS="$regular_CPPFLAGS -DXML_PARSING"
+> >+	NFTNL_PC_DEPS+=" mxml"
+> > ])
+> 
+> += is not portable to sh; such should be of the form a="$a b".
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
