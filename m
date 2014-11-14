@@ -1,41 +1,71 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf] Second Round of IPVS Fixes for v3.18
-Date: Fri, 14 Nov 2014 10:59:02 +0900
-Message-ID: <20141114015902.GB28021@verge.net.au>
-References: <1415758920-32578-1-git-send-email-horms@verge.net.au>
- <20141113113818.GA7570@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141113113818.GA7570@salvia>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [PATCH nf 2/2] bridge: set the pktinfo for IPv4/IPv6 traffic
+Date: Fri, 14 Nov 2014 11:29:50 +0100
+Message-ID: <1415960990-19489-2-git-send-email-alvaroneay@gmail.com>
+References: <1415960990-19489-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36058 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755019AbaKNK33 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Nov 2014 05:29:29 -0500
+Received: by mail-wi0-f174.google.com with SMTP id h11so2241518wiw.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Nov 2014 02:29:27 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id 10sm39068009wjs.21.2014.11.14.02.29.26
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Nov 2014 02:29:27 -0800 (PST)
+In-Reply-To: <1415960990-19489-1-git-send-email-alvaroneay@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 13, 2014 at 12:38:18PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 12, 2014 at 11:21:59AM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > please consider this fix for v3.18.
-> > 
-> > It fixes handling of skb->sk which may cause incorrect handling
-> > of connections from a local process.
-> > 
-> > This problem was introduced in its current form by 8052ba292559f907e
-> > ("ipvs: support ipv4 in ipv6 and ipv6 in ipv4 tunnel forwarding") in
-> > v3.18-rc1.
-> 
-> Pulled, thanks Simon.
-> 
-> > I believe it also exists in a different form in older kernels.
-> > No fix for that is available at this time.
-> 
-> AFAIK -stable also accepts backports if there's a clear relation
-> between this original patch in mainstream and the backported version.
+This patch sets the pktinfo for IPv4/IPv6 traffic. Therefore, we can check the
+meta l4proto for IPv4/IPv6 traffic in bridge, before we don't have enough
+information to do it.
 
-Thanks. I will see about making one.
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ net/bridge/netfilter/nf_tables_bridge.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index d468c19..0a0f0ca 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -16,6 +16,8 @@
+ #include <net/netfilter/nf_tables_bridge.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <net/netfilter/nf_tables_ipv4.h>
++#include <net/netfilter/nf_tables_ipv6.h>
+ 
+ int nft_bridge_iphdr_validate(struct sk_buff *skb)
+ {
+@@ -71,8 +73,21 @@ nft_do_chain_bridge(const struct nf_hook_ops *ops,
+ {
+ 	struct nft_pktinfo pkt;
+ 
+-	nft_set_pktinfo(&pkt, ops, skb, in, out);
++	switch (eth_hdr(skb)->h_proto) {
++	case htons(ETH_P_IP):
++		if (!nft_bridge_iphdr_validate(skb))
++			break;
++		nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
++		return nft_do_chain(&pkt, ops);
++	case htons(ETH_P_IPV6):
++		if (!nft_bridge_ip6hdr_validate(skb))
++			break;
++		if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
++			break;
++		return nft_do_chain(&pkt, ops);
++	}
+ 
++	nft_set_pktinfo(&pkt, ops, skb, in, out);
+ 	return nft_do_chain(&pkt, ops);
+ }
+ 
+-- 
+1.7.10.4
+
