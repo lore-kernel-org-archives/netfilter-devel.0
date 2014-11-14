@@ -1,16 +1,14 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: [PATCH 0/8] Netfilter/IPVS fixes for net
-Date: Fri, 14 Nov 2014 17:58:40 +0100
-Message-ID: <1415984329-5569-1-git-send-email-pablo@netfilter.org>
+Date: Fri, 14 Nov 2014 17:58:41 +0100
+Message-ID: <1415984329-5569-2-git-send-email-pablo@netfilter.org>
+References: <1415984329-5569-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40338 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935233AbaKNQ5F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Nov 2014 11:57:05 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1415984329-5569-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Hi David,
 
