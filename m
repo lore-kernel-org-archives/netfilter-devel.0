@@ -1,213 +1,124 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [PATCH nf 1/2] bridge: export nft_reject_ip*hdr_validate functions
-Date: Fri, 14 Nov 2014 11:29:49 +0100
-Message-ID: <1415960990-19489-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: xt_connlimit: honor conntrack zone if available
+Date: Fri, 14 Nov 2014 13:21:48 +0100
+Message-ID: <1415967708-15492-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:64645 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755018AbaKNK32 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43013 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754706AbaKNMWh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Nov 2014 05:29:28 -0500
-Received: by mail-wg0-f45.google.com with SMTP id x12so19039925wgg.32
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Nov 2014 02:29:26 -0800 (PST)
-Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id 10sm39068009wjs.21.2014.11.14.02.29.25
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 14 Nov 2014 02:29:25 -0800 (PST)
+	Fri, 14 Nov 2014 07:22:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch exports the functions nft_reject_iphdr_validate and
-nft_reject_ip6hdr_validate to use it in follow up patches.
-These functions check if the ethernet header is correct.
+Currently all the conntrack lookups are done using default zone.
+In case the skb has a ct attached (e.g. template) we should use this zone
+for lookups instead.  This makes connlimit work with connections assigned
+to other zones.
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables_bridge.h |    7 ++++
- net/bridge/netfilter/nf_tables_bridge.c  |   48 +++++++++++++++++++++++++++
- net/bridge/netfilter/nft_reject_bridge.c |   52 +++---------------------------
- 3 files changed, 60 insertions(+), 47 deletions(-)
- create mode 100644 include/net/netfilter/nf_tables_bridge.h
+ net/netfilter/xt_connlimit.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_bridge.h b/include/net/netfilter/nf_tables_bridge.h
-new file mode 100644
-index 0000000..511fb79
---- /dev/null
-+++ b/include/net/netfilter/nf_tables_bridge.h
-@@ -0,0 +1,7 @@
-+#ifndef _NET_NF_TABLES_BRIDGE_H
-+#define _NET_NF_TABLES_BRIDGE_H
-+
-+int nft_bridge_iphdr_validate(struct sk_buff *skb);
-+int nft_bridge_ip6hdr_validate(struct sk_buff *skb);
-+
-+#endif /* _NET_NF_TABLES_BRIDGE_H */
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 074c557..d468c19 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -13,6 +13,54 @@
- #include <linux/module.h>
- #include <linux/netfilter_bridge.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_bridge.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+
-+int nft_bridge_iphdr_validate(struct sk_buff *skb)
-+{
-+	struct iphdr *iph;
-+	u32 len;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+		return 0;
-+
-+	iph = ip_hdr(skb);
-+	if (iph->ihl < 5 || iph->version != 4)
-+		return 0;
-+
-+	len = ntohs(iph->tot_len);
-+	if (skb->len < len)
-+		return 0;
-+	else if (len < (iph->ihl*4))
-+		return 0;
-+
-+	if (!pskb_may_pull(skb, iph->ihl*4))
-+		return 0;
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(nft_bridge_iphdr_validate);
-+
-+int nft_bridge_ip6hdr_validate(struct sk_buff *skb)
-+{
-+	struct ipv6hdr *hdr;
-+	u32 pkt_len;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
-+		return 0;
-+
-+	hdr = ipv6_hdr(skb);
-+	if (hdr->version != 6)
-+		return 0;
-+
-+	pkt_len = ntohs(hdr->payload_len);
-+	if (pkt_len + sizeof(struct ipv6hdr) > skb->len)
-+		return 0;
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(nft_bridge_ip6hdr_validate);
- 
- static unsigned int
- nft_do_chain_bridge(const struct nf_hook_ops *ops,
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index 654c901..1285f25 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -14,6 +14,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
-+#include <net/netfilter/nf_tables_bridge.h>
- #include <net/netfilter/ipv4/nf_reject.h>
- #include <net/netfilter/ipv6/nf_reject.h>
- #include <linux/ip.h>
-@@ -34,30 +35,6 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
- 	skb_pull(nskb, ETH_HLEN);
- }
- 
--static int nft_reject_iphdr_validate(struct sk_buff *oldskb)
--{
--	struct iphdr *iph;
--	u32 len;
--
--	if (!pskb_may_pull(oldskb, sizeof(struct iphdr)))
--		return 0;
--
--	iph = ip_hdr(oldskb);
--	if (iph->ihl < 5 || iph->version != 4)
--		return 0;
--
--	len = ntohs(iph->tot_len);
--	if (oldskb->len < len)
--		return 0;
--	else if (len < (iph->ihl*4))
--		return 0;
--
--	if (!pskb_may_pull(oldskb, iph->ihl*4))
--		return 0;
--
--	return 1;
--}
--
- static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index fbc66bb..29ba621 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -134,6 +134,7 @@ static bool add_hlist(struct hlist_head *head,
+ static unsigned int check_hlist(struct net *net,
+ 				struct hlist_head *head,
+ 				const struct nf_conntrack_tuple *tuple,
++				u16 zone,
+ 				bool *addit)
  {
- 	struct sk_buff *nskb;
-@@ -65,7 +42,7 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
- 	const struct tcphdr *oth;
- 	struct tcphdr _oth;
+ 	const struct nf_conntrack_tuple_hash *found;
+@@ -147,8 +148,7 @@ static unsigned int check_hlist(struct net *net,
  
--	if (!nft_reject_iphdr_validate(oldskb))
-+	if (!nft_bridge_iphdr_validate(oldskb))
- 		return;
- 
- 	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
-@@ -100,7 +77,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	void *payload;
- 	__wsum csum;
- 
--	if (!nft_reject_iphdr_validate(oldskb))
-+	if (!nft_bridge_iphdr_validate(oldskb))
- 		return;
- 
- 	/* IP header checks: fragment. */
-@@ -145,25 +122,6 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
- }
- 
--static int nft_reject_ip6hdr_validate(struct sk_buff *oldskb)
--{
--	struct ipv6hdr *hdr;
--	u32 pkt_len;
--
--	if (!pskb_may_pull(oldskb, sizeof(struct ipv6hdr)))
--		return 0;
--
--	hdr = ipv6_hdr(oldskb);
--	if (hdr->version != 6)
--		return 0;
--
--	pkt_len = ntohs(hdr->payload_len);
--	if (pkt_len + sizeof(struct ipv6hdr) > oldskb->len)
--		return 0;
--
--	return 1;
--}
--
- static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 					    struct sk_buff *oldskb, int hook)
+ 	/* check the saved connections */
+ 	hlist_for_each_entry_safe(conn, n, head, node) {
+-		found    = nf_conntrack_find_get(net, NF_CT_DEFAULT_ZONE,
+-						 &conn->tuple);
++		found = nf_conntrack_find_get(net, zone, &conn->tuple);
+ 		if (found == NULL) {
+ 			hlist_del(&conn->node);
+ 			kmem_cache_free(connlimit_conn_cachep, conn);
+@@ -201,7 +201,7 @@ static unsigned int
+ count_tree(struct net *net, struct rb_root *root,
+ 	   const struct nf_conntrack_tuple *tuple,
+ 	   const union nf_inet_addr *addr, const union nf_inet_addr *mask,
+-	   u8 family)
++	   u8 family, u16 zone)
  {
-@@ -173,7 +131,7 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 	unsigned int otcplen;
- 	struct ipv6hdr *nip6h;
+ 	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
+ 	struct rb_node **rbnode, *parent;
+@@ -229,7 +229,7 @@ count_tree(struct net *net, struct rb_root *root,
+ 		} else {
+ 			/* same source network -> be counted! */
+ 			unsigned int count;
+-			count = check_hlist(net, &rbconn->hhead, tuple, &addit);
++			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
  
--	if (!nft_reject_ip6hdr_validate(oldskb))
-+	if (!nft_bridge_ip6hdr_validate(oldskb))
- 		return;
+ 			tree_nodes_free(root, gc_nodes, gc_count);
+ 			if (!addit)
+@@ -245,7 +245,7 @@ count_tree(struct net *net, struct rb_root *root,
+ 			continue;
  
- 	oth = nf_reject_ip6_tcphdr_get(oldskb, &_oth, &otcplen, hook);
-@@ -206,7 +164,7 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
- 	unsigned int len;
- 	void *payload;
+ 		/* only used for GC on hhead, retval and 'addit' ignored */
+-		check_hlist(net, &rbconn->hhead, tuple, &addit);
++		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
+ 		if (hlist_empty(&rbconn->hhead))
+ 			gc_nodes[gc_count++] = rbconn;
+ 	}
+@@ -290,7 +290,7 @@ static int count_them(struct net *net,
+ 		      const struct nf_conntrack_tuple *tuple,
+ 		      const union nf_inet_addr *addr,
+ 		      const union nf_inet_addr *mask,
+-		      u_int8_t family)
++		      u_int8_t family, u16 zone)
+ {
+ 	struct rb_root *root;
+ 	int count;
+@@ -306,7 +306,7 @@ static int count_them(struct net *net,
  
--	if (!nft_reject_ip6hdr_validate(oldskb))
-+	if (!nft_bridge_ip6hdr_validate(oldskb))
- 		return;
+ 	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
  
- 	/* Include "As much of invoking packet as possible without the ICMPv6
+-	count = count_tree(net, root, tuple, addr, mask, family);
++	count = count_tree(net, root, tuple, addr, mask, family, zone);
+ 
+ 	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+@@ -324,13 +324,16 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+ 	unsigned int connections;
++	u16 zone = NF_CT_DEFAULT_ZONE;
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct != NULL)
++	if (ct != NULL) {
+ 		tuple_ptr = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+-	else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
+-				    par->family, &tuple))
++		zone = nf_ct_zone(ct);
++	} else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
++				    par->family, &tuple)) {
+ 		goto hotdrop;
++	}
+ 
+ 	if (par->family == NFPROTO_IPV6) {
+ 		const struct ipv6hdr *iph = ipv6_hdr(skb);
+@@ -343,7 +346,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
+ 
+ 	connections = count_them(net, info->data, tuple_ptr, &addr,
+-	                         &info->mask, par->family);
++	                         &info->mask, par->family, zone);
+ 	if (connections == 0)
+ 		/* kmalloc failed, drop it entirely */
+ 		goto hotdrop;
 -- 
-1.7.10.4
+2.0.4
 
