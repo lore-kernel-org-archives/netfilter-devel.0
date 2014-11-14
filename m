@@ -1,62 +1,41 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: arm64 allmodconfig failures in nft_reject_bridge.c
-Date: Thu, 13 Nov 2014 23:51:52 +0000
-Message-ID: <20141113235152.GR3815@sirena.org.uk>
-References: <20141113114357.GA7857@salvia>
- <20141113.143513.785778562781935404.davem@davemloft.net>
- <20141113194752.GQ3815@sirena.org.uk>
- <20141113.152353.548265176661091467.davem@davemloft.net>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf] Second Round of IPVS Fixes for v3.18
+Date: Fri, 14 Nov 2014 10:59:02 +0900
+Message-ID: <20141114015902.GB28021@verge.net.au>
+References: <1415758920-32578-1-git-send-email-horms@verge.net.au>
+ <20141113113818.GA7570@salvia>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZAr10/UugL07XvY7"
-Cc: pablo@netfilter.org, linux@roeck-us.net, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, stephen@networkplumber.org,
-	linaro-kernel@lists.linaro.org,
-	kernel-build-reports@lists.linaro.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141113.152353.548265176661091467.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20141113113818.GA7570@salvia>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Nov 13, 2014 at 12:38:18PM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Nov 12, 2014 at 11:21:59AM +0900, Simon Horman wrote:
+> > Hi Pablo,
+> > 
+> > please consider this fix for v3.18.
+> > 
+> > It fixes handling of skb->sk which may cause incorrect handling
+> > of connections from a local process.
+> > 
+> > This problem was introduced in its current form by 8052ba292559f907e
+> > ("ipvs: support ipv4 in ipv6 and ipv6 in ipv4 tunnel forwarding") in
+> > v3.18-rc1.
+> 
+> Pulled, thanks Simon.
+> 
+> > I believe it also exists in a different form in older kernels.
+> > No fix for that is available at this time.
+> 
+> AFAIK -stable also accepts backports if there's a clear relation
+> between this original patch in mainstream and the backported version.
 
---ZAr10/UugL07XvY7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Nov 13, 2014 at 03:23:53PM -0500, David Miller wrote:
-> Date: Thu, 13 Nov 2014 19:47:52 +0000
-
-> > On Thu, Nov 13, 2014 at 02:35:13PM -0500, David Miller wrote:
-
-> >> I hold changes in my tree for a week or more, because I want them to
-> >> "cook" there before they go to Linus.
-
-> > Hrm.  Guess there must've been some other change in -next that pulled
-> > the header in implicitly here :(
-
-> -next pulls in my 'net' tree, so got the fix.
-
-Right, but we didn't see the problem before you sent the tree with the
-problematic patch to Linus - we didn't detect it in -next.
-
---ZAr10/UugL07XvY7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUZUQXAAoJECTWi3JdVIfQ3OcH/Ax8XGlpjGf74neFu7BW2r8p
-FE38FVlrw1l6w0HpbyhgSgk+peB8yPlyMAmhhiOrPOt8YsN05t6fzixqENZUdrfN
-a+eY2HIxkgoWY4DbofrFG2Fmg7exkfrUs5QHh9wrSIpFyXKz8gMbhEZyX0a64yxZ
-zfIFu1XaWBZdTS+kpY/yxXsQoa84tCJlXG1CkpHc/V81Q6Ieiwxn5ARb4UNnja1y
-cSdvaSkrMVydhgRFngqPc3H11/bb8BoWTgwassfFxUCX5OocGGGQBsaHY2PwPRI1
-mY/jdgmhPu946qelwGWO2mqvEpZVpNO3ZiFcaDNwWZi4QwUlwu6cp4vsIzjELUA=
-=dbJv
------END PGP SIGNATURE-----
-
---ZAr10/UugL07XvY7--
+Thanks. I will see about making one.
