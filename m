@@ -1,58 +1,87 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: bridge: unshare bridge info before change
- it
-Date: Wed, 19 Nov 2014 14:07:51 +0100
-Message-ID: <20141119130751.GA10748@salvia>
-References: <1416366453-12090-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [ebtables-compat-experimental5 PATCH] iptables: xtables-eb:
+ user-defined chains default policy is always RETURN
+Date: Wed, 19 Nov 2014 14:11:47 +0100
+Message-ID: <20141119131147.15524.18916.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: giuseppelng@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35105 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932071AbaKSNFy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2014 08:05:54 -0500
-Content-Disposition: inline
-In-Reply-To: <1416366453-12090-1-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from smtp3.cica.es ([150.214.5.190]:35103 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752741AbaKSNL7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 08:11:59 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 19, 2014 at 11:07:32AM +0800, Gao feng wrote:
-> diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-> index c755e49..dca7337 100644
-> --- a/include/linux/netfilter_bridge.h
-> +++ b/include/linux/netfilter_bridge.h
-> @@ -81,14 +81,64 @@ static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
->  	return 0;
->  }
->  
-> +static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
-> +{
-> +	skb->nf_bridge = kzalloc(sizeof(struct nf_bridge_info), GFP_ATOMIC);
-> +	if (likely(skb->nf_bridge))
-> +		atomic_set(&(skb->nf_bridge->use), 1);
-> +
-> +	return skb->nf_bridge;
-> +}
-> +
-> +static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
-> +{
-> +	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-> +
-> +	if (atomic_read(&nf_bridge->use) > 1) {
-> +		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
+The RETURN default policy is mandatory in user-defined chains.
+Builtin chains must have one of ACCEPT or DROP.
 
-nf_bridge_alloc() overwrites the original skb->nf_bridge when
-unsharing, so this leaks and likely breaks other things.
+So, with this patch, ebtables-compat ends with:
 
-> +
-> +		if (tmp) {
-> +			memcpy(tmp, nf_bridge, sizeof(struct nf_bridge_info));
-> +			atomic_set(&tmp->use, 1);
-> +		}
-> +		nf_bridge_put(nf_bridge);
-> +		nf_bridge = tmp;
-> +	}
-> +	return nf_bridge;
-> +}
+Command:			Result:
+
+-L				Always RETURN for user-defined chains
+-P builtin RETURN		Policy RETURN only allowed for user defined chains
+-P builtin ACCEPT|DROP		ok
+-P userdefined RETURN		Default policy in user-defined chains is RETURN
+-P userdefined ACCEPT|DROP	Default policy in user-defined chains is RETURN
+-N userdefined			ok
+-N userdefined -P RETURN	Default policy in user-defined chains is RETURN
+-N userdefined -P ACCEPT|DROP	Default policy in user-defined chains is RETURN
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ iptables/nft-bridge.c |    3 ++-
+ iptables/xtables-eb.c |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index b5aec00..a1bd906 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -356,7 +356,8 @@ static void nft_bridge_print_header(unsigned int format, const char *chain,
+ 				    const struct xt_counters *counters,
+ 				    bool basechain, uint32_t refs)
+ {
+-	printf("Bridge chain: %s, entries: %u, policy: %s\n", chain, refs, pol);
++	printf("Bridge chain: %s, entries: %u, policy: %s\n",
++	       chain, refs, basechain ? pol : "RETURN");
+ }
+ 
+ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 917bca2..0775ee7 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -616,6 +616,7 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table)
+ 		case 'E': /* Rename chain */
+ 		case 'X': /* Delete chain */
+ 			/* We allow -N chainname -P policy */
++			/* XXX: Not in ebtables-compat */
+ 			if (command == 'N' && c == 'P') {
+ 				command = c;
+ 				optind--; /* No table specified */
+@@ -1146,9 +1147,17 @@ check_extension: */
+ 	cs.fw.ethproto = htons(cs.fw.ethproto);
+ 
+ 	if (command == 'P') {
+-		if (selected_chain < NF_BR_NUMHOOKS && strcmp(policy, "RETURN")==0)
++		if (selected_chain < 0) {
+ 			xtables_error(PARAMETER_PROBLEM,
+-				      "Policy RETURN only allowed for user defined chains");
++				      "Default policy in user-defined"
++				      " chains is mandatory RETURN");
++		}
++		if (strcmp(policy, "ACCEPT") != 0 &&
++		    strcmp(policy, "DROP") != 0) {
++			xtables_error(PARAMETER_PROBLEM,
++				      "Default policy in default chains"
++				      " is either ACCEPT or DROP");
++		}
+ 		ret = nft_chain_set(h, *table, chain, policy, NULL);
+ 		if (ret < 0)
+ 			xtables_error(PARAMETER_PROBLEM, "Wrong policy");
+
