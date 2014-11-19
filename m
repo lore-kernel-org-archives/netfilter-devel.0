@@ -1,115 +1,131 @@
-From: Giorgio <giorgio.nicole@arcor.de>
-Subject: Re: nftables error compile current git
-Date: Wed, 19 Nov 2014 21:33:18 +0100
-Message-ID: <546CFE8E.7070806@arcor.de>
-References: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 1/1] netfilter: Deletion of unnecessary checks before
+ two function calls
+Date: Thu, 20 Nov 2014 00:26:56 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1411200024280.6497@ja.home.ssi.bg>
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net> <546BA253.6030100@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu"
-Cc: netfilter-devel@vger.kernel.org
-To: Marco Berizzi <pupilla@hotmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:40505 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756640AbaKSUdd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2014 15:33:33 -0500
-In-Reply-To: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-to debug such problems you should try issuing:
-
-# make V=3D1 all
-
-to see the actual command line executed by make;
-also very helpfull is the file 'config.log' produced by
-the configure script.
-
-giorgio
-
-On 11/19/2014 03:11 PM, Marco Berizzi wrote:
-> Hi Folks,
->=20
-> I trying to compile nftables, with the following configure options:
->=20
-> configure --prefix=3D/usr --without-cli
->=20
-> but I get the following error:
->=20
->   CC     mnl.o
->   LEX    scanner.c
->   CC     scanner.o
-> scanner.c: In function 'nft_lex':
-> scanner.c:1956:23: warning: comparison between signed and unsigned inte=
-ger expressions [-Wsign-compare]
->     for ( yyl =3D 0; yyl < yyleng; ++yyl )
->                        ^
-> scanner.c: In function 'nft__scan_bytes':
-> scanner.c:4091:17: warning: comparison between signed and unsigned inte=
-ger expressions [-Wsign-compare]
->   for ( i =3D 0; i < _yybytes_len; ++i )
->                  ^
->   CC     parser_bison.o
->   CCLD   nft
-> mnl.o: In function `mnl_batch_begin':
-> /tmp/NFTABLES/nftables/src/mnl.c:199: undefined reference to `nft_batch=
-_begin'
-> mnl.o: In function `mnl_batch_end':
-> /tmp/NFTABLES/nftables/src/mnl.c:207: undefined reference to `nft_batch=
-_end'
-> mnl.o: In function `mnl_nft_setelem_add':
-> /tmp/NFTABLES/nftables/src/mnl.c:877: undefined reference to `nft_set_e=
-lems_nlmsg_build_payload_iter'
-> mnl.o: In function `mnl_nft_setelem_batch_add':
-> /tmp/NFTABLES/nftables/src/mnl.c:925: undefined reference to `nft_set_e=
-lems_nlmsg_build_payload_iter'
-> collect2: error: ld returned 1 exit status
-> make[3]: *** [nft] Error 1
-> make[3]: Leaving directory `/tmp/NFTABLES/nftables/src'
-> make[2]: *** [all] Error 2
-> make[2]: Leaving directory `/tmp/NFTABLES/nftables/src'
-> make[1]: *** [all-recursive] Error 1
-> make[1]: Leaving directory `/tmp/NFTABLES/nftables'
-> make: *** [all] Error 2
->=20
-> libmnl is current git clone at the time of writing
-> libnftnl is current git clone at the time of writing
-> nftables is current git clone at the time of writing
->=20
-> I'm running slackware 14.1 64bit
-> Any response are welcome
->=20
-> TIA
->  		 	   		  --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org, Coccinelle <cocci@systeme.lip6.fr>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <546BA253.6030100@users.sourceforge.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
+	Hello,
 
---HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On Tue, 18 Nov 2014, SF Markus Elfring wrote:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 18 Nov 2014 20:37:05 +0100
+> 
+> The functions free_percpu() and module_put() test whether their argument
+> is NULL and then return immediately. Thus the test around the call is
+> not needed.
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-iEYEARECAAYFAlRs/pYACgkQYqbc2h3T5VCRegCgkOypFn/5MRysmJmo9x4uygpb
-emoAn0+8P+84/LvnFZuZw/2FqbOe6BG1
-=CID1
------END PGP SIGNATURE-----
+	Pablo, the IPVS parts look ok to me,
 
---HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu--
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c   | 3 +--
+>  net/netfilter/ipvs/ip_vs_pe.c    | 3 +--
+>  net/netfilter/ipvs/ip_vs_sched.c | 3 +--
+>  net/netfilter/ipvs/ip_vs_sync.c  | 3 +--
+>  net/netfilter/nf_tables_api.c    | 3 +--
+>  5 files changed, 5 insertions(+), 10 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index fd3f444..7c5e40a 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -465,8 +465,7 @@ __ip_vs_bind_svc(struct ip_vs_dest *dest, struct ip_vs_service *svc)
+>  
+>  static void ip_vs_service_free(struct ip_vs_service *svc)
+>  {
+> -	if (svc->stats.cpustats)
+> -		free_percpu(svc->stats.cpustats);
+> +	free_percpu(svc->stats.cpustats);
+>  	kfree(svc);
+>  }
+>  
+> diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
+> index 1a82b29..0df17ca 100644
+> --- a/net/netfilter/ipvs/ip_vs_pe.c
+> +++ b/net/netfilter/ipvs/ip_vs_pe.c
+> @@ -37,8 +37,7 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_name)
+>  			rcu_read_unlock();
+>  			return pe;
+>  		}
+> -		if (pe->module)
+> -			module_put(pe->module);
+> +		module_put(pe->module);
+>  	}
+>  	rcu_read_unlock();
+>  
+> diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
+> index 4dbcda6..199760c 100644
+> --- a/net/netfilter/ipvs/ip_vs_sched.c
+> +++ b/net/netfilter/ipvs/ip_vs_sched.c
+> @@ -104,8 +104,7 @@ static struct ip_vs_scheduler *ip_vs_sched_getbyname(const char *sched_name)
+>  			mutex_unlock(&ip_vs_sched_mutex);
+>  			return sched;
+>  		}
+> -		if (sched->module)
+> -			module_put(sched->module);
+> +		module_put(sched->module);
+>  	}
+>  
+>  	mutex_unlock(&ip_vs_sched_mutex);
+> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+> index eadffb2..cafe28d 100644
+> --- a/net/netfilter/ipvs/ip_vs_sync.c
+> +++ b/net/netfilter/ipvs/ip_vs_sync.c
+> @@ -820,8 +820,7 @@ ip_vs_conn_fill_param_sync(struct net *net, int af, union ip_vs_sync_conn *sc,
+>  
+>  		p->pe_data = kmemdup(pe_data, pe_data_len, GFP_ATOMIC);
+>  		if (!p->pe_data) {
+> -			if (p->pe->module)
+> -				module_put(p->pe->module);
+> +			module_put(p->pe->module);
+>  			return -ENOMEM;
+>  		}
+>  		p->pe_data_len = pe_data_len;
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index deeb95f..b115f54 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -3472,8 +3472,7 @@ static int nf_tables_abort(struct sk_buff *skb)
+>  			break;
+>  		case NFT_MSG_NEWCHAIN:
+>  			if (nft_trans_chain_update(trans)) {
+> -				if (nft_trans_chain_stats(trans))
+> -					free_percpu(nft_trans_chain_stats(trans));
+> +				free_percpu(nft_trans_chain_stats(trans));
+>  
+>  				nft_trans_destroy(trans);
+>  			} else {
+> -- 
+> 2.1.3
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
