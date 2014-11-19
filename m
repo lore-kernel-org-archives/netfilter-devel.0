@@ -1,121 +1,53 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/1] netfilter: Deletion of unnecessary checks before two
- function calls
-Date: Tue, 18 Nov 2014 20:47:31 +0100
-Message-ID: <546BA253.6030100@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH RESEND] netfilter: bridge: unshare bridge info before
+ change it
+Date: Wed, 19 Nov 2014 10:11:25 +0800
+Message-ID: <546BFC4D.7070203@cn.fujitsu.com>
+References: <1416203323-22745-1-git-send-email-gaofeng@cn.fujitsu.com> <20141118183419.GA5078@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, Coccinelle <cocci@systeme.lip6.fr>
-To: "David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Simon Horman <horms@verge.net.au>,
-	Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
+Cc: <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:58211 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753829AbaKRTsC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Nov 2014 14:48:02 -0500
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Received: from cn.fujitsu.com ([59.151.112.132]:25065 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753650AbaKSCLa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Nov 2014 21:11:30 -0500
+In-Reply-To: <20141118183419.GA5078@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 18 Nov 2014 20:37:05 +0100
+On 11/19/2014 02:34 AM, Pablo Neira Ayuso wrote:
+> On Mon, Nov 17, 2014 at 01:48:43PM +0800, Gao feng wrote:
+>> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+>> index 1a4f32c..b4612b9 100644
+>> --- a/net/bridge/br_netfilter.c
+>> +++ b/net/bridge/br_netfilter.c
+>> @@ -653,7 +643,11 @@ static int br_nf_forward_finish(struct sk_buff *skb)
+>>  		in = nf_bridge->physindev;
+>>  		if (nf_bridge->mask & BRNF_PKT_TYPE) {
+>>  			skb->pkt_type = PACKET_OTHERHOST;
+>> -			nf_bridge->mask ^= BRNF_PKT_TYPE;
+>> +
+>> +			if (!nf_bridge_unset_mask(skb, BRNF_PKT_TYPE)) {
+>> +				kfree_skb(skb);
+>> +				return 0;
+>> +			}
+> 
+> This can now release the packet and, thus, drop it.
+> 
+> However, br_nf_forward_ip() always returns NF_STOLEN.
+> 
+> Could you revisit the error paths and confirm they are correct?
 
-The functions free_percpu() and module_put() test whether their argument
-is NULL and then return immediately. Thus the test around the call is
-not needed.
+Since br_nf_forward_ip() returns NF_STOLEN, br_nf_forward_finish should make
+sure this skb will be released. if unser_mask for this skb is failed, we free
+it. if unset successed, the hooks on NF_BR_FORWARD or br_forward_finish will
+free this skb.
 
-This issue was detected by using the Coccinelle software.
+I check the error paths again, find a missing null check of nf_bridge. I will
+post v2 patch.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- net/netfilter/ipvs/ip_vs_ctl.c   | 3 +--
- net/netfilter/ipvs/ip_vs_pe.c    | 3 +--
- net/netfilter/ipvs/ip_vs_sched.c | 3 +--
- net/netfilter/ipvs/ip_vs_sync.c  | 3 +--
- net/netfilter/nf_tables_api.c    | 3 +--
- 5 files changed, 5 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fd3f444..7c5e40a 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -465,8 +465,7 @@ __ip_vs_bind_svc(struct ip_vs_dest *dest, struct ip_vs_service *svc)
- 
- static void ip_vs_service_free(struct ip_vs_service *svc)
- {
--	if (svc->stats.cpustats)
--		free_percpu(svc->stats.cpustats);
-+	free_percpu(svc->stats.cpustats);
- 	kfree(svc);
- }
- 
-diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
-index 1a82b29..0df17ca 100644
---- a/net/netfilter/ipvs/ip_vs_pe.c
-+++ b/net/netfilter/ipvs/ip_vs_pe.c
-@@ -37,8 +37,7 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_name)
- 			rcu_read_unlock();
- 			return pe;
- 		}
--		if (pe->module)
--			module_put(pe->module);
-+		module_put(pe->module);
- 	}
- 	rcu_read_unlock();
- 
-diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-index 4dbcda6..199760c 100644
---- a/net/netfilter/ipvs/ip_vs_sched.c
-+++ b/net/netfilter/ipvs/ip_vs_sched.c
-@@ -104,8 +104,7 @@ static struct ip_vs_scheduler *ip_vs_sched_getbyname(const char *sched_name)
- 			mutex_unlock(&ip_vs_sched_mutex);
- 			return sched;
- 		}
--		if (sched->module)
--			module_put(sched->module);
-+		module_put(sched->module);
- 	}
- 
- 	mutex_unlock(&ip_vs_sched_mutex);
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index eadffb2..cafe28d 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -820,8 +820,7 @@ ip_vs_conn_fill_param_sync(struct net *net, int af, union ip_vs_sync_conn *sc,
- 
- 		p->pe_data = kmemdup(pe_data, pe_data_len, GFP_ATOMIC);
- 		if (!p->pe_data) {
--			if (p->pe->module)
--				module_put(p->pe->module);
-+			module_put(p->pe->module);
- 			return -ENOMEM;
- 		}
- 		p->pe_data_len = pe_data_len;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index deeb95f..b115f54 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3472,8 +3472,7 @@ static int nf_tables_abort(struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_NEWCHAIN:
- 			if (nft_trans_chain_update(trans)) {
--				if (nft_trans_chain_stats(trans))
--					free_percpu(nft_trans_chain_stats(trans));
-+				free_percpu(nft_trans_chain_stats(trans));
- 
- 				nft_trans_destroy(trans);
- 			} else {
--- 
-2.1.3
 
