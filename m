@@ -1,54 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat-experimental5 PATCH] iptables: xtables-eb:
- adjust policy in user-defined chains
-Date: Wed, 19 Nov 2014 13:36:04 +0100
-Message-ID: <20141119123604.GA8544@salvia>
-References: <20141117123622.11349.43033.stgit@nfdev.cica.es>
- <20141118184343.GA5179@salvia>
- <CAOkSjBjFf9vi98B8oJ1y2LGjaYg+s4nP1uMKn0bqCUYh2wxRFg@mail.gmail.com>
+Subject: Re: [PATCH v2] netfilter: bridge: unshare bridge info before change
+ it
+Date: Wed, 19 Nov 2014 14:07:51 +0100
+Message-ID: <20141119130751.GA10748@salvia>
+References: <1416366453-12090-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Giuseppe Longo <giuseppelng@gmail.com>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51610 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35105 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753832AbaKSMeC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2014 07:34:02 -0500
+	id S932071AbaKSNFy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 08:05:54 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjFf9vi98B8oJ1y2LGjaYg+s4nP1uMKn0bqCUYh2wxRFg@mail.gmail.com>
+In-Reply-To: <1416366453-12090-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 19, 2014 at 01:23:01PM +0100, Arturo Borrero Gonzalez wrote:
-> On 18 November 2014 19:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>                       if (command == 'N' && c == 'P') {
-> >> -                             command = c;
-> >> -                             optind--; /* No table specified */
-> >> -                             goto handle_P;
-> >> +                             xtables_error(PARAMETER_PROBLEM,
-> >> +                                           "The default policy in user-defined"
-> >> +                                           " chains is RETURN (mandatory)");
-> >>                       }
-> >
-> > I'd really prefer to avoid changes in the ebtables parser. Could you
-> > perform this checking from later on, when validating the
-> > configuration.
-> >
-> >         if (strcmp(chain, "INPUT") != 0 &&
-> >             strcmp(chain, "FORWARD") != 0 &&
-> >             ...                           &&
-> >             strcmp(policy, "RETURN") != 0)
-> >                 xtables_error("...);
-> >
-> 
-> In the user-defined chain creation path, the code jumps to several
-> places (the goto handle_P; thing). I don't see clearly a zone where to
-> put these validations.
-> 
-> Could you please point to where would you like to put this code?
+On Wed, Nov 19, 2014 at 11:07:32AM +0800, Gao feng wrote:
+> diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+> index c755e49..dca7337 100644
+> --- a/include/linux/netfilter_bridge.h
+> +++ b/include/linux/netfilter_bridge.h
+> @@ -81,14 +81,64 @@ static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
+>  	return 0;
+>  }
+>  
+> +static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
+> +{
+> +	skb->nf_bridge = kzalloc(sizeof(struct nf_bridge_info), GFP_ATOMIC);
+> +	if (likely(skb->nf_bridge))
+> +		atomic_set(&(skb->nf_bridge->use), 1);
+> +
+> +	return skb->nf_bridge;
+> +}
+> +
+> +static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
+> +{
+> +	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+> +
+> +	if (atomic_read(&nf_bridge->use) > 1) {
+> +		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
 
-This will leave the while ((c = getopt_long ...) loop at some point,
-right? So perform the validation after the parsing is done.
+nf_bridge_alloc() overwrites the original skb->nf_bridge when
+unsharing, so this leaks and likely breaks other things.
+
+> +
+> +		if (tmp) {
+> +			memcpy(tmp, nf_bridge, sizeof(struct nf_bridge_info));
+> +			atomic_set(&tmp->use, 1);
+> +		}
+> +		nf_bridge_put(nf_bridge);
+> +		nf_bridge = tmp;
+> +	}
+> +	return nf_bridge;
+> +}
