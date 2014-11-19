@@ -1,68 +1,115 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] build: add and use a symbol version map
-Date: Wed, 19 Nov 2014 16:56:46 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1411191530470.14103@nerf08.vanv.qr>
-References: <1415797607-28793-1-git-send-email-jengelh@inai.de> <20141119134224.GA12289@salvia>
+From: Giorgio <giorgio.nicole@arcor.de>
+Subject: Re: nftables error compile current git
+Date: Wed, 19 Nov 2014 21:33:18 +0100
+Message-ID: <546CFE8E.7070806@arcor.de>
+References: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu"
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Marco Berizzi <pupilla@hotmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:56246 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755920AbaKSP4t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2014 10:56:49 -0500
-In-Reply-To: <20141119134224.GA12289@salvia>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:40505 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756640AbaKSUdd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 15:33:33 -0500
+In-Reply-To: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 2014-11-19 14:42, Pablo Neira Ayuso wrote:
->On Wed, Nov 12, 2014 at 02:06:47PM +0100, Jan Engelhardt wrote:
->> It was possible to combine e.g. conntrackd-1.2.1 with
->> libnetfilter_conntrack-0.0.101, causing libc to issue an exit from
->> within conntrackd iff such a conntrackd was promoted to a master and
->> tried to call nfexp_send, due to lazy symbol resolution in libc.
->
->I wonder how you have reached such a situation. I can only think of
->very broken packaging.
+Hi,
 
-To reach such a situation, the shortest way to get there is:
+to debug such problems you should try issuing:
 
-1. On Debian squeeze, `apt-get install conntrack`.
-This would install conntrack-tools-0.9.14.
+# make V=3D1 all
 
-2. Install a newer version at some point,
-`perl -i -pe s/squeeze/wheezy/g /etc/apt/sources.list &&
- apt-get update && apt-get install conntrack`.
+to see the actual command line executed by make;
+also very helpfull is the file 'config.log' produced by
+the configure script.
+
+giorgio
+
+On 11/19/2014 03:11 PM, Marco Berizzi wrote:
+> Hi Folks,
+>=20
+> I trying to compile nftables, with the following configure options:
+>=20
+> configure --prefix=3D/usr --without-cli
+>=20
+> but I get the following error:
+>=20
+>   CC     mnl.o
+>   LEX    scanner.c
+>   CC     scanner.o
+> scanner.c: In function 'nft_lex':
+> scanner.c:1956:23: warning: comparison between signed and unsigned inte=
+ger expressions [-Wsign-compare]
+>     for ( yyl =3D 0; yyl < yyleng; ++yyl )
+>                        ^
+> scanner.c: In function 'nft__scan_bytes':
+> scanner.c:4091:17: warning: comparison between signed and unsigned inte=
+ger expressions [-Wsign-compare]
+>   for ( i =3D 0; i < _yybytes_len; ++i )
+>                  ^
+>   CC     parser_bison.o
+>   CCLD   nft
+> mnl.o: In function `mnl_batch_begin':
+> /tmp/NFTABLES/nftables/src/mnl.c:199: undefined reference to `nft_batch=
+_begin'
+> mnl.o: In function `mnl_batch_end':
+> /tmp/NFTABLES/nftables/src/mnl.c:207: undefined reference to `nft_batch=
+_end'
+> mnl.o: In function `mnl_nft_setelem_add':
+> /tmp/NFTABLES/nftables/src/mnl.c:877: undefined reference to `nft_set_e=
+lems_nlmsg_build_payload_iter'
+> mnl.o: In function `mnl_nft_setelem_batch_add':
+> /tmp/NFTABLES/nftables/src/mnl.c:925: undefined reference to `nft_set_e=
+lems_nlmsg_build_payload_iter'
+> collect2: error: ld returned 1 exit status
+> make[3]: *** [nft] Error 1
+> make[3]: Leaving directory `/tmp/NFTABLES/nftables/src'
+> make[2]: *** [all] Error 2
+> make[2]: Leaving directory `/tmp/NFTABLES/nftables/src'
+> make[1]: *** [all-recursive] Error 1
+> make[1]: Leaving directory `/tmp/NFTABLES/nftables'
+> make: *** [all] Error 2
+>=20
+> libmnl is current git clone at the time of writing
+> libnftnl is current git clone at the time of writing
+> nftables is current git clone at the time of writing
+>=20
+> I'm running slackware 14.1 64bit
+> Any response are welcome
+>=20
+> TIA
+>  		 	   		  --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
 
 
-The long description:
+--HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-The conntrack-tools source code only checks the
-libnetfilter_conntrack version only once, at build time.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-The files in the top-level source directory of conntrack-tools do not
-indicate any particular runtime requirement on libnetfilter_conntrack
-version besides the implicit requirement of the built conntrackd on a
-particular library by SONAME, in other words, the runtime
-requirements are weaker than the build-time requirements.
+iEYEARECAAYFAlRs/pYACgkQYqbc2h3T5VCRegCgkOypFn/5MRysmJmo9x4uygpb
+emoAn0+8P+84/LvnFZuZw/2FqbOe6BG1
+=CID1
+-----END PGP SIGNATURE-----
 
-Such a case is pretty normal, too. Build-time requirements are
-generally seen as independent from runtime requirements by distros
-and packagers. Some perl module may want Test::Simple at build time,
-and not use it at runtime.
-I cannot find that the Debian packager for conntrack-tools has
-done something inappropriate.
-
-
->Would you also convert libnetfilter_conntrack to use the same
->EXPORT_SYMBOL() macro that we use in more recent libnetfilter_*
->libraries for consistency?
-
-I can; question is, do we need it? It turns out that using
-just a .map file (with implicit -fvisibility=default) gives
-the same result, but requiring less steps. The map file
-can also turn symbols from visible to hidden, without requiring
--fvisibility+EXPORT_SYMBOLs.
+--HFmrhtUGgj8Ato651kjJcp6h3UbdMbWwu--
