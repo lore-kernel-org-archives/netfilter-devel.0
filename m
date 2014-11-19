@@ -1,45 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] build: add and use a symbol version map
-Date: Wed, 19 Nov 2014 14:42:24 +0100
-Message-ID: <20141119134224.GA12289@salvia>
-References: <1415797607-28793-1-git-send-email-jengelh@inai.de>
+From: Marco Berizzi <pupilla@hotmail.com>
+Subject: nftables error compile current git
+Date: Wed, 19 Nov 2014 15:11:48 +0100
+Message-ID: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47929 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753300AbaKSNkZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2014 08:40:25 -0500
-Content-Disposition: inline
-In-Reply-To: <1415797607-28793-1-git-send-email-jengelh@inai.de>
+Received: from dub004-omc1s6.hotmail.com ([157.55.0.205]:53236 "EHLO
+	DUB004-OMC1S6.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808AbaKSOQ4 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 09:16:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 12, 2014 at 02:06:47PM +0100, Jan Engelhardt wrote:
-> It was possible to combine e.g. conntrackd-1.2.1 with
-> libnetfilter_conntrack-0.0.101, causing libc to issue an exit from
-> within conntrackd iff such a conntrackd was promoted to a master and
-> tried to call nfexp_send, due to lazy symbol resolution in libc.
+Hi Folks,
 
-I wonder how you have reached such a situation. I can only think of
-very broken packaging.
+I trying to compile nftables, with the following configure options:
 
-> Symbol versions enforce the checks at program startup, so add one.
->
-> $ ldd -r /usr/sbin/conntrackd
-> undefined symbol: nfexp_cmp     (/usr/sbin/conntrackd)
-> undefined symbol: nfexp_send    (/usr/sbin/conntrackd)
->         libnetfilter_conntrack.so.3 => /usr/lib/libnetfilter_conntrack.so.3 (0x77fe7000)
->         libnfnetlink.so.0 => /usr/lib/libnfnetlink.so.0 (0x77fdf000)
->         libc.so.6 => /lib/libc.so.6 (0x77e7b000)
->         libdl.so.2 => /lib/libdl.so.2 (0x77e76000)
->         /lib/ld.so.1 (0x55555000)
-> $ dpkg-query -W conntrackd libnetfilter-conntrack3
-> conntrackd      1:1.2.1-1
-> libnetfilter-conntrack3 0.0.101-1
+configure --prefix=3D/usr --without-cli
 
-Would you also convert libnetfilter_conntrack to use the same
-EXPORT_SYMBOL() macro that we use in more recent libnetfilter_*
-libraries for consistency?
+but I get the following error:
+
+=A0 CC=A0=A0=A0=A0 mnl.o
+=A0 LEX=A0=A0=A0 scanner.c
+=A0 CC=A0=A0=A0=A0 scanner.o
+scanner.c: In function 'nft_lex':
+scanner.c:1956:23: warning: comparison between signed and unsigned inte=
+ger expressions [-Wsign-compare]
+=A0=A0=A0 for ( yyl =3D 0; yyl < yyleng; ++yyl )
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ^
+scanner.c: In function 'nft__scan_bytes':
+scanner.c:4091:17: warning: comparison between signed and unsigned inte=
+ger expressions [-Wsign-compare]
+=A0 for ( i =3D 0; i < _yybytes_len; ++i )
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ^
+=A0 CC=A0=A0=A0=A0 parser_bison.o
+=A0 CCLD=A0=A0 nft
+mnl.o: In function `mnl_batch_begin':
+/tmp/NFTABLES/nftables/src/mnl.c:199: undefined reference to `nft_batch=
+_begin'
+mnl.o: In function `mnl_batch_end':
+/tmp/NFTABLES/nftables/src/mnl.c:207: undefined reference to `nft_batch=
+_end'
+mnl.o: In function `mnl_nft_setelem_add':
+/tmp/NFTABLES/nftables/src/mnl.c:877: undefined reference to `nft_set_e=
+lems_nlmsg_build_payload_iter'
+mnl.o: In function `mnl_nft_setelem_batch_add':
+/tmp/NFTABLES/nftables/src/mnl.c:925: undefined reference to `nft_set_e=
+lems_nlmsg_build_payload_iter'
+collect2: error: ld returned 1 exit status
+make[3]: *** [nft] Error 1
+make[3]: Leaving directory `/tmp/NFTABLES/nftables/src'
+make[2]: *** [all] Error 2
+make[2]: Leaving directory `/tmp/NFTABLES/nftables/src'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/tmp/NFTABLES/nftables'
+make: *** [all] Error 2
+
+libmnl is current git clone at the time of writing
+libnftnl is current git clone at the time of writing
+nftables is current git clone at the time of writing
+
+I'm running slackware 14.1 64bit
+Any response are welcome
+
+TIA
+ 		 	   		  --
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
