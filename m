@@ -1,130 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Deletion of unnecessary checks before two
- function calls
-Date: Wed, 19 Nov 2014 14:40:40 +0100
-Message-ID: <20141119134040.GA12270@salvia>
-References: <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
- <546BA253.6030100@users.sourceforge.net>
+Subject: Re: [PATCH] build: add and use a symbol version map
+Date: Wed, 19 Nov 2014 14:42:24 +0100
+Message-ID: <20141119134224.GA12289@salvia>
+References: <1415797607-28793-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Simon Horman <horms@verge.net.au>,
-	Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, Coccinelle <cocci@systeme.lip6.fr>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:47929 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753300AbaKSNkZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 08:40:25 -0500
 Content-Disposition: inline
-In-Reply-To: <546BA253.6030100@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1415797607-28793-1-git-send-email-jengelh@inai.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 18, 2014 at 08:47:31PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Tue, 18 Nov 2014 20:37:05 +0100
-> 
-> The functions free_percpu() and module_put() test whether their argument
-> is NULL and then return immediately. Thus the test around the call is
-> not needed.
+On Wed, Nov 12, 2014 at 02:06:47PM +0100, Jan Engelhardt wrote:
+> It was possible to combine e.g. conntrackd-1.2.1 with
+> libnetfilter_conntrack-0.0.101, causing libc to issue an exit from
+> within conntrackd iff such a conntrackd was promoted to a master and
+> tried to call nfexp_send, due to lazy symbol resolution in libc.
 
-@IPVS folks: Since this involves a nf_tables specific chunk, ack your
-chunks and I'll put this into nf-next to speed up things.
+I wonder how you have reached such a situation. I can only think of
+very broken packaging.
 
-Thanks.
+> Symbol versions enforce the checks at program startup, so add one.
+>
+> $ ldd -r /usr/sbin/conntrackd
+> undefined symbol: nfexp_cmp     (/usr/sbin/conntrackd)
+> undefined symbol: nfexp_send    (/usr/sbin/conntrackd)
+>         libnetfilter_conntrack.so.3 => /usr/lib/libnetfilter_conntrack.so.3 (0x77fe7000)
+>         libnfnetlink.so.0 => /usr/lib/libnfnetlink.so.0 (0x77fdf000)
+>         libc.so.6 => /lib/libc.so.6 (0x77e7b000)
+>         libdl.so.2 => /lib/libdl.so.2 (0x77e76000)
+>         /lib/ld.so.1 (0x55555000)
+> $ dpkg-query -W conntrackd libnetfilter-conntrack3
+> conntrackd      1:1.2.1-1
+> libnetfilter-conntrack3 0.0.101-1
 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c   | 3 +--
->  net/netfilter/ipvs/ip_vs_pe.c    | 3 +--
->  net/netfilter/ipvs/ip_vs_sched.c | 3 +--
->  net/netfilter/ipvs/ip_vs_sync.c  | 3 +--
->  net/netfilter/nf_tables_api.c    | 3 +--
->  5 files changed, 5 insertions(+), 10 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index fd3f444..7c5e40a 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -465,8 +465,7 @@ __ip_vs_bind_svc(struct ip_vs_dest *dest, struct ip_vs_service *svc)
->  
->  static void ip_vs_service_free(struct ip_vs_service *svc)
->  {
-> -	if (svc->stats.cpustats)
-> -		free_percpu(svc->stats.cpustats);
-> +	free_percpu(svc->stats.cpustats);
->  	kfree(svc);
->  }
->  
-> diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
-> index 1a82b29..0df17ca 100644
-> --- a/net/netfilter/ipvs/ip_vs_pe.c
-> +++ b/net/netfilter/ipvs/ip_vs_pe.c
-> @@ -37,8 +37,7 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_name)
->  			rcu_read_unlock();
->  			return pe;
->  		}
-> -		if (pe->module)
-> -			module_put(pe->module);
-> +		module_put(pe->module);
->  	}
->  	rcu_read_unlock();
->  
-> diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-> index 4dbcda6..199760c 100644
-> --- a/net/netfilter/ipvs/ip_vs_sched.c
-> +++ b/net/netfilter/ipvs/ip_vs_sched.c
-> @@ -104,8 +104,7 @@ static struct ip_vs_scheduler *ip_vs_sched_getbyname(const char *sched_name)
->  			mutex_unlock(&ip_vs_sched_mutex);
->  			return sched;
->  		}
-> -		if (sched->module)
-> -			module_put(sched->module);
-> +		module_put(sched->module);
->  	}
->  
->  	mutex_unlock(&ip_vs_sched_mutex);
-> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> index eadffb2..cafe28d 100644
-> --- a/net/netfilter/ipvs/ip_vs_sync.c
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -820,8 +820,7 @@ ip_vs_conn_fill_param_sync(struct net *net, int af, union ip_vs_sync_conn *sc,
->  
->  		p->pe_data = kmemdup(pe_data, pe_data_len, GFP_ATOMIC);
->  		if (!p->pe_data) {
-> -			if (p->pe->module)
-> -				module_put(p->pe->module);
-> +			module_put(p->pe->module);
->  			return -ENOMEM;
->  		}
->  		p->pe_data_len = pe_data_len;
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index deeb95f..b115f54 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -3472,8 +3472,7 @@ static int nf_tables_abort(struct sk_buff *skb)
->  			break;
->  		case NFT_MSG_NEWCHAIN:
->  			if (nft_trans_chain_update(trans)) {
-> -				if (nft_trans_chain_stats(trans))
-> -					free_percpu(nft_trans_chain_stats(trans));
-> +				free_percpu(nft_trans_chain_stats(trans));
->  
->  				nft_trans_destroy(trans);
->  			} else {
-> -- 
-> 2.1.3
-> 
+Would you also convert libnetfilter_conntrack to use the same
+EXPORT_SYMBOL() macro that we use in more recent libnetfilter_*
+libraries for consistency?
