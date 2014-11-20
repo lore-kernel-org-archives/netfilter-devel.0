@@ -1,143 +1,87 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 1/1] netfilter: Deletion of unnecessary checks before two
- function calls
-Date: Thu, 20 Nov 2014 10:13:59 +0900
-Message-ID: <20141120011359.GJ5065@verge.net.au>
-References: <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
- <546BA253.6030100@users.sourceforge.net>
- <alpine.LFD.2.11.1411200024280.6497@ja.home.ssi.bg>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH RESEND] netfilter: bridge: unshare bridge info before
+ change it
+Date: Thu, 20 Nov 2014 09:14:23 +0800
+Message-ID: <546D406F.9050403@cn.fujitsu.com>
+References: <1416203323-22745-1-git-send-email-gaofeng@cn.fujitsu.com> <20141118183419.GA5078@salvia> <546BFC4D.7070203@cn.fujitsu.com> <20141119111720.GA4537@salvia> <20141119114909.GA5014@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org, Coccinelle <cocci@systeme.lip6.fr>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1411200024280.6497@ja.home.ssi.bg>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:28927 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755334AbaKTBO2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2014 20:14:28 -0500
+In-Reply-To: <20141119114909.GA5014@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 20, 2014 at 12:26:56AM +0200, Julian Anastasov wrote:
+On 11/19/2014 07:49 PM, Pablo Neira Ayuso wrote:
+> On Wed, Nov 19, 2014 at 12:17:20PM +0100, Pablo Neira Ayuso wrote:
+>> On Wed, Nov 19, 2014 at 10:11:25AM +0800, Gao feng wrote:
+>>> On 11/19/2014 02:34 AM, Pablo Neira Ayuso wrote:
+>>>> On Mon, Nov 17, 2014 at 01:48:43PM +0800, Gao feng wrote:
+>>>>> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+>>>>> index 1a4f32c..b4612b9 100644
+>>>>> --- a/net/bridge/br_netfilter.c
+>>>>> +++ b/net/bridge/br_netfilter.c
+>>>>> @@ -653,7 +643,11 @@ static int br_nf_forward_finish(struct sk_buff *skb)
+>>>>>  		in = nf_bridge->physindev;
+>>>>>  		if (nf_bridge->mask & BRNF_PKT_TYPE) {
+>>>>>  			skb->pkt_type = PACKET_OTHERHOST;
+>>>>> -			nf_bridge->mask ^= BRNF_PKT_TYPE;
+>>>>> +
+>>>>> +			if (!nf_bridge_unset_mask(skb, BRNF_PKT_TYPE)) {
+>>>>> +				kfree_skb(skb);
+>>>>> +				return 0;
+>>>>> +			}
+>>>>
+>>>> This can now release the packet and, thus, drop it.
+>>>>
+>>>> However, br_nf_forward_ip() always returns NF_STOLEN.
+>>>>
+>>>> Could you revisit the error paths and confirm they are correct?
+>>>
+>>> Since br_nf_forward_ip() returns NF_STOLEN, br_nf_forward_finish should make
+>>> sure this skb will be released. if unser_mask for this skb is failed, we free
+>>> it. if unset successed, the hooks on NF_BR_FORWARD or br_forward_finish will
+>>> free this skb.
+>>
+>> OK, but I think this should return NF_DROP instead of NF_STOLEN so you
+>> don't explicitly need to kfree_skb it.
 > 
-> 	Hello,
+> After a further look, I noticed what I suggest needs to replace:
 > 
-> On Tue, 18 Nov 2014, SF Markus Elfring wrote:
+>         NF_HOOK_THRESH(...);
+>         return 0;
 > 
-> > From: Markus Elfring <elfring@users.sourceforge.net>
-> > Date: Tue, 18 Nov 2014 20:37:05 +0100
-> > 
-> > The functions free_percpu() and module_put() test whether their argument
-> > is NULL and then return immediately. Thus the test around the call is
-> > not needed.
-> > 
-> > This issue was detected by using the Coccinelle software.
-> > 
-> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> by:
+>         return NF_HOOK_THRESH(...);
 > 
-> 	Pablo, the IPVS parts look ok to me,
+> And review the return value of all the existing okfn() functions so
+> they return netfilter verdicts.
 > 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-Acked-by: Simon Horman <horms@verge.net.au>
+NF_HOOK(_THRESH) will do kfree_skb if some hooks return NF_DROP,
+and the return value of NF_HOOK_THRESH is not NF_DROP/NF_ACCEPT/NF_STOP....
+it is the return value of nf_hook_slow.
 
+If we call NF_HOOK/NF_HOOK_THRESH in some hooks, such as NF_HOOK(, NF_INET_FORWARD)
+in br_nf_forward_ip, since packets may be dropped by INET FORWARD CHAIN,
+we cannot return any NF_value but NF_STOLEN in br_nf_forward_ip, this packet
+cannot be handled by the hooks next to br_nf_forward_ip since this packet may
+already be freed.
+
+> The existing code always returns NF_STOLEN from many other hooks, not
+> only when dropped but also when accepted to make this work...
 > 
-> > ---
-> >  net/netfilter/ipvs/ip_vs_ctl.c   | 3 +--
-> >  net/netfilter/ipvs/ip_vs_pe.c    | 3 +--
-> >  net/netfilter/ipvs/ip_vs_sched.c | 3 +--
-> >  net/netfilter/ipvs/ip_vs_sync.c  | 3 +--
-> >  net/netfilter/nf_tables_api.c    | 3 +--
-> >  5 files changed, 5 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > index fd3f444..7c5e40a 100644
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -465,8 +465,7 @@ __ip_vs_bind_svc(struct ip_vs_dest *dest, struct ip_vs_service *svc)
-> >  
-> >  static void ip_vs_service_free(struct ip_vs_service *svc)
-> >  {
-> > -	if (svc->stats.cpustats)
-> > -		free_percpu(svc->stats.cpustats);
-> > +	free_percpu(svc->stats.cpustats);
-> >  	kfree(svc);
-> >  }
-> >  
-> > diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
-> > index 1a82b29..0df17ca 100644
-> > --- a/net/netfilter/ipvs/ip_vs_pe.c
-> > +++ b/net/netfilter/ipvs/ip_vs_pe.c
-> > @@ -37,8 +37,7 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_name)
-> >  			rcu_read_unlock();
-> >  			return pe;
-> >  		}
-> > -		if (pe->module)
-> > -			module_put(pe->module);
-> > +		module_put(pe->module);
-> >  	}
-> >  	rcu_read_unlock();
-> >  
-> > diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-> > index 4dbcda6..199760c 100644
-> > --- a/net/netfilter/ipvs/ip_vs_sched.c
-> > +++ b/net/netfilter/ipvs/ip_vs_sched.c
-> > @@ -104,8 +104,7 @@ static struct ip_vs_scheduler *ip_vs_sched_getbyname(const char *sched_name)
-> >  			mutex_unlock(&ip_vs_sched_mutex);
-> >  			return sched;
-> >  		}
-> > -		if (sched->module)
-> > -			module_put(sched->module);
-> > +		module_put(sched->module);
-> >  	}
-> >  
-> >  	mutex_unlock(&ip_vs_sched_mutex);
-> > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> > index eadffb2..cafe28d 100644
-> > --- a/net/netfilter/ipvs/ip_vs_sync.c
-> > +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> > @@ -820,8 +820,7 @@ ip_vs_conn_fill_param_sync(struct net *net, int af, union ip_vs_sync_conn *sc,
-> >  
-> >  		p->pe_data = kmemdup(pe_data, pe_data_len, GFP_ATOMIC);
-> >  		if (!p->pe_data) {
-> > -			if (p->pe->module)
-> > -				module_put(p->pe->module);
-> > +			module_put(p->pe->module);
-> >  			return -ENOMEM;
-> >  		}
-> >  		p->pe_data_len = pe_data_len;
-> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> > index deeb95f..b115f54 100644
-> > --- a/net/netfilter/nf_tables_api.c
-> > +++ b/net/netfilter/nf_tables_api.c
-> > @@ -3472,8 +3472,7 @@ static int nf_tables_abort(struct sk_buff *skb)
-> >  			break;
-> >  		case NFT_MSG_NEWCHAIN:
-> >  			if (nft_trans_chain_update(trans)) {
-> > -				if (nft_trans_chain_stats(trans))
-> > -					free_percpu(nft_trans_chain_stats(trans));
-> > +				free_percpu(nft_trans_chain_stats(trans));
-> >  
-> >  				nft_trans_destroy(trans);
-> >  			} else {
-> > -- 
-> > 2.1.3
+
+I think this the right way.
+
+> I'm going to have a look at your v2. Thanks.
+> .
 > 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+
