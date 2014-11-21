@@ -1,31 +1,76 @@
-From: Marco Berizzi <pupilla@hotmail.com>
-Subject: RE: nftables error compile current git
-Date: Fri, 21 Nov 2014 14:01:57 +0100
-Message-ID: <DUB126-W50BF63AA2E66F4B8E3EBA6B2770@phx.gbl>
-References: <DUB126-W257DF7FB1DCA4D59818B22B2890@phx.gbl>,<546CFE8E.7070806@arcor.de>
- <DUB126-W94B8412C0BC21B1B7E1475B2760@phx.gbl>,<546E607A.6040209@arcor.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Giorgio <giorgio.nicole@arcor.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: Pranith Kumar <bobby.prani@gmail.com>
+Subject: [PATCH v2 0/9] Replace smp_read_barrier_depends() with lockless_derefrence()
+Date: Fri, 21 Nov 2014 10:05:54 -0500
+Message-ID: <1416582363-20661-1-git-send-email-bobby.prani__41380.2338102416$1416582424$gmane$org@gmail.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Cristian Stoica <cristian.stoica@freescale.com>,
+	Horia Geanta <horia.geanta@freescale.com>,
+	Ruchika Gupta <ruchika.gupta@freescale.com>,
+	Michael Neuling <mikey@neuling.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	linux-crypto@vger.kernel.org (open list:CRYPTO API),
+	linux-kernel@vger.kernel.org (open list),
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	=?UTF-8?q?Manuel=20Sch=C3=B6lling?= <manuel.schoelling@gmx.de>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Rashika <rashika.kheria@gmail.com>,
+	dmaengine@vger.kernel.org (open list:DMA GENERIC OFFLO...),
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	devel@linuxdriverproject.org (open list:Hyp
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dub004-omc2s33.hotmail.com ([157.55.1.172]:49582 "EHLO
-	DUB004-OMC2S33.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755237AbaKUNB7 convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Nov 2014 08:01:59 -0500
-In-Reply-To: <546E607A.6040209@arcor.de>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:46535 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754269AbaKUPGt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Nov 2014 10:06:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-giorgio.nicole@arcor.de wrote:
-> Hi,
->
-> the command line and the config.log seems OK.
->
-> You probably need to update your installed libnftnl.
+Recently lockless_dereference() was added which can be used in place of
+hard-coding smp_read_barrier_depends(). 
 
-indeed my fault. Sorry. I did install the updated libnftnl to the wrong path.
-Apologies.
- 		 	   		  
+http://lkml.iu.edu/hypermail/linux/kernel/1410.3/04561.html
+
+The following series tries to do this.
+
+There are still some hard-coded locations which I was not sure how to replace
+with. I will send in separate patches/questions regarding them.
+
+Pranith Kumar (9):
+  doc: memory-barriers.txt: Document use of lockless_dereference()
+  drivers: dma: Replace smp_read_barrier_depends() with
+    lockless_dereference()
+  dcache: Replace smp_read_barrier_depends() with lockless_dereference()
+  hyperv: Replace smp_read_barrier_depends() with lockless_dereference()
+  percpu: Replace smp_read_barrier_depends() with lockless_dereference()
+  perf: Replace smp_read_barrier_depends() with lockless_dereference()
+  seccomp: Replace smp_read_barrier_depends() with
+    lockless_dereference()
+  task_work: Replace smp_read_barrier_depends() with
+    lockless_dereference()
+  netfilter: Replace smp_read_barrier_depends() with
+    lockless_dereference()
+
+ Documentation/memory-barriers.txt | 4 ++--
+ drivers/dma/ioat/dma_v2.c         | 3 +--
+ drivers/dma/ioat/dma_v3.c         | 3 +--
+ fs/dcache.c                       | 7 ++-----
+ include/linux/hyperv.h            | 9 ++++-----
+ include/linux/percpu-refcount.h   | 4 +---
+ kernel/events/core.c              | 3 +--
+ kernel/events/uprobes.c           | 8 ++++----
+ kernel/seccomp.c                  | 7 +++----
+ kernel/task_work.c                | 3 +--
+ net/ipv4/netfilter/arp_tables.c   | 3 +--
+ net/ipv4/netfilter/ip_tables.c    | 3 +--
+ net/ipv6/netfilter/ip6_tables.c   | 3 +--
+ 13 files changed, 23 insertions(+), 37 deletions(-)
+
+-- 
+1.9.1
+
