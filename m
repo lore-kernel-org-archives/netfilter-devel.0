@@ -1,33 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] Netfilter fixes for net
-Date: Fri, 21 Nov 2014 00:12:59 -0500 (EST)
-Message-ID: <20141121.001259.557583673841588271.davem@davemloft.net>
-References: <1416486651-12271-1-git-send-email-pablo@netfilter.org>
+From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
+Subject: named vmaps
+Date: Fri, 21 Nov 2014 09:22:00 +0100
+Message-ID: <CAJO99T=5z-AC=YzOVTYH3++6kf74fXqSu=Q15Jqhb3bVYQ-mLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1416486651-12271-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:45634 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758049AbaKUIWC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Nov 2014 03:22:02 -0500
+Received: by mail-lb0-f177.google.com with SMTP id 10so746722lbg.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2014 00:22:00 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 20 Nov 2014 13:30:49 +0100
+Is support for named vmaps removed from nft? Running kernel 3.18.0-rc5
+and nft head.
 
-> The following patchset contains two bugfixes for your net tree, they are:
-> 
-> 1) Validate netlink group from nfnetlink to avoid an out of bound array
->    access. This should only happen with superuser priviledges though.
->    Discovered by Andrey Ryabinin using trinity.
-> 
-> 2) Don't push ethernet header before calling the netfilter output hook
->    for multicast traffic, this breaks ebtables since it expects to see
->    skb->data pointing to the network header, patch from Linus Luessing.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+I am able to create the named vmap:
 
-Pulled, thanks Pablo.
+nft add map filter my_vmap { type ipv4_addr : verdict\; }
+
+..but when I try to add elements to it:
+
+nft add element filter my_vmap { 1.0.0.0 : drop}
+<cmdline>:1:40-43: Error: syntax error, unexpected drop
+add element filter my_vmap { 1.0.0.0 : drop}
+                                       ^^^^
+
+also, when trying to use the vmap in a rule:
+
+nft add rule filter input ip saddr vmap @my_vmap
+<cmdline>:1:37-37: Error: syntax error, unexpected @, expecting '{'
+add rule filter input ip saddr vmap @my_vmap
+
+Dont find anything in "documentation" or online that tells me if and when this
+functionality changed/broke/got removed.
+
+-- 
+Bj(/)rnar
