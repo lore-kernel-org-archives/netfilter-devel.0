@@ -1,34 +1,87 @@
-From: Vasiliy Tolstov <v.tolstov@selfip.ru>
-Subject: Re: catch netlink event when create/delete ipset
-Date: Sat, 22 Nov 2014 00:10:52 +0400
-Message-ID: <CACaajQuR_Qw0fS67kKh=asViuGf7Djg1dW-irqFXRt+tZ9ByMg@mail.gmail.com>
-References: <CACaajQsTegjwZ_fJighJSJgyjWFe=+CcScrhKnryXXJWPsxd0w@mail.gmail.com>
- <alpine.DEB.2.10.1411212058070.10024@blackhole.kfki.hu>
+From: Pranith Kumar <bobby.prani@gmail.com>
+Subject: Re: [PATCH v2 9/9] netfilter: Replace smp_read_barrier_depends() with lockless_dereference()
+Date: Fri, 21 Nov 2014 16:57:00 -0500
+Message-ID: <CAJhHMCCCSU7PbWdgPouefbLJBcoxR8nmsS8dg_=BcuqVJZbDew@mail.gmail.com>
+References: <1416582363-20661-1-git-send-email-bobby.prani@gmail.com>
+ <1416582363-20661-10-git-send-email-bobby.prani@gmail.com> <1416586364.8629.104.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	"open list:NETWORKING [IPv4/..." <netdev@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:63344 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbaKUULJ (ORCPT
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:33030 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948AbaKUV5b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Nov 2014 15:11:09 -0500
-Received: by mail-qg0-f45.google.com with SMTP id f51so4236601qge.18
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2014 12:11:07 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.10.1411212058070.10024@blackhole.kfki.hu>
+	Fri, 21 Nov 2014 16:57:31 -0500
+In-Reply-To: <1416586364.8629.104.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2014-11-21 22:58 GMT+03:00 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>:
->> Does it possible to catch via netlink event about creating/deleting ipset ?
+On Fri, Nov 21, 2014 at 11:12 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Fri, 2014-11-21 at 10:06 -0500, Pranith Kumar wrote:
+>> Recently lockless_dereference() was added which can be used in place of
+>> hard-coding smp_read_barrier_depends(). The following PATCH makes the change.
+>>
+>> Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
+>> ---
+>>  net/ipv4/netfilter/arp_tables.c | 3 +--
+>>  net/ipv4/netfilter/ip_tables.c  | 3 +--
+>>  net/ipv6/netfilter/ip6_tables.c | 3 +--
+>>  3 files changed, 3 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+>> index f95b6f9..fc7533d 100644
+>> --- a/net/ipv4/netfilter/arp_tables.c
+>> +++ b/net/ipv4/netfilter/arp_tables.c
+>> @@ -270,12 +270,11 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+>>
+>>       local_bh_disable();
+>>       addend = xt_write_recseq_begin();
+>> -     private = table->private;
+>>       /*
+>>        * Ensure we load private-> members after we've fetched the base
+>>        * pointer.
+>>        */
+>> -     smp_read_barrier_depends();
+>> +     private = lockless_dereference(table->private);
+>>       table_base = private->entries[smp_processor_id()];
+>>
 >
-> Not implemented yet, so it's not possible.
+>
+> Please carefully read the code, before and after your change, then
+> you'll see this change broke the code.
+>
+> Problem is that a bug like that can be really hard to diagnose and fix
+> later, so really you have to be very careful doing these mechanical
+> changes.
+>
+> IMO, current code+comment is better than with this
+> lockless_dereference() which in this particular case obfuscates the
+> code. more than anything.
+>
+> In this case we do have a lock (sort of), so lockless_dereference() is
+> quite misleading.
+>
 
+Hi Eric,
 
-Very bad =(. But thanks for answer :)!
+Thanks for looking at this patch.
 
+I've been scratching my head since morning trying to find out what was
+so obviously wrong with this patch. Alas, I don't see what you do.
+
+Could you point it out and show me how incompetent I am, please?
+
+Thanks!
 -- 
-Vasiliy Tolstov,
-e-mail: v.tolstov@selfip.ru
-jabber: vase@selfip.ru
+Pranith
