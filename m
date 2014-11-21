@@ -1,43 +1,47 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: named vmaps
-Date: Fri, 21 Nov 2014 09:22:00 +0100
-Message-ID: <CAJO99T=5z-AC=YzOVTYH3++6kf74fXqSu=Q15Jqhb3bVYQ-mLw@mail.gmail.com>
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: netfilter: xt_connlimit: it could get the accurate conn count with
+ heavy traffic and multi cores
+Date: Fri, 21 Nov 2014 19:30:39 +0800
+Message-ID: <CA+6hz4pLYjvhxki5OrJAeUuf6UNhHv20GoFA2QqpOj-uZ-buXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:45634 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758049AbaKUIWC (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:34730 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758225AbaKULak (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Nov 2014 03:22:02 -0500
-Received: by mail-lb0-f177.google.com with SMTP id 10so746722lbg.8
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2014 00:22:00 -0800 (PST)
+	Fri, 21 Nov 2014 06:30:40 -0500
+Received: by mail-ie0-f180.google.com with SMTP id rp18so4724328iec.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2014 03:30:39 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Is support for named vmaps removed from nft? Running kernel 3.18.0-rc5
-and nft head.
+Hi Pablo,
 
-I am able to create the named vmap:
+I find the xt_connlimit could not get the accurate conn count with
+heavy traffic on multiple cores platform.
 
-nft add map filter my_vmap { type ipv4_addr : verdict\; }
+For example, I create one rule as following:
+iptables -t raw -A PREROUTING -s 192.168.3.88 -m connlimit
+--connlimit-above 100 --connlimit-mask 32 -j DROP
 
-..but when I try to add elements to it:
+I use the Thunder (one P2P download tool) to test.
+As a result, the total conn count of 192.168.3.88 could reach the 300+.
 
-nft add element filter my_vmap { 1.0.0.0 : drop}
-<cmdline>:1:40-43: Error: syntax error, unexpected drop
-add element filter my_vmap { 1.0.0.0 : drop}
-                                       ^^^^
+Then I make some steps to fix it and the conn count only reach the 100
+~ 120 at most.
 
-also, when trying to use the vmap in a rule:
+I planed to commit one patch, but I think the already-closed conn is
+not counted by current  xt_connlimit. (Even though the already-closed
+conn is counted, the current xt_connlimit still could not  get the
+accurate count. There are other changes to enhance it.).
 
-nft add rule filter input ip saddr vmap @my_vmap
-<cmdline>:1:37-37: Error: syntax error, unexpected @, expecting '{'
-add rule filter input ip saddr vmap @my_vmap
+So is it necessary to get the very accurate count for xt_connlimit?
+If so, why don't count the already-closed conn?
+If not, my patch is necessary.
 
-Dont find anything in "documentation" or online that tells me if and when this
-functionality changed/broke/got removed.
 
--- 
-Bj(/)rnar
+Best Regards
+Feng
