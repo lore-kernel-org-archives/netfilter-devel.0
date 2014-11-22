@@ -1,11 +1,15 @@
-From: Pranith Kumar <bobby.prani@gmail.com>
-Subject: Re: [PATCH v2 9/9] netfilter: Replace smp_read_barrier_depends() with lockless_dereference()
-Date: Fri, 21 Nov 2014 16:57:00 -0500
-Message-ID: <CAJhHMCCCSU7PbWdgPouefbLJBcoxR8nmsS8dg_=BcuqVJZbDew@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v2 9/9] netfilter: Replace smp_read_barrier_depends()
+ with lockless_dereference()
+Date: Fri, 21 Nov 2014 16:05:03 -0800
+Message-ID: <1416614703.20938.0.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1416582363-20661-1-git-send-email-bobby.prani@gmail.com>
- <1416582363-20661-10-git-send-email-bobby.prani@gmail.com> <1416586364.8629.104.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <1416582363-20661-10-git-send-email-bobby.prani@gmail.com>
+	 <1416586364.8629.104.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <CAJhHMCCCSU7PbWdgPouefbLJBcoxR8nmsS8dg_=BcuqVJZbDew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
@@ -16,72 +20,55 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	"open list:NETWORKING [IPv4/..." <netdev@vger.kernel.org>,
 	open list <linux-kernel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Pranith Kumar <bobby.prani@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:33030 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948AbaKUV5b (ORCPT
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:47943 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467AbaKVAFG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Nov 2014 16:57:31 -0500
-In-Reply-To: <1416586364.8629.104.camel@edumazet-glaptop2.roam.corp.google.com>
+	Fri, 21 Nov 2014 19:05:06 -0500
+In-Reply-To: <CAJhHMCCCSU7PbWdgPouefbLJBcoxR8nmsS8dg_=BcuqVJZbDew@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 21, 2014 at 11:12 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Fri, 2014-11-21 at 10:06 -0500, Pranith Kumar wrote:
->> Recently lockless_dereference() was added which can be used in place of
->> hard-coding smp_read_barrier_depends(). The following PATCH makes the change.
->>
->> Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
->> ---
->>  net/ipv4/netfilter/arp_tables.c | 3 +--
->>  net/ipv4/netfilter/ip_tables.c  | 3 +--
->>  net/ipv6/netfilter/ip6_tables.c | 3 +--
->>  3 files changed, 3 insertions(+), 6 deletions(-)
->>
->> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
->> index f95b6f9..fc7533d 100644
->> --- a/net/ipv4/netfilter/arp_tables.c
->> +++ b/net/ipv4/netfilter/arp_tables.c
->> @@ -270,12 +270,11 @@ unsigned int arpt_do_table(struct sk_buff *skb,
->>
->>       local_bh_disable();
->>       addend = xt_write_recseq_begin();
->> -     private = table->private;
->>       /*
->>        * Ensure we load private-> members after we've fetched the base
->>        * pointer.
->>        */
->> -     smp_read_barrier_depends();
->> +     private = lockless_dereference(table->private);
->>       table_base = private->entries[smp_processor_id()];
->>
->
->
-> Please carefully read the code, before and after your change, then
-> you'll see this change broke the code.
->
-> Problem is that a bug like that can be really hard to diagnose and fix
-> later, so really you have to be very careful doing these mechanical
-> changes.
->
-> IMO, current code+comment is better than with this
-> lockless_dereference() which in this particular case obfuscates the
-> code. more than anything.
->
-> In this case we do have a lock (sort of), so lockless_dereference() is
-> quite misleading.
->
 
-Hi Eric,
+On Fri, 2014-11-21 at 16:57 -0500, Pranith Kumar wrote:
 
-Thanks for looking at this patch.
+> Hi Eric,
+> 
+> Thanks for looking at this patch.
+> 
+> I've been scratching my head since morning trying to find out what was
+> so obviously wrong with this patch. Alas, I don't see what you do.
+> 
+> Could you point it out and show me how incompetent I am, please?
+> 
+> Thanks!
 
-I've been scratching my head since morning trying to find out what was
-so obviously wrong with this patch. Alas, I don't see what you do.
+Well, even it the code is _not_ broken, I don't see any value with this
+patch.
 
-Could you point it out and show me how incompetent I am, please?
+If I use git blame on current code, line containing
+smp_read_barrier_depends() exactly points to the relevant commit [1]
 
-Thanks!
--- 
-Pranith
+After your change, it will point to some cleanup, which makes little
+sense to me, considering you did not change the smp_wmb() in
+xt_replace_table().
+
+I, as a netfilter contributor would like to keep current code as is,
+because it is how I feel safe with it.
+
+We have a proliferation of interfaces, but this does not help to
+understand the issues and code maintenance.
+
+smp_read_barrier_depends() better documents the read barrier than 
+lockless_dereference().
+
+The point of having a lock or not is irrelevant here.
+
+[1]
+http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=b416c144f46af1a30ddfa4e4319a8f077381ad63
+
+
+
+
