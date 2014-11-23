@@ -1,55 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [nft-tests 1/2] tests: regression: don't use -nnn for non-list commands
-Date: Sun, 23 Nov 2014 22:22:47 +0100
-Message-ID: <1416777768-1577-1-git-send-email-pablo@netfilter.org>
+Subject: [nft-tests 2/2] tests: regression: any/meta.t: fix bogus error
+Date: Sun, 23 Nov 2014 22:22:48 +0100
+Message-ID: <1416777768-1577-2-git-send-email-pablo@netfilter.org>
+References: <1416777768-1577-1-git-send-email-pablo@netfilter.org>
 Cc: anarey@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45300 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45301 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752088AbaKWVUs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752050AbaKWVUs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 23 Nov 2014 16:20:48 -0500
+In-Reply-To: <1416777768-1577-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Not useful, they just bloat the nft-tests.py output.
+This suppresses two superfluous errors:
+
+ any/meta.t: ERROR: line 168: nft add rule ip test-ip4 input meta iifgroup {11,33}: This rule should not have failed.
+ any/meta.t: ERROR: line 178: nft add rule ip test-ip4 input meta oifgroup {11,33}: This rule should not have failed.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/regression/nft-test.py |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tests/regression/any/meta.t |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index 00c33f3..e1aec89 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -305,7 +305,7 @@ def set_add_elements(set_element, set_name, set_all, state, table_list,
-                 element = element + ", " + e
- 
-         set_text = set_name + " { " + element + " }"
--        cmd = "nft add element -nnn" + table_info + set_text
-+        cmd = "nft add element" + table_info + set_text
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (state == "fail" and ret == 0) or (state == "ok" and ret != 0):
-@@ -331,7 +331,7 @@ def set_delete_elements(set_element, set_name, table, filename=None,
- 
-     for element in set_element:
-         set_text = set_name + " {" + element + "}"
--        cmd = "nft delete element -nnn" + table_info + set_text
-+        cmd = "nft delete element" + table_info + set_text
-         ret = execute_cmd(cmd, filename, lineno)
-         if ret != 0:
-             reason = "I cannot delete an element" + element + \
-@@ -447,7 +447,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-             unit_tests += 1
-             table_flush(table, filename, lineno)
-             table_info = " " + table[0] + " " + table[1] + " "
--            cmd = "nft add rule -nnn" + table_info + chain + " " + rule[0]
-+            cmd = "nft add rule" + table_info + chain + " " + rule[0]
- 
-             ret = execute_cmd(cmd, filename, lineno)
- 
+diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
+index ba6756d..b3f91c9 100644
+--- a/tests/regression/any/meta.t
++++ b/tests/regression/any/meta.t
+@@ -165,7 +165,7 @@ meta iifgroup default;ok;iifgroup default
+ meta iifgroup != default;ok;iifgroup != default
+ meta iifgroup {default};ok;;iifgroup {default}
+ - meta iifgroup != {default};ok
+-meta iifgroup {11,33};ok;oifgroup {11,33}
++meta iifgroup { 11,33};ok
+ meta iifgroup {11-33};ok
+ - meta iifgroup != {11,33};ok
+ - meta iifgroup != {11-33};ok
+@@ -175,7 +175,7 @@ meta oifgroup default;ok;oifgroup default
+ meta oifgroup != default;ok;oifgroup != default
+ meta oifgroup {default};ok;oifgroup {default}
+ - meta oifgroup != {default};ok
+-meta oifgroup {11,33};ok;oifgroup {11,33}
++meta oifgroup { 11,33};ok
+ meta oifgroup {11-33};ok
+ - meta oifgroup != {11,33};ok
+ - meta oifgroup != {11-33};ok
 -- 
 1.7.10.4
 
