@@ -1,84 +1,54 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat-experimental6 PATCH v2] iptables: xtables-eb: fix
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ebtables-compat-experimental5 PATCH] iptables: xtables-eb: fix
  renaming of chains
-Date: Mon, 24 Nov 2014 19:43:05 +0100
-Message-ID: <20141124184305.1910.4067.stgit@nfdev.cica.es>
+Date: Mon, 24 Nov 2014 19:58:46 +0100
+Message-ID: <20141124185846.GA15664@salvia>
+References: <20141120120931.24603.59259.stgit@nfdev.cica.es>
+ <20141120122033.GA11615@salvia>
+ <CAOkSjBha3BuK0HvwSgp+9-xcRrHfbxKasrOcne91ZOJEVY7kzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Giuseppe Longo <giuseppelng@gmail.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:46407 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754362AbaKXSnR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 13:43:17 -0500
+Received: from mail.us.es ([193.147.175.20]:59216 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753924AbaKXS4j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 13:56:39 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBha3BuK0HvwSgp+9-xcRrHfbxKasrOcne91ZOJEVY7kzg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Renaming of chains is not working. and ebtables-compat gets:
- libnftnl: attribute 0 assertion failed in chain.c:159
+On Mon, Nov 24, 2014 at 07:27:40PM +0100, Arturo Borrero Gonzalez wrote:
+> On 20 November 2014 at 13:20, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >> diff --git a/iptables/xtables-eb-standalone.c b/iptables/xtables-eb-standalone.c
+> >> index 1c3cbf0..740a420 100644
+> >> --- a/iptables/xtables-eb-standalone.c
+> >> +++ b/iptables/xtables-eb-standalone.c
+> >> @@ -84,7 +84,7 @@ int xtables_eb_main(int argc, char *argv[])
+> >>               ret = nft_commit(&h);
+> >>
+> >>       if (!ret)
+> >> -             fprintf(stderr, "%s\n", nft_strerror(errno));
+> >> +             xtables_error(OTHER_PROBLEM, "%s\n", nft_strerror(errno));
+> >
+> > IIRC error reporting in ebtables differs from iptables. The output
+> > should look the same. We're currently using nft_strerror() but I guess
+> > we'll need a ebt_strerror() function.
+> >
+> 
+> I've tried to collect ebtables original errors. Most of them uses
+> arguments, for example:
+>  * Can't delete the chain 'test', it's referenced in chain 'FORWARD', rule 0.
+>  * Loop from chain 'test2' to chain 'test'.
+> 
+> So, that ebt_strerror() function seems almost useless.
+> 
+> I will resend this patch with the changes you requested. I guess we
+> can revisit that issue in the future.
 
-This patch brings back the parser code of the original ebtables tool:
- http://git.netfilter.org/ebtables.old-history/tree/userspace/ebtables2/ebtables.c#n652
-
-I adaped the original parser code to fit in the new environment. Also tried to
-keep original error messages as much as possible.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- iptables/xtables-eb.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
-
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 47af78f..51811cf 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -21,6 +21,7 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#include <errno.h>
- #include <getopt.h>
- #include <string.h>
- #include <stdio.h>
-@@ -32,6 +33,7 @@
- #include <xtables.h>
- 
- #include <linux/netfilter_bridge.h>
-+#include <linux/netfilter/nf_tables.h>
- #include <ebtables/ethernetdb.h>
- #include "xshared.h"
- #include "nft.h"
-@@ -582,7 +584,6 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table)
- 	struct ebtables_command_state cs;
- 	char command = 'h';
- 	const char *chain = NULL;
--	const char *newname = NULL;
- 	const char *policy = NULL;
- 	int exec_style = EXEC_STYLE_PRG;
- 	int selected_chain = -1;
-@@ -643,7 +644,21 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table)
- 			}
- 
- 			if (c == 'E') {
--				ret = nft_chain_user_rename(h, chain, *table, newname);
-+				if (optind >= argc)
-+					xtables_error(PARAMETER_PROBLEM, "No new chain name  specified");
-+				else if (optind < argc - 1)
-+					xtables_error(PARAMETER_PROBLEM, "No extra options allowed with -E");
-+				else if (strlen(argv[optind]) >= NFT_CHAIN_MAXNAMELEN)
-+					xtables_error(PARAMETER_PROBLEM, "Chain name length can't exceed %d"" characters", NFT_CHAIN_MAXNAMELEN - 1);
-+				else if (strchr(argv[optind], ' ') != NULL)
-+					xtables_error(PARAMETER_PROBLEM, "Use of ' ' not allowed in chain names");
-+
-+				ret = nft_chain_user_rename(h, chain, *table,
-+							    argv[optind]);
-+				if (ret != 0 && errno == ENOENT)
-+					xtables_error(PARAMETER_PROBLEM, "Chain '%s' doesn't exists", chain);
-+
-+				optind++;
- 				break;
- 			} else if (c == 'D' && optind < argc && (argv[optind][0] != '-' || (argv[optind][1] >= '0' && argv[optind][1] <= '9'))) {
- 				if (optind != argc - 1)
-
+Sure, please go ahead. Just document limitations, just in case we
+revisit this later on. Thanks.
