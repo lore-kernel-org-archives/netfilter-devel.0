@@ -1,34 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/17] netfilter/ipvs updates for net-next
-Date: Mon, 24 Nov 2014 16:01:24 -0500 (EST)
-Message-ID: <20141124.160124.1790575206232093878.davem@davemloft.net>
-References: <1416835674-11871-1-git-send-email-pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.24 released
+Date: Mon, 24 Nov 2014 22:05:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1411242200400.31300@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53514 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbaKXVB3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 16:01:29 -0500
-In-Reply-To: <1416835674-11871-1-git-send-email-pablo@netfilter.org>
+Received: from smtp2.kfki.hu ([148.6.0.28]:54507 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750830AbaKXVEy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 16:04:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 24 Nov 2014 14:27:37 +0100
+Hi,
 
-> The following patchset contains Netfilter updates for your net-next
-> tree, this includes the NAT redirection support for nf_tables, the
-> cgroup support for nft meta and conntrack zone support for the connlimit
-> match. Coming after those, a bunch of sparse warning fixes, missing
-> netns bits and cleanups. More specifically, they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+I'm happy to announce ipset 6.24, which includes a couple of fixes,
+backports from the kernel tree and a nice performance improvement by
+the introduction of RCUs at the set level instead of the rwlocks.
 
-Pulled, thanks Pablo.
+Userspace changes:
+  - The "extra" subdirectory for kernel modules may have a full subtree
+    (reported by Jesper Dangaard Brouer)
+  - Add more compatibility checkings to support older kernel releases
+  - Make_global.am: Don't include host headers (Baruch Siach)
+  - Alignment problem between 64bit kernel 32bit userspace fixed
+    (reported by Sven-Haegar Koch)
+  - Add script to check libipset.map for missing symbols
+  - Update libipset.map with ipset_parse_tcp_udp_port (Thomas Backlund)
+  - libipset: Bump lib version and update map file (Neutron Soutmun)
+  - Bash utilities updated
+  - ipset: Fix hyphen used as minus sign in manpage (Neutron Soutmun)
+Kernel part changes:
+  - netfilter: ipset: small potential read beyond the end of buffer
+    (Dan Carpenter)
+  - Fix parallel resizing and listing of the same set
+  - styles warned by checkpatch.pl fixed
+  - Introduce RCU in all set types instead of rwlock per set
+    (performance tested by Jesper Dangaard Brouer)
+  - Remove rbtree from hash:net,iface in order to run under RCU
+  - Explicitly add padding elements to hash:net,net and hash:net,port,net
+  - Allocate the proper size of memory when /0 networks are supported
+  - Simplify cidr handling for hash:*net* types
+  - Indicate when /0 networks are supported
+  - Kernel API changes in em_ipset.c, support both old and new ones
+  - netfilter: Convert uses of __constant_<foo> to <foo> (Joe Perches)
+  - net: use the new API kvfree() (WANG Cong)
+  - treewide: fix errors in print (Masanari Iida)
+  - netfilter: use IS_ENABLED(CONFIG_BRIDGE_NETFILTER) (Pablo Neira Ayuso)
+  - Use IS_ENABLED macro and define it if required
+  - Alignment problem between 64bit kernel 32bit userspace fixed
+    (reported by Sven-Haegar Koch)
+  - netfilter: ipset: off by one in ip_set_nfnl_get_byindex()
+    (Dan Carpenter)
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
