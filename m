@@ -1,253 +1,309 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 10/10] netfilter: ipset: Fix parallel resizing and listing of the same set
-Date: Mon, 24 Nov 2014 21:46:52 +0100
-Message-ID: <1416862012-31139-11-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 07/10] netfilter: ipset: Remove rbtree from hash:net,iface in order to run under RCU
+Date: Mon, 24 Nov 2014 21:46:49 +0100
+Message-ID: <1416862012-31139-8-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1416862012-31139-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:51377 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:51373 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbaKXUqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751146AbaKXUqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 24 Nov 2014 15:46:00 -0500
 In-Reply-To: <1416862012-31139-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When elements added to a hash:* type of set and resizing triggered,
-parallel listing could start to list the original set (before resizing)
-and "continue" with listing the new set. Fix it by references and
-using the original hash table for listing. Therefore the destroying
-the original hash table may happen from the resizing or listing functions.
-
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h | 13 ++++++----
- net/netfilter/ipset/ip_set_core.c      | 30 +++++++++++++----------
- net/netfilter/ipset/ip_set_hash_gen.h  | 44 ++++++++++++++++++++++++++++++----
- 3 files changed, 65 insertions(+), 22 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netiface.c | 156 ++++-------------------------
+ 1 file changed, 17 insertions(+), 139 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index b0cfe42..42c6ce0 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -176,6 +176,9 @@ struct ip_set_type_variant {
- 	/* List elements */
- 	int (*list)(const struct ip_set *set, struct sk_buff *skb,
- 		    struct netlink_callback *cb);
-+	/* Keep listing private when resizing runs parallel */
-+	void (*uref)(struct ip_set *set, struct netlink_callback *cb,
-+		     bool start);
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 758b002..d8a53ec 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -13,7 +13,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+ #include <linux/random.h>
+-#include <linux/rbtree.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+ #include <net/netlink.h>
+@@ -36,88 +35,14 @@ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+ IP_SET_MODULE_DESC("hash:net,iface", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net,iface");
  
- 	/* Return true if "b" set is the same as "a"
- 	 * according to the create set parameters */
-@@ -423,12 +426,12 @@ ip_set_init_counter(struct ip_set_counter *counter,
+-/* Interface name rbtree */
+-
+-struct iface_node {
+-	struct rb_node node;
+-	char iface[IFNAMSIZ];
+-};
+-
+-#define iface_data(n)	(rb_entry(n, struct iface_node, node)->iface)
+-
+-static void
+-rbtree_destroy(struct rb_root *root)
+-{
+-	struct iface_node *node, *next;
+-
+-	rbtree_postorder_for_each_entry_safe(node, next, root, node)
+-		kfree(node);
+-
+-	*root = RB_ROOT;
+-}
+-
+-static int
+-iface_test(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node *n = root->rb_node;
+-
+-	while (n) {
+-		const char *d = iface_data(n);
+-		int res = strcmp(*iface, d);
+-
+-		if (res < 0)
+-			n = n->rb_left;
+-		else if (res > 0)
+-			n = n->rb_right;
+-		else {
+-			*iface = d;
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int
+-iface_add(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node **n = &(root->rb_node), *p = NULL;
+-	struct iface_node *d;
+-
+-	while (*n) {
+-		char *ifname = iface_data(*n);
+-		int res = strcmp(*iface, ifname);
+-
+-		p = *n;
+-		if (res < 0)
+-			n = &((*n)->rb_left);
+-		else if (res > 0)
+-			n = &((*n)->rb_right);
+-		else {
+-			*iface = ifname;
+-			return 0;
+-		}
+-	}
+-
+-	d = kzalloc(sizeof(*d), GFP_ATOMIC);
+-	if (!d)
+-		return -ENOMEM;
+-	strcpy(d->iface, *iface);
+-
+-	rb_link_node(&d->node, p, n);
+-	rb_insert_color(&d->node, root);
+-
+-	*iface = d->iface;
+-	return 0;
+-}
+-
+ /* Type specific function prefix */
+ #define HTYPE		hash_netiface
+ #define IP_SET_HASH_WITH_NETS
+-#define IP_SET_HASH_WITH_RBTREE
+ #define IP_SET_HASH_WITH_MULTI
+ #define IP_SET_HASH_WITH_NET0
  
- /* Netlink CB args */
- enum {
--	IPSET_CB_NET = 0,
--	IPSET_CB_DUMP,
--	IPSET_CB_INDEX,
--	IPSET_CB_ARG0,
-+	IPSET_CB_NET = 0,	/* net namespace */
-+	IPSET_CB_DUMP,		/* dump single set/all sets */
-+	IPSET_CB_INDEX,		/* set index */
-+	IPSET_CB_PRIVATE,	/* set private data */
-+	IPSET_CB_ARG0,		/* type specific */
- 	IPSET_CB_ARG1,
--	IPSET_CB_ARG2,
+ #define STREQ(a, b)	(strcmp(a, b) == 0)
++#define IFNAMCPY(a, b)	strncpy(a, b, IFNAMSIZ)
+ 
+ /* IPv4 variant */
+ 
+@@ -136,7 +61,7 @@ struct hash_netiface4_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
  };
  
- /* register and unregister set references */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 957ec91..5dafbb7 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1179,13 +1179,16 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
- static int
- ip_set_dump_done(struct netlink_callback *cb)
- {
--	struct ip_set_net *inst = (struct ip_set_net *)cb->args[IPSET_CB_NET];
--
- 	if (cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n",
--			 ip_set(inst, cb->args[IPSET_CB_INDEX])->name);
--		__ip_set_put_byindex(inst,
--			(ip_set_id_t) cb->args[IPSET_CB_INDEX]);
-+		struct ip_set_net *inst =
-+			(struct ip_set_net *)cb->args[IPSET_CB_NET];
-+		ip_set_id_t index = (ip_set_id_t) cb->args[IPSET_CB_INDEX];
-+		struct ip_set *set = ip_set(inst, index);
-+
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
-+		__ip_set_put_byindex(inst, index);
- 	}
- 	return 0;
- }
-@@ -1216,12 +1219,6 @@ dump_init(struct netlink_callback *cb, struct ip_set_net *inst)
- 	nla_parse(cda, IPSET_ATTR_CMD_MAX,
- 		  attr, nlh->nlmsg_len - min_len, ip_set_setname_policy);
- 
--	/* cb->args[IPSET_CB_NET]:	net namespace
--	 *         [IPSET_CB_DUMP]:	dump single set/all sets
--	 *         [IPSET_CB_INDEX]:	set index
--	 *         [IPSET_CB_ARG0]:	type specific
--	 */
--
- 	if (cda[IPSET_ATTR_SETNAME]) {
- 		struct ip_set *set;
- 
-@@ -1329,6 +1326,8 @@ dump_last:
- 				goto release_refcount;
- 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
- 				goto next_set;
-+			if (set->variant->uref)
-+				set->variant->uref(set, cb, true);
- 			/* Fall through and add elements */
- 		default:
- 			rcu_read_lock_bh();
-@@ -1345,6 +1344,8 @@ dump_last:
- 		dump_type = DUMP_LAST;
- 		cb->args[IPSET_CB_DUMP] = dump_type | (dump_flags << 16);
- 		cb->args[IPSET_CB_INDEX] = 0;
-+		if (set && set->variant->uref)
-+			set->variant->uref(set, cb, false);
- 		goto dump_last;
- 	}
- 	goto out;
-@@ -1359,7 +1360,10 @@ next_set:
- release_refcount:
- 	/* If there was an error or set is done, release set */
- 	if (ret || !cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n", ip_set(inst, index)->name);
-+		set = ip_set(inst, index);
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
- 		__ip_set_put_byindex(inst, index);
- 		cb->args[IPSET_CB_ARG0] = 0;
- 	}
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index f889d98..6ac789b 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -75,6 +75,8 @@ struct hbucket {
- 
- /* The hash table: the table size stored here in order to make resizing easy */
- struct htable {
-+	atomic_t ref;		/* References for resizing */
-+	atomic_t uref;		/* References for dumping */
- 	u8 htable_bits;		/* size of hash table == 2^htable_bits */
- 	struct hbucket * __rcu bucket[0]; /* hashtable buckets */
- };
-@@ -184,6 +186,7 @@ htable_bits(u32 hashsize)
- #undef mtype_del
- #undef mtype_test_cidrs
- #undef mtype_test
-+#undef mtype_uref
- #undef mtype_expire
- #undef mtype_resize
- #undef mtype_head
-@@ -225,6 +228,7 @@ htable_bits(u32 hashsize)
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
- #define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
- #define mtype_test		IPSET_TOKEN(MTYPE, _test)
-+#define mtype_uref		IPSET_TOKEN(MTYPE, _uref)
- #define mtype_expire		IPSET_TOKEN(MTYPE, _expire)
- #define mtype_resize		IPSET_TOKEN(MTYPE, _resize)
- #define mtype_head		IPSET_TOKEN(MTYPE, _head)
-@@ -562,6 +566,8 @@ retry:
- 
- 	spin_lock_bh(&set->lock);
- 	orig = h->table;
-+	atomic_set(&orig->ref, 1);
-+	atomic_inc(&orig->uref);
- 	pr_debug("attempt to resize set %s from %u to %u, t %p\n",
- 		 set->name, orig->htable_bits, htable_bits, orig);
- 	for (i = 0; i < jhash_size(orig->htable_bits); i++) {
-@@ -605,6 +611,8 @@ retry:
- 						ret = -ENOMEM;
- 				}
- 				if (ret < 0) {
-+					atomic_set(&orig->ref, 0);
-+					atomic_dec(&orig->uref);
- 					spin_unlock_bh(&set->lock);
- 					mtype_ahash_destroy(set, t, false);
- 					if (ret == -EAGAIN)
-@@ -634,7 +642,11 @@ retry:
- 
- 	pr_debug("set %s resized from %u (%p) to %u (%p)\n", set->name,
- 		 orig->htable_bits, orig, t->htable_bits, t);
--	mtype_ahash_destroy(set, orig, false);
-+	/* If there's nobody else dumping the table, destroy it */
-+	if (atomic_dec_and_test(&orig->uref)) {
-+		pr_debug("Table destroy by resize %p\n", orig);
-+		mtype_ahash_destroy(set, orig, false);
-+	}
- 
- 	return 0;
- 
-@@ -1032,12 +1044,35 @@ nla_put_failure:
- 	return -EMSGSIZE;
+ /* Common functions */
+@@ -150,7 +75,7 @@ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       STREQ(ip1->iface, ip2->iface);
  }
  
-+/* Make possible to run dumping parallel with resizing */
-+static void
-+mtype_uref(struct ip_set *set, struct netlink_callback *cb, bool start)
-+{
-+	struct htype *h = set->data;
-+	struct htable *t;
-+
-+	if (start) {
-+		rcu_read_lock_bh();
-+		t = rcu_dereference_bh_nfnl(h->table);
-+		atomic_inc(&t->uref);
-+		cb->args[IPSET_CB_PRIVATE] = (unsigned long) t;
-+		rcu_read_unlock_bh();
-+	} else if (cb->args[IPSET_CB_PRIVATE]) {
-+		t = (struct htable *) cb->args[IPSET_CB_PRIVATE];
-+		if (atomic_dec_and_test(&t->uref) && atomic_read(&t->ref)) {
-+			/* Resizing didn't destroy the hash table */
-+			pr_debug("Table destroy by dump: %p\n", t);
-+			mtype_ahash_destroy(set, t, false);
-+		}
-+		cb->args[IPSET_CB_PRIVATE] = 0;
-+	}
-+}
-+
- /* Reply a LIST/SAVE request: dump the elements of the specified set */
- static int
- mtype_list(const struct ip_set *set,
- 	   struct sk_buff *skb, struct netlink_callback *cb)
- {
--	const struct htype *h = set->data;
- 	const struct htable *t;
- 	struct nlattr *atd, *nested;
- 	const struct hbucket *n;
-@@ -1052,11 +1087,11 @@ mtype_list(const struct ip_set *set,
- 		return -EMSGSIZE;
+ static inline int
+@@ -223,7 +148,6 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
  
- 	pr_debug("list hash set %s\n", set->name);
--	t = rcu_dereference_bh_nfnl(h->table);
-+	t = (const struct htable *) cb->args[IPSET_CB_PRIVATE];
- 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
- 	     cb->args[IPSET_CB_ARG0]++) {
- 		incomplete = skb_tail_pointer(skb);
--		n = rcu_dereference_bh(hbucket(t, cb->args[IPSET_CB_ARG0]));
-+		n = hbucket(t, cb->args[IPSET_CB_ARG0]);
- 		pr_debug("cb->arg bucket: %lu, t %p n %p\n",
- 			 cb->args[IPSET_CB_ARG0], t, n);
- 		if (n == NULL)
-@@ -1126,6 +1161,7 @@ static const struct ip_set_type_variant mtype_variant = {
- 	.flush	= mtype_flush,
- 	.head	= mtype_head,
- 	.list	= mtype_list,
-+	.uref	= mtype_uref,
- 	.resize	= mtype_resize,
- 	.same_set = mtype_same_set,
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -233,8 +157,8 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+ 	e.ip &= ip_set_netmask(e.cidr);
+ 
+-#define IFACE(dir)	(par->dir ? par->dir->name : NULL)
+-#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : NULL)
++#define IFACE(dir)	(par->dir ? par->dir->name : "")
++#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : "")
+ #define SRCDIR		(opt->flags & IPSET_DIM_TWO_SRC)
+ 
+ 	if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
+@@ -243,26 +167,15 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		IFNAMCPY(e.iface,
++			 SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		IFNAMCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+-
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+ 
+@@ -275,7 +188,6 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct hash_netiface4_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -302,18 +214,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (e.cidr > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+-
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	IFNAMCPY(e.iface, nla_data(tb[IPSET_ATTR_IFACE]));
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+@@ -372,7 +273,7 @@ struct hash_netiface6_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
  };
+ 
+ /* Common functions */
+@@ -386,7 +287,7 @@ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       STREQ(ip1->iface, ip2->iface);
+ }
+ 
+ static inline int
+@@ -464,7 +365,6 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
+ 
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -480,25 +380,15 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		IFNAMCPY(e.iface,
++			 SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		IFNAMCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+ 
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+@@ -507,11 +397,9 @@ static int
+ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		   enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+-	struct hash_netiface *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -541,17 +429,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return -IPSET_ERR_INVALID_CIDR;
+ 	ip6_netmask(&e.ip, e.cidr);
+ 
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	IFNAMCPY(e.iface, nla_data(tb[IPSET_ATTR_IFACE]));
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
 -- 
 1.8.5.1
 
