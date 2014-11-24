@@ -1,200 +1,161 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: xt_recent: relax ip_pkt_list_tot restrictions
-Date: Mon, 24 Nov 2014 14:06:22 +0100
-Message-ID: <1416834382-27242-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/17] netfilter/ipvs updates for net-next
+Date: Mon, 24 Nov 2014 14:27:37 +0100
+Message-ID: <1416835674-11871-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35071 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514AbaKXNGb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 08:06:31 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The maximum value for the hitcount parameter is given by
-"ip_pkt_list_tot" parameter (default: 20).
+Hi David,
 
-Exceeding this value on the command line will cause the rule to be
-rejected.  The parameter is also readonly, i.e. it cannot be changed
-without module unload or reboot.
+The following patchset contains Netfilter updates for your net-next
+tree, this includes the NAT redirection support for nf_tables, the
+cgroup support for nft meta and conntrack zone support for the connlimit
+match. Coming after those, a bunch of sparse warning fixes, missing
+netns bits and cleanups. More specifically, they are:
 
-Store size per table, then base nstamps[] size on the hitcount instead.
+1) Prepare IPv4 and IPv6 NAT redirect code to use it from nf_tables,
+   patches from Arturo Borrero.
 
-The module parameter is retained for backwards compatibility.
+2) Introduce the nf_tables redir expression, from Arturo Borrero.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/xt_recent.c | 65 ++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 48 insertions(+), 17 deletions(-)
+3) Remove an unnecessary assignment in ip_vs_xmit/__ip_vs_get_out_rt().
+   Patch from Alex Gartrell.
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index a9faae8..cd691c1 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -43,25 +43,29 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_recent");
- MODULE_ALIAS("ip6t_recent");
- 
--static unsigned int ip_list_tot = 100;
--static unsigned int ip_pkt_list_tot = 20;
--static unsigned int ip_list_hash_size = 0;
--static unsigned int ip_list_perms = 0644;
--static unsigned int ip_list_uid = 0;
--static unsigned int ip_list_gid = 0;
-+static unsigned int ip_list_tot __read_mostly = 100;
-+static unsigned int ip_list_hash_size __read_mostly;
-+static unsigned int ip_list_perms __read_mostly = 0644;
-+static unsigned int ip_list_uid __read_mostly;
-+static unsigned int ip_list_gid __read_mostly;
- module_param(ip_list_tot, uint, 0400);
--module_param(ip_pkt_list_tot, uint, 0400);
- module_param(ip_list_hash_size, uint, 0400);
- module_param(ip_list_perms, uint, 0400);
- module_param(ip_list_uid, uint, S_IRUGO | S_IWUSR);
- module_param(ip_list_gid, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
--MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
- MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
- MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* files");
- MODULE_PARM_DESC(ip_list_uid, "default owner of /proc/net/xt_recent/* files");
- MODULE_PARM_DESC(ip_list_gid, "default owning group of /proc/net/xt_recent/* files");
- 
-+/* retained for backwards compatibility */
-+static unsigned int ip_pkt_list_tot __read_mostly;
-+module_param(ip_pkt_list_tot, uint, 0400);
-+MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
-+
-+#define XT_RECENT_MAX_NSTAMPS	256
-+
- struct recent_entry {
- 	struct list_head	list;
- 	struct list_head	lru_list;
-@@ -79,6 +83,7 @@ struct recent_table {
- 	union nf_inet_addr	mask;
- 	unsigned int		refcnt;
- 	unsigned int		entries;
-+	u8			nstamps_max_mask;
- 	struct list_head	lru_list;
- 	struct list_head	iphash[0];
- };
-@@ -90,7 +95,8 @@ struct recent_net {
- #endif
- };
- 
--static int recent_net_id;
-+static int recent_net_id __read_mostly;
-+
- static inline struct recent_net *recent_pernet(struct net *net)
- {
- 	return net_generic(net, recent_net_id);
-@@ -171,12 +177,15 @@ recent_entry_init(struct recent_table *t, const union nf_inet_addr *addr,
- 		  u_int16_t family, u_int8_t ttl)
- {
- 	struct recent_entry *e;
-+	unsigned int nstamps_max = t->nstamps_max_mask;
- 
- 	if (t->entries >= ip_list_tot) {
- 		e = list_entry(t->lru_list.next, struct recent_entry, lru_list);
- 		recent_entry_remove(t, e);
- 	}
--	e = kmalloc(sizeof(*e) + sizeof(e->stamps[0]) * ip_pkt_list_tot,
-+
-+	nstamps_max += 1;
-+	e = kmalloc(sizeof(*e) + sizeof(e->stamps[0]) * nstamps_max,
- 		    GFP_ATOMIC);
- 	if (e == NULL)
- 		return NULL;
-@@ -197,7 +206,7 @@ recent_entry_init(struct recent_table *t, const union nf_inet_addr *addr,
- 
- static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
- {
--	e->index %= ip_pkt_list_tot;
-+	e->index &= t->nstamps_max_mask;
- 	e->stamps[e->index++] = jiffies;
- 	if (e->index > e->nstamps)
- 		e->nstamps = e->index;
-@@ -326,6 +335,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 	kuid_t uid;
- 	kgid_t gid;
- #endif
-+	unsigned int nstamp_mask;
- 	unsigned int i;
- 	int ret = -EINVAL;
- 	size_t sz;
-@@ -349,19 +359,34 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 		return -EINVAL;
- 	if ((info->check_set & XT_RECENT_REAP) && !info->seconds)
- 		return -EINVAL;
--	if (info->hit_count > ip_pkt_list_tot) {
--		pr_info("hitcount (%u) is larger than "
--			"packets to be remembered (%u)\n",
--			info->hit_count, ip_pkt_list_tot);
-+	if (info->hit_count >= XT_RECENT_MAX_NSTAMPS) {
-+		pr_info("hitcount (%u) is larger than allowed maximum (%u)\n",
-+			info->hit_count, XT_RECENT_MAX_NSTAMPS - 1);
- 		return -EINVAL;
- 	}
- 	if (info->name[0] == '\0' ||
- 	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
- 		return -EINVAL;
- 
-+	if (ip_pkt_list_tot && info->hit_count < ip_pkt_list_tot)
-+		nstamp_mask = roundup_pow_of_two(ip_pkt_list_tot) - 1;
-+	else if (info->hit_count)
-+		nstamp_mask = roundup_pow_of_two(info->hit_count) - 1;
-+	else
-+		nstamp_mask = 32 - 1;
-+
- 	mutex_lock(&recent_mutex);
- 	t = recent_table_lookup(recent_net, info->name);
- 	if (t != NULL) {
-+		if (info->hit_count > t->nstamps_max_mask) {
-+			pr_info("hitcount (%u) is larger than packets "
-+				"to be remembered (%u) for table %s\n",
-+				info->hit_count, t->nstamps_max_mask + 1,
-+				info->name);
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
- 		t->refcnt++;
- 		ret = 0;
- 		goto out;
-@@ -377,6 +402,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 		goto out;
- 	}
- 	t->refcnt = 1;
-+	t->nstamps_max_mask = nstamp_mask;
- 
- 	memcpy(&t->mask, &info->mask, sizeof(t->mask));
- 	strcpy(t->name, info->name);
-@@ -497,9 +523,12 @@ static void recent_seq_stop(struct seq_file *s, void *v)
- static int recent_seq_show(struct seq_file *seq, void *v)
- {
- 	const struct recent_entry *e = v;
-+	struct recent_iter_state *st = seq->private;
-+	const struct recent_table *t = st->table;
- 	unsigned int i;
- 
--	i = (e->index - 1) % ip_pkt_list_tot;
-+	i = (e->index - 1) & t->nstamps_max_mask;
-+
- 	if (e->family == NFPROTO_IPV4)
- 		seq_printf(seq, "src=%pI4 ttl: %u last_seen: %lu oldest_pkt: %u",
- 			   &e->addr.ip, e->ttl, e->stamps[i], e->index);
-@@ -717,7 +746,9 @@ static int __init recent_mt_init(void)
- {
- 	int err;
- 
--	if (!ip_list_tot || !ip_pkt_list_tot || ip_pkt_list_tot > 255)
-+	BUILD_BUG_ON_NOT_POWER_OF_2(XT_RECENT_MAX_NSTAMPS);
-+
-+	if (!ip_list_tot || ip_pkt_list_tot >= XT_RECENT_MAX_NSTAMPS)
- 		return -EINVAL;
- 	ip_list_hash_size = 1 << fls(ip_list_tot);
- 
--- 
-2.0.4
+4) Add nft_log_dereference() macro to the nf_log infrastructure, patch
+   from Marcelo Leitner.
 
+5) Add some extra validation when registering logger families, also
+   from Marcelo.
+
+6) Some spelling cleanups from stephen hemminger.
+
+7) Fix sparse warning in nf_logger_find_get().
+
+8) Add cgroup support to nf_tables meta, patch from Ana Rey.
+
+9) A Kconfig fix for the new redir expression and fix sparse warnings in
+   the new redir expression.
+
+10) Fix several sparse warnings in the netfilter tree, from
+    Florian Westphal.
+
+11) Reduce verbosity when OOM in nfnetlink_log. User can basically do
+    nothing when this situation occurs.
+
+12) Add conntrack zone support to xt_connlimit, again from Florian.
+
+13) Add netnamespace support to the h323 conntrack helper, contributed
+    by Vasily Averin.
+
+14) Remove unnecessary nul-pointer checks before free_percpu() and
+    module_put(), from Markus Elfring.
+
+15) Use pr_fmt in nfnetlink_log, again patch from Marcelo Leitner.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit b8901ac319768cdd3afa060787503e0c405f9607:
+
+  ipx: remove __inline__ in c file on static (2014-10-27 16:25:31 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to beacd3e8ef237e077c8707395440813feef16d3f:
+
+  netfilter: nfnetlink_log: Make use of pr_fmt where applicable (2014-11-20 14:09:01 +0100)
+
+----------------------------------------------------------------
+Alex Gartrell (1):
+      ipvs: remove unnecessary assignment in __ip_vs_get_out_rt
+
+Ana Rey (1):
+      netfilter: nft_meta: add cgroup support
+
+Arturo Borrero (3):
+      netfilter: refactor NAT redirect IPv4 to use it from nf_tables
+      netfilter: refactor NAT redirect IPv6 code to use it from nf_tables
+      netfilter: nf_tables: add new expression nft_redir
+
+Florian Westphal (2):
+      netfilter: fix various sparse warnings
+      netfilter: xt_connlimit: honor conntrack zone if available
+
+Marcelo Leitner (3):
+      netfilter: nf_log: Introduce nft_log_dereference() macro
+      netfilter: log: protect nf_log_register against double registering
+      netfilter: nfnetlink_log: Make use of pr_fmt where applicable
+
+Markus Elfring (1):
+      netfilter: Deletion of unnecessary checks before two function calls
+
+Pablo Neira Ayuso (5):
+      Merge branch 'ipvs-next'
+      netfilter: nf_log: fix sparse warning in nf_logger_find_get()
+      netfilter: fix unmet dependencies in NETFILTER_XT_TARGET_REDIRECT
+      netfilter: nft_redir: fix sparse warnings
+      netfilter: nfnetlink_log: remove unnecessary error messages
+
+Vasily Averin (1):
+      netfilter: nf_conntrack_h323: lookup route from proper net namespace
+
+stephen hemminger (1):
+      netfilter: fix spelling errors
+
+ include/net/netfilter/ipv4/nf_nat_redirect.h |    9 +++
+ include/net/netfilter/ipv6/nf_nat_redirect.h |    8 +++
+ include/net/netfilter/nft_redir.h            |   21 ++++++
+ include/uapi/linux/netfilter/nf_tables.h     |   18 +++++
+ net/bridge/br_netfilter.c                    |    1 +
+ net/ipv4/netfilter/Kconfig                   |   15 ++++
+ net/ipv4/netfilter/Makefile                  |    2 +
+ net/ipv4/netfilter/nf_log_arp.c              |   24 +++++--
+ net/ipv4/netfilter/nf_log_ipv4.c             |   12 +++-
+ net/ipv4/netfilter/nf_nat_redirect_ipv4.c    |   82 +++++++++++++++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c          |    1 +
+ net/ipv4/netfilter/nft_redir_ipv4.c          |   77 ++++++++++++++++++++
+ net/ipv4/netfilter/nft_reject_ipv4.c         |    7 +-
+ net/ipv6/netfilter/Kconfig                   |   15 ++++
+ net/ipv6/netfilter/Makefile                  |    2 +
+ net/ipv6/netfilter/nf_log_ipv6.c             |   12 +++-
+ net/ipv6/netfilter/nf_nat_redirect_ipv6.c    |   75 +++++++++++++++++++
+ net/ipv6/netfilter/nf_reject_ipv6.c          |    1 +
+ net/ipv6/netfilter/nft_redir_ipv6.c          |   77 ++++++++++++++++++++
+ net/ipv6/netfilter/nft_reject_ipv6.c         |    7 +-
+ net/netfilter/Kconfig                        |   11 +++
+ net/netfilter/Makefile                       |    1 +
+ net/netfilter/core.c                         |    1 +
+ net/netfilter/ipvs/ip_vs_ctl.c               |    3 +-
+ net/netfilter/ipvs/ip_vs_pe.c                |    3 +-
+ net/netfilter/ipvs/ip_vs_sched.c             |    3 +-
+ net/netfilter/ipvs/ip_vs_sync.c              |    3 +-
+ net/netfilter/ipvs/ip_vs_xmit.c              |    1 -
+ net/netfilter/nf_conntrack_h323_main.c       |   14 ++--
+ net/netfilter/nf_conntrack_helper.c          |    2 +-
+ net/netfilter/nf_log.c                       |   40 ++++++-----
+ net/netfilter/nf_tables_api.c                |    5 +-
+ net/netfilter/nfnetlink_log.c                |   18 +++--
+ net/netfilter/nft_meta.c                     |    7 ++
+ net/netfilter/nft_redir.c                    |   99 ++++++++++++++++++++++++++
+ net/netfilter/xt_DSCP.c                      |    6 +-
+ net/netfilter/xt_REDIRECT.c                  |   84 ++--------------------
+ net/netfilter/xt_connlimit.c                 |   25 ++++---
+ 38 files changed, 636 insertions(+), 156 deletions(-)
+ create mode 100644 include/net/netfilter/ipv4/nf_nat_redirect.h
+ create mode 100644 include/net/netfilter/ipv6/nf_nat_redirect.h
+ create mode 100644 include/net/netfilter/nft_redir.h
+ create mode 100644 net/ipv4/netfilter/nf_nat_redirect_ipv4.c
+ create mode 100644 net/ipv4/netfilter/nft_redir_ipv4.c
+ create mode 100644 net/ipv6/netfilter/nf_nat_redirect_ipv6.c
+ create mode 100644 net/ipv6/netfilter/nft_redir_ipv6.c
+ create mode 100644 net/netfilter/nft_redir.c
