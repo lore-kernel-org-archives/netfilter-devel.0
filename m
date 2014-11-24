@@ -1,98 +1,102 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf] netfilter: conntrack: fix race between confirmation and flush
-Date: Tue, 25 Nov 2014 00:14:47 +0100
-Message-ID: <1416870887-5285-2-git-send-email-pablo@netfilter.org>
-References: <1416870887-5285-1-git-send-email-pablo@netfilter.org>
-Cc: dborkman@redhat.com, jp.pozzi@izzop.net, brouer@redhat.com,
-	programme110@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 2/2 v2] bridge: set the pktinfo for IPv4/IPv6 traffic
+Date: Tue, 25 Nov 2014 00:22:23 +0100
+Message-ID: <20141124232223.GB3372@salvia>
+References: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
+ <1416856550-15589-2-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38490 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39165 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbaKXXMr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 18:12:47 -0500
-In-Reply-To: <1416870887-5285-1-git-send-email-pablo@netfilter.org>
+	id S1750772AbaKXXUO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 18:20:14 -0500
+Content-Disposition: inline
+In-Reply-To: <1416856550-15589-2-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 5195c14c8b27c ("netfilter: conntrack: fix race in
-__nf_conntrack_confirm against get_next_corpse") aimed to resolve the
-race condition between the confirmation (packet path) and the flush
-command (from control plane). However, it introduced a crash when
-several packets race to add a new conntrack, which seems easier to
-reproduce when nf_queue is in place.
+On Mon, Nov 24, 2014 at 08:15:50PM +0100, Alvaro Neira Ayuso wrote:
+> This patch sets the pktinfo for IPv4/IPv6 traffic. Therefore, we can check the
+> meta l4proto for IPv4/IPv6 traffic in bridge, before we don't have enough
+> information to do it. Example:
 
-Fix this race, in __nf_conntrack_confirm(), by removing the CT
-from unconfirmed list before checking the DYING bit. In case
-race occured, re-add the CT to the dying list
+I suggest:
 
-This patch also changes the verdict from NF_ACCEPT to NF_DROP when
-we lose race. Basically, the confirmation happens for the first packet
-that we see in a flow. If you just invoked conntrack -F once (which
-should be the common case), then this is likely to be the first packet
-of the flow (unless you already called flush anytime soon in the past).
-This should be hard to trigger, but better drop this packet, otherwise
-we leave things in inconsistent state since the destination will likely
-reply to this packet, but it will find no conntrack, unless the origin
-retransmits.
+"This patch adds the missing bits to allow to match per meta l4proto
+ from the bridge. Example:" 
 
-The change of the verdict has been discussed in:
-https://www.marc.info/?l=linux-netdev&m=141588039530056&w=2
+>   nft add rule bridge filter input ether type {ip, ip6} meta l4proto udp counter
+> and
+>   nft add rule bridge filter input ether type {ip, ip6} meta l4proto tcp counter
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Note: I will check and re-test this again tomorrow morning with fresh
-mind, compile tested only.
+One example is enough. These two look too similar.
 
- net/netfilter/nf_conntrack_core.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+> With this patch, we can filter the traffic using the transport context that we
+> want.
+> 
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+> [changes in v2]
+>  * Refactor the code to make it more clear
+>  * Make sure that IPv6 is enabled
+> 
+>  net/bridge/netfilter/nf_tables_bridge.c |   21 ++++++++++++++++++++-
+>  1 file changed, 20 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+> index d468c19..f4471d7 100644
+> --- a/net/bridge/netfilter/nf_tables_bridge.c
+> +++ b/net/bridge/netfilter/nf_tables_bridge.c
+> @@ -16,6 +16,8 @@
+>  #include <net/netfilter/nf_tables_bridge.h>
+>  #include <linux/ip.h>
+>  #include <linux/ipv6.h>
+> +#include <net/netfilter/nf_tables_ipv4.h>
+> +#include <net/netfilter/nf_tables_ipv6.h>
+>  
+>  int nft_bridge_iphdr_validate(struct sk_buff *skb)
+>  {
+> @@ -71,7 +73,24 @@ nft_do_chain_bridge(const struct nf_hook_ops *ops,
+>  {
+>  	struct nft_pktinfo pkt;
+>  
+> -	nft_set_pktinfo(&pkt, ops, skb, in, out);
+> +	switch (eth_hdr(skb)->h_proto) {
+> +	case htons(ETH_P_IP):
+> +		if (!nft_bridge_iphdr_validate(skb))
+> +			nft_set_pktinfo(&pkt, ops, skb, in, out);
+> +		else
+> +			nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
+> +		break;
+> +	case htons(ETH_P_IPV6):
+> +		#if IS_ENABLED(CONFIG_IPV6)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5016a69..c588012 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -611,16 +611,15 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
- 	pr_debug("Confirming conntrack %p\n", ct);
--	/* We have to check the DYING flag inside the lock to prevent
--	   a race against nf_ct_get_next_corpse() possibly called from
--	   user context, else we insert an already 'dead' hash, blocking
--	   further use of that particular connection -JM */
-+	/* We have to check the DYING flag after unlink to prevent
-+	 * a race against nf_ct_get_next_corpse() possibly called from
-+	 * user context, else we insert an already 'dead' hash, blocking
-+	 * further use of that particular connection -JM.
-+	 */
-+	nf_ct_del_from_dying_or_unconfirmed_list(ct);
- 
--	if (unlikely(nf_ct_is_dying(ct))) {
--		nf_conntrack_double_unlock(hash, reply_hash);
--		local_bh_enable();
--		return NF_ACCEPT;
--	}
-+	if (unlikely(nf_ct_is_dying(ct)))
-+		goto out;
- 
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
-@@ -636,8 +635,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		    zone == nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)))
- 			goto out;
- 
--	nf_ct_del_from_dying_or_unconfirmed_list(ct);
--
- 	/* Timer relative to confirmation time, not original
- 	   setting time, otherwise we'd get timer wrap in
- 	   weird delay cases. */
-@@ -673,6 +670,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	return NF_ACCEPT;
- 
- out:
-+	nf_ct_add_to_dying_list(ct);
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
- 	local_bh_enable();
--- 
-1.7.10.4
+Never indent #if's and #endif.
 
+In case of doubt, just check around to see how this is done in other
+code, so you don't need to figure out how to make it.
+
+Thanks.
+
+> +			if (!nft_bridge_ip6hdr_validate(skb) ||
+> +			    nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
+> +				nft_set_pktinfo(&pkt, ops, skb, in, out);
+> +			break;
+> +		#endif
+> +	default:
+> +		nft_set_pktinfo(&pkt, ops, skb, in, out);
+> +		break;
+> +	}
+>  
+>  	return nft_do_chain(&pkt, ops);
+>  }
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
