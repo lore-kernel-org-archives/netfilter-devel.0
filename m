@@ -1,81 +1,86 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [ebtables-compat-experimental5 PATCH] iptables: xtables-eb:
+Subject: [ebtables-compat-experimental5 PATCH v2] iptables: xtables-eb:
  user-defined chains default policy is always RETURN
-Date: Mon, 24 Nov 2014 10:46:57 +0100
-Message-ID: <CAOkSjBgr8UicdN80fvtMjiASWC-AWZUr-EG4MuaQqs3VvH34iQ@mail.gmail.com>
-References: <20141119131147.15524.18916.stgit@nfdev.cica.es> <20141120120718.GA9745@salvia>
+Date: Mon, 24 Nov 2014 10:52:04 +0100
+Message-ID: <20141124095149.17111.54015.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Giuseppe Longo <giuseppelng@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: giuseppelng@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:44513 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbaKXJrT convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 04:47:19 -0500
-Received: by mail-la0-f51.google.com with SMTP id mc6so7182209lab.24
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 01:47:18 -0800 (PST)
-In-Reply-To: <20141120120718.GA9745@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:54701 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751004AbaKXJwW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 04:52:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20 November 2014 at 13:07, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
->> @@ -1146,9 +1147,17 @@ check_extension: */
->>       cs.fw.ethproto =3D htons(cs.fw.ethproto);
->>
->>       if (command =3D=3D 'P') {
->> -             if (selected_chain < NF_BR_NUMHOOKS && strcmp(policy, =
-"RETURN")=3D=3D0)
->> +             if (selected_chain < 0) {
->>                       xtables_error(PARAMETER_PROBLEM,
->> -                                   "Policy RETURN only allowed for =
-user defined chains");
->> +                                   "Default policy in user-defined"
->> +                                   " chains is mandatory RETURN");
->
-> Wait.
->
-> This changes the existing behaviour. I mean, this check rejects rules
-> using RETURN from base chains, that should still be there to mimic
-> ebtables behaviour. Why change this?
->
+The RETURN default policy is mandatory in user-defined chains.
+Builtin chains must have one of ACCEPT or DROP.
 
-I don't see such behaviour change:
+So, with this patch, ebtables-compat ends with:
 
-Bridge chain: test2, entries: 2, policy: RETURN
--i eth0 -j ACCEPT
--i eth0 -j RETURN
+Command:			Result:
 
-I can still use rules with RETURN target.
+-L				Always RETURN for user-defined chains
+-P builtin RETURN		Policy RETURN only allowed for user defined chains
+-P builtin ACCEPT|DROP		ok
+-P userdefined RETURN		Default policy in user-defined chains is mandatory RETURN
+-P userdefined ACCEPT|DROP	Default policy in user-defined chains is mandatory RETURN
+-N userdefined			ok
+-N userdefined -P RETURN	Default policy in user-defined chains is mandatory RETURN
+-N userdefined -P ACCEPT|DROP	Default policy in user-defined chains is mandatory RETURN
 
-The change is in the -P path, not in -j.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: change some error messages, as requested by Pablo.
 
->> +             }
->> +             if (strcmp(policy, "ACCEPT") !=3D 0 &&
->> +                 strcmp(policy, "DROP") !=3D 0) {
->> +                     xtables_error(PARAMETER_PROBLEM,
->> +                                   "Default policy in default chain=
-s"
->> +                                   " is either ACCEPT or DROP");
->
-> Please use the same error message the ebtables uses:
->
-> "Policy RETURN only allowed for user defined chains");
->
-> And explicitly check for RETURN instead. This is a compat tool, we
-> should spot the same errors than the original.
->
+ iptables/nft-bridge.c |    3 ++-
+ iptables/xtables-eb.c |    9 ++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Ok, sending v2.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index b5aec00..a1bd906 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -356,7 +356,8 @@ static void nft_bridge_print_header(unsigned int format, const char *chain,
+ 				    const struct xt_counters *counters,
+ 				    bool basechain, uint32_t refs)
+ {
+-	printf("Bridge chain: %s, entries: %u, policy: %s\n", chain, refs, pol);
++	printf("Bridge chain: %s, entries: %u, policy: %s\n",
++	       chain, refs, basechain ? pol : "RETURN");
+ }
+ 
+ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 917bca2..e462dbf 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -616,6 +616,7 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table)
+ 		case 'E': /* Rename chain */
+ 		case 'X': /* Delete chain */
+ 			/* We allow -N chainname -P policy */
++			/* XXX: Not in ebtables-compat */
+ 			if (command == 'N' && c == 'P') {
+ 				command = c;
+ 				optind--; /* No table specified */
+@@ -1146,9 +1147,15 @@ check_extension: */
+ 	cs.fw.ethproto = htons(cs.fw.ethproto);
+ 
+ 	if (command == 'P') {
+-		if (selected_chain < NF_BR_NUMHOOKS && strcmp(policy, "RETURN")==0)
++		if (selected_chain < 0) {
++			xtables_error(PARAMETER_PROBLEM,
++				      "Default policy in user-defined"
++				      " chains is mandatory RETURN");
++		}
++		if (strcmp(policy, "RETURN") == 0) {
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "Policy RETURN only allowed for user defined chains");
++		}
+ 		ret = nft_chain_set(h, *table, chain, policy, NULL);
+ 		if (ret < 0)
+ 			xtables_error(PARAMETER_PROBLEM, "Wrong policy");
+
