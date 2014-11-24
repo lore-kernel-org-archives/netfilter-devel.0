@@ -1,65 +1,215 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Re: named vmaps
-Date: Mon, 24 Nov 2014 20:03:16 +0100
-Message-ID: <CAJO99Tkv_rRE8Jd+=DzVSmWiFMUT2hgtLWR9VUxmZkivrod34w@mail.gmail.com>
-References: <CAJO99T=5z-AC=YzOVTYH3++6kf74fXqSu=Q15Jqhb3bVYQ-mLw@mail.gmail.com>
-	<20141124115522.GA27521@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [PATCH nf 1/2 v2] bridge: export nft_reject_ip*hdr_validate functions
+Date: Mon, 24 Nov 2014 20:15:49 +0100
+Message-ID: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:59969 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754024AbaKXTDS convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:63601 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293AbaKXTP1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 14:03:18 -0500
-Received: by mail-lb0-f171.google.com with SMTP id n15so2245669lbi.16
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 11:03:16 -0800 (PST)
-In-Reply-To: <20141124115522.GA27521@salvia>
+	Mon, 24 Nov 2014 14:15:27 -0500
+Received: by mail-wi0-f179.google.com with SMTP id ex7so6951224wid.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 11:15:26 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id hs1sm13292526wib.1.2014.11.24.11.15.24
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 24 Nov 2014 11:15:25 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2014-11-24 12:55 GMT+01:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Fri, Nov 21, 2014 at 09:22:00AM +0100, Bj=C3=B8rnar Ness wrote:
->> Is support for named vmaps removed from nft? Running kernel 3.18.0-r=
-c5
->> [ ... ]
->
-> I have updated the documentation:
->
-> http://wiki.nftables.org/wiki-nftables/index.php/Dictionaries
->
-> Please, let me know if you find any mistake on it. Thanks.
+This patch exports the functions nft_reject_iphdr_validate and
+nft_reject_ip6hdr_validate to use it in follow up patches.
+These functions check if the ethernet header is correct.
 
-This works, thanks Pablo!
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+[no changes in v2]
 
-A few comments, tho:
+ include/net/netfilter/nf_tables_bridge.h |    7 ++++
+ net/bridge/netfilter/nf_tables_bridge.c  |   48 +++++++++++++++++++++++++++
+ net/bridge/netfilter/nft_reject_bridge.c |   52 +++---------------------------
+ 3 files changed, 60 insertions(+), 47 deletions(-)
+ create mode 100644 include/net/netfilter/nf_tables_bridge.h
 
-Is it possible/planned to make counters work with sets/vmaps?
+diff --git a/include/net/netfilter/nf_tables_bridge.h b/include/net/netfilter/nf_tables_bridge.h
+new file mode 100644
+index 0000000..511fb79
+--- /dev/null
++++ b/include/net/netfilter/nf_tables_bridge.h
+@@ -0,0 +1,7 @@
++#ifndef _NET_NF_TABLES_BRIDGE_H
++#define _NET_NF_TABLES_BRIDGE_H
++
++int nft_bridge_iphdr_validate(struct sk_buff *skb);
++int nft_bridge_ip6hdr_validate(struct sk_buff *skb);
++
++#endif /* _NET_NF_TABLES_BRIDGE_H */
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 074c557..d468c19 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -13,6 +13,54 @@
+ #include <linux/module.h>
+ #include <linux/netfilter_bridge.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_bridge.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++
++int nft_bridge_iphdr_validate(struct sk_buff *skb)
++{
++	struct iphdr *iph;
++	u32 len;
++
++	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
++		return 0;
++
++	iph = ip_hdr(skb);
++	if (iph->ihl < 5 || iph->version != 4)
++		return 0;
++
++	len = ntohs(iph->tot_len);
++	if (skb->len < len)
++		return 0;
++	else if (len < (iph->ihl*4))
++		return 0;
++
++	if (!pskb_may_pull(skb, iph->ihl*4))
++		return 0;
++
++	return 1;
++}
++EXPORT_SYMBOL_GPL(nft_bridge_iphdr_validate);
++
++int nft_bridge_ip6hdr_validate(struct sk_buff *skb)
++{
++	struct ipv6hdr *hdr;
++	u32 pkt_len;
++
++	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
++		return 0;
++
++	hdr = ipv6_hdr(skb);
++	if (hdr->version != 6)
++		return 0;
++
++	pkt_len = ntohs(hdr->payload_len);
++	if (pkt_len + sizeof(struct ipv6hdr) > skb->len)
++		return 0;
++
++	return 1;
++}
++EXPORT_SYMBOL_GPL(nft_bridge_ip6hdr_validate);
+ 
+ static unsigned int
+ nft_do_chain_bridge(const struct nf_hook_ops *ops,
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index 48da2c5..b0330ae 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -14,6 +14,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_reject.h>
++#include <net/netfilter/nf_tables_bridge.h>
+ #include <net/netfilter/ipv4/nf_reject.h>
+ #include <net/netfilter/ipv6/nf_reject.h>
+ #include <linux/ip.h>
+@@ -35,30 +36,6 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
+ 	skb_pull(nskb, ETH_HLEN);
+ }
+ 
+-static int nft_reject_iphdr_validate(struct sk_buff *oldskb)
+-{
+-	struct iphdr *iph;
+-	u32 len;
+-
+-	if (!pskb_may_pull(oldskb, sizeof(struct iphdr)))
+-		return 0;
+-
+-	iph = ip_hdr(oldskb);
+-	if (iph->ihl < 5 || iph->version != 4)
+-		return 0;
+-
+-	len = ntohs(iph->tot_len);
+-	if (oldskb->len < len)
+-		return 0;
+-	else if (len < (iph->ihl*4))
+-		return 0;
+-
+-	if (!pskb_may_pull(oldskb, iph->ihl*4))
+-		return 0;
+-
+-	return 1;
+-}
+-
+ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
+ {
+ 	struct sk_buff *nskb;
+@@ -66,7 +43,7 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
+ 	const struct tcphdr *oth;
+ 	struct tcphdr _oth;
+ 
+-	if (!nft_reject_iphdr_validate(oldskb))
++	if (!nft_bridge_iphdr_validate(oldskb))
+ 		return;
+ 
+ 	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
+@@ -101,7 +78,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
+ 	void *payload;
+ 	__wsum csum;
+ 
+-	if (!nft_reject_iphdr_validate(oldskb))
++	if (!nft_bridge_iphdr_validate(oldskb))
+ 		return;
+ 
+ 	/* IP header checks: fragment. */
+@@ -146,25 +123,6 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
+ 	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
+ }
+ 
+-static int nft_reject_ip6hdr_validate(struct sk_buff *oldskb)
+-{
+-	struct ipv6hdr *hdr;
+-	u32 pkt_len;
+-
+-	if (!pskb_may_pull(oldskb, sizeof(struct ipv6hdr)))
+-		return 0;
+-
+-	hdr = ipv6_hdr(oldskb);
+-	if (hdr->version != 6)
+-		return 0;
+-
+-	pkt_len = ntohs(hdr->payload_len);
+-	if (pkt_len + sizeof(struct ipv6hdr) > oldskb->len)
+-		return 0;
+-
+-	return 1;
+-}
+-
+ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
+ 					    struct sk_buff *oldskb, int hook)
+ {
+@@ -174,7 +132,7 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
+ 	unsigned int otcplen;
+ 	struct ipv6hdr *nip6h;
+ 
+-	if (!nft_reject_ip6hdr_validate(oldskb))
++	if (!nft_bridge_ip6hdr_validate(oldskb))
+ 		return;
+ 
+ 	oth = nf_reject_ip6_tcphdr_get(oldskb, &_oth, &otcplen, hook);
+@@ -207,7 +165,7 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
+ 	unsigned int len;
+ 	void *payload;
+ 
+-	if (!nft_reject_ip6hdr_validate(oldskb))
++	if (!nft_bridge_ip6hdr_validate(oldskb))
+ 		return;
+ 
+ 	/* Include "As much of invoking packet as possible without the ICMPv6
+-- 
+1.7.10.4
 
-nft add rule filter input ip saddr vmap @my_vmap counter
-
-will not work since it counts too late (never)
-
-Is the following planned:
-1) individual element counters
-2) comments for elements
-3) element timeout
-
-Also, negative set/vmap lookup does not seem to work, I would like the
-following functionality
-
-nft insert rule filter forward ip saddr !@ignorelist ip saddr @blocklis=
-t drop
-
-Best regards,
-
---=20
-Bj(/)rnar
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
