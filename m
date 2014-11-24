@@ -1,98 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: conntrack: avoid zeroing timer
-Date: Mon, 24 Nov 2014 15:25:57 +0100
-Message-ID: <1416839157-26849-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH -next] netfilter: conntrack: drop new packets that lose race against get_next_corpse()
+Date: Mon, 24 Nov 2014 18:27:59 +0100
+Message-ID: <1416850079-5791-1-git-send-email-pablo@netfilter.org>
+Cc: joerg.marx@secunet.com, brouer@redhat.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35348 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753959AbaKXO0Y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 09:26:24 -0500
+Received: from mail.us.es ([193.147.175.20]:42056 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752436AbaKXR0A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 12:26:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-add a __nfct_init_offset annotation member to struct nf_conn to make
-it clear which members are covered by the memset when the conntrack
-is allocated.
+__nf_conntrack_confirm() is only called for the first packet that we
+see in a flow. If you just invoked conntrack -F once (which should be
+the common case), then this is likely to be the first packet of the
+flow (unless you already called flush anytime soon in the past).
+This should be hard to trigger, but better drop this packet, otherwise
+we leave things in inconsistent state since the destination will likely
+reply to this packet, but it will find no conntrack, unless the origin
+retransmits.
 
-This avoids zeroing timer_list and ct_net; both are already inited
-explicitly.
+See: https://www.marc.info/?l=linux-netdev&m=141588039530056&w=2
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This was introduced in fc35077 ("netfilter: nf_conntrack: fix a race in
+__nf_conntrack_confirm against nf_ct_get_next_corpse()").
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h | 15 +++++++++------
- net/netfilter/nf_conntrack_core.c    | 11 ++++-------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index c8a7db6..f0daed2 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -92,12 +92,18 @@ struct nf_conn {
- 	/* Have we seen traffic both ways yet? (bitset) */
- 	unsigned long status;
- 
--	/* If we were expected by an expectation, this will be it */
--	struct nf_conn *master;
--
- 	/* Timer function; drops refcnt when it goes off. */
- 	struct timer_list timeout;
- 
-+#ifdef CONFIG_NET_NS
-+	struct net *ct_net;
-+#endif
-+	/* all members below initialized via memset */
-+	u8 __nfct_init_offset[0];
-+
-+	/* If we were expected by an expectation, this will be it */
-+	struct nf_conn *master;
-+
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	u_int32_t mark;
- #endif
-@@ -108,9 +114,6 @@ struct nf_conn {
- 
- 	/* Extensions */
- 	struct nf_ct_ext *ext;
--#ifdef CONFIG_NET_NS
--	struct net *ct_net;
--#endif
- 
- 	/* Storage reserved for other modules, must be the last member */
- 	union nf_conntrack_proto proto;
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5016a69..a116748 100644
+index 2c69975..d293fe22 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -824,22 +824,19 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
- 		atomic_dec(&net->ct.count);
- 		return ERR_PTR(-ENOMEM);
+@@ -623,7 +623,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 		nf_ct_add_to_dying_list(ct);
+ 		nf_conntrack_double_unlock(hash, reply_hash);
+ 		local_bh_enable();
+-		return NF_ACCEPT;
++		return NF_DROP;
  	}
--	/*
--	 * Let ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.next
--	 * and ct->tuplehash[IP_CT_DIR_REPLY].hnnode.next unchanged.
--	 */
--	memset(&ct->tuplehash[IP_CT_DIR_MAX], 0,
--	       offsetof(struct nf_conn, proto) -
--	       offsetof(struct nf_conn, tuplehash[IP_CT_DIR_MAX]));
- 	spin_lock_init(&ct->lock);
- 	ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
- 	ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.pprev = NULL;
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *repl;
- 	/* save hash for reusing when confirming */
- 	*(unsigned long *)(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev) = hash;
-+	ct->status = 0;
- 	/* Don't set timer yet: wait for confirmation */
- 	setup_timer(&ct->timeout, death_by_timeout, (unsigned long)ct);
- 	write_pnet(&ct->ct_net, net);
-+	memset(&ct->__nfct_init_offset[0], 0,
-+	       offsetof(struct nf_conn, proto) -
-+	       offsetof(struct nf_conn, __nfct_init_offset[0]));
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	if (zone) {
- 		struct nf_conntrack_zone *nf_ct_zone;
+ 
+ 	/* See if there's one in the list already, including reverse:
 -- 
-2.0.4
+1.7.10.4
 
