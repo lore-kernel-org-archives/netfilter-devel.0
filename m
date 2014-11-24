@@ -1,42 +1,86 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH] evaluate: reject: fix a crash to use tcp reset with network context in bridge
-Date: Mon, 24 Nov 2014 20:20:57 +0100
-Message-ID: <1416856857-15768-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 01/10] netfilter: ipset: Support updating extensions when the set is full
+Date: Mon, 24 Nov 2014 21:46:43 +0100
+Message-ID: <1416862012-31139-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1416862012-31139-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:47024 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067AbaKXTUl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 14:20:41 -0500
-Received: by mail-wg0-f47.google.com with SMTP id n12so13303878wgh.34
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 11:20:40 -0800 (PST)
+Received: from smtp-in.kfki.hu ([148.6.0.25]:51369 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751134AbaKXUqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 15:46:00 -0500
+In-Reply-To: <1416862012-31139-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we use tcp reset with a network protocol that it's not supported, we send an
-error message. In that case reject.expr is NULL and we have a crash. Therefore
-we have to use the stmt to indicate that the error comes from the reject.
+When the set was full (hash type and maxelem reached), it was not
+possible to update the extension part of already existing elements.
+The patch removes this limitation. (Fixes netfilter bugzilla id 880.)
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- src/evaluate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 40 +++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 23 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 3eeb614..00e55b7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1277,7 +1277,7 @@ static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
- 		case __constant_htons(ETH_P_IPV6):
- 			break;
- 		default:
--			return stmt_binary_error(ctx, stmt->reject.expr,
-+			return stmt_binary_error(ctx, stmt,
- 				    &ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR],
- 				    "cannot reject this ether type");
- 		}
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index fee7c64e..a12ee04 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -633,29 +633,6 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	bool flag_exist = flags & IPSET_FLAG_EXIST;
+ 	u32 key, multi = 0;
+ 
+-	if (h->elements >= h->maxelem && SET_WITH_FORCEADD(set)) {
+-		rcu_read_lock_bh();
+-		t = rcu_dereference_bh(h->table);
+-		key = HKEY(value, h->initval, t->htable_bits);
+-		n = hbucket(t,key);
+-		if (n->pos) {
+-			/* Choosing the first entry in the array to replace */
+-			j = 0;
+-			goto reuse_slot;
+-		}
+-		rcu_read_unlock_bh();
+-	}
+-	if (SET_WITH_TIMEOUT(set) && h->elements >= h->maxelem)
+-		/* FIXME: when set is full, we slow down here */
+-		mtype_expire(set, h, NLEN(set->family), set->dsize);
+-
+-	if (h->elements >= h->maxelem) {
+-		if (net_ratelimit())
+-			pr_warn("Set %s is full, maxelem %u reached\n",
+-				set->name, h->maxelem);
+-		return -IPSET_ERR_HASH_FULL;
+-	}
+-
+ 	rcu_read_lock_bh();
+ 	t = rcu_dereference_bh(h->table);
+ 	key = HKEY(value, h->initval, t->htable_bits);
+@@ -680,6 +657,23 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		    j != AHASH_MAX(h) + 1)
+ 			j = i;
+ 	}
++	if (h->elements >= h->maxelem && SET_WITH_FORCEADD(set) && n->pos) {
++		/* Choosing the first entry in the array to replace */
++		j = 0;
++		goto reuse_slot;
++	}
++	if (SET_WITH_TIMEOUT(set) && h->elements >= h->maxelem)
++		/* FIXME: when set is full, we slow down here */
++		mtype_expire(set, h, NLEN(set->family), set->dsize);
++
++	if (h->elements >= h->maxelem) {
++		if (net_ratelimit())
++			pr_warn("Set %s is full, maxelem %u reached\n",
++				set->name, h->maxelem);
++		ret = -IPSET_ERR_HASH_FULL;
++		goto out;
++	}
++
+ reuse_slot:
+ 	if (j != AHASH_MAX(h) + 1) {
+ 		/* Fill out reused slot */
 -- 
-1.7.10.4
+1.8.5.1
 
