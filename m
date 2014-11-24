@@ -1,102 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 2/2 v2] bridge: set the pktinfo for IPv4/IPv6 traffic
-Date: Tue, 25 Nov 2014 00:22:23 +0100
-Message-ID: <20141124232223.GB3372@salvia>
-References: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
- <1416856550-15589-2-git-send-email-alvaroneay@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [PATCH nft] src: restore nft --debug and add missing \
+Date: Tue, 25 Nov 2014 00:38:18 +0100
+Message-ID: <1416872298-6125-1-git-send-email-pablo@netfilter.org>
+Cc: zub.272@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39165 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41069 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbaKXXUO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 18:20:14 -0500
-Content-Disposition: inline
-In-Reply-To: <1416856550-15589-2-git-send-email-alvaroneay@gmail.com>
+	id S1751313AbaKXXg1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2014 18:36:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 24, 2014 at 08:15:50PM +0100, Alvaro Neira Ayuso wrote:
-> This patch sets the pktinfo for IPv4/IPv6 traffic. Therefore, we can check the
-> meta l4proto for IPv4/IPv6 traffic in bridge, before we don't have enough
-> information to do it. Example:
+Add -DDEBUG to enable --debug option by default as it used to be before
+the autotools conversion.
 
-I suggest:
+The missing \ at the end of the line causes LIBMNL_CFLAGS and
+LIBNFTNL_CFLAGS to be ignored. This causes build failure if the libmnl
+or libnftnl headers are not in a path that's already searched by the C
+compiler. Reported by David Kozub.
 
-"This patch adds the missing bits to allow to match per meta l4proto
- from the bridge. Example:" 
+Fixes: 5fa8e49 ("build: autotools conversion")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Daniel: Your patch clashes with mine:
+http://patchwork.ozlabs.org/patch/413457/
 
->   nft add rule bridge filter input ether type {ip, ip6} meta l4proto udp counter
-> and
->   nft add rule bridge filter input ether type {ip, ip6} meta l4proto tcp counter
+So I have merged your change to mine. Please, feel free to post your
+Acked-by / Signed-off-by and I'll append it to this patch. Thanks.
 
-One example is enough. These two look too similar.
+ src/Makefile.am |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> With this patch, we can filter the traffic using the transport context that we
-> want.
-> 
-> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-> ---
-> [changes in v2]
->  * Refactor the code to make it more clear
->  * Make sure that IPv6 is enabled
-> 
->  net/bridge/netfilter/nf_tables_bridge.c |   21 ++++++++++++++++++++-
->  1 file changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-> index d468c19..f4471d7 100644
-> --- a/net/bridge/netfilter/nf_tables_bridge.c
-> +++ b/net/bridge/netfilter/nf_tables_bridge.c
-> @@ -16,6 +16,8 @@
->  #include <net/netfilter/nf_tables_bridge.h>
->  #include <linux/ip.h>
->  #include <linux/ipv6.h>
-> +#include <net/netfilter/nf_tables_ipv4.h>
-> +#include <net/netfilter/nf_tables_ipv6.h>
->  
->  int nft_bridge_iphdr_validate(struct sk_buff *skb)
->  {
-> @@ -71,7 +73,24 @@ nft_do_chain_bridge(const struct nf_hook_ops *ops,
->  {
->  	struct nft_pktinfo pkt;
->  
-> -	nft_set_pktinfo(&pkt, ops, skb, in, out);
-> +	switch (eth_hdr(skb)->h_proto) {
-> +	case htons(ETH_P_IP):
-> +		if (!nft_bridge_iphdr_validate(skb))
-> +			nft_set_pktinfo(&pkt, ops, skb, in, out);
-> +		else
-> +			nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-> +		break;
-> +	case htons(ETH_P_IPV6):
-> +		#if IS_ENABLED(CONFIG_IPV6)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 0a67810..d53c347 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -3,7 +3,7 @@ sbin_PROGRAMS = nft
+ CLEANFILES = scanner.c parser_bison.c
+ 
+ AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\""
++AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\"" -DDEBUG \
+ 		${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS}
+ 
+ AM_CFLAGS = -Wall								\
+-- 
+1.7.10.4
 
-Never indent #if's and #endif.
-
-In case of doubt, just check around to see how this is done in other
-code, so you don't need to figure out how to make it.
-
-Thanks.
-
-> +			if (!nft_bridge_ip6hdr_validate(skb) ||
-> +			    nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
-> +				nft_set_pktinfo(&pkt, ops, skb, in, out);
-> +			break;
-> +		#endif
-> +	default:
-> +		nft_set_pktinfo(&pkt, ops, skb, in, out);
-> +		break;
-> +	}
->  
->  	return nft_do_chain(&pkt, ops);
->  }
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
