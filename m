@@ -1,215 +1,85 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [PATCH nf 1/2 v2] bridge: export nft_reject_ip*hdr_validate functions
-Date: Mon, 24 Nov 2014 20:15:49 +0100
-Message-ID: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
+Subject: [PATCH nf 2/2 v2] bridge: set the pktinfo for IPv4/IPv6 traffic
+Date: Mon, 24 Nov 2014 20:15:50 +0100
+Message-ID: <1416856550-15589-2-git-send-email-alvaroneay@gmail.com>
+References: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:63601 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754293AbaKXTP1 (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:51804 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754333AbaKXTP2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 14:15:27 -0500
-Received: by mail-wi0-f179.google.com with SMTP id ex7so6951224wid.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 11:15:26 -0800 (PST)
+	Mon, 24 Nov 2014 14:15:28 -0500
+Received: by mail-wg0-f48.google.com with SMTP id y19so13171417wgg.7
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2014 11:15:27 -0800 (PST)
 Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id hs1sm13292526wib.1.2014.11.24.11.15.24
+        by mx.google.com with ESMTPSA id hs1sm13292526wib.1.2014.11.24.11.15.26
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 24 Nov 2014 11:15:25 -0800 (PST)
+        Mon, 24 Nov 2014 11:15:26 -0800 (PST)
+In-Reply-To: <1416856550-15589-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch exports the functions nft_reject_iphdr_validate and
-nft_reject_ip6hdr_validate to use it in follow up patches.
-These functions check if the ethernet header is correct.
+This patch sets the pktinfo for IPv4/IPv6 traffic. Therefore, we can check the
+meta l4proto for IPv4/IPv6 traffic in bridge, before we don't have enough
+information to do it. Example:
+
+  nft add rule bridge filter input ether type {ip, ip6} meta l4proto udp counter
+and
+  nft add rule bridge filter input ether type {ip, ip6} meta l4proto tcp counter
+
+With this patch, we can filter the traffic using the transport context that we
+want.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
-[no changes in v2]
+[changes in v2]
+ * Refactor the code to make it more clear
+ * Make sure that IPv6 is enabled
 
- include/net/netfilter/nf_tables_bridge.h |    7 ++++
- net/bridge/netfilter/nf_tables_bridge.c  |   48 +++++++++++++++++++++++++++
- net/bridge/netfilter/nft_reject_bridge.c |   52 +++---------------------------
- 3 files changed, 60 insertions(+), 47 deletions(-)
- create mode 100644 include/net/netfilter/nf_tables_bridge.h
+ net/bridge/netfilter/nf_tables_bridge.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables_bridge.h b/include/net/netfilter/nf_tables_bridge.h
-new file mode 100644
-index 0000000..511fb79
---- /dev/null
-+++ b/include/net/netfilter/nf_tables_bridge.h
-@@ -0,0 +1,7 @@
-+#ifndef _NET_NF_TABLES_BRIDGE_H
-+#define _NET_NF_TABLES_BRIDGE_H
-+
-+int nft_bridge_iphdr_validate(struct sk_buff *skb);
-+int nft_bridge_ip6hdr_validate(struct sk_buff *skb);
-+
-+#endif /* _NET_NF_TABLES_BRIDGE_H */
 diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 074c557..d468c19 100644
+index d468c19..f4471d7 100644
 --- a/net/bridge/netfilter/nf_tables_bridge.c
 +++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -13,6 +13,54 @@
- #include <linux/module.h>
- #include <linux/netfilter_bridge.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_bridge.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+
-+int nft_bridge_iphdr_validate(struct sk_buff *skb)
-+{
-+	struct iphdr *iph;
-+	u32 len;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+		return 0;
-+
-+	iph = ip_hdr(skb);
-+	if (iph->ihl < 5 || iph->version != 4)
-+		return 0;
-+
-+	len = ntohs(iph->tot_len);
-+	if (skb->len < len)
-+		return 0;
-+	else if (len < (iph->ihl*4))
-+		return 0;
-+
-+	if (!pskb_may_pull(skb, iph->ihl*4))
-+		return 0;
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(nft_bridge_iphdr_validate);
-+
-+int nft_bridge_ip6hdr_validate(struct sk_buff *skb)
-+{
-+	struct ipv6hdr *hdr;
-+	u32 pkt_len;
-+
-+	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
-+		return 0;
-+
-+	hdr = ipv6_hdr(skb);
-+	if (hdr->version != 6)
-+		return 0;
-+
-+	pkt_len = ntohs(hdr->payload_len);
-+	if (pkt_len + sizeof(struct ipv6hdr) > skb->len)
-+		return 0;
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(nft_bridge_ip6hdr_validate);
- 
- static unsigned int
- nft_do_chain_bridge(const struct nf_hook_ops *ops,
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index 48da2c5..b0330ae 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -14,6 +14,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nft_reject.h>
-+#include <net/netfilter/nf_tables_bridge.h>
- #include <net/netfilter/ipv4/nf_reject.h>
- #include <net/netfilter/ipv6/nf_reject.h>
+@@ -16,6 +16,8 @@
+ #include <net/netfilter/nf_tables_bridge.h>
  #include <linux/ip.h>
-@@ -35,30 +36,6 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
- 	skb_pull(nskb, ETH_HLEN);
- }
+ #include <linux/ipv6.h>
++#include <net/netfilter/nf_tables_ipv4.h>
++#include <net/netfilter/nf_tables_ipv6.h>
  
--static int nft_reject_iphdr_validate(struct sk_buff *oldskb)
--{
--	struct iphdr *iph;
--	u32 len;
--
--	if (!pskb_may_pull(oldskb, sizeof(struct iphdr)))
--		return 0;
--
--	iph = ip_hdr(oldskb);
--	if (iph->ihl < 5 || iph->version != 4)
--		return 0;
--
--	len = ntohs(iph->tot_len);
--	if (oldskb->len < len)
--		return 0;
--	else if (len < (iph->ihl*4))
--		return 0;
--
--	if (!pskb_may_pull(oldskb, iph->ihl*4))
--		return 0;
--
--	return 1;
--}
--
- static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
+ int nft_bridge_iphdr_validate(struct sk_buff *skb)
  {
- 	struct sk_buff *nskb;
-@@ -66,7 +43,7 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
- 	const struct tcphdr *oth;
- 	struct tcphdr _oth;
- 
--	if (!nft_reject_iphdr_validate(oldskb))
-+	if (!nft_bridge_iphdr_validate(oldskb))
- 		return;
- 
- 	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
-@@ -101,7 +78,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	void *payload;
- 	__wsum csum;
- 
--	if (!nft_reject_iphdr_validate(oldskb))
-+	if (!nft_bridge_iphdr_validate(oldskb))
- 		return;
- 
- 	/* IP header checks: fragment. */
-@@ -146,25 +123,6 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
- }
- 
--static int nft_reject_ip6hdr_validate(struct sk_buff *oldskb)
--{
--	struct ipv6hdr *hdr;
--	u32 pkt_len;
--
--	if (!pskb_may_pull(oldskb, sizeof(struct ipv6hdr)))
--		return 0;
--
--	hdr = ipv6_hdr(oldskb);
--	if (hdr->version != 6)
--		return 0;
--
--	pkt_len = ntohs(hdr->payload_len);
--	if (pkt_len + sizeof(struct ipv6hdr) > oldskb->len)
--		return 0;
--
--	return 1;
--}
--
- static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 					    struct sk_buff *oldskb, int hook)
+@@ -71,7 +73,24 @@ nft_do_chain_bridge(const struct nf_hook_ops *ops,
  {
-@@ -174,7 +132,7 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 	unsigned int otcplen;
- 	struct ipv6hdr *nip6h;
+ 	struct nft_pktinfo pkt;
  
--	if (!nft_reject_ip6hdr_validate(oldskb))
-+	if (!nft_bridge_ip6hdr_validate(oldskb))
- 		return;
+-	nft_set_pktinfo(&pkt, ops, skb, in, out);
++	switch (eth_hdr(skb)->h_proto) {
++	case htons(ETH_P_IP):
++		if (!nft_bridge_iphdr_validate(skb))
++			nft_set_pktinfo(&pkt, ops, skb, in, out);
++		else
++			nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
++		break;
++	case htons(ETH_P_IPV6):
++		#if IS_ENABLED(CONFIG_IPV6)
++			if (!nft_bridge_ip6hdr_validate(skb) ||
++			    nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
++				nft_set_pktinfo(&pkt, ops, skb, in, out);
++			break;
++		#endif
++	default:
++		nft_set_pktinfo(&pkt, ops, skb, in, out);
++		break;
++	}
  
- 	oth = nf_reject_ip6_tcphdr_get(oldskb, &_oth, &otcplen, hook);
-@@ -207,7 +165,7 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
- 	unsigned int len;
- 	void *payload;
- 
--	if (!nft_reject_ip6hdr_validate(oldskb))
-+	if (!nft_bridge_ip6hdr_validate(oldskb))
- 		return;
- 
- 	/* Include "As much of invoking packet as possible without the ICMPv6
+ 	return nft_do_chain(&pkt, ops);
+ }
 -- 
 1.7.10.4
 
