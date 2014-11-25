@@ -1,50 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: restore nft --debug and add missing \
-Date: Tue, 25 Nov 2014 00:38:18 +0100
-Message-ID: <1416872298-6125-1-git-send-email-pablo@netfilter.org>
-Cc: zub.272@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH 1/2 nf] Revert "netfilter: conntrack: fix race in
+ __nf_conntrack_confirm against get_next_corpse"
+Date: Tue, 25 Nov 2014 13:26:29 +0100
+Message-ID: <20141125132629.28448018@redhat.com>
+References: <1416870887-5285-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, dborkman@redhat.com,
+	jp.pozzi@izzop.net, programme110@gmail.com, brouer@redhat.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41069 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:35303 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751313AbaKXXg1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2014 18:36:27 -0500
+	id S1754430AbaKYM0k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Nov 2014 07:26:40 -0500
+In-Reply-To: <1416870887-5285-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add -DDEBUG to enable --debug option by default as it used to be before
-the autotools conversion.
+On Tue, 25 Nov 2014 00:14:46 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-The missing \ at the end of the line causes LIBMNL_CFLAGS and
-LIBNFTNL_CFLAGS to be ignored. This causes build failure if the libmnl
-or libnftnl headers are not in a path that's already searched by the C
-compiler. Reported by David Kozub.
+> This reverts commit 5195c14c8b27cc0b18220ddbf0e5ad3328a04187.
+> 
+> If the conntrack clashes with an existing one, it is left out of
+> the unconfirmed, thus, crashing when dropping the packet and
+> releasing the conntrack.
+> 
+> Reported-by: Daniel Borkmann <dborkman@redhat.com>
+> Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=88841
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> I prefer to revert the original fix and replace it by the follow up to
+> pass one single patch to -stable.
 
-Fixes: 5fa8e49 ("build: autotools conversion")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Daniel: Your patch clashes with mine:
-http://patchwork.ozlabs.org/patch/413457/
+I'm fine with the revert.
 
-So I have merged your change to mine. Please, feel free to post your
-Acked-by / Signed-off-by and I'll append it to this patch. Thanks.
-
- src/Makefile.am |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 0a67810..d53c347 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -3,7 +3,7 @@ sbin_PROGRAMS = nft
- CLEANFILES = scanner.c parser_bison.c
- 
- AM_CPPFLAGS = -I$(top_srcdir)/include
--AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\""
-+AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\"" -DDEBUG \
- 		${LIBMNL_CFLAGS} ${LIBNFTNL_CFLAGS}
- 
- AM_CFLAGS = -Wall								\
 -- 
-1.7.10.4
-
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
