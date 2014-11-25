@@ -1,116 +1,88 @@
-From: Andreas Ruprecht <rupran@einserver.de>
-Subject: [PATCH] net: netfilter: Fix undefined reference to nf_nat_redirect_* functions
-Date: Tue, 25 Nov 2014 16:07:14 +0100
-Message-ID: <1416928034-10882-1-git-send-email-rupran@einserver.de>
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andreas Ruprecht <rupran@einserver.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft] segfault, bitmask datatype without parse() function
+Date: Tue, 25 Nov 2014 16:43:41 +0100
+Message-ID: <20141125154341.GA3579@salvia>
+References: <CAOkSjBhYt+tnDo7vP=bz5hP37cePGxvW2TApPtbXdA0FKkx9dg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41002 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726AbaKYPlh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Nov 2014 10:41:37 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBhYt+tnDo7vP=bz5hP37cePGxvW2TApPtbXdA0FKkx9dg@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In a configuration with CONFIG_NFT_NAT and
-CONFIG_NETFILTER_XT_TARGET_REDIRECT enabled, undefined references to
-nf_nat_redirect_ipv{4,6}() can occur, when the corresponding options
-CONFIG_NF_NAT_REDIRECT_IPV4 or CONFIG_NF_NAT_REDIRECT_IPV6 are not
-enabled.
+On Tue, Nov 25, 2014 at 01:53:20PM +0100, Arturo Borrero Gonzalez wrote=
+:
+> Hi,
+>=20
+> It seems there is a segfault in nft.
+>=20
+> How to reproduce:
+>=20
+> % nft add rule inet filter ct state established,related accept
 
-net/built-in.o: In function `redirect_tg4':
-xt_REDIRECT.c:(.text+0x6d001): undefined reference to `nf_nat_redirect_ipv4'
-net/built-in.o: In function `redirect_tg6':
-xt_REDIRECT.c:(.text+0x6d021): undefined reference to `nf_nat_redirect_ipv6'
+Where is the chain there?
 
-This is because the file xt_REDIRECT.c is compiled when
-CONFIG_NETFILTER_XT_TARGET_REDIRECT is enabled, which only depends
-on CONFIG_NF_NAT. This option is invisible and can only be selected by
-other Kconfig options. In this particular case, it is selected by
-CONFIG_NFT_NAT.
+I think this crash happens in an error path.
 
-This patch changes the dependency for CONFIG_NETFILTER_XT_TARGET_REDIRECT
-to only make it visible if at least one of
-{CONFIG_NF_NAT_REDIRECT_IPV4, CONFIG_NF_NAT_REDIRECT_IPV6} are enabled.
-
-Additionally it is necessary to provide stubs for the
-nf_nat_redirect_ipv{4,6} functions in case the header is included but
-the corresponding Kconfig feature is not enabled.
-
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
----
- include/net/netfilter/ipv4/nf_nat_redirect.h | 14 ++++++++++++++
- include/net/netfilter/ipv6/nf_nat_redirect.h | 13 +++++++++++++
- net/netfilter/Kconfig                        |  2 +-
- 3 files changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/include/net/netfilter/ipv4/nf_nat_redirect.h b/include/net/netfilter/ipv4/nf_nat_redirect.h
-index 19e1df3a0a4d..514c7f465d5f 100644
---- a/include/net/netfilter/ipv4/nf_nat_redirect.h
-+++ b/include/net/netfilter/ipv4/nf_nat_redirect.h
-@@ -1,9 +1,23 @@
- #ifndef _NF_NAT_REDIRECT_IPV4_H_
- #define _NF_NAT_REDIRECT_IPV4_H_
- 
-+#include <linux/netfilter.h>
-+
-+#ifdef CONFIG_NF_NAT_REDIRECT_IPV4
- unsigned int
- nf_nat_redirect_ipv4(struct sk_buff *skb,
- 		     const struct nf_nat_ipv4_multi_range_compat *mr,
- 		     unsigned int hooknum);
- 
-+#else /* CONFIG_NF_NAT_REDIRECT_IPv4 */
-+
-+unsigned int
-+nf_nat_redirect_ipv4(struct sk_buff *skb,
-+		     const struct nf_nat_ipv4_multi_range_compat *mr,
-+		     unsigned int hooknum)
-+{
-+	return NF_ACCEPT;
-+}
-+#endif /* CONFIG_NF_NAT_REDIRECT_IPv4 */
-+
- #endif /* _NF_NAT_REDIRECT_IPV4_H_ */
-diff --git a/include/net/netfilter/ipv6/nf_nat_redirect.h b/include/net/netfilter/ipv6/nf_nat_redirect.h
-index 1ebdffc461cc..4db9351120ec 100644
---- a/include/net/netfilter/ipv6/nf_nat_redirect.h
-+++ b/include/net/netfilter/ipv6/nf_nat_redirect.h
-@@ -1,8 +1,21 @@
- #ifndef _NF_NAT_REDIRECT_IPV6_H_
- #define _NF_NAT_REDIRECT_IPV6_H_
- 
-+#include <linux/netfilter.h>
-+
-+#ifdef CONFIG_NF_NAT_REDIRECT_IPV6
- unsigned int
- nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
- 		     unsigned int hooknum);
- 
-+#else /* CONFIG_NF_NAT_REDIRECT_IPV6 */
-+
-+unsigned int
-+nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
-+		     unsigned int hooknum)
-+{
-+	return NF_ACCEPT;
-+}
-+#endif /* CONFIG_NF_NAT_REDIRECT_IPV6 */
-+
- #endif /* _NF_NAT_REDIRECT_IPV6_H_ */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index be8db270aa77..0972851cce03 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -844,7 +844,7 @@ config NETFILTER_XT_TARGET_RATEEST
- 
- config NETFILTER_XT_TARGET_REDIRECT
- 	tristate "REDIRECT target support"
--	depends on NF_NAT
-+	depends on NF_NAT_IPV4 || NF_NAT_IPV6
- 	select NF_NAT_REDIRECT_IPV4 if NF_NAT_IPV4
- 	select NF_NAT_REDIRECT_IPV6 if NF_NAT_IPV6
- 	---help---
--- 
-1.9.1
+> =3D=3D28442=3D=3D Jump to the invalid address stated on the next line
+> =3D=3D28442=3D=3D    at 0x0: ???
+> =3D=3D28442=3D=3D    by 0x4099EA: symbolic_constant_parse (datatype.c=
+:133)
+> =3D=3D28442=3D=3D    by 0x40BFD8: expr_evaluate (evaluate.c:199)
+> =3D=3D28442=3D=3D    by 0x40D524: list_member_evaluate (evaluate.c:59=
+7)
+> =3D=3D28442=3D=3D    by 0x40C25B: expr_evaluate (evaluate.c:649)
+> =3D=3D28442=3D=3D    by 0x40C103: expr_evaluate (evaluate.c:879)
+> =3D=3D28442=3D=3D    by 0x40D908: stmt_evaluate (evaluate.c:1103)
+> =3D=3D28442=3D=3D    by 0x40DF27: rule_evaluate (evaluate.c:1727)
+> =3D=3D28442=3D=3D    by 0x40E0A6: chain_evaluate (evaluate.c:1788)
+> =3D=3D28442=3D=3D    by 0x40E4CE: cmd_evaluate (evaluate.c:1807)
+> =3D=3D28442=3D=3D    by 0x423757: nft_parse (parser_bison.y:549)
+> =3D=3D28442=3D=3D    by 0x4061CC: nft_run (main.c:231)
+> =3D=3D28442=3D=3D  Address 0x0 is not stack'd, malloc'd or (recently)=
+ free'd
+> =3D=3D28442=3D=3D
+> =3D=3D28442=3D=3D
+> =3D=3D28442=3D=3D Process terminating with default action of signal 1=
+1 (SIGSEGV)
+> =3D=3D28442=3D=3D  Bad permissions for mapped region at address 0x0
+> =3D=3D28442=3D=3D    at 0x0: ???
+> =3D=3D28442=3D=3D    by 0x4099EA: symbolic_constant_parse (datatype.c=
+:133)
+> =3D=3D28442=3D=3D    by 0x40BFD8: expr_evaluate (evaluate.c:199)
+> =3D=3D28442=3D=3D    by 0x40D524: list_member_evaluate (evaluate.c:59=
+7)
+> =3D=3D28442=3D=3D    by 0x40C25B: expr_evaluate (evaluate.c:649)
+> =3D=3D28442=3D=3D    by 0x40C103: expr_evaluate (evaluate.c:879)
+> =3D=3D28442=3D=3D    by 0x40D908: stmt_evaluate (evaluate.c:1103)
+> =3D=3D28442=3D=3D    by 0x40DF27: rule_evaluate (evaluate.c:1727)
+> =3D=3D28442=3D=3D    by 0x40E0A6: chain_evaluate (evaluate.c:1788)
+> =3D=3D28442=3D=3D    by 0x40E4CE: cmd_evaluate (evaluate.c:1807)
+> =3D=3D28442=3D=3D    by 0x423757: nft_parse (parser_bison.y:549)
+> =3D=3D28442=3D=3D    by 0x4061CC: nft_run (main.c:231)
+> =3D=3D28442=3D=3D
+>=20
+> As far as I've investigated, it seems the bitmask datatype is missing
+> somehow the parse() function.
+>=20
+> My HEAD is cf1e7d4 (netlink: don't bug on unknown events).
+>
+>=20
+> regards.
+>=20
+> --=20
+> Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
