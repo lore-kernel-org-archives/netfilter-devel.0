@@ -1,48 +1,74 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft] segfault, bitmask datatype without parse() function
-Date: Tue, 25 Nov 2014 18:25:11 +0100
-Message-ID: <CAOkSjBisazG5HVCet27k9R+-6wP7VkSSZfn21G+wN40hLjnQbw@mail.gmail.com>
-References: <CAOkSjBhYt+tnDo7vP=bz5hP37cePGxvW2TApPtbXdA0FKkx9dg@mail.gmail.com>
- <20141125154341.GA3579@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: named vmaps
+Date: Tue, 25 Nov 2014 19:07:07 +0100
+Message-ID: <20141125180707.GA8164@salvia>
+References: <CAJO99T=5z-AC=YzOVTYH3++6kf74fXqSu=Q15Jqhb3bVYQ-mLw@mail.gmail.com>
+ <20141124115522.GA27521@salvia>
+ <CAJO99Tkv_rRE8Jd+=DzVSmWiFMUT2hgtLWR9VUxmZkivrod34w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:53301 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbaKYRZd convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Nov 2014 12:25:33 -0500
-Received: by mail-lb0-f182.google.com with SMTP id f15so1012181lbj.41
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Nov 2014 09:25:31 -0800 (PST)
-In-Reply-To: <20141125154341.GA3579@salvia>
+Received: from mail.us.es ([193.147.175.20]:50926 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750792AbaKYSE7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Nov 2014 13:04:59 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJO99Tkv_rRE8Jd+=DzVSmWiFMUT2hgtLWR9VUxmZkivrod34w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25 November 2014 at 16:43, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
-> On Tue, Nov 25, 2014 at 01:53:20PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> Hi,
->>
->> It seems there is a segfault in nft.
->>
->> How to reproduce:
->>
->> % nft add rule inet filter ct state established,related accept
+On Mon, Nov 24, 2014 at 08:03:16PM +0100, Bj=F8rnar Ness wrote:
+> 2014-11-24 12:55 GMT+01:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > On Fri, Nov 21, 2014 at 09:22:00AM +0100, Bj=F8rnar Ness wrote:
+> >> Is support for named vmaps removed from nft? Running kernel 3.18.0=
+-rc5
+> >> [ ... ]
+> >
+> > I have updated the documentation:
+> >
+> > http://wiki.nftables.org/wiki-nftables/index.php/Dictionaries
+> >
+> > Please, let me know if you find any mistake on it. Thanks.
+>=20
+> This works, thanks Pablo!
+>=20
+> A few comments, tho:
+>=20
+> Is it possible/planned to make counters work with sets/vmaps?
+>=20
+> nft add rule filter input ip saddr vmap @my_vmap counter
 >
-> Where is the chain there?
->
-> I think this crash happens in an error path.
->
+> will not work since it counts too late (never)
 
-Ops.. yes, the error happens somewhere in the error path.
+vmap is terminal, nft should spot an error with that rule.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
+What would you like to achieve with that 'counter'? Count packets that
+are look up in the set/vmap?
+
+> Is the following planned:
+> 1) individual element counters
+> 2) comments for elements
+> 3) element timeout
+
+Those can be implemented, yes.
+
+> Also, negative set/vmap lookup does not seem to work, I would like th=
+e
+> following functionality
+>=20
+> nft insert rule filter forward ip saddr !@ignorelist ip saddr @blockl=
+ist drop
+
+Negative set lookup is relatively easy to implement, we'll have this
+soon.
+
+Negative vmap lookup, I don't see at this moment how this can be
+useful.
+
+Thanks for testing.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
