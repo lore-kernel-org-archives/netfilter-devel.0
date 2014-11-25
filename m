@@ -1,31 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat-experimental6 PATCH v2] iptables: xtables-eb:
- fix renaming of chains
-Date: Tue, 25 Nov 2014 20:06:00 +0100
-Message-ID: <20141125190600.GA12999@salvia>
-References: <20141124184305.1910.4067.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net] Revert "netfilter: conntrack: fix race in
+ __nf_conntrack_confirm against get_next_corpse"
+Date: Tue, 25 Nov 2014 15:00:52 -0500 (EST)
+Message-ID: <20141125.150052.718297541684545720.davem@davemloft.net>
+References: <1416941687-25471-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	brouer@redhat.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35580 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750887AbaKYTDy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Nov 2014 14:03:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20141124184305.1910.4067.stgit@nfdev.cica.es>
+Received: from shards.monkeyblade.net ([149.20.54.216]:37856 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbaKYUAy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Nov 2014 15:00:54 -0500
+In-Reply-To: <1416941687-25471-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 24, 2014 at 07:43:05PM +0100, Arturo Borrero Gonzalez wrote:
-> Renaming of chains is not working. and ebtables-compat gets:
->  libnftnl: attribute 0 assertion failed in chain.c:159
-> 
-> This patch brings back the parser code of the original ebtables tool:
->  http://git.netfilter.org/ebtables.old-history/tree/userspace/ebtables2/ebtables.c#n652
-> 
-> I adaped the original parser code to fit in the new environment. Also tried to
-> keep original error messages as much as possible.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 25 Nov 2014 19:54:47 +0100
 
-Applied, thanks.
+> This reverts commit 5195c14c8b27cc0b18220ddbf0e5ad3328a04187.
+> 
+> If the conntrack clashes with an existing one, it is left out of
+> the unconfirmed list, thus, crashing when dropping the packet and
+> releasing the conntrack since golden rule is that conntracks are
+> always placed in any of the existing lists for traceability reasons.
+> 
+> Reported-by: Daniel Borkmann <dborkman@redhat.com>
+> Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=88841
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> Hi David,
+> 
+> Could you manually apply this to your net tree? We have a better
+> candidate fix to replace this broken patch that I will pass to you
+> once it gets sufficient testing.
+
+Done, thanks Pablo.
