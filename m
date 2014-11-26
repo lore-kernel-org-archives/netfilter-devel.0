@@ -1,106 +1,121 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [PATCH nf 2/2 v4] bridge: set the pktinfo for IPv4/IPv6 traffic
-Date: Wed, 26 Nov 2014 10:21:37 +0100
-Message-ID: <1416993697-18285-2-git-send-email-alvaroneay@gmail.com>
-References: <1416993697-18285-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:41771 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbaKZJVR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Nov 2014 04:21:17 -0500
-Received: by mail-wi0-f182.google.com with SMTP id h11so4235171wiw.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Nov 2014 01:21:16 -0800 (PST)
-Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id ec2sm6412280wib.23.2014.11.26.01.21.15
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 26 Nov 2014 01:21:15 -0800 (PST)
-In-Reply-To: <1416993697-18285-1-git-send-email-alvaroneay@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andreas Ruprecht <rupran@einserver.de>
+Subject: [PATCH v2] net: netfilter: Fix undefined reference to nf_nat_redirect_* functions
+Date: Wed, 26 Nov 2014 10:35:37 +0100
+Message-ID: <1416994537-1592-1-git-send-email-rupran@einserver.de>
+References: <1416928034-10882-1-git-send-email-rupran@einserver.de>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andreas Ruprecht <rupran@einserver.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1416928034-10882-1-git-send-email-rupran@einserver.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds the missing bits to allow to match per meta l4proto from
-the bridge. Example:
+In a configuration with CONFIG_NFT_NAT and
+CONFIG_NETFILTER_XT_TARGET_REDIRECT enabled, undefined references to
+nf_nat_redirect_ipv{4,6}() can occur, when the corresponding options
+CONFIG_NF_NAT_REDIRECT_IPV4 or CONFIG_NF_NAT_REDIRECT_IPV6 are not
+enabled.
 
-  nft add rule bridge filter input ether type {ip, ip6} meta l4proto udp counter
+net/built-in.o: In function `redirect_tg4':
+xt_REDIRECT.c:(.text+0x6d001): undefined reference to `nf_nat_redirect_ipv4'
+net/built-in.o: In function `redirect_tg6':
+xt_REDIRECT.c:(.text+0x6d021): undefined reference to `nf_nat_redirect_ipv6'
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+This is because the file xt_REDIRECT.c is compiled when
+CONFIG_NETFILTER_XT_TARGET_REDIRECT is enabled, which only depends
+on CONFIG_NF_NAT. This option is invisible and can only be selected by
+other Kconfig options. In this particular case, it is selected by
+CONFIG_NFT_NAT.
+
+This patch changes the dependency for CONFIG_NETFILTER_XT_TARGET_REDIRECT
+to only make it visible if at least one of
+{CONFIG_NF_NAT_REDIRECT_IPV4, CONFIG_NF_NAT_REDIRECT_IPV6} are enabled.
+
+Additionally it is necessary to provide stubs for the
+nf_nat_redirect_ipv{4,6} functions in case the header is included but
+the corresponding Kconfig feature is not enabled.
+
+Changes:
+v2: Correct capitalization for CONFIG_NF_NAT_REDIRECT_IPV4 in comment.
+
+Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
 ---
-[changes in v4]
- * refactor the code in two functions nft_bridge_set_pktinfo_ipv*
+ include/net/netfilter/ipv4/nf_nat_redirect.h | 14 ++++++++++++++
+ include/net/netfilter/ipv6/nf_nat_redirect.h | 13 +++++++++++++
+ net/netfilter/Kconfig                        |  2 +-
+ 3 files changed, 28 insertions(+), 1 deletion(-)
 
- net/bridge/netfilter/nf_tables_bridge.c |   42 ++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
-
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index d468c19..32341fd 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -16,6 +16,8 @@
- #include <net/netfilter/nf_tables_bridge.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <net/netfilter/nf_tables_ipv4.h>
-+#include <net/netfilter/nf_tables_ipv6.h>
+diff --git a/include/net/netfilter/ipv4/nf_nat_redirect.h b/include/net/netfilter/ipv4/nf_nat_redirect.h
+index 19e1df3a0a4d..56a506dd55cc 100644
+--- a/include/net/netfilter/ipv4/nf_nat_redirect.h
++++ b/include/net/netfilter/ipv4/nf_nat_redirect.h
+@@ -1,9 +1,23 @@
+ #ifndef _NF_NAT_REDIRECT_IPV4_H_
+ #define _NF_NAT_REDIRECT_IPV4_H_
  
- int nft_bridge_iphdr_validate(struct sk_buff *skb)
- {
-@@ -62,6 +64,34 @@ int nft_bridge_ip6hdr_validate(struct sk_buff *skb)
- }
- EXPORT_SYMBOL_GPL(nft_bridge_ip6hdr_validate);
++#include <linux/netfilter.h>
++
++#ifdef CONFIG_NF_NAT_REDIRECT_IPV4
+ unsigned int
+ nf_nat_redirect_ipv4(struct sk_buff *skb,
+ 		     const struct nf_nat_ipv4_multi_range_compat *mr,
+ 		     unsigned int hooknum);
  
-+static inline int nft_bridge_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
-+					      const struct nf_hook_ops *ops,
-+					      struct sk_buff *skb,
-+					      const struct net_device *in,
-+					      const struct net_device *out)
++#else /* CONFIG_NF_NAT_REDIRECT_IPV4 */
++
++unsigned int
++nf_nat_redirect_ipv4(struct sk_buff *skb,
++		     const struct nf_nat_ipv4_multi_range_compat *mr,
++		     unsigned int hooknum)
 +{
-+	if (!nft_bridge_iphdr_validate(skb))
-+		nft_set_pktinfo(pkt, ops, skb, in, out);
-+	else
-+		nft_set_pktinfo_ipv4(pkt, ops, skb, in, out);
-+
-+	return 0;
++	return NF_ACCEPT;
 +}
++#endif /* CONFIG_NF_NAT_REDIRECT_IPV4 */
 +
-+static inline int nft_bridge_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
-+					      const struct nf_hook_ops *ops,
-+					      struct sk_buff *skb,
-+					      const struct net_device *in,
-+					      const struct net_device *out)
+ #endif /* _NF_NAT_REDIRECT_IPV4_H_ */
+diff --git a/include/net/netfilter/ipv6/nf_nat_redirect.h b/include/net/netfilter/ipv6/nf_nat_redirect.h
+index 1ebdffc461cc..4db9351120ec 100644
+--- a/include/net/netfilter/ipv6/nf_nat_redirect.h
++++ b/include/net/netfilter/ipv6/nf_nat_redirect.h
+@@ -1,8 +1,21 @@
+ #ifndef _NF_NAT_REDIRECT_IPV6_H_
+ #define _NF_NAT_REDIRECT_IPV6_H_
+ 
++#include <linux/netfilter.h>
++
++#ifdef CONFIG_NF_NAT_REDIRECT_IPV6
+ unsigned int
+ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
+ 		     unsigned int hooknum);
+ 
++#else /* CONFIG_NF_NAT_REDIRECT_IPV6 */
++
++unsigned int
++nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
++		     unsigned int hooknum)
 +{
-+#if IS_ENABLED(CONFIG_IPV6)
-+	if (nft_bridge_ip6hdr_validate(skb) &&
-+	    nft_set_pktinfo_ipv6(pkt, ops, skb, in, out) == 0)
-+		return 1;
-+#endif
-+	return 0;
++	return NF_ACCEPT;
 +}
++#endif /* CONFIG_NF_NAT_REDIRECT_IPV6 */
 +
- static unsigned int
- nft_do_chain_bridge(const struct nf_hook_ops *ops,
- 		    struct sk_buff *skb,
-@@ -71,7 +101,17 @@ nft_do_chain_bridge(const struct nf_hook_ops *ops,
- {
- 	struct nft_pktinfo pkt;
+ #endif /* _NF_NAT_REDIRECT_IPV6_H_ */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index be8db270aa77..0972851cce03 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -844,7 +844,7 @@ config NETFILTER_XT_TARGET_RATEEST
  
--	nft_set_pktinfo(&pkt, ops, skb, in, out);
-+	switch (eth_hdr(skb)->h_proto) {
-+	case htons(ETH_P_IP):
-+		nft_bridge_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+		break;
-+	case htons(ETH_P_IPV6):
-+		if (nft_bridge_set_pktinfo_ipv6(&pkt, ops, skb, in, out) > 0)
-+			break;
-+	default:
-+		nft_set_pktinfo(&pkt, ops, skb, in, out);
-+		break;
-+	}
- 
- 	return nft_do_chain(&pkt, ops);
- }
+ config NETFILTER_XT_TARGET_REDIRECT
+ 	tristate "REDIRECT target support"
+-	depends on NF_NAT
++	depends on NF_NAT_IPV4 || NF_NAT_IPV6
+ 	select NF_NAT_REDIRECT_IPV4 if NF_NAT_IPV4
+ 	select NF_NAT_REDIRECT_IPV6 if NF_NAT_IPV6
+ 	---help---
 -- 
-1.7.10.4
-
+1.9.1
