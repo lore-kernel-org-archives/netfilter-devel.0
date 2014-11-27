@@ -1,66 +1,63 @@
-From: leroy christophe <christophe.leroy@c-s.fr>
-Subject: Re: issue with nftable - goto : Operation not supported
-Date: Thu, 27 Nov 2014 13:31:52 +0100
-Message-ID: <547719B8.6040302@c-s.fr>
-References: <5474BC91.6060108@c-s.fr> <20141126130042.GA1533@salvia> <54760ABA.4040900@c-s.fr> <20141126174721.GA3815@salvia> <5476152E.8010400@c-s.fr> <20141126181312.GA25447@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20141126181312.GA25447@salvia>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] datatype: fix crash when using basetype instead of symbolic constants
+Date: Thu, 27 Nov 2014 13:59:56 +0100
+Message-ID: <1417093196-19347-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, christophe.leroy@c-s.fr
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60055 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752913AbaK0M54 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Nov 2014 07:57:56 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+The following example:
 
-Le 26/11/2014 19:13, Pablo Neira Ayuso a =E9crit :
->> How can it interpret the below output which seems buggy ?
->>
->> root@vgoip:~# nft list table filter
->> table ip filter {
->>          chain input {
->>                   type filter hook input priority 0;
->>                   oifname "lo" accept
->>                   ip protocol icmp accept
->>                   ct state 8 unknown unknown 0x16 [invalid type] acc=
-ept
->>                   ct state { 4, 2} accept
->>                   reject with icmp type 10
->>          }
-> What is the original ruleset you loaded? This should not happen. Any
-> relevant information regarding your testbed?
-Ruleset is:
-nft add table ip filter
-nft add chain ip filter input { type filter hook input priority 0 \; }
-nft add rule filter input meta oifname lo accept
-nft add rule filter input ip protocol icmp accept
-nft add rule filter input ct state new tcp dport 22 accept
-nft add rule filter input ct state {established, related} accept
-nft add rule filter input reject with icmp type host-prohibited
+ # nft add rule filter input ct state 8 accept
+ Segmentation fault
 
-Target is a powerpc
-All building is done on a x86 PC, using home built cross-compile gnu=20
-tools (binutils, gcc, glibc, ....)
+leads to a crash because we have the following datatype relation:
 
-I just ran 'nft' with gdb, and I have seen something wrong with byte=20
-ordering.
-It looks like in symbolic_constant_print(), mpz_export_data() return a=20
-strange val.
-=46irst time we get there, we get 0x800000000
-Next time, we get 0x400000000
-Last time, we get 0x200000000
-While we expect 8(new), 4(related), 2(established)
+ ct_state -> bitmask -> integer
 
-Any idea on how I can fix that ?
+The bitmask, which is an intermediate basetype, has no parse()
+function, this leads to a crash in symbolic_constant_parse().
 
-Kernel 3.17.4
-nftables-20141121
-gmp-4.3.2
-libmnl-1.0.3
-libnfnetlink-1.0.1
-libnftnl-20141121
-libnetfilter_conntrack-1.0.4
+So let's default to the leaf basetype parser when the intermediate
+one has no specific parser() function.
 
-Christophe
+Add a bugtrap too to catch inconsistent datatype configurations.
+
+Reported-by: leroy christophe <christophe.leroy@c-s.fr>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/datatype.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/datatype.c b/src/datatype.c
+index 5f976aa..baeaea7 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -128,7 +128,17 @@ struct error_record *symbolic_constant_parse(const struct expr *sym,
+ 	dtype = sym->dtype;
+ 	if (s->identifier == NULL) {
+ 		*res = NULL;
+-		erec = sym->dtype->basetype->parse(sym, res);
++
++		if (sym->dtype->basetype->parse) {
++			erec = sym->dtype->basetype->parse(sym, res);
++		} else if (sym->dtype->basetype->basetype &&
++			   sym->dtype->basetype->basetype->parse) {
++			erec = sym->dtype->basetype->basetype->parse(sym, res);
++		} else {
++			BUG("cannot parse symbol %s with datatype %s\n",
++			    sym->identifier, sym->dtype->basetype->name);
++		}
++
+ 		if (erec != NULL)
+ 			return erec;
+ 		if (*res)
+-- 
+1.7.10.4
+
