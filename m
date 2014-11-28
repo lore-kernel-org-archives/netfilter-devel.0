@@ -1,42 +1,144 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] bridge: Fix NAT66ed IPv6 packets not being
- bridged correctly
-Date: Fri, 28 Nov 2014 18:55:53 +0100
-Message-ID: <20141128175553.GA7807@salvia>
-References: <1410816448-4401-1-git-send-email-bernhard.thaler@wvnet.at>
-	<20140915.174009.1151039353244879675.davem@davemloft.net>
-	<20141003112119.GA5420@salvia> <54777AE6.7050102@wvnet.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: sven@open-mesh.com, yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
-	bridge@lists.linux-foundation.org, jmorris@namei.org,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, kuznet@ms2.inr.ac.ru,
-	kaber@trash.net, linux-kernel@vger.kernel.org
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <54777AE6.7050102@wvnet.at>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH nft 2/2] datatype: relax datatype check in integer_type_parse()
+Date: Fri, 28 Nov 2014 21:10:07 +0100
+Message-ID: <1417205407-31166-2-git-send-email-pablo@netfilter.org>
+References: <1417205407-31166-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51627 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750994AbaK1UIB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Nov 2014 15:08:01 -0500
+In-Reply-To: <1417205407-31166-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 27, 2014 at 08:26:30PM +0100, Bernhard Thaler wrote:
-> Hi,
-> 
-> I tested Sven's patch in my setup and I think it should be safe to use
-> it. It is shorter and cleaner written and he submitted it earlier.
+Otherwise parsing with basetypes doesn't work. Now nft displays
+an error when the symbolic constant is not correct:
 
-Thanks for testing.
+ <cmdline>:1:29-31: Error: Could not parse conntrack state
+ add rule test test ct state xxx accept
+                             ^^^
 
-> I will be happy to assist you or Sven if any further work is needed.
+I also needed to revert the logic in ethertype_parse and pkttype_type_parse
+so we first look up for the symbol in the table, otherwise default to the
+basetype. Otherwise, the regression test were reporting a breakage in the
+ether type / pkttype.
 
-Please, resubmit this patch to netfilter-devel@vger.kernel.org.
-Thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/datatype.c              |    2 --
+ src/meta.c                  |   16 ++--------------
+ src/proto.c                 |    4 ++--
+ tests/regression/any/ct.t   |    3 +++
+ tests/regression/any/meta.t |    1 +
+ 5 files changed, 8 insertions(+), 18 deletions(-)
+
+diff --git a/src/datatype.c b/src/datatype.c
+index 7c9c3d4..1ace3fa 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -280,8 +280,6 @@ static struct error_record *integer_type_parse(const struct expr *sym,
+ 	if (gmp_sscanf(sym->identifier, "%Zu%n", v, &len) != 1 ||
+ 	    (int)strlen(sym->identifier) != len) {
+ 		mpz_clear(v);
+-		if (sym->dtype != &integer_type)
+-			return NULL;
+ 		return error(&sym->location, "Could not parse %s",
+ 			     sym->dtype->desc);
+ 	}
+diff --git a/src/meta.c b/src/meta.c
+index 61dc5cf..de83391 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -316,26 +316,14 @@ static struct error_record *pkttype_type_parse(const struct expr *sym,
+ 					       struct expr **res)
+ {
+ 	struct error_record *erec;
+-	const struct symbolic_constant *s;
+-
+-	for (s = pkttype_type_tbl.symbols; s->identifier != NULL; s++) {
+-		if (!strcmp(sym->identifier, s->identifier)) {
+-			*res = constant_expr_alloc(&sym->location, sym->dtype,
+-						   sym->dtype->byteorder,
+-						   sym->dtype->size,
+-						   &s->value);
+-			return NULL;
+-		}
+-	}
+ 
+ 	*res = NULL;
+-	erec = sym->dtype->basetype->parse(sym, res);
++	erec = symbolic_constant_parse(sym, &pkttype_type_tbl, res);
+ 	if (erec != NULL)
+ 		return erec;
+ 	if (*res)
+ 		return NULL;
+-
+-	return symbolic_constant_parse(sym, &pkttype_type_tbl, res);
++	return sym->dtype->basetype->parse(sym, res);
+ }
+ 
+ static const struct datatype pkttype_type = {
+diff --git a/src/proto.c b/src/proto.c
+index 6eb4bb2..94ecc58 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -757,12 +757,12 @@ static struct error_record *ethertype_parse(const struct expr *sym,
+ 	struct error_record *erec;
+ 
+ 	*res = NULL;
+-	erec = sym->dtype->basetype->parse(sym, res);
++	erec = symbolic_constant_parse(sym, &ethertype_tbl, res);
+ 	if (erec != NULL)
+ 		return erec;
+ 	if (*res)
+ 		return NULL;
+-	return symbolic_constant_parse(sym, &ethertype_tbl, res);
++	return sym->dtype->basetype->parse(sym, res);
+ }
+ 
+ static void ethertype_print(const struct expr *expr)
+diff --git a/tests/regression/any/ct.t b/tests/regression/any/ct.t
+index 79674ee..09f72ed 100644
+--- a/tests/regression/any/ct.t
++++ b/tests/regression/any/ct.t
+@@ -14,6 +14,7 @@ ct state {new,established, related, untracked};ok
+ ct state invalid drop;ok
+ ct state established accept;ok
+ ct state 8;ok;ct state new
++ct state xxx;fail
+ 
+ ct direction original;ok
+ ct direction != original;ok
+@@ -21,12 +22,14 @@ ct direction reply;ok
+ ct direction != reply;ok
+ ct direction {reply, original};ok
+ - ct direction != {reply, original};ok
++ct direction xxx;fail
+ 
+ ct status expected;ok
+ ct status != expected;ok
+ ct status seen-reply;ok
+ ct status != seen-reply;ok
+ ct status {expected, seen-reply, assured, confirmed, dying};ok
++ct status xxx;fail
+ 
+ # SYMBOL("snat", IPS_SRC_NAT)
+ # SYMBOL("dnat", IPS_DST_NAT)
+diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
+index b3f91c9..3acf953 100644
+--- a/tests/regression/any/meta.t
++++ b/tests/regression/any/meta.t
+@@ -150,6 +150,7 @@ meta pkttype != unicast;ok;pkttype != unicast
+ meta pkttype != multicast;ok;pkttype != multicast
+ meta pkttype broadcastttt;fail
+ -meta pkttype { broadcast, multicast} accept;ok
++meta pkttype xxx;fail
+ 
+ meta cpu 1;ok;cpu 1
+ meta cpu != 1;ok;cpu != 1
+-- 
+1.7.10.4
+
