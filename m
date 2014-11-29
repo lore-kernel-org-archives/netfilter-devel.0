@@ -1,47 +1,42 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nft PATCH] scanner: fix reading of really long line
-Date: Sat, 29 Nov 2014 17:24:38 +0100
-Message-ID: <1417278278-30206-1-git-send-email-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: Mike Wright <nobody@nospam.hostisimo.com>
+Subject: Re: ipset website
+Date: Sat, 29 Nov 2014 09:29:27 -0800
+Message-ID: <547A0277.3040301@nospam.hostisimo.com>
+References: <547919CB.7030202@nospam.hostisimo.com> <alpine.LSU.2.11.1411290212430.31411@nerf08.vanv.qr> <547946BA.106@nospam.hostisimo.com> <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:60015 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbaK2Qtt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Nov 2014 11:49:49 -0500
+Received: from theorb.net ([204.11.228.190]:39623 "HELO b.mx.theorb.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751605AbaK2R3Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Nov 2014 12:29:24 -0500
+In-Reply-To: <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Current code is causing a failure in adding a set containing
-a really long list of elements. The failure occurs as soon as
-the line is longer than flex read buffer.
 
-When a line is longer than scanner buffer size, the code in YY_INPUT
-forces a rewind to the beginning of the string because it does not
-find a end of line. The result is that the string is never parsed.
 
-This patch updates the code by rewinding till we found a space.
+On 11/29/2014 03:33 AM, Jan Engelhardt wrote:
+>
+>> Those solutions won't work.  The scroll bar is added to the page by the
+>> browser, outside of the body, which causes the body width to narrow
+>
+> "overflow-y: scroll" though is better-suited than "height: 100.1%",
+> and according to http://stackoverflow.com/a/7607206 , should be on
+> the html object, not body.
+>
+Much better solution.  Done.
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/scanner.l | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Ready for review.
 
-diff --git a/src/scanner.l b/src/scanner.l
-index f0ed8d4..2fafa71 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -47,7 +47,8 @@
- 		clearerr(yyin);							\
- 	}									\
- 	if (result > 1) {							\
--		while (result > 1 && buf[result - 1] != '\n')			\
-+		while (result > 1 && 						\
-+		       (buf[result - 1] != '\n' &&  buf[result - 1] != ' '))	\
- 			result--, n++;						\
- 		result--, n++;							\
- 		fseek(yyin, -n, SEEK_CUR);					\
--- 
-2.1.3
+site: http://ipset.hostisimo.com
+diff: http://ipset.hostisimo.com/diff
+bzip: http://ipset.hostisimo.com/ipset.netfilter.org.tar.bz2
 
+Does anybody else have any comments?
+
+If not, please push the new site to the server.
+
+Mike Wright
