@@ -1,196 +1,309 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 02/14] netfilter: ipset: Alignment problem between 64bit kernel 32bit userspace
-Date: Sun, 30 Nov 2014 19:56:53 +0100
-Message-ID: <1417373825-3734-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 07/14] netfilter: ipset: Remove rbtree from hash:net,iface in order to run under RCU
+Date: Sun, 30 Nov 2014 19:56:58 +0100
+Message-ID: <1417373825-3734-8-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:57563 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:57581 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751650AbaK3S4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Nov 2014 13:56:09 -0500
+	id S1751792AbaK3S4N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Nov 2014 13:56:13 -0500
 In-Reply-To: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sven-Haegar Koch reported the issue:
-
-sims:~# iptables -A OUTPUT -m set --match-set testset src -j ACCEPT
-iptables: Invalid argument. Run `dmesg' for more information.
-
-In syslog:
-x_tables: ip_tables: set.3 match: invalid size 48 (kernel) != (user) 32
-
-which was introduced by the counter extension in ipset.
-
-The patch fixes the alignment issue with introducing a new set match
-revision with the fixed underlying 'struct ip_set_counter_match'
-structure.
-
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/uapi/linux/netfilter/ipset/ip_set.h |  8 +++-
- include/uapi/linux/netfilter/xt_set.h       | 13 ++++-
- net/netfilter/xt_set.c                      | 73 +++++++++++++++++++++++++++--
- 3 files changed, 88 insertions(+), 6 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netiface.c | 156 ++++-------------------------
+ 1 file changed, 17 insertions(+), 139 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index ca03119..5ab4e60 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -256,11 +256,17 @@ enum {
- 	IPSET_COUNTER_GT,
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 758b002..d8a53ec 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -13,7 +13,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+ #include <linux/random.h>
+-#include <linux/rbtree.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+ #include <net/netlink.h>
+@@ -36,88 +35,14 @@ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+ IP_SET_MODULE_DESC("hash:net,iface", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net,iface");
+ 
+-/* Interface name rbtree */
+-
+-struct iface_node {
+-	struct rb_node node;
+-	char iface[IFNAMSIZ];
+-};
+-
+-#define iface_data(n)	(rb_entry(n, struct iface_node, node)->iface)
+-
+-static void
+-rbtree_destroy(struct rb_root *root)
+-{
+-	struct iface_node *node, *next;
+-
+-	rbtree_postorder_for_each_entry_safe(node, next, root, node)
+-		kfree(node);
+-
+-	*root = RB_ROOT;
+-}
+-
+-static int
+-iface_test(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node *n = root->rb_node;
+-
+-	while (n) {
+-		const char *d = iface_data(n);
+-		int res = strcmp(*iface, d);
+-
+-		if (res < 0)
+-			n = n->rb_left;
+-		else if (res > 0)
+-			n = n->rb_right;
+-		else {
+-			*iface = d;
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int
+-iface_add(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node **n = &(root->rb_node), *p = NULL;
+-	struct iface_node *d;
+-
+-	while (*n) {
+-		char *ifname = iface_data(*n);
+-		int res = strcmp(*iface, ifname);
+-
+-		p = *n;
+-		if (res < 0)
+-			n = &((*n)->rb_left);
+-		else if (res > 0)
+-			n = &((*n)->rb_right);
+-		else {
+-			*iface = ifname;
+-			return 0;
+-		}
+-	}
+-
+-	d = kzalloc(sizeof(*d), GFP_ATOMIC);
+-	if (!d)
+-		return -ENOMEM;
+-	strcpy(d->iface, *iface);
+-
+-	rb_link_node(&d->node, p, n);
+-	rb_insert_color(&d->node, root);
+-
+-	*iface = d->iface;
+-	return 0;
+-}
+-
+ /* Type specific function prefix */
+ #define HTYPE		hash_netiface
+ #define IP_SET_HASH_WITH_NETS
+-#define IP_SET_HASH_WITH_RBTREE
+ #define IP_SET_HASH_WITH_MULTI
+ #define IP_SET_HASH_WITH_NET0
+ 
+ #define STREQ(a, b)	(strcmp(a, b) == 0)
++#define IFNAMCPY(a, b)	strncpy(a, b, IFNAMSIZ)
+ 
+ /* IPv4 variant */
+ 
+@@ -136,7 +61,7 @@ struct hash_netiface4_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
  };
  
--struct ip_set_counter_match {
-+/* Backward compatibility for set match v3 */
-+struct ip_set_counter_match0 {
- 	__u8 op;
- 	__u64 value;
- };
- 
-+struct ip_set_counter_match {
-+	__aligned_u64 value;
-+	__u8 op;
-+};
-+
- /* Interface to iptables/ip6tables */
- 
- #define SO_IP_SET		83
-diff --git a/include/uapi/linux/netfilter/xt_set.h b/include/uapi/linux/netfilter/xt_set.h
-index d6a1df1..d4e0234 100644
---- a/include/uapi/linux/netfilter/xt_set.h
-+++ b/include/uapi/linux/netfilter/xt_set.h
-@@ -66,8 +66,8 @@ struct xt_set_info_target_v2 {
- 
- struct xt_set_info_match_v3 {
- 	struct xt_set_info match_set;
--	struct ip_set_counter_match packets;
--	struct ip_set_counter_match bytes;
-+	struct ip_set_counter_match0 packets;
-+	struct ip_set_counter_match0 bytes;
- 	__u32 flags;
- };
- 
-@@ -81,4 +81,13 @@ struct xt_set_info_target_v3 {
- 	__u32 timeout;
- };
- 
-+/* Revision 4 match */
-+
-+struct xt_set_info_match_v4 {
-+	struct xt_set_info match_set;
-+	struct ip_set_counter_match packets;
-+	struct ip_set_counter_match bytes;
-+	__u32 flags;
-+};
-+
- #endif /*_XT_SET_H*/
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index 5732cd6..0d47afe 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -157,7 +157,7 @@ set_match_v1_destroy(const struct xt_mtdtor_param *par)
- /* Revision 3 match */
- 
- static bool
--match_counter(u64 counter, const struct ip_set_counter_match *info)
-+match_counter0(u64 counter, const struct ip_set_counter_match0 *info)
- {
- 	switch (info->op) {
- 	case IPSET_COUNTER_NONE:
-@@ -192,14 +192,60 @@ set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
- 	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
- 		return ret;
- 
--	if (!match_counter(opt.ext.packets, &info->packets))
-+	if (!match_counter0(opt.ext.packets, &info->packets))
- 		return 0;
--	return match_counter(opt.ext.bytes, &info->bytes);
-+	return match_counter0(opt.ext.bytes, &info->bytes);
+ /* Common functions */
+@@ -150,7 +75,7 @@ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       STREQ(ip1->iface, ip2->iface);
  }
  
- #define set_match_v3_checkentry	set_match_v1_checkentry
- #define set_match_v3_destroy	set_match_v1_destroy
+ static inline int
+@@ -223,7 +148,6 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
  
-+/* Revision 4 match */
-+
-+static bool
-+match_counter(u64 counter, const struct ip_set_counter_match *info)
-+{
-+	switch (info->op) {
-+	case IPSET_COUNTER_NONE:
-+		return true;
-+	case IPSET_COUNTER_EQ:
-+		return counter == info->value;
-+	case IPSET_COUNTER_NE:
-+		return counter != info->value;
-+	case IPSET_COUNTER_LT:
-+		return counter < info->value;
-+	case IPSET_COUNTER_GT:
-+		return counter > info->value;
-+	}
-+	return false;
-+}
-+
-+static bool
-+set_match_v4(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_set_info_match_v4 *info = par->matchinfo;
-+	ADT_OPT(opt, par->family, info->match_set.dim,
-+		info->match_set.flags, info->flags, UINT_MAX);
-+	int ret;
-+
-+	if (info->packets.op != IPSET_COUNTER_NONE ||
-+	    info->bytes.op != IPSET_COUNTER_NONE)
-+		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
-+
-+	ret = match_set(info->match_set.index, skb, par, &opt,
-+			info->match_set.flags & IPSET_INV_MATCH);
-+
-+	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
-+		return ret;
-+
-+	if (!match_counter(opt.ext.packets, &info->packets))
-+		return 0;
-+	return match_counter(opt.ext.bytes, &info->bytes);
-+}
-+
-+#define set_match_v4_checkentry	set_match_v1_checkentry
-+#define set_match_v4_destroy	set_match_v1_destroy
-+
- /* Revision 0 interface: backward compatible with netfilter/iptables */
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -233,8 +157,8 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+ 	e.ip &= ip_set_netmask(e.cidr);
  
- static unsigned int
-@@ -573,6 +619,27 @@ static struct xt_match set_matches[] __read_mostly = {
- 		.destroy	= set_match_v3_destroy,
- 		.me		= THIS_MODULE
- 	},
-+	/* new revision for counters support: update, match */
-+	{
-+		.name		= "set",
-+		.family		= NFPROTO_IPV4,
-+		.revision	= 4,
-+		.match		= set_match_v4,
-+		.matchsize	= sizeof(struct xt_set_info_match_v4),
-+		.checkentry	= set_match_v4_checkentry,
-+		.destroy	= set_match_v4_destroy,
-+		.me		= THIS_MODULE
-+	},
-+	{
-+		.name		= "set",
-+		.family		= NFPROTO_IPV6,
-+		.revision	= 4,
-+		.match		= set_match_v4,
-+		.matchsize	= sizeof(struct xt_set_info_match_v4),
-+		.checkentry	= set_match_v4_checkentry,
-+		.destroy	= set_match_v4_destroy,
-+		.me		= THIS_MODULE
-+	},
+-#define IFACE(dir)	(par->dir ? par->dir->name : NULL)
+-#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : NULL)
++#define IFACE(dir)	(par->dir ? par->dir->name : "")
++#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : "")
+ #define SRCDIR		(opt->flags & IPSET_DIM_TWO_SRC)
+ 
+ 	if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
+@@ -243,26 +167,15 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		IFNAMCPY(e.iface,
++			 SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		IFNAMCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+-
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+ 
+@@ -275,7 +188,6 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct hash_netiface4_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -302,18 +214,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (e.cidr > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+-
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	IFNAMCPY(e.iface, nla_data(tb[IPSET_ATTR_IFACE]));
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+@@ -372,7 +273,7 @@ struct hash_netiface6_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
  };
  
- static struct xt_target set_targets[] __read_mostly = {
+ /* Common functions */
+@@ -386,7 +287,7 @@ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       STREQ(ip1->iface, ip2->iface);
+ }
+ 
+ static inline int
+@@ -464,7 +365,6 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
+ 
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -480,25 +380,15 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		IFNAMCPY(e.iface,
++			 SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		IFNAMCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+ 
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+@@ -507,11 +397,9 @@ static int
+ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		   enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+-	struct hash_netiface *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -541,17 +429,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return -IPSET_ERR_INVALID_CIDR;
+ 	ip6_netmask(&e.ip, e.cidr);
+ 
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	IFNAMCPY(e.iface, nla_data(tb[IPSET_ATTR_IFACE]));
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
 -- 
 1.8.5.1
 
