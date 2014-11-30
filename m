@@ -1,67 +1,49 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 06/14] netfilter: ipset: Explicitly add padding elements to hash:net,net and hash:net,port,net
-Date: Sun, 30 Nov 2014 19:56:57 +0100
-Message-ID: <1417373825-3734-7-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: ipset website
+Date: Sun, 30 Nov 2014 20:33:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1411302030150.3940@blackhole.kfki.hu>
+References: <547919CB.7030202@nospam.hostisimo.com> <alpine.LSU.2.11.1411290212430.31411@nerf08.vanv.qr> <547946BA.106@nospam.hostisimo.com> <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr> <547A0277.3040301@nospam.hostisimo.com>
+ <547A3893.1060009@nospam.hostisimo.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mike Wright <nobody@nospam.hostisimo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:57570 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:34315 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbaK3S4K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Nov 2014 13:56:10 -0500
-In-Reply-To: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1751614AbaK3Tch (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Nov 2014 14:32:37 -0500
+In-Reply-To: <547A3893.1060009@nospam.hostisimo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The elements must be u32 sized for the used hash function.
+On Sat, 29 Nov 2014, Mike Wright wrote:
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_hash_netnet.c     | 2 ++
- net/netfilter/ipset/ip_set_hash_netportnet.c | 2 ++
- 2 files changed, 4 insertions(+)
+> On 11/29/2014 09:29 AM, Mike Wright wrote:
+> > 
+> Upgraded to ipset-6.24
+> > 
+> > Ready for review.
+> > 
+> > site: http://ipset.hostisimo.com
+> > diff: http://ipset.hostisimo.com/diff
+> > bzip: http://ipset.hostisimo.com/ipset.netfilter.org.tar.bz2
+> > 
+> > Does anybody else have any comments?
 
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index da00284..ea8772a 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -46,6 +46,7 @@ struct hash_netnet4_elem {
- 		__be64 ipcmp;
- 	};
- 	u8 nomatch;
-+	u8 padding;
- 	union {
- 		u8 cidr[2];
- 		u16 ccmp;
-@@ -271,6 +272,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- struct hash_netnet6_elem {
- 	union nf_inet_addr ip[2];
- 	u8 nomatch;
-+	u8 padding;
- 	union {
- 		u8 cidr[2];
- 		u16 ccmp;
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index b8053d6..bfaa94c 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -53,6 +53,7 @@ struct hash_netportnet4_elem {
- 		u8 cidr[2];
- 		u16 ccmp;
- 	};
-+	u16 padding;
- 	u8 nomatch:1;
- 	u8 proto;
- };
-@@ -324,6 +325,7 @@ struct hash_netportnet6_elem {
- 		u8 cidr[2];
- 		u16 ccmp;
- 	};
-+	u16 padding;
- 	u8 nomatch:1;
- 	u8 proto;
- };
--- 
-1.8.5.1
+According to the diff:
 
+Only in new/ipset.netfilter.org: ipset.php
+Only in new/ipset.netfilter.org: iptables-extensions.php
+Only in new/ipset.netfilter.org: iptables.php
+
+There's no php at the site at all, it's totally static. Please keep 
+the html files.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
