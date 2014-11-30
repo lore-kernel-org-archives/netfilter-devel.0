@@ -1,101 +1,218 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 00/10] ipset patches for nf-next, v2
-Date: Sun, 30 Nov 2014 19:56:51 +0100
-Message-ID: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 08/14] netfilter: ipset: Introduce RCU locking instead of rwlock per set in the core
+Date: Sun, 30 Nov 2014 19:56:59 +0100
+Message-ID: <1417373825-3734-9-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:57564 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:55032 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906AbaK3S4K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Nov 2014 13:56:10 -0500
+	id S1751430AbaK3S4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Nov 2014 13:56:09 -0500
+In-Reply-To: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/ip_set.h         |  6 ++++-
+ include/linux/netfilter/ipset/ip_set_timeout.h | 27 ++++++++------------
+ net/netfilter/ipset/ip_set_core.c              | 35 +++++++++++++-------------
+ 3 files changed, 34 insertions(+), 34 deletions(-)
 
-Please consider to apply the next series of patches for ipset:
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index f1606fa..d5d5bcd 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -223,7 +223,7 @@ struct ip_set {
+ 	/* The name of the set */
+ 	char name[IPSET_MAXNAMELEN];
+ 	/* Lock protecting the set data */
+-	rwlock_t lock;
++	spinlock_t lock;
+ 	/* References to the set */
+ 	u32 ref;
+ 	/* The core set type */
+@@ -322,6 +322,10 @@ ip_set_update_counter(struct ip_set_counter *counter,
+ 	}
+ }
+ 
++#define ip_set_rcu_deref(t)		\
++	rcu_dereference_index_check(t,	\
++		rcu_read_lock_held() || rcu_read_lock_bh_held())
++
+ static inline void
+ ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
+ 		      const struct ip_set_ext *ext,
+diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
+index 83c2f9e..1d6a935 100644
+--- a/include/linux/netfilter/ipset/ip_set_timeout.h
++++ b/include/linux/netfilter/ipset/ip_set_timeout.h
+@@ -40,38 +40,33 @@ ip_set_timeout_uget(struct nlattr *tb)
+ }
+ 
+ static inline bool
+-ip_set_timeout_test(unsigned long timeout)
++ip_set_timeout_expired(unsigned long *t)
+ {
+-	return timeout == IPSET_ELEM_PERMANENT ||
+-	       time_is_after_jiffies(timeout);
+-}
+-
+-static inline bool
+-ip_set_timeout_expired(unsigned long *timeout)
+-{
+-	return *timeout != IPSET_ELEM_PERMANENT &&
+-	       time_is_before_jiffies(*timeout);
++	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
+ }
+ 
+ static inline void
+-ip_set_timeout_set(unsigned long *timeout, u32 t)
++ip_set_timeout_set(unsigned long *timeout, u32 value)
+ {
+-	if (!t) {
++	unsigned long t;
++
++	if (!value) {
+ 		*timeout = IPSET_ELEM_PERMANENT;
+ 		return;
+ 	}
+ 
+-	*timeout = msecs_to_jiffies(t * 1000) + jiffies;
+-	if (*timeout == IPSET_ELEM_PERMANENT)
++	t = msecs_to_jiffies(value * MSEC_PER_SEC) + jiffies;
++	if (t == IPSET_ELEM_PERMANENT)
+ 		/* Bingo! :-) */
+-		(*timeout)--;
++		t--;
++	*timeout = t;
+ }
+ 
+ static inline u32
+ ip_set_timeout_get(unsigned long *timeout)
+ {
+ 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
+-		jiffies_to_msecs(*timeout - jiffies)/1000;
++		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
+ }
+ 
+ #endif	/* __KERNEL__ */
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 912e5a0..9fb2610 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -217,6 +217,7 @@ ip_set_type_register(struct ip_set_type *type)
+ 		 type->revision_min, type->revision_max);
+ unlock:
+ 	ip_set_type_unlock();
++	synchronize_rcu();
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(ip_set_type_register);
+@@ -496,16 +497,16 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return 0;
+ 
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* Type requests element to be completed */
+ 		pr_debug("element must be completed, ADD is triggered\n");
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
+ 		ret = 1;
+ 	} else {
+ 		/* --return-nomatch: invert matched element */
+@@ -535,9 +536,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -558,9 +559,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -845,7 +846,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	set = kzalloc(sizeof(struct ip_set), GFP_KERNEL);
+ 	if (!set)
+ 		return -ENOMEM;
+-	rwlock_init(&set->lock);
++	spin_lock_init(&set->lock);
+ 	strlcpy(set->name, name, IPSET_MAXNAMELEN);
+ 	set->family = family;
+ 	set->revision = revision;
+@@ -1024,9 +1025,9 @@ ip_set_flush_set(struct ip_set *set)
+ {
+ 	pr_debug("set: %s\n",  set->name);
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	set->variant->flush(set);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ }
+ 
+ static int
+@@ -1327,9 +1328,9 @@ dump_last:
+ 				goto next_set;
+ 			/* Fall through and add elements */
+ 		default:
+-			read_lock_bh(&set->lock);
++			rcu_read_lock_bh();
+ 			ret = set->variant->list(set, skb, cb);
+-			read_unlock_bh(&set->lock);
++			rcu_read_unlock_bh();
+ 			if (!cb->args[IPSET_CB_ARG0])
+ 				/* Set is done, proceed with next one */
+ 				goto next_set;
+@@ -1407,9 +1408,9 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+ 	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
+ 
+ 	do {
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
+ 		retried = true;
+ 	} while (ret == -EAGAIN &&
+ 		 set->variant->resize &&
+@@ -1589,9 +1590,9 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 			     set->type->adt_policy))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 	/* Userspace can't trigger element to be re-added */
+ 	if (ret == -EAGAIN)
+ 		ret = 1;
+-- 
+1.8.5.1
 
-- Fix sparse warning "cast to restricted __be32"
-- Fix parallel resizing and listing of the same set: when adding elements
-  and listing of the same set were executed parallel, listing could start
-  to list the original set (before resizing) and continue with the new one.
-- Styles warned by checkpatch.pl fixed
-- Introduce RCU locking in the hash types. The patch was
-  performance tested by Jesper Dangaard Brouer:
-
-  Generator: sending 12.2Mpps (tx:12264083 pps)
-  Drop performance in "raw" with ipset: 8Mpps
-  Drop performance in "raw" with ipset with RCU-locking: 11.3Mpps
-- Introduce RCU locking in the list type
-- Introduce RCU locking in the bitmap types
-- Introduce RCU locking instead of rwlock per set in the core
-- Remove rbtree from hash:net,iface for RCU locking
-- Explicitly add padding elements to hash:net,net and hash:net,port,
-  because the elements must be u32 sized for the used hash function.
-- Allocate the proper size of memory when /0 networks are supported
-- Simplify cidr handling for hash:*net* types (cleaning it up for RCU)
-- Indicate explicitly when /0 networks are supported
-- Alignment problem between 64bit kernel 32bit userspace fixed by
-  introducing a new set match revision, reported by Sven-Haegar Koch
-- Support updating element extensions when the set is full (fixes
-  netfilter bugzilla id 880)
-
-You can pull the changes from
-
-        git://blackhole.kfki.hu/nf-next master
-
-The iptables part of the new set match functionality
-can be found in the iptables git tree, in the ipset
-branch.
-
-Thanks,
-Jozsef
-============================================================================
-The following changes since commit beacd3e8ef237e077c8707395440813feef16d3f:
-
-  netfilter: nfnetlink_log: Make use of pr_fmt where applicable (2014-11-20 14:09:01 +0100)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 482ebc4fe2be7de3b20cff357d76fde1738e4531:
-
-  netfilter: ipset: Fix sparse warning (2014-11-30 19:49:49 +0100)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (14):
-      netfilter: ipset: Support updating extensions when the set is full
-      netfilter: ipset: Alignment problem between 64bit kernel 32bit userspace
-      netfilter: ipset: Indicate when /0 networks are supported
-      netfilter: ipset: Simplify cidr handling for hash:*net* types
-      netfilter: ipset: Allocate the proper size of memory when /0 networks are supported
-      netfilter: ipset: Explicitly add padding elements to hash:net,net and hash:net,port,net
-      netfilter: ipset: Remove rbtree from hash:net,iface in order to run under RCU
-      netfilter: ipset: Introduce RCU locking instead of rwlock per set in the core
-      netfilter: ipset: Introduce RCU locking in the bitmap types
-      netfilter: ipset: Introduce RCU locking in the list type
-      netfilter: ipset: Introduce RCU locking in the hash types
-      netfilter: ipset: styles warned by checkpatch.pl fixed
-      netfilter: ipset: Fix parallel resizing and listing of the same set
-      netfilter: ipset: Fix sparse warning
-
- include/linux/netfilter/ipset/ip_set.h         |  25 +-
- include/linux/netfilter/ipset/ip_set_timeout.h |  27 +-
- include/uapi/linux/netfilter/ipset/ip_set.h    |   8 +-
- include/uapi/linux/netfilter/xt_set.h          |  13 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h        |   4 +-
- net/netfilter/ipset/ip_set_core.c              |  72 +--
- net/netfilter/ipset/ip_set_hash_gen.h          | 669 +++++++++++++++----------
- net/netfilter/ipset/ip_set_hash_ipmark.c       |   4 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c    |   2 +
- net/netfilter/ipset/ip_set_hash_net.c          |   4 +-
- net/netfilter/ipset/ip_set_hash_netiface.c     | 159 +-----
- net/netfilter/ipset/ip_set_hash_netnet.c       |   4 +
- net/netfilter/ipset/ip_set_hash_netport.c      |   2 +
- net/netfilter/ipset/ip_set_hash_netportnet.c   |   4 +
- net/netfilter/ipset/ip_set_list_set.c          | 386 +++++++-------
- net/netfilter/xt_set.c                         |  80 ++-
- net/sched/em_ipset.c                           |   5 +-
- 17 files changed, 791 insertions(+), 677 deletions(-)
