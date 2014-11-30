@@ -1,218 +1,196 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 08/14] netfilter: ipset: Introduce RCU locking instead of rwlock per set in the core
-Date: Sun, 30 Nov 2014 19:56:59 +0100
-Message-ID: <1417373825-3734-9-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 02/14] netfilter: ipset: Alignment problem between 64bit kernel 32bit userspace
+Date: Sun, 30 Nov 2014 19:56:53 +0100
+Message-ID: <1417373825-3734-3-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:55032 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:57563 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751430AbaK3S4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751650AbaK3S4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 30 Nov 2014 13:56:09 -0500
 In-Reply-To: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Sven-Haegar Koch reported the issue:
+
+sims:~# iptables -A OUTPUT -m set --match-set testset src -j ACCEPT
+iptables: Invalid argument. Run `dmesg' for more information.
+
+In syslog:
+x_tables: ip_tables: set.3 match: invalid size 48 (kernel) != (user) 32
+
+which was introduced by the counter extension in ipset.
+
+The patch fixes the alignment issue with introducing a new set match
+revision with the fixed underlying 'struct ip_set_counter_match'
+structure.
+
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h         |  6 ++++-
- include/linux/netfilter/ipset/ip_set_timeout.h | 27 ++++++++------------
- net/netfilter/ipset/ip_set_core.c              | 35 +++++++++++++-------------
- 3 files changed, 34 insertions(+), 34 deletions(-)
+ include/uapi/linux/netfilter/ipset/ip_set.h |  8 +++-
+ include/uapi/linux/netfilter/xt_set.h       | 13 ++++-
+ net/netfilter/xt_set.c                      | 73 +++++++++++++++++++++++++++--
+ 3 files changed, 88 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index f1606fa..d5d5bcd 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -223,7 +223,7 @@ struct ip_set {
- 	/* The name of the set */
- 	char name[IPSET_MAXNAMELEN];
- 	/* Lock protecting the set data */
--	rwlock_t lock;
-+	spinlock_t lock;
- 	/* References to the set */
- 	u32 ref;
- 	/* The core set type */
-@@ -322,6 +322,10 @@ ip_set_update_counter(struct ip_set_counter *counter,
- 	}
- }
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
+index ca03119..5ab4e60 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -256,11 +256,17 @@ enum {
+ 	IPSET_COUNTER_GT,
+ };
  
-+#define ip_set_rcu_deref(t)		\
-+	rcu_dereference_index_check(t,	\
-+		rcu_read_lock_held() || rcu_read_lock_bh_held())
+-struct ip_set_counter_match {
++/* Backward compatibility for set match v3 */
++struct ip_set_counter_match0 {
+ 	__u8 op;
+ 	__u64 value;
+ };
+ 
++struct ip_set_counter_match {
++	__aligned_u64 value;
++	__u8 op;
++};
 +
- static inline void
- ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
- 		      const struct ip_set_ext *ext,
-diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-index 83c2f9e..1d6a935 100644
---- a/include/linux/netfilter/ipset/ip_set_timeout.h
-+++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-@@ -40,38 +40,33 @@ ip_set_timeout_uget(struct nlattr *tb)
- }
+ /* Interface to iptables/ip6tables */
  
- static inline bool
--ip_set_timeout_test(unsigned long timeout)
-+ip_set_timeout_expired(unsigned long *t)
- {
--	return timeout == IPSET_ELEM_PERMANENT ||
--	       time_is_after_jiffies(timeout);
--}
--
--static inline bool
--ip_set_timeout_expired(unsigned long *timeout)
--{
--	return *timeout != IPSET_ELEM_PERMANENT &&
--	       time_is_before_jiffies(*timeout);
-+	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
- }
+ #define SO_IP_SET		83
+diff --git a/include/uapi/linux/netfilter/xt_set.h b/include/uapi/linux/netfilter/xt_set.h
+index d6a1df1..d4e0234 100644
+--- a/include/uapi/linux/netfilter/xt_set.h
++++ b/include/uapi/linux/netfilter/xt_set.h
+@@ -66,8 +66,8 @@ struct xt_set_info_target_v2 {
  
- static inline void
--ip_set_timeout_set(unsigned long *timeout, u32 t)
-+ip_set_timeout_set(unsigned long *timeout, u32 value)
- {
--	if (!t) {
-+	unsigned long t;
+ struct xt_set_info_match_v3 {
+ 	struct xt_set_info match_set;
+-	struct ip_set_counter_match packets;
+-	struct ip_set_counter_match bytes;
++	struct ip_set_counter_match0 packets;
++	struct ip_set_counter_match0 bytes;
+ 	__u32 flags;
+ };
+ 
+@@ -81,4 +81,13 @@ struct xt_set_info_target_v3 {
+ 	__u32 timeout;
+ };
+ 
++/* Revision 4 match */
 +
-+	if (!value) {
- 		*timeout = IPSET_ELEM_PERMANENT;
- 		return;
- 	}
++struct xt_set_info_match_v4 {
++	struct xt_set_info match_set;
++	struct ip_set_counter_match packets;
++	struct ip_set_counter_match bytes;
++	__u32 flags;
++};
++
+ #endif /*_XT_SET_H*/
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 5732cd6..0d47afe 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -157,7 +157,7 @@ set_match_v1_destroy(const struct xt_mtdtor_param *par)
+ /* Revision 3 match */
  
--	*timeout = msecs_to_jiffies(t * 1000) + jiffies;
--	if (*timeout == IPSET_ELEM_PERMANENT)
-+	t = msecs_to_jiffies(value * MSEC_PER_SEC) + jiffies;
-+	if (t == IPSET_ELEM_PERMANENT)
- 		/* Bingo! :-) */
--		(*timeout)--;
-+		t--;
-+	*timeout = t;
- }
- 
- static inline u32
- ip_set_timeout_get(unsigned long *timeout)
+ static bool
+-match_counter(u64 counter, const struct ip_set_counter_match *info)
++match_counter0(u64 counter, const struct ip_set_counter_match0 *info)
  {
- 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
--		jiffies_to_msecs(*timeout - jiffies)/1000;
-+		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
- }
+ 	switch (info->op) {
+ 	case IPSET_COUNTER_NONE:
+@@ -192,14 +192,60 @@ set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
+ 		return ret;
  
- #endif	/* __KERNEL__ */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 912e5a0..9fb2610 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -217,6 +217,7 @@ ip_set_type_register(struct ip_set_type *type)
- 		 type->revision_min, type->revision_max);
- unlock:
- 	ip_set_type_unlock();
-+	synchronize_rcu();
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(ip_set_type_register);
-@@ -496,16 +497,16 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
- 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+-	if (!match_counter(opt.ext.packets, &info->packets))
++	if (!match_counter0(opt.ext.packets, &info->packets))
  		return 0;
- 
--	read_lock_bh(&set->lock);
-+	rcu_read_lock_bh();
- 	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
--	read_unlock_bh(&set->lock);
-+	rcu_read_unlock_bh();
- 
- 	if (ret == -EAGAIN) {
- 		/* Type requests element to be completed */
- 		pr_debug("element must be completed, ADD is triggered\n");
--		write_lock_bh(&set->lock);
-+		spin_lock_bh(&set->lock);
- 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
--		write_unlock_bh(&set->lock);
-+		spin_unlock_bh(&set->lock);
- 		ret = 1;
- 	} else {
- 		/* --return-nomatch: invert matched element */
-@@ -535,9 +536,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
- 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
- 		return -IPSET_ERR_TYPE_MISMATCH;
- 
--	write_lock_bh(&set->lock);
-+	spin_lock_bh(&set->lock);
- 	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
--	write_unlock_bh(&set->lock);
-+	spin_unlock_bh(&set->lock);
- 
- 	return ret;
- }
-@@ -558,9 +559,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
- 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
- 		return -IPSET_ERR_TYPE_MISMATCH;
- 
--	write_lock_bh(&set->lock);
-+	spin_lock_bh(&set->lock);
- 	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
--	write_unlock_bh(&set->lock);
-+	spin_unlock_bh(&set->lock);
- 
- 	return ret;
- }
-@@ -845,7 +846,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
- 	set = kzalloc(sizeof(struct ip_set), GFP_KERNEL);
- 	if (!set)
- 		return -ENOMEM;
--	rwlock_init(&set->lock);
-+	spin_lock_init(&set->lock);
- 	strlcpy(set->name, name, IPSET_MAXNAMELEN);
- 	set->family = family;
- 	set->revision = revision;
-@@ -1024,9 +1025,9 @@ ip_set_flush_set(struct ip_set *set)
- {
- 	pr_debug("set: %s\n",  set->name);
- 
--	write_lock_bh(&set->lock);
-+	spin_lock_bh(&set->lock);
- 	set->variant->flush(set);
--	write_unlock_bh(&set->lock);
-+	spin_unlock_bh(&set->lock);
+-	return match_counter(opt.ext.bytes, &info->bytes);
++	return match_counter0(opt.ext.bytes, &info->bytes);
  }
  
- static int
-@@ -1327,9 +1328,9 @@ dump_last:
- 				goto next_set;
- 			/* Fall through and add elements */
- 		default:
--			read_lock_bh(&set->lock);
-+			rcu_read_lock_bh();
- 			ret = set->variant->list(set, skb, cb);
--			read_unlock_bh(&set->lock);
-+			rcu_read_unlock_bh();
- 			if (!cb->args[IPSET_CB_ARG0])
- 				/* Set is done, proceed with next one */
- 				goto next_set;
-@@ -1407,9 +1408,9 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
- 	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
+ #define set_match_v3_checkentry	set_match_v1_checkentry
+ #define set_match_v3_destroy	set_match_v1_destroy
  
- 	do {
--		write_lock_bh(&set->lock);
-+		spin_lock_bh(&set->lock);
- 		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
--		write_unlock_bh(&set->lock);
-+		spin_unlock_bh(&set->lock);
- 		retried = true;
- 	} while (ret == -EAGAIN &&
- 		 set->variant->resize &&
-@@ -1589,9 +1590,9 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
- 			     set->type->adt_policy))
- 		return -IPSET_ERR_PROTOCOL;
++/* Revision 4 match */
++
++static bool
++match_counter(u64 counter, const struct ip_set_counter_match *info)
++{
++	switch (info->op) {
++	case IPSET_COUNTER_NONE:
++		return true;
++	case IPSET_COUNTER_EQ:
++		return counter == info->value;
++	case IPSET_COUNTER_NE:
++		return counter != info->value;
++	case IPSET_COUNTER_LT:
++		return counter < info->value;
++	case IPSET_COUNTER_GT:
++		return counter > info->value;
++	}
++	return false;
++}
++
++static bool
++set_match_v4(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_set_info_match_v4 *info = par->matchinfo;
++	ADT_OPT(opt, par->family, info->match_set.dim,
++		info->match_set.flags, info->flags, UINT_MAX);
++	int ret;
++
++	if (info->packets.op != IPSET_COUNTER_NONE ||
++	    info->bytes.op != IPSET_COUNTER_NONE)
++		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
++
++	ret = match_set(info->match_set.index, skb, par, &opt,
++			info->match_set.flags & IPSET_INV_MATCH);
++
++	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
++		return ret;
++
++	if (!match_counter(opt.ext.packets, &info->packets))
++		return 0;
++	return match_counter(opt.ext.bytes, &info->bytes);
++}
++
++#define set_match_v4_checkentry	set_match_v1_checkentry
++#define set_match_v4_destroy	set_match_v1_destroy
++
+ /* Revision 0 interface: backward compatible with netfilter/iptables */
  
--	read_lock_bh(&set->lock);
-+	rcu_read_lock_bh();
- 	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
--	read_unlock_bh(&set->lock);
-+	rcu_read_unlock_bh();
- 	/* Userspace can't trigger element to be re-added */
- 	if (ret == -EAGAIN)
- 		ret = 1;
+ static unsigned int
+@@ -573,6 +619,27 @@ static struct xt_match set_matches[] __read_mostly = {
+ 		.destroy	= set_match_v3_destroy,
+ 		.me		= THIS_MODULE
+ 	},
++	/* new revision for counters support: update, match */
++	{
++		.name		= "set",
++		.family		= NFPROTO_IPV4,
++		.revision	= 4,
++		.match		= set_match_v4,
++		.matchsize	= sizeof(struct xt_set_info_match_v4),
++		.checkentry	= set_match_v4_checkentry,
++		.destroy	= set_match_v4_destroy,
++		.me		= THIS_MODULE
++	},
++	{
++		.name		= "set",
++		.family		= NFPROTO_IPV6,
++		.revision	= 4,
++		.match		= set_match_v4,
++		.matchsize	= sizeof(struct xt_set_info_match_v4),
++		.checkentry	= set_match_v4_checkentry,
++		.destroy	= set_match_v4_destroy,
++		.me		= THIS_MODULE
++	},
+ };
+ 
+ static struct xt_target set_targets[] __read_mostly = {
 -- 
 1.8.5.1
 
