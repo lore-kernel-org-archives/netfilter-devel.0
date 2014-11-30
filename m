@@ -1,50 +1,38 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 03/14] netfilter: ipset: Indicate when /0 networks are supported
-Date: Sun, 30 Nov 2014 19:56:54 +0100
-Message-ID: <1417373825-3734-4-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 05/14] netfilter: ipset: Allocate the proper size of memory when /0 networks are supported
+Date: Sun, 30 Nov 2014 19:56:56 +0100
+Message-ID: <1417373825-3734-6-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:57562 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:57591 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbaK3S4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Nov 2014 13:56:09 -0500
+	id S1751650AbaK3S4O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Nov 2014 13:56:14 -0500
 In-Reply-To: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h      | 2 +-
- net/netfilter/ipset/ip_set_hash_netiface.c | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index a12ee04..9428fa5 100644
+index 8ef9135..974ff38 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -156,7 +156,7 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
+@@ -1101,8 +1101,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
  
- #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
- 
--#ifdef IP_SET_HASH_WITH_MULTI
-+#ifdef IP_SET_HASH_WITH_NET0
- #define NLEN(family)		(SET_HOST_MASK(family) + 1)
- #else
- #define NLEN(family)		SET_HOST_MASK(family)
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 35dd358..758b002 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -115,6 +115,7 @@ iface_add(struct rb_root *root, const char **iface)
- #define IP_SET_HASH_WITH_NETS
- #define IP_SET_HASH_WITH_RBTREE
- #define IP_SET_HASH_WITH_MULTI
-+#define IP_SET_HASH_WITH_NET0
- 
- #define STREQ(a, b)	(strcmp(a, b) == 0)
- 
+ 	hsize = sizeof(*h);
+ #ifdef IP_SET_HASH_WITH_NETS
+-	hsize += sizeof(struct net_prefixes) *
+-		(set->family == NFPROTO_IPV4 ? 32 : 128);
++	hsize += sizeof(struct net_prefixes) * NLEN(set->family);
+ #endif
+ 	h = kzalloc(hsize, GFP_KERNEL);
+ 	if (!h)
 -- 
 1.8.5.1
 
