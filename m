@@ -1,54 +1,93 @@
-From: Mike Wright <nobody@nospam.hostisimo.com>
-Subject: Re: ipset website
-Date: Sun, 30 Nov 2014 13:05:06 -0800
-Message-ID: <547B8682.2090207@nospam.hostisimo.com>
-References: <547919CB.7030202@nospam.hostisimo.com> <alpine.LSU.2.11.1411290212430.31411@nerf08.vanv.qr> <547946BA.106@nospam.hostisimo.com> <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr> <547A0277.3040301@nospam.hostisimo.com> <547A3893.1060009@nospam.hostisimo.com> <alpine.DEB.2.10.1411302030150.3940@blackhole.kfki.hu>
+From: Jesper Dangaard Brouer <netdev@brouer.com>
+Subject: Re: [PATCH 11/14] netfilter: ipset: Introduce RCU locking in the
+ hash types
+Date: Mon, 1 Dec 2014 08:59:19 +0100
+Message-ID: <20141201085919.4ecef9f7@brouer.com>
+References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
+	<1417373825-3734-12-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from theorb.net ([204.11.228.190]:39635 "HELO b.mx.theorb.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751987AbaK3VFB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Nov 2014 16:05:01 -0500
-In-Reply-To: <alpine.DEB.2.10.1411302030150.3940@blackhole.kfki.hu>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:49691 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364AbaLAH7X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Dec 2014 02:59:23 -0500
+Received: by mail-la0-f46.google.com with SMTP id q1so3422289lam.33
+        for <netfilter-devel@vger.kernel.org>; Sun, 30 Nov 2014 23:59:21 -0800 (PST)
+In-Reply-To: <1417373825-3734-12-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sun, 30 Nov 2014 19:57:02 +0100
+Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+
+> Performance is tested by Jesper Dangaard Brouer:
+> 
+> Simple drop in FORWARD
+> ~~~~~~~~~~~~~~~~~~~~
+> 
+> Dropping via simple iptables net-mask match::
+> 
+>  iptables -t raw -N simple || iptables -t raw -F simple
+>  iptables -t raw -I simple  -s 198.18.0.0/15 -j DROP
+>  iptables -t raw -D PREROUTING -j simple
+>  iptables -t raw -I PREROUTING -j simple
+> 
+> Drop performance in "raw": 11.3Mpps
+
+This is multiple CPUs receiving with correct IRQ alignment with an
+Intel ixgbe 10G NIC.  The 11.3Mpps seems to be some hardware limit
+related to the NIC or CPU.
+Tuning according to:
+ http://netoptimizer.blogspot.dk/2014/04/basic-tuning-for-network-overload.html
 
 
-On 11/30/2014 11:33 AM, Jozsef Kadlecsik wrote:
->
-> According to the diff:
->
-> Only in new/ipset.netfilter.org: ipset.php
-> Only in new/ipset.netfilter.org: iptables-extensions.php
-> Only in new/ipset.netfilter.org: iptables.php
->
-> There's no php at the site at all, it's totally static. Please keep
-> the html files.
+> Generator: sending 12.2Mpps (tx:12264083 pps)
 
-J=F3 napot, J=F3zsef,
+Generator based on trafgen, random src 198.18.1.x, description see:
+ http://netoptimizer.blogspot.dk/2014/04/trafgen-fast-packet-generator.html
 
-html restored.
+> Drop via original ipset in RAW table
+> ~~~~~~~~~~~~~~~~~~~~~~~~~
+[...]
+> Drop performance in "raw" with ipset: 8Mpps
+> 
+> Perf report numbers ipset drop in "raw"::
+> 
+>  +   24.65%  ksoftirqd/1  [ip_set]           [k] ip_set_test
+>  -   21.42%  ksoftirqd/1  [kernel.kallsyms]  [k] _raw_read_lock_bh
+>     - _raw_read_lock_bh
+>        + 99.88% ip_set_test
+>  -   19.42%  ksoftirqd/1  [kernel.kallsyms]  [k] _raw_read_unlock_bh
+>     - _raw_read_unlock_bh
+>        + 99.72% ip_set_test
+[...]
 
-site: http://ipset.hostisimo.com
-diff: http://ipset.hostisimo.com/diff
-bzip: http://ipset.hostisimo.com/ipset.netfilter.org.tar.bz2
+The read-side-lock were clearly a limiting factor in this extreme network
+overload scenario.  This can be a valid use-case when using ipset for
+DDoS protection/mitigation.
 
-Other comments?
+> Drop via ipset in RAW table with RCU-locking
+> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> With RCU locking, the RW-lock is gone.
+> 
+> Drop performance in "raw" with ipset with RCU-locking: 11.3Mpps
+> 
+> Performance-tested-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> ---
 
-If not, you may push the changes.
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
 
-If you use wget to retrieve the site remove diff and=20
-ipset.netfilter.org.tar.bz2 before pushing.  If you retrieve the bzip=20
-nothing needs to be done.
-
-Mike Wright
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
