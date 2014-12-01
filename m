@@ -1,93 +1,80 @@
-From: Jesper Dangaard Brouer <netdev@brouer.com>
-Subject: Re: [PATCH 11/14] netfilter: ipset: Introduce RCU locking in the
- hash types
-Date: Mon, 1 Dec 2014 08:59:19 +0100
-Message-ID: <20141201085919.4ecef9f7@brouer.com>
-References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu>
-	<1417373825-3734-12-git-send-email-kadlec@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/5] netlink_delinearize: clone on netlink_get_register(), release previous on _set()
+Date: Mon,  1 Dec 2014 12:45:49 +0100
+Message-ID: <1417434354-5782-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:49691 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364AbaLAH7X (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2014 02:59:23 -0500
-Received: by mail-la0-f46.google.com with SMTP id q1so3422289lam.33
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Nov 2014 23:59:21 -0800 (PST)
-In-Reply-To: <1417373825-3734-12-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:41604 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753081AbaLALnn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Dec 2014 06:43:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 30 Nov 2014 19:57:02 +0100
-Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+If we add this rule:
 
-> Performance is tested by Jesper Dangaard Brouer:
-> 
-> Simple drop in FORWARD
-> ~~~~~~~~~~~~~~~~~~~~
-> 
-> Dropping via simple iptables net-mask match::
-> 
->  iptables -t raw -N simple || iptables -t raw -F simple
->  iptables -t raw -I simple  -s 198.18.0.0/15 -j DROP
->  iptables -t raw -D PREROUTING -j simple
->  iptables -t raw -I PREROUTING -j simple
-> 
-> Drop performance in "raw": 11.3Mpps
+  nft add rule filter input meta length 33-55
 
-This is multiple CPUs receiving with correct IRQ alignment with an
-Intel ixgbe 10G NIC.  The 11.3Mpps seems to be some hardware limit
-related to the NIC or CPU.
-Tuning according to:
- http://netoptimizer.blogspot.dk/2014/04/basic-tuning-for-network-overload.html
+the listing shows:
 
+  meta length >= 33 meta length <= 754974720
 
-> Generator: sending 12.2Mpps (tx:12264083 pps)
+The two meta statements share the same left-hand side, thus, only the
+first one is converted from network byte order to host byte order.
 
-Generator based on trafgen, random src 198.18.1.x, description see:
- http://netoptimizer.blogspot.dk/2014/04/trafgen-fast-packet-generator.html
+Update netlink_get_register() to return a clone so each left-hand side
+has its own left-hand side.
 
-> Drop via original ipset in RAW table
-> ~~~~~~~~~~~~~~~~~~~~~~~~~
-[...]
-> Drop performance in "raw" with ipset: 8Mpps
-> 
-> Perf report numbers ipset drop in "raw"::
-> 
->  +   24.65%  ksoftirqd/1  [ip_set]           [k] ip_set_test
->  -   21.42%  ksoftirqd/1  [kernel.kallsyms]  [k] _raw_read_lock_bh
->     - _raw_read_lock_bh
->        + 99.88% ip_set_test
->  -   19.42%  ksoftirqd/1  [kernel.kallsyms]  [k] _raw_read_unlock_bh
->     - _raw_read_unlock_bh
->        + 99.72% ip_set_test
-[...]
+Moreover, release the existing register before overriding it with fresh
+expressions in netlink_set_register().
 
-The read-side-lock were clearly a limiting factor in this extreme network
-overload scenario.  This can be a valid use-case when using ipset for
-DDoS protection/mitigation.
+Thefore, if you manipulate a register from any of the existing parse
+functions, you have to re-set it again to place fresh modified clone.
 
-> Drop via ipset in RAW table with RCU-locking
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> With RCU locking, the RW-lock is gone.
-> 
-> Drop performance in "raw" with ipset with RCU-locking: 11.3Mpps
-> 
-> Performance-tested-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> ---
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink_delinearize.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
-
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 1be409b..c809bb6 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -57,6 +57,9 @@ static void netlink_set_register(struct netlink_parse_ctx *ctx,
+ 		return;
+ 	}
+ 
++	if (ctx->registers[reg] != NULL)
++		expr_free(ctx->registers[reg]);
++
+ 	ctx->registers[reg] = expr;
+ }
+ 
+@@ -72,7 +75,15 @@ static struct expr *netlink_get_register(struct netlink_parse_ctx *ctx,
+ 	}
+ 
+ 	expr = ctx->registers[reg];
+-	return expr;
++	return expr_clone(expr);
++}
++
++static void netlink_release_registers(struct netlink_parse_ctx *ctx)
++{
++	int i;
++
++	for (i = 0; i <= NFT_REG_MAX; i++)
++		expr_free(ctx->registers[i]);
+ }
+ 
+ static void netlink_parse_immediate(struct netlink_parse_ctx *ctx,
+@@ -1109,5 +1120,6 @@ struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
+ 	nft_rule_expr_foreach((struct nft_rule *)nlr, netlink_parse_expr, pctx);
+ 
+ 	rule_parse_postprocess(pctx, pctx->rule);
++	netlink_release_registers(pctx);
+ 	return pctx->rule;
+ }
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
+1.7.10.4
+
