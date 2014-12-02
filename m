@@ -1,57 +1,61 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset website
-Date: Tue, 2 Dec 2014 09:52:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1412020742150.14469@blackhole.kfki.hu>
-References: <547919CB.7030202@nospam.hostisimo.com> <alpine.LSU.2.11.1411290212430.31411@nerf08.vanv.qr> <547946BA.106@nospam.hostisimo.com> <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr> <547A0277.3040301@nospam.hostisimo.com> <547A3893.1060009@nospam.hostisimo.com>
- <alpine.DEB.2.10.1411302030150.3940@blackhole.kfki.hu> <547B8682.2090207@nospam.hostisimo.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC PATCH] netfilter: conntrack: cache route for forwarded
+ connections
+Date: Tue, 2 Dec 2014 11:20:08 +0100
+Message-ID: <20141202102008.GC16959@breakpoint.cc>
+References: <1417480114-3002-1-git-send-email-fw@strlen.de>
+ <1417484203.4442.19.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-995175922-1417503392=:14469"
-Cc: netfilter-devel@vger.kernel.org
-To: Mike Wright <nobody@nospam.hostisimo.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:49060 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751322AbaLBIv6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Dec 2014 03:51:58 -0500
-In-Reply-To: <547B8682.2090207@nospam.hostisimo.com>
-Content-ID: <alpine.DEB.2.10.1412020951040.15287@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	brouer@redhat.com, netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1417484203.4442.19.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Tue, 2014-12-02 at 01:28 +0100, Florian Westphal wrote:
+> > ... to avoid per-packet FIB lookup if possible.
+> > 
+> > The cached dst is re-used provided the input interface
+> > is the same as that of the previous packet in the same direction.
+> > 
+> > If not, the cached dst is invalidated.
+> > 
+> > This should speed up forwarding when conntrack is already in use
+> > anyway, especially when using reverse path filtering -- active RPF
+> > enforces two FIB lookups for each packet.
+> > 
+> > Before the routing cache removal this didn't matter since RPF
+> > was performed only when route cache didn't yield a result; but without
+> > route cache it comes at high price.
+> > 
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> 
+> Seems a good idea (but you might need some IPv6 care, as ( dst =
+> dst_check(dst, 0); ) seems to handle IPv4 only)
 
---110391812-995175922-1417503392=:14469
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.10.1412020951041.15287@blackhole.kfki.hu>
+As usual, you're right...
 
-On Sun, 30 Nov 2014, Mike Wright wrote:
+AFAICS its enough to stash fib sernum of the rt6info too and pass
+that as the cookie, phew :-)
 
-> J=F3 napot, J=F3zsef,
+> Another idea would be to re-use TCP ehash so that regular IP early demux
+> can be used, with a single lookup for both local and forwarded sessions.
 
-=DCdv=F6zletem! :-)
+Hmm, I'll look at this.  Maybe...
 
-> html restored.
->=20
-> site: http://ipset.hostisimo.com
-> diff: http://ipset.hostisimo.com/diff
-> bzip: http://ipset.hostisimo.com/ipset.netfilter.org.tar.bz2
->=20
-> Other comments?
+> (That would probably require a bit more memory, as you would need to
+> insert into TCP ehash some kind of 'tiny sockets' )
 
-The htmlized manpages are renamed from <foo>.man.html to <foo>.html.=20
-That's not a problem, but you created the diff without the "-N" flag, so=20
-their contents are missing from the diff file.
+... such tiny socket could be stored/tied to the conntrack extension
+area.
 
-However, the best were to separate the common parts (header, menu,=20
-footer) into files and use SSI to include them into the pages.
+I think we need to be careful to not re-add the route cache (and the DoS
+issues associated with it).
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
---110391812-995175922-1417503392=:14469--
+Thanks Eric!
