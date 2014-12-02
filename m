@@ -1,51 +1,36 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC PATCH] netfilter: conntrack: cache route for forwarded
- connections
-Date: Tue, 2 Dec 2014 11:21:14 +0100
-Message-ID: <20141202102114.GD16959@breakpoint.cc>
-References: <1417480114-3002-1-git-send-email-fw@strlen.de>
- <alpine.LFD.2.11.1412020827260.1593@ja.home.ssi.bg>
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: Re: [PATCH -next] netfilter: combine IPv4 and IPv6 nf_nat_redirect
+ code in one module
+Date: Tue, 2 Dec 2014 16:37:37 +0200
+Message-ID: <547DCEB1.5090105@mellanox.com>
+References: <1417004330-29618-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	brouer@redhat.com, netdev@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <arturo.borrero.glez@gmail.com>, <fw@strlen.de>,
+	<rupran@einserver.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60721 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751873AbaLBKVT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Dec 2014 05:21:19 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1412020827260.1593@ja.home.ssi.bg>
+Received: from mail-am1on0063.outbound.protection.outlook.com ([157.56.112.63]:37898
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753159AbaLBPPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Dec 2014 10:15:04 -0500
+In-Reply-To: <1417004330-29618-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Julian Anastasov <ja@ssi.bg> wrote:
-> > The cached dst is re-used provided the input interface
-> > is the same as that of the previous packet in the same direction.
-> > 
-> > If not, the cached dst is invalidated.
-> > 
-> > This should speed up forwarding when conntrack is already in use
-> > anyway, especially when using reverse path filtering -- active RPF
-> > enforces two FIB lookups for each packet.
-> > 
-> > Before the routing cache removal this didn't matter since RPF
-> > was performed only when route cache didn't yield a result; but without
-> > route cache it comes at high price.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  Sending as RFC since I haven't tested this yet (aside from
-> >  single-forwarded-flow), so no performance data either.
-> > 
-> >   - doesn't work when iif changes (it invalidates cached dst), don't
-> >   think its a problem
-> 
-> 	The idea is good. But code that caches dsts should
-> also handle at least NETDEV_UNREGISTER (NETDEV_DOWN being
-> another option) to release dsts. Holding dsts for frozen
-> conns in EST state for long time is a problem.
+On 11/26/2014 2:18 PM, Pablo Neira Ayuso wrote:
+> This resolves linking problems with CONFIG_IPV6=n:
 
-Okay, point taken.  Thanks Julian.
+I have CONFIG_IPV6=m
+
+>
+> net/built-in.o: In function `redirect_tg6':
+> xt_REDIRECT.c:(.text+0x6d021): undefined reference to `nf_nat_redirect_ipv6'
+>
+> Reported-by: Andreas Ruprecht<rupran@einserver.de>
+> Reported-by: Or Gerlitz<ogerlitz@mellanox.com>
+> Signed-off-by: Pablo Neira Ayuso<pablo@netfilter.org>
+
