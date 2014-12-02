@@ -1,74 +1,57 @@
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: Re: Out-of-bounds access in nfnetlink_bind
-Date: Tue, 2 Dec 2014 12:20:05 +0400
-Message-ID: <CAPAsAGx4MMRC3qCkkO2frVJfvkeJ+t38+FuVq1g1qTsJ7pSWsQ@mail.gmail.com>
-References: <CACT4Y+bZu5UHu90F8wWqckcE13D5H2LDexna6vVEMBy+X4RiZw@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset website
+Date: Tue, 2 Dec 2014 09:52:53 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1412020742150.14469@blackhole.kfki.hu>
+References: <547919CB.7030202@nospam.hostisimo.com> <alpine.LSU.2.11.1411290212430.31411@nerf08.vanv.qr> <547946BA.106@nospam.hostisimo.com> <alpine.LSU.2.11.1411291212290.5728@nerf08.vanv.qr> <547A0277.3040301@nospam.hostisimo.com> <547A3893.1060009@nospam.hostisimo.com>
+ <alpine.DEB.2.10.1411302030150.3940@blackhole.kfki.hu> <547B8682.2090207@nospam.hostisimo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kasan-dev <kasan-dev@googlegroups.com>,
-	Dmitry Chernenkov <dmitryc@google.com>,
-	Kostya Serebryany <kcc@google.com>,
-	Andrey Konovalov <andreyknvl@google.com>
-To: Dmitry Vyukov <dvyukov@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+bZu5UHu90F8wWqckcE13D5H2LDexna6vVEMBy+X4RiZw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-995175922-1417503392=:14469"
+Cc: netfilter-devel@vger.kernel.org
+To: Mike Wright <nobody@nospam.hostisimo.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:49060 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751322AbaLBIv6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Dec 2014 03:51:58 -0500
+In-Reply-To: <547B8682.2090207@nospam.hostisimo.com>
+Content-ID: <alpine.DEB.2.10.1412020951040.15287@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2014-12-02 10:53 GMT+03:00 Dmitry Vyukov <dvyukov@google.com>:
-> Hi,
->
-> I am working on Kernel AddressSanitizer, a fast memory error detector
-> for kernel:
-> https://code.google.com/p/address-sanitizer/wiki/AddressSanitizerForKernel
->
-> Here is an error report that I got while running trinity:
->
-> ==================================================================
-> BUG: AddressSanitizer: out of bounds access in
-> nfnetlink_bind+0xbf/0xe0 at addr ffffffff82eef710
-> Read of size 4 by task trinity-main/2533
-> Out-of-bounds access to the global variable 'nfnl_group2type'
-> [ffffffff82eef6e0-ffffffff82eef704) defined at
-> net/netfilter/nfnetlink.c:43:18
-> CPU: 0 PID: 2533 Comm: trinity-main Not tainted 3.18.0-rc1+ #44
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
->  ffffffff835173e8 ffff8800b989fd18 ffffffff82a3d66f 0000000000000007
->  ffff8800b989fdc0 ffff8800b989fda8 ffffffff813a3826 0000000000000012
->  0000000000000000 0000000100000018 0000000000000296 ffff8800b989fd88
-> Call Trace:
->  [<ffffffff813a39c1>] __asan_report_load4_noabort+0x41/0x50
-> mm/kasan/report.c:236
->  [<ffffffff824769cf>] nfnetlink_bind+0xbf/0xe0 net/netfilter/nfnetlink.c:467
->  [<ffffffff82469b71>] netlink_bind+0x221/0x7e0 net/netlink/af_netlink.c:1472
->  [<ffffffff8238bf77>] SYSC_bind+0x117/0x170 net/socket.c:1541
->  [<ffffffff8238dc29>] SyS_bind+0x9/0x10 net/socket.c:1527
->  [<ffffffff82a522a9>] system_call_fastpath+0x12/0x17
-> arch/x86/kernel/entry_64.S:422
-> Memory state around the buggy address:
->  ffffffff82eef480: 00 00 00 00 00 00 00 00 00 00 00 00 00 f8 f8 f8
->  ffffffff82eef500: f8 f8 f8 f8 00 00 00 00 f8 f8 f8 f8 00 00 00 01
->  ffffffff82eef580: f8 f8 f8 f8 00 00 00 00 05 f8 f8 f8 f8 f8 f8 f8
->  ffffffff82eef600: 00 00 04 f8 f8 f8 f8 f8 00 00 f8 f8 f8 f8 f8 f8
->  ffffffff82eef680: 00 00 00 00 07 f8 f8 f8 f8 f8 f8 f8 00 00 00 00
->>ffffffff82eef700: 04 f8 f8 f8 f8 f8 f8 f8 00 06 f8 f8 f8 f8 f8 f8
->                          ^
->  ffffffff82eef780: 00 00 00 05 f8 f8 f8 f8 00 00 00 00 00 f8 f8 f8
->  ffffffff82eef800: f8 f8 f8 f8 00 00 00 00 02 f8 f8 f8 f8 f8 f8 f8
->  ffffffff82eef880: 00 00 00 00 06 f8 f8 f8 f8 f8 f8 f8 00 00 00 04
->  ffffffff82eef900: f8 f8 f8 f8 00 00 00 00 00 04 f8 f8 f8 f8 f8 f8
->  ffffffff82eef980: 00 00 00 07 f8 f8 f8 f8 00 00 00 06 f8 f8 f8 f8
-> ==================================================================
->
-> My source is on revision f114040e3ea6e07372334ade75d1ee0
->
-> As far as I see netlink_bind just calls nfnetlink_bind with whatever
-> groups user has requested; nfnetlink_bind in turn do not do any checks
-> before indexing the global nfnl_group2type array with the group.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I've reported this few weeks ago: https://lkml.org/lkml/2014/11/13/65
+--110391812-995175922-1417503392=:14469
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.10.1412020951041.15287@blackhole.kfki.hu>
+
+On Sun, 30 Nov 2014, Mike Wright wrote:
+
+> J=F3 napot, J=F3zsef,
+
+=DCdv=F6zletem! :-)
+
+> html restored.
+>=20
+> site: http://ipset.hostisimo.com
+> diff: http://ipset.hostisimo.com/diff
+> bzip: http://ipset.hostisimo.com/ipset.netfilter.org.tar.bz2
+>=20
+> Other comments?
+
+The htmlized manpages are renamed from <foo>.man.html to <foo>.html.=20
+That's not a problem, but you created the diff without the "-N" flag, so=20
+their contents are missing from the diff file.
+
+However, the best were to separate the common parts (header, menu,=20
+footer) into files and use SSI to include them into the pages.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391812-995175922-1417503392=:14469--
