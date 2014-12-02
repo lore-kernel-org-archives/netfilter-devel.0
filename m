@@ -1,35 +1,61 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Re: feature request: snat to @random_ip_from_this_set and negative
- set lookups
-Date: Tue, 2 Dec 2014 22:26:19 +0100
-Message-ID: <CAJO99TkiE=WZLqAV23+qWFxGfcSrAv4h1BxnFF1dFRFfmK6JHA@mail.gmail.com>
-References: <CAJO99Tmjm7UPE6V4ieiqEckh8DPKVLXB1c0Xg1WcWYZww8TMvg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [nft PATCH] datatype: fix name of icmp* code
+Date: Wed,  3 Dec 2014 00:02:51 +0100
+Message-ID: <1417561371-22624-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:42406 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932800AbaLBV0V (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:45932 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933149AbaLBXDX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Dec 2014 16:26:21 -0500
-Received: by mail-lb0-f170.google.com with SMTP id w7so11383474lbi.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Dec 2014 13:26:19 -0800 (PST)
-In-Reply-To: <CAJO99Tmjm7UPE6V4ieiqEckh8DPKVLXB1c0Xg1WcWYZww8TMvg@mail.gmail.com>
+	Tue, 2 Dec 2014 18:03:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thinking on this a little more, perhaps maps with multiple similar
-ports and a algo of choice
-would be better:
+The name of datatypes can be used in set definition so they should
+follow the same logic (and maybe not contain space to avoid problem
+with parsing).
 
-nft add rule ip nat prerouting dnat tcp dport map { 80 :
-192.168.1.100, 80 : 192.168.1.101 }:balance lc
+This patch adds an underscore to the name of the icmp* code
+datatype.
 
-..or first match or round robin...
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ src/datatype.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-any toughts?
-
+diff --git a/src/datatype.c b/src/datatype.c
+index 5f976aa..1948bfa 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -717,7 +717,7 @@ static struct error_record *icmp_code_type_parse(const struct expr *sym,
+ 
+ const struct datatype icmp_code_type = {
+ 	.type		= TYPE_ICMP_CODE,
+-	.name		= "icmp code",
++	.name		= "icmp_code",
+ 	.desc		= "icmp code",
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+@@ -749,7 +749,7 @@ static struct error_record *icmpv6_code_type_parse(const struct expr *sym,
+ 
+ const struct datatype icmpv6_code_type = {
+ 	.type		= TYPE_ICMPV6_CODE,
+-	.name		= "icmpv6 code",
++	.name		= "icmpv6_code",
+ 	.desc		= "icmpv6 code",
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+@@ -781,7 +781,7 @@ static struct error_record *icmpx_code_type_parse(const struct expr *sym,
+ 
+ const struct datatype icmpx_code_type = {
+ 	.type		= TYPE_ICMPX_CODE,
+-	.name		= "icmpx code",
++	.name		= "icmpx_code",
+ 	.desc		= "icmpx code",
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
 -- 
-Bj(/)rnar
+2.1.3
+
