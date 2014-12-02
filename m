@@ -1,26 +1,24 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
 Subject: Re: [RFC PATCH] netfilter: conntrack: cache route for forwarded
  connections
-Date: Mon, 01 Dec 2014 17:36:43 -0800
-Message-ID: <1417484203.4442.19.camel@edumazet-glaptop2.roam.corp.google.com>
+Date: Tue, 2 Dec 2014 09:15:32 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1412020827260.1593@ja.home.ssi.bg>
 References: <1417480114-3002-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, brouer@redhat.com,
 	netdev@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:49928 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544AbaLBBgp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2014 20:36:45 -0500
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1417480114-3002-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2014-12-02 at 01:28 +0100, Florian Westphal wrote:
+
+	Hello,
+
+On Tue, 2 Dec 2014, Florian Westphal wrote:
+
 > ... to avoid per-packet FIB lookup if possible.
 > 
 > The cached dst is re-used provided the input interface
@@ -38,13 +36,20 @@ On Tue, 2014-12-02 at 01:28 +0100, Florian Westphal wrote:
 > 
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
+>  Sending as RFC since I haven't tested this yet (aside from
+>  single-forwarded-flow), so no performance data either.
+> 
+>   - doesn't work when iif changes (it invalidates cached dst), don't
+>   think its a problem
 
-Seems a good idea (but you might need some IPv6 care, as ( dst =
-dst_check(dst, 0); ) seems to handle IPv4 only)
+	The idea is good. But code that caches dsts should
+also handle at least NETDEV_UNREGISTER (NETDEV_DOWN being
+another option) to release dsts. Holding dsts for frozen
+conns in EST state for long time is a problem. IIRC, such dsts
+are not under dst_dev_event() control. nf_nat_masquerade_ipv4.c
+has something like this but for masq_index.
 
-Another idea would be to re-use TCP ehash so that regular IP early demux
-can be used, with a single lookup for both local and forwarded sessions.
+Regards
 
-(That would probably require a bit more memory, as you would need to
-insert into TCP ehash some kind of 'tiny sockets' )
-
+--
+Julian Anastasov <ja@ssi.bg>
