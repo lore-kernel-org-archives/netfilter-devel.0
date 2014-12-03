@@ -1,132 +1,203 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 08/14] netfilter: ipset: Introduce RCU locking instead
- of rwlock per set in the core
-Date: Wed, 3 Dec 2014 12:01:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1412031155070.21739@blackhole.kfki.hu>
-References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu> <1417373825-3734-9-git-send-email-kadlec@blackhole.kfki.hu> <20141202182558.GB4504@salvia>
+Subject: Re: [PATCH 10/14] netfilter: ipset: Introduce RCU locking in the
+ list type
+Date: Wed, 3 Dec 2014 12:17:36 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1412031206530.21739@blackhole.kfki.hu>
+References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu> <1417373825-3734-11-git-send-email-kadlec@blackhole.kfki.hu> <20141202183539.GC4504@salvia>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:34185 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:33293 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815AbaLCLAw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:00:52 -0500
-In-Reply-To: <20141202182558.GB4504@salvia>
+	id S1750707AbaLCLQh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Dec 2014 06:16:37 -0500
+In-Reply-To: <20141202183539.GC4504@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Tue, 2 Dec 2014, Pablo Neira Ayuso wrote:
 
-> On Sun, Nov 30, 2014 at 07:56:59PM +0100, Jozsef Kadlecsik wrote:
+> On Sun, Nov 30, 2014 at 07:57:01PM +0100, Jozsef Kadlecsik wrote:
 > > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 > > ---
-> >  include/linux/netfilter/ipset/ip_set.h         |  6 ++++-
-> >  include/linux/netfilter/ipset/ip_set_timeout.h | 27 ++++++++------------
-> >  net/netfilter/ipset/ip_set_core.c              | 35 +++++++++++++-------------
-> >  3 files changed, 34 insertions(+), 34 deletions(-)
+> >  net/netfilter/ipset/ip_set_list_set.c | 386 ++++++++++++++++------------------
+> >  1 file changed, 182 insertions(+), 204 deletions(-)
 > > 
-> > diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-> > index f1606fa..d5d5bcd 100644
-> > --- a/include/linux/netfilter/ipset/ip_set.h
-> > +++ b/include/linux/netfilter/ipset/ip_set.h
-> > @@ -223,7 +223,7 @@ struct ip_set {
-> >  	/* The name of the set */
-> >  	char name[IPSET_MAXNAMELEN];
-> >  	/* Lock protecting the set data */
-> > -	rwlock_t lock;
-> > +	spinlock_t lock;
-> >  	/* References to the set */
-> >  	u32 ref;
-> >  	/* The core set type */
-> > @@ -322,6 +322,10 @@ ip_set_update_counter(struct ip_set_counter *counter,
-> >  	}
-> >  }
+> > diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+> > index f8f6828..323115a 100644
+> > --- a/net/netfilter/ipset/ip_set_list_set.c
+> > +++ b/net/netfilter/ipset/ip_set_list_set.c
+> > @@ -9,6 +9,7 @@
 > >  
-> > +#define ip_set_rcu_deref(t)		\
-> > +	rcu_dereference_index_check(t,	\
-> > +		rcu_read_lock_held() || rcu_read_lock_bh_held())
-> > +
+> >  #include <linux/module.h>
+> >  #include <linux/ip.h>
+> > +#include <linux/rculist.h>
+> >  #include <linux/skbuff.h>
+> >  #include <linux/errno.h>
+> >  
+> > @@ -27,6 +28,8 @@ MODULE_ALIAS("ip_set_list:set");
+> >  
+> >  /* Member elements  */
+> >  struct set_elem {
+> > +	struct rcu_head rcu;
+> > +	struct list_head list;
 > 
-> This is not used from this patch itself?
+> I think rcu_barrier() in the module removal path is missing to make
+> sure call_rcu() is called before the module is gone.
 
-That is something leftover from an earlier phase, I remove it.
- 
-> >  static inline void
-> >  ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
-> >  		      const struct ip_set_ext *ext,
-> > diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-> > index 83c2f9e..1d6a935 100644
-> > --- a/include/linux/netfilter/ipset/ip_set_timeout.h
-> > +++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-> > @@ -40,38 +40,33 @@ ip_set_timeout_uget(struct nlattr *tb)
-> >  }
-> >  
-> >  static inline bool
-> > -ip_set_timeout_test(unsigned long timeout)
-> > +ip_set_timeout_expired(unsigned long *t)
+The module can be removed only when there isn't a single set of the given 
+type. That means there are no elements to be removed by kfree_rcu(). 
+Therefore I think rcu_barrier() is not required in the module removal 
+path.
+
+> > @@ -91,13 +88,9 @@ list_set_kadd(struct ip_set *set, const struct sk_buff *skb,
 > >  {
-> > -	return timeout == IPSET_ELEM_PERMANENT ||
-> > -	       time_is_after_jiffies(timeout);
-> > -}
+> >  	struct list_set *map = set->data;
+> >  	struct set_elem *e;
+> > -	u32 i;
+> >  	int ret;
+> >  
+> > -	for (i = 0; i < map->size; i++) {
+> > -		e = list_set_elem(set, map, i);
+> > -		if (e->id == IPSET_INVALID_ID)
+> > -			return 0;
+> > +	list_for_each_entry_rcu(e, &map->members, list) {
+> 
+> >From net/netfilter/ipset/ip_set_core.c I can see this kadd() will be
+> called under spin_lock_bh(), so you can just use
+> list_for_each_entry(). The _rcu() variant protects the reader side,
+> but this code is only invoked from the writer side (no changes are
+> guaranteed to happen there).
+
+Yes, you are right! I'll correct it.
+
+> >  static int
+> >  list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+> > @@ -282,60 +240,82 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+> >  {
+> >  	struct list_set *map = set->data;
+> >  	struct set_adt_elem *d = value;
+> > -	struct set_elem *e;
+> > +	struct set_elem *e, *n, *prev, *next;
+> >  	bool flag_exist = flags & IPSET_FLAG_EXIST;
+> > -	u32 i, ret = 0;
+> >  
+> >  	if (SET_WITH_TIMEOUT(set))
+> >  		set_cleanup_entries(set);
+> >  
+> > -	/* Check already added element */
+> > -	for (i = 0; i < map->size; i++) {
+> > -		e = list_set_elem(set, map, i);
+> > -		if (e->id == IPSET_INVALID_ID)
+> > -			goto insert;
+> > -		else if (e->id != d->id)
+> > +	/* Find where to add the new entry */
+> > +	n = prev = next = NULL;
+> > +	list_for_each_entry(e, &map->members, list) {
+> > +		if (SET_WITH_TIMEOUT(set) &&
+> > +		    ip_set_timeout_expired(ext_timeout(e, set)))
+> >  			continue;
 > > -
-> > -static inline bool
-> > -ip_set_timeout_expired(unsigned long *timeout)
-> > -{
-> > -	return *timeout != IPSET_ELEM_PERMANENT &&
-> > -	       time_is_before_jiffies(*timeout);
-> > +	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
-> >  }
+> > -		if ((d->before > 1 && !id_eq(set, i + 1, d->refid)) ||
+> > -		    (d->before < 0 &&
+> > -		     (i == 0 || !id_eq(set, i - 1, d->refid))))
+> > -			/* Before/after doesn't match */
+> > +		else if (d->id == e->id)
+> > +			n = e;
+> > +		else if (d->before == 0 || e->id != d->refid)
+> > +			continue;
+> > +		else if (d->before > 0)
+> > +			next = e;
+> > +		else
+> > +			prev = e;
+> > +	}
+> > +	/* Re-add already existing element */
+> > +	if (n) {
+> > +		if ((d->before > 0 && !next) ||
+> > +		    (d->before < 0 && !prev))
+> >  			return -IPSET_ERR_REF_EXIST;
+> >  		if (!flag_exist)
+> > -			/* Can't re-add */
+> >  			return -IPSET_ERR_EXIST;
+> >  		/* Update extensions */
+> > -		ip_set_ext_destroy(set, e);
+> > +		ip_set_ext_destroy(set, n);
+> > +		list_set_init_extensions(set, ext, n);
 > >  
-> >  static inline void
-> > -ip_set_timeout_set(unsigned long *timeout, u32 t)
-> > +ip_set_timeout_set(unsigned long *timeout, u32 value)
-> >  {
-> > -	if (!t) {
-> > +	unsigned long t;
-> > +
-> > +	if (!value) {
-> >  		*timeout = IPSET_ELEM_PERMANENT;
-> >  		return;
+> > -		if (SET_WITH_TIMEOUT(set))
+> > -			ip_set_timeout_set(ext_timeout(e, set), ext->timeout);
+> > -		if (SET_WITH_COUNTER(set))
+> > -			ip_set_init_counter(ext_counter(e, set), ext);
+> > -		if (SET_WITH_COMMENT(set))
+> > -			ip_set_init_comment(ext_comment(e, set), ext);
+> > -		if (SET_WITH_SKBINFO(set))
+> > -			ip_set_init_skbinfo(ext_skbinfo(e, set), ext);
+> >  		/* Set is already added to the list */
+> >  		ip_set_put_byindex(map->net, d->id);
+> >  		return 0;
 > >  	}
-> >  
-> > -	*timeout = msecs_to_jiffies(t * 1000) + jiffies;
-> > -	if (*timeout == IPSET_ELEM_PERMANENT)
-> > +	t = msecs_to_jiffies(value * MSEC_PER_SEC) + jiffies;
-> > +	if (t == IPSET_ELEM_PERMANENT)
-> >  		/* Bingo! :-) */
-> > -		(*timeout)--;
-> > +		t--;
-> > +	*timeout = t;
-> >  }
-> >  
-> >  static inline u32
-> >  ip_set_timeout_get(unsigned long *timeout)
-> >  {
-> >  	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
-> > -		jiffies_to_msecs(*timeout - jiffies)/1000;
-> > +		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
-> >  }
-> >  
-> >  #endif	/* __KERNEL__ */
-> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > index 912e5a0..9fb2610 100644
-> > --- a/net/netfilter/ipset/ip_set_core.c
-> > +++ b/net/netfilter/ipset/ip_set_core.c
-> > @@ -217,6 +217,7 @@ ip_set_type_register(struct ip_set_type *type)
-> >  		 type->revision_min, type->revision_max);
-> >  unlock:
-> >  	ip_set_type_unlock();
-> > +	synchronize_rcu();
+> > -insert:
+> > -	ret = -IPSET_ERR_LIST_FULL;
+> > -	for (i = 0; i < map->size && ret == -IPSET_ERR_LIST_FULL; i++) {
+> > -		e = list_set_elem(set, map, i);
+> > -		if (e->id == IPSET_INVALID_ID)
+> > -			ret = d->before != 0 ? -IPSET_ERR_REF_EXIST
+> > -				: list_set_add(set, i, d, ext);
+> > -		else if (e->id != d->refid)
+> > -			continue;
+> > -		else if (d->before > 0)
+> > -			ret = list_set_add(set, i, d, ext);
+> > -		else if (i + 1 < map->size)
+> > -			ret = list_set_add(set, i + 1, d, ext);
+> > +	/* Add new entry */
+> > +	if (d->before == 0) {
+> > +		/* Append  */
+> > +		n = list_empty(&map->members) ? NULL :
+> > +		    list_last_entry(&map->members, struct set_elem, list);
+> > +	} else if (d->before > 0) {
+> > +		/* Insert after next element */
+> > +		if (!list_is_last(&next->list, &map->members))
+> > +			n = list_next_entry(next, list);
+> > +	} else {
+> > +		/* Insert before prev element */
+> > +		if (prev->list.prev != &map->members)
+> > +			n = list_prev_entry(prev, list);
+> >  	}
+> > -
+> > -	return ret;
+> > +	/* Can we replace a timed out entry? */
+> > +	if (n != NULL &&
+> > +	    !(SET_WITH_TIMEOUT(set) &&
+> > +	      ip_set_timeout_expired(ext_timeout(n, set))))
+> > +		n =  NULL;
+> > +
+> > +	e = kzalloc(set->dsize, GFP_KERNEL);
+> > +	if (!e)
+> > +		return -ENOMEM;
+> > +	e->id = d->id;
+> > +	INIT_LIST_HEAD(&e->list);
+> > +	list_set_init_extensions(set, ext, e);
+> > +	if (n)
+> > +		list_set_replace(set, e, n);
+> > +	else if (next)
+> > +		list_add_tail_rcu(&e->list, &next->list);
+> > +	else if (prev)
+> > +		list_add_rcu(&e->list, &prev->list);
+> > +	else
+> > +		list_add_tail_rcu(&e->list, &map->members);
+> > +	spin_unlock_bh(&set->lock);
+> > +
+> > +	synchronize_rcu_bh();
 > 
-> Why this synchronize_rcu()?
-> 
-> ip_set_type_register() didn't publish any new object in the unlock
-> path.
+> I suspect you don't need this. What is your intention here?
 
-That's there just to have less line of code :-). I'll reorganize it so the 
-unlock path won't call unnecessarily synchronize_rcu().
+Here the userspace adds/deletes/replaces an element in the list type of 
+set and in the meantime the kernel module can traverse the same linked 
+list. In the replace case we remove and delete the old entry, therefore 
+the call to synchronize_rcu_bh(). That could be called from a condition 
+then, to express the case.
 
 Best regards,
 Jozsef
