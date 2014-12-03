@@ -1,61 +1,93 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [nft PATCH] datatype: fix name of icmp* code
-Date: Wed,  3 Dec 2014 00:02:51 +0100
-Message-ID: <1417561371-22624-1-git-send-email-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Subject: [PATCH] netfilter: return -EFAULT directly when counters_ptr is NULL
+Date: Wed, 3 Dec 2014 14:24:50 +0800
+Message-ID: <547EACB2.8090501@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:45932 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933149AbaLBXDX (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:5364 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750982AbaLCG11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Dec 2014 18:03:23 -0500
+	Wed, 3 Dec 2014 01:27:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The name of datatypes can be used in set definition so they should
-follow the same logic (and maybe not contain space to avoid problem
-with parsing).
 
-This patch adds an underscore to the name of the icmp* code
-datatype.
+Now if the copy_to_user() fail, __do_replace just silent error, because
+new table is alread replaced. But at the beginning of __do_replace(), if
+we notice that user supply no memory to store counters, we should not
+replace table, so we can just returen -EFAULT directly.
 
-Signed-off-by: Eric Leblond <eric@regit.org>
+Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
 ---
- src/datatype.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/bridge/netfilter/ebtables.c | 3 +++
+ net/ipv4/netfilter/arp_tables.c | 4 ++++
+ net/ipv4/netfilter/ip_tables.c  | 4 ++++
+ net/ipv6/netfilter/ip6_tables.c | 4 ++++
+ 4 files changed, 15 insertions(+)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index 5f976aa..1948bfa 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -717,7 +717,7 @@ static struct error_record *icmp_code_type_parse(const struct expr *sym,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index d9a8c05..90ccc78 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -983,6 +983,9 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 	struct ebt_table_info *table;
+ 	struct ebt_table *t;
  
- const struct datatype icmp_code_type = {
- 	.type		= TYPE_ICMP_CODE,
--	.name		= "icmp code",
-+	.name		= "icmp_code",
- 	.desc		= "icmp code",
- 	.size		= BITS_PER_BYTE,
- 	.byteorder	= BYTEORDER_BIG_ENDIAN,
-@@ -749,7 +749,7 @@ static struct error_record *icmpv6_code_type_parse(const struct expr *sym,
++	if (!repl->counters)
++		return -EFAULT;
++
+ 	/* the user wants counters back
+ 	   the check on the size is done later, when we have the lock */
+ 	if (repl->num_counters) {
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index f95b6f9..654debe 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -999,6 +999,10 @@ static int __do_replace(struct net *net, const char *name,
+ 	struct arpt_entry *iter;
  
- const struct datatype icmpv6_code_type = {
- 	.type		= TYPE_ICMPV6_CODE,
--	.name		= "icmpv6 code",
-+	.name		= "icmpv6_code",
- 	.desc		= "icmpv6 code",
- 	.size		= BITS_PER_BYTE,
- 	.byteorder	= BYTEORDER_BIG_ENDIAN,
-@@ -781,7 +781,7 @@ static struct error_record *icmpx_code_type_parse(const struct expr *sym,
+ 	ret = 0;
++	if (!counters_ptr) {
++		ret = -EFAULT;
++		goto out;
++	}
+ 	counters = vzalloc(num_counters * sizeof(struct xt_counters));
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 99e810f..0acdcc8 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1186,6 +1186,10 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct ipt_entry *iter;
  
- const struct datatype icmpx_code_type = {
- 	.type		= TYPE_ICMPX_CODE,
--	.name		= "icmpx code",
-+	.name		= "icmpx_code",
- 	.desc		= "icmpx code",
- 	.size		= BITS_PER_BYTE,
- 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	ret = 0;
++	if (!counters_ptr) {
++		ret = -EFAULT;
++		goto out;
++	}
+ 	counters = vzalloc(num_counters * sizeof(struct xt_counters));
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index e080fbb..cb91f2b 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1196,6 +1196,10 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct ip6t_entry *iter;
+ 
+ 	ret = 0;
++	if (!counters_ptr) {
++		ret = -EFAULT;
++		goto out;
++	}
+ 	counters = vzalloc(num_counters * sizeof(struct xt_counters));
+ 	if (!counters) {
+ 		ret = -ENOMEM;
 -- 
-2.1.3
-
+1.8.3.1
