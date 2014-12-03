@@ -1,82 +1,51 @@
-From: =?windows-1252?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [nft PATCH] datatype: fix name of icmp* code
-Date: Wed, 03 Dec 2014 12:25:15 +0100
-Message-ID: <547EF31B.9020709@gmail.com>
-References: <1417561371-22624-1-git-send-email-eric@regit.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 01/14] netfilter: ipset: Support updating extensions when
+ the set is full
+Date: Wed, 3 Dec 2014 12:26:52 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1412031226040.21739@blackhole.kfki.hu>
+References: <1417373825-3734-1-git-send-email-kadlec@blackhole.kfki.hu> <1417373825-3734-2-git-send-email-kadlec@blackhole.kfki.hu> <20141202184644.GF4504@salvia> <20141202185043.GA5074@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>, pablo@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:38208 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbaLCLYs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:24:48 -0500
-Received: by mail-wi0-f177.google.com with SMTP id l15so24036925wiw.10
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Dec 2014 03:24:47 -0800 (PST)
-In-Reply-To: <1417561371-22624-1-git-send-email-eric@regit.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:35096 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751295AbaLCLZw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Dec 2014 06:25:52 -0500
+In-Reply-To: <20141202185043.GA5074@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric
+On Tue, 2 Dec 2014, Pablo Neira Ayuso wrote:
 
-El 03/12/14 a las 00:02, Eric Leblond escribi=F3:
-> The name of datatypes can be used in set definition so they should
-> follow the same logic (and maybe not contain space to avoid problem
-> with parsing).
->
-> This patch adds an underscore to the name of the icmp* code
-> datatype.
->
-> Signed-off-by: Eric Leblond <eric@regit.org>
+> On Tue, Dec 02, 2014 at 07:46:44PM +0100, Pablo Neira Ayuso wrote:
+> > On Sun, Nov 30, 2014 at 07:56:52PM +0100, Jozsef Kadlecsik wrote:
+> > > When the set was full (hash type and maxelem reached), it was not
+> > > possible to update the extension part of already existing elements.
+> > > The patch removes this limitation. (Fixes netfilter bugzilla id 880.)
+> > 
+> > Could you please add this:
+> > 
+> > https://bugzilla.netfilter.org/show_bug.cgi?id=880
+> > 
+> > for quick browsing. Thanks.
+> 
+> I can fix this here.
+> 
+> Actually, I can manually apply from 1 to 6 in the next batch I'm going
+> to send to David.
+> 
+> I would like to make sure at least those get to him in time, -rc7 is
+> already out so we merge window may close by this weekend / beginning
+> next week (just predicting).
 
-Looks good to me. Thanks, I have used a uncorrect name format :)
+Thanks, Pablo indeed! Then I'll focus on the second part of the patches.
 
-> ---
->   src/datatype.c | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/src/datatype.c b/src/datatype.c
-> index 5f976aa..1948bfa 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -717,7 +717,7 @@ static struct error_record *icmp_code_type_parse(=
-const struct expr *sym,
->
->   const struct datatype icmp_code_type =3D {
->   	.type		=3D TYPE_ICMP_CODE,
-> -	.name		=3D "icmp code",
-> +	.name		=3D "icmp_code",
->   	.desc		=3D "icmp code",
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
-> @@ -749,7 +749,7 @@ static struct error_record *icmpv6_code_type_pars=
-e(const struct expr *sym,
->
->   const struct datatype icmpv6_code_type =3D {
->   	.type		=3D TYPE_ICMPV6_CODE,
-> -	.name		=3D "icmpv6 code",
-> +	.name		=3D "icmpv6_code",
->   	.desc		=3D "icmpv6 code",
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
-> @@ -781,7 +781,7 @@ static struct error_record *icmpx_code_type_parse=
-(const struct expr *sym,
->
->   const struct datatype icmpx_code_type =3D {
->   	.type		=3D TYPE_ICMPX_CODE,
-> -	.name		=3D "icmpx code",
-> +	.name		=3D "icmpx_code",
->   	.desc		=3D "icmpx code",
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
->
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
