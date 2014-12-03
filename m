@@ -1,50 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] scanner: fix reading of really long line
-Date: Wed, 3 Dec 2014 12:53:30 +0100
-Message-ID: <20141203115330.GA12030@salvia>
-References: <E1XvRIr-00046W-Nj@ks28632.kimsufi.com>
+Subject: Re: [nft PATCH] datatype: fix name of icmp* code
+Date: Wed, 3 Dec 2014 12:54:17 +0100
+Message-ID: <20141203115417.GA13593@salvia>
+References: <1417561371-22624-1-git-send-email-eric@regit.org>
+ <547EF31B.9020709@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Eric Leblond <eric@regit.org>
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?=C1lvaro?= Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56524 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56807 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752486AbaLCLvQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Dec 2014 06:51:16 -0500
+	id S1752194AbaLCLwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Dec 2014 06:52:07 -0500
 Content-Disposition: inline
-In-Reply-To: <E1XvRIr-00046W-Nj@ks28632.kimsufi.com>
+In-Reply-To: <547EF31B.9020709@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 01, 2014 at 02:46:04PM +0100, Eric Leblond wrote:
-> Hello,
-> Le 1 d=E9c. 2014 12:55, Pablo Neira Ayuso <pablo@netfilter.org> a =E9=
-crit :
-> >
-> > On Sat, Nov 29, 2014 at 05:24:38PM +0100, Eric Leblond wrote:=20
-> > > Current code is causing a failure in adding a set containing=20
-> > > a really long list of elements. The failure occurs as soon as=20
-> > > the line is longer than flex read buffer.=20
-> > >=20
-> > > When a line is longer than scanner buffer size, the code in YY_IN=
-PUT=20
-> > > forces a rewind to the beginning of the string because it does no=
-t=20
-> > > find a end of line. The result is that the string is never parsed=
-=2E=20
-> > >=20
-> > > This patch updates the code by rewinding till we found a space.=20
-> >
-> > But the part that didn't fit in will be ignore, right? So the user=20
-> > will lose some elements in the set?=20
+On Wed, Dec 03, 2014 at 12:25:15PM +0100, =C1lvaro Neira Ayuso wrote:
+> Hi Eric
 >=20
-> This is not the case as there is a fseek below to rewind at the corre=
-ct position. So next read get the data from the correct point.
+> El 03/12/14 a las 00:02, Eric Leblond escribi=F3:
+> >The name of datatypes can be used in set definition so they should
+> >follow the same logic (and maybe not contain space to avoid problem
+> >with parsing).
+> >
+> >This patch adds an underscore to the name of the icmp* code
+> >datatype.
+> >
+> >Signed-off-by: Eric Leblond <eric@regit.org>
+>=20
+> Looks good to me. Thanks, I have used a uncorrect name format :)
 
-OK. Applied, thanks.
+Applied, thanks for reviewing.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
