@@ -1,40 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] payload: fix endianess issue in payload_expr_pctx_update()
-Date: Thu,  4 Dec 2014 14:25:11 +0100
-Message-ID: <1417699511-10777-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, christophe.leroy@c-s.fr
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33203 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907AbaLDNXD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Dec 2014 08:23:03 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: Reversed byte order issue with nft ?
+Date: Thu, 4 Dec 2014 14:27:21 +0100
+Message-ID: <20141204132721.GA10863@salvia>
+References: <547F467B.3060206@c-s.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: leroy christophe <christophe.leroy@c-s.fr>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <547F467B.3060206@c-s.fr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Use constant_data_ptr() to point to the right memory position on
-big endian when exporting data that is stored in a larger variable.
+On Wed, Dec 03, 2014 at 06:20:59PM +0100, leroy christophe wrote:
+> Hi,
+> 
+> When doing 'nft list ruleset', I get a bad result (see below),
+> fields appear as "unknown" and/or as numeric values.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/payload.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Please, test this:
 
-diff --git a/src/payload.c b/src/payload.c
-index ebf8079..83742fb 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -79,8 +79,8 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
- 
- 	/* Export the data in the correct byte order */
- 	assert(right->len / BITS_PER_BYTE <= sizeof(proto));
--	mpz_export_data(&proto, right->value, right->byteorder,
--			right->len / BITS_PER_BYTE);
-+	mpz_export_data(constant_data_ptr(proto, right->len), right->value,
-+			right->byteorder, right->len / BITS_PER_BYTE);
- 
- 	base = ctx->protocol[left->payload.base].desc;
- 	desc = proto_find_upper(base, proto);
--- 
-1.7.10.4
+http://patchwork.ozlabs.org/patch/417775/
 
+and confirm that this resolves your problem. Thank you.
