@@ -1,43 +1,32 @@
-From: leroy christophe <christophe.leroy@c-s.fr>
-Subject: Re: Reversed byte order issue with nft ?
-Date: Fri, 05 Dec 2014 07:40:29 +0100
-Message-ID: <5481535D.3010703@c-s.fr>
-References: <547F467B.3060206@c-s.fr> <20141204132721.GA10863@salvia>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch] ipvs: uninitialized data with IP_VS_IPV6
+Date: Fri, 5 Dec 2014 10:25:32 +0300
+Message-ID: <20141205072531.GA4912@mwanda>
+References: <20141203101213.GC29583@mwanda>
+ <alpine.LFD.2.11.1412042308100.4841@ja.home.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:40710 "EHLO mailhub1.si.c-s.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345AbaLEGki (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Dec 2014 01:40:38 -0500
-In-Reply-To: <20141204132721.GA10863@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, kernel-janitors@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.11.1412042308100.4841@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-v2 tested, it works.
+On Thu, Dec 04, 2014 at 11:19:34PM +0200, Julian Anastasov wrote:
+> 
+> 	I guess ip_vs_ftp_in() needs the same fix?
 
-Thanks a lot.
-Christophe
+Good catch.  Thanks for noticing that.  I'll send a v2.
 
-Le 04/12/2014 14:27, Pablo Neira Ayuso a =E9crit :
-> On Wed, Dec 03, 2014 at 06:20:59PM +0100, leroy christophe wrote:
->> Hi,
->>
->> When doing 'nft list ruleset', I get a bad result (see below),
->> fields appear as "unknown" and/or as numeric values.
-> Please, test this:
->
-> http://patchwork.ozlabs.org/patch/417775/
->
-> and confirm that this resolves your problem. Thank you.
->
+regards,
+dan carpenter
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
