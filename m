@@ -1,35 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] Netfilter updates for net-next
-Date: Fri, 05 Dec 2014 20:58:49 -0800 (PST)
-Message-ID: <20141205.205849.1640298636852158233.davem@davemloft.net>
-References: <1417611342-25257-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH] netfilter: Fix build for NETFILTER_XT_TARGET_REDIRECT
+Date: Sat,  6 Dec 2014 01:41:59 -0800
+Message-ID: <1417858919-10576-1-git-send-email-linux@roeck-us.net>
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+	Guenter Roeck <linux@roeck-us.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:60073 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061AbaLFEyV (ORCPT
+Received: from bh-25.webhostbox.net ([208.91.199.152]:34919 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398AbaLFJmH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Dec 2014 23:54:21 -0500
-In-Reply-To: <1417611342-25257-1-git-send-email-pablo@netfilter.org>
+	Sat, 6 Dec 2014 04:42:07 -0500
+Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
+	(envelope-from <linux@roeck-us.net>)
+	id 1XxBsL-001pBg-Kt
+	for netfilter-devel@vger.kernel.org; Sat, 06 Dec 2014 09:42:05 +0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed,  3 Dec 2014 13:55:30 +0100
+Fix:
 
-> The following batch contains netfilter updates for net-next. Basically,
-> enhancements for xt_recent, skip zeroing of timer in conntrack, fix
-> linking problem with recent redirect support for nf_tables, ipset
-> updates and a couple of cleanups. More specifically, they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-> 
-> Thanks!
+ERROR: "nf_nat_redirect_ipv6" [net/netfilter/xt_REDIRECT.ko] undefined!
 
-Pulled, thanks a lot Pablo.
+Seen if NETFILTER_XT_TARGET_REDIRECT is configured but NF_NAT_IPV6
+is not, since code compiled with NF_NAT_REDIRECT_IPV6 is used
+unconditionally by code enabled with NETFILTER_XT_TARGET_REDIRECT.
+This means that NETFILTER_XT_TARGET_REDIRECT depends on NF_NAT_IPV6
+and must always select NF_NAT_REDIRECT_IPV6.
+
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Seen in and applies to -next. See various qemu test failures
+reported at http://server.roeck-us.net:8010/builders,
+
+ net/netfilter/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 57f15a9..2134ef0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -843,9 +843,9 @@ config NETFILTER_XT_TARGET_RATEEST
+ 
+ config NETFILTER_XT_TARGET_REDIRECT
+ 	tristate "REDIRECT target support"
+-	depends on NF_NAT
++	depends on NF_NAT && NF_NAT_IPV6
+ 	select NF_NAT_REDIRECT_IPV4 if NF_NAT_IPV4
+-	select NF_NAT_REDIRECT_IPV6 if NF_NAT_IPV6
++	select NF_NAT_REDIRECT_IPV6
+ 	---help---
+ 	REDIRECT is a special case of NAT: all incoming connections are
+ 	mapped onto the incoming interface's address, causing the packets to
+-- 
+1.9.1
+
