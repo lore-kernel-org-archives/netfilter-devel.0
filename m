@@ -1,39 +1,92 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Fix build for NETFILTER_XT_TARGET_REDIRECT
-Date: Sun, 7 Dec 2014 19:23:13 +0100
-Message-ID: <20141207182313.GA4243@salvia>
-References: <1417858919-10576-1-git-send-email-linux@roeck-us.net>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch v2] ipvs: uninitialized data with IP_VS_IPV6
+Date: Sun, 7 Dec 2014 20:39:35 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1412072032420.1885@ja.home.ssi.bg>
+References: <20141206134924.GA17278@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-To: Guenter Roeck <linux@roeck-us.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53250 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752993AbaLGSUy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Dec 2014 13:20:54 -0500
-Content-Disposition: inline
-In-Reply-To: <1417858919-10576-1-git-send-email-linux@roeck-us.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20141206134924.GA17278@mwanda>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 06, 2014 at 01:41:59AM -0800, Guenter Roeck wrote:
-> Fix:
+
+	Hello,
+
+On Sat, 6 Dec 2014, Dan Carpenter wrote:
+
+> The app_tcp_pkt_out() function expects "*diff" to be set and ends up
+> using uninitialized data if CONFIG_IP_VS_IPV6 is turned on.
 > 
-> ERROR: "nf_nat_redirect_ipv6" [net/netfilter/xt_REDIRECT.ko] undefined!
+> The same issue is there in app_tcp_pkt_in().  Thanks to Julian Anastasov
+> for noticing that.
 > 
-> Seen if NETFILTER_XT_TARGET_REDIRECT is configured but NF_NAT_IPV6
-> is not, since code compiled with NF_NAT_REDIRECT_IPV6 is used
-> unconditionally by code enabled with NETFILTER_XT_TARGET_REDIRECT.
-> This means that NETFILTER_XT_TARGET_REDIRECT depends on NF_NAT_IPV6
-> and must always select NF_NAT_REDIRECT_IPV6.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> v2: fix app_tcp_pkt_in() as well.  This is an old bug.
 
-Thanks for your patch. However, we decided to resolve this by
-combining nf_reject_ipv4 and nf_reject_ipv6.
+	Thanks! It will not break seqs for IPv6 control
+connection, only that we do not support FTP yet :( I have
+the doubt whether this should be classified as bugfix :)
+I guess, it is a net-next material, right?
 
-See b59eaf9 ("netfilter: combine IPv4 and IPv6 nf_nat_redirect code in one
-module").
+	Simon, please apply.
 
-Let us know if you still hit problems after that patch. Thanks.
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+> index 1d5341f..5d3daae 100644
+> --- a/net/netfilter/ipvs/ip_vs_ftp.c
+> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
+> @@ -183,6 +183,8 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  	struct nf_conn *ct;
+>  	struct net *net;
+>  
+> +	*diff = 0;
+> +
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	/* This application helper doesn't work with IPv6 yet,
+>  	 * so turn this into a no-op for IPv6 packets
+> @@ -191,8 +193,6 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  		return 1;
+>  #endif
+>  
+> -	*diff = 0;
+> -
+>  	/* Only useful for established sessions */
+>  	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
+>  		return 1;
+> @@ -322,6 +322,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  	struct ip_vs_conn *n_cp;
+>  	struct net *net;
+>  
+> +	/* no diff required for incoming packets */
+> +	*diff = 0;
+> +
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	/* This application helper doesn't work with IPv6 yet,
+>  	 * so turn this into a no-op for IPv6 packets
+> @@ -330,9 +333,6 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  		return 1;
+>  #endif
+>  
+> -	/* no diff required for incoming packets */
+> -	*diff = 0;
+> -
+>  	/* Only useful for established sessions */
+>  	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
+>  		return 1;
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
