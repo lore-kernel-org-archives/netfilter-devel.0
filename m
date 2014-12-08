@@ -1,552 +1,299 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/2] netfilter: conntrack: cache route for forwarded connections
-Date: Mon,  8 Dec 2014 16:36:03 +0100
-Message-ID: <1418052964-4632-2-git-send-email-fw@strlen.de>
-References: <1418052964-4632-1-git-send-email-fw@strlen.de>
-Cc: netdev@vger.kernel.org, brouer@redhat.com,
-	Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] src: add big endian integer datatype
+Date: Mon,  8 Dec 2014 19:15:50 +0100
+Message-ID: <1418062551-4715-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52447 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752982AbaLHPgP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Dec 2014 10:36:15 -0500
-In-Reply-To: <1418052964-4632-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:39949 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756090AbaLHSNj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Dec 2014 13:13:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-... to avoid per-packet FIB lookup if possible.
+Rules with header fields that rely on the generic integer datatype
+from sets are not matching, eg.
 
-The cached dst is re-used provided the input interface
-is the same as that of the previous packet in the same direction.
+ nft add rule filter input udp length { 9 } counter
 
-If not, the cached dst is invalidated.
+This set member is an integer represented in host byte order, which
+obviously doesn't match the header field (in network byte order).
 
-For ipv6 we also need to store sernum, else dst_check doesn't work,
-pointed out by Eric Dumazet.
+Since the integer datatype has no specific byteorder, we could rely
+on the expression byteorder instead when configuring the context,
+before we evaluate the list of set members.
 
-This should speed up forwarding when conntrack is already in use
-anyway, especially when using reverse path filtering -- active RPF
-enforces two FIB lookups for each packet.
+This approach doesn't solve the problem in the delinearize path, since
+we infer the datatype from the set keytype, ie. integer_type. But this
+type has no specific byteorder (BYTEORDER_INVALID) so
+netlink_delinearize_setelem() doesn't know if we sent the integer in
+host or network byteorder.
 
-Before the routing cache removal this didn't matter since RPF was performed
-only when route cache didn't yield a result; but without route cache it
-comes at higher price.
+To resolve this, this patch adds TYPE_BE_INTEGER, a dummy integer
+subtype, and use it from the protocol header definitions. Thus, the
+set keytype indicates what byteorder had been used for the set members.
 
-Julian Anastasov suggested to add NETDEV_UNREGISTER handler to
-avoid holding on to dsts of 'frozen' conntracks.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Changes since RFC:
-  - add NETDEV_UNREGISTER, suggested by Julian
-  - cache fib sernum to make ipv6 work, pointed out by Eric
-  - make module unload work
-  - remove ASSURED test, in case of -j DROP in prerouting or forward
-    cache forward hook won't be reached anyway
+ include/datatype.h |    3 +++
+ src/datatype.c     |   10 ++++++++++
+ src/evaluate.c     |    1 +
+ src/exthdr.c       |   30 +++++++++++++++---------------
+ src/proto.c        |   22 +++++++++++-----------
+ 5 files changed, 40 insertions(+), 26 deletions(-)
 
- include/net/netfilter/nf_conntrack_extend.h  |   4 +
- include/net/netfilter/nf_conntrack_rtcache.h |  34 +++
- net/netfilter/Kconfig                        |  12 +
- net/netfilter/Makefile                       |   3 +
- net/netfilter/nf_conntrack_rtcache.c         | 387 +++++++++++++++++++++++++++
- 5 files changed, 440 insertions(+)
- create mode 100644 include/net/netfilter/nf_conntrack_rtcache.h
- create mode 100644 net/netfilter/nf_conntrack_rtcache.c
-
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 55d1504..1b00d57 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -30,6 +30,9 @@ enum nf_ct_ext_id {
- #if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
- 	NF_CT_EXT_SYNPROXY,
- #endif
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_RTCACHE)
-+	NF_CT_EXT_RTCACHE,
-+#endif
- 	NF_CT_EXT_NUM,
+diff --git a/include/datatype.h b/include/datatype.h
+index 3f13dcd..e4edcab 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -40,6 +40,7 @@
+  * @TYPE_ICMPV6_CODE:	icmpv6 code (integer subtype)
+  * @TYPE_ICMPX_CODE:	icmpx code (integer subtype)
+  * @TYPE_DEVGROUP:	devgroup code (integer subtype)
++ * @TYPE_BE_INTEGER:	big endian integer (integer subtype)
+  */
+ enum datatypes {
+ 	TYPE_INVALID,
+@@ -78,6 +79,7 @@ enum datatypes {
+ 	TYPE_ICMPV6_CODE,
+ 	TYPE_ICMPX_CODE,
+ 	TYPE_DEVGROUP,
++	TYPE_BE_INTEGER,
+ 	__TYPE_MAX
+ };
+ #define TYPE_MAX		(__TYPE_MAX - 1)
+@@ -206,6 +208,7 @@ extern const struct datatype icmp_code_type;
+ extern const struct datatype icmpv6_code_type;
+ extern const struct datatype icmpx_code_type;
+ extern const struct datatype time_type;
++extern const struct datatype be_integer_type;
+ 
+ extern const struct datatype *concat_type_alloc(const struct expr *expr);
+ extern void concat_type_destroy(const struct datatype *dtype);
+diff --git a/src/datatype.c b/src/datatype.c
+index 729e63b..bfe34ff 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -47,6 +47,7 @@ static const struct datatype *datatypes[TYPE_MAX + 1] = {
+ 	[TYPE_ICMP_CODE]	= &icmp_code_type,
+ 	[TYPE_ICMPV6_CODE]	= &icmpv6_code_type,
+ 	[TYPE_ICMPX_CODE]	= &icmpx_code_type,
++	[TYPE_BE_INTEGER]	= &be_integer_type,
  };
  
-@@ -43,6 +46,7 @@ enum nf_ct_ext_id {
- #define NF_CT_EXT_TIMEOUT_TYPE struct nf_conn_timeout
- #define NF_CT_EXT_LABELS_TYPE struct nf_conn_labels
- #define NF_CT_EXT_SYNPROXY_TYPE struct nf_conn_synproxy
-+#define NF_CT_EXT_RTCACHE_TYPE struct nf_conn_rtcache
+ void datatype_register(const struct datatype *dtype)
+@@ -295,10 +296,19 @@ const struct datatype integer_type = {
+ 	.type		= TYPE_INTEGER,
+ 	.name		= "integer",
+ 	.desc		= "integer",
++	.byteorder	= BYTEORDER_HOST_ENDIAN,
+ 	.print		= integer_type_print,
+ 	.parse		= integer_type_parse,
+ };
  
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
-diff --git a/include/net/netfilter/nf_conntrack_rtcache.h b/include/net/netfilter/nf_conntrack_rtcache.h
-new file mode 100644
-index 0000000..e2fb302
---- /dev/null
-+++ b/include/net/netfilter/nf_conntrack_rtcache.h
-@@ -0,0 +1,34 @@
-+#include <linux/gfp.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
-+
-+struct dst_entry;
-+
-+struct nf_conn_dst_cache {
-+	struct dst_entry *dst;
-+	int iif;
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
-+	u32 cookie;
-+#endif
-+
++const struct datatype be_integer_type = {
++	.type		= TYPE_BE_INTEGER,
++	.name		= "big endian integer",
++	.desc		= "be_integer",
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
++	.basetype	= &integer_type,
 +};
 +
-+struct nf_conn_rtcache {
-+	struct nf_conn_dst_cache cached_dst[IP_CT_DIR_MAX];
-+};
-+
-+static inline
-+struct nf_conn_rtcache *nf_ct_rtcache_find(const struct nf_conn *ct)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_RTCACHE)
-+	return nf_ct_ext_find(ct, NF_CT_EXT_RTCACHE);
-+#else
-+	return NULL;
-+#endif
-+}
-+
-+static inline int nf_conn_rtcache_iif_get(const struct nf_conn_rtcache *rtc,
-+					  enum ip_conntrack_dir dir)
-+{
-+	return rtc->cached_dst[dir].iif;
-+}
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index b02660f..c213a61 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -106,6 +106,18 @@ config NF_CONNTRACK_EVENTS
+ static void string_type_print(const struct expr *expr)
+ {
+ 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 00e55b7..60560dc 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -238,6 +238,7 @@ static int expr_evaluate_value(struct eval_ctx *ctx, struct expr **expr)
+ 			mpz_clear(mask);
+ 			return -1;
+ 		}
++		(*expr)->byteorder = ctx->ectx.dtype->byteorder;
+ 		(*expr)->len = ctx->ectx.len;
+ 		mpz_clear(mask);
+ 		break;
+diff --git a/src/exthdr.c b/src/exthdr.c
+index 9ed0b6a..e225cc9 100644
+--- a/src/exthdr.c
++++ b/src/exthdr.c
+@@ -118,7 +118,7 @@ const struct exthdr_desc exthdr_hbh = {
+ 	.type		= IPPROTO_HOPOPTS,
+ 	.templates	= {
+ 		[HBHHDR_NEXTHDR]	= HBH_FIELD("nexthdr", ip6h_nxt, &inet_protocol_type),
+-		[HBHHDR_HDRLENGTH]	= HBH_FIELD("hdrlength", ip6h_len, &integer_type),
++		[HBHHDR_HDRLENGTH]	= HBH_FIELD("hdrlength", ip6h_len, &be_integer_type),
+ 	},
+ };
  
- 	  If unsure, say `N'.
+@@ -138,7 +138,7 @@ const struct exthdr_desc exthdr_rt2 = {
  
-+config NF_CONNTRACK_RTCACHE
-+	tristate "Cache route entries in conntrack objects"
-+	depends on NETFILTER_ADVANCED
-+	depends on NF_CONNTRACK
-+	help
-+	  If this option is enabled, the connection tracking code will
-+	  cache routing information for each connection that is being
-+	  forwarded, at a cost of 32 bytes per conntrack object.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+	  The module will be called nf_conntrack_rtcache.
-+
- config NF_CONNTRACK_TIMEOUT
- 	bool  'Connection tracking timeout'
- 	depends on NETFILTER_ADVANCED
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 89f73a9..c174ab2 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -18,6 +18,9 @@ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK) += nf_conntrack.o
+ const struct exthdr_desc exthdr_rt0 = {
+ 	.templates	= {
+-		[RT0HDR_RESERVED]	= RT0_FIELD("reserved", ip6r0_reserved, &integer_type),
++		[RT0HDR_RESERVED]	= RT0_FIELD("reserved", ip6r0_reserved, &be_integer_type),
+ 		[RT0HDR_ADDR_1]		= RT0_FIELD("addr[1]", ip6r0_addr[0], &ip6addr_type),
+ 		[RT0HDR_ADDR_1 + 1]	= RT0_FIELD("addr[2]", ip6r0_addr[0], &ip6addr_type),
+ 		// ...
+@@ -160,9 +160,9 @@ const struct exthdr_desc exthdr_rt = {
+ #endif
+ 	.templates	= {
+ 		[RTHDR_NEXTHDR]		= RT_FIELD("nexthdr", ip6r_nxt, &inet_protocol_type),
+-		[RTHDR_HDRLENGTH]	= RT_FIELD("hdrlength", ip6r_len, &integer_type),
+-		[RTHDR_TYPE]		= RT_FIELD("type", ip6r_type, &integer_type),
+-		[RTHDR_SEG_LEFT]	= RT_FIELD("seg-left", ip6r_segleft, &integer_type),
++		[RTHDR_HDRLENGTH]	= RT_FIELD("hdrlength", ip6r_len, &be_integer_type),
++		[RTHDR_TYPE]		= RT_FIELD("type", ip6r_type, &be_integer_type),
++		[RTHDR_SEG_LEFT]	= RT_FIELD("seg-left", ip6r_segleft, &be_integer_type),
+ 	},
+ };
  
-+# optional conntrack route cache extension
-+obj-$(CONFIG_NF_CONNTRACK_RTCACHE) += nf_conntrack_rtcache.o
-+
- # SCTP protocol connection tracking
- obj-$(CONFIG_NF_CT_PROTO_DCCP) += nf_conntrack_proto_dccp.o
- obj-$(CONFIG_NF_CT_PROTO_GRE) += nf_conntrack_proto_gre.o
-diff --git a/net/netfilter/nf_conntrack_rtcache.c b/net/netfilter/nf_conntrack_rtcache.c
-new file mode 100644
-index 0000000..65fef44
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_rtcache.c
-@@ -0,0 +1,387 @@
-+/* route cache for netfilter.
-+ *
-+ * (C) 2014 Red Hat GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <linux/stddef.h>
-+#include <linux/kernel.h>
-+#include <linux/netdevice.h>
-+#include <linux/export.h>
-+#include <linux/module.h>
-+
-+#include <net/dst.h>
-+
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_core.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
-+#include <net/netfilter/nf_conntrack_rtcache.h>
-+
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
-+#include <net/ip6_fib.h>
-+#endif
-+
-+static void __nf_conn_rtcache_destroy(struct nf_conn_rtcache *rtc,
-+				      enum ip_conntrack_dir dir)
-+{
-+	struct dst_entry *dst = rtc->cached_dst[dir].dst;
-+
-+	dst_release(dst);
-+}
-+
-+static void nf_conn_rtcache_destroy(struct nf_conn *ct)
-+{
-+	struct nf_conn_rtcache *rtc = nf_ct_rtcache_find(ct);
-+
-+	if (!rtc)
-+		return;
-+
-+	__nf_conn_rtcache_destroy(rtc, IP_CT_DIR_ORIGINAL);
-+	__nf_conn_rtcache_destroy(rtc, IP_CT_DIR_REPLY);
-+}
-+
-+static void nf_ct_rtcache_ext_add(struct nf_conn *ct)
-+{
-+	struct nf_conn_rtcache *rtc;
-+
-+	rtc = nf_ct_ext_add(ct, NF_CT_EXT_RTCACHE, GFP_ATOMIC);
-+	if (rtc) {
-+		rtc->cached_dst[IP_CT_DIR_ORIGINAL].iif = -1;
-+		rtc->cached_dst[IP_CT_DIR_ORIGINAL].dst = NULL;
-+		rtc->cached_dst[IP_CT_DIR_REPLY].iif = -1;
-+		rtc->cached_dst[IP_CT_DIR_REPLY].dst = NULL;
-+	}
-+}
-+
-+static struct nf_conn_rtcache *nf_ct_rtcache_find_usable(struct nf_conn *ct)
-+{
-+	if (nf_ct_is_untracked(ct))
-+		return NULL;
-+	return nf_ct_rtcache_find(ct);
-+}
-+
-+static struct dst_entry *
-+nf_conn_rtcache_dst_get(const struct nf_conn_rtcache *rtc,
-+			enum ip_conntrack_dir dir)
-+{
-+	return rtc->cached_dst[dir].dst;
-+}
-+
-+static u32 nf_rtcache_get_cookie(int pf, const struct dst_entry *dst)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
-+	if (pf == NFPROTO_IPV6) {
-+		const struct rt6_info *rt = (const struct rt6_info *)dst;
-+
-+		if (rt->rt6i_node)
-+			return (u32)rt->rt6i_node->fn_sernum;
-+	}
-+#endif
-+	return 0;
-+}
-+
-+static void nf_conn_rtcache_dst_set(int pf,
-+				    struct nf_conn_rtcache *rtc,
-+				    struct dst_entry *dst,
-+				    enum ip_conntrack_dir dir, int iif)
-+{
-+	if (rtc->cached_dst[dir].iif != iif)
-+		rtc->cached_dst[dir].iif = iif;
-+
-+	if (rtc->cached_dst[dir].dst != dst) {
-+		struct dst_entry *old;
-+
-+		dst_hold(dst);
-+
-+		old = xchg(&rtc->cached_dst[dir].dst, dst);
-+		dst_release(old);
-+
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
-+		if (pf == NFPROTO_IPV6)
-+			rtc->cached_dst[dir].cookie =
-+				nf_rtcache_get_cookie(pf, dst);
-+#endif
-+	}
-+}
-+
-+static void nf_conn_rtcache_dst_obsolete(struct nf_conn_rtcache *rtc,
-+					 enum ip_conntrack_dir dir)
-+{
-+	struct dst_entry *old;
-+
-+	pr_debug("Invalidate iif %d for dir %d on cache %p\n",
-+		 rtc->cached_dst[dir].iif, dir, rtc);
-+
-+	old = xchg(&rtc->cached_dst[dir].dst, NULL);
-+	dst_release(old);
-+	rtc->cached_dst[dir].iif = -1;
-+}
-+
-+static unsigned int nf_rtcache_in(const struct nf_hook_ops *ops,
-+				  struct sk_buff *skb,
-+				  const struct net_device *in,
-+				  const struct net_device *out,
-+				  int (*okfn)(struct sk_buff *))
-+{
-+	struct nf_conn_rtcache *rtc;
-+	enum ip_conntrack_info ctinfo;
-+	enum ip_conntrack_dir dir;
-+	struct dst_entry *dst;
-+	struct nf_conn *ct;
-+	int iif;
-+	u32 cookie;
-+
-+	if (skb_dst(skb) || skb->sk)
-+		return NF_ACCEPT;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct)
-+		return NF_ACCEPT;
-+
-+	rtc = nf_ct_rtcache_find_usable(ct);
-+	if (!rtc)
-+		return NF_ACCEPT;
-+
-+	/* if iif changes, don't use cache and let ip stack
-+	 * do route lookup.
-+	 *
-+	 * If rp_filter is enabled it might toss skb, so
-+	 * we don't want to avoid these checks.
-+	 */
-+	dir = CTINFO2DIR(ctinfo);
-+	iif = nf_conn_rtcache_iif_get(rtc, dir);
-+	if (in->ifindex != iif) {
-+		pr_debug("ct %p, iif %d, cached iif %d, skip cached entry\n",
-+			 ct, iif, in->ifindex);
-+		return NF_ACCEPT;
-+	}
-+	dst = nf_conn_rtcache_dst_get(rtc, dir);
-+	if (dst == NULL)
-+		return NF_ACCEPT;
-+
-+	cookie = nf_rtcache_get_cookie(ops->pf, dst);
-+
-+	dst = dst_check(dst, cookie);
-+	pr_debug("obtained dst %p for skb %p, cookie %d\n", dst, skb, cookie);
-+	if (likely(dst))
-+		skb_dst_set_noref_force(skb, dst);
-+	else
-+		nf_conn_rtcache_dst_obsolete(rtc, dir);
-+
-+	return NF_ACCEPT;
-+}
-+
-+static unsigned int nf_rtcache_forward(const struct nf_hook_ops *ops,
-+				       struct sk_buff *skb,
-+				       const struct net_device *in,
-+				       const struct net_device *out,
-+				       int (*okfn)(struct sk_buff *))
-+{
-+	struct nf_conn_rtcache *rtc;
-+	enum ip_conntrack_info ctinfo;
-+	enum ip_conntrack_dir dir;
-+	struct nf_conn *ct;
-+	int iif;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct)
-+		return NF_ACCEPT;
-+
-+	if (!nf_ct_is_confirmed(ct)) {
-+		if (WARN_ON(nf_ct_rtcache_find(ct)))
-+			return NF_ACCEPT;
-+		nf_ct_rtcache_ext_add(ct);
-+		return NF_ACCEPT;
-+	}
-+
-+	rtc = nf_ct_rtcache_find_usable(ct);
-+	if (!rtc)
-+		return NF_ACCEPT;
-+
-+	dir = CTINFO2DIR(ctinfo);
-+	iif = nf_conn_rtcache_iif_get(rtc, dir);
-+	pr_debug("ct %p, skb %p, dir %d, iif %d, cached iif %d\n",
-+		 ct, skb, dir, iif, in->ifindex);
-+	if (likely(in->ifindex == iif))
-+		return NF_ACCEPT;
-+
-+	nf_conn_rtcache_dst_set(ops->pf, rtc, skb_dst(skb), dir, in->ifindex);
-+	return NF_ACCEPT;
-+}
-+
-+static int nf_rtcache_dst_remove(struct nf_conn *ct, void *data)
-+{
-+	struct nf_conn_rtcache *rtc = nf_ct_rtcache_find(ct);
-+	struct net_device *dev = data;
-+
-+	if (!rtc)
-+		return 0;
-+
-+	if (dev->ifindex == rtc->cached_dst[IP_CT_DIR_ORIGINAL].iif ||
-+	    dev->ifindex == rtc->cached_dst[IP_CT_DIR_REPLY].iif) {
-+		nf_conn_rtcache_dst_obsolete(rtc, IP_CT_DIR_ORIGINAL);
-+		nf_conn_rtcache_dst_obsolete(rtc, IP_CT_DIR_REPLY);
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_rtcache_netdev_event(struct notifier_block *this,
-+				   unsigned long event, void *ptr)
-+{
-+	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-+	struct net *net = dev_net(dev);
-+
-+	if (event == NETDEV_DOWN)
-+		nf_ct_iterate_cleanup(net, nf_rtcache_dst_remove, dev, 0, 0);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static struct notifier_block nf_rtcache_notifier = {
-+	.notifier_call = nf_rtcache_netdev_event,
-+};
-+
-+static struct nf_hook_ops rtcache_ops[] = {
-+	{
-+		.hook		= nf_rtcache_in,
-+		.owner		= THIS_MODULE,
-+		.pf		= NFPROTO_IPV4,
-+		.hooknum	= NF_INET_PRE_ROUTING,
-+		.priority       = NF_IP_PRI_LAST,
-+	},
-+	{
-+		.hook           = nf_rtcache_forward,
-+		.owner          = THIS_MODULE,
-+		.pf             = NFPROTO_IPV4,
-+		.hooknum        = NF_INET_FORWARD,
-+		.priority       = NF_IP_PRI_LAST,
-+	},
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
-+	{
-+		.hook		= nf_rtcache_in,
-+		.owner		= THIS_MODULE,
-+		.pf		= NFPROTO_IPV6,
-+		.hooknum	= NF_INET_PRE_ROUTING,
-+		.priority       = NF_IP_PRI_LAST,
-+	},
-+	{
-+		.hook           = nf_rtcache_forward,
-+		.owner          = THIS_MODULE,
-+		.pf             = NFPROTO_IPV6,
-+		.hooknum        = NF_INET_FORWARD,
-+		.priority       = NF_IP_PRI_LAST,
-+	},
-+#endif
-+};
-+
-+static struct nf_ct_ext_type rtcache_extend __read_mostly = {
-+	.len	= sizeof(struct nf_conn_rtcache),
-+	.align	= __alignof__(struct nf_conn_rtcache),
-+	.id	= NF_CT_EXT_RTCACHE,
-+	.destroy = nf_conn_rtcache_destroy,
-+};
-+
-+static int __init nf_conntrack_rtcache_init(void)
-+{
-+	int ret = nf_ct_extend_register(&rtcache_extend);
-+
-+	if (ret < 0) {
-+		pr_err("nf_conntrack_rtcache: Unable to register extension\n");
-+		return ret;
-+	}
-+
-+	ret = nf_register_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
-+	if (ret < 0) {
-+		nf_ct_extend_unregister(&rtcache_extend);
-+		return ret;
-+	}
-+
-+	ret = register_netdevice_notifier(&nf_rtcache_notifier);
-+	if (ret) {
-+		nf_unregister_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
-+		nf_ct_extend_unregister(&rtcache_extend);
-+	}
-+
-+	return ret;
-+}
-+
-+static int nf_rtcache_ext_remove(struct nf_conn *ct, void *data)
-+{
-+	struct nf_conn_rtcache *rtc = nf_ct_rtcache_find(ct);
-+
-+	return rtc != NULL;
-+}
-+
-+static bool __exit nf_conntrack_rtcache_wait_for_dying(struct net *net)
-+{
-+	bool wait = false;
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct nf_conntrack_tuple_hash *h;
-+		struct hlist_nulls_node *n;
-+		struct nf_conn *ct;
-+		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-+
-+		rcu_read_lock();
-+		spin_lock_bh(&pcpu->lock);
-+
-+		hlist_nulls_for_each_entry(h, n, &pcpu->dying, hnnode) {
-+			ct = nf_ct_tuplehash_to_ctrack(h);
-+			if (nf_ct_rtcache_find(ct) != NULL) {
-+				wait = true;
-+				break;
-+			}
-+		}
-+		spin_unlock_bh(&pcpu->lock);
-+		rcu_read_unlock();
-+	}
-+
-+	return wait;
-+}
-+
-+static void __exit nf_conntrack_rtcache_fini(void)
-+{
-+	struct net *net;
-+	int count = 0;
-+
-+	/* remove hooks so no new connections get rtcache extension */
-+	nf_unregister_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
-+
-+	synchronize_net();
-+
-+	unregister_netdevice_notifier(&nf_rtcache_notifier);
-+
-+	rtnl_lock();
-+
-+	/* zap all conntracks with rtcache extension */
-+	for_each_net(net)
-+		nf_ct_iterate_cleanup(net, nf_rtcache_ext_remove, NULL, 0, 0);
-+
-+	for_each_net(net) {
-+		/* .. and make sure they're gone from dying list, too */
-+		while (nf_conntrack_rtcache_wait_for_dying(net)) {
-+			msleep(200);
-+			WARN_ONCE(++count > 25, "Waiting for all rtcache conntracks to go away\n");
-+		}
-+	}
-+
-+	rtnl_unlock();
-+	synchronize_net();
-+	nf_ct_extend_unregister(&rtcache_extend);
-+}
-+module_init(nf_conntrack_rtcache_init);
-+module_exit(nf_conntrack_rtcache_fini);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
-+MODULE_DESCRIPTION("Conntrack route cache extension");
+@@ -178,17 +178,17 @@ const struct exthdr_desc exthdr_frag = {
+ 	.type		= IPPROTO_FRAGMENT,
+ 	.templates	= {
+ 		[FRAGHDR_NEXTHDR]	= FRAG_FIELD("nexthdr", ip6f_nxt, &inet_protocol_type),
+-		[FRAGHDR_RESERVED]	= FRAG_FIELD("reserved", ip6f_reserved, &integer_type),
+-		[FRAGHDR_FRAG_OFF]	= PROTO_HDR_TEMPLATE("frag-off", &integer_type,
++		[FRAGHDR_RESERVED]	= FRAG_FIELD("reserved", ip6f_reserved, &be_integer_type),
++		[FRAGHDR_FRAG_OFF]	= PROTO_HDR_TEMPLATE("frag-off", &be_integer_type,
+ 							  BYTEORDER_BIG_ENDIAN,
+ 							  16, 13),
+-		[FRAGHDR_RESERVED2]	= PROTO_HDR_TEMPLATE("reserved2", &integer_type,
++		[FRAGHDR_RESERVED2]	= PROTO_HDR_TEMPLATE("reserved2", &be_integer_type,
+ 							  BYTEORDER_BIG_ENDIAN,
+ 							  29, 2),
+-		[FRAGHDR_MFRAGS]	= PROTO_HDR_TEMPLATE("more-fragments", &integer_type,
++		[FRAGHDR_MFRAGS]	= PROTO_HDR_TEMPLATE("more-fragments", &be_integer_type,
+ 							  BYTEORDER_BIG_ENDIAN,
+ 							  31, 1),
+-		[FRAGHDR_ID]		= FRAG_FIELD("id", ip6f_ident, &integer_type),
++		[FRAGHDR_ID]		= FRAG_FIELD("id", ip6f_ident, &be_integer_type),
+ 	},
+ };
+ 
+@@ -204,7 +204,7 @@ const struct exthdr_desc exthdr_dst = {
+ 	.type		= IPPROTO_DSTOPTS,
+ 	.templates	= {
+ 		[DSTHDR_NEXTHDR]	= DST_FIELD("nexthdr", ip6d_nxt, &inet_protocol_type),
+-		[DSTHDR_HDRLENGTH]	= DST_FIELD("hdrlength", ip6d_len, &integer_type),
++		[DSTHDR_HDRLENGTH]	= DST_FIELD("hdrlength", ip6d_len, &be_integer_type),
+ 	},
+ };
+ 
+@@ -240,7 +240,7 @@ static const struct datatype mh_type_type = {
+ 	.desc		= "Mobility Header Type",
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= BITS_PER_BYTE,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.sym_tbl	= &mh_type_tbl,
+ };
+ 
+@@ -249,10 +249,10 @@ const struct exthdr_desc exthdr_mh = {
+ 	.type		= IPPROTO_MH,
+ 	.templates	= {
+ 		[MHHDR_NEXTHDR]		= MH_FIELD("nexthdr", ip6mh_proto, &inet_protocol_type),
+-		[MHHDR_HDRLENGTH]	= MH_FIELD("hdrlength", ip6mh_hdrlen, &integer_type),
++		[MHHDR_HDRLENGTH]	= MH_FIELD("hdrlength", ip6mh_hdrlen, &be_integer_type),
+ 		[MHHDR_TYPE]		= MH_FIELD("type", ip6mh_type, &mh_type_type),
+-		[MHHDR_RESERVED]	= MH_FIELD("reserved", ip6mh_reserved, &integer_type),
+-		[MHHDR_CHECKSUM]	= MH_FIELD("checksum", ip6mh_cksum, &integer_type),
++		[MHHDR_RESERVED]	= MH_FIELD("reserved", ip6mh_reserved, &be_integer_type),
++		[MHHDR_CHECKSUM]	= MH_FIELD("checksum", ip6mh_cksum, &be_integer_type),
+ 	},
+ };
+ 
+diff --git a/src/proto.c b/src/proto.c
+index 7dc7b3e..2678179 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -191,7 +191,7 @@ void proto_ctx_update(struct proto_ctx *ctx, enum proto_bases base,
+ 			   field_sizeof(__type, __member) * 8)
+ 
+ #define HDR_FIELD(__name, __struct, __member)				\
+-	HDR_TEMPLATE(__name, &integer_type, __struct, __member)
++	HDR_TEMPLATE(__name, &be_integer_type, __struct, __member)
+ #define HDR_BITFIELD(__name, __dtype,  __offset, __len)			\
+ 	PROTO_HDR_TEMPLATE(__name, __dtype, BYTEORDER_BIG_ENDIAN,	\
+ 			   __offset, __len)
+@@ -308,7 +308,7 @@ static const struct datatype icmp_type_type = {
+ 	.desc		= "ICMP type",
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= BITS_PER_BYTE,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.sym_tbl	= &icmp_type_tbl,
+ };
+ 
+@@ -439,7 +439,7 @@ static const struct datatype dccp_pkttype_type = {
+ 	.desc		= "DCCP packet type",
+ 	.byteorder	= BYTEORDER_INVALID,
+ 	.size		= 4,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.sym_tbl	= &dccp_pkttype_tbl,
+ };
+ 
+@@ -501,8 +501,8 @@ const struct proto_desc proto_ip = {
+ 		PROTO_LINK(IPPROTO_SCTP,	&proto_sctp),
+ 	},
+ 	.templates	= {
+-		[IPHDR_VERSION]		= HDR_BITFIELD("version", &integer_type, 0, 4),
+-		[IPHDR_HDRLENGTH]	= HDR_BITFIELD("hdrlength", &integer_type, 4, 4),
++		[IPHDR_VERSION]		= HDR_BITFIELD("version", &be_integer_type, 0, 4),
++		[IPHDR_HDRLENGTH]	= HDR_BITFIELD("hdrlength", &be_integer_type, 4, 4),
+ 		[IPHDR_TOS]		= IPHDR_FIELD("tos",		tos),
+ 		[IPHDR_LENGTH]		= IPHDR_FIELD("length",		tot_len),
+ 		[IPHDR_ID]		= IPHDR_FIELD("id",		id),
+@@ -548,7 +548,7 @@ static const struct datatype icmp6_type_type = {
+ 	.desc		= "ICMPv6 type",
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= BITS_PER_BYTE,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.sym_tbl	= &icmp6_type_tbl,
+ };
+ 
+@@ -599,8 +599,8 @@ const struct proto_desc proto_ip6 = {
+ 		PROTO_LINK(IPPROTO_ICMPV6,	&proto_icmp6),
+ 	},
+ 	.templates	= {
+-		[IP6HDR_VERSION]	= HDR_BITFIELD("version", &integer_type, 0, 4),
+-		[IP6HDR_PRIORITY]	= HDR_BITFIELD("priority", &integer_type, 4, 4),
++		[IP6HDR_VERSION]	= HDR_BITFIELD("version", &be_integer_type, 0, 4),
++		[IP6HDR_PRIORITY]	= HDR_BITFIELD("priority", &be_integer_type, 4, 4),
+ 		[IP6HDR_FLOWLABEL]	= IP6HDR_FIELD("flowlabel",	flow_lbl),
+ 		[IP6HDR_LENGTH]		= IP6HDR_FIELD("length",	payload_len),
+ 		[IP6HDR_NEXTHDR]	= INET_PROTOCOL("nexthdr", struct ipv6hdr, nexthdr),
+@@ -677,7 +677,7 @@ static const struct datatype arpop_type = {
+ 	.desc		= "ARP operation",
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= 2 * BITS_PER_BYTE,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.sym_tbl	= &arpop_tbl,
+ };
+ 
+@@ -705,7 +705,7 @@ const struct proto_desc proto_arp = {
+ #include <net/ethernet.h>
+ 
+ #define VLANHDR_BITFIELD(__name, __offset, __len) \
+-	HDR_BITFIELD(__name, &integer_type, __offset, __len)
++	HDR_BITFIELD(__name, &be_integer_type, __offset, __len)
+ #define VLANHDR_TYPE(__name, __type, __member) \
+ 	HDR_TYPE(__name, __type, struct vlan_hdr, __member)
+ 
+@@ -762,7 +762,7 @@ const struct datatype ethertype_type = {
+ 	.desc		= "Ethernet protocol",
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= 2 * BITS_PER_BYTE,
+-	.basetype	= &integer_type,
++	.basetype	= &be_integer_type,
+ 	.basefmt	= "0x%.4Zx",
+ 	.print		= ethertype_print,
+ 	.sym_tbl	= &ethertype_tbl,
 -- 
-2.0.4
+1.7.10.4
 
