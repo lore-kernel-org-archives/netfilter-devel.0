@@ -1,92 +1,46 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch v2] ipvs: uninitialized data with IP_VS_IPV6
-Date: Sun, 7 Dec 2014 20:39:35 +0200 (EET)
-Message-ID: <alpine.LFD.2.11.1412072032420.1885@ja.home.ssi.bg>
-References: <20141206134924.GA17278@mwanda>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20141206134924.GA17278@mwanda>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/2] netfilter: conntrack: route cache for forwarded connections
+Date: Mon,  8 Dec 2014 16:36:02 +0100
+Message-ID: <1418052964-4632-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org, brouer@redhat.com
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+[ Pablo, in case you deem this too late for -next just let me know
+and I will resend once its open again ]
 
-	Hello,
+This adds an optional forward routing cache extension for netfilter
+connection tracking.
 
-On Sat, 6 Dec 2014, Dan Carpenter wrote:
+The memory cost is an additional 32 bytes per conntrack entry
+on x86_64.
 
-> The app_tcp_pkt_out() function expects "*diff" to be set and ends up
-> using uninitialized data if CONFIG_IP_VS_IPV6 is turned on.
-> 
-> The same issue is there in app_tcp_pkt_in().  Thanks to Julian Anastasov
-> for noticing that.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: fix app_tcp_pkt_in() as well.  This is an old bug.
+Unlike any other currently implemented connection tracking
+extension the rtcache has no run-time tunables, it is always active.
 
-	Thanks! It will not break seqs for IPv6 control
-connection, only that we do not support FTP yet :( I have
-the doubt whether this should be classified as bugfix :)
-I guess, it is a net-next material, right?
+Also, unlike other conntrack extensions, it can be built as a module,
+in this case modprobe/rmmod are used to enable/disable the cache.
 
-	Simon, please apply.
+Forward test using netperf UDP_STREAM between two network namespaces
+(connected via veth devices), tput:
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+With conntrack + reverse path filtering (rp_filter sysctl=1):
+MIGRATED UDP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 10.1.12.2 () port 0 AF_INET
+Socket  Message  Elapsed      Messages
+ Size    Size     Time         Okay Errors   Throughput
+ bytes   bytes    secs            #      #   10^6bits/sec
 
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-> index 1d5341f..5d3daae 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-> @@ -183,6 +183,8 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  	struct nf_conn *ct;
->  	struct net *net;
->  
-> +	*diff = 0;
-> +
->  #ifdef CONFIG_IP_VS_IPV6
->  	/* This application helper doesn't work with IPv6 yet,
->  	 * so turn this into a no-op for IPv6 packets
-> @@ -191,8 +193,6 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  		return 1;
->  #endif
->  
-> -	*diff = 0;
-> -
->  	/* Only useful for established sessions */
->  	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
->  		return 1;
-> @@ -322,6 +322,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  	struct ip_vs_conn *n_cp;
->  	struct net *net;
->  
-> +	/* no diff required for incoming packets */
-> +	*diff = 0;
-> +
->  #ifdef CONFIG_IP_VS_IPV6
->  	/* This application helper doesn't work with IPv6 yet,
->  	 * so turn this into a no-op for IPv6 packets
-> @@ -330,9 +333,6 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  		return 1;
->  #endif
->  
-> -	/* no diff required for incoming packets */
-> -	*diff = 0;
-> -
->  	/* Only useful for established sessions */
->  	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
->  		return 1;
+  212992      64   120.00    26333996      0     112.36
+  212992           120.00    26279399            112.13
 
-Regards
+same, but with rtcache (this patch series):
+  212992      64   120.00    34508693      0     147.24
+  212992           120.00    34507838            147.23
 
---
-Julian Anastasov <ja@ssi.bg>
+same but with rp_filter=0 and no conntrack modules active:
+  212992      64   120.00    42288748      0     180.43
+  212992           120.00    42283439            180.41
+
+IOW, this is only useful if conntrack is used anyway.
