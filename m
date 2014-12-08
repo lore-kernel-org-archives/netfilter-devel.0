@@ -1,58 +1,95 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 1/2] src: add big endian integer datatype
-Date: Mon, 8 Dec 2014 18:50:37 +0000
-Message-ID: <20141208185036.GF2672@acer.localdomain>
-References: <1418062551-4715-1-git-send-email-pablo@netfilter.org>
- <20141208183154.GE2672@acer.localdomain>
- <20141208184140.GA5305@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/3] src: generate set members using integer_type in the appropriate byteorder
+Date: Mon,  8 Dec 2014 23:24:32 +0100
+Message-ID: <1418077474-6431-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61462 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756429AbaLHSul (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Dec 2014 13:50:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20141208184140.GA5305@salvia>
+Received: from mail.us.es ([193.147.175.20]:37507 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752331AbaLHWWS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Dec 2014 17:22:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.12, Pablo Neira Ayuso wrote:
-> On Mon, Dec 08, 2014 at 06:31:55PM +0000, Patrick McHardy wrote:
-> > On 08.12, Pablo Neira Ayuso wrote:
-> > > Rules with header fields that rely on the generic integer datatype
-> > > from sets are not matching, eg.
-> > > 
-> > >  nft add rule filter input udp length { 9 } counter
-> > > 
-> > > This set member is an integer represented in host byte order, which
-> > > obviously doesn't match the header field (in network byte order).
-> > > 
-> > > Since the integer datatype has no specific byteorder, we could rely
-> > > on the expression byteorder instead when configuring the context,
-> > > before we evaluate the list of set members.
-> > > 
-> > > This approach doesn't solve the problem in the delinearize path, since
-> > > we infer the datatype from the set keytype, ie. integer_type. But this
-> > > type has no specific byteorder (BYTEORDER_INVALID) so
-> > > netlink_delinearize_setelem() doesn't know if we sent the integer in
-> > > host or network byteorder.
-> > > 
-> > > To resolve this, this patch adds TYPE_BE_INTEGER, a dummy integer
-> > > subtype, and use it from the protocol header definitions. Thus, the
-> > > set keytype indicates what byteorder had been used for the set members.
-> > 
-> > I don't like encoding the byteorder in the datatype. Is there anything
-> > wrong with setting the byteorder in delinearization after we know the
-> > related expression?
-> >
-> > In your example it can easily be deduced from the datatype.
-> 
-> My initial patches went in that direction. However, then I noticed we
-> may have named sets that are not attached to rules yet, and those can
-> be listed via `nft list sets'.
+Rules with header fields that rely on the generic integer datatype
+from sets are not matching, eg.
 
-Sure, but those have a datatype, which specifies the byte order.
+ nft add rule filter input udp length { 9 } counter
+
+This set member is an integer represented in host byte order, which
+obviously doesn't match the header field (in network byte order).
+
+Since the integer datatype has no specific byteorder, we have to rely
+on the expression byteorder instead when configuring the context,
+before we evaluate the list of set members.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/expression.h |   16 ++++++++++++++--
+ src/evaluate.c       |    4 +++-
+ 2 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/include/expression.h b/include/expression.h
+index 59fa5f3..4b96879 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -96,19 +96,31 @@ enum symbol_types {
+  * struct expr_ctx - type context for symbol parsing during evaluation
+  *
+  * @dtype:	expected datatype
++ * @byteorder:	expected byteorder
+  * @len:	expected len
+  */
+ struct expr_ctx {
+ 	const struct datatype	*dtype;
++	enum byteorder		byteorder;
+ 	unsigned int		len;
+ };
+ 
++static inline void __expr_set_context(struct expr_ctx *ctx,
++				      const struct datatype *dtype,
++				      enum byteorder byteorder,
++				      unsigned int len)
++{
++	ctx->dtype	= dtype;
++	ctx->byteorder	= byteorder;
++	ctx->len	= len;
++}
++
+ static inline void expr_set_context(struct expr_ctx *ctx,
+ 				    const struct datatype *dtype,
+ 				    unsigned int len)
+ {
+-	ctx->dtype = dtype;
+-	ctx->len   = len;
++	__expr_set_context(ctx, dtype,
++			   dtype ? dtype->byteorder : BYTEORDER_INVALID, len);
+ }
+ 
+ /**
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 00e55b7..0732660 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -238,6 +238,7 @@ static int expr_evaluate_value(struct eval_ctx *ctx, struct expr **expr)
+ 			mpz_clear(mask);
+ 			return -1;
+ 		}
++		(*expr)->byteorder = ctx->ectx.byteorder;
+ 		(*expr)->len = ctx->ectx.len;
+ 		mpz_clear(mask);
+ 		break;
+@@ -261,7 +262,8 @@ static int expr_evaluate_value(struct eval_ctx *ctx, struct expr **expr)
+  */
+ static int expr_evaluate_primary(struct eval_ctx *ctx, struct expr **expr)
+ {
+-	expr_set_context(&ctx->ectx, (*expr)->dtype, (*expr)->len);
++	__expr_set_context(&ctx->ectx, (*expr)->dtype, (*expr)->byteorder,
++			   (*expr)->len);
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
+
