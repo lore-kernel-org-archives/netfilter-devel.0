@@ -1,46 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/2] netlink: fix listing of range set elements
-Date: Mon,  8 Dec 2014 19:15:51 +0100
-Message-ID: <1418062551-4715-2-git-send-email-pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 1/2] src: add big endian integer datatype
+Date: Mon, 8 Dec 2014 18:31:55 +0000
+Message-ID: <20141208183154.GE2672@acer.localdomain>
 References: <1418062551-4715-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39990 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756090AbaLHSNm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Dec 2014 13:13:42 -0500
+Received: from stinky.trash.net ([213.144.137.162]:61335 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444AbaLHScB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Dec 2014 13:32:01 -0500
+Content-Disposition: inline
 In-Reply-To: <1418062551-4715-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have to switch the byteorder of the element in
-netlink_delinearize_setelem() for non-range values only.
+On 08.12, Pablo Neira Ayuso wrote:
+> Rules with header fields that rely on the generic integer datatype
+> from sets are not matching, eg.
+> 
+>  nft add rule filter input udp length { 9 } counter
+> 
+> This set member is an integer represented in host byte order, which
+> obviously doesn't match the header field (in network byte order).
+> 
+> Since the integer datatype has no specific byteorder, we could rely
+> on the expression byteorder instead when configuring the context,
+> before we evaluate the list of set members.
+> 
+> This approach doesn't solve the problem in the delinearize path, since
+> we infer the datatype from the set keytype, ie. integer_type. But this
+> type has no specific byteorder (BYTEORDER_INVALID) so
+> netlink_delinearize_setelem() doesn't know if we sent the integer in
+> host or network byteorder.
+> 
+> To resolve this, this patch adds TYPE_BE_INTEGER, a dummy integer
+> subtype, and use it from the protocol header definitions. Thus, the
+> set keytype indicates what byteorder had been used for the set members.
 
-This fixes the listing of:
+I don't like encoding the byteorder in the datatype. Is there anything
+wrong with setting the byteorder in delinearization after we know the
+related expression?
 
-  nft add rule filter input ct mark { 0x10-0x20 } counter
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/netlink.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/src/netlink.c b/src/netlink.c
-index 23f38b0..e59e297 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1379,7 +1379,9 @@ static int netlink_delinearize_setelem(struct nft_set_elem *nlse,
- 	expr = netlink_alloc_value(&netlink_location, &nld);
- 	expr->dtype	= set->keytype;
- 	expr->byteorder	= set->keytype->byteorder;
--	if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
-+
-+	if (!(set->flags & SET_F_INTERVAL) &&
-+	    expr->byteorder == BYTEORDER_HOST_ENDIAN)
- 		mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
- 
- 	if (flags & NFT_SET_ELEM_INTERVAL_END) {
--- 
-1.7.10.4
-
+In your example it can easily be deduced from the datatype.
