@@ -1,85 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 0/2] netfilter: conntrack: route cache for
- forwarded connections
-Date: Wed, 10 Dec 2014 15:42:06 +0100
-Message-ID: <20141210144206.GH6672@breakpoint.cc>
-References: <1418052964-4632-1-git-send-email-fw@strlen.de>
- <20141210141319.GA5028@salvia>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: conntrack-tools: cli test script broken
+Date: Wed, 10 Dec 2014 17:35:26 +0100
+Message-ID: <22514604.4VtIGkY3Iv@storm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, brouer@redhat.com,
-	Eric Dumazet <eric.dumazet@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: 'Netfilter Developer Mailing List'
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56974 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756412AbaLJOmJ (ORCPT
+Received: from rs04.intra2net.com ([85.214.66.2]:34426 "EHLO
+	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247AbaLJREE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Dec 2014 09:42:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20141210141319.GA5028@salvia>
+	Wed, 10 Dec 2014 12:04:04 -0500
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rs04.intra2net.com (Postfix) with ESMTP id A1BFD220128
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 17:35:28 +0100 (CET)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 575C22AC55
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 17:35:28 +0100 (CET)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 5FF412AC54
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 17:35:26 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Dec 08, 2014 at 04:36:02PM +0100, Florian Westphal wrote:
-> > [ Pablo, in case you deem this too late for -next just let me know
-> > and I will resend once its open again ]
-> > 
-> > This adds an optional forward routing cache extension for netfilter
-> > connection tracking.
-> > 
-> > The memory cost is an additional 32 bytes per conntrack entry
-> > on x86_64.
-> > 
-> > Unlike any other currently implemented connection tracking
-> > extension the rtcache has no run-time tunables, it is always active.
-> > 
-> > Also, unlike other conntrack extensions, it can be built as a module,
-> > in this case modprobe/rmmod are used to enable/disable the cache.
-> 
-> I expect distributors will provide this a module. I think we should
-> provide features that can be enable/disable in some way, in this case
-> it can be modprobe/rmmod.
+Hi,
 
-Yes, I just wanted to mention this in case someone thinks a sysctl is
-must-have.
+when I run the test script of conntrack-tools
 
-I did not want to add sysctl "just because" as we cannot easily rip
-them out later.
+    sh doc/cli/test.sh create-expect
 
-> BTW, did you evaluate Eric's alternative? Any comment on that?
+the output is
 
-Right, sorry.  So Eric suggested to leverage existing early demux.
+conntrack v1.4.1 (conntrack-tools): You need to supply the `--reply-port-src' option for this command
+Try `conntrack -h' or 'conntrack --help' for more information.
 
-This would work, but I found several disadvantages, namely it would:
 
-1. only work for protocols that have early demux support
-2. have to add some sort of new mini-sk to the "right" data
-structure (udp_table, tcp_hashinfo) so not just af but l4 specific
-handling
-3. add more code to L4 protocol handlers
-4. add some upper ceiling for such "forward sockets".
-5. devise a scheme by which to zap the entry again
+This used to work without the --reply-port-src stuff
+using version 0.9.13 IIRC.
 
-4+5 can be avoided by embedding the "forward sock" inside conntrack,
-but that would mean we get larger code than this patch while still
-retaining the conntrack dependency.
+I didn't see any commits changing the cmdline parser
+in git since v1.4.1, so I guess it's still broken.
 
-And without conntrack, I'm not sure how one would go about
-adding such route cache without adding back all the problems it had.
-
-> If the merge window remains open, I'll take the pending patches in
-> patchwork and send a new batch for David by tomorrow morning.
-> 
-> Let me know, thanks.
-
-Ok.  I can send a rebased V3.  OTOH, I don't want to rush things.
-
-If you think further discussion is needed before deciding to go with
-a conntrack-based route cache then lets do that.
-
-In this case I can resend the v3 once next is open again plus a summary
-of the alternatives/problems and we can take it from there.
+Cheers,
+Thomas
 
