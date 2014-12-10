@@ -1,54 +1,113 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [conntrack-tools PATCH] Fix file descriptor leak in channel_open()
- on error
-Date: Wed, 10 Dec 2014 22:56:35 +0100
-Message-ID: <5488C193.2030707@intra2net.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] dtype: remove unnecessary icmp* parse/print functions
+Date: Wed, 10 Dec 2014 22:14:36 +0000
+Message-ID: <1418249676-22300-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs04.intra2net.com ([85.214.66.2]:49661 "EHLO
-	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399AbaLJV4i (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:47586 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756131AbaLJWO4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Dec 2014 16:56:38 -0500
-Received: from intranator.m.i2n (unknown [172.16.1.99])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by rs04.intra2net.com (Postfix) with ESMTP id 031812200FE
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 22:56:37 +0100 (CET)
-Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id AACCE2AC55
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 22:56:36 +0100 (CET)
-Received: from pikkukde.a.i2n (unknown [192.168.12.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: smtp-auth-user)
-	by intranator.m.i2n (Postfix) with ESMTPSA id 8BE292AC54
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 22:56:35 +0100 (CET)
+	Wed, 10 Dec 2014 17:14:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Detected by cppcheck
+Just setting the .sym_tbl correctly is all we need.
 
-Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- src/channel.c | 1 +
- 1 file changed, 1 insertion(+)
+ src/datatype.c | 42 +++---------------------------------------
+ 1 file changed, 3 insertions(+), 39 deletions(-)
 
-diff --git a/src/channel.c b/src/channel.c
-index 8b7c319..acbfa7d 100644
---- a/src/channel.c
-+++ b/src/channel.c
-@@ -109,6 +109,7 @@ channel_open(struct channel_conf *cfg)
+diff --git a/src/datatype.c b/src/datatype.c
+index 729e63b..db3fb06 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -709,17 +709,6 @@ static const struct symbol_table icmp_code_tbl = {
+ 	},
+ };
  
- 	if (ioctl(fd, SIOCGIFMTU, &ifr) == -1) {
- 		free(c);
-+		close(fd);
- 		return NULL;
- 	}
- 	close(fd);
+-static void icmp_code_type_print(const struct expr *expr)
+-{
+-	return symbolic_constant_print(&icmp_code_tbl, expr);
+-}
+-
+-static struct error_record *icmp_code_type_parse(const struct expr *sym,
+-						 struct expr **res)
+-{
+-	return symbolic_constant_parse(sym, &icmp_code_tbl, res);
+-}
+-
+ const struct datatype icmp_code_type = {
+ 	.type		= TYPE_ICMP_CODE,
+ 	.name		= "icmp_code",
+@@ -727,8 +716,7 @@ const struct datatype icmp_code_type = {
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+-	.print		= icmp_code_type_print,
+-	.parse		= icmp_code_type_parse,
++	.sym_tbl	= &icmp_code_tbl,
+ };
+ 
+ static const struct symbol_table icmpv6_code_tbl = {
+@@ -741,17 +729,6 @@ static const struct symbol_table icmpv6_code_tbl = {
+ 	},
+ };
+ 
+-static void icmpv6_code_type_print(const struct expr *expr)
+-{
+-	return symbolic_constant_print(&icmpv6_code_tbl, expr);
+-}
+-
+-static struct error_record *icmpv6_code_type_parse(const struct expr *sym,
+-						   struct expr **res)
+-{
+-	return symbolic_constant_parse(sym, &icmpv6_code_tbl, res);
+-}
+-
+ const struct datatype icmpv6_code_type = {
+ 	.type		= TYPE_ICMPV6_CODE,
+ 	.name		= "icmpv6_code",
+@@ -759,8 +736,7 @@ const struct datatype icmpv6_code_type = {
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+-	.print		= icmpv6_code_type_print,
+-	.parse		= icmpv6_code_type_parse,
++	.sym_tbl	= &icmpv6_code_tbl,
+ };
+ 
+ static const struct symbol_table icmpx_code_tbl = {
+@@ -773,17 +749,6 @@ static const struct symbol_table icmpx_code_tbl = {
+ 	},
+ };
+ 
+-static void icmpx_code_type_print(const struct expr *expr)
+-{
+-	return symbolic_constant_print(&icmpx_code_tbl, expr);
+-}
+-
+-static struct error_record *icmpx_code_type_parse(const struct expr *sym,
+-						  struct expr **res)
+-{
+-	return symbolic_constant_parse(sym, &icmpx_code_tbl, res);
+-}
+-
+ const struct datatype icmpx_code_type = {
+ 	.type		= TYPE_ICMPX_CODE,
+ 	.name		= "icmpx_code",
+@@ -791,8 +756,7 @@ const struct datatype icmpx_code_type = {
+ 	.size		= BITS_PER_BYTE,
+ 	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.basetype	= &integer_type,
+-	.print		= icmpx_code_type_print,
+-	.parse		= icmpx_code_type_parse,
++	.sym_tbl	= &icmpx_code_tbl,
+ };
+ 
+ static void time_type_print(const struct expr *expr)
 -- 
-1.9.3
+2.1.0
 
