@@ -1,137 +1,42 @@
-From: =?windows-1252?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [PATCH] dtype: remove unnecessary icmp* parse/print functions
-Date: Thu, 11 Dec 2014 00:48:10 +0100
-Message-ID: <5488DBBA.40002@gmail.com>
-References: <1418249676-22300-1-git-send-email-kaber@trash.net>
+From: Richard Guy Briggs <rgb-3laFzeAjKYZe04CwrWwdBg@public.gmane.org>
+Subject: NetDev 0.1 Registration open
+Date: Wed, 10 Dec 2014 20:03:31 -0500
+Message-ID: <20141211010331.GP21601@toccata2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>, pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:54882 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758259AbaLJXrm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Dec 2014 18:47:42 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so12893290wiv.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Dec 2014 15:47:41 -0800 (PST)
-In-Reply-To: <1418249676-22300-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	lwn-T1hC0tSOHrs@public.gmane.org, netdev01-wool9L35kiczKOhml7GhPkB+6BGkLq7r@public.gmane.org, lartc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-El 10/12/14 a las 23:14, Patrick McHardy escribi=F3:
-> Just setting the .sym_tbl correctly is all we need.
+We are pleased to announce that registration is now open for netdev 0.1, the
+community-driven Linux networking conference held back-to-back with netconf in 
+Ottawa, Canada, February 14-17, 2015.
 
-Looks good to me and so smart. I didn't know that if we set up the=20
-=2Esym_tbl, we don't need the parse and print functions. Thanks Patrick=
-=2E
+Registration is now open at https://onlineregistrations.ca/netdev01.
+Fees: $100/day, or $350 for 4 days (Canadian Dollars)
 
->
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-> ---
->   src/datatype.c | 42 +++---------------------------------------
->   1 file changed, 3 insertions(+), 39 deletions(-)
->
-> diff --git a/src/datatype.c b/src/datatype.c
-> index 729e63b..db3fb06 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -709,17 +709,6 @@ static const struct symbol_table icmp_code_tbl =3D=
- {
->   	},
->   };
->
-> -static void icmp_code_type_print(const struct expr *expr)
-> -{
-> -	return symbolic_constant_print(&icmp_code_tbl, expr);
-> -}
-> -
-> -static struct error_record *icmp_code_type_parse(const struct expr *=
-sym,
-> -						 struct expr **res)
-> -{
-> -	return symbolic_constant_parse(sym, &icmp_code_tbl, res);
-> -}
-> -
->   const struct datatype icmp_code_type =3D {
->   	.type		=3D TYPE_ICMP_CODE,
->   	.name		=3D "icmp_code",
-> @@ -727,8 +716,7 @@ const struct datatype icmp_code_type =3D {
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
->   	.basetype	=3D &integer_type,
-> -	.print		=3D icmp_code_type_print,
-> -	.parse		=3D icmp_code_type_parse,
-> +	.sym_tbl	=3D &icmp_code_tbl,
->   };
->
->   static const struct symbol_table icmpv6_code_tbl =3D {
-> @@ -741,17 +729,6 @@ static const struct symbol_table icmpv6_code_tbl=
- =3D {
->   	},
->   };
->
-> -static void icmpv6_code_type_print(const struct expr *expr)
-> -{
-> -	return symbolic_constant_print(&icmpv6_code_tbl, expr);
-> -}
-> -
-> -static struct error_record *icmpv6_code_type_parse(const struct expr=
- *sym,
-> -						   struct expr **res)
-> -{
-> -	return symbolic_constant_parse(sym, &icmpv6_code_tbl, res);
-> -}
-> -
->   const struct datatype icmpv6_code_type =3D {
->   	.type		=3D TYPE_ICMPV6_CODE,
->   	.name		=3D "icmpv6_code",
-> @@ -759,8 +736,7 @@ const struct datatype icmpv6_code_type =3D {
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
->   	.basetype	=3D &integer_type,
-> -	.print		=3D icmpv6_code_type_print,
-> -	.parse		=3D icmpv6_code_type_parse,
-> +	.sym_tbl	=3D &icmpv6_code_tbl,
->   };
->
->   static const struct symbol_table icmpx_code_tbl =3D {
-> @@ -773,17 +749,6 @@ static const struct symbol_table icmpx_code_tbl =
-=3D {
->   	},
->   };
->
-> -static void icmpx_code_type_print(const struct expr *expr)
-> -{
-> -	return symbolic_constant_print(&icmpx_code_tbl, expr);
-> -}
-> -
-> -static struct error_record *icmpx_code_type_parse(const struct expr =
-*sym,
-> -						  struct expr **res)
-> -{
-> -	return symbolic_constant_parse(sym, &icmpx_code_tbl, res);
-> -}
-> -
->   const struct datatype icmpx_code_type =3D {
->   	.type		=3D TYPE_ICMPX_CODE,
->   	.name		=3D "icmpx_code",
-> @@ -791,8 +756,7 @@ const struct datatype icmpx_code_type =3D {
->   	.size		=3D BITS_PER_BYTE,
->   	.byteorder	=3D BYTEORDER_BIG_ENDIAN,
->   	.basetype	=3D &integer_type,
-> -	.print		=3D icmpx_code_type_print,
-> -	.parse		=3D icmpx_code_type_parse,
-> +	.sym_tbl	=3D &icmpx_code_tbl,
->   };
->
->   static void time_type_print(const struct expr *expr)
->
+Online registration closes Feb 12.
+
+
+Main site:                      https://www.netdev01.org/
+Announcement:                   https://www.netdev01.org/announce
+CFP:                            https://www.netdev01.org/cfp
+Travel/hotel/weather/clothing:  https://www.netdev01.org/travel
+
+
+
+	slainte mhath, RGB
 
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
+Richard Guy Briggs               --  ~\    -- ~\
+<www.TriColour.ca>                 --  \___   o \@       @
+Ottawa, ON, CANADA                  --  Lo_>__M__\\/\%__\\/\%
+_____________________________GTVS6#790__(*)__(*)________(*)(*)_________________
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
