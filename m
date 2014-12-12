@@ -1,90 +1,309 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/8] ipset patches for nf-next, v3
-Date: Fri, 12 Dec 2014 22:58:01 +0100
-Message-ID: <1418421489-17411-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/8] netfilter: ipset: Remove rbtree from hash:net,iface in order to run under RCU
+Date: Fri, 12 Dec 2014 22:58:02 +0100
+Message-ID: <1418421489-17411-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1418421489-17411-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:40170 "EHLO smtp1.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:40181 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751725AbaLLV5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Dec 2014 16:57:08 -0500
+	id S1751778AbaLLV5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Dec 2014 16:57:09 -0500
+In-Reply-To: <1418421489-17411-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_hash_netiface.c | 157 ++++-------------------------
+ 1 file changed, 17 insertions(+), 140 deletions(-)
 
-Please review and consider to apply the second part of the patches for
-ipset:
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 758b002..726a8ba 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -13,7 +13,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+ #include <linux/random.h>
+-#include <linux/rbtree.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+ #include <net/netlink.h>
+@@ -36,88 +35,13 @@ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+ IP_SET_MODULE_DESC("hash:net,iface", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
+ MODULE_ALIAS("ip_set_hash:net,iface");
+ 
+-/* Interface name rbtree */
+-
+-struct iface_node {
+-	struct rb_node node;
+-	char iface[IFNAMSIZ];
+-};
+-
+-#define iface_data(n)	(rb_entry(n, struct iface_node, node)->iface)
+-
+-static void
+-rbtree_destroy(struct rb_root *root)
+-{
+-	struct iface_node *node, *next;
+-
+-	rbtree_postorder_for_each_entry_safe(node, next, root, node)
+-		kfree(node);
+-
+-	*root = RB_ROOT;
+-}
+-
+-static int
+-iface_test(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node *n = root->rb_node;
+-
+-	while (n) {
+-		const char *d = iface_data(n);
+-		int res = strcmp(*iface, d);
+-
+-		if (res < 0)
+-			n = n->rb_left;
+-		else if (res > 0)
+-			n = n->rb_right;
+-		else {
+-			*iface = d;
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int
+-iface_add(struct rb_root *root, const char **iface)
+-{
+-	struct rb_node **n = &(root->rb_node), *p = NULL;
+-	struct iface_node *d;
+-
+-	while (*n) {
+-		char *ifname = iface_data(*n);
+-		int res = strcmp(*iface, ifname);
+-
+-		p = *n;
+-		if (res < 0)
+-			n = &((*n)->rb_left);
+-		else if (res > 0)
+-			n = &((*n)->rb_right);
+-		else {
+-			*iface = ifname;
+-			return 0;
+-		}
+-	}
+-
+-	d = kzalloc(sizeof(*d), GFP_ATOMIC);
+-	if (!d)
+-		return -ENOMEM;
+-	strcpy(d->iface, *iface);
+-
+-	rb_link_node(&d->node, p, n);
+-	rb_insert_color(&d->node, root);
+-
+-	*iface = d->iface;
+-	return 0;
+-}
+-
+ /* Type specific function prefix */
+ #define HTYPE		hash_netiface
+ #define IP_SET_HASH_WITH_NETS
+-#define IP_SET_HASH_WITH_RBTREE
+ #define IP_SET_HASH_WITH_MULTI
+ #define IP_SET_HASH_WITH_NET0
+ 
+-#define STREQ(a, b)	(strcmp(a, b) == 0)
++#define STRLCPY(a, b)	strlcpy(a, b, IFNAMSIZ)
+ 
+ /* IPv4 variant */
+ 
+@@ -136,7 +60,7 @@ struct hash_netiface4_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
+ };
+ 
+ /* Common functions */
+@@ -150,7 +74,7 @@ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       strcmp(ip1->iface, ip2->iface) == 0;
+ }
+ 
+ static inline int
+@@ -223,7 +147,6 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
+ 
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -233,8 +156,8 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+ 	e.ip &= ip_set_netmask(e.cidr);
+ 
+-#define IFACE(dir)	(par->dir ? par->dir->name : NULL)
+-#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : NULL)
++#define IFACE(dir)	(par->dir ? par->dir->name : "")
++#define PHYSDEV(dir)	(nf_bridge->dir ? nf_bridge->dir->name : "")
+ #define SRCDIR		(opt->flags & IPSET_DIM_TWO_SRC)
+ 
+ 	if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
+@@ -243,26 +166,15 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		STRLCPY(e.iface,
++			SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+-
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+ 
+@@ -275,7 +187,6 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct hash_netiface4_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -302,18 +213,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (e.cidr > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+-
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	nla_strlcpy(e.iface, tb[IPSET_ATTR_IFACE], IFNAMSIZ);
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+@@ -372,7 +272,7 @@ struct hash_netiface6_elem {
+ 	u8 cidr;
+ 	u8 nomatch;
+ 	u8 elem;
+-	const char *iface;
++	char iface[IFNAMSIZ];
+ };
+ 
+ /* Common functions */
+@@ -386,7 +286,7 @@ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
+ 	       ip1->cidr == ip2->cidr &&
+ 	       (++*multi) &&
+ 	       ip1->physdev == ip2->physdev &&
+-	       ip1->iface == ip2->iface;
++	       strcmp(ip1->iface, ip2->iface) == 0;
+ }
+ 
+ static inline int
+@@ -464,7 +364,6 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		.elem = 1,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	int ret;
+ 
+ 	if (e.cidr == 0)
+ 		return -EINVAL;
+@@ -480,25 +379,15 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 
+ 		if (!nf_bridge)
+ 			return -EINVAL;
+-		e.iface = SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev);
++		STRLCPY(e.iface,
++			SRCDIR ? PHYSDEV(physindev) : PHYSDEV(physoutdev));
+ 		e.physdev = 1;
+-#else
+-		e.iface = NULL;
+ #endif
+ 	} else
+-		e.iface = SRCDIR ? IFACE(in) : IFACE(out);
++		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 
+-	if (!e.iface)
++	if (strlen(e.iface) == 0)
+ 		return -EINVAL;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
+ 
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+@@ -507,11 +396,9 @@ static int
+ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		   enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+-	struct hash_netiface *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -541,17 +428,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return -IPSET_ERR_INVALID_CIDR;
+ 	ip6_netmask(&e.ip, e.cidr);
+ 
+-	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
+-	e.iface = iface;
+-	ret = iface_test(&h->rbtree, &e.iface);
+-	if (adt == IPSET_ADD) {
+-		if (!ret) {
+-			ret = iface_add(&h->rbtree, &e.iface);
+-			if (ret)
+-				return ret;
+-		}
+-	} else if (!ret)
+-		return ret;
++	nla_strlcpy(e.iface, tb[IPSET_ATTR_IFACE], IFNAMSIZ);
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+-- 
+1.8.5.1
 
-- Fix sparse warning "cast to restricted __be32"
-- Fix parallel resizing and listing of the same set: when adding elements
-  and listing of the same set were executed parallel, listing could start
-  to list the original set (before resizing) and continue with the new one.
-- Styles warned by checkpatch.pl fixed
-- Introduce RCU locking in the hash types. The patch was
-  performance tested by Jesper Dangaard Brouer:
-
-  Generator: sending 12.2Mpps (tx:12264083 pps)
-  Drop performance in "raw" with ipset: 8Mpps
-  Drop performance in "raw" with ipset with RCU-locking: 11.3Mpps
-- Introduce RCU locking in the list type
-- Introduce RCU locking in the bitmap types
-- Introduce RCU locking instead of rwlock per set in the core
-- Remove rbtree from hash:net,iface for RCU locking
-
-You can pull the changes from
-
-        git://blackhole.kfki.hu/nf-next master
-
-Best regards,
-Jozsef
-============================================================================
-The following changes since commit d6b00fec5dbbe976904b4d77e7d4f9493df5c2ec:
-
-  macvlan: play well with ipvlan device (2014-12-09 16:10:06 -0500)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 57a7e2fd6403f1dac986c045a453412a3cf7dd40:
-
-  netfilter: ipset: Fix sparse warning (2014-12-12 13:21:59 +0100)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (8):
-      netfilter: ipset: Remove rbtree from hash:net,iface in order to run under RCU
-      netfilter: ipset: Prepare ipset core for RCU locking instead of rwlock per set
-      netfilter: ipset: Introduce RCU locking in the bitmap types
-      netfilter: ipset: Introduce RCU locking in the list type
-      netfilter: ipset: Introduce RCU locking in the hash types
-      netfilter: ipset: styles warned by checkpatch.pl fixed
-      netfilter: ipset: Fix parallel resizing and listing of the same set
-      netfilter: ipset: Fix sparse warning
-
- include/linux/netfilter/ipset/ip_set.h         |  21 +-
- include/linux/netfilter/ipset/ip_set_timeout.h |  27 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h        |  20 +-
- net/netfilter/ipset/ip_set_bitmap_ip.c         |  10 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c      |   6 +-
- net/netfilter/ipset/ip_set_bitmap_port.c       |   7 +-
- net/netfilter/ipset/ip_set_core.c              | 179 +++----
- net/netfilter/ipset/ip_set_getport.c           |   3 +-
- net/netfilter/ipset/ip_set_hash_gen.h          | 661 +++++++++++++++----------
- net/netfilter/ipset/ip_set_hash_ip.c           |   5 +-
- net/netfilter/ipset/ip_set_hash_ipmark.c       |  14 +-
- net/netfilter/ipset/ip_set_hash_ipport.c       |  15 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c     |  17 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c    |  20 +-
- net/netfilter/ipset/ip_set_hash_mac.c          |   3 +-
- net/netfilter/ipset/ip_set_hash_net.c          |   9 +-
- net/netfilter/ipset/ip_set_hash_netiface.c     | 175 ++-----
- net/netfilter/ipset/ip_set_hash_netnet.c       |  45 +-
- net/netfilter/ipset/ip_set_hash_netport.c      |  20 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c   |  55 +-
- net/netfilter/ipset/ip_set_list_set.c          | 393 +++++++--------
- net/netfilter/ipset/pfxlen.c                   |  16 +-
- net/netfilter/xt_set.c                         |   7 +
- net/sched/em_ipset.c                           |   5 +-
- 24 files changed, 896 insertions(+), 837 deletions(-)
