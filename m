@@ -1,253 +1,318 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 7/8] netfilter: ipset: Fix parallel resizing and listing of the same set
-Date: Fri, 12 Dec 2014 22:58:08 +0100
-Message-ID: <1418421489-17411-8-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/8] netfilter: ipset: Prepare ipset core for RCU locking instead of rwlock per set
+Date: Fri, 12 Dec 2014 22:58:03 +0100
+Message-ID: <1418421489-17411-3-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1418421489-17411-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:49137 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:49138 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751720AbaLLV5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751691AbaLLV5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 12 Dec 2014 16:57:08 -0500
 In-Reply-To: <1418421489-17411-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When elements added to a hash:* type of set and resizing triggered,
-parallel listing could start to list the original set (before resizing)
-and "continue" with listing the new set. Fix it by references and
-using the original hash table for listing. Therefore the destroying
-the original hash table may happen from the resizing or listing functions.
-
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h | 13 ++++++----
- net/netfilter/ipset/ip_set_core.c      | 30 +++++++++++++----------
- net/netfilter/ipset/ip_set_hash_gen.h  | 44 ++++++++++++++++++++++++++++++----
- 3 files changed, 65 insertions(+), 22 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h         |  2 +-
+ include/linux/netfilter/ipset/ip_set_timeout.h | 27 +++++------
+ net/netfilter/ipset/ip_set_core.c              | 66 ++++++++++++++------------
+ 3 files changed, 47 insertions(+), 48 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 00fed2f..b374ab6 100644
+index f1606fa..b3fe9f9 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -176,6 +176,9 @@ struct ip_set_type_variant {
- 	/* List elements */
- 	int (*list)(const struct ip_set *set, struct sk_buff *skb,
- 		    struct netlink_callback *cb);
-+	/* Keep listing private when resizing runs parallel */
-+	void (*uref)(struct ip_set *set, struct netlink_callback *cb,
-+		     bool start);
+@@ -223,7 +223,7 @@ struct ip_set {
+ 	/* The name of the set */
+ 	char name[IPSET_MAXNAMELEN];
+ 	/* Lock protecting the set data */
+-	rwlock_t lock;
++	spinlock_t lock;
+ 	/* References to the set */
+ 	u32 ref;
+ 	/* The core set type */
+diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
+index 83c2f9e..1d6a935 100644
+--- a/include/linux/netfilter/ipset/ip_set_timeout.h
++++ b/include/linux/netfilter/ipset/ip_set_timeout.h
+@@ -40,38 +40,33 @@ ip_set_timeout_uget(struct nlattr *tb)
+ }
  
- 	/* Return true if "b" set is the same as "a"
- 	 * according to the create set parameters */
-@@ -380,12 +383,12 @@ ip_set_init_counter(struct ip_set_counter *counter,
+ static inline bool
+-ip_set_timeout_test(unsigned long timeout)
++ip_set_timeout_expired(unsigned long *t)
+ {
+-	return timeout == IPSET_ELEM_PERMANENT ||
+-	       time_is_after_jiffies(timeout);
+-}
+-
+-static inline bool
+-ip_set_timeout_expired(unsigned long *timeout)
+-{
+-	return *timeout != IPSET_ELEM_PERMANENT &&
+-	       time_is_before_jiffies(*timeout);
++	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
+ }
  
- /* Netlink CB args */
- enum {
--	IPSET_CB_NET = 0,
--	IPSET_CB_DUMP,
--	IPSET_CB_INDEX,
--	IPSET_CB_ARG0,
-+	IPSET_CB_NET = 0,	/* net namespace */
-+	IPSET_CB_DUMP,		/* dump single set/all sets */
-+	IPSET_CB_INDEX,		/* set index */
-+	IPSET_CB_PRIVATE,	/* set private data */
-+	IPSET_CB_ARG0,		/* type specific */
- 	IPSET_CB_ARG1,
--	IPSET_CB_ARG2,
- };
+ static inline void
+-ip_set_timeout_set(unsigned long *timeout, u32 t)
++ip_set_timeout_set(unsigned long *timeout, u32 value)
+ {
+-	if (!t) {
++	unsigned long t;
++
++	if (!value) {
+ 		*timeout = IPSET_ELEM_PERMANENT;
+ 		return;
+ 	}
  
- /* register and unregister set references */
+-	*timeout = msecs_to_jiffies(t * 1000) + jiffies;
+-	if (*timeout == IPSET_ELEM_PERMANENT)
++	t = msecs_to_jiffies(value * MSEC_PER_SEC) + jiffies;
++	if (t == IPSET_ELEM_PERMANENT)
+ 		/* Bingo! :-) */
+-		(*timeout)--;
++		t--;
++	*timeout = t;
+ }
+ 
+ static inline u32
+ ip_set_timeout_get(unsigned long *timeout)
+ {
+ 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
+-		jiffies_to_msecs(*timeout - jiffies)/1000;
++		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
+ }
+ 
+ #endif	/* __KERNEL__ */
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 2ff1a10..712ee94 100644
+index d259da3..ef24cdb 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1165,13 +1165,16 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
- static int
- ip_set_dump_done(struct netlink_callback *cb)
- {
--	struct ip_set_net *inst = (struct ip_set_net *)cb->args[IPSET_CB_NET];
--
- 	if (cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n",
--			 ip_set(inst, cb->args[IPSET_CB_INDEX])->name);
--		__ip_set_put_byindex(inst,
--				     (ip_set_id_t)cb->args[IPSET_CB_INDEX]);
-+		struct ip_set_net *inst =
-+			(struct ip_set_net *)cb->args[IPSET_CB_NET];
-+		ip_set_id_t index = (ip_set_id_t)cb->args[IPSET_CB_INDEX];
-+		struct ip_set *set = ip_set(inst, index);
-+
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
-+		__ip_set_put_byindex(inst, index);
- 	}
- 	return 0;
+@@ -42,7 +42,7 @@ static inline struct ip_set_net *ip_set_pernet(struct net *net)
  }
-@@ -1202,12 +1205,6 @@ dump_init(struct netlink_callback *cb, struct ip_set_net *inst)
- 	nla_parse(cda, IPSET_ATTR_CMD_MAX,
- 		  attr, nlh->nlmsg_len - min_len, ip_set_setname_policy);
  
--	/* cb->args[IPSET_CB_NET]:	net namespace
--	 *         [IPSET_CB_DUMP]:	dump single set/all sets
--	 *         [IPSET_CB_INDEX]:	set index
--	 *         [IPSET_CB_ARG0]:	type specific
--	 */
--
- 	if (cda[IPSET_ATTR_SETNAME]) {
- 		struct ip_set *set;
+ #define IP_SET_INC	64
+-#define STREQ(a, b)	(strncmp(a, b, IPSET_MAXNAMELEN) == 0)
++#define STRNCMP(a, b)	(strncmp(a, b, IPSET_MAXNAMELEN) == 0)
  
-@@ -1317,6 +1314,8 @@ dump_last:
- 				goto release_refcount;
- 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
+ static unsigned int max_sets;
+ 
+@@ -85,7 +85,7 @@ find_set_type(const char *name, u8 family, u8 revision)
+ 	struct ip_set_type *type;
+ 
+ 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
+-		if (STREQ(type->name, name) &&
++		if (STRNCMP(type->name, name) &&
+ 		    (type->family == family ||
+ 		     type->family == NFPROTO_UNSPEC) &&
+ 		    revision >= type->revision_min &&
+@@ -132,7 +132,7 @@ __find_set_type_get(const char *name, u8 family, u8 revision,
+ 	/* Make sure the type is already loaded
+ 	 * but we don't support the revision */
+ 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
+-		if (STREQ(type->name, name)) {
++		if (STRNCMP(type->name, name)) {
+ 			err = -IPSET_ERR_FIND_TYPE;
+ 			goto unlock;
+ 		}
+@@ -166,7 +166,7 @@ __find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max,
+ 	*min = 255; *max = 0;
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
+-		if (STREQ(type->name, name) &&
++		if (STRNCMP(type->name, name) &&
+ 		    (type->family == family ||
+ 		     type->family == NFPROTO_UNSPEC)) {
+ 			found = true;
+@@ -208,15 +208,15 @@ ip_set_type_register(struct ip_set_type *type)
+ 		pr_warn("ip_set type %s, family %s with revision min %u already registered!\n",
+ 			type->name, family_name(type->family),
+ 			type->revision_min);
+-		ret = -EINVAL;
+-		goto unlock;
++		ip_set_type_unlock();
++		return -EINVAL;
+ 	}
+ 	list_add_rcu(&type->list, &ip_set_type_list);
+ 	pr_debug("type %s, family %s, revision %u:%u registered.\n",
+ 		 type->name, family_name(type->family),
+ 		 type->revision_min, type->revision_max);
+-unlock:
+ 	ip_set_type_unlock();
++	synchronize_rcu();
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(ip_set_type_register);
+@@ -230,12 +230,12 @@ ip_set_type_unregister(struct ip_set_type *type)
+ 		pr_warn("ip_set type %s, family %s with revision min %u not registered\n",
+ 			type->name, family_name(type->family),
+ 			type->revision_min);
+-		goto unlock;
++		ip_set_type_unlock();
++		return;
+ 	}
+ 	list_del_rcu(&type->list);
+ 	pr_debug("type %s, family %s with revision min %u unregistered.\n",
+ 		 type->name, family_name(type->family), type->revision_min);
+-unlock:
+ 	ip_set_type_unlock();
+ 
+ 	synchronize_rcu();
+@@ -496,16 +496,16 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return 0;
+ 
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* Type requests element to be completed */
+ 		pr_debug("element must be completed, ADD is triggered\n");
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
+ 		ret = 1;
+ 	} else {
+ 		/* --return-nomatch: invert matched element */
+@@ -535,9 +535,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -558,9 +558,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -581,7 +581,7 @@ ip_set_get_byname(struct net *net, const char *name, struct ip_set **set)
+ 	rcu_read_lock();
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		s = rcu_dereference(inst->ip_set_list)[i];
+-		if (s != NULL && STREQ(s->name, name)) {
++		if (s != NULL && STRNCMP(s->name, name)) {
+ 			__ip_set_get(s);
+ 			index = i;
+ 			*set = s;
+@@ -758,7 +758,7 @@ find_set_and_id(struct ip_set_net *inst, const char *name, ip_set_id_t *id)
+ 	*id = IPSET_INVALID_ID;
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		set = ip_set(inst, i);
+-		if (set != NULL && STREQ(set->name, name)) {
++		if (set != NULL && STRNCMP(set->name, name)) {
+ 			*id = i;
+ 			break;
+ 		}
+@@ -787,7 +787,7 @@ find_free_id(struct ip_set_net *inst, const char *name, ip_set_id_t *index,
+ 		if (s == NULL) {
+ 			if (*index == IPSET_INVALID_ID)
+ 				*index = i;
+-		} else if (STREQ(name, s->name)) {
++		} else if (STRNCMP(name, s->name)) {
+ 			/* Name clash */
+ 			*set = s;
+ 			return -EEXIST;
+@@ -845,7 +845,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	set = kzalloc(sizeof(struct ip_set), GFP_KERNEL);
+ 	if (!set)
+ 		return -ENOMEM;
+-	rwlock_init(&set->lock);
++	spin_lock_init(&set->lock);
+ 	strlcpy(set->name, name, IPSET_MAXNAMELEN);
+ 	set->family = family;
+ 	set->revision = revision;
+@@ -887,7 +887,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	if (ret == -EEXIST) {
+ 		/* If this is the same set and requested, ignore error */
+ 		if ((flags & IPSET_FLAG_EXIST) &&
+-		    STREQ(set->type->name, clash->type->name) &&
++		    STRNCMP(set->type->name, clash->type->name) &&
+ 		    set->type->family == clash->type->family &&
+ 		    set->type->revision_min == clash->type->revision_min &&
+ 		    set->type->revision_max == clash->type->revision_max &&
+@@ -1024,9 +1024,9 @@ ip_set_flush_set(struct ip_set *set)
+ {
+ 	pr_debug("set: %s\n",  set->name);
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	set->variant->flush(set);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ }
+ 
+ static int
+@@ -1098,7 +1098,7 @@ ip_set_rename(struct sock *ctnl, struct sk_buff *skb,
+ 	name2 = nla_data(attr[IPSET_ATTR_SETNAME2]);
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		s = ip_set(inst, i);
+-		if (s != NULL && STREQ(s->name, name2)) {
++		if (s != NULL && STRNCMP(s->name, name2)) {
+ 			ret = -IPSET_ERR_EXIST_SETNAME2;
+ 			goto out;
+ 		}
+@@ -1327,9 +1327,9 @@ dump_last:
  				goto next_set;
-+			if (set->variant->uref)
-+				set->variant->uref(set, cb, true);
  			/* Fall through and add elements */
  		default:
- 			rcu_read_lock_bh();
-@@ -1333,6 +1332,8 @@ dump_last:
- 		dump_type = DUMP_LAST;
- 		cb->args[IPSET_CB_DUMP] = dump_type | (dump_flags << 16);
- 		cb->args[IPSET_CB_INDEX] = 0;
-+		if (set && set->variant->uref)
-+			set->variant->uref(set, cb, false);
- 		goto dump_last;
- 	}
- 	goto out;
-@@ -1347,7 +1348,10 @@ next_set:
- release_refcount:
- 	/* If there was an error or set is done, release set */
- 	if (ret || !cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n", ip_set(inst, index)->name);
-+		set = ip_set(inst, index);
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
- 		__ip_set_put_byindex(inst, index);
- 		cb->args[IPSET_CB_ARG0] = 0;
- 	}
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 1dadd85..2ce1dfc 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -77,6 +77,8 @@ struct hbucket {
+-			read_lock_bh(&set->lock);
++			rcu_read_lock_bh();
+ 			ret = set->variant->list(set, skb, cb);
+-			read_unlock_bh(&set->lock);
++			rcu_read_unlock_bh();
+ 			if (!cb->args[IPSET_CB_ARG0])
+ 				/* Set is done, proceed with next one */
+ 				goto next_set;
+@@ -1407,9 +1407,13 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+ 	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
  
- /* The hash table: the table size stored here in order to make resizing easy */
- struct htable {
-+	atomic_t ref;		/* References for resizing */
-+	atomic_t uref;		/* References for dumping */
- 	u8 htable_bits;		/* size of hash table == 2^htable_bits */
- 	struct hbucket __rcu *bucket[0]; /* hashtable buckets */
- };
-@@ -186,6 +188,7 @@ htable_bits(u32 hashsize)
- #undef mtype_del
- #undef mtype_test_cidrs
- #undef mtype_test
-+#undef mtype_uref
- #undef mtype_expire
- #undef mtype_resize
- #undef mtype_head
-@@ -227,6 +230,7 @@ htable_bits(u32 hashsize)
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
- #define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
- #define mtype_test		IPSET_TOKEN(MTYPE, _test)
-+#define mtype_uref		IPSET_TOKEN(MTYPE, _uref)
- #define mtype_expire		IPSET_TOKEN(MTYPE, _expire)
- #define mtype_resize		IPSET_TOKEN(MTYPE, _resize)
- #define mtype_head		IPSET_TOKEN(MTYPE, _head)
-@@ -570,6 +574,8 @@ retry:
- 
- 	spin_lock_bh(&set->lock);
- 	orig = __ipset_dereference_protected(h->table, 1);
-+	atomic_set(&orig->ref, 1);
-+	atomic_inc(&orig->uref);
- 	pr_debug("attempt to resize set %s from %u to %u, t %p\n",
- 		 set->name, orig->htable_bits, htable_bits, orig);
- 	for (i = 0; i < jhash_size(orig->htable_bits); i++) {
-@@ -613,6 +619,8 @@ retry:
- 						ret = -ENOMEM;
- 				}
- 				if (ret < 0) {
-+					atomic_set(&orig->ref, 0);
-+					atomic_dec(&orig->uref);
- 					spin_unlock_bh(&set->lock);
- 					mtype_ahash_destroy(set, t, false);
- 					if (ret == -EAGAIN)
-@@ -643,7 +651,11 @@ retry:
- 
- 	pr_debug("set %s resized from %u (%p) to %u (%p)\n", set->name,
- 		 orig->htable_bits, orig, t->htable_bits, t);
--	mtype_ahash_destroy(set, orig, false);
-+	/* If there's nobody else dumping the table, destroy it */
-+	if (atomic_dec_and_test(&orig->uref)) {
-+		pr_debug("Table destroy by resize %p\n", orig);
-+		mtype_ahash_destroy(set, orig, false);
-+	}
- 
- out:
- #ifdef IP_SET_HASH_WITH_NETS
-@@ -1044,12 +1056,35 @@ nla_put_failure:
- 	return -EMSGSIZE;
- }
- 
-+/* Make possible to run dumping parallel with resizing */
-+static void
-+mtype_uref(struct ip_set *set, struct netlink_callback *cb, bool start)
-+{
-+	struct htype *h = set->data;
-+	struct htable *t;
-+
-+	if (start) {
-+		rcu_read_lock_bh();
-+		t = rcu_dereference_bh_nfnl(h->table);
-+		atomic_inc(&t->uref);
-+		cb->args[IPSET_CB_PRIVATE] = (unsigned long) t;
-+		rcu_read_unlock_bh();
-+	} else if (cb->args[IPSET_CB_PRIVATE]) {
-+		t = (struct htable *) cb->args[IPSET_CB_PRIVATE];
-+		if (atomic_dec_and_test(&t->uref) && atomic_read(&t->ref)) {
-+			/* Resizing didn't destroy the hash table */
-+			pr_debug("Table destroy by dump: %p\n", t);
-+			mtype_ahash_destroy(set, t, false);
+ 	do {
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
++		if (ret == -EINPROGRESS) {
++			synchronize_rcu_bh();
++			ret = 0;
 +		}
-+		cb->args[IPSET_CB_PRIVATE] = 0;
-+	}
-+}
-+
- /* Reply a LIST/SAVE request: dump the elements of the specified set */
- static int
- mtype_list(const struct ip_set *set,
- 	   struct sk_buff *skb, struct netlink_callback *cb)
- {
--	const struct htype *h = set->data;
- 	const struct htable *t;
- 	struct nlattr *atd, *nested;
- 	const struct hbucket *n;
-@@ -1064,11 +1099,11 @@ mtype_list(const struct ip_set *set,
- 		return -EMSGSIZE;
+ 		retried = true;
+ 	} while (ret == -EAGAIN &&
+ 		 set->variant->resize &&
+@@ -1589,9 +1593,9 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 			     set->type->adt_policy))
+ 		return -IPSET_ERR_PROTOCOL;
  
- 	pr_debug("list hash set %s\n", set->name);
--	t = rcu_dereference_bh_nfnl(h->table);
-+	t = (const struct htable *) cb->args[IPSET_CB_PRIVATE];
- 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
- 	     cb->args[IPSET_CB_ARG0]++) {
- 		incomplete = skb_tail_pointer(skb);
--		n = rcu_dereference(hbucket(t, cb->args[IPSET_CB_ARG0]));
-+		n = hbucket(t, cb->args[IPSET_CB_ARG0]);
- 		pr_debug("cb->arg bucket: %lu, t %p n %p\n",
- 			 cb->args[IPSET_CB_ARG0], t, n);
- 		if (n == NULL)
-@@ -1140,6 +1175,7 @@ static const struct ip_set_type_variant mtype_variant = {
- 	.flush	= mtype_flush,
- 	.head	= mtype_head,
- 	.list	= mtype_list,
-+	.uref	= mtype_uref,
- 	.resize	= mtype_resize,
- 	.same_set = mtype_same_set,
- };
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 	/* Userspace can't trigger element to be re-added */
+ 	if (ret == -EAGAIN)
+ 		ret = 1;
 -- 
 1.8.5.1
 
