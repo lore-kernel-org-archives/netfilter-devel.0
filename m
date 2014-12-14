@@ -1,56 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 3/4] tests: regression: simplify run_test_file() in case `-e' is used
-Date: Sun, 14 Dec 2014 18:01:02 +0100
-Message-ID: <1418576463-3606-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 4/4] tests: regression: log.t: this works for bridge and arp since 3.17
+Date: Sun, 14 Dec 2014 18:01:03 +0100
+Message-ID: <1418576463-3606-5-git-send-email-pablo@netfilter.org>
 References: <1418576463-3606-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45135 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45151 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751190AbaLNQ6y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Dec 2014 11:58:54 -0500
+	id S1751622AbaLNQ7I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Dec 2014 11:59:08 -0500
 In-Reply-To: <1418576463-3606-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Avoid copy&paste coding style pattern by simplifying the code that
-handles the `-e' option that allows us to run known broken tests.
+So tests log statement for those two families too and remove the
+tests/selectors that are ip and ip6 specific, they don't belong here.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/regression/nft-test.py |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ tests/regression/any/log.t |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index dea0f36..7e5b475 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -692,23 +692,9 @@ def run_test_file(filename, force_all_family_option, specific_file):
-                 continue
-             if need_fix_option:
-                 rule[0] = rule[0].rstrip()[1:].strip()
--                result = rule_add(rule, table_list, chain_list, filename,
--                                  lineno, force_all_family_option)
--                tests += 1
--                warning = result[1]
--                ret = result[0]
--                total_warning += warning
--                total_error += result[2]
--                total_unit_run += result[3]
--
--                if ret != 0:
--                    total_test_passed = False
--                elif warning == 0:
--                    passed += 1
--                continue
-             else:
-                 continue
--        if need_fix_option:
-+        elif need_fix_option:
-             continue
+diff --git a/tests/regression/any/log.t b/tests/regression/any/log.t
+index 2bc2543..0eed580 100644
+--- a/tests/regression/any/log.t
++++ b/tests/regression/any/log.t
+@@ -1,11 +1,10 @@
+ *ip;test-ip4
+ *ip6;test-ip6
+ *inet;test-inet
+-- *arp;test-arp
+-- *bridge;test-bridge
++*arp;test-arp
++*bridge;test-bridge
+ :output;type filter hook output priority 0
  
-         result = rule_add(rule, table_list, chain_list, filename, lineno,
+-ct direction original log;ok
+ log;ok
+ log level emerg;ok
+ log level alert;ok
+@@ -19,9 +18,9 @@ log level debug;ok
+ log level emerg group 2;fail
+ log level alert group 2 prefix "log test2";fail
+ 
+-udp dport 200 log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;udp dport 200 log prefix "aaaaa-aaaaaa" group 2 snaplen 33
++log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;log prefix "aaaaa-aaaaaa" group 2 snaplen 33
+ # TODO: Add an exception: 'queue-threshold' attribute needs 'group' attribute
+ # The correct rule is log group 2 queue-threshold 2
+ log group 2 queue-threshold 2;ok
+ log group 2 snaplen 33;ok
+-tcp dport 300 log group 2 prefix \"IPTABLES-NFT SSH\";ok;tcp dport 300 log prefix "IPTABLES-NFT SSH" group 2
++log group 2 prefix \"nft-test: \";ok;log prefix "nft-test: " group 2
 -- 
 1.7.10.4
 
