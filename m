@@ -1,23 +1,36 @@
-From: luv2charitys@gmail.com
-Subject: charity message
-Date: Sun, 14 Dec 2014 02:58:13 +0000
-Message-ID: <NWISBSoXaXgBDu9CEIe00046138@mail.nwiimi.com>
-Reply-To: paucharity@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 0/4] nft updates
+Date: Sun, 14 Dec 2014 18:00:59 +0100
+Message-ID: <1418576463-3606-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.nwiimi.com ([70.62.177.86]:25791 "EHLO mail.nwiimi.com"
+Received: from mail.us.es ([193.147.175.20]:45108 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898AbaLND22 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Dec 2014 22:28:28 -0500
-Content-Description: Mail message body
+	id S1751023AbaLNQ6o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Dec 2014 11:58:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,this is Mr Paul N,i sent you an email on charity work but i am yet
-to hear fom you,do reply with this code CHA-2015 to my email address
-paulcharity@qq.com  i Look forward to hearing from you this time,God
-bless  Brother Paul 
+Hi,
+
+Small oneliner fix to set byteorder in string_type. And updates for the
+nft-test.py script.
+
+If no objections, I'll push this to master before the upcoming 0.4
+release.
+
+Pablo Neira Ayuso (4):
+  datatype: missing byteorder in string_type
+  tests: regression: fix wrong number of test files
+  tests: regression: simplify run_test_file() in case `-e' is used
+  tests: regression: log.t: this works for bridge and arp since 3.17
+
+ src/datatype.c               |    1 +
+ tests/regression/any/log.t   |    9 ++++-----
+ tests/regression/nft-test.py |   19 +++----------------
+ 3 files changed, 8 insertions(+), 21 deletions(-)
+
+-- 
+1.7.10.4
+
