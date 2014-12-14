@@ -1,57 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 4/4] tests: regression: log.t: this works for bridge and arp since 3.17
-Date: Sun, 14 Dec 2014 18:01:03 +0100
-Message-ID: <1418576463-3606-5-git-send-email-pablo@netfilter.org>
-References: <1418576463-3606-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 1/4] datatype: missing byteorder in string_type
+Date: Sun, 14 Dec 2014 19:01:10 +0100
+Message-ID: <4D4832DE-212B-481E-935D-D7B1833D3549@trash.net>
+References: <1418576463-3606-1-git-send-email-pablo@netfilter.org> <1418576463-3606-2-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45151 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751622AbaLNQ7I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Dec 2014 11:59:08 -0500
-In-Reply-To: <1418576463-3606-1-git-send-email-pablo@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:49274 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750701AbaLNSBO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Dec 2014 13:01:14 -0500
+In-Reply-To: <1418576463-3606-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So tests log statement for those two families too and remove the
-tests/selectors that are ip and ip6 specific, they don't belong here.
+Am 14. Dezember 2014 18:01:00 MEZ, schrieb Pablo Neira Ayuso <pablo@netfilter.org>:
+>nft add rule filter input iifname { "lo", "eth0" } counter
+>
+>Now the listing shows:
+>
+>	iifname { "lo", "eth0"}
+>
+>instead of:
+>
+>	iifname { "", ""}
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/regression/any/log.t |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Again wondering what broke this. Let me check when I am at home, IIRC we have some check for strings somewhere in the netlink code that relies in this.
 
-diff --git a/tests/regression/any/log.t b/tests/regression/any/log.t
-index 2bc2543..0eed580 100644
---- a/tests/regression/any/log.t
-+++ b/tests/regression/any/log.t
-@@ -1,11 +1,10 @@
- *ip;test-ip4
- *ip6;test-ip6
- *inet;test-inet
--- *arp;test-arp
--- *bridge;test-bridge
-+*arp;test-arp
-+*bridge;test-bridge
- :output;type filter hook output priority 0
- 
--ct direction original log;ok
- log;ok
- log level emerg;ok
- log level alert;ok
-@@ -19,9 +18,9 @@ log level debug;ok
- log level emerg group 2;fail
- log level alert group 2 prefix "log test2";fail
- 
--udp dport 200 log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;udp dport 200 log prefix "aaaaa-aaaaaa" group 2 snaplen 33
-+log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;log prefix "aaaaa-aaaaaa" group 2 snaplen 33
- # TODO: Add an exception: 'queue-threshold' attribute needs 'group' attribute
- # The correct rule is log group 2 queue-threshold 2
- log group 2 queue-threshold 2;ok
- log group 2 snaplen 33;ok
--tcp dport 300 log group 2 prefix \"IPTABLES-NFT SSH\";ok;tcp dport 300 log prefix "IPTABLES-NFT SSH" group 2
-+log group 2 prefix \"nft-test: \";ok;log prefix "nft-test: " group 2
--- 
-1.7.10.4
+>
+>Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>---
+> src/datatype.c |    1 +
+> 1 file changed, 1 insertion(+)
+>
+>diff --git a/src/datatype.c b/src/datatype.c
+>index 4519d87..7f73077 100644
+>--- a/src/datatype.c
+>+++ b/src/datatype.c
+>@@ -324,6 +324,7 @@ const struct datatype string_type = {
+> 	.type		= TYPE_STRING,
+> 	.name		= "string",
+> 	.desc		= "string",
+>+	.byteorder	= BYTEORDER_HOST_ENDIAN,
+> 	.print		= string_type_print,
+> 	.parse		= string_type_parse,
+> };
+
 
