@@ -1,314 +1,124 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: [PATCH 1/9] rhashtable: Do hashing inside of rhashtable_lookup_compare()
-Date: Mon, 15 Dec 2014 13:51:03 +0100
-Message-ID: <f0228f042ccfd20766b552e308374451761a7d81.1418647641.git.tgraf@suug.ch>
-References: <cover.1418647641.git.tgraf@suug.ch>
-Cc: netdev@vger.kernel.org, kernel@vger.kernel.org,
-	herbert@gondor.apana.org.au, paulmck@linux.vnet.ibm.com,
-	edumazet@google.com, john.r.fastabend@intel.com,
-	josh@joshtriplett.org, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1418647641.git.tgraf@suug.ch>
-In-Reply-To: <cover.1418647641.git.tgraf@suug.ch>
-References: <cover.1418647641.git.tgraf@suug.ch>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-Hash the key inside of rhashtable_lookup_compare() like
-rhashtable_lookup() does. This allows to simplify the hashing
-functions and keep them private.
-
-Signed-off-by: Thomas Graf <tgraf@suug.ch>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 1/4] datatype: missing byteorder in string_type
+Date: Mon, 15 Dec 2014 15:16:19 +0100
+Message-ID: <4ADDD44D-642B-4E56-9A86-39FF987FBCC6@trash.net>
+References: <1418576463-3606-1-git-send-email-pablo@netfilter.org> <1418576463-3606-2-git-send-email-pablo@netfilter.org> <4D4832DE-212B-481E-935D-D7B1833D3549@trash.net> <20141214194708.GA17579@salvia> <20141215114332.GA3665@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
----
- include/linux/rhashtable.h |  5 +--
- lib/rhashtable.c           | 91 +++++++++++++++-------------------------------
- net/netfilter/nft_hash.c   | 46 ++++++++++++++---------
- net/netlink/af_netlink.c   |  5 +--
- 4 files changed, 61 insertions(+), 86 deletions(-)
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:56959 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785AbaLOOQ0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Dec 2014 09:16:26 -0500
+In-Reply-To: <20141215114332.GA3665@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
-index b93fd89..1b51221 100644
---- a/include/linux/rhashtable.h
-+++ b/include/linux/rhashtable.h
-@@ -96,9 +96,6 @@ static inline int lockdep_rht_mutex_is_held(const struct rhashtable *ht)
- 
- int rhashtable_init(struct rhashtable *ht, struct rhashtable_params *params);
- 
--u32 rhashtable_hashfn(const struct rhashtable *ht, const void *key, u32 len);
--u32 rhashtable_obj_hashfn(const struct rhashtable *ht, void *ptr);
--
- void rhashtable_insert(struct rhashtable *ht, struct rhash_head *node);
- bool rhashtable_remove(struct rhashtable *ht, struct rhash_head *node);
- void rhashtable_remove_pprev(struct rhashtable *ht, struct rhash_head *obj,
-@@ -111,7 +108,7 @@ int rhashtable_expand(struct rhashtable *ht);
- int rhashtable_shrink(struct rhashtable *ht);
- 
- void *rhashtable_lookup(const struct rhashtable *ht, const void *key);
--void *rhashtable_lookup_compare(const struct rhashtable *ht, u32 hash,
-+void *rhashtable_lookup_compare(const struct rhashtable *ht, const void *key,
- 				bool (*compare)(void *, void *), void *arg);
- 
- void rhashtable_destroy(const struct rhashtable *ht);
-diff --git a/lib/rhashtable.c b/lib/rhashtable.c
-index 6c3c723..1ee0eb6 100644
---- a/lib/rhashtable.c
-+++ b/lib/rhashtable.c
-@@ -42,69 +42,39 @@ static void *rht_obj(const struct rhashtable *ht, const struct rhash_head *he)
- 	return (void *) he - ht->p.head_offset;
- }
- 
--static u32 __hashfn(const struct rhashtable *ht, const void *key,
--		      u32 len, u32 hsize)
-+static u32 rht_bucket_index(const struct bucket_table *tbl, u32 hash)
- {
--	u32 h;
--
--	h = ht->p.hashfn(key, len, ht->p.hash_rnd);
--
--	return h & (hsize - 1);
--}
--
--/**
-- * rhashtable_hashfn - compute hash for key of given length
-- * @ht:		hash table to compute for
-- * @key:	pointer to key
-- * @len:	length of key
-- *
-- * Computes the hash value using the hash function provided in the 'hashfn'
-- * of struct rhashtable_params. The returned value is guaranteed to be
-- * smaller than the number of buckets in the hash table.
-- */
--u32 rhashtable_hashfn(const struct rhashtable *ht, const void *key, u32 len)
--{
--	struct bucket_table *tbl = rht_dereference_rcu(ht->tbl, ht);
--
--	return __hashfn(ht, key, len, tbl->size);
-+	return hash & (tbl->size - 1);
- }
--EXPORT_SYMBOL_GPL(rhashtable_hashfn);
- 
--static u32 obj_hashfn(const struct rhashtable *ht, const void *ptr, u32 hsize)
-+static u32 obj_raw_hashfn(const struct rhashtable *ht, const void *ptr)
- {
--	if (unlikely(!ht->p.key_len)) {
--		u32 h;
--
--		h = ht->p.obj_hashfn(ptr, ht->p.hash_rnd);
-+	u32 hash;
- 
--		return h & (hsize - 1);
--	}
-+	if (unlikely(!ht->p.key_len))
-+		hash = ht->p.obj_hashfn(ptr, ht->p.hash_rnd);
-+	else
-+		hash = ht->p.hashfn(ptr + ht->p.key_offset, ht->p.key_len,
-+				    ht->p.hash_rnd);
- 
--	return __hashfn(ht, ptr + ht->p.key_offset, ht->p.key_len, hsize);
-+	return hash;
- }
- 
--/**
-- * rhashtable_obj_hashfn - compute hash for hashed object
-- * @ht:		hash table to compute for
-- * @ptr:	pointer to hashed object
-- *
-- * Computes the hash value using the hash function `hashfn` respectively
-- * 'obj_hashfn' depending on whether the hash table is set up to work with
-- * a fixed length key. The returned value is guaranteed to be smaller than
-- * the number of buckets in the hash table.
-- */
--u32 rhashtable_obj_hashfn(const struct rhashtable *ht, void *ptr)
-+static u32 key_hashfn(const struct rhashtable *ht, const void *key, u32 len)
- {
- 	struct bucket_table *tbl = rht_dereference_rcu(ht->tbl, ht);
-+	u32 hash;
-+
-+	hash = ht->p.hashfn(key, len, ht->p.hash_rnd);
- 
--	return obj_hashfn(ht, ptr, tbl->size);
-+	return rht_bucket_index(tbl, hash);
- }
--EXPORT_SYMBOL_GPL(rhashtable_obj_hashfn);
- 
- static u32 head_hashfn(const struct rhashtable *ht,
--		       const struct rhash_head *he, u32 hsize)
-+		       const struct bucket_table *tbl,
-+		       const struct rhash_head *he)
- {
--	return obj_hashfn(ht, rht_obj(ht, he), hsize);
-+	return rht_bucket_index(tbl, obj_raw_hashfn(ht, rht_obj(ht, he)));
- }
- 
- static struct bucket_table *bucket_table_alloc(size_t nbuckets)
-@@ -170,9 +140,9 @@ static void hashtable_chain_unzip(const struct rhashtable *ht,
- 	 * reaches a node that doesn't hash to the same bucket as the
- 	 * previous node p. Call the previous node p;
- 	 */
--	h = head_hashfn(ht, p, new_tbl->size);
-+	h = head_hashfn(ht, new_tbl, p);
- 	rht_for_each(he, p->next, ht) {
--		if (head_hashfn(ht, he, new_tbl->size) != h)
-+		if (head_hashfn(ht, new_tbl, he) != h)
- 			break;
- 		p = he;
- 	}
-@@ -184,7 +154,7 @@ static void hashtable_chain_unzip(const struct rhashtable *ht,
- 	next = NULL;
- 	if (he) {
- 		rht_for_each(he, he->next, ht) {
--			if (head_hashfn(ht, he, new_tbl->size) == h) {
-+			if (head_hashfn(ht, new_tbl, he) == h) {
- 				next = he;
- 				break;
- 			}
-@@ -237,9 +207,9 @@ int rhashtable_expand(struct rhashtable *ht)
- 	 * single imprecise chain.
- 	 */
- 	for (i = 0; i < new_tbl->size; i++) {
--		h = i & (old_tbl->size - 1);
-+		h = rht_bucket_index(old_tbl, i);
- 		rht_for_each(he, old_tbl->buckets[h], ht) {
--			if (head_hashfn(ht, he, new_tbl->size) == i) {
-+			if (head_hashfn(ht, new_tbl, he) == i) {
- 				RCU_INIT_POINTER(new_tbl->buckets[i], he);
- 				break;
- 			}
-@@ -353,7 +323,7 @@ void rhashtable_insert(struct rhashtable *ht, struct rhash_head *obj)
- 
- 	ASSERT_RHT_MUTEX(ht);
- 
--	hash = head_hashfn(ht, obj, tbl->size);
-+	hash = head_hashfn(ht, tbl, obj);
- 	RCU_INIT_POINTER(obj->next, tbl->buckets[hash]);
- 	rcu_assign_pointer(tbl->buckets[hash], obj);
- 	ht->nelems++;
-@@ -413,7 +383,7 @@ bool rhashtable_remove(struct rhashtable *ht, struct rhash_head *obj)
- 
- 	ASSERT_RHT_MUTEX(ht);
- 
--	h = head_hashfn(ht, obj, tbl->size);
-+	h = head_hashfn(ht, tbl, obj);
- 
- 	pprev = &tbl->buckets[h];
- 	rht_for_each(he, tbl->buckets[h], ht) {
-@@ -452,7 +422,7 @@ void *rhashtable_lookup(const struct rhashtable *ht, const void *key)
- 
- 	BUG_ON(!ht->p.key_len);
- 
--	h = __hashfn(ht, key, ht->p.key_len, tbl->size);
-+	h = key_hashfn(ht, key, ht->p.key_len);
- 	rht_for_each_rcu(he, tbl->buckets[h], ht) {
- 		if (memcmp(rht_obj(ht, he) + ht->p.key_offset, key,
- 			   ht->p.key_len))
-@@ -467,7 +437,7 @@ EXPORT_SYMBOL_GPL(rhashtable_lookup);
- /**
-  * rhashtable_lookup_compare - search hash table with compare function
-  * @ht:		hash table
-- * @hash:	hash value of desired entry
-+ * @key:	the pointer to the key
-  * @compare:	compare function, must return true on match
-  * @arg:	argument passed on to compare function
-  *
-@@ -479,15 +449,14 @@ EXPORT_SYMBOL_GPL(rhashtable_lookup);
-  *
-  * Returns the first entry on which the compare function returned true.
-  */
--void *rhashtable_lookup_compare(const struct rhashtable *ht, u32 hash,
-+void *rhashtable_lookup_compare(const struct rhashtable *ht, const void *key,
- 				bool (*compare)(void *, void *), void *arg)
- {
- 	const struct bucket_table *tbl = rht_dereference_rcu(ht->tbl, ht);
- 	struct rhash_head *he;
-+	u32 hash;
- 
--	if (unlikely(hash >= tbl->size))
--		return NULL;
--
-+	hash = key_hashfn(ht, key, ht->p.key_len);
- 	rht_for_each_rcu(he, tbl->buckets[hash], ht) {
- 		if (!compare(rht_obj(ht, he), arg))
- 			continue;
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 1e316ce..614ee09 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -94,28 +94,40 @@ static void nft_hash_remove(const struct nft_set *set,
- 	kfree(he);
- }
- 
-+struct nft_compare_arg {
-+	const struct nft_set *set;
-+	struct nft_set_elem *elem;
-+};
-+
-+static bool nft_hash_compare(void *ptr, void *arg)
-+{
-+	struct nft_hash_elem *he = ptr;
-+	struct nft_compare_arg *x = arg;
-+
-+	if (!nft_data_cmp(&he->key, &x->elem->key, x->set->klen)) {
-+		x->elem->cookie = &he->node;
-+		x->elem->flags = 0;
-+		if (x->set->flags & NFT_SET_MAP)
-+			nft_data_copy(&x->elem->data, he->data);
-+
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- static int nft_hash_get(const struct nft_set *set, struct nft_set_elem *elem)
- {
- 	const struct rhashtable *priv = nft_set_priv(set);
--	const struct bucket_table *tbl = rht_dereference_rcu(priv->tbl, priv);
--	struct rhash_head __rcu * const *pprev;
--	struct nft_hash_elem *he;
--	u32 h;
--
--	h = rhashtable_hashfn(priv, &elem->key, set->klen);
--	pprev = &tbl->buckets[h];
--	rht_for_each_entry_rcu(he, tbl->buckets[h], node) {
--		if (nft_data_cmp(&he->key, &elem->key, set->klen)) {
--			pprev = &he->node.next;
--			continue;
--		}
-+	struct nft_compare_arg arg = {
-+		.set = set,
-+		.elem = elem,
-+	};
- 
--		elem->cookie = (void *)pprev;
--		elem->flags = 0;
--		if (set->flags & NFT_SET_MAP)
--			nft_data_copy(&elem->data, he->data);
-+	if (rhashtable_lookup_compare(priv, &elem->key,
-+				      &nft_hash_compare, &arg))
- 		return 0;
--	}
-+
- 	return -ENOENT;
- }
- 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index ef5f77b..dc8354b 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -1022,11 +1022,8 @@ static struct sock *__netlink_lookup(struct netlink_table *table, u32 portid,
- 		.net = net,
- 		.portid = portid,
- 	};
--	u32 hash;
- 
--	hash = rhashtable_hashfn(&table->hash, &portid, sizeof(portid));
--
--	return rhashtable_lookup_compare(&table->hash, hash,
-+	return rhashtable_lookup_compare(&table->hash, &portid,
- 					 &netlink_compare, &arg);
- }
- 
--- 
-1.9.3
+Am 15. Dezember 2014 12:43:32 MEZ, schrieb Pablo Neira Ayuso <pablo@netfilter.org>:
+>Hi Patrick!
+>
+>On Sun, Dec 14, 2014 at 08:47:08PM +0100, Pablo Neira Ayuso wrote:
+>> On Sun, Dec 14, 2014 at 07:01:10PM +0100, Patrick McHardy wrote:
+>> > Am 14. Dezember 2014 18:01:00 MEZ, schrieb Pablo Neira Ayuso
+><pablo@netfilter.org>:
+>> > >nft add rule filter input iifname { "lo", "eth0" } counter
+>> > >
+>> > >Now the listing shows:
+>> > >
+>> > >	iifname { "lo", "eth0"}
+>> > >
+>> > >instead of:
+>> > >
+>> > >	iifname { "", ""}
+>> > 
+>> > Again wondering what broke this. Let me check when I am at home,
+>> > IIRC we have some check for strings somewhere in the netlink code
+>> > that relies in this.
+>> 
+>> Attached an alternative to this patch. That I can remember, this is
+>> broken since quite some time.
+>
+>Any concern with this second approach?
+>
+>Let me know if you prefer I keep this away from this release.
+
+Actually the first one is fine, I thought it would affect string postprocessing in delinearization, but it's fine.
+
+>
+>Thanks!
+>
+>> From ddd263f8ceccf4f30784b9316e2cadfa35e5678d Mon Sep 17 00:00:00
+>2001
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Date: Sat, 13 Dec 2014 18:29:37 +0100
+>> Subject: [PATCH] datatype: fix listing of string elements
+>> 
+>> Generalise 0451b82 ("src: generate set members using integer_type in
+>> the appropriate byteorder") to handle string_type too, since this
+>> datatype doesn't have any specific byteorder.
+>> 
+>> nft add rule filter input iifname { "lo", "eth0" } counter
+>> 
+>> Now the listing shows:
+>> 
+>> 	iifname { "lo", "eth0"}
+>> 
+>> instead of:
+>> 
+>> 	iifname { "", ""}
+>> 
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>> ---
+>>  src/netlink_delinearize.c |   12 ++++++++----
+>>  1 file changed, 8 insertions(+), 4 deletions(-)
+>> 
+>> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+>> index e9a04dd..8762cc9 100644
+>> --- a/src/netlink_delinearize.c
+>> +++ b/src/netlink_delinearize.c
+>> @@ -742,7 +742,7 @@ static void payload_dependency_store(struct
+>rule_pp_ctx *ctx,
+>>  	ctx->pdep  = stmt;
+>>  }
+>>  
+>> -static void integer_type_postprocess(struct expr *expr)
+>> +static void lookup_postprocess(struct expr *expr)
+>>  {
+>>  	struct expr *i;
+>>  
+>> @@ -757,7 +757,7 @@ static void integer_type_postprocess(struct expr
+>*expr)
+>>  	case EXPR_SET_REF:
+>>  		list_for_each_entry(i, &expr->set->init->expressions, list) {
+>>  			expr_set_type(i, expr->dtype, expr->byteorder);
+>> -			integer_type_postprocess(i);
+>> +			lookup_postprocess(i);
+>>  		}
+>>  		break;
+>>  	default:
+>> @@ -831,8 +831,12 @@ static void meta_match_postprocess(struct
+>rule_pp_ctx *ctx,
+>>  	case OP_LOOKUP:
+>>  		expr_set_type(expr->right, expr->left->dtype,
+>>  			      expr->left->byteorder);
+>> -		if (expr->right->dtype == &integer_type)
+>> -			integer_type_postprocess(expr->right);
+>> +		switch (expr->right->dtype->type) {
+>> +		case TYPE_STRING:
+>> +		case TYPE_INTEGER:
+>> +			lookup_postprocess(expr->right);
+>> +			break;
+>> +		}
+>>  		break;
+>>  	default:
+>>  		break;
+>> -- 
+>> 1.7.10.4
+>> 
+
+
