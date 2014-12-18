@@ -1,43 +1,30 @@
-From: Richard Guy Briggs <rgb@tricolour.ca>
-Subject: netdev01 twitter feed, first proposal accepted
-Date: Wed, 17 Dec 2014 23:30:24 -0500
-Message-ID: <20141218043024.GW1343@toccata2.tricolour.ca>
+From: "=?utf-8?B?SsO2cmcgVGhhbGhlaW0=?=" <joerg@higgsboson.tk>
+Subject: Re: [PATCH] add systemd service file
+Date: Thu, 18 Dec 2014 07:50:09 +0000
+Message-ID: <47dded8fbb17bf3335b91d4e464b71e9@mail.higgsboson.tk>
+References: <0aacef05524146946330ec41e2235318@mail.higgsboson.tk>
+ <CAOkSjBi_X40RrdHDpNNsdbSp-=3okki21s=wkK3J+BsD97Jpqg@mail.gmail.com>
+ <20141217205407.06558f65@turingmachine>
+ <CAOkSjBg_O4GRuFkm7hNoZDv_JqCjOVRcP7VNV=K1NYqHdSuJmA@mail.gmail.com>  
+ <b3a6e72b6713574b986ab81624dddeda@mail.higgsboson.tk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "Netfilter Development Mailing list"
+	<netfilter-devel@vger.kernel.org>
+To: "Arturo Borrero Gonzalez" <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.higgsboson.tk ([148.251.132.243]:53372 "EHLO
+	mail.higgsboson.tk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbaLRHuN convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Dec 2014 02:50:13 -0500
+In-Reply-To: <0aacef05524146946330ec41e2235318@mail.higgsboson.tk>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-We are pleased to announce that the first proposal has been accepted and a
-Twitter feed has been set up to announce the rest as they are accepted for
-netdev 0.1, the community-driven Linux networking conference held back-to-back
-with netconf in Ottawa, Canada, February 14-17, 2015.
+> Is the "include" statement a new feature? Never saw this feature in the wild.
+> Does it works for directories too? Something like `include "/etc/nftables.d/*"` 
+> or `includedir "/etc/nftables/"` would be awesome.
 
-The twitter feed is: @netdev01
-https://twitter.com/netdev01
-
-Wireless Workshop Proposal Accepted
-The wireless workshop will bring together the Linux wireless stack and driver
-maintainers to discuss the continued development of the stack regarding Linux
-implementation of existing standards, new requirements coming from 802.11
-specification development, Android integration, new products and similar.
-https://www.netdev01.org/news/11
-
-
-Main site:                      https://www.netdev01.org/
-Announcement:                   https://www.netdev01.org/announce
-CFP:                            https://www.netdev01.org/cfp
-Travel/hotel/weather/clothing:  https://www.netdev01.org/travel
-
-
-	slainte mhath, RGB
-
---
-Richard Guy Briggs               --  ~\    -- ~\             <hpv.tricolour.ca>
-<www.TriColour.ca>                 --  \___   o \@      @        Ride yer bike!
-Ottawa, ON, CANADA                  --  Lo_>__M__\\/\%__\\/\%
-_____________________________GTVS6#790__(*)__(*)________(*)(*)_________________
+I should have read the manpage before asking. Anyway glob(3) would be cool addition.
