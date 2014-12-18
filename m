@@ -1,61 +1,48 @@
-From: =?UTF-8?B?SsO2cmc=?= Thalheim <joerg@higgsboson.tk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH] add systemd service file
-Date: Thu, 18 Dec 2014 13:47:08 +0100
-Message-ID: <20141218134708.3b990466@turingmachine>
+Date: Thu, 18 Dec 2014 13:51:34 +0100
+Message-ID: <20141218125134.GA17514@salvia>
 References: <20141218133524.4d6e2539@turingmachine>
+ <20141218134708.3b990466@turingmachine>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/vQ5J=rxRliNw8muMhGqV8xV"; protocol="application/pgp-signature"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?J=F6rg?= Thalheim <joerg@higgsboson.tk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.higgsboson.tk ([148.251.132.243]:35502 "EHLO
-	mail.higgsboson.tk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbaLRMrK (ORCPT
+Received: from mail.us.es ([193.147.175.20]:58081 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752381AbaLRMtP convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Dec 2014 07:47:10 -0500
-Received: from turingmachine (unknown [141.56.66.51])
-	by mail.higgsboson.tk (Postfix) with ESMTPSA id D169D78E4
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Dec 2014 13:47:08 +0100 (CET)
-In-Reply-To: <20141218133524.4d6e2539@turingmachine>
+	Thu, 18 Dec 2014 07:49:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20141218134708.3b990466@turingmachine>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/vQ5J=rxRliNw8muMhGqV8xV
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 18, 2014 at 01:47:08PM +0100, J=F6rg Thalheim wrote:
+> I refactor the patch based on your feedback, however:
+>  =20
+>   $ nft flush ruleset
+>=20
+> fails with:
+>=20
+>   <cmdline>:1:1-13: Error: Could not process rule: Address family not=
+ supported by protocol=20
+>   flush ruleset
+>   ^^^^^^^^^^^^^
+>=20
+>   $ nft --version    =20
+>   nftables v0.4 (Support Edward Snowden)
+>=20
+>   $ uname -a
+>   Linux turingmachine 3.17.6-1-ARCH #1 SMP PREEMPT Sun Dec 7 23:43:32=
+ UTC 2014 x86_64 GNU/Linux
 
-I refactor the patch based on your feedback, however:
- =20
-  $ nft flush ruleset
-
-fails with:
-
-  <cmdline>:1:1-13: Error: Could not process rule: Address family not suppo=
-rted by protocol=20
-  flush ruleset
-  ^^^^^^^^^^^^^
-
-  $ nft --version    =20
-  nftables v0.4 (Support Edward Snowden)
-
-  $ uname -a
-  Linux turingmachine 3.17.6-1-ARCH #1 SMP PREEMPT Sun Dec 7 23:43:32 UTC 2=
-014 x86_64 GNU/Linux
-
---Sig_/vQ5J=rxRliNw8muMhGqV8xV
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJUkszMAAoJEMpBBrjXzHn6BNAH/3sl+GBVYpCLxaZ3yveW1iyg
-mzUb+IpXPrRk+XyegHximOtySu3IL3SHyaxADIsDszG6/rOpAafozBYv5HLDZQQi
-e3lcy6t5qDf4hbQkZmhyXw1FU8+zx0hJ4bihxApef8b1Z0GUWgr6vAahiQrDpZtr
-ICHHFfDbGkD9lgh3CSjmOMXkz0NIK1HjyT+X2AhId5R77UoUDzyFQDr/zZzd32ER
-AMXEYGh8o3MezWUut0qv4IRFQbB7cSuo/yATicUrpQLlX66huyLDFd/TGC6/nLd+
-+LwzjAEdEnk6xOiS/Cj7LMgiXdV9GEOiCGtc6P8tijblE6ZMPpu3uFziS71Bmtw=
-=/bmM
------END PGP SIGNATURE-----
-
---Sig_/vQ5J=rxRliNw8muMhGqV8xV--
+That is supported starting Linux kernel 3.18 as the nftables wiki
+indicates.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
