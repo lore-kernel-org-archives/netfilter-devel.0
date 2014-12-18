@@ -1,32 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] build: resolve build failure on systems with old
- glibc-linux headers
-Date: Thu, 18 Dec 2014 19:53:38 +0100
-Message-ID: <20141218185338.GA4776@salvia>
-References: <1418687687-9124-1-git-send-email-jengelh@inai.de>
+Subject: Re: [GIT PULL nf-next] Second round of IPVS Updates for v3.19
+Date: Thu, 18 Dec 2014 21:11:29 +0100
+Message-ID: <20141218201129.GA5429@salvia>
+References: <1418201201-19257-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54006 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35750 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057AbaLRSvU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Dec 2014 13:51:20 -0500
+	id S1751224AbaLRUJO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Dec 2014 15:09:14 -0500
 Content-Disposition: inline
-In-Reply-To: <1418687687-9124-1-git-send-email-jengelh@inai.de>
+In-Reply-To: <1418201201-19257-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 16, 2014 at 12:54:47AM +0100, Jan Engelhardt wrote:
-> This fails to build on a SUSE Linux Enterprise 11 system where the
-> linux-glibc-devel headers (/usr/include/linux) are of version 2.6.32.
+On Wed, Dec 10, 2014 at 05:46:40PM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> The reason for that is that x_tables.h is only present in the git
-> repository, but not the tarball as produced by `make dist`. Add the
-> missing file to the file list.
+> please consider these IPVS updates for v3.19 or alternatively v3.20.
+> 
+> The single patch in this series fixes a long standing bug that
+> has not caused any trouble and thus is not being prioritised as a fix.
+> 
+> 
+> The following changes since commit d6b00fec5dbbe976904b4d77e7d4f9493df5c2ec:
+> 
+>   macvlan: play well with ipvlan device (2014-12-09 16:10:06 -0500)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs2-for-v3.19
 
-This doesn't apply neither to libnftnl nor to nftables (the PATCH tag
-doesn't specify).
+Pulled, thanks Simon.
 
-Please test that your patches before submitting, thank you.
+This applies cleanly to:
+
+3.2.x
+3.4.x
+3.10.x
+3.14.x
+3.17.x
+3.18.x
+
+Please, let me know if this patch has some non obvious dependencies
+that needs to be fulfilled before passing it to -stable or it's plain
+fine to pass it on.
