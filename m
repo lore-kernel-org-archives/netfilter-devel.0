@@ -1,52 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] evaluate: fix wrong port natting in little endian
-Date: Mon, 22 Dec 2014 12:31:26 +0100
-Message-ID: <1419247886-3820-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, christophe.leroy@c-s.fr
-To: netfilter-devel@vger.kernel.org
+Subject: Re: bug : nft_redirect port byteorder issue
+Date: Mon, 22 Dec 2014 12:54:48 +0100
+Message-ID: <20141222115448.GA4908@salvia>
+References: <54885B08.1010700@c-s.fr>
+ <20141210182244.GA5622@salvia>
+ <548AC07D.6080703@c-s.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: arturo.borrero.glez@gmail.com, GUITTON Alex <alex.guitton@c-s.fr>,
+	netfilter-devel@vger.kernel.org, kaber@trash.net
+To: leroy christophe <christophe.leroy@c-s.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36134 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44267 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754215AbaLVL3D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2014 06:29:03 -0500
+	id S1754853AbaLVLwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Dec 2014 06:52:25 -0500
+Content-Disposition: inline
+In-Reply-To: <548AC07D.6080703@c-s.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use a 4-bytes word to store the immediate expression that stores the
-port number (instead of 2-bytes). The port netlink attribute is 4-bytes
-long, if we use a 2-bytes word the kernel misinterprets the 2-bytes
-value in little endian.
+On Fri, Dec 12, 2014 at 11:16:29AM +0100, leroy christophe wrote:
+> Hi,
+> 
+> table ip nat {
+>         chain prerouting {
+>                  type nat hook prerouting priority 0;
+>                  tcp dport 222 redirect :22
+>         }
+>         chain postrouting {
+>                  type nat hook postrouting priority 0;
+>         }
+> }
+> 
+> With the above rules, data[priv->sreg_proto_min].data[0] has value
+> 0x160000 instead of 0x16 on powerpc (Big Endian byte order)
+> 
+> Due to this, mr.range[0].min.all gets assigned value 0 instead of 22.
+> 
+> Below patch fixes it, but it is maybe not the proper way to fix it,
+> so I let it up to you.
+> 
+> Christophe
+> 
+> diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c
+> b/net/ipv4/netfilter/nft_redir_ipv4.c
+> index 643c596..554bb32 100644
+> --- a/net/ipv4/netfilter/nft_redir_ipv4.c
+> +++ b/net/ipv4/netfilter/nft_redir_ipv4.c
+> @@ -28,9 +28,9 @@ static void nft_redir_ipv4_eval(const struct
+> nft_expr *expr,
+>  	memset(&mr, 0, sizeof(mr));
+>  	if (priv->sreg_proto_min) {
+>  		mr.range[0].min.all = (__force __be16)
+> -					data[priv->sreg_proto_min].data[0];
+> +					*(__be16*)&data[priv->sreg_proto_min].data[0];
+>  		mr.range[0].max.all = (__force __be16)
+> -					data[priv->sreg_proto_max].data[0];
+> +					*(__be16*)&data[priv->sreg_proto_max].data[0];
+>  		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+>  	}
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Christophe: Could you test this patch in you little-endian testbed?
-Thanks.
+It seems userspace was generating the wrong bytecode, so your
+workaround was reversing the again the port values.
 
- src/evaluate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Please, test the userspace fix I sent you and get back to us.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8f0acf7..37350b4 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1516,7 +1516,7 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
- 						 "valid after transport protocol match");
- 
- 		expr_set_context(&ctx->ectx, &inet_service_type,
--				 2 * BITS_PER_BYTE);
-+				 4 * BITS_PER_BYTE);
- 		err = expr_evaluate(ctx, &stmt->nat.proto);
- 		if (err < 0)
- 			return err;
-@@ -1578,7 +1578,7 @@ static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
- 						 "missing transport protocol match");
- 
- 		expr_set_context(&ctx->ectx, &inet_service_type,
--				 2 * BITS_PER_BYTE);
-+				 4 * BITS_PER_BYTE);
- 		err = expr_evaluate(ctx, &stmt->redir.proto);
- 		if (err < 0)
- 			return err;
--- 
-1.7.10.4
-
+Thanks for diagnosing!
