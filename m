@@ -1,67 +1,91 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft] evaluate: fix wrong port natting in little endian
-Date: Mon, 22 Dec 2014 12:57:46 +0100
-Message-ID: <20141222115746.GB30392@acer.localdomain>
-References: <1419247886-3820-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, christophe.leroy@c-s.fr
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 2/2] tests: regression: revisit chain tests
+Date: Mon, 22 Dec 2014 13:45:50 +0100
+Message-ID: <1419252350-24317-2-git-send-email-pablo@netfilter.org>
+References: <1419252350-24317-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49101 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754457AbaLVL5u (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2014 06:57:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1419247886-3820-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:60355 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754587AbaLVMnZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Dec 2014 07:43:25 -0500
+In-Reply-To: <1419252350-24317-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22.12, Pablo Neira Ayuso wrote:
-> Use a 4-bytes word to store the immediate expression that stores the
-> port number (instead of 2-bytes). The port netlink attribute is 4-bytes
-> long, if we use a 2-bytes word the kernel misinterprets the 2-bytes
-> value in little endian.
+Make sure support chain don't stop working.
 
-This doesn't look like the correct fix. We can use an arbitrary
-expression, not just an immediate. The kernel needs to use the
-correct size.
+Remove some minor mistakes and out of scope tests from chain*.t
 
-The side effect is also that we'd accept port numbers up to 2^32-1.
-Let's fix this properly.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/regression/arp/chains.t    |    3 ++-
+ tests/regression/bridge/chains.t |   11 ++++++-----
+ tests/regression/ip/chains.t     |    7 -------
+ tests/regression/ip6/chains.t    |    1 -
+ 4 files changed, 8 insertions(+), 14 deletions(-)
 
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> @Christophe: Could you test this patch in you little-endian testbed?
-> Thanks.
-> 
->  src/evaluate.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 8f0acf7..37350b4 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -1516,7 +1516,7 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
->  						 "valid after transport protocol match");
->  
->  		expr_set_context(&ctx->ectx, &inet_service_type,
-> -				 2 * BITS_PER_BYTE);
-> +				 4 * BITS_PER_BYTE);
->  		err = expr_evaluate(ctx, &stmt->nat.proto);
->  		if (err < 0)
->  			return err;
-> @@ -1578,7 +1578,7 @@ static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
->  						 "missing transport protocol match");
->  
->  		expr_set_context(&ctx->ectx, &inet_service_type,
-> -				 2 * BITS_PER_BYTE);
-> +				 4 * BITS_PER_BYTE);
->  		err = expr_evaluate(ctx, &stmt->redir.proto);
->  		if (err < 0)
->  			return err;
-> -- 
-> 1.7.10.4
-> 
+diff --git a/tests/regression/arp/chains.t b/tests/regression/arp/chains.t
+index 6b0c042..cf08c1a 100644
+--- a/tests/regression/arp/chains.t
++++ b/tests/regression/arp/chains.t
+@@ -1,5 +1,6 @@
+ *arp;test-arp
+-- filter chains available are: input, output, forward
++
++# filter chains available are: input, output, forward
+ :input;type filter hook input priority 0
+ :forward;type filter hook forward priority 0
+ :output;type filter hook output priority 0
+diff --git a/tests/regression/bridge/chains.t b/tests/regression/bridge/chains.t
+index 3fb1c89..8070de4 100644
+--- a/tests/regression/bridge/chains.t
++++ b/tests/regression/bridge/chains.t
+@@ -1,7 +1,8 @@
+ *bridge;test-bridge
+-# filter chains available are: input, output, forward
+-:filter-input;type filter hook input priority 0
+-:filter-forward;type filter hook forward priority 0
+-:filter-output;type filter hook output priority 0
+ 
+-- ether type 1;ok
++# filter chains available are: prerouting, input, output, forward, postrouting
++:filter-pre;type filter hook input priority 0
++:filter-output;type filter hook output priority 0
++:filter-forward;type filter hook forward priority 0
++:filter-input;type filter hook input priority 0
++:filter-post;type filter hook input priority 0
+diff --git a/tests/regression/ip/chains.t b/tests/regression/ip/chains.t
+index 92a1147..8edf62b 100644
+--- a/tests/regression/ip/chains.t
++++ b/tests/regression/ip/chains.t
+@@ -1,5 +1,4 @@
+ *ip;test-ip4
+--*inet;test-inet
+ 
+ # filter chains available are: input, output, forward, prerouting, postrouting
+ :filter-input;type filter hook input priority 0
+@@ -14,9 +13,3 @@
+ :nat-post-t;type nat hook postrouting priority 0
+ # route chain available are: output
+ :route-out-t;type route hook output priority 0
+-
+-#ip daddr 192.168.0.1-192.168.0.250;ok
+-#ip daddr 192.168.0.1;ok
+-#ip daddr 192.168.0.1 drop;ok
+-#ip daddr 192.168.0.2 log;ok
+-#ip daddr 192.168.0.2 log;ok
+diff --git a/tests/regression/ip6/chains.t b/tests/regression/ip6/chains.t
+index ef975b2..c1e41e4 100644
+--- a/tests/regression/ip6/chains.t
++++ b/tests/regression/ip6/chains.t
+@@ -1,5 +1,4 @@
+ *ip6;test-ip6
+--*inet;test-inet
+ 
+ # filter chains available are: input, output, forward, forward, prerouting and postrouting.
+ :filter-input;type filter hook input priority 0
+-- 
+1.7.10.4
+
