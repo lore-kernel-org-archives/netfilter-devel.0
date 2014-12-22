@@ -1,92 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: fix port natting in little endian archs
-Date: Mon, 22 Dec 2014 13:59:42 +0100
-Message-ID: <1419253182-3590-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, christophe.leroy@c-s.fr
-To: netfilter-devel@vger.kernel.org
+Subject: Re: bug : nft_redirect port byteorder issue
+Date: Mon, 22 Dec 2014 14:00:59 +0100
+Message-ID: <20141222130059.GA3632@salvia>
+References: <54885B08.1010700@c-s.fr>
+ <20141210182244.GA5622@salvia>
+ <548AC07D.6080703@c-s.fr>
+ <20141222115448.GA4908@salvia>
+ <9FE9AEC5-F57E-4EB8-8F06-3EDFCD5A5A3D@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: leroy christophe <christophe.leroy@c-s.fr>,
+	arturo.borrero.glez@gmail.com, GUITTON Alex <alex.guitton@c-s.fr>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35864 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36188 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754297AbaLVM5Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2014 07:57:16 -0500
+	id S1754548AbaLVM6a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Dec 2014 07:58:30 -0500
+Content-Disposition: inline
+In-Reply-To: <9FE9AEC5-F57E-4EB8-8F06-3EDFCD5A5A3D@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: leroy christophe <christophe.leroy@c-s.fr>
+On Mon, Dec 22, 2014 at 01:44:12PM +0100, Patrick McHardy wrote:
+> Am 22. Dezember 2014 12:54:48 MEZ, schrieb Pablo Neira Ayuso <pablo@netfilter.org>:
+> >On Fri, Dec 12, 2014 at 11:16:29AM +0100, leroy christophe wrote:
+> >> Hi,
+> >> 
+> >> table ip nat {
+> >>         chain prerouting {
+> >>                  type nat hook prerouting priority 0;
+> >>                  tcp dport 222 redirect :22
+> >>         }
+> >>         chain postrouting {
+> >>                  type nat hook postrouting priority 0;
+> >>         }
+> >> }
+> >> 
+> >> With the above rules, data[priv->sreg_proto_min].data[0] has value
+> >> 0x160000 instead of 0x16 on powerpc (Big Endian byte order)
+> >> 
+> >> Due to this, mr.range[0].min.all gets assigned value 0 instead of 22.
+> >> 
+> >> Below patch fixes it, but it is maybe not the proper way to fix it,
+> >> so I let it up to you.
+> >> 
+> >> Christophe
+> >> 
+> >> diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c
+> >> b/net/ipv4/netfilter/nft_redir_ipv4.c
+> >> index 643c596..554bb32 100644
+> >> --- a/net/ipv4/netfilter/nft_redir_ipv4.c
+> >> +++ b/net/ipv4/netfilter/nft_redir_ipv4.c
+> >> @@ -28,9 +28,9 @@ static void nft_redir_ipv4_eval(const struct
+> >> nft_expr *expr,
+> >>  	memset(&mr, 0, sizeof(mr));
+> >>  	if (priv->sreg_proto_min) {
+> >>  		mr.range[0].min.all = (__force __be16)
+> >> -					data[priv->sreg_proto_min].data[0];
+> >> +					*(__be16*)&data[priv->sreg_proto_min].data[0];
+> >>  		mr.range[0].max.all = (__force __be16)
+> >> -					data[priv->sreg_proto_max].data[0];
+> >> +					*(__be16*)&data[priv->sreg_proto_max].data[0];
+> >>  		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+> >>  	}
+> >
+> >It seems userspace was generating the wrong bytecode, so your
+> >workaround was reversing the again the port values.
+> >
+> >Please, test the userspace fix I sent you and get back to us.
+> 
+> I actually think this is exactly what needs to be done since it also
+> matches what we're doing for runtime gathered data.
 
-Make sure this fetches 16-bits port data from the register.
-Remove casting to make sparse happy, not needed anymore.
-
-Signed-off-by: leroy christophe <christophe.leroy@c-s.fr>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Christophe: I have also mangled other spots where this problems will show up
-and remove casting (not required anymore to make sparse happy). Please, test
-and will submit this to mainstream. I have included you as author, I wanted
-to speed up the submission process. Thanks.
-
- net/ipv4/netfilter/nft_redir_ipv4.c |    8 ++++----
- net/ipv6/netfilter/nft_redir_ipv6.c |    8 ++++----
- net/netfilter/nft_nat.c             |    8 ++++----
- 3 files changed, 12 insertions(+), 12 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c b/net/ipv4/netfilter/nft_redir_ipv4.c
-index ff2d23d..6ecfce6 100644
---- a/net/ipv4/netfilter/nft_redir_ipv4.c
-+++ b/net/ipv4/netfilter/nft_redir_ipv4.c
-@@ -27,10 +27,10 @@ static void nft_redir_ipv4_eval(const struct nft_expr *expr,
- 
- 	memset(&mr, 0, sizeof(mr));
- 	if (priv->sreg_proto_min) {
--		mr.range[0].min.all = (__force __be16)
--					data[priv->sreg_proto_min].data[0];
--		mr.range[0].max.all = (__force __be16)
--					data[priv->sreg_proto_max].data[0];
-+		mr.range[0].min.all =
-+			*(__be16 *)&data[priv->sreg_proto_min].data[0];
-+		mr.range[0].max.all =
-+			*(__be16 *)&data[priv->sreg_proto_max].data[0];
- 		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
-diff --git a/net/ipv6/netfilter/nft_redir_ipv6.c b/net/ipv6/netfilter/nft_redir_ipv6.c
-index 2433a6b..11820b6 100644
---- a/net/ipv6/netfilter/nft_redir_ipv6.c
-+++ b/net/ipv6/netfilter/nft_redir_ipv6.c
-@@ -27,10 +27,10 @@ static void nft_redir_ipv6_eval(const struct nft_expr *expr,
- 
- 	memset(&range, 0, sizeof(range));
- 	if (priv->sreg_proto_min) {
--		range.min_proto.all = (__force __be16)
--					data[priv->sreg_proto_min].data[0];
--		range.max_proto.all = (__force __be16)
--					data[priv->sreg_proto_max].data[0];
-+		range.min_proto.all =
-+			*(__be16 *)&data[priv->sreg_proto_min].data[0];
-+		range.max_proto.all =
-+			*(__be16 *)&data[priv->sreg_proto_max].data[0];
- 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index afe2b0b..aff54fb1 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -65,10 +65,10 @@ static void nft_nat_eval(const struct nft_expr *expr,
- 	}
- 
- 	if (priv->sreg_proto_min) {
--		range.min_proto.all = (__force __be16)
--					data[priv->sreg_proto_min].data[0];
--		range.max_proto.all = (__force __be16)
--					data[priv->sreg_proto_max].data[0];
-+		range.min_proto.all =
-+			*(__be16 *)&data[priv->sreg_proto_min].data[0];
-+		range.max_proto.all =
-+			*(__be16 *)&data[priv->sreg_proto_max].data[0];
- 		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
--- 
-1.7.10.4
-
+Sure, I just sent a new kernel patch to rectify.
