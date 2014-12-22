@@ -1,69 +1,97 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: bug : nft_redirect port byteorder issue
-Date: Mon, 22 Dec 2014 12:54:48 +0100
-Message-ID: <20141222115448.GA4908@salvia>
-References: <54885B08.1010700@c-s.fr>
- <20141210182244.GA5622@salvia>
- <548AC07D.6080703@c-s.fr>
+Subject: Re: REGRESSION in nfnetlink on 3.18.x (bisected)
+Date: Mon, 22 Dec 2014 12:56:07 +0100
+Message-ID: <20141222115607.GA4961@salvia>
+References: <5496075F.3060204@tomt.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: arturo.borrero.glez@gmail.com, GUITTON Alex <alex.guitton@c-s.fr>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net
-To: leroy christophe <christophe.leroy@c-s.fr>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44267 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754853AbaLVLwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2014 06:52:25 -0500
+Content-Type: multipart/mixed; boundary="9amGYk9869ThD9tj"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Andre Tomt <andre@tomt.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <548AC07D.6080703@c-s.fr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <5496075F.3060204@tomt.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 12, 2014 at 11:16:29AM +0100, leroy christophe wrote:
-> Hi,
-> 
-> table ip nat {
->         chain prerouting {
->                  type nat hook prerouting priority 0;
->                  tcp dport 222 redirect :22
->         }
->         chain postrouting {
->                  type nat hook postrouting priority 0;
->         }
-> }
-> 
-> With the above rules, data[priv->sreg_proto_min].data[0] has value
-> 0x160000 instead of 0x16 on powerpc (Big Endian byte order)
-> 
-> Due to this, mr.range[0].min.all gets assigned value 0 instead of 22.
-> 
-> Below patch fixes it, but it is maybe not the proper way to fix it,
-> so I let it up to you.
-> 
-> Christophe
-> 
-> diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c
-> b/net/ipv4/netfilter/nft_redir_ipv4.c
-> index 643c596..554bb32 100644
-> --- a/net/ipv4/netfilter/nft_redir_ipv4.c
-> +++ b/net/ipv4/netfilter/nft_redir_ipv4.c
-> @@ -28,9 +28,9 @@ static void nft_redir_ipv4_eval(const struct
-> nft_expr *expr,
->  	memset(&mr, 0, sizeof(mr));
->  	if (priv->sreg_proto_min) {
->  		mr.range[0].min.all = (__force __be16)
-> -					data[priv->sreg_proto_min].data[0];
-> +					*(__be16*)&data[priv->sreg_proto_min].data[0];
->  		mr.range[0].max.all = (__force __be16)
-> -					data[priv->sreg_proto_max].data[0];
-> +					*(__be16*)&data[priv->sreg_proto_max].data[0];
->  		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
->  	}
 
-It seems userspace was generating the wrong bytecode, so your
-workaround was reversing the again the port values.
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Please, test the userspace fix I sent you and get back to us.
+On Sun, Dec 21, 2014 at 12:33:51AM +0100, Andre Tomt wrote:
+> On at least Ubuntu 14.04 LTS and Ubuntu 14.10 "conntrack -E" has
+> started failing with Linux 3.18.x. conntrack -L still works.
+> 
+> 14.04 and 14.10 ships conntrack-utils version 1.4.1, but 1.4.2 does
+> not work either.
+> 
+> It fails with:
+> ># conntrack -E
+> >conntrack v1.4.2 (conntrack-tools): Can't open handler
+> 
+> strace shows:
+> >bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+> >getsockname(3, {sa_family=AF_NETLINK, pid=14092, groups=00000000}, [12]) = 0
+> >bind(3, {sa_family=AF_NETLINK, pid=14092, groups=00000007}, 12) = -1 EINVAL (Invalid argument)
+> 
+> Reverting 97840cb67ff5ac8add836684f011fd838518d698 - netfilter:
+> nfnetlink: fix insufficient validation in nfnetlink_bind
 
-Thanks for diagnosing!
+Could you give a test to this patch? Thanks.
+
+--9amGYk9869ThD9tj
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netlink-fix-wrong-subscription-bitmask-to-group-mapp.patch"
+
+>From f4f65150fd2129607a7bd25f007c258045237c8c Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 21 Dec 2014 21:48:36 +0100
+Subject: [PATCH nf] netlink: fix wrong subscription bitmask to group mapping in
+ binding callbacks
+
+The subscription bitmask passed via struct sockaddr_nl is converted to
+the group number when calling the netlink_bind() and netlink_unbind()
+callbacks.
+
+The conversion is however incorrect since bitmask (1 << 0) needs to be
+mapped to group number 1. Note that you cannot specify the group number 0
+(usually known as _NONE) from setsockopt() using NETLINK_ADD_MEMBERSHIP
+since this is rejected through -EINVAL.
+
+This problem became noticeable since 97840cb ("netfilter: nfnetlink:
+fix insufficient validation in nfnetlink_bind") when binding to bitmask
+(1 << 0) in ctnetlink.
+
+Reported-by: Andre Tomt <andre@tomt.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netlink/af_netlink.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 074cf3e..cbcf73b 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -1420,7 +1420,7 @@ static void netlink_unbind(int group, long unsigned int groups,
+ 
+ 	for (undo = 0; undo < group; undo++)
+ 		if (test_bit(undo, &groups))
+-			nlk->netlink_unbind(undo);
++			nlk->netlink_unbind(undo + 1);
+ }
+ 
+ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+@@ -1458,7 +1458,7 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 		for (group = 0; group < nlk->ngroups; group++) {
+ 			if (!test_bit(group, &groups))
+ 				continue;
+-			err = nlk->netlink_bind(group);
++			err = nlk->netlink_bind(group + 1);
+ 			if (!err)
+ 				continue;
+ 			netlink_unbind(group, groups, nlk);
+-- 
+1.7.10.4
+
+
+--9amGYk9869ThD9tj--
