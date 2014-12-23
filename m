@@ -1,38 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC ebtables-compat PATCH v2] extensions: add ebt 802_3
- extension
-Date: Tue, 23 Dec 2014 14:30:48 +0100
-Message-ID: <20141223133048.GB15431@salvia>
-References: <20141217110642.31635.84255.stgit@nfdev.cica.es>
+Subject: Re: [PATCH 1/1 net-next] netfilter: remove unnecessary sizeof(char)
+Date: Tue, 23 Dec 2014 14:33:38 +0100
+Message-ID: <20141223133338.GA15456@salvia>
+References: <1419273375-24312-1-git-send-email-fabf@skynet.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34034 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751205AbaLWN2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Dec 2014 08:28:14 -0500
+Cc: linux-kernel@vger.kernel.org, davem@davemloft.net, joe@perches.com,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Fabian Frederick <fabf@skynet.be>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141217110642.31635.84255.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1419273375-24312-1-git-send-email-fabf@skynet.be>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 17, 2014 at 12:06:56PM +0100, Arturo Borrero Gonzalez wrote:
-> This patch adds the first ebtables extension to ebtables-compat.
-> The original 802_3 code is adapted to the xtables environment.
+On Mon, Dec 22, 2014 at 07:36:15PM +0100, Fabian Frederick wrote:
+> sizeof(char) is always 1.
+
+Applied, thanks.
+
+Made a small change on it:
+
+> Suggested-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  net/netfilter/nf_log.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I tried to mimic as much as possible the original ebtables code paths.
+> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+> index 43c926c..1191f66 100644
+> --- a/net/netfilter/nf_log.c
+> +++ b/net/netfilter/nf_log.c
+> @@ -426,7 +426,7 @@ static int netfilter_log_sysctl_init(struct net *net)
+>  				nf_log_sysctl_fnames[i];
+>  			nf_log_sysctl_table[i].data = NULL;
+>  			nf_log_sysctl_table[i].maxlen =
+> -				NFLOGGER_NAME_LEN * sizeof(char);
+> +				NFLOGGER_NAME_LEN;
+
+this now fits in one line (80-chars).
+
+>  			nf_log_sysctl_table[i].mode = 0644;
+>  			nf_log_sysctl_table[i].proc_handler =
+>  				nf_log_proc_dostring;
+> -- 
+> 1.9.1
 > 
-> With this patch, ebtables-compat is able to send the 802_3 match to the kernel,
-> but the kernel-to-userspace path is not tested and should be adjusted
-> in follow-up patches.
-
-Applied this to the ebtables-compat-experimental branch, just to make
-it easier for you in case you have the chance to give this another
-spin.
-
-I'm aware the kernel bits for nft_compat are still missing (it would
-bre great to get those scheduled for 3.20).
-
-Thanks.
