@@ -1,29 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat PATCH] ebtables-compat: fix counter listing
-Date: Tue, 23 Dec 2014 14:28:02 +0100
-Message-ID: <20141223132802.GA15431@salvia>
-References: <20141223122426.22985.47607.stgit@nfdev.cica.es>
+Subject: Re: [RFC ebtables-compat PATCH v2] extensions: add ebt 802_3
+ extension
+Date: Tue, 23 Dec 2014 14:30:48 +0100
+Message-ID: <20141223133048.GB15431@salvia>
+References: <20141217110642.31635.84255.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33490 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34034 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755829AbaLWNZe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Dec 2014 08:25:34 -0500
+	id S1751205AbaLWN2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Dec 2014 08:28:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20141223122426.22985.47607.stgit@nfdev.cica.es>
+In-Reply-To: <20141217110642.31635.84255.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 23, 2014 at 01:24:26PM +0100, Arturo Borrero Gonzalez wrote:
-> With this patch:
+On Wed, Dec 17, 2014 at 12:06:56PM +0100, Arturo Borrero Gonzalez wrote:
+> This patch adds the first ebtables extension to ebtables-compat.
+> The original 802_3 code is adapted to the xtables environment.
 > 
-> % sudo ebtables-compat -L --Lc
-> Bridge table: filter
+> I tried to mimic as much as possible the original ebtables code paths.
 > 
-> Bridge chain: INPUT, entries: 0, policy: ACCEPT
-> -j ACCEPT , pcnt = 123 -- bcnt = 123
+> With this patch, ebtables-compat is able to send the 802_3 match to the kernel,
+> but the kernel-to-userspace path is not tested and should be adjusted
+> in follow-up patches.
 
-Applied to the ebtables-compat-experimental branch, thanks.
+Applied this to the ebtables-compat-experimental branch, just to make
+it easier for you in case you have the chance to give this another
+spin.
+
+I'm aware the kernel bits for nft_compat are still missing (it would
+bre great to get those scheduled for 3.20).
+
+Thanks.
