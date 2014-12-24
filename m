@@ -1,62 +1,80 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: [PATCH v2 2/2] conntrack: Remove nf_ct_conntrack_flush_report
-Date: Wed, 24 Dec 2014 09:57:11 +0100
-Message-ID: <1419411431-24715-3-git-send-email-kristian.evensen@gmail.com>
-References: <1419411431-24715-1-git-send-email-kristian.evensen@gmail.com>
-Cc: Kristian Evensen <kristian.evensen@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:37536 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbaLXI5Y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Dec 2014 03:57:24 -0500
-Received: by mail-wi0-f173.google.com with SMTP id r20so12965793wiv.12
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Dec 2014 00:57:23 -0800 (PST)
-In-Reply-To: <1419411431-24715-1-git-send-email-kristian.evensen@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: [PATCH next] net: netfilter: nfnetlink_cthelper: Remove 'const' and
+ '&' to avoid warnings
+Date: Wed, 24 Dec 2014 23:04:54 +0800
+Message-ID: <549AD616.7070709@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The only user of nf_ct_conntrack_flush_report() was ctnetlink_del_conntrack().
-After adding support for flushing connections with a given mark, this function
-is no longer called.
+The related code can be simplified, and also can avoid related warnings
+(with allmodconfig under parisc):
 
-Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
+    CC [M]  net/netfilter/nfnetlink_cthelper.o
+  net/netfilter/nfnetlink_cthelper.c: In function =E2=80=98nfnl_cthelpe=
+r_from_nlattr=E2=80=99:
+  net/netfilter/nfnetlink_cthelper.c:97:9: warning: passing argument 1 =
+o =E2=80=98memcpy=E2=80=99 discards =E2=80=98const=E2=80=99 qualifier f=
+rom pointer target type [-Wdiscarded-array-qualifiers]
+    memcpy(&help->data, nla_data(attr), help->helper->data_len);
+           ^
+  In file included from include/linux/string.h:17:0,
+                   from include/uapi/linux/uuid.h:25,
+                   from include/linux/uuid.h:23,
+                   from include/linux/mod_devicetable.h:12,
+                   from ./arch/parisc/include/asm/hardware.h:4,
+                   from ./arch/parisc/include/asm/processor.h:15,
+                   from ./arch/parisc/include/asm/spinlock.h:6,
+                   from ./arch/parisc/include/asm/atomic.h:21,
+                   from include/linux/atomic.h:4,
+                   from ./arch/parisc/include/asm/bitops.h:12,
+                   from include/linux/bitops.h:36,
+                   from include/linux/kernel.h:10,
+                   from include/linux/list.h:8,
+                   from include/linux/module.h:9,
+                   from net/netfilter/nfnetlink_cthelper.c:11:
+  ./arch/parisc/include/asm/string.h:8:8: note: expected =E2=80=98void =
+*=E2=80=99 but argument is of type =E2=80=98const char (*)[]=E2=80=99
+   void * memcpy(void * dest,const void *src,size_t count);
+          ^
+
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 ---
- include/net/netfilter/nf_conntrack.h | 2 --
- net/netfilter/nf_conntrack_core.c    | 6 ------
- 2 files changed, 8 deletions(-)
+ net/netfilter/nfnetlink_cthelper.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index f0daed2..74f271a 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -191,8 +191,6 @@ __nf_conntrack_find(struct net *net, u16 zone,
- int nf_conntrack_hash_check_insert(struct nf_conn *ct);
- bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
- 
--void nf_conntrack_flush_report(struct net *net, u32 portid, int report);
--
- bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- 		       u_int16_t l3num, struct nf_conntrack_tuple *tuple);
- bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index a116748..9f31938 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1426,12 +1426,6 @@ void nf_ct_free_hashtable(void *hash, unsigned int size)
- }
- EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
- 
--void nf_conntrack_flush_report(struct net *net, u32 portid, int report)
--{
--	nf_ct_iterate_cleanup(net, kill_all, NULL, portid, report);
--}
--EXPORT_SYMBOL_GPL(nf_conntrack_flush_report);
--
- static int untrack_refs(void)
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetli=
+nk_cthelper.c
+index 9e287cb..a5599fc 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -86,7 +86,7 @@ nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple *=
+tuple,
+ static int
+ nfnl_cthelper_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
  {
- 	int cnt = 0, cpu;
--- 
-2.1.0
-
+-	const struct nf_conn_help *help =3D nfct_help(ct);
++	struct nf_conn_help *help =3D nfct_help(ct);
+=20
+ 	if (attr =3D=3D NULL)
+ 		return -EINVAL;
+@@ -94,7 +94,7 @@ nfnl_cthelper_from_nlattr(struct nlattr *attr, struct=
+ nf_conn *ct)
+ 	if (help->helper->data_len =3D=3D 0)
+ 		return -EINVAL;
+=20
+-	memcpy(&help->data, nla_data(attr), help->helper->data_len);
++	memcpy(help->data, nla_data(attr), help->helper->data_len);
+ 	return 0;
+ }
+=20
+--=20
+1.7.9.5
