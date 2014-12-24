@@ -1,45 +1,49 @@
 From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH] conntrack: Flush connections with given work
-Date: Tue, 23 Dec 2014 16:42:14 +0100
-Message-ID: <CAKfDRXgQO7tjquwv05e-ih15Qj37qUYqfQNFs-AktHs=+mieMg@mail.gmail.com>
-References: <1418984305-18857-1-git-send-email-kristian.evensen@gmail.com>
-	<20141223135013.GA16553@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2 0/2] conntrack: Support flushing connections with given mark
+Date: Wed, 24 Dec 2014 09:57:09 +0100
+Message-ID: <1419411431-24715-1-git-send-email-kristian.evensen@gmail.com>
+Cc: Kristian Evensen <kristian.evensen@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:46751 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756104AbaLWPmP (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:44170 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbaLXI5T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Dec 2014 10:42:15 -0500
-Received: by mail-yk0-f182.google.com with SMTP id 131so3188179ykp.27
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Dec 2014 07:42:15 -0800 (PST)
-In-Reply-To: <20141223135013.GA16553@salvia>
+	Wed, 24 Dec 2014 03:57:19 -0500
+Received: by mail-wg0-f44.google.com with SMTP id b13so10957618wgh.31
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Dec 2014 00:57:18 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+This patch adds support for selective flushing of conntrack mappings. By adding
+CTA_MARK and CTA_MARK_MASK to a delete-message, the mark is checked before a
+connection is deleted while flushing.
 
-Thanks for your feedback.
+One use-case for this feature is on multihomed systems using policy routing
+(based on marks). If say for example the next-hop's internet connection goes
+down, it is desirable to be able to "reset" all connections using that
+interface. However, since the device might be communicating with other devices
+on the local network, it is not desitable to set the interface as down.
 
-On Tue, Dec 23, 2014 at 2:50 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> It would be great if you can refactor the existing filtering in
-> ctnetlink_dump_table() to reduce the #ifdef pollution. My suggestion
-> is to encapsulate the mark-based filtering code in a
-> ctnetlink_filter() function that you can call from the dump and the
-> flush paths.
+An iptables-rules can then be used to match not NEW connections without a mark.
+generating for example a TCP RST.
 
-Sounds good. I guess that as long as the only function which calls
-ctnetlink_dump_table() and sets c.data is ctnetlink_get_conntrack(),
-we can do something like this in ctnetlink_dump_table():
+v1->v2:
+* Fix typo in commit.
+* Reduce ifdef pollution by moving filter check to a separate function, used in
+  both dump and flush path.
+* Consolidate code for setting up flush in a separate function, remove use of
+  nf_conntrack_flush_report.
 
-if (cb->data && ctnetlink_apply_filter(cb->data))
+Kristian Evensen (2):
+  conntrack: Flush connections with a given mark
+  conntrack: Remove nf_ct_conntrack_flush_report
 
-And then wrap the mark check in apply_filter in an ifdef.
+ include/net/netfilter/nf_conntrack.h |  2 --
+ net/netfilter/nf_conntrack_core.c    |  6 ----
+ net/netfilter/nf_conntrack_netlink.c | 57 ++++++++++++++++++++++++++++--------
+ 3 files changed, 45 insertions(+), 20 deletions(-)
 
-I will have a v2 ready during the week.
+-- 
+2.1.0
 
--Kristian
