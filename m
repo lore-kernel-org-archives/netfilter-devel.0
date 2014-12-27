@@ -1,14 +1,20 @@
 From: Asbjoern Sloth Toennesen <asbjorn@asbjorn.biz>
-Subject: [PATCH] nftables: nft_flush_table: handle chain dependencies
-Date: Fri, 26 Dec 2014 22:51:57 +0000
-Message-ID: <1419634318-18303-1-git-send-email-asbjorn@asbjorn.biz>
+Subject: [PATCH v2] nftables: nft_flush_table: handle chain dependencies
+Date: Sat, 27 Dec 2014 00:39:25 +0000
+Message-ID: <1419640765-7707-1-git-send-email-asbjorn@asbjorn.biz>
+References: <1419634318-18303-1-git-send-email-asbjorn@asbjorn.biz>
 Cc: "David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org, stable@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1419634318-18303-1-git-send-email-asbjorn@asbjorn.biz>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
+
+Update: I errously assumed that git add, while writing the commit
+message, would be added to the commit.
+Based on net-next f96fe225. Compiles and checkpatch clean.
 
 Jumping between chains doesn't mix well with flush ruleset,
 since nft_flush_table doesn't handle chains referencing chains.
@@ -80,11 +86,11 @@ nf_tables_chain_destroy+0x58/0x60
 Cc: stable@vger.kernel.org
 Signed-off-by: Asbjoern Sloth Toennesen <asbjorn@asbjorn.biz>
 ---
- net/netfilter/nf_tables_api.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ net/netfilter/nf_tables_api.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 129a8da..6a10cbd 100644
+index 129a8da..761519b 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -712,7 +712,11 @@ static int nft_flush_table(struct nft_ctx *ctx)
@@ -99,13 +105,13 @@ index 129a8da..6a10cbd 100644
  	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
  		ctx->chain = chain;
  
-@@ -720,9 +724,22 @@ static int nft_flush_table(struct nft_ctx *ctx)
+@@ -720,9 +724,20 @@ static int nft_flush_table(struct nft_ctx *ctx)
  		if (err < 0)
  			goto out;
  
 +		if (chain->use > 0) {
 +			skipped_chains++;
-+			continue
++			continue;
 +		}
 +
  		err = nft_delchain(ctx);
@@ -115,10 +121,8 @@ index 129a8da..6a10cbd 100644
 +		flushed_chains++;
 +	}
 +	if (skipped_chains > 0) {
-+		if (flushed_chains > 0)
-+			goto flush_chains
-+		else
-+			BUG_ON(flushed_chains == 0);
++		BUG_ON(flushed_chains == 0);
++		goto flush_chains;
  	}
  
  	list_for_each_entry_safe(set, ns, &ctx->table->sets, list) {
