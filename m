@@ -1,212 +1,56 @@
 From: Steven Barth <cyrus@openwrt.org>
-Subject: [PATCH 5/5] build: add --without-libgmp switch to disable use of shared libgmp
-Date: Sun, 28 Dec 2014 18:17:45 +0100
-Message-ID: <1419787065-26146-6-git-send-email-cyrus@openwrt.org>
-References: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
+Subject: [nft PATCH 0/5] support for mini-gmp / embedded friendliness
+Date: Sun, 28 Dec 2014 18:17:40 +0100
+Message-ID: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
 Cc: Steven Barth <cyrus@openwrt.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.core-networks.de ([82.96.72.7]:36369 "EHLO
+Received: from mail.core-networks.de ([82.96.72.7]:56559 "EHLO
 	mail.core-networks.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbaL1RqL (ORCPT
+	with ESMTP id S1751652AbaL1RqU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Dec 2014 12:46:11 -0500
-In-Reply-To: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
+	Sun, 28 Dec 2014 12:46:20 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This disables linking the >400 KB big libgmp and replace it with
-the builtin mini-gmp which only increases size by ~30KB.
+mini-gmp is a minimal subset of libgmp maintained by the same people
+While libgmp compiles to >400KB, adding mini-gmp only results in a
+~30KB size increase of nft without the need to link to gmplib.
+This increase usability on embedded platforms optimizing for size
+and having no other use for libgmp.
 
-Signed-off-by: Steven Barth <cyrus@openwrt.org>
----
- configure.ac         | 17 +++++++++++++---
- include/expression.h |  2 +-
- include/gmputil.h    | 10 +++++++++
- include/utils.h      |  4 ++--
- src/Makefile.am      |  4 ++++
- src/gmputil.c        | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 6 files changed, 86 insertions(+), 8 deletions(-)
+This patchset:
+* Adds mini-gmp from gmplib 6.0 and adds a configure switch
+  --without-libgmp to enable it
+* Replaces the use of unsupported functions (gmp_printf, gmp_sscanf)
+  with suitable replacements
+* Fixes some minor issues related to the change
 
-diff --git a/configure.ac b/configure.ac
-index 57ea99d..e923762 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -73,8 +73,18 @@ AM_CONDITIONAL([BUILD_PDF], [test "$DBLATEX" == "found"])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
- PKG_CHECK_MODULES([LIBNFTNL], [libnftnl >= 1.0.2])
- 
--AC_CHECK_LIB([gmp], [__gmpz_init], ,
--	     AC_MSG_ERROR([No suitable version of libgmp found]))
-+AC_ARG_WITH([libgmp], [AS_HELP_STRING([--without-libgmp],
-+            [Disable libgmp support (use builtin mini-gmp)])], [],
-+            [with_libgmp=yes])
-+AS_IF([test "x$with_libgmp" != xno], [
-+AC_CHECK_LIB([gmp],[__gmpz_init], , AC_MSG_ERROR([No suitable version of libgmp found]))
-+])
-+AM_CONDITIONAL([BUILD_MINIGMP], [test "x$with_libgmp" == xno])
-+
-+
-+AS_IF([test "x$with_libgmp" != xyes -a "x$with_debug" != xno], [
-+AC_MSG_ERROR([--without-libgmp MUST be used with --disable-debug])
-+])
- 
- AC_ARG_WITH([cli], [AS_HELP_STRING([--without-cli],
-             [disable interactive CLI (libreadline support)])],
-@@ -130,4 +140,5 @@ AC_OUTPUT
- echo "
- nft configuration:
-   cli support:			${with_cli}
--  enable debugging:		${with_debug}"
-+  enable debugging:		${with_debug}
-+  use shared libgmp:		${with_libgmp}"
-diff --git a/include/expression.h b/include/expression.h
-index 4b96879..7477c3e 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -2,7 +2,7 @@
- #define NFTABLES_EXPRESSION_H
- 
- #include <stdbool.h>
--#include <gmp.h>
-+#include <gmputil.h>
- #include <linux/netfilter/nf_tables.h>
- 
- #include <nftables.h>
-diff --git a/include/gmputil.h b/include/gmputil.h
-index 63eb0ba..1bf696a 100644
---- a/include/gmputil.h
-+++ b/include/gmputil.h
-@@ -1,7 +1,17 @@
- #ifndef NFTABLES_GMPUTIL_H
- #define NFTABLES_GMPUTIL_H
- 
-+#include <config.h>
-+
-+#ifdef HAVE_LIBGMP
- #include <gmp.h>
-+#else
-+#include <mini-gmp.h>
-+/* mini-gmp doesn't come with gmp_printf, so we use our own minimal variant */
-+extern int mpz_printf(const char *format, const mpz_t value);
-+#define gmp_printf mpz_printf
-+#endif
-+
- #include <asm/byteorder.h>
- 
- enum mpz_word_order {
-diff --git a/include/utils.h b/include/utils.h
-index 45cb5a7..b814568 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -9,14 +9,14 @@
- #include <unistd.h>
- #include <assert.h>
- #include <list.h>
--#include <gmp.h>
-+#include <gmputil.h>
- 
- #define BITS_PER_BYTE	8
- 
- #ifdef DEBUG
- #define pr_debug(fmt, arg...) gmp_printf(fmt, ##arg)
- #else
--#define pr_debug(fmt, arg...) ({ if (false) gmp_printf(fmt, ##arg); 0; })
-+#define pr_debug(fmt, arg...) ({ if (false) {}; 0; })
- #endif
- 
- #define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 378424d..099052a 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -51,4 +51,8 @@ if BUILD_CLI
- nft_SOURCES +=	cli.c
- endif
- 
-+if BUILD_MINIGMP
-+nft_SOURCES +=	mini-gmp.c
-+endif
-+
- nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
-diff --git a/src/gmputil.c b/src/gmputil.c
-index cb46445..b965fb3 100644
---- a/src/gmputil.c
-+++ b/src/gmputil.c
-@@ -14,11 +14,9 @@
- #include <stdio.h>
- #include <unistd.h>
- #include <string.h>
--#include <gmp.h>
- 
- #include <nftables.h>
- #include <datatype.h>
--#include <gmputil.h>
- #include <utils.h>
- 
- void mpz_bitmask(mpz_t rop, unsigned int width)
-@@ -148,6 +146,61 @@ void mpz_switch_byteorder(mpz_t rop, unsigned int len)
- 	mpz_import_data(rop, data, BYTEORDER_HOST_ENDIAN, len);
- }
- 
-+#ifndef HAVE_LIBGMP
-+/* mini-gmp doesn't have a gmp_printf so we use our own minimal
-+ * variant here which is able to format a single mpz_t */
-+int mpz_printf(const char *f, const mpz_t value)
-+{
-+	int n = 0;
-+	while (*f) {
-+		if (*f != '%') {
-+			if (fputc(*f, stdout) != *f)
-+				return -1;
-+
-+			++n;
-+		} else {
-+			unsigned long prec = 0;
-+			int base;
-+			size_t len;
-+			char *str;
-+			bool ok;
-+
-+			if (*++f == '.')
-+				prec = strtoul(++f, (char**)&f, 10);
-+
-+			if (*f++ != 'Z')
-+				return -1;
-+
-+			if (*f == 'u')
-+				base = 10;
-+			else if (*f == 'x')
-+				base = 16;
-+			else
-+				return -1;
-+
-+			len = mpz_sizeinbase(value, base);
-+			while (prec-- > len) {
-+				if (fputc('0', stdout) != '0')
-+					return -1;
-+
-+				++n;
-+			}
-+
-+			str = mpz_get_str(NULL, base, value);
-+			ok = str && fwrite(str, 1, len, stdout) == len;
-+			free(str);
-+
-+			if (!ok)
-+				return -1;
-+
-+			n += len;
-+		}
-+		++f;
-+	}
-+	return n;
-+}
-+#endif
-+
- static void *gmp_xrealloc(void *ptr, size_t old_size, size_t new_size)
- {
- 	return xrealloc(ptr, new_size);
+
+Steven Barth (5):
+  parser: rename VERSION token to HDRVERSION
+  datatype: use mpz_set_str instead of gmp_sscanf
+  erec: use stdio vasprintf instead of gmp_vasprintf
+  mini-gmp: add mini-gmp source and headers from gmplib 6.0
+  build: add --without-libgmp switch to disable use of shared libgmp
+
+ configure.ac         |   17 +-
+ include/expression.h |    2 +-
+ include/gmputil.h    |   10 +
+ include/mini-gmp.h   |  294 ++++
+ include/utils.h      |    4 +-
+ src/Makefile.am      |    4 +
+ src/datatype.c       |    4 +-
+ src/erec.c           |    6 +-
+ src/evaluate.c       |    8 +-
+ src/gmputil.c        |   57 +-
+ src/mini-gmp.c       | 4386 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/parser_bison.y   |    6 +-
+ src/scanner.l        |    2 +-
+ 13 files changed, 4782 insertions(+), 18 deletions(-)
+ create mode 100644 include/mini-gmp.h
+ create mode 100644 src/mini-gmp.c
+
 -- 
 2.1.4
 
