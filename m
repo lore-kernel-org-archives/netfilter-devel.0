@@ -1,74 +1,77 @@
 From: Steven Barth <cyrus@openwrt.org>
-Subject: [PATCH 1/5] parser: rename VERSION token to HDRVERSION
-Date: Sun, 28 Dec 2014 18:17:41 +0100
-Message-ID: <1419787065-26146-2-git-send-email-cyrus@openwrt.org>
+Subject: [PATCH 3/5] erec: use stdio vasprintf instead of gmp_vasprintf
+Date: Sun, 28 Dec 2014 18:17:43 +0100
+Message-ID: <1419787065-26146-4-git-send-email-cyrus@openwrt.org>
 References: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
 Cc: Steven Barth <cyrus@openwrt.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.core-networks.de ([82.96.72.7]:40242 "EHLO
+Received: from mail.core-networks.de ([82.96.72.7]:42981 "EHLO
 	mail.core-networks.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbaL1RqS (ORCPT
+	with ESMTP id S1751654AbaL1RqW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Dec 2014 12:46:18 -0500
+	Sun, 28 Dec 2014 12:46:22 -0500
 In-Reply-To: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A token name of VERSION results in a macro being defined
-with the same name. This prevents inclusion of config.h
-in commonly used headers.
+Use stdio's vasprintf instead of gmp_vasprintf which is not part
+of the mini-gmp function subset. Furthermore convert the only
+gmp-specific user and allow the compiler to verify format-strings.
 
 Signed-off-by: Steven Barth <cyrus@openwrt.org>
 ---
- src/parser_bison.y | 6 +++---
- src/scanner.l      | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ src/erec.c     | 6 +++++-
+ src/evaluate.c | 8 ++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 3059d59..b20f4de 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -238,7 +238,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token OPERATION		"operation"
+diff --git a/src/erec.c b/src/erec.c
+index 82543e6..810e9bf 100644
+--- a/src/erec.c
++++ b/src/erec.c
+@@ -44,6 +44,7 @@ static void erec_destroy(struct error_record *erec)
+ 	xfree(erec);
+ }
  
- %token IP			"ip"
--%token VERSION			"version"
-+%token HDRVERSION		"version"
- %token HDRLENGTH		"hdrlength"
- %token TOS			"tos"
- %token LENGTH			"length"
-@@ -1966,7 +1966,7 @@ ip_hdr_expr		:	IP	ip_hdr_field
- 			}
- 			;
++__attribute__((format(printf, 3, 0)))
+ struct error_record *erec_vcreate(enum error_record_types type,
+ 				  const struct location *loc,
+ 				  const char *fmt, va_list ap)
+@@ -55,10 +56,13 @@ struct error_record *erec_vcreate(enum error_record_types type,
+ 	erec->num_locations	= 0;
+ 	erec_add_location(erec, loc);
  
--ip_hdr_field		:	VERSION		{ $$ = IPHDR_VERSION; }
-+ip_hdr_field		:	HDRVERSION	{ $$ = IPHDR_VERSION; }
- 			|	HDRLENGTH	{ $$ = IPHDR_HDRLENGTH; }
- 			|	TOS		{ $$ = IPHDR_TOS; }
- 			|	LENGTH		{ $$ = IPHDR_LENGTH; }
-@@ -2013,7 +2013,7 @@ ip6_hdr_expr		:	IP6	ip6_hdr_field
- 			}
- 			;
+-	gmp_vasprintf(&erec->msg, fmt, ap);
++	if (vasprintf(&erec->msg, fmt, ap) < 0)
++		erec->msg = NULL;
++
+ 	return erec;
+ }
  
--ip6_hdr_field		:	VERSION		{ $$ = IP6HDR_VERSION; }
-+ip6_hdr_field		:	HDRVERSION	{ $$ = IP6HDR_VERSION; }
- 			|	PRIORITY	{ $$ = IP6HDR_PRIORITY; }
- 			|	FLOWLABEL	{ $$ = IP6HDR_FLOWLABEL; }
- 			|	LENGTH		{ $$ = IP6HDR_LENGTH; }
-diff --git a/src/scanner.l b/src/scanner.l
-index ed87da6..52b0078 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -349,7 +349,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "operation"		{ return OPERATION; }
- 
- "ip"			{ return IP; }
--"version"		{ return VERSION; }
-+"version"		{ return HDRVERSION; }
- "hdrlength"		{ return HDRLENGTH; }
- "tos"			{ return TOS; }
- "length"		{ return LENGTH; }
++__attribute__((format(printf, 3, 4)))
+ struct error_record *erec_create(enum error_record_types type,
+ 				 const struct location *loc,
+ 				 const char *fmt, ...)
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8f0acf7..593cc33 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -232,9 +232,13 @@ static int expr_evaluate_value(struct eval_ctx *ctx, struct expr **expr)
+ 	case TYPE_INTEGER:
+ 		mpz_init_bitmask(mask, ctx->ectx.len);
+ 		if (mpz_cmp((*expr)->value, mask) > 0) {
++			char *valstr = mpz_get_str(NULL, 10, (*expr)->value);
++			char *rangestr = mpz_get_str(NULL, 10, mask);
+ 			expr_error(ctx->msgs, *expr,
+-				   "Value %Zu exceeds valid range 0-%Zu",
+-				   (*expr)->value, mask);
++				   "Value %s exceeds valid range 0-%s",
++				   valstr, rangestr);
++			free(valstr);
++			free(rangestr);
+ 			mpz_clear(mask);
+ 			return -1;
+ 		}
 -- 
 2.1.4
 
