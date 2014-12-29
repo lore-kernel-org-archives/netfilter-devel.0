@@ -1,59 +1,29 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: [PATCH libnftnl] Add Libs.private field to libnftnl.pc
-Date: Mon, 29 Dec 2014 15:40:34 +0100
-Message-ID: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH libnftnl] Add Libs.private field to libnftnl.pc
+Date: Mon, 29 Dec 2014 16:29:58 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1412291628370.1534@nerf08.vanv.qr>
+References: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:53248 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751408AbaL2Okj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Dec 2014 09:40:39 -0500
+Received: from ares08.inai.de ([46.4.84.70]:55805 "EHLO ares08.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751440AbaL2PaB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Dec 2014 10:30:01 -0500
+In-Reply-To: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Static linking userspace programs such as nftables against libnftnl
-currently doesn't work out of the box, because libnftnl is linked
-against libmnl, but this isn't expressed in libnftnl pkg-config
-file:
+On Monday 2014-12-29 15:40, Thomas Petazzoni wrote:
 
-  CCLD   nft
-[...]/bfin-buildroot-uclinux-uclibc/sysroot/usr/lib/libnftnl.a(table.o): In function `_nft_table_nlmsg_parse':
-table.c:(.text+0x480): undefined reference to `_mnl_attr_parse'
-table.c:(.text+0x492): undefined reference to `_mnl_attr_get_str'
-table.c:(.text+0x4a8): undefined reference to `_mnl_attr_get_u32'
-table.c:(.text+0x4ca): undefined reference to `_mnl_attr_get_u32'
-[...]
+>The Libs.private field is specifically designed for such usage:
 
-The Libs.private field is specifically designed for such usage:
+It's not - 
+http://thread.gmane.org/gmane.linux.utilities.util-linux-ng/953
 
->From pkg-config documentation:
+>Therefore, this patch adds a reference to libmnl in the Libs.private
+>field of libnftnl pkg-config file.
 
-  Libs.private:
-
-     This line should list any private libraries in use.  Private
-     libraries are libraries which are not exposed through your
-     library, but are needed in the case of static linking.
-
-Therefore, this patch adds a reference to libmnl in the Libs.private
-field of libnftnl pkg-config file.
-
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
----
- libnftnl.pc.in | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/libnftnl.pc.in b/libnftnl.pc.in
-index fd5cc6a..7fef921 100644
---- a/libnftnl.pc.in
-+++ b/libnftnl.pc.in
-@@ -12,4 +12,5 @@ Version: @VERSION@
- Requires:
- Conflicts:
- Libs: -L${libdir} -lnftnl
-+Libs.private: @LIBMNL_LIBS@
- Cflags: -I${includedir}
--- 
-2.1.0
-
+It should probably use Requires.private.
