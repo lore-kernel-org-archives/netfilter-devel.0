@@ -1,42 +1,51 @@
-From: Jianhua Sun <jsun01@email.wm.edu>
-Subject: Support SNAT on the INPUT chain
-Date: Sun, 28 Dec 2014 23:31:56 -0500
-Message-ID: <CALfN5Z7Qd8eO4Vrz=b3S71HrZtPiESM6nkVu4g9NV_zGLJsW-Q@mail.gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH v2] netfilter: seqadj: print the host byte order ack seq
+Date: Mon, 29 Dec 2014 16:22:11 +0800
+Message-ID: <1419841331-21299-1-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1419500829-9523-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:53815 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaL2Eb5 (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:40801 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751596AbaL2IWM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Dec 2014 23:31:57 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so21040816wiv.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 28 Dec 2014 20:31:56 -0800 (PST)
+	Mon, 29 Dec 2014 03:22:12 -0500
+Received: from G08CNEXCHPEKD02.g08.fujitsu.local (localhost.localdomain [127.0.0.1])
+	by edo.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id sBT8LfvP030593
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Dec 2014 16:21:41 +0800
+In-Reply-To: <1419500829-9523-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello there,
+new_start_seq and new_end_seq are network byte order,
+print the host byte order in debug message and print
+seq number as the type of unsigned int.
 
-I am a computer science student interested in Netfilter development.
-In my research, I need to do source NAT on the INPUT chain.
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nf_conntrack_seqadj.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-My Linux kernel version is 2.6.18. This kernel does not have a INPUT
-chain where source NAT can be done. Basically, I want to
-change the source IP of the incoming packets on the INPUT chain. This
-sounds a little weird. But yes, that is what I need to do
-in my current research project.
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index f6e2ae9..ce3e840c8 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -98,9 +98,9 @@ static void nf_ct_sack_block_adjust(struct sk_buff *skb,
+ 			new_end_seq = htonl(ntohl(sack->end_seq) -
+ 				      seq->offset_before);
+ 
+-		pr_debug("sack_adjust: start_seq: %d->%d, end_seq: %d->%d\n",
+-			 ntohl(sack->start_seq), new_start_seq,
+-			 ntohl(sack->end_seq), new_end_seq);
++		pr_debug("sack_adjust: start_seq: %u->%u, end_seq: %u->%u\n",
++			 ntohl(sack->start_seq), ntohl(new_start_seq),
++			 ntohl(sack->end_seq), ntohl(new_end_seq));
+ 
+ 		inet_proto_csum_replace4(&tcph->check, skb,
+ 					 sack->start_seq, new_start_seq, 0);
+-- 
+2.1.0
 
-I am thinking that we may need to patch the Netfilter code of the
-2.6.18 kernel to achieve my goal. That is not easy to do.
-So does anyone have any suggestion of how to do SNAT on the INPUT
-chain? I would greatly appreciate it if you can
-provide a patch to do that.
-
-Thanks for your help.
-
-Best,
-
-Steve
-Computer Science Dept.
-College of William and Mary
