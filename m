@@ -1,51 +1,59 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH v2] netfilter: seqadj: print the host byte order ack seq
-Date: Mon, 29 Dec 2014 16:22:11 +0800
-Message-ID: <1419841331-21299-1-git-send-email-gaofeng@cn.fujitsu.com>
-References: <1419500829-9523-1-git-send-email-gaofeng@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Gao feng <gaofeng@cn.fujitsu.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [PATCH libnftnl] Add Libs.private field to libnftnl.pc
+Date: Mon, 29 Dec 2014 15:40:34 +0100
+Message-ID: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:40801 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751596AbaL2IWM (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:53248 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751408AbaL2Okj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Dec 2014 03:22:12 -0500
-Received: from G08CNEXCHPEKD02.g08.fujitsu.local (localhost.localdomain [127.0.0.1])
-	by edo.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id sBT8LfvP030593
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Dec 2014 16:21:41 +0800
-In-Reply-To: <1419500829-9523-1-git-send-email-gaofeng@cn.fujitsu.com>
+	Mon, 29 Dec 2014 09:40:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-new_start_seq and new_end_seq are network byte order,
-print the host byte order in debug message and print
-seq number as the type of unsigned int.
+Static linking userspace programs such as nftables against libnftnl
+currently doesn't work out of the box, because libnftnl is linked
+against libmnl, but this isn't expressed in libnftnl pkg-config
+file:
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+  CCLD   nft
+[...]/bfin-buildroot-uclinux-uclibc/sysroot/usr/lib/libnftnl.a(table.o): In function `_nft_table_nlmsg_parse':
+table.c:(.text+0x480): undefined reference to `_mnl_attr_parse'
+table.c:(.text+0x492): undefined reference to `_mnl_attr_get_str'
+table.c:(.text+0x4a8): undefined reference to `_mnl_attr_get_u32'
+table.c:(.text+0x4ca): undefined reference to `_mnl_attr_get_u32'
+[...]
+
+The Libs.private field is specifically designed for such usage:
+
+>From pkg-config documentation:
+
+  Libs.private:
+
+     This line should list any private libraries in use.  Private
+     libraries are libraries which are not exposed through your
+     library, but are needed in the case of static linking.
+
+Therefore, this patch adds a reference to libmnl in the Libs.private
+field of libnftnl pkg-config file.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 ---
- net/netfilter/nf_conntrack_seqadj.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ libnftnl.pc.in | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index f6e2ae9..ce3e840c8 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -98,9 +98,9 @@ static void nf_ct_sack_block_adjust(struct sk_buff *skb,
- 			new_end_seq = htonl(ntohl(sack->end_seq) -
- 				      seq->offset_before);
- 
--		pr_debug("sack_adjust: start_seq: %d->%d, end_seq: %d->%d\n",
--			 ntohl(sack->start_seq), new_start_seq,
--			 ntohl(sack->end_seq), new_end_seq);
-+		pr_debug("sack_adjust: start_seq: %u->%u, end_seq: %u->%u\n",
-+			 ntohl(sack->start_seq), ntohl(new_start_seq),
-+			 ntohl(sack->end_seq), ntohl(new_end_seq));
- 
- 		inet_proto_csum_replace4(&tcph->check, skb,
- 					 sack->start_seq, new_start_seq, 0);
+diff --git a/libnftnl.pc.in b/libnftnl.pc.in
+index fd5cc6a..7fef921 100644
+--- a/libnftnl.pc.in
++++ b/libnftnl.pc.in
+@@ -12,4 +12,5 @@ Version: @VERSION@
+ Requires:
+ Conflicts:
+ Libs: -L${libdir} -lnftnl
++Libs.private: @LIBMNL_LIBS@
+ Cflags: -I${includedir}
 -- 
 2.1.0
 
