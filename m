@@ -1,29 +1,44 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH libnftnl] Add Libs.private field to libnftnl.pc
-Date: Mon, 29 Dec 2014 16:29:58 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1412291628370.1534@nerf08.vanv.qr>
-References: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] doc: add a reference to the wiki page in the man page
+Date: Tue, 30 Dec 2014 16:11:13 +0100
+Message-ID: <20141230151112.14860.37311.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, jidanni@jidanni.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares08.inai.de ([46.4.84.70]:55805 "EHLO ares08.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbaL2PaB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Dec 2014 10:30:01 -0500
-In-Reply-To: <1419864034-19450-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Received: from smtp3.cica.es ([150.214.5.190]:41144 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751310AbaL3PLZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Dec 2014 10:11:25 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2014-12-29 15:40, Thomas Petazzoni wrote:
+Let's add a pointer in the man page to the wiki page.
 
->The Libs.private field is specifically designed for such usage:
+Requested-by: Dan Jacobson <jidanni@jidanni.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ doc/nft.xml |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-It's not - 
-http://thread.gmane.org/gmane.linux.utilities.util-linux-ng/953
+diff --git a/doc/nft.xml b/doc/nft.xml
+index e45a593..7998008 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -2202,6 +2202,13 @@ filter output oif wlan0
+ 	</refsect1>
+ 
+ 	<refsect1>
++		<title>Further reading</title>
++		<para>
++			There is an official wiki at: http://wiki.nftables.org
++		</para>
++	</refsect1>
++
++	<refsect1>
+ 		<title>See Also</title>
+ 		<para>
+ 			<simplelist type="inline">
 
->Therefore, this patch adds a reference to libmnl in the Libs.private
->field of libnftnl pkg-config file.
-
-It should probably use Requires.private.
