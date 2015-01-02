@@ -1,61 +1,136 @@
-From: Rahul Sharma <rsharma@arista.com>
-Subject: Possible BUG in ipv6_find_hdr function for fragmented packets
-Date: Wed, 31 Dec 2014 12:37:11 +0530
-Message-ID: <CAFB3abxU6kFk7yjd+XgwWBSjc-nDsHqTTEnUs3qPtPke_hMXVA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:48531 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbaLaHMq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Dec 2014 02:12:46 -0500
-Received: by mail-we0-f180.google.com with SMTP id w62so2007826wes.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Dec 2014 23:12:45 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH 5/9] nft_hash: Remove rhashtable_remove_pprev()
+Date: Fri,  2 Jan 2015 23:00:18 +0100
+Message-ID: <257e56ba4e6b8c7d556de5c8cfe86e048f1aa264.1420230585.git.tgraf@suug.ch>
+References: <cover.1420230585.git.tgraf@suug.ch>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	herbert@gondor.apana.org.au, paulmck@linux.vnet.ibm.com,
+	edumazet@google.com, john.r.fastabend@intel.com,
+	josh@joshtriplett.org, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1420230585.git.tgraf@suug.ch>
+In-Reply-To: <cover.1420230585.git.tgraf@suug.ch>
+References: <cover.1420230585.git.tgraf@suug.ch>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter-devel,
+The removal function of nft_hash currently stores a reference to the
+previous element during lookup which is used to optimize removal later
+on. This was possible because a lock is held throughout calling
+rhashtable_lookup() and rhashtable_remove().
 
-I have observed a problem when I added an AH header before protocol
-header (OSPFv3) while implementing authentication support for OSPFv3.
+With the introdution of deferred table resizing in parallel to lookups
+and insertions, the nftables lock will no longer synchronize all
+table mutations and the stored pprev may become invalid.
 
-Problem: Fragmented packets which include authentication header don't
-get reassembled in the kernel. This was because ipv6_find_hdr returns
-ENOENT for the non-first fragment since AH is an extension header.
+Removing this optimization makes removal slightly more expensive on
+average but allows taking the resize cost out of the insert and
+remove path.
 
-Firstly, this comment  "Note that non-1st fragment is special case
-that "the protocol number of last header" is "next header" field in
-Fragment header" ('last header' doesn't include AH or other extension
-headers) before ipv6_find_hdr looks incorrect as per the description
-of the fragmentation process in RFC2460. The rfc clearly states that
-next header value in the fragments will be the first header of the
-Fragmentable part of the original packet which could be AH (51) as in
-our case.
+Signed-off-by: Thomas Graf <tgraf@suug.ch>
+Cc: netfilter-devel@vger.kernel.org
+---
+ include/linux/rhashtable.h |  2 --
+ lib/rhashtable.c           | 34 +++++++---------------------------
+ net/netfilter/nft_hash.c   | 11 +++--------
+ 3 files changed, 10 insertions(+), 37 deletions(-)
 
-This code looks like a problem:
-if (_frag_off) {
-253                                 if (target < 0 &&
-254                                     ((!ipv6_ext_hdr(hp->nexthdr)) ||
-255                                      hp->nexthdr == NEXTHDR_NONE)) {
-256                                         if (fragoff)
-257                                                 *fragoff = _frag_off;
-258                                         return hp->nexthdr;
-259                                 }
-260                                 return -ENOENT;
-261                         }
-
-For non-first fragments, the 'next header' in the fragment header
-would *always* be AUTH (or whatever extension header is the first
-header in first fragment). But the above code will keep on returning
-ENOENT for the non-first fragment in such cases.
-
-Solution: I suggest we should get away with this check
-((!ipv6_ext_hdr(hp->nexthdr)) ||hp->nexthdr == NEXTHDR_NONE))  and
-simply return hp->nexthdr if the _frag_off is non zero. I tested it on
-my machine and it works. Adding an special case for NEXTHDR_AUTH also
-works for me.
-
-Thanks,
-Rahul
+diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
+index b54e24a..f624d4b 100644
+--- a/include/linux/rhashtable.h
++++ b/include/linux/rhashtable.h
+@@ -105,8 +105,6 @@ int rhashtable_init(struct rhashtable *ht, struct rhashtable_params *params);
+ 
+ void rhashtable_insert(struct rhashtable *ht, struct rhash_head *node);
+ bool rhashtable_remove(struct rhashtable *ht, struct rhash_head *node);
+-void rhashtable_remove_pprev(struct rhashtable *ht, struct rhash_head *obj,
+-			     struct rhash_head __rcu **pprev);
+ 
+ bool rht_grow_above_75(const struct rhashtable *ht, size_t new_size);
+ bool rht_shrink_below_30(const struct rhashtable *ht, size_t new_size);
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index 0bd29c1..e6b85c4 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -345,32 +345,6 @@ void rhashtable_insert(struct rhashtable *ht, struct rhash_head *obj)
+ EXPORT_SYMBOL_GPL(rhashtable_insert);
+ 
+ /**
+- * rhashtable_remove_pprev - remove object from hash table given previous element
+- * @ht:		hash table
+- * @obj:	pointer to hash head inside object
+- * @pprev:	pointer to previous element
+- *
+- * Identical to rhashtable_remove() but caller is alreayd aware of the element
+- * in front of the element to be deleted. This is in particular useful for
+- * deletion when combined with walking or lookup.
+- */
+-void rhashtable_remove_pprev(struct rhashtable *ht, struct rhash_head *obj,
+-			     struct rhash_head __rcu **pprev)
+-{
+-	struct bucket_table *tbl = rht_dereference(ht->tbl, ht);
+-
+-	ASSERT_RHT_MUTEX(ht);
+-
+-	RCU_INIT_POINTER(*pprev, obj->next);
+-	ht->nelems--;
+-
+-	if (ht->p.shrink_decision &&
+-	    ht->p.shrink_decision(ht, tbl->size))
+-		rhashtable_shrink(ht);
+-}
+-EXPORT_SYMBOL_GPL(rhashtable_remove_pprev);
+-
+-/**
+  * rhashtable_remove - remove object from hash table
+  * @ht:		hash table
+  * @obj:	pointer to hash head inside object
+@@ -403,7 +377,13 @@ bool rhashtable_remove(struct rhashtable *ht, struct rhash_head *obj)
+ 			continue;
+ 		}
+ 
+-		rhashtable_remove_pprev(ht, he, pprev);
++		RCU_INIT_POINTER(*pprev, he->next);
++		ht->nelems--;
++
++		if (ht->p.shrink_decision &&
++		    ht->p.shrink_decision(ht, tbl->size))
++			rhashtable_shrink(ht);
++
+ 		return true;
+ 	}
+ 
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index d93f1f4..7f903cf 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -83,15 +83,10 @@ static void nft_hash_remove(const struct nft_set *set,
+ 			    const struct nft_set_elem *elem)
+ {
+ 	struct rhashtable *priv = nft_set_priv(set);
+-	struct rhash_head *he, __rcu **pprev;
+-
+-	pprev = elem->cookie;
+-	he = rht_dereference((*pprev), priv);
+-
+-	rhashtable_remove_pprev(priv, he, pprev);
+ 
++	rhashtable_remove(priv, elem->cookie);
+ 	synchronize_rcu();
+-	kfree(he);
++	kfree(elem->cookie);
+ }
+ 
+ struct nft_compare_arg {
+@@ -105,7 +100,7 @@ static bool nft_hash_compare(void *ptr, void *arg)
+ 	struct nft_compare_arg *x = arg;
+ 
+ 	if (!nft_data_cmp(&he->key, &x->elem->key, x->set->klen)) {
+-		x->elem->cookie = &he->node;
++		x->elem->cookie = he;
+ 		x->elem->flags = 0;
+ 		if (x->set->flags & NFT_SET_MAP)
+ 			nft_data_copy(&x->elem->data, he->data);
+-- 
+1.9.3
