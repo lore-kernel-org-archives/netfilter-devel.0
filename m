@@ -1,38 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] nftables: nft_flush_table: handle chain dependencies
-Date: Mon, 5 Jan 2015 12:39:07 +0100
-Message-ID: <20150105113907.GA15161@salvia>
-References: <1419634318-18303-1-git-send-email-asbjorn@asbjorn.biz>
- <1419640765-7707-1-git-send-email-asbjorn@asbjorn.biz>
+Subject: Re: [PATCH nf 2/3] netfilter: nfnetlink: relax strict multicast
+ group from netlink_bind
+Date: Mon, 5 Jan 2015 12:41:51 +0100
+Message-ID: <20150105114151.GA15191@salvia>
+References: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
+ <1420455986-5800-2-git-send-email-pablo@netfilter.org>
+ <20150105112234.GA5741@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-To: Asbjoern Sloth Toennesen <asbjorn@asbjorn.biz>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58609 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753036AbbAELjH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Jan 2015 06:39:07 -0500
 Content-Disposition: inline
-In-Reply-To: <1419640765-7707-1-git-send-email-asbjorn@asbjorn.biz>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150105112234.GA5741@acer.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Dec 27, 2014 at 12:39:25AM +0000, Asbjoern Sloth Toennesen wrote:
-> Update: I errously assumed that git add, while writing the commit
-> message, would be added to the commit.
-> Based on net-next f96fe225. Compiles and checkpatch clean.
+On Mon, Jan 05, 2015 at 11:22:35AM +0000, Patrick McHardy wrote:
+> On 05.01, Pablo Neira Ayuso wrote:
+> > Relax the checking that was introduced in 97840cb ("netfilter:
+> > nfnetlink: fix insufficient validation in nfnetlink_bind") when the
+> > subscription bitmask is used. Existing userspace code code may request
+> > to listen to all of the existing netlink groups by setting an all to one
+> > subscription group bitmask. Netlink already validates subscription via
+> > setsockopt() for us.
 > 
-> Jumping between chains doesn't mix well with flush ruleset,
-> since nft_flush_table doesn't handle chains referencing chains.
+> What is the point of doing this? I don't think its particulary
+> reasonable to subscribe to ~0 unless you're implementing some kind of
+> monitor.
+
+This is how we've been supporting this since the beginning. So
+userspace applications could subscribe to ~0 and don't care if the
+group exists or not.
+
+After the recent change, those will break. None of the userspace
+netfilter codebase actually need this, but other third party
+application will break when binding if they were using ~0 for
+monitoring.
+
+> We also don't know whether a bitmask or an invalid group number was
+> used, so the comment below is at least misleading.
 > 
-> This way it will take one to two loops, to settle.
-> Alternatively it can be solved by always having two loops,
+> And, unrelated, but since it went in via netfilter asking anyway, why
+> is the group number signed? That doesn't make any sense, it is treated
+> as unsigned everywhere else.
 
-I just sent you a different patch to address this, we may still have
-references from the elements to chains when using dictionaries, so I
-prefer to schedule the object release in this order:
+That should be changed, yes.
 
-rules -> sets -> chains -> tables
-
-Thanks for diagnosing and sending an initial fix.
-
-P.S: I hope you enjoyed 31c3.
+> > diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+> > index c6619d4..5082d81 100644
+> > --- a/net/netfilter/nfnetlink.c
+> > +++ b/net/netfilter/nfnetlink.c
+> > @@ -469,8 +469,11 @@ static int nfnetlink_bind(int group)
+> >  	const struct nfnetlink_subsystem *ss;
+> >  	int type;
+> >  
+> > +	/* No strict check for groups when subscription bitmask is used, group
+> > +	 * binding via setsockopt() already rejects this from netlink.
+> > +	 */
+> >  	if (group <= NFNLGRP_NONE || group > NFNLGRP_MAX)
+> > -		return -EINVAL;
+> > +		return 0;
+> >  
+> >  	type = nfnl_group2type[group];
+> >  
+> > -- 
+> > 1.7.10.4
+> > 
