@@ -1,91 +1,88 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 3/3] netfilter: nf_tables: fix flush ruleset chain dependencies
-Date: Mon,  5 Jan 2015 12:07:41 +0100
-Message-ID: <1420456061-5882-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, asbjorn@asbjorn.biz
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [ebtables-compat PATCH] ebtables-compat: fix printing of
+ extension
+Date: Mon, 5 Jan 2015 12:22:05 +0100
+Message-ID: <20150105112205.GA13174@salvia>
+References: <20141226124952.16163.81787.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52494 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55121 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752827AbbAELFD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jan 2015 06:05:03 -0500
+	id S1753168AbbAELTZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Jan 2015 06:19:25 -0500
+Content-Disposition: inline
+In-Reply-To: <20141226124952.16163.81787.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jumping between chains doesn't mix well with flush ruleset. Rules
-from a different chain and set element may still refer to us.
+On Fri, Dec 26, 2014 at 01:49:52PM +0100, Arturo Borrero Gonzalez wrote:
+> This patch fix printing of ebt extensions:
+> 
+> % sudo ebtables-compat -L
+> [...]
+> Bridge chain: FORWARD, entries: 1, policy: ACCEPT
+> --802_3-type 0x0012 -j ACCEPT
+> [...]
 
-[  353.373791] ------------[ cut here ]------------
-[  353.373845] kernel BUG at net/netfilter/nf_tables_api.c:1159!
-[  353.373896] invalid opcode: 0000 [#1] SMP
-[  353.373942] Modules linked in: intel_powerclamp uas iwldvm iwlwifi
-[  353.374017] CPU: 0 PID: 6445 Comm: 31c3.nft Not tainted 3.18.0 #98
-[  353.374069] Hardware name: LENOVO 5129CTO/5129CTO, BIOS 6QET47WW (1.17 ) 07/14/2010
-[...]
-[  353.375018] Call Trace:
-[  353.375046]  [<ffffffff81964c31>] ? nf_tables_commit+0x381/0x540
-[  353.375101]  [<ffffffff81949118>] nfnetlink_rcv+0x3d8/0x4b0
-[  353.375150]  [<ffffffff81943fc5>] netlink_unicast+0x105/0x1a0
-[  353.375200]  [<ffffffff8194438e>] netlink_sendmsg+0x32e/0x790
-[  353.375253]  [<ffffffff818f398e>] sock_sendmsg+0x8e/0xc0
-[  353.375300]  [<ffffffff818f36b9>] ? move_addr_to_kernel.part.20+0x19/0x70
-[  353.375357]  [<ffffffff818f44f9>] ? move_addr_to_kernel+0x19/0x30
-[  353.375410]  [<ffffffff819016d2>] ? verify_iovec+0x42/0xd0
-[  353.375459]  [<ffffffff818f3e10>] ___sys_sendmsg+0x3f0/0x400
-[  353.375510]  [<ffffffff810615fa>] ? native_sched_clock+0x2a/0x90
-[  353.375563]  [<ffffffff81176697>] ? acct_account_cputime+0x17/0x20
-[  353.375616]  [<ffffffff8110dc78>] ? account_user_time+0x88/0xa0
-[  353.375667]  [<ffffffff818f4bbd>] __sys_sendmsg+0x3d/0x80
-[  353.375719]  [<ffffffff81b184f4>] ? int_check_syscall_exit_work+0x34/0x3d
-[  353.375776]  [<ffffffff818f4c0d>] SyS_sendmsg+0xd/0x20
-[  353.375823]  [<ffffffff81b1826d>] system_call_fastpath+0x16/0x1b
+Applied with minor glitches, thanks Arturo.
 
-Release object in this order: rules -> sets -> chains -> tables, to
-make sure no references to chains are held anymore.
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  iptables/nft-bridge.c |   23 +++++++----------------
+>  iptables/nft-bridge.h |    4 ++++
+>  iptables/nft-shared.c |   17 ++++++++++++++++-
+>  3 files changed, 27 insertions(+), 17 deletions(-)
+> 
+> diff --git a/iptables/nft-bridge.h b/iptables/nft-bridge.h
+> index fd8bc9f..fac172e 100644
+> --- a/iptables/nft-bridge.h
+> +++ b/iptables/nft-bridge.h
+> @@ -15,6 +15,10 @@
+>  /* Be backwards compatible, so don't use '+' in kernel */
+>  #define IF_WILDCARD 1
+>  
+> +#ifndef ETH_ALEN
+> +#define ETH_ALEN 6
+> +#endif /* ETH_ALEN */
 
-Reported-by: Asbjoern Sloth Toennesen <asbjorn@asbjorn.biz>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+use header definitions whenever possible.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 129a8da..3b3ddb4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -713,16 +713,12 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 	struct nft_chain *chain, *nc;
- 	struct nft_set *set, *ns;
- 
--	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
-+	list_for_each_entry(chain, &ctx->table->chains, list) {
- 		ctx->chain = chain;
- 
- 		err = nft_delrule_by_chain(ctx);
- 		if (err < 0)
- 			goto out;
--
--		err = nft_delchain(ctx);
--		if (err < 0)
--			goto out;
- 	}
- 
- 	list_for_each_entry_safe(set, ns, &ctx->table->sets, list) {
-@@ -735,6 +731,14 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 			goto out;
- 	}
- 
-+	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
-+		ctx->chain = chain;
-+
-+		err = nft_delchain(ctx);
-+		if (err < 0)
-+			goto out;
-+	}
-+
- 	err = nft_deltable(ctx);
- out:
- 	return err;
--- 
-1.7.10.4
+>  extern unsigned char eb_mac_type_unicast[ETH_ALEN];
+>  extern unsigned char eb_msk_type_unicast[ETH_ALEN];
+>  extern unsigned char eb_mac_type_multicast[ETH_ALEN];
+> diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+> index 71c4476..0ba9742 100644
+> --- a/iptables/nft-shared.c
+> +++ b/iptables/nft-shared.c
+> @@ -26,6 +26,7 @@
+>  #include <libnftnl/expr.h>
+>  
+>  #include "nft-shared.h"
+> +#include "nft-bridge.h"
+>  #include "xshared.h"
+>  #include "nft.h"
+>  
+> @@ -326,9 +327,23 @@ void nft_parse_match(struct nft_xt_ctx *ctx, struct nft_rule_expr *e)
+>  	const char *mt_name = nft_rule_expr_get_str(e, NFT_EXPR_MT_NAME);
+>  	const void *mt_info = nft_rule_expr_get(e, NFT_EXPR_MT_INFO, &mt_len);
+>  	struct xtables_match *match;
+> +	struct xtables_rule_match **matches;
+>  	struct xt_entry_match *m;
+>  
+> -	match = xtables_find_match(mt_name, XTF_TRY_LOAD, &ctx->state.cs->matches);
+> +	switch (ctx->family) {
+> +	case NFPROTO_IPV4:
+> +	case NFPROTO_IPV6:
+> +		matches = &ctx->state.cs->matches;
+> +		break;
+> +	case NFPROTO_BRIDGE:
+> +		matches = &ctx->state.cs_eb->matches;
+> +		break;
+> +	default:
+> +		fprintf(stderr, "BUG: nft_parse_match() unhandled family\n");
 
+exitted here in case of bug. BTW, a BUG() macro similar to nft would
+be good to have, I guess we can replace several spots with it.
