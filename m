@@ -1,85 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat PATCH] ebtables-compat: fix segfault in rules
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [ebtables-compat PATCH v2] ebtables-compat: fix segfault in rules
  w/o target
-Date: Mon, 5 Jan 2015 14:05:45 +0100
-Message-ID: <20150105130545.GA5502@salvia>
-References: <20141230154444.25515.55322.stgit@nfdev.cica.es>
+Date: Mon, 05 Jan 2015 15:28:46 +0100
+Message-ID: <20150105142519.26315.13246.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, giuseppelng@gmail.com
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: giuseppelng@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44927 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753330AbbAENDE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jan 2015 08:03:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20141230154444.25515.55322.stgit@nfdev.cica.es>
+Received: from smtp3.cica.es ([150.214.5.190]:52272 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754052AbbAEO3R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Jan 2015 09:29:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 30, 2014 at 04:44:44PM +0100, Arturo Borrero Gonzalez wrote:
-> This patch fixes a segfault in rules without target.
-> 
-> Now, these two rules are allowed:
-> 
-> % ebtables-compat -A FORWARD -p 0x0600 -j CONTINUE
-> % ebtables-compat -A FORWARD -p 0x0600
-> 
-> And both are printed:
-> 
-> Bridge chain: FORWARD, entries: 1, policy: ACCEPT
-> -p 0x600 -j CONTINUE
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  iptables/nft-bridge.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-> index 90bcd63..79abf73 100644
-> --- a/iptables/nft-bridge.c
-> +++ b/iptables/nft-bridge.c
-> @@ -114,6 +114,12 @@ static int _add_action(struct nft_rule *r, struct ebtables_command_state *cs)
->  {
->  	int ret = 0;
->  
-> +	if (cs->jumpto == NULL)
-> +		return 0;
-> +
-> +	if (strcmp(cs->jumpto, "CONTINUE") == 0)
-> +		return 0;
+This patch fixes a segfault in rules without target.
 
-Could you consolidate this code?
+Now, these two rules are allowed:
 
-        if (cs->jumpto == NULL || strcmp(...) == 0)
-                return 0;
+% ebtables-compat -A FORWARD -p 0x0600 -j CONTINUE
+% ebtables-compat -A FORWARD -p 0x0600
 
-> +
->  	/* If no target at all, add nothing (default to continue) */
->  	if (cs->target != NULL) {
->  		/* Standard target? */
-> @@ -462,6 +468,10 @@ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
->  		}
->  	}
->  
-> +	if (strcmp(cs.jumpto, "") == 0) {
-> +		printf("CONTINUE");
-> +	}
+And both are printed:
 
-You can remove the brackets, and...
+Bridge chain: FORWARD, entries: 1, policy: ACCEPT
+-p 0x600 -j CONTINUE
 
-        printf("-j ");
-        if (!(format & FMT_NOTARGET))
-                printf("%s", cs.jumpto); <----- is this handling this case?
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: address comments by Pablo.
 
-        if (cs.target != NULL) {
-                if (cs.target->print != NULL) {
-                        cs.target->print(&cs.fw, cs.target->t,
-                                            format & FMT_NUMERIC);
-                }
-        }
+The printing path doesn't require special handling. There are 3 cases:
+ * a target extension (unsupported yet)
+ * an user-defined chain (in this case, cs->jumpto contains the chain name)
+ * nothing (in this case, cs->jumpto contains "", and we should print CONTINUE)
 
-        if (strcmp(cs.jumpto, "") == 0)
-                printf("CONTINUE");
+ iptables/nft-bridge.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 90bcd63..fd9554e 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -114,6 +114,9 @@ static int _add_action(struct nft_rule *r, struct ebtables_command_state *cs)
+ {
+ 	int ret = 0;
+ 
++	if (cs->jumpto == NULL || strcmp(cs->jumpto, "CONTINUE") == 0)
++		return 0;
++
+ 	/* If no target at all, add nothing (default to continue) */
+ 	if (cs->target != NULL) {
+ 		/* Standard target? */
+@@ -452,14 +455,16 @@ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
+ 	}
+ 
+ 	printf("-j ");
+-	if (!(format & FMT_NOTARGET))
+-		printf("%s", cs.jumpto);
+-
+ 	if (cs.target != NULL) {
+ 		if (cs.target->print != NULL) {
+ 			cs.target->print(&cs.fw, cs.target->t,
+ 					    format & FMT_NUMERIC);
+ 		}
++	} else {
++		if (strcmp(cs.jumpto, "") == 0)
++			printf("CONTINUE");
++		else
++			printf("%s", cs.jumpto);
+ 	}
+ 
+ 	if (!(format & FMT_NOCOUNTS))
 
