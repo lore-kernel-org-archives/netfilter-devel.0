@@ -1,48 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 2/3] netfilter: nfnetlink: relax strict multicast group from netlink_bind
-Date: Mon,  5 Jan 2015 12:06:26 +0100
-Message-ID: <1420455986-5800-2-git-send-email-pablo@netfilter.org>
-References: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf 1/3] netfilter: nfnetlink: validate nfnetlink header from batch
+Date: Mon,  5 Jan 2015 12:06:25 +0100
+Message-ID: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52241 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52242 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240AbbAELDw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753241AbbAELDw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 5 Jan 2015 06:03:52 -0500
-In-Reply-To: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Relax the checking that was introduced in 97840cb ("netfilter:
-nfnetlink: fix insufficient validation in nfnetlink_bind") when the
-subscription bitmask is used. Existing userspace code code may request
-to listen to all of the existing netlink groups by setting an all to one
-subscription group bitmask. Netlink already validates subscription via
-setsockopt() for us.
+Make sure there is enough room for the nfnetlink header in the
+netlink messages that are part of the batch. There is a similar
+check in netlink_rcv_skb().
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index c6619d4..5082d81 100644
+index 13c2e17..c6619d4 100644
 --- a/net/netfilter/nfnetlink.c
 +++ b/net/netfilter/nfnetlink.c
-@@ -469,8 +469,11 @@ static int nfnetlink_bind(int group)
- 	const struct nfnetlink_subsystem *ss;
- 	int type;
+@@ -321,7 +321,8 @@ replay:
+ 		nlh = nlmsg_hdr(skb);
+ 		err = 0;
  
-+	/* No strict check for groups when subscription bitmask is used, group
-+	 * binding via setsockopt() already rejects this from netlink.
-+	 */
- 	if (group <= NFNLGRP_NONE || group > NFNLGRP_MAX)
--		return -EINVAL;
-+		return 0;
- 
- 	type = nfnl_group2type[group];
- 
+-		if (nlh->nlmsg_len < NLMSG_HDRLEN) {
++		if (nlmsg_len(nlh) < sizeof(struct nfgenmsg) ||
++		    skb->len < nlh->nlmsg_len) {
+ 			err = -EINVAL;
+ 			goto ack;
+ 		}
 -- 
 1.7.10.4
 
