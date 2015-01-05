@@ -1,30 +1,48 @@
-From: =?UTF-8?B?6JeN5oy655GL?= <lantw44@gmail.com>
-Subject: nft produces incorrect output when a reject rule is added using nft
- -f
-Date: Sun, 04 Jan 2015 16:17:25 +0800
-Message-ID: <54A8F715.60408@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf 2/3] netfilter: nfnetlink: relax strict multicast group from netlink_bind
+Date: Mon,  5 Jan 2015 12:06:26 +0100
+Message-ID: <1420455986-5800-2-git-send-email-pablo@netfilter.org>
+References: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:48998 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbbADIR2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Jan 2015 03:17:28 -0500
-Received: by mail-pd0-f174.google.com with SMTP id fp1so25978144pdb.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Jan 2015 00:17:27 -0800 (PST)
-Received: from wn.lant.com.tw ([175.181.43.117])
-        by mx.google.com with ESMTPSA id ig1sm51023972pbc.41.2015.01.04.00.17.26
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 04 Jan 2015 00:17:26 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:52241 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753240AbbAELDw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Jan 2015 06:03:52 -0500
+In-Reply-To: <1420455986-5800-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It seems there is a bug related to the reject rule in both nftables 0.4
-and the master branch. I reported the bug here:
-https://bugzilla.netfilter.org/show_bug.cgi?id=993. Is it a known problem?
+Relax the checking that was introduced in 97840cb ("netfilter:
+nfnetlink: fix insufficient validation in nfnetlink_bind") when the
+subscription bitmask is used. Existing userspace code code may request
+to listen to all of the existing netlink groups by setting an all to one
+subscription group bitmask. Netlink already validates subscription via
+setsockopt() for us.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index c6619d4..5082d81 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -469,8 +469,11 @@ static int nfnetlink_bind(int group)
+ 	const struct nfnetlink_subsystem *ss;
+ 	int type;
+ 
++	/* No strict check for groups when subscription bitmask is used, group
++	 * binding via setsockopt() already rejects this from netlink.
++	 */
+ 	if (group <= NFNLGRP_NONE || group > NFNLGRP_MAX)
+-		return -EINVAL;
++		return 0;
+ 
+ 	type = nfnl_group2type[group];
+ 
+-- 
+1.7.10.4
 
