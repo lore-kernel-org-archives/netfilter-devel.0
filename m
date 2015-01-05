@@ -1,54 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft] payload: assert when accessing inner transport header
-Date: Mon, 5 Jan 2015 12:06:59 +0000
-Message-ID: <20150105120659.GB7718@acer.localdomain>
-References: <1420459464-21821-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft-sync PATCH 2/3] mnl: sync source code with nft
+Date: Mon, 5 Jan 2015 13:17:54 +0100
+Message-ID: <CAOkSjBhZ_mPqeS8B+ezn9-8mc0wdjBhBeQ9zNG3xzVMcCcPK6g@mail.gmail.com>
+References: <20141226125122.16382.30213.stgit@nfdev.cica.es>
+ <20141226125127.16382.40927.stgit@nfdev.cica.es> <20150105112910.GB13289@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34282 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608AbbAEMHF (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:45357 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252AbbAEMSQ convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jan 2015 07:07:05 -0500
-Content-Disposition: inline
-In-Reply-To: <1420459464-21821-1-git-send-email-pablo@netfilter.org>
+	Mon, 5 Jan 2015 07:18:16 -0500
+Received: by mail-la0-f47.google.com with SMTP id hz20so18352694lab.34
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jan 2015 04:18:15 -0800 (PST)
+In-Reply-To: <20150105112910.GB13289@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05.01, Pablo Neira Ayuso wrote:
-> Instead of segfaulting due to out of bound access access to protocol
-> context array ctx->protocol[base].location from proto_ctx_update().
-> 
->  # nft add rule filter input ah nexthdr tcp
->  nft: payload.c:88: payload_expr_pctx_update: Assertion `left->payload.base + 1 <= (__PROTO_BASE_MAX - 1)' failed.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> So we avoid a crash. I think we have to add PROTO_BASE_INNER_HDR to proto_bases
-> and add some extra offsets for the inner header for this case. At least, I'd
-> like to put this in the tree so we have this in our radar.
+On 5 January 2015 at 12:29, Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
+>
+> We should also start abstracting and moving things to the library in =
+a
+> way that nft-sync can reuse, so we avoid code redundancy.
 
-Yep, this looks fine for now. I'll think about a proper fix as well.
+Ok, I like that path.
 
-> 
->  src/payload.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/src/payload.c b/src/payload.c
-> index 83742fb..08578fd 100644
-> --- a/src/payload.c
-> +++ b/src/payload.c
-> @@ -85,6 +85,7 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
->  	base = ctx->protocol[left->payload.base].desc;
->  	desc = proto_find_upper(base, proto);
->  
-> +	assert(left->payload.base + 1 <= PROTO_BASE_MAX);
->  	proto_ctx_update(ctx, left->payload.base + 1, &expr->location, desc);
->  }
->  
-> -- 
-> 1.7.10.4
-> 
+I tried it once (a patch series called mnlio, some time ago). I will
+try again :-)
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
