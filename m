@@ -1,27 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nfnetlink: remove redundant variable nskb
-Date: Mon, 5 Jan 2015 12:34:29 +0100
-Message-ID: <20150105113429.GA15129@salvia>
-References: <548810B7.5080901@cn.fujitsu.com>
+Subject: Re: [PATCH v2] nftables: nft_flush_table: handle chain dependencies
+Date: Mon, 5 Jan 2015 12:39:07 +0100
+Message-ID: <20150105113907.GA15161@salvia>
+References: <1419634318-18303-1-git-send-email-asbjorn@asbjorn.biz>
+ <1419640765-7707-1-git-send-email-asbjorn@asbjorn.biz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57469 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753627AbbAELbt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jan 2015 06:31:49 -0500
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Asbjoern Sloth Toennesen <asbjorn@asbjorn.biz>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <548810B7.5080901@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1419640765-7707-1-git-send-email-asbjorn@asbjorn.biz>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 10, 2014 at 05:21:59PM +0800, Duan Jiong wrote:
+On Sat, Dec 27, 2014 at 12:39:25AM +0000, Asbjoern Sloth Toennesen wrote:
+> Update: I errously assumed that git add, while writing the commit
+> message, would be added to the commit.
+> Based on net-next f96fe225. Compiles and checkpatch clean.
 > 
-> Actually after netlink_skb_clone() is called, the nskb and
-> skb will point to the same thing, but they are used just like
-> they are different, sometimes this is confusing, so i think
-> there is no necessary to keep nskb anymore.
+> Jumping between chains doesn't mix well with flush ruleset,
+> since nft_flush_table doesn't handle chains referencing chains.
+> 
+> This way it will take one to two loops, to settle.
+> Alternatively it can be solved by always having two loops,
 
-Applied, thanks.
+I just sent you a different patch to address this, we may still have
+references from the elements to chains when using dictionaries, so I
+prefer to schedule the object release in this order:
+
+rules -> sets -> chains -> tables
+
+Thanks for diagnosing and sending an initial fix.
+
+P.S: I hope you enjoyed 31c3.
