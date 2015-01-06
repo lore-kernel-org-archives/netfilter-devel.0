@@ -1,35 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/5] build: add --without-libgmp switch to disable use of
- shared libgmp
-Date: Tue, 6 Jan 2015 22:25:21 +0100
-Message-ID: <20150106212521.GA5981@salvia>
-References: <1419787065-26146-1-git-send-email-cyrus@openwrt.org>
- <1419787065-26146-6-git-send-email-cyrus@openwrt.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Steven Barth <cyrus@openwrt.org>
+From: Steven Barth <cyrus@openwrt.org>
+Subject: [nft PATCHv2 0/4] support for mini-gmp / embedded friendliness
+Date: Tue,  6 Jan 2015 23:40:21 +0100
+Message-ID: <1420584025-7817-1-git-send-email-cyrus@openwrt.org>
+Cc: Steven Barth <cyrus@openwrt.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58176 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754486AbbAFVWf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Jan 2015 16:22:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1419787065-26146-6-git-send-email-cyrus@openwrt.org>
+Received: from mail.core-networks.de ([82.96.72.7]:58357 "EHLO
+	mail.core-networks.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbbAFWlB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Jan 2015 17:41:01 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 28, 2014 at 06:17:45PM +0100, Steven Barth wrote:
-> This disables linking the >400 KB big libgmp and replace it with
-> the builtin mini-gmp which only increases size by ~30KB.
+mini-gmp is a minimal subset of libgmp maintained by the same people
+While libgmp compiles to >400KB, adding mini-gmp only results in a
+~30KB size increase of nft without the need to link to gmplib.
+This increase usability on embedded platforms optimizing for size
+and having no other use for libgmp.
 
-This mini-gmp is useful for embedded environments.
+This patchset:
+* Adds mini-gmp from gmplib 6.0 and adds a configure switch
+  --with-mini-gmp to enable it
+* Replaces the use of unsupported functions (gmp_printf, gmp_sscanf)
+  with suitable replacements
+* Fixes some minor issues related to the change
 
-Could you please merge patch 4/5 and 5/5?
+Steven Barth (4):
+  parser: rename VERSION token to HDRVERSION
+  datatype: use mpz_set_str instead of gmp_sscanf
+  erec: use stdio vasprintf instead of gmp_vasprintf
+  build: add --with-mini-gmp switch to use mini-gmp instead of libgmp
 
-For the option name, I'd suggest --with-mini-gmp.
+ INSTALL              |    6 +
+ configure.ac         |   17 +-
+ include/expression.h |    2 +-
+ include/gmputil.h    |   10 +
+ include/mini-gmp.h   |  294 ++++
+ include/utils.h      |    4 +-
+ src/Makefile.am      |    4 +
+ src/datatype.c       |    4 +-
+ src/erec.c           |    6 +-
+ src/evaluate.c       |    8 +-
+ src/gmputil.c        |   57 +-
+ src/mini-gmp.c       | 4386 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/parser_bison.y   |    6 +-
+ src/scanner.l        |    2 +-
+ 14 files changed, 4788 insertions(+), 18 deletions(-)
+ create mode 100644 include/mini-gmp.h
+ create mode 100644 src/mini-gmp.c
 
-Could you also update the INSTALL file to slightly describe this new
-compile-time option?
+-- 
+2.1.4
 
-Thanks.
