@@ -1,64 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [nft PATCHv2 0/4] support for mini-gmp / embedded friendliness
-Date: Wed, 7 Jan 2015 13:52:41 +0100
-Message-ID: <20150107125241.GA26629@salvia>
+Date: Wed, 7 Jan 2015 14:04:49 +0100
+Message-ID: <20150107130449.GA17331@salvia>
 References: <1420584025-7817-1-git-send-email-cyrus@openwrt.org>
- <20150107122218.GA15735@salvia>
- <54AD268E.8020702@openwrt.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
 To: Steven Barth <cyrus@openwrt.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46341 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49875 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751379AbbAGMuF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2015 07:50:05 -0500
+	id S1752625AbbAGNCf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Jan 2015 08:02:35 -0500
 Content-Disposition: inline
-In-Reply-To: <54AD268E.8020702@openwrt.org>
+In-Reply-To: <1420584025-7817-1-git-send-email-cyrus@openwrt.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 07, 2015 at 01:29:02PM +0100, Steven Barth wrote:
+On Tue, Jan 06, 2015 at 11:40:21PM +0100, Steven Barth wrote:
+> mini-gmp is a minimal subset of libgmp maintained by the same people
+> While libgmp compiles to >400KB, adding mini-gmp only results in a
+> ~30KB size increase of nft without the need to link to gmplib.
+> This increase usability on embedded platforms optimizing for size
+> and having no other use for libgmp.
 > 
-> On 07.01.2015 13:22, Pablo Neira Ayuso wrote:
-> >
-> >I think you mentioned to me already but
-> >
-> >  configure: error: --with-mini-gmp MUST be used with --disable-debug
-> >
-> >any reason to enforce this?
+> This patchset:
+> * Adds mini-gmp from gmplib 6.0 and adds a configure switch
+>   --with-mini-gmp to enable it
+> * Replaces the use of unsupported functions (gmp_printf, gmp_sscanf)
+>   with suitable replacements
+> * Fixes some minor issues related to the change
 > 
-> The problem here is that pr_debug expands to gmp_printf which is not
-> part of mini-gmp and the little replacement mpz_printf I added only
-> allows for formatting a single mpz_t (which is enough for all the
-> non-debug cases).
-> 
-> So there are 3 options basically.
-> 1. Try to make gmp_printf standalone and port it from libgmp to mini-gmp.
->     This looked like a huge and complicated effort and would likely
-> blow up stuff considerably again.
-> 2. Replace pr_debug's gmp_printf with regular printf and rewrite all
-> the debug-calls to mpz_get_str()
->     and free() which sounds painful.
-> 3. Simply disabling debugging with mini-gmp.
->     Easy way out without obstructing things too much otherwise.
+> Steven Barth (4):
+>   parser: rename VERSION token to HDRVERSION
+>   datatype: use mpz_set_str instead of gmp_sscanf
+>   erec: use stdio vasprintf instead of gmp_vasprintf
+>   build: add --with-mini-gmp switch to use mini-gmp instead of libgmp
 
-I see. pr_debug() seems to be only relevant in sec/segtree.c, other
-spots can be replaced by printf in src/proto.c
-
-I think it would be good for us to have the debugging option enabled
-in embedded builds at this stage, at least as much as we can get in
-some easy way. We can ask people to run commands with --debug and
-paste the result of it.
-
-We can probably have something like:
-
-#ifdef DEBUG && !MINIGMP
-#define pr_debug(fmt, arg...) gmp_printf(fmt, ##arg)
-#else
-#define pr_debug(fmt, arg...) ({ if (false) {}; 0; })
-#endif
-
-so only segtree debugging is turned off and document this in the
-INSTALL file.
+Applied from 1 to 3 so you don't need to resend these 3 initial
+patches.  Thanks.
