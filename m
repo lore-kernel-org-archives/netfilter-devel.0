@@ -1,247 +1,141 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 1/2] conntrack: Flush connections with a given mark
-Date: Thu, 8 Jan 2015 14:13:26 +0100
-Message-ID: <20150108131326.GA13155@salvia>
-References: <1419411431-24715-1-git-send-email-kristian.evensen@gmail.com>
- <1419411431-24715-2-git-send-email-kristian.evensen@gmail.com>
- <20150107185653.GA3469@salvia>
- <CAKfDRXjLRxXSG9zb0RLfF+tgZRy-DKy9Um57GdE3bA7DX3bhZQ@mail.gmail.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [PATCH net] ipv6: Prevent ipv6_find_hdr() from returning ENOENT
+ for valid non-first fragments
+Date: Thu, 08 Jan 2015 14:11:14 +0100
+Message-ID: <1420722674.810.25.camel@stressinduktion.org>
+References: <CAFB3abzYNYqtzd_n+Ym0Lo=DYbV0HPU=Tqw=stALNnu188hMKQ@mail.gmail.com>
+	 <20150106224706.GA7416@salvia>
+	 <CAFB3abwKpR1VqZXUrsexqveAZrA2LTSmTe8a=-H7z2HjAptjwA@mail.gmail.com>
+	 <1420627396.26870.36.camel@stressinduktion.org>
+	 <CAFB3abz_-AbJsrBtwRX5t=TCCfzYsw82WDYH=A7jzA2N8UbAng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="OXfL5xGRrasGEqWY"
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Kristian Evensen <kristian.evensen@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37602 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754699AbbAHNKi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Jan 2015 08:10:38 -0500
-Content-Disposition: inline
-In-Reply-To: <CAKfDRXjLRxXSG9zb0RLfF+tgZRy-DKy9Um57GdE3bA7DX3bhZQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Rahul Sharma <rsharma@arista.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFB3abz_-AbJsrBtwRX5t=TCCfzYsw82WDYH=A7jzA2N8UbAng@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Jan 07, 2015 at 09:05:22PM +0100, Kristian Evensen wrote:
-> Hi Pablo,
+On Do, 2015-01-08 at 02:18 +0530, Rahul Sharma wrote:
+> Hi Hannes,
 > 
-> On Wed, Jan 7, 2015 at 7:56 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > 1) strict type checking in the dump case (for the ctnetlink_filter
-> > object), instead of relying on the genering void * to keep the
-> > ct_iterate happy. It adds a bit more code but I prefer it like this.
+> On Wed, Jan 7, 2015 at 4:13 PM, Hannes Frederic Sowa
+> <hannes@stressinduktion.org> wrote:
+> > Hi,
 > >
-> > 2) Explicitly reject mark filters when marks are not supported. This
-> > changes the previous behaviour, but I think this is good to have so
-> > userspace knows that what it is requesting is not support (instead of
-> > silently ignoring it).
+> > On Mi, 2015-01-07 at 11:11 +0530, Rahul Sharma wrote:
+> >> On Wed, Jan 7, 2015 at 4:17 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >> > On Wed, Jan 07, 2015 at 03:03:20AM +0530, Rahul Sharma wrote:
+> >> >> ipv6_find_hdr() currently assumes that the next-header field in the
+> >> >> fragment header of the non-first fragment is the "protocol number of
+> >> >> the last header" (here last header excludes any extension header
+> >> >> protocol numbers ) which is incorrect as per RFC2460. The next-header
+> >> >> value is the first header of the fragmentable part of the original
+> >> >> packet (which can be extension header as well).
+> >> >> This can create reassembly problems. For example: Fragmented
+> >> >> authenticated OSPFv3 packets (where AH header is inserted before the
+> >> >> protocol header). For the second fragment, the next header value in
+> >> >> the fragment header will be NEXTHDR_AUTH which is correct but
+> >> >> ipv6_find_hdr will return ENOENT since AH is an extension header
+> >> >> resulting in second fragment getting dropped. This check for the
+> >> >> presence of non-extension header needs to be removed.
+> >> >>
+> >> >> Signed-off-by: Rahul Sharma <rsharma@arista.com>
+> >> >> ---
+> >> >> --- linux-3.18.1/net/ipv6/exthdrs_core.c.orig   2015-01-06
+> >> >> 10:25:36.411419863 -0800
+> >> >> +++ linux-3.18.1/net/ipv6/exthdrs_core.c        2015-01-06
+> >> >> 10:51:45.819364986 -0800
+> >> >> @@ -171,10 +171,11 @@ EXPORT_SYMBOL_GPL(ipv6_find_tlv);
+> >> >>   * If the first fragment doesn't contain the final protocol header or
+> >> >>   * NEXTHDR_NONE it is considered invalid.
+> >> >>   *
+> >> >> - * Note that non-1st fragment is special case that "the protocol number
+> >> >> - * of last header" is "next header" field in Fragment header. In this case,
+> >> >> - * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
+> >> >> - * isn't NULL.
+> >> >> + * Note that non-1st fragment is special case that "the protocol number of the
+> >> >> + * first header of the fragmentable part of the original packet" is
+> >> >> + * "next header" field in the Fragment header. In this case, *offset is
+> >> >> + * meaningless and fragment offset is stored in *fragoff if fragoff isn't
+> >> >> + * NULL.
+> >> >>   *
+> >> >>   * if flags is not NULL and it's a fragment, then the frag flag
+> >> >>   * IP6_FH_F_FRAG will be set. If it's an AH header, the
+> >> >> @@ -250,9 +251,7 @@ int ipv6_find_hdr(const struct sk_buff *
+> >> >>
+> >> >>                         _frag_off = ntohs(*fp) & ~0x7;
+> >> >>                         if (_frag_off) {
+> >> >> -                               if (target < 0 &&
+> >> >> -                                   ((!ipv6_ext_hdr(hp->nexthdr)) ||
+> >> >
+> >> > This check assumes that the following headers cannot show up in the
+> >> > fragmented part of the IPv6 packet:
+> >> >
+> >> >  12 bool ipv6_ext_hdr(u8 nexthdr)
+> >> >  13 {
+> >> >  14         /*
+> >> >  15          * find out if nexthdr is an extension header or a protocol
+> >> >  16          */
+> >> >  17         return   (nexthdr == NEXTHDR_HOP)       ||
+> >> >  18                  (nexthdr == NEXTHDR_ROUTING)   ||
+> >> >  19                  (nexthdr == NEXTHDR_FRAGMENT)  ||
+> >> >  20                  (nexthdr == NEXTHDR_AUTH)      ||
+> >> >  21                  (nexthdr == NEXTHDR_NONE)      ||
+> >> >  22                  (nexthdr == NEXTHDR_DEST);
+> >> >
+> >> >> -                                    hp->nexthdr == NEXTHDR_NONE)) {
+> >> >> +                               if (target < 0) {
+> >> >>                                         if (fragoff)
+> >> >>                                                 *fragoff = _frag_off;
+> >> >>                                         return hp->nexthdr;
+> >> >> --
+> >> >> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> >> >> the body of a message to majordomo@vger.kernel.org
+> >> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >> I think this is incorrect. Authentication header shows up in the
+> >> fragmentable part of the original IPv6 packet. So, for the non-first
+> >> fragments the next-header field value can be NEXTHDR_AUTH.
 > >
-> > 3) add helper function to allocate the filter object, so this always
-> > needs explicit release.
+> > Pablo's mail got me thinking again.
 > >
-> > Please, have a look a it and let me know if you're fine with it. I'll
-> > pass it to net-next (upcoming 3.20).
+> > In general, IPv6 extension headers can appear in any order and stacks
+> > must be process them. Fragmentation adds a limitation, that some
+> > extension headers do not make sense and don't have any effect if they
+> > appear after a fragmentation header (HbH and ROUTING).
+> >
+> > Looking at the rest of the function we don't check for HBHHDR or RTHDR
+> > following a fragmentation header either if we process the first fragment
+> > (core stack only processes HBH if directly following the ipv6 header
+> > anyway).
+> >
+> > So, in my opinion, it is safe to completely remove this check and it
+> > would align if the rest of the extension processing logic. The callers
+> > all seem fine with that.
+> >
+> > Pablo, what do you think?
+> >
+> > Anyway, the patch does not apply cleanly, the patch header is mangled.
+> > Could you check and send again?
+> >
+> > Thanks,
+> > Hannes
+> >
+> >
+> I am not sure if replying on the thread with a patch is a good idea
+> (or should I send a new email). Anyway, let me know if this is works.
 > 
-> Thank you for making the improvements, the patch looks a lot better
-> now! I only have on question/comment. What is the reason behind adding
-> the ctnl_flush_filter()? Isn't it enough to have ctnetlink_filter()
-> return 1 in case of match and 0 otherwise. At least, the way I think,
-> it makes more sense when I read the code that if this function returns
-> false, we should ignore conntrack entry due to no match. So the check
-> in ctnetlink_dump_table() should read !ctnetlink_filter(). In
-> addition, there is a small typo in the commit log. In the last
-> paragraph it says ctnetlink_apply_filter(). After your changes, it is
-> just called ctnetlink_filter().
 
-I made some changes based on your comments, attached a new version of
-your patch.
+The patch was identified correctly but the commit message now is
+scrambled, see:
 
---OXfL5xGRrasGEqWY
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-conntrack-Flush-connections-with-a-given-m.patch"
+http://patchwork.ozlabs.org/patch/426404/
 
->From 866476f323465a8afef10b14b48d5136bf5c51fe Mon Sep 17 00:00:00 2001
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Date: Wed, 24 Dec 2014 09:57:10 +0100
-Subject: [PATCH nf-next] netfilter: conntrack: Flush connections with a given
- mark
+Maybe just resend it as "[PATCH net v2]"?
 
-This patch adds support for selective flushing of conntrack mappings.
-By adding CTA_MARK and CTA_MARK_MASK to a delete-message, the mark (and
-mask) is checked before a connection is deleted while flushing.
-
-Configuring the flush is moved out of ctnetlink_del_conntrack(), and
-instead of calling nf_conntrack_flush_report(), we always call
-nf_ct_iterate_cleanup().  This enables us to only make one call from the
-new ctnetlink_flush_conntrack() and makes it easy to add more filter
-parameters.
-
-Filtering is done in the ctnetlink_filter_match()-function, which is
-also called from ctnetlink_dump_table(). ctnetlink_dump_filter has been
-renamed ctnetlink_filter, to indicated that it is no longer only used
-when dumping conntrack entries.
-
-Moreover, reject mark filters with -EOPNOTSUPP if no ct mark support is
-available.
-
-Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |   89 ++++++++++++++++++++++++----------
- 1 file changed, 64 insertions(+), 25 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1bd9ed9..d1c2394 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -749,13 +749,47 @@ static int ctnetlink_done(struct netlink_callback *cb)
- 	return 0;
- }
- 
--struct ctnetlink_dump_filter {
-+struct ctnetlink_filter {
- 	struct {
- 		u_int32_t val;
- 		u_int32_t mask;
- 	} mark;
- };
- 
-+static struct ctnetlink_filter *
-+ctnetlink_alloc_filter(const struct nlattr * const cda[])
-+{
-+#ifdef CONFIG_NF_CONNTRACK_MARK
-+	struct ctnetlink_filter *filter;
-+
-+	filter = kzalloc(sizeof(*filter), GFP_KERNEL);
-+	if (filter == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
-+	filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
-+
-+	return filter;
-+#else
-+	return ERR_PTR(-EOPNOTSUPP);
-+#endif
-+}
-+
-+static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
-+{
-+	struct ctnetlink_filter *filter = data;
-+
-+	if (filter == NULL)
-+		return 1;
-+
-+#ifdef CONFIG_NF_CONNTRACK_MARK
-+	if ((ct->mark & filter->mark.mask) == filter->mark.val)
-+		return 1;
-+#endif
-+
-+	return 0;
-+}
-+
- static int
- ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
-@@ -768,10 +802,6 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	int res;
- 	spinlock_t *lockp;
- 
--#ifdef CONFIG_NF_CONNTRACK_MARK
--	const struct ctnetlink_dump_filter *filter = cb->data;
--#endif
--
- 	last = (struct nf_conn *)cb->args[1];
- 
- 	local_bh_disable();
-@@ -798,12 +828,9 @@ restart:
- 					continue;
- 				cb->args[1] = 0;
- 			}
--#ifdef CONFIG_NF_CONNTRACK_MARK
--			if (filter && !((ct->mark & filter->mark.mask) ==
--					filter->mark.val)) {
-+			if (!ctnetlink_filter_match(ct, cb->data))
- 				continue;
--			}
--#endif
-+
- 			rcu_read_lock();
- 			res =
- 			ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
-@@ -1001,6 +1028,25 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 				    .len = NF_CT_LABELS_MAX_SIZE },
- };
- 
-+static int ctnetlink_flush_conntrack(struct net *net,
-+				     const struct nlattr * const cda[],
-+				     u32 portid, int report)
-+{
-+	struct ctnetlink_filter *filter = NULL;
-+
-+	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
-+		filter = ctnetlink_alloc_filter(cda);
-+		if (IS_ERR(filter))
-+			return PTR_ERR(filter);
-+	}
-+
-+	nf_ct_iterate_cleanup(net, ctnetlink_filter_match, filter,
-+			      portid, report);
-+	kfree(filter);
-+
-+	return 0;
-+}
-+
- static int
- ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			const struct nlmsghdr *nlh,
-@@ -1024,11 +1070,9 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	else if (cda[CTA_TUPLE_REPLY])
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY, u3);
- 	else {
--		/* Flush the whole table */
--		nf_conntrack_flush_report(net,
--					 NETLINK_CB(skb).portid,
--					 nlmsg_report(nlh));
--		return 0;
-+		return ctnetlink_flush_conntrack(net, cda,
-+						 NETLINK_CB(skb).portid,
-+						 nlmsg_report(nlh));
- 	}
- 
- 	if (err < 0)
-@@ -1076,21 +1120,16 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			.dump = ctnetlink_dump_table,
- 			.done = ctnetlink_done,
- 		};
--#ifdef CONFIG_NF_CONNTRACK_MARK
-+
- 		if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
--			struct ctnetlink_dump_filter *filter;
-+			struct ctnetlink_filter *filter;
- 
--			filter = kzalloc(sizeof(struct ctnetlink_dump_filter),
--					 GFP_ATOMIC);
--			if (filter == NULL)
--				return -ENOMEM;
-+			filter = ctnetlink_alloc_filter(cda);
-+			if (IS_ERR(filter))
-+				return PTR_ERR(filter);
- 
--			filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
--			filter->mark.mask =
--				ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
- 			c.data = filter;
- 		}
--#endif
- 		return netlink_dump_start(ctnl, skb, nlh, &c);
- 	}
- 
--- 
-1.7.10.4
-
-
---OXfL5xGRrasGEqWY--
+Thanks,
+Hannes
