@@ -1,39 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: REGRESSION in nfnetlink on 3.18.x (bisected)
-Date: Thu, 8 Jan 2015 11:47:14 +0100
-Message-ID: <20150108104714.GA3463@salvia>
-References: <5496075F.3060204@tomt.net>
- <20141222115607.GA4961@salvia>
- <5498A7DF.6040903@tomt.net>
- <54ADAD1E.3060101@tomt.net>
+Subject: Re: [PATCHv3] build: add --with-mini-gmp switch to disable linking
+ libgmp
+Date: Thu, 8 Jan 2015 12:26:36 +0100
+Message-ID: <20150108112636.GA10236@salvia>
+References: <1420700074-13333-1-git-send-email-cyrus@openwrt.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Andre Tomt <andre@tomt.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Steven Barth <cyrus@openwrt.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40703 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54501 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753018AbbAHKoc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Jan 2015 05:44:32 -0500
+	id S1756008AbbAHLXs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Jan 2015 06:23:48 -0500
 Content-Disposition: inline
-In-Reply-To: <54ADAD1E.3060101@tomt.net>
+In-Reply-To: <1420700074-13333-1-git-send-email-cyrus@openwrt.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 07, 2015 at 11:03:10PM +0100, Andre Tomt wrote:
-> On 23. des. 2014 00:23, Andre Tomt wrote:
-> >On 22. des. 2014 12:56, Pablo Neira Ayuso wrote:
-> >>Could you give a test to this patch? Thanks.
-> >>
-> >
-> >Initial testing looks good with this patch applied on top of 3.18.1
-> >I will give it a spin on some more systems tomorrow.
+On Thu, Jan 08, 2015 at 07:54:34AM +0100, Steven Barth wrote:
+> This allows to disable linking the >400 KB big libgmp and replace it
+> with the builtin mini-gmp which only increases size by ~30KB.
 > 
-> No news is good news :-)
-> 
-> ~10 3.18.x systems in various roles have had this fix for two weeks
-> with no issues.
+> Enabling this selectively decreases debugging verbosity (pr_debug).
 
-Thanks a lot for testing. I already sent the patch to David:
-
-http://patchwork.ozlabs.org/patch/426205/
+Applied, thanks Steven.
