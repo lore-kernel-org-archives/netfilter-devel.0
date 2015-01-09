@@ -1,62 +1,76 @@
 From: Rahul Sharma <rsharma@arista.com>
-Subject: Re: [PATCH net] ipv6: Prevent ipv6_find_hdr() from returning ENOENT
+Subject: [PATCH net v2] ipv6: Prevent ipv6_find_hdr() from returning ENOENT
  for valid non-first fragments
-Date: Fri, 9 Jan 2015 12:48:24 +0530
-Message-ID: <CAFB3abwrjp61LLOk3RWwXYEq1g4QZUC8OTKuO2cAr+GbV3n4rw@mail.gmail.com>
-References: <CAFB3abzYNYqtzd_n+Ym0Lo=DYbV0HPU=Tqw=stALNnu188hMKQ@mail.gmail.com>
-	<20150106224706.GA7416@salvia>
-	<CAFB3abwKpR1VqZXUrsexqveAZrA2LTSmTe8a=-H7z2HjAptjwA@mail.gmail.com>
-	<1420627396.26870.36.camel@stressinduktion.org>
-	<20150108205328.GA3361@salvia>
-	<1420756756.1755002.211556745.0418D128@webmail.messagingengine.com>
-	<20150109000546.GA3488@salvia>
+Date: Fri, 9 Jan 2015 13:56:39 +0530
+Message-ID: <CAFB3abzM2ApxMH6C7vSDJ8JikKEkE46bOH3jbsis2NiF-ieUxA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Hannes Frederic Sowa <hannes@stressinduktion.org>,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150109000546.GA3488@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Hannes Frederic Sowa <hannes@stressinduktion.org>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:35676 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754863AbbAII0k (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Jan 2015 03:26:40 -0500
+Received: by mail-wg0-f47.google.com with SMTP id n12so6768216wgh.6
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Jan 2015 00:26:39 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+ipv6_find_hdr() currently assumes that the next-header field in the
+fragment header of the non-first fragment is the "protocol number of
+the last header" (here last header excludes any extension header
+protocol numbers ) which is incorrect as per RFC2460. The next-header
+value is the first header of the fragmentable part of the original
+packet (which can be extension header as well).
+This can create reassembly problems. For example: Fragmented
+authenticated OSPFv3 packets (where AH header is inserted before the
+protocol header). For the second fragment, the next header value in
+the fragment header will be NEXTHDR_AUTH which is correct but
+ipv6_find_hdr will return ENOENT since AH is an extension header
+resulting in second fragment getting dropped. This check for the
+presence of non-extension header needs to be removed.
 
-On Fri, Jan 9, 2015 at 5:35 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Jan 08, 2015 at 11:39:16PM +0100, Hannes Frederic Sowa wrote:
->> Hi Pablo,
->>
->> On Thu, Jan 8, 2015, at 21:53, Pablo Neira Ayuso wrote:
->> > I'm afraid we cannot just get rid of that !ipv6_ext_hdr() check. The
->> > ipv6_find_hdr() function is designed to return the transport protocol.
->> > After the proposed change, it will return extension header numbers.
->> > This will break existing ip6tables rulesets since the `-p' option
->> > relies on this function to match the transport protocol.
->> >
->> > Note that the AH header is skipped (see code a bit below this
->> > problematic fragmentation handling) so the follow up header after the
->> > AH header is returned as the transport header.
->> >
->> > We can probably return the AH protocol number for non-1st fragments.
->> > However, that would be something new to ip6tables since nobody has
->> > ever seen packet matching `-p ah' rules. Thus, we restore control to
->> > the user to allow this, but we would accept all kind of fragmented AH
->> > traffic through the firewall since we cannot know what transport
->> > protocol contains from non-1st fragments (unless I'm missing anything,
->> > I need to have a closer look at this again tomorrow with fresher
->> > mind).
->>
->> The code in question is guarded by (_frag_off != 0), so we are
->> definitely processing a non-1st fragment currently. The -p match would
->> happen at the time when the packet is reassembled and thus ipv6_find_hdr
->> will find the real transport (final) header at this point (I hope I
->> followed the code correctly here).
->
-> Then, Rahul should get things working by modprobing nf_defrag_ipv6.
+Signed-off-by: Rahul Sharma <rsharma@arista.com>
+---
+ net/ipv6/exthdrs_core.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-I already had nf_defrag_ipv6 installed when the issue occured. But I
-see ip6table_raw_hook returning NF_DROP for the second fragment.
+diff --git a/net/ipv6/exthdrs_core.c b/net/ipv6/exthdrs_core.c
+index 8af3eb5..5949f87 100644
+--- a/net/ipv6/exthdrs_core.c
++++ b/net/ipv6/exthdrs_core.c
+@@ -171,10 +171,11 @@ EXPORT_SYMBOL_GPL(ipv6_find_tlv);
+  * If the first fragment doesn't contain the final protocol header or
+  * NEXTHDR_NONE it is considered invalid.
+  *
+- * Note that non-1st fragment is special case that "the protocol number
+- * of last header" is "next header" field in Fragment header. In this case,
+- * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
+- * isn't NULL.
++ * Note that non-1st fragment is special case that "the protocol number of the
++ * first header of the fragmentable part of the original packet" is
++ * "next header" field in the Fragment header. In this case, *offset is
++ * meaningless and fragment offset is stored in *fragoff if fragoff isn't
++ * NULL.
+  *
+  * if flags is not NULL and it's a fragment, then the frag flag
+  * IP6_FH_F_FRAG will be set. If it's an AH header, the
+@@ -250,9 +251,7 @@ int ipv6_find_hdr(const struct sk_buff *skb,
+unsigned int *offset,
 
-Thanks,
-Rahul
+                        _frag_off = ntohs(*fp) & ~0x7;
+                        if (_frag_off) {
+-                               if (target < 0 &&
+-                                   ((!ipv6_ext_hdr(hp->nexthdr)) ||
+-                                    hp->nexthdr == NEXTHDR_NONE)) {
++                               if (target < 0) {
+                                        if (fragoff)
+                                                *fragoff = _frag_off;
+                                        return hp->nexthdr;
+--
+1.7.4.4
