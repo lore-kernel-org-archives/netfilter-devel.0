@@ -1,73 +1,118 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] ipv6: Prevent ipv6_find_hdr() from returning ENOENT
- for valid non-first fragments
-Date: Fri, 9 Jan 2015 12:45:06 +0100
-Message-ID: <20150109114506.GA4857@salvia>
-References: <CAFB3abzYNYqtzd_n+Ym0Lo=DYbV0HPU=Tqw=stALNnu188hMKQ@mail.gmail.com>
- <20150106224706.GA7416@salvia>
- <CAFB3abwKpR1VqZXUrsexqveAZrA2LTSmTe8a=-H7z2HjAptjwA@mail.gmail.com>
- <1420627396.26870.36.camel@stressinduktion.org>
- <20150108205328.GA3361@salvia>
- <1420756756.1755002.211556745.0418D128@webmail.messagingengine.com>
- <20150109000546.GA3488@salvia>
- <CAFB3abwrjp61LLOk3RWwXYEq1g4QZUC8OTKuO2cAr+GbV3n4rw@mail.gmail.com>
- <1420803255.1978819.211762005.707EFFB9@webmail.messagingengine.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Rahul Sharma <rsharma@arista.com>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1420803255.1978819.211762005.707EFFB9@webmail.messagingengine.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 1/2] src: not create iterator with empty list
+Date: Fri,  9 Jan 2015 13:47:40 +0100
+Message-ID: <1420807661-29751-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:34249 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932161AbbAIMrP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Jan 2015 07:47:15 -0500
+Received: by mail-wi0-f172.google.com with SMTP id n3so2026606wiv.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Jan 2015 04:47:14 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id wr8sm9919145wjc.10.2015.01.09.04.47.13
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 09 Jan 2015 04:47:13 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Hannes,
+Now, we create iterator without test if the list is empty. If the list
+is empty, we have a crash when we set up the current element.
+With this patch, we test if the list is empty before to create the iterator. If
+the list is empty the iterator return NULL.
 
-On Fri, Jan 09, 2015 at 12:34:15PM +0100, Hannes Frederic Sowa wrote:
-> On Fri, Jan 9, 2015, at 08:18, Rahul Sharma wrote:
-> > Hi Pablo,
-> > 
-> > On Fri, Jan 9, 2015 at 5:35 AM, Pablo Neira Ayuso <pablo@netfilter.org>
-> > wrote:
-> > > On Thu, Jan 08, 2015 at 11:39:16PM +0100, Hannes Frederic Sowa wrote:
-> > >> Hi Pablo,
-> > >>
-> > >> On Thu, Jan 8, 2015, at 21:53, Pablo Neira Ayuso wrote:
-> > >> > I'm afraid we cannot just get rid of that !ipv6_ext_hdr() check. The
-> > >> > ipv6_find_hdr() function is designed to return the transport protocol.
-> > >> > After the proposed change, it will return extension header numbers.
-> > >> > This will break existing ip6tables rulesets since the `-p' option
-> > >> > relies on this function to match the transport protocol.
-> > >> >
-> > >> > Note that the AH header is skipped (see code a bit below this
-> > >> > problematic fragmentation handling) so the follow up header after the
-> > >> > AH header is returned as the transport header.
-> > >> >
-> > >> > We can probably return the AH protocol number for non-1st fragments.
-> > >> > However, that would be something new to ip6tables since nobody has
-> > >> > ever seen packet matching `-p ah' rules. Thus, we restore control to
-> > >> > the user to allow this, but we would accept all kind of fragmented AH
-> > >> > traffic through the firewall since we cannot know what transport
-> > >> > protocol contains from non-1st fragments (unless I'm missing anything,
-> > >> > I need to have a closer look at this again tomorrow with fresher
-> > >> > mind).
-> > >>
-> > >> The code in question is guarded by (_frag_off != 0), so we are
-> > >> definitely processing a non-1st fragment currently. The -p match would
-> > >> happen at the time when the packet is reassembled and thus ipv6_find_hdr
-> > >> will find the real transport (final) header at this point (I hope I
-> > >> followed the code correctly here).
-> > >
-> > > Then, Rahul should get things working by modprobing nf_defrag_ipv6.
-> > 
-> > I already had nf_defrag_ipv6 installed when the issue occured. But I
-> > see ip6table_raw_hook returning NF_DROP for the second fragment.
-> 
-> That's what I expected. I think the change only affects hooks before
-> reassembly.
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/chain.c    |    3 +++
+ src/rule.c     |    6 ++++++
+ src/set.c      |    3 +++
+ src/set_elem.c |    3 +++
+ src/table.c    |    3 +++
+ 5 files changed, 18 insertions(+)
 
-reassembly happens at NF_IP6_PRI_CONNTRACK_DEFRAG (-400), so that
-happens before NF_IP6_PRI_RAW (-300) in IPv6 which is where the raw
-table is placed.
+diff --git a/src/chain.c b/src/chain.c
+index b67385e..e7de4ef 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -968,6 +968,9 @@ struct nft_chain_list_iter *nft_chain_list_iter_create(struct nft_chain_list *l)
+ {
+ 	struct nft_chain_list_iter *iter;
+ 
++	if (nft_chain_list_is_empty(l))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_chain_list_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+diff --git a/src/rule.c b/src/rule.c
+index c974f8b..f5a84f7 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1038,6 +1038,9 @@ struct nft_rule_expr_iter *nft_rule_expr_iter_create(struct nft_rule *r)
+ {
+ 	struct nft_rule_expr_iter *iter;
+ 
++	if (list_empty(&r->expr_list))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_rule_expr_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+@@ -1147,6 +1150,9 @@ struct nft_rule_list_iter *nft_rule_list_iter_create(struct nft_rule_list *l)
+ {
+ 	struct nft_rule_list_iter *iter;
+ 
++	if (nft_rule_list_is_empty(l))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_rule_list_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+diff --git a/src/set.c b/src/set.c
+index 2385031..dee24a5 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -1015,6 +1015,9 @@ struct nft_set_list_iter *nft_set_list_iter_create(struct nft_set_list *l)
+ {
+ 	struct nft_set_list_iter *iter;
+ 
++	if (nft_set_list_is_empty(l))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_set_list_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 95f12bf..85c4519 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -684,6 +684,9 @@ struct nft_set_elems_iter *nft_set_elems_iter_create(struct nft_set *s)
+ {
+ 	struct nft_set_elems_iter *iter;
+ 
++	if (list_empty(&s->element_list))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_set_elems_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+diff --git a/src/table.c b/src/table.c
+index c93e6fb..544a8c3 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -539,6 +539,9 @@ struct nft_table_list_iter *nft_table_list_iter_create(struct nft_table_list *l)
+ {
+ 	struct nft_table_list_iter *iter;
+ 
++	if (nft_table_list_is_empty(l))
++		return NULL;
++
+ 	iter = calloc(1, sizeof(struct nft_table_list_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+-- 
+1.7.10.4
+
