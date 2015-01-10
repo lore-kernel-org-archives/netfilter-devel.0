@@ -1,78 +1,82 @@
-From: =?windows-1252?Q?=C1lvaro_Neira_Ayuso?= <alvaroneay@gmail.com>
-Subject: Re: [libnftnl PATCH 1/2] src: not create iterator with empty list
-Date: Sat, 10 Jan 2015 19:26:38 +0100
-Message-ID: <54B16EDE.7060207@gmail.com>
-References: <1420807661-29751-1-git-send-email-alvaroneay@gmail.com> <20150110182022.GA5185@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/6] netfilter/ipvs fixes for net
+Date: Sat, 10 Jan 2015 19:50:02 +0100
+Message-ID: <1420915808-7160-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:63170 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548AbbAJSeJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Jan 2015 13:34:09 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so7947907wiv.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Jan 2015 10:34:07 -0800 (PST)
-In-Reply-To: <20150110182022.GA5185@salvia>
+Received: from mail.us.es ([193.147.175.20]:46757 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753206AbbAJSrW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 10 Jan 2015 13:47:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-El 10/01/15 a las 19:20, Pablo Neira Ayuso escribi=F3:
-> On Fri, Jan 09, 2015 at 01:47:40PM +0100, Alvaro Neira Ayuso wrote:
->> Now, we create iterator without test if the list is empty. If the li=
-st
->> is empty, we have a crash when we set up the current element.
->> With this patch, we test if the list is empty before to create the i=
-terator. If
->> the list is empty the iterator return NULL.
->
-> Please, handle this from the _next() function.
->
-> The idea is to set iter->cur to NULL if the list is empty from
-> iter_create, ie.
->
->          if (iter->r->expr_list.next =3D=3D &iter->r.expr_list)
->                  iter->cur =3D NULL;
->          else
->                  iter->cur =3D list_entry(...);
->
-> Then, from _next() you check for:
->
->          if (expr =3D=3D NULL)
->                  return NULL;
+Hi David,
 
-Ok, nice idea.
+The following patchset contains netfilter/ipvs fixes, they are:
 
->
->> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
->> ---
->>   src/chain.c    |    3 +++
->>   src/rule.c     |    6 ++++++
->>   src/set.c      |    3 +++
->>   src/set_elem.c |    3 +++
->>   src/table.c    |    3 +++
->
-> I can count up to six iterator interfaces, I only see 5 here, please
-> make sure you adapt all spots. Thanks.
->
+1) Small fix for the FTP helper in IPVS, a diff variable may be left
+   unset when CONFIG_IP_VS_IPV6 is set. Patch from Dan Carpenter.
 
-mmm yes and I have changed the code in the six iterator interfaces. I=20
-have changed:
+2) Fix nf_tables port NAT in little endian archs, patch from leroy
+   christophe.
 
-- nft_chain_list_iter_create
-- nft_rule_expr_iter_create
-- nft_rule_list_iter_create
-- nft_set_list_iter_create
-- nft_set_elems_iter_create
-- nft_table_list_iter_create
+3) Fix race condition between conntrack confirmation and flush from
+   userspace. This is the second reincarnation to resolve this problem.
 
-Have I forgot any?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+4) Make sure inner messages in the batch come with the nfnetlink header.
+
+5) Relax strict check from nfnetlink_bind() that may break old userspace
+   applications using all 1s group mask.
+
+6) Schedule removal of chains once no sets and rules refer to them in
+   the new nf_tables ruleset flush command. Reported by Asbjoern Sloth
+   Toennesen.
+
+Note that this batch comes later than usual because of the short
+winter holidays.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Have a happy new year, thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit ac9a3d84e121196263636f2d38d439a45888005a:
+
+  be2net: Fix incorrect setting of tunnel offload flag in netdev features (2014-12-18 12:51:29 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to a2f18db0c68fec96631c10cad9384c196e9008ac:
+
+  netfilter: nf_tables: fix flush ruleset chain dependencies (2015-01-06 22:27:48 +0100)
+
+----------------------------------------------------------------
+Dan Carpenter (1):
+      ipvs: uninitialized data with IP_VS_IPV6
+
+Pablo Neira Ayuso (5):
+      Merge tag 'ipvs2-for-v3.19' of https://git.kernel.org/.../horms/ipvs-next into ipvs-next
+      netfilter: conntrack: fix race between confirmation and flush
+      netfilter: nfnetlink: validate nfnetlink header from batch
+      netfilter: nfnetlink: relax strict multicast group check from netlink_bind
+      netfilter: nf_tables: fix flush ruleset chain dependencies
+
+leroy christophe (1):
+      netfilter: nf_tables: fix port natting in little endian archs
+
+ net/ipv4/netfilter/nft_redir_ipv4.c |    8 ++++----
+ net/ipv6/netfilter/nft_redir_ipv6.c |    8 ++++----
+ net/netfilter/ipvs/ip_vs_ftp.c      |   10 +++++-----
+ net/netfilter/nf_conntrack_core.c   |   20 +++++++++-----------
+ net/netfilter/nf_tables_api.c       |   14 +++++++++-----
+ net/netfilter/nfnetlink.c           |    5 +++--
+ net/netfilter/nft_nat.c             |    8 ++++----
+ 7 files changed, 38 insertions(+), 35 deletions(-)
+
