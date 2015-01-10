@@ -1,48 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 3/3] netlink_delinearize: fix error handling for invalid registers
-Date: Sat, 10 Jan 2015 14:59:15 +0000
-Message-ID: <1420901955-21087-3-git-send-email-kaber@trash.net>
-References: <1420901955-21087-1-git-send-email-kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH 1/2] src: not create iterator with empty list
+Date: Sat, 10 Jan 2015 19:20:22 +0100
+Message-ID: <20150110182022.GA5185@salvia>
+References: <1420807661-29751-1-git-send-email-alvaroneay@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49192 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753403AbbAJO7k (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Jan 2015 09:59:40 -0500
-In-Reply-To: <1420901955-21087-1-git-send-email-kaber@trash.net>
+Received: from mail.us.es ([193.147.175.20]:44903 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753012AbbAJSRj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 10 Jan 2015 13:17:39 -0500
+Content-Disposition: inline
+In-Reply-To: <1420807661-29751-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netlink_delinearize is prepared to deal with malformed expressions from
-the kernel that it doesn't understand. However since expressions are now
-cloned unconditionally by netlink_get_register(), we crash before such
-errors can be detected for invalid inputs.
+On Fri, Jan 09, 2015 at 01:47:40PM +0100, Alvaro Neira Ayuso wrote:
+> Now, we create iterator without test if the list is empty. If the list
+> is empty, we have a crash when we set up the current element.
+> With this patch, we test if the list is empty before to create the iterator. If
+> the list is empty the iterator return NULL.
 
-Fix by only cloning non-NULL expressions.
+Please, handle this from the _next() function.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/netlink_delinearize.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The idea is to set iter->cur to NULL if the list is empty from
+iter_create, ie.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e9a04dd..79d5af6 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -75,7 +75,10 @@ static struct expr *netlink_get_register(struct netlink_parse_ctx *ctx,
- 	}
- 
- 	expr = ctx->registers[reg];
--	return expr_clone(expr);
-+	if (expr != NULL)
-+		expr = expr_clone(expr);
-+
-+	return expr;
- }
- 
- static void netlink_release_registers(struct netlink_parse_ctx *ctx)
--- 
-2.1.0
+        if (iter->r->expr_list.next == &iter->r.expr_list)
+                iter->cur = NULL;
+        else
+                iter->cur = list_entry(...);
 
+Then, from _next() you check for:
+
+        if (expr == NULL)
+                return NULL;
+
+> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+> ---
+>  src/chain.c    |    3 +++
+>  src/rule.c     |    6 ++++++
+>  src/set.c      |    3 +++
+>  src/set_elem.c |    3 +++
+>  src/table.c    |    3 +++
+
+I can count up to six iterator interfaces, I only see 5 here, please
+make sure you adapt all spots. Thanks.
