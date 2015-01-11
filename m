@@ -1,249 +1,71 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 3/3] netlink_linearize: add register dumping helper function
-Date: Sun, 11 Jan 2015 08:41:58 +0000
-Message-ID: <1420965718-24339-4-git-send-email-kaber@trash.net>
-References: <1420965718-24339-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54998 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbbAKImG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Jan 2015 03:42:06 -0500
-In-Reply-To: <1420965718-24339-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Richard Weinberger <richard@nod.at>
+Subject: [RFC] Make predictable/persistent network interface names more handy
+Date: Sun, 11 Jan 2015 21:52:48 +0100
+Message-ID: <1421009571-5279-1-git-send-email-richard@nod.at>
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	bhutchings@solarflare.com, john.fastabend@gmail.com,
+	herbert@gondor.apana.org.au, vyasevic@redhat.com, jiri@resnulli.us,
+	vfalico@gmail.com, therbert@google.com, edumazet@google.com,
+	yoshfuji@linux-ipv6.org, jmorris@namei.org, kuznet@ms2.inr.ac.ru,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
+	kay@vrfy.org, stephen@networkplumber.org
+To: davem@davemloft.net
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add a helper function to dump netlink register numbers in preparation
-of concat support.
+Since the Linux distribution of my choice makes use of
+predictable network interface names[0] my USB gadgets
+are no longer usb0 but enp0s29u1u2. Same for all other network devices.
+While I can fully understand that this new naming scheme makes sense
+for a lot of people and makes their work easier it does not really work for me.
+My brain is not able to remember that my Beaglebone's USB-Ethernet
+is now enp0s29u1u2. Even after looking at the output of ifconfig
+I have to copy&paste the interface name.
+Instead of just disabling the feature I thought about
+a generic solution which satisfies both needs.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/netlink_linearize.c | 74 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 40 insertions(+), 34 deletions(-)
+For block devices we also have predictable device names,
+udev creates a symlink to the kernel device.
+This works very good and reliable.
+My idea is to use the network device alias as symlink.
+Such that we can have both the easy to use kernel name and
+the predictable/persistent name from udev.
+systemd/udev could store the original kernel interface name
+as alias after renaming the interface.
+Existing users would not notice but one can still use the kernel name.
+So I can use tcpdump -i usb0 _and_ tcpdump -i enp0s29u1u2.
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index de338cb..9bef67b 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -24,6 +24,12 @@ struct netlink_linearize_ctx {
- 	unsigned int		reg_low;
- };
- 
-+static void netlink_put_register(struct nft_rule_expr *nle,
-+				 uint32_t attr, uint32_t reg)
-+{
-+	nft_rule_expr_set_u32(nle, attr, reg);
-+}
-+
- static enum nft_registers get_register(struct netlink_linearize_ctx *ctx)
- {
- 	if (ctx->reg_low > NFT_REG_MAX)
-@@ -57,7 +63,7 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 
- 	nle = alloc_nft_expr("payload");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_PAYLOAD_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_PAYLOAD_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_PAYLOAD_BASE,
- 			      expr->payload.base - 1);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_PAYLOAD_OFFSET,
-@@ -74,7 +80,7 @@ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 
- 	nle = alloc_nft_expr("exthdr");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_EXTHDR_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_EXTHDR_DREG, dreg);
- 	nft_rule_expr_set_u8(nle, NFT_EXPR_EXTHDR_TYPE,
- 			     expr->exthdr.desc->type);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_EXTHDR_OFFSET,
-@@ -91,7 +97,7 @@ static void netlink_gen_meta(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 
- 	nle = alloc_nft_expr("meta");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_META_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_META_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_META_KEY, expr->meta.key);
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
-@@ -103,7 +109,7 @@ static void netlink_gen_ct(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 
- 	nle = alloc_nft_expr("ct");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_CT_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_KEY, expr->ct.key);
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
-@@ -125,8 +131,8 @@ static void netlink_gen_map(struct netlink_linearize_ctx *ctx,
- 	netlink_gen_expr(ctx, expr->map, sreg);
- 
- 	nle = alloc_nft_expr("lookup");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SREG, sreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_LOOKUP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_LOOKUP_DREG, dreg);
- 	nft_rule_expr_set_str(nle, NFT_EXPR_LOOKUP_SET,
- 			      expr->mappings->set->handle.set);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SET_ID,
-@@ -152,7 +158,7 @@ static void netlink_gen_lookup(struct netlink_linearize_ctx *ctx,
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 
- 	nle = alloc_nft_expr("lookup");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_LOOKUP_SREG, sreg);
- 	nft_rule_expr_set_str(nle, NFT_EXPR_LOOKUP_SET,
- 			      expr->right->set->handle.set);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SET_ID,
-@@ -213,8 +219,8 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 		zero.len = nld.len;
- 
- 		nle = alloc_nft_expr("bitwise");
--		nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, sreg);
--		nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, sreg);
-+		netlink_put_register(nle, NFT_EXPR_BITWISE_SREG, sreg);
-+		netlink_put_register(nle, NFT_EXPR_BITWISE_DREG, sreg);
- 		nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, nld.len);
- 		nft_rule_expr_set(nle, NFT_EXPR_BITWISE_MASK, &nld.value, nld.len);
- 		nft_rule_expr_set(nle, NFT_EXPR_BITWISE_XOR, &zero.value, zero.len);
-@@ -230,7 +236,7 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 	}
- 
- 	nle = alloc_nft_expr("cmp");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_CMP_SREG, sreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
- 			      netlink_gen_cmp_op(expr->op));
- 	netlink_gen_data(right, &nld);
-@@ -255,7 +261,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 
- 	nle = alloc_nft_expr("cmp");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_CMP_SREG, sreg);
- 	switch (expr->op) {
- 	case OP_NEQ:
- 		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-@@ -275,7 +281,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 	nft_rule_add_expr(ctx->nlr, nle);
- 
- 	nle = alloc_nft_expr("cmp");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_CMP_SREG, sreg);
- 	switch (expr->op) {
- 	case OP_NEQ:
- 		nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP,
-@@ -319,15 +325,15 @@ static void netlink_gen_flagcmp(struct netlink_linearize_ctx *ctx,
- 	netlink_gen_data(expr->right, &nld2);
- 
- 	nle = alloc_nft_expr("bitwise");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, sreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_BITWISE_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_BITWISE_DREG, sreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
- 	nft_rule_expr_set(nle, NFT_EXPR_BITWISE_MASK, &nld2.value, nld2.len);
- 	nft_rule_expr_set(nle, NFT_EXPR_BITWISE_XOR, &nld.value, nld.len);
- 	nft_rule_add_expr(ctx->nlr, nle);
- 
- 	nle = alloc_nft_expr("cmp");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_CMP_SREG, sreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CMP_OP, NFT_CMP_NEQ);
- 	nft_rule_expr_set(nle, NFT_EXPR_CMP_DATA, nld.value, nld.len);
- 	nft_rule_add_expr(ctx->nlr, nle);
-@@ -419,8 +425,8 @@ static void netlink_gen_binop(struct netlink_linearize_ctx *ctx,
- 	len = div_round_up(expr->len, BITS_PER_BYTE);
- 
- 	nle = alloc_nft_expr("bitwise");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, dreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_BITWISE_SREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_BITWISE_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
- 
- 	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
-@@ -457,8 +463,8 @@ static void netlink_gen_unary(struct netlink_linearize_ctx *ctx,
- 	netlink_gen_expr(ctx, expr->arg, dreg);
- 
- 	nle = alloc_nft_expr("byteorder");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BYTEORDER_SREG, dreg);
--	nft_rule_expr_set_u32(nle, NFT_EXPR_BYTEORDER_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_BYTEORDER_SREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_BYTEORDER_DREG, dreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BYTEORDER_LEN,
- 			      expr->len / BITS_PER_BYTE);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_BYTEORDER_SIZE,
-@@ -476,7 +482,7 @@ static void netlink_gen_immediate(struct netlink_linearize_ctx *ctx,
- 	struct nft_data_linearize nld;
- 
- 	nle = alloc_nft_expr("immediate");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_IMM_DREG, dreg);
-+	netlink_put_register(nle, NFT_EXPR_IMM_DREG, dreg);
- 	netlink_gen_data(expr, &nld);
- 	switch (expr->ops->type) {
- 	case EXPR_VALUE:
-@@ -561,7 +567,7 @@ static void netlink_gen_meta_stmt(struct netlink_linearize_ctx *ctx,
- 	release_register(ctx);
- 
- 	nle = alloc_nft_expr("meta");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_META_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_META_SREG, sreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_META_KEY, stmt->meta.key);
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
-@@ -647,14 +653,14 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 
- 			netlink_gen_expr(ctx, stmt->nat.addr->left, amin_reg);
- 			netlink_gen_expr(ctx, stmt->nat.addr->right, amax_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_ADDR_MIN,
--					      amin_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_ADDR_MAX,
--					      amax_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_ADDR_MIN,
-+					     amin_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_ADDR_MAX,
-+					     amax_reg);
- 		} else {
- 			netlink_gen_expr(ctx, stmt->nat.addr, amin_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_ADDR_MIN,
--					      amin_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_ADDR_MIN,
-+					     amin_reg);
- 		}
- 
- 	}
-@@ -669,14 +675,14 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 
- 			netlink_gen_expr(ctx, stmt->nat.proto->left, pmin_reg);
- 			netlink_gen_expr(ctx, stmt->nat.proto->right, pmax_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_PROTO_MIN,
--					      pmin_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_PROTO_MAX,
--					      pmax_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_PROTO_MIN,
-+					     pmin_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_PROTO_MAX,
-+					     pmax_reg);
- 		} else {
- 			netlink_gen_expr(ctx, stmt->nat.proto, pmin_reg);
--			nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_REG_PROTO_MIN,
--					      pmin_reg);
-+			netlink_put_register(nle, NFT_EXPR_NAT_REG_PROTO_MIN,
-+					     pmin_reg);
- 		}
- 	}
- 
-@@ -787,7 +793,7 @@ static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
- 	release_register(ctx);
- 
- 	nle = alloc_nft_expr("ct");
--	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_SREG, sreg);
-+	netlink_put_register(nle, NFT_EXPR_CT_SREG, sreg);
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_CT_KEY, stmt->ct.key);
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
--- 
-2.1.0
+This patch series implements my idea.
+I'd love to get some feedback!
 
+Patch 1/3 exposes the interfaces alias for general userspace usage, i.e. that ifconfig <alias> works.
+Of course you can only use the first 15 chars of an alias.
+
+In-kernel users of interface names need also an update, patch 2/3 updates x_tables.
+I'm sure there is more todo, i.e. nftables.
+We could also define that netfilter will never use the alias but this needs documented cleary.
+
+Patch 3/3 is a cleanup in continuation of 2/3.
+
+[0] http://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
+
+Thanks,
+//richard
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/misc.git netalias
+
+[PATCH 1/3] net: Make interface aliases available for general usage
+[PATCH 2/3] x_tables: Use also dev->ifalias for interface matching
+[PATCH 3/3] x_tables: Factor out 16bit aligment ifname_compare()
+
+ include/linux/netdevice.h          |  1 +
+ include/linux/netfilter/x_tables.h | 41 +++++++++++++++++++++++++++---
+ include/net/net_namespace.h        |  1 +
+ net/core/dev.c                     | 52 ++++++++++++++++++++++++++++++++++++++
+ net/ipv4/netfilter/arp_tables.c    | 37 ++++-----------------------
+ net/ipv4/netfilter/ip_tables.c     | 15 ++++-------
+ net/ipv6/netfilter/ip6_tables.c    | 18 +++++--------
+ net/netfilter/xt_physdev.c         |  9 ++-----
+ 8 files changed, 110 insertions(+), 64 deletions(-)
