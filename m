@@ -1,69 +1,53 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 3/3] x_tables: Factor out 16bit aligment ifname_compare()
-Date: Mon, 12 Jan 2015 00:40:51 -0800
-Message-ID: <1421052051.9233.11.camel@perches.com>
-References: <54B2EB81.5050604@nod.at>	<1421012376.9233.9.camel@perches.com>
-	 <54B2EE4D.2080802@nod.at>
-	 <20150111.215050.458358747958425038.davem@davemloft.net>
-	 <54B3834D.6090602@nod.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, bhutchings@solarflare.com,
-	john.fastabend@gmail.com, herbert@gondor.apana.org.au,
-	vyasevic@redhat.com, jiri@resnulli.us, vfalico@gmail.com,
-	therbert@google.com, edumazet@google.com, yoshfuji@linux-ipv6.org,
-	jmorris@namei.org, kuznet@ms2.inr.ac.ru, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, pablo@netfilter.org, kay@vrfy.org,
-	stephen@networkplumber.org
-To: Richard Weinberger <richard@nod.at>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [nft PATCH] evaluate: clean up unused variables (pctx)
+Date: Mon, 12 Jan 2015 10:53:57 +0100
+Message-ID: <1421056437-9641-1-git-send-email-alvaroneay@gmail.com>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0238.hostedemail.com ([216.40.44.238]:44334 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752299AbbALIk5 (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:56132 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751969AbbALJxl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2015 03:40:57 -0500
-In-Reply-To: <54B3834D.6090602@nod.at>
+	Mon, 12 Jan 2015 04:53:41 -0500
+Received: by mail-wg0-f43.google.com with SMTP id k14so18224896wgh.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2015 01:53:39 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2015-01-12 at 09:18 +0100, Richard Weinberger wrote:
-> Am 12.01.2015 um 03:50 schrieb David Miller:
-> > From: Richard Weinberger <richard@nod.at>
-> > Date: Sun, 11 Jan 2015 22:42:37 +0100
-> > 
-> >> Joe, I really don't care. This is the least significant
-> >> patch of the series.
-> >> I'll no longer waste my time with that.
-> > 
-> > If you're not willing to fix stylistic issues now, then nobody should
-> > bother wasting their time on the high level issues of your patch.
-> > 
-> > Just fix these things now rather than being difficult, this is a part
-> > of patch review that everyone has to do, not just you.
-> 
-> I apologize, it was not my intention to be difficult.
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/evaluate.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-No worries.
-
-The unsigned long return is kind of odd with a
-compare_<foo> name as those are generally, as Jan
-mentioned, signed comparison style return values.
-
-I'd probably use a different function name too
-
-bool ifname_equal(const char *a, const char *b, const char *mask)
-{
-}
-
-to try to make the return value more obvious too.
-
-> If you and netfilter folks now prefer bool
-> for such string compare functions I'll happily address this in
-> v2 of my series.
-
-Thanks
-
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 53f3cf0..d24d4cc 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1563,7 +1563,6 @@ static int nat_evaluate_transport(struct eval_ctx *ctx, struct stmt *stmt,
+ 
+ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+-	struct proto_ctx *pctx = &ctx->pctx;
+ 	int err;
+ 
+ 	err = nat_evaluate_family(ctx, stmt);
+@@ -1587,7 +1586,6 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+-	struct proto_ctx *pctx = &ctx->pctx;
+ 	int err;
+ 
+ 	err = nat_evaluate_family(ctx, stmt);
+@@ -1600,7 +1598,6 @@ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+-	struct proto_ctx *pctx = &ctx->pctx;
+ 	int err;
+ 
+ 	err = nat_evaluate_family(ctx, stmt);
+-- 
+1.7.10.4
 
