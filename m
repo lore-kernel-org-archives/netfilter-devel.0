@@ -1,12 +1,12 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH 2/3] x_tables: Use also dev->ifalias for interface
  matching
-Date: Mon, 12 Jan 2015 08:46:08 -0800
-Message-ID: <1421081168.4099.10.camel@edumazet-glaptop2.roam.corp.google.com>
+Date: Mon, 12 Jan 2015 08:51:54 -0800
+Message-ID: <1421081514.4099.14.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1421009571-5279-1-git-send-email-richard@nod.at>
 	 <1421009571-5279-3-git-send-email-richard@nod.at>
 	 <1421078666.4099.6.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <alpine.LSU.2.11.1501121731510.25482@nerf60.vanv.qr>
+	 <1425960.ovH4s7sjue@rofl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -19,30 +19,44 @@ Cc: Richard Weinberger <richard@nod.at>, davem@davemloft.net,
 	yoshfuji@linux-ipv6.org, jmorris@namei.org, kuznet@ms2.inr.ac.ru,
 	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
 	kay@vrfy.org, stephen@networkplumber.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Patrick Schaaf <netdev@bof.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.11.1501121731510.25482@nerf60.vanv.qr>
+In-Reply-To: <1425960.ovH4s7sjue@rofl>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2015-01-12 at 17:32 +0100, Jan Engelhardt wrote:
-> On Monday 2015-01-12 17:04, Eric Dumazet wrote:
-> >
-> >iptables should have used ifindex [for interface matching],
-> >it[']s sad we allowed the substring match in first place.
+On Mon, 2015-01-12 at 17:39 +0100, Patrick Schaaf wrote:
+> > iptables should have used ifindex, its sad we allowed the substring
 > 
-> How would you solve interface name wildcards with ifindices?
-> (They come in handy if you have something like lots of tun+/veth+
-> interfaces from openvpn/lxc.)
+> > match in first place.
+> 
+>  
+> 
+> Not to comment on the ifalias thing, which I think is unneccessary,
+> too, but matching on interface names instead of only ifindex, is
+> definitely needed, so that one can establish a full ruleset before
+> interfaces even exist. That's good practise at boottime, but also
+> needed for dynamic interface creation during runtime.
+> 
+>  
+> 
+> A pure ifindex-during-packet-inspection approach might still work, but
+> the ruleset must IMO keep the interface names. Maybe register them in
+> a hash, keyed by name, with values an ifindex or ifindex set (for
+> wildcard names), plus a reverse mapping from active ifindices to all
+> places in these hash values where an ifindex has been remembered. On
+> interface creation / destruction that structure could then be updated,
+> and active packet filtering rules would refer to (and keep a refcount
+> on) specific hash elements.
+> 
+Please do not send html messages : Your reply did not reach the lists.
 
+Then, all you mention could have been solved by proper userspace
+support.
 
-This is what I said : "it[']s sad we allowed the substring match in
-first place."
+Every time you add an interface or change device name, you could change
+firewalls rules if needed. Nothing shocking here.
 
-This obviously referred to wildcards, in the in/out interface match for
-every _single_ rule, consuming 64 bytes of memory per rule and per cpu !
-Which is absolutely crazy in term of memory usage.
-
-Matching tun+ or whatever could easily be done by a match (-m ...),
-because you can factorize this quite easily (called once for a group of
-rules)
+The ruleset can indeed mention interface names, but the kernel part
+really should not care about names, which are a 'human' convenient way
+to represent things.
