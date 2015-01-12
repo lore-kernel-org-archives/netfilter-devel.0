@@ -1,79 +1,195 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Accounting objects support in nft
-Date: Mon, 12 Jan 2015 14:38:14 +0100
-Message-ID: <20150112133814.GA3669@salvia>
-References: <cover.1421059192.git.ana@soleta.eu>
- <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com>
- <20150112123516.GA4546@salvia>
- <20150112123711.GL3491@acer.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	ana@soleta.eu,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 1/2 v2] src: not create iterator with empty list
+Date: Mon, 12 Jan 2015 14:46:14 +0100
+Message-ID: <1421070375-1057-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33403 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752111AbbALNfZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2015 08:35:25 -0500
-Content-Disposition: inline
-In-Reply-To: <20150112123711.GL3491@acer.localdomain>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:55783 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578AbbALNqC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2015 08:46:02 -0500
+Received: by mail-wi0-f173.google.com with SMTP id r20so14524073wiv.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2015 05:46:00 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id jp3sm10288322wid.9.2015.01.12.05.45.59
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 12 Jan 2015 05:45:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 12, 2015 at 12:37:11PM +0000, Patrick McHardy wrote:
-> On 12.01, Pablo Neira Ayuso wrote:
-> > On Mon, Jan 12, 2015 at 12:48:35PM +0100, Arturo Borrero Gonzalez wrote:
-> > > On 12 January 2015 at 11:55,  <ana@soleta.eu> wrote:
-> > > >
-> > > > table ip filter {
-> > > >         acct http-traffic { pkts 779 bytes 99495}
-> > > >         acct https-traffic { pkts 189 bytes 37824}
-> > > >
-> > > >         chain output {
-> > > >              type filter hook output priority 0;
-> > > >              tcp dport http acct http-traffic
-> > > >              tcp dport https acct https-traffic
-> > > >         }
-> > > > }
-> > > >
-> > >
-> > > Interesting, Ana!
-> > >
-> > > I understand that acct objects are bounded to a table/family.
-> > > Why not make them globals? So we could increment same counters from
-> > > different families/tables.
-> > 
-> > Indeed. The existing binding between acct and tables is superfluous.
-> > With sets, we need that to check for loops in verdict maps.
-> > 
-> > So counters can become also top-level identifier as it happens with
-> > tables, ie.
-> > 
-> > counters {
-> >         http-traffic { pkts 779 bytes 99495}
-> >         acct https-traffic { pkts 189 bytes 37824}
-> > }
-> > 
-> > table ip filter {
-> >         chain output {
-> >              type filter hook output priority 0;
-> >              tcp dport http counter http-traffic
-> >              tcp dport https counter https-traffic
-> >         }
-> > }
-> > 
-> > Patrick, any comment on that?
-> 
-> I'm unsure, we don't have any global objects so far, this might open
-> another can of flushing/ordering etc problems. If it works without
-> problems, I can see both variants being useful. Given that we only
-> need a list to store them we might be able to support both by minor
-> adjustments to the lookup function.
-> 
-> If we do actually want to support both, I'd suggest to start using
-> just table scope and expand it later.
+Now, we create iterator without test if the list is empty. If the list
+is empty, we have a crash when we set up the current element.
+With this patch, we test if the list is empty before to create the iterator. If
+the list is empty the iterator return NULL.
 
-Agreed.
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+[changes in v2]
+ * If the list is empty, we set iter->cur to NULL and we check it in _next.
+
+ src/chain.c    |    8 +++++++-
+ src/rule.c     |   17 +++++++++++++++--
+ src/set.c      |    8 +++++++-
+ src/set_elem.c |    9 ++++++++-
+ src/table.c    |    8 +++++++-
+ 5 files changed, 44 insertions(+), 6 deletions(-)
+
+diff --git a/src/chain.c b/src/chain.c
+index b67385e..26ad14d 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -973,7 +973,10 @@ struct nft_chain_list_iter *nft_chain_list_iter_create(struct nft_chain_list *l)
+ 		return NULL;
+ 
+ 	iter->list = l;
+-	iter->cur = list_entry(l->list.next, struct nft_chain, head);
++	if (nft_chain_list_is_empty(l))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(l->list.next, struct nft_chain, head);
+ 
+ 	return iter;
+ }
+@@ -983,6 +986,9 @@ struct nft_chain *nft_chain_list_iter_next(struct nft_chain_list_iter *iter)
+ {
+ 	struct nft_chain *r = iter->cur;
+ 
++	if (r == NULL)
++		return NULL;
++
+ 	/* get next chain, if any */
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_chain, head);
+ 	if (&iter->cur->head == iter->list->list.next)
+diff --git a/src/rule.c b/src/rule.c
+index c974f8b..ac5136c 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1043,7 +1043,11 @@ struct nft_rule_expr_iter *nft_rule_expr_iter_create(struct nft_rule *r)
+ 		return NULL;
+ 
+ 	iter->r = r;
+-	iter->cur = list_entry(r->expr_list.next, struct nft_rule_expr, head);
++	if (list_empty(&r->expr_list))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(r->expr_list.next, struct nft_rule_expr,
++				       head);
+ 
+ 	return iter;
+ }
+@@ -1053,6 +1057,9 @@ struct nft_rule_expr *nft_rule_expr_iter_next(struct nft_rule_expr_iter *iter)
+ {
+ 	struct nft_rule_expr *expr = iter->cur;
+ 
++	if (expr == NULL)
++		return NULL;
++
+ 	/* get next expression, if any */
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_rule_expr, head);
+ 	if (&iter->cur->head == iter->r->expr_list.next)
+@@ -1152,7 +1159,10 @@ struct nft_rule_list_iter *nft_rule_list_iter_create(struct nft_rule_list *l)
+ 		return NULL;
+ 
+ 	iter->list = l;
+-	iter->cur = list_entry(l->list.next, struct nft_rule, head);
++	if (nft_rule_list_is_empty(l))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(l->list.next, struct nft_rule, head);
+ 
+ 	return iter;
+ }
+@@ -1168,6 +1178,9 @@ struct nft_rule *nft_rule_list_iter_next(struct nft_rule_list_iter *iter)
+ {
+ 	struct nft_rule *r = iter->cur;
+ 
++	if (r == NULL)
++		return NULL;
++
+ 	/* get next rule, if any */
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_rule, head);
+ 	if (&iter->cur->head == iter->list->list.next)
+diff --git a/src/set.c b/src/set.c
+index 2385031..61e0632 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -1020,7 +1020,10 @@ struct nft_set_list_iter *nft_set_list_iter_create(struct nft_set_list *l)
+ 		return NULL;
+ 
+ 	iter->list = l;
+-	iter->cur = list_entry(l->list.next, struct nft_set, head);
++	if (nft_set_list_is_empty(l))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(l->list.next, struct nft_set, head);
+ 
+ 	return iter;
+ }
+@@ -1036,6 +1039,9 @@ struct nft_set *nft_set_list_iter_next(struct nft_set_list_iter *iter)
+ {
+ 	struct nft_set *s = iter->cur;
+ 
++	if (s == NULL)
++		return NULL;
++
+ 	/* get next rule, if any */
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_set, head);
+ 	if (&iter->cur->head == iter->list->list.next)
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 95f12bf..4f52b1a 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -690,7 +690,11 @@ struct nft_set_elems_iter *nft_set_elems_iter_create(struct nft_set *s)
+ 
+ 	iter->set = s;
+ 	iter->list = &s->element_list;
+-	iter->cur = list_entry(s->element_list.next, struct nft_set_elem, head);
++	if (list_empty(&s->element_list))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(s->element_list.next,
++				       struct nft_set_elem, head);
+ 
+ 	return iter;
+ }
+@@ -706,6 +710,9 @@ struct nft_set_elem *nft_set_elems_iter_next(struct nft_set_elems_iter *iter)
+ {
+ 	struct nft_set_elem *s = iter->cur;
+ 
++	if (s == NULL)
++		return NULL;
++
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_set_elem, head);
+ 	if (&iter->cur->head == iter->list->next)
+ 		return NULL;
+diff --git a/src/table.c b/src/table.c
+index c93e6fb..e947394 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -544,7 +544,10 @@ struct nft_table_list_iter *nft_table_list_iter_create(struct nft_table_list *l)
+ 		return NULL;
+ 
+ 	iter->list = l;
+-	iter->cur = list_entry(l->list.next, struct nft_table, head);
++	if (nft_table_list_is_empty(l))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(l->list.next, struct nft_table, head);
+ 
+ 	return iter;
+ }
+@@ -554,6 +557,9 @@ struct nft_table *nft_table_list_iter_next(struct nft_table_list_iter *iter)
+ {
+ 	struct nft_table *r = iter->cur;
+ 
++	if (r == NULL)
++		return NULL;
++
+ 	/* get next table, if any */
+ 	iter->cur = list_entry(iter->cur->head.next, struct nft_table, head);
+ 	if (&iter->cur->head == iter->list->list.next)
+-- 
+1.7.10.4
+
