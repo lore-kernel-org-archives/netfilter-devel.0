@@ -1,63 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Accounting objects support in nft
-Date: Mon, 12 Jan 2015 13:35:16 +0100
-Message-ID: <20150112123516.GA4546@salvia>
-References: <cover.1421059192.git.ana@soleta.eu>
- <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nf-next] netfilter: acct: add support to accounters in nftables
+Date: Mon, 12 Jan 2015 12:33:37 +0000
+Message-ID: <20150112123337.GK3491@acer.localdomain>
+References: <cover.1421059771.git.ana@soleta.eu>
+ <99c6e9b457ccc93fb761f6fa7f87fb9e6affc4ee.1421059771.git.ana@soleta.eu>
+ <20150112113135.GA3279@salvia>
+ <20150112114539.GD3491@acer.localdomain>
+ <20150112122754.GA4326@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: ana@soleta.eu,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: ana@soleta.eu, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38727 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750841AbbALMc0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2015 07:32:26 -0500
+Received: from stinky.trash.net ([213.144.137.162]:34882 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbbALMdm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2015 07:33:42 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com>
+In-Reply-To: <20150112122754.GA4326@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 12, 2015 at 12:48:35PM +0100, Arturo Borrero Gonzalez wrote:
-> On 12 January 2015 at 11:55,  <ana@soleta.eu> wrote:
-> >
-> > table ip filter {
-> >         acct http-traffic { pkts 779 bytes 99495}
-> >         acct https-traffic { pkts 189 bytes 37824}
-> >
-> >         chain output {
-> >              type filter hook output priority 0;
-> >              tcp dport http acct http-traffic
-> >              tcp dport https acct https-traffic
-> >         }
-> > }
-> >
->
-> Interesting, Ana!
->
-> I understand that acct objects are bounded to a table/family.
-> Why not make them globals? So we could increment same counters from
-> different families/tables.
+On 12.01, Pablo Neira Ayuso wrote:
+> On Mon, Jan 12, 2015 at 11:45:39AM +0000, Patrick McHardy wrote:
+> > On 12.01, Pablo Neira Ayuso wrote:
+> > > > +/**
+> > > > + * struct nft_acct - nf_tables acct instance
+> > > > + *
+> > > > + * @list: table acct list node
+> > > > + * @name: name of the acct
+> > > > + * @pkts:  number of packets
+> > > > + * @bytes:  number of bytes
+> > > > + * use: number of rule references to this acct
+> > > > + */
+> > > > +struct nft_acct {
+> > > > +	struct list_head	list;
+> > > > +	char                    name[NFT_ACCT_MAXNAMELEN];
+> > > 
+> > > NFT_ACCT_MAXNAMELEN needs to be limited to 16 bytes, so we can easily
+> > > use acct objects from mappings.
+> > 
+> > Not saying that we need more than 16 bytes, but we'd hopefully use
+> > references instead of runtime resolved lookups in mappings :)
+> 
+> I just noticed Ana have to replace NFTA_ACCT_EXPR_NAME by
+> NFTA_ACCT_EXPR_SREG to support mappings.
+> 
+> What's your idea behind the references? Use some unique id to identify
+> the object instead of the name?
 
-Indeed. The existing binding between acct and tables is superfluous.
-With sets, we need that to check for loops in verdict maps.
+Similar to verdicts we'd include another data type which refers to
+accounting objects. Those are resolved when the data is created and
+we'd return them from the map lookup. Resolving can use the name,
+just as we do for chains.
 
-So counters can become also top-level identifier as it happens with
-tables, ie.
-
-counters {
-        http-traffic { pkts 779 bytes 99495}
-        acct https-traffic { pkts 189 bytes 37824}
-}
-
-table ip filter {
-        chain output {
-             type filter hook output priority 0;
-             tcp dport http counter http-traffic
-             tcp dport https counter https-traffic
-        }
-}
-
-Patrick, any comment on that?
+At runtime the map would either load the reference to a register and
+pass it to the counter expression (might need a special register
+similar to NFT_REG_VERDICT) or we just add a special type of the
+counter expression that invokes the lookup itself.
