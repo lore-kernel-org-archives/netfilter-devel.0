@@ -1,53 +1,61 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [nft PATCH] evaluate: clean up unused variables (pctx)
-Date: Mon, 12 Jan 2015 10:53:57 +0100
-Message-ID: <1421056437-9641-1-git-send-email-alvaroneay@gmail.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2/2] expr: fix crash when listing non-verdict mappings
+Date: Mon, 12 Jan 2015 10:02:08 +0000
+Message-ID: <1421056928-1247-2-git-send-email-kaber@trash.net>
+References: <1421056928-1247-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:56132 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969AbbALJxl (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33883 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752625AbbALKCW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2015 04:53:41 -0500
-Received: by mail-wg0-f43.google.com with SMTP id k14so18224896wgh.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2015 01:53:39 -0800 (PST)
+	Mon, 12 Jan 2015 05:02:22 -0500
+In-Reply-To: <1421056928-1247-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- src/evaluate.c |    3 ---
- 1 file changed, 3 deletions(-)
+Fix regression introduced by commit 87c2a2205:
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 53f3cf0..d24d4cc 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1563,7 +1563,6 @@ static int nat_evaluate_transport(struct eval_ctx *ctx, struct stmt *stmt,
+  netlink_delinearize: clone on netlink_get_register(), release previous on _set()
+
+When using a non-verdict mapping, the set ref expression is assigned to the
+destination register. The next get_register() will attempt to clone it and
+crash because of the missing ->clone() callback.
+
+# nft filter input meta mark set ip daddr map { 192.168.0.1 : 123 }
+# nft list table filter
+Segmentation fault (core dumped)
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/expression.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/expression.c b/src/expression.c
+index 8ba2e8a..5b848da 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -858,6 +858,11 @@ static void set_ref_expr_print(const struct expr *expr)
+ 		printf("@%s", expr->set->handle.set);
+ }
  
- static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
++static void set_ref_expr_clone(struct expr *new, const struct expr *expr)
++{
++	new->set = set_get(expr->set);
++}
++
+ static void set_ref_expr_destroy(struct expr *expr)
  {
--	struct proto_ctx *pctx = &ctx->pctx;
- 	int err;
+ 	set_free(expr->set);
+@@ -867,6 +872,7 @@ static const struct expr_ops set_ref_expr_ops = {
+ 	.type		= EXPR_SET_REF,
+ 	.name		= "set reference",
+ 	.print		= set_ref_expr_print,
++	.clone		= set_ref_expr_clone,
+ 	.destroy	= set_ref_expr_destroy,
+ };
  
- 	err = nat_evaluate_family(ctx, stmt);
-@@ -1587,7 +1586,6 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
- 
- static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
- {
--	struct proto_ctx *pctx = &ctx->pctx;
- 	int err;
- 
- 	err = nat_evaluate_family(ctx, stmt);
-@@ -1600,7 +1598,6 @@ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
- 
- static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
- {
--	struct proto_ctx *pctx = &ctx->pctx;
- 	int err;
- 
- 	err = nat_evaluate_family(ctx, stmt);
 -- 
-1.7.10.4
+2.1.0
 
