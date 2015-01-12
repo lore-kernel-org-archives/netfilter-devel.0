@@ -1,52 +1,79 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/4] evaluate: verify named map is actually a map
-Date: Mon, 12 Jan 2015 13:30:03 +0000
-Message-ID: <1421069406-10276-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Accounting objects support in nft
+Date: Mon, 12 Jan 2015 14:38:14 +0100
+Message-ID: <20150112133814.GA3669@salvia>
+References: <cover.1421059192.git.ana@soleta.eu>
+ <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com>
+ <20150112123516.GA4546@salvia>
+ <20150112123711.GL3491@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	ana@soleta.eu,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35350 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142AbbALNaM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2015 08:30:12 -0500
+Received: from mail.us.es ([193.147.175.20]:33403 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752111AbbALNfZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2015 08:35:25 -0500
+Content-Disposition: inline
+In-Reply-To: <20150112123711.GL3491@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-# nft add set filter test { type ipv4_addr; }
-# nft filter input ip daddr vmap @test
+On Mon, Jan 12, 2015 at 12:37:11PM +0000, Patrick McHardy wrote:
+> On 12.01, Pablo Neira Ayuso wrote:
+> > On Mon, Jan 12, 2015 at 12:48:35PM +0100, Arturo Borrero Gonzalez wrote:
+> > > On 12 January 2015 at 11:55,  <ana@soleta.eu> wrote:
+> > > >
+> > > > table ip filter {
+> > > >         acct http-traffic { pkts 779 bytes 99495}
+> > > >         acct https-traffic { pkts 189 bytes 37824}
+> > > >
+> > > >         chain output {
+> > > >              type filter hook output priority 0;
+> > > >              tcp dport http acct http-traffic
+> > > >              tcp dport https acct https-traffic
+> > > >         }
+> > > > }
+> > > >
+> > >
+> > > Interesting, Ana!
+> > >
+> > > I understand that acct objects are bounded to a table/family.
+> > > Why not make them globals? So we could increment same counters from
+> > > different families/tables.
+> > 
+> > Indeed. The existing binding between acct and tables is superfluous.
+> > With sets, we need that to check for loops in verdict maps.
+> > 
+> > So counters can become also top-level identifier as it happens with
+> > tables, ie.
+> > 
+> > counters {
+> >         http-traffic { pkts 779 bytes 99495}
+> >         acct https-traffic { pkts 189 bytes 37824}
+> > }
+> > 
+> > table ip filter {
+> >         chain output {
+> >              type filter hook output priority 0;
+> >              tcp dport http counter http-traffic
+> >              tcp dport https counter https-traffic
+> >         }
+> > }
+> > 
+> > Patrick, any comment on that?
+> 
+> I'm unsure, we don't have any global objects so far, this might open
+> another can of flushing/ordering etc problems. If it works without
+> problems, I can see both variants being useful. Given that we only
+> need a list to store them we might be able to support both by minor
+> adjustments to the lookup function.
+> 
+> If we do actually want to support both, I'd suggest to start using
+> just table scope and expand it later.
 
-Before:
-
-<cmdline>:0:0-32: Error: Could not process rule: Invalid argument
-filter input ip daddr vmap @test
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-After:
-
-<cmdline>:1:28-32: Error: Expression is not a map
-filter input ip daddr vmap @test
-                           ^^^^^
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/evaluate.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index d24d4cc..651465a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -738,7 +738,8 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 	case EXPR_SYMBOL:
- 		if (expr_evaluate(ctx, &map->mappings) < 0)
- 			return -1;
--		if (map->mappings->ops->type != EXPR_SET_REF)
-+		if (map->mappings->ops->type != EXPR_SET_REF ||
-+		    !(map->mappings->set->flags & NFT_SET_MAP))
- 			return expr_error(ctx->msgs, map->mappings,
- 					  "Expression is not a map");
- 		break;
--- 
-2.1.0
-
+Agreed.
