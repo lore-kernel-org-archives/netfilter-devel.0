@@ -1,68 +1,89 @@
-From: Patrick Schaaf <netdev@bof.de>
-Subject: Re: [PATCH 2/3] x_tables: Use also dev->ifalias for interface matching
-Date: Mon, 12 Jan 2015 18:41:42 +0100
-Message-ID: <2245326.CTMNrtX3Ao@rofl>
-References: <1421009571-5279-1-git-send-email-richard@nod.at> <2868544.UBk2Y85taW@rofl> <20150112172257.GG17329@acer.localdomain>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: Accounting objects support in nft
+Date: Mon, 12 Jan 2015 21:43:19 +0100
+Message-ID: <CAOkSjBikkYosr1q=T1yKMaTugLFB-b3hWyJtde5iFPjpmOhAXg@mail.gmail.com>
+References: <cover.1421059192.git.ana@soleta.eu> <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com>
+ <20150112123516.GA4546@salvia> <20150112123711.GL3491@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Richard Weinberger <richard@nod.at>, davem@davemloft.net,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	bhutchings@solarflare.com, john.fastabend@gmail.com,
-	herbert@gondor.apana.org.au, vyasevic@redhat.com, jiri@resnulli.us,
-	vfalico@gmail.com, therbert@google.com, edumazet@google.com,
-	yoshfuji@linux-ipv6.org, jmorris@namei.org, kuznet@ms2.inr.ac.ru,
-	kadlec@blackhole.kfki.hu, pablo@netfilter.org, kay@vrfy.org,
-	stephen@networkplumber.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, ana@soleta.eu,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150112172257.GG17329@acer.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:55091 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752247AbbALUnm convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2015 15:43:42 -0500
+Received: by mail-la0-f52.google.com with SMTP id hs14so26755422lab.11
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2015 12:43:41 -0800 (PST)
+In-Reply-To: <20150112123711.GL3491@acer.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 12 January 2015 17:22:57 Patrick McHardy wrote:
-> On 12.01, Patrick Schaaf wrote:
-> >
-> > Interfaces come and go through many different actions. There's the admin
-> > downing and upping stuff like bridges or bonds. There's stuff like libvirt
-> > / KVM / qemu creating and destroying interfaces. In all these cases, in
-> > my practise, I give the interfaces useful names to that I can
-> > prefix-match them in iptables rules.
-> > 
-> > Dynamically modifying the ruleset for each such creation and destruction,
-> > would be a huge burden. The base ruleset would need suitable "hooks" where
-> > these rules were inserted (ordering matters!). The addition would hardly
-> > be
-> > atomic (with traditional iptables, unless done by generating a whole new
-> > ruleset and restoring). The programs (e.g. libvirt) would need to be able
-> > to call out to these specially crafted rule generator scripts. The admin
-> > would need to add them as pre/post actions to their static (manual)
-> > interface configuration. Loading and looking at the ruleset before
-> > bringing up the interface would be impossible.
-> 
-> devgroups seem like the best solution for this.
+On 12 January 2015 at 13:37, Patrick McHardy <kaber@trash.net> wrote:
+> On 12.01, Pablo Neira Ayuso wrote:
+>> On Mon, Jan 12, 2015 at 12:48:35PM +0100, Arturo Borrero Gonzalez wr=
+ote:
+>> > On 12 January 2015 at 11:55,  <ana@soleta.eu> wrote:
+>> > >
+>> > > table ip filter {
+>> > >         acct http-traffic { pkts 779 bytes 99495}
+>> > >         acct https-traffic { pkts 189 bytes 37824}
+>> > >
+>> > >         chain output {
+>> > >              type filter hook output priority 0;
+>> > >              tcp dport http acct http-traffic
+>> > >              tcp dport https acct https-traffic
+>> > >         }
+>> > > }
+>> > >
+>> >
+>> > Interesting, Ana!
+>> >
+>> > I understand that acct objects are bounded to a table/family.
+>> > Why not make them globals? So we could increment same counters fro=
+m
+>> > different families/tables.
+>>
+>> Indeed. The existing binding between acct and tables is superfluous.
+>> With sets, we need that to check for loops in verdict maps.
+>>
+>> So counters can become also top-level identifier as it happens with
+>> tables, ie.
+>>
+>> counters {
+>>         http-traffic { pkts 779 bytes 99495}
+>>         acct https-traffic { pkts 189 bytes 37824}
+>> }
+>>
+>> table ip filter {
+>>         chain output {
+>>              type filter hook output priority 0;
+>>              tcp dport http counter http-traffic
+>>              tcp dport https counter https-traffic
+>>         }
+>> }
+>>
+>> Patrick, any comment on that?
+>
+> I'm unsure, we don't have any global objects so far, this might open
+> another can of flushing/ordering etc problems. If it works without
+> problems, I can see both variants being useful. Given that we only
+> need a list to store them we might be able to support both by minor
+> adjustments to the lookup function.
+>
+> If we do actually want to support both, I'd suggest to start using
+> just table scope and expand it later.
 
-Could be, technically.
+Ok :-)
 
-Is there devgroup support in libvirt, ifcfg, whatever other distros use for 
-their static interface configuration? Or, do I again have to write pre/post 
-scripts to set devgroups? Wouldn't bother me too much nowadays, I've automated 
-that for ifcfg style stuff in my production environment a year ago, but it's 
-something an admin must actively manage...
-
-There is other stuff, apart from libvirt, that creates and destroys interfaces 
-on the fly. From my production environment, there's at least keepalived, which 
-creates macvlan interfaces on the fly for VRRP VMAC support. I can configure 
-the name for that, but nothing else, nor can I call a script pre/post for 
-that. And my iptables rules on that boxen _do_ match specially on these 
-interfaces.
-
-Gooling a bit around does not immediately turn up any good documentation on it 
-at all (four year old iproute2 commits, once I give that as a search term 
-too?). Looks very sketchy (although the fundamental idea is clear to me. I'm 
-looking through the normal admin practise lens....)
-
-best regards
-  Patrick
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
