@@ -1,15 +1,11 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 2/3] x_tables: Use also dev->ifalias for interface
- matching
-Date: Mon, 12 Jan 2015 08:51:54 -0800
-Message-ID: <1421081514.4099.14.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1421009571-5279-1-git-send-email-richard@nod.at>
-	 <1421009571-5279-3-git-send-email-richard@nod.at>
-	 <1421078666.4099.6.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <1425960.ovH4s7sjue@rofl>
+From: Patrick Schaaf <netdev@bof.de>
+Subject: Re: [PATCH 2/3] x_tables: Use also dev->ifalias for interface matching
+Date: Mon, 12 Jan 2015 18:19:49 +0100
+Message-ID: <2868544.UBk2Y85taW@rofl>
+References: <1421009571-5279-1-git-send-email-richard@nod.at> <1425960.ovH4s7sjue@rofl> <1421081514.4099.14.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Cc: Richard Weinberger <richard@nod.at>, davem@davemloft.net,
 	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
 	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
@@ -19,44 +15,53 @@ Cc: Richard Weinberger <richard@nod.at>, davem@davemloft.net,
 	yoshfuji@linux-ipv6.org, jmorris@namei.org, kuznet@ms2.inr.ac.ru,
 	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
 	kay@vrfy.org, stephen@networkplumber.org
-To: Patrick Schaaf <netdev@bof.de>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425960.ovH4s7sjue@rofl>
+In-Reply-To: <1421081514.4099.14.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2015-01-12 at 17:39 +0100, Patrick Schaaf wrote:
-> > iptables should have used ifindex, its sad we allowed the substring
+On Monday 12 January 2015 08:51:54 Eric Dumazet wrote:
+> On Mon, 2015-01-12 at 17:39 +0100, Patrick Schaaf wrote:
+> > 
+> > Not to comment on the ifalias thing, which I think is unneccessary,
+> > too, but matching on interface names instead of only ifindex, is
+> > definitely needed, so that one can establish a full ruleset before
+> > interfaces even exist. That's good practise at boottime, but also
+> > needed for dynamic interface creation during runtime.
 > 
-> > match in first place.
-> 
->  
-> 
-> Not to comment on the ifalias thing, which I think is unneccessary,
-> too, but matching on interface names instead of only ifindex, is
-> definitely needed, so that one can establish a full ruleset before
-> interfaces even exist. That's good practise at boottime, but also
-> needed for dynamic interface creation during runtime.
-> 
->  
-> 
-> A pure ifindex-during-packet-inspection approach might still work, but
-> the ruleset must IMO keep the interface names. Maybe register them in
-> a hash, keyed by name, with values an ifindex or ifindex set (for
-> wildcard names), plus a reverse mapping from active ifindices to all
-> places in these hash values where an ifindex has been remembered. On
-> interface creation / destruction that structure could then be updated,
-> and active packet filtering rules would refer to (and keep a refcount
-> on) specific hash elements.
-> 
-Please do not send html messages : Your reply did not reach the lists.
+> Please do not send html messages : Your reply did not reach the lists.
 
-Then, all you mention could have been solved by proper userspace
-support.
+Sigh. Sorry...
 
-Every time you add an interface or change device name, you could change
-firewalls rules if needed. Nothing shocking here.
+> Then, all you mention could have been solved by proper userspace
+> support.
+> 
+> Every time you add an interface or change device name, you could change
+> firewalls rules if needed. Nothing shocking here.
 
-The ruleset can indeed mention interface names, but the kernel part
-really should not care about names, which are a 'human' convenient way
-to represent things.
+That is totally impractical, IMO.
+
+Interfaces come and go through many different actions. There's the admin 
+downing and upping stuff like bridges or bonds. There's stuff like libvirt / 
+KVM / qemu creating and destroying interfaces. In all these cases, in my 
+practise, I give the interfaces useful names to that I can prefix-match them 
+in iptables rules.
+
+Dynamically modifying the ruleset for each such creation and destruction, 
+would be a huge burden. The base ruleset would need suitable "hooks" where 
+these rules were inserted (ordering matters!). The addition would hardly be 
+atomic (with traditional iptables, unless done by generating a whole new 
+ruleset and restoring). The programs (e.g. libvirt) would need to be able to 
+call out to these specially crafted rule generator scripts. The admin would 
+need to add them as pre/post actions to their static (manual) interface 
+configuration. Loading and looking at the ruleset before bringing up the 
+interface would be impossible.
+
+Note that I do fully agree that it's sad that iptables rules waste all that 
+memory for each and every rule! I remember musing about improving that in 
+talks with Harald Welte back in the 90ies. A simple match would be perfectly 
+fine for me. Only having ifindex support, isn't.
+
+best regards
+  Patrick
