@@ -1,66 +1,96 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: [PATCH net-next] rhashtable: Lower/upper bucket may map to same lock
- while shrinking
-Date: Mon, 12 Jan 2015 23:58:21 +0000
-Message-ID: <20150112235821.GB16617@casper.infradead.org>
-References: <20150112232217.GA5277@wfg-t540p.sh.intel.com>
+From: Richard Guy Briggs <rgb@tricolour.ca>
+Subject: NetDev 0.1 new proposals accepted update
+Date: Mon, 12 Jan 2015 21:51:27 -0500
+Message-ID: <20150113025127.GH17306@toccata2.tricolour.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: LKP <lkp@01.org>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: davem@davemloft.net, Fengguang Wu <fengguang.wu@intel.com>
-Return-path: <netdev-owner@vger.kernel.org>
+To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from toccata2.tricolour.ca ([204.225.221.17]:57809 "EHLO
+	toccata2.tricolour.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbbAMCvc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2015 21:51:32 -0500
 Content-Disposition: inline
-In-Reply-To: <20150112232217.GA5277@wfg-t540p.sh.intel.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Each per bucket lock covers a configurable number of buckets. While
-shrinking, two buckets in the old table contain entries for a single
-bucket in the new table. We need to lock down both while linking.
-Check if they are protected by different locks to avoid a recursive
-lock.
+Fellow netheads:
 
-Fixes: 97defe1e ("rhashtable: Per bucket locks & deferred expansion/shrinking")
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Thomas Graf <tgraf@suug.ch>
----
- lib/rhashtable.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+Here is an update on new proposals accepted this past week for NetDev 0.1 that
+you may have missed if you aren't following the RSS feed or twitter:
 
-diff --git a/lib/rhashtable.c b/lib/rhashtable.c
-index 8023b55..45477f7 100644
---- a/lib/rhashtable.c
-+++ b/lib/rhashtable.c
-@@ -443,8 +443,16 @@ int rhashtable_shrink(struct rhashtable *ht)
- 		new_bucket_lock = bucket_lock(new_tbl, new_hash);
- 
- 		spin_lock_bh(old_bucket_lock1);
--		spin_lock_bh_nested(old_bucket_lock2, RHT_LOCK_NESTED);
--		spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED2);
-+
-+		/* Depending on the lock per buckets mapping, the bucket in
-+		 * the lower and upper region may map to the same lock.
-+		 */
-+		if (old_bucket_lock1 != old_bucket_lock2) {
-+			spin_lock_bh_nested(old_bucket_lock2, RHT_LOCK_NESTED);
-+			spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED2);
-+		} else {
-+			spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED);
-+		}
- 
- 		rcu_assign_pointer(*bucket_tail(new_tbl, new_hash),
- 				   tbl->buckets[new_hash]);
-@@ -452,7 +460,8 @@ int rhashtable_shrink(struct rhashtable *ht)
- 				   tbl->buckets[new_hash + new_tbl->size]);
- 
- 		spin_unlock_bh(new_bucket_lock);
--		spin_unlock_bh(old_bucket_lock2);
-+		if (old_bucket_lock1 != old_bucket_lock2)
-+			spin_unlock_bh(old_bucket_lock2);
- 		spin_unlock_bh(old_bucket_lock1);
- 	}
- 
--- 
-1.9.3
+
+Accepted talks: (All listed: https://www.netdev01.org/sessions )
+===============
+Offloading to yet another software switch
+Michio Honda
+https://www.netdev01.org/sessions/13
+
+Implementing Open vSwitch datapath using TC
+Jiri Pirko
+https://www.netdev01.org/sessions/14
+
+MPTCP Upstreaming
+Doru Gucea
+https://www.netdev01.org/sessions/16
+
+
+Accepted workshops:
+===================
+TCP stack instrumentation BoF
+Chris Rapier
+https://www.netdev01.org/sessions/17
+
+802.1ad HW acceleration and MTU handling
+Toshiaki Makita
+https://www.netdev01.org/sessions/18
+
+
+Accepted Tutorials:
+===================
+Tutorial on perf Usage
+Hannes Frederic Sowa
+https://www.netdev01.org/sessions/12
+
+BPF In-kernel Virtual Machine
+Alexei Starovoitov
+https://www.netdev01.org/sessions/15
+
+
+All of the accepted proposals are new work.  A couple of proposals have been
+returned for rework prior to acceptance.  There are still more excellent
+proposals currently making their way through the technical committee vetting
+process.  The committee has so far been very impressed with the quality of
+proposals submitted.
+
+
+A reminder that the Westin Hotel is holding a block of rooms for Netdev01 at a
+guaranteed rate of $159.00 or $179.00 (depending on the type of room required)
+and the rooms are going fast due to Winterlude bookings.  That guarantee
+expires on January 23, so book now to avoid disappointment and get the low
+rate. The rooms are going faster than we expected!
+Reservations: https://www.starwoodmeeting.com/StarGroupsWeb/res?id=1412035802&key=1AC9C1F8
+
+
+Registration https://onlineregistrations.ca/netdev01/
+$100/day, or $350 for 4 days (Cdn dollars). (online reg closes Feb 12th)
+Registering helps us plan properly for numbers of attendees,
+ensuring venue sizes and supplies are appropriate without
+wasting resources.
+
+
+NetDev 0.1 would like to gratefully acknowledge our sponsors: https://netdev01.org/sponsors
+Verizon http://www.verizon.com/
+Cumulus Networks http://cumulusnetworks.com/ 
+Mojatatu Networks http://mojatatu.com/ 
+
+
+THE Technical Conference on Linux Networking, February 14-17, 2015, Ottawa, Canada
+https://netdev01.org/
+
+Travel advice: https://netdev01.org/travel
+RSS feed: https://netdev01.org/atom
+Follow us on Twitter: @netdev01 https://twitter.com/netdev01
