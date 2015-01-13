@@ -1,43 +1,44 @@
-From: Gustavo Zacarias <gustavo@zacarias.com.ar>
-Subject: [iptables PATCH] configure: disable connlabel for static builds
-Date: Tue, 13 Jan 2015 10:46:20 -0300
-Message-ID: <1421156780-30315-1-git-send-email-gustavo@zacarias.com.ar>
-Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www.zacarias.com.ar ([62.210.192.172]:58827 "EHLO
-	www.zacarias.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbbAMNzq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Jan 2015 08:55:46 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH net-next] rhashtable: Lower/upper bucket may map to same
+ lock while shrinking
+Date: Tue, 13 Jan 2015 15:00:54 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CAC6946@AcuExch.aculab.com>
+References: <20150112232217.GA5277@wfg-t540p.sh.intel.com>
+ <20150112235821.GB16617@casper.infradead.org>
+ <063D6719AE5E284EB5DD2968C1650D6D1CAC6593@AcuExch.aculab.com>
+ <20150113112507.GH20387@casper.infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "davem@davemloft.net" <davem@davemloft.net>,
+	Fengguang Wu <fengguang.wu@intel.com>, LKP <lkp@01.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: 'Thomas Graf' <tgraf@suug.ch>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150113112507.GH20387@casper.infradead.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Disable connlabel for purely static builds since it pulls in libdl which
-isn't available in such cases causing build breakage.
+From: Thomas Graf
+...
+> > Thought, could the shrunk table use the same locks as the lower half
+> > of the old table?
+> 
+> No. A new bucket table and thus a new set of locks is allocated when the
+> table is shrunk or grown. We only have check for overlapping locks
+> when holding multiple locks for the same table at the same time.
 
-Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
----
- configure.ac | 4 ++++
- 1 file changed, 4 insertions(+)
+I was guessing that when locks are shared buckets k and 2^n+k use the
+same lock.
+Under those conditions if the 'grow' decided not to allocate extra
+locks then it could save work by using exactly the same locks as the
+old table.
+Similarly 'shrink' could do the reverse.
 
-diff --git a/configure.ac b/configure.ac
-index 2521ccc..0f92c48 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -88,8 +88,12 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
- 	blacklist_modules="$blacklist_modules ipvs";
- fi;
- 
-+if test "$enable_shared" = "yes"; then
- PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
- 	[nfconntrack=1], [nfconntrack=0])
-+else
-+	nfconntrack=0
-+fi;
- AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
- 
- if test "$nfconntrack" -ne 1; then
--- 
-2.0.5
+It was only a thought.
 
+	David
