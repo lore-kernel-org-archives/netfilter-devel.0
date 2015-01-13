@@ -1,82 +1,55 @@
-From: Ana Rey <ana@soleta.eu>
-Subject: Re: Accounting objects support in nft
-Date: Tue, 13 Jan 2015 09:25:53 +0100
-Message-ID: <54B4D691.9000604@soleta.eu>
-References: <cover.1421059192.git.ana@soleta.eu> <CAOkSjBi6K9t0W5Nv=mBwNUMbzT3UeFsMoadqzkBpSfDqJ3tJUQ@mail.gmail.com> <20150112123516.GA4546@salvia> <20150112123711.GL3491@acer.localdomain> <CAOkSjBikkYosr1q=T1yKMaTugLFB-b3hWyJtde5iFPjpmOhAXg@mail.gmail.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH net-next] rhashtable: Lower/upper bucket may map to same
+ lock while shrinking
+Date: Tue, 13 Jan 2015 09:49:19 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CAC6593@AcuExch.aculab.com>
+References: <20150112232217.GA5277@wfg-t540p.sh.intel.com>
+ <20150112235821.GB16617@casper.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:46889 "EHLO
-	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbbAMIZM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Jan 2015 03:25:12 -0500
-In-Reply-To: <CAOkSjBikkYosr1q=T1yKMaTugLFB-b3hWyJtde5iFPjpmOhAXg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: LKP <lkp@01.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: 'Thomas Graf' <tgraf@suug.ch>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	Fengguang Wu <fengguang.wu@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150112235821.GB16617@casper.infradead.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+From: Thomas Graf
+> Each per bucket lock covers a configurable number of buckets. While
+> shrinking, two buckets in the old table contain entries for a single
+> bucket in the new table. We need to lock down both while linking.
+> Check if they are protected by different locks to avoid a recursive
+> lock.
 
+Thought, could the shrunk table use the same locks as the lower half
+of the old table?
 
-On 12/01/15 21:43, Arturo Borrero Gonzalez wrote:
-> On 12 January 2015 at 13:37, Patrick McHardy <kaber@trash.net> wrote:
->> On 12.01, Pablo Neira Ayuso wrote:
->>> On Mon, Jan 12, 2015 at 12:48:35PM +0100, Arturo Borrero Gonzalez wrote:
->>>> On 12 January 2015 at 11:55,  <ana@soleta.eu> wrote:
->>>>>
->>>>> table ip filter {
->>>>>         acct http-traffic { pkts 779 bytes 99495}
->>>>>         acct https-traffic { pkts 189 bytes 37824}
->>>>>
->>>>>         chain output {
->>>>>              type filter hook output priority 0;
->>>>>              tcp dport http acct http-traffic
->>>>>              tcp dport https acct https-traffic
->>>>>         }
->>>>> }
->>>>>
->>>>
->>>> Interesting, Ana!
->>>>
->>>> I understand that acct objects are bounded to a table/family.
->>>> Why not make them globals? So we could increment same counters from
->>>> different families/tables.
->>>
->>> Indeed. The existing binding between acct and tables is superfluous.
->>> With sets, we need that to check for loops in verdict maps.
->>>
->>> So counters can become also top-level identifier as it happens with
->>> tables, ie.
->>>
->>> counters {
->>>         http-traffic { pkts 779 bytes 99495}
->>>         acct https-traffic { pkts 189 bytes 37824}
->>> }
->>>
->>> table ip filter {
->>>         chain output {
->>>              type filter hook output priority 0;
->>>              tcp dport http counter http-traffic
->>>              tcp dport https counter https-traffic
->>>         }
->>> }
->>>
->>> Patrick, any comment on that?
->>
->> I'm unsure, we don't have any global objects so far, this might open
->> another can of flushing/ordering etc problems. If it works without
->> problems, I can see both variants being useful. Given that we only
->> need a list to store them we might be able to support both by minor
->> adjustments to the lookup function.
->>
->> If we do actually want to support both, I'd suggest to start using
->> just table scope and expand it later.
-> 
-> Ok :-)
+I also wonder whether shrinking hash tables is ever actually worth
+the effort. Most likely they'll need to grow again very quickly.
 
-ok.
+>  		spin_lock_bh(old_bucket_lock1);
+> -		spin_lock_bh_nested(old_bucket_lock2, RHT_LOCK_NESTED);
+> -		spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED2);
+> +
+> +		/* Depending on the lock per buckets mapping, the bucket in
+> +		 * the lower and upper region may map to the same lock.
+> +		 */
+> +		if (old_bucket_lock1 != old_bucket_lock2) {
+> +			spin_lock_bh_nested(old_bucket_lock2, RHT_LOCK_NESTED);
+> +			spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED2);
+> +		} else {
+> +			spin_lock_bh_nested(new_bucket_lock, RHT_LOCK_NESTED);
+> +		}
+
+Acquiring 3 locks of much the same type looks like a locking hierarchy
+violation just waiting to happen.
+
+	David
