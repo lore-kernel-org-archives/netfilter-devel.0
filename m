@@ -1,93 +1,129 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat PATCH] ebtables-compat: fix ACCEPT printing by
- simplifying logic
-Date: Tue, 13 Jan 2015 18:36:10 +0100
-Message-ID: <20150113173610.3965.9202.stgit@nfdev.cica.es>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nf-next] netfilter: acct: add support to accounters in nftables
+Date: Tue, 13 Jan 2015 18:01:37 +0000
+Message-ID: <20150113180137.GF11414@acer.localdomain>
+References: <cover.1421059771.git.ana@soleta.eu>
+ <99c6e9b457ccc93fb761f6fa7f87fb9e6affc4ee.1421059771.git.ana@soleta.eu>
+ <20150112113135.GA3279@salvia>
+ <20150112114539.GD3491@acer.localdomain>
+ <20150112122754.GA4326@salvia>
+ <20150112123337.GK3491@acer.localdomain>
+ <20150112125919.GM3491@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: ana@soleta.eu, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55962 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753012AbbAMRgV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Jan 2015 12:36:21 -0500
+Received: from stinky.trash.net ([213.144.137.162]:46954 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109AbbAMSBm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Jan 2015 13:01:42 -0500
+Content-Disposition: inline
+In-Reply-To: <20150112125919.GM3491@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The commit bc543af ("ebtables-compat: fix segfault in rules w/o target")
-doesn't handle all possible cases of target printing, and ACCEPT is left
-behind.
+On 12.01, Patrick McHardy wrote:
+> On 12.01, Patrick McHardy wrote:
+> > On 12.01, Pablo Neira Ayuso wrote:
+> > > I just noticed Ana have to replace NFTA_ACCT_EXPR_NAME by
+> > > NFTA_ACCT_EXPR_SREG to support mappings.
+> > > 
+> > > What's your idea behind the references? Use some unique id to identify
+> > > the object instead of the name?
+> > 
+> > Similar to verdicts we'd include another data type which refers to
+> > accounting objects. Those are resolved when the data is created and
+> > we'd return them from the map lookup. Resolving can use the name,
+> > just as we do for chains.
+> > 
+> > At runtime the map would either load the reference to a register and
+> > pass it to the counter expression (might need a special register
+> > similar to NFT_REG_VERDICT) or we just add a special type of the
+> > counter expression that invokes the lookup itself.
+> 
+> Thinking a bit more about this, I think this is very much similar
+> to what we've discussed about having some generic state provider
+> for limit, quota etc.
+> 
+> In all these cases we need to provide some persistent storage to
+> the expressions to be used instead of their private data. For
+> hashlimit or hashquota it would probably be based on some generic
+> state provider that dynamically instantiates this, but its still
+> very similar to looking up an accounting object in a set and
+> passing that on.
+> 
+> So strike that "special type of counter expression", I think what
+> we need is either a special register to pass state between modules
+> or just some better validation for the existing registers so passing
+> pointers is safe.
 
-BTW, the logic of target (-j XXX) printing is a bit weird. This patch
-simplifies it.
+For getting a better feeling of this I did some initial hacking on
+the state module for limit/quota etc. What the module does is
+basically maintaining a hash with opaque state objects, looking
+them up based on a provided key and handing them to another module
+to use instead of its private data. If the state doesn't exist
+it is instantiated and added to the hash.
 
-I assume:
- * cs->jumpto is only filled by nft_immediate.
- * cs->target is only filled by nft_target.
+The use would be something like this:
 
-So we end with these cases:
- * nft_immediate contains a 'standard' target (ACCEPT, DROP, CONTINUE, RETURN, chain)
-  Then cs->jumpto contains the target already. We have the rule.
- * No standard target. If nft_target contains a target, try to load it.
- * Neither nft_target nor nft_immediate exist. Then, assume CONTINUE.
+nft filter input ... limit flow ip saddr . tcp dport rate 10/s
+nft filter forward ... quota flow ether saddr 1gb
 
-The printing path is then straight forward: either cs.jumpto or cs.target
-contains the target.
+The expressions inside the kernel for the first example would look
+like this:
 
-As there isn't support for target extensions yet, there is no way to test the
-nft_target (cs.target) path.
+ip saddr  => reg0
+tcp dport => reg1
+state reg0 len 8 => reg_state
+limit priv = reg_state
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- iptables/nft-bridge.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+For the state module, there are two different problems in the
+interaction with the limit module:
 
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index fd9554e..9747405 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -337,12 +337,13 @@ void nft_rule_to_ebtables_command_state(struct nft_rule *r,
- 
- 	nft_rule_expr_iter_destroy(iter);
- 
--	if (cs->target != NULL)
--		cs->jumpto = cs->target->name;
--	else if (cs->jumpto != NULL)
--		cs->target = xtables_find_target(cs->jumpto, XTF_TRY_LOAD);
-+	if (cs->jumpto != NULL)
-+		return;
-+
-+	if (cs->target != NULL && cs->target->name != NULL)
-+		cs->target = xtables_find_target(cs->target->name, XTF_TRY_LOAD);
- 	else
--		cs->jumpto = "";
-+		cs->jumpto = "CONTINUE";
- }
- 
- static void print_iface(const char *iface)
-@@ -455,17 +456,11 @@ static void nft_bridge_print_firewall(struct nft_rule *r, unsigned int num,
- 	}
- 
- 	printf("-j ");
--	if (cs.target != NULL) {
--		if (cs.target->print != NULL) {
--			cs.target->print(&cs.fw, cs.target->t,
--					    format & FMT_NUMERIC);
--		}
--	} else {
--		if (strcmp(cs.jumpto, "") == 0)
--			printf("CONTINUE");
--		else
--			printf("%s", cs.jumpto);
--	}
-+
-+	if (cs.jumpto != NULL)
-+		printf("%s", cs.jumpto);
-+	else if (cs.target != NULL && cs.target->print != NULL)
-+		cs.target->print(&cs.fw, cs.target->t, format & FMT_NUMERIC);
- 
- 	if (!(format & FMT_NOCOUNTS))
- 		printf(" , pcnt = %"PRIu64" -- bcnt = %"PRIu64"",
+- initializing a new state based on the parameters of the limit
+  expression
 
+- passing the state to the limit expression to be used instead of the
+  private space
+
+Initialization obviously requires the parameters used in the limit
+expression, which are unknown to the generic state expression. So
+we need to call into the limit module to perform this initialization
+and pass it its configuration data, which is also unknown to the
+state expression.
+
+A simple solution to this is to limit the use of the state expression
+to the expression following it directly. In that case we can simply
+do something like
+
+expr_next->ops->init_state(expr_next, obj)
+
+The second question is how to pass the state to the limit expression.
+The possibilities are:
+
+- use registers
+- invoke the limit expression directly and make the core skip it
+- change the ->eval() functions to not take a pointer to the expression
+  but to expr_priv(expr) and replace that pointer
+
+Using registers is probably the worst solution since it requires
+complicated validation and also special cased ->eval() functions.
+Both other ways should be completely transparent.
+
+Now why I'm describing this is because its very similar to what
+the accounting could do using the named counters. Instead of the
+state expression we'd have a different expression which passes
+the data of the global accounting objects to the counter expression.
+
+So what is missing for both cases is to get the state from sets.
+This unfortunately mostly rules out not using registers since
+direct ->eval invocation or replacement of argument pointers inside
+the lookup expression would be quite an ugly hack.
+
+We might be able to hide this behind some function so we don't
+need different ->eval() functions. Not very important for the
+counter case, but still desirable.
+
+Any ideas/comments?
