@@ -1,78 +1,40 @@
-From: The Media Server <info@themediaserver.com>
-Subject: IPTABLES + PREROUTING + --set-mark + Ubuntu
-Date: Thu, 15 Jan 2015 20:48:51 -0500
-Message-ID: <CAJb3rWC_Xu2JhobvJZSv82034Y1TvDyk_rQXfvR+5eBN75kKQw@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
+ expansion/shrinking
+Date: Fri, 16 Jan 2015 15:34:16 +0000
+Message-ID: <20150116153415.GF30132@acer.localdomain>
+References: <cover.1418647641.git.tgraf@suug.ch>
+ <75db38bc9313a55cf02a8c36a3376c32b691e5d9.1418647641.git.tgraf@suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from segonax.lunarpages.com ([216.97.227.60]:55308 "EHLO
-	segonax.lunarpages.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261AbbAPCmS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jan 2015 21:42:18 -0500
-Received: from mail-la0-f47.google.com ([209.85.215.47]:39208)
-	by segonax.lunarpages.com with esmtpsa (TLSv1:RC4-SHA:128)
-	(Exim 4.82)
-	(envelope-from <info@themediaserver.com>)
-	id 1YBw1p-00052U-PU
-	for netfilter-devel@vger.kernel.org; Thu, 15 Jan 2015 17:48:49 -0800
-Received: by mail-la0-f47.google.com with SMTP id hz20so16708360lab.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jan 2015 17:48:51 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	kernel@vger.kernel.org, herbert@gondor.apana.org.au,
+	paulmck@linux.vnet.ibm.com, edumazet@google.com,
+	john.r.fastabend@intel.com, josh@joshtriplett.org,
+	netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <75db38bc9313a55cf02a8c36a3376c32b691e5d9.1418647641.git.tgraf@suug.ch>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Yes I tried it with let say:
-2 ht
+On 15.12, Thomas Graf wrote:
+> The patch also defers expansion and shrinking to a worker queue which
+> allows insertion and removal from atomic context. Insertions and
+> deletions may occur in parallel to it and are only held up briefly
+> while the particular bucket is linked or unzipped.
+>
+> Mutations of the bucket table pointer is protected by a new mutex, read
+> access is RCU protected.
+> 
+> In the event of an expansion or shrinking, the new bucket table allocated
+> is exposed as a so called future table as soon as the resize process
+> starts.  Lookups, deletions, and insertions will briefly use both tables.
+> The future table becomes the main table after an RCU grace period and
+> initial linking of the old to the new table was performed. Optimization
+> of the chains to make use of the new number of buckets follows only the
+> new table is in use.
 
-I also disabled and enabled in the kernel rp_filter and forward for ipv4:
-sudo sysctl -w net.ipv4.conf.eth0.rp_filter=0 &&
-sudo sysctl -w net.ipv4.conf.tun0.rp_filter=0 &&
-sudo sysctl -w net.ipv4.conf.all.rp_filter=0 &&
-sudo sysctl -w net.ipv4.conf.default.rp_filter=0 &&
-sudo sysctl -w net.ipv4.conf.lo.rp_filter=0  &&
-
-sudo sysctl -w net.ipv4.conf.all.forwarding=1 &&
-sudo sysctl -w net.ipv4.conf.default.forwarding=1 &&
-sudo sysctl -w net.ipv4.conf.eth0.forwarding=1 &&
-sudo sysctl -w net.ipv4.conf.lo.forwarding=1 &&
-sudo sysctl -w net.ipv4.conf.tun0.forwarding=1 &&
-
-sudo sysctl -w net.ipv6.conf.all.forwarding=1 &&
-sudo sysctl -w net.ipv6.conf.default.forwarding=1 &&
-sudo sysctl -w net.ipv6.conf.eth0.forwarding=1 &&
-sudo sysctl -w net.ipv6.conf.lo.forwarding=1 &&
-sudo sysctl -w net.ipv6.conf.tun0.forwarding=1
-
-the result of my rule list is:
-0:      from all lookup local
-32765:  from all fwmark 0x2 lookup ht
-32766:  from all lookup main
-32767:  from all lookup default
-
-my ht (2) table is:
-default via 192.168.0.1 dev eth0
-192.168.0.0/24 dev eth0  proto kernel  scope link  src 192.168.2.20  metric 1
-
-I tried these rules:
-sudo iptables -t mangle -A PREROUTING -j MARK --set-mark 2
-sudo iptables -t mangle -A OUTPUT -p tcp --dport 80 -j MARK --set-mark 2
-sudo iptables -t mangle -A OUTPUT -p tcp --sport 80 -j MARK --set-mark 2
-
-Nothing work..
-
-
---
-The weird part is that the OUTPUT rules works:
-
-sudo iptables -t mangle -A OUTPUT -p tcp --dport 80 -j MARK --set-mark 2
-sudo iptables --table nat --append POSTROUTING -o eth0 -j MASQUERADE
-
-and this work too:
-sudo ip rule add from 192.168.2.0/24 table ht
----
-
-Looks like it doesn't want to mark anything only the PREROUTING /
-INPUT phase.. or an option somewhere is not enabled..
-
-Thks
+AFAICT nft_hash_walk() will miss new entries during this period.
+Am I missing anything here?
