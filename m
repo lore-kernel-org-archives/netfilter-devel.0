@@ -1,12 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Fri, 16 Jan 2015 16:03:55 +0000
-Message-ID: <20150116160354.GI30132@acer.localdomain>
+Date: Fri, 16 Jan 2015 16:15:30 +0000
+Message-ID: <20150116161530.GC15052@casper.infradead.org>
 References: <cover.1418647641.git.tgraf@suug.ch>
  <75db38bc9313a55cf02a8c36a3376c32b691e5d9.1418647641.git.tgraf@suug.ch>
  <20150116153415.GF30132@acer.localdomain>
  <20150116155835.GA15052@casper.infradead.org>
+ <20150116160354.GI30132@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: davem@davemloft.net, netdev@vger.kernel.org,
@@ -14,38 +15,36 @@ Cc: davem@davemloft.net, netdev@vger.kernel.org,
 	paulmck@linux.vnet.ibm.com, edumazet@google.com,
 	john.r.fastabend@intel.com, josh@joshtriplett.org,
 	netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43360 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbbAPQEB (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:45305 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537AbbAPQPd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2015 11:04:01 -0500
+	Fri, 16 Jan 2015 11:15:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20150116155835.GA15052@casper.infradead.org>
+In-Reply-To: <20150116160354.GI30132@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.01, Thomas Graf wrote:
-> On 01/16/15 at 03:34pm, Patrick McHardy wrote:
-> > On 15.12, Thomas Graf wrote:
-> > > In the event of an expansion or shrinking, the new bucket table allocated
-> > > is exposed as a so called future table as soon as the resize process
-> > > starts.  Lookups, deletions, and insertions will briefly use both tables.
-> > > The future table becomes the main table after an RCU grace period and
-> > > initial linking of the old to the new table was performed. Optimization
-> > > of the chains to make use of the new number of buckets follows only the
-> > > new table is in use.
-> > 
-> > AFAICT nft_hash_walk() will miss new entries during this period.
-> > Am I missing anything here?
+On 01/16/15 at 04:03pm, Patrick McHardy wrote:
+> On 16.01, Thomas Graf wrote:
+> > A walker may not see insertions that occur after the walker was started
+> > if resizing is enabled. Is that a problem for nftables?
 > 
-> A walker may not see insertions that occur after the walker was started
-> if resizing is enabled. Is that a problem for nftables?
+> No, that would be Ok. The case I'm wondering about is:
+> 
+> - insertion
+> - resize starts
+> - another insertion
+> - walker, resize not finished yet
 
-No, that would be Ok. The case I'm wondering about is:
+Correct, walker may not see "another insertion". The window for this
+behavior to occur is not the full resize operation, just the linking
+period, but it may occur. The length of the window is typically
+equal to a grace period.
 
-- insertion
-- resize starts
-- another insertion
-- walker, resize not finished yet
+We can provide a synchronization function to block the dumper or the
+insertion/removal until the linking is complete. The latter would
+give the old runtime behaviour back (variable runtime of insert),
+the blocked dumper might be preferred. What do you think?
