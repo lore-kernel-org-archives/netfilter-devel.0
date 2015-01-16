@@ -1,10 +1,9 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Fri, 16 Jan 2015 22:07:36 +0000
-Message-ID: <20150116220735.GA12614@acer.localdomain>
-References: <20150116155835.GA15052@casper.infradead.org>
- <20150116160354.GI30132@acer.localdomain>
+Date: Fri, 16 Jan 2015 23:34:14 +0000
+Message-ID: <20150116233414.GF20315@casper.infradead.org>
+References: <20150116160354.GI30132@acer.localdomain>
  <20150116161530.GC15052@casper.infradead.org>
  <20150116163202.GJ30132@acer.localdomain>
  <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
@@ -13,6 +12,7 @@ References: <20150116155835.GA15052@casper.infradead.org>
  <20150116191831.GA26730@casper.infradead.org>
  <20150116193557.GU30132@acer.localdomain>
  <20150116213605.GE20315@casper.infradead.org>
+ <20150116220735.GA12614@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: David Laight <David.Laight@ACULAB.COM>,
@@ -24,46 +24,37 @@ Cc: David Laight <David.Laight@ACULAB.COM>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Thomas Graf <tgraf@suug.ch>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45562 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbbAPWHm (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:46858 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939AbbAPXeT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2015 17:07:42 -0500
+	Fri, 16 Jan 2015 18:34:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20150116213605.GE20315@casper.infradead.org>
+In-Reply-To: <20150116220735.GA12614@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.01, Thomas Graf wrote:
-> On 01/16/15 at 07:35pm, Patrick McHardy wrote:
-> > On 16.01, Thomas Graf wrote:
-> > > Right,but that's a Netlink dump issue and not specific to rhashtable.
-> > 
-> > Well, rhashtable (or generally resizing) will make it a lot worse.
-> > Usually we at worst miss entries which were added during the dump,
-> > which is made up by the notifications.
-> > 
-> > With resizing we might miss anything, its completely undeterministic.
-> > 
-> > > Putting the sequence number check in place should be sufficient
-> > > for sets, right?
-> > 
-> > I don't see how. The problem is that the ordering of the hash changes
-> > and it will skip different entries than those that have already been
-> > dumped.
+On 01/16/15 at 10:07pm, Patrick McHardy wrote:
+> I'm afraid that's not good enough. The resize operation is deferred,
+> so even if userspace does not perform an operation after starting
+> the dump, the hash might change.
 > 
-> Since an resize can only be triggered through insert/remove you
-> simply bump a sequence number when you insert/remove and have
-> userspace restart the dump when NLM_F_DUMP_INTR is set.
+> We can obviously work around that by incrementing a generation
+> counter in rhashtable. The main problem I see is that with something
+> very actively changing the ruleset, we might never complete a dump.
 
-I'm afraid that's not good enough. The resize operation is deferred,
-so even if userspace does not perform an operation after starting
-the dump, the hash might change.
+Right, I suggest adding a function pointer to rhashtable_params,
+which when set, is called on resize so users can bump their own
+sequence counter on resize.
 
-We can obviously work around that by incrementing a generation
-counter in rhashtable. The main problem I see is that with something
-very actively changing the ruleset, we might never complete a dump.
+> Dumps are usually rare, I think its preferrable to defer rehashing.
 
-Dumps are usually rare, I think its preferrable to defer rehashing.
+Resize operations should be *really* rare as well unless you start
+with really small hash table sizes and constantly add/remove at the
+watermark.
+
+Re-dumping on insert/remove is a different story of course. Do you
+care about missed insert/removals for dumps? If not we can do the
+sequence number consistency checking for resizing only.
