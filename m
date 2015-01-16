@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Fri, 16 Jan 2015 20:53:12 +0000
-Message-ID: <20150116205311.GA26996@acer.localdomain>
+Date: Fri, 16 Jan 2015 21:31:56 +0000
+Message-ID: <20150116213156.GA7109@acer.localdomain>
 References: <20150116155835.GA15052@casper.infradead.org>
  <20150116160354.GI30132@acer.localdomain>
  <20150116161530.GC15052@casper.infradead.org>
@@ -12,60 +12,48 @@ References: <20150116155835.GA15052@casper.infradead.org>
  <20150116183626.GS30132@acer.localdomain>
  <20150116191831.GA26730@casper.infradead.org>
  <20150116193557.GU30132@acer.localdomain>
- <20150116204644.GA2232@salvia>
+ <20150116204921.GA14833@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Thomas Graf <tgraf@suug.ch>,
 	David Laight <David.Laight@ACULAB.COM>,
 	"davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
 	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
 	"edumazet@google.com" <edumazet@google.com>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45118 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45350 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbbAPUxS (ORCPT
+	with ESMTP id S1751682AbbAPVcD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2015 15:53:18 -0500
+	Fri, 16 Jan 2015 16:32:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20150116204644.GA2232@salvia>
+In-Reply-To: <20150116204921.GA14833@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.01, Pablo Neira Ayuso wrote:
+On 17.01, Herbert Xu wrote:
 > On Fri, Jan 16, 2015 at 07:35:57PM +0000, Patrick McHardy wrote:
-> > On 16.01, Thomas Graf wrote:
-> > > On 01/16/15 at 06:36pm, Patrick McHardy wrote:
-> > > > 
-> > > > Well, we do have a problem with interrupted dumps. As you know once
-> > > > the netlink message buffer is full, we return to userspace and
-> > > > continue dumping during the next read. Expanding obviously changes
-> > > > the order since we rehash from bucket N to N and 2N, so this will
-> > > > indeed cause duplicate (doesn't matter) and missed entries.
-> > > 
-> > > Right,but that's a Netlink dump issue and not specific to rhashtable.
 > > 
 > > Well, rhashtable (or generally resizing) will make it a lot worse.
 > > Usually we at worst miss entries which were added during the dump,
 > > which is made up by the notifications.
 > > 
 > > With resizing we might miss anything, its completely undeterministic.
-> > 
-> > > Putting the sequence number check in place should be sufficient
-> > > for sets, right?
-> > 
-> > I don't see how. The problem is that the ordering of the hash changes
-> > and it will skip different entries than those that have already been
-> > dumped.
 > 
-> I think the generation counter should catch up this sort of problems.
-> The resizing is triggered by a new/deletion element, which bumps it
-> once the transaction is handled.
+> Correct.  If you want to have a stable dump you will need to have
+> data structure outside the hash table.  For example, with xfrm_state
+> we do it with a linked list.
 
-I don't think so, it tracks only two generations, we can have an
-arbitrary amount of changes while performing a dump.
+That's certainly one possibility, however since we might have a huge
+number of elements, its very undesirable to use even a little memory
+for this.
+
+I'm tending towards deferring resize operations while dumps are in
+progress. Since we only allow dumps by root, it seems the worst
+thing that can happen is that we run using a non optimal hash,
+which is comparable to having a badly structured ruleset.
