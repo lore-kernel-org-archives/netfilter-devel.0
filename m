@@ -1,8 +1,8 @@
-From: Thomas Graf <tgraf@suug.ch>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Fri, 16 Jan 2015 16:53:02 +0000
-Message-ID: <20150116165302.GE15052@casper.infradead.org>
+Date: Fri, 16 Jan 2015 18:36:26 +0000
+Message-ID: <20150116183626.GS30132@acer.localdomain>
 References: <cover.1418647641.git.tgraf@suug.ch>
  <75db38bc9313a55cf02a8c36a3376c32b691e5d9.1418647641.git.tgraf@suug.ch>
  <20150116153415.GF30132@acer.localdomain>
@@ -11,9 +11,10 @@ References: <cover.1418647641.git.tgraf@suug.ch>
  <20150116161530.GC15052@casper.infradead.org>
  <20150116163202.GJ30132@acer.localdomain>
  <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
+ <20150116165302.GE15052@casper.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: 'Patrick McHardy' <kaber@trash.net>,
+Cc: David Laight <David.Laight@ACULAB.COM>,
 	"davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
@@ -22,18 +23,25 @@ Cc: 'Patrick McHardy' <kaber@trash.net>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
+In-Reply-To: <20150116165302.GE15052@casper.infradead.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 01/16/15 at 04:43pm, David Laight wrote:
-> The walker is unlikely to see items that get inserted early in the hash
-> table even without a resize.
+On 16.01, Thomas Graf wrote:
+> On 01/16/15 at 04:43pm, David Laight wrote:
+> > The walker is unlikely to see items that get inserted early in the hash
+> > table even without a resize.
+> 
+> I don't follow, you have to explain this statement.
+> 
+> Walkers which don't want to see duplicates or miss entries should
+> just take the mutex.
 
-I don't follow, you have to explain this statement.
-
-Walkers which don't want to see duplicates or miss entries should
-just take the mutex.
+Well, we do have a problem with interrupted dumps. As you know once
+the netlink message buffer is full, we return to userspace and
+continue dumping during the next read. Expanding obviously changes
+the order since we rehash from bucket N to N and 2N, so this will
+indeed cause duplicate (doesn't matter) and missed entries.
