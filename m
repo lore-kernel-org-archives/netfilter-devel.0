@@ -1,101 +1,78 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [ebtables-compat PATCH] ebtables-compat: fix ACCEPT printing by
- simplifying logic
-Date: Thu, 15 Jan 2015 15:56:13 +0100
-Message-ID: <CAOkSjBgHHkn2CGKZL4DZxebf1wPE7UHSNuZ_ahU9HFUhU1ku-w@mail.gmail.com>
-References: <20150113173610.3965.9202.stgit@nfdev.cica.es> <20150115123225.GA8323@salvia>
- <CAOkSjBiG0KPZRfJuw2skqDuL8u6nEi8uyQmmSNbdZd4A7UEv0Q@mail.gmail.com> <20150115125106.GA8896@salvia>
+From: The Media Server <info@themediaserver.com>
+Subject: IPTABLES + PREROUTING + --set-mark + Ubuntu
+Date: Thu, 15 Jan 2015 20:48:51 -0500
+Message-ID: <CAJb3rWC_Xu2JhobvJZSv82034Y1TvDyk_rQXfvR+5eBN75kKQw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:62645 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413AbbAOO4f convert rfc822-to-8bit (ORCPT
+Received: from segonax.lunarpages.com ([216.97.227.60]:55308 "EHLO
+	segonax.lunarpages.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261AbbAPCmS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jan 2015 09:56:35 -0500
-Received: by mail-la0-f47.google.com with SMTP id hz20so14001570lab.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jan 2015 06:56:34 -0800 (PST)
-In-Reply-To: <20150115125106.GA8896@salvia>
+	Thu, 15 Jan 2015 21:42:18 -0500
+Received: from mail-la0-f47.google.com ([209.85.215.47]:39208)
+	by segonax.lunarpages.com with esmtpsa (TLSv1:RC4-SHA:128)
+	(Exim 4.82)
+	(envelope-from <info@themediaserver.com>)
+	id 1YBw1p-00052U-PU
+	for netfilter-devel@vger.kernel.org; Thu, 15 Jan 2015 17:48:49 -0800
+Received: by mail-la0-f47.google.com with SMTP id hz20so16708360lab.6
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jan 2015 17:48:51 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15 January 2015 at 13:51, Pablo Neira Ayuso <pablo@netfilter.org> wr=
-ote:
-> On Thu, Jan 15, 2015 at 01:44:16PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> On 15 January 2015 at 13:32, Pablo Neira Ayuso <pablo@netfilter.org>=
- wrote:
->> > On Tue, Jan 13, 2015 at 06:36:10PM +0100, Arturo Borrero Gonzalez =
-wrote:
->> >> The commit bc543af ("ebtables-compat: fix segfault in rules w/o t=
-arget")
->> >> doesn't handle all possible cases of target printing, and ACCEPT =
-is left
->> >> behind.
->> >>
->> >> BTW, the logic of target (-j XXX) printing is a bit weird. This p=
-atch
->> >> simplifies it.
->> >>
->> >> I assume:
->> >>  * cs->jumpto is only filled by nft_immediate.
->> >>  * cs->target is only filled by nft_target.
->> >>
->> >> So we end with these cases:
->> >>  * nft_immediate contains a 'standard' target (ACCEPT, DROP, CONT=
-INUE, RETURN, chain)
->> >>   Then cs->jumpto contains the target already. We have the rule.
->> >>  * No standard target. If nft_target contains a target, try to lo=
-ad it.
->> >>  * Neither nft_target nor nft_immediate exist. Then, assume CONTI=
-NUE.
->> >>
->> >> The printing path is then straight forward: either cs.jumpto or c=
-s.target
->> >> contains the target.
->> >>
->> >> As there isn't support for target extensions yet, there is no way=
- to test the
->> >> nft_target (cs.target) path.
->> >
->> > Not telling this is wrong, but I guess the resulting code to print=
- the
->> > target has to converge to what we have in iptables-compat (see
->> > iptables/nft-ipv4.c). I mean, the handling should look similar. Co=
-uld
->> > you revisit that and make sure that this and the existing code
->> > converge to the point? Thanks.
->>
->> I could try to factorize code to a common function, something like:
->> void nft_shared_rule_translate_target(char **jumpto, struct
->> xtables_target **target)
->> void nft_shared_print_target(const char *jumpto, const struct
->> xtables_target *target)
->>
->> Do you like the idea?
->
-> Yes, the more we consolidate the less redundancy. Please, for the
-> function names, I'd suggest a bit shorter ones: nft_set_target() and
-> nft_print_target() I'd say.
+Yes I tried it with let say:
+2 ht
 
-Hi Pablo,
+I also disabled and enabled in the kernel rp_filter and forward for ipv4:
+sudo sysctl -w net.ipv4.conf.eth0.rp_filter=0 &&
+sudo sysctl -w net.ipv4.conf.tun0.rp_filter=0 &&
+sudo sysctl -w net.ipv4.conf.all.rp_filter=0 &&
+sudo sysctl -w net.ipv4.conf.default.rp_filter=0 &&
+sudo sysctl -w net.ipv4.conf.lo.rp_filter=0  &&
 
-reading the code again, I believe code paths we mentioned for
-iptables-compat and ebtables-compat are different enough for the code
-factorization to not worth it.
+sudo sysctl -w net.ipv4.conf.all.forwarding=1 &&
+sudo sysctl -w net.ipv4.conf.default.forwarding=1 &&
+sudo sysctl -w net.ipv4.conf.eth0.forwarding=1 &&
+sudo sysctl -w net.ipv4.conf.lo.forwarding=1 &&
+sudo sysctl -w net.ipv4.conf.tun0.forwarding=1 &&
 
-However, I think that nft_rule_to_*tables_command_state() is more
-suitable for the factorization, but it is a different issue.
+sudo sysctl -w net.ipv6.conf.all.forwarding=1 &&
+sudo sysctl -w net.ipv6.conf.default.forwarding=1 &&
+sudo sysctl -w net.ipv6.conf.eth0.forwarding=1 &&
+sudo sysctl -w net.ipv6.conf.lo.forwarding=1 &&
+sudo sysctl -w net.ipv6.conf.tun0.forwarding=1
 
-let me know.
---=20
-Arturo Borrero Gonz=C3=A1lez
+the result of my rule list is:
+0:      from all lookup local
+32765:  from all fwmark 0x2 lookup ht
+32766:  from all lookup main
+32767:  from all lookup default
+
+my ht (2) table is:
+default via 192.168.0.1 dev eth0
+192.168.0.0/24 dev eth0  proto kernel  scope link  src 192.168.2.20  metric 1
+
+I tried these rules:
+sudo iptables -t mangle -A PREROUTING -j MARK --set-mark 2
+sudo iptables -t mangle -A OUTPUT -p tcp --dport 80 -j MARK --set-mark 2
+sudo iptables -t mangle -A OUTPUT -p tcp --sport 80 -j MARK --set-mark 2
+
+Nothing work..
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The weird part is that the OUTPUT rules works:
+
+sudo iptables -t mangle -A OUTPUT -p tcp --dport 80 -j MARK --set-mark 2
+sudo iptables --table nat --append POSTROUTING -o eth0 -j MASQUERADE
+
+and this work too:
+sudo ip rule add from 192.168.2.0/24 table ht
+---
+
+Looks like it doesn't want to mark anything only the PREROUTING /
+INPUT phase.. or an option somewhere is not enabled..
+
+Thks
