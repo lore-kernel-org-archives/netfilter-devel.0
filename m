@@ -1,8 +1,8 @@
-From: Thomas Graf <tgraf@suug.ch>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Fri, 16 Jan 2015 23:34:14 +0000
-Message-ID: <20150116233414.GF20315@casper.infradead.org>
+Date: Sat, 17 Jan 2015 11:33:40 +1100
+Message-ID: <20150117003340.GA16374@gondor.apana.org.au>
 References: <20150116160354.GI30132@acer.localdomain>
  <20150116161530.GC15052@casper.infradead.org>
  <20150116163202.GJ30132@acer.localdomain>
@@ -11,14 +11,14 @@ References: <20150116160354.GI30132@acer.localdomain>
  <20150116183626.GS30132@acer.localdomain>
  <20150116191831.GA26730@casper.infradead.org>
  <20150116193557.GU30132@acer.localdomain>
- <20150116213605.GE20315@casper.infradead.org>
- <20150116220735.GA12614@acer.localdomain>
+ <20150116204921.GA14833@gondor.apana.org.au>
+ <20150116213156.GA7109@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Laight <David.Laight@ACULAB.COM>,
+Cc: Thomas Graf <tgraf@suug.ch>,
+	David Laight <David.Laight@ACULAB.COM>,
 	"davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
 	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
 	"edumazet@google.com" <edumazet@google.com>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
@@ -26,35 +26,34 @@ Cc: David Laight <David.Laight@ACULAB.COM>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:46858 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939AbbAPXeT (ORCPT
+Received: from helcar.apana.org.au ([209.40.204.226]:39169 "EHLO
+	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360AbbAQAe3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2015 18:34:19 -0500
+	Fri, 16 Jan 2015 19:34:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20150116220735.GA12614@acer.localdomain>
+In-Reply-To: <20150116213156.GA7109@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/16/15 at 10:07pm, Patrick McHardy wrote:
-> I'm afraid that's not good enough. The resize operation is deferred,
-> so even if userspace does not perform an operation after starting
-> the dump, the hash might change.
+On Fri, Jan 16, 2015 at 09:31:56PM +0000, Patrick McHardy wrote:
 > 
-> We can obviously work around that by incrementing a generation
-> counter in rhashtable. The main problem I see is that with something
-> very actively changing the ruleset, we might never complete a dump.
+> I'm tending towards deferring resize operations while dumps are in
+> progress. Since we only allow dumps by root, it seems the worst
+> thing that can happen is that we run using a non optimal hash,
+> which is comparable to having a badly structured ruleset.
 
-Right, I suggest adding a function pointer to rhashtable_params,
-which when set, is called on resize so users can bump their own
-sequence counter on resize.
+BTW, the current rhashtable has a deficiency in that the insert
+operation never fails.  However, with delayed resizing, we must
+allow insertion to fail or there can be too many insertions that
+may overwhelm the hash table or even worse overflow the hash table
+size counter.
 
-> Dumps are usually rare, I think its preferrable to defer rehashing.
+So in this scenario, a dump may cause insertion failures by delaying
+the completion of the expansion.
 
-Resize operations should be *really* rare as well unless you start
-with really small hash table sizes and constantly add/remove at the
-watermark.
-
-Re-dumping on insert/remove is a different story of course. Do you
-care about missed insert/removals for dumps? If not we can do the
-sequence number consistency checking for resizing only.
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
