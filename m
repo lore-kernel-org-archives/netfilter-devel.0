@@ -1,10 +1,9 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Sat, 17 Jan 2015 08:06:21 +0000
-Message-ID: <20150117080621.GB3968@acer.localdomain>
-References: <20150116161530.GC15052@casper.infradead.org>
- <20150116163202.GJ30132@acer.localdomain>
+Date: Sat, 17 Jan 2015 20:32:28 +1100
+Message-ID: <20150117093228.GA19137@gondor.apana.org.au>
+References: <20150116163202.GJ30132@acer.localdomain>
  <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
  <20150116165302.GE15052@casper.infradead.org>
  <20150116183626.GS30132@acer.localdomain>
@@ -13,6 +12,7 @@ References: <20150116161530.GC15052@casper.infradead.org>
  <20150116204921.GA14833@gondor.apana.org.au>
  <20150116213156.GA7109@acer.localdomain>
  <20150117003340.GA16374@gondor.apana.org.au>
+ <20150117080621.GB3968@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Thomas Graf <tgraf@suug.ch>,
@@ -24,34 +24,41 @@ Cc: Thomas Graf <tgraf@suug.ch>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from helcar.apana.org.au ([209.40.204.226]:54576 "EHLO
+	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbbAQJdM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Jan 2015 04:33:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20150117003340.GA16374@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150117080621.GB3968@acer.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17.01, Herbert Xu wrote:
-> On Fri, Jan 16, 2015 at 09:31:56PM +0000, Patrick McHardy wrote:
-> > 
-> > I'm tending towards deferring resize operations while dumps are in
-> > progress. Since we only allow dumps by root, it seems the worst
-> > thing that can happen is that we run using a non optimal hash,
-> > which is comparable to having a badly structured ruleset.
+On Sat, Jan 17, 2015 at 08:06:21AM +0000, Patrick McHardy wrote:
 > 
-> BTW, the current rhashtable has a deficiency in that the insert
-> operation never fails.  However, with delayed resizing, we must
-> allow insertion to fail or there can be too many insertions that
-> may overwhelm the hash table or even worse overflow the hash table
-> size counter.
+> Resizing might also fail because of memory allocation problems, but
+> I'd argue that its better to continue with a non-optimal sized table
+> and retry later than to completely fail, at least unless the API
+> user has explicitly requested this behaviour.
 > 
-> So in this scenario, a dump may cause insertion failures by delaying
-> the completion of the expansion.
+> As for the element counter, yeah, it should prevent overflow. In that
+> case I agree that failing insertion is the easiest solution.
 
-Resizing might also fail because of memory allocation problems, but
-I'd argue that its better to continue with a non-optimal sized table
-and retry later than to completely fail, at least unless the API
-user has explicitly requested this behaviour.
+Well you have to consider the security aspect.  These days root-
+only is no longer an acceptable excuse given things like namespaces.
 
-As for the element counter, yeah, it should prevent overflow. In that
-case I agree that failing insertion is the easiest solution.
+If you don't fail the insertions while the expansion is ongoing,
+and assuming a dump can postpone expansions, then you can essentially
+insert entries into the hash table at will which is an easy DoS
+attack.
+
+Note that you don't have to fail the insertion right away.  I
+think waiting until you reach max * 2 would be fine.
+
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
