@@ -1,72 +1,181 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
- expansion/shrinking
-Date: Sat, 17 Jan 2015 11:56:23 +0000
-Message-ID: <20150117115622.GA8502@acer.localdomain>
-References: <20150116183626.GS30132@acer.localdomain>
- <20150116191831.GA26730@casper.infradead.org>
- <20150116193557.GU30132@acer.localdomain>
- <20150116204921.GA14833@gondor.apana.org.au>
- <20150116213156.GA7109@acer.localdomain>
- <20150117003340.GA16374@gondor.apana.org.au>
- <20150117080621.GB3968@acer.localdomain>
- <20150117093228.GA19137@gondor.apana.org.au>
- <7AE5EEE0-60C7-43B4-848A-2D952D3A6DEF@trash.net>
- <20150117101309.GA19585@gondor.apana.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>,
-	David Laight <David.Laight@ACULAB.COM>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
-	"edumazet@google.com" <edumazet@google.com>,
-	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
-	"josh@joshtriplett.org" <josh@joshtriplett.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH iptables] iptables: use IPC semaphore instead of abstract unix sockets
+Date: Sun, 18 Jan 2015 22:13:36 +0100
+Message-ID: <1421615616-23053-1-git-send-email-pablo@netfilter.org>
+Cc: kernel@linuxace.com, lennart@poettering.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51532 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138AbbAQL43 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Jan 2015 06:56:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20150117101309.GA19585@gondor.apana.org.au>
+Received: from mail.us.es ([193.147.175.20]:42753 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200AbbARVKq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 18 Jan 2015 16:10:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17.01, Herbert Xu wrote:
-> On Sat, Jan 17, 2015 at 09:51:46AM +0000, Patrick McHardy wrote:
-> > 
-> > I agree, however at least in the case of nftables you can easily do the same thing by adding millions of rules.
-> 
-> I think that's a problem in itself.  If a single packet can kill
-> the CPU through millions of rules, then namespaces would be a joke.
-> There has to be a limit to the number of rules or the processing
-> has to be deferred into thread context (thus subject to scheduler
-> control) at some point.
+Abstract unix sockets cannot be used to synchronize several concurrent
+instances of iptables since an unpriviledged process can create them and
+prevent the legitimate iptables instance from running.
 
-I think that's a problem that's unrelated to netfilter. Its quite easy
-to configure something that will make the network stack eat up all
-the CPU, consider f.i.:
+This patch introduces a semaphore that is identified by the path to the
+iptables binary, it also relies on SEM_UNDO so the kernel performs the
+up() operation at process exit to avoid races with signals. This also
+avoid file locks that require a writable filesystem.
 
-bridge name	bridge id		STP enabled	interfaces
-br0		8000.625dda62a3d4	no		veth0
-							veth1
+Fixes: 93587a0 ("ip[6]tables: Add locking to prevent concurrent instances")
+Reported-by: Lennart Poettering <lennart@poettering.net>
+Cc: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ iptables/xshared.c |  122 ++++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 105 insertions(+), 17 deletions(-)
 
-Now thing of bridging, veth, TC actions, iptables, routing, all in
-combination. Sure, single cases can be caught it might be possible
-to restrict them, but I don't believe that in the near term we will
-be able to handle this properly.
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index b18022e..80eed2c 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -9,12 +9,15 @@
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #include <unistd.h>
++#include <limits.h>
++#include <sys/types.h>
++#include <sys/ipc.h>
++#include <sys/sem.h>
++#include <string.h>
++#include <errno.h>
+ #include <xtables.h>
+ #include "xshared.h"
+ 
+-#define XT_SOCKET_NAME "xtables"
+-#define XT_SOCKET_LEN 8
+-
+ /*
+  * Print out any special helps. A user might like to be able to add a --help
+  * to the commandline, and see expected results. So we call help for all
+@@ -243,24 +246,109 @@ void xs_init_match(struct xtables_match *match)
+ 		match->init(match->m);
+ }
+ 
++static int xtables_check_owner(int semid)
++{
++	int ret;
++	struct semid_ds ds;
++
++	ret = semctl(semid, 0, IPC_STAT, &ds);
++	if (ret < 0) {
++		if (errno == EACCES)
++			return 0;
++
++		goto err;
++	}
++
++	/* I don't own this semaphore, release it and create it again */
++	if (ds.sem_perm.cuid != 0)
++		goto err;
++
++	return 0;
++err:
++	/* delete this semaphore and try again */
++	ret = semctl(semid, 0, IPC_RMID);
++	if (ret < 0)
++		return 0;
++
++	return -1;
++}
++
++static bool xtables_sem_down(int semid, int wait)
++{
++	struct sembuf down = {
++		.sem_num	= 0,
++		.sem_op		= -1,
++		.sem_flg	= IPC_NOWAIT | SEM_UNDO,
++	};
++	int ret;
++
++	ret = semop(semid, &down, 1);
++	if (ret < 0 && errno == EAGAIN)
++		return false;
++
++	return true;
++}
++
++static int xtables_sem_up(int semid)
++{
++	struct sembuf up = {
++		.sem_num	= 0,
++		.sem_op		= 1,
++	};
++	int ret;
++
++	ret = semop(semid, &up, 1);
++	if (ret < 0)
++		perror("xtables cannot up semaphore");
++
++	return ret;
++}
++
++static int xtables_sem_create(void)
++{
++	int semid, key;
++	char iptables_path[PATH_MAX], proc_path[PATH_MAX];
++	ssize_t ret;
++again:
++	snprintf(proc_path, sizeof(proc_path), "/proc/%u/exe", getpid());
++	proc_path[sizeof(proc_path) - 1] = '\0';
++	ret = readlink(proc_path, iptables_path, sizeof(iptables_path));
++	if (ret < 0)
++		return -1;
++
++	key = ftok(iptables_path, 1);
++	semid = semget(key, 1, 0600 | IPC_CREAT | IPC_EXCL);
++	if (semid < 0) {
++		semid = semget(key, 1, 0);
++		if (semid < 0)
++			return -1;
++
++		if (xtables_check_owner(semid) < 0)
++			goto again;
++	} else {
++		if (xtables_check_owner(semid) < 0)
++			goto again;
++
++		/* Linux initializes IPC semaphore counters to zero after
++		 * semget(), set this counter to one initially.
++		 */
++		xtables_sem_up(semid);
++	}
++	return semid;
++}
++
+ bool xtables_lock(int wait)
+ {
+-	int i = 0, ret, xt_socket;
+-	struct sockaddr_un xt_addr;
+-	int waited = 0;
+-
+-	memset(&xt_addr, 0, sizeof(xt_addr));
+-	xt_addr.sun_family = AF_UNIX;
+-	strcpy(xt_addr.sun_path+1, XT_SOCKET_NAME);
+-	xt_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+-	/* If we can't even create a socket, fall back to prior (lockless) behavior */
+-	if (xt_socket < 0)
++	int semid, waited = 0, i = 0;
++
++	semid = xtables_sem_create();
++	if (semid < 0) {
++		perror("Cannot get iptables semaphore, giving up on locking");
+ 		return true;
++	}
+ 
+-	while (1) {
+-		ret = bind(xt_socket, (struct sockaddr*)&xt_addr,
+-			   offsetof(struct sockaddr_un, sun_path)+XT_SOCKET_LEN);
+-		if (ret == 0)
++        while (1) {
++		if (xtables_sem_down(semid, wait))
+ 			return true;
+ 		else if (wait >= 0 && waited >= wait)
+ 			return false;
+-- 
+1.7.10.4
 
-And even if all loops etc are handled, what keeps the user from
-creating a million veth devices and putting them into a long
-chain?
-
-This needs to be fixed on a different level in my opinion.
-
-> > It doesn't make things worse.
-> 
-> So I don't think that's a valid justification for ignoring this
-> hash table problem.
