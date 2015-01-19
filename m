@@ -1,368 +1,88 @@
-From: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Subject: [PATCH 1/1] bridge: forward IPv6 fragmented packets when passing netfilter
-Date: Mon, 19 Jan 2015 01:43:29 +0100
-Message-ID: <1421628209-5064-1-git-send-email-bernhard.thaler@wvnet.at>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Bernhard Thaler <bernhard.thaler@wvnet.at>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
+ expansion/shrinking
+Date: Mon, 19 Jan 2015 01:01:21 -0800
+Message-ID: <20150119090121.GG9719@linux.vnet.ibm.com>
+References: <20150116155835.GA15052@casper.infradead.org>
+ <20150116160354.GI30132@acer.localdomain>
+ <20150116161530.GC15052@casper.infradead.org>
+ <20150116163202.GJ30132@acer.localdomain>
+ <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
+ <20150116165302.GE15052@casper.infradead.org>
+ <20150116183626.GS30132@acer.localdomain>
+ <20150116191831.GA26730@casper.infradead.org>
+ <20150116193557.GU30132@acer.localdomain>
+ <20150116204644.GA2232@salvia>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>,
+	David Laight <David.Laight@ACULAB.COM>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
+	"edumazet@google.com" <edumazet@google.com>,
+	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
+	"josh@joshtriplett.org" <josh@joshtriplett.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smarthost2.wvnet.at ([62.212.174.131]:48237 "EHLO
-	smarthost2.wvnet.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179AbbASAoa (ORCPT
+Received: from e33.co.us.ibm.com ([32.97.110.151]:37585 "EHLO
+	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194AbbASJCH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Jan 2015 19:44:30 -0500
-Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by smarthost1.wvnet.at (Postfix) with ESMTP id 44A9DFD0255
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2015 01:44:27 +0100 (CET)
+	Mon, 19 Jan 2015 04:02:07 -0500
+Received: from /spool/local
+	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Mon, 19 Jan 2015 02:02:06 -0700
+Content-Disposition: inline
+In-Reply-To: <20150116204644.GA2232@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently IPv6 fragmented packets are not forwarded on an ethernet bridge
-with netfilter ip6_tables loaded. e.g. steps to reproduce
+On Fri, Jan 16, 2015 at 09:46:44PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Jan 16, 2015 at 07:35:57PM +0000, Patrick McHardy wrote:
+> > On 16.01, Thomas Graf wrote:
+> > > On 01/16/15 at 06:36pm, Patrick McHardy wrote:
+> > > > On 16.01, Thomas Graf wrote:
+> > > > > On 01/16/15 at 04:43pm, David Laight wrote:
+> > > > > > The walker is unlikely to see items that get inserted early in the hash
+> > > > > > table even without a resize.
+> > > > > 
+> > > > > I don't follow, you have to explain this statement.
+> > > > > 
+> > > > > Walkers which don't want to see duplicates or miss entries should
+> > > > > just take the mutex.
+> > > > 
+> > > > Well, we do have a problem with interrupted dumps. As you know once
+> > > > the netlink message buffer is full, we return to userspace and
+> > > > continue dumping during the next read. Expanding obviously changes
+> > > > the order since we rehash from bucket N to N and 2N, so this will
+> > > > indeed cause duplicate (doesn't matter) and missed entries.
+> > > 
+> > > Right,but that's a Netlink dump issue and not specific to rhashtable.
+> > 
+> > Well, rhashtable (or generally resizing) will make it a lot worse.
+> > Usually we at worst miss entries which were added during the dump,
+> > which is made up by the notifications.
+> > 
+> > With resizing we might miss anything, its completely undeterministic.
+> > 
+> > > Putting the sequence number check in place should be sufficient
+> > > for sets, right?
+> > 
+> > I don't see how. The problem is that the ordering of the hash changes
+> > and it will skip different entries than those that have already been
+> > dumped.
+> 
+> I think the generation counter should catch up this sort of problems.
+> The resizing is triggered by a new/deletion element, which bumps it
+> once the transaction is handled.
 
-1) create a simple bridge like this
+One unconventional way of handling this is to associate the scan with
+a one-to-one resize operation.  This can be implemented to have the
+effect of taking a snapshot of the table.
 
-	modprobe br_netfilter
-	brctl addbr br0
-	brctl addif br0 eth0
-	brctl addif br0 eth2
-	ifconfig eth0 up
-	ifconfig eth2 up
-	ifconfig br0 up
-
-2) place a host with an IPv6 address on each side of the bridge
-
-	set IPv6 address on host A:
-	ip -6 addr add fd01:2345:6789:1::1/64 dev eth0
-
-	set IPv6 address on host B:
-	ip -6 addr add fd01:2345:6789:1::2/64 dev eth0
-
-3) run a simple ping command on host A with packets > MTU
-
-	ping6 -s 4000 fd01:2345:6789:1::2
-
-4) wait some time and run e.g. "ip6tables -t nat -nvL" on the bridge
-
-IPv6 fragmented packets traverse the bridge cleanly until "iptables -t nat -nvL"
-is run. As soon as it is run (and netfilter modules are loaded) IPv6 fragmented
-packets do not traverse the bridge any more (you see no more responses in ping's
-output).
-
-Patch exports ip6_fragment() in include/net/ipv6.h and net/ipv6/ip6_output.c
-to use it in net/bridge/br_netfilter.c's br_nf_dev_queue_xmit() for IPv6 packets
-that need to be fragmented.
-
-In net/bridge/br_netfilter.c br_nf_pre_routing_finish_ipv6() is changed to keep
-track of fragment size and br_nf_dev_queue_xmit() checks for IPv6 packets that
-need to be fragmented. br_parse_ip6_options() was introduced to do some validity
-checks on the IPv6 packet before calling ip6_fragment() and was closely aligned
-to IPv4 code as an example.
-br_nf_dev_queue_xmit() is changed to contain the relevant code depending on 
-CONFIG_NF_DEFRAG_IPV4 or CONFIG_NF_DEFRAG_IPV6 being used both or each for
-their own.
-
-ip6_fragment() in net/ipv6/ip6_output.c was changed due to a NULL pointer de-
-reference happening when handling packets coming from br_nf_dev_queue_xmit().
-When calling IP6_INC_STATS(), ip6_dst_idev(skb_dst(skb)) did crash the kernel
-like this:
-
-BUG: unable to handle kernel NULL pointer dereference at 000000000000037a
-IP: [<ffffffff814cba2a>] ip6_fragment+0x99a/0x1290
-PGD 3bc3f067 PUD 3bc12067 PMD 0 
-Oops: 0000 [#1] SMP  
-...
-
-So in6_dev_get(skb->dev) is used to set a variable "idev" which is used to call
-IP6_INC_STATS() later on. It is assumed that this also solves other occasions
-where ip6_fragment() will be called that may cause the same crash. However,
-a better fix would be to check for the missing element causing the NULL pointer
-dereference and only setting it when it is missing.
-
-ip6_fragment() is further changed to use nf_bridge_mtu_reduction(skb) as it is
-done in the IPv4 code.
-
-After applying this patch, in the same setup as stated above fragmented IPv6
-packets traverse the bridge even after running "ip6tables -t nat -nvL" / net-
-filter modules loaded. This was tested using overlong IPv6 ICMP ping packets
-as described above.
-Some tests were performed crafting invalid headers (e.g. ipv6 version field
-set to 5) to test checks in br_parse_ip6_options(), however these packets do
-not seem to reach changed code parts and seem to be dropped at an earlier
-stage (more testing needed with invalid / fuzzed packets).
-
-Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
----
- include/net/ipv6.h        |    1 +
- net/bridge/br_netfilter.c |   87 ++++++++++++++++++++++++++++++++++++++++-----
- net/ipv6/ip6_output.c     |   30 ++++++++--------
- 3 files changed, 94 insertions(+), 24 deletions(-)
-
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index 4292929..aecbead 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -495,6 +495,7 @@ struct ip6_create_arg {
- 
- void ip6_frag_init(struct inet_frag_queue *q, const void *a);
- bool ip6_frag_match(const struct inet_frag_queue *q, const void *a);
-+int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *));
- 
- /*
-  *	Equivalent of ipv4 struct ip
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index c190d22..fac485e 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -18,6 +18,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/ip.h>
-+#include <linux/ipv6.h>
- #include <linux/netdevice.h>
- #include <linux/skbuff.h>
- #include <linux/if_arp.h>
-@@ -34,6 +35,7 @@
- 
- #include <net/ip.h>
- #include <net/ipv6.h>
-+#include <net/addrconf.h>
- #include <net/route.h>
- #include <net/netfilter/br_netfilter.h>
- 
-@@ -239,6 +241,59 @@ drop:
- 	return -1;
- }
- 
-+/* Equivalent to br_parse_ip_options for IPv6 */
-+
-+static int br_parse_ip6_options(struct sk_buff *skb)
-+{
-+	const struct ipv6hdr *ip6h;
-+	struct net_device *dev = skb->dev;
-+	struct inet6_dev *idev = in6_dev_get(skb->dev);
-+	u32 len;
-+	u8 ip6h_len = sizeof(struct ipv6hdr);
-+
-+	if (!pskb_may_pull(skb, ip6h_len))
-+		goto inhdr_error;
-+
-+	ip6h = ipv6_hdr(skb);
-+
-+	/* Basic sanity checks
-+	 * check version
-+	 * check minimum header length (40 bytes)
-+	 * check total length
-+	 */
-+	if (ip6h->version != 6)
-+		goto inhdr_error;
-+
-+	if (!pskb_may_pull(skb, ip6h_len))
-+		goto inhdr_error;
-+
-+	len = ntohs(ip6h->payload_len) + ip6h_len;
-+
-+	if (skb->len < len) {
-+		IP6_INC_STATS_BH(dev_net(dev), idev,
-+				 IPSTATS_MIB_INTRUNCATEDPKTS);
-+		goto drop;
-+	} else if (len < ip6h_len) {
-+		goto inhdr_error;
-+	}
-+
-+	if (pskb_trim_rcsum(skb, len)) {
-+		IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INDISCARDS);
-+		goto drop;
-+	}
-+
-+	memset(IP6CB(skb), 0, sizeof(struct inet6_skb_parm));
-+	/* No IP options in IPv6 header; however it should be
-+	 * checked if some next headers need special treatment
-+	 */
-+	return 0;
-+
-+inhdr_error:
-+	IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-+drop:
-+	return -1;
-+}
-+
- /* PF_BRIDGE/PRE_ROUTING *********************************************/
- /* Undo the changes made for ip6tables PREROUTING and continue the
-  * bridge PRE_ROUTING hook. */
-@@ -246,6 +301,10 @@ static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
- {
- 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
- 	struct rtable *rt;
-+	int frag_max_size;
-+
-+	frag_max_size = IP6CB(skb)->frag_max_size;
-+	BR_INPUT_SKB_CB(skb)->frag_max_size = frag_max_size;
- 
- 	if (nf_bridge->mask & BRNF_PKT_TYPE) {
- 		skb->pkt_type = PACKET_OTHERHOST;
-@@ -763,7 +822,6 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
- 	return NF_STOLEN;
- }
- 
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
- 	int ret;
-@@ -772,6 +830,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- 	/* This is wrong! We should preserve the original fragment
- 	 * boundaries by preserving frag_list rather than refragmenting.
- 	 */
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- 	if (skb->protocol == htons(ETH_P_IP) &&
- 	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
- 	    !skb_is_gso(skb)) {
-@@ -781,17 +840,27 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- 			return NF_DROP;
- 		IPCB(skb)->frag_max_size = frag_max_size;
- 		ret = ip_fragment(skb, br_dev_queue_push_xmit);
--	} else
--		ret = br_dev_queue_push_xmit(skb);
-+		return ret;
-+	}
-+#endif
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-+	if (skb->protocol == htons(ETH_P_IPV6) &&
-+	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
-+	    !skb_is_gso(skb)) {
-+		frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+		if (br_parse_ip6_options(skb))
-+			/* Drop invalid packet */
-+			return NF_DROP;
-+		IP6CB(skb)->frag_max_size = frag_max_size;
-+		ret = ip6_fragment(skb, br_dev_queue_push_xmit);
-+		return ret;
-+	}
-+#endif
-+
-+	ret = br_dev_queue_push_xmit(skb);
- 
- 	return ret;
- }
--#else
--static int br_nf_dev_queue_xmit(struct sk_buff *skb)
--{
--        return br_dev_queue_push_xmit(skb);
--}
--#endif
- 
- /* PF_BRIDGE/POST_ROUTING ********************************************/
- static unsigned int br_nf_post_routing(const struct nf_hook_ops *ops,
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index ce69a12..f34cbb4 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -41,6 +41,7 @@
- 
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv6.h>
-+#include <linux/netfilter_bridge.h>
- 
- #include <net/sock.h>
- #include <net/snmp.h>
-@@ -564,6 +565,7 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 	int ptr, offset = 0, err = 0;
- 	u8 *prevhdr, nexthdr = 0;
- 	struct net *net = dev_net(skb_dst(skb)->dev);
-+	struct inet6_dev *idev = in6_dev_get(skb->dev);
- 
- 	hlen = ip6_find_1stfragopt(skb, &prevhdr);
- 	nexthdr = *prevhdr;
-@@ -581,8 +583,7 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 
- 		skb->dev = skb_dst(skb)->dev;
- 		icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu);
--		IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
--			      IPSTATS_MIB_FRAGFAILS);
-+		IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGFAILS);
- 		kfree_skb(skb);
- 		return -EMSGSIZE;
- 	}
-@@ -592,6 +593,10 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 			mtu = np->frag_size;
- 	}
- 	mtu -= hlen + sizeof(struct frag_hdr);
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	if (skb->nf_bridge)
-+		mtu -= nf_bridge_mtu_reduction(skb);
-+#endif
- 
- 	if (skb_has_frag_list(skb)) {
- 		int first_len = skb_pagelen(skb);
-@@ -630,8 +635,7 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 		*prevhdr = NEXTHDR_FRAGMENT;
- 		tmp_hdr = kmemdup(skb_network_header(skb), hlen, GFP_ATOMIC);
- 		if (!tmp_hdr) {
--			IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
--				      IPSTATS_MIB_FRAGFAILS);
-+			IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGFAILS);
- 			return -ENOMEM;
- 		}
- 
-@@ -681,7 +685,7 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 
- 			err = output(skb);
- 			if (!err)
--				IP6_INC_STATS(net, ip6_dst_idev(&rt->dst),
-+				IP6_INC_STATS(net, idev,
- 					      IPSTATS_MIB_FRAGCREATES);
- 
- 			if (err || !frag)
-@@ -695,16 +699,14 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 		kfree(tmp_hdr);
- 
- 		if (err == 0) {
--			IP6_INC_STATS(net, ip6_dst_idev(&rt->dst),
--				      IPSTATS_MIB_FRAGOKS);
-+			IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGOKS);
- 			ip6_rt_put(rt);
- 			return 0;
- 		}
- 
- 		kfree_skb_list(frag);
- 
--		IP6_INC_STATS(net, ip6_dst_idev(&rt->dst),
--			      IPSTATS_MIB_FRAGFAILS);
-+		IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGFAILS);
- 		ip6_rt_put(rt);
- 		return err;
- 
-@@ -752,8 +754,7 @@ slow_path:
- 		frag = alloc_skb(len + hlen + sizeof(struct frag_hdr) +
- 				 hroom + troom, GFP_ATOMIC);
- 		if (!frag) {
--			IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
--				      IPSTATS_MIB_FRAGFAILS);
-+			IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGFAILS);
- 			err = -ENOMEM;
- 			goto fail;
- 		}
-@@ -819,17 +820,16 @@ slow_path:
- 		IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
- 			      IPSTATS_MIB_FRAGCREATES);
- 	}
--	IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
--		      IPSTATS_MIB_FRAGOKS);
-+	IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGOKS);
- 	consume_skb(skb);
- 	return err;
- 
- fail:
--	IP6_INC_STATS(net, ip6_dst_idev(skb_dst(skb)),
--		      IPSTATS_MIB_FRAGFAILS);
-+	IP6_INC_STATS(net, idev, IPSTATS_MIB_FRAGFAILS);
- 	kfree_skb(skb);
- 	return err;
- }
-+EXPORT_SYMBOL(ip6_fragment);
- 
- static inline int ip6_rt_check(const struct rt6key *rt_key,
- 			       const struct in6_addr *fl_addr,
--- 
-1.7.10.4
+							Thanx, Paul
 
