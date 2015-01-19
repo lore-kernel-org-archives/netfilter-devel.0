@@ -1,67 +1,61 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
- expansion/shrinking
-Date: Mon, 19 Jan 2015 12:58:13 +0000
-Message-ID: <20150119125813.GA7672@casper.infradead.org>
-References: <20150116163202.GJ30132@acer.localdomain>
- <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
- <20150116165302.GE15052@casper.infradead.org>
- <20150116183626.GS30132@acer.localdomain>
- <20150116191831.GA26730@casper.infradead.org>
- <20150116193557.GU30132@acer.localdomain>
- <20150116213605.GE20315@casper.infradead.org>
- <20150116220735.GA12614@acer.localdomain>
- <20150116233414.GF20315@casper.infradead.org>
- <20150117080255.GA3968@acer.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH iptables] iptables: use IPC semaphore instead of abstract
+ unix sockets
+Date: Mon, 19 Jan 2015 12:59:10 +0000
+Message-ID: <20150119125909.GL17886@acer.localdomain>
+References: <1421615616-23053-1-git-send-email-pablo@netfilter.org>
+ <alpine.LSU.2.11.1501182227200.16158@nerf60.vanv.qr>
+ <20150119122410.GA4206@salvia>
+ <20150119125118.GK17886@acer.localdomain>
+ <20150119130024.GA4410@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Laight <David.Laight@ACULAB.COM>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
-	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
-	"edumazet@google.com" <edumazet@google.com>,
-	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
-	"josh@joshtriplett.org" <josh@joshtriplett.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	kernel@linuxace.com, lennart@poettering.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:35293 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604AbbASM7O (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Jan 2015 07:59:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20150117080255.GA3968@acer.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150119130024.GA4410@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/17/15 at 08:02am, Patrick McHardy wrote:
-> On 16.01, Thomas Graf wrote:
-> > Resize operations should be *really* rare as well unless you start
-> > with really small hash table sizes and constantly add/remove at the
-> > watermark.
+On 19.01, Pablo Neira Ayuso wrote:
+> On Mon, Jan 19, 2015 at 12:51:19PM +0000, Patrick McHardy wrote:
+> > On 19.01, Pablo Neira Ayuso wrote:
+> > > On Sun, Jan 18, 2015 at 10:28:32PM +0100, Jan Engelhardt wrote:
+> > > > On Sunday 2015-01-18 22:13, Pablo Neira Ayuso wrote:
+> > > > 
+> > > > >This patch introduces a semaphore
+> > > > >index b18022e..80eed2c 100644
+> > > > >--- a/iptables/xshared.c
+> > > > >+++ b/iptables/xshared.c
+> > > > >+static int xtables_check_owner(int semid)
+> > > > >+{
+> > > > >+	int ret;
+> > > > >+	struct semid_ds ds;
+> > > > >+
+> > > > >+	ret = semctl(semid, 0, IPC_STAT, &ds);
+> > > > 
+> > > > Is there a particular reason you are not using the POSIX semaphores?
+> > > > [sem_open/shm_open as per sem_overview(7)].
+> > > 
+> > > Please, read the patch description:
+> > > 
+> > > "This patch introduces a semaphore that is identified by the path to
+> > > the iptables binary, it also relies on SEM_UNDO so the kernel performs
+> > > the up() operation at process exit to avoid races with signals. This
+> > > also avoids file locks that require a writable filesystem."
+> > 
+> > Is it wise to use the path? Not that its very common, but multiple
+> > binaries would still race. Any reason you chose not to use something
+> > globally unique?
 > 
-> Which are far enough from each other that this should only happen
-> in really unlucky cases.
-> 
-> > Re-dumping on insert/remove is a different story of course. Do you
-> > care about missed insert/removals for dumps? If not we can do the
-> > sequence number consistency checking for resizing only.
-> 
-> No, that has always been undeterministic with netlink. We want to
-> dump everything that was present when the dump was started and is
-> still present when it finishes. Anything else can be handled using
-> notifications.
+> What kind of race are you worrying about?
 
-It looks like we want to provide two ways to resolve this:
-
-1) Walker holds ht->mutex the entire time to block out resizes.
-   Optionally the walker can acquire all bucket locks. Such
-   scenarios would seem to benefit from either a single or a very
-   small number of bucket locks.
-
-2) Walker holds ht->mutex during individual Netlink message
-   construction periods and relases it while user space reads the
-   message. rhashtable provides a hook which is called when a
-   resize operation is scheduled allowing for the walker code to
-   bump a sequence number and notify user space that the dump is
-   inconsistent, causing it to request a new dump.
-
-I'll provide an API to achieve (2). (1) is already achieveable with
-the current API.
+Multiple iptables binaries, which would obviously have different paths.
+As I said, not common, but possible.
