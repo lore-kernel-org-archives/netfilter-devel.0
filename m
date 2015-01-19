@@ -1,8 +1,8 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat PATCH 3/7] ebtables-compat: prevent options
- overwrite
-Date: Mon, 19 Jan 2015 14:27:46 +0100
-Message-ID: <20150119132746.7422.84800.stgit@nfdev.cica.es>
+Subject: [ebtables-compat PATCH 4/7] ebtables-compat: prevent same matches
+ to be included multiple times
+Date: Mon, 19 Jan 2015 14:27:51 +0100
+Message-ID: <20150119132751.7422.77819.stgit@nfdev.cica.es>
 References: <20150119132735.7422.85388.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,40 +10,53 @@ Content-Transfer-Encoding: 7bit
 Cc: giuseppelng@gmail.com, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:57006 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:57013 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751582AbbASN1z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:27:55 -0500
+	id S1751508AbbASN2A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Jan 2015 08:28:00 -0500
 In-Reply-To: <20150119132735.7422.85388.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Parsing options will be overwritten if every time we load a match
-the extension options are merged to the original options.
+Using two matches options results in two copies of the match being included
+in the nft rule.
+
+Example before this patch:
+ % ebtables-compat -A FORWARD -p 0x0800 --ip-src 10.0.0.1 --ip-dst 10.0.0.2 -j ACCEPT
+ % ebtables-compat -L
+ [...]
+ -p 0x0800 --ip-src 10.0.0.1 --ip-dst 10.0.0.2 --ip-src 10.0.0.1 --ip-dst 10.0.0.2 -j ACCEPT
+
+Example with this patch:
+ % ebtables-compat -A FORWARD -p 0x0800 --ip-src 10.0.0.1 --ip-dst 10.0.0.2 -j ACCEPT
+ % ebtables-compat -L
+ [...]
+ % -p 0x0800 --ip-src 10.0.0.1 --ip-dst 10.0.0.2 -j ACCEPT
+
+[Note: the br_ip extension comes in a follow-up patch]
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- iptables/xtables-eb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/xtables-eb.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index d0f6a3e..b559a53 100644
+index b559a53..a078679 100644
 --- a/iptables/xtables-eb.c
 +++ b/iptables/xtables-eb.c
-@@ -618,7 +618,6 @@ static void ebt_load_match(const char *name)
+@@ -644,6 +644,14 @@ static void ebt_load_matches(void)
+ static void ebt_add_match(struct xtables_match *m,
+ 			  struct xtables_rule_match **rule_matches)
  {
- 	struct xtables_match *m;
- 	size_t size;
--	opts = ebt_original_options;
- 
- 	m = xtables_find_match(name, XTF_LOAD_MUST_SUCCEED, NULL);
- 	if (m == NULL)
-@@ -638,6 +637,7 @@ static void ebt_load_match(const char *name)
- 
- static void ebt_load_matches(void)
- {
-+	opts = ebt_original_options;
- 	ebt_load_match("802_3");
- }
- 
++	struct xtables_rule_match *i;
++
++	/* match already in rule_matches, skip inclusion */
++	for (i = *rule_matches; i; i = i->next) {
++		if (strcmp(m->name, i->match->name) == 0)
++			return;
++	}
++
+ 	if (xtables_find_match(m->name, XTF_LOAD_MUST_SUCCEED, rule_matches) == NULL)
+ 		xtables_error(OTHER_PROBLEM,
+ 			      "Unable to add match %s", m->name);
 
