@@ -1,36 +1,44 @@
-From: Patrick Schaaf <netdev@bof.de>
-Subject: Re: [PATCH iptables] iptables: use IPC semaphore instead of abstract unix sockets
-Date: Mon, 19 Jan 2015 14:34:19 +0100
-Message-ID: <1852085.CrMOxe8nFy@rofl>
-References: <1421615616-23053-1-git-send-email-pablo@netfilter.org> <20150119130634.GA4425@salvia> <2675672.bHcfmQIKJk@rofl>
+From: Lennart Poettering <lennart@poettering.net>
+Subject: Re: [PATCH iptables] iptables: use IPC semaphore instead of abstract
+ unix sockets
+Date: Mon, 19 Jan 2015 15:17:59 +0100
+Message-ID: <20150119141759.GB31569@gardel-login>
+References: <1421615616-23053-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org, kernel@linuxace.com,
-	lennart@poettering.net
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kernel@linuxace.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mars.intermailgate.com ([80.242.145.70]:43047 "EHLO
-	mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752322AbbASNeW (ORCPT
+Received: from gardel.0pointer.net ([85.214.157.71]:56427 "EHLO
+	gardel.0pointer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbbASOSC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:34:22 -0500
-In-Reply-To: <2675672.bHcfmQIKJk@rofl>
+	Mon, 19 Jan 2015 09:18:02 -0500
+Content-Disposition: inline
+In-Reply-To: <1421615616-23053-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 19 January 2015 14:19:14 Patrick Schaaf wrote:
->  This appears to work: flock /sys/module/ip_tables
+On Sun, 18.01.15 22:13, Pablo Neira Ayuso (pablo@netfilter.org) wrote:
 
-<blush/> also works for ordinary users......
+> Abstract unix sockets cannot be used to synchronize several concurrent
+> instances of iptables since an unpriviledged process can create them and
+> prevent the legitimate iptables instance from running.
+> 
+> This patch introduces a semaphore that is identified by the path to the
+> iptables binary, it also relies on SEM_UNDO so the kernel performs the
+> up() operation at process exit to avoid races with signals. This also
+> avoid file locks that require a writable filesystem.
 
-/sys/module/ip_tables/uevent would work, but then it's only present when 
-iptables has been built as a module. And stuff like /proc/net/ip_tables does 
-not work, as apparently /proc does not support flock...
+Please, don't use SysV IPC for any new code, it's the worst
+choice. (the token API is already such a desaster!) The API is awful,
+and dated. At least use the POSIX APIs instead.
 
-Sorry for the noise.
+I'd really recommend using BSD file locks on a file in /run though,
+they have the nicest semantics of all, and are supported on Linux
+since a long time.
 
-Patrick
+Lennart
 
+-- 
+Lennart Poettering, Red Hat
