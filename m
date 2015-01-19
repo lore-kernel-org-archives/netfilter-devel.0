@@ -1,33 +1,73 @@
-From: Patrick Schaaf <netdev@bof.de>
-Subject: Re: [PATCH iptables] iptables: use IPC semaphore instead of abstract unix sockets
-Date: Mon, 19 Jan 2015 14:19:14 +0100
-Message-ID: <2675672.bHcfmQIKJk@rofl>
-References: <1421615616-23053-1-git-send-email-pablo@netfilter.org> <20150119130024.GA4410@salvia> <20150119130634.GA4425@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables] iptables: use IPC semaphore instead of abstract
+ unix sockets
+Date: Mon, 19 Jan 2015 14:21:43 +0100
+Message-ID: <20150119132143.GA4545@salvia>
+References: <1421615616-23053-1-git-send-email-pablo@netfilter.org>
+ <alpine.LSU.2.11.1501182227200.16158@nerf60.vanv.qr>
+ <20150119122410.GA4206@salvia>
+ <20150119125118.GK17886@acer.localdomain>
+ <20150119130024.GA4410@salvia>
+ <20150119130634.GA4425@salvia>
+ <20150119130833.GA8818@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org, kernel@linuxace.com,
-	lennart@poettering.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	kernel@linuxace.com, lennart@poettering.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mars.intermailgate.com ([80.242.145.70]:42454 "EHLO
-	mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbbASNTR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2015 08:19:17 -0500
-In-Reply-To: <20150119130634.GA4425@salvia>
+Received: from mail.us.es ([193.147.175.20]:35616 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680AbbASNTQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Jan 2015 08:19:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20150119130833.GA8818@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 19 January 2015 14:06:34 Pablo Neira Ayuso wrote:
-> On Mon, Jan 19, 2015 at 02:00:24PM +0100, Pablo Neira Ayuso wrote:
+On Mon, Jan 19, 2015 at 01:08:33PM +0000, Patrick McHardy wrote:
+> On 19.01, Pablo Neira Ayuso wrote:
+> > On Mon, Jan 19, 2015 at 02:00:24PM +0100, Pablo Neira Ayuso wrote:
+> > > On Mon, Jan 19, 2015 at 12:51:19PM +0000, Patrick McHardy wrote:
+> > > > On 19.01, Pablo Neira Ayuso wrote:
+> > > > > "This patch introduces a semaphore that is identified by the path to
+> > > > > the iptables binary, it also relies on SEM_UNDO so the kernel performs
+> > > > > the up() operation at process exit to avoid races with signals. This
+> > > > > also avoids file locks that require a writable filesystem."
+> > > > 
+> > > > Is it wise to use the path? Not that its very common, but multiple
+> > > > binaries would still race. Any reason you chose not to use something
+> > > > globally unique?
+> > > 
+> > > What kind of race are you worrying about?
+> > 
+> > Oh, I get it. Several different iptables binaries located in different
+> > paths. This patch cannot address that situation, we can select a
+> > hardcoded key but we may conflict with other applications.
 > 
-> I think the best solution is to use to flock() as others do but then
-> we need a writable filesystem() which is what Phil was trying to skip.
+> Sure, but that risk also exists with using the path.
+> 
+> > Regarding the use of posix semaphores, there is no SEM_UNDO feature,
+> > so we can have problem if this receives a kill signal or it
+> > abort/crash somewhere in the code.
+> > 
+> > I think the best solution is to use to flock() as others do but then
+> > we need a writable filesystem() which is what Phil was trying to skip.
+> > 
+> > Question is if we should really care. I mean, this locking solution
+> > was introduced as a workaround given we couldn't solve this in the
+> > kernel.
+> 
+> I think your patch is fine, just wanted to point out that we might
+> want to choose a hardcoded name. I think the risk of clashes with
+> other applications is absolutely minimal.
 
-This appears to work: flock /sys/module/ip_tables
+Makes sense to me. This is how ftok() calculates the key based on the
+path:
 
-best regards
-  Patrick
+  key = ((st.st_ino & 0xffff) | ((st.st_dev & 0xff) << 16)
+         | ((proj_id & 0xff) << 24));
+
+We can a select a magic number for that key, any candidates?
+
+Thanks!
