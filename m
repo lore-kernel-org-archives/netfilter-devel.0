@@ -1,9 +1,10 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Mon, 19 Jan 2015 01:01:21 -0800
-Message-ID: <20150119090121.GG9719@linux.vnet.ibm.com>
-References: <20150116155835.GA15052@casper.infradead.org>
+Date: Mon, 19 Jan 2015 09:45:58 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CACBF27@AcuExch.aculab.com>
+References: <20150116153415.GF30132@acer.localdomain>
+ <20150116155835.GA15052@casper.infradead.org>
  <20150116160354.GI30132@acer.localdomain>
  <20150116161530.GC15052@casper.infradead.org>
  <20150116163202.GJ30132@acer.localdomain>
@@ -12,77 +13,52 @@ References: <20150116155835.GA15052@casper.infradead.org>
  <20150116183626.GS30132@acer.localdomain>
  <20150116191831.GA26730@casper.infradead.org>
  <20150116193557.GU30132@acer.localdomain>
- <20150116204644.GA2232@salvia>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <20150116213605.GE20315@casper.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>,
-	David Laight <David.Laight@ACULAB.COM>,
-	"davem@davemloft.net" <davem@davemloft.net>,
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
+	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
 	"edumazet@google.com" <edumazet@google.com>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e33.co.us.ibm.com ([32.97.110.151]:37585 "EHLO
-	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbbASJCH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2015 04:02:07 -0500
-Received: from /spool/local
-	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Mon, 19 Jan 2015 02:02:06 -0700
-Content-Disposition: inline
-In-Reply-To: <20150116204644.GA2232@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: 'Thomas Graf' <tgraf@suug.ch>, Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150116213605.GE20315@casper.infradead.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 16, 2015 at 09:46:44PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Jan 16, 2015 at 07:35:57PM +0000, Patrick McHardy wrote:
+From: Thomas Graf
+> On 01/16/15 at 07:35pm, Patrick McHardy wrote:
 > > On 16.01, Thomas Graf wrote:
-> > > On 01/16/15 at 06:36pm, Patrick McHardy wrote:
-> > > > On 16.01, Thomas Graf wrote:
-> > > > > On 01/16/15 at 04:43pm, David Laight wrote:
-> > > > > > The walker is unlikely to see items that get inserted early in the hash
-> > > > > > table even without a resize.
-> > > > > 
-> > > > > I don't follow, you have to explain this statement.
-> > > > > 
-> > > > > Walkers which don't want to see duplicates or miss entries should
-> > > > > just take the mutex.
-> > > > 
-> > > > Well, we do have a problem with interrupted dumps. As you know once
-> > > > the netlink message buffer is full, we return to userspace and
-> > > > continue dumping during the next read. Expanding obviously changes
-> > > > the order since we rehash from bucket N to N and 2N, so this will
-> > > > indeed cause duplicate (doesn't matter) and missed entries.
-> > > 
 > > > Right,but that's a Netlink dump issue and not specific to rhashtable.
-> > 
+> >
 > > Well, rhashtable (or generally resizing) will make it a lot worse.
 > > Usually we at worst miss entries which were added during the dump,
 > > which is made up by the notifications.
-> > 
+> >
 > > With resizing we might miss anything, its completely undeterministic.
-> > 
+> >
 > > > Putting the sequence number check in place should be sufficient
 > > > for sets, right?
-> > 
+> >
 > > I don't see how. The problem is that the ordering of the hash changes
 > > and it will skip different entries than those that have already been
 > > dumped.
 > 
-> I think the generation counter should catch up this sort of problems.
-> The resizing is triggered by a new/deletion element, which bumps it
-> once the transaction is handled.
+> Since an resize can only be triggered through insert/remove you
+> simply bump a sequence number when you insert/remove and have
+> userspace restart the dump when NLM_F_DUMP_INTR is set.
 
-One unconventional way of handling this is to associate the scan with
-a one-to-one resize operation.  This can be implemented to have the
-effect of taking a snapshot of the table.
+You could suppress 'shrink' while a userspace dump is in progress
+and force userspace to restart on 'grow'.
 
-							Thanx, Paul
+The suppress does rather require that you know when any userspace 'walk'
+gives up. OTOH it should be possible to defer the 'shrink' everytime
+a walk reads some more of the data.
 
+	David
