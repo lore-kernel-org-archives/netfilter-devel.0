@@ -1,80 +1,101 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [nft_compat PATCH v2] nft_compat: add support for ebtables matches/targets
-Date: Mon, 19 Jan 2015 21:42:29 +0100
-Message-ID: <1421700149-29226-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:40690 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbbASUmf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2015 15:42:35 -0500
-Received: by mail-wg0-f41.google.com with SMTP id a1so11659573wgh.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2015 12:42:33 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH 1/3] rhashtable: Provide notifier for deferred resizes
+Date: Tue, 20 Jan 2015 14:20:25 +0100
+Message-ID: <1a7fba3c718fb70f0f5d67c9c49e4c154ebcd915.1421759056.git.tgraf@suug.ch>
+References: <cover.1421759056.git.tgraf@suug.ch>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net, kaber@trash.net, herbert@gondor.apana.org.au,
+	paulmck@linux.vnet.ibm.com, ying.xue@windriver.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1421759056.git.tgraf@suug.ch>
+In-Reply-To: <cover.1421759056.git.tgraf@suug.ch>
+References: <cover.1421759056.git.tgraf@suug.ch>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This extends nft_compat to support ebtables matches/targets.
+Allowing users of rhashtable to bump a sequence counter and invalidate
+Netlink dumps which have been interrupted by a deferred resize.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
-Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Thomas Graf <tgraf@suug.ch>
 ---
- net/netfilter/nft_compat.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/rhashtable.h | 10 +++++++++-
+ lib/rhashtable.c           | 13 ++++++++++---
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 265e190..bdf2ea2 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -19,6 +19,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_bridge/ebtables.h>
- #include <net/netfilter/nf_tables.h>
+diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
+index a2562ed..b711d16 100644
+--- a/include/linux/rhashtable.h
++++ b/include/linux/rhashtable.h
+@@ -1,7 +1,7 @@
+ /*
+  * Resizable, Scalable, Concurrent Hash Table
+  *
+- * Copyright (c) 2014 Thomas Graf <tgraf@suug.ch>
++ * Copyright (c) 2014-2015 Thomas Graf <tgraf@suug.ch>
+  * Copyright (c) 2008-2014 Patrick McHardy <kaber@trash.net>
+  *
+  * Based on the following paper by Josh Triplett, Paul E. McKenney
+@@ -64,6 +64,11 @@ typedef u32 (*rht_obj_hashfn_t)(const void *data, u32 seed);
  
- static int nft_compat_chain_validate_dependency(const char *tablename,
-@@ -40,6 +41,7 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
- union nft_entry {
- 	struct ipt_entry e4;
- 	struct ip6t_entry e6;
-+	struct ebt_entry ebt;
+ struct rhashtable;
+ 
++enum rht_resize_op {
++	RHT_GROWING,
++	RHT_SHRINKING,
++};
++
+ /**
+  * struct rhashtable_params - Hash table construction parameters
+  * @nelem_hint: Hint on number of elements, should be 75% of desired size
+@@ -79,6 +84,7 @@ struct rhashtable;
+  * @obj_hashfn: Function to hash object
+  * @grow_decision: If defined, may return true if table should expand
+  * @shrink_decision: If defined, may return true if table should shrink
++ * @resize_notify: Called when a table resize is scheduled.
+  *
+  * Note: when implementing the grow and shrink decision function, min/max
+  * shift must be enforced, otherwise, resizing watermarks they set may be
+@@ -100,6 +106,8 @@ struct rhashtable_params {
+ 						 size_t new_size);
+ 	bool			(*shrink_decision)(const struct rhashtable *ht,
+ 						   size_t new_size);
++	void			(*resize_notify)(const struct rhashtable *ht,
++						 enum rht_resize_op op);
  };
  
- static inline void
-@@ -100,6 +102,10 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 		entry->e6.ipv6.proto = proto;
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
-+	case NFPROTO_BRIDGE:
-+		entry->ebt.ethproto = proto;
-+		entry->ebt.invflags = inv ? IPT_INV_PROTO : 0;
-+		break;
- 	}
- 	par->entryinfo	= entry;
- 	par->target	= target;
-@@ -307,6 +313,10 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 		entry->e6.ipv6.proto = proto;
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
-+	case NFPROTO_BRIDGE:
-+		entry->ebt.ethproto = proto;
-+		entry->ebt.invflags = inv ? IPT_INV_PROTO : 0;
-+		break;
- 	}
- 	par->entryinfo	= entry;
- 	par->match	= match;
-@@ -490,6 +500,9 @@ nfnl_compat_get(struct sock *nfnl, struct sk_buff *skb,
- 	case AF_INET6:
- 		fmt = "ip6t_%s";
- 		break;
-+	case NFPROTO_BRIDGE:
-+		fmt = "ebt_%s";
-+		break;
- 	default:
- 		pr_err("nft_compat: unsupported protocol %d\n",
- 			nfmsg->nfgen_family);
+ /**
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index 84a78e3..a4449c4 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -1,7 +1,7 @@
+ /*
+  * Resizable, Scalable, Concurrent Hash Table
+  *
+- * Copyright (c) 2014 Thomas Graf <tgraf@suug.ch>
++ * Copyright (c) 2014-2015 Thomas Graf <tgraf@suug.ch>
+  * Copyright (c) 2008-2014 Patrick McHardy <kaber@trash.net>
+  *
+  * Based on the following paper:
+@@ -489,10 +489,17 @@ static void rht_deferred_worker(struct work_struct *work)
+ 	mutex_lock(&ht->mutex);
+ 	tbl = rht_dereference(ht->tbl, ht);
+ 
+-	if (ht->p.grow_decision && ht->p.grow_decision(ht, tbl->size))
++	if (ht->p.grow_decision && ht->p.grow_decision(ht, tbl->size)) {
++		if (ht->p.resize_notify)
++			ht->p.resize_notify(ht, RHT_GROWING);
++
+ 		rhashtable_expand(ht);
+-	else if (ht->p.shrink_decision && ht->p.shrink_decision(ht, tbl->size))
++	} else if (ht->p.shrink_decision && ht->p.shrink_decision(ht, tbl->size)) {
++		if (ht->p.resize_notify)
++			ht->p.resize_notify(ht, RHT_SHRINKING);
++
+ 		rhashtable_shrink(ht);
++	}
+ 
+ 	mutex_unlock(&ht->mutex);
+ }
 -- 
-1.9.1
-
+1.9.3
