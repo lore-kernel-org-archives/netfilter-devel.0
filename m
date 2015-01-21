@@ -1,8 +1,8 @@
 From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 3/3] netlink: Lock out table resizes while dumping
  Netlink sockets
-Date: Wed, 21 Jan 2015 10:23:46 +0000
-Message-ID: <20150121102346.GQ20315@casper.infradead.org>
+Date: Wed, 21 Jan 2015 10:34:21 +0000
+Message-ID: <20150121103421.GR20315@casper.infradead.org>
 References: <e164edeacaeffee43be64d4ed6a5b5e7e8923bd1.1421759056.git.tgraf@suug.ch>
  <20150120143154.GR14883@acer.localdomain>
  <20150120145551.GH20315@casper.infradead.org>
@@ -19,11 +19,16 @@ Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
 	paulmck@linux.vnet.ibm.com, ying.xue@windriver.com,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:35941 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbbAUKeX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2015 05:34:23 -0500
 Content-Disposition: inline
 In-Reply-To: <20150121095837.GA25750@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 On 01/21/15 at 08:58pm, Herbert Xu wrote:
 > On Wed, Jan 21, 2015 at 09:49:28AM +0000, Thomas Graf wrote:
@@ -38,7 +43,9 @@ On 01/21/15 at 08:58pm, Herbert Xu wrote:
 > see how I could use the bit if you need it to indicate the end of
 > the list.
 
-The usage will be identical to how __inet_lookup_listener() uses it.
-If at the end of the lookup, we ended up in a different table than
-we started, the lookup is restarted as an entry has moved to another
-table while we were moving over it.
+Another thought: Instead of storing that bit in the next pointer, we
+could require the user to store this bit, i.e. two new function
+pointers to rhashtable_params, set_walk_bit() and get_walk_bit(),
+which take the hashed object as argument and if a rhashtable user
+requires consistent dumps he can provide these functions to store
+the flag.
