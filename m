@@ -1,10 +1,9 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 3/3] netlink: Lock out table resizes while dumping
  Netlink sockets
-Date: Wed, 21 Jan 2015 11:59:25 +0000
-Message-ID: <20150121115924.GW3012@acer.localdomain>
-References: <20150120152149.GA3012@acer.localdomain>
- <20150120153556.GJ20315@casper.infradead.org>
+Date: Wed, 21 Jan 2015 12:07:27 +0000
+Message-ID: <20150121120727.GC12570@casper.infradead.org>
+References: <20150120153556.GJ20315@casper.infradead.org>
  <20150121050819.GA23062@gondor.apana.org.au>
  <20150121093722.GM20315@casper.infradead.org>
  <20150121093836.GA25489@gondor.apana.org.au>
@@ -13,40 +12,47 @@ References: <20150120152149.GA3012@acer.localdomain>
  <20150121103421.GR20315@casper.infradead.org>
  <20150121103959.GR3012@acer.localdomain>
  <20150121113751.GT20315@casper.infradead.org>
+ <20150121115924.GW3012@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Herbert Xu <herbert@gondor.apana.org.au>, davem@davemloft.net,
 	paulmck@linux.vnet.ibm.com, ying.xue@windriver.com,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53163 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbbAUL7a (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Jan 2015 06:59:30 -0500
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150121113751.GT20315@casper.infradead.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150121115924.GW3012@acer.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 21.01, Thomas Graf wrote:
-> On 01/21/15 at 10:40am, Patrick McHardy wrote:
-> > On the danger of repeating myself, every (converted) user requires
-> > that we at least keep the existing semantics since it is exposed to
-> > userspace. My opinion is that NLM_F_DUMP_INTR is fine if userspace
-> > indicates support, but without that, we have to take care of that
-> > in the kernel.
+On 01/21/15 at 11:59am, Patrick McHardy wrote:
+> On 21.01, Thomas Graf wrote:
+> > On 01/21/15 at 10:40am, Patrick McHardy wrote:
+> > > An automatic restart handles this well. Userspace always had to
+> > > expect duplicates.
+> > 
+> > Maybe I don't understand the restart yet. How do you restart if the
+> > dump was already started and the user has read part of the dump?
 > 
-> Absolutely agreed. I think this is an excellent low cost path for
-> future users where dumps are rare.
-> 
-> > An automatic restart handles this well. Userspace always had to
-> > expect duplicates.
-> 
-> Maybe I don't understand the restart yet. How do you restart if the
-> dump was already started and the user has read part of the dump?
+> You use the mutex to prevent concurrent resizes and dumps, for dumps
+> that have left the kernel you simply reset the iterator state after
+> a resize operation.
 
-You use the mutex to prevent concurrent resizes and dumps, for dumps
-that have left the kernel you simply reset the iterator state after
-a resize operation.
+I see, so we possibly see a lot of duplicates but we will never miss
+any entries.
+
+So in summary we do:
+
+2) We allow rhashtable users to opt in to Herbert's consistent walker
+   relying on the use of an additional bit.
+
+2) If user supports NLM_F_DUMP_INTR we block out resizes during
+   message construction and set NLM_F_DUMP_INTR if a resize/rehash
+   interrupted us while the user read.
+
+3) If (1) and (2) are not available we do (2) but restart the dump
+   on interruption thus causing duplicates but never missing any
+   entries.
+
+I think this offers good flexibility for new users and compatibility
+for existing users.
