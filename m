@@ -1,8 +1,8 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCH 3/3] netlink: Lock out table resizes while dumping
  Netlink sockets
-Date: Wed, 21 Jan 2015 20:58:37 +1100
-Message-ID: <20150121095837.GA25750@gondor.apana.org.au>
+Date: Wed, 21 Jan 2015 20:59:10 +1100
+Message-ID: <20150121095910.GB25750@gondor.apana.org.au>
 References: <cover.1421759056.git.tgraf@suug.ch>
  <e164edeacaeffee43be64d4ed6a5b5e7e8923bd1.1421759056.git.tgraf@suug.ch>
  <20150120143154.GR14883@acer.localdomain>
@@ -10,9 +10,9 @@ References: <cover.1421759056.git.tgraf@suug.ch>
  <20150120152149.GA3012@acer.localdomain>
  <20150120153556.GJ20315@casper.infradead.org>
  <20150121050819.GA23062@gondor.apana.org.au>
- <20150121093722.GM20315@casper.infradead.org>
- <20150121093836.GA25489@gondor.apana.org.au>
- <20150121094928.GN20315@casper.infradead.org>
+ <20150121051555.GA23300@gondor.apana.org.au>
+ <20150121091457.GA25289@gondor.apana.org.au>
+ <20150121095634.GO20315@casper.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
@@ -20,27 +20,24 @@ Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:35661 "EHLO
+Received: from helcar.apana.org.au ([209.40.204.226]:59509 "EHLO
 	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531AbbAUJ65 (ORCPT
+	with ESMTP id S1751579AbbAUJ7f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Jan 2015 04:58:57 -0500
+	Wed, 21 Jan 2015 04:59:35 -0500
 Content-Disposition: inline
-In-Reply-To: <20150121094928.GN20315@casper.infradead.org>
+In-Reply-To: <20150121095634.GO20315@casper.infradead.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 21, 2015 at 09:49:28AM +0000, Thomas Graf wrote:
+On Wed, Jan 21, 2015 at 09:56:34AM +0000, Thomas Graf wrote:
 >
-> An entry can move between different tables and thus chains need to be
-> marked to identify what list a lookup ended up searching in. It's not
-> the nulls marker itself that is needed, it's the bits in the last next
-> pointer identifying the list that the nulls marker allows to be used
-> which are essential.
+> Exactly. I think we also need a timer to abort walks because if
+> only a single walker is allowed, an attacker could start a walk and
+> not complete it to block out everybody else.
 
-Can you describe in more detail how it's going to be used? I don't
-see how I could use the bit if you need it to indicate the end of
-the list.
+My scheme should support an arbitrary number of walks.  See how
+xfrm_state_walk is implemented.
 
 Cheers,
 -- 
