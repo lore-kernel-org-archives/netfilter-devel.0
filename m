@@ -1,48 +1,101 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
- expansion/shrinking
-Date: Tue, 20 Jan 2015 21:36:20 -0800
-Message-ID: <20150121053620.GZ9719@linux.vnet.ibm.com>
-References: <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
- <20150116165302.GE15052@casper.infradead.org>
- <20150116183626.GS30132@acer.localdomain>
- <20150116191831.GA26730@casper.infradead.org>
- <20150116193557.GU30132@acer.localdomain>
- <20150116204644.GA2232@salvia>
- <20150119090121.GG9719@linux.vnet.ibm.com>
- <20150121052333.GA23382@gondor.apana.org.au>
- <20150121052907.GY9719@linux.vnet.ibm.com>
- <20150121053025.GA23481@gondor.apana.org.au>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Ying Xue <ying.xue@windriver.com>
+Subject: Re: [PATCH 2/3] netlink: Mark dumps as inconsistent which have been
+ interrupted by a resize
+Date: Wed, 21 Jan 2015 16:13:56 +0800
+Message-ID: <54BF5FC4.4070808@windriver.com>
+References: <cover.1421759056.git.tgraf@suug.ch> <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>,
-	David Laight <David.Laight@ACULAB.COM>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"edumazet@google.com" <edumazet@google.com>,
-	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
-	"josh@joshtriplett.org" <josh@joshtriplett.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150121053025.GA23481@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: Thomas Graf <tgraf@suug.ch>, <davem@davemloft.net>,
+	<kaber@trash.net>, <herbert@gondor.apana.org.au>,
+	<paulmck@linux.vnet.ibm.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail1.windriver.com ([147.11.146.13]:65280 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbbAUIQI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2015 03:16:08 -0500
+In-Reply-To: <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 21, 2015 at 04:30:25PM +1100, Herbert Xu wrote:
-> On Tue, Jan 20, 2015 at 09:29:07PM -0800, Paul E. McKenney wrote:
-> > 
-> > Well, you -could- batch them up, so that a single snapshot covered
-> > several users, and once that set was done and memory reclaimed, a second
-> > snapshot could cover any additional users that requested dumps/walks in
-> > the meantime.  Or are users allowed to walk arbitrarily slowly through
-> > the table?
+On 01/20/2015 09:20 PM, Thomas Graf wrote:
+> A deferred resize of nl_table causes the offsets that Netlink diag keeps
+> to become inaccurate. Mark the dump as inconsistent and have user space
+> request a new dump.
 > 
-> Yes they can.  You could CTRL-Z a dumper quite easily.
+> Signed-off-by: Thomas Graf <tgraf@suug.ch>
+> ---
+>  net/netlink/af_netlink.c | 10 ++++++++++
+>  net/netlink/af_netlink.h |  1 +
+>  net/netlink/diag.c       |  1 +
+>  3 files changed, 12 insertions(+)
+> 
+> diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+> index 7a94185..e214557 100644
+> --- a/net/netlink/af_netlink.c
+> +++ b/net/netlink/af_netlink.c
+> @@ -91,6 +91,9 @@ static inline int netlink_is_kernel(struct sock *sk)
+>  struct netlink_table *nl_table;
+>  EXPORT_SYMBOL_GPL(nl_table);
+>  
+> +atomic_t nl_table_seq;
 
-OK, never mind, then!  ;-)
+It sounds like the atomic variable is not initialized.
 
-							Thanx, Paul
+Regards,
+Ying
+
+> +EXPORT_SYMBOL_GPL(nl_table_seq);
+> +
+>  static DECLARE_WAIT_QUEUE_HEAD(nl_table_wait);
+>  
+>  static int netlink_dump(struct sock *sk);
+> @@ -3071,6 +3074,12 @@ static const struct net_proto_family netlink_family_ops = {
+>  	.owner	= THIS_MODULE,	/* for consistency 8) */
+>  };
+>  
+> +static void nl_table_resize_notify(const struct rhashtable *ht,
+> +				   enum rht_resize_op op)
+> +{
+> +	atomic_inc(&nl_table_seq);
+> +}
+> +
+>  static int __net_init netlink_net_init(struct net *net)
+>  {
+>  #ifdef CONFIG_PROC_FS
+> @@ -3124,6 +3133,7 @@ static int __init netlink_proto_init(void)
+>  		.max_shift = 16, /* 64K */
+>  		.grow_decision = rht_grow_above_75,
+>  		.shrink_decision = rht_shrink_below_30,
+> +		.resize_notify = nl_table_resize_notify,
+>  	};
+>  
+>  	if (err != 0)
+> diff --git a/net/netlink/af_netlink.h b/net/netlink/af_netlink.h
+> index 7518375..51c23c0 100644
+> --- a/net/netlink/af_netlink.h
+> +++ b/net/netlink/af_netlink.h
+> @@ -74,5 +74,6 @@ struct netlink_table {
+>  
+>  extern struct netlink_table *nl_table;
+>  extern rwlock_t nl_table_lock;
+> +extern atomic_t nl_table_seq;
+>  
+>  #endif
+> diff --git a/net/netlink/diag.c b/net/netlink/diag.c
+> index 3ee63a3..50aa385 100644
+> --- a/net/netlink/diag.c
+> +++ b/net/netlink/diag.c
+> @@ -112,6 +112,7 @@ static int __netlink_diag_dump(struct sk_buff *skb, struct netlink_callback *cb,
+>  	int ret = 0, num = 0, i;
+>  
+>  	req = nlmsg_data(cb->nlh);
+> +	cb->seq = atomic_read(&nl_table_seq);
+>  
+>  	for (i = 0; i < htbl->size; i++) {
+>  		struct rhash_head *pos;
+> 
+
