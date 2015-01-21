@@ -1,10 +1,9 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH 7/9] rhashtable: Per bucket locks & deferred
  expansion/shrinking
-Date: Wed, 21 Jan 2015 16:23:33 +1100
-Message-ID: <20150121052333.GA23382@gondor.apana.org.au>
-References: <20150116160354.GI30132@acer.localdomain>
- <20150116161530.GC15052@casper.infradead.org>
+Date: Tue, 20 Jan 2015 21:29:07 -0800
+Message-ID: <20150121052907.GY9719@linux.vnet.ibm.com>
+References: <20150116161530.GC15052@casper.infradead.org>
  <20150116163202.GJ30132@acer.localdomain>
  <063D6719AE5E284EB5DD2968C1650D6D1CACADAF@AcuExch.aculab.com>
  <20150116165302.GE15052@casper.infradead.org>
@@ -13,6 +12,8 @@ References: <20150116160354.GI30132@acer.localdomain>
  <20150116193557.GU30132@acer.localdomain>
  <20150116204644.GA2232@salvia>
  <20150119090121.GG9719@linux.vnet.ibm.com>
+ <20150121052333.GA23382@gondor.apana.org.au>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -24,26 +25,29 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	"john.r.fastabend@intel.com" <john.r.fastabend@intel.com>,
 	"josh@joshtriplett.org" <josh@joshtriplett.org>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150119090121.GG9719@linux.vnet.ibm.com>
+In-Reply-To: <20150121052333.GA23382@gondor.apana.org.au>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 19, 2015 at 01:01:21AM -0800, Paul E. McKenney wrote:
->
-> One unconventional way of handling this is to associate the scan with
-> a one-to-one resize operation.  This can be implemented to have the
-> effect of taking a snapshot of the table.
+On Wed, Jan 21, 2015 at 04:23:33PM +1100, Herbert Xu wrote:
+> On Mon, Jan 19, 2015 at 01:01:21AM -0800, Paul E. McKenney wrote:
+> >
+> > One unconventional way of handling this is to associate the scan with
+> > a one-to-one resize operation.  This can be implemented to have the
+> > effect of taking a snapshot of the table.
+> 
+> The problem is that in general (not for netfilter, but certainly
+> other rhashtable users such as netlink) dumps/walks can be started
+> by ordinary users and I don't think we can afford creating a
+> snapshot for each one, or can we?
 
-The problem is that in general (not for netfilter, but certainly
-other rhashtable users such as netlink) dumps/walks can be started
-by ordinary users and I don't think we can afford creating a
-snapshot for each one, or can we?
+Well, you -could- batch them up, so that a single snapshot covered
+several users, and once that set was done and memory reclaimed, a second
+snapshot could cover any additional users that requested dumps/walks in
+the meantime.  Or are users allowed to walk arbitrarily slowly through
+the table?
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+							Thanx, Paul
