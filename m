@@ -1,40 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] netlink: Mark dumps as inconsistent which have been
- interrupted by a resize
-Date: Thu, 22 Jan 2015 10:07:03 +0000
-Message-ID: <20150122100702.GD4037@acer.localdomain>
-References: <cover.1421759056.git.tgraf@suug.ch>
- <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
- <54BF5FC4.4070808@windriver.com>
- <20150121121748.GD12570@casper.infradead.org>
- <20150122084924.GA4720@gondor.apana.org.au>
- <20150122085643.GB4037@acer.localdomain>
- <20150122092212.GA5035@gondor.apana.org.au>
+From: Patrick Schaaf <netdev@bof.de>
+Subject: Funny iptables -L output with 0.0.0.3 netmask
+Date: Thu, 22 Jan 2015 12:14:08 +0100
+Message-ID: <5101724.aeQA8Siq95@rofl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, Ying Xue <ying.xue@windriver.com>,
-	davem@davemloft.net, paulmck@linux.vnet.ibm.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61086 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167AbbAVKHJ (ORCPT
+Received: from mars.intermailgate.com ([80.242.145.70]:45926 "EHLO
+	mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbbAVLOL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2015 05:07:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20150122092212.GA5035@gondor.apana.org.au>
+	Thu, 22 Jan 2015 06:14:11 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22.01, Herbert Xu wrote:
-> On Thu, Jan 22, 2015 at 08:56:44AM +0000, Patrick McHardy wrote:
-> >
-> > Hope it will still be possible, I need it for GC in timeout support for
-> > nftables sets.
-> 
-> This should be able to use the same walk that you're currently
-> using for dump once we add the restart, no?
+Hi,
 
-Yes, should even be possible to use the walk function with some small
-adjustments.
+just noticed something funny with "iptables -L" - was always fine in the past, 
+e.g. with iptables 1.4.10, but now on a box with iptables 1.4.19 (opensuse 
+13.1) I see a funny thing.
+
+Rule:
+iptables -A somewhere -s 0.0.0.1/0.0.0.3 -j ACCEPT
+
+Previous / normal list output:
+ACCEPT     all  --  0.0.0.1/0.0.0.3      anywhere
+
+Funny output I see now:
+ACCEPT     all  --  0.0.0.1/-1           anywhere
+
+The "-1" shows for variations of the nifty mask, too, e.g. /0.0.0.1 or 
+/0.0.0.5 or even /127.255.255.255 - apparently anything with a leading 0-bit.
+
+iptables-save output is fine.
+
+Sorry if this is known + maybe already fixed in newer iptables versions...
+
+best regards
+ Patrick
