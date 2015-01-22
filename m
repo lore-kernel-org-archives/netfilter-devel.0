@@ -1,54 +1,38 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 3/3] netlink: Lock out table resizes while dumping
- Netlink sockets
-Date: Thu, 22 Jan 2015 18:20:31 +1100
-Message-ID: <20150122072030.GA4039@gondor.apana.org.au>
-References: <20150120145551.GH20315@casper.infradead.org>
- <20150120152149.GA3012@acer.localdomain>
- <20150120153556.GJ20315@casper.infradead.org>
- <20150121050819.GA23062@gondor.apana.org.au>
- <20150121093722.GM20315@casper.infradead.org>
- <20150121093836.GA25489@gondor.apana.org.au>
- <20150121094928.GN20315@casper.infradead.org>
- <20150121095837.GA25750@gondor.apana.org.au>
- <20150121102346.GQ20315@casper.infradead.org>
- <20150122063501.GA3746@gondor.apana.org.au>
+Subject: Re: [PATCH 2/3] netlink: Mark dumps as inconsistent which have been
+ interrupted by a resize
+Date: Thu, 22 Jan 2015 19:49:24 +1100
+Message-ID: <20150122084924.GA4720@gondor.apana.org.au>
+References: <cover.1421759056.git.tgraf@suug.ch>
+ <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
+ <54BF5FC4.4070808@windriver.com>
+ <20150121121748.GD12570@casper.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	paulmck@linux.vnet.ibm.com, ying.xue@windriver.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Eric Dumazet <edumazet@google.com>
+Cc: Ying Xue <ying.xue@windriver.com>, davem@davemloft.net,
+	kaber@trash.net, paulmck@linux.vnet.ibm.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:36979 "EHLO
-	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbbAVHUy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2015 02:20:54 -0500
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150122063501.GA3746@gondor.apana.org.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150121121748.GD12570@casper.infradead.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jan 22, 2015 at 05:35:01PM +1100, Herbert Xu wrote:
-> On Wed, Jan 21, 2015 at 10:23:46AM +0000, Thomas Graf wrote:
-> >
-> > The usage will be identical to how __inet_lookup_listener() uses it.
-> > If at the end of the lookup, we ended up in a different table than
-> > we started, the lookup is restarted as an entry has moved to another
-> > table while we were moving over it.
+On Wed, Jan 21, 2015 at 12:17:48PM +0000, Thomas Graf wrote:
+>
+> Thanks for the review. We also need to avoid hitting 0 when we overflow
+> on a seq increment.  The netfilter code is doing this correctly but several
+> other users are suffering from this as well.
 > 
-> Who uses this stuff apart from ip_dynaddr?
+> I'll address this in v2 together with the other discussed changes.
 
-OK it's there for fast socket recycling.  Given that and the fact
-that everyone seems to be happy with restarting the dump after a
-resize, I think we should just go with that.
+Could you hold off for a bit? I've got some changes that touch
+this area that I'd like to push out.  Basically I'm trying to
+eliminate direct access of rhashtable internals from the existing
+users.
 
-Anybody who wants a better walk can always implement their own
-data structure outside of rhashtable.
-
-Cheers,
+Thanks,
 -- 
 Email: Herbert Xu <herbert@gondor.apana.org.au>
 Home Page: http://gondor.apana.org.au/~herbert/
