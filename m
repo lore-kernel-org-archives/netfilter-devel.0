@@ -1,47 +1,40 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 3/3] netlink: Lock out table resizes while dumping
- Netlink sockets
-Date: Thu, 22 Jan 2015 20:50:24 +1100
-Message-ID: <20150122095024.GA5281@gondor.apana.org.au>
-References: <20150120153556.GJ20315@casper.infradead.org>
- <20150121050819.GA23062@gondor.apana.org.au>
- <20150121093722.GM20315@casper.infradead.org>
- <20150121093836.GA25489@gondor.apana.org.au>
- <20150121094928.GN20315@casper.infradead.org>
- <20150121095837.GA25750@gondor.apana.org.au>
- <20150121102346.GQ20315@casper.infradead.org>
- <20150122063501.GA3746@gondor.apana.org.au>
- <20150122072030.GA4039@gondor.apana.org.au>
- <20150122090518.GA30859@casper.infradead.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/3] netlink: Mark dumps as inconsistent which have been
+ interrupted by a resize
+Date: Thu, 22 Jan 2015 10:07:03 +0000
+Message-ID: <20150122100702.GD4037@acer.localdomain>
+References: <cover.1421759056.git.tgraf@suug.ch>
+ <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
+ <54BF5FC4.4070808@windriver.com>
+ <20150121121748.GD12570@casper.infradead.org>
+ <20150122084924.GA4720@gondor.apana.org.au>
+ <20150122085643.GB4037@acer.localdomain>
+ <20150122092212.GA5035@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	paulmck@linux.vnet.ibm.com, ying.xue@windriver.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Eric Dumazet <edumazet@google.com>
-To: Thomas Graf <tgraf@suug.ch>
+Cc: Thomas Graf <tgraf@suug.ch>, Ying Xue <ying.xue@windriver.com>,
+	davem@davemloft.net, paulmck@linux.vnet.ibm.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:54947 "EHLO
-	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662AbbAVJvG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61086 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167AbbAVKHJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2015 04:51:06 -0500
+	Thu, 22 Jan 2015 05:07:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20150122090518.GA30859@casper.infradead.org>
+In-Reply-To: <20150122092212.GA5035@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 22, 2015 at 09:05:18AM +0000, Thomas Graf wrote:
->
-> What did you think of the idea to let the user store the walker
-> bit for rhashtable?
+On 22.01, Herbert Xu wrote:
+> On Thu, Jan 22, 2015 at 08:56:44AM +0000, Patrick McHardy wrote:
+> >
+> > Hope it will still be possible, I need it for GC in timeout support for
+> > nftables sets.
+> 
+> This should be able to use the same walk that you're currently
+> using for dump once we add the restart, no?
 
-The problem with that is the bit is needed to indicate special
-walker objects which the user won't be able to decipher (see
-xfrm_state_walk).
-
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Yes, should even be possible to use the walk function with some small
+adjustments.
