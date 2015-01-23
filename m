@@ -1,43 +1,79 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: NetDev 0.1 conference: Important!  Hotel Reservation Deadline Expiring
-Date: Fri, 23 Jan 2015 08:27:56 -0500
-Message-ID: <54C24C5C.5080709@mojatatu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Richard Guy Briggs <rgb@tricolour.ca>, info@netdev01.org,
-	speakers@netdev01.org, attendees@netdev01.org
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH] set: refactor code in json parse function
+Date: Fri, 23 Jan 2015 15:49:51 +0100
+Message-ID: <1422024596-8839-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:50802 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946AbbAWOtl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Jan 2015 09:49:41 -0500
+Received: by mail-we0-f173.google.com with SMTP id w62so8007154wes.4
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jan 2015 06:49:40 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id ev7sm2462989wjb.47.2015.01.23.06.49.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 23 Jan 2015 06:49:39 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch refactor code to parse the set in two functions
+nft_jansson_parse_set_info and nft_jansson_parse_set. Those changes is used
+in follow up patches.
 
-Fellow netheads:
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/set.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-On behalf of rgb, yours truly is sending out this announcement.
+diff --git a/src/set.c b/src/set.c
+index 61e0632..4fd786a 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -410,19 +410,15 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
+ EXPORT_SYMBOL(nft_set_nlmsg_parse);
+ 
+ #ifdef JSON_PARSING
+-int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
+-			  struct nft_parse_err *err)
++static int nft_jansson_parse_set_info(struct nft_set *s, json_t *tree,
++				      struct nft_parse_err *err)
+ {
+-	json_t *root, *array, *json_elem;
++	json_t *root = tree, *array, *json_elem;
+ 	uint32_t flags, key_type, key_len, data_type, data_len, policy, size;
+ 	int family, i;
+ 	const char *name, *table;
+ 	struct nft_set_elem *elem;
+ 
+-	root = nft_jansson_get_node(tree, "set", err);
+-	if (root == NULL)
+-		return -1;
+-
+ 	name = nft_jansson_parse_str(root, "name", err);
+ 	if (name == NULL)
+ 		return -1;
+@@ -503,6 +499,18 @@ int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
+ 
+ 	return 0;
+ }
++
++int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
++			  struct nft_parse_err *err)
++{
++	json_t *root;
++
++	root = nft_jansson_get_node(tree, "set", err);
++	if (root == NULL)
++		return -1;
++
++	return nft_jansson_parse_set_info(s, root, err);
++}
+ #endif
+ 
+ static int nft_set_json_parse(struct nft_set *s, const void *json,
+-- 
+1.7.10.4
 
-Today is the last day that the Westin Hotel will be holding a block of
-rooms for Netdev01 at a guaranteed rate of $159.00 or $179.00
-(depending on the type of room required) and there are still rooms
-available.
-
-Please dont procastinate and book now. We are trying to negotiate with
-the hotel to see if they can extend the deadline but so far we have not
-been successful. We are competing against a few tourist activities for
-hotel rooms going on around the area at the same time (example:
-http://www.ottawafestivals.ca/events/winterlude-2/) so we can assure you
-the prices will go up.
-
-The content of the Tutorials/BOFs/talk continues to be updated at:
-https://www.netdev01.org/sessions
-This has to be the most amazing Linux netdev content put together
-anywhere.
-Avoid disappointment and do your reservations at:
-https://www.starwoodmeeting.com/StarGroupsWeb/res?id=1412035802&key=1AC9C1F8
-
-
-cheers,
-jamal (on behalf of Richard Guy Briggs)
