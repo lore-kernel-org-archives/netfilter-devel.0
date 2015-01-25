@@ -1,36 +1,43 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH iptables] iptables: use flock() instead of abstract unix
- sockets
-Date: Sat, 24 Jan 2015 14:35:04 -0800
-Message-ID: <20150124223503.GA22316@home>
-References: <1421690957-11279-1-git-send-email-pablo@netfilter.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: [PATCH 0/2] rhashtable: Add walk iterator primitives and use them in
+ netlink
+Date: Mon, 26 Jan 2015 10:20:40 +1100
+Message-ID: <20150125232040.GA17936@gondor.apana.org.au>
+References: <cover.1421759056.git.tgraf@suug.ch>
+ <cce004895ab6bcef267e2133a1c7ecab0fac403b.1421759056.git.tgraf@suug.ch>
+ <54BF5FC4.4070808@windriver.com>
+ <20150121121748.GD12570@casper.infradead.org>
+ <20150122084924.GA4720@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, lennart@poettering.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Ying Xue <ying.xue@windriver.com>, davem@davemloft.net,
+	kaber@trash.net, paulmck@linux.vnet.ibm.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:47564 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbbAXWfG (ORCPT
+Received: from helcar.apana.org.au ([209.40.204.226]:55145 "EHLO
+	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473AbbAYXVM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 24 Jan 2015 17:35:06 -0500
-Received: by mail-pa0-f53.google.com with SMTP id kx10so4234877pab.12
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jan 2015 14:35:04 -0800 (PST)
+	Sun, 25 Jan 2015 18:21:12 -0500
 Content-Disposition: inline
-In-Reply-To: <1421690957-11279-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20150122084924.GA4720@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 19, 2015 at 07:09:17PM +0100, Pablo Neira Ayuso wrote:
-> Abstract unix sockets cannot be used to synchronize several concurrent
-> instances of iptables since an unpriviledged process can create them and
-> prevent the legitimate iptables instance from running.
-> 
-> Use flock() and /run instead as suggested by Lennart Poettering.
-> 
-> Fixes: 93587a0 ("ip[6]tables: Add locking to prevent concurrent instances")
-> Reported-by: Lennart Poettering <lennart@poettering.net>
+On Thu, Jan 22, 2015 at 07:49:24PM +1100, Herbert Xu wrote:
+>
+> Could you hold off for a bit? I've got some changes that touch
+> this area that I'd like to push out.  Basically I'm trying to
+> eliminate direct access of rhashtable internals from the existing
+> users.
 
-Looks good Pablo.  Thanks for finding this Lennart.  
+Here are the first two patches, one to add the primitives and one
+to demonstrate its use in netlink.  In fact while testing this I
+found that the existing netlink walking code is totally broken.
 
-Phil
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
