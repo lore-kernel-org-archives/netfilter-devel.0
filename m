@@ -1,26 +1,25 @@
 From: Ana Rey Botello <ana@soleta.eu>
-Subject: [nf v2 2/2] netfilter: named counter: add support to counters in nftables
-Date: Mon, 26 Jan 2015 20:43:30 +0100
-Message-ID: <845cd6a92ec0d1c4380b5fec0d896a3bc0d5e05d.1422299628.git.ana@soleta.eu>
+Subject: [nft v2 1/2] src: Add the accounter support
+Date: Mon, 26 Jan 2015 20:43:29 +0100
+Message-ID: <96bd97c71d34fb406ef7085789ede1586d0bae53.1422299750.git.ana@soleta.eu>
 References: <cover.1422299627.git.ana@soleta.eu>
 Cc: Ana Rey <ana@soleta.eu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:47440 "EHLO
+Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:47439 "EHLO
 	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201AbbAZTm4 (ORCPT
+	with ESMTP id S1753120AbbAZTm4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 26 Jan 2015 14:42:56 -0500
 In-Reply-To: <cover.1422299627.git.ana@soleta.eu>
-In-Reply-To: <cover.1422299627.git.ana@soleta.eu>
-References: <cover.1422299627.git.ana@soleta.eu>
+In-Reply-To: <cover.1422299750.git.ana@soleta.eu>
+References: <cover.1422299750.git.ana@soleta.eu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Ana Rey <ana@soleta.eu>
 
-This adds counter objects support to allow us to manipulate the nftables's
-extended accounting intraestructure.
+This adds userspace support to accounting objects and expression.
 
 Example of use in nft:
  # nft add counter ip filter http-traffic
@@ -44,108 +43,35 @@ Generate Some traffic:
             }
     }
 
+The kernel support is added in the commit:
+"netfilter: named counter: add support to counters in nftables"
+
+The libnftnl support is added in the commit:
+"src: Add accounters support"
+
 Signed-off-by: Ana Rey Botello <ana@soleta.eu>
 ---
- include/net/netfilter/nf_tables.h        |   49 +++
- include/uapi/linux/netfilter/nf_tables.h |   34 +++
- net/netfilter/nf_tables_api.c            |  486 +++++++++++++++++++++++++++++-
- net/netfilter/nft_counter.c              |  128 ++++++--
- 4 files changed, 676 insertions(+), 21 deletions(-)
+ include/linux/netfilter/nf_tables.h |   32 +++++
+ include/mnl.h                       |    8 ++
+ include/netlink.h                   |   22 ++++
+ include/rule.h                      |   47 +++++++
+ include/statement.h                 |    1 +
+ src/evaluate.c                      |   13 +-
+ src/mnl.c                           |  119 ++++++++++++++++++
+ src/netlink.c                       |  235 +++++++++++++++++++++++++++++++++++
+ src/netlink_delinearize.c           |    3 +
+ src/netlink_linearize.c             |    4 +
+ src/parser_bison.y                  |   60 ++++++++-
+ src/rule.c                          |  139 +++++++++++++++++++++
+ src/scanner.l                       |    1 +
+ src/statement.c                     |    8 +-
+ 14 files changed, 685 insertions(+), 7 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9eaaa78..9a1acfe 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -408,6 +408,16 @@ struct nft_trans {
- 	char				data[0];
- };
- 
-+struct nft_trans_counter {
-+	struct nft_counter	*counter;
-+	u32			counter_id;
-+};
-+
-+#define nft_trans_counter(trans)	\
-+	(((struct nft_trans_counter *)trans->data)->counter)
-+#define nft_trans_counter_id(trans)	\
-+	(((struct nft_trans_counter *)trans->data)->counter_id)
-+
- struct nft_trans_rule {
- 	struct nft_rule			*rule;
- };
-@@ -572,6 +582,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt,
-  *	@list: used internally
-  *	@chains: chains in the table
-  *	@sets: sets in the table
-+ *	@counters: counters in the table
-  *	@hgenerator: handle generator state
-  *	@use: number of chain references to this table
-  *	@flags: table flag (see enum nft_table_flags)
-@@ -581,6 +592,7 @@ struct nft_table {
- 	struct list_head		list;
- 	struct list_head		chains;
- 	struct list_head		sets;
-+	struct list_head		counters;
- 	u64				hgenerator;
- 	u32				use;
- 	u16				flags;
-@@ -639,6 +651,43 @@ void nft_unregister_chain_type(const struct nf_chain_type *);
- int nft_register_expr(struct nft_expr_type *);
- void nft_unregister_expr(struct nft_expr_type *);
- 
-+/**
-+ * struct nft_counter_priv - nf_tables counter_priv instance
-+ *
-+ * @pkts:  number of packets
-+ * @bytes:  number of bytes
-+ */
-+struct nft_counter_priv {
-+	seqlock_t	lock;
-+	u64		bytes;
-+	u64		packets;
-+};
-+
-+/**
-+ * struct nft_counter - nf_tables counter instance
-+ *
-+ * @list: table counter list node
-+ * @name: name of the counter
-+ * @counter:  nft_priv_counter
-+ * @bytes:  number of bytes
-+ * @use: number of rule references to this counter
-+ * @flags: counter flags
-+ */
-+struct nft_counter {
-+	struct list_head	list;
-+	char			name[NFT_CTR_MAXNAMELEN];
-+	struct nft_counter_priv counter;
-+	u32			use:31,
-+				flags:1;
-+};
-+
-+struct nft_counter *nft_counter_lookup(const struct nft_ctx *ctx,
-+				       const char *counter_name);
-+struct nft_counter *nf_tables_counter_lookup(const struct nft_table *table,
-+					     const struct nlattr *nla);
-+void nft_counter_put(struct nft_counter *counter);
-+int nft_counter_get(struct nft_counter *counter);
-+
- #define nft_dereference(p)					\
- 	nfnl_dereference(p, NFNL_SUBSYS_NFTABLES)
- 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 832bc46..aadb762 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -2,6 +2,7 @@
- #define _LINUX_NF_TABLES_H
- 
- #define NFT_CHAIN_MAXNAMELEN	32
-+#define NFT_CTR_MAXNAMELEN	16
- #define NFT_USERDATA_MAXLEN	256
- 
- enum nft_registers {
-@@ -53,6 +54,10 @@ enum nft_verdicts {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 832bc46..b2d8028 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -53,6 +53,10 @@ enum nft_verdicts {
   * @NFT_MSG_DELSETELEM: delete a set element (enum nft_set_elem_attributes)
   * @NFT_MSG_NEWGEN: announce a new generation, only for events (enum nft_gen_attributes)
   * @NFT_MSG_GETGEN: get the rule-set generation (enum nft_gen_attributes)
@@ -156,7 +82,7 @@ index 832bc46..aadb762 100644
   */
  enum nf_tables_msg_types {
  	NFT_MSG_NEWTABLE,
-@@ -72,6 +77,10 @@ enum nf_tables_msg_types {
+@@ -72,6 +76,10 @@ enum nf_tables_msg_types {
  	NFT_MSG_DELSETELEM,
  	NFT_MSG_NEWGEN,
  	NFT_MSG_GETGEN,
@@ -167,7 +93,7 @@ index 832bc46..aadb762 100644
  	NFT_MSG_MAX,
  };
  
-@@ -695,16 +704,40 @@ enum nft_limit_attributes {
+@@ -695,16 +703,40 @@ enum nft_limit_attributes {
   *
   * @NFTA_COUNTER_BYTES: number of bytes (NLA_U64)
   * @NFTA_COUNTER_PACKETS: number of packets (NLA_U64)
@@ -208,778 +134,1216 @@ index 832bc46..aadb762 100644
   * enum nft_log_attributes - nf_tables log expression netlink attributes
   *
   * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U32)
-@@ -867,4 +900,5 @@ enum nft_gen_attributes {
+diff --git a/include/mnl.h b/include/mnl.h
+index a0dfa1b..b447d62 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -34,6 +34,14 @@ int mnl_nft_rule_delete(struct mnl_socket *nf_sock, struct nft_rule *r,
+ struct nft_rule_list *mnl_nft_rule_dump(struct mnl_socket *nf_sock,
+ 					int family);
+ 
++int mnl_nft_counter_batch_add(struct nft_counter *nlc,
++			   unsigned int flags, uint32_t seq);
++int mnl_nft_counter_batch_del(struct nft_counter *nlc,
++			   unsigned int flags, uint32_t seq);
++int mnl_nft_counter_get(struct mnl_socket *nf_sock, struct nft_counter *nlc);
++struct nft_counter_list *mnl_nft_counter_dump(struct mnl_socket *nf_sock,
++					      int family, const char *table);
++
+ int mnl_nft_chain_add(struct mnl_socket *nf_sock, struct nft_chain *nlc,
+ 		      unsigned int flags);
+ int mnl_nft_chain_batch_add(struct nft_chain *nlc,
+diff --git a/include/netlink.h b/include/netlink.h
+index 4f79470..962aa4a 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -21,6 +21,7 @@ extern const struct location netlink_location;
+  * @msgs:	message queue
+  * @list:	list of parsed rules/chains/tables
+  * @set:	current set
++ * @counter:	current counter
+  * @data:	pointer to pass data to callback
+  * @seqnum:	sequence number
+  */
+@@ -28,6 +29,7 @@ struct netlink_ctx {
+ 	struct list_head	*msgs;
+ 	struct list_head	list;
+ 	struct set		*set;
++	struct counter		*counter;
+ 	const void		*data;
+ 	uint32_t		seqnum;
+ 	bool			batch_supported;
+@@ -38,6 +40,7 @@ extern struct nft_chain *alloc_nft_chain(const struct handle *h);
+ extern struct nft_rule *alloc_nft_rule(const struct handle *h);
+ extern struct nft_rule_expr *alloc_nft_expr(const char *name);
+ extern struct nft_set *alloc_nft_set(const struct handle *h);
++extern struct nft_counter *alloc_nft_counter(const struct handle *h);
+ 
+ struct nft_data_linearize {
+ 	uint32_t	len;
+@@ -84,6 +87,24 @@ extern int netlink_del_rule_batch(struct netlink_ctx *ctx,
+ 				  const struct handle *h,
+ 				  const struct location *loc);
+ 
++extern int netlink_add_counter(struct netlink_ctx *ctx, const struct handle *h,
++			       struct counter *counter);
++extern int netlink_rename_counter(struct netlink_ctx *ctx,
++				  const struct handle *h,
++				  const struct location *loc, const char *name);
++extern int netlink_delete_counter(struct netlink_ctx *ctx,
++				  const struct handle *h,
++				  const struct location *loc);
++extern int netlink_list_counters(struct netlink_ctx *ctx,
++				 const struct handle *h,
++				 const struct location *loc);
++extern int netlink_get_counter(struct netlink_ctx *ctx, const struct handle *h,
++			       const struct location *loc);
++extern int netlink_flush_counter(struct netlink_ctx *ctx,
++				 const struct handle *h,
++				 const struct location *loc);
++
++
+ extern int netlink_add_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 			     const struct location *loc,
+ 			     const struct chain *chain, bool excl);
+@@ -135,6 +156,7 @@ extern void netlink_dump_chain(struct nft_chain *nlc);
+ extern void netlink_dump_rule(struct nft_rule *nlr);
+ extern void netlink_dump_expr(struct nft_rule_expr *nle);
+ extern void netlink_dump_set(struct nft_set *nls);
++extern void netlink_dump_counter(struct nft_counter *nlc);
+ 
+ extern int netlink_batch_send(struct list_head *err_list);
+ 
+diff --git a/include/rule.h b/include/rule.h
+index 491411e..23c5581 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -12,6 +12,7 @@
+  * @table:	table name
+  * @chain:	chain name (chains and rules only)
+  * @set:	set name (sets only)
++ * @counter:	counter name (counters only)
+  * @handle:	rule handle (rules only)
+  * @position:	rule position (rules only)
+  * @set_id:	set ID (sets only)
+@@ -22,6 +23,7 @@ struct handle {
+ 	const char		*table;
+ 	const char		*chain;
+ 	const char		*set;
++	const char		*counter;
+ 	uint64_t		handle;
+ 	uint64_t		position;
+ 	uint32_t		set_id;
+@@ -71,6 +73,7 @@ extern struct symbol *symbol_lookup(const struct scope *scope,
+  * @location:	location the table was defined at
+  * @chains:	chains contained in the table
+  * @sets:	sets contained in the table
++ * @counters:	counters contained in the table
+  */
+ struct table {
+ 	struct list_head	list;
+@@ -79,6 +82,7 @@ struct table {
+ 	struct scope		scope;
+ 	struct list_head	chains;
+ 	struct list_head	sets;
++	struct list_head	counters;
  };
- #define NFTA_GEN_MAX		(__NFTA_GEN_MAX - 1)
  
+ extern struct table *table_alloc(void);
+@@ -211,6 +215,41 @@ extern void set_print(const struct set *set);
+ extern void set_print_plain(const struct set *s);
+ 
+ /**
++ * struct counter - nftables counter
++ *
++ * @list:	table counter list node
++ * @handle:	counter handle
++ * @location:	location the counter was defined/declared at
++ * @refcnt:	reference count
++ * @flags:	bitmask of counter flags
++ * @bytes:	Total bytes
++ * @packets:	Total packets
 +
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7e68694..587af0e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -239,6 +239,7 @@ nf_tables_delrule_deactivate(struct nft_ctx *ctx, struct nft_rule *rule)
- 		ctx->chain->use--;
- 		return 0;
++ */
++struct counter {
++	struct list_head	list;
++	struct handle		handle;
++	struct location		location;
++	unsigned int		refcnt;
++	uint32_t		flags;
++	uint64_t		bytes;
++	uint64_t		packets;
++};
++
++extern struct counter *counter_alloc(const struct location *loc);
++extern struct counter *counter_get(struct counter *counter);
++extern void counter_free(struct counter *counter);
++extern struct counter *counter_clone(const struct counter *counter);
++extern void counter_add_hash(struct counter *counter, struct table *table);
++extern struct counter *counter_lookup(const struct table *table,
++				      const char *name);
++extern struct counter *counter_lookup_global(uint32_t family, const char *table,
++				       const char *name);
++extern void counter_print(const struct counter *counter);
++
++
++
++/**
+  * enum cmd_ops - command operations
+  *
+  * @CMD_INVALID:	invalid
+@@ -253,6 +292,8 @@ enum cmd_ops {
+  * @CMD_OBJ_EXPR:	expression
+  * @CMD_OBJ_MONITOR:	monitor
+  * @CMD_OBJ_EXPORT:	export
++ * @CMD_OBJ_COUNTER:	counter
++ * @CMD_OBJ_COUNTERS:	counters
+  */
+ enum cmd_obj {
+ 	CMD_OBJ_INVALID,
+@@ -266,6 +307,8 @@ enum cmd_obj {
+ 	CMD_OBJ_EXPR,
+ 	CMD_OBJ_MONITOR,
+ 	CMD_OBJ_EXPORT,
++	CMD_OBJ_COUNTER,
++	CMD_OBJ_COUNTERS,
+ };
+ 
+ struct export {
+@@ -282,6 +325,7 @@ enum {
+ 	CMD_MONITOR_OBJ_RULES,
+ 	CMD_MONITOR_OBJ_SETS,
+ 	CMD_MONITOR_OBJ_ELEMS,
++	CMD_MONITOR_OBJ_COUNTERS,
+ 	CMD_MONITOR_OBJ_MAX
+ };
+ 
+@@ -320,6 +364,7 @@ struct cmd {
+ 		void		*data;
+ 		struct expr	*expr;
+ 		struct set	*set;
++		struct counter	*counter;
+ 		struct rule	*rule;
+ 		struct chain	*chain;
+ 		struct table	*table;
+@@ -345,6 +390,7 @@ extern void cmd_free(struct cmd *cmd);
+  * @table:	current table
+  * @rule:	current rule
+  * @set:	current set
++ * @counter:	current counter
+  * @stmt:	current statement
+  * @ectx:	expression context
+  * @pctx:	payload context
+@@ -355,6 +401,7 @@ struct eval_ctx {
+ 	struct table		*table;
+ 	struct rule		*rule;
+ 	struct set		*set;
++	struct counter		*counter;
+ 	struct stmt		*stmt;
+ 	struct expr_ctx		ectx;
+ 	struct proto_ctx	pctx;
+diff --git a/include/statement.h b/include/statement.h
+index d143121..5c65633 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -13,6 +13,7 @@ extern struct stmt *verdict_stmt_alloc(const struct location *loc,
+ struct counter_stmt {
+ 	uint64_t		packets;
+ 	uint64_t		bytes;
++	const char		*name;
+ };
+ 
+ extern struct stmt *counter_stmt_alloc(const struct location *loc);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d24d4cc..e7d3e80 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1824,6 +1824,7 @@ static int table_evaluate(struct eval_ctx *ctx, struct table *table)
+ 		if (set_evaluate(ctx, set) < 0)
+ 			return -1;
  	}
 +
- 	return -ENOENT;
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		handle_merge(&chain->handle, &table->handle);
+ 		if (chain_evaluate(ctx, chain) < 0)
+@@ -1844,6 +1845,8 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_RULE:
+ 		handle_merge(&cmd->rule->handle, &cmd->handle);
+ 		return rule_evaluate(ctx, cmd->rule);
++	case CMD_OBJ_COUNTER:
++		return 0;
+ 	case CMD_OBJ_CHAIN:
+ 		if (cmd->data == NULL)
+ 			return 0;
+@@ -1863,6 +1866,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_SETELEM:
+ 		return setelem_evaluate(ctx, &cmd->expr);
+ 	case CMD_OBJ_SET:
++	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_RULE:
+ 	case CMD_OBJ_CHAIN:
+ 	case CMD_OBJ_TABLE:
+@@ -1892,13 +1896,16 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
+ 						  (1 << NFT_MSG_DELSET),
+ 		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_NEWSETELEM) |
+ 						  (1 << NFT_MSG_DELSETELEM),
++		[CMD_MONITOR_OBJ_COUNTERS]	= (1 << NFT_MSG_NEWCOUNTER) |
++						  (1 << NFT_MSG_DELCOUNTER),
+ 	},
+ 	[CMD_MONITOR_EVENT_NEW] = {
+ 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
+ 						  (1 << NFT_MSG_NEWCHAIN) |
+ 						  (1 << NFT_MSG_NEWRULE)  |
+ 						  (1 << NFT_MSG_NEWSET)   |
+-						  (1 << NFT_MSG_NEWSETELEM),
++						  (1 << NFT_MSG_NEWSETELEM)|
++						  (1 << NFT_MSG_NEWCOUNTER),
+ 		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_NEWTABLE),
+ 		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_NEWCHAIN),
+ 		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE),
+@@ -1910,12 +1917,14 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
+ 						  (1 << NFT_MSG_DELCHAIN) |
+ 						  (1 << NFT_MSG_DELRULE)  |
+ 						  (1 << NFT_MSG_DELSET)   |
+-						  (1 << NFT_MSG_DELSETELEM),
++						  (1 << NFT_MSG_DELSETELEM)|
++						  (1 << NFT_MSG_DELCOUNTER),
+ 		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_DELTABLE),
+ 		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_DELCHAIN),
+ 		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_DELRULE),
+ 		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_DELSET),
+ 		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_DELSETELEM),
++		[CMD_MONITOR_OBJ_COUNTERS]	= (1 << NFT_MSG_DELCOUNTER),
+ 	},
+ };
+ 
+diff --git a/src/mnl.c b/src/mnl.c
+index f48ead5..47b91b2 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -16,6 +16,7 @@
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/counter.h>
+ 
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -711,6 +712,124 @@ int mnl_nft_table_get(struct mnl_socket *nf_sock, struct nft_table *nlt,
  }
  
-@@ -271,7 +272,6 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
- 		nft_trans_destroy(trans);
- 		return err;
- 	}
--
- 	return 0;
- }
- 
-@@ -325,6 +325,40 @@ static int nft_delset(struct nft_ctx *ctx, struct nft_set *set)
- 	return err;
- }
- 
-+static int nft_trans_counter_add(struct nft_ctx *ctx, int msg_type,
-+				 struct nft_counter *counter)
+ /*
++ * Named counter
++ */
++int mnl_nft_counter_batch_add(struct nft_counter *nls, unsigned int flags,
++			      uint32_t seqnum)
 +{
-+	struct nft_trans *trans;
++	struct nlmsghdr *nlh;
 +
-+	trans = nft_trans_alloc(ctx, msg_type,
-+				sizeof(struct nft_trans_counter));
-+	if (!trans)
-+		return -ENOMEM;
-+
-+	if (msg_type == NFT_MSG_NEWCOUNTER && ctx->nla[NFTA_NAMED_CTR_ID]) {
-+		nft_trans_counter_id(trans) =
-+			ntohl(nla_get_be32(ctx->nla[NFTA_NAMED_CTR_ID]));
-+	}
-+	nft_trans_counter(trans) = counter;
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
++	nlh = nft_counter_nlmsg_build_hdr(nft_nlmsg_batch_current(),
++			NFT_MSG_NEWCOUNTER,
++			nft_counter_attr_get_u32(nls, NFT_COUNTER_ATTR_FAMILY),
++			NLM_F_CREATE | flags, seqnum);
++	nft_counter_nlmsg_build_payload(nlh, nls);
++	nft_batch_continue();
 +
 +	return 0;
 +}
 +
-+static int nft_delcounter(struct nft_ctx *ctx, struct nft_counter *counter)
++int mnl_nft_counter_batch_del(struct nft_counter *nls, unsigned int flags,
++			      uint32_t seqnum)
 +{
-+	int err;
++	struct nlmsghdr *nlh;
 +
-+	err = nft_trans_counter_add(ctx, NFT_MSG_DELCOUNTER, counter);
-+	if (err < 0)
-+		return err;
++	nlh = nft_counter_nlmsg_build_hdr(nft_nlmsg_batch_current(),
++			NFT_MSG_DELCOUNTER,
++			nft_counter_attr_get_u32(nls, NFT_COUNTER_ATTR_FAMILY),
++			flags, seqnum);
++	nft_counter_nlmsg_build_payload(nlh, nls);
++	nft_batch_continue();
 +
-+	list_del_rcu(&counter->list);
-+	ctx->table->use--;
-+
-+	return err;
++	return 0;
 +}
 +
- /*
-  * Tables
-  */
-@@ -694,6 +728,7 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 	nla_strlcpy(table->name, name, nla_len(name));
- 	INIT_LIST_HEAD(&table->chains);
- 	INIT_LIST_HEAD(&table->sets);
-+	INIT_LIST_HEAD(&table->counters);
- 	table->flags = flags;
- 
- 	nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
-@@ -712,6 +747,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 	int err;
- 	struct nft_chain *chain, *nc;
- 	struct nft_set *set, *ns;
-+	struct nft_counter *counter, *na;
- 
- 	list_for_each_entry(chain, &ctx->table->chains, list) {
- 		ctx->chain = chain;
-@@ -730,7 +766,11 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 		if (err < 0)
- 			goto out;
- 	}
--
-+	list_for_each_entry_safe(counter, na, &ctx->table->counters, list) {
-+		err = nft_delcounter(ctx, counter);
-+		if (err < 0)
-+			goto out;
-+	}
- 	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
- 		ctx->chain = chain;
- 
-@@ -1108,7 +1148,7 @@ err:
- 	return err;
- }
- 
--static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
-+static const struct nla_policy nft_counter_priv_policy[NFTA_COUNTER_MAX + 1] = {
- 	[NFTA_COUNTER_PACKETS]	= { .type = NLA_U64 },
- 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
- };
-@@ -1120,7 +1160,8 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
- 	struct nft_stats *stats;
- 	int err;
- 
--	err = nla_parse_nested(tb, NFTA_COUNTER_MAX, attr, nft_counter_policy);
-+	err = nla_parse_nested(tb, NFTA_COUNTER_MAX, attr,
-+			       nft_counter_priv_policy);
- 	if (err < 0)
- 		return ERR_PTR(err);
- 
-@@ -3386,6 +3427,394 @@ err:
- 	return err;
- }
- 
-+static const struct nla_policy nft_counter_policy[NFTA_NAMED_CTR_MAX + 1] = {
-+	[NFTA_NAMED_CTR_NAME]	= { .type = NLA_NUL_STRING,
-+				   .len = NFT_CTR_MAXNAMELEN - 1 },
-+	[NFTA_NAMED_CTR_BYTES]	= { .type = NLA_U64 },
-+	[NFTA_NAMED_CTR_PACKETS]	= { .type = NLA_U64 },
-+	[NFTA_NAMED_CTR_ID]		= { .type = NLA_U32 },
-+};
-+
-+struct nft_counter *nf_tables_counter_lookup(const struct nft_table *table,
-+					     const struct nlattr *nla)
++static int counter_cb(const struct nlmsghdr *nlh, void *data)
 +{
++	struct nft_counter_list *ctr_list = data;
++	struct nft_counter *c;
++
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
++	c = nft_counter_alloc();
++	if (c == NULL)
++		memory_allocation_error();
++
++	if (nft_counter_nlmsg_parse(nlh, c) < 0)
++		goto err_free;
++
++	nft_counter_list_add_tail(c, ctr_list);
++	return MNL_CB_OK;
++
++err_free:
++	nft_counter_free(c);
++	return MNL_CB_OK;
++}
++
++static int counter_get_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nft_counter *a = data;
++
++	nft_counter_nlmsg_parse(nlh, a);
++
++	return MNL_CB_OK;
++}
++
++int mnl_nft_counter_get(struct mnl_socket *nf_sock, struct nft_counter *counter)
++{
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++
++	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_GETCOUNTER,
++			nft_counter_attr_get_u32(counter,
++						 NFT_COUNTER_ATTR_FAMILY),
++			NLM_F_ACK, seq);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++
++	return nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, counter_get_cb,
++			    counter);
++}
++
++struct nft_counter_list *mnl_nft_counter_dump(struct mnl_socket *nf_sock,
++					      int family,
++					      const char *table)
++{
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
 +	struct nft_counter *counter;
++	struct nft_counter_list *ctr_list;
++	int ret;
 +
-+	if (!nla)
-+		return ERR_PTR(-EINVAL);
-+	list_for_each_entry(counter, &table->counters, list) {
-+		if (!nla_strcmp(nla, counter->name))
-+			return counter;
-+	}
++	counter = nft_counter_alloc();
++	if (counter == NULL)
++		memory_allocation_error();
 +
-+	return ERR_PTR(-ENOENT);
++	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_GETCOUNTER, family,
++				       NLM_F_DUMP|NLM_F_ACK, seq);
++	if (table != NULL)
++		nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE,
++					 table);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	nft_counter_free(counter);
++
++	ctr_list = nft_counter_list_alloc();
++	if (ctr_list == NULL)
++		memory_allocation_error();
++
++	ret = nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, counter_cb, ctr_list);
++
++	if (ret < 0)
++		goto err;
++
++	return ctr_list;
++err:
++	nft_counter_list_free(ctr_list);
++	return NULL;
 +}
 +
-+struct nft_counter *nft_counter_lookup(const struct nft_ctx *ctx,
-+				       const char *counter_name)
-+{
-+	struct nft_counter *cur, *counter = NULL;
-+	struct nft_table *table = ctx->table;
 +
-+	list_for_each_entry(cur, &table->counters, list) {
-+		if (strncmp(cur->name, counter_name, NFT_CTR_MAXNAMELEN) == 0)
-+			return cur;
-+	}
++/*
+  * Set
+  */
+ static int set_add_cb(const struct nlmsghdr *nlh, void *data)
+diff --git a/src/netlink.c b/src/netlink.c
+index 84d9d27..6cd775b 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -21,6 +21,7 @@
+ #include <libnftnl/chain.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/counter.h>
+ #include <libnftnl/common.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -1434,6 +1435,176 @@ out:
+ 	return err;
+ }
+ 
++static struct counter *netlink_delinearize_counter(struct netlink_ctx *ctx,
++					     struct nft_counter *nla)
++{
++	struct counter *counter;
++
++	counter = counter_alloc(&netlink_location);
++
++	if (counter == NULL)
++		return NULL;
++
++	counter->handle.family	=
++		 nft_counter_attr_get_u32(nla, NFT_COUNTER_ATTR_FAMILY);
++	counter->handle.counter	=
++		 xstrdup(nft_counter_attr_get_str(nla, NFT_COUNTER_ATTR_NAME));
++	counter->handle.table	=
++		 xstrdup(nft_counter_attr_get_str(nla, NFT_COUNTER_ATTR_TABLE));
++	counter->packets	=
++		nft_counter_attr_get_u64(nla, NFT_COUNTER_ATTR_PKTS);
++	counter->bytes	= nft_counter_attr_get_u64(nla, NFT_COUNTER_ATTR_BYTES);
 +
 +	return counter;
 +}
-+EXPORT_SYMBOL_GPL(nft_counter_lookup);
 +
-+static int nft_ctx_init_from_counter(struct nft_ctx *ctx,
-+				     const struct sk_buff *skb,
-+				     const struct nlmsghdr *nlh,
-+				     const struct nlattr * const nla[])
++static int list_counter_cb(struct nft_counter *c, void *arg)
 +{
-+	struct net *net = sock_net(skb->sk);
-+	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+	struct nft_af_info *afi = NULL;
-+	struct nft_table *table = NULL;
++	struct netlink_ctx *ctx = arg;
++	struct counter *counter;
 +
-+	if (nfmsg->nfgen_family != NFPROTO_UNSPEC) {
-+		afi = nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
-+		if (IS_ERR(afi))
-+			return PTR_ERR(afi);
-+	}
++	netlink_dump_counter(c);
++	counter = netlink_delinearize_counter(ctx, c);
++	if (counter == NULL)
++		return -1;
 +
-+	if (nla[NFTA_NAMED_CTR_TABLE]) {
-+		if (!afi)
-+			return -EAFNOSUPPORT;
-+
-+		table = nf_tables_table_lookup(afi, nla[NFTA_NAMED_CTR_TABLE]);
-+		if (IS_ERR(table))
-+			return PTR_ERR(table);
-+		if (table->flags & NFT_TABLE_INACTIVE)
-+			return -ENOENT;
-+	}
-+
-+	nft_ctx_init(ctx, skb, nlh, afi, table, NULL, nla);
++	list_add_tail(&counter->list, &ctx->list);
 +
 +	return 0;
 +}
 +
-+static int nf_tables_newcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
++int netlink_list_counters(struct netlink_ctx *ctx, const struct handle *h,
++		       const struct location *loc)
 +{
-+	struct nft_ctx ctx;
-+	const struct nlattr *name;
-+	struct nft_counter *counter, *matching;
++	struct nft_counter_list *ctr_list;
 +	int err;
 +
-+	if (!nla[NFTA_NAMED_CTR_NAME] || !nla[NFTA_NAMED_CTR_TABLE])
-+		return -EINVAL;
++	ctr_list = mnl_nft_counter_dump(nf_sock, h->family, h->table);
++	if (ctr_list == NULL) {
++		if (errno == EINTR)
++			return -1;
 +
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
-+
-+	matching = nf_tables_counter_lookup(ctx.table,
-+					    nla[NFTA_NAMED_CTR_NAME]);
-+	if (!IS_ERR(matching)) {
-+		if (nlh->nlmsg_flags & NLM_F_EXCL)
-+			return -EEXIST;
-+		if (nlh->nlmsg_flags & NLM_F_REPLACE)
-+			return -EOPNOTSUPP;
-+		else
-+			return -EOPNOTSUPP;
++		return netlink_io_error(ctx, loc,
++					"Could not receive counters from kernel: %s",
++					strerror(errno));
 +	}
 +
-+	if (!(nlh->nlmsg_flags & NLM_F_CREATE))
-+		return -ENOENT;
++	err = nft_counter_list_foreach(ctr_list, list_counter_cb, ctx);
++	nft_counter_list_free(ctr_list);
 +
-+	counter = kzalloc(sizeof(*counter), GFP_KERNEL);
-+	if (!counter)
-+		return -ENOMEM;
-+
-+	name = nla[NFTA_NAMED_CTR_NAME];
-+	nla_strlcpy(counter->name, name, NFT_CTR_MAXNAMELEN);
-+
-+	if (nla[NFTA_NAMED_CTR_BYTES]) {
-+		counter->counter.bytes =
-+			be64_to_cpu(nla_get_be64(nla[NFTA_NAMED_CTR_BYTES]));
-+	}
-+
-+	if (nla[NFTA_NAMED_CTR_PACKETS]) {
-+		counter->counter.packets =
-+			be64_to_cpu(nla_get_be64(nla[NFTA_NAMED_CTR_PACKETS]));
-+	}
-+
-+	err = nft_trans_counter_add(&ctx, NFT_MSG_NEWCOUNTER, counter);
-+	if (err < 0)
-+		goto err;
-+
-+	list_add_tail_rcu(&counter->list, &ctx.table->counters);
-+	ctx.table->use++;
-+
-+	return 0;
-+err:
-+	kfree(counter);
 +	return err;
 +}
 +
-+static int nf_tables_fill_counter(struct sk_buff *skb,
-+				  const struct nft_ctx *ctx,
-+				  struct nft_counter *counter,
-+				  u16 event, u16 flags, u32 type)
++int netlink_get_counter(struct netlink_ctx *ctx, const struct handle *h,
++		     const struct location *loc)
 +{
-+	struct nfgenmsg *nfmsg;
-+	struct nlmsghdr *nlh;
-+	u32 portid = ctx->portid;
-+	u32 seq = ctx->seq;
-+	u64 pkts, bytes;
-+
-+	event |= NFNL_SUBSYS_NFTABLES << 8;
-+	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-+			flags);
-+	if (!nlh)
-+		goto nla_put_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family	= ctx->afi->family;
-+	nfmsg->version		= NFNETLINK_V0;
-+	nfmsg->res_id		= htons(ctx->net->nft.base_seq & 0xffff);
-+
-+	if (type == NFT_MSG_GETCOUNTER_ZERO) {
-+		write_seqlock_bh(&counter->counter.lock);
-+		pkts = counter->counter.packets;
-+		bytes = counter->counter.bytes;
-+		counter->counter.bytes = 0;
-+		counter->counter.packets = 0;
-+		write_sequnlock_bh(&counter->counter.lock);
-+	} else {
-+		do {
-+			seq = read_seqbegin(&counter->counter.lock);
-+			bytes	= counter->counter.bytes;
-+			pkts	= counter->counter.packets;
-+		} while (read_seqretry(&counter->counter.lock, seq));
-+	}
-+
-+	if (nla_put_string(skb, NFTA_NAMED_CTR_TABLE, ctx->table->name) ||
-+	    nla_put_string(skb, NFTA_NAMED_CTR_NAME, counter->name) ||
-+	    nla_put_be64(skb, NFTA_NAMED_CTR_PACKETS, cpu_to_be64(pkts)) ||
-+	    nla_put_be64(skb, NFTA_NAMED_CTR_BYTES, cpu_to_be64(bytes)) ||
-+	    nla_put_be32(skb, NFTA_NAMED_CTR_USE, htonl(counter->use)))
-+		goto nla_put_failure;
-+
-+	return nlmsg_end(skb, nlh);
-+
-+nla_put_failure:
-+	nlmsg_trim(skb, nlh);
-+	return -1;
-+}
-+
-+static int nf_tables_counter_notify(const struct nft_ctx *ctx,
-+				    struct nft_counter *counter,
-+				    int event, gfp_t gfp_flags)
-+{
-+	struct sk_buff *skb;
-+	u32 portid = ctx->portid;
++	struct nft_counter *nla;
++	struct counter *counter;
 +	int err;
 +
-+	if (!ctx->report &&
-+	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-+		return 0;
-+
-+	err = -ENOBUFS;
-+	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
-+	if (!skb)
-+		goto err;
-+
-+	err = nf_tables_fill_counter(skb, ctx, counter, event, 0, 0);
++	nla = alloc_nft_counter(h);
++	netlink_dump_counter(nla);
++	err = mnl_nft_counter_get(nf_sock, nla);
 +	if (err < 0) {
-+		kfree_skb(skb);
-+		goto err;
++		nft_counter_free(nla);
++		return netlink_io_error(ctx, loc,
++					"Could not receive counter from kernel: %s",
++					strerror(errno));
 +	}
 +
-+	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
-+			     ctx->report, gfp_flags);
-+err:
-+	if (err < 0)
-+		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
++	counter = netlink_delinearize_counter(ctx, nla);
++	if (counter == NULL) {
++		nft_counter_free(nla);
++		return -1;
++	}
++
++	list_add_tail(&counter->list, &ctx->list);
++
 +	return err;
 +}
 +
-+static int nf_tables_delcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
++void netlink_dump_counter(struct nft_counter *nla)
 +{
-+	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+	struct nft_counter *counter;
-+	struct nft_ctx ctx;
++#ifdef DEBUG
++	char buf[4096];
++
++	if (!(debug_level & DEBUG_NETLINK))
++		return;
++
++	nft_counter_snprintf(buf, sizeof(buf), nla, 0, 0);
++	fprintf(stdout, "%s\n", buf);
++#endif
++}
++
++struct nft_counter *alloc_nft_counter(const struct handle *h)
++{
++	struct nft_counter *nla;
++
++	nla = nft_counter_alloc();
++	if (nla == NULL)
++		memory_allocation_error();
++
++	nft_counter_attr_set_u32(nla, NFT_COUNTER_ATTR_FAMILY, h->family);
++	nft_counter_attr_set_str(nla, NFT_COUNTER_ATTR_TABLE, h->table);
++	if (h->counter != NULL) {
++		nft_counter_attr_set_str(nla,
++					 NFT_COUNTER_ATTR_NAME, h->counter);
++	}
++
++	return nla;
++}
++
++static int netlink_add_counter_batch(struct netlink_ctx *ctx,
++				     const struct handle *h,
++				     struct counter *counter)
++{
++	struct nft_counter *nla;
 +	int err;
 +
-+	if (nfmsg->nfgen_family == NFPROTO_UNSPEC)
-+		return -EAFNOSUPPORT;
-+	if (!nla[NFTA_NAMED_CTR_TABLE])
-+		return -EINVAL;
++	nla = alloc_nft_counter(h);
 +
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
++	netlink_dump_counter(nla);
 +
-+	counter = nf_tables_counter_lookup(ctx.table, nla[NFTA_NAMED_CTR_NAME]);
-+	if (IS_ERR(counter))
-+		return PTR_ERR(counter);
-+
-+	if (counter->use > 0)
-+		return -EBUSY;
-+
-+	return nft_delcounter(&ctx, counter);
-+}
-+
-+static int nf_tables_dump_counter(struct sk_buff *skb,
-+				  struct netlink_callback *cb)
-+{
-+	struct nft_counter *counter;
-+	unsigned int idx, s_idx = cb->args[0];
-+	struct nft_af_info *afi;
-+	struct nft_table *table, *cur_table = (struct nft_table *)cb->args[2];
-+	struct net *net = sock_net(skb->sk);
-+	int cur_family = cb->args[3];
-+	struct nft_ctx *ctx = cb->data, ctx_counter;
-+
-+	if (cb->args[1])
-+		return skb->len;
-+
-+	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
-+	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
-+		if (ctx->afi && ctx->afi != afi)
-+			continue;
-+
-+		if (cur_family) {
-+			if (afi->family != cur_family)
-+				continue;
-+
-+			cur_family = 0;
-+		}
-+		list_for_each_entry_rcu(table, &afi->tables, list) {
-+			if (ctx->table && ctx->table != table)
-+				continue;
-+
-+			if (cur_table) {
-+				if (cur_table != table)
-+					continue;
-+
-+				cur_table = NULL;
-+			}
-+			idx = 0;
-+			list_for_each_entry_rcu(counter, &table->counters,
-+						list) {
-+				if (idx < s_idx)
-+					goto cont;
-+
-+				ctx_counter = *ctx;
-+				ctx_counter.table = table;
-+				ctx_counter.afi = afi;
-+				if (nf_tables_fill_counter(skb, &ctx_counter,
-+							   counter,
-+							   NFT_MSG_NEWCOUNTER,
-+							   NLM_F_MULTI,
-+							   0) < 0) {
-+					cb->args[0] = idx;
-+					cb->args[2] = (unsigned long)table;
-+					cb->args[3] = afi->family;
-+					goto done;
-+				}
-+				nl_dump_check_consistent(cb, nlmsg_hdr(skb));
-+cont:
-+				idx++;
-+			}
-+			if (s_idx)
-+				s_idx = 0;
-+		}
++	err = mnl_nft_counter_batch_add(nla, NLM_F_EXCL, ctx->seqnum);
++	if (err < 0) {
++		netlink_io_error(ctx, &counter->location,
++				 "Could not add counter: %s",
++				 strerror(errno));
 +	}
-+	cb->args[1] = 1;
-+done:
-+	rcu_read_unlock();
-+	return skb->len;
-+}
++	nft_counter_free(nla);
 +
-+static int nf_tables_dump_counter_done(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+
-+	return 0;
-+}
-+
-+static int nf_tables_getcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
-+{
-+	struct nft_ctx ctx;
-+	struct sk_buff *skb2;
-+	int err, ret;
-+	struct nft_counter *counter;
-+
-+	/* Verify existence before starting dump */
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
-+
-+	if (nlh->nlmsg_flags & NLM_F_DUMP) {
-+		struct netlink_dump_control c = {
-+			.dump = nf_tables_dump_counter,
-+			.done = nf_tables_dump_counter_done,
-+		};
-+		struct nft_ctx *ctx_dump;
-+
-+		ctx_dump = kmalloc(sizeof(*ctx_dump), GFP_KERNEL);
-+		if (!ctx_dump)
-+			return -ENOMEM;
-+
-+		*ctx_dump = ctx;
-+		c.data = ctx_dump;
-+
-+		return netlink_dump_start(nlsk, skb, nlh, &c);
-+	}
-+
-+	counter = nf_tables_counter_lookup(ctx.table, nla[NFTA_NAMED_CTR_NAME]);
-+	if (IS_ERR(counter))
-+		return PTR_ERR(counter);
-+
-+	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
-+	if (!skb2)
-+		return -ENOMEM;
-+
-+	err = nf_tables_fill_counter(skb2, &ctx, counter, NFT_MSG_NEWCOUNTER, 0,
-+				     NFNL_MSG_TYPE(nlh->nlmsg_type));
-+	if (err < 0)
-+		goto err;
-+
-+	ret = nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+
-+	/* this avoids a loop in nfnetlink. */
-+	return ret == -EAGAIN ? -ENOBUFS : ret;
-+
-+err:
-+	kfree_skb(skb2);
 +	return err;
 +}
 +
-+void nft_counter_put(struct nft_counter *counter)
++int netlink_add_counter(struct netlink_ctx *ctx, const struct handle *h,
++		     struct counter *counter)
 +{
-+	counter->use--;
-+	module_put(THIS_MODULE);
++	return netlink_add_counter_batch(ctx, h, counter);
 +}
-+EXPORT_SYMBOL_GPL(nft_counter_put);
 +
-+int nft_counter_get(struct nft_counter *counter)
++static int netlink_del_counter_batch(struct netlink_ctx *ctx,
++				  const struct handle *h,
++				  const struct location *loc)
 +{
-+	if (!try_module_get(THIS_MODULE))
-+		return -ENOENT;
++	struct nft_counter *nla;
++	int err;
 +
-+	counter->use++;
++	nla = alloc_nft_counter(h);
++	err = mnl_nft_counter_batch_del(nla, 0, ctx->seqnum);
++	nft_counter_free(nla);
 +
-+	return 0;
++	if (err < 0)
++		netlink_io_error(ctx, loc, "Could not delete counter: %s",
++				 strerror(errno));
++	return err;
 +}
-+EXPORT_SYMBOL_GPL(nft_counter_get);
 +
- static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	[NFT_MSG_NEWTABLE] = {
- 		.call_batch	= nf_tables_newtable,
-@@ -3465,6 +3894,26 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	[NFT_MSG_GETGEN] = {
- 		.call		= nf_tables_getgen,
- 	},
-+	[NFT_MSG_NEWCOUNTER] = {
-+		.call_batch	= nf_tables_newcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_counter_policy,
-+	},
-+	[NFT_MSG_GETCOUNTER] = {
-+		.call		= nf_tables_getcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_counter_policy,
-+	},
-+	[NFT_MSG_GETCOUNTER_ZERO] = {
-+		.call		= nf_tables_getcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_counter_policy,
-+	},
-+	[NFT_MSG_DELCOUNTER] = {
-+		.call_batch	= nf_tables_delcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_counter_policy,
-+	},
- };
- 
- static void nft_chain_commit_update(struct nft_trans *trans)
-@@ -3503,6 +3952,9 @@ static void nf_tables_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELSET:
- 		nft_set_destroy(nft_trans_set(trans));
- 		break;
-+	case NFT_MSG_DELCOUNTER:
-+		kfree(nft_trans_counter(trans));
-+		break;
- 	}
- 	kfree(trans);
++int netlink_delete_counter(struct netlink_ctx *ctx, const struct handle *h,
++			const struct location *loc)
++{
++	return netlink_del_counter_batch(ctx, h, loc);
++}
++
+ int netlink_batch_send(struct list_head *err_list)
+ {
+ 	return mnl_batch_talk(nf_sock, err_list);
+@@ -1515,6 +1686,19 @@ static struct nft_set *netlink_set_alloc(const struct nlmsghdr *nlh)
+ 	return nls;
  }
-@@ -3608,6 +4060,19 @@ static int nf_tables_commit(struct sk_buff *skb)
- 			}
- 			nft_trans_destroy(trans);
- 			break;
+ 
++static struct nft_counter *netlink_counter_alloc(const struct nlmsghdr *nlh)
++{
++	struct nft_counter *nla = nft_counter_alloc();
++
++	if (nla == NULL)
++		memory_allocation_error();
++
++	if (nft_counter_nlmsg_parse(nlh, nla) < 0)
++		netlink_abi_error();
++
++	return nla;
++}
++
+ static struct nft_set *netlink_setelem_alloc(const struct nlmsghdr *nlh)
+ {
+ 	struct nft_set *nls;
+@@ -1549,12 +1733,14 @@ static uint32_t netlink_msg2nftnl_of(uint32_t msg)
+ 	case NFT_MSG_NEWSET:
+ 	case NFT_MSG_NEWSETELEM:
+ 	case NFT_MSG_NEWRULE:
++	case NFT_MSG_NEWCOUNTER:
+ 		return NFT_OF_EVENT_NEW;
+ 	case NFT_MSG_DELTABLE:
+ 	case NFT_MSG_DELCHAIN:
+ 	case NFT_MSG_DELSET:
+ 	case NFT_MSG_DELSETELEM:
+ 	case NFT_MSG_DELRULE:
++	case NFT_MSG_DELCOUNTER:
+ 		return NFT_OF_EVENT_DEL;
+ 	}
+ 
+@@ -1806,6 +1992,51 @@ out:
+ 	return MNL_CB_OK;
+ }
+ 
++static int netlink_events_counter_cb(const struct nlmsghdr *nlh, int type,
++				  struct netlink_mon_handler *monh)
++{
++	struct counter *counter;
++	uint32_t family;
++	struct nft_counter *nla = netlink_counter_alloc(nlh);
++
++	switch (monh->format) {
++	case NFT_OUTPUT_DEFAULT:
++		switch (type) {
 +		case NFT_MSG_NEWCOUNTER:
-+			nf_tables_counter_notify(&trans->ctx,
-+						 nft_trans_counter(trans),
-+						 NFT_MSG_NEWCOUNTER,
-+						 GFP_KERNEL);
-+			nft_trans_destroy(trans);
++			printf("add ");
++			counter = netlink_delinearize_counter(monh->ctx, nla);
++			if (counter == NULL)
++				return MNL_CB_ERROR;
++			counter_print(counter);
++			counter_free(counter);
++			printf("\n");
 +			break;
 +		case NFT_MSG_DELCOUNTER:
-+			nf_tables_counter_notify(&trans->ctx,
-+						 nft_trans_counter(trans),
-+						 NFT_MSG_DELCOUNTER,
-+						 GFP_KERNEL);
++			family = nft_counter_attr_get_u32(nla,
++						       NFT_COUNTER_ATTR_FAMILY);
++			printf("delete counter %s %s %s\n",
++			       family2str(family),
++			       nft_counter_attr_get_str(nla,
++							NFT_COUNTER_ATTR_TABLE),
++			       nft_counter_attr_get_str(nla,
++							NFT_COUNTER_ATTR_NAME));
 +			break;
- 		}
- 	}
- 
-@@ -3638,6 +4103,9 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 	case NFT_MSG_NEWSET:
- 		nft_set_destroy(nft_trans_set(trans));
++		}
++		break;
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
++		nft_counter_fprintf(stdout, nla, monh->format,
++				    netlink_msg2nftnl_of(type));
++		fprintf(stdout, "\n");
++		break;
++	}
++
++	nft_counter_free(nla);
++
++	return MNL_CB_OK;
++
++}
++
+ static void rule_map_decompose_cb(struct set *s, void *data)
+ {
+ 	if (s->flags & NFT_SET_INTERVAL)
+@@ -2038,6 +2269,10 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
+ 	case NFT_MSG_DELSETELEM:	/* nft {add|delete} element */
+ 		ret = netlink_events_setelem_cb(nlh, type, monh);
  		break;
 +	case NFT_MSG_NEWCOUNTER:
-+		kfree(nft_trans_counter(trans));
++	case NFT_MSG_DELCOUNTER:		/* nft {add|delete} counter */
++		ret = netlink_events_counter_cb(nlh, type, monh);
 +		break;
- 	}
- 	kfree(trans);
+ 	case NFT_MSG_NEWRULE:
+ 	case NFT_MSG_DELRULE:
+ 		ret = netlink_events_rule_cb(nlh, type, monh);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 387bb67..5ccfa30 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -445,6 +445,7 @@ static void netlink_parse_ct(struct netlink_parse_ctx *ctx,
+ 		netlink_parse_ct_stmt(ctx, loc, nle);
  }
-@@ -3716,6 +4184,16 @@ static int nf_tables_abort(struct sk_buff *skb)
- 			nft_trans_elem_set(trans)->nelems++;
- 			nft_trans_destroy(trans);
+ 
++
+ static void netlink_parse_counter(struct netlink_parse_ctx *ctx,
+ 				  const struct location *loc,
+ 				  const struct nft_rule_expr *nle)
+@@ -456,6 +457,8 @@ static void netlink_parse_counter(struct netlink_parse_ctx *ctx,
+ 		nft_rule_expr_get_u64(nle, NFT_EXPR_CTR_PACKETS);
+ 	stmt->counter.bytes   =
+ 		nft_rule_expr_get_u64(nle, NFT_EXPR_CTR_BYTES);
++	stmt->counter.name =
++		nft_rule_expr_get_str(nle, NFT_EXPR_CTR_NAME);
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
+ }
+ 
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 9bef67b..3a098eb 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -553,6 +553,10 @@ static void netlink_gen_counter_stmt(struct netlink_linearize_ctx *ctx,
+ 		nft_rule_expr_set_u64(nle, NFT_EXPR_CTR_BYTES,
+ 				      stmt->counter.bytes);
+ 	}
++	if (stmt->counter.name) {
++		nft_rule_expr_set_str(nle, NFT_EXPR_CTR_NAME,
++				      stmt->counter.name);
++	}
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+ 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index fd2407c..833e848 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -133,6 +133,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 	struct expr		*expr;
+ 	struct set		*set;
+ 	const struct datatype	*datatype;
++	struct counter		*counter;
+ }
+ 
+ %token TOKEN_EOF 0		"end of file"
+@@ -341,6 +342,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token COUNTER			"counter"
+ %token PACKETS			"packets"
+ %token BYTES			"bytes"
++%token NAME			"name"
+ 
+ %token LOG			"log"
+ %token PREFIX			"prefix"
+@@ -405,8 +407,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ %destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ 
+-%type <handle>			table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+-%destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
++%type <handle>			table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec counter_spec counter_identifier
++%destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec counter_spec counter_identifier
+ %type <handle>			set_spec set_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier
+ %type <val>			handle_spec family_spec family_spec_explicit position_spec
+@@ -428,6 +430,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <set>			map_block_alloc map_block
+ %destructor { set_free($$); }	map_block_alloc
+ 
++%type <counter>			counter_block_alloc
++%destructor { counter_free($$); } counter_block_alloc
++
+ %type <list>			stmt_list
+ %destructor { stmt_list_free($$); xfree($$); } stmt_list
+ %type <stmt>			stmt match_stmt verdict_stmt
+@@ -680,6 +685,10 @@ add_cmd			:	TABLE		table_spec
+ 				handle_merge(&$3->handle, &$2);
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SET, &$2, &@$, $5);
+ 			}
++			|	COUNTER		counter_spec
++			{
++				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_COUNTER, &$2, &@$, NULL);
++			}
+ 			|	MAP		set_spec	map_block_alloc
+ 						'{'	map_block	'}'
+ 			{
+@@ -740,6 +749,10 @@ delete_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	COUNTER		counter_spec
++			{
++				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_COUNTER, &$2, &@$, NULL);
++			}
+ 			|	MAP		set_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
+@@ -770,6 +783,10 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	COUNTER		counter_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_COUNTER, &$2, &@$, NULL);
++			}
+ 			|	RULESET		ruleset_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
+@@ -788,6 +805,10 @@ flush_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	COUNTER		counter_spec
++			{
++				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_COUNTER, &$2, &@$, NULL);
++			}
+ 			|	RULESET		ruleset_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_RULESET, &$2, &@$, NULL);
+@@ -877,6 +898,16 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
+ 				list_add_tail(&$4->list, &$1->sets);
+ 				$$ = $1;
+ 			}
++			|	table_block	COUNTER		counter_identifier
++					counter_block_alloc
++					stmt_seperator
++			{
++				$4->location = @3;
++				handle_merge(&$4->handle, &$3);
++				handle_free(&$3);
++				list_add_tail(&$4->list, &$1->counters);
++				$$ = $1;
++			}
+ 			|	table_block	MAP		set_identifier
+ 					map_block_alloc		'{'	map_block	'}'
+ 					stmt_seperator
+@@ -907,6 +938,12 @@ chain_block		:	/* empty */	{ $$ = $<chain>-1; }
+ 			}
+ 			;
+ 
++counter_block_alloc	:	/* empty */
++			{
++				$$ = counter_alloc(NULL);
++			}
++			;
++
+ set_block_alloc		:	/* empty */
+ 			{
+ 				$$ = set_alloc(NULL);
+@@ -1112,6 +1149,13 @@ set_spec		:	table_spec	identifier
+ 			}
+ 			;
+ 
++counter_spec		:	table_spec	identifier
++			{
++				$$		= $1;
++				$$.counter	= $2;
++			}
++			;
++
+ set_identifier		:	identifier
+ 			{
+ 				memset(&$$, 0, sizeof($$));
+@@ -1119,6 +1163,13 @@ set_identifier		:	identifier
+ 			}
+ 			;
+ 
++counter_identifier	:	identifier
++			{
++				memset(&$$, 0, sizeof($$));
++				$$.counter	= $1;
++			}
++			;
++
+ handle_spec		:	/* empty */
+ 			{
+ 				$$ = 0;
+@@ -1258,7 +1309,6 @@ verdict_map_list_member_expr:	opt_newline	map_lhs_expr	COLON	verdict_expr	opt_ne
+ 			}
+ 			;
+ 
+-
+ counter_stmt		:	counter_stmt_alloc
+ 			|	counter_stmt_alloc	counter_args
+ 
+@@ -1283,6 +1333,10 @@ counter_arg		:	PACKETS			NUM
+ 			{
+ 				$<stmt>0->counter.bytes	 = $2;
+ 			}
++			|	NAME			STRING
++			{
++				$<stmt>0->counter.name = $2;
++			}
+ 			;
+ 
+ log_stmt		:	log_stmt_alloc
+diff --git a/src/rule.c b/src/rule.c
+index feafe26..53538ae 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -32,6 +32,7 @@ void handle_free(struct handle *h)
+ 	xfree(h->table);
+ 	xfree(h->chain);
+ 	xfree(h->set);
++	xfree(h->counter);
+ 	xfree(h->comment);
+ }
+ 
+@@ -45,6 +46,8 @@ void handle_merge(struct handle *dst, const struct handle *src)
+ 		dst->chain = xstrdup(src->chain);
+ 	if (dst->set == NULL && src->set != NULL)
+ 		dst->set = xstrdup(src->set);
++	if (dst->counter == NULL && src->counter != NULL)
++		dst->counter = xstrdup(src->counter);
+ 	if (dst->handle == 0)
+ 		dst->handle = src->handle;
+ 	if (dst->position == 0)
+@@ -212,6 +215,70 @@ void set_print_plain(const struct set *s)
+ 	do_set_print(s, &opts);
+ }
+ 
++struct counter *counter_alloc(const struct location *loc)
++{
++	struct counter *counter;
++
++	counter = xzalloc(sizeof(*counter));
++	counter->refcnt = 1;
++
++	if (loc != NULL)
++		counter->location = *loc;
++
++	return counter;
++}
++
++struct counter *counter_get(struct counter *counter)
++{
++	counter->refcnt++;
++
++	return counter;
++}
++
++void counter_free(struct counter *counter)
++{
++	if (--counter->refcnt > 0)
++		return;
++	handle_free(&counter->handle);
++	xfree(counter);
++}
++
++struct counter *counter_lookup(const struct table *table, const char *name)
++{
++	struct counter *counter;
++
++	list_for_each_entry(counter, &table->counters, list) {
++		if (!strcmp(counter->handle.counter, name))
++			return counter;
++	}
++
++	return NULL;
++}
++
++struct counter *counter_lookup_global(uint32_t family, const char *table,
++			      const char *name)
++{
++	struct handle h;
++	struct table *t;
++
++	h.family = family;
++	h.table = table;
++
++	t = table_lookup(&h);
++	if (t == NULL)
++		return NULL;
++
++	return counter_lookup(t, name);
++}
++
++void counter_print(const struct counter *counter)
++{
++	printf("\tcounter %s { ", counter->handle.counter);
++	printf("packets %"PRIu64" bytes %"PRIu64"", counter->packets,
++	       counter->bytes);
++	printf("}\n");
++}
++
+ struct rule *rule_alloc(const struct location *loc, const struct handle *h)
+ {
+ 	struct rule *rule;
+@@ -467,6 +534,7 @@ struct table *table_alloc(void)
+ 	table = xzalloc(sizeof(*table));
+ 	init_list_head(&table->chains);
+ 	init_list_head(&table->sets);
++	init_list_head(&table->counters);
+ 	init_list_head(&table->scope.symbols);
+ 	return table;
+ }
+@@ -504,6 +572,7 @@ struct table *table_lookup(const struct handle *h)
+ static void table_print(const struct table *table)
+ {
+ 	struct chain *chain;
++	struct counter *counter;
+ 	struct set *set;
+ 	const char *delim = "";
+ 	const char *family = family2str(table->handle.family);
+@@ -516,11 +585,21 @@ static void table_print(const struct table *table)
+ 		set_print(set);
+ 		delim = "\n";
+ 	}
++
++	if (!list_empty(&table->sets))
++		printf("\n");
++	list_for_each_entry(counter, &table->counters, list) {
++		counter_print(counter);
++	}
++	if (!list_empty(&table->chains))
++		printf("\n");
++
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		printf("%s", delim);
+ 		chain_print(chain);
+ 		delim = "\n";
+ 	}
++
+ 	printf("}\n");
+ }
+ 
+@@ -602,6 +681,9 @@ void cmd_free(struct cmd *cmd)
+ 		case CMD_OBJ_EXPORT:
+ 			export_free(cmd->export);
  			break;
-+		case NFT_MSG_NEWCOUNTER:
-+			trans->ctx.table->use--;
-+			list_del_rcu(&nft_trans_counter(trans)->list);
++		case CMD_OBJ_COUNTER:
++			counter_free(cmd->counter);
 +			break;
-+		case NFT_MSG_DELCOUNTER:
-+			trans->ctx.table->use++;
-+			list_add_tail_rcu(&nft_trans_counter(trans)->list,
-+					  &trans->ctx.table->counters);
-+			nft_trans_destroy(trans);
-+			break;
+ 		default:
+ 			BUG("invalid command object type %u\n", cmd->obj);
  		}
- 	}
- 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 8815312..b76531c 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -17,15 +17,13 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- 
--struct nft_counter_priv {
--	seqlock_t	lock;
--	u64		bytes;
--	u64		packets;
-+struct nft_expr_counter {
-+	struct nft_counter *counter;
- };
- 
--static void nft_counter_eval(const struct nft_expr *expr,
--			     struct nft_data data[NFT_REG_MAX + 1],
--			     const struct nft_pktinfo *pkt)
-+static void nft_counter_priv_eval(const struct nft_expr *expr,
-+				  struct nft_data data[NFT_REG_MAX + 1],
-+				  const struct nft_pktinfo *pkt)
- {
- 	struct nft_counter_priv *priv = nft_expr_priv(expr);
- 
-@@ -35,7 +33,20 @@ static void nft_counter_eval(const struct nft_expr *expr,
- 	write_sequnlock_bh(&priv->lock);
- }
- 
--static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static void nft_counter_eval(const struct nft_expr *expr,
-+			     struct nft_data data[NFT_REG_MAX + 1],
-+			     const struct nft_pktinfo *pkt)
-+{
-+	struct nft_expr_counter *priv = nft_expr_priv(expr);
-+
-+	write_seqlock_bh(&priv->counter->counter.lock);
-+	priv->counter->counter.bytes += pkt->skb->len;
-+	priv->counter->counter.packets++;
-+	write_sequnlock_bh(&priv->counter->counter.lock);
-+}
-+
-+static int nft_counter_priv_dump(struct sk_buff *skb,
-+				 const struct nft_expr *expr)
- {
- 	struct nft_counter_priv *priv = nft_expr_priv(expr);
- 	unsigned int seq;
-@@ -58,38 +69,121 @@ nla_put_failure:
- 	return -1;
- }
- 
--static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
-+static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_expr_counter *priv = nft_expr_priv(expr);
-+	unsigned int seq;
-+	u64 bytes;
-+	u64 packets;
-+
-+	if (nla_put_string(skb, NFTA_COUNTER_NAME, priv->counter->name))
-+		goto nla_put_failure;
-+
-+	do {
-+		seq = read_seqbegin(&priv->counter->counter.lock);
-+		bytes	= priv->counter->counter.bytes;
-+		packets	= priv->counter->counter.packets;
-+	} while (read_seqretry(&priv->counter->counter.lock, seq));
-+
-+	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
-+		goto nla_put_failure;
-+	if (nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static const struct nla_policy nft_counter_priv_policy[NFTA_COUNTER_MAX + 1] = {
- 	[NFTA_COUNTER_PACKETS]	= { .type = NLA_U64 },
- 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
- };
- 
-+static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
-+	[NFTA_COUNTER_NAME]	= { .type = NLA_STRING },
-+};
-+
-+static int nft_counter_priv_init(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr,
-+				 const struct nlattr * const tb[])
-+{
-+	struct nft_counter_priv *priv = nft_expr_priv(expr);
-+
-+	if (tb[NFTA_COUNTER_PACKETS]) {
-+		priv->packets =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
-+	}
-+	if (tb[NFTA_COUNTER_BYTES]) {
-+		priv->bytes =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+	}
-+	seqlock_init(&priv->lock);
-+	return 0;
-+}
-+
- static int nft_counter_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
- {
--	struct nft_counter_priv *priv = nft_expr_priv(expr);
-+	struct nft_expr_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter *tmp;
- 
--	if (tb[NFTA_COUNTER_PACKETS])
--	        priv->packets = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
--	if (tb[NFTA_COUNTER_BYTES])
--		priv->bytes = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+	if (!tb[NFTA_COUNTER_NAME])
-+		return -EINVAL;
-+
-+	tmp = nft_counter_lookup(ctx, nla_data(tb[NFTA_COUNTER_NAME]));
-+	if (!tmp)
-+		return -ENOENT;
-+
-+	seqlock_init(&tmp->counter.lock);
-+	priv->counter = tmp;
-+
-+	nft_counter_get(priv->counter);
- 
--	seqlock_init(&priv->lock);
+@@ -625,6 +707,15 @@ static int do_add_chain(struct netlink_ctx *ctx, const struct handle *h,
  	return 0;
  }
  
-+static void nft_counter_destroy(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
++static int do_add_counter(struct netlink_ctx *ctx, const struct handle *h,
++		       struct counter *counter)
 +{
-+	struct nft_expr_counter *priv = nft_expr_priv(expr);
++	if (netlink_add_counter(ctx, h, counter) < 0)
++		return -1;
 +
-+	nft_counter_put(priv->counter);
++	return 0;
 +}
 +
- static struct nft_expr_type nft_counter_type;
--static const struct nft_expr_ops nft_counter_ops = {
-+static const struct nft_expr_ops nft_counter_priv_ops = {
- 	.type		= &nft_counter_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_priv)),
-+	.eval		= nft_counter_priv_eval,
-+	.init		= nft_counter_priv_init,
-+	.dump		= nft_counter_priv_dump,
-+};
-+
-+static const struct nft_expr_ops nft_counter_ops = {
-+	.type		= &nft_counter_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter)),
- 	.eval		= nft_counter_eval,
- 	.init		= nft_counter_init,
- 	.dump		= nft_counter_dump,
-+	.destroy	= nft_counter_destroy,
- };
+ static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 			   const struct expr *expr)
+ {
+@@ -654,6 +745,7 @@ static int do_add_table(struct netlink_ctx *ctx, const struct handle *h,
+ {
+ 	struct chain *chain;
+ 	struct set *set;
++	struct counter *counter;
  
-+static const struct nft_expr_ops *
-+nft_counter_select_ops(const struct nft_ctx *ctx,
-+		       const struct nlattr * const tb[])
+ 	if (netlink_add_table(ctx, h, loc, table, excl) < 0)
+ 		return -1;
+@@ -663,6 +755,11 @@ static int do_add_table(struct netlink_ctx *ctx, const struct handle *h,
+ 			if (do_add_set(ctx, &set->handle, set) < 0)
+ 				return -1;
+ 		}
++		list_for_each_entry(counter, &table->counters, list) {
++			handle_merge(&counter->handle, &table->handle);
++			if (do_add_counter(ctx, &counter->handle, counter) < 0)
++				return -1;
++		}
+ 		list_for_each_entry(chain, &table->chains, list) {
+ 			if (do_add_chain(ctx, &chain->handle, &chain->location,
+ 					 chain, excl) < 0)
+@@ -688,6 +785,8 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ 		return do_add_set(ctx, &cmd->handle, cmd->set);
+ 	case CMD_OBJ_SETELEM:
+ 		return do_add_setelems(ctx, &cmd->handle, cmd->expr);
++	case CMD_OBJ_COUNTER:
++		return do_add_counter(ctx, &cmd->handle, cmd->counter);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+@@ -720,6 +819,9 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
+ 	case CMD_OBJ_SETELEM:
+ 		return netlink_delete_setelems(ctx, &cmd->handle, cmd->expr);
++	case CMD_OBJ_COUNTER:
++		return netlink_delete_counter(ctx, &cmd->handle,
++					      &cmd->location);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+@@ -741,6 +843,21 @@ static int do_list_sets(struct netlink_ctx *ctx, const struct location *loc,
+ 	return 0;
+ }
+ 
++static int do_list_counters(struct netlink_ctx *ctx, const struct location *loc,
++			 struct table *table)
 +{
-+	if (tb[NFTA_COUNTER_NAME])
-+		return &nft_counter_ops;
++	struct counter *counter, *ncounter;
 +
-+	return &nft_counter_priv_ops;
++	if (netlink_list_counters(ctx, &table->handle, loc) < 0)
++		return -1;
++
++	list_for_each_entry_safe(counter, ncounter, &ctx->list, list) {
++		list_move_tail(&counter->list, &table->counters);
++	}
++
++	return 0;
 +}
 +
- static struct nft_expr_type nft_counter_type __read_mostly = {
- 	.name		= "counter",
--	.ops		= &nft_counter_ops,
-+	.select_ops	= &nft_counter_select_ops,
- 	.policy		= nft_counter_policy,
- 	.maxattr	= NFTA_COUNTER_MAX,
- 	.owner		= THIS_MODULE,
+ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct nft_ruleset *rs = netlink_dump_ruleset(ctx, &cmd->handle,
+@@ -760,6 +877,7 @@ static void table_cleanup(struct table *table)
+ {
+ 	struct chain *chain, *nchain;
+ 	struct set *set, *nset;
++	struct counter *counter, *ncounter;
+ 
+ 	list_for_each_entry_safe(chain, nchain, &table->chains, list) {
+ 		list_del(&chain->list);
+@@ -770,6 +888,10 @@ static void table_cleanup(struct table *table)
+ 		list_del(&set->list);
+ 		set_free(set);
+ 	}
++	list_for_each_entry_safe(counter, ncounter, &table->counters, list) {
++		list_del(&counter->list);
++		counter_free(counter);
++	}
+ }
+ 
+ static int do_list_table(struct netlink_ctx *ctx, struct cmd *cmd,
+@@ -780,6 +902,8 @@ static int do_list_table(struct netlink_ctx *ctx, struct cmd *cmd,
+ 
+ 	if (do_list_sets(ctx, &cmd->location, table) < 0)
+ 		goto err;
++	if (do_list_counters(ctx, &cmd->location, table) < 0)
++		goto err;
+ 	if (netlink_list_chains(ctx, &cmd->handle, &cmd->location) < 0)
+ 		goto err;
+ 	list_splice_tail_init(&ctx->list, &table->chains);
+@@ -835,6 +959,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table = NULL;
+ 	struct set *set;
++	struct counter *counter;
+ 
+ 	/* No need to allocate the table object when listing all tables */
+ 	if (cmd->handle.table != NULL) {
+@@ -887,6 +1012,20 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 			set_print(set);
+ 		}
+ 		return 0;
++	case CMD_OBJ_COUNTERS:
++		if (netlink_list_counters(ctx, &cmd->handle, &cmd->location) < 0)
++			goto err;
++		list_for_each_entry(counter, &ctx->list, list) {
++			counter_print(counter);
++		}
++		return 0;
++	case CMD_OBJ_COUNTER:
++		if (netlink_get_counter(ctx, &cmd->handle, &cmd->location) < 0)
++			goto err;
++		list_for_each_entry(counter, &ctx->list, list) {
++			counter_print(counter);
++		}
++		return 0;
+ 	case CMD_OBJ_RULESET:
+ 		return do_list_ruleset(ctx, cmd);
+ 	default:
+diff --git a/src/scanner.l b/src/scanner.l
+index 73c4f8b..1a191f1 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -279,6 +279,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "counter"		{ return COUNTER; }
+ "packets"		{ return PACKETS; }
+ "bytes"			{ return BYTES; }
++"name"			{ return NAME; }
+ 
+ "log"			{ return LOG; }
+ "prefix"		{ return PREFIX; }
+diff --git a/src/statement.c b/src/statement.c
+index d72c6e9..990aa0e 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -105,8 +105,12 @@ struct stmt *verdict_stmt_alloc(const struct location *loc, struct expr *expr)
+ 
+ static void counter_stmt_print(const struct stmt *stmt)
+ {
+-	printf("counter packets %" PRIu64 " bytes %" PRIu64,
+-	       stmt->counter.packets, stmt->counter.bytes);
++	printf("counter ");
++	if (stmt->counter.name)
++		printf("%s", stmt->counter.name);
++	else
++		printf("packets %" PRIu64 " bytes %" PRIu64,
++		       stmt->counter.packets, stmt->counter.bytes);
+ }
+ 
+ static const struct stmt_ops counter_stmt_ops = {
 -- 
 1.7.10.4
 
