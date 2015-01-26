@@ -1,21 +1,21 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH 4/5 v2] example: Parse and create netlink message using the new parsing functions.
-Date: Mon, 26 Jan 2015 12:39:30 +0100
-Message-ID: <1422272370-11007-1-git-send-email-alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 4/5 v3] example: Parse and create netlink message using the new parsing functions.
+Date: Mon, 26 Jan 2015 14:04:01 +0100
+Message-ID: <1422277441-20414-1-git-send-email-alvaroneay@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:59948 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbbAZLlk (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:55011 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244AbbAZNDv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jan 2015 06:41:40 -0500
-Received: by mail-wg0-f41.google.com with SMTP id a1so8495601wgh.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2015 03:41:39 -0800 (PST)
+	Mon, 26 Jan 2015 08:03:51 -0500
+Received: by mail-wi0-f173.google.com with SMTP id r20so9730605wiv.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2015 05:03:50 -0800 (PST)
 Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id q10sm13947709wjr.41.2015.01.26.03.41.37
+        by mx.google.com with ESMTPSA id dn2sm13852396wib.14.2015.01.26.05.03.49
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 26 Jan 2015 03:41:38 -0800 (PST)
+        Mon, 26 Jan 2015 05:03:49 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -30,23 +30,24 @@ netlink message with the action associated. For example:
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
-[changes in v2]
- * Unset the handle in rules if we want to add or insert it.
+[changes in v3]
+ * Rename the example to use another more clear.
+ * Change the help to explain better the use of this file.
 
- examples/Makefile.am       |    4 +
- examples/nft-ruleset-cmd.c |  439 ++++++++++++++++++++++++++++++++++++++++++++
+ examples/Makefile.am              |    4 +
+ examples/nft-ruleset-parse-file.c |  439 +++++++++++++++++++++++++++++++++++++
  2 files changed, 443 insertions(+)
- create mode 100644 examples/nft-ruleset-cmd.c
+ create mode 100644 examples/nft-ruleset-parse-file.c
 
 diff --git a/examples/Makefile.am b/examples/Makefile.am
-index fafcb76..f2a2740 100644
+index fafcb76..e002d36 100644
 --- a/examples/Makefile.am
 +++ b/examples/Makefile.am
 @@ -22,6 +22,7 @@ check_PROGRAMS = nft-table-add		\
  		 nft-set-elem-get	\
  		 nft-set-elem-del	\
  		 nft-ruleset-get	\
-+		 nft-ruleset-cmd	\
++		 nft-ruleset-parse-file	\
  		 nft-compat-get
  
  nft_table_add_SOURCES = nft-table-add.c
@@ -54,16 +55,16 @@ index fafcb76..f2a2740 100644
  nft_ruleset_get_SOURCES = nft-ruleset-get.c
  nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
  
-+nft_ruleset_cmd_SOURCES = nft-ruleset-cmd.c
-+nft_ruleset_cmd_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++nft_ruleset_parse_file_SOURCES = nft-ruleset-parse-file.c
++nft_ruleset_parse_file_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 +
  nft_compat_get_SOURCES = nft-compat-get.c
  nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-diff --git a/examples/nft-ruleset-cmd.c b/examples/nft-ruleset-cmd.c
+diff --git a/examples/nft-ruleset-parse-file.c b/examples/nft-ruleset-parse-file.c
 new file mode 100644
-index 0000000..6338fa7
+index 0000000..7e8d989
 --- /dev/null
-+++ b/examples/nft-ruleset-cmd.c
++++ b/examples/nft-ruleset-parse-file.c
 @@ -0,0 +1,439 @@
 +/*
 + * (C) 2014 by Alvaro Neira Ayuso <alvaroneay@gmail.com>
@@ -408,7 +409,7 @@ index 0000000..6338fa7
 +	struct mnl_socket *nl;
 +
 +	if (argc < 2) {
-+		printf("Usage: %s <file /.json/.xml>\n", argv[0]);
++		printf("Usage: %s <file>\n", argv[0]);
 +		exit(EXIT_FAILURE);
 +	}
 +
