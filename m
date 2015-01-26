@@ -1,132 +1,80 @@
-From: Richard Guy Briggs <rgb@tricolour.ca>
-Subject: NetDev 0.1 conference post-CFP deadline weekly update
-Date: Mon, 26 Jan 2015 08:35:42 -0500
-Message-ID: <20150126133542.GX30763@toccata2.tricolour.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: info@netdev01.org, speakers@netdev01.org, attendees@netdev01.org
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [nft_compat PATCH v3] nft_compat: adds support for ebtables match/target
+Date: Mon, 26 Jan 2015 16:27:21 +0100
+Message-ID: <1422286041-5660-1-git-send-email-giuseppelng@gmail.com>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:34339 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755960AbbAZP1j (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Jan 2015 10:27:39 -0500
+Received: by mail-we0-f170.google.com with SMTP id w55so4261881wes.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2015 07:27:38 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fellow netheads:
+This extends nft_compat to support ebtables matches/targets.
 
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ net/netfilter/nft_compat.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-New Sponsors (All listed at: https://www.netdev01.org/sponsors)
-=============
-We are pleased to announce a sixth sponsor:
-CENGN http://www.cengn.ca/
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 265e190..b0635c4 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -19,6 +19,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter_bridge/ebtables.h>
+ #include <net/netfilter/nf_tables.h>
+ 
+ static int nft_compat_chain_validate_dependency(const char *tablename,
+@@ -40,6 +41,7 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
+ union nft_entry {
+ 	struct ipt_entry e4;
+ 	struct ip6t_entry e6;
++	struct ebt_entry ebt;
+ };
+ 
+ static inline void
+@@ -100,6 +102,10 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 		entry->e6.ipv6.proto = proto;
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
++	case NFPROTO_BRIDGE:
++		entry->ebt.ethproto = proto;
++		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
++		break;
+ 	}
+ 	par->entryinfo	= entry;
+ 	par->target	= target;
+@@ -307,6 +313,10 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 		entry->e6.ipv6.proto = proto;
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
++	case NFPROTO_BRIDGE:
++		entry->ebt.ethproto = proto;
++		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
++		break;
+ 	}
+ 	par->entryinfo	= entry;
+ 	par->match	= match;
+@@ -490,6 +500,9 @@ nfnl_compat_get(struct sock *nfnl, struct sk_buff *skb,
+ 	case AF_INET6:
+ 		fmt = "ip6t_%s";
+ 		break;
++	case NFPROTO_BRIDGE:
++		fmt = "ebt_%s";
++		break;
+ 	default:
+ 		pr_err("nft_compat: unsupported protocol %d\n",
+ 			nfmsg->nfgen_family);
+-- 
+1.9.1
 
-
-Hotel earlybird special rates have expired as of this past Friday.
-There are lots of big and small hotels in Ottawa, but they will fill up
-fast as Winterlude approaches, so book something soon.  There may be
-some possibilities to billet locally, but don't leave it last minute.
-
-The call for proposal deadline was this past Saturday, so expect a
-schedule to be published this week.
-
-
-Here is the post-CFP deadline update of the activity so far in NetDev
-0.1 you may have missed if you aren't following the RSS feed or twitter:
-
-
-Confirmed keynote speaker:
-==========================
-David S. Miller - The Current State of Linux kernel Networking.
-
-
-Accepted talks: (All listed: https://www.netdev01.org/sessions )
-==========================
-The case for eliminating inconsistencies between Linux kernel IPv4/IPv6 API
-https://www.netdev01.org/sessions/25
-Roopa Prabhu
-
-Networking in Containers and Container Clusters
-https://www.netdev01.org/sessions/27
-Victor Marmol
-
-ipvlan
-https://www.netdev01.org/sessions/28
-Mahesh Bandewar
-
-BIRD Internet Routing Daemon
-https://www.netdev01.org/sessions/29
-Ondrej Zajicek
-
-Cooperative networking virtualization for the industrial server applications
-https://www.netdev01.org/news/46
-Vasiliy Tolstoy, Sergey Kovalev
-
-
-Accepted Tutorials (All listed: https://www.netdev01.org/sessions )
-===================
-Hardware Accelerating Linux Network Functions
-https://www.netdev01.org/sessions/24
-Roopa Prabhu, Toshiaki Makita
-
-nftables tutorial
-https://www.netdev01.org/sessions/30
-Pablo Neira Ayuso, Patrick McHardy
-
-
-Accepted BoFs:
-===================
-Netfilter BoF
-https://www.netdev01.org/sessions/26
-Pete Bohmann, David Gervais, Josh Hunt
-
-
-All of the accepted proposals are new work.  A couple of proposals have been
-returned for rework prior to acceptance.  There are a few proposals
-currently making their way through the technical committee vetting
-process.  The committee has so far been very impressed with the quality
-of proposals submitted.
-
-
-More coming in future updates.
-If you've gotten this far reading - please go and register.
-Registration https://onlineregistrations.ca/netdev01/
-$100/day, or $350 for 4 days (Cdn dollars, reel cheep at the moment).
-(online reg closes Feb 12th). Again:
-Registering earlier rather than later helps us plan properly for numbers
-of attendees, ensuring venue sizes and supplies are appropriate without
-wasting resources.
-
-
-Sponsors:
-=========
-NetDev 0.1 would like to gratefully acknowledge all our sponsors: 
-https://netdev01.org/sponsors
-CENGN			http://www.cengn.ca/
-Google			https://www.google.ca
-Qualcomm		https://www.qualcomm.com/
-Verizon			http://www.verizon.com/
-Cumulus Networks	http://cumulusnetworks.com/
-Mojatatu Networks	http://mojatatu.com/
-
-
-Important Dates:
-==========================
-December 2, 2014	Call for Papers opens
-December 10, 2014	Registration opens
-January 23, 2015	Hotel discount rates deadline
-January 24, 2015	Call for sessions deadline
-February 12, 2015	On-line registration closes
-February 14-17, 2015	Conference days
-
--------------------------------------------------------------------------------
-THE Technical Conference on Linux Networking, February 14-17, 2015, Ottawa, Canada
-https://netdev01.org/
-
-Contact:			info@netdev01.info
-Main site:			https://www.netdev01.org/
-Announcement:			https://www.netdev01.org/announce
-CFP:				https://www.netdev01.org/cfp
-Travel/hotel/weather/clothing:	https://www.netdev01.org/travel
-RSS feed:			https://netdev01.org/atom
-Follow us on Twitter: @netdev01	https://twitter.com/netdev01
